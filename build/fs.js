@@ -12,7 +12,9 @@ function replaceInFile (filename, regex, replacement) {
 
 function copyFile (oldName, newName) {
     const contents = fs.readFileSync (oldName, 'utf8')
-    fs.truncateSync (newName)
+    if (fs.existsSync (newName)) {
+        fs.truncateSync (newName)
+    }
     fs.writeFileSync (newName, contents)
 }
 

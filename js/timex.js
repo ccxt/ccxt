@@ -1,7 +1,13 @@
 'use strict';
 
+// ---------------------------------------------------------------------------
+
 const Exchange = require ('./base/Exchange');
-const { ExchangeError, PermissionDenied, ExchangeNotAvailable, InsufficientFunds, OrderNotFound, InvalidOrder, RateLimitExceeded, NotSupported, BadRequest, AuthenticationError } = require ('./base/errors');
+const { ArgumentsRequired, ExchangeError, PermissionDenied, ExchangeNotAvailable, InsufficientFunds, OrderNotFound, InvalidOrder, RateLimitExceeded, NotSupported, BadRequest, AuthenticationError } = require ('./base/errors');
+const { TICK_SIZE } = require ('./base/functions/number');
+const Precise = require ('./base/Precise');
+
+// ---------------------------------------------------------------------------
 
 module.exports = class timex extends Exchange {
     describe () {
@@ -12,17 +18,62 @@ module.exports = class timex extends Exchange {
             'version': 'v1',
             'rateLimit': 1500,
             'has': {
-                'CORS': false,
+                'CORS': undefined,
+                'spot': true,
+                'margin': false,
+                'swap': false,
+                'future': false,
+                'option': false,
+                'addMargin': false,
+                'cancelOrder': true,
                 'cancelOrders': true,
+                'createOrder': true,
+                'createReduceOnlyOrder': false,
+                'createStopLimitOrder': false,
+                'createStopMarketOrder': false,
+                'createStopOrder': false,
                 'editOrder': true,
+                'fetchBalance': true,
+                'fetchBorrowRate': false,
+                'fetchBorrowRateHistories': false,
+                'fetchBorrowRateHistory': false,
+                'fetchBorrowRates': false,
+                'fetchBorrowRatesPerSymbol': false,
                 'fetchClosedOrders': true,
                 'fetchCurrencies': true,
+                'fetchDeposit': false,
+                'fetchDeposits': true,
+                'fetchFundingHistory': false,
+                'fetchFundingRate': false,
+                'fetchFundingRateHistory': false,
+                'fetchFundingRates': false,
+                'fetchIndexOHLCV': false,
+                'fetchLeverage': false,
+                'fetchLeverageTiers': false,
+                'fetchMarginMode': false,
+                'fetchMarkets': true,
+                'fetchMarkOHLCV': false,
                 'fetchMyTrades': true,
                 'fetchOHLCV': true,
+                'fetchOpenInterestHistory': false,
                 'fetchOpenOrders': true,
                 'fetchOrder': true,
+                'fetchOrderBook': true,
+                'fetchPosition': false,
+                'fetchPositionMode': false,
+                'fetchPositions': false,
+                'fetchPositionsRisk': false,
+                'fetchPremiumIndexOHLCV': false,
+                'fetchTicker': true,
                 'fetchTickers': true,
+                'fetchTrades': true,
                 'fetchTradingFee': true, // maker fee only
+                'fetchWithdrawal': false,
+                'fetchWithdrawals': true,
+                'reduceMargin': false,
+                'setLeverage': false,
+                'setMarginMode': false,
+                'setPositionMode': false,
             },
             'timeframes': {
                 '1m': 'I1',
@@ -39,17 +90,30 @@ module.exports = class timex extends Exchange {
             },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/70423869-6839ab00-1a7f-11ea-8f94-13ae72c31115.jpg',
-                'api': 'https://plasma-relay-backend.timex.io',
+                'api': {
+                    'rest': 'https://plasma-relay-backend.timex.io',
+                },
                 'www': 'https://timex.io',
                 'doc': 'https://docs.timex.io',
                 'referral': 'https://timex.io/?refcode=1x27vNkTbP1uwkCck',
             },
             'api': {
+                'addressbook': {
+                    'get': [
+                        'me',
+                    ],
+                    'post': [
+                        '',
+                        'id/{id}',
+                        'id/{id}/remove',
+                    ],
+                },
                 'custody': {
                     'get': [
                         'credentials', // Get api key for address
                         'credentials/h/{hash}', // Get api key by hash
                         'credentials/k/{key}', // Get api key by key
+                        'credentials/me',
                         'credentials/me/address', // Get api key by hash
                         'deposit-addresses', // Get deposit addresses list
                         'deposit-addresses/h/{hash}', // Get deposit address by hash
@@ -77,6 +141,13 @@ module.exports = class timex extends Exchange {
                         's/{symbol}/remove/prepare', // Prepare remove currency by symbol
                         's/{symbol}/update/perform', // Prepare update currency by symbol
                         's/{symbol}/update/prepare', // Prepare update currency by symbol
+                    ],
+                },
+                'manager': {
+                    'get': [
+                        'deposits',
+                        'transfers',
+                        'withdrawals',
                     ],
                 },
                 'markets': {
@@ -138,6 +209,7 @@ module.exports = class timex extends Exchange {
                     ],
                 },
             },
+            'precisionMode': TICK_SIZE,
             'exceptions': {
                 'exact': {
                     '0': ExchangeError,
@@ -168,6 +240,7 @@ module.exports = class timex extends Exchange {
                 },
             },
             'options': {
+                'expireIn': 31536000, // 365 × 24 × 60 × 60
                 'fetchTickers': {
                     'period': '1d',
                 },
@@ -190,6 +263,13 @@ module.exports = class timex extends Exchange {
     }
 
     async fetchMarkets (params = {}) {
+        /**
+         * @method
+         * @name timex#fetchMarkets
+         * @description retrieves data on all markets for timex
+         * @param {object} params extra parameters specific to the exchange api endpoint
+         * @returns {[object]} an array of objects representing market data
+         */
         const response = await this.publicGetMarkets (params);
         //
         //     [
@@ -220,6 +300,13 @@ module.exports = class timex extends Exchange {
     }
 
     async fetchCurrencies (params = {}) {
+        /**
+         * @method
+         * @name timex#fetchCurrencies
+         * @description fetches all available currencies on an exchange
+         * @param {object} params extra parameters specific to the timex api endpoint
+         * @returns {object} an associative dictionary of currencies
+         */
         const response = await this.publicGetCurrencies (params);
         //
         //     [
@@ -254,7 +341,134 @@ module.exports = class timex extends Exchange {
         return this.indexBy (result, 'code');
     }
 
+    async fetchDeposits (code = undefined, since = undefined, limit = undefined, params = {}) {
+        /**
+         * @method
+         * @name timex#fetchDeposits
+         * @description fetch all deposits made to an account
+         * @param {string|undefined} code unified currency code
+         * @param {int|undefined} since the earliest time in ms to fetch deposits for
+         * @param {int|undefined} limit the maximum number of deposits structures to retrieve
+         * @param {object} params extra parameters specific to the timex api endpoint
+         * @returns {[object]} a list of [transaction structures]{@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure}
+         */
+        const address = this.safeString (params, 'address');
+        params = this.omit (params, 'address');
+        if (address === undefined) {
+            throw new ArgumentsRequired (this.id + ' fetchDeposits() requires an address parameter');
+        }
+        const request = {
+            'address': address,
+        };
+        const response = await this.managerGetDeposits (this.extend (request, params));
+        //
+        //     [
+        //         {
+        //             "from": "0x1134cc86b45039cc211c6d1d2e4b3c77f60207ed",
+        //             "timestamp": "2022-01-01T00:00:00Z",
+        //             "to": "0x1134cc86b45039cc211c6d1d2e4b3c77f60207ed",
+        //             "token": "0x6baad3fe5d0fd4be604420e728adbd68d67e119e",
+        //             "transferHash": "0x5464cdff35448314e178b8677ea41e670ea0f2533f4e52bfbd4e4a6cfcdef4c2",
+        //             "value": "100"
+        //         }
+        //     ]
+        //
+        return this.parseTransactions (response, code, since, limit);
+    }
+
+    async fetchWithdrawals (code = undefined, since = undefined, limit = undefined, params = {}) {
+        /**
+         * @method
+         * @name timex#fetchWithdrawals
+         * @description fetch all withdrawals made to an account
+         * @param {string|undefined} code unified currency code
+         * @param {int|undefined} since the earliest time in ms to fetch withdrawals for
+         * @param {int|undefined} limit the maximum number of transaction structures to retrieve
+         * @param {object} params extra parameters specific to the timex api endpoint
+         * @returns {[object]} a list of [transaction structures]{@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure}
+         */
+        const address = this.safeString (params, 'address');
+        params = this.omit (params, 'address');
+        if (address === undefined) {
+            throw new ArgumentsRequired (this.id + ' fetchDeposits() requires an address parameter');
+        }
+        const request = {
+            'address': address,
+        };
+        const response = await this.managerGetWithdrawals (this.extend (request, params));
+        //
+        //     [
+        //         {
+        //             "from": "0x1134cc86b45039cc211c6d1d2e4b3c77f60207ed",
+        //             "timestamp": "2022-01-01T00:00:00Z",
+        //             "to": "0x1134cc86b45039cc211c6d1d2e4b3c77f60207ed",
+        //             "token": "0x6baad3fe5d0fd4be604420e728adbd68d67e119e",
+        //             "transferHash": "0x5464cdff35448314e178b8677ea41e670ea0f2533f4e52bfbd4e4a6cfcdef4c2",
+        //             "value": "100"
+        //         }
+        //     ]
+        //
+        return this.parseTransactions (response, code, since, limit);
+    }
+
+    getCurrencyByAddress (address) {
+        const currencies = this.currencies;
+        for (let i = 0; i < currencies.length; i++) {
+            const currency = currencies[i];
+            const info = this.safeValue (currency, 'info', {});
+            const a = this.safeString (info, 'address');
+            if (a === address) {
+                return currency;
+            }
+        }
+        return undefined;
+    }
+
+    parseTransaction (transaction, currency = undefined) {
+        //
+        //     {
+        //         "from": "0x1134cc86b45039cc211c6d1d2e4b3c77f60207ed",
+        //         "timestamp": "2022-01-01T00:00:00Z",
+        //         "to": "0x1134cc86b45039cc211c6d1d2e4b3c77f60207ed",
+        //         "token": "0x6baad3fe5d0fd4be604420e728adbd68d67e119e",
+        //         "transferHash": "0x5464cdff35448314e178b8677ea41e670ea0f2533f4e52bfbd4e4a6cfcdef4c2",
+        //         "value": "100"
+        //     }
+        //
+        const datetime = this.safeString (transaction, 'timestamp');
+        const currencyAddresss = this.safeString (transaction, 'token', '');
+        currency = this.getCurrencyByAddress (currencyAddresss);
+        return {
+            'info': transaction,
+            'id': this.safeString2 (transaction, 'transferHash'),
+            'txid': this.safeString (transaction, 'txid'),
+            'timestamp': this.parse8601 (datetime),
+            'datetime': datetime,
+            'network': undefined,
+            'address': undefined,
+            'addressTo': this.safeString (transaction, 'to'),
+            'addressFrom': this.safeString (transaction, 'from'),
+            'tag': undefined,
+            'tagTo': undefined,
+            'tagFrom': undefined,
+            'type': undefined,
+            'amount': this.safeNumber (transaction, 'value'),
+            'currency': this.safeCurrencyCode (undefined, currency),
+            'status': 'ok',
+            'updated': undefined,
+            'fee': undefined,
+        };
+    }
+
     async fetchTickers (symbols = undefined, params = {}) {
+        /**
+         * @method
+         * @name timex#fetchTickers
+         * @description fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
+         * @param {[string]|undefined} symbols unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
+         * @param {object} params extra parameters specific to the timex api endpoint
+         * @returns {object} an array of [ticker structures]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
+         */
         await this.loadMarkets ();
         const period = this.safeString (this.options['fetchTickers'], 'period', '1d');
         const request = {
@@ -282,6 +496,14 @@ module.exports = class timex extends Exchange {
     }
 
     async fetchTicker (symbol, params = {}) {
+        /**
+         * @method
+         * @name timex#fetchTicker
+         * @description fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+         * @param {string} symbol unified symbol of the market to fetch the ticker for
+         * @param {object} params extra parameters specific to the timex api endpoint
+         * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
+         */
         await this.loadMarkets ();
         const market = this.market (symbol);
         const period = this.safeString (this.options['fetchTickers'], 'period', '1d');
@@ -312,6 +534,15 @@ module.exports = class timex extends Exchange {
     }
 
     async fetchOrderBook (symbol, limit = undefined, params = {}) {
+        /**
+         * @method
+         * @name timex#fetchOrderBook
+         * @description fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+         * @param {string} symbol unified symbol of the market to fetch the order book for
+         * @param {int|undefined} limit the maximum amount of order book entries to return
+         * @param {object} params extra parameters specific to the timex api endpoint
+         * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-book-structure} indexed by market symbols
+         */
         await this.loadMarkets ();
         const market = this.market (symbol);
         const request = {
@@ -346,10 +577,20 @@ module.exports = class timex extends Exchange {
         //     }
         //
         const timestamp = this.parse8601 (this.safeString (response, 'timestamp'));
-        return this.parseOrderBook (response, timestamp, 'bid', 'ask', 'price', 'baseTokenAmount');
+        return this.parseOrderBook (response, symbol, timestamp, 'bid', 'ask', 'price', 'baseTokenAmount');
     }
 
     async fetchTrades (symbol, since = undefined, limit = undefined, params = {}) {
+        /**
+         * @method
+         * @name timex#fetchTrades
+         * @description get the list of most recent trades for a particular symbol
+         * @param {string} symbol unified symbol of the market to fetch trades for
+         * @param {int|undefined} since timestamp in ms of the earliest trade to fetch
+         * @param {int|undefined} limit the maximum amount of trades to fetch
+         * @param {object} params extra parameters specific to the timex api endpoint
+         * @returns {[object]} a list of [trade structures]{@link https://docs.ccxt.com/en/latest/manual.html?#public-trades}
+         */
         await this.loadMarkets ();
         const market = this.market (symbol);
         const options = this.safeValue (this.options, 'fetchTrades', {});
@@ -388,6 +629,17 @@ module.exports = class timex extends Exchange {
     }
 
     async fetchOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
+        /**
+         * @method
+         * @name timex#fetchOHLCV
+         * @description fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+         * @param {string} symbol unified symbol of the market to fetch OHLCV data for
+         * @param {string} timeframe the length of time each candle represents
+         * @param {int|undefined} since timestamp in ms of the earliest candle to fetch
+         * @param {int|undefined} limit the maximum amount of candles to fetch
+         * @param {object} params extra parameters specific to the timex api endpoint
+         * @returns {[[int]]} A list of candles ordered as timestamp, open, high, low, close, volume
+         */
         await this.loadMarkets ();
         const market = this.market (symbol);
         const request = {
@@ -396,17 +648,16 @@ module.exports = class timex extends Exchange {
         };
         // if since and limit are not specified
         const duration = this.parseTimeframe (timeframe);
+        if (limit === undefined) {
+            limit = 1000; // exchange provides tens of thousands of data, but we set generous default value
+        }
         if (since !== undefined) {
             request['from'] = this.iso8601 (since);
-            if (limit !== undefined) {
-                request['till'] = this.iso8601 (this.sum (since, this.sum (limit, 1) * duration * 1000));
-            }
-        } else if (limit !== undefined) {
+            request['till'] = this.iso8601 (this.sum (since, this.sum (limit, 1) * duration * 1000));
+        } else {
             const now = this.milliseconds ();
             request['till'] = this.iso8601 (now);
             request['from'] = this.iso8601 (now - limit * duration * 1000 - 1);
-        } else {
-            request['till'] = this.iso8601 (this.milliseconds ());
         }
         const response = await this.publicGetCandles (this.extend (request, params));
         //
@@ -425,9 +676,34 @@ module.exports = class timex extends Exchange {
         return this.parseOHLCVs (response, market, timeframe, since, limit);
     }
 
+    parseBalance (response) {
+        const result = {
+            'info': response,
+            'timestamp': undefined,
+            'datetime': undefined,
+        };
+        for (let i = 0; i < response.length; i++) {
+            const balance = response[i];
+            const currencyId = this.safeString (balance, 'currency');
+            const code = this.safeCurrencyCode (currencyId);
+            const account = this.account ();
+            account['total'] = this.safeString (balance, 'totalBalance');
+            account['used'] = this.safeString (balance, 'lockedBalance');
+            result[code] = account;
+        }
+        return this.safeBalance (result);
+    }
+
     async fetchBalance (params = {}) {
+        /**
+         * @method
+         * @name timex#fetchBalance
+         * @description query for balance and get the amount of funds available for trading or funds locked in orders
+         * @param {object} params extra parameters specific to the timex api endpoint
+         * @returns {object} a [balance structure]{@link https://docs.ccxt.com/en/latest/manual.html?#balance-structure}
+         */
         await this.loadMarkets ();
-        const balances = await this.tradingGetBalances (params);
+        const response = await this.tradingGetBalances (params);
         //
         //     [
         //         {"currency":"BTC","totalBalance":"0","lockedBalance":"0"},
@@ -437,32 +713,42 @@ module.exports = class timex extends Exchange {
         //         {"currency":"USDT","totalBalance":"0","lockedBalance":"0"}
         //     ]
         //
-        const result = { 'info': balances };
-        for (let i = 0; i < balances.length; i++) {
-            const balance = balances[i];
-            const currencyId = this.safeString (balance, 'currency');
-            const code = this.safeCurrencyCode (currencyId);
-            const account = this.account ();
-            account['total'] = this.safeFloat (balance, 'totalBalance');
-            account['used'] = this.safeFloat (balance, 'lockedBalance');
-            result[code] = account;
-        }
-        return this.parseBalance (result);
+        return this.parseBalance (response);
     }
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
+        /**
+         * @method
+         * @name timex#createOrder
+         * @description create a trade order
+         * @param {string} symbol unified symbol of the market to create an order in
+         * @param {string} type 'market' or 'limit'
+         * @param {string} side 'buy' or 'sell'
+         * @param {float} amount how much of currency you want to trade in units of base currency
+         * @param {float|undefined} price the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+         * @param {object} params extra parameters specific to the timex api endpoint
+         * @returns {object} an [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
+         */
         await this.loadMarkets ();
         const market = this.market (symbol);
+        const uppercaseSide = side.toUpperCase ();
+        let uppercaseType = type.toUpperCase ();
+        const postOnly = this.safeValue (params, 'postOnly', false);
+        if (postOnly) {
+            uppercaseType = 'POST_ONLY';
+            params = this.omit (params, [ 'postOnly' ]);
+        }
         const request = {
             'symbol': market['id'],
             'quantity': this.amountToPrecision (symbol, amount),
-            'side': side.toUpperCase (),
+            'side': uppercaseSide,
+            'orderTypes': uppercaseType,
             // 'clientOrderId': '123',
             // 'expireIn': 1575523308, // in seconds
             // 'expireTime': 1575523308, // unix timestamp
         };
         let query = params;
-        if (type === 'limit') {
+        if ((uppercaseType === 'LIMIT') || (uppercaseType === 'POST_ONLY')) {
             request['price'] = this.priceToPrecision (symbol, price);
             const defaultExpireIn = this.safeInteger (this.options, 'expireIn');
             const expireTime = this.safeValue (params, 'expireTime');
@@ -472,7 +758,7 @@ module.exports = class timex extends Exchange {
             } else if (expireIn !== undefined) {
                 request['expireIn'] = expireIn;
             } else {
-                throw new InvalidOrder (this.id + ' createOrder method requires a expireTime or expireIn param for a ' + type + ' order, you can also set the expireIn exchange-wide option');
+                throw new InvalidOrder (this.id + ' createOrder() method requires a expireTime or expireIn param for a ' + type + ' order, you can also set the expireIn exchange-wide option');
             }
             query = this.omit (params, [ 'expireTime', 'expireIn' ]);
         } else {
@@ -558,11 +844,29 @@ module.exports = class timex extends Exchange {
     }
 
     async cancelOrder (id, symbol = undefined, params = {}) {
+        /**
+         * @method
+         * @name timex#cancelOrder
+         * @description cancels an open order
+         * @param {string} id order id
+         * @param {string|undefined} symbol not used by timex cancelOrder ()
+         * @param {object} params extra parameters specific to the timex api endpoint
+         * @returns {object} An [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
+         */
         await this.loadMarkets ();
         return await this.cancelOrders ([ id ], symbol, params);
     }
 
     async cancelOrders (ids, symbol = undefined, params = {}) {
+        /**
+         * @method
+         * @name timex#cancelOrders
+         * @description cancel multiple orders
+         * @param {[string]} ids order ids
+         * @param {string|undefined} symbol unified market symbol, default is undefined
+         * @param {object} params extra parameters specific to the timex api endpoint
+         * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
+         */
         await this.loadMarkets ();
         const request = {
             'id': ids,
@@ -596,6 +900,14 @@ module.exports = class timex extends Exchange {
     }
 
     async fetchOrder (id, symbol = undefined, params = {}) {
+        /**
+         * @method
+         * @name timex#fetchOrder
+         * @description fetches information on an order made by the user
+         * @param {string|undefined} symbol not used by timex fetchOrder
+         * @param {object} params extra parameters specific to the timex api endpoint
+         * @returns {object} An [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
+         */
         await this.loadMarkets ();
         const request = {
             'orderHash': id,
@@ -640,6 +952,16 @@ module.exports = class timex extends Exchange {
     }
 
     async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        /**
+         * @method
+         * @name timex#fetchOpenOrders
+         * @description fetch all unfilled currently open orders
+         * @param {string|undefined} symbol unified market symbol
+         * @param {int|undefined} since the earliest time in ms to fetch open orders for
+         * @param {int|undefined} limit the maximum number of  open orders structures to retrieve
+         * @param {object} params extra parameters specific to the timex api endpoint
+         * @returns {[object]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
+         */
         await this.loadMarkets ();
         const options = this.safeValue (this.options, 'fetchOpenOrders', {});
         const defaultSort = this.safeValue (options, 'sort', 'createdAt,asc');
@@ -685,6 +1007,16 @@ module.exports = class timex extends Exchange {
     }
 
     async fetchClosedOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        /**
+         * @method
+         * @name timex#fetchClosedOrders
+         * @description fetches information on multiple closed orders made by the user
+         * @param {string|undefined} symbol unified market symbol of the market orders were made in
+         * @param {int|undefined} since the earliest time in ms to fetch orders for
+         * @param {int|undefined} limit the maximum number of  orde structures to retrieve
+         * @param {object} params extra parameters specific to the timex api endpoint
+         * @returns {[object]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
+         */
         await this.loadMarkets ();
         const options = this.safeValue (this.options, 'fetchClosedOrders', {});
         const defaultSort = this.safeValue (options, 'sort', 'createdAt,asc');
@@ -735,6 +1067,16 @@ module.exports = class timex extends Exchange {
     }
 
     async fetchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        /**
+         * @method
+         * @name timex#fetchMyTrades
+         * @description fetch all trades made by the user
+         * @param {string|undefined} symbol unified market symbol
+         * @param {int|undefined} since the earliest time in ms to fetch trades for
+         * @param {int|undefined} limit the maximum number of trades structures to retrieve
+         * @param {object} params extra parameters specific to the timex api endpoint
+         * @returns {[object]} a list of [trade structures]{@link https://docs.ccxt.com/en/latest/manual.html#trade-structure}
+         */
         await this.loadMarkets ();
         const options = this.safeValue (this.options, 'fetchMyTrades', {});
         const defaultSort = this.safeValue (options, 'sort', 'timestamp,asc');
@@ -787,7 +1129,32 @@ module.exports = class timex extends Exchange {
         return this.parseTrades (trades, market, since, limit);
     }
 
+    parseTradingFee (fee, market = undefined) {
+        //
+        //     {
+        //         "fee": 0.0075,
+        //         "market": "ETHBTC"
+        //     }
+        //
+        const marketId = this.safeString (fee, 'market');
+        const rate = this.safeNumber (fee, 'fee');
+        return {
+            'info': fee,
+            'symbol': this.safeSymbol (marketId, market),
+            'maker': rate,
+            'taker': rate,
+        };
+    }
+
     async fetchTradingFee (symbol, params = {}) {
+        /**
+         * @method
+         * @name timex#fetchTradingFee
+         * @description fetch the trading fees for a market
+         * @param {string} symbol unified market symbol
+         * @param {object} params extra parameters specific to the timex api endpoint
+         * @returns {object} a [fee structure]{@link https://docs.ccxt.com/en/latest/manual.html#fee-structure}
+         */
         await this.loadMarkets ();
         const market = this.market (symbol);
         const request = {
@@ -803,11 +1170,7 @@ module.exports = class timex extends Exchange {
         //     ]
         //
         const result = this.safeValue (response, 0, {});
-        return {
-            'info': response,
-            'maker': this.safeFloat (result, 'fee'),
-            'taker': undefined,
-        };
+        return this.parseTradingFee (result, market);
     }
 
     parseMarket (market) {
@@ -831,42 +1194,64 @@ module.exports = class timex extends Exchange {
         //     }
         //
         const locked = this.safeValue (market, 'locked');
-        const active = !locked;
         const id = this.safeString (market, 'symbol');
         const baseId = this.safeString (market, 'baseCurrency');
         const quoteId = this.safeString (market, 'quoteCurrency');
         const base = this.safeCurrencyCode (baseId);
         const quote = this.safeCurrencyCode (quoteId);
-        const symbol = base + '/' + quote;
-        const precision = {
-            'amount': this.precisionFromString (this.safeString (market, 'quantityIncrement')),
-            'price': this.precisionFromString (this.safeString (market, 'tickSize')),
-        };
-        const amountIncrement = this.safeFloat (market, 'quantityIncrement');
-        const minBase = this.safeFloat (market, 'baseMinSize');
-        const minAmount = Math.max (amountIncrement, minBase);
-        const priceIncrement = this.safeFloat (market, 'tickSize');
-        const minCost = this.safeFloat (market, 'quoteMinSize');
-        const limits = {
-            'amount': { 'min': minAmount, 'max': undefined },
-            'price': { 'min': priceIncrement, 'max': undefined },
-            'cost': { 'min': Math.max (minCost, minAmount * priceIncrement), 'max': undefined },
-        };
-        const taker = this.safeFloat (market, 'takerFee');
-        const maker = this.safeFloat (market, 'makerFee');
+        const amountIncrement = this.safeString (market, 'quantityIncrement');
+        const minBase = this.safeString (market, 'baseMinSize');
+        const minAmount = Precise.stringMax (amountIncrement, minBase);
+        const priceIncrement = this.safeString (market, 'tickSize');
+        const minCost = this.safeString (market, 'quoteMinSize');
         return {
             'id': id,
-            'symbol': symbol,
+            'symbol': base + '/' + quote,
             'base': base,
             'quote': quote,
+            'settle': undefined,
             'baseId': baseId,
             'quoteId': quoteId,
+            'settleId': undefined,
             'type': 'spot',
-            'active': active,
-            'precision': precision,
-            'limits': limits,
-            'taker': taker,
-            'maker': maker,
+            'spot': true,
+            'margin': false,
+            'swap': false,
+            'future': false,
+            'option': false,
+            'active': !locked,
+            'contract': false,
+            'linear': undefined,
+            'inverse': undefined,
+            'taker': this.safeNumber (market, 'takerFee'),
+            'maker': this.safeNumber (market, 'makerFee'),
+            'contractSize': undefined,
+            'expiry': undefined,
+            'expiryDatetime': undefined,
+            'strike': undefined,
+            'optionType': undefined,
+            'precision': {
+                'amount': this.safeNumber (market, 'quantityIncrement'),
+                'price': this.safeNumber (market, 'tickSize'),
+            },
+            'limits': {
+                'leverage': {
+                    'min': undefined,
+                    'max': undefined,
+                },
+                'amount': {
+                    'min': this.parseNumber (minAmount),
+                    'max': undefined,
+                },
+                'price': {
+                    'min': this.parseNumber (priceIncrement),
+                    'max': undefined,
+                },
+                'cost': {
+                    'min': minCost,
+                    'max': undefined,
+                },
+            },
             'info': market,
         };
     }
@@ -912,9 +1297,11 @@ module.exports = class timex extends Exchange {
         const id = this.safeString (currency, 'symbol');
         const code = this.safeCurrencyCode (id);
         const name = this.safeString (currency, 'name');
-        const precision = this.safeInteger (currency, 'decimals');
-        const active = this.safeValue (currency, 'active');
-        // const fee = this.safeFloat (currency, 'withdrawalFee');
+        const depositEnabled = this.safeValue (currency, 'depositEnabled');
+        const withdrawEnabled = this.safeValue (currency, 'withdrawalEnabled');
+        const isActive = this.safeValue (currency, 'active');
+        const active = depositEnabled && withdrawEnabled && isActive;
+        // const fee = this.safeNumber (currency, 'withdrawalFee');
         const feeString = this.safeString (currency, 'withdrawalFee');
         const tradeDecimals = this.safeInteger (currency, 'tradeDecimals');
         let fee = undefined;
@@ -924,13 +1311,13 @@ module.exports = class timex extends Exchange {
             if (dotIndex > 0) {
                 const whole = feeString.slice (0, dotIndex);
                 const fraction = feeString.slice (-dotIndex);
-                fee = parseFloat (whole + '.' + fraction);
+                fee = this.parseNumber (whole + '.' + fraction);
             } else {
                 let fraction = '.';
                 for (let i = 0; i < -dotIndex; i++) {
                     fraction += '0';
                 }
-                fee = parseFloat (fraction + feeString);
+                fee = this.parseNumber (fraction + feeString);
             }
         }
         return {
@@ -940,23 +1327,15 @@ module.exports = class timex extends Exchange {
             'type': undefined,
             'name': name,
             'active': active,
+            'deposit': depositEnabled,
+            'withdraw': withdrawEnabled,
             'fee': fee,
-            'precision': precision,
+            'precision': this.parseNumber (this.parsePrecision (this.safeString (currency, 'decimals'))),
             'limits': {
                 'withdraw': { 'min': fee, 'max': undefined },
                 'amount': { 'min': undefined, 'max': undefined },
-                'price': { 'min': undefined, 'max': undefined },
-                'cost': { 'min': undefined, 'max': undefined },
             },
         };
-    }
-
-    parseTickers (rawTickers, symbols = undefined) {
-        const tickers = [];
-        for (let i = 0; i < rawTickers.length; i++) {
-            tickers.push (this.parseTicker (rawTickers[i]));
-        }
-        return this.filterByArray (tickers, 'symbol', symbols);
     }
 
     parseTicker (ticker, market = undefined) {
@@ -975,57 +1354,33 @@ module.exports = class timex extends Exchange {
         //         "volumeQuote": 0.07312
         //     }
         //
-        let symbol = undefined;
         const marketId = this.safeString (ticker, 'market');
-        if (marketId !== undefined) {
-            if (marketId in this.markets_by_id) {
-                market = this.markets_by_id[marketId];
-                symbol = market['symbol'];
-            } else {
-                const [ baseId, quoteId ] = marketId.split ('/');
-                const base = this.safeCurrencyCode (baseId);
-                const quote = this.safeCurrencyCode (quoteId);
-                symbol = base + '/' + quote;
-            }
-        }
-        if ((symbol === undefined) && (market !== undefined)) {
-            symbol = market['symbol'];
-        }
+        const symbol = this.safeSymbol (marketId, market, '/');
         const timestamp = this.parse8601 (this.safeString (ticker, 'timestamp'));
-        const last = this.safeFloat (ticker, 'last');
-        const open = this.safeFloat (ticker, 'open');
-        let change = undefined;
-        let average = undefined;
-        if (last !== undefined && open !== undefined) {
-            change = last - open;
-            average = this.sum (last, open) / 2;
-        }
-        let percentage = undefined;
-        if (change !== undefined && open) {
-            percentage = (change / open) * 100;
-        }
-        return {
+        const last = this.safeString (ticker, 'last');
+        const open = this.safeString (ticker, 'open');
+        return this.safeTicker ({
             'symbol': symbol,
             'info': ticker,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'high': this.safeFloat (ticker, 'high'),
-            'low': this.safeFloat (ticker, 'low'),
-            'bid': this.safeFloat (ticker, 'bid'),
+            'high': this.safeString (ticker, 'high'),
+            'low': this.safeString (ticker, 'low'),
+            'bid': this.safeString (ticker, 'bid'),
             'bidVolume': undefined,
-            'ask': this.safeFloat (ticker, 'ask'),
+            'ask': this.safeString (ticker, 'ask'),
             'askVolume': undefined,
             'vwap': undefined,
             'open': open,
             'close': last,
             'last': last,
             'previousClose': undefined,
-            'change': change,
-            'percentage': percentage,
-            'average': average,
-            'baseVolume': this.safeFloat (ticker, 'volume'),
-            'quoteVolume': this.safeFloat (ticker, 'volumeQuote'),
-        };
+            'change': undefined,
+            'percentage': undefined,
+            'average': undefined,
+            'baseVolume': this.safeString (ticker, 'volume'),
+            'quoteVolume': this.safeString (ticker, 'volumeQuote'),
+        }, market);
     }
 
     parseTrade (trade, market = undefined) {
@@ -1043,30 +1398,27 @@ module.exports = class timex extends Exchange {
         // fetchMyTrades, fetchOrder (private)
         //
         //     {
-        //         "fee": "0.3",
-        //         "id": 100,
-        //         "makerOrTaker": "MAKER",
-        //         "makerOrderId": "string",
-        //         "price": "0.017",
-        //         "quantity": "0.3",
+        //         "id": "7613414",
+        //         "makerOrderId": "0x8420af060722f560098f786a2894d4358079b6ea5d14b395969ed77bc87a623a",
+        //         "takerOrderId": "0x1235ef158a361815b54c9988b6241c85aedcbc1fe81caf8df8587d5ab0373d1a",
+        //         "symbol": "LTCUSDT",
         //         "side": "BUY",
-        //         "symbol": "TIMEETH",
-        //         "takerOrderId": "string",
-        //         "timestamp": "2019-12-08T04:54:11.171Z"
-        //     }
+        //         "quantity": "0.2",
+        //         "fee": "0.22685",
+        //         "feeToken": "USDT",
+        //         "price": "226.85",
+        //         "makerOrTaker": "TAKER",
+        //         "timestamp": "2021-04-09T15:39:45.608"
+        //    }
         //
-        let symbol = undefined;
         const marketId = this.safeString (trade, 'symbol');
-        if (marketId in this.markets_by_id) {
-            market = this.markets_by_id[marketId];
-            symbol = market['symbol'];
-        }
-        if ((symbol === undefined) && (market !== undefined)) {
-            symbol = market['symbol'];
-        }
+        const symbol = this.safeSymbol (marketId, market);
         const timestamp = this.parse8601 (this.safeString (trade, 'timestamp'));
-        const price = this.safeFloat (trade, 'price');
-        const amount = this.safeFloat (trade, 'quantity');
+        const priceString = this.safeString (trade, 'price');
+        const amountString = this.safeString (trade, 'quantity');
+        const price = this.parseNumber (priceString);
+        const amount = this.parseNumber (amountString);
+        const cost = this.parseNumber (Precise.stringMul (priceString, amountString));
         const id = this.safeString (trade, 'id');
         const side = this.safeStringLower2 (trade, 'direction', 'side');
         const takerOrMaker = this.safeStringLower (trade, 'makerOrTaker');
@@ -1075,17 +1427,13 @@ module.exports = class timex extends Exchange {
             orderId = this.safeString (trade, takerOrMaker + 'OrderId');
         }
         let fee = undefined;
-        const feeCost = this.safeFloat (trade, 'fee');
+        const feeCost = this.safeNumber (trade, 'fee');
+        const feeCurrency = this.safeCurrencyCode (this.safeString (trade, 'feeToken'));
         if (feeCost !== undefined) {
-            const feeCurrency = (market === undefined) ? undefined : market['quote'];
             fee = {
                 'cost': feeCost,
                 'currency': feeCurrency,
             };
-        }
-        let cost = undefined;
-        if ((price !== undefined) && (amount !== undefined)) {
-            cost = this.costToPrecision (symbol, amount * price);
         }
         return {
             'info': trade,
@@ -1104,7 +1452,7 @@ module.exports = class timex extends Exchange {
         };
     }
 
-    parseOHLCV (ohlcv, market = undefined, timeframe = '1m', since = undefined, limit = undefined) {
+    parseOHLCV (ohlcv, market = undefined) {
         //
         //     {
         //         "timestamp":"2019-12-04T23:00:00",
@@ -1118,11 +1466,11 @@ module.exports = class timex extends Exchange {
         //
         return [
             this.parse8601 (this.safeString (ohlcv, 'timestamp')),
-            this.safeFloat (ohlcv, 'open'),
-            this.safeFloat (ohlcv, 'high'),
-            this.safeFloat (ohlcv, 'low'),
-            this.safeFloat (ohlcv, 'close'),
-            this.safeFloat (ohlcv, 'volume'),
+            this.safeNumber (ohlcv, 'open'),
+            this.safeNumber (ohlcv, 'high'),
+            this.safeNumber (ohlcv, 'low'),
+            this.safeNumber (ohlcv, 'close'),
+            this.safeNumber (ohlcv, 'volume'),
         ];
     }
 
@@ -1150,79 +1498,56 @@ module.exports = class timex extends Exchange {
         const id = this.safeString (order, 'id');
         const type = this.safeStringLower (order, 'type');
         const side = this.safeStringLower (order, 'side');
-        let symbol = undefined;
         const marketId = this.safeString (order, 'symbol');
-        if (marketId in this.markets_by_id) {
-            market = this.markets_by_id[marketId];
-            symbol = market['symbol'];
-        }
-        if ((symbol === undefined) && (market !== undefined)) {
-            symbol = market['symbol'];
-        }
+        const symbol = this.safeSymbol (marketId, market);
         const timestamp = this.parse8601 (this.safeString (order, 'createdAt'));
-        const price = this.safeFloat (order, 'price');
-        const amount = this.safeFloat (order, 'quantity');
-        const filled = this.safeFloat (order, 'filledQuantity');
-        const canceledQuantity = this.safeFloat (order, 'cancelledQuantity');
-        let remaining = undefined;
+        const price = this.safeString (order, 'price');
+        const amount = this.safeString (order, 'quantity');
+        const filled = this.safeString (order, 'filledQuantity');
+        const canceledQuantity = this.omitZero (this.safeString (order, 'cancelledQuantity'));
         let status = undefined;
-        if ((amount !== undefined) && (filled !== undefined)) {
-            remaining = Math.max (amount - filled, 0.0);
-            if (filled >= amount) {
-                status = 'closed';
-            } else if ((canceledQuantity !== undefined) && (canceledQuantity > 0)) {
-                status = 'canceled';
-            } else {
-                status = 'open';
-            }
+        if (Precise.stringEquals (filled, amount)) {
+            status = 'closed';
+        } else if (canceledQuantity !== undefined) {
+            status = 'canceled';
+        } else {
+            status = 'open';
         }
-        const cost = parseFloat (this.costToPrecision (symbol, price * filled));
-        const fee = undefined;
-        let lastTradeTimestamp = undefined;
-        let trades = undefined;
-        const rawTrades = this.safeValue (order, 'trades');
-        if (rawTrades !== undefined) {
-            trades = this.parseTrades (rawTrades, market, undefined, undefined, {
-                'order': id,
-            });
-        }
-        if (trades !== undefined) {
-            const numTrades = trades.length;
-            if (numTrades > 0) {
-                lastTradeTimestamp = trades[numTrades - 1]['timestamp'];
-            }
-        }
+        const rawTrades = this.safeValue (order, 'trades', []);
         const clientOrderId = this.safeString (order, 'clientOrderId');
-        return {
+        return this.safeOrder ({
             'info': order,
             'id': id,
             'clientOrderId': clientOrderId,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'lastTradeTimestamp': lastTradeTimestamp,
+            'lastTradeTimestamp': undefined,
             'symbol': symbol,
             'type': type,
+            'timeInForce': undefined,
+            'postOnly': undefined,
             'side': side,
             'price': price,
+            'stopPrice': undefined,
             'amount': amount,
-            'cost': cost,
+            'cost': undefined,
             'average': undefined,
             'filled': filled,
-            'remaining': remaining,
+            'remaining': undefined,
             'status': status,
-            'fee': fee,
-            'trades': trades,
-        };
+            'fee': undefined,
+            'trades': rawTrades,
+        }, market);
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
-        let url = this.urls['api'] + '/' + api + '/' + path;
+        let url = this.urls['api']['rest'] + '/' + api + '/' + path;
         if (Object.keys (params).length) {
             url += '?' + this.urlencodeWithArrayRepeat (params);
         }
         if (api !== 'public') {
             this.checkRequiredCredentials ();
-            const auth = this.stringToBase64 (this.encode (this.apiKey + ':' + this.secret));
+            const auth = this.stringToBase64 (this.apiKey + ':' + this.secret);
             const secret = 'Basic ' + this.decode (auth);
             headers = { 'authorization': secret };
         }

@@ -2,33 +2,30 @@
 
 // ----------------------------------------------------------------------------
 
-const log       = require ('ololog')
-    , ansi      = require ('ansicolor').nice
-    , chai      = require ('chai')
-    , expect    = chai.expect
-    , assert    = chai.assert
+const assert = require ('assert')
     , testOrder = require ('./test.order.js')
 
-/*  ------------------------------------------------------------------------ */
+// ----------------------------------------------------------------------------
 
 module.exports = async (exchange, symbol) => {
 
+    const method = 'fetchOrders'
+
     const skippedExchanges = [
+        'bitmart',
         'rightbtc',
     ]
 
     if (skippedExchanges.includes (exchange.id)) {
-        log (exchange.id, 'found in ignored exchanges, skipping fetchMyTrades...')
+        console.log (exchange.id, 'found in ignored exchanges, skipping ' + method + '...')
         return
     }
 
-    if (exchange.has.fetchOrders) {
+    if (exchange.has[method]) {
 
-        // log ('fetching orders...')
+        const orders = await exchange[method] (symbol)
 
-        const orders = await exchange.fetchOrders (symbol)
-
-        log ('fetched', orders.length.toString ().green, 'orders, asserting each...')
+        console.log ('fetched', orders.length, 'orders, asserting each...')
 
         assert (orders instanceof Array)
 
@@ -39,10 +36,8 @@ module.exports = async (exchange, symbol) => {
             testOrder (exchange, order, symbol, now)
         }
 
-        // log (asTable (orders))
-
     } else {
 
-        log ('fetching orders not supported')
+        console.log (method + '() is not supported')
     }
 }

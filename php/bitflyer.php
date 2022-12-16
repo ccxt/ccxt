@@ -6,32 +6,54 @@ namespace ccxt;
 // https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 use Exception; // a common import
-use \ccxt\ExchangeError;
-use \ccxt\ArgumentsRequired;
-use \ccxt\OrderNotFound;
 
 class bitflyer extends Exchange {
 
     public function describe() {
-        return $this->deep_extend(parent::describe (), array(
+        return $this->deep_extend(parent::describe(), array(
             'id' => 'bitflyer',
             'name' => 'bitFlyer',
             'countries' => array( 'JP' ),
             'version' => 'v1',
             'rateLimit' => 1000, // their nonce-timestamp is in seconds...
+            'hostname' => 'bitflyer.com', // or bitflyer.com
             'has' => array(
-                'CORS' => false,
-                'withdraw' => true,
-                'fetchMyTrades' => true,
-                'fetchOrders' => true,
-                'fetchOrder' => 'emulated',
-                'fetchOpenOrders' => 'emulated',
+                'CORS' => null,
+                'spot' => true,
+                'margin' => false,
+                'swap' => null, // has but not fully implemented
+                'future' => null, // has but not fully implemented
+                'option' => false,
+                'cancelOrder' => true,
+                'createOrder' => true,
+                'fetchBalance' => true,
                 'fetchClosedOrders' => 'emulated',
+                'fetchDeposits' => true,
+                'fetchMarginMode' => false,
+                'fetchMarkets' => true,
+                'fetchMyTrades' => true,
+                'fetchOpenOrders' => 'emulated',
+                'fetchOrder' => 'emulated',
+                'fetchOrderBook' => true,
+                'fetchOrders' => true,
+                'fetchPositionMode' => false,
+                'fetchPositions' => true,
+                'fetchTicker' => true,
+                'fetchTrades' => true,
+                'fetchTradingFee' => true,
+                'fetchTradingFees' => false,
+                'fetchTransfer' => false,
+                'fetchTransfers' => false,
+                'fetchWithdrawals' => true,
+                'transfer' => false,
+                'withdraw' => true,
             ),
             'urls' => array(
                 'logo' => 'https://user-images.githubusercontent.com/1294454/28051642-56154182-660e-11e7-9b0d-6042d1e6edd8.jpg',
-                'api' => 'https://api.bitflyer.jp',
-                'www' => 'https://bitflyer.jp',
+                'api' => array(
+                    'rest' => 'https://api.{hostname}',
+                ),
+                'www' => 'https://bitflyer.com',
                 'doc' => 'https://lightning.bitflyer.com/docs?lang=en',
             ),
             'api' => array(
@@ -82,21 +104,72 @@ class bitflyer extends Exchange {
             ),
             'fees' => array(
                 'trading' => array(
-                    'maker' => 0.2 / 100,
-                    'taker' => 0.2 / 100,
-                ),
-                'BTC/JPY' => array(
-                    'maker' => 0.15 / 100,
-                    'taker' => 0.15 / 100,
+                    'maker' => $this->parse_number('0.002'),
+                    'taker' => $this->parse_number('0.002'),
                 ),
             ),
+            'precisionMode' => TICK_SIZE,
         ));
     }
 
+    public function parse_expiry_date($expiry) {
+        $day = mb_substr($expiry, 0, 2 - 0);
+        $monthName = mb_substr($expiry, 2, 5 - 2);
+        $year = mb_substr($expiry, 5, 9 - 5);
+        $months = array(
+            'JAN' => '01',
+            'FEB' => '02',
+            'MAR' => '03',
+            'APR' => '04',
+            'MAY' => '05',
+            'JUN' => '06',
+            'JUL' => '07',
+            'AUG' => '08',
+            'SEP' => '09',
+            'OCT' => '10',
+            'NOV' => '11',
+            'DEC' => '12',
+        );
+        $month = $this->safe_string($months, $monthName);
+        return $this->parse8601($year . '-' . $month . '-' . $day . 'T00:00:00Z');
+    }
+
     public function fetch_markets($params = array ()) {
+        /**
+         * retrieves data on all $markets for bitflyer
+         * @param {array} $params extra parameters specific to the exchange api endpoint
+         * @return {[array]} an array of objects representing $market data
+         */
         $jp_markets = $this->publicGetGetmarkets ($params);
+        //
+        //     array(
+        //         // $spot
+        //         array( "product_code" => "BTC_JPY", "market_type" => "Spot" ),
+        //         array( "product_code" => "BCH_BTC", "market_type" => "Spot" ),
+        //         // forex $swap
+        //         array( "product_code" => "FX_BTC_JPY", "market_type" => "FX" ),
+        //         // $future
+        //         array(
+        //             "product_code" => "BTCJPY11FEB2022",
+        //             "alias" => "BTCJPY_MAT1WK",
+        //             "market_type" => "Futures",
+        //         ),
+        //     );
+        //
         $us_markets = $this->publicGetGetmarketsUsa ($params);
+        //
+        //     array(
+        //         array( "product_code" => "BTC_USD", "market_type" => "Spot" ),
+        //         array( "product_code" => "BTC_JPY", "market_type" => "Spot" ),
+        //     );
+        //
         $eu_markets = $this->publicGetGetmarketsEu ($params);
+        //
+        //     array(
+        //         array( "product_code" => "BTC_EUR", "market_type" => "Spot" ),
+        //         array( "product_code" => "BTC_JPY", "market_type" => "Spot" ),
+        //     );
+        //
         $markets = $this->array_concat($jp_markets, $us_markets);
         $markets = $this->array_concat($markets, $eu_markets);
         $result = array();
@@ -104,56 +177,133 @@ class bitflyer extends Exchange {
             $market = $markets[$i];
             $id = $this->safe_string($market, 'product_code');
             $currencies = explode('_', $id);
+            $marketType = $this->safe_string($market, 'market_type');
+            $swap = ($marketType === 'FX');
+            $future = ($marketType === 'Futures');
+            $spot = !$swap && !$future;
+            $type = 'spot';
+            $settle = null;
             $baseId = null;
             $quoteId = null;
-            $base = null;
-            $quote = null;
-            $numCurrencies = is_array($currencies) ? count($currencies) : 0;
-            if ($numCurrencies === 1) {
-                $baseId = mb_substr($id, 0, 3 - 0);
-                $quoteId = mb_substr($id, 3, 6 - 3);
-            } else if ($numCurrencies === 2) {
-                $baseId = $currencies[0];
-                $quoteId = $currencies[1];
-            } else {
-                $baseId = $currencies[1];
-                $quoteId = $currencies[2];
+            $expiry = null;
+            if ($spot) {
+                $baseId = $this->safe_string($currencies, 0);
+                $quoteId = $this->safe_string($currencies, 1);
+            } elseif ($swap) {
+                $type = 'swap';
+                $baseId = $this->safe_string($currencies, 1);
+                $quoteId = $this->safe_string($currencies, 2);
+            } elseif ($future) {
+                $alias = $this->safe_string($market, 'alias');
+                if ($alias === null) {
+                    // no $alias:
+                    // array( product_code => 'BTCJPY11MAR2022', market_type => 'Futures' )
+                    // TODO this will break if there are products with 4 chars
+                    $baseId = mb_substr($id, 0, 3 - 0);
+                    $quoteId = mb_substr($id, 3, 6 - 3);
+                    // last 9 chars are $expiry date
+                    $expiryDate = mb_substr($id, -9);
+                    $expiry = $this->parse_expiry_date($expiryDate);
+                } else {
+                    $splitAlias = explode('_', $alias);
+                    $currencyIds = $this->safe_string($splitAlias, 0);
+                    $baseId = mb_substr($currencyIds, 0, -3 - 0);
+                    $quoteId = mb_substr($currencyIds, -3);
+                    $splitId = explode($currencyIds, $id);
+                    $expiryDate = $this->safe_string($splitId, 1);
+                    $expiry = $this->parse_expiry_date($expiryDate);
+                }
+                $type = 'future';
             }
             $base = $this->safe_currency_code($baseId);
             $quote = $this->safe_currency_code($quoteId);
-            $symbol = ($numCurrencies === 2) ? ($base . '/' . $quote) : $id;
-            $fees = $this->safe_value($this->fees, $symbol, $this->fees['trading']);
-            $maker = $this->safe_value($fees, 'maker', $this->fees['trading']['maker']);
-            $taker = $this->safe_value($fees, 'taker', $this->fees['trading']['taker']);
-            $spot = true;
-            $future = false;
-            $type = 'spot';
-            if ((is_array($market) && array_key_exists('alias', $market)) || ($currencies[0] === 'FX')) {
-                $type = 'future';
-                $future = true;
-                $spot = false;
+            $symbol = $base . '/' . $quote;
+            $taker = $this->fees['trading']['taker'];
+            $maker = $this->fees['trading']['maker'];
+            $contract = $swap || $future;
+            if ($contract) {
                 $maker = 0.0;
                 $taker = 0.0;
+                $settle = 'JPY';
+                $symbol = $symbol . ':' . $settle;
+                if ($future) {
+                    $symbol = $symbol . '-' . $this->yymmdd($expiry);
+                }
             }
             $result[] = array(
                 'id' => $id,
                 'symbol' => $symbol,
                 'base' => $base,
                 'quote' => $quote,
+                'settle' => $settle,
                 'baseId' => $baseId,
                 'quoteId' => $quoteId,
-                'maker' => $maker,
-                'taker' => $taker,
+                'settleId' => null,
                 'type' => $type,
                 'spot' => $spot,
+                'margin' => false,
+                'swap' => $swap,
                 'future' => $future,
+                'option' => false,
+                'active' => true,
+                'contract' => $contract,
+                'linear' => $spot ? null : true,
+                'inverse' => $spot ? null : false,
+                'taker' => $taker,
+                'maker' => $maker,
+                'contractSize' => null,
+                'expiry' => $expiry,
+                'expiryDatetime' => $this->iso8601($expiry),
+                'strike' => null,
+                'optionType' => null,
+                'precision' => array(
+                    'amount' => null,
+                    'price' => null,
+                ),
+                'limits' => array(
+                    'leverage' => array(
+                        'min' => null,
+                        'max' => null,
+                    ),
+                    'amount' => array(
+                        'min' => null,
+                        'max' => null,
+                    ),
+                    'price' => array(
+                        'min' => null,
+                        'max' => null,
+                    ),
+                    'cost' => array(
+                        'min' => null,
+                        'max' => null,
+                    ),
+                ),
                 'info' => $market,
             );
         }
         return $result;
     }
 
+    public function parse_balance($response) {
+        $result = array( 'info' => $response );
+        for ($i = 0; $i < count($response); $i++) {
+            $balance = $response[$i];
+            $currencyId = $this->safe_string($balance, 'currency_code');
+            $code = $this->safe_currency_code($currencyId);
+            $account = $this->account();
+            $account['total'] = $this->safe_string($balance, 'amount');
+            $account['free'] = $this->safe_string($balance, 'available');
+            $result[$code] = $account;
+        }
+        return $this->safe_balance($result);
+    }
+
     public function fetch_balance($params = array ()) {
+        /**
+         * query for balance and get the amount of funds available for trading or funds locked in orders
+         * @param {array} $params extra parameters specific to the bitflyer api endpoint
+         * @return {array} a ~@link https://docs.ccxt.com/en/latest/manual.html?#balance-structure balance structure~
+         */
         $this->load_markets();
         $response = $this->privateGetGetbalance ($params);
         //
@@ -175,45 +325,39 @@ class bitflyer extends Exchange {
         //         }
         //     )
         //
-        $result = array( 'info' => $response );
-        for ($i = 0; $i < count($response); $i++) {
-            $balance = $response[$i];
-            $currencyId = $this->safe_string($balance, 'currency_code');
-            $code = $this->safe_currency_code($currencyId);
-            $account = $this->account();
-            $account['total'] = $this->safe_float($balance, 'amount');
-            $account['free'] = $this->safe_float($balance, 'available');
-            $result[$code] = $account;
-        }
-        return $this->parse_balance($result);
+        return $this->parse_balance($response);
     }
 
     public function fetch_order_book($symbol, $limit = null, $params = array ()) {
+        /**
+         * fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+         * @param {string} $symbol unified $symbol of the $market to fetch the order book for
+         * @param {int|null} $limit the maximum amount of order book entries to return
+         * @param {array} $params extra parameters specific to the bitflyer api endpoint
+         * @return {array} A dictionary of {@link https://docs.ccxt.com/en/latest/manual.html#order-book-structure order book structures} indexed by $market symbols
+         */
         $this->load_markets();
+        $market = $this->market($symbol);
         $request = array(
-            'product_code' => $this->market_id($symbol),
+            'product_code' => $market['id'],
         );
         $orderbook = $this->publicGetGetboard (array_merge($request, $params));
-        return $this->parse_order_book($orderbook, null, 'bids', 'asks', 'price', 'size');
+        return $this->parse_order_book($orderbook, $market['symbol'], null, 'bids', 'asks', 'price', 'size');
     }
 
-    public function fetch_ticker($symbol, $params = array ()) {
-        $this->load_markets();
-        $request = array(
-            'product_code' => $this->market_id($symbol),
-        );
-        $ticker = $this->publicGetGetticker (array_merge($request, $params));
+    public function parse_ticker($ticker, $market = null) {
+        $symbol = $this->safe_symbol(null, $market);
         $timestamp = $this->parse8601($this->safe_string($ticker, 'timestamp'));
-        $last = $this->safe_float($ticker, 'ltp');
-        return array(
+        $last = $this->safe_string($ticker, 'ltp');
+        return $this->safe_ticker(array(
             'symbol' => $symbol,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
             'high' => null,
             'low' => null,
-            'bid' => $this->safe_float($ticker, 'best_bid'),
+            'bid' => $this->safe_string($ticker, 'best_bid'),
             'bidVolume' => null,
-            'ask' => $this->safe_float($ticker, 'best_ask'),
+            'ask' => $this->safe_string($ticker, 'best_ask'),
             'askVolume' => null,
             'vwap' => null,
             'open' => null,
@@ -223,13 +367,53 @@ class bitflyer extends Exchange {
             'change' => null,
             'percentage' => null,
             'average' => null,
-            'baseVolume' => $this->safe_float($ticker, 'volume_by_product'),
+            'baseVolume' => $this->safe_string($ticker, 'volume_by_product'),
             'quoteVolume' => null,
             'info' => $ticker,
+        ), $market);
+    }
+
+    public function fetch_ticker($symbol, $params = array ()) {
+        /**
+         * fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific $market
+         * @param {string} $symbol unified $symbol of the $market to fetch the ticker for
+         * @param {array} $params extra parameters specific to the bitflyer api endpoint
+         * @return {array} a {@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure ticker structure}
+         */
+        $this->load_markets();
+        $market = $this->market($symbol);
+        $request = array(
+            'product_code' => $market['id'],
         );
+        $response = $this->publicGetGetticker (array_merge($request, $params));
+        return $this->parse_ticker($response, $market);
     }
 
     public function parse_trade($trade, $market = null) {
+        //
+        // fetchTrades (public) v1
+        //
+        //     {
+        //          "id":2278466664,
+        //          "side":"SELL",
+        //          "price":56810.7,
+        //          "size":0.08798,
+        //          "exec_date":"2021-11-19T11:46:39.323",
+        //          "buy_child_order_acceptance_id":"JRF20211119-114209-236525",
+        //          "sell_child_order_acceptance_id":"JRF20211119-114639-236919"
+        //      }
+        //
+        //      {
+        //          "id":2278463423,
+        //          "side":"BUY",
+        //          "price":56757.83,
+        //          "size":0.6003,"exec_date":"2021-11-19T11:28:00.523",
+        //          "buy_child_order_acceptance_id":"JRF20211119-112800-236526",
+        //          "sell_child_order_acceptance_id":"JRF20211119-112734-062017"
+        //      }
+        //
+        //
+        //
         $side = $this->safe_string_lower($trade, 'side');
         if ($side !== null) {
             if (strlen($side) < 1) {
@@ -247,47 +431,86 @@ class bitflyer extends Exchange {
             $order = $this->safe_string($trade, 'child_order_acceptance_id');
         }
         $timestamp = $this->parse8601($this->safe_string($trade, 'exec_date'));
-        $price = $this->safe_float($trade, 'price');
-        $amount = $this->safe_float($trade, 'size');
-        $cost = null;
-        if ($amount !== null) {
-            if ($price !== null) {
-                $cost = $price * $amount;
-            }
-        }
+        $priceString = $this->safe_string($trade, 'price');
+        $amountString = $this->safe_string($trade, 'size');
         $id = $this->safe_string($trade, 'id');
-        $symbol = null;
-        if ($market !== null) {
-            $symbol = $market['symbol'];
-        }
-        return array(
+        $market = $this->safe_market(null, $market);
+        return $this->safe_trade(array(
             'id' => $id,
             'info' => $trade,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
-            'symbol' => $symbol,
+            'symbol' => $market['symbol'],
             'order' => $order,
             'type' => null,
             'side' => $side,
             'takerOrMaker' => null,
-            'price' => $price,
-            'amount' => $amount,
-            'cost' => $cost,
+            'price' => $priceString,
+            'amount' => $amountString,
+            'cost' => null,
             'fee' => null,
-        );
+        ), $market);
     }
 
     public function fetch_trades($symbol, $since = null, $limit = null, $params = array ()) {
+        /**
+         * get the list of most recent trades for a particular $symbol
+         * @param {string} $symbol unified $symbol of the $market to fetch trades for
+         * @param {int|null} $since timestamp in ms of the earliest trade to fetch
+         * @param {int|null} $limit the maximum amount of trades to fetch
+         * @param {array} $params extra parameters specific to the bitflyer api endpoint
+         * @return {[array]} a list of ~@link https://docs.ccxt.com/en/latest/manual.html?#public-trades trade structures~
+         */
         $this->load_markets();
         $market = $this->market($symbol);
         $request = array(
             'product_code' => $market['id'],
         );
+        if ($limit !== null) {
+            $request['count'] = $limit;
+        }
         $response = $this->publicGetGetexecutions (array_merge($request, $params));
         return $this->parse_trades($response, $market, $since, $limit);
     }
 
+    public function fetch_trading_fee($symbol, $params = array ()) {
+        /**
+         * fetch the trading fees for a $market
+         * @param {string} $symbol unified $market $symbol
+         * @param {array} $params extra parameters specific to the bitflyer api endpoint
+         * @return {array} a {@link https://docs.ccxt.com/en/latest/manual.html#$fee-structure $fee structure}
+         */
+        $this->load_markets();
+        $market = $this->market($symbol);
+        $request = array(
+            'product_code' => $market['id'],
+        );
+        $response = $this->privateGetGettradingcommission (array_merge($request, $params));
+        //
+        //   {
+        //       commission_rate => '0.0020'
+        //   }
+        //
+        $fee = $this->safe_number($response, 'commission_rate');
+        return array(
+            'info' => $response,
+            'symbol' => $market['symbol'],
+            'maker' => $fee,
+            'taker' => $fee,
+        );
+    }
+
     public function create_order($symbol, $type, $side, $amount, $price = null, $params = array ()) {
+        /**
+         * create a trade order
+         * @param {string} $symbol unified $symbol of the market to create an order in
+         * @param {string} $type 'market' or 'limit'
+         * @param {string} $side 'buy' or 'sell'
+         * @param {float} $amount how much of currency you want to trade in units of base currency
+         * @param {float|null} $price the $price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+         * @param {array} $params extra parameters specific to the bitflyer api endpoint
+         * @return {array} an {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structure}
+         */
         $this->load_markets();
         $request = array(
             'product_code' => $this->market_id($symbol),
@@ -306,6 +529,13 @@ class bitflyer extends Exchange {
     }
 
     public function cancel_order($id, $symbol = null, $params = array ()) {
+        /**
+         * cancels an open order
+         * @param {string} $id order $id
+         * @param {string} $symbol unified $symbol of the market the order was made in
+         * @param {array} $params extra parameters specific to the bitflyer api endpoint
+         * @return {array} An {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structure}
+         */
         if ($symbol === null) {
             throw new ArgumentsRequired($this->id . ' cancelOrder() requires a `$symbol` argument');
         }
@@ -330,26 +560,17 @@ class bitflyer extends Exchange {
 
     public function parse_order($order, $market = null) {
         $timestamp = $this->parse8601($this->safe_string($order, 'child_order_date'));
-        $amount = $this->safe_float($order, 'size');
-        $remaining = $this->safe_float($order, 'outstanding_size');
-        $filled = $this->safe_float($order, 'executed_size');
-        $price = $this->safe_float($order, 'price');
-        $cost = $price * $filled;
+        $price = $this->safe_string($order, 'price');
+        $amount = $this->safe_string($order, 'size');
+        $filled = $this->safe_string($order, 'executed_size');
+        $remaining = $this->safe_string($order, 'outstanding_size');
         $status = $this->parse_order_status($this->safe_string($order, 'child_order_state'));
         $type = $this->safe_string_lower($order, 'child_order_type');
         $side = $this->safe_string_lower($order, 'side');
-        $symbol = null;
-        if ($market === null) {
-            $marketId = $this->safe_string($order, 'product_code');
-            if (is_array($this->markets_by_id) && array_key_exists($marketId, $this->markets_by_id)) {
-                $market = $this->markets_by_id[$marketId];
-            }
-        }
-        if ($market !== null) {
-            $symbol = $market['symbol'];
-        }
+        $marketId = $this->safe_string($order, 'product_code');
+        $symbol = $this->safe_symbol($marketId, $market);
         $fee = null;
-        $feeCost = $this->safe_float($order, 'total_commission');
+        $feeCost = $this->safe_number($order, 'total_commission');
         if ($feeCost !== null) {
             $fee = array(
                 'cost' => $feeCost,
@@ -358,7 +579,7 @@ class bitflyer extends Exchange {
             );
         }
         $id = $this->safe_string($order, 'child_order_acceptance_id');
-        return array(
+        return $this->safe_order(array(
             'id' => $id,
             'clientOrderId' => null,
             'info' => $order,
@@ -368,19 +589,30 @@ class bitflyer extends Exchange {
             'status' => $status,
             'symbol' => $symbol,
             'type' => $type,
+            'timeInForce' => null,
+            'postOnly' => null,
             'side' => $side,
             'price' => $price,
-            'cost' => $cost,
+            'stopPrice' => null,
+            'cost' => null,
             'amount' => $amount,
             'filled' => $filled,
             'remaining' => $remaining,
             'fee' => $fee,
             'average' => null,
             'trades' => null,
-        );
+        ), $market);
     }
 
     public function fetch_orders($symbol = null, $since = null, $limit = 100, $params = array ()) {
+        /**
+         * fetches information on multiple $orders made by the user
+         * @param {string} $symbol unified $market $symbol of the $market $orders were made in
+         * @param {int|null} $since the earliest time in ms to fetch $orders for
+         * @param {int|null} $limit the maximum number of  orde structures to retrieve
+         * @param {array} $params extra parameters specific to the bitflyer api endpoint
+         * @return {[array]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structures}
+         */
         if ($symbol === null) {
             throw new ArgumentsRequired($this->id . ' fetchOrders() requires a `$symbol` argument');
         }
@@ -399,6 +631,14 @@ class bitflyer extends Exchange {
     }
 
     public function fetch_open_orders($symbol = null, $since = null, $limit = 100, $params = array ()) {
+        /**
+         * fetch all unfilled currently open orders
+         * @param {string} $symbol unified market $symbol
+         * @param {int|null} $since the earliest time in ms to fetch open orders for
+         * @param {int|null} $limit the maximum number of  open orders structures to retrieve
+         * @param {array} $params extra parameters specific to the bitflyer api endpoint
+         * @return {[array]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structures}
+         */
         $request = array(
             'child_order_state' => 'ACTIVE',
         );
@@ -406,6 +646,14 @@ class bitflyer extends Exchange {
     }
 
     public function fetch_closed_orders($symbol = null, $since = null, $limit = 100, $params = array ()) {
+        /**
+         * fetches information on multiple closed orders made by the user
+         * @param {string|null} $symbol unified market $symbol of the market orders were made in
+         * @param {int|null} $since the earliest time in ms to fetch orders for
+         * @param {int|null} $limit the maximum number of  orde structures to retrieve
+         * @param {array} $params extra parameters specific to the bitflyer api endpoint
+         * @return {[array]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structures}
+         */
         $request = array(
             'child_order_state' => 'COMPLETED',
         );
@@ -413,6 +661,12 @@ class bitflyer extends Exchange {
     }
 
     public function fetch_order($id, $symbol = null, $params = array ()) {
+        /**
+         * fetches information on an order made by the user
+         * @param {string} $symbol unified $symbol of the market the order was made in
+         * @param {array} $params extra parameters specific to the bitflyer api endpoint
+         * @return {array} An {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structure}
+         */
         if ($symbol === null) {
             throw new ArgumentsRequired($this->id . ' fetchOrder() requires a `$symbol` argument');
         }
@@ -425,8 +679,16 @@ class bitflyer extends Exchange {
     }
 
     public function fetch_my_trades($symbol = null, $since = null, $limit = null, $params = array ()) {
+        /**
+         * fetch all trades made by the user
+         * @param {string} $symbol unified $market $symbol
+         * @param {int|null} $since the earliest time in ms to fetch trades for
+         * @param {int|null} $limit the maximum number of trades structures to retrieve
+         * @param {array} $params extra parameters specific to the bitflyer api endpoint
+         * @return {[array]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#trade-structure trade structures}
+         */
         if ($symbol === null) {
-            throw new ArgumentsRequired($this->id . ' fetchMyTrades requires a `$symbol` argument');
+            throw new ArgumentsRequired($this->id . ' fetchMyTrades() requires a `$symbol` argument');
         }
         $this->load_markets();
         $market = $this->market($symbol);
@@ -440,7 +702,52 @@ class bitflyer extends Exchange {
         return $this->parse_trades($response, $market, $since, $limit);
     }
 
+    public function fetch_positions($symbols = null, $params = array ()) {
+        /**
+         * fetch all open positions
+         * @param {[string]} $symbols list of unified market $symbols
+         * @param {array} $params extra parameters specific to the bitflyer api endpoint
+         * @return {[array]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#position-structure position structure}
+         */
+        if ($symbols === null) {
+            throw new ArgumentsRequired($this->id . ' fetchPositions() requires a `$symbols` argument, exactly one symbol in an array');
+        }
+        $this->load_markets();
+        $request = array(
+            'product_code' => $this->market_ids($symbols),
+        );
+        $response = $this->privateGetpositions (array_merge($request, $params));
+        //
+        //     array(
+        //         {
+        //             "product_code" => "FX_BTC_JPY",
+        //             "side" => "BUY",
+        //             "price" => 36000,
+        //             "size" => 10,
+        //             "commission" => 0,
+        //             "swap_point_accumulate" => -35,
+        //             "require_collateral" => 120000,
+        //             "open_date" => "2015-11-03T10:04:45.011",
+        //             "leverage" => 3,
+        //             "pnl" => 965,
+        //             "sfd" => -0.5
+        //         }
+        //     )
+        //
+        // todo unify parsePosition/parsePositions
+        return $response;
+    }
+
     public function withdraw($code, $amount, $address, $tag = null, $params = array ()) {
+        /**
+         * make a withdrawal
+         * @param {string} $code unified $currency $code
+         * @param {float} $amount the $amount to withdraw
+         * @param {string} $address the $address to withdraw to
+         * @param {string|null} $tag
+         * @param {array} $params extra parameters specific to the bitflyer api endpoint
+         * @return {array} a {@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure transaction structure}
+         */
         $this->check_address($address);
         $this->load_markets();
         if ($code !== 'JPY' && $code !== 'USD' && $code !== 'EUR') {
@@ -453,10 +760,181 @@ class bitflyer extends Exchange {
             // 'bank_account_id' => 1234,
         );
         $response = $this->privatePostWithdraw (array_merge($request, $params));
-        $id = $this->safe_string($response, 'message_id');
+        //
+        //     {
+        //         "message_id" => "69476620-5056-4003-bcbe-42658a2b041b"
+        //     }
+        //
+        return $this->parse_transaction($response, $currency);
+    }
+
+    public function fetch_deposits($code = null, $since = null, $limit = null, $params = array ()) {
+        /**
+         * fetch all deposits made to an account
+         * @param {string|null} $code unified $currency $code
+         * @param {int|null} $since the earliest time in ms to fetch deposits for
+         * @param {int|null} $limit the maximum number of deposits structures to retrieve
+         * @param {array} $params extra parameters specific to the bitflyer api endpoint
+         * @return {[array]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure transaction structures}
+         */
+        $this->load_markets();
+        $currency = null;
+        $request = array();
+        if ($code !== null) {
+            $currency = $this->currency($code);
+        }
+        if ($limit !== null) {
+            $request['count'] = $limit; // default 100
+        }
+        $response = $this->privateGetGetcoinins (array_merge($request, $params));
+        //
+        //     array(
+        //         {
+        //             "id" => 100,
+        //             "order_id" => "CDP20151227-024141-055555",
+        //             "currency_code" => "BTC",
+        //             "amount" => 0.00002,
+        //             "address" => "1WriteySQufKZ2pVuM1oMhPrTtTVFq35j",
+        //             "tx_hash" => "9f92ee65a176bb9545f7becb8706c50d07d4cee5ffca34d8be3ef11d411405ae",
+        //             "status" => "COMPLETED",
+        //             "event_date" => "2015-11-27T08:59:20.301"
+        //         }
+        //     )
+        //
+        return $this->parse_transactions($response, $currency, $since, $limit);
+    }
+
+    public function fetch_withdrawals($code = null, $since = null, $limit = null, $params = array ()) {
+        /**
+         * fetch all withdrawals made from an account
+         * @param {string|null} $code unified $currency $code
+         * @param {int|null} $since the earliest time in ms to fetch withdrawals for
+         * @param {int|null} $limit the maximum number of withdrawals structures to retrieve
+         * @param {array} $params extra parameters specific to the bitflyer api endpoint
+         * @return {[array]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure transaction structures}
+         */
+        $this->load_markets();
+        $currency = null;
+        $request = array();
+        if ($code !== null) {
+            $currency = $this->currency($code);
+        }
+        if ($limit !== null) {
+            $request['count'] = $limit; // default 100
+        }
+        $response = $this->privateGetGetcoinouts (array_merge($request, $params));
+        //
+        //     array(
+        //         {
+        //             "id" => 500,
+        //             "order_id" => "CWD20151224-014040-077777",
+        //             "currency_code" => "BTC",
+        //             "amount" => 0.1234,
+        //             "address" => "1A1zP1eP5QGefi2DMPTfTL5SLmv7DivfNa",
+        //             "tx_hash" => "724c07dfd4044abcb390b0412c3e707dd5c4f373f0a52b3bd295ce32b478c60a",
+        //             "fee" => 0.0005,
+        //             "additional_fee" => 0.0001,
+        //             "status" => "COMPLETED",
+        //             "event_date" => "2015-12-24T01:40:40.397"
+        //         }
+        //     )
+        //
+        return $this->parse_transactions($response, $currency, $since, $limit);
+    }
+
+    public function parse_deposit_status($status) {
+        $statuses = array(
+            'PENDING' => 'pending',
+            'COMPLETED' => 'ok',
+        );
+        return $this->safe_string($statuses, $status, $status);
+    }
+
+    public function parse_withdrawal_status($status) {
+        $statuses = array(
+            'PENDING' => 'pending',
+            'COMPLETED' => 'ok',
+        );
+        return $this->safe_string($statuses, $status, $status);
+    }
+
+    public function parse_transaction($transaction, $currency = null) {
+        //
+        // fetchDeposits
+        //
+        //     {
+        //         "id" => 100,
+        //         "order_id" => "CDP20151227-024141-055555",
+        //         "currency_code" => "BTC",
+        //         "amount" => 0.00002,
+        //         "address" => "1WriteySQufKZ2pVuM1oMhPrTtTVFq35j",
+        //         "tx_hash" => "9f92ee65a176bb9545f7becb8706c50d07d4cee5ffca34d8be3ef11d411405ae",
+        //         "status" => "COMPLETED",
+        //         "event_date" => "2015-11-27T08:59:20.301"
+        //     }
+        //
+        // fetchWithdrawals
+        //
+        //     {
+        //         "id" => 500,
+        //         "order_id" => "CWD20151224-014040-077777",
+        //         "currency_code" => "BTC",
+        //         "amount" => 0.1234,
+        //         "address" => "1A1zP1eP5QGefi2DMPTfTL5SLmv7DivfNa",
+        //         "tx_hash" => "724c07dfd4044abcb390b0412c3e707dd5c4f373f0a52b3bd295ce32b478c60a",
+        //         "fee" => 0.0005,
+        //         "additional_fee" => 0.0001,
+        //         "status" => "COMPLETED",
+        //         "event_date" => "2015-12-24T01:40:40.397"
+        //     }
+        //
+        // withdraw
+        //
+        //     {
+        //         "message_id" => "69476620-5056-4003-bcbe-42658a2b041b"
+        //     }
+        //
+        $id = $this->safe_string_2($transaction, 'id', 'message_id');
+        $address = $this->safe_string($transaction, 'address');
+        $currencyId = $this->safe_string($transaction, 'currency_code');
+        $code = $this->safe_currency_code($currencyId, $currency);
+        $timestamp = $this->parse8601($this->safe_string($transaction, 'event_date'));
+        $amount = $this->safe_number($transaction, 'amount');
+        $txId = $this->safe_string($transaction, 'tx_hash');
+        $rawStatus = $this->safe_string($transaction, 'status');
+        $type = null;
+        $status = null;
+        $fee = null;
+        if (is_array($transaction) && array_key_exists('fee', $transaction)) {
+            $type = 'withdrawal';
+            $status = $this->parse_withdrawal_status($rawStatus);
+            $feeCost = $this->safe_number($transaction, 'fee');
+            $additionalFee = $this->safe_number($transaction, 'additional_fee');
+            $fee = array( 'currency' => $code, 'cost' => $feeCost . $additionalFee );
+        } else {
+            $type = 'deposit';
+            $status = $this->parse_deposit_status($rawStatus);
+        }
         return array(
-            'info' => $response,
+            'info' => $transaction,
             'id' => $id,
+            'txid' => $txId,
+            'timestamp' => $timestamp,
+            'datetime' => $this->iso8601($timestamp),
+            'network' => null,
+            'address' => $address,
+            'addressTo' => $address,
+            'addressFrom' => null,
+            'tag' => null,
+            'tagTo' => null,
+            'tagFrom' => null,
+            'type' => $type,
+            'amount' => $amount,
+            'currency' => $code,
+            'status' => $status,
+            'updated' => null,
+            'internal' => null,
+            'fee' => $fee,
         );
     }
 
@@ -471,7 +949,8 @@ class bitflyer extends Exchange {
                 $request .= '?' . $this->urlencode($params);
             }
         }
-        $url = $this->urls['api'] . $request;
+        $baseUrl = $this->implode_hostname($this->urls['api']['rest']);
+        $url = $baseUrl . $request;
         if ($api === 'private') {
             $this->check_required_credentials();
             $nonce = (string) $this->nonce();

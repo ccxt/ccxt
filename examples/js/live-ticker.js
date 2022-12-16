@@ -23,7 +23,7 @@ let printTicker = async (id, symbol, rateLimit = undefined) => {
         log ('Instantiating', id.green, 'exchange')
 
         // instantiate the exchange by id
-        let exchange = new ccxt[id] ({ enableRateLimit: true,  })
+        let exchange = new ccxt[id] ()
 
         exchange.rateLimit = rateLimit ? rateLimit : exchange.rateLimit
 

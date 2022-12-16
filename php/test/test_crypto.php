@@ -24,6 +24,10 @@ function jwt(...$args) {
     return Exchange::jwt(...$args);
 }
 
+function crc32(...$arg) {
+    return Exchange::crc32(...$arg);
+}
+
 function equals($a, $b) {
     return $a === $b;
 }
@@ -124,10 +128,6 @@ $pemKey = implode("\n", $pemKeyArray);
 assert (jwt (array('chicken' => 'salad'), encode ($pemKey), 'RS256') === 'eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.eyJjaGlja2VuIjoic2FsYWQifQ.FSKD5Y6RNzkHTuHdvG3753U7QNZ-u-GUSPfP1FMjEaK0Rr_iyQTSSmHhkdYSFFnmBvrrN_l-UwKwir52WlsgmQm9HYm0kidxbj7fWwrK2E1oe0P7OjupFjv1BZxc5W69WeaHtOPWe28tiHiON1LCnax6HgfI5lcIBsESGIIBZMVeaioQn9gDVwea7JxJvAlrhDIWZowIHTIdCQocXip7g5jREWHeEIuJNug67mwnfAFxCjvTRiTd0Bw6oBwjM3FLya-RyEyWrejQOWSuC8CNWVUHISaSmEyZ7uM6wTi2m_58TaE9mQwlef32OPErPvvBpgL5pZIyQ4ymwrCIFQLBQQ');
 assert (jwt (array('lil' => 'xan'), encode ('betrayed'), 'HS256') === 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJsaWwiOiJ4YW4ifQ.md-oFvZagA-NXmZoRNyJOQ7zwK-PWUMmMQ_LI9ZOKaM');
 
-// ---------------------------------------------------------------------------------------------------------------------
-
-assert ($exchange->soliditySha3 (['0x63581b9abf2b661da0ba247e0dda1b723dcff5e3', 100, 'lulwat']) === '0x1d3e95c10fc64aee6628ea59284503a4eafc6ff13c541f00753fbd2a66cea0f5');
-assert ($exchange->soliditySha3 ([234]) === '0x61c831beab28d67d1bb40b5ae1a11e2757fa842f031a2d0bc94a7867bc5d26c2');
-assert ($exchange->soliditySha3 (['234']) === '0x61c831beab28d67d1bb40b5ae1a11e2757fa842f031a2d0bc94a7867bc5d26c2');
-assert ($exchange->soliditySha3 (['Hello!%']) === '0x661136a4267dba9ccdf6bfddb7c00e714de936674c4bdb065a531cf1cb15c7fc');
-assert ($exchange->soliditySha3 (['0x407D73d8a49eeb85D32Cf465507dd71d507100c1']) === '0x4e8ebbefa452077428f93c9520d3edd60594ff452a29ac7d2ccc11d47f3ab95b');
+assert (crc32 ('hello', true) === 907060870);
+assert (crc32 ('tasty chicken breast :)', true) === 825820175);
+assert (crc32 ('21101:0.00123125:21102:-0.001:21100:0.710705:21103:-0.001:21096:0.71076:21104:-0.001:21094:1.0746:21105:-0.001:21093:0.710854:21106:-0.419:21092:0.01368102:21107:-0.001:21090:0.710975:21109:-0.001:21089:0.63586344:21110:-1.186213:21087:0.299:21111:-0.48751202:21086:0.9493:21112:-0.03702409:21082:0.03537667:21113:-0.712385:21081:0.00101366:21114:-0.2903:21079:0.710713:21115:-0.001:21078:0.997048:21116:-0.60089827:21077:0.23770225:21117:-0.83201:21076:0.03619135:21118:-0.09996142:21075:0.1272433:21119:-1.09681107:21074:0.7447885:21120:-0.04771792:21073:0.0011:21121:-0.91495684:21072:0.73311632:21122:-0.07940416:21071:0.09817:21123:-0.39376843:21070:0.19101052:21124:-1.51692599:21069:0.2757:21125:-0.11107322:21068:0.12480303:21126:-0.12704666:21067:0.4201:21128:-0.12804666', true) === -51055998);

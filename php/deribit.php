@@ -6,42 +6,78 @@ namespace ccxt;
 // https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 use Exception; // a common import
-use \ccxt\ExchangeError;
-use \ccxt\ArgumentsRequired;
 
 class deribit extends Exchange {
 
     public function describe() {
-        return $this->deep_extend(parent::describe (), array(
+        return $this->deep_extend(parent::describe(), array(
             'id' => 'deribit',
             'name' => 'Deribit',
             'countries' => array( 'NL' ), // Netherlands
             'version' => 'v2',
             'userAgent' => null,
-            'rateLimit' => 500,
+            // 20 requests per second for non-matching-engine endpoints, 1000ms / 20 = 50ms between requests
+            // 5 requests per second for matching-engine endpoints, cost = (1000ms / rateLimit) / 5 = 4
+            'rateLimit' => 50,
+            'pro' => true,
             'has' => array(
                 'CORS' => true,
-                'editOrder' => true,
-                'fetchBalance' => true,
-                'fetchOrder' => true,
-                'fetchOrders' => false,
-                'fetchOpenOrders' => true,
-                'fetchClosedOrders' => true,
-                'fetchMyTrades' => true,
-                'fetchTickers' => true,
-                'fetchOHLCV' => true,
-                'fetchDepositAddress' => true,
-                'createDepositAddress' => true,
-                'fetchOrderTrades' => true,
-                'createOrder' => true,
-                'cancelOrder' => true,
+                'spot' => false,
+                'margin' => false,
+                'swap' => true,
+                'future' => true,
+                'option' => true,
                 'cancelAllOrders' => true,
-                'withdraw' => true,
-                'fetchTime' => true,
-                'fetchStatus' => true,
+                'cancelOrder' => true,
+                'cancelOrders' => false,
+                'createDepositAddress' => true,
+                'createOrder' => true,
+                'createStopLimitOrder' => true,
+                'createStopMarketOrder' => true,
+                'createStopOrder' => true,
+                'editOrder' => true,
+                'fetchAccounts' => true,
+                'fetchBalance' => true,
+                'fetchBorrowRate' => false,
+                'fetchBorrowRateHistories' => false,
+                'fetchBorrowRateHistory' => false,
+                'fetchBorrowRates' => false,
+                'fetchBorrowRatesPerSymbol' => false,
+                'fetchClosedOrders' => true,
+                'fetchDeposit' => false,
+                'fetchDepositAddress' => true,
                 'fetchDeposits' => true,
+                'fetchHistoricalVolatility' => true,
+                'fetchIndexOHLCV' => false,
+                'fetchLeverageTiers' => false,
+                'fetchMarginMode' => false,
+                'fetchMarkets' => true,
+                'fetchMarkOHLCV' => false,
+                'fetchMyTrades' => true,
+                'fetchOHLCV' => true,
+                'fetchOpenOrders' => true,
+                'fetchOrder' => true,
+                'fetchOrderBook' => true,
+                'fetchOrders' => null,
+                'fetchOrderTrades' => true,
+                'fetchPosition' => true,
+                'fetchPositionMode' => false,
+                'fetchPositions' => true,
+                'fetchPremiumIndexOHLCV' => false,
+                'fetchStatus' => true,
+                'fetchTicker' => true,
+                'fetchTickers' => true,
+                'fetchTime' => true,
+                'fetchTrades' => true,
+                'fetchTradingFee' => false,
+                'fetchTradingFees' => true,
+                'fetchTransactions' => null,
+                'fetchTransfer' => false,
+                'fetchTransfers' => true,
+                'fetchWithdrawal' => false,
                 'fetchWithdrawals' => true,
-                'fetchTransactions' => false,
+                'transfer' => true,
+                'withdraw' => true,
             ),
             'timeframes' => array(
                 '1m' => '1',
@@ -58,137 +94,165 @@ class deribit extends Exchange {
                 '1d' => '1D',
             ),
             'urls' => array(
-                'test' => 'https://test.deribit.com',
+                'test' => array(
+                    'rest' => 'https://test.deribit.com',
+                ),
                 'logo' => 'https://user-images.githubusercontent.com/1294454/41933112-9e2dd65a-798b-11e8-8440-5bab2959fcb8.jpg',
-                'api' => 'https://www.deribit.com',
+                'api' => array(
+                    'rest' => 'https://www.deribit.com',
+                ),
                 'www' => 'https://www.deribit.com',
                 'doc' => array(
                     'https://docs.deribit.com/v2',
                     'https://github.com/deribit',
                 ),
                 'fees' => 'https://www.deribit.com/pages/information/fees',
-                'referral' => 'https://www.deribit.com/reg-1189.4038',
+                'referral' => array(
+                    'url' => 'https://www.deribit.com/reg-1189.4038',
+                    'discount' => 0.1,
+                ),
             ),
             'api' => array(
                 'public' => array(
                     'get' => array(
                         // Authentication
-                        'auth',
-                        'exchange_token',
-                        'fork_token',
+                        'auth' => 1,
+                        'exchange_token' => 1,
+                        'fork_token' => 1,
                         // Session management
-                        'set_heartbeat',
-                        'disable_heartbeat',
+                        'set_heartbeat' => 1,
+                        'disable_heartbeat' => 1,
                         // Supporting
-                        'get_time',
-                        'hello',
-                        'test',
+                        'get_time' => 1,
+                        'hello' => 1,
+                        'status' => 1,
+                        'test' => 1,
                         // Subscription management
-                        'subscribe',
-                        'unsubscribe',
+                        'subscribe' => 1,
+                        'unsubscribe' => 1,
+                        'unsubscribe_all' => 1,
                         // Account management
-                        'get_announcements',
+                        'get_announcements' => 1,
                         // Market data
-                        'get_book_summary_by_currency',
-                        'get_book_summary_by_instrument',
-                        'get_contract_size',
-                        'get_currencies',
-                        'get_funding_chart_data',
-                        'get_funding_rate_history',
-                        'get_funding_rate_value',
-                        'get_historical_volatility',
-                        'get_index',
-                        'get_instruments',
-                        'get_last_settlements_by_currency',
-                        'get_last_settlements_by_instrument',
-                        'get_last_trades_by_currency',
-                        'get_last_trades_by_currency_and_time',
-                        'get_last_trades_by_instrument',
-                        'get_last_trades_by_instrument_and_time',
-                        'get_order_book',
-                        'get_trade_volumes',
-                        'get_tradingview_chart_data',
-                        'ticker',
+                        'get_book_summary_by_currency' => 1,
+                        'get_book_summary_by_instrument' => 1,
+                        'get_contract_size' => 1,
+                        'get_currencies' => 1,
+                        'get_delivery_prices' => 1,
+                        'get_funding_chart_data' => 1,
+                        'get_funding_rate_history' => 1,
+                        'get_funding_rate_value' => 1,
+                        'get_historical_volatility' => 1,
+                        'get_index' => 1,
+                        'get_index_price' => 1,
+                        'get_index_price_names' => 1,
+                        'get_instrument' => 1,
+                        'get_instruments' => 1,
+                        'get_last_settlements_by_currency' => 1,
+                        'get_last_settlements_by_instrument' => 1,
+                        'get_last_trades_by_currency' => 1,
+                        'get_last_trades_by_currency_and_time' => 1,
+                        'get_last_trades_by_instrument' => 1,
+                        'get_last_trades_by_instrument_and_time' => 1,
+                        'get_mark_price_history' => 1,
+                        'get_order_book' => 1,
+                        'get_trade_volumes' => 1,
+                        'get_tradingview_chart_data' => 1,
+                        'get_volatility_index_data' => 1,
+                        'ticker' => 1,
                     ),
                 ),
                 'private' => array(
                     'get' => array(
                         // Authentication
-                        'logout',
+                        'logout' => 1,
                         // Session management
-                        'enable_cancel_on_disconnect',
-                        'disable_cancel_on_disconnect',
-                        'get_cancel_on_disconnect',
+                        'enable_cancel_on_disconnect' => 1,
+                        'disable_cancel_on_disconnect' => 1,
+                        'get_cancel_on_disconnect' => 1,
                         // Subscription management
-                        'subscribe',
-                        'unsubscribe',
+                        'subscribe' => 1,
+                        'unsubscribe' => 1,
+                        'unsubscribe_all' => 1,
                         // Account management
-                        'change_api_key_name',
-                        'change_scope_in_api_key',
-                        'change_subaccount_name',
-                        'create_api_key',
-                        'create_subaccount',
-                        'disable_api_key',
-                        'disable_tfa_for_subaccount',
-                        'enable_api_key',
-                        'get_account_summary',
-                        'get_email_language',
-                        'get_new_announcements',
-                        'get_position',
-                        'get_positions',
-                        'get_subaccounts',
-                        'list_api_keys',
-                        'remove_api_key',
-                        'reset_api_key',
-                        'set_announcement_as_read',
-                        'set_api_key_as_default',
-                        'set_email_for_subaccount',
-                        'set_email_language',
-                        'set_password_for_subaccount',
-                        'toggle_notifications_from_subaccount',
-                        'toggle_subaccount_login',
+                        'change_api_key_name' => 1,
+                        'change_scope_in_api_key' => 1,
+                        'change_subaccount_name' => 1,
+                        'create_api_key' => 1,
+                        'create_subaccount' => 1,
+                        'disable_api_key' => 1,
+                        'disable_tfa_for_subaccount' => 1,
+                        'enable_affiliate_program' => 1,
+                        'enable_api_key' => 1,
+                        'get_access_log' => 1,
+                        'get_account_summary' => 1,
+                        'get_affiliate_program_info' => 1,
+                        'get_email_language' => 1,
+                        'get_new_announcements' => 1,
+                        'get_portfolio_margins' => 1,
+                        'get_position' => 1,
+                        'get_positions' => 1,
+                        'get_subaccounts' => 1,
+                        'get_subaccounts_details' => 1,
+                        'get_transaction_log' => 1,
+                        'list_api_keys' => 1,
+                        'remove_api_key' => 1,
+                        'remove_subaccount' => 1,
+                        'reset_api_key' => 1,
+                        'set_announcement_as_read' => 1,
+                        'set_api_key_as_default' => 1,
+                        'set_email_for_subaccount' => 1,
+                        'set_email_language' => 1,
+                        'set_password_for_subaccount' => 1,
+                        'toggle_notifications_from_subaccount' => 1,
+                        'toggle_subaccount_login' => 1,
                         // Block Trade
-                        'execute_block_trade',
-                        'get_block_trade',
-                        'get_last_block_trades_by_currency',
-                        'invalidate_block_trade_signature',
-                        'verify_block_trade',
+                        'execute_block_trade' => 4,
+                        'get_block_trade' => 1,
+                        'get_last_block_trades_by_currency' => 1,
+                        'invalidate_block_trade_signature' => 1,
+                        'verify_block_trade' => 4,
                         // Trading
-                        'buy',
-                        'sell',
-                        'edit',
-                        'cancel',
-                        'cancel_all',
-                        'cancel_all_by_currency',
-                        'cancel_all_by_instrument',
-                        'cancel_by_label',
-                        'close_position',
-                        'get_margins',
-                        'get_open_orders_by_currency',
-                        'get_open_orders_by_instrument',
-                        'get_order_history_by_currency',
-                        'get_order_history_by_instrument',
-                        'get_order_margin_by_ids',
-                        'get_order_state',
-                        'get_stop_order_history',
-                        'get_user_trades_by_currency',
-                        'get_user_trades_by_currency_and_time',
-                        'get_user_trades_by_instrument',
-                        'get_user_trades_by_instrument_and_time',
-                        'get_user_trades_by_order',
-                        'get_settlement_history_by_instrument',
-                        'get_settlement_history_by_currency',
+                        'buy' => 4,
+                        'sell' => 4,
+                        'edit' => 4,
+                        'edit_by_label' => 4,
+                        'cancel' => 4,
+                        'cancel_all' => 4,
+                        'cancel_all_by_currency' => 4,
+                        'cancel_all_by_instrument' => 4,
+                        'cancel_by_label' => 4,
+                        'close_position' => 4,
+                        'get_margins' => 1,
+                        'get_mmp_config' => 1,
+                        'get_open_orders_by_currency' => 1,
+                        'get_open_orders_by_instrument' => 1,
+                        'get_order_history_by_currency' => 1,
+                        'get_order_history_by_instrument' => 1,
+                        'get_order_margin_by_ids' => 1,
+                        'get_order_state' => 1,
+                        'get_stop_order_history' => 1, // deprecated
+                        'get_trigger_order_history' => 1,
+                        'get_user_trades_by_currency' => 1,
+                        'get_user_trades_by_currency_and_time' => 1,
+                        'get_user_trades_by_instrument' => 1,
+                        'get_user_trades_by_instrument_and_time' => 1,
+                        'get_user_trades_by_order' => 1,
+                        'reset_mmp' => 1,
+                        'set_mmp_config' => 1,
+                        'get_settlement_history_by_instrument' => 1,
+                        'get_settlement_history_by_currency' => 1,
                         // Wallet
-                        'cancel_transfer_by_id',
-                        'cancel_withdrawal',
-                        'create_deposit_address',
-                        'get_current_deposit_address',
-                        'get_deposits',
-                        'get_transfers',
-                        'get_withdrawals',
-                        'submit_transfer_to_subaccount',
-                        'submit_transfer_to_user',
-                        'withdraw',
+                        'cancel_transfer_by_id' => 1,
+                        'cancel_withdrawal' => 1,
+                        'create_deposit_address' => 1,
+                        'get_current_deposit_address' => 1,
+                        'get_deposits' => 1,
+                        'get_transfers' => 1,
+                        'get_withdrawals' => 1,
+                        'submit_transfer_to_subaccount' => 1,
+                        'submit_transfer_to_user' => 1,
+                        'withdraw' => 1,
                     ),
                 ),
             ),
@@ -305,6 +369,7 @@ class deribit extends Exchange {
                 '-32601' => '\\ccxt\\BadRequest', // 'Method not found' see JSON-RPC spec.
                 '-32700' => '\\ccxt\\BadRequest', // 'Parse error' see JSON-RPC spec.
                 '-32000' => '\\ccxt\\BadRequest', // 'Missing params' see JSON-RPC spec.
+                '11054' => '\\ccxt\\InvalidOrder', // 'post_only_reject' post order would be filled immediately
             ),
             'precisionMode' => TICK_SIZE,
             'options' => array(
@@ -312,11 +377,22 @@ class deribit extends Exchange {
                 'fetchBalance' => array(
                     'code' => 'BTC',
                 ),
+                'fetchPositions' => array(
+                    'code' => 'BTC',
+                ),
+                'transfer' => array(
+                    'method' => 'privateGetSubmitTransferToSubaccount', // or 'privateGetSubmitTransferToUser'
+                ),
             ),
         ));
     }
 
     public function fetch_time($params = array ()) {
+        /**
+         * fetches the current integer timestamp in milliseconds from the exchange server
+         * @param {array} $params extra parameters specific to the deribit api endpoint
+         * @return {int} the current integer timestamp in milliseconds from the exchange server
+         */
         $response = $this->publicGetGetTime ($params);
         //
         //     {
@@ -331,35 +407,119 @@ class deribit extends Exchange {
         return $this->safe_integer($response, 'result');
     }
 
-    public function code_from_options($methodName) {
+    public function code_from_options($methodName, $params = array ()) {
         $defaultCode = $this->safe_value($this->options, 'code', 'BTC');
         $options = $this->safe_value($this->options, $methodName, array());
-        return $this->safe_value($options, 'code', $defaultCode);
+        $code = $this->safe_value($options, 'code', $defaultCode);
+        return $this->safe_value($params, 'code', $code);
     }
 
     public function fetch_status($params = array ()) {
-        $request = array(
-            // 'expected_result' => false, // true will trigger an error for testing purposes
+        /**
+         * the latest known information on the availability of the exchange API
+         * @param {array} $params extra parameters specific to the deribit api endpoint
+         * @return {array} a {@link https://docs.ccxt.com/en/latest/manual.html#exchange-status-structure status structure}
+         */
+        $response = $this->publicGetStatus ($params);
+        //
+        //     {
+        //         "jsonrpc" => "2.0",
+        //         "result" => array(
+        //             "locked" => "false" // true, partial, false
+        //         ),
+        //         "usIn" => 1650641690226788,
+        //         "usOut" => 1650641690226836,
+        //         "usDiff" => 48,
+        //         "testnet" => false
+        //     }
+        //
+        $result = $this->safe_value($response, 'result');
+        $locked = $this->safe_string($result, 'locked');
+        $updateTime = $this->safe_integer_product($response, 'usIn', 0.001, $this->milliseconds());
+        return array(
+            'status' => ($locked === 'false') ? 'ok' : 'maintenance',
+            'updated' => $updateTime,
+            'eta' => null,
+            'url' => null,
+            'info' => $response,
         );
-        $this->publicGetTest (array_merge($request, $params));
+    }
+
+    public function fetch_accounts($params = array ()) {
+        /**
+         * fetch all the accounts associated with a profile
+         * @param {array} $params extra parameters specific to the deribit api endpoint
+         * @return {array} a dictionary of {@link https://docs.ccxt.com/en/latest/manual.html#account-structure account structures} indexed by the account type
+         */
+        $this->load_markets();
+        $response = $this->privateGetGetSubaccounts ($params);
         //
         //     {
         //         jsonrpc => '2.0',
-        //         result => array( version => '1.2.26' ),
-        //         usIn => 1583922623964485,
-        //         usOut => 1583922623964487,
-        //         usDiff => 2,
+        //         $result => [array(
+        //                 username => 'someusername',
+        //                 type => 'main',
+        //                 system_name => 'someusername',
+        //                 security_keys_enabled => false,
+        //                 security_keys_assignments => array(),
+        //                 receive_notifications => false,
+        //                 login_enabled => true,
+        //                 is_password => true,
+        //                 id => '238216',
+        //                 email => 'pablo@abcdef.com'
+        //             ),
+        //             {
+        //                 username => 'someusername_1',
+        //                 type => 'subaccount',
+        //                 system_name => 'someusername_1',
+        //                 security_keys_enabled => false,
+        //                 security_keys_assignments => array(),
+        //                 receive_notifications => false,
+        //                 login_enabled => false,
+        //                 is_password => false,
+        //                 id => '245499',
+        //                 email => 'pablo@abcdef.com'
+        //             }
+        //         ],
+        //         usIn => '1652736468292006',
+        //         usOut => '1652736468292377',
+        //         usDiff => '371',
         //         testnet => false
         //     }
         //
-        $this->status = array_merge($this->status, array(
-            'status' => 'ok',
-            'updated' => $this->milliseconds(),
-        ));
-        return $this->status;
+        $result = $this->safe_value($response, 'result', array());
+        return $this->parse_accounts($result);
+    }
+
+    public function parse_account($account, $currency = null) {
+        //
+        //      {
+        //          username => 'someusername_1',
+        //          type => 'subaccount',
+        //          system_name => 'someusername_1',
+        //          security_keys_enabled => false,
+        //          security_keys_assignments => array(),
+        //          receive_notifications => false,
+        //          login_enabled => false,
+        //          is_password => false,
+        //          id => '245499',
+        //          email => 'pablo@abcdef.com'
+        //      }
+        //
+        return array(
+            'info' => $account,
+            'id' => $this->safe_string($account, 'id'),
+            'type' => $this->safe_string($account, 'type'),
+            'code' => $this->safe_currency_code(null, $currency),
+        );
     }
 
     public function fetch_markets($params = array ()) {
+        /**
+         * retrieves data on all markets for deribit
+         * @param {array} $params extra parameters specific to the exchange api endpoint
+         * @return {[array]} an array of objects representing $market data
+         */
         $currenciesResponse = $this->publicGetGetCurrencies ($params);
         //
         //     {
@@ -395,30 +555,75 @@ class deribit extends Exchange {
             $instrumentsResponse = $this->publicGetGetInstruments (array_merge($request, $params));
             //
             //     {
-            //         jsonrpc => '2.0',
-            //         $result => array(
+            //         "jsonrpc":"2.0",
+            //         "result":array(
             //             array(
-            //                 tick_size => 0.0005,
-            //                 taker_commission => 0.0004,
-            //                 strike => 300,
-            //                 settlement_period => 'week',
-            //                 quote_currency => 'USD',
-            //                 option_type => 'call',
-            //                 min_trade_amount => 1,
-            //                 maker_commission => 0.0004,
-            //                 kind => 'option',
-            //                 is_active => true,
-            //                 instrument_name => 'ETH-13MAR20-300-C',
-            //                 expiration_timestamp => 1584086400000,
-            //                 creation_timestamp => 1582790403000,
-            //                 contract_size => 1,
-            //                 base_currency => 'ETH'
+            //                 "tick_size":0.0005,
+            //                 "taker_commission":0.0003,
+            //                 "strike":52000.0,
+            //                 "settlement_period":"month",
+            //                 "settlement_currency":"BTC",
+            //                 "quote_currency":"BTC",
+            //                 "option_type":"put", // put, call
+            //                 "min_trade_amount":0.1,
+            //                 "maker_commission":0.0003,
+            //                 "kind":"option",
+            //                 "is_active":true,
+            //                 "instrument_name":"BTC-24JUN22-52000-P",
+            //                 "expiration_timestamp":1656057600000,
+            //                 "creation_timestamp":1648199543000,
+            //                 "counter_currency":"USD",
+            //                 "contract_size":1.0,
+            //                 "block_trade_commission":0.0003,
+            //                 "base_currency":"BTC"
+            //             ),
+            //             array(
+            //                 "tick_size":0.5,
+            //                 "taker_commission":0.0005,
+            //                 "settlement_period":"month", // month, week
+            //                 "settlement_currency":"BTC",
+            //                 "quote_currency":"USD",
+            //                 "min_trade_amount":10.0,
+            //                 "max_liquidation_commission":0.0075,
+            //                 "max_leverage":50,
+            //                 "maker_commission":0.0,
+            //                 "kind":"future",
+            //                 "is_active":true,
+            //                 "instrument_name":"BTC-27MAY22",
+            //                 "future_type":"reversed",
+            //                 "expiration_timestamp":1653638400000,
+            //                 "creation_timestamp":1648195209000,
+            //                 "counter_currency":"USD",
+            //                 "contract_size":10.0,
+            //                 "block_trade_commission":0.0001,
+            //                 "base_currency":"BTC"
+            //             ),
+            //             array(
+            //                 "tick_size":0.5,
+            //                 "taker_commission":0.0005,
+            //                 "settlement_period":"perpetual",
+            //                 "settlement_currency":"BTC",
+            //                 "quote_currency":"USD",
+            //                 "min_trade_amount":10.0,
+            //                 "max_liquidation_commission":0.0075,
+            //                 "max_leverage":50,
+            //                 "maker_commission":0.0,
+            //                 "kind":"future",
+            //                 "is_active":true,
+            //                 "instrument_name":"BTC-PERPETUAL",
+            //                 "future_type":"reversed",
+            //                 "expiration_timestamp":32503708800000,
+            //                 "creation_timestamp":1534242287000,
+            //                 "counter_currency":"USD",
+            //                 "contract_size":10.0,
+            //                 "block_trade_commission":0.0001,
+            //                 "base_currency":"BTC"
             //             ),
             //         ),
-            //         usIn => 1583761889500586,
-            //         usOut => 1583761889505066,
-            //         usDiff => 4480,
-            //         testnet => false
+            //         "usIn":1648691472831791,
+            //         "usOut":1648691472831896,
+            //         "usDiff":105,
+            //         "testnet":false
             //     }
             //
             $instrumentsResult = $this->safe_value($instrumentsResponse, 'result', array());
@@ -426,29 +631,76 @@ class deribit extends Exchange {
                 $market = $instrumentsResult[$k];
                 $id = $this->safe_string($market, 'instrument_name');
                 $baseId = $this->safe_string($market, 'base_currency');
-                $quoteId = $this->safe_string($market, 'quote_currency');
+                $quoteId = $this->safe_string($market, 'counter_currency');
+                $settleId = $this->safe_string($market, 'settlement_currency');
                 $base = $this->safe_currency_code($baseId);
                 $quote = $this->safe_currency_code($quoteId);
-                $type = $this->safe_string($market, 'kind');
-                $future = ($type === 'future');
-                $option = ($type === 'option');
-                $active = $this->safe_value($market, 'is_active');
-                $minTradeAmount = $this->safe_float($market, 'min_trade_amount');
-                $tickSize = $this->safe_float($market, 'tick_size');
-                $precision = array(
-                    'amount' => $minTradeAmount,
-                    'price' => $tickSize,
-                );
+                $settle = $this->safe_currency_code($settleId);
+                $kind = $this->safe_string($market, 'kind');
+                $settlementPeriod = $this->safe_value($market, 'settlement_period');
+                $swap = ($settlementPeriod === 'perpetual');
+                $future = !$swap && (mb_strpos($kind, 'future') !== false);
+                $option = (mb_strpos($kind, 'option') !== false);
+                $isComboMarket = mb_strpos($kind, 'combo') !== false;
+                $expiry = $this->safe_integer($market, 'expiration_timestamp');
+                $strike = null;
+                $optionType = null;
+                $symbol = $id;
+                $type = 'swap';
+                if ($future) {
+                    $type = 'future';
+                } elseif ($option) {
+                    $type = 'option';
+                }
+                if (!$isComboMarket) {
+                    $symbol = $base . '/' . $quote . ':' . $settle;
+                    if ($option || $future) {
+                        $symbol = $symbol . '-' . $this->yymmdd($expiry, '');
+                        if ($option) {
+                            $strike = $this->safe_number($market, 'strike');
+                            $optionType = $this->safe_string($market, 'option_type');
+                            $letter = ($optionType === 'call') ? 'C' : 'P';
+                            $symbol = $symbol . '-' . $this->number_to_string($strike) . '-' . $letter;
+                        }
+                    }
+                }
+                $minTradeAmount = $this->safe_number($market, 'min_trade_amount');
+                $tickSize = $this->safe_number($market, 'tick_size');
                 $result[] = array(
                     'id' => $id,
-                    'symbol' => $id,
+                    'symbol' => $symbol,
                     'base' => $base,
                     'quote' => $quote,
-                    'active' => $active,
-                    'precision' => $precision,
-                    'taker' => $this->safe_float($market, 'taker_commission'),
-                    'maker' => $this->safe_float($market, 'maker_commission'),
+                    'settle' => $settle,
+                    'baseId' => $baseId,
+                    'quoteId' => $quoteId,
+                    'settleId' => $settleId,
+                    'type' => $type,
+                    'spot' => false,
+                    'margin' => false,
+                    'swap' => $swap,
+                    'future' => $future,
+                    'option' => $option,
+                    'active' => $this->safe_value($market, 'is_active'),
+                    'contract' => true,
+                    'linear' => ($settle === $quote),
+                    'inverse' => ($settle !== $quote),
+                    'taker' => $this->safe_number($market, 'taker_commission'),
+                    'maker' => $this->safe_number($market, 'maker_commission'),
+                    'contractSize' => $this->safe_number($market, 'contract_size'),
+                    'expiry' => $expiry,
+                    'expiryDatetime' => $this->iso8601($expiry),
+                    'strike' => $strike,
+                    'optionType' => $optionType,
+                    'precision' => array(
+                        'amount' => $minTradeAmount,
+                        'price' => $tickSize,
+                    ),
                     'limits' => array(
+                        'leverage' => array(
+                            'min' => null,
+                            'max' => null,
+                        ),
                         'amount' => array(
                             'min' => $minTradeAmount,
                             'max' => null,
@@ -462,10 +714,6 @@ class deribit extends Exchange {
                             'max' => null,
                         ),
                     ),
-                    'type' => $type,
-                    'spot' => false,
-                    'future' => $future,
-                    'option' => $option,
                     'info' => $market,
                 );
             }
@@ -473,9 +721,28 @@ class deribit extends Exchange {
         return $result;
     }
 
+    public function parse_balance($balance) {
+        $result = array(
+            'info' => $balance,
+        );
+        $currencyId = $this->safe_string($balance, 'currency');
+        $currencyCode = $this->safe_currency_code($currencyId);
+        $account = $this->account();
+        $account['free'] = $this->safe_string($balance, 'available_funds');
+        $account['used'] = $this->safe_string($balance, 'maintenance_margin');
+        $account['total'] = $this->safe_string($balance, 'equity');
+        $result[$currencyCode] = $account;
+        return $this->safe_balance($result);
+    }
+
     public function fetch_balance($params = array ()) {
+        /**
+         * query for balance and get the amount of funds available for trading or funds locked in orders
+         * @param {array} $params extra parameters specific to the deribit api endpoint
+         * @return {array} a ~@link https://docs.ccxt.com/en/latest/manual.html?#balance-structure balance structure~
+         */
         $this->load_markets();
-        $code = $this->code_from_options('fetchBalance');
+        $code = $this->code_from_options('fetchBalance', $params);
         $currency = $this->currency($code);
         $request = array(
             'currency' => $currency['id'],
@@ -513,7 +780,7 @@ class deribit extends Exchange {
         //             deposit_address => '13tUtNsJSZa1F5GeCmwBywVrymHpZispzw',
         //             delta_total => 0,
         //             $currency => 'BTC',
-        //             $balance => 0.00062359,
+        //             balance => 0.00062359,
         //             available_withdrawal_funds => 0.00062359,
         //             available_funds => 0.00062359
         //         ),
@@ -523,21 +790,17 @@ class deribit extends Exchange {
         //         testnet => false
         //     }
         //
-        $result = array(
-            'info' => $response,
-        );
-        $balance = $this->safe_value($response, 'result', array());
-        $currencyId = $this->safe_string($balance, 'currency');
-        $currencyCode = $this->safe_currency_code($currencyId);
-        $account = $this->account();
-        $account['free'] = $this->safe_float($balance, 'availableFunds');
-        $account['used'] = $this->safe_float($balance, 'maintenanceMargin');
-        $account['total'] = $this->safe_float($balance, 'equity');
-        $result[$currencyCode] = $account;
+        $result = $this->safe_value($response, 'result', array());
         return $this->parse_balance($result);
     }
 
     public function create_deposit_address($code, $params = array ()) {
+        /**
+         * create a $currency deposit $address
+         * @param {string} $code unified $currency $code of the $currency for the deposit $address
+         * @param {array} $params extra parameters specific to the deribit api endpoint
+         * @return {array} an {@link https://docs.ccxt.com/en/latest/manual.html#$address-structure $address structure}
+         */
         $this->load_markets();
         $currency = $this->currency($code);
         $request = array(
@@ -568,6 +831,12 @@ class deribit extends Exchange {
     }
 
     public function fetch_deposit_address($code, $params = array ()) {
+        /**
+         * fetch the deposit $address for a $currency associated with this account
+         * @param {string} $code unified $currency $code
+         * @param {array} $params extra parameters specific to the deribit api endpoint
+         * @return {array} an {@link https://docs.ccxt.com/en/latest/manual.html#$address-structure $address structure}
+         */
         $this->load_markets();
         $currency = $this->currency($code);
         $request = array(
@@ -598,6 +867,7 @@ class deribit extends Exchange {
             'currency' => $code,
             'address' => $address,
             'tag' => null,
+            'network' => null,
             'info' => $response,
         );
     }
@@ -651,25 +921,19 @@ class deribit extends Exchange {
         //
         $timestamp = $this->safe_integer_2($ticker, 'timestamp', 'creation_timestamp');
         $marketId = $this->safe_string($ticker, 'instrument_name');
-        $symbol = $marketId;
-        if (is_array($this->markets_by_id) && array_key_exists($marketId, $this->markets_by_id)) {
-            $market = $this->markets_by_id[$marketId];
-        }
-        if (($symbol === null) && ($market !== null)) {
-            $symbol = $market['symbol'];
-        }
-        $last = $this->safe_float_2($ticker, 'last_price', 'last');
+        $symbol = $this->safe_symbol($marketId, $market);
+        $last = $this->safe_string_2($ticker, 'last_price', 'last');
         $stats = $this->safe_value($ticker, 'stats', $ticker);
-        return array(
+        return $this->safe_ticker(array(
             'symbol' => $symbol,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
-            'high' => $this->safe_float_2($stats, 'high', 'max_price'),
-            'low' => $this->safe_float_2($stats, 'low', 'min_price'),
-            'bid' => $this->safe_float_2($ticker, 'best_bid_price', 'bid_price'),
-            'bidVolume' => $this->safe_float($ticker, 'best_bid_amount'),
-            'ask' => $this->safe_float_2($ticker, 'best_ask_price', 'ask_price'),
-            'askVolume' => $this->safe_float($ticker, 'best_ask_amount'),
+            'high' => $this->safe_string_2($stats, 'high', 'max_price'),
+            'low' => $this->safe_string_2($stats, 'low', 'min_price'),
+            'bid' => $this->safe_string_2($ticker, 'best_bid_price', 'bid_price'),
+            'bidVolume' => $this->safe_string($ticker, 'best_bid_amount'),
+            'ask' => $this->safe_string_2($ticker, 'best_ask_price', 'ask_price'),
+            'askVolume' => $this->safe_string($ticker, 'best_ask_amount'),
             'vwap' => null,
             'open' => null,
             'close' => $last,
@@ -679,12 +943,18 @@ class deribit extends Exchange {
             'percentage' => null,
             'average' => null,
             'baseVolume' => null,
-            'quoteVolume' => $this->safe_float($stats, 'volume'),
+            'quoteVolume' => $this->safe_string($stats, 'volume'),
             'info' => $ticker,
-        );
+        ), $market);
     }
 
     public function fetch_ticker($symbol, $params = array ()) {
+        /**
+         * fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific $market
+         * @param {string} $symbol unified $symbol of the $market to fetch the ticker for
+         * @param {array} $params extra parameters specific to the deribit api endpoint
+         * @return {array} a {@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure ticker structure}
+         */
         $this->load_markets();
         $market = $this->market($symbol);
         $request = array(
@@ -724,8 +994,15 @@ class deribit extends Exchange {
     }
 
     public function fetch_tickers($symbols = null, $params = array ()) {
+        /**
+         * fetches price $tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
+         * @param {[string]|null} $symbols unified $symbols of the markets to fetch the $ticker for, all market $tickers are returned if not assigned
+         * @param {array} $params extra parameters specific to the deribit api endpoint
+         * @return {array} an array of {@link https://docs.ccxt.com/en/latest/manual.html#$ticker-structure $ticker structures}
+         */
         $this->load_markets();
-        $code = $this->code_from_options('fetchTickers');
+        $symbols = $this->market_symbols($symbols);
+        $code = $this->code_from_options('fetchTickers', $params);
         $currency = $this->currency($code);
         $request = array(
             'currency' => $currency['id'],
@@ -772,6 +1049,15 @@ class deribit extends Exchange {
     }
 
     public function fetch_ohlcv($symbol, $timeframe = '1m', $since = null, $limit = null, $params = array ()) {
+        /**
+         * fetches historical candlestick data containing the open, high, low, and close price, and the volume of a $market
+         * @param {string} $symbol unified $symbol of the $market to fetch OHLCV data for
+         * @param {string} $timeframe the length of time each candle represents
+         * @param {int|null} $since timestamp in ms of the earliest candle to fetch
+         * @param {int|null} $limit the maximum amount of candles to fetch
+         * @param {array} $params extra parameters specific to the deribit api endpoint
+         * @return {[[int]]} A list of candles ordered as timestamp, open, high, low, close, volume
+         */
         $this->load_markets();
         $market = $this->market($symbol);
         $request = array(
@@ -782,11 +1068,10 @@ class deribit extends Exchange {
         $now = $this->milliseconds();
         if ($since === null) {
             if ($limit === null) {
-                throw new ArgumentsRequired($this->id . ' fetchOHLCV requires a $since argument or a $limit argument');
-            } else {
-                $request['start_timestamp'] = $now - ($limit - 1) * $duration * 1000;
-                $request['end_timestamp'] = $now;
+                $limit = 1000; // at max, it provides 5000 bars, but we set generous default here
             }
+            $request['start_timestamp'] = $now - ($limit - 1) * $duration * 1000;
+            $request['end_timestamp'] = $now;
         } else {
             $request['start_timestamp'] = $since;
             if ($limit === null) {
@@ -824,62 +1109,58 @@ class deribit extends Exchange {
         //
         // fetchTrades (public)
         //
-        //     {
-        //         'trade_seq' => 39201926,
-        //         'trade_id':' 64135724',
-        //         'timestamp' => 1583174775400,
-        //         'tick_direction' => 1,
-        //         'price' => 8865.0,
-        //         'instrument_name' => 'BTC-PERPETUAL',
-        //         'index_price' => 8863.31,
-        //         'direction' => 'buy',
-        //         'amount' => 10.0
-        //     }
+        //      {
+        //          "trade_seq":132564271,
+        //          "trade_id":"195402220",
+        //          "timestamp":1639684927932,
+        //          "tick_direction":0,
+        //          "price":47946.5,
+        //          "mark_price":47944.13,
+        //          "instrument_name":"BTC-PERPETUAL",
+        //          "index_price":47925.45,
+        //          "direction":"buy",
+        //          "amount":580.0
+        //      }
+        //
         //
         // fetchMyTrades, fetchOrderTrades (private)
         //
         //     {
         //         "trade_seq" => 3,
         //         "trade_id" => "ETH-34066",
-        //         "$timestamp" => 1550219814585,
+        //         "timestamp" => 1550219814585,
         //         "tick_direction" => 1,
         //         "state" => "open",
         //         "self_trade" => false,
         //         "reduce_only" => false,
-        //         "$price" => 0.04,
+        //         "price" => 0.04,
         //         "post_only" => false,
         //         "order_type" => "limit",
         //         "order_id" => "ETH-334607",
         //         "matching_id" => null,
-        //         "$liquidity" => "M",
+        //         "liquidity" => "M",
         //         "iv" => 56.83,
         //         "instrument_name" => "ETH-22FEB19-120-C",
         //         "index_price" => 121.37,
         //         "fee_currency" => "ETH",
-        //         "$fee" => 0.0011,
+        //         "fee" => 0.0011,
         //         "direction" => "buy",
-        //         "$amount" => 11
+        //         "amount" => 11
         //     }
         //
         $id = $this->safe_string($trade, 'trade_id');
-        $symbol = null;
         $marketId = $this->safe_string($trade, 'instrument_name');
-        if (is_array($this->markets_by_id) && array_key_exists($marketId, $this->markets_by_id)) {
-            $market = $this->markets_by_id[$marketId];
-            $symbol = $market['symbol'];
-        }
-        if (($symbol === null) && ($market !== null)) {
-            $symbol = $market['symbol'];
-        }
+        $symbol = $this->safe_symbol($marketId, $market);
         $timestamp = $this->safe_integer($trade, 'timestamp');
         $side = $this->safe_string($trade, 'direction');
-        $price = $this->safe_float($trade, 'price');
-        $amount = $this->safe_float($trade, 'amount');
-        $cost = null;
-        if ($amount !== null) {
-            if ($price !== null) {
-                $cost = $amount * $price;
-            }
+        $priceString = $this->safe_string($trade, 'price');
+        $market = $this->safe_market($marketId, $market);
+        // Amount for inverse perpetual and futures is in USD which in ccxt is the $cost
+        // For options $amount and linear is in corresponding cryptocurrency contracts, e.g., BTC or ETH
+        $amount = $this->safe_string($trade, 'amount');
+        $cost = Precise::string_mul($amount, $priceString);
+        if ($market['inverse']) {
+            $cost = Precise::string_div($amount, $priceString);
         }
         $liquidity = $this->safe_string($trade, 'liquidity');
         $takerOrMaker = null;
@@ -887,17 +1168,17 @@ class deribit extends Exchange {
             // M = maker, T = taker, MT = both
             $takerOrMaker = ($liquidity === 'M') ? 'maker' : 'taker';
         }
-        $feeCost = $this->safe_float($trade, 'fee');
+        $feeCostString = $this->safe_string($trade, 'fee');
         $fee = null;
-        if ($feeCost !== null) {
+        if ($feeCostString !== null) {
             $feeCurrencyId = $this->safe_string($trade, 'fee_currency');
             $feeCurrencyCode = $this->safe_currency_code($feeCurrencyId);
             $fee = array(
-                'cost' => $feeCost,
+                'cost' => $feeCostString,
                 'currency' => $feeCurrencyCode,
             );
         }
-        return array(
+        return $this->safe_trade(array(
             'id' => $id,
             'info' => $trade,
             'timestamp' => $timestamp,
@@ -907,14 +1188,23 @@ class deribit extends Exchange {
             'type' => $this->safe_string($trade, 'order_type'),
             'side' => $side,
             'takerOrMaker' => $takerOrMaker,
-            'price' => $price,
+            'price' => $priceString,
             'amount' => $amount,
             'cost' => $cost,
             'fee' => $fee,
-        );
+        ), $market);
     }
 
     public function fetch_trades($symbol, $since = null, $limit = null, $params = array ()) {
+        /**
+         * @see https://docs.deribit.com/#private-get_user_trades_by_currency
+         * get the list of most recent $trades for a particular $symbol->
+         * @param {string} $symbol unified $symbol of the $market to fetch $trades for
+         * @param {int|null} $since timestamp in ms of the earliest trade to fetch
+         * @param {int|null} $limit the maximum amount of $trades to fetch
+         * @param {array} $params extra parameters specific to the deribit api endpoint
+         * @return {[array]} a list of ~@link https://docs.ccxt.com/en/latest/manual.html?#public-$trades trade structures~
+         */
         $this->load_markets();
         $market = $this->market($symbol);
         $request = array(
@@ -930,36 +1220,158 @@ class deribit extends Exchange {
         }
         $response = $this->$method (array_merge($request, $params));
         //
-        //     {
-        //         'jsonrpc' => '2.0',
-        //         'result' => array(
-        //             'trades' => array(
-        //                 array(
-        //                     'trade_seq' => 39201926,
-        //                     'trade_id':' 64135724',
-        //                     'timestamp' => 1583174775400,
-        //                     'tick_direction' => 1,
-        //                     'price' => 8865.0,
-        //                     'instrument_name' => 'BTC-PERPETUAL',
-        //                     'index_price' => 8863.31,
-        //                     'direction' => 'buy',
-        //                     'amount' => 10.0
-        //                 ),
-        //             ),
-        //             'has_more' => true,
-        //         ),
-        //         'usIn' => 1583779594843931,
-        //         'usOut' => 1583779594844446,
-        //         'usDiff' => 515,
-        //         'testnet' => false
-        //     }
+        //      {
+        //          "jsonrpc":"2.0",
+        //          "result" => {
+        //              "trades" => array(
+        //                  array(
+        //                      "trade_seq":132564271,
+        //                      "trade_id":"195402220",
+        //                      "timestamp":1639684927932,
+        //                      "tick_direction":0,
+        //                      "price":47946.5,
+        //                      "mark_price":47944.13,
+        //                      "instrument_name":"BTC-PERPETUAL",
+        //                      "index_price":47925.45,
+        //                      "direction":"buy","amount":580.0
+        //                  }
+        //              ),
+        //              "has_more":true
+        //          ),
+        //          "usIn":1639684931934671,
+        //          "usOut":1639684931935337,
+        //          "usDiff":666,
+        //          "testnet":false
+        //      }
         //
         $result = $this->safe_value($response, 'result', array());
         $trades = $this->safe_value($result, 'trades', array());
         return $this->parse_trades($trades, $market, $since, $limit);
     }
 
+    public function fetch_trading_fees($params = array ()) {
+        /**
+         * fetch the trading $fees for multiple markets
+         * @param {array} $params extra parameters specific to the deribit api endpoint
+         * @return {array} a dictionary of {@link https://docs.ccxt.com/en/latest/manual.html#$fee-structure $fee structures} indexed by $market symbols
+         */
+        $this->load_markets();
+        $code = $this->code_from_options('fetchTradingFees', $params);
+        $currency = $this->currency($code);
+        $request = array(
+            'currency' => $currency['id'],
+            'extended' => true,
+        );
+        $response = $this->privateGetGetAccountSummary (array_merge($request, $params));
+        //
+        //     {
+        //         jsonrpc => '2.0',
+        //         $result => array(
+        //             total_pl => 0,
+        //             session_upl => 0,
+        //             session_rpl => 0,
+        //             session_funding => 0,
+        //             portfolio_margining_enabled => false,
+        //             options_vega => 0,
+        //             options_theta => 0,
+        //             options_session_upl => 0,
+        //             options_session_rpl => 0,
+        //             options_pl => 0,
+        //             options_gamma => 0,
+        //             options_delta => 0,
+        //             margin_balance => 0.00062359,
+        //             maintenance_margin => 0,
+        //             limits => array(
+        //                 non_matching_engine_burst => 300,
+        //                 non_matching_engine => 200,
+        //                 matching_engine_burst => 20,
+        //                 matching_engine => 2
+        //             ),
+        //             initial_margin => 0,
+        //             futures_session_upl => 0,
+        //             futures_session_rpl => 0,
+        //             futures_pl => 0,
+        //             equity => 0.00062359,
+        //             deposit_address => '13tUtNsJSZa1F5GeCmwBywVrymHpZispzw',
+        //             delta_total => 0,
+        //             $currency => 'BTC',
+        //             balance => 0.00062359,
+        //             available_withdrawal_funds => 0.00062359,
+        //             available_funds => 0.00062359,
+        //             $fees => array(
+        //                 $currency => '',
+        //                 instrument_type => 'perpetual',
+        //                 fee_type => 'relative',
+        //                 maker_fee => 0,
+        //                 taker_fee => 0,
+        //             ),
+        //         ),
+        //         usIn => 1583775838115975,
+        //         usOut => 1583775838116520,
+        //         usDiff => 545,
+        //         testnet => false
+        //     }
+        //
+        $result = $this->safe_value($response, 'result', array());
+        $fees = $this->safe_value($result, 'fees', array());
+        $perpetualFee = array();
+        $futureFee = array();
+        $optionFee = array();
+        for ($i = 0; $i < count($fees); $i++) {
+            $fee = $fees[$i];
+            $instrumentType = $this->safe_string($fee, 'instrument_type');
+            if ($instrumentType === 'future') {
+                $futureFee = array(
+                    'info' => $fee,
+                    'maker' => $this->safe_number($fee, 'maker_fee'),
+                    'taker' => $this->safe_number($fee, 'taker_fee'),
+                );
+            } elseif ($instrumentType === 'perpetual') {
+                $perpetualFee = array(
+                    'info' => $fee,
+                    'maker' => $this->safe_number($fee, 'maker_fee'),
+                    'taker' => $this->safe_number($fee, 'taker_fee'),
+                );
+            } elseif ($instrumentType === 'option') {
+                $optionFee = array(
+                    'info' => $fee,
+                    'maker' => $this->safe_number($fee, 'maker_fee'),
+                    'taker' => $this->safe_number($fee, 'taker_fee'),
+                );
+            }
+        }
+        $parsedFees = array();
+        for ($i = 0; $i < count($this->symbols); $i++) {
+            $symbol = $this->symbols[$i];
+            $market = $this->market($symbol);
+            $fee = array(
+                'info' => $market,
+                'symbol' => $symbol,
+                'percentage' => true,
+                'tierBased' => true,
+                'maker' => $market['maker'],
+                'taker' => $market['taker'],
+            );
+            if ($market['swap']) {
+                $fee = array_merge($fee, $perpetualFee);
+            } elseif ($market['future']) {
+                $fee = array_merge($fee, $futureFee);
+            } elseif ($market['option']) {
+                $fee = array_merge($fee, $optionFee);
+            }
+            $parsedFees[$symbol] = $fee;
+        }
+        return $parsedFees;
+    }
+
     public function fetch_order_book($symbol, $limit = null, $params = array ()) {
+        /**
+         * fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+         * @param {string} $symbol unified $symbol of the $market to fetch the order book for
+         * @param {int|null} $limit the maximum amount of order book entries to return
+         * @param {array} $params extra parameters specific to the deribit api endpoint
+         * @return {array} A dictionary of {@link https://docs.ccxt.com/en/latest/manual.html#order-book-structure order book structures} indexed by $market symbols
+         */
         $this->load_markets();
         $market = $this->market($symbol);
         $request = array(
@@ -1011,7 +1423,7 @@ class deribit extends Exchange {
         $result = $this->safe_value($response, 'result', array());
         $timestamp = $this->safe_integer($result, 'timestamp');
         $nonce = $this->safe_integer($result, 'change_id');
-        $orderbook = $this->parse_order_book($result, $timestamp);
+        $orderbook = $this->parse_order_book($result, $market['symbol'], $timestamp);
         $orderbook['nonce'] = $nonce;
         return $orderbook;
     }
@@ -1022,9 +1434,28 @@ class deribit extends Exchange {
             'cancelled' => 'canceled',
             'filled' => 'closed',
             'rejected' => 'rejected',
-            // 'untriggered' => 'open',
+            'untriggered' => 'open',
         );
         return $this->safe_string($statuses, $status, $status);
+    }
+
+    public function parse_time_in_force($timeInForce) {
+        $timeInForces = array(
+            'good_til_cancelled' => 'GTC',
+            'fill_or_kill' => 'FOK',
+            'immediate_or_cancel' => 'IOC',
+        );
+        return $this->safe_string($timeInForces, $timeInForce, $timeInForce);
+    }
+
+    public function parse_order_type($orderType) {
+        $orderTypes = array(
+            'stop_limit' => 'limit',
+            'take_limit' => 'limit',
+            'stop_market' => 'market',
+            'take_market' => 'market',
+        );
+        return $this->safe_string($orderTypes, $orderType, $orderType);
     }
 
     public function parse_order($order, $market = null) {
@@ -1035,10 +1466,10 @@ class deribit extends Exchange {
         //         "time_in_force" => "good_til_cancelled",
         //         "reduce_only" => false,
         //         "profit_loss" => 0,
-        //         "$price" => "market_price",
+        //         "price" => "market_price",
         //         "post_only" => false,
-        //         "order_type" => "$market",
-        //         "order_state" => "$filled",
+        //         "order_type" => "market",
+        //         "order_state" => "filled",
         //         "order_id" => "ETH-349249",
         //         "max_show" => 40,
         //         "last_update_timestamp" => 1550657341322,
@@ -1051,89 +1482,84 @@ class deribit extends Exchange {
         //         "commission" => 0.000139,
         //         "average_price" => 143.81,
         //         "api" => true,
-        //         "$amount" => 40,
-        //         "$trades" => array(), // injected by createOrder
+        //         "amount" => 40,
+        //         "trades" => array(), // injected by createOrder
         //     }
         //
+        $marketId = $this->safe_string($order, 'instrument_name');
+        $market = $this->safe_market($marketId, $market);
         $timestamp = $this->safe_integer($order, 'creation_timestamp');
         $lastUpdate = $this->safe_integer($order, 'last_update_timestamp');
         $id = $this->safe_string($order, 'order_id');
-        $price = $this->safe_float($order, 'price');
-        $average = $this->safe_float($order, 'average_price');
-        $amount = $this->safe_float($order, 'amount');
-        $filled = $this->safe_float($order, 'filled_amount');
+        $priceString = $this->safe_string($order, 'price');
+        $averageString = $this->safe_string($order, 'average_price');
+        // Inverse contracts $amount is in USD which in ccxt is the $cost
+        // For options and Linear contracts $amount is in corresponding cryptocurrency, e.g., BTC or ETH
+        $filledString = $this->safe_string($order, 'filled_amount');
+        $amount = $this->safe_string($order, 'amount');
+        $cost = Precise::string_mul($filledString, $averageString);
+        if ($market['inverse']) {
+            if ($this->parse_number($averageString) !== 0) {
+                $cost = Precise::string_div($amount, $averageString);
+            }
+        }
         $lastTradeTimestamp = null;
-        if ($filled !== null) {
-            if ($filled > 0) {
+        if ($filledString !== null) {
+            $isFilledPositive = Precise::string_gt($filledString, '0');
+            if ($isFilledPositive) {
                 $lastTradeTimestamp = $lastUpdate;
             }
         }
-        $remaining = null;
-        $cost = null;
-        if ($filled !== null) {
-            if ($amount !== null) {
-                $remaining = $amount - $filled;
-            }
-            if ($price !== null) {
-                $cost = $price * $filled;
-            }
-        }
         $status = $this->parse_order_status($this->safe_string($order, 'order_state'));
-        $marketId = $this->safe_string($order, 'instrument_name');
-        $symbol = null;
-        $base = null;
-        if (is_array($this->markets_by_id) && array_key_exists($marketId, $this->markets_by_id)) {
-            $market = $this->markets_by_id[$marketId];
-            $symbol = $market['symbol'];
-            $base = $market['base'];
-        }
-        if ($market !== null) {
-            if ($symbol === null) {
-                $symbol = $market['symbol'];
-            }
-            if ($base === null) {
-                $base = $market['base'];
-            }
-        }
         $side = $this->safe_string_lower($order, 'direction');
-        $feeCost = $this->safe_float($order, 'commission');
+        $feeCostString = $this->safe_string($order, 'commission');
         $fee = null;
-        if ($feeCost !== null) {
-            $feeCost = abs($feeCost);
+        if ($feeCostString !== null) {
+            $feeCostString = Precise::string_abs($feeCostString);
             $fee = array(
-                'cost' => $feeCost,
-                'currency' => $base,
+                'cost' => $feeCostString,
+                'currency' => $market['base'],
             );
         }
-        $type = $this->safe_string($order, 'order_type');
+        $rawType = $this->safe_string($order, 'order_type');
+        $type = $this->parse_order_type($rawType);
         // injected in createOrder
         $trades = $this->safe_value($order, 'trades');
-        if ($trades !== null) {
-            $trades = $this->parse_trades($trades, $market);
-        }
-        return array(
+        $timeInForce = $this->parse_time_in_force($this->safe_string($order, 'time_in_force'));
+        $stopPrice = $this->safe_value($order, 'stop_price');
+        $postOnly = $this->safe_value($order, 'post_only');
+        return $this->safe_order(array(
             'info' => $order,
             'id' => $id,
             'clientOrderId' => null,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
             'lastTradeTimestamp' => $lastTradeTimestamp,
-            'symbol' => $symbol,
+            'symbol' => $market['symbol'],
             'type' => $type,
+            'timeInForce' => $timeInForce,
+            'postOnly' => $postOnly,
             'side' => $side,
-            'price' => $price,
+            'price' => $priceString,
+            'stopPrice' => $stopPrice,
             'amount' => $amount,
             'cost' => $cost,
-            'average' => $average,
-            'filled' => $filled,
-            'remaining' => $remaining,
+            'average' => $averageString,
+            'filled' => $filledString,
+            'remaining' => null,
             'status' => $status,
             'fee' => $fee,
             'trades' => $trades,
-        );
+        ), $market);
     }
 
     public function fetch_order($id, $symbol = null, $params = array ()) {
+        /**
+         * fetches information on an order made by the user
+         * @param {string|null} $symbol unified $symbol of the market the order was made in
+         * @param {array} $params extra parameters specific to the deribit api endpoint
+         * @return {array} An {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structure}
+         */
         $this->load_markets();
         $request = array(
             'order_id' => $id,
@@ -1142,8 +1568,8 @@ class deribit extends Exchange {
         //
         //     {
         //         "jsonrpc" => "2.0",
-        //         "$id" => 4316,
-        //         "$result" => {
+        //         "id" => 4316,
+        //         "result" => {
         //             "time_in_force" => "good_til_cancelled",
         //             "reduce_only" => false,
         //             "profit_loss" => 0.051134,
@@ -1172,13 +1598,29 @@ class deribit extends Exchange {
     }
 
     public function create_order($symbol, $type, $side, $amount, $price = null, $params = array ()) {
+        /**
+         * create a trade $order
+         * @see https://docs.deribit.com/#private-buy
+         * @param {string} $symbol unified $symbol of the $market to create an $order in
+         * @param {string} $type 'market' or 'limit'
+         * @param {string} $side 'buy' or 'sell'
+         * @param {float} $amount how much of currency you want to trade. For perpetual and futures the $amount is in USD. For options it is in corresponding cryptocurrency contracts currency.
+         * @param {float|null} $price the $price at which the $order is to be fullfilled, in units of the quote currency, ignored in $market orders
+         * @param {array} $params extra parameters specific to the deribit api endpoint
+         * @return {array} an {@link https://docs.ccxt.com/en/latest/manual.html#$order-structure $order structure}
+         */
         $this->load_markets();
         $market = $this->market($symbol);
+        if ($market['inverse']) {
+            $amount = $this->amount_to_precision($symbol, $amount);
+        } else {
+            $amount = $this->currency_to_precision($symbol, $amount);
+        }
         $request = array(
             'instrument_name' => $market['id'],
             // for perpetual and futures the $amount is in USD
             // for options it is in corresponding cryptocurrency contracts, e.g., BTC or ETH
-            'amount' => $this->amount_to_precision($symbol, $amount),
+            'amount' => $amount,
             'type' => $type, // limit, stop_limit, $market, stop_market, default is limit
             // 'label' => 'string', // user-defined label for the $order (maximum 64 characters)
             // 'price' => $this->price_to_precision($symbol, 123.45), // only for limit and stop_limit orders
@@ -1191,37 +1633,81 @@ class deribit extends Exchange {
             // 'trigger' => 'index_price', // mark_price, last_price, required for stop_limit orders
             // 'advanced' => 'usd', // 'implv', advanced option $order $type, options only
         );
-        $priceIsRequired = false;
-        $stopPriceIsRequired = false;
-        if ($type === 'limit') {
-            $priceIsRequired = true;
-        } else if ($type === 'stop_limit') {
-            $priceIsRequired = true;
-            $stopPriceIsRequired = true;
+        $timeInForce = $this->safe_string_upper($params, 'timeInForce');
+        $reduceOnly = $this->safe_value_2($params, 'reduceOnly', 'reduce_only');
+        // only stop loss sell orders are allowed when $price crossed from above
+        $stopLossPrice = $this->safe_value($params, 'stopLossPrice');
+        // only take profit buy orders are allowed when $price crossed from below
+        $takeProfitPrice = $this->safe_value($params, 'takeProfitPrice');
+        $isStopLimit = $type === 'stop_limit';
+        $isStopMarket = $type === 'stop_market';
+        $isTakeLimit = $type === 'take_limit';
+        $isTakeMarket = $type === 'take_market';
+        $isStopLossOrder = $isStopLimit || $isStopMarket || ($stopLossPrice !== null);
+        $isTakeProfitOrder = $isTakeLimit || $isTakeMarket || ($takeProfitPrice !== null);
+        if ($isStopLossOrder && $isTakeProfitOrder) {
+            throw new InvalidOrder($this->id . ' createOrder () only allows one of $stopLossPrice or $takeProfitPrice to be specified');
         }
-        if ($priceIsRequired) {
-            if ($price !== null) {
-                $request['price'] = $this->price_to_precision($symbol, $price);
+        $isStopOrder = $isStopLossOrder || $isTakeProfitOrder;
+        $isLimitOrder = ($type === 'limit') || $isStopLimit || $isTakeLimit;
+        $isMarketOrder = ($type === 'market') || $isStopMarket || $isTakeMarket;
+        $exchangeSpecificPostOnly = $this->safe_value($params, 'post_only');
+        $postOnly = $this->is_post_only($isMarketOrder, $exchangeSpecificPostOnly, $params);
+        if ($isLimitOrder) {
+            $request['type'] = 'limit';
+            $request['price'] = $this->price_to_precision($symbol, $price);
+        } else {
+            $request['type'] = 'market';
+        }
+        if ($isStopOrder) {
+            $triggerPrice = $stopLossPrice !== null ? $stopLossPrice : $takeProfitPrice;
+            $request['trigger_price'] = $this->price_to_precision($symbol, $triggerPrice);
+            $request['trigger'] = 'last_price'; // required
+            if ($isStopLossOrder) {
+                if ($isMarketOrder) {
+                    // stop_market (sell only)
+                    $request['type'] = 'stop_market';
+                } else {
+                    // stop_limit (sell only)
+                    $request['type'] = 'stop_limit';
+                }
             } else {
-                throw new ArgumentsRequired($this->id . ' createOrder requires a $price argument for a ' . $type . ' order');
+                if ($isMarketOrder) {
+                    // take_market (buy only)
+                    $request['type'] = 'take_market';
+                } else {
+                    // take_limit (buy only)
+                    $request['type'] = 'take_limit';
+                }
             }
         }
-        if ($stopPriceIsRequired) {
-            $stopPrice = $this->safe_float_2($params, 'stop_price', 'stopPrice');
-            if ($stopPrice === null) {
-                throw new ArgumentsRequired($this->id . ' createOrder requires a stop_price or $stopPrice param for a ' . $type . ' order');
-            } else {
-                $request['stop_price'] = $this->price_to_precision($symbol, $stopPrice);
+        if ($reduceOnly) {
+            $request['reduce_only'] = true;
+        }
+        if ($postOnly) {
+            $request['post_only'] = true;
+            $request['reject_post_only'] = true;
+        }
+        if ($timeInForce !== null) {
+            if ($timeInForce === 'GTC') {
+                $request['time_in_force'] = 'good_til_cancelled';
+            }
+            if ($timeInForce === 'IOC') {
+                $request['time_in_force'] = 'immediate_or_cancel';
+            }
+            if ($timeInForce === 'FOK') {
+                $request['time_in_force'] = 'fill_or_kill';
             }
         }
         $method = 'privateGet' . $this->capitalize($side);
+        $params = $this->omit($params, array( 'timeInForce', 'stopLossPrice', 'takeProfitPrice', 'postOnly', 'reduceOnly' ));
         $response = $this->$method (array_merge($request, $params));
         //
         //     {
         //         "jsonrpc" => "2.0",
         //         "id" => 5275,
-        //         "$result" => {
-        //             "$trades" => array(
+        //         "result" => {
+        //             "trades" => array(
         //                 {
         //                     "trade_seq" => 14151,
         //                     "trade_id" => "ETH-37435",
@@ -1229,8 +1715,8 @@ class deribit extends Exchange {
         //                     "tick_direction" => 2,
         //                     "state" => "closed",
         //                     "self_trade" => false,
-        //                     "$price" => 143.81,
-        //                     "order_type" => "$market",
+        //                     "price" => 143.81,
+        //                     "order_type" => "market",
         //                     "order_id" => "ETH-349249",
         //                     "matching_id" => null,
         //                     "liquidity" => "T",
@@ -1240,16 +1726,16 @@ class deribit extends Exchange {
         //                     "fee_currency" => "ETH",
         //                     "fee" => 0.000139,
         //                     "direction" => "buy",
-        //                     "$amount" => 40
+        //                     "amount" => 40
         //                 }
         //             ),
-        //             "$order" => {
+        //             "order" => {
         //                 "time_in_force" => "good_til_cancelled",
         //                 "reduce_only" => false,
         //                 "profit_loss" => 0,
-        //                 "$price" => "market_price",
+        //                 "price" => "market_price",
         //                 "post_only" => false,
-        //                 "order_type" => "$market",
+        //                 "order_type" => "market",
         //                 "order_state" => "filled",
         //                 "order_id" => "ETH-349249",
         //                 "max_show" => 40,
@@ -1263,7 +1749,7 @@ class deribit extends Exchange {
         //                 "commission" => 0.000139,
         //                 "average_price" => 143.81,
         //                 "api" => true,
-        //                 "$amount" => 40
+        //                 "amount" => 40
         //             }
         //         }
         //     }
@@ -1277,10 +1763,10 @@ class deribit extends Exchange {
 
     public function edit_order($id, $symbol, $type, $side, $amount = null, $price = null, $params = array ()) {
         if ($amount === null) {
-            throw new ArgumentsRequired($this->id . ' editOrder requires an $amount argument');
+            throw new ArgumentsRequired($this->id . ' editOrder() requires an $amount argument');
         }
         if ($price === null) {
-            throw new ArgumentsRequired($this->id . ' editOrder requires a $price argument');
+            throw new ArgumentsRequired($this->id . ' editOrder() requires a $price argument');
         }
         $this->load_markets();
         $request = array(
@@ -1304,6 +1790,13 @@ class deribit extends Exchange {
     }
 
     public function cancel_order($id, $symbol = null, $params = array ()) {
+        /**
+         * cancels an open order
+         * @param {string} $id order $id
+         * @param {string|null} $symbol not used by deribit cancelOrder ()
+         * @param {array} $params extra parameters specific to the deribit api endpoint
+         * @return {array} An {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structure}
+         */
         $this->load_markets();
         $request = array(
             'order_id' => $id,
@@ -1314,6 +1807,12 @@ class deribit extends Exchange {
     }
 
     public function cancel_all_orders($symbol = null, $params = array ()) {
+        /**
+         * cancel all open orders
+         * @param {string|null} $symbol unified $market $symbol, only orders in the $market of this $symbol are cancelled when $symbol is not null
+         * @param {array} $params extra parameters specific to the deribit api endpoint
+         * @return {[array]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structures}
+         */
         $this->load_markets();
         $request = array();
         $method = null;
@@ -1329,12 +1828,20 @@ class deribit extends Exchange {
     }
 
     public function fetch_open_orders($symbol = null, $since = null, $limit = null, $params = array ()) {
+        /**
+         * fetch all unfilled currently open orders
+         * @param {string|null} $symbol unified $market $symbol
+         * @param {int|null} $since the earliest time in ms to fetch open orders for
+         * @param {int|null} $limit the maximum number of  open orders structures to retrieve
+         * @param {array} $params extra parameters specific to the deribit api endpoint
+         * @return {[array]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structures}
+         */
         $this->load_markets();
         $request = array();
         $market = null;
         $method = null;
         if ($symbol === null) {
-            $code = $this->code_from_options('fetchOpenOrders');
+            $code = $this->code_from_options('fetchOpenOrders', $params);
             $currency = $this->currency($code);
             $request['currency'] = $currency['id'];
             $method = 'privateGetGetOpenOrdersByCurrency';
@@ -1349,12 +1856,20 @@ class deribit extends Exchange {
     }
 
     public function fetch_closed_orders($symbol = null, $since = null, $limit = null, $params = array ()) {
+        /**
+         * fetches information on multiple closed orders made by the user
+         * @param {string|null} $symbol unified $market $symbol of the $market orders were made in
+         * @param {int|null} $since the earliest time in ms to fetch orders for
+         * @param {int|null} $limit the maximum number of  orde structures to retrieve
+         * @param {array} $params extra parameters specific to the deribit api endpoint
+         * @return {[array]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structures}
+         */
         $this->load_markets();
         $request = array();
         $market = null;
         $method = null;
         if ($symbol === null) {
-            $code = $this->code_from_options('fetchClosedOrders');
+            $code = $this->code_from_options('fetchClosedOrders', $params);
             $currency = $this->currency($code);
             $request['currency'] = $currency['id'];
             $method = 'privateGetGetOrderHistoryByCurrency';
@@ -1369,6 +1884,15 @@ class deribit extends Exchange {
     }
 
     public function fetch_order_trades($id, $symbol = null, $since = null, $limit = null, $params = array ()) {
+        /**
+         * fetch all the trades made from a single order
+         * @param {string} $id order $id
+         * @param {string|null} $symbol unified market $symbol
+         * @param {int|null} $since the earliest time in ms to fetch trades for
+         * @param {int|null} $limit the maximum number of trades to retrieve
+         * @param {array} $params extra parameters specific to the deribit api endpoint
+         * @return {[array]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#trade-structure trade structures}
+         */
         $this->load_markets();
         $request = array(
             'order_id' => $id,
@@ -1377,9 +1901,9 @@ class deribit extends Exchange {
         //
         //     {
         //         "jsonrpc" => "2.0",
-        //         "$id" => 9367,
-        //         "$result" => {
-        //             "$trades" => array(
+        //         "id" => 9367,
+        //         "result" => {
+        //             "trades" => array(
         //                 array(
         //                     "trade_seq" => 3,
         //                     "trade_id" => "ETH-34066",
@@ -1390,7 +1914,7 @@ class deribit extends Exchange {
         //                     "reduce_only" => false,
         //                     "price" => 0.04,
         //                     "post_only" => false,
-        //                     "order_type" => "$limit",
+        //                     "order_type" => "limit",
         //                     "order_id" => "ETH-334607",
         //                     "matching_id" => null,
         //                     "liquidity" => "M",
@@ -1408,11 +1932,18 @@ class deribit extends Exchange {
         //     }
         //
         $result = $this->safe_value($response, 'result', array());
-        $trades = $this->safe_value($result, 'trades', array());
-        return $this->parse_trades($trades, null, $since, $limit);
+        return $this->parse_trades($result, null, $since, $limit);
     }
 
     public function fetch_my_trades($symbol = null, $since = null, $limit = null, $params = array ()) {
+        /**
+         * fetch all $trades made by the user
+         * @param {string|null} $symbol unified $market $symbol
+         * @param {int|null} $since the earliest time in ms to fetch $trades for
+         * @param {int|null} $limit the maximum number of $trades structures to retrieve
+         * @param {array} $params extra parameters specific to the deribit api endpoint
+         * @return {[array]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#trade-structure trade structures}
+         */
         $this->load_markets();
         $request = array(
             'include_old' => true,
@@ -1420,7 +1951,7 @@ class deribit extends Exchange {
         $market = null;
         $method = null;
         if ($symbol === null) {
-            $code = $this->code_from_options('fetchMyTrades');
+            $code = $this->code_from_options('fetchMyTrades', $params);
             $currency = $this->currency($code);
             $request['currency'] = $currency['id'];
             if ($since === null) {
@@ -1447,8 +1978,8 @@ class deribit extends Exchange {
         //     {
         //         "jsonrpc" => "2.0",
         //         "id" => 9367,
-        //         "$result" => {
-        //             "$trades" => array(
+        //         "result" => {
+        //             "trades" => array(
         //                 array(
         //                     "trade_seq" => 3,
         //                     "trade_id" => "ETH-34066",
@@ -1459,7 +1990,7 @@ class deribit extends Exchange {
         //                     "reduce_only" => false,
         //                     "price" => 0.04,
         //                     "post_only" => false,
-        //                     "order_type" => "$limit",
+        //                     "order_type" => "limit",
         //                     "order_id" => "ETH-334607",
         //                     "matching_id" => null,
         //                     "liquidity" => "M",
@@ -1482,6 +2013,14 @@ class deribit extends Exchange {
     }
 
     public function fetch_deposits($code = null, $since = null, $limit = null, $params = array ()) {
+        /**
+         * fetch all deposits made to an account
+         * @param {string} $code unified $currency $code
+         * @param {int|null} $since the earliest time in ms to fetch deposits for
+         * @param {int|null} $limit the maximum number of deposits structures to retrieve
+         * @param {array} $params extra parameters specific to the deribit api endpoint
+         * @return {[array]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure transaction structures}
+         */
         if ($code === null) {
             throw new ArgumentsRequired($this->id . ' fetchDeposits() requires a $currency $code argument');
         }
@@ -1498,13 +2037,13 @@ class deribit extends Exchange {
         //     {
         //         "jsonrpc" => "2.0",
         //         "id" => 5611,
-        //         "$result" => {
+        //         "result" => {
         //             "count" => 1,
-        //             "$data" => array(
+        //             "data" => array(
         //                 {
         //                     "address" => "2N35qDKDY22zmJq9eSyiAerMD4enJ1xx6ax",
         //                     "amount" => 5,
-        //                     "$currency" => "BTC",
+        //                     "currency" => "BTC",
         //                     "received_timestamp" => 1549295017670,
         //                     "state" => "completed",
         //                     "transaction_id" => "230669110fdaf0a0dbcdc079b6b8b43d5af29cc73683835b9bc6b3406c065fda",
@@ -1520,6 +2059,14 @@ class deribit extends Exchange {
     }
 
     public function fetch_withdrawals($code = null, $since = null, $limit = null, $params = array ()) {
+        /**
+         * fetch all withdrawals made from an account
+         * @param {string} $code unified $currency $code
+         * @param {int|null} $since the earliest time in ms to fetch withdrawals for
+         * @param {int|null} $limit the maximum number of withdrawals structures to retrieve
+         * @param {array} $params extra parameters specific to the deribit api endpoint
+         * @return {[array]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure transaction structures}
+         */
         if ($code === null) {
             throw new ArgumentsRequired($this->id . ' fetchWithdrawals() requires a $currency $code argument');
         }
@@ -1536,15 +2083,15 @@ class deribit extends Exchange {
         //     {
         //         "jsonrpc" => "2.0",
         //         "id" => 2745,
-        //         "$result" => {
+        //         "result" => {
         //             "count" => 1,
-        //             "$data" => array(
+        //             "data" => array(
         //                 {
         //                     "address" => "2NBqqD5GRJ8wHy1PYyCXTe9ke5226FhavBz",
         //                     "amount" => 0.5,
         //                     "confirmed_timestamp" => null,
         //                     "created_timestamp" => 1550571443070,
-        //                     "$currency" => "BTC",
+        //                     "currency" => "BTC",
         //                     "fee" => 0.0001,
         //                     "id" => 1,
         //                     "priority" => 0.15,
@@ -1574,12 +2121,12 @@ class deribit extends Exchange {
         // fetchWithdrawals
         //
         //     {
-        //         "$address" => "2NBqqD5GRJ8wHy1PYyCXTe9ke5226FhavBz",
+        //         "address" => "2NBqqD5GRJ8wHy1PYyCXTe9ke5226FhavBz",
         //         "amount" => 0.5,
         //         "confirmed_timestamp" => null,
         //         "created_timestamp" => 1550571443070,
-        //         "$currency" => "BTC",
-        //         "$fee" => 0.0001,
+        //         "currency" => "BTC",
+        //         "fee" => 0.0001,
         //         "id" => 1,
         //         "priority" => 0.15,
         //         "state" => "unconfirmed",
@@ -1590,9 +2137,9 @@ class deribit extends Exchange {
         // fetchDeposits
         //
         //     {
-        //         "$address" => "2N35qDKDY22zmJq9eSyiAerMD4enJ1xx6ax",
+        //         "address" => "2N35qDKDY22zmJq9eSyiAerMD4enJ1xx6ax",
         //         "amount" => 5,
-        //         "$currency" => "BTC",
+        //         "currency" => "BTC",
         //         "received_timestamp" => 1549295017670,
         //         "state" => "completed",
         //         "transaction_id" => "230669110fdaf0a0dbcdc079b6b8b43d5af29cc73683835b9bc6b3406c065fda",
@@ -1605,7 +2152,7 @@ class deribit extends Exchange {
         $updated = $this->safe_integer($transaction, 'updated_timestamp');
         $status = $this->parse_transaction_status($this->safe_string($transaction, 'state'));
         $address = $this->safe_string($transaction, 'address');
-        $feeCost = $this->safe_float($transaction, 'fee');
+        $feeCost = $this->safe_number($transaction, 'fee');
         $type = 'deposit';
         $fee = null;
         if ($feeCost !== null) {
@@ -1628,7 +2175,7 @@ class deribit extends Exchange {
             'tagTo' => null,
             'tagFrom' => null,
             'type' => $type,
-            'amount' => $this->safe_float($transaction, 'amount'),
+            'amount' => $this->safe_number($transaction, 'amount'),
             'currency' => $code,
             'status' => $status,
             'updated' => $updated,
@@ -1636,7 +2183,368 @@ class deribit extends Exchange {
         );
     }
 
+    public function parse_position($position, $market = null) {
+        //
+        //     {
+        //         "jsonrpc" => "2.0",
+        //         "id" => 404,
+        //         "result" => {
+        //             "average_price" => 0,
+        //             "delta" => 0,
+        //             "direction" => "buy",
+        //             "estimated_liquidation_price" => 0,
+        //             "floating_profit_loss" => 0,
+        //             "index_price" => 3555.86,
+        //             "initial_margin" => 0,
+        //             "instrument_name" => "BTC-PERPETUAL",
+        //             "leverage" => 100,
+        //             "kind" => "future",
+        //             "maintenance_margin" => 0,
+        //             "mark_price" => 3556.62,
+        //             "open_orders_margin" => 0.000165889,
+        //             "realized_profit_loss" => 0,
+        //             "settlement_price" => 3555.44,
+        //             "size" => 0,
+        //             "size_currency" => 0,
+        //             "total_profit_loss" => 0
+        //         }
+        //     }
+        //
+        $contract = $this->safe_string($position, 'instrument_name');
+        $market = $this->safe_market($contract, $market);
+        $side = $this->safe_string($position, 'direction');
+        $side = ($side === 'buy') ? 'long' : 'short';
+        $unrealizedPnl = $this->safe_string($position, 'floating_profit_loss');
+        $initialMarginString = $this->safe_string($position, 'initial_margin');
+        $notionalString = $this->safe_string($position, 'size_currency');
+        $maintenanceMarginString = $this->safe_string($position, 'maintenance_margin');
+        $percentage = Precise::string_mul(Precise::string_div($unrealizedPnl, $initialMarginString), '100');
+        $currentTime = $this->milliseconds();
+        return array(
+            'info' => $position,
+            'id' => null,
+            'symbol' => $this->safe_string($market, 'symbol'),
+            'timestamp' => $currentTime,
+            'datetime' => $this->iso8601($currentTime),
+            'initialMargin' => $this->parse_number($initialMarginString),
+            'initialMarginPercentage' => $this->parse_number(Precise::string_mul(Precise::string_div($initialMarginString, $notionalString), '100')),
+            'maintenanceMargin' => $this->parse_number($maintenanceMarginString),
+            'maintenanceMarginPercentage' => $this->parse_number(Precise::string_mul(Precise::string_div($maintenanceMarginString, $notionalString), '100')),
+            'entryPrice' => $this->safe_number($position, 'average_price'),
+            'notional' => $this->parse_number($notionalString),
+            'leverage' => $this->safe_integer($position, 'leverage'),
+            'unrealizedPnl' => $this->parse_number($unrealizedPnl),
+            'contracts' => null,
+            'contractSize' => $this->safe_number($market, 'contractSize'),
+            'marginRatio' => null,
+            'liquidationPrice' => $this->safe_number($position, 'estimated_liquidation_price'),
+            'markPrice' => $this->safe_number($position, 'mark_price'),
+            'collateral' => null,
+            'marginMode' => null,
+            'side' => $side,
+            'percentage' => $this->parse_number($percentage),
+        );
+    }
+
+    public function fetch_position($symbol, $params = array ()) {
+        /**
+         * fetch data on a single open contract trade position
+         * @param {string} $symbol unified $market $symbol of the $market the position is held in, default is null
+         * @param {array} $params extra parameters specific to the deribit api endpoint
+         * @return {array} a {@link https://docs.ccxt.com/en/latest/manual.html#position-structure position structure}
+         */
+        $this->load_markets();
+        $market = $this->market($symbol);
+        $request = array(
+            'instrument_name' => $market['id'],
+        );
+        $response = $this->privateGetGetPosition (array_merge($request, $params));
+        //
+        //     {
+        //         "jsonrpc" => "2.0",
+        //         "id" => 404,
+        //         "result" => {
+        //             "average_price" => 0,
+        //             "delta" => 0,
+        //             "direction" => "buy",
+        //             "estimated_liquidation_price" => 0,
+        //             "floating_profit_loss" => 0,
+        //             "index_price" => 3555.86,
+        //             "initial_margin" => 0,
+        //             "instrument_name" => "BTC-PERPETUAL",
+        //             "leverage" => 100,
+        //             "kind" => "future",
+        //             "maintenance_margin" => 0,
+        //             "mark_price" => 3556.62,
+        //             "open_orders_margin" => 0.000165889,
+        //             "realized_profit_loss" => 0,
+        //             "settlement_price" => 3555.44,
+        //             "size" => 0,
+        //             "size_currency" => 0,
+        //             "total_profit_loss" => 0
+        //         }
+        //     }
+        //
+        $result = $this->safe_value($response, 'result');
+        return $this->parse_position($result);
+    }
+
+    public function fetch_positions($symbols = null, $params = array ()) {
+        /**
+         * fetch all open positions
+         * @param {[string]|null} $symbols list of unified $market $symbols
+         * @param {array} $params extra parameters specific to the deribit api endpoint
+         * @return {[array]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#position-structure position structure}
+         */
+        $this->load_markets();
+        $code = null;
+        if ($symbols === null) {
+            $code = $this->code_from_options('fetchPositions', $params);
+        } elseif (gettype($symbols) === 'string') {
+            $code = $symbols;
+            $symbols = null; // fix https://github.com/ccxt/ccxt/issues/13961
+        } else {
+            if (gettype($symbols) === 'array' && array_keys($symbols) === array_keys(array_keys($symbols))) {
+                $length = count($symbols);
+                if ($length !== 1) {
+                    throw new BadRequest($this->id . ' fetchPositions() $symbols argument cannot contain more than 1 symbol');
+                }
+                $market = $this->market($symbols[0]);
+                $code = $market['base'];
+            }
+        }
+        $currency = $this->currency($code);
+        $request = array(
+            'currency' => $currency['id'],
+            // "kind" : "future", "option"
+        );
+        $response = $this->privateGetGetPositions (array_merge($request, $params));
+        //
+        //     {
+        //         "jsonrpc" => "2.0",
+        //         "id" => 2236,
+        //         "result" => array(
+        //             array(
+        //                 "average_price" => 7440.18,
+        //                 "delta" => 0.006687487,
+        //                 "direction" => "buy",
+        //                 "estimated_liquidation_price" => 1.74,
+        //                 "floating_profit_loss" => 0,
+        //                 "index_price" => 7466.79,
+        //                 "initial_margin" => 0.000197283,
+        //                 "instrument_name" => "BTC-PERPETUAL",
+        //                 "kind" => "future",
+        //                 "leverage" => 34,
+        //                 "maintenance_margin" => 0.000143783,
+        //                 "mark_price" => 7476.65,
+        //                 "open_orders_margin" => 0.000197288,
+        //                 "realized_funding" => -1e-8,
+        //                 "realized_profit_loss" => -9e-9,
+        //                 "settlement_price" => 7476.65,
+        //                 "size" => 50,
+        //                 "size_currency" => 0.006687487,
+        //                 "total_profit_loss" => 0.000032781
+        //             ),
+        //         )
+        //     }
+        //
+        $result = $this->safe_value($response, 'result');
+        return $this->parse_positions($result, $symbols);
+    }
+
+    public function fetch_historical_volatility($code, $params = array ()) {
+        $this->load_markets();
+        $currency = $this->currency($code);
+        $request = array(
+            'currency' => $currency['id'],
+        );
+        $response = $this->publicGetGetHistoricalVolatility (array_merge($request, $params));
+        //
+        //     {
+        //         "jsonrpc" => "2.0",
+        //         "result" => [
+        //             [1640142000000,63.828320460740585],
+        //             [1640142000000,63.828320460740585],
+        //             [1640145600000,64.03821964123213]
+        //         ],
+        //         "usIn" => 1641515379467734,
+        //         "usOut" => 1641515379468095,
+        //         "usDiff" => 361,
+        //         "testnet" => false
+        //     }
+        //
+        $volatilityResult = $this->safe_value($response, 'result', array());
+        $result = array();
+        for ($i = 0; $i < count($volatilityResult); $i++) {
+            $timestamp = $this->safe_integer($volatilityResult[$i], 0);
+            $volatility = $this->safe_number($volatilityResult[$i], 1);
+            $result[] = array(
+                'info' => $response,
+                'timestamp' => $timestamp,
+                'datetime' => $this->iso8601($timestamp),
+                'volatility' => $volatility,
+            );
+        }
+        return $result;
+    }
+
+    public function fetch_transfers($code = null, $since = null, $limit = null, $params = array ()) {
+        /**
+         * fetch a history of internal $transfers made on an account
+         * @param {string} $code unified $currency $code of the $currency transferred
+         * @param {int|null} $since the earliest time in ms to fetch $transfers for
+         * @param {int|null} $limit the maximum number of  $transfers structures to retrieve
+         * @param {array} $params extra parameters specific to the deribit api endpoint
+         * @return {[array]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#transfer-structure transfer structures}
+         */
+        if ($code === null) {
+            throw new ArgumentsRequired($this->id . ' fetchTransfers() requires a $currency $code argument');
+        }
+        $this->load_markets();
+        $currency = $this->currency($code);
+        $request = array(
+            'currency' => $currency['id'],
+        );
+        if ($limit !== null) {
+            $request['count'] = $limit;
+        }
+        $response = $this->privateGetGetTransfers (array_merge($request, $params));
+        //
+        //     {
+        //         "jsonrpc" => "2.0",
+        //         "id" => 7606,
+        //         "result" => {
+        //             "count" => 2,
+        //             "data" => array(
+        //                 array(
+        //                     "amount" => 0.2,
+        //                     "created_timestamp" => 1550579457727,
+        //                     "currency" => "BTC",
+        //                     "direction" => "payment",
+        //                     "id" => 2,
+        //                     "other_side" => "2MzyQc5Tkik61kJbEpJV5D5H9VfWHZK9Sgy",
+        //                     "state" => "prepared",
+        //                     "type" => "user",
+        //                     "updated_timestamp" => 1550579457727
+        //                 ),
+        //                 {
+        //                     "amount" => 0.3,
+        //                     "created_timestamp" => 1550579255800,
+        //                     "currency" => "BTC",
+        //                     "direction" => "payment",
+        //                     "id" => 1,
+        //                     "other_side" => "new_user_1_1",
+        //                     "state" => "confirmed",
+        //                     "type" => "subaccount",
+        //                     "updated_timestamp" => 1550579255800
+        //                 }
+        //             )
+        //         }
+        //     }
+        //
+        $result = $this->safe_value($response, 'result', array());
+        $transfers = $this->safe_value($result, 'data', array());
+        return $this->parse_transfers($transfers, $currency, $since, $limit, $params);
+    }
+
+    public function transfer($code, $amount, $fromAccount, $toAccount, $params = array ()) {
+        /**
+         * transfer $currency internally between wallets on the same account
+         * @param {string} $code unified $currency $code
+         * @param {float} $amount amount to transfer
+         * @param {string} $fromAccount account to transfer from
+         * @param {string} $toAccount account to transfer to
+         * @param {array} $params extra parameters specific to the deribit api endpoint
+         * @return {array} a {@link https://docs.ccxt.com/en/latest/manual.html#transfer-structure transfer structure}
+         */
+        $this->load_markets();
+        $currency = $this->currency($code);
+        $request = array(
+            'amount' => $amount,
+            'currency' => $currency['id'],
+            'destination' => $toAccount,
+        );
+        $method = $this->safe_string($params, 'method');
+        $params = $this->omit($params, 'method');
+        if ($method === null) {
+            $transferOptions = $this->safe_value($this->options, 'transfer', array());
+            $method = $this->safe_string($transferOptions, 'method', 'privateGetSubmitTransferToSubaccount');
+        }
+        $response = $this->$method (array_merge($request, $params));
+        //
+        //     {
+        //         "jsonrpc" => "2.0",
+        //         "id" => 9421,
+        //         "result" => {
+        //             "updated_timestamp" => 1550232862350,
+        //             "type" => "user",
+        //             "state" => "prepared",
+        //             "other_side" => "0x4aa0753d798d668056920094d65321a8e8913e26",
+        //             "id" => 3,
+        //             "direction" => "payment",
+        //             "currency" => "ETH",
+        //             "created_timestamp" => 1550232862350,
+        //             "amount" => 13.456
+        //         }
+        //     }
+        //
+        $result = $this->safe_value($response, 'result', array());
+        return $this->parse_transfer($result, $currency);
+    }
+
+    public function parse_transfer($transfer, $currency = null) {
+        //
+        //     {
+        //         "updated_timestamp" => 1550232862350,
+        //         "type" => "user",
+        //         "state" => "prepared",
+        //         "other_side" => "0x4aa0753d798d668056920094d65321a8e8913e26",
+        //         "id" => 3,
+        //         "direction" => "payment",
+        //         "currency" => "ETH",
+        //         "created_timestamp" => 1550232862350,
+        //         "amount" => 13.456
+        //     }
+        //
+        $timestamp = $this->safe_timestamp($transfer, 'created_timestamp');
+        $status = $this->safe_string($transfer, 'state');
+        $account = $this->safe_string($transfer, 'other_side');
+        $direction = $this->safe_string($transfer, 'direction');
+        $currencyId = $this->safe_string($transfer, 'currency');
+        return array(
+            'info' => $transfer,
+            'id' => $this->safe_string($transfer, 'id'),
+            'status' => $this->parse_transfer_status($status),
+            'amount' => $this->safe_number($transfer, 'amount'),
+            'code' => $this->safe_currency_code($currencyId, $currency),
+            'fromAccount' => $direction !== 'payment' ? $account : null,
+            'toAccount' => $direction === 'payment' ? $account : null,
+            'timestamp' => $timestamp,
+            'datetime' => $this->iso8601($timestamp),
+        );
+    }
+
+    public function parse_transfer_status($status) {
+        $statuses = array(
+            'prepared' => 'pending',
+            'confirmed' => 'ok',
+            'cancelled' => 'cancelled',
+            'waiting_for_admin' => 'pending',
+        );
+        return $this->safe_string($statuses, $status, $status);
+    }
+
     public function withdraw($code, $amount, $address, $tag = null, $params = array ()) {
+        /**
+         * make a withdrawal
+         * @param {string} $code unified $currency $code
+         * @param {float} $amount the $amount to withdraw
+         * @param {string} $address the $address to withdraw to
+         * @param {string|null} $tag
+         * @param {array} $params extra parameters specific to the deribit api endpoint
+         * @return {array} a {@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure transaction structure}
+         */
+        list($tag, $params) = $this->handle_withdraw_tag_and_params($tag, $params);
         $this->check_address($address);
         $this->load_markets();
         $currency = $this->currency($code);
@@ -1651,10 +2559,7 @@ class deribit extends Exchange {
             $request['tfa'] = $this->oath();
         }
         $response = $this->privateGetWithdraw (array_merge($request, $params));
-        return array(
-            'info' => $response,
-            'id' => $this->safe_string($response, 'id'),
-        );
+        return $this->parse_transaction($response, $currency);
     }
 
     public function nonce() {
@@ -1683,7 +2588,7 @@ class deribit extends Exchange {
                 'Authorization' => 'deri-hmac-sha256 id=' . $this->apiKey . ',ts=' . $timestamp . ',sig=' . $signature . ',' . 'nonce=' . $nonce,
             );
         }
-        $url = $this->urls['api'] . $request;
+        $url = $this->urls['api']['rest'] . $request;
         return array( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
     }
 

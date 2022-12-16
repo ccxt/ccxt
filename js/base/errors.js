@@ -1,3 +1,4 @@
+/* eslint-disable */
 'use strict';
 
 const errorHierarchy = require ('./errorHierarchy.js')
@@ -30,6 +31,10 @@ function subclass (BaseClass, classes, namespace = {}) {
                     this.__proto__   = Class.prototype
                     this.name        = className
                     this.message     = message
+
+                    // https://github.com/Microsoft/TypeScript/wiki/FAQ#why-doesnt-extending-built-ins-like-error-array-and-map-work
+
+                    Object.setPrototypeOf (this, Class.prototype)
                 }
             }
 

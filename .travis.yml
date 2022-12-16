@@ -1,56 +1,68 @@
 language: python
+dist: jammy
 python:
-  - "3.6"
+- 3.8.3
+git:
+  depth: 1
 cache:
- directories:
-   # - $HOME/.cache/pip
-   # - $HOME/.npm
-   # - node_modules
-
+  directories:
+  - ".cache"
 before_install:
 - set -e
-- . $HOME/.nvm/nvm.sh
-# - nvm ls
-- nvm install 10.15.3
-- nvm use 10.15.3
+- ". $HOME/.nvm/nvm.sh"
+- nvm ls
+- nvm ls-remote
+- nvm install v16.13.2
 - rm -rf node_modules
 - npm install
-- npm install web3@1.0.0-beta.37 ethereumjs-util ethereumjs-abi --no-save
 - git checkout package.json package-lock.json
-- sudo wget --quiet https://github.com/jgm/pandoc/releases/download/2.2.1/pandoc-2.2.1-1-amd64.deb
-- sudo dpkg -i pandoc-2.2.1-1-amd64.deb
-- sudo apt-get install python3-pip
-- python3 --version
-- python2 --version
-- pip3 --version
-- sudo -H pip install --upgrade setuptools
-- sudo -H pip install --upgrade pip wheel requests pyopenssl
-- sudo -H pip install --ignore-installed six
-- sudo -H pip install --upgrade tox twine
-- pip install --upgrade setuptools
-- pip install --upgrade web3 aiohttp requests cryptography pyopenssl
-- pip2 install requests[security]
-- git pull --tags
+- git config pull.rebase false
+- git fetch --depth=1 --tags --verbose --progress
+- pip install requests pyopenssl
+- pip install --ignore-installed six
+- pip install tox twine
+- pip install aiohttp cryptography
+- php -i | grep php.ini
+- php --version
+- composer install
 script:
-- if [ "$TRAVIS_PULL_REQUEST" = "false" ] && [ "$TRAVIS_BRANCH" = "master" ]; then npm config set git-tag-version=false && NPM_VERSION=$(npm version patch); fi
-- cp package.json LICENSE.txt keys.json python
-- npm run build
-#- npm run git-unignore-generated-files
+- if [ "$TRAVIS_PULL_REQUEST" = "false" ] && [ "$TRAVIS_BRANCH" = "master" ]; then
+  npm config set git-tag-version=false && NPM_VERSION=$(npm version patch); fi
+- cp package.json README.md LICENSE.txt keys.json python
+- npm run force-build
 - cd python
 - tox -e doc
 - cd ..
+- ls "$VIRTUAL_ENV/lib/python3.8/site-packages/"
 - npm run test-base
-- bash -c 'node run-tests --js --python 5' 2>&1
-# - export TWINE_REPOSITORY_URL=https://pypi.python.org/pypi
-- if [ "$TRAVIS_PULL_REQUEST" = "false" ] && [ "$TRAVIS_BRANCH" = "master" ]; then env COMMIT_MESSAGE=${NPM_VERSION:1} GITHUB_TOKEN=${GITHUB_TOKEN} ./build/push.sh; fi
-- if [ "$TRAVIS_PULL_REQUEST" = "false" ] && [ "$TRAVIS_BRANCH" = "master" ]; then cd python && env PYPI_PASSWORD=${PYPI_PASSWORD} ./deploy.sh && cd ..; fi
+- npm run test-base-ws
+- pip list
+- node run-tests --js --python-async --php-async 5 2>&1 &
+- rest_pid=$!
+- node run-tests-ws --js --python-async --php-async 5 2>&1 &
+- ws_pid=$!
+- wait $rest_pid
+- wait $ws_pid
+- git checkout master composer.json
+- if [ "$TRAVIS_PULL_REQUEST" = "false" ] && [ "$TRAVIS_BRANCH" = "master" ]; then
+  env COMMIT_MESSAGE=${NPM_VERSION:1} GITHUB_TOKEN=${GITHUB_TOKEN} ./build/push.sh;
+  fi
+- if [ "$TRAVIS_PULL_REQUEST" = "false" ] && [ "$TRAVIS_BRANCH" = "master" ]; then
+  cd python && env PYPI_TOKEN=${PYPI_TOKEN} ./deploy.sh && cd ..; fi
 after_failure:
 - dmesg | grep -i kill
 deploy:
-  - provider: npm
-    email: igor.kroitor@gmail.com
-    api_key:
-      secure: N76dtlNP0Q9sKDw8brbckPU2evN2anVb3G8aLM0u9PzY7WOLahSdghQUeU+xVZ7Qw0zqaThPPYpR0dacj4POUjd9UsjBl8ROTsUSjjSbM4C/Im+6sSqyO5Bl+9ZDy7xNvx92KnsQaGnvdd1NHHcL+ruyiFPzBpjYY3c4gp5jEe+vPKj9uSlT0UsLbtARCDi4MmYHCSSI+KAw2E0qo/RVQM07SEAUPLHvE17jjDr3IMomeFEP9uC36I1T7xM+nlfw08lAUb12nfS5PYMNBlLboC2v8/t20+ulKvNCPvRFyBmzw2sRzBMcE6XLfk0+1ajREjwU+n6lx6+63YIJYo5YAlG5hCBF2mmaLRSXfDTSg0khv7MID3OZwBmJ+bozrQwhXb9dYK1gpELuxDOaUu5xSn1lJGjx4JtH2wdIkxYoAgX/Gqx9xrjA5KnKdx/YhJwgLPYBFgN6pgqufA5Vu6JDQ0yd9qsU8qnXRH9jLNhsCy15fKCxcdSHK+eib+inRg/ayAqFYaRpugndiww5D3skNKyBFBXxuU1F7EXloiTy+dz2RR6vF08OSflxW4CGgSBtaugQIEG7XO3UjSL9sSj96dpBnTIRSRXtC4PvEPRtEWP6xDarYx7yl+mpuSryHyx+j6E23XpNHEM+KA7Ps1xv6F46yE0D9eNRNrp82XPFt6A=
+- provider: npm
+  email: igor.kroitor@gmail.com
+  api_key:
+    secure: euGp3OIlxbY+ZqgJYOAE1MH4EyCVIRLxMksHcj+w/V6MEkRchLIUDE68kLdK5ZUFGHnoFQtR1N65i428gvcjy8P/0K0p9maVpZaHuk0Q2GrnIAAe0D6jZu2s2D0JPhWCZ5U4Aiek5ExhTblEYWTwOtpG/JwAa+2/IT+2DvtNf37HBM0tEvI3FLRexTv74vMDH172681UFHz2h0dvfgOzBwCiydsp6eihnV90AetsYT4Y9VpZDjAdmATO1ydLw8SnH2skWssmH8snyDDVOPkdu6mRBHZB6ckSZzyQLiIbn4dlzAt6Zi1/NjSJg4z/+vIK8o8SOHPu3AkCab+E6kBeuCBnphquIa/i3bToxJSa1AScisg+5rQZCsY/L7ey8El/nOvVn7B6xATk7w4Cm/dy5gTyriNqgFoJvDLhlntfPp+7w9GGc7Hi6UL9RWw0CCW9c2I1cyDmNpSv95gspMJAI847ykaHgXl01Cxo2yWGqwxpCR/suqdTySvo3NgqFQrM2aRkPQT+yQlL2hrrqX2l2w7gU+2y9W89WB/75x674RR3fpSID6HGrt52frZDk1mgi6ggHv0ta+hOHQCIhLM7tB/pR9ehF4RGcVjRTEBa0CG2XeXDWDFDjLEzZPmvf6vCL+PDMk91sR6YB+djsaPEwLV6pjWngYSrNdYVe1djdl8=
+after_deploy:
+- cat ~/.npm/_logs/*-debug.log
 env:
   global:
-    secure: CQBKPcipKTvfgBi8KXaJ6KyjJL5GcWPEW7WrKZcTeM2AaNqTX8w3yuqjsezxVnQWLG3TzEI0m1K31Fv9wfZHsMwRIr5py6AeAc4C2JgaKs3FSAFJ3m46a9hK7FIeC0xMdXszPJx7534XiuG8nMJRbwbNNswb35GekysKU87g5Sf6U7UFFeyyyQdchiPF85lYBt/AJSArNsfHMd0RKQY5pHdAHNNB70qFECIBeC6MYiUFBHydw2ist/bSWa9GYEh3LxUNMQ7bbxuzD6+sVMU2PW61gEpa3I9HB7NTQvPp+YbYWqBwS++SKCuqkalXdMPeCIINu64T1UtFGZNWvw9xfg8T8GwGHwZnNZ1o3WCXKo9/+FC70OAb76mblEXllhQs+gBL5g/bqdQBKfGrYIACHBRE3pzNPSRn7oY3hpk7NLoJRbB28OQ5ymJrDc8hctoXwgD3KrIM91+6YqycOifidLFHecg/VA2bjSx/ql69sVhNchaBJ8b7EMMIjo1DrFIv43XJ7DHX+2yZFJD8uv5eCGHkfXv6XfV5312TYzGYsxpfJ9my9tdTGxop2BXzaf1nYqrI+RPKIZrh6FgiXgRaetwRpWl4G+DqxKbKtfzYlZtYU2JeJ7Z5AMwLHyvxxcuOH3MrE+vk5nbU5gE9E3m5o7yH+d7Qj5liCyXk0zxijn0=
+  # old GITHUB_TOKEN
+  # - secure: CQBKPcipKTvfgBi8KXaJ6KyjJL5GcWPEW7WrKZcTeM2AaNqTX8w3yuqjsezxVnQWLG3TzEI0m1K31Fv9wfZHsMwRIr5py6AeAc4C2JgaKs3FSAFJ3m46a9hK7FIeC0xMdXszPJx7534XiuG8nMJRbwbNNswb35GekysKU87g5Sf6U7UFFeyyyQdchiPF85lYBt/AJSArNsfHMd0RKQY5pHdAHNNB70qFECIBeC6MYiUFBHydw2ist/bSWa9GYEh3LxUNMQ7bbxuzD6+sVMU2PW61gEpa3I9HB7NTQvPp+YbYWqBwS++SKCuqkalXdMPeCIINu64T1UtFGZNWvw9xfg8T8GwGHwZnNZ1o3WCXKo9/+FC70OAb76mblEXllhQs+gBL5g/bqdQBKfGrYIACHBRE3pzNPSRn7oY3hpk7NLoJRbB28OQ5ymJrDc8hctoXwgD3KrIM91+6YqycOifidLFHecg/VA2bjSx/ql69sVhNchaBJ8b7EMMIjo1DrFIv43XJ7DHX+2yZFJD8uv5eCGHkfXv6XfV5312TYzGYsxpfJ9my9tdTGxop2BXzaf1nYqrI+RPKIZrh6FgiXgRaetwRpWl4G+DqxKbKtfzYlZtYU2JeJ7Z5AMwLHyvxxcuOH3MrE+vk5nbU5gE9E3m5o7yH+d7Qj5liCyXk0zxijn0=
+  # PYPI_TOKEN
+  - secure: QCQa8tn40loCqSx9tR7PFAa7h5Gucl9IaEARiskiPF3zlLoZTst6ThnFl1rQDKx2jIJsN1z8Vwd12I4kYGED+Tgd345kE+J/n2hVEpTwSB+oOUWlwgkTQbCQB0XxPJRPila9lt3Ogpbvrp//L7IkFM06gu+N+qwQEOjn7dkLrVAkg5vl9nouuzqHadaQ1oOMG/v3DgPq5NHaCEWK0285Oqs8dqecVRSFGAtRPTDHzO/nv4stsbnmEWO1pu/SYXyxum1CYv9glfFaRNWoQ9EWjl8ogCzBsH3lkFeNhwLOcSyMFmTpXH1soXcLzJTWoUgfx9hiiC8IqOxx4nGurOK6OyY9QO8aVwyRdYlbpdLFuEiGuadfI6Rbz41TewZ+r3OmFn4gy5oRIM0fE+2Osj3btmsdZYktXdErqhRm18bV/oO/IOteKEXdbC7+PJ5obnpbBKKfcSNOAF8F/en+qouAywghq8UBJ9zHtWSsDXOUeCdvXLGKA01pbdaDpmtHBU9u5iX+KnSbBP+iAb7+i/uymxFTJbseYllPa1IFUf4wNf6AFlfgLnZT064KF1oiIGnvpczqD+UV4fDIukKaBaC0gK2nUQUiSNPs1kFJbs7QiQO5I07RgpAACigDWlp6tKLSUoA4wUXIG1APF5Eh001FAQ01lCjsxhMh3OmtgEIaxkI=
+  # new GITHUB_TOKEN
+  - secure: WPl3NjctMsOi6OsiNkpV/TNYJrdZHISTcdA6hewUeLHKTeXDzlOvumUWW4BwHAu4wfkBsUty9NdnMyAKZIIUV60c8+saBCR9AgXIdsO8Hz9IZmFjXixY+IVCmYKbGbEt1l5hnZje87NGKqWEHDYA4FlauiSAxq/8d5FJiTcxpCCnbSpBW7N4ABs0b6Ryjgs+7EJbUIK0Wjo+d7cXxUscE9ArtACWo3h4IRcjYqqYYyhsZH7zEwdzWZzSk8bbRo7SGSbpzOYR6GId5y9Fs9e9BJPB0x/7HReC1rEQi06SkspRnDpJz6KG0/STFbRwIAUhDxTEH0oeV3/24J2M1LXfZz5vQZQn3t1k/+QOruYTCj4jxiYINmY0qI0H5inXXM9tBNZQAhkj2NAZhWMvrQPSl/FYwkxARS5isUFb18oh5v3Du55k/OJvU+BIP80jypADKdqwogZMYGkVS/aUiVpg+3CUIKClVqkxZ6enpNDMim7gbYskDpnKrxRG2B1tW6zuSXqPDlhtuAdSqoaC6cFkiQz8DIDUPzscYyuXt/njj263nbRZ+JTiWH+Md8Svs9e2buFirxOaRUeJpzTRknB2EKjeyioYbOQ1vA6++fS3eBAyJN8IGL96qI70lztFgu7Hjh0OyjkiYBU/IqEXJ9aJnC8aKN3pyl0kQ4FE37EAUrg=

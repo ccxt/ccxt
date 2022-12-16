@@ -3,7 +3,6 @@
 const ccxt = require ('../../ccxt')
     , log = require ('ololog').unlimited.handleNodeErrors ()
     , { NotSupported } = ccxt
-    , enableRateLimit = true
     , symbol = 'ADA/BTC'
     , side = 'buy'
     , type = 'market'
@@ -12,7 +11,7 @@ const ccxt = require ('../../ccxt')
     , amount = 191.03
     , price = 0.000011
     , options = { createMarketBuyOrderRequiresPrice }
-    , exchange = new ccxt.huobipro ({ enableRateLimit, options })
+    , exchange = new ccxt.huobipro ({ options })
 
 // This is an example that demonstrates the issues discussed here:
 // https://github.com/ccxt/ccxt/issues/564

@@ -10,6 +10,8 @@ from ccxt.base.errors import ArgumentsRequired
 from ccxt.base.errors import BadRequest
 from ccxt.base.errors import InvalidAddress
 from ccxt.base.errors import OrderNotFound
+from ccxt.base.decimal_to_precision import TICK_SIZE
+from ccxt.base.precise import Precise
 
 
 class therock(Exchange):
@@ -19,23 +21,56 @@ class therock(Exchange):
             'id': 'therock',
             'name': 'TheRockTrading',
             'countries': ['MT'],
-            'rateLimit': 1000,
+            # 10 requests per second => 1000ms / 10 => 100 ms between requests(all endpoints)
+            'rateLimit': 100,
             'version': 'v1',
             'has': {
-                'CORS': False,
-                'fetchTickers': True,
-                'fetchMyTrades': True,
-                'fetchLedger': True,
-                'fetchDeposits': True,
-                'fetchWithdrawals': True,
-                'fetchTransactions': 'emulated',
-                'fetchOrders': True,
-                'fetchOpenOrders': True,
+                'CORS': None,
+                'spot': True,
+                'margin': None,  # has but unimplemented
+                'swap': False,
+                'future': False,
+                'option': False,
+                'cancelOrder': True,
+                'createOrder': True,
+                'fetchBalance': True,
                 'fetchClosedOrders': True,
+                'fetchDeposits': True,
+                'fetchFundingHistory': False,
+                'fetchFundingRate': False,
+                'fetchFundingRateHistory': False,
+                'fetchFundingRates': False,
+                'fetchIndexOHLCV': False,
+                'fetchLedger': True,
+                'fetchMarginMode': False,
+                'fetchMarkets': True,
+                'fetchMarkOHLCV': False,
+                'fetchMyTrades': True,
+                'fetchOHLCV': True,
+                'fetchOpenInterestHistory': False,
+                'fetchOpenOrders': True,
+                'fetchOrder': True,
+                'fetchOrderBook': True,
+                'fetchOrders': True,
+                'fetchPositionMode': False,
+                'fetchPremiumIndexOHLCV': False,
+                'fetchTicker': True,
+                'fetchTickers': True,
+                'fetchTrades': True,
+                'fetchTradingFee': True,
+                'fetchTradingFees': True,
+                'fetchTransactions': 'emulated',
+                'fetchTransfer': False,
+                'fetchTransfers': False,
+                'fetchWithdrawals': True,
+                'transfer': False,
+                'withdraw': True,
             },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/27766869-75057fa2-5ee9-11e7-9a6f-13e641fa4707.jpg',
-                'api': 'https://api.therocktrading.com',
+                'api': {
+                    'rest': 'https://api.therocktrading.com',
+                },
                 'www': 'https://therocktrading.com',
                 'doc': [
                     'https://api.therocktrading.com/doc/v1/index.html',
@@ -44,60 +79,54 @@ class therock(Exchange):
             },
             'api': {
                 'public': {
-                    'get': [
-                        'funds',
-                        'funds/{id}/orderbook',
-                        'funds/{id}/ticker',
-                        'funds/{id}/trades',
-                        'funds/tickers',
-                    ],
+                    'get': {
+                        'funds': 1,
+                        'funds/{id}': 1,
+                        'funds/{id}/orderbook': 1,
+                        'funds/{id}/ticker': 1,
+                        'funds/{id}/trades': 1,
+                        'funds/{id}/ohlc_statistics': 1,
+                        'funds/tickers': 1,
+                    },
                 },
                 'private': {
-                    'get': [
-                        'balances',
-                        'balances/{id}',
-                        'discounts',
-                        'discounts/{id}',
-                        'funds',
-                        'funds/{id}',
-                        'funds/{id}/trades',
-                        'funds/{fund_id}/orders',
-                        'funds/{fund_id}/orders/{id}',
-                        'funds/{fund_id}/position_balances',
-                        'funds/{fund_id}/positions',
-                        'funds/{fund_id}/positions/{id}',
-                        'transactions',
-                        'transactions/{id}',
-                        'withdraw_limits/{id}',
-                        'withdraw_limits',
-                    ],
-                    'post': [
-                        'atms/withdraw',
-                        'funds/{fund_id}/orders',
-                    ],
-                    'delete': [
-                        'funds/{fund_id}/orders/{id}',
-                        'funds/{fund_id}/orders/remove_all',
-                    ],
+                    'get': {
+                        'balances': 1,
+                        'balances/{id}': 1,
+                        'discounts': 1,
+                        'discounts/{id}': 1,
+                        'funds': 1,
+                        'funds/{id}': 1,
+                        'funds/{id}/trades': 1,
+                        'funds/{fund_id}/orders': 1,
+                        'funds/{fund_id}/orders/{id}': 1,
+                        'funds/{fund_id}/position_balances': 1,
+                        'funds/{fund_id}/positions': 1,
+                        'funds/{fund_id}/positions/{id}': 1,
+                        'transactions': 1,
+                        'transactions/{id}': 1,
+                        'withdraw_limits/{id}': 1,
+                        'withdraw_limits': 1,
+                    },
+                    'post': {
+                        'atms/withdraw': 1,
+                        'funds/{fund_id}/orders': 1,
+                    },
+                    'delete': {
+                        'funds/{fund_id}/orders/{id}': 1,
+                        'funds/{fund_id}/orders/remove_all': 1,
+                    },
                 },
             },
             'fees': {
                 'trading': {
-                    'maker': 0.2 / 100,
-                    'taker': 0.2 / 100,
+                    'maker': self.parse_number('0.002'),
+                    'taker': self.parse_number('0.002'),
                 },
                 'funding': {
                     'tierBased': False,
                     'percentage': False,
-                    'withdraw': {
-                        'BTC': 0.0005,
-                        'BCH': 0.0005,
-                        'PPC': 0.02,
-                        'ETH': 0.001,
-                        'ZEC': 0.001,
-                        'LTC': 0.002,
-                        'EUR': 2.5,  # worst-case scenario: https://therocktrading.com/en/pages/fees
-                    },
+                    'withdraw': {},
                     'deposit': {
                         'BTC': 0,
                         'BCH': 0,
@@ -109,6 +138,7 @@ class therock(Exchange):
                     },
                 },
             },
+            'precisionMode': TICK_SIZE,
             'exceptions': {
                 'exact': {
                     'Request already running': BadRequest,
@@ -125,40 +155,45 @@ class therock(Exchange):
                     ' is invalid': InvalidAddress,
                 },
             },
+            'options': {
+                'withdraw': {
+                    'fillResponseFromRequest': True,
+                },
+            },
         })
 
     async def fetch_markets(self, params={}):
+        """
+        retrieves data on all markets for therock
+        :param dict params: extra parameters specific to the exchange api endpoint
+        :returns [dict]: an array of objects representing market data
+        """
         response = await self.publicGetFunds(params)
         #
-        #     {funds: [{                     id:   "BTCEUR",
-        #                              description:   "Trade Bitcoin with Euro",
-        #                                     type:   "currency",
-        #                            base_currency:   "EUR",
-        #                           trade_currency:   "BTC",
-        #                                  buy_fee:    0.2,
-        #                                 sell_fee:    0.2,
-        #                      minimum_price_offer:    0.01,
-        #                   minimum_quantity_offer:    0.0005,
-        #                   base_currency_decimals:    2,
-        #                  trade_currency_decimals:    4,
-        #                                leverages: []                           },
-        #                {                     id:   "LTCEUR",
-        #                              description:   "Trade Litecoin with Euro",
-        #                                     type:   "currency",
-        #                            base_currency:   "EUR",
-        #                           trade_currency:   "LTC",
-        #                                  buy_fee:    0.2,
-        #                                 sell_fee:    0.2,
-        #                      minimum_price_offer:    0.01,
-        #                   minimum_quantity_offer:    0.01,
-        #                   base_currency_decimals:    2,
-        #                  trade_currency_decimals:    2,
-        #                                leverages: []                            }]}
+        #    {
+        #        funds: [
+        #            {
+        #                id: "BTCEUR",
+        #                description: "Trade Bitcoin with Euro",
+        #                type: "currency",
+        #                base_currency: "EUR",
+        #                trade_currency: "BTC",
+        #                buy_fee: 0.2,
+        #                sell_fee: 0.2,
+        #                minimum_price_offer: 0.01,
+        #                minimum_quantity_offer: 0.0005,
+        #                base_currency_decimals: 2,
+        #                trade_currency_decimals: 4,
+        #                leverages: []
+        #            },
+        #            ...
+        #        ]
+        #    }
         #
         markets = self.safe_value(response, 'funds')
         result = []
         if markets is None:
-            raise ExchangeError(self.id + ' fetchMarkets got an unexpected response')
+            raise ExchangeError(self.id + ' fetchMarkets() got an unexpected response')
         else:
             for i in range(0, len(markets)):
                 market = markets[i]
@@ -167,34 +202,53 @@ class therock(Exchange):
                 quoteId = self.safe_string(market, 'base_currency')
                 base = self.safe_currency_code(baseId)
                 quote = self.safe_currency_code(quoteId)
-                symbol = base + '/' + quote
-                buy_fee = self.safe_float(market, 'buy_fee')
-                sell_fee = self.safe_float(market, 'sell_fee')
-                taker = max(buy_fee, sell_fee)
-                taker = taker / 100
-                maker = taker
+                buy_fee = self.safe_string(market, 'buy_fee')
+                sell_fee = self.safe_string(market, 'sell_fee')
+                taker = Precise.string_max(buy_fee, sell_fee)
+                taker = self.parse_number(Precise.string_div(taker, '100'))
+                leverages = self.safe_value(market, 'leverages')
+                leveragesLength = len(leverages)
                 result.append({
                     'id': id,
-                    'symbol': symbol,
+                    'symbol': base + '/' + quote,
                     'base': base,
                     'quote': quote,
+                    'settle': None,
                     'baseId': baseId,
                     'quoteId': quoteId,
-                    'info': market,
-                    'active': True,
-                    'maker': maker,
+                    'settleId': None,
+                    'type': 'spot',
+                    'spot': True,
+                    'margin': leveragesLength > 0,
+                    'swap': False,
+                    'future': False,
+                    'option': False,
+                    'contract': False,
+                    'linear': None,
+                    'inverse': None,
                     'taker': taker,
+                    'maker': taker,
+                    'contractSize': None,
+                    'active': True,
+                    'expiry': None,
+                    'expiryDatetime': None,
+                    'strike': None,
+                    'optionType': None,
                     'precision': {
-                        'amount': self.safe_integer(market, 'trade_currency_decimals'),
-                        'price': self.safe_integer(market, 'base_currency_decimals'),
+                        'amount': self.parse_number(self.parse_precision(self.safe_string(market, 'trade_currency_decimals'))),
+                        'price': self.parse_number(self.parse_precision(self.safe_string(market, 'base_currency_decimals'))),
                     },
                     'limits': {
+                        'leverage': {
+                            'min': 1,
+                            'max': self.safe_value(leverages, leveragesLength - 1, 1),
+                        },
                         'amount': {
-                            'min': self.safe_float(market, 'minimum_quantity_offer'),
+                            'min': self.safe_number(market, 'minimum_quantity_offer'),
                             'max': None,
                         },
                         'price': {
-                            'min': self.safe_float(market, 'minimum_price_offer'),
+                            'min': self.safe_number(market, 'minimum_price_offer'),
                             'max': None,
                         },
                         'cost': {
@@ -202,12 +256,11 @@ class therock(Exchange):
                             'max': None,
                         },
                     },
+                    'info': market,
                 })
         return result
 
-    async def fetch_balance(self, params={}):
-        await self.load_markets()
-        response = await self.privateGetBalances(params)
+    def parse_balance(self, response):
         balances = self.safe_value(response, 'balances', [])
         result = {'info': response}
         for i in range(0, len(balances)):
@@ -215,70 +268,130 @@ class therock(Exchange):
             currencyId = self.safe_string(balance, 'currency')
             code = self.safe_currency_code(currencyId)
             account = self.account()
-            account['free'] = self.safe_float(balance, 'trading_balance')
-            account['total'] = self.safe_float(balance, 'balance')
+            account['free'] = self.safe_string(balance, 'trading_balance')
+            account['total'] = self.safe_string(balance, 'balance')
             result[code] = account
-        return self.parse_balance(result)
+        return self.safe_balance(result)
+
+    async def fetch_balance(self, params={}):
+        """
+        query for balance and get the amount of funds available for trading or funds locked in orders
+        :param dict params: extra parameters specific to the therock api endpoint
+        :returns dict: a `balance structure <https://docs.ccxt.com/en/latest/manual.html?#balance-structure>`
+        """
+        await self.load_markets()
+        response = await self.privateGetBalances(params)
+        return self.parse_balance(response)
 
     async def fetch_order_book(self, symbol, limit=None, params={}):
+        """
+        fetches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
+        :param str symbol: unified symbol of the market to fetch the order book for
+        :param int|None limit: the maximum amount of order book entries to return
+        :param dict params: extra parameters specific to the therock api endpoint
+        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/en/latest/manual.html#order-book-structure>` indexed by market symbols
+        """
         await self.load_markets()
+        market = self.market(symbol)
         request = {
-            'id': self.market_id(symbol),
+            'id': market['id'],
         }
         orderbook = await self.publicGetFundsIdOrderbook(self.extend(request, params))
         timestamp = self.parse8601(self.safe_string(orderbook, 'date'))
-        return self.parse_order_book(orderbook, timestamp, 'bids', 'asks', 'price', 'amount')
+        return self.parse_order_book(orderbook, market['symbol'], timestamp, 'bids', 'asks', 'price', 'amount')
 
     def parse_ticker(self, ticker, market=None):
-        timestamp = self.parse8601(ticker['date'])
-        symbol = None
-        if market is not None:
-            symbol = market['symbol']
-        last = self.safe_float(ticker, 'last')
-        return {
-            'symbol': symbol,
+        #
+        #     {
+        #         "date":"2022-01-16T00:05:08.192Z",
+        #         "fund_id":"ETHBTC",
+        #         "bid":0.07707802,
+        #         "ask":0.07733404,
+        #         "last":0.07739053,
+        #         "open":0.07628192,
+        #         "close":0.07687651,
+        #         "low":0.07612047,
+        #         "high":0.07703306,
+        #         "volume":1.10179665,
+        #         "volume_traded":14.273
+        #     }
+        #
+        timestamp = self.parse8601(self.safe_string(ticker, 'date'))
+        market = self.safe_market(None, market)
+        last = self.safe_string(ticker, 'last')
+        return self.safe_ticker({
+            'symbol': market['symbol'],
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
-            'high': self.safe_float(ticker, 'high'),
-            'low': self.safe_float(ticker, 'low'),
-            'bid': self.safe_float(ticker, 'bid'),
+            'high': self.safe_string(ticker, 'high'),
+            'low': self.safe_string(ticker, 'low'),
+            'bid': self.safe_string(ticker, 'bid'),
             'bidVolume': None,
-            'ask': self.safe_float(ticker, 'ask'),
+            'ask': self.safe_string(ticker, 'ask'),
             'askVolume': None,
             'vwap': None,
-            'open': self.safe_float(ticker, 'open'),
+            'open': self.safe_string(ticker, 'open'),
             'close': last,
             'last': last,
-            'previousClose': self.safe_float(ticker, 'close'),  # previous day close, if any
+            'previousClose': self.safe_string(ticker, 'close'),  # previous day close, if any
             'change': None,
             'percentage': None,
             'average': None,
-            'baseVolume': self.safe_float(ticker, 'volume_traded'),
-            'quoteVolume': self.safe_float(ticker, 'volume'),
+            'baseVolume': self.safe_string(ticker, 'volume_traded'),
+            'quoteVolume': self.safe_string(ticker, 'volume'),
             'info': ticker,
-        }
+        }, market)
 
     async def fetch_tickers(self, symbols=None, params={}):
+        """
+        fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
+        :param [str]|None symbols: unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
+        :param dict params: extra parameters specific to the therock api endpoint
+        :returns dict: an array of `ticker structures <https://docs.ccxt.com/en/latest/manual.html#ticker-structure>`
+        """
         await self.load_markets()
+        symbols = self.market_symbols(symbols)
         response = await self.publicGetFundsTickers(params)
         tickers = self.index_by(response['tickers'], 'fund_id')
         ids = list(tickers.keys())
         result = {}
         for i in range(0, len(ids)):
             id = ids[i]
-            market = self.markets_by_id[id]
+            market = self.safe_market(id)
             symbol = market['symbol']
             ticker = tickers[id]
             result[symbol] = self.parse_ticker(ticker, market)
-        return result
+        return self.filter_by_array(result, 'symbol', symbols)
 
     async def fetch_ticker(self, symbol, params={}):
+        """
+        fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+        :param str symbol: unified symbol of the market to fetch the ticker for
+        :param dict params: extra parameters specific to the therock api endpoint
+        :returns dict: a `ticker structure <https://docs.ccxt.com/en/latest/manual.html#ticker-structure>`
+        """
         await self.load_markets()
         market = self.market(symbol)
-        ticker = await self.publicGetFundsIdTicker(self.extend({
+        request = {
             'id': market['id'],
-        }, params))
-        return self.parse_ticker(ticker, market)
+        }
+        response = await self.publicGetFundsIdTicker(self.extend(request, params))
+        #
+        #     {
+        #         "date":"2022-01-16T00:05:08.192Z",
+        #         "fund_id":"ETHBTC",
+        #         "bid":0.07707802,
+        #         "ask":0.07733404,
+        #         "last":0.07739053,
+        #         "open":0.07628192,
+        #         "close":0.07687651,
+        #         "low":0.07612047,
+        #         "high":0.07703306,
+        #         "volume":1.10179665,
+        #         "volume_traded":14.273
+        #     }
+        #
+        return self.parse_ticker(response, market)
 
     def parse_trade(self, trade, market=None):
         #
@@ -319,36 +432,29 @@ class therock(Exchange):
         #                         currency: "EUR",
         #                         trade_id:  440492                     }   ]}
         #
-        if not market:
-            market = self.markets_by_id[trade['fund_id']]
+        marketId = self.safe_string(trade, 'fund_id')
+        symbol = self.safe_symbol(marketId, market)
         timestamp = self.parse8601(self.safe_string(trade, 'date'))
         id = self.safe_string(trade, 'id')
         orderId = self.safe_string(trade, 'order_id')
         side = self.safe_string(trade, 'side')
-        price = self.safe_float(trade, 'price')
-        amount = self.safe_float(trade, 'amount')
-        cost = None
-        if price is not None:
-            if amount is not None:
-                cost = price * amount
+        priceString = self.safe_string(trade, 'price')
+        amountString = self.safe_string(trade, 'amount')
         fee = None
-        feeCost = None
+        feeCostString = None
         transactions = self.safe_value(trade, 'transactions', [])
         transactionsByType = self.group_by(transactions, 'type')
         feeTransactions = self.safe_value(transactionsByType, 'paid_commission', [])
         for i in range(0, len(feeTransactions)):
-            if feeCost is None:
-                feeCost = 0
-            feeCost = self.sum(feeCost, self.safe_float(feeTransactions[i], 'price'))
-        if feeCost is not None:
+            if feeCostString is None:
+                feeCostString = '0.0'
+            feeCostString = Precise.string_add(feeCostString, self.safe_string(feeTransactions[i], 'price'))
+        if feeCostString is not None:
             fee = {
-                'cost': feeCost,
+                'cost': feeCostString,
                 'currency': market['quote'],
             }
-        symbol = None
-        if market is not None:
-            symbol = market['symbol']
-        return {
+        return self.safe_trade({
             'info': trade,
             'id': id,
             'order': orderId,
@@ -358,11 +464,11 @@ class therock(Exchange):
             'type': None,
             'side': side,
             'takerOrMaker': None,
-            'price': price,
-            'amount': amount,
-            'cost': cost,
+            'price': priceString,
+            'amount': amountString,
+            'cost': None,
             'fee': fee,
-        }
+        }, market)
 
     def parse_ledger_entry_direction(self, direction):
         directions = {
@@ -491,7 +597,7 @@ class therock(Exchange):
             referenceId = self.safe_string(item, 'trade_id')
         currencyId = self.safe_string(item, 'currency')
         code = self.safe_currency_code(currencyId)
-        amount = self.safe_float(item, 'price')
+        amount = self.safe_number(item, 'price')
         timestamp = self.parse8601(self.safe_string(item, 'date'))
         status = 'ok'
         return {
@@ -513,6 +619,14 @@ class therock(Exchange):
         }
 
     async def fetch_ledger(self, code=None, since=None, limit=None, params={}):
+        """
+        fetch the history of changes, actions done by the user or operations that altered balance of the user
+        :param str|None code: unified currency code, default is None
+        :param int|None since: timestamp in ms of the earliest ledger entry, default is None
+        :param int|None limit: max number of ledger entrys to return, default is None
+        :param dict params: extra parameters specific to the therock api endpoint
+        :returns dict: a `ledger structure <https://docs.ccxt.com/en/latest/manual.html#ledger-structure>`
+        """
         await self.load_markets()
         request = {
             # 'page': 1,
@@ -704,7 +818,10 @@ class therock(Exchange):
         #         }
         #     }
         #
-        id = self.safe_string(transaction, 'id')
+        # privatePostAtmsWithdraw
+        #    {"transaction_id": 65088485}
+        #
+        id = self.safe_string_2(transaction, 'id', 'transaction_id')
         type = self.parse_transaction_type(self.safe_string(transaction, 'type'))
         detail = self.safe_value(transaction, 'transfer_detail', {})
         method = self.safe_string(detail, 'method')
@@ -716,15 +833,17 @@ class therock(Exchange):
                 address = self.safe_string(detail, 'recipient')
         currencyId = self.safe_string(transaction, 'currency')
         code = self.safe_currency_code(currencyId)
-        amount = self.safe_float(transaction, 'price')
+        amount = self.safe_number(transaction, 'price')
         timestamp = self.parse8601(self.safe_string(transaction, 'date'))
         status = 'ok'
+        network = self.safe_string(detail, 'method')
         # todo parse tags
         return {
             'info': transaction,
             'id': id,
             'currency': code,
             'amount': amount,
+            'network': network,
             'addressFrom': None,
             'addressTo': address,
             'address': address,
@@ -741,18 +860,42 @@ class therock(Exchange):
         }
 
     async def fetch_withdrawals(self, code=None, since=None, limit=None, params={}):
+        """
+        fetch all withdrawals made from an account
+        :param str|None code: unified currency code
+        :param int|None since: the earliest time in ms to fetch withdrawals for
+        :param int|None limit: the maximum number of withdrawals structures to retrieve
+        :param dict params: extra parameters specific to the therock api endpoint
+        :returns [dict]: a list of `transaction structures <https://docs.ccxt.com/en/latest/manual.html#transaction-structure>`
+        """
         request = {
             'type': 'withdraw',
         }
         return await self.fetch_transactions(code, since, limit, self.extend(request, params))
 
     async def fetch_deposits(self, code=None, since=None, limit=None, params={}):
+        """
+        fetch all deposits made to an account
+        :param str|None code: unified currency code
+        :param int|None since: the earliest time in ms to fetch deposits for
+        :param int|None limit: the maximum number of deposits structures to retrieve
+        :param dict params: extra parameters specific to the therock api endpoint
+        :returns [dict]: a list of `transaction structures <https://docs.ccxt.com/en/latest/manual.html#transaction-structure>`
+        """
         request = {
             'type': 'atm_payment',
         }
         return await self.fetch_transactions(code, since, limit, self.extend(request, params))
 
     async def fetch_transactions(self, code=None, since=None, limit=None, params={}):
+        """
+        fetch history of deposits and withdrawals
+        :param str|None code: unified currency code for the currency of the transactions, default is None
+        :param int|None since: timestamp in ms of the earliest transaction, default is None
+        :param int|None limit: max number of transactions to return, default is None
+        :param dict params: extra parameters specific to the therock api endpoint
+        :returns dict: a list of `transaction structure <https://docs.ccxt.com/en/latest/manual.html#transaction-structure>`
+        """
         await self.load_markets()
         request = {
             # 'page': 1,
@@ -837,6 +980,48 @@ class therock(Exchange):
         depositsAndWithdrawals = self.filter_by_array(transactions, 'type', transactionTypes, False)
         return self.parse_transactions(depositsAndWithdrawals, currency, since, limit)
 
+    async def withdraw(self, code, amount, address, tag=None, params={}):
+        """
+        make a withdrawal
+        :param str code: unified currency code
+        :param float amount: the amount to withdraw
+        :param str address: the address to withdraw to
+        :param str|None tag:
+        :param dict params: extra parameters specific to the therock api endpoint
+        :returns dict: a `transaction structure <https://docs.ccxt.com/en/latest/manual.html#transaction-structure>`
+        """
+        tag, params = self.handle_withdraw_tag_and_params(tag, params)
+        await self.load_markets()
+        currency = self.currency(code)
+        amount = self.currency_to_precision(code, amount)
+        request = {
+            'currency': currency['id'],
+            'destination_address': address,
+            'amount': float(amount),
+        }
+        if tag is not None:
+            request['destination_tag'] = tag
+        # requires write permission on the wallet
+        response = await self.privatePostAtmsWithdraw(self.extend(request, params))
+        #
+        #    {"transaction_id": 65088485}
+        #
+        transaction = self.parse_transaction(response, currency)
+        withdrawOptions = self.safe_value(self.options, 'withdraw', {})
+        fillResponseFromRequest = self.safe_value(withdrawOptions, 'fillResponseFromRequest', True)
+        if fillResponseFromRequest:
+            if transaction['addressTo'] == address:
+                transaction['addressTo'] = address
+            if transaction['address'] is None:
+                transaction['address'] = address
+            if transaction['tagTo'] is None:
+                transaction['tagTo'] = tag
+            if transaction['tag'] is None:
+                transaction['tag'] = tag
+            if transaction['amount'] is None:
+                transaction['amount'] = amount
+        return transaction
+
     def parse_order_status(self, status):
         statuses = {
             'active': 'open',
@@ -878,22 +1063,19 @@ class therock(Exchange):
         #     }
         #
         id = self.safe_string(order, 'id')
-        symbol = None
         marketId = self.safe_string(order, 'fund_id')
-        if marketId in self.markets_by_id:
-            market = self.markets_by_id[marketId]
-            symbol = market['symbol']
+        symbol = self.safe_symbol(marketId, market)
         status = self.parse_order_status(self.safe_string(order, 'status'))
         timestamp = self.parse8601(self.safe_string(order, 'date'))
         type = self.safe_string(order, 'type')
         side = self.safe_string(order, 'side')
-        amount = self.safe_float(order, 'amount')
-        remaining = self.safe_float(order, 'amount_unfilled')
+        amount = self.safe_number(order, 'amount')
+        remaining = self.safe_number(order, 'amount_unfilled')
         filled = None
         if amount is not None:
             if remaining is not None:
                 filled = amount - remaining
-        price = self.safe_float(order, 'price')
+        price = self.safe_number(order, 'price')
         trades = self.safe_value(order, 'trades')
         cost = None
         average = None
@@ -916,6 +1098,7 @@ class therock(Exchange):
                 lastTradeTimestamp = trades[numTrades - 1]['timestamp']
             else:
                 cost = 0
+        stopPrice = self.safe_number(order, 'conditional_price')
         return {
             'id': id,
             'clientOrderId': None,
@@ -926,8 +1109,11 @@ class therock(Exchange):
             'status': status,
             'symbol': symbol,
             'type': type,
+            'timeInForce': None,
+            'postOnly': None,
             'side': side,
             'price': price,
+            'stopPrice': stopPrice,
             'cost': cost,
             'amount': amount,
             'filled': filled,
@@ -938,20 +1124,44 @@ class therock(Exchange):
         }
 
     async def fetch_open_orders(self, symbol=None, since=None, limit=None, params={}):
+        """
+        fetch all unfilled currently open orders
+        :param str symbol: unified market symbol
+        :param int|None since: the earliest time in ms to fetch open orders for
+        :param int|None limit: the maximum number of  open orders structures to retrieve
+        :param dict params: extra parameters specific to the therock api endpoint
+        :returns [dict]: a list of `order structures <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
+        """
         request = {
             'status': 'active',
         }
         return await self.fetch_orders(symbol, since, limit, self.extend(request, params))
 
     async def fetch_closed_orders(self, symbol=None, since=None, limit=None, params={}):
+        """
+        fetches information on multiple closed orders made by the user
+        :param str symbol: unified market symbol of the market orders were made in
+        :param int|None since: the earliest time in ms to fetch orders for
+        :param int|None limit: the maximum number of  orde structures to retrieve
+        :param dict params: extra parameters specific to the therock api endpoint
+        :returns [dict]: a list of `order structures <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
+        """
         request = {
             'status': 'executed',
         }
         return await self.fetch_orders(symbol, since, limit, self.extend(request, params))
 
     async def fetch_orders(self, symbol=None, since=None, limit=None, params={}):
+        """
+        fetches information on multiple orders made by the user
+        :param str symbol: unified market symbol of the market orders were made in
+        :param int|None since: the earliest time in ms to fetch orders for
+        :param int|None limit: the maximum number of  orde structures to retrieve
+        :param dict params: extra parameters specific to the therock api endpoint
+        :returns [dict]: a list of `order structures <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
+        """
         if symbol is None:
-            raise ArgumentsRequired(self.id + ' fetchOrders requires a symbol argument')
+            raise ArgumentsRequired(self.id + ' fetchOrders() requires a symbol argument')
         await self.load_markets()
         market = self.market(symbol)
         request = {
@@ -992,23 +1202,69 @@ class therock(Exchange):
         return self.parse_orders(orders, market, since, limit)
 
     async def fetch_order(self, id, symbol=None, params={}):
+        """
+        fetches information on an order made by the user
+        :param strs symbol: unified symbol of the market the order was made in
+        :param dict params: extra parameters specific to the therock api endpoint
+        :returns dict: An `order structure <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
+        """
         if symbol is None:
-            raise ArgumentsRequired(self.id + ' fetchOrder requires a symbol argument')
+            raise ArgumentsRequired(self.id + ' fetchOrder() requires a symbol argument')
         await self.load_markets()
         market = self.market(symbol)
         request = {
             'id': id,
             'fund_id': market['id'],
         }
-        response = await self.privatePostFundsFundIdOrdersId(self.extend(request, params))
+        response = await self.privateGetFundsFundIdOrdersId(self.extend(request, params))
+        #
+        #     {
+        #         "id": 4325578,
+        #         "fund_id":"BTCEUR",
+        #         "side":"buy",
+        #         "type":"limit",
+        #         "status":"executed",
+        #         "price":0.0102,
+        #         "amount": 50.0,
+        #         "amount_unfilled": 0.0,
+        #         "conditional_type": null,
+        #         "conditional_price": null,
+        #         "date":"2015-06-03T00:49:48.000Z",
+        #         "close_on": null,
+        #         "leverage": 1.0,
+        #         "position_id": null,
+        #         "trades": [
+        #             {
+        #                 "id":237338,
+        #                 "fund_id":"BTCEUR",
+        #                 "amount":50,
+        #                 "price":0.0102,
+        #                 "side":"buy",
+        #                 "dark":false,
+        #                 "date":"2015-06-03T00:49:49.000Z"
+        #             }
+        #         ]
+        #     }
+        #
         return self.parse_order(response)
 
     async def create_order(self, symbol, type, side, amount, price=None, params={}):
+        """
+        create a trade order
+        :param str symbol: unified symbol of the market to create an order in
+        :param str type: 'market' or 'limit'
+        :param str side: 'buy' or 'sell'
+        :param float amount: how much of currency you want to trade in units of base currency
+        :param float|None price: the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+        :param dict params: extra parameters specific to the therock api endpoint
+        :returns dict: an `order structure <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
+        """
         await self.load_markets()
         if type == 'market':
             price = 0
+        market = self.market(symbol)
         request = {
-            'fund_id': self.market_id(symbol),
+            'fund_id': market['id'],
             'side': side,
             'amount': amount,
             'price': price,
@@ -1017,6 +1273,13 @@ class therock(Exchange):
         return self.parse_order(response)
 
     async def cancel_order(self, id, symbol=None, params={}):
+        """
+        cancels an open order
+        :param str id: order id
+        :param str symbol: unified symbol of the market the order was made in
+        :param dict params: extra parameters specific to the therock api endpoint
+        :returns dict: An `order structure <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
+        """
         await self.load_markets()
         request = {
             'id': id,
@@ -1025,9 +1288,84 @@ class therock(Exchange):
         response = await self.privateDeleteFundsFundIdOrdersId(self.extend(request, params))
         return self.parse_order(response)
 
+    async def fetch_ohlcv(self, symbol, timeframe='1m', since=None, limit=None, params={}):
+        """
+        fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+        :param str symbol: unified symbol of the market to fetch OHLCV data for
+        :param str timeframe: the length of time each candle represents in minutes
+        :param int|None since: timestamp in ms of the earliest candle to fetch
+        :param int|None limit: the maximum amount of candles to fetch
+        :param dict params: extra parameters specific to the exmo api endpoint
+        :returns [[int]]: A list of candles ordered as timestamp, open, high, low, close, volume
+        """
+        await self.load_markets()
+        market = self.market(symbol)
+        periodInSeconds = self.parse_timeframe(timeframe)
+        periodInMinutes = int(periodInSeconds / 60)
+        request = {
+            'id': market['id'],
+            'period': periodInMinutes,
+        }
+        if since is None:
+            request['after'] = self.iso8601(since)
+        response = await self.publicGetFundsIdOhlcStatistics(self.extend(request, params))
+        #
+        #     [
+        #         {
+        #             "fund_id": "BTCUSDT",
+        #             "open": 31500.0,
+        #             "high": 31500.0,
+        #             "low": 31500.0,
+        #             "close": 31500.0,
+        #             "average": 31500.0,
+        #             "weighted_average": 31500.0,
+        #             "base_volume": 0.0,
+        #             "traded_volume": 0.0,
+        #             "interval_starts_at": "2022-06-06T16:40:00.000Z",
+        #             "interval_ends_at": "2022-06-06T16:50:00.000Z"
+        #         }
+        #         ...
+        #     ]
+        #
+        return self.parse_ohlcvs(response, market, timeframe, since, limit)
+
+    def parse_ohlcv(self, ohlcv, market=None):
+        #
+        #     {
+        #         "fund_id": "BTCUSDT",
+        #         "open": 31500.0,
+        #         "high": 31500.0,
+        #         "low": 31500.0,
+        #         "close": 31500.0,
+        #         "average": 31500.0,
+        #         "weighted_average": 31500.0,
+        #         "base_volume": 0.0,
+        #         "traded_volume": 0.0,
+        #         "interval_starts_at": "2022-06-06T16:40:00.000Z",
+        #         "interval_ends_at": "2022-06-06T16:50:00.000Z"
+        #     }
+        #
+        dateTime = self.safe_string(ohlcv, 'interval_starts_at')
+        return [
+            self.parse8601(dateTime),
+            self.safe_number(ohlcv, 'open'),
+            self.safe_number(ohlcv, 'high'),
+            self.safe_number(ohlcv, 'low'),
+            self.safe_number(ohlcv, 'close'),
+            self.safe_number(ohlcv, 'base_volume'),
+        ]
+
     async def fetch_my_trades(self, symbol=None, since=None, limit=None, params={}):
+        """
+        fetch all trades made by the user
+        :param str symbol: unified market symbol
+        :param int|None since: the earliest time in ms to fetch trades for
+        :param int|None limit: the maximum number of trades structures to retrieve
+        :param dict params: extra parameters specific to the therock api endpoint
+        :returns [dict]: a list of `trade structures <https://docs.ccxt.com/en/latest/manual.html#trade-structure>`
+        """
         if symbol is None:
-            raise ArgumentsRequired(self.id + ' fetchMyTrades requires a symbol argument')
+            raise ArgumentsRequired(self.id + ' fetchMyTrades() requires a symbol argument')
         await self.load_markets()
         market = self.market(symbol)
         request = {
@@ -1039,40 +1377,46 @@ class therock(Exchange):
             request['after'] = self.iso8601(since)
         response = await self.privateGetFundsIdTrades(self.extend(request, params))
         #
-        #     {trades: [{          id:    237338,
-        #                        fund_id:   "BTCEUR",
-        #                         amount:    0.348,
-        #                          price:    348,
-        #                           side:   "sell",
-        #                           dark:    False,
-        #                       order_id:    14920648,
-        #                           date:   "2015-06-03T00:49:49.000Z",
-        #                   transactions: [{      id:  2770768,
-        #                                         date: "2015-06-03T00:49:49.000Z",
-        #                                         type: "sold_currency_to_fund",
-        #                                        price:  121.1,
-        #                                     currency: "EUR"                       },
-        #                                   {      id:  2770769,
-        #                                         date: "2015-06-03T00:49:49.000Z",
-        #                                         type: "released_currency_to_fund",
-        #                                        price:  0.348,
-        #                                     currency: "BTC"                        },
-        #                                   {      id:  2770772,
-        #                                         date: "2015-06-03T00:49:49.000Z",
-        #                                         type: "paid_commission",
-        #                                        price:  0.06,
-        #                                     currency: "EUR",
-        #                                     trade_id:  440492                     }   ]}],
-        #         meta: {total_count:    31,
-        #                       first: {href: "https://api.therocktrading.com/v1/funds/BTCXRP/trades?page=1"},
-        #                    previous:    null,
-        #                     current: {href: "https://api.therocktrading.com/v1/funds/BTCXRP/trades?page=1"},
-        #                        next: {href: "https://api.therocktrading.com/v1/funds/BTCXRP/trades?page=2"},
-        #                        last: {href: "https://api.therocktrading.com/v1/funds/BTCXRP/trades?page=2"}  }}
+        #     {
+        #         "trades": [
+        #             {
+        #                 "id":237338,
+        #                 "fund_id":"BTCEUR",
+        #                 "amount":0.348,
+        #                 "price":348.0,
+        #                 "side":"sell",
+        #                 "dark": False,
+        #                 "order_id":14920648,
+        #                 "date":"2015-06-03T00:49:49.000Z",
+        #                 "transactions": [
+        #                     {"id": 2770768, "date": "2015-06-03T00:49:49.000Z", "type": "sold_currency_to_fund", "price": 121.1, "currency": "EUR"},
+        #                     {"id": 2770769, "date": "2015-06-03T00:49:49.000Z", "type": "released_currency_to_fund", "price": 0.348, "currency": "BTC"},
+        #                     {"id": 2770772, "date": "2015-06-03T00:49:49.000Z", "type": "paid_commission", "price": 0.06, "currency": "EUR", "trade_id": 440492},
+        #                 ]
+        #             }
+        #         ],
+        #         "meta": {
+        #             "total_count": 31,
+        #             "first": {"href": "https://api.therocktrading.com/v1/funds/BTCXRP/trades?page=1"},
+        #             "previous": null,
+        #             "current": {"href": "https://api.therocktrading.com/v1/funds/BTCXRP/trades?page=1"},
+        #             "next": {"href": "https://api.therocktrading.com/v1/funds/BTCXRP/trades?page=2"},
+        #             "last":{"href":"https://api.therocktrading.com/v1/funds/BTCXRP/trades?page=2"}
+        #         }
+        #     }
         #
-        return self.parse_trades(response['trades'], market, since, limit)
+        trades = self.safe_value(response, 'trades', [])
+        return self.parse_trades(trades, market, since, limit)
 
     async def fetch_trades(self, symbol, since=None, limit=None, params={}):
+        """
+        get the list of most recent trades for a particular symbol
+        :param str symbol: unified symbol of the market to fetch trades for
+        :param int|None since: timestamp in ms of the earliest trade to fetch
+        :param int|None limit: the maximum amount of trades to fetch
+        :param dict params: extra parameters specific to the therock api endpoint
+        :returns [dict]: a list of `trade structures <https://docs.ccxt.com/en/latest/manual.html?#public-trades>`
+        """
         await self.load_markets()
         market = self.market(symbol)
         request = {
@@ -1084,34 +1428,161 @@ class therock(Exchange):
             request['after'] = self.iso8601(since)
         response = await self.publicGetFundsIdTrades(self.extend(request, params))
         #
-        #     {trades: [{     id:  4493548,
-        #                   fund_id: "ETHBTC",
-        #                    amount:  0.203,
-        #                     price:  0.02783576,
-        #                      side: "buy",
-        #                      dark:  False,
-        #                      date: "2018-11-30T08:19:18.236Z"},
-        #                 {     id:  4492926,
-        #                   fund_id: "ETHBTC",
-        #                    amount:  0.04,
-        #                     price:  0.02767034,
-        #                      side: "buy",
-        #                      dark:  False,
-        #                      date: "2018-11-30T07:03:03.897Z"}  ],
-        #         meta: {total_count:    null,
-        #                       first: {page:  1,
-        #                                href: "https://api.therocktrading.com/v1/funds/ETHBTC/trades?page=1"},
-        #                    previous:    null,
-        #                     current: {page:  1,
-        #                                href: "https://api.therocktrading.com/v1/funds/ETHBTC/trades?page=1"},
-        #                        next: {page:  2,
-        #                                href: "https://api.therocktrading.com/v1/funds/ETHBTC/trades?page=2"},
-        #                        last:    null                                                                   }}
+        #     {
+        #         trades: [
+        #             {
+        #                 id:  4493548,
+        #                 fund_id: "ETHBTC",
+        #                 amount:  0.203,
+        #                 price:  0.02783576,
+        #                 side: "buy",
+        #                 dark:  False,
+        #                 date: "2018-11-30T08:19:18.236Z"
+        #             },
+        #             {
+        #                 id:  4492926,
+        #                 fund_id: "ETHBTC",
+        #                 amount:  0.04,
+        #                 price:  0.02767034,
+        #                 side: "buy",
+        #                 dark:  False,
+        #                 date: "2018-11-30T07:03:03.897Z"
+        #             }
+        #         ],
+        #         meta: {
+        #             total_count: null,
+        #             first: {page: 1, href: "https://api.therocktrading.com/v1/funds/ETHBTC/trades?page=1"},
+        #             previous: null,
+        #             current: {page:  1, href: "https://api.therocktrading.com/v1/funds/ETHBTC/trades?page=1"},
+        #             next: {page:  2, href: "https://api.therocktrading.com/v1/funds/ETHBTC/trades?page=2"},
+        #             last: null
+        #         }
+        #     }
         #
         return self.parse_trades(response['trades'], market, since, limit)
 
+    async def fetch_trading_fee(self, symbol, params={}):
+        """
+        fetch the trading fees for a market
+        :param str symbol: unified market symbol
+        :param dict params: extra parameters specific to the therock api endpoint
+        :returns dict: a `fee structure <https://docs.ccxt.com/en/latest/manual.html#fee-structure>`
+        """
+        await self.load_markets()
+        market = self.market(symbol)
+        request = {
+            'id': market['id'],
+        }
+        response = await self.publicGetFundsId(self.extend(request, params))
+        #
+        #     {
+        #         id: 'ETHBTC',
+        #         description: 'Trade Ether with Bitcoin',
+        #         type: 'currency',
+        #         base_currency: 'BTC',
+        #         trade_currency: 'ETH',
+        #         buy_fee: '0.2',
+        #         sell_fee: '0.2',
+        #         minimum_price_offer: '0.00000001',
+        #         minimum_quantity_offer: '0.005',
+        #         base_currency_decimals: '8',
+        #         trade_currency_decimals: '3',
+        #         leverages: []
+        #     }
+        #
+        request = {
+            'id': market['quoteId'],
+        }
+        discount = await self.privateGetDiscountsId(self.extend(request, params))
+        #
+        #     {
+        #         "currency":"BTC",
+        #         "discount":50.0,
+        #         "details": {
+        #             "personal_discount": 50.0,
+        #             "commissions_related_discount": 0.0
+        #         }
+        #     }
+        #
+        return self.parse_trading_fee(response, discount, market)
+
+    async def fetch_trading_fees(self, params={}):
+        """
+        fetch the trading fees for multiple markets
+        :param dict params: extra parameters specific to the therock api endpoint
+        :returns dict: a dictionary of `fee structures <https://docs.ccxt.com/en/latest/manual.html#fee-structure>` indexed by market symbols
+        """
+        await self.load_markets()
+        response = await self.publicGetFunds(params)
+        #
+        #     {
+        #         funds: [
+        #             {
+        #                 id: 'BTCEUR',
+        #                 description: 'Trade Bitcoin with Euro',
+        #                 type: 'currency',
+        #                 base_currency: 'EUR',
+        #                 trade_currency: 'BTC',
+        #                 buy_fee: '0.2',
+        #                 sell_fee: '0.2',
+        #                 minimum_price_offer: '0.01',
+        #                 minimum_quantity_offer: '0.0005',
+        #                 base_currency_decimals: '2',
+        #                 trade_currency_decimals: '4',
+        #                 leverages: []
+        #             },
+        #         ]
+        #     }
+        #
+        discountsResponse = await self.privateGetDiscounts(params)
+        #
+        #     {
+        #         "discounts": [
+        #             {
+        #                 "currency":"BTC",
+        #                 "discount":50.0,
+        #                 "details": {
+        #                     "personal_discount": 50.0,
+        #                     "commissions_related_discount": 0.0
+        #                 }
+        #             }
+        #         ]
+        #     }
+        #
+        funds = self.safe_value(response, 'funds', [])
+        discounts = self.safe_value(discountsResponse, 'discounts', [])
+        result = {}
+        for i in range(0, len(funds)):
+            fund = funds[i]
+            marketId = self.safe_string(fund, 'id')
+            market = self.safe_market(marketId)
+            quoteId = self.safe_value(market, 'quoteId')
+            discount = self.filter_by(discounts, 'currency', quoteId)
+            fee = self.parse_trading_fee(fund, discount, market)
+            symbol = fee['symbol']
+            result[symbol] = fee
+        return result
+
+    def parse_trading_fee(self, fee, discount=None, market=None):
+        marketId = self.safe_string(fee, 'id')
+        takerString = self.safe_string(fee, 'buy_fee')
+        makerString = self.safe_string(fee, 'sell_fee')
+        # TotalFee = (100 - discount) * fee / 10000
+        discountString = self.safe_string(discount, 'discount', '0')
+        feePercentage = Precise.string_sub('100', discountString)
+        taker = self.parse_number(Precise.string_div(Precise.string_mul(takerString, feePercentage), '10000'))
+        maker = self.parse_number(Precise.string_div(Precise.string_mul(makerString, feePercentage), '10000'))
+        return {
+            'info': fee,
+            'symbol': self.safe_symbol(marketId, market),
+            'maker': maker,
+            'taker': taker,
+            'percentage': True,
+            'tierBased': True,
+        }
+
     def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
-        url = self.urls['api'] + '/' + self.version + '/' + self.implode_params(path, params)
+        url = self.urls['api']['rest'] + '/' + self.version + '/' + self.implode_params(path, params)
         query = self.omit(params, self.extract_params(path))
         headers = {} if (headers is None) else headers
         if api == 'private':
@@ -1139,8 +1610,7 @@ class therock(Exchange):
             return  # fallback to default error handler
         #
         #     {
-        #         "errors":
-        #         [
+        #         "errors": [
         #             {"message": ":currency is not a valid value for param currency","code": "11","meta": {"key":"currency","value":":currency"}},
         #             {"message": "Address allocation limit reached for currency :currency.","code": "13"},
         #             {"message": "Request already running", "code": "50"},

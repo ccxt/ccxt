@@ -6,54 +6,105 @@ namespace ccxt;
 // https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 use Exception; // a common import
-use \ccxt\ArgumentsRequired;
 
 class hollaex extends Exchange {
 
     public function describe() {
-        return $this->deep_extend(parent::describe (), array(
+        return $this->deep_extend(parent::describe(), array(
             'id' => 'hollaex',
             'name' => 'HollaEx',
             'countries' => array( 'KR' ),
-            'rateLimit' => 333,
-            'version' => 'v1',
+            // 4 requests per second => 1000ms / 4 = 250 ms between requests
+            'rateLimit' => 250,
+            'version' => 'v2',
+            'pro' => true,
             'has' => array(
-                'CORS' => false,
-                'fetchMarkets' => true,
-                'fetchCurrencies' => true,
-                'fetchTicker' => true,
-                'fetchTickers' => true,
-                'fetchOrderBook' => true,
-                'fetchOrderBooks' => true,
-                'fetchTrades' => true,
-                'fetchOHLCV' => true,
-                'fetchBalance' => true,
-                'createOrder' => true,
+                'CORS' => null,
+                'spot' => true,
+                'margin' => null,
+                'swap' => false,
+                'future' => false,
+                'option' => false,
+                'addMargin' => false,
+                'cancelAllOrders' => true,
+                'cancelOrder' => true,
                 'createLimitBuyOrder' => true,
                 'createLimitSellOrder' => true,
                 'createMarketBuyOrder' => true,
                 'createMarketSellOrder' => true,
-                'cancelOrder' => true,
-                'cancelAllOrders' => true,
-                'fetchOpenOrders' => true,
-                'fetchClosedOrders' => false,
-                'fetchOpenOrder' => true,
-                'fetchOrder' => false,
+                'createOrder' => true,
+                'createReduceOnlyOrder' => false,
+                'createStopLimitOrder' => true,
+                'createStopMarketOrder' => true,
+                'createStopOrder' => true,
+                'fetchBalance' => true,
+                'fetchBorrowRate' => false,
+                'fetchBorrowRateHistories' => false,
+                'fetchBorrowRateHistory' => false,
+                'fetchBorrowRates' => false,
+                'fetchBorrowRatesPerSymbol' => false,
+                'fetchClosedOrders' => true,
+                'fetchCurrencies' => true,
+                'fetchDepositAddress' => 'emulated',
+                'fetchDepositAddresses' => true,
                 'fetchDeposits' => true,
-                'fetchWithdrawals' => true,
-                'fetchTransactions' => false,
-                'fetchOrders' => false,
+                'fetchFundingHistory' => false,
+                'fetchFundingRate' => false,
+                'fetchFundingRateHistory' => false,
+                'fetchFundingRates' => false,
+                'fetchIndexOHLCV' => false,
+                'fetchLeverage' => false,
+                'fetchMarginMode' => false,
+                'fetchMarkets' => true,
+                'fetchMarkOHLCV' => false,
                 'fetchMyTrades' => true,
+                'fetchOHLCV' => true,
+                'fetchOpenInterestHistory' => false,
+                'fetchOpenOrder' => true,
+                'fetchOpenOrders' => true,
+                'fetchOrder' => true,
+                'fetchOrderBook' => true,
+                'fetchOrderBooks' => true,
+                'fetchOrders' => true,
+                'fetchPosition' => false,
+                'fetchPositionMode' => false,
+                'fetchPositions' => false,
+                'fetchPositionsRisk' => false,
+                'fetchPremiumIndexOHLCV' => false,
+                'fetchTicker' => true,
+                'fetchTickers' => true,
+                'fetchTrades' => true,
+                'fetchTradingFee' => false,
+                'fetchTradingFees' => true,
+                'fetchTransactions' => null,
+                'fetchTransfer' => false,
+                'fetchTransfers' => false,
+                'fetchWithdrawal' => true,
+                'fetchWithdrawals' => true,
+                'reduceMargin' => false,
+                'setLeverage' => false,
+                'setMarginMode' => false,
+                'setPositionMode' => false,
+                'transfer' => false,
                 'withdraw' => true,
-                'fetchDepositAddress' => true,
             ),
             'timeframes' => array(
+                '1m' => '1m',
+                '5m' => '5m',
+                '15m' => '15m',
                 '1h' => '1h',
+                '4h' => '4h',
                 '1d' => '1d',
+                '1w' => '1w',
             ),
             'urls' => array(
                 'logo' => 'https://user-images.githubusercontent.com/1294454/75841031-ca375180-5ddd-11ea-8417-b975674c23cb.jpg',
-                'api' => 'https://api.hollaex.com',
+                'test' => array(
+                    'rest' => 'https://api.sandbox.hollaex.com',
+                ),
+                'api' => array(
+                    'rest' => 'https://api.hollaex.com',
+                ),
                 'www' => 'https://hollaex.com',
                 'doc' => 'https://apidocs.hollaex.com',
                 'referral' => 'https://pro.hollaex.com/signup?affiliation_code=QSWA6G',
@@ -66,37 +117,41 @@ class hollaex extends Exchange {
             'api' => array(
                 'public' => array(
                     'get' => array(
-                        'health',
-                        'constant',
-                        'ticker',
-                        'ticker/all',
-                        'orderbooks',
-                        'trades',
-                        'chart',
-                        // TradingView data
-                        'udf/config',
-                        'udf/history',
-                        'udf/symbols',
+                        'health' => 1,
+                        'constants' => 1,
+                        'kit' => 1,
+                        'tiers' => 1,
+                        'ticker' => 1,
+                        'tickers' => 1,
+                        'orderbook' => 1,
+                        'orderbooks' => 1,
+                        'trades' => 1,
+                        'chart' => 1,
+                        'charts' => 1,
+                        // TradingView
+                        'udf/config' => 1,
+                        'udf/history' => 1,
+                        'udf/symbols' => 1,
                     ),
                 ),
                 'private' => array(
                     'get' => array(
-                        'user',
-                        'user/balance',
-                        'user/trades',
-                        'user/orders',
-                        'user/orders/{order_id}',
-                        'user/deposits',
-                        'user/withdrawals',
-                        'user/withdraw/{currency}/fee',
+                        'user' => 1,
+                        'user/balance' => 1,
+                        'user/deposits' => 1,
+                        'user/withdrawals' => 1,
+                        'user/withdrawal/fee' => 1,
+                        'user/trades' => 1,
+                        'orders' => 1,
+                        'order' => 1,
                     ),
                     'post' => array(
-                        'user/request-withdrawal',
-                        'order',
+                        'user/withdrawal' => 1,
+                        'order' => 1,
                     ),
                     'delete' => array(
-                        'user/orders',
-                        'user/orders/{order_id}',
+                        'order/all' => 1,
+                        'order' => 1,
                     ),
                 ),
             ),
@@ -104,6 +159,8 @@ class hollaex extends Exchange {
                 'trading' => array(
                     'tierBased' => true,
                     'percentage' => true,
+                    'taker' => 0.001,
+                    'maker' => 0.001,
                 ),
             ),
             'exceptions' => array(
@@ -111,6 +168,7 @@ class hollaex extends Exchange {
                     'Invalid token' => '\\ccxt\\AuthenticationError',
                     'Order not found' => '\\ccxt\\OrderNotFound',
                     'Insufficient balance' => '\\ccxt\\InsufficientFunds',
+                    'Error 1001 - Order rejected. Order could not be submitted as this order was set to a post only order.' => '\\ccxt\\OrderImmediatelyFillable',
                 ),
                 'exact' => array(
                     '400' => '\\ccxt\\BadRequest',
@@ -125,21 +183,35 @@ class hollaex extends Exchange {
             ),
             'options' => array(
                 // how many seconds before the authenticated request expires
-                'api-expires' => intval ($this->timeout / 1000),
+                'api-expires' => intval($this->timeout / 1000),
+                'networks' => array(
+                    'BTC' => 'btc',
+                    'ETH' => 'eth',
+                    'ERC20' => 'eth',
+                    'TRX' => 'trx',
+                    'TRC20' => 'trx',
+                    'XRP' => 'xrp',
+                    'XLM' => 'xlm',
+                ),
             ),
         ));
     }
 
     public function fetch_markets($params = array ()) {
-        $response = $this->publicGetConstant ($params);
+        /**
+         * retrieves data on all markets for hollaex
+         * @param {array} $params extra parameters specific to the exchange api endpoint
+         * @return {[array]} an array of objects representing $market data
+         */
+        $response = $this->publicGetConstants ($params);
         //
         //     {
         //         coins => array(
         //             xmr => array(
-        //                 $id => 7,
+        //                 id => 7,
         //                 fullname => "Monero",
-        //                 $symbol => "xmr",
-        //                 $active => true,
+        //                 symbol => "xmr",
+        //                 active => true,
         //                 allow_deposit => true,
         //                 allow_withdrawal => true,
         //                 withdrawal_fee => 0.02,
@@ -155,7 +227,7 @@ class hollaex extends Exchange {
         //         ),
         //         $pairs => array(
         //             'btc-usdt' => array(
-        //                 $id => 2,
+        //                 id => 2,
         //                 name => "btc-usdt",
         //                 pair_base => "btc",
         //                 pair_2 => "usdt",
@@ -167,7 +239,7 @@ class hollaex extends Exchange {
         //                 max_price => 100000,
         //                 increment_size => 0.0001,
         //                 increment_price => 0.05,
-        //                 $active => true,
+        //                 active => true,
         //                 created_at => "2019-12-09T07:15:54.537Z",
         //                 updated_at => "2019-12-09T07:15:54.537Z"
         //             ),
@@ -182,35 +254,55 @@ class hollaex extends Exchange {
         for ($i = 0; $i < count($keys); $i++) {
             $key = $keys[$i];
             $market = $pairs[$key];
-            $id = $this->safe_string($market, 'name');
             $baseId = $this->safe_string($market, 'pair_base');
             $quoteId = $this->safe_string($market, 'pair_2');
             $base = $this->common_currency_code(strtoupper($baseId));
             $quote = $this->common_currency_code(strtoupper($quoteId));
-            $symbol = $base . '/' . $quote;
-            $active = $this->safe_value($market, 'active');
             $result[] = array(
-                'id' => $id,
-                'symbol' => $symbol,
+                'id' => $this->safe_string($market, 'name'),
+                'symbol' => $base . '/' . $quote,
                 'base' => $base,
                 'quote' => $quote,
+                'settle' => null,
                 'baseId' => $baseId,
                 'quoteId' => $quoteId,
-                'active' => $active,
+                'settleId' => null,
+                'type' => 'spot',
+                'spot' => true,
+                'margin' => false,
+                'swap' => false,
+                'future' => false,
+                'option' => false,
+                'active' => $this->safe_value($market, 'active'),
+                'contract' => false,
+                'linear' => null,
+                'inverse' => null,
+                'contractSize' => null,
+                'expiry' => null,
+                'expiryDatetime' => null,
+                'strike' => null,
+                'optionType' => null,
                 'precision' => array(
-                    'price' => $this->safe_float($market, 'increment_price'),
-                    'amount' => $this->safe_float($market, 'increment_size'),
+                    'amount' => $this->safe_number($market, 'increment_size'),
+                    'price' => $this->safe_number($market, 'increment_price'),
                 ),
                 'limits' => array(
+                    'leverage' => array(
+                        'min' => null,
+                        'max' => null,
+                    ),
                     'amount' => array(
-                        'min' => $this->safe_float($market, 'min_size'),
-                        'max' => $this->safe_float($market, 'max_size'),
+                        'min' => $this->safe_number($market, 'min_size'),
+                        'max' => $this->safe_number($market, 'max_size'),
                     ),
                     'price' => array(
-                        'min' => $this->safe_float($market, 'min_price'),
-                        'max' => $this->safe_float($market, 'max_price'),
+                        'min' => $this->safe_number($market, 'min_price'),
+                        'max' => $this->safe_number($market, 'max_price'),
                     ),
-                    'cost' => array( 'min' => null, 'max' => null ),
+                    'cost' => array(
+                        'min' => null,
+                        'max' => null,
+                    ),
                 ),
                 'info' => $market,
             );
@@ -219,7 +311,47 @@ class hollaex extends Exchange {
     }
 
     public function fetch_currencies($params = array ()) {
-        $response = $this->publicGetConstant ($params);
+        /**
+         * fetches all available currencies on an exchange
+         * @param {array} $params extra parameters specific to the hollaex api endpoint
+         * @return {array} an associative dictionary of currencies
+         */
+        $response = $this->publicGetConstants ($params);
+        //
+        //     {
+        //         "coins":array(
+        //             "bch":array(
+        //                 "id":4,
+        //                 "fullname":"Bitcoin Cash",
+        //                 "symbol":"bch",
+        //                 "active":true,
+        //                 "verified":true,
+        //                 "allow_deposit":true,
+        //                 "allow_withdrawal":true,
+        //                 "withdrawal_fee":0.0001,
+        //                 "min":0.001,
+        //                 "max":100000,
+        //                 "increment_unit":0.001,
+        //                 "logo":"https://bitholla.s3.ap-northeast-2.amazonaws.com/icon/BCH-hollaex-asset-01.svg",
+        //                 "code":"bch",
+        //                 "is_public":true,
+        //                 "meta":array(),
+        //                 "estimated_price":null,
+        //                 "description":null,
+        //                 "type":"blockchain",
+        //                 "network":null,
+        //                 "standard":null,
+        //                 "issuer":"HollaEx",
+        //                 "withdrawal_fees":null,
+        //                 "created_at":"2019-08-09T10:45:43.367Z",
+        //                 "updated_at":"2021-12-13T03:08:32.372Z",
+        //                 "created_by":1,
+        //                 "owner_id":1
+        //             ),
+        //         ),
+        //         "network":"https://api.hollaex.network"
+        //     }
+        //
         $coins = $this->safe_value($response, 'coins', array());
         $keys = is_array($coins) ? array_keys($coins) : array();
         $result = array();
@@ -230,9 +362,11 @@ class hollaex extends Exchange {
             $numericId = $this->safe_integer($currency, 'id');
             $code = $this->safe_currency_code($id);
             $name = $this->safe_string($currency, 'fullname');
-            $active = $this->safe_value($currency, 'active');
-            $fee = $this->safe_float($currency, 'withdrawal_fee');
-            $precision = $this->safe_float($currency, 'increment_unit');
+            $depositEnabled = $this->safe_value($currency, 'allow_deposit');
+            $withdrawEnabled = $this->safe_value($currency, 'allow_withdrawal');
+            $isActive = $this->safe_value($currency, 'active');
+            $active = $isActive && $depositEnabled && $withdrawEnabled;
+            $fee = $this->safe_number($currency, 'withdrawal_fee');
             $withdrawalLimits = $this->safe_value($currency, 'withdrawal_limits', array());
             $result[$code] = array(
                 'id' => $id,
@@ -241,20 +375,14 @@ class hollaex extends Exchange {
                 'info' => $currency,
                 'name' => $name,
                 'active' => $active,
+                'deposit' => $depositEnabled,
+                'withdraw' => $withdrawEnabled,
                 'fee' => $fee,
-                'precision' => $precision,
+                'precision' => $this->safe_number($currency, 'increment_unit'),
                 'limits' => array(
                     'amount' => array(
-                        'min' => $this->safe_float($currency, 'min'),
-                        'max' => $this->safe_float($currency, 'max'),
-                    ),
-                    'price' => array(
-                        'min' => null,
-                        'max' => null,
-                    ),
-                    'cost' => array(
-                        'min' => null,
-                        'max' => null,
+                        'min' => $this->safe_number($currency, 'min'),
+                        'max' => $this->safe_number($currency, 'max'),
                     ),
                     'withdraw' => array(
                         'min' => null,
@@ -267,6 +395,13 @@ class hollaex extends Exchange {
     }
 
     public function fetch_order_books($symbols = null, $limit = null, $params = array ()) {
+        /**
+         * fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data for multiple markets
+         * @param {[string]|null} $symbols not used by hollaex fetchOrderBooks ()
+         * @param {int|null} $limit not used by hollaex fetchOrderBooks ()
+         * @param {array} $params extra parameters specific to the hollaex api endpoint
+         * @return {array} a dictionary of {@link https://docs.ccxt.com/en/latest/manual.html#order-book-structure order book structures} indexed by market $symbol
+         */
         $this->load_markets();
         $response = $this->publicGetOrderbooks ($params);
         $result = array();
@@ -274,27 +409,25 @@ class hollaex extends Exchange {
         for ($i = 0; $i < count($marketIds); $i++) {
             $marketId = $marketIds[$i];
             $orderbook = $response[$marketId];
-            $symbol = $marketId;
-            if (is_array($this->markets_by_id) && array_key_exists($marketId, $this->markets_by_id)) {
-                $market = $this->markets_by_id[$marketId];
-                $symbol = $market['symbol'];
-            } else {
-                list($baseId, $quoteId) = explode('-', $marketId);
-                $base = $this->safe_currency_code($baseId);
-                $quote = $this->safe_currency_code($quoteId);
-                $symbol = $base . '/' . $quote;
-            }
+            $symbol = $this->safe_symbol($marketId, null, '-');
             $timestamp = $this->parse8601($this->safe_string($orderbook, 'timestamp'));
-            $result[$symbol] = $this->parse_order_book($response[$marketId], $timestamp);
+            $result[$symbol] = $this->parse_order_book($response[$marketId], $symbol, $timestamp);
         }
         return $result;
     }
 
     public function fetch_order_book($symbol, $limit = null, $params = array ()) {
+        /**
+         * fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+         * @param {string} $symbol unified $symbol of the $market to fetch the order book for
+         * @param {int|null} $limit the maximum amount of order book entries to return
+         * @param {array} $params extra parameters specific to the hollaex api endpoint
+         * @return {array} A dictionary of {@link https://docs.ccxt.com/en/latest/manual.html#order-book-structure order book structures} indexed by $market symbols
+         */
         $this->load_markets();
-        $marketId = $this->market_id($symbol);
+        $market = $this->market($symbol);
         $request = array(
-            'symbol' => $marketId,
+            'symbol' => $market['id'],
         );
         $response = $this->publicGetOrderbooks (array_merge($request, $params));
         //
@@ -310,18 +443,24 @@ class hollaex extends Exchange {
         //                 array( 8852.6, 0.0579 ),
         //                 array( 8860.45, 0.1815 ),
         //             ),
-        //             "$timestamp" => "2020-03-03T02:27:25.147Z"
+        //             "timestamp" => "2020-03-03T02:27:25.147Z"
         //         ),
         //         "eth-usdt" => array(),
         //         // ...
         //     }
         //
-        $orderbook = $this->safe_value($response, $marketId);
+        $orderbook = $this->safe_value($response, $market['id']);
         $timestamp = $this->parse8601($this->safe_string($orderbook, 'timestamp'));
-        return $this->parse_order_book($orderbook, $timestamp);
+        return $this->parse_order_book($orderbook, $market['symbol'], $timestamp);
     }
 
     public function fetch_ticker($symbol, $params = array ()) {
+        /**
+         * fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific $market
+         * @param {string} $symbol unified $symbol of the $market to fetch the ticker for
+         * @param {array} $params extra parameters specific to the hollaex api endpoint
+         * @return {array} a {@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure ticker structure}
+         */
         $this->load_markets();
         $market = $this->market($symbol);
         $request = array(
@@ -343,8 +482,15 @@ class hollaex extends Exchange {
     }
 
     public function fetch_tickers($symbols = null, $params = array ()) {
+        /**
+         * fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
+         * @param {[string]|null} $symbols unified $symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
+         * @param {array} $params extra parameters specific to the hollaex api endpoint
+         * @return {array} an array of {@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure ticker structures}
+         */
         $this->load_markets();
-        $response = $this->publicGetTickerAll (array_merge($params));
+        $symbols = $this->market_symbols($symbols);
+        $response = $this->publicGetTickers (array_merge($params));
         //
         //     {
         //         "bch-usdt" => array(
@@ -363,25 +509,16 @@ class hollaex extends Exchange {
         return $this->parse_tickers($response, $symbols);
     }
 
-    public function parse_tickers($response, $symbols = null) {
+    public function parse_tickers($response, $symbols = null, $params = array ()) {
         $result = array();
         $keys = is_array($response) ? array_keys($response) : array();
         for ($i = 0; $i < count($keys); $i++) {
             $key = $keys[$i];
             $ticker = $response[$key];
-            $symbol = $key;
-            $market = null;
             $marketId = $this->safe_string($ticker, 'symbol', $key);
-            if (is_array($this->markets_by_id) && array_key_exists($marketId, $this->markets_by_id)) {
-                $market = $this->markets_by_id[$marketId];
-                $symbol = $market['symbol'];
-            } else {
-                list($baseId, $quoteId) = explode('-', $marketId);
-                $base = $this->safe_currency_code($baseId);
-                $quote = $this->safe_currency_code($quoteId);
-                $symbol = $base . '/' . $quote;
-            }
-            $result[$symbol] = $this->parse_ticker($ticker, $market);
+            $market = $this->safe_market($marketId, null, '-');
+            $symbol = $market['symbol'];
+            $result[$symbol] = array_merge($this->parse_ticker($ticker, $market), $params);
         }
         return $this->filter_by_array($result, 'symbol', $symbols);
     }
@@ -405,58 +542,52 @@ class hollaex extends Exchange {
         //     {
         //         "time" => "2020-03-02T04:29:45.011Z",
         //         "open" => 341.65,
-        //         "$close" => 337.9,
+        //         "close" => 337.9,
         //         "high" => 341.65,
         //         "low" => 337.3,
         //         "last" => 337.9,
         //         "volume" => 0.054,
-        //         "$symbol" => "bch-usdt"
+        //         "symbol" => "bch-usdt"
         //     }
         //
-        $symbol = null;
         $marketId = $this->safe_string($ticker, 'symbol');
-        if ($marketId !== null) {
-            if (is_array($this->markets_by_id) && array_key_exists($marketId, $this->markets_by_id)) {
-                $market = $this->markets_by_id[$marketId];
-                $symbol = $market['symbol'];
-            } else {
-                list($baseId, $quoteId) = explode('-', $marketId);
-                $base = $this->safe_currency_code($baseId);
-                $quote = $this->safe_currency_code($quoteId);
-                $symbol = $base . '/' . $quote;
-            }
-        }
-        if (($symbol === null) && ($market !== null)) {
-            $symbol = $market['symbol'];
-        }
+        $market = $this->safe_market($marketId, $market, '-');
+        $symbol = $market['symbol'];
         $timestamp = $this->parse8601($this->safe_string_2($ticker, 'time', 'timestamp'));
-        $close = $this->safe_float($ticker, 'close');
-        $result = array(
+        $close = $this->safe_string($ticker, 'close');
+        return $this->safe_ticker(array(
             'symbol' => $symbol,
             'info' => $ticker,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
-            'high' => $this->safe_float($ticker, 'high'),
-            'low' => $this->safe_float($ticker, 'low'),
+            'high' => $this->safe_string($ticker, 'high'),
+            'low' => $this->safe_string($ticker, 'low'),
             'bid' => null,
             'bidVolume' => null,
             'ask' => null,
             'askVolume' => null,
             'vwap' => null,
-            'open' => $this->safe_float($ticker, 'open'),
+            'open' => $this->safe_string($ticker, 'open'),
             'close' => $close,
-            'last' => $this->safe_float($ticker, 'last', $close),
+            'last' => $this->safe_string($ticker, 'last', $close),
             'previousClose' => null,
             'change' => null,
             'percentage' => null,
             'average' => null,
-            'baseVolume' => $this->safe_float($ticker, 'volume'),
+            'baseVolume' => $this->safe_string($ticker, 'volume'),
             'quoteVolume' => null,
-        );
-        return $result;
+        ), $market);
     }
 
     public function fetch_trades($symbol, $since = null, $limit = null, $params = array ()) {
+        /**
+         * get the list of most recent $trades for a particular $symbol
+         * @param {string} $symbol unified $symbol of the $market to fetch $trades for
+         * @param {int|null} $since timestamp in ms of the earliest trade to fetch
+         * @param {int|null} $limit the maximum amount of $trades to fetch
+         * @param {array} $params extra parameters specific to the hollaex api endpoint
+         * @return {[array]} a list of ~@link https://docs.ccxt.com/en/latest/manual.html?#public-$trades trade structures~
+         */
         $this->load_markets();
         $market = $this->market($symbol);
         $request = array(
@@ -486,78 +617,124 @@ class hollaex extends Exchange {
         //
         //     {
         //         "size" => 0.5,
-        //         "$price" => 8830,
-        //         "$side" => "buy",
-        //         "$timestamp" => "2020-03-03T04:44:33.034Z"
+        //         "price" => 8830,
+        //         "side" => "buy",
+        //         "timestamp" => "2020-03-03T04:44:33.034Z"
         //     }
         //
         // fetchMyTrades (private)
+        //  {
+        //      "side":"sell",
+        //      "symbol":"doge-usdt",
+        //      "size":70,
+        //      "price":0.147411,
+        //      "timestamp":"2022-01-26T17:53:34.650Z",
+        //      "order_id":"cba78ecb-4187-4da2-9d2f-c259aa693b5a",
+        //      "fee":0.01031877,"fee_coin":"usdt"
+        //  }
         //
-        //     {
-        //         "$side" => "buy",
-        //         "$symbol" => "eth-usdt",
-        //         "size" => 0.086,
-        //         "$price" => 226.19,
-        //         "$timestamp" => "2020-03-03T08:03:55.459Z",
-        //         "$fee" => 0.1
-        //     }
-        //
-        $symbol = null;
         $marketId = $this->safe_string($trade, 'symbol');
-        $quote = null;
-        if ($marketId !== null) {
-            if (is_array($this->markets_by_id) && array_key_exists($marketId, $this->markets_by_id)) {
-                $market = $this->markets_by_id[$marketId];
-                $symbol = $market['symbol'];
-            } else {
-                list($baseId, $quoteId) = explode('-', $marketId);
-                $base = $this->safe_currency_code($baseId);
-                $quote = $this->safe_currency_code($quoteId);
-                $symbol = $base . '/' . $quote;
-            }
-        }
-        if (($symbol === null) && ($market !== null)) {
-            $symbol = $market['symbol'];
-        }
+        $market = $this->safe_market($marketId, $market, '-');
+        $symbol = $market['symbol'];
         $datetime = $this->safe_string($trade, 'timestamp');
         $timestamp = $this->parse8601($datetime);
         $side = $this->safe_string($trade, 'side');
-        $price = $this->safe_float($trade, 'price');
-        $amount = $this->safe_float($trade, 'size');
-        $cost = null;
-        if ($price !== null) {
-            if ($amount !== null) {
-                $cost = $price * $amount;
-            }
-        }
-        $feeCost = $this->safe_float($trade, 'fee');
+        $orderId = $this->safe_string($trade, 'order_id');
+        $priceString = $this->safe_string($trade, 'price');
+        $amountString = $this->safe_string($trade, 'size');
+        $feeCostString = $this->safe_string($trade, 'fee');
         $fee = null;
-        if ($feeCost !== null) {
-            $feeCurrencyCode = ($market !== null) ? $market['quote'] : $quote;
+        if ($feeCostString !== null) {
             $fee = array(
-                'cost' => $feeCost,
-                'currency' => $feeCurrencyCode,
+                'cost' => $feeCostString,
+                'currency' => $market['quote'],
             );
         }
-        $result = array(
+        return $this->safe_trade(array(
             'info' => $trade,
             'id' => null,
             'timestamp' => $timestamp,
             'datetime' => $datetime,
             'symbol' => $symbol,
-            'order' => null,
+            'order' => $orderId,
             'type' => null,
             'side' => $side,
             'takerOrMaker' => null,
-            'price' => $price,
-            'amount' => $amount,
-            'cost' => $cost,
+            'price' => $priceString,
+            'amount' => $amountString,
+            'cost' => null,
             'fee' => $fee,
-        );
+        ), $market);
+    }
+
+    public function fetch_trading_fees($params = array ()) {
+        /**
+         * fetch the trading $fees for multiple markets
+         * @param {array} $params extra parameters specific to the hollaex api endpoint
+         * @return {array} a dictionary of {@link https://docs.ccxt.com/en/latest/manual.html#fee-structure fee structures} indexed by $market symbols
+         */
+        $this->load_markets();
+        $response = $this->publicGetTiers ($params);
+        //
+        //     {
+        //         '1' => {
+        //             id => '1',
+        //             name => 'Silver',
+        //             icon => '',
+        //             description => 'Your crypto journey starts here! Make your first deposit to start trading, and verify your account to level up!',
+        //             deposit_limit => '0',
+        //             withdrawal_limit => '1000',
+        //             $fees => array(
+        //                 maker => array(
+        //                     'eth-btc' => '0.1',
+        //                     'ada-usdt' => '0.1',
+        //                     ...
+        //                 ),
+        //                 taker => array(
+        //                     'eth-btc' => '0.1',
+        //                     'ada-usdt' => '0.1',
+        //                     ...
+        //                 }
+        //             ),
+        //             note => '<ul>\n<li>Login and verify email</li>\n</ul>\n',
+        //             created_at => '2021-03-22T03:51:39.129Z',
+        //             updated_at => '2021-11-01T02:51:56.214Z'
+        //         ),
+        //         ...
+        //     }
+        //
+        $firstTier = $this->safe_value($response, '1', array());
+        $fees = $this->safe_value($firstTier, 'fees', array());
+        $makerFees = $this->safe_value($fees, 'maker', array());
+        $takerFees = $this->safe_value($fees, 'taker', array());
+        $result = array();
+        for ($i = 0; $i < count($this->symbols); $i++) {
+            $symbol = $this->symbols[$i];
+            $market = $this->market($symbol);
+            $makerString = $this->safe_string($makerFees, $market['id']);
+            $takerString = $this->safe_string($takerFees, $market['id']);
+            $result[$symbol] = array(
+                'info' => $fees,
+                'symbol' => $symbol,
+                'maker' => $this->parse_number(Precise::string_div($makerString, '100')),
+                'taker' => $this->parse_number(Precise::string_div($takerString, '100')),
+                'percentage' => true,
+                'tierBased' => true,
+            );
+        }
         return $result;
     }
 
-    public function fetch_ohlcv($symbol, $timeframe = '1h', $since = null, $limit = null, $params = array ()) {
+    public function fetch_ohlcv($symbol, $timeframe = '1m', $since = null, $limit = null, $params = array ()) {
+        /**
+         * fetches historical candlestick data containing the open, high, low, and close price, and the volume of a $market
+         * @param {string} $symbol unified $symbol of the $market to fetch OHLCV data for
+         * @param {string} $timeframe the length of time each candle represents
+         * @param {int|null} $since timestamp in ms of the earliest candle to fetch
+         * @param {int|null} $limit the maximum amount of candles to fetch
+         * @param {array} $params extra parameters specific to the hollaex api endpoint
+         * @return {[[int]]} A list of candles ordered as timestamp, open, high, low, close, volume
+         */
         $this->load_markets();
         $market = $this->market($symbol);
         $request = array(
@@ -567,19 +744,18 @@ class hollaex extends Exchange {
         $duration = $this->parse_timeframe($timeframe);
         if ($since === null) {
             if ($limit === null) {
-                throw new ArgumentsRequired($this->id . " fetchOHLCV requires a 'since' or a 'limit' argument");
-            } else {
-                $end = $this->seconds();
-                $start = $end - $duration * $limit;
-                $request['to'] = $end;
-                $request['from'] = $start;
+                $limit = 1000; // they have no defaults and can actually provide tens of thousands of bars in one $request, but we should cap "default" at generous amount
             }
+            $end = $this->seconds();
+            $start = $end - $duration * $limit;
+            $request['to'] = $end;
+            $request['from'] = $start;
         } else {
             if ($limit === null) {
-                $request['from'] = intval ($since / 1000);
+                $request['from'] = intval($since / 1000);
                 $request['to'] = $this->seconds();
             } else {
-                $start = intval ($since / 1000);
+                $start = intval($since / 1000);
                 $request['from'] = $start;
                 $request['to'] = $this->sum($start, $duration * $limit);
             }
@@ -593,7 +769,7 @@ class hollaex extends Exchange {
         //             "high":8872.1,
         //             "low":8858.6,
         //             "open":8858.6,
-        //             "$symbol":"btc-usdt",
+        //             "symbol":"btc-usdt",
         //             "volume":1.2922
         //         ),
         //     )
@@ -615,15 +791,39 @@ class hollaex extends Exchange {
         //
         return array(
             $this->parse8601($this->safe_string($response, 'time')),
-            $this->safe_float($response, 'open'),
-            $this->safe_float($response, 'high'),
-            $this->safe_float($response, 'low'),
-            $this->safe_float($response, 'close'),
-            $this->safe_float($response, 'volume'),
+            $this->safe_number($response, 'open'),
+            $this->safe_number($response, 'high'),
+            $this->safe_number($response, 'low'),
+            $this->safe_number($response, 'close'),
+            $this->safe_number($response, 'volume'),
         );
     }
 
+    public function parse_balance($response) {
+        $timestamp = $this->parse8601($this->safe_string($response, 'updated_at'));
+        $result = array(
+            'info' => $response,
+            'timestamp' => $timestamp,
+            'datetime' => $this->iso8601($timestamp),
+        );
+        $currencyIds = is_array($this->currencies_by_id) ? array_keys($this->currencies_by_id) : array();
+        for ($i = 0; $i < count($currencyIds); $i++) {
+            $currencyId = $currencyIds[$i];
+            $code = $this->safe_currency_code($currencyId);
+            $account = $this->account();
+            $account['free'] = $this->safe_string($response, $currencyId . '_available');
+            $account['total'] = $this->safe_string($response, $currencyId . '_balance');
+            $result[$code] = $account;
+        }
+        return $this->safe_balance($result);
+    }
+
     public function fetch_balance($params = array ()) {
+        /**
+         * query for balance and get the amount of funds available for trading or funds locked in orders
+         * @param {array} $params extra parameters specific to the hollaex api endpoint
+         * @return {array} a ~@link https://docs.ccxt.com/en/latest/manual.html?#balance-structure balance structure~
+         */
         $this->load_markets();
         $response = $this->privateGetUserBalance ($params);
         //
@@ -638,122 +838,240 @@ class hollaex extends Exchange {
         //         // ...
         //     }
         //
-        $result = array( 'info' => $response );
-        $currencyIds = is_array($this->currencies_by_id) ? array_keys($this->currencies_by_id) : array();
-        for ($i = 0; $i < count($currencyIds); $i++) {
-            $currencyId = $currencyIds[$i];
-            $code = $this->safe_currency_code($currencyId);
-            $account = $this->account();
-            $account['free'] = $this->safe_float($response, $currencyId . '_available');
-            $account['total'] = $this->safe_float($response, $currencyId . '_balance');
-            $result[$code] = $account;
-        }
-        return $this->parse_balance($result);
+        return $this->parse_balance($response);
     }
 
     public function fetch_open_order($id, $symbol = null, $params = array ()) {
+        /**
+         * fetch an open order by it's $id
+         * @param {string} $id order $id
+         * @param {string|null} $symbol not used by hollaex fetchOpenOrder ()
+         * @param {array} $params extra parameters specific to the hollaex api endpoint
+         * @return {array} an {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structure}
+         */
         $this->load_markets();
         $request = array(
             'order_id' => $id,
         );
-        $response = $this->privateGetUserOrdersOrderId (array_merge($request, $params));
+        $response = $this->privateGetOrder (array_merge($request, $params));
         //
         //     {
-        //         "created_at" => "2018-03-23T04:14:08.663Z",
-        //         "title" => "string",
+        //         "id" => "string",
         //         "side" => "sell",
+        //         "symbol" => "xht-usdt",
+        //         "size" => 0.1,
+        //         "filled" => 0,
+        //         "stop" => null,
+        //         "fee" => 0,
+        //         "fee_coin" => "usdt",
         //         "type" => "limit",
-        //         "price" => 0,
-        //         "size" => 0,
-        //         "$symbol" => "xht-usdt",
-        //         "$id" => "string",
-        //         "created_by" => 1,
-        //         "filled" => 0
+        //         "price" => 1.09,
+        //         "status" => "new",
+        //         "created_by" => 116,
+        //         "created_at" => "2021-02-17T02:32:38.910Z",
+        //         "updated_at" => "2021-02-17T02:32:38.910Z",
+        //         "User" => {
+        //             "id" => 116,
+        //             "email" => "fight@club.com",
+        //             "username" => "narrator",
+        //             "exchange_id" => 176
+        //         }
         //     }
         //
         return $this->parse_order($response);
     }
 
     public function fetch_open_orders($symbol = null, $since = null, $limit = null, $params = array ()) {
+        /**
+         * fetch all unfilled currently open orders
+         * @param {string|null} $symbol unified market $symbol
+         * @param {int|null} $since the earliest time in ms to fetch open orders for
+         * @param {int|null} $limit the maximum number of  open orders structures to retrieve
+         * @param {array} $params extra parameters specific to the hollaex api endpoint
+         * @return {[array]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structures}
+         */
+        $request = array(
+            'open' => true,
+        );
+        return $this->fetch_orders($symbol, $since, $limit, array_merge($request, $params));
+    }
+
+    public function fetch_closed_orders($symbol = null, $since = null, $limit = null, $params = array ()) {
+        /**
+         * fetches information on multiple closed orders made by the user
+         * @param {string|null} $symbol unified market $symbol of the market orders were made in
+         * @param {int|null} $since the earliest time in ms to fetch orders for
+         * @param {int|null} $limit the maximum number of  orde structures to retrieve
+         * @param {array} $params extra parameters specific to the hollaex api endpoint
+         * @return {[array]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structures}
+         */
+        $request = array(
+            'open' => false,
+        );
+        return $this->fetch_orders($symbol, $since, $limit, array_merge($request, $params));
+    }
+
+    public function fetch_order($id, $symbol = null, $params = array ()) {
+        /**
+         * fetches information on an $order made by the user
+         * @param {string|null} $symbol unified $symbol of the market the $order was made in
+         * @param {array} $params extra parameters specific to the hollaex api endpoint
+         * @return {array} An {@link https://docs.ccxt.com/en/latest/manual.html#$order-structure $order structure}
+         */
+        $this->load_markets();
+        $request = array(
+            'order_id' => $id,
+        );
+        $response = $this->privateGetOrder (array_merge($request, $params));
+        //             {
+        //                 "id" => "string",
+        //                 "side" => "sell",
+        //                 "symbol" => "xht-usdt",
+        //                 "size" => 0.1,
+        //                 "filled" => 0,
+        //                 "stop" => null,
+        //                 "fee" => 0,
+        //                 "fee_coin" => "usdt",
+        //                 "type" => "limit",
+        //                 "price" => 1.09,
+        //                 "status" => "new",
+        //                 "created_by" => 116,
+        //                 "created_at" => "2021-02-17T02:32:38.910Z",
+        //                 "updated_at" => "2021-02-17T02:32:38.910Z",
+        //                 "User" => {
+        //                     "id" => 116,
+        //                     "email" => "fight@club.com",
+        //                     "username" => "narrator",
+        //                     "exchange_id" => 176
+        //                 }
+        //             }
+        $order = $response;
+        if ($order === null) {
+            throw new OrderNotFound($this->id . ' fetchOrder() could not find $order $id ' . $id);
+        }
+        return $this->parse_order($order);
+    }
+
+    public function fetch_orders($symbol = null, $since = null, $limit = null, $params = array ()) {
+        /**
+         * fetches information on multiple orders made by the user
+         * @param {string|null} $symbol unified $market $symbol of the $market orders were made in
+         * @param {int|null} $since the earliest time in ms to fetch orders for
+         * @param {int|null} $limit the maximum number of  orde structures to retrieve
+         * @param {array} $params extra parameters specific to the hollaex api endpoint
+         * @return {[array]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structures}
+         */
         $this->load_markets();
         $market = null;
-        $request = array();
+        $request = array(
+            // 'symbol' => $market['id'],
+            // 'side' => 'buy', // 'sell'
+            // 'status' => 'new', // 'filled', 'pfilled', 'canceled'
+            // 'open' => true,
+            // 'limit' => $limit, // default 50, max 100
+            // 'page' => 1,
+            // 'order_by' => 'created_at', // id, ...
+            // 'order' => 'asc', // 'desc'
+            // 'start_date' => $this->iso8601($since),
+            // 'end_date' => $this->iso8601($this->milliseconds()),
+        );
         if ($symbol !== null) {
             $market = $this->market($symbol);
             $request['symbol'] = $market['id'];
         }
-        $response = $this->privateGetUserOrders (array_merge($request, $params));
+        if ($since !== null) {
+            $request['start_date'] = $this->iso8601($since);
+        }
+        if ($limit !== null) {
+            $request['limit'] = $limit; // default 50, max 100
+        }
+        $response = $this->privateGetOrders (array_merge($request, $params));
         //
-        //     array(
-        //         {
-        //             "created_at":"2020-03-03T08:02:18.639Z",
-        //             "title":"5419ff3f-9d25-4af7-bcc2-803926518d76",
-        //             "side":"buy",
-        //             "type":"$limit",
-        //             "price":226.19,
-        //             "size":0.086,
-        //             "$symbol":"eth-usdt",
-        //             "id":"5419ff3f-9d25-4af7-bcc2-803926518d76",
-        //             "created_by":620,
-        //             "filled":0
-        //         }
-        //     )
+        //     {
+        //         "count" => 1,
+        //         "data" => array(
+        //             {
+        //                 "id" => "string",
+        //                 "side" => "sell",
+        //                 "symbol" => "xht-usdt",
+        //                 "size" => 0.1,
+        //                 "filled" => 0,
+        //                 "stop" => null,
+        //                 "fee" => 0,
+        //                 "fee_coin" => "usdt",
+        //                 "type" => "limit",
+        //                 "price" => 1.09,
+        //                 "status" => "new",
+        //                 "created_by" => 116,
+        //                 "created_at" => "2021-02-17T02:32:38.910Z",
+        //                 "updated_at" => "2021-02-17T02:32:38.910Z",
+        //                 "User" => {
+        //                     "id" => 116,
+        //                     "email" => "fight@club.com",
+        //                     "username" => "narrator",
+        //                     "exchange_id" => 176
+        //                 }
+        //             }
+        //         )
+        //     }
         //
-        return $this->parse_orders($response, $market);
+        $data = $this->safe_value($response, 'data', array());
+        return $this->parse_orders($data, $market, $since, $limit);
+    }
+
+    public function parse_order_status($status) {
+        $statuses = array(
+            'new' => 'open',
+            'pfilled' => 'open',
+            'filled' => 'closed',
+            'canceled' => 'canceled',
+        );
+        return $this->safe_string($statuses, $status, $status);
     }
 
     public function parse_order($order, $market = null) {
         //
-        // fetchOpenOrder, fetchOpenOrders
+        // createOrder, fetchOpenOrder, fetchOpenOrders
         //
         //     {
-        //         "created_at":"2020-03-03T08:02:18.639Z",
-        //         "title":"5419ff3f-9d25-4af7-bcc2-803926518d76",
-        //         "$side":"buy",
-        //         "$type":"limit",
-        //         "$price":226.19,
-        //         "size":0.086,
-        //         "$symbol":"eth-usdt",
-        //         "$id":"5419ff3f-9d25-4af7-bcc2-803926518d76",
-        //         "created_by":620,
-        //         "$filled":0
-        //     }
+        //          "id":"10644b7e-3c90-4ba9-bc3b-188f3a4e9cfd",
+        //          "created_by":140093,
+        //          "exchange_id":22,
+        //          "side":"buy",
+        //          "symbol":"doge-usdt",
+        //          "type":"limit",
+        //          "price":0.05,
+        //          "size":10,
+        //          "stop":null,
+        //          "filled":0,
+        //          "status":"canceled",
+        //          "fee":0,
+        //          "fee_coin":"doge",
+        //          "meta" => array(                 // optional field only returned for $postOnly orders
+        //              "post_only":true
+        //          ),
+        //          "fee_structure" => array(
+        //              "maker":0.1,
+        //              "taker":0.1
+        //          ),
+        //          "created_at":"2022-05-31T08:14:14.747Z",
+        //          "updated_at":"2022-05-31T08:14:23.727Z"
+        //      }
         //
-        $symbol = null;
         $marketId = $this->safe_string($order, 'symbol');
-        if ($marketId !== null) {
-            if (is_array($this->markets_by_id) && array_key_exists($marketId, $this->markets_by_id)) {
-                $market = $this->markets_by_id[$marketId];
-                $symbol = $market['symbol'];
-            } else {
-                list($baseId, $quoteId) = explode('-', $marketId);
-                $base = $this->safe_currency_code($baseId);
-                $quote = $this->safe_currency_code($quoteId);
-                $symbol = $base . '/' . $quote;
-            }
-        }
-        if (($symbol === null) && ($market !== null)) {
-            $symbol = $market['symbol'];
-        }
+        $symbol = $this->safe_symbol($marketId, $market, '-');
         $id = $this->safe_string($order, 'id');
         $timestamp = $this->parse8601($this->safe_string($order, 'created_at'));
         $type = $this->safe_string($order, 'type');
         $side = $this->safe_string($order, 'side');
-        $price = $this->safe_float($order, 'price');
-        $amount = $this->safe_float($order, 'size');
-        $filled = $this->safe_float($order, 'filled');
-        $cost = null;
-        $remaining = null;
-        if ($filled !== null) {
-            if ($amount !== null) {
-                $remaining = $amount - $filled;
-            }
-            if ($price !== null) {
-                $cost = $filled * $price;
-            }
-        }
-        $status = ($type === 'market') ? 'closed' : 'open';
-        $result = array(
+        $price = $this->safe_string($order, 'price');
+        $stopPrice = $this->safe_string($order, 'stop');
+        $amount = $this->safe_string($order, 'size');
+        $filled = $this->safe_string($order, 'filled');
+        $status = $this->parse_order_status($this->safe_string($order, 'status'));
+        $meta = $this->safe_value($order, 'meta', array());
+        $postOnly = $this->safe_value($meta, 'post_only', false);
+        return $this->safe_order(array(
             'id' => $id,
             'clientOrderId' => null,
             'timestamp' => $timestamp,
@@ -762,64 +1080,109 @@ class hollaex extends Exchange {
             'status' => $status,
             'symbol' => $symbol,
             'type' => $type,
+            'timeInForce' => null,
+            'postOnly' => $postOnly,
             'side' => $side,
             'price' => $price,
+            'stopPrice' => $stopPrice,
             'amount' => $amount,
             'filled' => $filled,
-            'remaining' => $remaining,
-            'cost' => $cost,
+            'remaining' => null,
+            'cost' => null,
             'trades' => null,
             'fee' => null,
             'info' => $order,
             'average' => null,
-        );
-        return $result;
+        ), $market);
     }
 
     public function create_order($symbol, $type, $side, $amount, $price = null, $params = array ()) {
+        /**
+         * create a trade order
+         * @param {string} $symbol unified $symbol of the $market to create an order in
+         * @param {string} $type 'market' or 'limit'
+         * @param {string} $side 'buy' or 'sell'
+         * @param {float} $amount how much of currency you want to trade in units of base currency
+         * @param {float|null} $price the $price at which the order is to be fullfilled, in units of the quote currency, ignored in $market orders
+         * @param {array} $params extra parameters specific to the hollaex api endpoint
+         * @return {array} an {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structure}
+         */
         $this->load_markets();
         $market = $this->market($symbol);
-        $order = array(
+        $convertedAmount = floatval($this->amount_to_precision($symbol, $amount));
+        $request = array(
             'symbol' => $market['id'],
             'side' => $side,
-            'size' => $amount,
+            'size' => $this->normalize_number_if_needed($convertedAmount),
             'type' => $type,
+            // 'stop' => floatval($this->price_to_precision($symbol, $stopPrice)),
+            // 'meta' => array(), // other options such as post_only
         );
-        if ($type !== 'market') {
-            $order['price'] = $price;
+        $stopPrice = $this->safe_number_n($params, array( 'triggerPrice', 'stopPrice', 'stop' ));
+        $meta = $this->safe_value($params, 'meta', array());
+        $exchangeSpecificParam = $this->safe_value($meta, 'post_only', false);
+        $isMarketOrder = $type === 'market';
+        $postOnly = $this->is_post_only($isMarketOrder, $exchangeSpecificParam, $params);
+        if (!$isMarketOrder) {
+            $convertedPrice = floatval($this->price_to_precision($symbol, $price));
+            $request['price'] = $this->normalize_number_if_needed($convertedPrice);
         }
-        $response = $this->privatePostOrder (array_merge($order, $params));
+        if ($stopPrice !== null) {
+            $request['stop'] = $this->normalize_number_if_needed(floatval($this->price_to_precision($symbol, $stopPrice)));
+        }
+        if ($postOnly) {
+            $request['meta'] = array( 'post_only' => true );
+        }
+        $params = $this->omit($params, array( 'postOnly', 'timeInForce', 'stopPrice', 'triggerPrice', 'stop' ));
+        $response = $this->privatePostOrder (array_merge($request, $params));
         //
         //     {
-        //         "$symbol" => "xht-usdt",
-        //         "$side" => "sell",
-        //         "size" => 1,
-        //         "$type" => "limit",
-        //         "$price" => 0.1,
+        //         "fee" => 0,
+        //         "meta" => array(),
+        //         "symbol" => "xht-usdt",
+        //         "side" => "sell",
+        //         "size" => 0.1,
+        //         "type" => "limit",
+        //         "price" => 1,
+        //         "fee_structure" => array(
+        //             "maker" => 0.2,
+        //             "taker" => 0.2
+        //         ),
+        //         "fee_coin" => "usdt",
         //         "id" => "string",
-        //         "created_by" => 34,
+        //         "created_by" => 116,
         //         "filled" => 0,
-        //         "status" => "pending"
+        //         "status" => "new",
+        //         "updated_at" => "2021-02-17T03:03:19.231Z",
+        //         "created_at" => "2021-02-17T03:03:19.231Z",
+        //         "stop" => null
         //     }
         //
         return $this->parse_order($response, $market);
     }
 
     public function cancel_order($id, $symbol = null, $params = array ()) {
+        /**
+         * cancels an open order
+         * @param {string} $id order $id
+         * @param {string|null} $symbol unified $symbol of the market the order was made in
+         * @param {array} $params extra parameters specific to the hollaex api endpoint
+         * @return {array} An {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structure}
+         */
         $this->load_markets();
         $request = array(
             'order_id' => $id,
         );
-        $response = $this->privateDeleteUserOrdersOrderId (array_merge($request, $params));
+        $response = $this->privateDeleteOrder (array_merge($request, $params));
         //
         //     {
         //         "title" => "string",
-        //         "$symbol" => "xht-usdt",
+        //         "symbol" => "xht-usdt",
         //         "side" => "sell",
         //         "size" => 1,
         //         "type" => "limit",
         //         "price" => 0.1,
-        //         "$id" => "string",
+        //         "id" => "string",
         //         "created_by" => 34,
         //         "filled" => 0
         //     }
@@ -828,19 +1191,26 @@ class hollaex extends Exchange {
     }
 
     public function cancel_all_orders($symbol = null, $params = array ()) {
+        /**
+         * cancel all open orders in a $market
+         * @param {string} $symbol unified $market $symbol of the $market to cancel orders in
+         * @param {array} $params extra parameters specific to the hollaex api endpoint
+         * @return {[array]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structures}
+         */
+        if ($symbol === null) {
+            throw new ArgumentsRequired($this->id . " cancelAllOrders() requires a 'symbol' argument");
+        }
         $this->load_markets();
         $request = array();
         $market = null;
-        if ($symbol !== null) {
-            $market = $this->markets ($symbol);
-            $request['symbol'] = $market['id'];
-        }
-        $response = $this->privateDeleteUserOrders (array_merge($request, $params));
+        $market = $this->market($symbol);
+        $request['symbol'] = $market['id'];
+        $response = $this->privateDeleteOrderAll (array_merge($request, $params));
         //
         //     array(
         //         {
         //             "title" => "string",
-        //             "$symbol" => "xht-usdt",
+        //             "symbol" => "xht-usdt",
         //             "side" => "sell",
         //             "size" => 1,
         //             "type" => "limit",
@@ -855,6 +1225,14 @@ class hollaex extends Exchange {
     }
 
     public function fetch_my_trades($symbol = null, $since = null, $limit = null, $params = array ()) {
+        /**
+         * fetch all trades made by the user
+         * @param {string|null} $symbol unified $market $symbol
+         * @param {int|null} $since the earliest time in ms to fetch trades for
+         * @param {int|null} $limit the maximum number of trades structures to retrieve
+         * @param {array} $params extra parameters specific to the hollaex api endpoint
+         * @return {[array]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#trade-structure trade structures}
+         */
         $this->load_markets();
         $request = array(
             // 'symbol' => $market['id'],
@@ -880,10 +1258,10 @@ class hollaex extends Exchange {
         //
         //     {
         //         "count" => 1,
-        //         "$data" => array(
+        //         "data" => array(
         //             {
         //                 "side" => "buy",
-        //                 "$symbol" => "eth-usdt",
+        //                 "symbol" => "eth-usdt",
         //                 "size" => 0.086,
         //                 "price" => 226.19,
         //                 "timestamp" => "2020-03-03T08:03:55.459Z",
@@ -896,72 +1274,18 @@ class hollaex extends Exchange {
         return $this->parse_trades($data, $market, $since, $limit);
     }
 
-    public function fetch_deposit_address($code, $params = array ()) {
-        $this->load_markets();
-        $currency = $this->currency($code);
-        $response = $this->privateGetUser ($params);
+    public function parse_deposit_address($depositAddress, $currency = null) {
         //
         //     {
-        //         "id" => 620,
-        //         "email" => "email@gmail.com",
-        //         "full_name" => "",
-        //         "name_verified" => false,
-        //         "gender" => false,
-        //         "nationality" => "",
-        //         "phone_number" => "",
-        //         "$address" => array( "city" => "", "$address" => "", "country" => "", "postal_code" => "" ),
-        //         "id_data" => array( "note" => "", "type" => "", "number" => "", "status" => 0 ),
-        //         "bank_account":array(),
-        //         "crypto_wallet":array(
-        //             "xrp" => "rJtoECs6rPkJoAfgtR8SDDshV6hRHe3X7y:391496555"
-        //             "usdt":"0x1fb4248e167901dfa0d8cdda2243a2126d7ce48d"
-        //             // ...
-        //         ),
-        //         "verification_level" => 1,
-        //         "otp_enabled" => true,
-        //         "activated" => true,
-        //         "note" => "",
-        //         "username" => "user",
-        //         "affiliation_code" => "QSWA6G",
-        //         "settings" => {
-        //             "chat" => array( "set_username" => false ),
-        //             "risk" => array( "order_portfolio_percentage" => 20 ),
-        //             "audio" => array(
-        //                 "public_trade" => false,
-        //                 "order_completed" => true,
-        //                 "order_partially_completed" => true
-        //             ),
-        //             "language" => "en",
-        //             "interface" => array( "theme" => "white","order_book_levels" => 10 ),
-        //             "notification" => array(
-        //                 "popup_order_completed" => true,
-        //                 "popup_order_confirmation" => true,
-        //                 "popup_order_partially_filled" => true
-        //             }
-        //         ),
-        //         "flagged" => false,
-        //         "is_hap" => false,
-        //         "pin" => false,
-        //         "discount" => 0,
-        //         "created_at" => "2020-03-02T22:27:38.331Z",
-        //         "updated_at" => "2020-03-03T07:54:58.315Z",
-        //         "balance" => array(
-        //             "xht_balance" => 0,
-        //             "xht_pending" => 0,
-        //             "xht_available" => 0,
-        //             // ...
-        //             "updated_at" => "2020-03-03T10:21:05.430Z"
-        //         ),
-        //         "images" => array(),
-        //         "fees" => {
-        //             "btc-usdt" => array( "maker_fee" => 0.1, "taker_fee" => 0.3 ),
-        //             "eth-usdt" => array( "maker_fee" => 0.1, "taker_fee" => 0.3 ),
-        //             // ...
-        //         }
+        //         "currency":"usdt",
+        //         "address":"TECLD9XBH31XpyykdHU3uEAeUK7E6Lrmik",
+        //         "network":"trx",
+        //         "standard":null,
+        //         "is_valid":true,
+        //         "created_at":"2021-05-12T02:43:05.446Z"
         //     }
         //
-        $cryptoWallet = $this->safe_value($response, 'crypto_wallet');
-        $address = $this->safe_string($cryptoWallet, $currency['id']);
+        $address = $this->safe_string($depositAddress, 'address');
         $tag = null;
         if ($address !== null) {
             $parts = explode(':', $address);
@@ -969,15 +1293,88 @@ class hollaex extends Exchange {
             $tag = $this->safe_string($parts, 1);
         }
         $this->check_address($address);
+        $currencyId = $this->safe_string($depositAddress, 'currency');
+        $currency = $this->safe_currency($currencyId, $currency);
+        $network = $this->safe_string($depositAddress, 'network');
         return array(
-            'currency' => $code,
+            'currency' => $currency['code'],
             'address' => $address,
             'tag' => $tag,
-            'info' => $response,
+            'network' => $network,
+            'info' => $depositAddress,
         );
     }
 
+    public function fetch_deposit_addresses($codes = null, $params = array ()) {
+        /**
+         * fetch deposit $addresses for multiple currencies and chain types
+         * @param {[string]|null} $codes list of unified currency $codes, default is null
+         * @param {array} $params extra parameters specific to the hollaex api endpoint
+         * @return {array} a list of {@link https://docs.ccxt.com/en/latest/manual.html#address-structure address structures}
+         */
+        $this->load_markets();
+        $network = $this->safe_string($params, 'network');
+        $params = $this->omit($params, 'network');
+        $response = $this->privateGetUser ($params);
+        //
+        //     {
+        //         "id":620,
+        //         "email":"igor.kroitor@gmail.com",
+        //         "full_name":"",
+        //         "gender":false,
+        //         "nationality":"",
+        //         "dob":null,
+        //         "phone_number":"",
+        //         "address":array("city":"","address":"","country":"","postal_code":""),
+        //         "id_data":array("note":"","type":"","number":"","status":0,"issued_date":"","expiration_date":""),
+        //         "bank_account":array(),
+        //         "crypto_wallet":array(),
+        //         "verification_level":1,
+        //         "email_verified":true,
+        //         "otp_enabled":true,
+        //         "activated":true,
+        //         "username":"igor.kroitor",
+        //         "affiliation_code":"QSWA6G",
+        //         "settings":array(
+        //             "chat":array("set_username":false),
+        //             "risk":array("popup_warning":false,"order_portfolio_percentage":20),
+        //             "audio":array("public_trade":false,"order_completed":true,"order_partially_completed":true),
+        //             "language":"en",
+        //             "interface":array("theme":"white","order_book_levels":10),
+        //             "notification":array("popup_order_completed":true,"popup_order_confirmation":true,"popup_order_partially_filled":true)
+        //         ),
+        //         "affiliation_rate":0,
+        //         "network_id":10620,
+        //         "discount":0,
+        //         "created_at":"2021-03-24T02:37:57.379Z",
+        //         "updated_at":"2021-03-24T02:37:57.379Z",
+        //         "balance":array(
+        //             "btc_balance":0,
+        //             "btc_available":0,
+        //             "eth_balance":0.000914,
+        //             "eth_available":0.000914,
+        //             "updated_at":"2020-03-04T04:03:27.174Z
+        //         "),
+        //         "wallet":array(
+        //             array("currency":"usdt","address":"TECLD9XBH31XpyykdHU3uEAeUK7E6Lrmik","network":"trx","standard":null,"is_valid":true,"created_at":"2021-05-12T02:43:05.446Z"),
+        //             array("currency":"xrp","address":"rGcSzmuRx8qngPRnrvpCKkP9V4njeCPGCv:286741597","network":"xrp","standard":null,"is_valid":true,"created_at":"2021-05-12T02:49:01.273Z")
+        //         )
+        //     }
+        //
+        $wallet = $this->safe_value($response, 'wallet', array());
+        $addresses = ($network === null) ? $wallet : $this->filter_by($wallet, 'network', $network);
+        return $this->parse_deposit_addresses($addresses, $codes);
+    }
+
     public function fetch_deposits($code = null, $since = null, $limit = null, $params = array ()) {
+        /**
+         * fetch all deposits made to an account
+         * @param {string|null} $code unified $currency $code
+         * @param {int|null} $since the earliest time in ms to fetch deposits for
+         * @param {int|null} $limit the maximum number of deposits structures to retrieve
+         * @param {array} $params extra parameters specific to the hollaex api endpoint
+         * @return {[array]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure transaction structures}
+         */
         $this->load_markets();
         $request = array(
             // 'currency' => $currency['id'],
@@ -1003,7 +1400,7 @@ class hollaex extends Exchange {
         //
         //     {
         //         "count" => 1,
-        //         "$data" => array(
+        //         "data" => array(
         //             {
         //                 "id" => 539,
         //                 "amount" => 20,
@@ -1015,7 +1412,7 @@ class hollaex extends Exchange {
         //                 "rejected" => false,
         //                 "description" => "",
         //                 "type" => "deposit",
-        //                 "$currency" => "usdt",
+        //                 "currency" => "usdt",
         //                 "created_at" => "2020-03-03T07:56:36.198Z",
         //                 "updated_at" => "2020-03-03T08:00:05.674Z",
         //                 "user_id" => 620
@@ -1027,7 +1424,61 @@ class hollaex extends Exchange {
         return $this->parse_transactions($data, $currency, $since, $limit);
     }
 
+    public function fetch_withdrawal($id, $code = null, $params = array ()) {
+        /**
+         * fetch $data on a $currency withdrawal via the withdrawal $id
+         * @param {string} $id withdrawal $id
+         * @param {string|null} $code unified $currency $code of the $currency withdrawn, default is null
+         * @param {array} $params extra parameters specific to the hollaex api endpoint
+         * @return {array} a {@link https://docs.ccxt.com/en/latest/manual.html#$transaction-structure $transaction structure}
+         */
+        $this->load_markets();
+        $request = array(
+            'transaction_id' => $id,
+        );
+        $currency = null;
+        if ($code !== null) {
+            $currency = $this->currency($code);
+            $request['currency'] = $currency['id'];
+        }
+        $response = $this->privateGetUserWithdrawals (array_merge($request, $params));
+        //
+        //     {
+        //         "count" => 1,
+        //         "data" => array(
+        //             {
+        //                 "id" => 539,
+        //                 "amount" => 20,
+        //                 "fee" => 0,
+        //                 "address" => "0x5c0cc98270d7089408fcbcc8e2131287f5be2306",
+        //                 "transaction_id" => "0xd4006327a5ec2c41adbdcf566eaaba6597c3d45906abe78ea1a4a022647c2e28",
+        //                 "status" => true,
+        //                 "dismissed" => false,
+        //                 "rejected" => false,
+        //                 "description" => "",
+        //                 "type" => "withdrawal",
+        //                 "currency" => "usdt",
+        //                 "created_at" => "2020-03-03T07:56:36.198Z",
+        //                 "updated_at" => "2020-03-03T08:00:05.674Z",
+        //                 "user_id" => 620
+        //             }
+        //         )
+        //     }
+        //
+        $data = $this->safe_value($response, 'data', array());
+        $transaction = $this->safe_value($data, 0, array());
+        return $this->parse_transaction($transaction, $currency);
+    }
+
     public function fetch_withdrawals($code = null, $since = null, $limit = null, $params = array ()) {
+        /**
+         * fetch all withdrawals made from an account
+         * @param {string|null} $code unified $currency $code
+         * @param {int|null} $since the earliest time in ms to fetch withdrawals for
+         * @param {int|null} $limit the maximum number of withdrawals structures to retrieve
+         * @param {array} $params extra parameters specific to the hollaex api endpoint
+         * @return {[array]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure transaction structures}
+         */
         $this->load_markets();
         $request = array(
             // 'currency' => $currency['id'],
@@ -1053,7 +1504,7 @@ class hollaex extends Exchange {
         //
         //     {
         //         "count" => 1,
-        //         "$data" => array(
+        //         "data" => array(
         //             {
         //                 "id" => 539,
         //                 "amount" => 20,
@@ -1065,7 +1516,7 @@ class hollaex extends Exchange {
         //                 "rejected" => false,
         //                 "description" => "",
         //                 "type" => "withdrawal",
-        //                 "$currency" => "usdt",
+        //                 "currency" => "usdt",
         //                 "created_at" => "2020-03-03T07:56:36.198Z",
         //                 "updated_at" => "2020-03-03T08:00:05.674Z",
         //                 "user_id" => 620
@@ -1079,21 +1530,34 @@ class hollaex extends Exchange {
 
     public function parse_transaction($transaction, $currency = null) {
         //
+        // fetchWithdrawals, fetchDeposits
+        //
         //     {
-        //         "$id" => 539,
-        //         "$amount" => 20,
-        //         "$fee" => 0,
-        //         "$address" => "0x5c0cc98270d7089408fcbcc8e2131287f5be2306",
+        //         "id" => 539,
+        //         "amount" => 20,
+        //         "fee" => 0,
+        //         "address" => "0x5c0cc98270d7089408fcbcc8e2131287f5be2306",
         //         "transaction_id" => "0xd4006327a5ec2c41adbdcf566eaaba6597c3d45906abe78ea1a4a022647c2e28",
-        //         "$status" => true,
-        //         "$dismissed" => false,
-        //         "$rejected" => false,
+        //         "status" => true,
+        //         "dismissed" => false,
+        //         "rejected" => false,
         //         "description" => "",
-        //         "$type" => "withdrawal",
-        //         "$currency" => "usdt",
+        //         "type" => "withdrawal",
+        //         "currency" => "usdt",
         //         "created_at" => "2020-03-03T07:56:36.198Z",
         //         "updated_at" => "2020-03-03T08:00:05.674Z",
         //         "user_id" => 620
+        //     }
+        //
+        // withdraw
+        //
+        //     {
+        //         message => 'Withdrawal request is in the queue and will be processed.',
+        //         transaction_id => '1d1683c3-576a-4d53-8ff5-27c93fd9758a',
+        //         $amount => 1,
+        //         $currency => 'xht',
+        //         $fee => 0,
+        //         fee_coin => 'xht'
         //     }
         //
         $id = $this->safe_string($transaction, 'id');
@@ -1101,7 +1565,7 @@ class hollaex extends Exchange {
         $timestamp = $this->parse8601($this->safe_string($transaction, 'created_at'));
         $updated = $this->parse8601($this->safe_string($transaction, 'updated_at'));
         $type = $this->safe_string($transaction, 'type');
-        $amount = $this->safe_float($transaction, 'amount');
+        $amount = $this->safe_number($transaction, 'amount');
         $address = $this->safe_string($transaction, 'address');
         $addressTo = null;
         $addressFrom = null;
@@ -1116,29 +1580,36 @@ class hollaex extends Exchange {
             $tagTo = $tag;
         }
         $currencyId = $this->safe_string($transaction, 'currency');
-        $code = $this->safe_currency_code($currencyId);
+        $currency = $this->safe_currency($currencyId, $currency);
         $status = $this->safe_value($transaction, 'status');
         $dismissed = $this->safe_value($transaction, 'dismissed');
         $rejected = $this->safe_value($transaction, 'rejected');
         if ($status) {
             $status = 'ok';
-        } else if ($dismissed) {
+        } elseif ($dismissed) {
             $status = 'canceled';
-        } else if ($rejected) {
+        } elseif ($rejected) {
             $status = 'failed';
         } else {
             $status = 'pending';
         }
-        $fee = array(
-            'currency' => $code,
-            'cost' => $this->safe_float($transaction, 'fee'),
-        );
+        $feeCurrencyId = $this->safe_string($transaction, 'fee_coin');
+        $feeCurrencyCode = $this->safe_currency_code($feeCurrencyId, $currency);
+        $feeCost = $this->safe_number($transaction, 'fee');
+        $fee = null;
+        if ($feeCost !== null) {
+            $fee = array(
+                'currency' => $feeCurrencyCode,
+                'cost' => $feeCost,
+            );
+        }
         return array(
             'info' => $transaction,
             'id' => $id,
             'txid' => $txid,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
+            'network' => null,
             'addressFrom' => $addressFrom,
             'address' => $address,
             'addressTo' => $addressTo,
@@ -1147,7 +1618,7 @@ class hollaex extends Exchange {
             'tagTo' => $tagTo,
             'type' => $type,
             'amount' => $amount,
-            'currency' => $code,
+            'currency' => $currency['code'],
             'status' => $status,
             'updated' => $updated,
             'fee' => $fee,
@@ -1155,49 +1626,73 @@ class hollaex extends Exchange {
     }
 
     public function withdraw($code, $amount, $address, $tag = null, $params = array ()) {
+        /**
+         * make a withdrawal
+         * @param {string} $code unified $currency $code
+         * @param {float} $amount the $amount to withdraw
+         * @param {string} $address the $address to withdraw to
+         * @param {string|null} $tag
+         * @param {array} $params extra parameters specific to the hollaex api endpoint
+         * @return {array} a {@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure transaction structure}
+         */
+        list($tag, $params) = $this->handle_withdraw_tag_and_params($tag, $params);
         $this->check_address($address);
         $this->load_markets();
         $currency = $this->currency($code);
         if ($tag !== null) {
             $address .= ':' . $tag;
         }
+        $network = $this->safe_string($params, 'network');
+        if ($network === null) {
+            throw new ArgumentsRequired($this->id . ' withdraw() requires a $network parameter');
+        }
+        $params = $this->omit($params, 'network');
+        $networks = $this->safe_value($this->options, 'networks', array());
+        $networkId = $this->safe_string_lower_2($networks, $network, $code, $network);
         $request = array(
             'currency' => $currency['id'],
             'amount' => $amount,
             'address' => $address,
+            'network' => $networkId,
         );
-        // one time password
-        $otp = $this->safe_string($params, 'otp_code');
-        if (($otp !== null) || ($this->twofa !== null)) {
-            if ($otp === null) {
-                $otp = $this->oath();
-            }
-            $request['otp_code'] = $otp;
+        $response = $this->privatePostUserWithdrawal (array_merge($request, $params));
+        //
+        //     {
+        //         message => 'Withdrawal $request is in the queue and will be processed.',
+        //         transaction_id => '1d1683c3-576a-4d53-8ff5-27c93fd9758a',
+        //         $amount => 1,
+        //         $currency => 'xht',
+        //         fee => 0,
+        //         fee_coin => 'xht'
+        //     }
+        //
+        return $this->parse_transaction($response, $currency);
+    }
+
+    public function normalize_number_if_needed($number) {
+        if (fmod($number, 1) === 0) {
+            $number = intval($number);
         }
-        $response = $this->privatePostUserRequestWithdrawal (array_merge($request, $params));
-        return array(
-            'info' => $response,
-            'id' => null,
-        );
+        return $number;
     }
 
     public function sign($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
         $query = $this->omit($params, $this->extract_params($path));
         $path = '/' . $this->version . '/' . $this->implode_params($path, $params);
-        if ($method === 'GET') {
+        if (($method === 'GET') || ($method === 'DELETE')) {
             if ($query) {
                 $path .= '?' . $this->urlencode($query);
             }
         }
-        $url = $this->urls['api'] . $path;
+        $url = $this->urls['api']['rest'] . $path;
         if ($api === 'private') {
             $this->check_required_credentials();
-            $defaultExpires = $this->safe_integer_2($this->options, 'api-expires', 'expires', intval ($this->timeout / 1000));
+            $defaultExpires = $this->safe_integer_2($this->options, 'api-expires', 'expires', intval($this->timeout / 1000));
             $expires = $this->sum($this->seconds(), $defaultExpires);
             $expiresString = (string) $expires;
             $auth = $method . $path . $expiresString;
             $headers = array(
-                'api-key' => $this->encode($this->apiKey),
+                'api-key' => $this->apiKey,
                 'api-expires' => $expiresString,
             );
             if ($method === 'POST') {
@@ -1219,7 +1714,13 @@ class hollaex extends Exchange {
         }
         if (($code >= 400) && ($code <= 503)) {
             //
-            //  array( "$message" => "Invalid token" )
+            //  array( "message" => "Invalid token" )
+            //
+            // different errors return the same $code eg:
+            //
+            //  array( "message":"Error 1001 - Order rejected. Order could not be submitted as this order was set to a post only order." )
+            //
+            //  array( "message":"Error 1001 - POST ONLY order can not be of type market" )
             //
             $feedback = $this->id . ' ' . $body;
             $message = $this->safe_string($response, 'message');

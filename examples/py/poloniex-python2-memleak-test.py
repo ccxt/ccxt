@@ -18,9 +18,7 @@ import ccxt  # noqa: E402
 
 # -----------------------------------------------------------------------------
 
-exchange = ccxt.poloniex({
-    'enableRateLimit': True,
-})
+exchange = ccxt.poloniex()
 
 while True:
     orderbook = exchange.fetch_order_book('ETH/BTC')

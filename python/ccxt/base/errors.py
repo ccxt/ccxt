@@ -2,12 +2,15 @@ error_hierarchy = {
     'BaseError': {
         'ExchangeError': {
             'AuthenticationError': {
-                'PermissionDenied': {},
+                'PermissionDenied': {
+                    'AccountNotEnabled': {},
+                },
                 'AccountSuspended': {},
             },
             'ArgumentsRequired': {},
             'BadRequest': {
                 'BadSymbol': {},
+                'MarginModeAlreadySet': {},
             },
             'BadResponse': {
                 'NullResponse': {},
@@ -56,6 +59,10 @@ class PermissionDenied(AuthenticationError):
     pass
 
 
+class AccountNotEnabled(PermissionDenied):
+    pass
+
+
 class AccountSuspended(AuthenticationError):
     pass
 
@@ -69,6 +76,10 @@ class BadRequest(ExchangeError):
 
 
 class BadSymbol(BadRequest):
+    pass
+
+
+class MarginModeAlreadySet(BadRequest):
     pass
 
 
@@ -154,13 +165,16 @@ class RequestTimeout(NetworkError):
 
 __all__ = [
     'error_hierarchy',
+    'BaseError',
     'ExchangeError',
     'AuthenticationError',
     'PermissionDenied',
+    'AccountNotEnabled',
     'AccountSuspended',
     'ArgumentsRequired',
     'BadRequest',
     'BadSymbol',
+    'MarginModeAlreadySet',
     'BadResponse',
     'NullResponse',
     'InsufficientFunds',

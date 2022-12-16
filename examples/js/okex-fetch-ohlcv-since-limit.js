@@ -5,7 +5,6 @@ const ccxt = require ('../../ccxt.js')
 ;(async () => {
 
     const exchange = new ccxt['okex']()
-    exchange.enableRateLimit = true
 
     let limit = undefined
     let symbol = 'BTC/USDT'

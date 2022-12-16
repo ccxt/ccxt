@@ -2,30 +2,27 @@
 
 ## I'm trying to run the code, but it's not working, how do I fix it?
 
-If your question is formulated in a short manner like the above, we won't help. We don't teach programming. If you're unable to read and understand the [Manual](https://github.com/ccxt/ccxt/wiki) or you can't follow precisely the guides from the [CONTRIBUTING](https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md) doc on how to report an issue, we won't help either. Read the CONTRIBUTING guides on how to report an issue and read the Manual. You should not risk anyone's money and time without reading the entire Manual very carefully. You should not risk anything if you're not used to a lot of reading with tons of details. Also, if you don't have the confidence with the programming language you're using, there are much better places for coding fundamentals and practice. Search for `python tutorials`, `js videos`, play with examples, this is how other people climb up the learning curve. No shortcuts, if you want to learn something.
+If your question is formulated in a short manner like the above, we won't help. We don't teach programming. If you're unable to read and understand the [Manual](https://docs.ccxt.com) or you can't follow precisely the guides from the [CONTRIBUTING](https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md) doc on how to report an issue, we won't help either. Read the CONTRIBUTING guides on how to report an issue and read the Manual. You should not risk anyone's money and time without reading the entire Manual very carefully. You should not risk anything if you're not used to a lot of reading with tons of details. Also, if you don't have the confidence with the programming language you're using, there are much better places for coding fundamentals and practice. Search for `python tutorials`, `js videos`, play with examples, this is how other people climb up the learning curve. No shortcuts, if you want to learn something.
 
 ## What is required to get help?
 
 When asking a question:
 
 - Use the search button for duplicates first!
-- **Post your request and response in `verbose` mode!** Add `exchange.verbose = true` right before the line you're having issues with, and copypaste what you see on your screen. It's written and mentioned everywhere, in the [Troubleshooting](https://github.com/ccxt/ccxt/wiki/Manual#troubleshooting) section, in the [README](https://github.com/ccxt/ccxt/blob/master/README.md) and in many answers to similar questions among [previous issues](https://github.com/ccxt/ccxt/issues) and [pull requests](https://github.com/ccxt/ccxt/pulls). No excuses. The verbose output should include both the request and response from the exchange.
+- **Post your request and response in `verbose` mode!** Add `exchange.verbose = true` right before the line you're having issues with, and copypaste what you see on your screen. It's written and mentioned everywhere, in the [Troubleshooting](https://docs.ccxt.com/en/latest/manual.html#troubleshooting) section, in the [README](https://github.com/ccxt/ccxt/blob/master/README.md) and in many answers to similar questions among [previous issues](https://github.com/ccxt/ccxt/issues) and [pull requests](https://github.com/ccxt/ccxt/pulls). No excuses. The verbose output should include both the request and response from the exchange.
 - Include the full error callstack!
-- Write your language **and version**
-- Write ccxt library version
+- Write your programming language **and language version number**
+- Write the CCXT / CCXT Pro library version number
 - Which exchange it is
 - Which method you're trying to call
 
-- **Post your code** to reproduce the problem. Make it a complete short runnable program, don't swallow the lines and make it as compact as you can (5-10 lines of code), including the instantation code. Remove all irrelevant parts from it, leaving just the essence of the code to reproduce the issue.
-    - **DON'T POST SCREENSHOTS OF CODE OR ERRORS, POST THE OUTPUT AND CODE IN PLAIN TEXT!**
-    - **Surround code and output with triple backticks: &#096;&#096;&#096;GOOD&#096;&#096;&#096;**.
-    - Don't confuse the backtick symbol (&#096;) with the quote symbol (\'): '''BAD'''
-    - Don't confuse a single backtick with triple backticks: &#096;BAD&#096;
+- **Post your code** to reproduce the problem. Make it a complete short runnable program, don't swallow the lines and make it as compact as you can (5-10 lines of code), including the exchange instantation code. Remove all irrelevant parts from it, leaving just the essence of the code to reproduce the issue.
+  - **DON'T POST SCREENSHOTS OF CODE OR ERRORS, POST THE OUTPUT AND CODE IN PLAIN TEXT!**
+  - **Surround code and output with triple backticks: &#096;&#096;&#096;GOOD&#096;&#096;&#096;**.
+  - Don't confuse the backtick symbol (&#096;) with the quote symbol (\'): '''BAD'''
+  - Don't confuse a single backtick with triple backticks: &#096;BAD&#096;
 
 - **DO NOT POST YOUR `apiKey` AND `secret`!** Keep them safe (remove them before posting)!
-- Post your version number of ccxt
-- Post your language version number, how do you think we can guess it otherwise?
-
 
 ## I am calling a method and I get an error, what am I doing wrong?
 
@@ -37,7 +34,11 @@ Basically the same answer as the previous question. Read and follow **precisely*
 
 ## Can you implement feature `foo` in exchange `bar`?
 
-Yes, we can. And we will, if nobody else does that before us. There's very little point in asking this type of questions, because the answer is always positive. When someone asks if we can do this or that, the question is not about our abilities, it all boils down to time and management needed for implementing all accumulated feature requests. Moreover, this is an open-source library which is a work in progress. This means, that this project is intended to be developed by the community of users, who are using it. What you're asking is not whether we can or cannot implement it, in fact you're actually telling us to go do that particular task and this is not how we see a voluntary collaboration. Your contributions, PRs and commits are welcome: https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code.
+Yes, we can. And we will, if nobody else does that before us. There's very little point in asking this type of questions, because the answer is always positive. When someone asks if we can do this or that, the question is not about our abilities, it all boils down to time and management needed for implementing all accumulated feature requests.
+
+Moreover, this is an open-source library which is a work in progress. This means, that this project is intended to be developed by the community of users, who are using it. What you're asking is not whether we can or cannot implement it, in fact you're actually telling us to go do that particular task and this is not how we see a voluntary collaboration. Your contributions, PRs and commits are welcome: https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code.
+
+We don't give promises or estimates on the free open-source work. If you wish to speed it up, feel free to reach out to us via info@ccxt.trade.
 
 ## When will you add feature `foo` for exchange `bar` ? What's the estimated time? When should we expect this?
 
@@ -46,6 +47,12 @@ We don't give promises or estimates on the open-source work. The reasoning behin
 ## When will you add the support for an exchange requested in the Issues?
 
 Again, we can't promise on the dates for adding this or that exchange, due to reasons outlined above. The answer will always remain the same: _as soon as we can_.
+
+## How long should I wait for a feature to be added? I need to decide whether to implement it myself or to wait for the CCXT Dev Team to implement it for me.
+
+Please, go for implemeting it yourself, do not wait for us. We will add it as soon as we can. Also, your contributions are very welcome:
+
+- https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 ## What's your progress on adding the feature `foo` that was requested earlier? How do you do implementing exchange `bar`?
 
@@ -61,4 +68,11 @@ Unfortunately, we don't always have the time to quickly list out each and every 
 
 ## Hey! The fix you've uploaded is in JS, would you fix Python / PHP as well, please?
 
-Our build system generates exchange-specific Python and PHP code for us automatically, so it is transpiled from JS, and there's no need to fix all languages separately one by one. Thus, if it is fixed in JS, it is fixed in Python pip and PHP Composer as well. The automatic build usually takes 5-10 minutes. Just upgrade your version with `pip` or `composer` after the new version arrives and you'll be fine. More about it here: https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#multilanguage-support
+Our build system generates exchange-specific Python and PHP code for us automatically, so it is transpiled from JS, and there's no need to fix all languages separately one by one.
+
+Thus, if it is fixed in JS, it is fixed in Python pip and PHP Composer as well. The automatic build usually takes 15-20 minutes. Just upgrade your version with `pip` or `composer` **after the new version arrives** and you'll be fine.
+
+More about it here:
+
+- https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#multilanguage-support
+- https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#transpiled-generated-files
