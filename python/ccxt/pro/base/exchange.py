@@ -65,13 +65,21 @@ class Exchange(BaseExchange):
             on_error = self.on_error
             on_close = self.on_close
             on_connected = self.on_connected
+            # get ws rl config
+            ws_options = self.safe_value(self.options, 'ws', {})
+            rate_limits = self.safe_value(ws_options, 'rateLimits', {})
+            default_rate_limit_config = self.safe_value(rate_limits, 'default')
+            # allowing specify rate limits per url, if not specified use default
+            rate_limit_config = self.safe_value(rate_limits, url, default_rate_limit_config)
+            # if we no rateLimit is defined in the WS implementation, we fallback to the ccxt one
+            throtler_config = rate_limit_config if rate_limit_config else self.tokenBucket
             # decide client type here: aiohttp ws / websockets / signalr / socketio
             ws_options = self.safe_value(self.options, 'ws', {})
             options = self.extend(self.streaming, {
                 'log': getattr(self, 'log'),
                 'ping': getattr(self, 'ping', None),
                 'verbose': self.verbose,
-                'throttle': Throttler(self.tokenBucket, self.asyncio_loop),
+                'throttle': Throttler(throtler_config, self.asyncio_loop),
                 'asyncio_loop': self.asyncio_loop,
             }, ws_options)
             self.clients[url] = FastClient(url, on_message, on_error, on_close, on_connected, options)
