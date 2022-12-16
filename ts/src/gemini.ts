@@ -1445,7 +1445,7 @@ export default class gemini extends Exchange {
         /**
          * @method
          * @name gemini#fetchTransactions
-         * @description fetch history of deposits and withdrawals
+         * @description *DEPRECATED* use fetchDepositWithdrawals instead
          * @param {string|undefined} code not used by gemini.fetchTransactions
          * @param {int|undefined} since timestamp in ms of the earliest transaction, default is undefined
          * @param {int|undefined} limit max number of transactions to return, default is undefined

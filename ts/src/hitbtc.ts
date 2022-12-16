@@ -835,7 +835,7 @@ export default class hitbtc extends Exchange {
         /**
          * @method
          * @name hitbtc#fetchTransactions
-         * @description fetch history of deposits and withdrawals
+         * @description *DEPRECATED* use fetchDepositWithdrawals instead
          * @see https://api.hitbtc.com/v2#get-transactions-history
          * @param {string|undefined} code unified currency code for the currency of the transactions, default is undefined
          * @param {int|undefined} since timestamp in ms of the earliest transaction, default is undefined

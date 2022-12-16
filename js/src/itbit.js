@@ -361,7 +361,7 @@ export default class itbit extends Exchange {
         /**
          * @method
          * @name itbit#fetchTransactions
-         * @description fetch history of deposits and withdrawals
+         * @description *DEPRECATED* use fetchDepositWithdrawals instead
          * @param {string|undefined} code not used by itbit fetchTransactions ()
          * @param {int|undefined} since not used by itbit fetchTransactions ()
          * @param {int|undefined} limit max number of transactions to return, default is undefined

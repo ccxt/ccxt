@@ -1894,7 +1894,7 @@ export default class poloniex extends Exchange {
         /**
          * @method
          * @name poloniex#fetchTransactions
-         * @description fetch history of deposits and withdrawals
+         * @description *DEPRECATED* use fetchDepositWithdrawals instead
          * @see https://docs.poloniex.com/#authenticated-endpoints-wallets-wallets-activity-records
          * @param {string|undefined} code unified currency code for the currency of the transactions, default is undefined
          * @param {int|undefined} since timestamp in ms of the earliest transaction, default is undefined
