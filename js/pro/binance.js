@@ -71,7 +71,15 @@ module.exports = class binance extends binanceRest {
                 'wallet': 'wb', // wb = wallet balance, cw = cross balance
                 'listenKeyRefreshRate': 1200000, // 20 mins
                 'ws': {
-                    'cost': 5,
+                    'rateLimits': {
+                        'default': {
+                            'delay': 0.001,
+                            'capacity': 1,
+                            'cost': 1,
+                            'maxCapacity': 1000,
+                            'refillRate': 0.003,
+                        },
+                    },
                 },
             },
         });
