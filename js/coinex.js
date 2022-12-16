@@ -280,7 +280,6 @@ module.exports = class coinex extends Exchange {
                 'createMarketBuyOrderRequiresPrice': true,
                 'defaultType': 'spot', // spot, swap, margin
                 'defaultSubType': 'linear', // linear, inverse
-                'defaultMarginMode': 'isolated', // isolated, cross
                 'fetchDepositAddress': {
                     'fillResponseFromRequest': true,
                 },

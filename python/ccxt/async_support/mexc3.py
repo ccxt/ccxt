@@ -63,6 +63,8 @@ class mexc3(Exchange):
                 'fetchDepositAddresses': None,
                 'fetchDepositAddressesByNetwork': True,
                 'fetchDeposits': True,
+                'fetchDepositWithdrawFee': 'emulated',
+                'fetchDepositWithdrawFees': True,
                 'fetchFundingHistory': True,
                 'fetchFundingRate': True,
                 'fetchFundingRateHistory': True,
@@ -413,6 +415,9 @@ class mexc3(Exchange):
                     'ETH': 'ERC20',
                     'BEP20': 'BEP20(BSC)',
                     'BSC': 'BEP20(BSC)',
+                },
+                'networksById': {
+                    'BEP20(BSC)': 'BSC',
                 },
                 'networkAliases': {
                     'BSC(BEP20)': 'BSC',
@@ -4160,6 +4165,92 @@ class mexc3(Exchange):
             fee = self.safe_number(networkEntry, 'withdrawFee')
             result[networkCode] = fee
         return result
+
+    async def fetch_deposit_withdraw_fees(self, codes=None, params={}):
+        """
+        fetch deposit and withdrawal fees
+        see https://mxcdevelop.github.io/apidocs/spot_v3_en/#query-the-currency-information
+        :param [str]|None codes: returns fees for all currencies if None
+        :param dict params: extra parameters specific to the mexc3 api endpoint
+        :returns [dict]: a list of `fee structures <https://docs.ccxt.com/en/latest/manual.html#fee-structure>`
+        """
+        await self.load_markets()
+        response = await self.spotPrivateGetCapitalConfigGetall(params)
+        #
+        #    [
+        #       {
+        #           coin: 'AGLD',
+        #           name: 'Adventure Gold',
+        #           networkList: [
+        #               {
+        #                   coin: 'AGLD',
+        #                   depositDesc: null,
+        #                   depositEnable: True,
+        #                   minConfirm: '0',
+        #                   name: 'Adventure Gold',
+        #                   network: 'ERC20',
+        #                   withdrawEnable: True,
+        #                   withdrawFee: '10.000000000000000000',
+        #                   withdrawIntegerMultiple: null,
+        #                   withdrawMax: '1200000.000000000000000000',
+        #                   withdrawMin: '20.000000000000000000',
+        #                   sameAddress: False,
+        #                   contract: '0x32353a6c91143bfd6c7d363b546e62a9a2489a20',
+        #                   withdrawTips: null,
+        #                   depositTips: null
+        #               }
+        #               ...
+        #           ]
+        #       },
+        #       ...
+        #    ]
+        #
+        return self.parse_deposit_withdraw_fees(response, codes, 'coin')
+
+    def parse_deposit_withdraw_fee(self, fee, currency=None):
+        #
+        #    {
+        #        coin: 'AGLD',
+        #        name: 'Adventure Gold',
+        #        networkList: [
+        #            {
+        #                coin: 'AGLD',
+        #                depositDesc: null,
+        #                depositEnable: True,
+        #                minConfirm: '0',
+        #                name: 'Adventure Gold',
+        #                network: 'ERC20',
+        #                withdrawEnable: True,
+        #                withdrawFee: '10.000000000000000000',
+        #                withdrawIntegerMultiple: null,
+        #                withdrawMax: '1200000.000000000000000000',
+        #                withdrawMin: '20.000000000000000000',
+        #                sameAddress: False,
+        #                contract: '0x32353a6c91143bfd6c7d363b546e62a9a2489a20',
+        #                withdrawTips: null,
+        #                depositTips: null
+        #            }
+        #            ...
+        #        ]
+        #    }
+        #
+        networkList = self.safe_value(fee, 'networkList', [])
+        result = self.deposit_withdraw_fee(fee)
+        for j in range(0, len(networkList)):
+            networkEntry = networkList[j]
+            networkId = self.safe_string(networkEntry, 'network')
+            networkCode = self.network_id_to_code(networkId, self.safe_string(currency, 'code'))
+            result['networks'][networkCode] = {
+                'withdraw': {
+                    'fee': self.safe_number(networkEntry, 'withdrawFee'),
+                    'percentage': None,
+                },
+                'deposit': {
+                    'fee': None,
+                    'percentage': None,
+                },
+            }
+        return self.assign_default_deposit_withdraw_fees(result)
 
     def parse_margin_loan(self, info, currency=None):
         #

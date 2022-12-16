@@ -47,10 +47,10 @@ class binance extends \ccxt\async\binance {
             ),
             'options' => array(
                 'streamLimits' => array(
-                    'spot' => 1024,
-                    'margin' => 1024,
-                    'future' => 200,
-                    'delivery' => 200,
+                    'spot' => 50, // max 1024
+                    'margin' => 50, // max 1024
+                    'future' => 50, // max 200
+                    'delivery' => 50, // max 200
                 ),
                 'streamBySubscriptionsHash' => array(),
                 'streamIndex' => -1,
@@ -97,12 +97,10 @@ class binance extends \ccxt\async\binance {
             $streamLimits = $this->safe_value($this->options, 'streamLimits');
             $streamLimit = $this->safe_integer($streamLimits, $type);
             $streamIndex = $streamIndex + 1;
-            if ($streamIndex === $streamLimit) {
-                $streamIndex = 0;
-            }
+            $normalizedIndex = fmod($streamIndex, $streamLimit);
             $this->options['streamIndex'] = $streamIndex;
-            $stream = $this->number_to_string($streamIndex);
-            $streamBySubscriptionsHash[$subscriptionHash] = $stream;
+            $stream = $this->number_to_string($normalizedIndex);
+            $this->options['streamBySubscriptionsHash'][$subscriptionHash] = $stream;
         }
         return $stream;
     }
@@ -724,18 +722,19 @@ class binance extends \ccxt\async\binance {
              * watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific $market
              * @param {string} $symbol unified $symbol of the $market to fetch the ticker for
              * @param {array} $params extra parameters specific to the binance api endpoint
+             * @param {string} $params->name stream to use can be ticker or bookTicker
              * @return {array} a {@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure ticker structure}
              */
             Async\await($this->load_markets());
             $market = $this->market($symbol);
             $marketId = $market['lowercaseId'];
+            $type = null;
+            list($type, $params) = $this->handle_market_type_and_params('watchTicker', $market, $params);
             $options = $this->safe_value($this->options, 'watchTicker', array());
             $name = $this->safe_string($options, 'name', 'ticker');
+            $name = $this->safe_string($params, 'name', $name);
+            $params = $this->omit($params, 'name');
             $messageHash = $marketId . '@' . $name;
-            $defaultType = $this->safe_string_2($this->options, 'defaultType', 'spot');
-            $watchTickerType = $this->safe_string_2($options, 'type', 'defaultType', $defaultType);
-            $type = $this->safe_string($params, 'type', $watchTickerType);
-            $query = $this->omit($params, 'type');
             $url = $this->urls['api']['ws'][$type] . '/' . $this->stream($type, $messageHash);
             $requestId = $this->request_id($url);
             $request = array(
@@ -748,7 +747,7 @@ class binance extends \ccxt\async\binance {
             $subscribe = array(
                 'id' => $requestId,
             );
-            return Async\await($this->watch($url, $messageHash, array_merge($request, $query), $messageHash, $subscribe));
+            return Async\await($this->watch($url, $messageHash, array_merge($request, $params), $messageHash, $subscribe));
         }) ();
     }
 

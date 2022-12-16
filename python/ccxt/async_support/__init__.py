@@ -4,7 +4,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '2.2.72'
+__version__ = '2.4.18'
 
 # -----------------------------------------------------------------------------
 
@@ -56,7 +56,6 @@ from ccxt.base.errors import error_hierarchy                          # noqa: F4
 from ccxt.async_support.alpaca import alpaca                                    # noqa: F401
 from ccxt.async_support.ascendex import ascendex                                # noqa: F401
 from ccxt.async_support.bequant import bequant                                  # noqa: F401
-from ccxt.async_support.bibox import bibox                                      # noqa: F401
 from ccxt.async_support.bigone import bigone                                    # noqa: F401
 from ccxt.async_support.binance import binance                                  # noqa: F401
 from ccxt.async_support.binancecoinm import binancecoinm                        # noqa: F401
@@ -170,7 +169,6 @@ exchanges = [
     'alpaca',
     'ascendex',
     'bequant',
-    'bibox',
     'bigone',
     'binance',
     'binancecoinm',

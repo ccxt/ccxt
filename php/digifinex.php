@@ -274,6 +274,70 @@ class digifinex extends Exchange {
                     'margin' => '2',
                     'OTC' => '3',
                 ),
+                'networks' => array(
+                    'ARBITRUM' => 'Arbitrum',
+                    'AVALANCEC' => 'AVAX-CCHAIN',
+                    'AVALANCEX' => 'AVAX-XCHAIN',
+                    'BEP20' => 'BEP20',
+                    'BSC' => 'BEP20',
+                    'CARDANO' => 'Cardano',
+                    'CELO' => 'Celo',
+                    'CHILIZ' => 'Chiliz',
+                    'COSMOS' => 'COSMOS',
+                    'CRC20' => 'Crypto.com',
+                    'CRONOS' => 'Crypto.com',
+                    'DOGECOIN' => 'DogeChain',
+                    'ERC20' => 'ERC20',
+                    'ETH' => 'ERC20',
+                    'ETHW' => 'ETHW',
+                    'IOTA' => 'MIOTA',
+                    'KLAYTN' => 'KLAY',
+                    'MATIC' => 'Polygon',
+                    'METIS' => 'MetisDAO',
+                    'MOONBEAM' => 'GLMR',
+                    'MOONRIVER' => 'Moonriver',
+                    'OPTIMISM' => 'OPETH',
+                    'POLYGON' => 'Polygon',
+                    'RIPPLE' => 'XRP',
+                    'SOLANA' => 'SOL', // SOL & SPL
+                    'STELLAR' => 'Stella', // XLM
+                    'TERRACLASSIC' => 'TerraClassic',
+                    'TERRANEW' => 'Terra',
+                    'TON' => 'Ton',
+                    'TRC20' => 'TRC20',
+                    'TRON' => 'TRC20',
+                    'TRX' => 'TRC20',
+                    'VECHAIN' => 'Vechain', // VET
+                ),
+                'networksById' => array(
+                    'Arbitrum' => 'ARBITRUM',
+                    'AVAX-CCHAIN' => 'AVALANCEC',
+                    'AVAX-XCHAIN' => 'AVALANCEX',
+                    'BEP20' => 'BEP20',
+                    'Cardano' => 'CARDANO',
+                    'Celo' => 'CELO',
+                    'Chiliz' => 'CHILIZ',
+                    'COSMOS' => 'COSMOS',
+                    'Crypto.com' => 'CRC20', // CRONOS
+                    'DogeChain' => 'DOGECOIN',
+                    'ERC20' => 'ERC20',
+                    'ETHW' => 'ETHW',
+                    'MIOTA' => 'IOTA',
+                    'KLAY' => 'KLAYTN',
+                    'Polygon' => 'POLYGON',
+                    'MetisDAO' => 'METIS',
+                    'Moonriver' => 'MOONRIVER',
+                    'GLMR' => 'MOONBEAM',
+                    'OPETH' => 'OPTIMISM',
+                    'XRP' => 'RIPPLE',
+                    'SOL' => 'SOLANA',
+                    'Stella' => 'STELLAR',
+                    'Terra' => 'TERRANEW',
+                    'TerraClassic' => 'TERRACLASSIC',
+                    'Ton' => 'TON',
+                    'TRC20' => 'TRC20',
+                    'Vechain' => 'VECHAIN',
+                ),
             ),
             'commonCurrencies' => array(
                 'BHT' => 'Black House Test',
@@ -283,14 +347,6 @@ class digifinex extends Exchange {
                 'TEL' => 'TEL666',
             ),
         ));
-    }
-
-    public function safe_network($networkId) {
-        if ($networkId === null) {
-            return null;
-        } else {
-            return strtoupper($networkId);
-        }
     }
 
     public function fetch_currencies($params = array ()) {
@@ -348,17 +404,27 @@ class digifinex extends Exchange {
             $deposit = $depositStatus > 0;
             $withdraw = $withdrawStatus > 0;
             $active = $deposit && $withdraw;
-            $fee = $this->safe_number($currency, 'min_withdraw_fee'); // withdraw_fee_rate was zero for all currencies, so this was the worst case scenario
-            $minWithdraw = $this->safe_number($currency, 'min_withdraw_amount');
-            $minDeposit = $this->safe_number($currency, 'min_deposit_amount');
+            $feeString = $this->safe_string($currency, 'min_withdraw_fee'); // withdraw_fee_rate was zero for all currencies, so this was the worst case scenario
+            $fee = $this->parse_number($feeString);
+            $minWithdrawString = $this->safe_string($currency, 'min_withdraw_amount');
+            $minWithdraw = $this->parse_number($minWithdrawString);
+            $minDepositString = $this->safe_string($currency, 'min_deposit_amount');
+            $minDepositPrecisionLength = $this->precision_from_string($minDepositString);
+            // define $precision with temporary way
+            $feePrecisionLength = $this->precision_from_string($feeString);
+            $minWithdrawPrecisionLength = $this->precision_from_string($minWithdrawString);
+            $minDeposit = $this->parse_number($minDepositString);
+            $maxFoundPrecision = max ($feePrecisionLength, max ($minWithdrawPrecisionLength, $minDepositPrecisionLength));
+            $precision = $this->parse_number($this->parse_precision($this->number_to_string($maxFoundPrecision)));
             $networkId = $this->safe_string($currency, 'chain');
+            $networkCode = $this->network_id_to_code($networkId);
             $network = array(
+                'info' => $currency,
                 'id' => $networkId,
-                'network' => $this->safe_network($networkId),
-                'name' => null,
+                'network' => $networkCode,
                 'active' => $active,
-                'fee' => $fee,
-                'precision' => $this->parse_number('0.00000001'), // todo fix hardcoded value
+                'fee' => $this->parse_number($feeString),
+                'precision' => $precision,
                 'deposit' => $deposit,
                 'withdraw' => $withdraw,
                 'limits' => array(
@@ -375,7 +441,6 @@ class digifinex extends Exchange {
                         'max' => null,
                     ),
                 ),
-                'info' => $currency,
             );
             if (is_array($result) && array_key_exists($code, $result)) {
                 if (gettype($result[$code]['info']) === 'array' && array_keys($result[$code]['info']) === array_keys(array_keys($result[$code]['info']))) {
@@ -405,7 +470,7 @@ class digifinex extends Exchange {
                     'deposit' => $deposit,
                     'withdraw' => $withdraw,
                     'fee' => $fee,
-                    'precision' => $this->parse_number('1e-8'), // todo fix hardcoded value, as some currencies have precision of 0.01
+                    'precision' => null,
                     'limits' => array(
                         'amount' => array(
                             'min' => null,
@@ -423,7 +488,29 @@ class digifinex extends Exchange {
                     'networks' => array(),
                 );
             }
-            $result[$code]['networks'][$networkId] = $network;
+            if ($networkId !== null) {
+                $result[$code]['networks'][$networkId] = $network;
+            } else {
+                $result[$code]['active'] = $active;
+                $result[$code]['fee'] = $this->parse_number($feeString);
+                $result[$code]['deposit'] = $deposit;
+                $result[$code]['withdraw'] = $withdraw;
+                $result[$code]['limits'] = array(
+                    'amount' => array(
+                        'min' => null,
+                        'max' => null,
+                    ),
+                    'withdraw' => array(
+                        'min' => $minWithdraw,
+                        'max' => null,
+                    ),
+                    'deposit' => array(
+                        'min' => $minDeposit,
+                        'max' => null,
+                    ),
+                );
+            }
+            $result[$code]['precision'] = ($result[$code]['precision'] === null) ? $precision : max ($result[$code]['precision'], $precision);
         }
         return $result;
     }
@@ -1079,8 +1166,8 @@ class digifinex extends Exchange {
             'change' => null,
             'percentage' => $this->safe_string_2($ticker, 'change', 'price_change_percent'),
             'average' => null,
-            'baseVolume' => $this->safe_string($ticker, 'base_vol'),
-            'quoteVolume' => $this->safe_string_2($ticker, 'vol', 'volume_24h'),
+            'baseVolume' => $this->safe_string_2($ticker, 'vol', 'volume_24h'),
+            'quoteVolume' => $this->safe_string($ticker, 'base_vol'),
             'info' => $ticker,
         ), $market);
     }
@@ -2596,7 +2683,7 @@ class digifinex extends Exchange {
         $toId = $this->safe_string($accountsByType, $toAccount, $toAccount);
         $request = array(
             'currency_mark' => $currency['id'],
-            'num' => floatval($this->currency_to_precision($code, $amount)),
+            'num' => $this->currency_to_precision($code, $amount),
             'from' => $fromId, // 1 = SPOT, 2 = MARGIN, 3 = OTC
             'to' => $toId, // 1 = SPOT, 2 = MARGIN, 3 = OTC
         );
@@ -2632,7 +2719,7 @@ class digifinex extends Exchange {
         $request = array(
             // 'chain' => 'ERC20', 'OMNI', 'TRC20', // required for USDT
             'address' => $address,
-            'amount' => floatval($amount),
+            'amount' => $this->currency_to_precision($code, $amount),
             'currency' => $currency['id'],
         );
         if ($tag !== null) {

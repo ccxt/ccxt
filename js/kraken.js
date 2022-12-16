@@ -156,6 +156,7 @@ module.exports = class kraken extends Exchange {
                 'private': {
                     'post': {
                         'AddOrder': 0,
+                        'AddOrderBatch': 0,
                         'AddExport': 3,
                         'Balance': 3,
                         'CancelAll': 3,
@@ -165,6 +166,7 @@ module.exports = class kraken extends Exchange {
                         'DepositAddresses': 3,
                         'DepositMethods': 3,
                         'DepositStatus': 3,
+                        'EditOrder': 0,
                         'ExportStatus': 3,
                         'GetWebSocketsToken': 3,
                         'Ledgers': 6,
