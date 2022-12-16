@@ -96,6 +96,7 @@ module.exports = class binance extends Exchange {
                 'fetchTransactionFee': undefined,
                 'fetchTransactionFees': true,
                 'fetchTransactions': false,
+                'fetchDepositWithdrawals': false,
                 'fetchTransfers': true,
                 'fetchWithdrawal': false,
                 'fetchWithdrawals': true,

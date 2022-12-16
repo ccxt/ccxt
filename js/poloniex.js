@@ -58,6 +58,7 @@ module.exports = class poloniex extends Exchange {
                 'fetchTradingFee': false,
                 'fetchTradingFees': true,
                 'fetchTransactions': true,
+                'fetchDepositWithdrawals': true,
                 'fetchTransfer': false,
                 'fetchTransfers': false,
                 'fetchWithdrawals': true,

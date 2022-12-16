@@ -71,6 +71,7 @@ module.exports = class hitbtc3 extends Exchange {
                 'fetchTradingFee': true,
                 'fetchTradingFees': true,
                 'fetchTransactions': true,
+                'fetchDepositWithdrawals': true,
                 'fetchWithdrawals': true,
                 'reduceMargin': true,
                 'setLeverage': true,

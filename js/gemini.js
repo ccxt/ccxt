@@ -71,6 +71,7 @@ module.exports = class gemini extends Exchange {
                 'fetchTradingFee': false,
                 'fetchTradingFees': true,
                 'fetchTransactions': true,
+                'fetchDepositWithdrawals': true,
                 'postOnly': true,
                 'reduceMargin': false,
                 'setLeverage': false,

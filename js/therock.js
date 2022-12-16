@@ -54,6 +54,7 @@ module.exports = class therock extends Exchange {
                 'fetchTradingFee': true,
                 'fetchTradingFees': true,
                 'fetchTransactions': 'emulated',
+                'fetchDepositWithdrawals': 'emulated',
                 'fetchTransfer': false,
                 'fetchTransfers': false,
                 'fetchWithdrawals': true,

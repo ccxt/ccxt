@@ -75,6 +75,7 @@ module.exports = class bitso extends Exchange {
                 'fetchTransactionFee': false,
                 'fetchTransactionFees': true,
                 'fetchTransactions': false,
+                'fetchDepositWithdrawals': false,
                 'fetchTransfer': false,
                 'fetchTransfers': false,
                 'reduceMargin': false,

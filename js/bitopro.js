@@ -66,6 +66,7 @@ module.exports = class bitopro extends Exchange {
                 'fetchTradingFees': true,
                 'fetchTransactionFees': false,
                 'fetchTransactions': false,
+                'fetchDepositWithdrawals': false,
                 'fetchTransfer': false,
                 'fetchTransfers': false,
                 'fetchWithdrawal': true,

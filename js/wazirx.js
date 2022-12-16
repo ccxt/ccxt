@@ -60,6 +60,7 @@ module.exports = class wazirx extends Exchange {
                 'fetchTradingFees': false,
                 'fetchTransactionFees': false,
                 'fetchTransactions': false,
+                'fetchDepositWithdrawals': false,
                 'fetchTransfers': false,
                 'fetchWithdrawals': false,
                 'transfer': false,
