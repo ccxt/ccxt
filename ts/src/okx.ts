@@ -101,6 +101,7 @@ export default class okx extends Exchange {
                 'fetchTransactionFee': false,
                 'fetchTransactionFees': false,
                 'fetchTransactions': false,
+                'fetchDepositWithdrawals': false,
                 'fetchTransfer': true,
                 'fetchTransfers': true,
                 'fetchWithdrawal': true,

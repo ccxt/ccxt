@@ -69,6 +69,7 @@ export default class lykke extends Exchange {
                 'fetchTradingFees': false,
                 'fetchTransactionFees': false,
                 'fetchTransactions': true,
+                'fetchDepositWithdrawals': true,
                 'fetchWithdrawals': false,
                 'setLeverage': false,
                 'setMarginMode': false,

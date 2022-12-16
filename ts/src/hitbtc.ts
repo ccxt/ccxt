@@ -72,7 +72,7 @@ export default class hitbtc extends Exchange {
                 'fetchTradingFee': true,
                 'fetchTradingFees': false,
                 'fetchTransactions': true,
-                'fetchWithdrawals': false,
+                'fetchDepositWithdrawals': true,
                 'reduceMargin': false,
                 'setLeverage': false,
                 'setMarginMode': false,

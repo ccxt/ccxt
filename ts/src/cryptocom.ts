@@ -65,6 +65,7 @@ export default class cryptocom extends Exchange {
                 'fetchTradingFees': false,
                 'fetchTransactionFees': false,
                 'fetchTransactions': false,
+                'fetchDepositWithdrawals': false,
                 'fetchTransfers': true,
                 'fetchWithdrawals': true,
                 'repayMargin': true,

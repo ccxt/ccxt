@@ -63,6 +63,7 @@ export default class btcmarkets extends Exchange {
                 'fetchTime': true,
                 'fetchTrades': true,
                 'fetchTransactions': true,
+                'fetchDepositWithdrawals': true,
                 'fetchWithdrawals': true,
                 'reduceMargin': false,
                 'setLeverage': false,

@@ -72,6 +72,7 @@ export default class indodax extends Exchange {
                 'fetchTransactionFee': true,
                 'fetchTransactionFees': false,
                 'fetchTransactions': true,
+                'fetchDepositWithdrawals': true,
                 'fetchTransfer': false,
                 'fetchTransfers': false,
                 'fetchWithdrawal': false,
