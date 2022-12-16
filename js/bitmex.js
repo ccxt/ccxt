@@ -517,12 +517,15 @@ module.exports = class bitmex extends Exchange {
             const market = response[i];
             const id = this.safeString (market, 'symbol');
             const typ = this.safeString (market, 'typ'); // type definitions at: https://www.bitmex.com/api/explorer/#!/Instrument/Instrument_get
-            const baseId = this.currencyIdFromAssetName (this.safeString (market, 'underlying'));
-            const quoteId = this.currencyIdFromAssetName (this.safeString (market, 'quoteCurrency'));
-            const settleId = this.currencyIdFromAssetName (this.safeString (market, 'settlCurrency', ''));
-            const base = this.safeCurrencyCode (baseId);
-            const quote = this.safeCurrencyCode (quoteId);
-            const settle = this.safeCurrencyCode (settleId);
+            const underlying = this.safeString (market, 'underlying');
+            const quoteCurrency = this.safeString (market, 'quoteCurrency');
+            const settlCurrency = this.safeString (market, 'settlCurrency', '');
+            const base = this.safeCurrencyCode (underlying);
+            const quote = this.safeCurrencyCode (quoteCurrency);
+            const settle = this.safeCurrencyCode (settlCurrency);
+            const baseId = this.currencyIdFromAssetName (underlying);
+            const quoteId = this.currencyIdFromAssetName (quoteCurrency);
+            const settleId = this.currencyIdFromAssetName (settlCurrency);
             // 'positionCurrency' may be empty ("", as Bitmex currently returns for ETHUSD)
             // so let's take the settlCurrency first and then adjust if needed
             let type = undefined;
