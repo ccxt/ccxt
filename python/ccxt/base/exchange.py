@@ -4,7 +4,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '2.2.103'
+__version__ = '2.4.20'
 
 # -----------------------------------------------------------------------------
 
@@ -204,6 +204,7 @@ class Exchange(object):
         '408': RequestTimeout,
         '504': RequestTimeout,
         '401': AuthenticationError,
+        '407': AuthenticationError,
         '511': AuthenticationError,
     }
     headers = None
@@ -870,7 +871,7 @@ class Exchange(object):
 
     @staticmethod
     def get_object_value_from_key_list(dictionary, key_list):
-        filtered_list = list(filter(lambda el: el in dictionary, key_list))
+        filtered_list = list(filter(lambda el: el in dictionary and dictionary[el] != '' and dictionary[el] is not None, key_list))
         if (len(filtered_list) == 0):
             return None
         return dictionary[filtered_list[0]]

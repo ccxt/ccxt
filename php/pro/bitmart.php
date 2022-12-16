@@ -35,7 +35,7 @@ class bitmart extends \ccxt\async\bitmart {
             'options' => array(
                 'defaultType' => 'spot',
                 'watchOrderBook' => array(
-                    'depth' => 'depth5', // depth5, depth400
+                    'depth' => 'depth5', // depth5, depth20, depth50
                 ),
                 'ws' => array(
                     'inflate' => true,
@@ -407,7 +407,7 @@ class bitmart extends \ccxt\async\bitmart {
              * @return {array} A dictionary of {@link https://docs.ccxt.com/en/latest/manual.html#order-book-structure order book structures} indexed by market symbols
              */
             $options = $this->safe_value($this->options, 'watchOrderBook', array());
-            $depth = $this->safe_string($options, 'depth', 'depth400');
+            $depth = $this->safe_string($options, 'depth', 'depth50');
             $orderbook = Async\await($this->subscribe($depth, $symbol, $params));
             return $orderbook->limit ();
         }) ();
@@ -631,7 +631,8 @@ class bitmart extends \ccxt\async\bitmart {
             $methods = array(
                 'depth' => array($this, 'handle_order_book'),
                 'depth5' => array($this, 'handle_order_book'),
-                'depth400' => array($this, 'handle_order_book'),
+                'depth20' => array($this, 'handle_order_book'),
+                'depth50' => array($this, 'handle_order_book'),
                 'ticker' => array($this, 'handle_ticker'),
                 'trade' => array($this, 'handle_trade'),
                 // ...
