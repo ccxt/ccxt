@@ -298,10 +298,8 @@ module.exports = class bitmex extends Exchange {
         //
         const result = {};
         this.options['currencyIdsByAssetNames'] = {};
-        const keys = Object.keys (response);
-        for (let i = 0; i < keys.length; i++) {
-            const key = keys[i];
-            const currency = response[key];
+        for (let i = 0; i < response.length; i++) {
+            const currency = response[i];
             const asset = this.safeString (currency, 'asset');
             const code = this.safeCurrencyCode (asset);
             const id = this.safeString (currency, 'currency');
