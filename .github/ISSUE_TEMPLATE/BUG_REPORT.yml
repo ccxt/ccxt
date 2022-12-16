@@ -1,0 +1,121 @@
+name: Bug Report
+description: Report bugs here
+labels: ["type: bug"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        If you want to submit an issue and you want your issue to be resolved quickly, we strongly recommend doing the following:
+
+        - Read the [Manual](https://github.com/ccxt/ccxt/wiki/Manual), and give special attention to the following sections:
+          - [Exchange Properties](https://github.com/ccxt/ccxt/wiki/Manual#exchange-properties)
+          - [Rate Limit](https://github.com/ccxt/ccxt/wiki/Manual#rate-limit)
+          - [DDoS Protection](https://github.com/ccxt/ccxt/wiki/Manual#ddos-protection-by-cloudflare--incapsula)
+          - [Authentication](https://github.com/ccxt/ccxt/wiki/Manual#authentication)
+          - [API Keys Setup](https://github.com/ccxt/ccxt/wiki/Manual#api-keys-setup)
+        - Read the [API docs](https://github.com/ccxt/ccxt/wiki/Exchange-Markets) for your exchange.
+        
+        ### Reporting Vulnerabilities And Critical Issues
+
+        If you found a security issue or a critical vulnerability and reporting it in public would impose risk – please feel free to send us a message to <a href="mailto:info@ccxt.trade">info@ccxt.trade</a>.
+
+  - type: checkboxes
+    attributes:
+      label: Preliminary Checks
+      options:
+        - label: "I have already searched for [existing issues](https://github.com/ccxt/ccxt/issues) and confirmed that this issue is not a duplicate"
+          required: true
+        - label: "This bug is directly related to ccxt"
+          required: true
+        - label: "I have read the [FAQ](https://github.com/ccxt/ccxt/wiki/FAQ) for most frequently asked questions"
+          required: true
+        - label: "I have read the [Troubleshooting](https://github.com/ccxt/ccxt/wiki/Manual#troubleshooting) section of the manual and followed troubleshooting steps"
+          required: true
+
+  - type: input
+    id: operating-system
+    attributes:
+      label: Operating System
+      placeholder: "e.g. MacOS Monteray v12.5.1 Intel Core i3"
+      description: |
+        obtain via `uname -mpovr` on Linux or via selecting ` -> System Preferences -> Overview` on MacOs
+    validations:
+      required: true
+  - type: radio
+    id: language
+    attributes:
+      label: Programming Language
+    options:
+      - JavaScript
+      - Python
+      - PHP
+    validations:
+      required: true
+  - type: input
+    id: language-version
+    attributes:
+      label: Language Version
+      placeholder: "e.g. v18.4.0"
+      description: |
+        obtain via `node -v` (JavaScript), `python -V` (python), or `php -v` (PHP)
+    validations:
+      required: true
+  - type: input
+    id: ccxt-version
+    attributes:
+      label: CCXT Version
+      placeholder: "e.g. v18.4.0"
+      description: |
+        obtain via `npm info ccxt version` (JavaScript), `pip freeze | grep ccxt` (python), or ` php --ri ccxt | grep Version` (PHP)
+    validations:
+      required: true
+
+  - type: textarea
+    attributes:
+      label: Description
+      description: Describe the issue that you're having using words
+      placeholder: Be precise. Include clear steps for how to reproduce the issue
+    validations:
+      required: true
+
+  - type: textarea
+    attributes:
+      label: code
+      description: Post the minimal code required for us to reproduce the error. Post the full code required for us to reproduce the error, so that we can copy and paste your code and receive the same error. DON'T POST SCREENSHOTS OF CODE OR ERRORS, POST THE OUTPUT AND CODE IN PLAIN TEXT!
+    validations:
+      required: true
+    value: |
+      ```$language\n
+      \n
+      ```
+
+  - type: textarea
+    attributes:
+      label: Current Result
+      description: paste the **full verbose output** of the failing method without your keys (should include the request and response from the exchange (not just an error callstack))
+      placeholder: paste the full output from your program with the property `exchange.verbose = true`. Remember to remove your apiKey, secret, password, etc.
+    validations:
+      required: true
+    value: |
+      ```$language\n
+      \n
+      ```
+
+  - type: checkboxes
+    attributes:
+      label: Removed apiKey and secret
+      options:
+        - label: "I have removed my apiKey and secret from the output I posted above"
+          required: true
+
+  - type: textarea
+    attributes:
+      label: Expected Result
+      description: paste the output that you expect your program should print with the bug removed
+    validations:
+      required: true
+    value: |
+      ```$language\n
+      \n
+      ```
+  
