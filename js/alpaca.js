@@ -760,7 +760,8 @@ module.exports = class alpaca extends Exchange {
         //       "i":"355681339"
         //   }
         //
-        const symbol = this.safeSymbol (undefined, market);
+        const marketId = this.safeString (trade, 'S');
+        const symbol = this.safeSymbol (marketId, market);
         const datetime = this.safeString (trade, 't');
         const timestamp = this.parse8601 (datetime);
         const alpacaSide = this.safeString (trade, 'tks');
