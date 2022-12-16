@@ -244,7 +244,8 @@ module.exports = class poloniexfutures extends Exchange {
         /**
          * @method
          * @name poloniexfutures#fetchMarkets
-         * @description retrieves data on all markets for poloniex futures
+         * @description retrieves data on all markets for poloniexfutures
+         * @see https://futures-docs.poloniex.com/#symbol-2
          * @param {object} params extra parameters specific to the exchange api endpoint
          * @returns {[object]} an array of objects representing market data
          */
@@ -384,6 +385,87 @@ module.exports = class poloniexfutures extends Exchange {
         return result;
     }
 
+    parseTicker (ticker, market = undefined) {
+        const marketId = this.safeString (ticker, 'symbol');
+        const symbol = this.safeSymbol (marketId, market);
+        const timestamp = Math.floor (this.safeNumber (ticker, 'ts') / 1000000);
+        const last = this.safeString (ticker, 'price');
+        return this.safeTicker ({
+            'symbol': symbol,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'high': undefined,
+            'low': undefined,
+            'bid': this.safeString (ticker, 'bestBidPrice'),
+            'bidVolume': this.safeString (ticker, 'bestBidSize'),
+            'ask': this.safeString (ticker, 'bestAskPrice'),
+            'askVolume': this.safeString (ticker, 'bestAskSize'),
+            'vwap': undefined,
+            'open': undefined,
+            'close': last,
+            'last': last,
+            'previousClose': undefined,
+            'change': undefined,
+            'percentage': undefined,
+            'average': undefined,
+            'baseVolume': undefined,
+            'quoteVolume': undefined,
+            'info': ticker,
+        }, market);
+    }
+
+    async fetchTicker (symbol, params = {}) {
+        /**
+         * @method
+         * @name poloniexfutures#fetchTicker
+         * @description fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+         * @see https://futures-docs.poloniex.com/#get-real-time-ticker-2-0
+         * @param {string} symbol unified symbol of the market to fetch the ticker for
+         * @param {object} params extra parameters specific to the poloniexfutures api endpoint
+         * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
+         */
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const request = {
+            'symbol': market['id'],
+        };
+        const response = await this.publicGetTicker (this.extend (request, params));
+        //
+        // {
+        //     code: '200000',
+        //     data: {
+        //       sequence: '11574719',
+        //       symbol: 'BTCUSDTPERP',
+        //       side: 'sell',
+        //       size: '1',
+        //       price: '16990.1',
+        //       bestBidSize: '3',
+        //       bestBidPrice: '16990.1',
+        //       bestAskPrice: '16991.0',
+        //       tradeId: '639c8a529fd7cf0001af4157',
+        //       bestAskSize: '505',
+        //       ts: '1671203410721232337'
+        //     }
+        // }
+        //
+        return this.parseTicker (this.safeValue (response, 'data', {}), market);
+    }
+
+    async fetchTickers (symbols = undefined, params = {}) {
+        /**
+         * @method
+         * @name poloniexfutures#fetchTickers
+         * @description fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
+         * @see https://futures-docs.poloniex.com/#get-real-time-ticker-of-all-symbols
+         * @param {[string]|undefined} symbols unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
+         * @param {object} params extra parameters specific to the poloniexfutures api endpoint
+         * @returns {object} an array of [ticker structures]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
+         */
+        await this.loadMarkets ();
+        const response = await this.publicGetTickers (params);
+        return this.parseTickers (this.safeValue (response, 'data', []), symbols);
+    }
+
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let url = this.urls['api'][api];
         const versions = this.safeValue (this.options, 'versions', {});
@@ -419,7 +501,7 @@ module.exports = class poloniexfutures extends Exchange {
             //     ).digest ()
             // )
         }
-        console.log (url);
+        console.log (url); // TODO: Remove console.logs
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
 
