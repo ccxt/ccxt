@@ -233,6 +233,7 @@ module.exports = class gemini extends Exchange {
             },
             'options': {
                 'fetchMarketsMethod': 'fetch_markets_from_web',
+                'fetchMarketFromWebRetries': 10,
                 'fetchMarketsFromAPI': {
                     'fetchDetailsForAllSymbols': false,
                     'fetchDetailsForMarketIds': [],
@@ -275,7 +276,21 @@ module.exports = class gemini extends Exchange {
     }
 
     async fetchMarketsFromWeb (params = {}) {
-        const response = await this.webGetRestApi (params);
+        // This endpoint so we retry
+        const maxRetries = this.safeInteger (this.options, 'fetchMarketFromWebRetries', 10);
+        let response = undefined;
+        let retry = 0;
+        while (retry < maxRetries) {
+            try {
+                response = await this.webGetRestApi (params);
+                break;
+            } catch (e) {
+                retry = retry + 1;
+                if (retry === maxRetries) {
+                    throw e;
+                }
+            }
+        }
         const sections = response.split ('<h1 id="symbols-and-minimums">Symbols and minimums</h1>');
         const numSections = sections.length;
         const error = this.id + ' fetchMarketsFromWeb() the ' + this.name + ' API doc HTML markup has changed, breaking the parser of order limits and precision info for ' + this.name + ' markets.';
@@ -1402,7 +1417,7 @@ module.exports = class gemini extends Exchange {
     }
 
     nonce () {
-        return this.seconds ();
+        return this.milliseconds ();
     }
 
     async fetchTransactions (code = undefined, since = undefined, limit = undefined, params = {}) {
