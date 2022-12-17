@@ -237,7 +237,7 @@ module.exports = class bitmex extends Exchange {
                 },
                 'networksById': {
                     'btc': 'BTC',
-                    'eth': 'ETH',
+                    'eth': 'ERC20',
                     'bsc': 'BSC',
                     'tron': 'TRX',
                     'avax': 'AVAX',
@@ -2713,10 +2713,9 @@ module.exports = class bitmex extends Exchange {
         if (networkCode === undefined) {
             throw new ArgumentsRequired (this.id + ' fetchDepositAddress requires params["network"]');
         }
-        const networks = this.safeValue (this.options, 'networks', {});
-        const networkId = this.safeStringLower (networks, networkCode, networkCode);
         const currency = this.currency (code);
         let currencyId = currency['id'];
+        const networkId = this.networkCodeToId (networkCode, currency['code']);
         const idLength = currencyId.length;
         currencyId = currencyId.slice (0, idLength - 1) + currencyId.slice (idLength - 1, idLength).toLowerCase ();  // make the last letter lowercase
         params = this.omit (params, 'network');
