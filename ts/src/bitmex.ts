@@ -2722,7 +2722,7 @@ export default class bitmex extends Exchange {
             'currency': currencyId,
             'network': networkId,
         };
-        const response = await this.privateGetUserDepositAddress (this.extend (request, params));
+        const response = await (this as any).privateGetUserDepositAddress (this.extend (request, params));
         //
         //    '"bc1qmex3puyrzn2gduqcnlu70c2uscpyaa9nm2l2j9le2lt2wkgmw33sy7ndjg"'
         //
