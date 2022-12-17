@@ -184,4 +184,17 @@ module.exports = class Exchange extends BaseExchange {
         }
         return n.toExponential ().replace ('e-', 'e-0');
     }
+
+     rejectAllClients () {
+        // console.log ("clients :", this.clients)
+        Object.values (this.clients || {}).forEach ((c) => {
+            try {
+                c.reject ()
+            } catch (e) {
+                if (this.verbose) {
+                    console.error (e)
+                }
+            }
+        })
+    }
 };
