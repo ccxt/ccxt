@@ -222,6 +222,7 @@ class bybit(Exchange):
                         'derivatives/v3/public/delivery-price': 1,
                         'derivatives/v3/public/recent-trade': 1,
                         'derivatives/v3/public/open-interest': 1,
+                        'derivatives/v3/public/insurance': 1,
                     },
                 },
                 'private': {
@@ -466,6 +467,7 @@ class bybit(Exchange):
                         'contract/v3/private/position/set-leverage': 1,
                         'contract/v3/private/position/trading-stop': 1,
                         'contract/v3/private/position/set-risk-limit': 1,
+                        'contract/v3/private/account/setMarginMode': 1,
                         # derivative
                         'unified/v3/private/order/create': 2.5,
                         'unified/v3/private/order/replace': 2.5,
@@ -1878,7 +1880,7 @@ class bybit(Exchange):
         #     ]
         #
         return [
-            self.safe_number(ohlcv, 0),
+            self.safe_integer(ohlcv, 0),
             self.safe_number(ohlcv, 1),
             self.safe_number(ohlcv, 2),
             self.safe_number(ohlcv, 3),
@@ -1990,7 +1992,7 @@ class bybit(Exchange):
         #     }
         #
         result = self.safe_value(response, 'result')
-        ohlcvs = self.safe_value(result, 'list')
+        ohlcvs = self.safe_value(result, 'list', [])
         return self.parse_ohlcvs(ohlcvs, market, timeframe, since, limit)
 
     def fetch_ohlcv(self, symbol, timeframe='1m', since=None, limit=None, params={}):
@@ -2230,8 +2232,8 @@ class bybit(Exchange):
             # if private response
             isBuyer = self.safe_integer(trade, 'isBuyer')
             isMaker = self.safe_integer(trade, 'isMaker')
-            takerOrMaker = 'maker' if (isMaker == 1) else 'taker'
-            side = 'buy' if (isBuyer == 1) else 'sell'
+            takerOrMaker = 'maker' if (isMaker == 0) else 'taker'
+            side = 'buy' if (isBuyer == 0) else 'sell'
         marketId = self.safe_string(trade, 'symbol')
         market = self.safe_market(marketId, market)
         fee = {}

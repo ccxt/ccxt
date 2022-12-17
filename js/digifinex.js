@@ -275,6 +275,70 @@ module.exports = class digifinex extends Exchange {
                     'margin': '2',
                     'OTC': '3',
                 },
+                'networks': {
+                    'ARBITRUM': 'Arbitrum',
+                    'AVALANCEC': 'AVAX-CCHAIN',
+                    'AVALANCEX': 'AVAX-XCHAIN',
+                    'BEP20': 'BEP20',
+                    'BSC': 'BEP20',
+                    'CARDANO': 'Cardano',
+                    'CELO': 'Celo',
+                    'CHILIZ': 'Chiliz',
+                    'COSMOS': 'COSMOS',
+                    'CRC20': 'Crypto.com',
+                    'CRONOS': 'Crypto.com',
+                    'DOGECOIN': 'DogeChain',
+                    'ERC20': 'ERC20',
+                    'ETH': 'ERC20',
+                    'ETHW': 'ETHW',
+                    'IOTA': 'MIOTA',
+                    'KLAYTN': 'KLAY',
+                    'MATIC': 'Polygon',
+                    'METIS': 'MetisDAO',
+                    'MOONBEAM': 'GLMR',
+                    'MOONRIVER': 'Moonriver',
+                    'OPTIMISM': 'OPETH',
+                    'POLYGON': 'Polygon',
+                    'RIPPLE': 'XRP',
+                    'SOLANA': 'SOL', // SOL & SPL
+                    'STELLAR': 'Stella', // XLM
+                    'TERRACLASSIC': 'TerraClassic',
+                    'TERRANEW': 'Terra',
+                    'TON': 'Ton',
+                    'TRC20': 'TRC20',
+                    'TRON': 'TRC20',
+                    'TRX': 'TRC20',
+                    'VECHAIN': 'Vechain', // VET
+                },
+                'networksById': {
+                    'Arbitrum': 'ARBITRUM',
+                    'AVAX-CCHAIN': 'AVALANCEC',
+                    'AVAX-XCHAIN': 'AVALANCEX',
+                    'BEP20': 'BEP20',
+                    'Cardano': 'CARDANO',
+                    'Celo': 'CELO',
+                    'Chiliz': 'CHILIZ',
+                    'COSMOS': 'COSMOS',
+                    'Crypto.com': 'CRC20', // CRONOS
+                    'DogeChain': 'DOGECOIN',
+                    'ERC20': 'ERC20',
+                    'ETHW': 'ETHW',
+                    'MIOTA': 'IOTA',
+                    'KLAY': 'KLAYTN',
+                    'Polygon': 'POLYGON',
+                    'MetisDAO': 'METIS',
+                    'Moonriver': 'MOONRIVER',
+                    'GLMR': 'MOONBEAM',
+                    'OPETH': 'OPTIMISM',
+                    'XRP': 'RIPPLE',
+                    'SOL': 'SOLANA',
+                    'Stella': 'STELLAR',
+                    'Terra': 'TERRANEW',
+                    'TerraClassic': 'TERRACLASSIC',
+                    'Ton': 'TON',
+                    'TRC20': 'TRC20',
+                    'Vechain': 'VECHAIN',
+                },
             },
             'commonCurrencies': {
                 'BHT': 'Black House Test',
@@ -284,14 +348,6 @@ module.exports = class digifinex extends Exchange {
                 'TEL': 'TEL666',
             },
         });
-    }
-
-    safeNetwork (networkId) {
-        if (networkId === undefined) {
-            return undefined;
-        } else {
-            return networkId.toUpperCase ();
-        }
     }
 
     async fetchCurrencies (params = {}) {
@@ -351,17 +407,27 @@ module.exports = class digifinex extends Exchange {
             const deposit = depositStatus > 0;
             const withdraw = withdrawStatus > 0;
             const active = deposit && withdraw;
-            const fee = this.safeNumber (currency, 'min_withdraw_fee'); // withdraw_fee_rate was zero for all currencies, so this was the worst case scenario
-            const minWithdraw = this.safeNumber (currency, 'min_withdraw_amount');
-            const minDeposit = this.safeNumber (currency, 'min_deposit_amount');
+            const feeString = this.safeString (currency, 'min_withdraw_fee'); // withdraw_fee_rate was zero for all currencies, so this was the worst case scenario
+            const fee = this.parseNumber (feeString);
+            const minWithdrawString = this.safeString (currency, 'min_withdraw_amount');
+            const minWithdraw = this.parseNumber (minWithdrawString);
+            const minDepositString = this.safeString (currency, 'min_deposit_amount');
+            const minDepositPrecisionLength = this.precisionFromString (minDepositString);
+            // define precision with temporary way
+            const feePrecisionLength = this.precisionFromString (feeString);
+            const minWithdrawPrecisionLength = this.precisionFromString (minWithdrawString);
+            const minDeposit = this.parseNumber (minDepositString);
+            const maxFoundPrecision = Math.max (feePrecisionLength, Math.max (minWithdrawPrecisionLength, minDepositPrecisionLength));
+            const precision = this.parseNumber (this.parsePrecision (this.numberToString (maxFoundPrecision)));
             const networkId = this.safeString (currency, 'chain');
+            const networkCode = this.networkIdToCode (networkId);
             const network = {
+                'info': currency,
                 'id': networkId,
-                'network': this.safeNetwork (networkId),
-                'name': undefined,
+                'network': networkCode,
                 'active': active,
-                'fee': fee,
-                'precision': this.parseNumber ('0.00000001'), // todo fix hardcoded value
+                'fee': this.parseNumber (feeString),
+                'precision': precision,
                 'deposit': deposit,
                 'withdraw': withdraw,
                 'limits': {
@@ -378,7 +444,6 @@ module.exports = class digifinex extends Exchange {
                         'max': undefined,
                     },
                 },
-                'info': currency,
             };
             if (code in result) {
                 if (Array.isArray (result[code]['info'])) {
@@ -408,7 +473,7 @@ module.exports = class digifinex extends Exchange {
                     'deposit': deposit,
                     'withdraw': withdraw,
                     'fee': fee,
-                    'precision': this.parseNumber ('1e-8'), // todo fix hardcoded value, as some currencies have precision of 0.01
+                    'precision': undefined,
                     'limits': {
                         'amount': {
                             'min': undefined,
@@ -426,7 +491,29 @@ module.exports = class digifinex extends Exchange {
                     'networks': {},
                 };
             }
-            result[code]['networks'][networkId] = network;
+            if (networkId !== undefined) {
+                result[code]['networks'][networkId] = network;
+            } else {
+                result[code]['active'] = active;
+                result[code]['fee'] = this.parseNumber (feeString);
+                result[code]['deposit'] = deposit;
+                result[code]['withdraw'] = withdraw;
+                result[code]['limits'] = {
+                    'amount': {
+                        'min': undefined,
+                        'max': undefined,
+                    },
+                    'withdraw': {
+                        'min': minWithdraw,
+                        'max': undefined,
+                    },
+                    'deposit': {
+                        'min': minDeposit,
+                        'max': undefined,
+                    },
+                };
+            }
+            result[code]['precision'] = (result[code]['precision'] === undefined) ? precision : Math.max (result[code]['precision'], precision);
         }
         return result;
     }
@@ -2642,7 +2729,7 @@ module.exports = class digifinex extends Exchange {
         const toId = this.safeString (accountsByType, toAccount, toAccount);
         const request = {
             'currency_mark': currency['id'],
-            'num': parseFloat (this.currencyToPrecision (code, amount)),
+            'num': this.currencyToPrecision (code, amount),
             'from': fromId, // 1 = SPOT, 2 = MARGIN, 3 = OTC
             'to': toId, // 1 = SPOT, 2 = MARGIN, 3 = OTC
         };
@@ -2680,7 +2767,7 @@ module.exports = class digifinex extends Exchange {
         const request = {
             // 'chain': 'ERC20', 'OMNI', 'TRC20', // required for USDT
             'address': address,
-            'amount': parseFloat (amount),
+            'amount': this.currencyToPrecision (code, amount),
             'currency': currency['id'],
         };
         if (tag !== undefined) {

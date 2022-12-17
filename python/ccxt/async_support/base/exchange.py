@@ -2,7 +2,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '2.2.85'
+__version__ = '2.4.24'
 
 # -----------------------------------------------------------------------------
 
@@ -290,6 +290,7 @@ class Exchange(BaseExchange):
             'defaultNetworkCodeReplacements': {
                 'ETH': {'ERC20': 'ETH'},
                 'TRX': {'TRC20': 'TRX'},
+                'CRO': {'CRC20': 'CRONOS'},
             },
         }
 
@@ -2132,3 +2133,25 @@ class Exchange(BaseExchange):
             },
             'networks': {},
         }
+
+    def assign_default_deposit_withdraw_fees(self, fee, currency=None):
+        """
+         * @ignore
+        Takes a depositWithdrawFee structure and assigns the default values for withdraw and deposit
+        :param dict fee: A deposit withdraw fee structure
+        :param dict currency: A currency structure, the response from self.currency()
+        :returns dict: A deposit withdraw fee structure
+        """
+        networkKeys = list(fee['networks'].keys())
+        numNetworks = len(networkKeys)
+        if numNetworks == 1:
+            fee['withdraw'] = fee['networks'][networkKeys[0]]['withdraw']
+            fee['deposit'] = fee['networks'][networkKeys[0]]['deposit']
+            return fee
+        currencyCode = self.safe_string(currency, 'code')
+        for i in range(0, numNetworks):
+            network = networkKeys[i]
+            if network == currencyCode:
+                fee['withdraw'] = fee['networks'][networkKeys[i]]['withdraw']
+                fee['deposit'] = fee['networks'][networkKeys[i]]['deposit']
+        return fee

@@ -205,6 +205,7 @@ module.exports = class Exchange {
                 '408': RequestTimeout,
                 '504': RequestTimeout,
                 '401': AuthenticationError,
+                '407': AuthenticationError,
                 '511': AuthenticationError,
             },
             'commonCurrencies': { // gets extended/overwritten in subclasses
@@ -805,6 +806,7 @@ module.exports = class Exchange {
             'defaultNetworkCodeReplacements': {
                 'ETH': { 'ERC20': 'ETH' },
                 'TRX': { 'TRC20': 'TRX' },
+                'CRO': { 'CRC20': 'CRONOS' },
             },
         };
     }
@@ -3068,5 +3070,32 @@ module.exports = class Exchange {
             },
             'networks': {},
         };
+    }
+
+    assignDefaultDepositWithdrawFees (fee, currency = undefined) {
+        /**
+         * @ignore
+         * @method
+         * @description Takes a depositWithdrawFee structure and assigns the default values for withdraw and deposit
+         * @param {object} fee A deposit withdraw fee structure
+         * @param {object} currency A currency structure, the response from this.currency ()
+         * @returns {object} A deposit withdraw fee structure
+         */
+        const networkKeys = Object.keys (fee['networks']);
+        const numNetworks = networkKeys.length;
+        if (numNetworks === 1) {
+            fee['withdraw'] = fee['networks'][networkKeys[0]]['withdraw'];
+            fee['deposit'] = fee['networks'][networkKeys[0]]['deposit'];
+            return fee;
+        }
+        const currencyCode = this.safeString (currency, 'code');
+        for (let i = 0; i < numNetworks; i++) {
+            const network = networkKeys[i];
+            if (network === currencyCode) {
+                fee['withdraw'] = fee['networks'][networkKeys[i]]['withdraw'];
+                fee['deposit'] = fee['networks'][networkKeys[i]]['deposit'];
+            }
+        }
+        return fee;
     }
 };

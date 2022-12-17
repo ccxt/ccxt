@@ -5034,7 +5034,7 @@ module.exports = class huobi extends Exchange {
         }
         const [ networkCode, paramsOmited ] = this.handleNetworkCodeAndParams (params);
         if (networkCode !== undefined) {
-            request['chain'] = this.networkPairIdFromCode (code, networkCode);
+            request['chain'] = this.networkCodeToId (networkCode, code);
         }
         const response = await this.spotPrivatePostV1DwWithdrawApiCreate (this.extend (request, paramsOmited));
         //

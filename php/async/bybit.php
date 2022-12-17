@@ -217,6 +217,7 @@ class bybit extends Exchange {
                         'derivatives/v3/public/delivery-price' => 1,
                         'derivatives/v3/public/recent-trade' => 1,
                         'derivatives/v3/public/open-interest' => 1,
+                        'derivatives/v3/public/insurance' => 1,
                     ),
                 ),
                 'private' => array(
@@ -461,6 +462,7 @@ class bybit extends Exchange {
                         'contract/v3/private/position/set-leverage' => 1,
                         'contract/v3/private/position/trading-stop' => 1,
                         'contract/v3/private/position/set-risk-limit' => 1,
+                        'contract/v3/private/account/setMarginMode' => 1,
                         // derivative
                         'unified/v3/private/order/create' => 2.5,
                         'unified/v3/private/order/replace' => 2.5,
@@ -1945,7 +1947,7 @@ class bybit extends Exchange {
         //     )
         //
         return array(
-            $this->safe_number($ohlcv, 0),
+            $this->safe_integer($ohlcv, 0),
             $this->safe_number($ohlcv, 1),
             $this->safe_number($ohlcv, 2),
             $this->safe_number($ohlcv, 3),
@@ -2070,7 +2072,7 @@ class bybit extends Exchange {
             //     }
             //
             $result = $this->safe_value($response, 'result');
-            $ohlcvs = $this->safe_value($result, 'list');
+            $ohlcvs = $this->safe_value($result, 'list', array());
             return $this->parse_ohlcvs($ohlcvs, $market, $timeframe, $since, $limit);
         }) ();
     }
@@ -2340,8 +2342,8 @@ class bybit extends Exchange {
             // if private response
             $isBuyer = $this->safe_integer($trade, 'isBuyer');
             $isMaker = $this->safe_integer($trade, 'isMaker');
-            $takerOrMaker = ($isMaker === 1) ? 'maker' : 'taker';
-            $side = ($isBuyer === 1) ? 'buy' : 'sell';
+            $takerOrMaker = ($isMaker === 0) ? 'maker' : 'taker';
+            $side = ($isBuyer === 0) ? 'buy' : 'sell';
         }
         $marketId = $this->safe_string($trade, 'symbol');
         $market = $this->safe_market($marketId, $market);

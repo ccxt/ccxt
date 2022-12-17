@@ -4,7 +4,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '2.2.85'
+__version__ = '2.4.24'
 
 # -----------------------------------------------------------------------------
 import traceback
@@ -205,6 +205,7 @@ class Exchange(object):
         '408': RequestTimeout,
         '504': RequestTimeout,
         '401': AuthenticationError,
+        '407': AuthenticationError,
         '511': AuthenticationError,
     }
     headers = None
@@ -871,7 +872,7 @@ class Exchange(object):
 
     @staticmethod
     def get_object_value_from_key_list(dictionary, key_list):
-        filtered_list = list(filter(lambda el: el in dictionary, key_list))
+        filtered_list = list(filter(lambda el: el in dictionary and dictionary[el] != '' and dictionary[el] is not None, key_list))
         if (len(filtered_list) == 0):
             return None
         return dictionary[filtered_list[0]]
@@ -1796,6 +1797,7 @@ class Exchange(object):
             'defaultNetworkCodeReplacements': {
                 'ETH': {'ERC20': 'ETH'},
                 'TRX': {'TRC20': 'TRX'},
+                'CRO': {'CRC20': 'CRONOS'},
             },
         }
 
@@ -3638,3 +3640,25 @@ class Exchange(object):
             },
             'networks': {},
         }
+
+    def assign_default_deposit_withdraw_fees(self, fee, currency=None):
+        """
+         * @ignore
+        Takes a depositWithdrawFee structure and assigns the default values for withdraw and deposit
+        :param dict fee: A deposit withdraw fee structure
+        :param dict currency: A currency structure, the response from self.currency()
+        :returns dict: A deposit withdraw fee structure
+        """
+        networkKeys = list(fee['networks'].keys())
+        numNetworks = len(networkKeys)
+        if numNetworks == 1:
+            fee['withdraw'] = fee['networks'][networkKeys[0]]['withdraw']
+            fee['deposit'] = fee['networks'][networkKeys[0]]['deposit']
+            return fee
+        currencyCode = self.safe_string(currency, 'code')
+        for i in range(0, numNetworks):
+            network = networkKeys[i]
+            if network == currencyCode:
+                fee['withdraw'] = fee['networks'][networkKeys[i]]['withdraw']
+                fee['deposit'] = fee['networks'][networkKeys[i]]['deposit']
+        return fee
