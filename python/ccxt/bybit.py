@@ -1880,7 +1880,7 @@ class bybit(Exchange):
         #     ]
         #
         return [
-            self.safe_number(ohlcv, 0),
+            self.safe_integer(ohlcv, 0),
             self.safe_number(ohlcv, 1),
             self.safe_number(ohlcv, 2),
             self.safe_number(ohlcv, 3),

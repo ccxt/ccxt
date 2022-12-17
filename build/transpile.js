@@ -5,6 +5,7 @@
 import fs from 'fs'
 import log from 'ololog'
 import ansi from 'ansicolor'
+import { promisify } from 'util'
 import errors from "../js/src/base/errors.js"
 import {unCamelCase, precisionConstants, safeString, unique} from "../js/src/base/functions.js"
 import { Exchange } from '../js/src/base/Exchange.js'
@@ -22,7 +23,7 @@ const pythonCodingUtf8 = '# -*- coding: utf-8 -*-'
 const baseExchangeJsFile = './ts/src/base/Exchange.ts'
 
 const exchanges = JSON.parse (fs.readFileSync("./exchanges.json", "utf8"));
-
+const exchangeIds = exchanges.ids
 
 let __dirname = new URL('.', import.meta.url).pathname;
 
@@ -1501,6 +1502,20 @@ class Transpiler {
 
     // ========================================================================
 
+    async getTSClassDeclarationsAllFiles (ids, folder, extension = '.js')  {
+        const files = fs.readdirSync (folder).filter (file => ids.includes (basename (file, extension)))
+        const promiseReadFile = promisify (fs.readFile);
+        const fileArray = await Promise.all (files.map (file => promiseReadFile (folder + file, 'utf8')));
+        const classComponents = await Promise.all (fileArray.map (file => this.getClassDeclarationMatches (file)));
+
+        const classes = {}
+        classComponents.forEach ( elem => classes[elem[1]] = elem[2] );
+
+        return classes
+    }
+
+    // ========================================================================
+
     exportTypeScriptClassNames (file, classes) {
 
         log.bright.cyan ('Exporting TypeScript class names →', file.yellow)
@@ -1526,7 +1541,9 @@ class Transpiler {
         replaceInFile (file, regex, replacement)
     }
 
-    exportTypeScriptDeclarations (file, classes) {
+    async exportTypeScriptDeclarations (file, jsFolder) {
+
+        const classes = await this.getTSClassDeclarationsAllFiles (exchangeIds, jsFolder);
 
         this.exportTypeScriptClassNames (file, classes)
         this.exportTypeScriptExchangeIds (file, classes)
@@ -2001,7 +2018,7 @@ class Transpiler {
     // ============================================================================
 
 
-    transpileEverything (force = false, child = false) {
+    async transpileEverything (force = false, child = false) {
 
         // default pattern is '.js'
         const exchanges = process.argv.slice (2).filter (x => !x.startsWith ('--'))
@@ -2035,7 +2052,7 @@ class Transpiler {
         this.transpileBaseMethods ()
         // HINT: if we're going to support specific class definitions
         // this process won't work anymore as it will override the definitions
-        this.exportTypeScriptDeclarations (tsFilename, classes)
+        await this.exportTypeScriptDeclarations (tsFilename, jsFolder)
 
         //*/
 
@@ -2089,9 +2106,11 @@ if (metaUrl === url.href || url.href === metaUrlRaw) { // called directly like `
     } else if (errors) {
         transpiler.transpileErrorHierarchy ({ tsFilename })
     } else if (multiprocess) {
-        parallelizeTranspiling (exchanges.ids)
+        parallelizeTranspiling (exchangeIds)
     } else {
-        transpiler.transpileEverything (force, child)
+        (async () => {
+            await transpiler.transpileEverything (force, child)
+        })()
     }
 
 } else { // if required as a module

@@ -18,6 +18,7 @@ import {  Transpiler, parallelizeTranspiling } from './transpile.js';
 import { pathToFileURL } from 'url'
 
 const exchanges = JSON.parse (fs.readFileSync("./exchanges.json", "utf8"));
+const wsExchangeIds = exchanges.ws;
 
 const { unCamelCase, precisionConstants, safeString, unique } = ccxt;
 
@@ -250,14 +251,15 @@ class CCXTProTranspiler extends Transpiler {
     
     // -----------------------------------------------------------------------
     
-    exportTypeScriptDeclarations (file, classes) {
+    async exportTypeScriptDeclarations (file, jsFolder) {
 
+        const classes = await this.getTSClassDeclarationsAllFiles (wsExchangeIds, jsFolder);
         this.exportTypeScriptClassNames (file, classes)
     }
 
     // -----------------------------------------------------------------------
     
-    transpileEverything (force = false, child = false) {
+    async transpileEverything (force = false, child = false) {
 
         // default pattern is '.js'
         // const [ /* node */, /* script */, pattern ] = process.argv.filter (x => !x.startsWith ('--'))
@@ -265,6 +267,7 @@ class CCXTProTranspiler extends Transpiler {
             // , python2Folder = './python/ccxtpro/', // CCXT Pro does not support Python 2
             , python3Folder = './python/ccxt/pro/'
             , phpAsyncFolder     = './php/pro/'
+            , jsFolder = './js/pro/'
             , options = { /* python2Folder, */ python3Folder, phpAsyncFolder, exchanges }
 
         // createFolderRecursively (python2Folder)
@@ -288,7 +291,7 @@ class CCXTProTranspiler extends Transpiler {
 
         // HINT: if we're going to support specific class definitions
         // this process won't work anymore as it will override the definitions
-        this.exportTypeScriptDeclarations (tsFilename, classes)
+        await this.exportTypeScriptDeclarations (tsFilename, jsFolder)
 
         //*/
 
@@ -320,7 +323,9 @@ if (metaUrl === url.href || url.href === metaUrlRaw) { // called directly like `
     if (multiprocess) {
         parallelizeTranspiling (exchanges.ws)
     } else {
-        transpiler.transpileEverything (force)
+        (async () => {
+            await transpiler.transpileEverything (force, child)
+        })()
     }
 
 } else {

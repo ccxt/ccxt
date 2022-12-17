@@ -20,7 +20,11 @@ export default class WsClient extends Client {
         }
         this.connectionStarted = milliseconds ()
         this.setConnectionTimeout ()
-        this.connection = new WebSocketPlatform (this.url, this.protocols, this.options)
+        if (isNode) {
+            this.connection = new WebSocket (this.url, this.protocols, this.options)
+        } else {
+            this.connection = new WebSocket (this.url, this.protocols)
+        }
 
         this.connection.onopen = this.onOpen.bind (this)
         this.connection.onmessage = this.onMessage.bind (this)

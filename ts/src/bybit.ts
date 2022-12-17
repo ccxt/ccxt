@@ -1927,7 +1927,7 @@ export default class bybit extends Exchange {
         //     ]
         //
         return [
-            this.safeNumber (ohlcv, 0),
+            this.safeInteger (ohlcv, 0),
             this.safeNumber (ohlcv, 1),
             this.safeNumber (ohlcv, 2),
             this.safeNumber (ohlcv, 3),

@@ -38,7 +38,9 @@ export default class bitmex extends Exchange {
                 'editOrder': true,
                 'fetchBalance': true,
                 'fetchClosedOrders': true,
-                'fetchDepositAddress': false,
+                'fetchDepositAddress': true,
+                'fetchDepositAddresses': false,
+                'fetchDepositAddressesByNetwork': false,
                 'fetchFundingHistory': false,
                 'fetchFundingRate': false,
                 'fetchFundingRateHistory': true,
@@ -216,6 +218,33 @@ export default class bitmex extends Exchange {
                 // https://github.com/ccxt/ccxt/issues/4789
                 'api-expires': 5, // in seconds
                 'fetchOHLCVOpenTimestamp': true,
+                'networks': {
+                    'BTC': 'btc',
+                    'ETH': 'eth',
+                    'BSC': 'bsc',
+                    'BNB': 'bsc',
+                    'TRON': 'tron',
+                    'ERC20': 'eth',
+                    'BEP20': 'bsc',
+                    'TRC20': 'tron',
+                    'TRX': 'tron',
+                    'AVAX': 'avax',
+                    'NEAR': 'near',
+                    'XTZ': 'xtz',
+                    'DOT': 'dot',
+                    'SOL': 'sol',
+                },
+                'networksById': {
+                    'btc': 'BTC',
+                    'eth': 'ERC20',
+                    'bsc': 'BSC',
+                    'tron': 'TRX',
+                    'avax': 'AVAX',
+                    'near': 'NEAR',
+                    'xtz': 'XTZ',
+                    'dot': 'DOT',
+                    'sol': 'SOL',
+                },
             },
             'commonCurrencies': {
                 'USDt': 'USDT',
@@ -223,6 +252,8 @@ export default class bitmex extends Exchange {
                 'XBT': 'BTC',
                 'Gwei': 'ETH',
                 'GWEI': 'ETH',
+                'LAMP': 'SOL',
+                'LAMp': 'SOL',
             },
         });
     }
@@ -2663,6 +2694,45 @@ export default class bitmex extends Exchange {
             'enabled': enabled,
         };
         return await (this as any).privatePostPositionIsolate (this.extend (request, params));
+    }
+
+    async fetchDepositAddress (code, params = {}) {
+        /**
+         * @method
+         * @name bitmex#fetchDepositAddress
+         * @description fetch the deposit address for a currency associated with this account
+         * @see https://www.bitmex.com/api/explorer/#!/User/User_getDepositAddress
+         * @param {string} code unified currency code
+         * @param {object} params extra parameters specific to the bitmex api endpoint
+         * @param {string} params.network deposit chain, can view all chains via this.publicGetWalletAssets, default is eth, unless the currency has a default chain within this.options['networks']
+         * @returns {object} an [address structure]{@link https://docs.ccxt.com/en/latest/manual.html#address-structure}
+         */
+        await this.loadMarkets ();
+        const networkCode = this.safeStringUpper (params, 'network');
+        if (networkCode === undefined) {
+            throw new ArgumentsRequired (this.id + ' fetchDepositAddress requires params["network"]');
+        }
+        const currency = this.currency (code);
+        let currencyId = currency['id'];
+        const networkId = this.networkCodeToId (networkCode, currency['code']);
+        const idLength = currencyId.length;
+        currencyId = currencyId.slice (0, idLength - 1) + currencyId.slice (idLength - 1, idLength).toLowerCase ();  // make the last letter lowercase
+        params = this.omit (params, 'network');
+        const request = {
+            'currency': currencyId,
+            'network': networkId,
+        };
+        const response = await this.privateGetUserDepositAddress (this.extend (request, params));
+        //
+        //    '"bc1qmex3puyrzn2gduqcnlu70c2uscpyaa9nm2l2j9le2lt2wkgmw33sy7ndjg"'
+        //
+        return {
+            'currency': code,
+            'address': response.replace ('"', '').replace ('"', ''),  // Done twice because some languages only replace the first instance
+            'tag': undefined,
+            'network': this.networkIdToCode (networkId).toUpperCase (),
+            'info': response,
+        };
     }
 
     calculateRateLimiterCost (api, method, path, params, config = {}, context = {}) {

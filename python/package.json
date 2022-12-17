@@ -1,6 +1,6 @@
 {
   "name": "ccxt",
-  "version": "2.4.16",
+  "version": "2.4.26",
   "description": "A JavaScript / Python / PHP cryptocurrency trading library with support for 130+ exchanges",
   "main": "./ccxt.js",
   "unpkg": "dist/ccxt.browser.js",
@@ -18,7 +18,8 @@
   "scripts": {
     "docker": "docker-compose run --rm ccxt",
     "build": "npm run pre-transpile && npm run transpile && npm run post-transpile && npm run update-badges",
-    "force-build": "npm run pre-transpile && npm run force-transpile && npm run post-transpile && npm run update-badges",
+    "force-build": "npm run pre-transpile && npm run force-transpile-fast && npm run post-transpile && npm run update-badges",
+    "force-build-slow": "npm run pre-transpile && npm run force-transpile && npm run post-transpile && npm run update-badges",
     "pre-transpile": "npm run export-exchanges && npm run vss && npm run copy-python-files && npm run check-js-syntax && npm run browserify",
     "post-transpile": "npm run check-python-syntax && npm run check-php-syntax",
     "test": "npm run build && node run-tests",
@@ -40,8 +41,23 @@
     "git-unignore-generated-files": "node build/git-ignore-generated-files --unignore",
     "update-badges": "node build/update-badges",
     "update-links": "node build/update-links",
-    "transpile": "node build/transpile",
-    "force-transpile": "node build/transpile --force",
+    "transpile": "npm run transpileRest && npm run transpileWs",
+    "transpileRest": "node build/transpile",
+    "transpileWs": "node build/transpileWS",
+    "force-transpile": "npm run force-transpileRest && npm run force-transpileWs",
+    "force-transpile-fast": "npm run dev-force-transpile",
+    "dev-force-transpile": "npm run fast-force-transpileRest && npm run fast-force-transpileWs",
+    "force-transpileRest": "node build/transpile --force",
+    "fast-force-transpileRest": "node build/transpile.js --multiprocess",
+    "force-transpileWs": "node build/transpileWS --force",
+    "fast-force-transpileWs": "node build/transpileWS.js --multiprocess",
+    "test-js-cache": "node js/pro/test/base/test.Cache.js",
+    "test-js-orderbook": "node js/pro/test/base/test.OrderBook.js",
+    "test-python-cache": "python python/ccxt/pro/test/test_cache.py",
+    "test-python-orderbook": "python python/ccxt/pro/test/test_order_book.py",
+    "test-ws-php-base": "npm run test-php-cache && npm run test-php-orderbook",
+    "test-php-cache": "php -f php/pro/test/Cache.php",
+    "test-php-orderbook": "php -f php/pro/test/OrderBook.php",
     "vss": "node build/vss",
     "lint": "eslint",
     "check-syntax": "npm run transpile && npm run check-js-syntax && npm run check-python-syntax && npm run check-php-syntax",
@@ -66,7 +82,8 @@
     "eslint-config-airbnb-base": "15.0.0",
     "eslint-plugin-import": "2.25.4",
     "https-proxy-agent": "^5.0.1",
-    "ololog": "1.1.155"
+    "ololog": "1.1.155",
+    "replace-in-file": "^6.3.5"
   },
   "author": {
     "name": "Igor Kroitor",
@@ -592,5 +609,8 @@
     "url": "https://opencollective.com/ccxt",
     "logo": "https://opencollective.com/ccxt/logo.txt"
   },
-  "ethereum": "0x26a3CB49578F07000575405a57888681249c35Fd"
+  "ethereum": "0x26a3CB49578F07000575405a57888681249c35Fd",
+  "dependencies": {
+    "ws": "^8.8.1"
+  }
 }

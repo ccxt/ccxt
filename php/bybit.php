@@ -1916,7 +1916,7 @@ class bybit extends Exchange {
         //     )
         //
         return array(
-            $this->safe_number($ohlcv, 0),
+            $this->safe_integer($ohlcv, 0),
             $this->safe_number($ohlcv, 1),
             $this->safe_number($ohlcv, 2),
             $this->safe_number($ohlcv, 3),
