@@ -3059,12 +3059,16 @@ module.exports = class mexc3 extends Exchange {
         const isMargin = this.safeValue (params, 'margin', false);
         params = this.omit (params, [ 'margin', 'marginMode' ]);
         if ((marginMode !== undefined) || (isMargin) || (marketType === 'margin')) {
-            let parsedSymbols = this.safeString (params, 'symbol');
-            if (parsedSymbols === undefined) {
+            let parsedSymbols = undefined;
+            const symbol = this.safeString (params, 'symbol');
+            if (symbol === undefined) {
                 const symbols = this.safeValue (params, 'symbols');
                 if (symbols !== undefined) {
-                    parsedSymbols = symbols.join (',');
+                    parsedSymbols = this.marketIds (symbols).join (',');
                 }
+            } else {
+                const market = this.market (symbol);
+                parsedSymbols = market['id'];
             }
             this.checkRequiredArgument ('fetchBalance', parsedSymbols, 'symbol or symbols');
             method = 'spotPrivateGetMarginIsolatedAccount';
