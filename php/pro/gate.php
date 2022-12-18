@@ -61,6 +61,9 @@ class gate extends \ccxt\async\gate {
                 'watchTradesSubscriptions' => array(),
                 'watchTickerSubscriptions' => array(),
                 'watchOrderBookSubscriptions' => array(),
+                'watchTicker' => array(
+                    'name' => 'tickers', // or book_ticker
+                ),
                 'watchOrderBook' => array(
                     'interval' => '100ms',
                 ),
@@ -366,7 +369,9 @@ class gate extends \ccxt\async\gate {
             $marketId = $market['id'];
             $type = $market['type'];
             $messageType = $this->get_uniform_type($type);
-            $channel = $messageType . '.' . 'tickers';
+            $options = $this->safe_value($this->options, 'watchTicker', array());
+            $topic = $this->safe_string($options, 'topic', 'tickers');
+            $channel = $messageType . '.' . $topic;
             $messageHash = $channel . '.' . $market['symbol'];
             $payload = array( $marketId );
             $url = $this->get_url_by_market_type($type, $market['inverse']);
@@ -390,6 +395,21 @@ class gate extends \ccxt\async\gate {
         //          quote_volume => '227267634.93123952',
         //          high_24h => '47698',
         //          low_24h => '42721.03'
+        //        }
+        //    }
+        //    {
+        //        time => 1671363004,
+        //        time_ms => 1671363004235,
+        //        $channel => 'spot.book_ticker',
+        //        event => 'update',
+        //        $result => {
+        //          t => 1671363004228,
+        //          u => 9793320464,
+        //          s => 'BTC_USDT',
+        //          b => '16716.8',
+        //          B => '0.0134',
+        //          a => '16716.9',
+        //          A => '0.0353'
         //        }
         //    }
         //
@@ -1139,6 +1159,7 @@ class gate extends \ccxt\async\gate {
             'candlesticks' => array($this, 'handle_ohlcv'),
             'orders' => array($this, 'handle_order'),
             'tickers' => array($this, 'handle_ticker'),
+            'book_ticker' => array($this, 'handle_ticker'),
             'trades' => array($this, 'handle_trades'),
             'order_book_update' => array($this, 'handle_order_book'),
             'balances' => array($this, 'handle_balance_message'),
