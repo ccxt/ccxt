@@ -3049,6 +3049,7 @@ module.exports = class mexc3 extends Exchange {
          */
         await this.loadMarkets ();
         let marketType = undefined;
+        const request = {};
         [ marketType, params ] = this.handleMarketTypeAndParams ('fetchBalance', undefined, params);
         let method = this.getSupportedMapping (marketType, {
             'spot': 'spotPrivateGetAccount',
@@ -3057,7 +3058,6 @@ module.exports = class mexc3 extends Exchange {
         });
         const marginMode = this.safeString (params, 'marginMode');
         const isMargin = this.safeValue (params, 'margin', false);
-        params = this.omit (params, [ 'margin', 'marginMode' ]);
         if ((marginMode !== undefined) || (isMargin) || (marketType === 'margin')) {
             let parsedSymbols = undefined;
             const symbol = this.safeString (params, 'symbol');
@@ -3073,8 +3073,10 @@ module.exports = class mexc3 extends Exchange {
             this.checkRequiredArgument ('fetchBalance', parsedSymbols, 'symbol or symbols');
             method = 'spotPrivateGetMarginIsolatedAccount';
             marketType = 'margin';
+            request['symbols'] = parsedSymbols;
         }
-        const response = await this[method] (params);
+        params = this.omit (params, [ 'margin', 'marginMode', 'symbol', 'symbols' ]);
+        const response = await this[method] (this.extend (request, params));
         //
         // spot
         //
