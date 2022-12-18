@@ -3058,7 +3058,7 @@ module.exports = class mexc3 extends Exchange {
         const marginMode = this.safeString (params, 'marginMode');
         const isMargin = this.safeValue (params, 'margin', false);
         params = this.omit (params, [ 'margin', 'marginMode' ]);
-        if ((marginMode !== undefined) || (isMargin) || (marketType === 'margin'))) {
+        if ((marginMode !== undefined) || (isMargin) || (marketType === 'margin')) {
             const symbols = this.safeString (params, 'symbols');
             this.checkRequiredArgument ('fetchBalance', symbols, 'symbols');
             method = 'spotPrivateGetMarginIsolatedAccount';
