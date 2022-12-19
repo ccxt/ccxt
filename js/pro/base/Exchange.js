@@ -181,11 +181,4 @@ module.exports = class Exchange extends BaseExchange {
         }
         return undefined;
     }
-
-    formatScientificNotationFTX (n) {
-        if (n === 0) {
-            return '0e-00';
-        }
-        return n.toExponential ().replace ('e-', 'e-0');
-    }
 };

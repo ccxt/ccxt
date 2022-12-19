@@ -293,6 +293,70 @@ class digifinex(Exchange):
                     'margin': '2',
                     'OTC': '3',
                 },
+                'networks': {
+                    'ARBITRUM': 'Arbitrum',
+                    'AVALANCEC': 'AVAX-CCHAIN',
+                    'AVALANCEX': 'AVAX-XCHAIN',
+                    'BEP20': 'BEP20',
+                    'BSC': 'BEP20',
+                    'CARDANO': 'Cardano',
+                    'CELO': 'Celo',
+                    'CHILIZ': 'Chiliz',
+                    'COSMOS': 'COSMOS',
+                    'CRC20': 'Crypto.com',
+                    'CRONOS': 'Crypto.com',
+                    'DOGECOIN': 'DogeChain',
+                    'ERC20': 'ERC20',
+                    'ETH': 'ERC20',
+                    'ETHW': 'ETHW',
+                    'IOTA': 'MIOTA',
+                    'KLAYTN': 'KLAY',
+                    'MATIC': 'Polygon',
+                    'METIS': 'MetisDAO',
+                    'MOONBEAM': 'GLMR',
+                    'MOONRIVER': 'Moonriver',
+                    'OPTIMISM': 'OPETH',
+                    'POLYGON': 'Polygon',
+                    'RIPPLE': 'XRP',
+                    'SOLANA': 'SOL',  # SOL & SPL
+                    'STELLAR': 'Stella',  # XLM
+                    'TERRACLASSIC': 'TerraClassic',
+                    'TERRANEW': 'Terra',
+                    'TON': 'Ton',
+                    'TRC20': 'TRC20',
+                    'TRON': 'TRC20',
+                    'TRX': 'TRC20',
+                    'VECHAIN': 'Vechain',  # VET
+                },
+                'networksById': {
+                    'Arbitrum': 'ARBITRUM',
+                    'AVAX-CCHAIN': 'AVALANCEC',
+                    'AVAX-XCHAIN': 'AVALANCEX',
+                    'BEP20': 'BEP20',
+                    'Cardano': 'CARDANO',
+                    'Celo': 'CELO',
+                    'Chiliz': 'CHILIZ',
+                    'COSMOS': 'COSMOS',
+                    'Crypto.com': 'CRC20',  # CRONOS
+                    'DogeChain': 'DOGECOIN',
+                    'ERC20': 'ERC20',
+                    'ETHW': 'ETHW',
+                    'MIOTA': 'IOTA',
+                    'KLAY': 'KLAYTN',
+                    'Polygon': 'POLYGON',
+                    'MetisDAO': 'METIS',
+                    'Moonriver': 'MOONRIVER',
+                    'GLMR': 'MOONBEAM',
+                    'OPETH': 'OPTIMISM',
+                    'XRP': 'RIPPLE',
+                    'SOL': 'SOLANA',
+                    'Stella': 'STELLAR',
+                    'Terra': 'TERRANEW',
+                    'TerraClassic': 'TERRACLASSIC',
+                    'Ton': 'TON',
+                    'TRC20': 'TRC20',
+                    'Vechain': 'VECHAIN',
+                },
             },
             'commonCurrencies': {
                 'BHT': 'Black House Test',
@@ -302,12 +366,6 @@ class digifinex(Exchange):
                 'TEL': 'TEL666',
             },
         })
-
-    def safe_network(self, networkId):
-        if networkId is None:
-            return None
-        else:
-            return networkId.upper()
 
     async def fetch_currencies(self, params={}):
         """
@@ -364,17 +422,27 @@ class digifinex(Exchange):
             deposit = depositStatus > 0
             withdraw = withdrawStatus > 0
             active = deposit and withdraw
-            fee = self.safe_number(currency, 'min_withdraw_fee')  # withdraw_fee_rate was zero for all currencies, so self was the worst case scenario
-            minWithdraw = self.safe_number(currency, 'min_withdraw_amount')
-            minDeposit = self.safe_number(currency, 'min_deposit_amount')
+            feeString = self.safe_string(currency, 'min_withdraw_fee')  # withdraw_fee_rate was zero for all currencies, so self was the worst case scenario
+            fee = self.parse_number(feeString)
+            minWithdrawString = self.safe_string(currency, 'min_withdraw_amount')
+            minWithdraw = self.parse_number(minWithdrawString)
+            minDepositString = self.safe_string(currency, 'min_deposit_amount')
+            minDepositPrecisionLength = self.precision_from_string(minDepositString)
+            # define precision with temporary way
+            feePrecisionLength = self.precision_from_string(feeString)
+            minWithdrawPrecisionLength = self.precision_from_string(minWithdrawString)
+            minDeposit = self.parse_number(minDepositString)
+            maxFoundPrecision = max(feePrecisionLength, max(minWithdrawPrecisionLength, minDepositPrecisionLength))
+            precision = self.parse_number(self.parse_precision(self.number_to_string(maxFoundPrecision)))
             networkId = self.safe_string(currency, 'chain')
+            networkCode = self.network_id_to_code(networkId)
             network = {
+                'info': currency,
                 'id': networkId,
-                'network': self.safe_network(networkId),
-                'name': None,
+                'network': networkCode,
                 'active': active,
-                'fee': fee,
-                'precision': self.parse_number('0.00000001'),  # todo fix hardcoded value
+                'fee': self.parse_number(feeString),
+                'precision': precision,
                 'deposit': deposit,
                 'withdraw': withdraw,
                 'limits': {
@@ -391,7 +459,6 @@ class digifinex(Exchange):
                         'max': None,
                     },
                 },
-                'info': currency,
             }
             if code in result:
                 if isinstance(result[code]['info'], list):
@@ -417,7 +484,7 @@ class digifinex(Exchange):
                     'deposit': deposit,
                     'withdraw': withdraw,
                     'fee': fee,
-                    'precision': self.parse_number('0.00000001'),  # todo fix hardcoded value
+                    'precision': None,
                     'limits': {
                         'amount': {
                             'min': None,
@@ -434,7 +501,28 @@ class digifinex(Exchange):
                     },
                     'networks': {},
                 }
-            result[code]['networks'][networkId] = network
+            if networkId is not None:
+                result[code]['networks'][networkId] = network
+            else:
+                result[code]['active'] = active
+                result[code]['fee'] = self.parse_number(feeString)
+                result[code]['deposit'] = deposit
+                result[code]['withdraw'] = withdraw
+                result[code]['limits'] = {
+                    'amount': {
+                        'min': None,
+                        'max': None,
+                    },
+                    'withdraw': {
+                        'min': minWithdraw,
+                        'max': None,
+                    },
+                    'deposit': {
+                        'min': minDeposit,
+                        'max': None,
+                    },
+                }
+            result[code]['precision'] = precision if (result[code]['precision'] is None) else max(result[code]['precision'], precision)
         return result
 
     async def fetch_markets(self, params={}):
@@ -1066,8 +1154,8 @@ class digifinex(Exchange):
             'change': None,
             'percentage': self.safe_string_2(ticker, 'change', 'price_change_percent'),
             'average': None,
-            'baseVolume': self.safe_string(ticker, 'base_vol'),
-            'quoteVolume': self.safe_string_2(ticker, 'vol', 'volume_24h'),
+            'baseVolume': self.safe_string_2(ticker, 'vol', 'volume_24h'),
+            'quoteVolume': self.safe_string(ticker, 'base_vol'),
             'info': ticker,
         }, market)
 
@@ -2481,7 +2569,7 @@ class digifinex(Exchange):
         toId = self.safe_string(accountsByType, toAccount, toAccount)
         request = {
             'currency_mark': currency['id'],
-            'num': float(self.currency_to_precision(code, amount)),
+            'num': self.currency_to_precision(code, amount),
             'from': fromId,  # 1 = SPOT, 2 = MARGIN, 3 = OTC
             'to': toId,  # 1 = SPOT, 2 = MARGIN, 3 = OTC
         }
@@ -2516,7 +2604,7 @@ class digifinex(Exchange):
         request = {
             # 'chain': 'ERC20', 'OMNI', 'TRC20',  # required for USDT
             'address': address,
-            'amount': float(amount),
+            'amount': self.currency_to_precision(code, amount),
             'currency': currency['id'],
         }
         if tag is not None:

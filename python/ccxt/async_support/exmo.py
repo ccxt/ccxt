@@ -577,7 +577,7 @@ class exmo(Exchange):
                 'deposit': depositEnabled,
                 'withdraw': withdrawEnabled,
                 'fee': fee,
-                'precision': self.parse_number('0.00000001'),
+                'precision': self.parse_number('1e-8'),
                 'limits': limits,
                 'info': providers,
             }
@@ -631,7 +631,7 @@ class exmo(Exchange):
                 'swap': False,
                 'future': False,
                 'option': False,
-                'active': True,
+                'active': None,
                 'contract': False,
                 'linear': None,
                 'inverse': None,
@@ -643,7 +643,7 @@ class exmo(Exchange):
                 'strike': None,
                 'optionType': None,
                 'precision': {
-                    'amount': self.parse_number('0.00000001'),
+                    'amount': self.parse_number('1e-8'),
                     'price': self.parse_number(self.parse_precision(self.safe_string(market, 'price_precision'))),
                 },
                 'limits': {
@@ -1542,6 +1542,14 @@ class exmo(Exchange):
         #             "error": ""
         #          },
         #
+        # withdraw
+        #
+        #          {
+        #              "result":true,
+        #              "error":"",
+        #              "task_id":11775077
+        #          },
+        #
         id = self.safe_string_2(transaction, 'order_id', 'task_id')
         timestamp = self.safe_timestamp_2(transaction, 'dt', 'created')
         updated = self.safe_timestamp(transaction, 'updated')
@@ -1578,7 +1586,9 @@ class exmo(Exchange):
             key = 'withdraw' if (type == 'withdrawal') else 'deposit'
             feeCost = self.safe_string(transaction, 'commission')
             if feeCost is None:
-                feeCost = self.safe_string(self.options['transactionFees'][code], key)
+                transactionFees = self.safe_value(self.options, 'transactionFees', {})
+                codeFees = self.safe_value(transactionFees, code, {})
+                feeCost = self.safe_string(codeFees, key)
             # users don't pay for cashbacks, no fees for that
             provider = self.safe_string(transaction, 'provider')
             if provider == 'cashback':
