@@ -727,7 +727,6 @@ module.exports = class poloniexfutures extends Exchange {
          * @param {object} params extra parameters specific to the poloniexfutures api endpoint
          * @returns {object} a [balance structure]{@link https://docs.ccxt.com/en/latest/manual.html?#balance-structure}
          */
-        // TODO: Python Error
         await this.loadMarkets ();
         const currencyId = this.safeString (params, 'currency');
         let request = {};
@@ -773,7 +772,9 @@ module.exports = class poloniexfutures extends Exchange {
             }
         } else {
             this.checkRequiredCredentials ();
-            body = this.urlencode (query);
+            if (method !== 'GET' && method !== 'HEAD') {
+                body = this.urlencode (query);
+            }
             const now = this.milliseconds ().toString ();
             const payload = now + method + tail;
             const signature = this.hmac (this.encode (payload), this.encode (this.secret), 'sha256', 'base64');
@@ -783,9 +784,6 @@ module.exports = class poloniexfutures extends Exchange {
                 'PF-API-KEY': this.apiKey,
                 'PF-API-PASSPHRASE': this.password,
             };
-            if (method === 'GET') {
-                return { 'url': url, 'method': method, 'headers': headers };
-            }
         }
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
