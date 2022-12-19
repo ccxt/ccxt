@@ -2774,7 +2774,9 @@ class phemex(Exchange):
         leverage = self.safe_number(position, 'leverage')
         entryPriceString = self.safe_string(position, 'avgEntryPrice')
         rawSide = self.safe_string(position, 'side')
-        side = 'long' if (rawSide == 'Buy') else 'short'
+        side = None
+        if rawSide is not None:
+            side = 'long' if (rawSide == 'Buy') else 'short'
         priceDiff = None
         currency = self.safe_string(position, 'currency')
         if currency == 'USD':

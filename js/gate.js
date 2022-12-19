@@ -73,6 +73,7 @@ module.exports = class gate extends Exchange {
                 'createStopLimitOrder': true,
                 'createStopMarketOrder': false,
                 'createStopOrder': true,
+                'editOrder': true,
                 'fetchBalance': true,
                 'fetchBorrowRate': false,
                 'fetchBorrowRateHistories': false,
@@ -255,6 +256,9 @@ module.exports = class gate extends Exchange {
                             'orders/{order_id}': 1,
                             'price_orders': 1,
                             'price_orders/{order_id}': 1,
+                        },
+                        'patch': {
+                            'orders/{order_id}': 1,
                         },
                     },
                     'margin': {
@@ -2089,13 +2093,27 @@ module.exports = class gate extends Exchange {
         //         "index_price": "6531"
         //     }
         //
-        const marketId = this.safeString2 (ticker, 'currency_pair', 'contract');
+        // bookTicker
+        //    {
+        //        t: 1671363004228,
+        //        u: 9793320464,
+        //        s: 'BTC_USDT',
+        //        b: '16716.8', // best bid price
+        //        B: '0.0134', // best bid size
+        //        a: '16716.9', // best ask price
+        //        A: '0.0353' // best ask size
+        //     }
+        //
+        const marketId = this.safeStringN (ticker, [ 'currency_pair', 'contract', 's' ]);
         const symbol = this.safeSymbol (marketId, market);
         const last = this.safeString (ticker, 'last');
-        const ask = this.safeString (ticker, 'lowest_ask');
-        const bid = this.safeString (ticker, 'highest_bid');
+        const ask = this.safeString2 (ticker, 'lowest_ask', 'a');
+        const bid = this.safeString2 (ticker, 'highest_bid', 'b');
         const high = this.safeString (ticker, 'high_24h');
         const low = this.safeString (ticker, 'low_24h');
+        const bidVolume = this.safeString (ticker, 'B');
+        const askVolume = this.safeString (ticker, 'A');
+        const timestamp = this.safeInteger (ticker, 't');
         let baseVolume = this.safeString2 (ticker, 'base_volume', 'volume_24h_base');
         if (baseVolume === 'nan') {
             baseVolume = '0';
@@ -2107,14 +2125,14 @@ module.exports = class gate extends Exchange {
         const percentage = this.safeString (ticker, 'change_percentage');
         return this.safeTicker ({
             'symbol': symbol,
-            'timestamp': undefined,
-            'datetime': undefined,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
             'high': high,
             'low': low,
             'bid': bid,
-            'bidVolume': undefined,
+            'bidVolume': bidVolume,
             'ask': ask,
-            'askVolume': undefined,
+            'askVolume': askVolume,
             'vwap': undefined,
             'open': undefined,
             'close': last,
@@ -3330,8 +3348,84 @@ module.exports = class gate extends Exchange {
         return this.parseOrder (response, market);
     }
 
+    async editOrder (id, symbol, type, side, amount, price = undefined, params = {}) {
+        /**
+         * @method
+         * @name gate#editOrder
+         * @description edit a trade order, gate currently only supports the modification of the price or amount fields
+         * @see https://www.gate.io/docs/developers/apiv4/en/#amend-an-order
+         * @param {string} id order id
+         * @param {string} symbol unified symbol of the market to create an order in
+         * @param {string} type 'market' or 'limit'
+         * @param {string} side 'buy' or 'sell'
+         * @param {float} amount how much of the currency you want to trade in units of the base currency
+         * @param {float|undefined} price the price at which the order is to be fullfilled, in units of the base currency, ignored in market orders
+         * @param {object} params extra parameters specific to the gate api endpoint
+         * @returns {object} an [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
+         */
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        if (!market['spot']) {
+            throw new BadRequest (this.id + ' editOrder() supports only spot markets');
+        }
+        const [ marketType, query ] = this.handleMarketTypeAndParams ('editOrder', market, params);
+        const account = this.convertTypeToAccount (marketType);
+        const isLimitOrder = (type === 'limit');
+        if (account === 'spot') {
+            if (!isLimitOrder) {
+                // exchange doesn't have market orders for spot
+                throw new InvalidOrder (this.id + ' editOrder() does not support ' + type + ' orders for ' + marketType + ' markets');
+            }
+        }
+        const request = {
+            'order_id': id,
+            'currency_pair': market['id'],
+            'account': account,
+        };
+        if (amount !== undefined) {
+            request['amount'] = this.amountToPrecision (symbol, amount);
+        }
+        if (price !== undefined) {
+            request['price'] = this.priceToPrecision (symbol, price);
+        }
+        const response = await this.privateSpotPatchOrdersOrderId (this.extend (request, query));
+        //
+        //     {
+        //         "id": "243233276443",
+        //         "text": "apiv4",
+        //         "create_time": "1670908873",
+        //         "update_time": "1670914102",
+        //         "create_time_ms": 1670908873077,
+        //         "update_time_ms": 1670914102241,
+        //         "status": "open",
+        //         "currency_pair": "ADA_USDT",
+        //         "type": "limit",
+        //         "account": "spot",
+        //         "side": "sell",
+        //         "amount": "10",
+        //         "price": "0.6",
+        //         "time_in_force": "gtc",
+        //         "iceberg": "0",
+        //         "left": "10",
+        //         "fill_price": "0",
+        //         "filled_total": "0",
+        //         "fee": "0",
+        //         "fee_currency": "USDT",
+        //         "point_fee": "0",
+        //         "gt_fee": "0",
+        //         "gt_maker_fee": "0",
+        //         "gt_taker_fee": "0",
+        //         "gt_discount": false,
+        //         "rebated_fee": "0",
+        //         "rebated_fee_currency": "ADA"
+        //     }
+        //
+        return this.parseOrder (response, market);
+    }
+
     parseOrderStatus (status) {
         const statuses = {
+            'open': 'open',
             '_new': 'open',
             'filled': 'closed',
             'cancelled': 'canceled',
@@ -3348,7 +3442,7 @@ module.exports = class gate extends Exchange {
     parseOrder (order, market = undefined) {
         //
         // SPOT
-        // createOrder/cancelOrder/fetchOrder
+        // createOrder/cancelOrder/fetchOrder/editOrder
         //
         //    {
         //        "id": "62364648575",
@@ -4766,10 +4860,13 @@ module.exports = class gate extends Exchange {
                 const secondPart = this.safeString (pathParts, 1, '');
                 requiresURLEncoding = (secondPart.indexOf ('dual') >= 0) || (secondPart.indexOf ('positions') >= 0);
             }
-            if ((method === 'GET') || (method === 'DELETE') || requiresURLEncoding) {
+            if ((method === 'GET') || (method === 'DELETE') || requiresURLEncoding || (method === 'PATCH')) {
                 if (Object.keys (query).length) {
                     queryString = this.urlencode (query);
                     url += '?' + queryString;
+                }
+                if (method === 'PATCH') {
+                    body = this.json (query);
                 }
             } else {
                 const urlQueryParams = this.safeValue (query, 'query', {});

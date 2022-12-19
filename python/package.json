@@ -1,6 +1,6 @@
 {
   "name": "ccxt",
-  "version": "2.2.79",
+  "version": "2.4.29",
   "description": "A JavaScript / Python / PHP cryptocurrency trading library with support for 130+ exchanges",
   "main": "./ccxt.js",
   "unpkg": "dist/ccxt.browser.js",
@@ -18,7 +18,8 @@
   "scripts": {
     "docker": "docker-compose run --rm ccxt",
     "build": "npm run pre-transpile && npm run transpile && npm run post-transpile && npm run update-badges",
-    "force-build": "npm run pre-transpile && npm run force-transpile && npm run post-transpile && npm run update-badges",
+    "force-build": "npm run pre-transpile && npm run force-transpile-fast && npm run post-transpile && npm run update-badges",
+    "force-build-slow": "npm run pre-transpile && npm run force-transpile && npm run post-transpile && npm run update-badges",
     "pre-transpile": "npm run export-exchanges && npm run vss && npm run copy-python-files && npm run check-js-syntax && npm run browserify",
     "post-transpile": "npm run check-python-syntax && npm run check-php-syntax",
     "test-ws": "npm run build && node run-tests-ws",
@@ -53,6 +54,7 @@
     "transpileRest": "node build/transpile",
     "transpileWs": "node build/transpileWS",
     "force-transpile": "npm run force-transpileRest && npm run force-transpileWs",
+    "force-transpile-fast": "npm run dev-force-transpile",
     "dev-force-transpile": "npm run fast-force-transpileRest && npm run fast-force-transpileWs",
     "force-transpileRest": "node build/transpile --force",
     "fast-force-transpileRest": "node build/transpile.js --multiprocess",
@@ -90,7 +92,9 @@
     "eslint": "^8.8.0",
     "eslint-config-airbnb-base": "15.0.0",
     "eslint-plugin-import": "2.25.4",
-    "ololog": "1.1.155"
+    "https-proxy-agent": "^5.0.1",
+    "ololog": "1.1.155",
+    "replace-in-file": "^6.3.5"
   },
   "author": {
     "name": "Igor Kroitor",
@@ -624,7 +628,6 @@
   },
   "ethereum": "0x26a3CB49578F07000575405a57888681249c35Fd",
   "dependencies": {
-    "replace-in-file": "^6.3.5",
     "ws": "^8.8.1"
   }
 }

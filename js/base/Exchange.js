@@ -126,6 +126,7 @@ module.exports = class Exchange {
                 'fetchTradingLimits': undefined,
                 'fetchTransactions': undefined,
                 'fetchTransfers': undefined,
+                'fetchWithdrawAddresses': undefined,
                 'fetchWithdrawal': undefined,
                 'fetchWithdrawals': undefined,
                 'reduceMargin': undefined,
@@ -204,6 +205,7 @@ module.exports = class Exchange {
                 '408': RequestTimeout,
                 '504': RequestTimeout,
                 '401': AuthenticationError,
+                '407': AuthenticationError,
                 '511': AuthenticationError,
             },
             'commonCurrencies': { // gets extended/overwritten in subclasses
@@ -803,6 +805,7 @@ module.exports = class Exchange {
             'defaultNetworkCodeReplacements': {
                 'ETH': { 'ERC20': 'ETH' },
                 'TRX': { 'TRC20': 'TRX' },
+                'CRO': { 'CRC20': 'CRONOS' },
             },
         };
     }
@@ -1765,18 +1768,26 @@ module.exports = class Exchange {
         return defaultNetworkCode;
     }
 
-    selectNetworkIdFromAvailableNetworks (currencyCode, networkCode, networkEntriesIndexed) {
+    selectNetworkCodeFromUnifiedNetworks (currencyCode, networkCode, indexedNetworkEntries) {
+        return this.selectNetworkKeyFromNetworks (currencyCode, networkCode, indexedNetworkEntries, true);
+    }
+
+    selectNetworkIdFromRawNetworks (currencyCode, networkCode, indexedNetworkEntries) {
+        return this.selectNetworkKeyFromNetworks (currencyCode, networkCode, indexedNetworkEntries, false);
+    }
+
+    selectNetworkKeyFromNetworks (currencyCode, networkCode, indexedNetworkEntries, isIndexedByUnifiedNetworkCode = false) {
         // this method is used against raw & unparse network entries, which are just indexed by network id
         let chosenNetworkId = undefined;
-        const availableNetworkIds = Object.keys (networkEntriesIndexed);
+        const availableNetworkIds = Object.keys (indexedNetworkEntries);
         const responseNetworksLength = availableNetworkIds.length;
         if (networkCode !== undefined) {
-            // if networkCode was provided by user, we should check it after response, as the referenced exchange doesn't support network-code during request
-            const networkId = this.networkCodeToId (networkCode, currencyCode);
             if (responseNetworksLength === 0) {
                 throw new NotSupported (this.id + ' - ' + networkCode + ' network did not return any result for ' + currencyCode);
             } else {
-                if (networkId in networkEntriesIndexed) {
+                // if networkCode was provided by user, we should check it after response, as the referenced exchange doesn't support network-code during request
+                const networkId = isIndexedByUnifiedNetworkCode ? networkCode : this.networkCodeToId (networkCode, currencyCode);
+                if (networkId in indexedNetworkEntries) {
                     chosenNetworkId = networkId;
                 } else {
                     throw new NotSupported (this.id + ' - ' + networkId + ' network was not found for ' + currencyCode + ', use one of ' + availableNetworkIds.join (', '));
@@ -1784,12 +1795,12 @@ module.exports = class Exchange {
             }
         } else {
             if (responseNetworksLength === 0) {
-                throw new NotSupported (this.id + ' - no networks were returned for' + currencyCode);
+                throw new NotSupported (this.id + ' - no networks were returned for ' + currencyCode);
             } else {
                 // if networkCode was not provided by user, then we try to use the default network (if it was defined in "defaultNetworks"), otherwise, we just return the first network entry
                 const defaultNetworkCode = this.defaultNetworkCode (currencyCode);
-                const defaultNetworkId = this.networkCodeToId (defaultNetworkCode, currencyCode);
-                chosenNetworkId = (defaultNetworkId in networkEntriesIndexed) ? defaultNetworkId : availableNetworkIds[0];
+                const defaultNetworkId = isIndexedByUnifiedNetworkCode ? defaultNetworkCode : this.networkCodeToId (defaultNetworkCode, currencyCode);
+                chosenNetworkId = (defaultNetworkId in indexedNetworkEntries) ? defaultNetworkId : availableNetworkIds[0];
             }
         }
         return chosenNetworkId;
@@ -3048,5 +3059,32 @@ module.exports = class Exchange {
             },
             'networks': {},
         };
+    }
+
+    assignDefaultDepositWithdrawFees (fee, currency = undefined) {
+        /**
+         * @ignore
+         * @method
+         * @description Takes a depositWithdrawFee structure and assigns the default values for withdraw and deposit
+         * @param {object} fee A deposit withdraw fee structure
+         * @param {object} currency A currency structure, the response from this.currency ()
+         * @returns {object} A deposit withdraw fee structure
+         */
+        const networkKeys = Object.keys (fee['networks']);
+        const numNetworks = networkKeys.length;
+        if (numNetworks === 1) {
+            fee['withdraw'] = fee['networks'][networkKeys[0]]['withdraw'];
+            fee['deposit'] = fee['networks'][networkKeys[0]]['deposit'];
+            return fee;
+        }
+        const currencyCode = this.safeString (currency, 'code');
+        for (let i = 0; i < numNetworks; i++) {
+            const network = networkKeys[i];
+            if (network === currencyCode) {
+                fee['withdraw'] = fee['networks'][networkKeys[i]]['withdraw'];
+                fee['deposit'] = fee['networks'][networkKeys[i]]['deposit'];
+            }
+        }
+        return fee;
     }
 };

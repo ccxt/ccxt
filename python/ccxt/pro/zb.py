@@ -5,8 +5,10 @@
 
 from ccxt.pro.base.exchange import Exchange
 import ccxt.async_support
-from ccxt.pro.base.cache import ArrayCache
+from ccxt.pro.base.cache import ArrayCache, ArrayCacheByTimestamp
 from ccxt.base.errors import ExchangeError
+from ccxt.base.errors import AuthenticationError
+from ccxt.base.errors import NotSupported
 
 
 class zb(Exchange, ccxt.async_support.zb):
@@ -18,10 +20,14 @@ class zb(Exchange, ccxt.async_support.zb):
                 'watchOrderBook': True,
                 'watchTicker': True,
                 'watchTrades': True,
+                'watchOHLCV': True,
             },
             'urls': {
                 'api': {
-                    'ws': 'wss://api.{hostname}/websocket',
+                    'ws': {
+                        'spot': 'wss://api.{hostname}/websocket',
+                        'contract': 'wss://fapi.{hostname}/ws/public/v1',
+                    },
                 },
             },
             'options': {
@@ -31,36 +37,92 @@ class zb(Exchange, ccxt.async_support.zb):
             },
         })
 
-    async def watch_public(self, name, symbol, method, params={}):
+    async def watch_public(self, url, messageHash, symbol, method, limit=None, params={}):
         await self.load_markets()
         market = self.market(symbol)
-        symbol = market['symbol']
-        messageHash = market['baseId'] + market['quoteId'] + '_' + name
-        url = self.implode_hostname(self.urls['api']['ws'])
-        request = {
-            'event': 'addChannel',
-            'channel': messageHash,
-        }
+        type = 'spot' if market['spot'] else 'contract'
+        request = None
+        isLimitSet = limit is not None
+        if type == 'spot':
+            request = {
+                'event': 'addChannel',
+                'channel': messageHash,
+            }
+            if isLimitSet:
+                request['length'] = limit
+        else:
+            request = {
+                'action': 'subscribe',
+                'channel': messageHash,
+            }
+            if isLimitSet:
+                request['size'] = limit
         message = self.extend(request, params)
         subscription = {
-            'name': name,
             'symbol': symbol,
-            'marketId': market['id'],
             'messageHash': messageHash,
             'method': method,
         }
+        if isLimitSet:
+            subscription['limit'] = limit
         return await self.watch(url, messageHash, message, messageHash, subscription)
 
     async def watch_ticker(self, symbol, params={}):
-        """
-        watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
-        :param str symbol: unified symbol of the market to fetch the ticker for
-        :param dict params: extra parameters specific to the zb api endpoint
-        :returns dict: a `ticker structure <https://docs.ccxt.com/en/latest/manual.html#ticker-structure>`
-        """
-        return await self.watch_public('ticker', symbol, self.handle_ticker, params)
+        await self.load_markets()
+        market = self.market(symbol)
+        messageHash = None
+        type = 'spot' if market['spot'] else 'contract'
+        if type == 'spot':
+            messageHash = market['baseId'] + market['quoteId'] + '_' + 'ticker'
+        else:
+            messageHash = market['id'] + '.' + 'Ticker'
+        url = self.implode_hostname(self.urls['api']['ws'][type])
+        return await self.watch_public(url, messageHash, symbol, self.handle_ticker, None, params)
+
+    def parse_ws_ticker(self, ticker, market=None):
+        #
+        # contract ticker
+        #      {
+        #          data: [
+        #            38568.36,  # open
+        #            39958.75,  # high
+        #            38100,  # low
+        #            39211.78,  # last
+        #            61695.496,  # volume 24h
+        #            1.67,  # change
+        #            1647369457,  # time
+        #            285916.615048
+        #          ]
+        #    }
+        #
+        timestamp = self.safe_integer(ticker, 6)
+        last = self.safe_string(ticker, 3)
+        return self.safe_ticker({
+            'symbol': self.safe_symbol(None, market),
+            'timestamp': timestamp,
+            'datetime': None,
+            'high': self.safe_string(ticker, 1),
+            'low': self.safe_string(ticker, 2),
+            'bid': None,
+            'bidVolume': None,
+            'ask': None,
+            'askVolume': None,
+            'vwap': None,
+            'open': self.safe_string(ticker, 0),
+            'close': last,
+            'last': last,
+            'previousClose': None,
+            'change': None,
+            'percentage': self.safe_string(ticker, 5),
+            'average': None,
+            'baseVolume': self.safe_string(ticker, 4),
+            'quoteVolume': None,
+            'info': ticker,
+        }, market, False)
 
     def handle_ticker(self, client, message, subscription):
+        #
+        # spot ticker
         #
         #     {
         #         date: '1624398991255',
@@ -79,34 +141,138 @@ class zb(Exchange, ccxt.async_support.zb):
         #         channel: 'btcusdt_ticker'
         #     }
         #
+        # contract ticker
+        #      {
+        #          channel: 'BTC_USDT.Ticker',
+        #          data: [
+        #            38568.36,
+        #            39958.75,
+        #            38100,
+        #            39211.78,
+        #            61695.496,
+        #            1.67,
+        #            1647369457,
+        #            285916.615048
+        #          ]
+        #      }
+        #
         symbol = self.safe_string(subscription, 'symbol')
         channel = self.safe_string(message, 'channel')
         market = self.market(symbol)
         data = self.safe_value(message, 'ticker')
-        data['date'] = self.safe_value(message, 'date')
-        ticker = self.parse_ticker(data, market)
+        ticker = None
+        if data is None:
+            data = self.safe_value(message, 'data', [])
+            ticker = self.parse_ws_ticker(data, market)
+        else:
+            data['date'] = self.safe_value(message, 'date')
+            ticker = self.parse_ticker(data, market)
         ticker['symbol'] = symbol
         self.tickers[symbol] = ticker
         client.resolve(ticker, channel)
         return message
 
-    async def watch_trades(self, symbol, since=None, limit=None, params={}):
-        """
-        get the list of most recent trades for a particular symbol
-        :param str symbol: unified symbol of the market to fetch trades for
-        :param int|None since: timestamp in ms of the earliest trade to fetch
-        :param int|None limit: the maximum amount of trades to fetch
-        :param dict params: extra parameters specific to the zb api endpoint
-        :returns [dict]: a list of `trade structures <https://docs.ccxt.com/en/latest/manual.html?#public-trades>`
-        """
+    async def watch_ohlcv(self, symbol, timeframe='1m', since=None, limit=None, params={}):
         await self.load_markets()
-        symbol = self.symbol(symbol)
-        trades = await self.watch_public('trades', symbol, self.handle_trades, params)
+        market = self.market(symbol)
+        if market['spot']:
+            raise NotSupported(self.id + ' watchOHLCV() supports contract markets only')
+        if (limit is None) or (limit > 1440):
+            limit = 100
+        interval = self.timeframes[timeframe]
+        messageHash = market['id'] + '.KLine' + '_' + interval
+        url = self.implode_hostname(self.urls['api']['ws']['contract'])
+        ohlcv = await self.watch_public(url, messageHash, symbol, self.handle_ohlcv, limit, params)
+        if self.newUpdates:
+            limit = ohlcv.getLimit(symbol, limit)
+        return self.filter_by_since_limit(ohlcv, since, limit, 0, True)
+
+    def handle_ohlcv(self, client, message, subscription):
+        #
+        # snapshot update
+        #    {
+        #        channel: 'BTC_USDT.KLine_1m',
+        #        type: 'Whole',
+        #        data: [
+        #          [48543.77, 48543.77, 48542.82, 48542.82, 0.43, 1640227260],
+        #          [48542.81, 48542.81, 48529.89, 48529.89, 1.202, 1640227320],
+        #          [48529.95, 48529.99, 48529.85, 48529.9, 4.226, 1640227380],
+        #          [48529.96, 48529.99, 48525.11, 48525.11, 8.858, 1640227440],
+        #          [48525.05, 48525.05, 48464.17, 48476.63, 32.772, 1640227500],
+        #          [48475.62, 48485.65, 48475.12, 48479.36, 20.04, 1640227560],
+        #        ]
+        #    }
+        # partial update
+        #    {
+        #        channel: 'BTC_USDT.KLine_1m',
+        #        data: [
+        #          [39095.45, 45339.48, 36923.58, 39204.94, 1215304.988, 1645920000]
+        #        ]
+        #    }
+        #
+        data = self.safe_value(message, 'data', [])
+        channel = self.safe_string(message, 'channel', '')
+        parts = channel.split('_')
+        partsLength = len(parts)
+        interval = self.safe_string(parts, partsLength - 1)
+        timeframe = self.find_timeframe(interval)
+        symbol = self.safe_string(subscription, 'symbol')
+        market = self.market(symbol)
+        for i in range(0, len(data)):
+            candle = data[i]
+            parsed = self.parse_ohlcv(candle, market)
+            self.ohlcvs[symbol] = self.safe_value(self.ohlcvs, symbol, {})
+            stored = self.safe_value(self.ohlcvs[symbol], timeframe)
+            if stored is None:
+                limit = self.safe_integer(self.options, 'OHLCVLimit', 1000)
+                stored = ArrayCacheByTimestamp(limit)
+                self.ohlcvs[symbol][timeframe] = stored
+            stored.append(parsed)
+            client.resolve(stored, channel)
+        return message
+
+    async def watch_trades(self, symbol, since=None, limit=None, params={}):
+        await self.load_markets()
+        market = self.market(symbol)
+        messageHash = None
+        type = 'spot' if market['spot'] else 'contract'
+        if type == 'spot':
+            messageHash = market['baseId'] + market['quoteId'] + '_' + 'trades'
+        else:
+            messageHash = market['id'] + '.' + 'Trade'
+        url = self.implode_hostname(self.urls['api']['ws'][type])
+        trades = await self.watch_public(url, messageHash, symbol, self.handle_trades, limit, params)
         if self.newUpdates:
             limit = trades.getLimit(symbol, limit)
         return self.filter_by_since_limit(trades, since, limit, 'timestamp', True)
 
     def handle_trades(self, client, message, subscription):
+        # contract trades
+        # {
+        #     "channel":"BTC_USDT.Trade",
+        #     "type":"Whole",
+        #     "data":[
+        #        [
+        #           40768.07,
+        #           0.01,
+        #           1,
+        #           1647442757
+        #        ],
+        #        [
+        #           40792.22,
+        #           0.334,
+        #           -1,
+        #           1647442765
+        #        ],
+        #        [
+        #           40789.77,
+        #           0.14,
+        #           1,
+        #           1647442766
+        #        ]
+        #     ]
+        #  }
+        # spot trades
         #
         #     {
         #         data: [
@@ -122,52 +288,78 @@ class zb(Exchange, ccxt.async_support.zb):
         symbol = self.safe_string(subscription, 'symbol')
         market = self.market(symbol)
         data = self.safe_value(message, 'data')
-        trades = self.parse_trades(data, market)
-        tradesArray = self.safe_value(self.trades, symbol)
-        if tradesArray is None:
+        type = self.safe_string(message, 'type')
+        trades = []
+        if type == 'Whole':
+            # contract trades
+            for i in range(0, len(data)):
+                trade = data[i]
+                parsed = self.parse_ws_trade(trade, market)
+                trades.append(parsed)
+        else:
+            # spot trades
+            trades = self.parse_trades(data, market)
+        array = self.safe_value(self.trades, symbol)
+        if array is None:
             limit = self.safe_integer(self.options, 'tradesLimit', 1000)
-            tradesArray = ArrayCache(limit)
+            array = ArrayCache(limit)
         for i in range(0, len(trades)):
-            tradesArray.append(trades[i])
-        self.trades[symbol] = tradesArray
-        client.resolve(tradesArray, channel)
+            array.append(trades[i])
+        self.trades[symbol] = array
+        client.resolve(array, channel)
 
     async def watch_order_book(self, symbol, limit=None, params={}):
-        """
-        watches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
-        :param str symbol: unified symbol of the market to fetch the order book for
-        :param int|None limit: the maximum amount of order book entries to return
-        :param dict params: extra parameters specific to the zb api endpoint
-        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/en/latest/manual.html#order-book-structure>` indexed by market symbols
-        """
         if limit is not None:
-            if (limit != 5) and (limit != 10) and (limit != 20):
-                raise ExchangeError(self.id + ' watchOrderBook limit argument must be None, 5, 10 or 20')
+            if (limit != 5) and (limit != 10):
+                raise ExchangeError(self.id + ' watchOrderBook limit argument must be None, 5, or 10')
         else:
             limit = 5  # default
         await self.load_markets()
         market = self.market(symbol)
-        symbol = market['symbol']
-        name = 'quick_depth'
-        messageHash = market['baseId'] + market['quoteId'] + '_' + name
-        url = self.implode_hostname(self.urls['api']['ws']) + '/' + market['baseId']
-        request = {
-            'event': 'addChannel',
-            'channel': messageHash,
-            'length': limit,
-        }
-        message = self.extend(request, params)
-        subscription = {
-            'name': name,
-            'symbol': symbol,
-            'marketId': market['id'],
-            'messageHash': messageHash,
-            'method': self.handle_order_book,
-        }
-        orderbook = await self.watch(url, messageHash, message, messageHash, subscription)
+        type = 'spot' if market['spot'] else 'contract'
+        messageHash = None
+        url = self.implode_hostname(self.urls['api']['ws'][type])
+        if type == 'spot':
+            url += '/' + market['baseId']
+            messageHash = market['baseId'] + market['quoteId'] + '_' + 'quick_depth'
+        else:
+            messageHash = market['id'] + '.' + 'Depth'
+        orderbook = await self.watch_public(url, messageHash, symbol, self.handle_order_book, limit, params)
         return orderbook.limit()
 
+    def parse_ws_trade(self, trade, market=None):
+        #
+        #    [
+        #       40768.07,  # price
+        #       0.01,  # quantity
+        #       1,  # buy or -1 sell
+        #       1647442757  # time
+        #    ],
+        #
+        timestamp = self.safe_timestamp(trade, 3)
+        price = self.safe_string(trade, 0)
+        amount = self.safe_string(trade, 1)
+        market = self.safe_market(None, market)
+        sideNumber = self.safe_integer(trade, 2)
+        side = 'buy' if (sideNumber == 1) else 'sell'
+        return self.safe_trade({
+            'id': None,
+            'timestamp': timestamp,
+            'datetime': self.iso8601(timestamp),
+            'symbol': market['symbol'],
+            'order': None,
+            'type': None,
+            'side': side,
+            'takerOrMaker': None,
+            'price': price,
+            'amount': amount,
+            'cost': None,
+            'fee': None,
+            'info': trade,
+        }, market)
+
     def handle_order_book(self, client, message, subscription):
+        # spot snapshot
         #
         #     {
         #         lastTime: 1624524640066,
@@ -198,18 +390,90 @@ class zb(Exchange, ccxt.async_support.zb):
         #         showMarket: 'btcusdt'
         #     }
         #
+        # contract snapshot
+        # {
+        #     channel: 'BTC_USDT.Depth',
+        #     type: 'Whole',
+        #     data: {
+        #       asks: [[Array], [Array], [Array], [Array], [Array]],
+        #       bids: [[Array], [Array], [Array], [Array], [Array]],
+        #       time: '1647359998198'
+        #     }
+        #   }
+        #
+        # contract deltas
+        # {
+        #     channel: 'BTC_USDT.Depth',
+        #     data: {
+        #       bids: [[Array], [Array], [Array], [Array]],
+        #       asks: [[Array], [Array], [Array]],
+        #       time: '1647360038079'
+        #     }
+        #  }
+        #
+        # For contract markets zb will:
+        # 1: send snapshot
+        # 2: send deltas
+        # 3: repeat 1-2
+        # So we have a guarentee that deltas
+        # are always updated and arrive after
+        # the snapshot
+        #
+        type = self.safe_string_2(message, 'type', 'dataType')
         channel = self.safe_string(message, 'channel')
-        limit = self.safe_integer(subscription, 'limit')
         symbol = self.safe_string(subscription, 'symbol')
         orderbook = self.safe_value(self.orderbooks, symbol)
-        if orderbook is None:
-            orderbook = self.order_book({}, limit)
-            self.orderbooks[symbol] = orderbook
-        timestamp = self.safe_integer(message, 'lastTime')
-        parsed = self.parse_order_book(message, symbol, timestamp, 'listDown', 'listUp')
-        orderbook.reset(parsed)
-        orderbook['symbol'] = symbol
-        client.resolve(orderbook, channel)
+        if type is not None:
+            # handle orderbook snapshot
+            isContractSnapshot = (type == 'Whole')
+            data = self.safe_value(message, 'data') if isContractSnapshot else message
+            timestamp = self.safe_integer_2(data, 'lastTime', 'time')
+            asksKey = 'asks' if isContractSnapshot else 'listUp'
+            bidsKey = 'bids' if isContractSnapshot else 'listDown'
+            snapshot = self.parse_order_book(data, symbol, timestamp, bidsKey, asksKey)
+            if not (symbol in self.orderbooks):
+                defaultLimit = self.safe_integer(self.options, 'watchOrderBookLimit', 1000)
+                limit = self.safe_integer(subscription, 'limit', defaultLimit)
+                orderbook = self.order_book(snapshot, limit)
+                self.orderbooks[symbol] = orderbook
+            else:
+                orderbook = self.orderbooks[symbol]
+                orderbook.reset(snapshot)
+            orderbook['symbol'] = symbol
+            client.resolve(orderbook, channel)
+        else:
+            self.handle_order_book_message(client, message, orderbook)
+            client.resolve(orderbook, channel)
+
+    def handle_order_book_message(self, client, message, orderbook):
+        #
+        # {
+        #     channel: 'BTC_USDT.Depth',
+        #     data: {
+        #       bids: [[Array], [Array], [Array], [Array]],
+        #       asks: [[Array], [Array], [Array]],
+        #       time: '1647360038079'
+        #     }
+        #  }
+        #
+        data = self.safe_value(message, 'data', {})
+        timestamp = self.safe_integer(data, 'time')
+        asks = self.safe_value(data, 'asks', [])
+        bids = self.safe_value(data, 'bids', [])
+        self.handle_deltas(orderbook['asks'], asks)
+        self.handle_deltas(orderbook['bids'], bids)
+        orderbook['timestamp'] = timestamp
+        orderbook['datetime'] = self.iso8601(timestamp)
+        return orderbook
+
+    def handle_delta(self, bookside, delta):
+        price = self.safe_float(delta, 0)
+        amount = self.safe_float(delta, 1)
+        bookside.store(price, amount)
+
+    def handle_deltas(self, bookside, deltas):
+        for i in range(0, len(deltas)):
+            self.handle_delta(bookside, deltas[i])
 
     def handle_message(self, client, message):
         #
@@ -249,12 +513,54 @@ class zb(Exchange, ccxt.async_support.zb):
         #         channel: 'btcusdt_trades'
         #     }
         #
-        dataType = self.safe_string(message, 'dataType')
-        if dataType is not None:
-            channel = self.safe_string(message, 'channel')
-            subscription = self.safe_value(client.subscriptions, channel)
-            if subscription is not None:
-                method = self.safe_value(subscription, 'method')
-                if method is not None:
-                    return method(client, message, subscription)
-            return message
+        # contract snapshot
+        #
+        # {
+        #     channel: 'BTC_USDT.Depth',
+        #     type: 'Whole',
+        #     data: {
+        #       asks: [[Array], [Array], [Array], [Array], [Array]],
+        #       bids: [[Array], [Array], [Array], [Array], [Array]],
+        #       time: '1647359998198'
+        #     }
+        #   }
+        #
+        # contract deltas update
+        # {
+        #     channel: 'BTC_USDT.Depth',
+        #     data: {
+        #       bids: [[Array], [Array], [Array], [Array]],
+        #       asks: [[Array], [Array], [Array]],
+        #       time: '1647360038079'
+        #     }
+        #   }
+        #
+        channel = self.safe_string(message, 'channel')
+        subscription = self.safe_value(client.subscriptions, channel)
+        if subscription is not None:
+            method = self.safe_value(subscription, 'method')
+            if method is not None:
+                return method(client, message, subscription)
+        return message
+
+    def handle_error_message(self, client, message):
+        #
+        # {errorCode: 10020, errorMsg: "action param can't be empty"}
+        # {errorCode: 10015, errorMsg: '无效的签名(1002)'}
+        #
+        errorCode = self.safe_string(message, 'errorCode')
+        try:
+            if errorCode is not None:
+                feedback = self.id + ' ' + self.json(message)
+                self.throw_exactly_matched_exception(self.exceptions['exact'], errorCode, feedback)
+                messageString = self.safe_value(message, 'message')
+                if messageString is not None:
+                    self.throw_broadly_matched_exception(self.exceptions['broad'], messageString, feedback)
+        except Exception as e:
+            if isinstance(e, AuthenticationError):
+                client.reject(e, 'authenticated')
+                method = 'login'
+                if method in client.subscriptions:
+                    del client.subscriptions[method]
+                return False
+        return message

@@ -209,6 +209,7 @@ module.exports = class bybit extends Exchange {
                         'derivatives/v3/public/delivery-price': 1,
                         'derivatives/v3/public/recent-trade': 1,
                         'derivatives/v3/public/open-interest': 1,
+                        'derivatives/v3/public/insurance': 1,
                     },
                 },
                 'private': {
@@ -453,6 +454,7 @@ module.exports = class bybit extends Exchange {
                         'contract/v3/private/position/set-leverage': 1,
                         'contract/v3/private/position/trading-stop': 1,
                         'contract/v3/private/position/set-risk-limit': 1,
+                        'contract/v3/private/account/setMarginMode': 1,
                         // derivative
                         'unified/v3/private/order/create': 2.5,
                         'unified/v3/private/order/replace': 2.5,
@@ -1925,7 +1927,7 @@ module.exports = class bybit extends Exchange {
         //     ]
         //
         return [
-            this.safeNumber (ohlcv, 0),
+            this.safeInteger (ohlcv, 0),
             this.safeNumber (ohlcv, 1),
             this.safeNumber (ohlcv, 2),
             this.safeNumber (ohlcv, 3),
@@ -2047,7 +2049,7 @@ module.exports = class bybit extends Exchange {
         //     }
         //
         const result = this.safeValue (response, 'result');
-        const ohlcvs = this.safeValue (result, 'list');
+        const ohlcvs = this.safeValue (result, 'list', []);
         return this.parseOHLCVs (ohlcvs, market, timeframe, since, limit);
     }
 
@@ -2310,8 +2312,8 @@ module.exports = class bybit extends Exchange {
             // if private response
             const isBuyer = this.safeInteger (trade, 'isBuyer');
             const isMaker = this.safeInteger (trade, 'isMaker');
-            takerOrMaker = (isMaker === 1) ? 'maker' : 'taker';
-            side = (isBuyer === 1) ? 'buy' : 'sell';
+            takerOrMaker = (isMaker === 0) ? 'maker' : 'taker';
+            side = (isBuyer === 0) ? 'buy' : 'sell';
         }
         const marketId = this.safeString (trade, 'symbol');
         market = this.safeMarket (marketId, market);
@@ -5351,7 +5353,7 @@ module.exports = class bybit extends Exchange {
         const result = this.safeValue (response, 'result', {});
         const chains = this.safeValue (result, 'chains', []);
         const chainsIndexedById = this.indexBy (chains, 'chain');
-        const selectedNetworkId = this.selectNetworkIdFromAvailableNetworks (code, networkCode, chainsIndexedById);
+        const selectedNetworkId = this.selectNetworkIdFromRawNetworks (code, networkCode, chainsIndexedById);
         const addressObject = this.safeValue (chainsIndexedById, selectedNetworkId, {});
         return this.parseDepositAddress (addressObject, currency);
     }

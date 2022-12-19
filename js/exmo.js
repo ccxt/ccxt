@@ -663,7 +663,7 @@ module.exports = class exmo extends Exchange {
                 'swap': false,
                 'future': false,
                 'option': false,
-                'active': true,
+                'active': undefined,
                 'contract': false,
                 'linear': undefined,
                 'inverse': undefined,
