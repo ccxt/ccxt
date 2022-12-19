@@ -30,6 +30,24 @@ from ccxt.base.precise import Precise
 
 class bitget(Exchange):
 
+    def get_supported_mapping(self, key, mapping={}):
+        # swap and future use same api for bitget
+        if key == 'future':
+            key = 'swap'
+        if key in mapping:
+            return mapping[key]
+        else:
+            raise NotSupported(self.id + ' ' + key + ' does not have a value in mapping')
+
+    async def fetch_orders(self, symbol=None, since=None, limit=None, params={}):
+        await self.load_markets()
+        defaultSubType = self.safe_string(self.options, 'defaultSubType')
+        request = {
+            'productType': 'umcbl' if (defaultSubType == 'linear') else 'dmcbl',
+        }
+        positions = await self.privateMixGetOrderMarginCoinCurrent(self.extend(request, params))
+        return self.parse_positions(positions)
+
     def describe(self):
         return self.deep_extend(super(bitget, self).describe(), {
             'id': 'bitget',
@@ -800,7 +818,7 @@ class bitget(Exchange):
                     'spot',
                     'swap',
                 ],
-                'defaultType': 'spot',  # 'spot', 'swap'
+                'defaultType': 'swap',  # 'spot', 'swap'
                 'defaultSubType': 'linear',  # 'linear', 'inverse'
                 'createMarketBuyOrderRequiresPrice': True,
                 'broker': {

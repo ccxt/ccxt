@@ -95,6 +95,20 @@ class kucoin(Exchange, ccxt.async_support.kucoinfutures):
         self.options['requestId'] = requestId
         return requestId
 
+    def create_future(self, negotiation, messageHash):
+        data = self.safe_value(negotiation, 'data', {})
+        instanceServers = self.safe_value(data, 'instanceServers', [])
+        firstServer = self.safe_value(instanceServers, 0, {})
+        endpoint = self.safe_string(firstServer, 'endpoint')
+        token = self.safe_string(data, 'token')
+        query = {
+            'token': token,
+            'acceptUserMessage': 'true',
+            # 'connectId': nonce,  # user-defined id is supported, received by handleSystemStatus
+        }
+        url = endpoint + '?' + self.urlencode(query)
+        return super(kucoin, self).create_future(url, messageHash)
+
     async def subscribe(self, negotiation, topic, messageHash, method, symbol, params={}):
         await self.load_markets()
         # market = self.market(symbol)
@@ -940,14 +954,6 @@ class kucoin(Exchange, ccxt.async_support.kucoinfutures):
             'id': id,
             'type': 'ping',
         }
-
-    async def watch_heartbeat(self):
-        await self.load_markets()
-        negotiation = await self.negotiate()
-        topic = 'ping'
-        messageHash = topic
-        heartbeat = await self.subscribe(negotiation, topic, messageHash)
-        return heartbeat
 
     def handle_pong(self, client, message):
         # https://docs.kucoin.com/#ping

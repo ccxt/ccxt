@@ -32,7 +32,7 @@ class bitget extends \ccxt\async\bitget {
             ),
             'urls' => array(
                 'api' => array(
-                    'ws' => 'wss://ws.bitget.com/spot/v1/stream',
+                    'ws' => 'wss://ws.bitget.com/mix/v1/stream',
                 ),
             ),
             'options' => array(
@@ -71,7 +71,14 @@ class bitget extends \ccxt\async\bitget {
         if ($market['spot']) {
             return $market['info']['symbolName'];
         } else {
-            return str_replace('_UMCBL', '', $market['id']);
+            $formattedId = $market['id'];
+            $marketIdParts = explode('_', $formattedId);
+            if (strlen($marketIdParts) >= 2) {
+                $prefix = $marketIdParts[0];
+                // $suffix = $marketIdParts[1];
+                $formattedId = $prefix;
+            }
+            return $formattedId;
         }
     }
 
@@ -83,8 +90,12 @@ class bitget extends \ccxt\async\bitget {
         $marketId = $this->safe_string($arg, 'instId');
         if ($instType === 'sp') {
             $marketId .= '_SPBL';
-        } else {
-            $marketId .= '_UMCBL';
+        } elseif ($marketId->endsWith ('PERP')) {
+            $marketId = $marketId . '_CMCBL';
+        } elseif ($marketId->endsWith ('USDT')) {
+            $marketId = $marketId . '_UMCBL';
+        } elseif ($marketId->endsWith ('USD')) {
+            $marketId = $marketId . '_DMCBL';
         }
         return $marketId;
     }
@@ -348,6 +359,7 @@ class bitget extends \ccxt\async\bitget {
             Async\await($this->load_markets());
             $market = $this->market($symbol);
             $symbol = $market['symbol'];
+            // $symbol = 'BTCUSD';
             $messageHash = 'orderbook' . ':' . $symbol;
             $instType = $market['spot'] ? 'sp' : 'mc';
             $channel = 'books';
@@ -1167,11 +1179,6 @@ class bitget extends \ccxt\async\bitget {
 
     public function ping($client) {
         return 'ping';
-    }
-
-    public function handle_pong($client, $message) {
-        $client->lastPong = $this->milliseconds();
-        return $message;
     }
 
     public function handle_subscription_status($client, $message) {

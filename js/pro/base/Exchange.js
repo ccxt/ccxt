@@ -11,6 +11,20 @@ const BaseExchange = require ("../../base/Exchange")
     , functions = require ('./functions');
 
 module.exports = class Exchange extends BaseExchange {
+
+    async watchHeartbeat () {
+        await this.loadMarkets ();
+        const url = this.urls['api']['ws'];
+        return await this.create_future (url, 'ping');
+    }
+
+    handlePong (client, message) {
+        // https://docs.kucoin.com/#ping
+        client.lastPong = this.milliseconds ();
+        client.resolve ('pong', 'ping');
+        return message;
+    }
+
     constructor (options = {}) {
         super (options);
         this.newUpdates = options.newUpdates || true;
@@ -70,6 +84,11 @@ module.exports = class Exchange extends BaseExchange {
         setTimeout (() => {
             this.spawn (method, ... args)
         }, timeout);
+    }
+
+    create_future (url, messageHash) {
+        const client = this.client (url);
+        return client.future (messageHash);
     }
 
     watch (url, messageHash, message = undefined, subscribeHash = undefined, subscription = undefined) {
@@ -185,7 +204,7 @@ module.exports = class Exchange extends BaseExchange {
         return n.toExponential ().replace ('e-', 'e-0');
     }
 
-     rejectAllClients () {
+    rejectAllClients () {
         // console.log ("clients :", this.clients)
         Object.values (this.clients || {}).forEach ((c) => {
             try {

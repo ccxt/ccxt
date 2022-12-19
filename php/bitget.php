@@ -9,6 +9,28 @@ use Exception; // a common import
 
 class bitget extends Exchange {
 
+    public function get_supported_mapping($key, $mapping = array ()) {
+        // swap and future use same api for bitget
+        if ($key === 'future') {
+            $key = 'swap';
+        }
+        if (is_array($mapping) && array_key_exists($key, $mapping)) {
+            return $mapping[$key];
+        } else {
+            throw new NotSupported($this->id . ' ' . $key . ' does not have a value in mapping');
+        }
+    }
+
+    public function fetch_orders($symbol = null, $since = null, $limit = null, $params = array ()) {
+        $this->load_markets();
+        $defaultSubType = $this->safe_string($this->options, 'defaultSubType');
+        $request = array(
+            'productType' => ($defaultSubType === 'linear') ? 'umcbl' : 'dmcbl',
+        );
+        $positions = $this->privateMixGetOrderMarginCoinCurrent (array_merge($request, $params));
+        return $this->parse_positions($positions);
+    }
+
     public function describe() {
         return $this->deep_extend(parent::describe(), array(
             'id' => 'bitget',
@@ -779,7 +801,7 @@ class bitget extends Exchange {
                     'spot',
                     'swap',
                 ),
-                'defaultType' => 'spot', // 'spot', 'swap'
+                'defaultType' => 'swap', // 'spot', 'swap'
                 'defaultSubType' => 'linear', // 'linear', 'inverse'
                 'createMarketBuyOrderRequiresPrice' => true,
                 'broker' => array(

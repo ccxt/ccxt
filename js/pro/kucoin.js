@@ -96,6 +96,21 @@ module.exports = class kucoin extends kucoinfuturesRest {
         return requestId;
     }
 
+    create_future (negotiation, messageHash) {
+        const data = this.safeValue (negotiation, 'data', {});
+        const instanceServers = this.safeValue (data, 'instanceServers', []);
+        const firstServer = this.safeValue (instanceServers, 0, {});
+        const endpoint = this.safeString (firstServer, 'endpoint');
+        const token = this.safeString (data, 'token');
+        const query = {
+            'token': token,
+            'acceptUserMessage': 'true',
+            // 'connectId': nonce, // user-defined id is supported, received by handleSystemStatus
+        };
+        const url = endpoint + '?' + this.urlencode (query);
+        return super.create_future (url, messageHash);
+    }
+
     async subscribe (negotiation, topic, messageHash, method, symbol, params = {}) {
         await this.loadMarkets ();
         // const market = this.market (symbol);
@@ -1025,15 +1040,6 @@ module.exports = class kucoin extends kucoinfuturesRest {
             'id': id,
             'type': 'ping',
         };
-    }
-
-    async watchHeartbeat () {
-        await this.loadMarkets ();
-        const negotiation = await this.negotiate ();
-        const topic = 'ping';
-        const messageHash = topic;
-        const heartbeat = await this.subscribe (negotiation, topic, messageHash);
-        return heartbeat;
     }
 
     handlePong (client, message) {

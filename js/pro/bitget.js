@@ -25,7 +25,7 @@ module.exports = class bitget extends bitgetRest {
             },
             'urls': {
                 'api': {
-                    'ws': 'wss://ws.bitget.com/spot/v1/stream',
+                    'ws': 'wss://ws.bitget.com/mix/v1/stream',
                 },
             },
             'options': {
@@ -64,7 +64,14 @@ module.exports = class bitget extends bitgetRest {
         if (market['spot']) {
             return market['info']['symbolName'];
         } else {
-            return market['id'].replace ('_UMCBL', '');
+            let formattedId = market['id'];
+            const marketIdParts = formattedId.split ('_');
+            if (marketIdParts.length >= 2) {
+                const prefix = marketIdParts[0];
+                // const suffix = marketIdParts[1];
+                formattedId = prefix;
+            }
+            return formattedId;
         }
     }
 
@@ -76,8 +83,12 @@ module.exports = class bitget extends bitgetRest {
         let marketId = this.safeString (arg, 'instId');
         if (instType === 'sp') {
             marketId += '_SPBL';
-        } else {
-            marketId += '_UMCBL';
+        } else if (marketId.endsWith ('PERP')) {
+            marketId = marketId + '_CMCBL';
+        } else if (marketId.endsWith ('USDT')) {
+            marketId = marketId + '_UMCBL';
+        } else if (marketId.endsWith ('USD')) {
+            marketId = marketId + '_DMCBL';
         }
         return marketId;
     }
@@ -342,6 +353,7 @@ module.exports = class bitget extends bitgetRest {
         await this.loadMarkets ();
         const market = this.market (symbol);
         symbol = market['symbol'];
+        // symbol = 'BTCUSD';
         const messageHash = 'orderbook' + ':' + symbol;
         const instType = market['spot'] ? 'sp' : 'mc';
         let channel = 'books';
@@ -1154,11 +1166,6 @@ module.exports = class bitget extends bitgetRest {
 
     ping (client) {
         return 'ping';
-    }
-
-    handlePong (client, message) {
-        client.lastPong = this.milliseconds ();
-        return message;
     }
 
     handleSubscriptionStatus (client, message) {

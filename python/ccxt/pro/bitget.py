@@ -32,7 +32,7 @@ class bitget(Exchange, ccxt.async_support.bitget):
             },
             'urls': {
                 'api': {
-                    'ws': 'wss://ws.bitget.com/spot/v1/stream',
+                    'ws': 'wss://ws.bitget.com/mix/v1/stream',
                 },
             },
             'options': {
@@ -70,7 +70,13 @@ class bitget(Exchange, ccxt.async_support.bitget):
         if market['spot']:
             return market['info']['symbolName']
         else:
-            return market['id'].replace('_UMCBL', '')
+            formattedId = market['id']
+            marketIdParts = formattedId.split('_')
+            if len(marketIdParts) >= 2:
+                prefix = marketIdParts[0]
+                # suffix = marketIdParts[1]
+                formattedId = prefix
+            return formattedId
 
     def get_market_id_from_arg(self, arg):
         #
@@ -80,8 +86,12 @@ class bitget(Exchange, ccxt.async_support.bitget):
         marketId = self.safe_string(arg, 'instId')
         if instType == 'sp':
             marketId += '_SPBL'
-        else:
-            marketId += '_UMCBL'
+        elif marketId.endsWith('PERP'):
+            marketId = marketId + '_CMCBL'
+        elif marketId.endsWith('USDT'):
+            marketId = marketId + '_UMCBL'
+        elif marketId.endsWith('USD'):
+            marketId = marketId + '_DMCBL'
         return marketId
 
     async def watch_ticker(self, symbol, params={}):
@@ -329,6 +339,7 @@ class bitget(Exchange, ccxt.async_support.bitget):
         await self.load_markets()
         market = self.market(symbol)
         symbol = market['symbol']
+        # symbol = 'BTCUSD'
         messageHash = 'orderbook' + ':' + symbol
         instType = 'sp' if market['spot'] else 'mc'
         channel = 'books'
@@ -1072,10 +1083,6 @@ class bitget(Exchange, ccxt.async_support.bitget):
 
     def ping(self, client):
         return 'ping'
-
-    def handle_pong(self, client, message):
-        client.lastPong = self.milliseconds()
-        return message
 
     def handle_subscription_status(self, client, message):
         #

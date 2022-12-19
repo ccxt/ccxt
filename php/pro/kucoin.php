@@ -104,6 +104,21 @@ class kucoin extends \ccxt\async\kucoinfutures {
         return $requestId;
     }
 
+    public function create_future($negotiation, $messageHash) {
+        $data = $this->safe_value($negotiation, 'data', array());
+        $instanceServers = $this->safe_value($data, 'instanceServers', array());
+        $firstServer = $this->safe_value($instanceServers, 0, array());
+        $endpoint = $this->safe_string($firstServer, 'endpoint');
+        $token = $this->safe_string($data, 'token');
+        $query = array(
+            'token' => $token,
+            'acceptUserMessage' => 'true',
+            // 'connectId' => nonce, // user-defined id is supported, received by handleSystemStatus
+        );
+        $url = $endpoint . '?' . $this->urlencode($query);
+        return parent::create_future($url, $messageHash);
+    }
+
     public function subscribe($negotiation, $topic, $messageHash, $method, $symbol, $params = array ()) {
         return Async\async(function () use ($negotiation, $topic, $messageHash, $method, $symbol, $params) {
             Async\await($this->load_markets());
@@ -1039,17 +1054,6 @@ class kucoin extends \ccxt\async\kucoinfutures {
             'id' => $id,
             'type' => 'ping',
         );
-    }
-
-    public function watch_heartbeat() {
-        return Async\async(function ()  {
-            Async\await($this->load_markets());
-            $negotiation = Async\await($this->negotiate());
-            $topic = 'ping';
-            $messageHash = $topic;
-            $heartbeat = Async\await($this->subscribe($negotiation, $topic, $messageHash));
-            return $heartbeat;
-        }) ();
     }
 
     public function handle_pong($client, $message) {
