@@ -69,6 +69,8 @@ class kucoin(Exchange):
                 'fetchDepositAddress': True,
                 'fetchDepositAddressesByNetwork': True,
                 'fetchDeposits': True,
+                'fetchDepositWithdrawFee': True,
+                'fetchDepositWithdrawFees': False,
                 'fetchFundingHistory': False,
                 'fetchFundingRate': False,
                 'fetchFundingRateHistory': False,
@@ -506,6 +508,9 @@ class kucoin(Exchange):
                     'HRC20': 'heco',
                     'HT': 'heco',
                 },
+                'networksById': {
+                    'BEP20': 'BSC',
+                },
             },
         })
 
@@ -783,7 +788,7 @@ class kucoin(Exchange):
 
     def fetch_transaction_fee(self, code, params={}):
         """
-        fetch the fee for a transaction
+        *DEPRECATED* please use fetchDepositWithdrawFee instead
         see https://docs.kucoin.com/#get-withdrawal-quotas
         :param str code: unified currency code
         :param dict params: extra parameters specific to the kucoin api endpoint
@@ -810,6 +815,80 @@ class kucoin(Exchange):
             'withdraw': withdrawFees,
             'deposit': {},
         }
+
+    def fetch_deposit_withdraw_fee(self, code, params={}):
+        """
+        fetch the fee for deposits and withdrawals
+        see https://docs.kucoin.com/#get-withdrawal-quotas
+        :param str code: unified currency code
+        :param dict params: extra parameters specific to the kucoin api endpoint
+        :param str|None params['network']: The chain of currency. This only apply for multi-chain currency, and there is no need for single chain currency; you can query the chain through the response of the GET /api/v2/currencies/{currency} interface
+        :returns dict: a `fee structure <https://docs.ccxt.com/en/latest/manual.html#fee-structure>`
+        """
+        self.load_markets()
+        currency = self.currency(code)
+        request = {
+            'currency': currency['id'],
+        }
+        networkCode = self.safe_string_upper(params, 'network')
+        network = self.network_code_to_id(networkCode, code)
+        if network is not None:
+            request['chain'] = network
+            params = self.omit(params, ['network'])
+        response = self.privateGetWithdrawalsQuotas(self.extend(request, params))
+        #
+        #    {
+        #        "code": "200000",
+        #        "data": {
+        #            "currency": "USDT",
+        #            "limitBTCAmount": "1.00000000",
+        #            "usedBTCAmount": "0.00000000",
+        #            "remainAmount": "16548.072149",
+        #            "availableAmount": "0",
+        #            "withdrawMinFee": "25",
+        #            "innerWithdrawMinFee": "0",
+        #            "withdrawMinSize": "50",
+        #            "isWithdrawEnabled": True,
+        #            "precision": 6,
+        #            "chain": "ERC20"
+        #        }
+        #    }
+        #
+        data = self.safe_value(response, 'data')
+        return self.parse_deposit_withdraw_fee(data, currency)
+
+    def parse_deposit_withdraw_fee(self, fee, currency=None):
+        #
+        #    {
+        #        "currency": "USDT",
+        #        "limitBTCAmount": "1.00000000",
+        #        "usedBTCAmount": "0.00000000",
+        #        "remainAmount": "16548.072149",
+        #        "availableAmount": "0",
+        #        "withdrawMinFee": "25",
+        #        "innerWithdrawMinFee": "0",
+        #        "withdrawMinSize": "50",
+        #        "isWithdrawEnabled": True,
+        #        "precision": 6,
+        #        "chain": "ERC20"
+        #    }
+        #
+        result = self.deposit_withdraw_fee(fee)
+        isWithdrawEnabled = self.safe_value(fee, 'isWithdrawEnabled')
+        if isWithdrawEnabled:
+            networkId = self.safe_string(fee, 'chain')
+            networkCode = self.network_id_to_code(networkId, self.safe_string(currency, 'code'))
+            result['networks'][networkCode] = {
+                'withdraw': {
+                    'fee': self.safe_number(fee, 'withdrawMinFee'),
+                    'percentage': None,
+                },
+                'deposit': {
+                    'fee': None,
+                    'percentage': None,
+                },
+            }
+        return self.assign_default_deposit_withdraw_fees(result)
 
     def is_futures_method(self, methodName, params):
         #
