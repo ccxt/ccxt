@@ -281,6 +281,13 @@ module.exports = class okx extends Exchange {
                         'copytrading/profit-sharing-details': 10,
                         'copytrading/total-profit-sharing': 10,
                         'copytrading/unrealized-profit-sharing-details': 10,
+                        // grid trading
+                        'tradingBot/grid/orders-algo-pending': 1,
+                        'tradingBot/grid/orders-algo-history': 1,
+                        'tradingBot/grid/orders-algo-details': 1,
+                        'tradingBot/grid/sub-orders': 1,
+                        'tradingBot/grid/positions': 1,
+                        'tradingBot/grid/ai-param': 1,
                     },
                     'post': {
                         'account/set-position-mode': 4,
@@ -343,6 +350,13 @@ module.exports = class okx extends Exchange {
                         'copytrading/algo-order': 20,
                         'copytrading/close-subposition': 10,
                         'copytrading/set-instruments': 10,
+                        // grid trading
+                        'tradingBot/grid/order-algo': 1,
+                        'tradingBot/grid/amend-order-algo': 1,
+                        'tradingBot/grid/stop-order-algo': 1,
+                        'tradingBot/grid/withdraw-income': 1,
+                        'tradingBot/grid/compute-margin-balance': 1,
+                        'tradingBot/grid/margin-balance': 1,
                     },
                 },
             },
