@@ -1317,76 +1317,76 @@ module.exports = class bitopro extends Exchange {
     parseTransaction (transaction, currency = undefined) {
         //
         // fetchDeposits
-        //             {
-        //                 "serial":"20220214X766799",
-        //                 "timestamp":"1644833015053",
-        //                 "address":"bnb1xml62k5a9dcewgc542fha75fyxdcp0zv8eqfsh",
-        //                 "amount":"0.20000000",
-        //                 "fee":"0.00000000",
-        //                 "total":"0.20000000",
-        //                 "status":"COMPLETE",
-        //                 "txid":"A3CC4F6828CC752B9F3737F48B5826B9EC2857040CB5141D0CC955F7E53DB6D9",
-        //                 "message":"778553959",
-        //                 "protocol":"MAIN",
-        //                 "id":"2905906537"
-        //             }
+        //
+        //    {
+        //        "serial": "20220214X766799",
+        //        "timestamp": "1644833015053",
+        //        "address": "bnb1xml62k5a9dcewgc542fha75fyxdcp0zv8eqfsh",
+        //        "amount": "0.20000000",
+        //        "fee": "0.00000000",
+        //        "total": "0.20000000",
+        //        "status": "COMPLETE",
+        //        "txid": "A3CC4F6828CC752B9F3737F48B5826B9EC2857040CB5141D0CC955F7E53DB6D9",
+        //        "message": "778553959",
+        //        "protocol": "MAIN",
+        //        "id": "2905906537"
+        //    }
         //
         // fetchWithdrawals || fetchWithdraw
-        //             {
-        //                 "serial":"20220215BW14069838",
-        //                 "timestamp":"1644907716044",
-        //                 "address":"TKrwMaZaGiAvtXCFT41xHuusNcs4LPWS7w",
-        //                 "amount":"8.00000000",
-        //                 "fee":"2.00000000",
-        //                 "total":"10.00000000",
-        //                 "status":"COMPLETE",
-        //                 "txid":"50bf250c71a582f40cf699fb58bab978437ea9bdf7259ff8072e669aab30c32b",
-        //                 "protocol":"TRX",
-        //                 "id":"9925310345"
-        //             }
+        //
+        //    {
+        //        "serial": "20220215BW14069838",
+        //        "timestamp": "1644907716044",
+        //        "address": "TKrwMaZaGiAvtXCFT41xHuusNcs4LPWS7w",
+        //        "amount": "8.00000000",
+        //        "fee": "2.00000000",
+        //        "total": "10.00000000",
+        //        "status": "COMPLETE",
+        //        "txid": "50bf250c71a582f40cf699fb58bab978437ea9bdf7259ff8072e669aab30c32b",
+        //        "protocol": "TRX",
+        //        "id": "9925310345"
+        //    }
         //
         // withdraw
-        //             {
-        //                 "serial":"20220215BW14069838",
-        //                 "currency":"USDT",
-        //                 "protocol":"TRX",
-        //                 "address":"TKrwMaZaGiAvtXCFT41xHuusNcs4LPWS7w",
-        //                 "amount":"8",
-        //                 "fee":"2",
-        //                 "total":"10"
-        //             }
+        //
+        //    {
+        //        "serial": "20220215BW14069838",
+        //        "currency": "USDT",
+        //        "protocol": "TRX",
+        //        "address": "TKrwMaZaGiAvtXCFT41xHuusNcs4LPWS7w",
+        //        "amount": "8",
+        //        "fee": "2",
+        //        "total": "10"
+        //    }
         //
         const currencyId = this.safeString (transaction, 'coin');
         const code = this.safeCurrencyCode (currencyId, currency);
-        const id = this.safeString (transaction, 'serial');
-        const txId = this.safeString (transaction, 'txid');
         const timestamp = this.safeInteger (transaction, 'timestamp');
-        const amount = this.safeNumber (transaction, 'total');
         const address = this.safeString (transaction, 'address');
         const tag = this.safeString (transaction, 'message');
         const status = this.safeString (transaction, 'status');
-        const fee = this.safeNumber (transaction, 'fee');
         return {
             'info': transaction,
-            'id': id,
-            'txid': txId,
+            'id': this.safeString (transaction, 'serial'),
+            'txid': this.safeString (transaction, 'txid'),
+            'type': undefined,
+            'currency': code,
+            'network': undefined,
+            'amount': this.safeNumber (transaction, 'total'),
+            'status': this.parseTransactionStatus (status),
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'network': undefined,
-            'addressFrom': undefined,
             'address': address,
+            'addressFrom': undefined,
             'addressTo': address,
-            'tagFrom': undefined,
             'tag': tag,
+            'tagFrom': undefined,
             'tagTo': tag,
-            'type': undefined,
-            'amount': amount,
-            'currency': code,
-            'status': this.parseTransactionStatus (status),
             'updated': undefined,
+            'comment': undefined,
             'fee': {
                 'currency': code,
-                'cost': fee,
+                'cost': this.safeNumber (transaction, 'fee'),
                 'rate': undefined,
             },
         };
