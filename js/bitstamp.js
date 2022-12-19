@@ -1592,7 +1592,6 @@ module.exports = class bitstamp extends Exchange {
         //     }
         //
         const timestamp = this.parse8601 (this.safeString (transaction, 'datetime'));
-        const id = this.safeString (transaction, 'id');
         const currencyId = this.getCurrencyIdFromTransaction (transaction);
         const code = this.safeCurrencyCode (currencyId, currency);
         const feeCost = this.safeString (transaction, 'fee');
@@ -1628,7 +1627,6 @@ module.exports = class bitstamp extends Exchange {
             // from fetchWithdrawals
             type = 'withdrawal';
         }
-        const txid = this.safeString (transaction, 'transaction_id');
         let tag = undefined;
         let address = this.safeString (transaction, 'address');
         if (address !== undefined) {
@@ -1640,11 +1638,11 @@ module.exports = class bitstamp extends Exchange {
                 tag = addressParts[1];
             }
         }
-        const addressFrom = undefined;
-        const addressTo = address;
-        const tagFrom = undefined;
-        const tagTo = tag;
-        let fee = undefined;
+        let fee = {
+            'currency': undefined,
+            'cost': undefined,
+            'rate': undefined,
+        };
         if (feeCost !== undefined) {
             fee = {
                 'currency': feeCurrency,
@@ -1654,22 +1652,23 @@ module.exports = class bitstamp extends Exchange {
         }
         return {
             'info': transaction,
-            'id': id,
-            'txid': txid,
+            'id': this.safeString (transaction, 'id'),
+            'txid': this.safeString (transaction, 'transaction_id'),
+            'type': type,
+            'currency': code,
+            'network': undefined,
+            'amount': this.parseNumber (amount),
+            'status': status,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'network': undefined,
-            'addressFrom': addressFrom,
-            'addressTo': addressTo,
             'address': address,
-            'tagFrom': tagFrom,
-            'tagTo': tagTo,
+            'addressFrom': undefined,
+            'addressTo': address,
             'tag': tag,
-            'type': type,
-            'amount': this.parseNumber (amount),
-            'currency': code,
-            'status': status,
+            'tagFrom': undefined,
+            'tagTo': tag,
             'updated': undefined,
+            'comment': undefined,
             'fee': fee,
         };
     }
