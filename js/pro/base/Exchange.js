@@ -12,9 +12,17 @@ const BaseExchange = require ("../../base/Exchange")
 
 module.exports = class Exchange extends BaseExchange {
 
+    getUrl () {
+        return this.urls['api']['ws'];
+    }
+
+    getClient () {
+        return this.client (this.getUrl ());
+    }
+
     async watchHeartbeat () {
         await this.loadMarkets ();
-        const url = this.urls['api']['ws'];
+        const url = this.getUrl ();
         return await this.create_future (url, 'ping');
     }
 
