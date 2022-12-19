@@ -1736,62 +1736,59 @@ module.exports = class exmo extends Exchange {
         //
         // fetchTransactions
         //
-        //          {
-        //            "dt": 1461841192,
-        //            "type": "deposit",
-        //            "curr": "RUB",
-        //            "status": "processing",
-        //            "provider": "Qiwi (LA) [12345]",
-        //            "amount": "1",
-        //            "account": "",
-        //            "txid": "ec46f784ad976fd7f7539089d1a129fe46...",
-        //          }
+        //    {
+        //        "dt": 1461841192,
+        //        "type": "deposit",
+        //        "curr": "RUB",
+        //        "status": "processing",
+        //        "provider": "Qiwi (LA) [12345]",
+        //        "amount": "1",
+        //        "account": "",
+        //        "txid": "ec46f784ad976fd7f7539089d1a129fe46...",
+        //    }
         //
         // fetchWithdrawals
         //
-        //          {
-        //             "operation_id": 47412538520634344,
-        //             "created": 1573760013,
-        //             "updated": 1573760013,
-        //             "type": "withdraw",
-        //             "currency": "DOGE",
-        //             "status": "Paid",
-        //             "amount": "300",
-        //             "provider": "DOGE",
-        //             "commission": "0",
-        //             "account": "DOGE: DBVy8pF1f8yxaCVEHqHeR7kkcHecLQ8nRS",
-        //             "order_id": 69670170,
-        //             "provider_type": "crypto",
-        //             "crypto_address": "DBVy8pF1f8yxaCVEHqHeR7kkcHecLQ8nRS",
-        //             "card_number": "",
-        //             "wallet_address": "",
-        //             "email": "",
-        //             "phone": "",
-        //             "extra": {
-        //                 "txid": "f2b66259ae1580f371d38dd27e31a23fff8c04122b65ee3ab5a3f612d579c792",
-        //                 "confirmations": null,
-        //                 "excode": "",
-        //                 "invoice": ""
-        //             },
-        //             "error": ""
-        //          },
+        //    {
+        //        "operation_id": 47412538520634344,
+        //        "created": 1573760013,
+        //        "updated": 1573760013,
+        //        "type": "withdraw",
+        //        "currency": "DOGE",
+        //        "status": "Paid",
+        //        "amount": "300",
+        //        "provider": "DOGE",
+        //        "commission": "0",
+        //        "account": "DOGE: DBVy8pF1f8yxaCVEHqHeR7kkcHecLQ8nRS",
+        //        "order_id": 69670170,
+        //        "provider_type": "crypto",
+        //        "crypto_address": "DBVy8pF1f8yxaCVEHqHeR7kkcHecLQ8nRS",
+        //        "card_number": "",
+        //        "wallet_address": "",
+        //        "email": "",
+        //        "phone": "",
+        //        "extra": {
+        //            "txid": "f2b66259ae1580f371d38dd27e31a23fff8c04122b65ee3ab5a3f612d579c792",
+        //            "confirmations": null,
+        //            "excode": "",
+        //            "invoice": ""
+        //        },
+        //        "error": ""
+        //    }
         //
         // withdraw
         //
-        //          {
-        //              "result":true,
-        //              "error":"",
-        //              "task_id":11775077
-        //          },
+        //    {
+        //        "result": true,
+        //        "error": "",
+        //        "task_id": 11775077
+        //    }
         //
-        const id = this.safeString2 (transaction, 'order_id', 'task_id');
         const timestamp = this.safeTimestamp2 (transaction, 'dt', 'created');
-        const updated = this.safeTimestamp (transaction, 'updated');
         let amount = this.safeString (transaction, 'amount');
         if (amount !== undefined) {
             amount = Precise.stringAbs (amount);
         }
-        const status = this.parseTransactionStatus (this.safeStringLower (transaction, 'status'));
         let txid = this.safeString (transaction, 'txid');
         if (txid === undefined) {
             const extra = this.safeValue (transaction, 'extra', {});
@@ -1804,7 +1801,6 @@ module.exports = class exmo extends Exchange {
         const currencyId = this.safeString2 (transaction, 'curr', 'currency');
         const code = this.safeCurrencyCode (currencyId, currency);
         let address = undefined;
-        const tag = undefined;
         let comment = undefined;
         const account = this.safeString (transaction, 'account');
         if (type === 'deposit') {
@@ -1820,7 +1816,11 @@ module.exports = class exmo extends Exchange {
                 }
             }
         }
-        let fee = undefined;
+        const fee = {
+            'currency': undefined,
+            'cost': undefined,
+            'rate': undefined,
+        };
         // fixed funding fees only (for now)
         if (!this.fees['transaction']['percentage']) {
             const key = (type === 'withdrawal') ? 'withdraw' : 'deposit';
@@ -1840,33 +1840,29 @@ module.exports = class exmo extends Exchange {
                 if (type === 'withdrawal') {
                     amount = Precise.stringSub (amount, feeCost);
                 }
-                fee = {
-                    'cost': this.parseNumber (feeCost),
-                    'currency': code,
-                    'rate': undefined,
-                };
+                fee['cost'] = this.parseNumber (feeCost);
+                fee['currency'] = code;
             }
         }
-        const network = this.safeString (transaction, 'provider');
         return {
             'info': transaction,
-            'id': id,
+            'id': this.safeString2 (transaction, 'order_id', 'task_id'),
+            'txid': txid,
+            'type': type,
+            'currency': code,
+            'network': this.safeString (transaction, 'provider'),
+            'amount': amount,
+            'status': this.parseTransactionStatus (this.safeStringLower (transaction, 'status')),
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'currency': code,
-            'amount': amount,
-            'network': network,
             'address': address,
-            'addressTo': address,
             'addressFrom': undefined,
-            'tag': tag,
-            'tagTo': tag,
+            'addressTo': address,
+            'tag': undefined,
             'tagFrom': undefined,
-            'status': status,
-            'type': type,
-            'updated': updated,
+            'tagTo': undefined,
+            'updated': this.safeTimestamp (transaction, 'updated'),
             'comment': comment,
-            'txid': txid,
             'fee': fee,
         };
     }
