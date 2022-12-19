@@ -274,6 +274,13 @@ module.exports = class okx extends Exchange {
                         'rfq/quotes': 10,
                         'rfq/trades': 4,
                         'rfq/public-trades': 4,
+                        // copytrading
+                        'copytrading/current-subpositions': 10,
+                        'copytrading/subpositions-history': 10,
+                        'copytrading/instruments': 10,
+                        'copytrading/profit-sharing-details': 10,
+                        'copytrading/total-profit-sharing': 10,
+                        'copytrading/unrealized-profit-sharing-details': 10,
                     },
                     'post': {
                         'account/set-position-mode': 4,
@@ -332,6 +339,10 @@ module.exports = class okx extends Exchange {
                         'rfq/cancel-quote': 0.4,
                         'rfq/cancel-batch-quotes': 10,
                         'rfq/cancel-all-quotes': 10,
+                        // copytrading
+                        'copytrading/algo-order': 20,
+                        'copytrading/close-subposition': 10,
+                        'copytrading/set-instruments': 10,
                     },
                 },
             },
