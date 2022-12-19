@@ -493,8 +493,6 @@ module.exports = class kucoin extends Exchange {
                 },
                 'networksById': {
                     'BEP20': 'BSC',
-                    'ERC20': 'ETH',
-                    'TRC20': 'TRX',
                 },
             },
         });
