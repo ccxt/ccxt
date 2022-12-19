@@ -2422,39 +2422,35 @@ module.exports = class ascendex extends Exchange {
         //         }
         //     }
         //
-        const id = this.safeString (transaction, 'requestId');
-        const amount = this.safeNumber (transaction, 'amount');
         const destAddress = this.safeValue (transaction, 'destAddress', {});
         const address = this.safeString (destAddress, 'address');
         const tag = this.safeString (destAddress, 'destTag');
-        const txid = this.safeString (transaction, 'networkTransactionId');
-        const type = this.safeString (transaction, 'transactionType');
         const timestamp = this.safeInteger (transaction, 'time');
         const currencyId = this.safeString (transaction, 'asset');
         const code = this.safeCurrencyCode (currencyId, currency);
-        const status = this.parseTransactionStatus (this.safeString (transaction, 'status'));
-        const feeCost = this.safeNumber (transaction, 'commission');
         return {
             'info': transaction,
-            'id': id,
+            'id': this.safeString (transaction, 'requestId'),
+            'txid': this.safeString (transaction, 'networkTransactionId'),
+            'type': this.safeString (transaction, 'transactionType'),
             'currency': code,
-            'amount': amount,
             'network': undefined,
-            'address': address,
-            'addressTo': address,
-            'addressFrom': undefined,
-            'tag': tag,
-            'tagTo': tag,
-            'tagFrom': undefined,
-            'status': status,
-            'type': type,
-            'updated': undefined,
-            'txid': txid,
+            'amount': this.safeNumber (transaction, 'amount'),
+            'status': this.parseTransactionStatus (this.safeString (transaction, 'status')),
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
+            'address': address,
+            'addressFrom': undefined,
+            'addressTo': address,
+            'tag': tag,
+            'tagFrom': undefined,
+            'tagTo': tag,
+            'updated': undefined,
+            'comment': undefined,
             'fee': {
                 'currency': code,
-                'cost': feeCost,
+                'cost': this.safeNumber (transaction, 'commission'),
+                'rate': undefined,
             },
         };
     }
