@@ -26,14 +26,15 @@ module.exports = class poloniexfutures extends Exchange {
                 'swap': true,
                 'future': false,
                 'option': undefined,
+                'fetchBalance': true,
                 'fetchCurrencies': false,
                 'fetchMarkets': true,
+                'fetchOHLCV': true,
                 'fetchOrderBook': true,
                 'fetchTicker': true,
                 'fetchTickers': true,
                 'fetchTime': true,
                 'fetchTrades': true,
-                'fetchOHLCV': true,
             },
             'timeframes': {
                 '1m': 1,
@@ -726,9 +727,10 @@ module.exports = class poloniexfutures extends Exchange {
          * @param {object} params extra parameters specific to the poloniexfutures api endpoint
          * @returns {object} a [balance structure]{@link https://docs.ccxt.com/en/latest/manual.html?#balance-structure}
          */
+        // TODO: Python Error
         await this.loadMarkets ();
         const currencyId = this.safeString (params, 'currency');
-        let request = undefined;
+        let request = {};
         if (currencyId !== undefined) {
             const currency = this.currency (currencyId);
             request = {
