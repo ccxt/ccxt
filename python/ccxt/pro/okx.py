@@ -458,6 +458,7 @@ class okx(Exchange, ccxt.async_support.okx):
                 update = data[i]
                 orderbook = self.order_book({}, limit)
                 self.orderbooks[symbol] = orderbook
+                orderbook['symbol'] = symbol
                 self.handle_order_book_message(client, update, orderbook, messageHash)
                 client.resolve(orderbook, messageHash)
         elif action == 'update':

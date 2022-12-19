@@ -51,6 +51,8 @@ class kucoinfutures extends kucoin {
                 'fetchCurrencies' => false,
                 'fetchDepositAddress' => true,
                 'fetchDeposits' => true,
+                'fetchDepositWithdrawFee' => false,
+                'fetchDepositWithdrawFees' => false,
                 'fetchFundingHistory' => true,
                 'fetchFundingRate' => true,
                 'fetchFundingRateHistory' => false,
@@ -75,7 +77,7 @@ class kucoinfutures extends kucoin {
                 'fetchTickers' => false,
                 'fetchTime' => true,
                 'fetchTrades' => true,
-                'fetchTransactionFee' => true,
+                'fetchTransactionFee' => false,
                 'fetchWithdrawals' => true,
                 'setMarginMode' => false,
                 'transfer' => true,
@@ -1995,12 +1997,22 @@ class kucoinfutures extends kucoin {
 
     public function fetch_transaction_fee($code, $params = array ()) {
         /**
-         * fetch the fee for a transaction
+         * *DEPRECATED* please use fetchDepositWithdrawFee instead
          * @param {string} $code unified currency $code
          * @param {array} $params extra parameters specific to the kucoinfutures api endpoint
          * @return {array} a {@link https://docs.ccxt.com/en/latest/manual.html#fee-structure fee structure}
          */
-        throw new BadRequest($this->id . ' fetchTransactionFee() is not supported yet');
+        throw new BadRequest($this->id . ' fetchTransactionFee() is not supported');
+    }
+
+    public function fetch_deposit_withdraw_fee($code, $params = array ()) {
+        /**
+         * Not supported
+         * @param {string} $code unified currency $code
+         * @param {array} $params extra parameters specific to the kucoinfutures api endpoint
+         * @return {array} a {@link https://docs.ccxt.com/en/latest/manual.html#fee-structure fee structure}
+         */
+        throw new BadRequest($this->id . ' fetchDepositWithdrawFee() is not supported');
     }
 
     public function fetch_ledger($code = null, $since = null, $limit = null, $params = array ()) {

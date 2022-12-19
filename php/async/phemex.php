@@ -2940,7 +2940,10 @@ class phemex extends Exchange {
         $leverage = $this->safe_number($position, 'leverage');
         $entryPriceString = $this->safe_string($position, 'avgEntryPrice');
         $rawSide = $this->safe_string($position, 'side');
-        $side = ($rawSide === 'Buy') ? 'long' : 'short';
+        $side = null;
+        if ($rawSide !== null) {
+            $side = ($rawSide === 'Buy') ? 'long' : 'short';
+        }
         $priceDiff = null;
         $currency = $this->safe_string($position, 'currency');
         if ($currency === 'USD') {

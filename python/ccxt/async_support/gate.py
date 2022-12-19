@@ -91,6 +91,7 @@ class gate(Exchange):
                 'createStopLimitOrder': True,
                 'createStopMarketOrder': False,
                 'createStopOrder': True,
+                'editOrder': True,
                 'fetchBalance': True,
                 'fetchBorrowRate': False,
                 'fetchBorrowRateHistories': False,
@@ -273,6 +274,9 @@ class gate(Exchange):
                             'orders/{order_id}': 1,
                             'price_orders': 1,
                             'price_orders/{order_id}': 1,
+                        },
+                        'patch': {
+                            'orders/{order_id}': 1,
                         },
                     },
                     'margin': {
@@ -964,7 +968,7 @@ class gate(Exchange):
             'strike': None,
             'optionType': None,
             'precision': {
-                'amount': self.parse_number('1'),
+                'amount': self.parse_number('1'),  # all contracts have self step size
                 'price': self.safe_number(market, 'order_price_round'),
             },
             'limits': {
@@ -1084,7 +1088,7 @@ class gate(Exchange):
                     'strike': strike,
                     'optionType': optionType,
                     'precision': {
-                        'amount': self.parse_number('1'),
+                        'amount': self.parse_number('1'),  # all options have self step size
                         'price': self.safe_number(market, 'order_price_round'),
                     },
                     'limits': {
@@ -1266,7 +1270,7 @@ class gate(Exchange):
                 'lowerCaseId': currencyIdLower,
                 'name': None,
                 'code': code,
-                'precision': self.parse_number('1e-6'),
+                'precision': self.parse_number('1e-4'),  # todo: as gateio is done completely in html, in withdrawal page's source it has predefined "num_need_fix(self.value, 4);" function, so users cant set lower precision than 0.0001
                 'info': entry,
                 'active': active,
                 'deposit': depositEnabled,
@@ -2000,13 +2004,27 @@ class gate(Exchange):
         #         "index_price": "6531"
         #     }
         #
-        marketId = self.safe_string_2(ticker, 'currency_pair', 'contract')
+        # bookTicker
+        #    {
+        #        t: 1671363004228,
+        #        u: 9793320464,
+        #        s: 'BTC_USDT',
+        #        b: '16716.8',  # best bid price
+        #        B: '0.0134',  # best bid size
+        #        a: '16716.9',  # best ask price
+        #        A: '0.0353'  # best ask size
+        #     }
+        #
+        marketId = self.safe_string_n(ticker, ['currency_pair', 'contract', 's'])
         symbol = self.safe_symbol(marketId, market)
         last = self.safe_string(ticker, 'last')
-        ask = self.safe_string(ticker, 'lowest_ask')
-        bid = self.safe_string(ticker, 'highest_bid')
+        ask = self.safe_string_2(ticker, 'lowest_ask', 'a')
+        bid = self.safe_string_2(ticker, 'highest_bid', 'b')
         high = self.safe_string(ticker, 'high_24h')
         low = self.safe_string(ticker, 'low_24h')
+        bidVolume = self.safe_string(ticker, 'B')
+        askVolume = self.safe_string(ticker, 'A')
+        timestamp = self.safe_integer(ticker, 't')
         baseVolume = self.safe_string_2(ticker, 'base_volume', 'volume_24h_base')
         if baseVolume == 'nan':
             baseVolume = '0'
@@ -2016,14 +2034,14 @@ class gate(Exchange):
         percentage = self.safe_string(ticker, 'change_percentage')
         return self.safe_ticker({
             'symbol': symbol,
-            'timestamp': None,
-            'datetime': None,
+            'timestamp': timestamp,
+            'datetime': self.iso8601(timestamp),
             'high': high,
             'low': low,
             'bid': bid,
-            'bidVolume': None,
+            'bidVolume': bidVolume,
             'ask': ask,
-            'askVolume': None,
+            'askVolume': askVolume,
             'vwap': None,
             'open': None,
             'close': last,
@@ -3138,8 +3156,76 @@ class gate(Exchange):
         #
         return self.parse_order(response, market)
 
+    async def edit_order(self, id, symbol, type, side, amount, price=None, params={}):
+        """
+        edit a trade order, gate currently only supports the modification of the price or amount fields
+        see https://www.gate.io/docs/developers/apiv4/en/#amend-an-order
+        :param str id: order id
+        :param str symbol: unified symbol of the market to create an order in
+        :param str type: 'market' or 'limit'
+        :param str side: 'buy' or 'sell'
+        :param float amount: how much of the currency you want to trade in units of the base currency
+        :param float|None price: the price at which the order is to be fullfilled, in units of the base currency, ignored in market orders
+        :param dict params: extra parameters specific to the gate api endpoint
+        :returns dict: an `order structure <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
+        """
+        await self.load_markets()
+        market = self.market(symbol)
+        if not market['spot']:
+            raise BadRequest(self.id + ' editOrder() supports only spot markets')
+        marketType, query = self.handle_market_type_and_params('editOrder', market, params)
+        account = self.convert_type_to_account(marketType)
+        isLimitOrder = (type == 'limit')
+        if account == 'spot':
+            if not isLimitOrder:
+                # exchange doesn't have market orders for spot
+                raise InvalidOrder(self.id + ' editOrder() does not support ' + type + ' orders for ' + marketType + ' markets')
+        request = {
+            'order_id': id,
+            'currency_pair': market['id'],
+            'account': account,
+        }
+        if amount is not None:
+            request['amount'] = self.amount_to_precision(symbol, amount)
+        if price is not None:
+            request['price'] = self.price_to_precision(symbol, price)
+        response = await self.privateSpotPatchOrdersOrderId(self.extend(request, query))
+        #
+        #     {
+        #         "id": "243233276443",
+        #         "text": "apiv4",
+        #         "create_time": "1670908873",
+        #         "update_time": "1670914102",
+        #         "create_time_ms": 1670908873077,
+        #         "update_time_ms": 1670914102241,
+        #         "status": "open",
+        #         "currency_pair": "ADA_USDT",
+        #         "type": "limit",
+        #         "account": "spot",
+        #         "side": "sell",
+        #         "amount": "10",
+        #         "price": "0.6",
+        #         "time_in_force": "gtc",
+        #         "iceberg": "0",
+        #         "left": "10",
+        #         "fill_price": "0",
+        #         "filled_total": "0",
+        #         "fee": "0",
+        #         "fee_currency": "USDT",
+        #         "point_fee": "0",
+        #         "gt_fee": "0",
+        #         "gt_maker_fee": "0",
+        #         "gt_taker_fee": "0",
+        #         "gt_discount": False,
+        #         "rebated_fee": "0",
+        #         "rebated_fee_currency": "ADA"
+        #     }
+        #
+        return self.parse_order(response, market)
+
     def parse_order_status(self, status):
         statuses = {
+            'open': 'open',
             '_new': 'open',
             'filled': 'closed',
             'cancelled': 'canceled',
@@ -3155,7 +3241,7 @@ class gate(Exchange):
     def parse_order(self, order, market=None):
         #
         # SPOT
-        # createOrder/cancelOrder/fetchOrder
+        # createOrder/cancelOrder/fetchOrder/editOrder
         #
         #    {
         #        "id": "62364648575",
@@ -4489,10 +4575,12 @@ class gate(Exchange):
                 pathParts = path.split('/')
                 secondPart = self.safe_string(pathParts, 1, '')
                 requiresURLEncoding = (secondPart.find('dual') >= 0) or (secondPart.find('positions') >= 0)
-            if (method == 'GET') or (method == 'DELETE') or requiresURLEncoding:
+            if (method == 'GET') or (method == 'DELETE') or requiresURLEncoding or (method == 'PATCH'):
                 if query:
                     queryString = self.urlencode(query)
                     url += '?' + queryString
+                if method == 'PATCH':
+                    body = self.json(query)
             else:
                 urlQueryParams = self.safe_value(query, 'query', {})
                 if urlQueryParams:

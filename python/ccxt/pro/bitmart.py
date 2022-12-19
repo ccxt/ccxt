@@ -34,7 +34,7 @@ class bitmart(Exchange, ccxt.async_support.bitmart):
             'options': {
                 'defaultType': 'spot',
                 'watchOrderBook': {
-                    'depth': 'depth5',  # depth5, depth400
+                    'depth': 'depth5',  # depth5, depth20, depth50
                 },
                 'ws': {
                     'inflate': True,
@@ -367,7 +367,7 @@ class bitmart(Exchange, ccxt.async_support.bitmart):
         :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/en/latest/manual.html#order-book-structure>` indexed by market symbols
         """
         options = self.safe_value(self.options, 'watchOrderBook', {})
-        depth = self.safe_string(options, 'depth', 'depth400')
+        depth = self.safe_string(options, 'depth', 'depth50')
         orderbook = await self.subscribe(depth, symbol, params)
         return orderbook.limit()
 
@@ -567,7 +567,8 @@ class bitmart(Exchange, ccxt.async_support.bitmart):
             methods = {
                 'depth': self.handle_order_book,
                 'depth5': self.handle_order_book,
-                'depth400': self.handle_order_book,
+                'depth20': self.handle_order_book,
+                'depth50': self.handle_order_book,
                 'ticker': self.handle_ticker,
                 'trade': self.handle_trade,
                 # ...

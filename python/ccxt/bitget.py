@@ -38,6 +38,7 @@ class bitget(Exchange):
             'version': 'v1',
             'rateLimit': 50,  # up to 3000 requests per 5 minutes ≈ 600 requests per minute ≈ 10 requests per second ≈ 100 ms
             'certified': True,
+            'pro': True,
             'has': {
                 'CORS': None,
                 'spot': True,
@@ -181,6 +182,7 @@ class bitget(Exchange):
                         },
                         'post': {
                             'account/bills': 2,
+                            'account/sub-account-spot-assets': 200,
                             'trade/orders': 2,
                             'trade/batch-orders': 4,
                             'trade/cancel-order': 2,
@@ -693,6 +695,7 @@ class bitget(Exchange):
                     '40712': InsufficientFunds,  # Insufficient margin
                     '40713': ExchangeError,  # Cannot exceed the maximum transferable margin amount
                     '40714': ExchangeError,  # No direct margin call is allowed
+                    '45110': InvalidOrder,  # {"code":"45110","msg":"less than the minimum amount 5 USDT","requestTime":1669911118932,"data":null}
                     # spot
                     'invalid sign': AuthenticationError,
                     'invalid currency': BadSymbol,  # invalid trading pair
@@ -2013,12 +2016,24 @@ class bitget(Exchange):
 
     def parse_balance(self, balance):
         result = {'info': balance}
+        #
+        #     {
+        #       coinId: '1',
+        #       coinName: 'BTC',
+        #       available: '0.00099900',
+        #       frozen: '0.00000000',
+        #       lock: '0.00000000',
+        #       uTime: '1661595535000'
+        #     }
+        #
         for i in range(0, len(balance)):
             entry = balance[i]
             currencyId = self.safe_string_2(entry, 'coinId', 'marginCoin')
             code = self.safe_currency_code(currencyId)
             account = self.account()
-            account['used'] = self.safe_string_2(entry, 'lock', 'locked')
+            frozen = self.safe_string(entry, 'frozen')
+            locked = self.safe_string(entry, 'lock')
+            account['used'] = Precise.string_add(frozen, locked)
             account['free'] = self.safe_string(entry, 'available')
             result[code] = account
         return self.safe_balance(result)
@@ -2026,6 +2041,7 @@ class bitget(Exchange):
     def parse_order_status(self, status):
         statuses = {
             'new': 'open',
+            'init': 'open',
             'full_fill': 'closed',
             'filled': 'closed',
         }
