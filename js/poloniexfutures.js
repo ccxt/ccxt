@@ -657,13 +657,14 @@ module.exports = class poloniexfutures extends Exchange {
     async fetchOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
         /**
          * @method
-         * @name kucoinfutures#fetchOHLCV
+         * @name poloniexfutures#fetchOHLCV
          * @description fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+         * @see https://futures-docs.poloniex.com/#k-chart
          * @param {string} symbol unified symbol of the market to fetch OHLCV data for
          * @param {string} timeframe the length of time each candle represents
          * @param {int|undefined} since timestamp in ms of the earliest candle to fetch
          * @param {int|undefined} limit the maximum amount of candles to fetch
-         * @param {object} params extra parameters specific to the kucoinfutures api endpoint
+         * @param {object} params extra parameters specific to the poloniexfutures api endpoint
          * @returns {[[int]]} A list of candles ordered as timestamp, open, high, low, close, volume
          */
         await this.loadMarkets ();
@@ -701,6 +702,58 @@ module.exports = class poloniexfutures extends Exchange {
         return this.parseOHLCVs (data, market, timeframe, since, limit);
     }
 
+    parseBalance (response) {
+        const result = {
+            'info': response,
+            'timestamp': undefined,
+            'datetime': undefined,
+        };
+        const data = this.safeValue (response, 'data');
+        const currencyId = this.safeString (data, 'currency');
+        const code = this.safeCurrencyCode (currencyId);
+        const account = this.account ();
+        account['free'] = this.safeString (data, 'availableBalance');
+        account['total'] = this.safeString (data, 'accountEquity');
+        result[code] = account;
+        return this.safeBalance (result);
+    }
+
+    async fetchBalance (params = {}) {
+        /**
+         * @method
+         * @name poloniexfutures#fetchBalance
+         * @description query for balance and get the amount of funds available for trading or funds locked in orders
+         * @param {object} params extra parameters specific to the poloniexfutures api endpoint
+         * @returns {object} a [balance structure]{@link https://docs.ccxt.com/en/latest/manual.html?#balance-structure}
+         */
+        await this.loadMarkets ();
+        const currencyId = this.safeString (params, 'currency');
+        let request = undefined;
+        if (currencyId !== undefined) {
+            const currency = this.currency (currencyId);
+            request = {
+                'currency': currency['id'],
+            };
+        }
+        const response = await this.privateGetAccountOverview (this.extend (request, params));
+        //
+        //     {
+        //         code: '200000',
+        //         data: {
+        //             accountEquity: 0.00005,
+        //             unrealisedPNL: 0,
+        //             marginBalance: 0.00005,
+        //             positionMargin: 0,
+        //             orderMargin: 0,
+        //             frozenFunds: 0,
+        //             availableBalance: 0.00005,
+        //             currency: 'XBT'
+        //         }
+        //     }
+        //
+        return this.parseBalance (response);
+    }
+
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let url = this.urls['api'][api];
         const versions = this.safeValue (this.options, 'versions', {});
@@ -720,23 +773,18 @@ module.exports = class poloniexfutures extends Exchange {
             this.checkRequiredCredentials ();
             body = this.urlencode (query);
             const now = this.milliseconds ().toString ();
-            const str_to_sign = now + method + tail;
-            const signature = this.hmac (this.encode (this.secret), this.encode (str_to_sign), 'sha256', 'base64');
+            const payload = now + method + tail;
+            const signature = this.hmac (this.encode (payload), this.encode (this.secret), 'sha256', 'base64');
             headers = {
                 'PF-API-SIGN': signature,
                 'PF-API-TIMESTAMP': now,
                 'PF-API-KEY': this.apiKey,
                 'PF-API-PASSPHRASE': this.password,
             };
-            // const signature = base64.b64encode (
-            //     hmac.new (
-            //         api_secret.encode('utf-8'),
-            //         str_to_sign.encode('utf-8'),
-            //         hashlib.sha256
-            //     ).digest ()
-            // )
+            if (method === 'GET') {
+                return { 'url': url, 'method': method, 'headers': headers };
+            }
         }
-        console.log (url); // TODO: Remove console.logs
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
 
