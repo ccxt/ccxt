@@ -23,7 +23,7 @@
   "readme": "README.md",
   "scripts": {
     "docker": "docker-compose run --rm ccxt",
-    "tsBuild": "tsc --project tsconfig.json",
+    "tsBuild": "tsc",
     "build": "npm run tsBuild && npm run pre-transpile && npm run transpile && npm run post-transpile && npm run update-badges",
     "force-build": "npm run tsBuild && npm run pre-transpile && npm run force-transpile-fast && npm run post-transpile && npm run update-badges",
     "force-build-slow": "npm run tsBuild && npm run pre-transpile && npm run force-transpile && npm run post-transpile && npm run update-badges",
