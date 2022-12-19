@@ -33,15 +33,19 @@ module.exports = class poloniexfutures extends Exchange {
                 'fetchTickers': true,
                 'fetchTime': true,
                 'fetchTrades': true,
+                'fetchOHLCV': true,
             },
             'timeframes': {
-                // TODO
-                // '5m': 300,
-                // '15m': 900,
-                // '30m': 1800,
-                // '2h': 7200,
-                // '4h': 14400,
-                // '1d': 86400,
+                '1m': 1,
+                '5m': 5,
+                '15m': 15,
+                '30m': 30,
+                '1h': 60,
+                '2h': 120,
+                '4h': 480,
+                '12h': 720,
+                '1d': 1440,
+                '1w': 10080,
             },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/27766817-e9456312-5ee6-11e7-9b3c-b628ca5626a5.jpg',
@@ -476,13 +480,13 @@ module.exports = class poloniexfutures extends Exchange {
     async fetchOrderBook (symbol, limit = undefined, params = {}) {
         /**
          * @method
-         * @name kucoinfutures#fetchOrderBook
+         * @name poloniexfuturesfutures#fetchOrderBook
          * @description fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
          * @see https://futures-docs.poloniex.com/#get-full-order-book-level-2
          * @see https://futures-docs.poloniex.com/#get-full-order-book-level-3
          * @param {string} symbol unified symbol of the market to fetch the order book for
          * @param {int|undefined} limit the maximum amount of order book entries to return
-         * @param {object} params extra parameters specific to the kucoinfutures api endpoint
+         * @param {object} params extra parameters specific to the poloniexfuturesfutures api endpoint
          * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-book-structure} indexed by market symbols
          */
         await this.loadMarkets ();
@@ -641,16 +645,60 @@ module.exports = class poloniexfutures extends Exchange {
          */
         const response = await this.publicGetTimestamp (params);
         //
-        //    {
-        //        "code": 0,
-        //        "data": {
-        //            "requestTimeEcho": 1656560463601,
-        //            "requestReceiveAt": 1656560464331,
-        //            "latency": 730
-        //        }
-        //    }
+        // {
+        //     "code":"200000",
+        //     "msg":"success",
+        //     "data":1546837113087
+        // }
         //
         return this.safeInteger (response, 'data');
+    }
+
+    async fetchOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
+        /**
+         * @method
+         * @name kucoinfutures#fetchOHLCV
+         * @description fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+         * @param {string} symbol unified symbol of the market to fetch OHLCV data for
+         * @param {string} timeframe the length of time each candle represents
+         * @param {int|undefined} since timestamp in ms of the earliest candle to fetch
+         * @param {int|undefined} limit the maximum amount of candles to fetch
+         * @param {object} params extra parameters specific to the kucoinfutures api endpoint
+         * @returns {[[int]]} A list of candles ordered as timestamp, open, high, low, close, volume
+         */
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const marketId = market['id'];
+        const request = {
+            'symbol': marketId,
+            'granularity': this.timeframes[timeframe],
+        };
+        const duration = this.parseTimeframe (timeframe) * 1000;
+        let endAt = this.milliseconds ();
+        if (since !== undefined) {
+            request['from'] = since;
+            if (limit === undefined) {
+                limit = this.safeInteger (this.options, 'fetchOHLCVLimit', 200);
+            }
+            endAt = this.sum (since, limit * duration);
+        } else if (limit !== undefined) {
+            since = endAt - limit * duration;
+            request['from'] = since;
+        }
+        request['to'] = endAt;
+        const response = await this.publicGetKlineQuery (this.extend (request, params));
+        //
+        //    {
+        //        "code": "200000",
+        //        "data": [
+        //            [1636459200000, 4779.3, 4792.1, 4768.7, 4770.3, 78051],
+        //            [1636460100000, 4770.25, 4778.55, 4757.55, 4777.25, 80164],
+        //            [1636461000000, 4777.25, 4791.45, 4774.5, 4791.3, 51555]
+        //        ]
+        //    }
+        //
+        const data = this.safeValue (response, 'data', []);
+        return this.parseOHLCVs (data, market, timeframe, since, limit);
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
