@@ -480,6 +480,11 @@ module.exports = class okx extends Exchange {
                     '51137': InvalidOrder, // Your opening price has triggered the limit price, and the max buy price is {0}
                     '51138': InvalidOrder, // Your opening price has triggered the limit price, and the min sell price is {0}
                     '51139': InvalidOrder, // Reduce-only feature is unavailable for the spot transactions by simple account
+                    '51156': BadRequest, // You're leading trades in long/short mode and can't use this API endpoint to close positions
+                    '51159': BadRequest, // You're leading trades in buy/sell mode. If you want to place orders using this API endpoint, the orders must be in the same direction as your existing positions and open orders.
+                    '51162': InvalidOrder, // You have {instrument} open orders. Cancel these orders and try again
+                    '51163': InvalidOrder, // You hold {instrument} positions. Close these positions and try again
+                    '51166': InvalidOrder, // Currently, we don't support leading trades with this instrument
                     '51201': InvalidOrder, // Value of per market order cannot exceed 100,000 USDT
                     '51202': InvalidOrder, // Market - order amount exceeds the max amount
                     '51203': InvalidOrder, // Order amount exceeds the limit {0}
@@ -515,6 +520,11 @@ module.exports = class okx extends Exchange {
                     '51278': InvalidOrder, // SL trigger price can not be lower than the last price
                     '51279': InvalidOrder, // TP trigger price can not be lower than the last price
                     '51280': InvalidOrder, // SL trigger price can not be higher than the last price
+                    '51321': InvalidOrder, // You're leading trades. Currently, we don't support leading trades with arbitrage, iceberg, or TWAP bots
+                    '51322': InvalidOrder, // You're leading trades that have been filled at market price. We've canceled your open stop orders to close your positions
+                    '51323': BadRequest, // You're already leading trades with take profit or stop loss settings. Cancel your existing stop orders to proceed
+                    '51324': BadRequest, // As a lead trader, you hold positions in {instrument}. To close your positions, place orders in the amount that equals the available amount for closing
+                    '51325': InvalidOrder, // As a lead trader, you must use market price when placing stop orders
                     '51327': InvalidOrder, // closeFraction is only available for futures and perpetual swaps
                     '51328': InvalidOrder, // closeFraction is only available for reduceOnly orders
                     '51329': InvalidOrder, // closeFraction is only available in NET mode
@@ -543,6 +553,11 @@ module.exports = class okx extends Exchange {
                     '51601': ExchangeError, // Order status and order ID cannot exist at the same time
                     '51602': ExchangeError, // Either order status or order ID is required
                     '51603': OrderNotFound, // Order does not exist
+                    '51732': AuthenticationError, // Required user KYC level not met
+                    '51733': AuthenticationError, // User is under risk control
+                    '51734': AuthenticationError, // User KYC Country is not supported
+                    '51735': ExchangeError, // Sub-account is not supported
+                    '51736': InsufficientFunds, // Insufficient {ccy} balance
                     // Data class
                     '52000': ExchangeError, // No updates
                     // SPOT/MARGIN error codes 54000-54999
@@ -611,8 +626,10 @@ module.exports = class okx extends Exchange {
                     '59107': ExchangeError, // You have pending orders under the service, please modify the leverage after canceling all pending orders
                     '59108': InsufficientFunds, // Low leverage and insufficient margin, please adjust the leverage
                     '59109': ExchangeError, // Account equity less than the required margin amount after adjustment. Please adjust the leverage
+                    '59128': InvalidOrder, // As a lead trader, you can't lead trades in {instrument} with leverage higher than {num}
                     '59200': InsufficientFunds, // Insufficient account balance
                     '59201': InsufficientFunds, // Negative account balance
+                    '59216': BadRequest, // The position doesn't exist. Please try again
                     '59300': ExchangeError, // Margin call failed. Position does not exist
                     '59301': ExchangeError, // Margin adjustment failed for exceeding the max limit
                     '59313': ExchangeError, // Unable to repay. You haven't borrowed any {ccy} {ccyPair} in Quick margin mode.
