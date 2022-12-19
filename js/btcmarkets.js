@@ -292,13 +292,11 @@ module.exports = class btcmarkets extends Exchange {
         //     }
         //
         const timestamp = this.parse8601 (this.safeString (transaction, 'creationTime'));
-        const lastUpdate = this.parse8601 (this.safeString (transaction, 'lastUpdate'));
         let type = this.parseTransactionType (this.safeStringLower (transaction, 'type'));
         if (type === 'withdraw') {
             type = 'withdrawal';
         }
         const cryptoPaymentDetail = this.safeValue (transaction, 'paymentDetail', {});
-        const txid = this.safeString (cryptoPaymentDetail, 'txId');
         let address = this.safeString (cryptoPaymentDetail, 'address');
         let tag = undefined;
         if (address !== undefined) {
@@ -309,12 +307,7 @@ module.exports = class btcmarkets extends Exchange {
                 tag = addressParts[1];
             }
         }
-        const addressTo = address;
-        const tagTo = tag;
-        const addressFrom = undefined;
-        const tagFrom = undefined;
         const fee = this.safeNumber (transaction, 'fee');
-        const status = this.parseTransactionStatus (this.safeString (transaction, 'status'));
         const currencyId = this.safeString (transaction, 'assetName');
         const code = this.safeCurrencyCode (currencyId);
         let amount = this.safeNumber (transaction, 'amount');
@@ -322,27 +315,29 @@ module.exports = class btcmarkets extends Exchange {
             amount -= fee;
         }
         return {
+            'info': transaction,
             'id': this.safeString (transaction, 'id'),
-            'txid': txid,
+            'txid': this.safeString (cryptoPaymentDetail, 'txId'),
+            'type': type,
+            'currency': code,
+            'network': undefined,
+            'amount': amount,
+            'status': this.parseTransactionStatus (this.safeString (transaction, 'status')),
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'network': undefined,
             'address': address,
-            'addressTo': addressTo,
-            'addressFrom': addressFrom,
+            'addressFrom': undefined,
+            'addressTo': address,
             'tag': tag,
-            'tagTo': tagTo,
-            'tagFrom': tagFrom,
-            'type': type,
-            'amount': amount,
-            'currency': code,
-            'status': status,
-            'updated': lastUpdate,
+            'tagFrom': undefined,
+            'tagTo': tag,
+            'updated': this.parse8601 (this.safeString (transaction, 'lastUpdate')),
+            'comment': undefined,
             'fee': {
                 'currency': code,
                 'cost': fee,
+                'rate': undefined,
             },
-            'info': transaction,
         };
     }
 
