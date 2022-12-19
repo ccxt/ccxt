@@ -1586,19 +1586,18 @@ module.exports = class coinbasepro extends Exchange {
 
     parseTransaction (transaction, currency = undefined) {
         const details = this.safeValue (transaction, 'details', {});
-        const id = this.safeString (transaction, 'id');
-        const txid = this.safeString (details, 'crypto_transaction_hash');
         const timestamp = this.parse8601 (this.safeString (transaction, 'created_at'));
-        const updated = this.parse8601 (this.safeString (transaction, 'processed_at'));
         const currencyId = this.safeString (transaction, 'currency');
         const code = this.safeCurrencyCode (currencyId, currency);
-        const status = this.parseTransactionStatus (transaction);
         let amount = this.safeNumber (transaction, 'amount');
         let type = this.safeString (transaction, 'type');
         let address = this.safeString (details, 'crypto_address');
-        const tag = this.safeString (details, 'destination_tag');
         address = this.safeString (transaction, 'crypto_address', address);
-        let fee = undefined;
+        const fee = {
+            'currency': undefined,
+            'cost': undefined,
+            'rate': undefined,
+        };
         if (type === 'withdraw') {
             type = 'withdrawal';
             address = this.safeString (details, 'sent_to_address', address);
@@ -1607,30 +1606,29 @@ module.exports = class coinbasepro extends Exchange {
                 if (amount !== undefined) {
                     amount -= feeCost;
                 }
-                fee = {
-                    'cost': feeCost,
-                    'currency': code,
-                };
+                fee['cost'] = feeCost;
+                fee['currency'] = code;
             }
         }
         return {
             'info': transaction,
-            'id': id,
-            'txid': txid,
+            'id': this.safeString (transaction, 'id'),
+            'txid': this.safeString (details, 'crypto_transaction_hash'),
+            'type': type,
+            'currency': code,
+            'network': undefined,
+            'amount': amount,
+            'status': this.parseTransactionStatus (transaction),
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'network': undefined,
             'address': address,
-            'addressTo': undefined,
             'addressFrom': undefined,
-            'tag': tag,
-            'tagTo': undefined,
+            'addressTo': undefined,
+            'tag': this.safeString (details, 'destination_tag'),
             'tagFrom': undefined,
-            'type': type,
-            'amount': amount,
-            'currency': code,
-            'status': status,
-            'updated': updated,
+            'tagTo': undefined,
+            'updated': this.parse8601 (this.safeString (transaction, 'processed_at')),
+            'comment': undefined,
             'fee': fee,
         };
     }
