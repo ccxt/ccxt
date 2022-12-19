@@ -2091,13 +2091,27 @@ export default class gate extends Exchange {
         //         "index_price": "6531"
         //     }
         //
-        const marketId = this.safeString2 (ticker, 'currency_pair', 'contract');
+        // bookTicker
+        //    {
+        //        t: 1671363004228,
+        //        u: 9793320464,
+        //        s: 'BTC_USDT',
+        //        b: '16716.8', // best bid price
+        //        B: '0.0134', // best bid size
+        //        a: '16716.9', // best ask price
+        //        A: '0.0353' // best ask size
+        //     }
+        //
+        const marketId = this.safeStringN (ticker, [ 'currency_pair', 'contract', 's' ]);
         const symbol = this.safeSymbol (marketId, market);
         const last = this.safeString (ticker, 'last');
-        const ask = this.safeString (ticker, 'lowest_ask');
-        const bid = this.safeString (ticker, 'highest_bid');
+        const ask = this.safeString2 (ticker, 'lowest_ask', 'a');
+        const bid = this.safeString2 (ticker, 'highest_bid', 'b');
         const high = this.safeString (ticker, 'high_24h');
         const low = this.safeString (ticker, 'low_24h');
+        const bidVolume = this.safeString (ticker, 'B');
+        const askVolume = this.safeString (ticker, 'A');
+        const timestamp = this.safeInteger (ticker, 't');
         let baseVolume = this.safeString2 (ticker, 'base_volume', 'volume_24h_base');
         if (baseVolume === 'nan') {
             baseVolume = '0';
@@ -2109,14 +2123,14 @@ export default class gate extends Exchange {
         const percentage = this.safeString (ticker, 'change_percentage');
         return this.safeTicker ({
             'symbol': symbol,
-            'timestamp': undefined,
-            'datetime': undefined,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
             'high': high,
             'low': low,
             'bid': bid,
-            'bidVolume': undefined,
+            'bidVolume': bidVolume,
             'ask': ask,
-            'askVolume': undefined,
+            'askVolume': askVolume,
             'vwap': undefined,
             'open': undefined,
             'close': last,

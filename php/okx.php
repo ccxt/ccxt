@@ -273,6 +273,20 @@ class okx extends Exchange {
                         'rfq/quotes' => 10,
                         'rfq/trades' => 4,
                         'rfq/public-trades' => 4,
+                        // copytrading
+                        'copytrading/current-subpositions' => 10,
+                        'copytrading/subpositions-history' => 10,
+                        'copytrading/instruments' => 10,
+                        'copytrading/profit-sharing-details' => 10,
+                        'copytrading/total-profit-sharing' => 10,
+                        'copytrading/unrealized-profit-sharing-details' => 10,
+                        // grid trading
+                        'tradingBot/grid/orders-algo-pending' => 1,
+                        'tradingBot/grid/orders-algo-history' => 1,
+                        'tradingBot/grid/orders-algo-details' => 1,
+                        'tradingBot/grid/sub-orders' => 1,
+                        'tradingBot/grid/positions' => 1,
+                        'tradingBot/grid/ai-param' => 1,
                     ),
                     'post' => array(
                         'account/set-position-mode' => 4,
@@ -331,6 +345,17 @@ class okx extends Exchange {
                         'rfq/cancel-quote' => 0.4,
                         'rfq/cancel-batch-quotes' => 10,
                         'rfq/cancel-all-quotes' => 10,
+                        // copytrading
+                        'copytrading/algo-order' => 20,
+                        'copytrading/close-subposition' => 10,
+                        'copytrading/set-instruments' => 10,
+                        // grid trading
+                        'tradingBot/grid/order-algo' => 1,
+                        'tradingBot/grid/amend-order-algo' => 1,
+                        'tradingBot/grid/stop-order-algo' => 1,
+                        'tradingBot/grid/withdraw-income' => 1,
+                        'tradingBot/grid/compute-margin-balance' => 1,
+                        'tradingBot/grid/margin-balance' => 1,
                     ),
                 ),
             ),
@@ -479,6 +504,11 @@ class okx extends Exchange {
                     '51137' => '\\ccxt\\InvalidOrder', // Your opening price has triggered the limit price, and the max buy price is {0}
                     '51138' => '\\ccxt\\InvalidOrder', // Your opening price has triggered the limit price, and the min sell price is {0}
                     '51139' => '\\ccxt\\InvalidOrder', // Reduce-only feature is unavailable for the spot transactions by simple account
+                    '51156' => '\\ccxt\\BadRequest', // You're leading trades in long/short mode and can't use this API endpoint to close positions
+                    '51159' => '\\ccxt\\BadRequest', // You're leading trades in buy/sell mode. If you want to place orders using this API endpoint, the orders must be in the same direction as your existing positions and open orders.
+                    '51162' => '\\ccxt\\InvalidOrder', // You have {instrument} open orders. Cancel these orders and try again
+                    '51163' => '\\ccxt\\InvalidOrder', // You hold {instrument} positions. Close these positions and try again
+                    '51166' => '\\ccxt\\InvalidOrder', // Currently, we don't support leading trades with this instrument
                     '51201' => '\\ccxt\\InvalidOrder', // Value of per market order cannot exceed 100,000 USDT
                     '51202' => '\\ccxt\\InvalidOrder', // Market - order amount exceeds the max amount
                     '51203' => '\\ccxt\\InvalidOrder', // Order amount exceeds the limit {0}
@@ -514,6 +544,11 @@ class okx extends Exchange {
                     '51278' => '\\ccxt\\InvalidOrder', // SL trigger price can not be lower than the last price
                     '51279' => '\\ccxt\\InvalidOrder', // TP trigger price can not be lower than the last price
                     '51280' => '\\ccxt\\InvalidOrder', // SL trigger price can not be higher than the last price
+                    '51321' => '\\ccxt\\InvalidOrder', // You're leading trades. Currently, we don't support leading trades with arbitrage, iceberg, or TWAP bots
+                    '51322' => '\\ccxt\\InvalidOrder', // You're leading trades that have been filled at market price. We've canceled your open stop orders to close your positions
+                    '51323' => '\\ccxt\\BadRequest', // You're already leading trades with take profit or stop loss settings. Cancel your existing stop orders to proceed
+                    '51324' => '\\ccxt\\BadRequest', // As a lead trader, you hold positions in {instrument}. To close your positions, place orders in the amount that equals the available amount for closing
+                    '51325' => '\\ccxt\\InvalidOrder', // As a lead trader, you must use market price when placing stop orders
                     '51327' => '\\ccxt\\InvalidOrder', // closeFraction is only available for futures and perpetual swaps
                     '51328' => '\\ccxt\\InvalidOrder', // closeFraction is only available for reduceOnly orders
                     '51329' => '\\ccxt\\InvalidOrder', // closeFraction is only available in NET mode
@@ -542,6 +577,11 @@ class okx extends Exchange {
                     '51601' => '\\ccxt\\ExchangeError', // Order status and order ID cannot exist at the same time
                     '51602' => '\\ccxt\\ExchangeError', // Either order status or order ID is required
                     '51603' => '\\ccxt\\OrderNotFound', // Order does not exist
+                    '51732' => '\\ccxt\\AuthenticationError', // Required user KYC level not met
+                    '51733' => '\\ccxt\\AuthenticationError', // User is under risk control
+                    '51734' => '\\ccxt\\AuthenticationError', // User KYC Country is not supported
+                    '51735' => '\\ccxt\\ExchangeError', // Sub-account is not supported
+                    '51736' => '\\ccxt\\InsufficientFunds', // Insufficient {ccy} balance
                     // Data class
                     '52000' => '\\ccxt\\ExchangeError', // No updates
                     // SPOT/MARGIN error codes 54000-54999
@@ -610,8 +650,10 @@ class okx extends Exchange {
                     '59107' => '\\ccxt\\ExchangeError', // You have pending orders under the service, please modify the leverage after canceling all pending orders
                     '59108' => '\\ccxt\\InsufficientFunds', // Low leverage and insufficient margin, please adjust the leverage
                     '59109' => '\\ccxt\\ExchangeError', // Account equity less than the required margin amount after adjustment. Please adjust the leverage
+                    '59128' => '\\ccxt\\InvalidOrder', // As a lead trader, you can't lead trades in {instrument} with leverage higher than {num}
                     '59200' => '\\ccxt\\InsufficientFunds', // Insufficient account balance
                     '59201' => '\\ccxt\\InsufficientFunds', // Negative account balance
+                    '59216' => '\\ccxt\\BadRequest', // The position doesn't exist. Please try again
                     '59300' => '\\ccxt\\ExchangeError', // Margin call failed. Position does not exist
                     '59301' => '\\ccxt\\ExchangeError', // Margin adjustment failed for exceeding the max limit
                     '59313' => '\\ccxt\\ExchangeError', // Unable to repay. You haven't borrowed any {ccy} {ccyPair} in Quick margin mode.
