@@ -71,7 +71,9 @@ module.exports = class kucoinfutures extends kucoin {
                 'fetchTickers': false,
                 'fetchTime': true,
                 'fetchTrades': true,
-                'fetchTransactionFee': true,
+                'fetchTransactionFee': false,
+                'fetchDepositWithdrawFee': false,
+                'fetchDepositWithdrawFees': false,
                 'fetchWithdrawals': true,
                 'setMarginMode': false,
                 'transfer': true,
@@ -1997,12 +1999,24 @@ module.exports = class kucoinfutures extends kucoin {
         /**
          * @method
          * @name kucoinfutures#fetchTransactionFee
-         * @description fetch the fee for a transaction
+         * @description *DEPRECATED* please use fetchDepositWithdrawFee instead
          * @param {string} code unified currency code
          * @param {object} params extra parameters specific to the kucoinfutures api endpoint
          * @returns {object} a [fee structure]{@link https://docs.ccxt.com/en/latest/manual.html#fee-structure}
          */
-        throw new BadRequest (this.id + ' fetchTransactionFee() is not supported yet');
+        throw new BadRequest (this.id + ' fetchTransactionFee() is not supported');
+    }
+
+    async fetchDepositWithdrawFee (code, params = {}) {
+        /**
+         * @method
+         * @name kucoinfutures#fetchDepositWithdrawFee
+         * @description Not supported
+         * @param {string} code unified currency code
+         * @param {object} params extra parameters specific to the kucoinfutures api endpoint
+         * @returns {object} a [fee structure]{@link https://docs.ccxt.com/en/latest/manual.html#fee-structure}
+         */
+        throw new BadRequest (this.id + ' fetchDepositWithdrawFee() is not supported');
     }
 
     async fetchLedger (code = undefined, since = undefined, limit = undefined, params = {}) {
