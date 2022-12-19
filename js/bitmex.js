@@ -535,26 +535,32 @@ module.exports = class bitmex extends Exchange {
             let symbol = undefined;
             const expiryDatetime = this.safeString (market, 'expiry');
             const expiry = this.parse8601 (expiryDatetime);
-            const inverse = this.safeValue (market, 'isInverse');
+            const isInverse = this.safeValue (market, 'isInverse');  // this is true when BASE and SETTLE are same, i.e. BTC/XXX:BTC
+            const isQuanto = this.safeValue (market, 'isQuanto'); // this is true when BASE and SETTLE are different, i.e. AXS/XXX:BTC
+            const inverse = isQuanto || isInverse;
             const status = this.safeString (market, 'state');
             let active = status !== 'Unlisted';
+            let contract = false;
             // types defined here: https://www.bitmex.com/api/explorer/#!/Instrument/Instrument_get
-            if (typ === 'FFWCSX' || typ === 'FFWCSF') {
-                type = 'swap';
-                swap = true;
-                symbol = base + '/' + quote + ':' + settle;
-            } else if (typ === 'IFXXXP') {
+            if (typ === 'IFXXXP') {
                 type = 'spot';
                 spot = true;
                 symbol = base + '/' + quote;
+            } else if (typ === 'FFWCSX' || typ === 'FFWCSF') {
+                type = 'swap';
+                swap = true;
+                symbol = base + '/' + quote + ':' + settle;
+                contract = true;
             } else if (typ === 'FFCCSX') {
                 future = true;
                 type = 'future';
                 symbol = base + '/' + quote + ':' + settle + '-' + this.yymmdd (expiry);
+                contract = true;
             } else if (id.indexOf ('B_') >= 0) {
                 prediction = true;
                 type = 'prediction';
                 symbol = id;
+                contract = true;
             } else {
                 index = true;
                 type = 'index';
@@ -565,6 +571,14 @@ module.exports = class bitmex extends Exchange {
             let precisionAmount = undefined;
             if (spot) {
                 precisionAmount = this.parseNumber (Precise.stringDiv ('1', lotSize));
+            } else if (contract) {
+                if (inverse) {
+                    precisionAmount = this.parseNumber (lotSize);
+                } else {
+                    const underlyingToPositionMultiplierString = this.safeString (market, 'underlyingToPositionMultiplier');
+                    const multipliedString = Precise.stringDiv (lotSize, underlyingToPositionMultiplierString);
+                    precisionAmount = this.parseNumber (multipliedString);
+                }
             } else {
                 precisionAmount = this.parseNumber (lotSize);
             }
@@ -572,7 +586,6 @@ module.exports = class bitmex extends Exchange {
             const positionCode = this.safeCurrencyCode (positionId);
             const positionIsQuote = (positionCode === quote);
             const maxOrderQty = this.safeNumber (market, 'maxOrderQty');
-            const contract = !index;
             const initMargin = this.safeString (market, 'initMargin', '1');
             const maxLeverage = this.parseNumber (Precise.stringDiv ('1', initMargin));
             const multiplierString = Precise.stringAbs (this.safeString (market, 'multiplier'));
