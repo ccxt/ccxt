@@ -56,7 +56,7 @@ class Exchange(BaseExchange):
         self.verify = config.get('verify', self.verify)
         self.own_session = 'session' not in config
         self.cafile = config.get('cafile', certifi.where())
-        super(Exchange, self).__init__(config)
+        super().__init__(config)
         self.throttle = None
         self.init_rest_rate_limiter()
         self.markets_loading = None

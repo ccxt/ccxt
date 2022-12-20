@@ -10,28 +10,6 @@ const Precise = require ('./base/Precise');
 //  ---------------------------------------------------------------------------
 
 module.exports = class bitget extends Exchange {
-    getSupportedMapping (key, mapping = {}) {
-        // swap and future use same api for bitget
-        if (key === 'future') {
-            key = 'swap';
-        }
-        if (key in mapping) {
-            return mapping[key];
-        } else {
-            throw new NotSupported (this.id + ' ' + key + ' does not have a value in mapping');
-        }
-    }
-
-    async fetchOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets ();
-        const defaultSubType = this.safeString (this.options, 'defaultSubType');
-        const request = {
-            'productType': (defaultSubType === 'linear') ? 'umcbl' : 'dmcbl',
-        };
-        const positions = await this.privateMixGetOrderMarginCoinCurrent (this.extend (request, params));
-        return this.parsePositions (positions);
-    }
-
     describe () {
         return this.deepExtend (super.describe (), {
             'id': 'bitget',
@@ -814,6 +792,28 @@ module.exports = class bitget extends Exchange {
                 },
             },
         });
+    }
+
+    getSupportedMapping (key, mapping = {}) {
+        // swap and future use same api for bitget
+        if (key === 'future') {
+            key = 'swap';
+        }
+        if (key in mapping) {
+            return mapping[key];
+        } else {
+            throw new NotSupported (this.id + ' ' + key + ' does not have a value in mapping');
+        }
+    }
+
+    async fetchOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        await this.loadMarkets ();
+        const defaultSubType = this.safeString (this.options, 'defaultSubType');
+        const request = {
+            'productType': (defaultSubType === 'linear') ? 'umcbl' : 'dmcbl',
+        };
+        const positions = await this.privateMixGetOrderMarginCoinCurrent (this.extend (request, params));
+        return this.parsePositions (positions);
     }
 
     async fetchTime (params = {}) {
@@ -2118,13 +2118,25 @@ module.exports = class bitget extends Exchange {
         //       uTime: '1661595535000'
         //     }
         //
+        // {
+        //   'marginCoin': 'USDT',
+        //   'locked': '0',
+        //   'available': '25',
+        //   'crossMaxAvailable': '25',
+        //   'fixedMaxAvailable': '25',
+        //   'maxTransferOut': '25',
+        //   'equity': '25',
+        //   'usdtEquity': '25',
+        //   'btcEquity': '0.00152089221',
+        //   'unrealizedPL': None
+        // }
         for (let i = 0; i < balance.length; i++) {
             const entry = balance[i];
             const currencyId = this.safeString2 (entry, 'coinId', 'marginCoin');
             const code = this.safeCurrencyCode (currencyId);
             const account = this.account ();
             const frozen = this.safeString (entry, 'frozen');
-            const locked = this.safeString (entry, 'lock');
+            const locked = this.safeString2 (entry, 'lock', 'locked');
             account['used'] = Precise.stringAdd (frozen, locked);
             account['free'] = this.safeString (entry, 'available');
             result[code] = account;

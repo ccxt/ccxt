@@ -371,6 +371,7 @@ class Exchange(object):
     synchronous = True
 
     def __init__(self, config={}):
+        super().__init__()
 
         self.precision = dict() if self.precision is None else self.precision
         self.limits = dict() if self.limits is None else self.limits

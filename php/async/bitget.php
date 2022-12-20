@@ -2129,13 +2129,25 @@ class bitget extends Exchange {
         //       uTime => '1661595535000'
         //     }
         //
+        // {
+        //   'marginCoin' => 'USDT',
+        //   'locked' => '0',
+        //   'available' => '25',
+        //   'crossMaxAvailable' => '25',
+        //   'fixedMaxAvailable' => '25',
+        //   'maxTransferOut' => '25',
+        //   'equity' => '25',
+        //   'usdtEquity' => '25',
+        //   'btcEquity' => '0.00152089221',
+        //   'unrealizedPL' => None
+        // }
         for ($i = 0; $i < count($balance); $i++) {
             $entry = $balance[$i];
             $currencyId = $this->safe_string_2($entry, 'coinId', 'marginCoin');
             $code = $this->safe_currency_code($currencyId);
             $account = $this->account();
             $frozen = $this->safe_string($entry, 'frozen');
-            $locked = $this->safe_string($entry, 'lock');
+            $locked = $this->safe_string_2($entry, 'lock', 'locked');
             $account['used'] = Precise::string_add($frozen, $locked);
             $account['free'] = $this->safe_string($entry, 'available');
             $result[$code] = $account;
