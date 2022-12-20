@@ -483,6 +483,7 @@ module.exports = class ace extends Exchange {
         //         "highPrice": 1573195740000L,
         //         "openPrice": 101000.0,
         //         "current": 101000.0,
+        //         "currentTime": "2019-11-08 14:49:00",
         //         "createTime": "2019-11-08 14:49:00"
         //     }
         //
@@ -512,7 +513,7 @@ module.exports = class ace extends Exchange {
         const market = this.market (symbol);
         const currencyToId = this.safeValue (this.options, 'currencyToId');
         const request = {
-            // 'duration': this.timeframes[timeframe],
+            'duration': this.timeframes[timeframe],
             'quoteCurrencyId': this.safeNumber (currencyToId, market['quoteId']),
             'baseCurrencyId': this.safeNumber (currencyToId, market['baseId']),
         };
@@ -535,6 +536,7 @@ module.exports = class ace extends Exchange {
         //                     "highPrice": 1573195740000L,
         //                     "openPrice": 101000.0,
         //                     "current": 101000.0,
+        //                     "currentTime": "2019-11-08 14:49:00",
         //                     "createTime": "2019-11-08 14:49:00"
         //                 }
         //         ]
@@ -973,17 +975,18 @@ module.exports = class ace extends Exchange {
         if (api === 'private') {
             this.checkRequiredCredentials ();
             const nonce = this.milliseconds ();
-            let auth = 'ACE_SIGN' + this.secret + this.apiKey + nonce.toString ();
-            const paramKeys = Object.keys (params);
-            for (let i = 0; i < paramKeys.length; i++) {
-                auth += params[paramKeys[i]];
-            }
-            const signature = this.hash (auth, 'sha256', 'hex');
+            let auth = 'ACE_SIGN' + this.secret;
             const data = this.extend ({
                 'apiKey': this.apiKey,
                 'timeStamp': nonce,
-                'signKey': signature,
             }, params);
+            const dataKeys = Object.keys (data);
+            const sortedDataKeys = this.sortBy (dataKeys, 0);
+            for (let i = 0; i < sortedDataKeys.length; i++) {
+                auth += data[sortedDataKeys[i]];
+            }
+            const signature = this.hash (auth, 'sha256', 'hex');
+            data['signKey'] = signature;
             headers = {
                 'Content-Type': 'application/x-www-form-urlencoded',
             };
