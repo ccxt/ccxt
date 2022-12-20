@@ -111,6 +111,8 @@ module.exports = class ace extends Exchange {
                         'list/tradePrice',
                         'list/marketPair',
                         'list/orderBooks/{base}/{quote}',
+                        'v2/list/tradePrice',
+                        'v2/list/marketPair',
                     ],
                 },
                 'private': {
@@ -236,42 +238,27 @@ module.exports = class ace extends Exchange {
          * @param {object} params extra parameters specific to the exchange api endpoint
          * @returns {[object]} an array of objects representing market data
          */
-        let response = await this.publicGetListMarketPair ();
-        // temporary workaround to finx json string
-        if (response.indexOf ('\'') >= 0) {
-            response = response.split ('\'').join ('"');
-            response = this.parseJson (response);
-        }
+        const response = await this.publicGetV2ListMarketPair ();
         //
-        //     ['ADA/TWD']
+        //     [
+        //         {
+        //             "symbol":"BTC/USDT",
+        //             "base":"btc",
+        //             "quote":"usdt",
+        //             "basePrecision":"8",
+        //             "quotePrecision":"5",
+        //             "minLimitBaseAmount":"0.1",
+        //             "maxLimitBaseAmount":"480286"
+        //         }
+        //     ]
         //
         const result = [];
         for (let i = 0; i < response.length; i++) {
-            const id = response[i];
-            const splitMarket = id.split ('/');
-            const baseId = this.safeString (splitMarket, 0);
-            const quoteId = this.safeString (splitMarket, 1);
-            const base = this.safeCurrencyCode (baseId);
-            const quote = this.safeCurrencyCode (quoteId);
+            const market = response[i];
+            const id = this.safeString (market, 'symbol');
+            const base = this.safeString (market, 'base');
+            const quote = this.safeString (market, 'quote');
             const symbol = base + '/' + quote;
-            const limits = {
-                'amount': {
-                    'min': undefined,
-                    'max': undefined,
-                },
-                'price': {
-                    'min': undefined,
-                    'max': undefined,
-                },
-                'cost': {
-                    'min': undefined,
-                    'max': undefined,
-                },
-                'leverage': {
-                    'min': undefined,
-                    'max': undefined,
-                },
-            };
             result.push ({
                 'id': id,
                 'uppercaseId': undefined,
@@ -297,10 +284,27 @@ module.exports = class ace extends Exchange {
                 'expiryDatetime': undefined,
                 'strike': undefined,
                 'optionType': undefined,
-                'limits': limits,
+                'limits': {
+                    'amount': {
+                        'min': this.safeNumber (market, 'minLimitBaseAmount'),
+                        'max': this.safeNumber (market, 'maxLimitBaseAmount'),
+                    },
+                    'price': {
+                        'min': undefined,
+                        'max': undefined,
+                    },
+                    'cost': {
+                        'min': undefined,
+                        'max': undefined,
+                    },
+                    'leverage': {
+                        'min': undefined,
+                        'max': undefined,
+                    },
+                },
                 'precision': {
-                    'price': undefined,
-                    'amount': undefined,
+                    'price': this.safeNumber (market, 'basePrecision'),
+                    'amount': this.safeNumber (market, 'quotePrecision'),
                 },
                 'active': undefined,
                 'info': id,
