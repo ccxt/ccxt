@@ -2291,39 +2291,35 @@ class ascendex(Exchange):
         #         }
         #     }
         #
-        id = self.safe_string(transaction, 'requestId')
-        amount = self.safe_number(transaction, 'amount')
         destAddress = self.safe_value(transaction, 'destAddress', {})
         address = self.safe_string(destAddress, 'address')
         tag = self.safe_string(destAddress, 'destTag')
-        txid = self.safe_string(transaction, 'networkTransactionId')
-        type = self.safe_string(transaction, 'transactionType')
         timestamp = self.safe_integer(transaction, 'time')
         currencyId = self.safe_string(transaction, 'asset')
         code = self.safe_currency_code(currencyId, currency)
-        status = self.parse_transaction_status(self.safe_string(transaction, 'status'))
-        feeCost = self.safe_number(transaction, 'commission')
         return {
             'info': transaction,
-            'id': id,
+            'id': self.safe_string(transaction, 'requestId'),
+            'txid': self.safe_string(transaction, 'networkTransactionId'),
+            'type': self.safe_string(transaction, 'transactionType'),
             'currency': code,
-            'amount': amount,
             'network': None,
-            'address': address,
-            'addressTo': address,
-            'addressFrom': None,
-            'tag': tag,
-            'tagTo': tag,
-            'tagFrom': None,
-            'status': status,
-            'type': type,
-            'updated': None,
-            'txid': txid,
+            'amount': self.safe_number(transaction, 'amount'),
+            'status': self.parse_transaction_status(self.safe_string(transaction, 'status')),
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
+            'address': address,
+            'addressFrom': None,
+            'addressTo': address,
+            'tag': tag,
+            'tagFrom': None,
+            'tagTo': tag,
+            'updated': None,
+            'comment': None,
             'fee': {
                 'currency': code,
-                'cost': feeCost,
+                'cost': self.safe_number(transaction, 'commission'),
+                'rate': None,
             },
         }
 

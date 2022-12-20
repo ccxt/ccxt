@@ -2416,10 +2416,10 @@ class ascendex extends Exchange {
         //         time => 1591606166000,
         //         asset => "USDT",
         //         transactionType => "deposit",
-        //         $amount => "25",
+        //         amount => "25",
         //         commission => "0",
         //         networkTransactionId => "0xbc4eabdce92f14dbcc01d799a5f8ca1f02f4a3a804b6350ea202be4d3c738fce",
-        //         $status => "pending",
+        //         status => "pending",
         //         numConfirmed => 8,
         //         numConfirmations => 20,
         //         $destAddress => {
@@ -2428,39 +2428,35 @@ class ascendex extends Exchange {
         //         }
         //     }
         //
-        $id = $this->safe_string($transaction, 'requestId');
-        $amount = $this->safe_number($transaction, 'amount');
         $destAddress = $this->safe_value($transaction, 'destAddress', array());
         $address = $this->safe_string($destAddress, 'address');
         $tag = $this->safe_string($destAddress, 'destTag');
-        $txid = $this->safe_string($transaction, 'networkTransactionId');
-        $type = $this->safe_string($transaction, 'transactionType');
         $timestamp = $this->safe_integer($transaction, 'time');
         $currencyId = $this->safe_string($transaction, 'asset');
         $code = $this->safe_currency_code($currencyId, $currency);
-        $status = $this->parse_transaction_status($this->safe_string($transaction, 'status'));
-        $feeCost = $this->safe_number($transaction, 'commission');
         return array(
             'info' => $transaction,
-            'id' => $id,
+            'id' => $this->safe_string($transaction, 'requestId'),
+            'txid' => $this->safe_string($transaction, 'networkTransactionId'),
+            'type' => $this->safe_string($transaction, 'transactionType'),
             'currency' => $code,
-            'amount' => $amount,
             'network' => null,
-            'address' => $address,
-            'addressTo' => $address,
-            'addressFrom' => null,
-            'tag' => $tag,
-            'tagTo' => $tag,
-            'tagFrom' => null,
-            'status' => $status,
-            'type' => $type,
-            'updated' => null,
-            'txid' => $txid,
+            'amount' => $this->safe_number($transaction, 'amount'),
+            'status' => $this->parse_transaction_status($this->safe_string($transaction, 'status')),
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
+            'address' => $address,
+            'addressFrom' => null,
+            'addressTo' => $address,
+            'tag' => $tag,
+            'tagFrom' => null,
+            'tagTo' => $tag,
+            'updated' => null,
+            'comment' => null,
             'fee' => array(
                 'currency' => $code,
-                'cost' => $feeCost,
+                'cost' => $this->safe_number($transaction, 'commission'),
+                'rate' => null,
             ),
         );
     }
