@@ -311,7 +311,7 @@ class digifinex extends Exchange {
                     'SOLANA' => 'SOL', // SOL & SPL
                     'STELLAR' => 'Stella', // XLM
                     'TERRACLASSIC' => 'TerraClassic',
-                    'TERRANEW' => 'Terra',
+                    'TERRA' => 'Terra',
                     'TON' => 'Ton',
                     'TRC20' => 'TRC20',
                     'TRON' => 'TRC20',
@@ -341,7 +341,7 @@ class digifinex extends Exchange {
                     'XRP' => 'RIPPLE',
                     'SOL' => 'SOLANA',
                     'Stella' => 'STELLAR',
-                    'Terra' => 'TERRANEW',
+                    'Terra' => 'TERRA',
                     'TerraClassic' => 'TERRACLASSIC',
                     'Ton' => 'TON',
                     'TRC20' => 'TRC20',
