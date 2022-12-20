@@ -1365,13 +1365,17 @@ module.exports = class bitopro extends Exchange {
         const address = this.safeString (transaction, 'address');
         const tag = this.safeString (transaction, 'message');
         const status = this.safeString (transaction, 'status');
+        let networkId = this.safeString (transaction, 'protocol');
+        if (networkId === 'MAIN') {
+            networkId = code;
+        }
         return {
             'info': transaction,
             'id': this.safeString (transaction, 'serial'),
             'txid': this.safeString (transaction, 'txid'),
             'type': undefined,
             'currency': code,
-            'network': undefined,
+            'network': this.networkIdToCode (networkId),
             'amount': this.safeNumber (transaction, 'total'),
             'status': this.parseTransactionStatus (status),
             'timestamp': timestamp,
