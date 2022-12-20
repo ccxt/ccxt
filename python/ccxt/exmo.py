@@ -51,6 +51,8 @@ class exmo(Exchange):
                 'fetchDeposit': True,
                 'fetchDepositAddress': True,
                 'fetchDeposits': True,
+                'fetchDepositWithdrawFee': 'emulated',
+                'fetchDepositWithdrawFees': True,
                 'fetchFundingHistory': False,
                 'fetchFundingRate': False,
                 'fetchFundingRateHistory': False,
@@ -188,7 +190,7 @@ class exmo(Exchange):
                 },
                 'transaction': {
                     'tierBased': False,
-                    'percentage': False,  # fixed transaction fees for crypto, see fetchTransactionFees below
+                    'percentage': False,  # fixed transaction fees for crypto, see fetchDepositWithdrawFees below
                 },
             },
             'options': {
@@ -409,7 +411,7 @@ class exmo(Exchange):
 
     def fetch_transaction_fees(self, codes=None, params={}):
         """
-        fetch transaction fees
+        *DEPRECATED* please use fetchDepositWithdrawFees instead
         see https://documenter.getpostman.com/view/10287440/SzYXWKPi#4190035d-24b1-453d-833b-37e0a52f88e2
         :param [str]|None codes: list of unified currency codes
         :param dict params: extra parameters specific to the exmo api endpoint
@@ -474,6 +476,88 @@ class exmo(Exchange):
         # cache them for later use
         self.options['transactionFees'] = result
         return result
+
+    def fetch_deposit_withdraw_fees(self, codes=None, params={}):
+        """
+        fetch deposit and withdraw fees
+        see https://documenter.getpostman.com/view/10287440/SzYXWKPi#4190035d-24b1-453d-833b-37e0a52f88e2
+        :param [str]|None codes: list of unified currency codes
+        :param dict params: extra parameters specific to the exmo api endpoint
+        :returns dict: a list of `transaction fees structures <https://docs.ccxt.com/en/latest/manual.html#fees-structure>`
+        """
+        self.load_markets()
+        response = self.publicGetPaymentsProvidersCryptoList(params)
+        #
+        #    {
+        #        "USDT": [
+        #            {
+        #                "type": "deposit",  # or "withdraw"
+        #                "name": "USDT(ERC20)",
+        #                "currency_name": "USDT",
+        #                "min": "10",
+        #                "max": "0",
+        #                "enabled": True,
+        #                "comment": "Minimum deposit amount is 10 USDT",
+        #                "commission_desc": "0%",
+        #                "currency_confirmations": 2
+        #            },
+        #            ...
+        #        ],
+        #        ...
+        #    }
+        #
+        result = self.parse_deposit_withdraw_fees(response, codes)
+        # cache them for later use
+        self.options['transactionFees'] = result
+        return result
+
+    def parse_deposit_withdraw_fee(self, fee, currency=None):
+        #
+        #    [
+        #        {
+        #            "type": "deposit",  # or "withdraw"
+        #            "name": "BTC",
+        #            "currency_name": "BTC",
+        #            "min": "0.001",
+        #            "max": "0",
+        #            "enabled": True,
+        #            "comment": "Minimum deposit amount is 0.001 BTC. We do not support BSC and BEP20 network, please consider self when sending funds",
+        #            "commission_desc": "0%",
+        #            "currency_confirmations": 1
+        #        },
+        #        ...
+        #    ]
+        #
+        result = self.deposit_withdraw_fee(fee)
+        for i in range(0, len(fee)):
+            provider = fee[i]
+            type = self.safe_string(provider, 'type')
+            networkId = self.safe_string(provider, 'name')
+            networkCode = self.network_id_to_code(networkId, self.safe_string(currency, 'code'))
+            commissionDesc = self.safe_string(provider, 'commission_desc')
+            splitCommissionDesc = []
+            percentage = None
+            if commissionDesc is not None:
+                splitCommissionDesc = commissionDesc.split('%')
+                splitCommissionDescLength = len(splitCommissionDesc)
+                percentage = splitCommissionDescLength >= 2
+            network = self.safe_value(result['networks'], networkCode)
+            if network is None:
+                result['networks'][networkCode] = {
+                    'withdraw': {
+                        'fee': None,
+                        'percentage': None,
+                    },
+                    'deposit': {
+                        'fee': None,
+                        'percentage': None,
+                    },
+                }
+            result['networks'][networkCode][type] = {
+                'fee': self.parse_fixed_float_value(self.safe_string(splitCommissionDesc, 0)),
+                'percentage': percentage,
+            }
+        return self.assign_default_deposit_withdraw_fees(result)
 
     def fetch_currencies(self, params={}):
         """

@@ -54,6 +54,9 @@ module.exports = class gate extends gateRest {
                 'watchTradesSubscriptions': {},
                 'watchTickerSubscriptions': {},
                 'watchOrderBookSubscriptions': {},
+                'watchTicker': {
+                    'name': 'tickers', // or book_ticker
+                },
                 'watchOrderBook': {
                     'interval': '100ms',
                 },
@@ -358,7 +361,9 @@ module.exports = class gate extends gateRest {
         const marketId = market['id'];
         const type = market['type'];
         const messageType = this.getUniformType (type);
-        const channel = messageType + '.' + 'tickers';
+        const options = this.safeValue (this.options, 'watchTicker', {});
+        const topic = this.safeString (options, 'name', 'tickers');
+        const channel = messageType + '.' + topic;
         const messageHash = channel + '.' + market['symbol'];
         const payload = [ marketId ];
         const url = this.getUrlByMarketType (type, market['inverse']);
@@ -381,6 +386,21 @@ module.exports = class gate extends gateRest {
         //          quote_volume: '227267634.93123952',
         //          high_24h: '47698',
         //          low_24h: '42721.03'
+        //        }
+        //    }
+        //    {
+        //        time: 1671363004,
+        //        time_ms: 1671363004235,
+        //        channel: 'spot.book_ticker',
+        //        event: 'update',
+        //        result: {
+        //          t: 1671363004228,
+        //          u: 9793320464,
+        //          s: 'BTC_USDT',
+        //          b: '16716.8',
+        //          B: '0.0134',
+        //          a: '16716.9',
+        //          A: '0.0353'
         //        }
         //    }
         //
@@ -1126,6 +1146,7 @@ module.exports = class gate extends gateRest {
             'candlesticks': this.handleOHLCV,
             'orders': this.handleOrder,
             'tickers': this.handleTicker,
+            'book_ticker': this.handleTicker,
             'trades': this.handleTrades,
             'order_book_update': this.handleOrderBook,
             'balances': this.handleBalanceMessage,

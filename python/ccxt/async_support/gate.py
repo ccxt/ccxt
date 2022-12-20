@@ -2004,13 +2004,27 @@ class gate(Exchange):
         #         "index_price": "6531"
         #     }
         #
-        marketId = self.safe_string_2(ticker, 'currency_pair', 'contract')
+        # bookTicker
+        #    {
+        #        t: 1671363004228,
+        #        u: 9793320464,
+        #        s: 'BTC_USDT',
+        #        b: '16716.8',  # best bid price
+        #        B: '0.0134',  # best bid size
+        #        a: '16716.9',  # best ask price
+        #        A: '0.0353'  # best ask size
+        #     }
+        #
+        marketId = self.safe_string_n(ticker, ['currency_pair', 'contract', 's'])
         symbol = self.safe_symbol(marketId, market)
         last = self.safe_string(ticker, 'last')
-        ask = self.safe_string(ticker, 'lowest_ask')
-        bid = self.safe_string(ticker, 'highest_bid')
+        ask = self.safe_string_2(ticker, 'lowest_ask', 'a')
+        bid = self.safe_string_2(ticker, 'highest_bid', 'b')
         high = self.safe_string(ticker, 'high_24h')
         low = self.safe_string(ticker, 'low_24h')
+        bidVolume = self.safe_string(ticker, 'B')
+        askVolume = self.safe_string(ticker, 'A')
+        timestamp = self.safe_integer(ticker, 't')
         baseVolume = self.safe_string_2(ticker, 'base_volume', 'volume_24h_base')
         if baseVolume == 'nan':
             baseVolume = '0'
@@ -2020,14 +2034,14 @@ class gate(Exchange):
         percentage = self.safe_string(ticker, 'change_percentage')
         return self.safe_ticker({
             'symbol': symbol,
-            'timestamp': None,
-            'datetime': None,
+            'timestamp': timestamp,
+            'datetime': self.iso8601(timestamp),
             'high': high,
             'low': low,
             'bid': bid,
-            'bidVolume': None,
+            'bidVolume': bidVolume,
             'ask': ask,
-            'askVolume': None,
+            'askVolume': askVolume,
             'vwap': None,
             'open': None,
             'close': last,
