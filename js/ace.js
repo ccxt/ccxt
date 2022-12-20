@@ -3,7 +3,7 @@
 //  ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
-const { ExchangeError, ArgumentsRequired } = require ('./base/errors');
+const { ArgumentsRequired, BadRequest, AuthenticationError } = require ('./base/errors');
 const { TICK_SIZE } = require ('./base/functions/number');
 
 //  ---------------------------------------------------------------------------
@@ -75,23 +75,23 @@ module.exports = class ace extends Exchange {
                 'withdraw': false,
             },
             'timeframes': {
-                '1m': '1m',
-                '5m': '5m',
-                '10m': '10m',
-                '30m': '30m',
-                '1h': '1h',
-                '2h': '2h',
-                '4h': '4h',
-                '8h': '8h',
-                '12h': '12h',
-                '1d': '1d',
-                '1w': '1w',
-                '1M': '1M',
+                '1m': 1,
+                '5m': 5,
+                '10m': 10,
+                '30m': 10,
+                '1h': 60,
+                '2h': 120,
+                '4h': 240,
+                '8h': 480,
+                '12h': 720,
+                '1d': 24,
+                '1w': 70,
+                '1M': 31,
             },
             'urls': {
                 'logo': '',
                 'api': {
-                    'public': 'https://ace.io/polarisex/oapi',
+                    'public': 'https://ace.io/polarisex',
                     'private': 'https://ace.io/polarisex/open',
                 },
                 'www': 'https://ace.io/',
@@ -108,11 +108,9 @@ module.exports = class ace extends Exchange {
             'api': {
                 'public': {
                     'get': [
-                        'list/tradePrice',
-                        'list/marketPair',
-                        'list/orderBooks/{base}/{quote}',
-                        'v2/list/tradePrice',
-                        'v2/list/marketPair',
+                        'oapi/v2/list/tradePrice',
+                        'oapi/v2/list/marketPair',
+                        'open/v2/public/getOrderBook',
                     ],
                 },
                 'private': {
@@ -229,6 +227,8 @@ module.exports = class ace extends Exchange {
             'precisionMode': TICK_SIZE,
             'exceptions': {
                 'exact': {
+                    '9996': BadRequest,
+                    '20182': AuthenticationError,
                 },
                 'broad': {
                 },
@@ -246,7 +246,7 @@ module.exports = class ace extends Exchange {
          * @param {object} params extra parameters specific to the exchange api endpoint
          * @returns {[object]} an array of objects representing market data
          */
-        const response = await this.publicGetV2ListMarketPair ();
+        const response = await this.publicGetOapiV2ListMarketPair ();
         //
         //     [
         //         {
@@ -367,7 +367,7 @@ module.exports = class ace extends Exchange {
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const response = await this.publicGetV2ListTradePrice (params);
+        const response = await this.publicGetOapiV2ListTradePrice (params);
         const marketId = market['id'];
         const ticker = this.safeValue (response, marketId, {});
         //
@@ -393,7 +393,7 @@ module.exports = class ace extends Exchange {
          * @returns {object} an array of [ticker structures]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
          */
         await this.loadMarkets ();
-        const response = await this.publicGetV2ListTradePrice ();
+        const response = await this.publicGetOapiV2ListTradePrice ();
         //
         //     {
         //         "BTC/USDT":{
@@ -426,39 +426,50 @@ module.exports = class ace extends Exchange {
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
+        const currencyToId = this.safeValue (this.options, 'currencyToId');
         const request = {
-            'base': market['base'],
-            'quote': market['quote'],
+            'quoteCurrencyId': this.safeNumber (currencyToId, market['quoteId']),
+            'baseCurrencyId': this.safeNumber (currencyToId, market['baseId']),
         };
-        const response = await this.publicGetListOrderBooksBaseQuote (this.extend (request, params));
+        const response = await this.publicGetOpenV2PublicGetOrderBook (this.extend (request, params));
         //
         //     {
-        //         "market_pair":"BTC/TWD",
-        //         "orderbook": {
-        //             "asks": [
+        //         "attachment": {
+        //             "baseCurrencyId": "2",
+        //             "quoteCurrencyId": "14",
+        //             "baseCurrencyName": "BTC",
+        //             "quoteCurrencyName": "USDT",
+        //             "bids": [
         //                 [
-        //                     "0.449612",
-        //                     "1800000"
+        //                     "0.0009",
+        //                     "19993.53"
         //                 ],
         //                 [
         //                     "0.001",
-        //                     "1980000"
-        //                 ]
-        //             ],
-        //             "bids": [
-        //                 [
-        //                     "0.017087",
-        //                     "1165121.4"
+        //                     "19675.33"
         //                 ],
         //                 [
-        //                     "0.01",
-        //                     "1165121.2"
+        //                     "0.001",
+        //                     "19357.13"
+        //                 ]
+        //             ],
+        //             "asks": [
+        //                 [
+        //                     "0.001",
+        //                     "20629.92"
+        //                 ],
+        //                 [
+        //                     "0.001",
+        //                     "20948.12"
         //                 ]
         //             ]
-        //         }
+        //         },
+        //         "message": null,
+        //         "parameters": null,
+        //         "status": 200
         //     }
         //
-        const orderBook = this.safeValue (response, 'orderbook');
+        const orderBook = this.safeValue (response, 'attachment');
         return this.parseOrderBook (orderBook, market['symbol'], undefined, 'bids', 'asks');
     }
 
@@ -501,13 +512,17 @@ module.exports = class ace extends Exchange {
         const market = this.market (symbol);
         const currencyToId = this.safeValue (this.options, 'currencyToId');
         const request = {
-            'baseCurrencyId': this.safeNumber (currencyToId, market['quoteId']),
-            'tradeCurrencyId': this.safeNumber (currencyToId, market['baseId']),
+            // 'duration': this.timeframes[timeframe],
+            'quoteCurrencyId': this.safeNumber (currencyToId, market['quoteId']),
+            'baseCurrencyId': this.safeNumber (currencyToId, market['baseId']),
         };
         if (limit !== undefined) {
             request['limit'] = limit;
         }
-        const response = await this.privatePostV1KlineGetKlineMin (this.extend (request, params));
+        if (since !== undefined) {
+            request['startTime'] = since;
+        }
+        const response = await this.privatePostV2KlineGetKline (this.extend (request, params));
         const data = this.safeValue (response, 'attachment', []);
         //
         //     {
@@ -638,12 +653,12 @@ module.exports = class ace extends Exchange {
         const orderSide = side.toUpperCase ();
         const currencyToId = this.safeValue (this.options, 'currencyToId');
         const request = {
-            'baseCurrencyId': this.safeNumber (currencyToId, market['quoteId']),
-            'currencyId': this.safeNumber (currencyToId, market['baseId']),
+            'baseCurrencyId': this.safeNumber (currencyToId, market['baseId']),
+            'quoteCurrencyId': this.safeNumber (currencyToId, market['quoteId']),
             'type': (orderType === 'LIMIT') ? 1 : 2,
             'buyOrSell': (orderSide === 'BUY') ? 1 : 2,
-            'num': amount,
-            'price': price,
+            'num': this.amountToPrecision (symbol, amount),
+            'price': this.priceToPrecision (symbol, price),
         };
         const response = await this.privatePostV1OrderOrder (this.extend (request, params), params);
         //
@@ -986,13 +1001,11 @@ module.exports = class ace extends Exchange {
         if (response === undefined) {
             return; // fallback to the default error handler
         }
-        if (code >= 200 && code < 300) {
-            return;
-        }
         const feedback = this.id + ' ' + body;
-        const error = this.safeString (response, 'error');
-        this.throwExactlyMatchedException (this.exceptions['exact'], error, feedback);
-        this.throwBroadlyMatchedException (this.exceptions['broad'], error, feedback);
-        throw new ExchangeError (feedback); // unknown message
+        const status = this.safeNumber (response, 'status', 200);
+        if (status > 200) {
+            this.throwExactlyMatchedException (this.exceptions['exact'], status, feedback);
+            this.throwBroadlyMatchedException (this.exceptions['broad'], status, feedback);
+        }
     }
 };
