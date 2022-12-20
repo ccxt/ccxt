@@ -941,7 +941,7 @@ module.exports = class huobi extends Exchange {
                     'BITCI': 'BITCI',
                     'BITGERT': 'BRISE',
                     'TOPNETWORK': 'TOP',
-                    'ROOTSTOCK': 'RBTC',
+                    'RSK': 'RBTC', // ROOTSTOCK
                     'QISWAP': 'QI',
                     'UNIQUENETWORK': 'UNQ',
                     'DATA': 'DTA',

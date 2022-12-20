@@ -446,6 +446,7 @@ module.exports = class gate extends Exchange {
                     'OKC': 'OKT',
                     'LITECOIN': 'LTC',
                     'AVALANCHEC': 'AVAX_C',
+                    'AVALANCHEX': 'AVAX',
                     'DOGECOIN': 'DOGE', // DOGEEVM is different
                     'POLKADOT': 'DOT',
                     'COSMOS': 'ATOM',
@@ -457,6 +458,10 @@ module.exports = class gate extends Exchange {
                     'TERRACLASSIC': 'LUNC',
                     'CHILIZ': 'CHZ',
                     'WAVES': 'WAVES',
+                    'ALTAIR': 'AIR',
+                    'ALEPHIUM': 'ALPH',
+                    'ALAYA': 'ALAYA',
+                    'AMECHAIN': 'AME',
                     'STELLAR': 'XLM',
                     'OPTIMISM': 'OPETH',
                     'CARDANO': 'ADA',
@@ -489,17 +494,29 @@ module.exports = class gate extends Exchange {
                     'KUSAMA': 'KSM', // KSMSM is different
                     'KARURA': 'KAR',
                     'KADENA': 'KDA',
+                    'MOBILECOIN': 'MOB',
+                    'METERSTABLE': 'MTR',
+                    'LINE': 'LN', // for LINK token
+                    'LAYR': 'LAYR', // composable finance
                     'BITSHARES': 'BTS',
-                    // 'BITTORRENT': 'BTT', tbd bttc
+                    // 'BITTORRENT': 'BTT', tbd bttc  / BTT: 'USDD_BTT'
                     'REEF': 'REEF',
+                    'BUMO': 'BU',
                     'HARMONY': 'ONE',
                     'ONTOLOGY': 'ONG',
                     'SOLARSWIPE': 'SXP',
                     'NANO': 'NANO',
                     'THETA': 'THETA',
                     'NERVOS': 'CKB',
+                    'NTFMART': 'NMT',
                     'RADIX': 'XRD',
+                    'NODLE': 'NODL',
+                    'NYZO': 'NYZO',
+                    'PLIAN': 'PI',
+                    'QIT': 'QTC',
+                    'RSK': 'RBTC', // ROOTSTOCK, RSK Infrastructure Framework (RIF)
                     'CONFLUX': 'CFX', // CFXEVM is different
+                    'SUPERBITCOIN': 'SBTC',
                     'PROTON': 'XPR',
                     'CENTRIFUGE': 'CFG',
                     'STEPAPP': 'FITFI',
@@ -507,23 +524,31 @@ module.exports = class gate extends Exchange {
                     'CHIA': 'XCH', // XCH_OLD is different
                     'TELOS': 'TLOS', // TLOSEVM is different
                     'POLKADEX': 'PDEX',
+                    'WITNET': 'WIT',
+                    'SORA': 'XOR',
+                    'XPLA': 'XPLA',
+                    'MONEROCLASSIC': 'XMC',
                     'QTUM': 'QTUM',
+                    'ZEITGEIST': 'ZTG',
                     'CALLISTO': 'CLO',
                     'CERTIK': 'CTK',
                     'VERGE': 'XVG',
+                    'CREDITS': 'CS',
                     'CLOVER': 'CLV', // CLVEVM is different
                     'PERSISTENCE': 'XPRT',
                     'HELIUM': 'HNT',
                     'HATHOR': 'HTR',
                     'BITCOINCASHSV': 'BSV',
-                    'BITCOINCASH': 'BCH', // actually, the real name is BITCOIN-CASH-ABC, but most exchanges just call it BCH
-                    // 'BITCOINCASHABC': 'BCHA', // simultaneously, BITCOIN-CASH-ABC is another IOU, which is not BCH
+                    'BITCOINCASH': 'BCH', // actually, the real name is BITCOIN-CASH-ABC, but most exchanges just call it mistakenly BCH/BITCOINCASH
+                    // 'BITCOINCASHABC': 'BCHA', // simultaneously, BITCOIN-CASH-ABC is other IOU, which ignored existing BITCOIN-CASH-ABC name presense and named it again, but it is not BCH
+                    'BITCOINFILE': 'BIFI',
                     'METAVERSEPIONEER': 'NEER',
                     'INTERNETCOMPUTER': 'ICP',
                     'MINA': 'MINA',
                     'GOCHAIN': 'GO',
                     'IOTEX': 'IOTX',
                     'IOST': 'IOST',
+                    'BYTECOIN': 'BCN', // BCNNEW is different
                     'KAVA': 'KAVA',
                     'DASH': 'DASH',
                     'METIS': 'METIS',
@@ -533,14 +558,18 @@ module.exports = class gate extends Exchange {
                     'OSMOSIS': 'OSMO',
                     'THUNDERCORE': 'TT',
                     'TARAXA': 'TARA',
-                    'RAVENCOIN': 'RVN',
+                    'RAVENCOIN': 'RVC',
                     'FETCHAI': 'FET',
                     'OASIS': 'ROSE',
                     'NEAR': 'NEAR',
                     'SIACOIN': 'SC',
                     'HORIZEN': 'ZEN',
                     'KARDIACHAIN': 'KAI',
-                    'BIFROST': 'BNC',
+                    'FILESTAR': 'STAR',
+                    'STARCOIN': 'STC',
+                    'SUPERTX': 'SUP',
+                    'TIPS': 'TIPS', // FEDORACOIN
+                    'BIFROST': 'BNC', // BNCDOT is different
                     'SHIDEN': 'SDN', // SDNEVM is different
                     'BITCOINDIAMOND': 'BCD',
                     'WEMIX': 'WEMIX',
@@ -552,10 +581,17 @@ module.exports = class gate extends Exchange {
                     'OASYS': 'OAS',
                     'FINDORA': 'FRA', // FRAEVM is different
                     'FUSION': 'FSN',
+                    'HASHGARD': 'GARD',
+                    'HYPERCASH': 'HC',
+                    'KINTSUGI': 'KINT',
+                    'KON': 'KONCHAIN',
+                    'GATHER': 'GTH',
+                    'GXSHARES': 'GXS',
                     'WAYIKICHAIN': 'WICC',
                     'FLOW': 'FLOW',
                     // BOBA: BOBA, // BOBAEVM . tbd
                     'BITGERT': 'BRISE',
+                    'BOTTOS': 'BTO',
                     'SHYFT': 'SHFT',
                     'ETHEREUMFAIR': 'ETHF',
                     'ONELEDGER': 'OLT',
@@ -578,7 +614,6 @@ module.exports = class gate extends Exchange {
                     'SYMBOL': 'XYM',
                     'PLATON': 'LAT',
                     'NEBULAS': 'NAS',
-                    'NODLE': 'NAS',
                     'PASTEL': 'PSL',
                     'COCOSBCX': 'COCOS',
                     'HIVE': 'HIVE',
@@ -616,6 +651,7 @@ module.exports = class gate extends Exchange {
                     'ELASTOSSMARTCHAIN': 'ESC',
                     'AELF': 'ELF',
                     'STEEM': 'STEEM',
+                    'FNCY': 'FNCY',
                     'SMARTMESH': 'SMT',
                     'BITSHARESNEW': 'NBS',
                     'UMEE': 'UMEE',
@@ -633,13 +669,19 @@ module.exports = class gate extends Exchange {
                     'POLYMESH': 'POLYX',
                     'STRATIS': 'STRAX',
                     'HYDRA': 'HYDRA',
-                    'DECRED': 'DCR', // DCRN is different
+                    'DECRED': 'DCR',
+                    'DECREDNEXT': 'DCRN',
+                    'DATAHIGHWAY': 'DHX',
                     'THORCHAIN': 'RUNE',
                     'POCKET': 'POKT',
                     'FILECASH': 'FIC',
                     'FIO': 'FIO',
                     'STAFI': 'FIS',
                     'CRUST': 'CRU',
+                    'CUBENETWORK': 'CUBE',
+                    'CLASSZZ': 'CZZ',
+                    // dead:   MANTA, CSM (probvably crust shadow),
+                    // undetermined: ASK_OLD, ASTREVM, BTMV1, ETH2, GALA2 (ZPT), GAS_OLD (NKN_N2), GATEIO (POINT), GEMINIS, GTEVM (LION_GTEVM),  CTO, EQ, HKO, KAZE, KPHA (probably phala), KPN (apron?), KSX, LBTC, LUK (MLK), NEO_OLD (NEO_OLD), PHAKSM, PICA, PKS, SUB (subsocial), SUBG (subgame), SUPV1, TIPS0, TUR, UNIQUE, USC, USDTEST, 
                 },
                 'networksById': {
                     'Bitcoin': 'BITCOIN',
