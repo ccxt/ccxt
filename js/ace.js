@@ -124,6 +124,14 @@ module.exports = class ace extends Exchange {
                         'v1/order/getOrderList',
                         'v1/order/showOrderStatus',
                         'v1/order/showOrderHistory',
+                        'v2/coin/customerAccount',
+                        'v2/kline/getKline',
+                        'v2/order/order',
+                        'v2/order/cancel',
+                        'v2/order/getOrderList',
+                        'v2/order/showOrderStatus',
+                        'v2/order/showOrderHistory',
+                        'v2/order/getTradeList',
                     ],
                 },
             },
@@ -889,7 +897,7 @@ module.exports = class ace extends Exchange {
         //             "amount": 6.896,
         //             "cashAmount": 6.3855,
         //             "uid": 123,
-        //             "currencyNameEn": "BTC"
+        //             "currencyName": "BTC"
         //         }
         //     ]
         //
@@ -898,7 +906,7 @@ module.exports = class ace extends Exchange {
         };
         for (let i = 0; i < response.length; i++) {
             const balance = response[i];
-            const currencyId = this.safeString (balance, 'currencyNameEn');
+            const currencyId = this.safeString (balance, 'currencyName');
             const code = this.safeCurrencyCode (currencyId);
             const amount = this.safeString (balance, 'amount');
             const available = this.safeString (balance, 'cashAmount');
@@ -920,7 +928,7 @@ module.exports = class ace extends Exchange {
          * @returns {object} a [balance structure]{@link https://docs.ccxt.com/en/latest/manual.html?#balance-structure}
          */
         await this.loadMarkets ();
-        const response = await this.privatePostV1CoinCustomerAccount (params);
+        const response = await this.privatePostV2CoinCustomerAccount (params);
         const balances = this.safeValue (response, 'attachment', []);
         //
         //     {
@@ -930,7 +938,7 @@ module.exports = class ace extends Exchange {
         //                 "amount": 6.896,
         //                 "cashAmount": 6.3855,
         //                 "uid": 123,
-        //                 "currencyNameEn": "BTC"
+        //                 "currencyName": "BTC"
         //             }
         //         ],
         //         message: null,
@@ -950,16 +958,16 @@ module.exports = class ace extends Exchange {
         if (api === 'private') {
             this.checkRequiredCredentials ();
             const nonce = this.milliseconds ();
-            const auth = 'ACE_SIGN' + nonce.toString () + this.phone;
-            const signature = this.hash (auth, 'md5', 'hex');
-            const splitKey = this.apiKey.split ('#');
-            const uid = (this.uid) ? this.uid : splitKey[0];
+            let auth = 'ACE_SIGN' + this.secret + this.apiKey + nonce.toString ();
+            const paramKeys = Object.keys (params);
+            for (let i = 0; i < paramKeys.length; i++) {
+                auth += params[paramKeys[i]];
+            }
+            const signature = this.hash (auth, 'sha256', 'hex');
             const data = this.extend ({
-                'uid': uid,
+                'apiKey': this.apiKey,
                 'timeStamp': nonce,
                 'signKey': signature,
-                'apiKey': this.apiKey,
-                'securityKey': this.secret,
             }, params);
             headers = {
                 'Content-Type': 'application/x-www-form-urlencoded',
