@@ -2,7 +2,7 @@
 
 //  ---------------------------------------------------------------------------
 
-const { BadRequest } = require ('./base/errors');
+const { BadRequest, ArgumentsRequired, InvalidOrder } = require ('./base/errors');
 const Precise = require ('./base/Precise');
 const Exchange = require ('./base/Exchange');
 const { ExchangeError } = require ('./base/errors');
@@ -724,6 +724,7 @@ module.exports = class poloniexfutures extends Exchange {
          * @method
          * @name poloniexfutures#fetchBalance
          * @description query for balance and get the amount of funds available for trading or funds locked in orders
+         * @see https://futures-docs.poloniex.com/#get-account-overview
          * @param {object} params extra parameters specific to the poloniexfutures api endpoint
          * @returns {object} a [balance structure]{@link https://docs.ccxt.com/en/latest/manual.html?#balance-structure}
          */
@@ -755,6 +756,116 @@ module.exports = class poloniexfutures extends Exchange {
         return this.parseBalance (response);
     }
 
+    async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
+        /**
+         * @method
+         * @name kucoinfutures#createOrder
+         * @description Create an order on the exchange
+         * @see https://futures-docs.poloniex.com/#place-an-order
+         * @param {string} symbol Unified CCXT market symbol
+         * @param {string} type 'limit' or 'market'
+         * @param {string} side 'buy' or 'sell'
+         * @param {float} amount the amount of currency to trade
+         * @param {float} price *ignored in "market" orders* the price at which the order is to be fullfilled at in units of the quote currency
+         * @param {object} params  Extra parameters specific to the exchange API endpoint
+         * @param {float} params.leverage Leverage size of the order
+         * @param {float} params.stopPrice The price at which a trigger order is triggered at
+         * @param {bool} params.reduceOnly A mark to reduce the position size only. Set to false by default. Need to set the position size when reduceOnly is true.
+         * @param {string} params.timeInForce GTC, GTT, IOC, or FOK, default is GTC, limit orders only
+         * @param {string} params.postOnly Post only flag, invalid when timeInForce is IOC or FOK
+         * @param {string} params.clientOid client order id, defaults to uuid if not passed
+         * @param {string} params.remark remark for the order, length cannot exceed 100 utf8 characters
+         * @param {string} params.stop 'up' or 'down', defaults to 'up' if side is sell and 'down' if side is buy, requires stopPrice
+         * @param {string} params.stopPriceType  TP, IP or MP, defaults to TP
+         * @param {bool} params.closeOrder set to true to close position
+         * @param {bool} params.forceHold A mark to forcely hold the funds for an order, even though it's an order to reduce the position size. This helps the order stay on the order book and not get canceled when the position size changes. Set to false by default.
+         * @returns {object} an [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
+         */
+        // FIXME
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        // required param, cannot be used twice
+        const clientOrderId = this.safeString2 (params, 'clientOid', 'clientOrderId', this.uuid ());
+        params = this.omit (params, [ 'clientOid', 'clientOrderId' ]);
+        if (amount < 1) {
+            throw new InvalidOrder (this.id + ' createOrder() minimum contract order amount is 1');
+        }
+        const preciseAmount = parseInt (this.amountToPrecision (symbol, amount));
+        const request = {
+            'clientOid': clientOrderId,
+            'side': side,
+            'symbol': market['id'],
+            'type': type, // limit or market
+            'size': preciseAmount,
+            'leverage': 1,
+        };
+        const stopPrice = this.safeValue2 (params, 'triggerPrice', 'stopPrice');
+        if (stopPrice) {
+            request['stop'] = (side === 'buy') ? 'up' : 'down';
+            const stopPriceType = this.safeString (params, 'stopPriceType', 'TP');
+            request['stopPriceType'] = stopPriceType;
+            request['stopPrice'] = this.priceToPrecision (symbol, stopPrice);
+        }
+        const uppercaseType = type.toUpperCase ();
+        const timeInForce = this.safeStringUpper (params, 'timeInForce');
+        if (uppercaseType === 'LIMIT') {
+            if (price === undefined) {
+                throw new ArgumentsRequired (this.id + ' createOrder() requires a price argument for limit orders');
+            } else {
+                request['price'] = this.priceToPrecision (symbol, price);
+            }
+            if (timeInForce !== undefined) {
+                request['timeInForce'] = timeInForce;
+            }
+        }
+        const postOnly = this.safeValue (params, 'postOnly', false);
+        const hidden = this.safeValue (params, 'hidden');
+        if (postOnly && (hidden !== undefined)) {
+            throw new BadRequest (this.id + ' createOrder() does not support the postOnly parameter together with a hidden parameter');
+        }
+        const iceberg = this.safeValue (params, 'iceberg');
+        if (iceberg) {
+            const visibleSize = this.safeValue (params, 'visibleSize');
+            if (visibleSize === undefined) {
+                throw new ArgumentsRequired (this.id + ' createOrder() requires a visibleSize parameter for iceberg orders');
+            }
+        }
+        params = this.omit (params, [ 'timeInForce', 'stopPrice', 'triggerPrice' ]); // Time in force only valid for limit orders, exchange error when gtc for market orders
+        const response = await this.privatePostOrders (this.extend (request, params));
+        //
+        //    {
+        //        code: "200000",
+        //        data: {
+        //            orderId: "619717484f1d010001510cde",
+        //        },
+        //    }
+        //
+        const data = this.safeValue (response, 'data', {});
+        return {
+            'id': this.safeString (data, 'orderId'),
+            'clientOrderId': undefined,
+            'timestamp': undefined,
+            'datetime': undefined,
+            'lastTradeTimestamp': undefined,
+            'symbol': undefined,
+            'type': undefined,
+            'side': undefined,
+            'price': undefined,
+            'amount': undefined,
+            'cost': undefined,
+            'average': undefined,
+            'filled': undefined,
+            'remaining': undefined,
+            'status': undefined,
+            'fee': undefined,
+            'trades': undefined,
+            'timeInForce': undefined,
+            'postOnly': undefined,
+            'stopPrice': undefined,
+            'info': response,
+        };
+    }
+
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let url = this.urls['api'][api];
         const versions = this.safeValue (this.options, 'versions', {});
@@ -774,9 +885,14 @@ module.exports = class poloniexfutures extends Exchange {
             this.checkRequiredCredentials ();
             if (method !== 'GET' && method !== 'HEAD') {
                 body = this.urlencode (query);
+                url += '?' + body;
             }
             const now = this.milliseconds ().toString ();
-            const payload = now + method + tail;
+            let payload = now + method + tail;
+            if (body !== undefined) {
+                payload += '?' + body;
+            }
+            console.log (payload);
             const signature = this.hmac (this.encode (payload), this.encode (this.secret), 'sha256', 'base64');
             headers = {
                 'PF-API-SIGN': signature,
