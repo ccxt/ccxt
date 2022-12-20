@@ -888,6 +888,8 @@ class huobi extends Exchange {
                     'invalid-address' => '\\ccxt\\BadRequest', // array("status":"error","err-code":"invalid-address","err-msg":"Invalid address.","data":null),
                     'base-currency-chain-error' => '\\ccxt\\BadRequest', // array("status":"error","err-code":"base-currency-chain-error","err-msg":"The current currency chain does not exist","data":null),
                     'dw-insufficient-balance' => '\\ccxt\\InsufficientFunds', // array("status":"error","err-code":"dw-insufficient-balance","err-msg":"Insufficient balance. You can only transfer `12.3456` at most.","data":null)
+                    'base-withdraw-fee-error' => '\\ccxt\\BadRequest', // array("status":"error","err-code":"base-withdraw-fee-error","err-msg":"withdrawal fee is not within limits","data":null)
+                    'dw-withdraw-min-limit' => '\\ccxt\\BadRequest', // array("status":"error","err-code":"dw-withdraw-min-limit","err-msg":"The withdrawal amount is less than the minimum limit.","data":null)
                 ),
             ),
             'precisionMode' => TICK_SIZE,
@@ -904,6 +906,9 @@ class huobi extends Exchange {
                             'inverse' => true,
                         ),
                     ),
+                ),
+                'withdraw' => array(
+                    'includeFee' => false,
                 ),
                 'defaultType' => 'spot', // spot, future, swap
                 'defaultSubType' => 'linear', // inverse, linear
@@ -4972,17 +4977,40 @@ class huobi extends Exchange {
         $currency = $this->currency($code);
         $request = array(
             'address' => $address, // only supports existing addresses in your withdraw $address list
-            'amount' => $amount,
             'currency' => strtolower($currency['id']),
         );
         if ($tag !== null) {
             $request['addr-tag'] = $tag; // only for XRP?
         }
-        list($networkCode, $paramsOmited) = $this->handle_network_code_and_params($params);
+        $networkCode = null;
+        list($networkCode, $params) = $this->handle_network_code_and_params($params);
         if ($networkCode !== null) {
             $request['chain'] = $this->network_code_to_id($networkCode, $code);
         }
-        $response = $this->spotPrivatePostV1DwWithdrawApiCreate (array_merge($request, $paramsOmited));
+        $amount = floatval($this->currency_to_precision($code, $amount, $networkCode));
+        $withdrawOptions = $this->safe_value($this->options, 'withdraw', array());
+        if ($this->safe_value($withdrawOptions, 'includeFee', false)) {
+            $fee = $this->safe_number($params, 'fee');
+            if ($fee === null) {
+                $currencies = $this->fetch_currencies();
+                $this->currencies = $this->deep_extend($this->currencies, $currencies);
+                $targetNetwork = $this->safe_value($currency['networks'], $networkCode, array());
+                $fee = $this->safe_number($targetNetwork, 'fee');
+                if ($fee === null) {
+                    throw new ArgumentsRequired($this->id . ' withdraw() function can not find withdraw $fee for chosen network. You need to re-load markets with "exchange.loadMarkets(true)", or provide the "fee" parameter');
+                }
+            }
+            // $fee needs to be deducted from whole $amount
+            $feeString = $this->currency_to_precision($code, $fee, $networkCode);
+            $params = $this->omit($params, 'fee');
+            $amountString = $this->number_to_string($amount);
+            $amountSubtractedString = Precise::string_sub($amountString, $feeString);
+            $amountSubtracted = floatval($amountSubtractedString);
+            $request['fee'] = floatval($feeString);
+            $amount = floatval($this->currency_to_precision($code, $amountSubtracted, $networkCode));
+        }
+        $request['amount'] = $amount;
+        $response = $this->spotPrivatePostV1DwWithdrawApiCreate (array_merge($request, $params));
         //
         //     {
         //         "status" => "ok",
