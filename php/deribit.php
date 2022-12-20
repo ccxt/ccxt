@@ -1613,6 +1613,8 @@ class deribit extends Exchange {
         $market = $this->market($symbol);
         if ($market['inverse']) {
             $amount = $this->amount_to_precision($symbol, $amount);
+        } elseif ($market['settle'] === 'USDC') {
+            $amount = $this->amount_to_precision($symbol, $amount);
         } else {
             $amount = $this->currency_to_precision($symbol, $amount);
         }

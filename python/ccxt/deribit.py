@@ -1579,6 +1579,8 @@ class deribit(Exchange):
         market = self.market(symbol)
         if market['inverse']:
             amount = self.amount_to_precision(symbol, amount)
+        elif market['settle'] == 'USDC':
+            amount = self.amount_to_precision(symbol, amount)
         else:
             amount = self.currency_to_precision(symbol, amount)
         request = {
