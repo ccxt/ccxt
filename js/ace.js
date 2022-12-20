@@ -359,7 +359,7 @@ module.exports = class ace extends Exchange {
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const response = await this.publicGetListTradePrice (params);
+        const response = await this.publicGetV2ListTradePrice (params);
         const marketId = market['id'];
         const ticker = this.safeValue (response, marketId, {});
         //
@@ -385,7 +385,7 @@ module.exports = class ace extends Exchange {
          * @returns {object} an array of [ticker structures]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
          */
         await this.loadMarkets ();
-        const response = await this.publicGetListTradePrice ();
+        const response = await this.publicGetV2ListTradePrice ();
         //
         //     {
         //         "BTC/USDT":{
