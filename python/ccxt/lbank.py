@@ -352,7 +352,9 @@ class lbank(Exchange):
         id = self.safe_string(trade, 'tid')
         type = None
         side = self.safe_string(trade, 'type')
-        side = side.replace('_market', '')
+        # remove type additions from i.e. buy_maker, sell_maker, buy_ioc, sell_ioc, buy_fok, sell_fok
+        splited = side.split('_')
+        side = splited[0]
         return {
             'id': id,
             'info': self.safe_value(trade, 'info', trade),

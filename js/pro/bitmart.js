@@ -30,7 +30,7 @@ module.exports = class bitmart extends bitmartRest {
             'options': {
                 'defaultType': 'spot',
                 'watchOrderBook': {
-                    'depth': 'depth5', // depth5, depth400
+                    'depth': 'depth5', // depth5, depth20, depth50
                 },
                 'ws': {
                     'inflate': true,
@@ -93,6 +93,8 @@ module.exports = class bitmart extends bitmartRest {
          * @param {object} params extra parameters specific to the bitmart api endpoint
          * @returns {[object]} a list of [trade structures]{@link https://docs.ccxt.com/en/latest/manual.html?#public-trades}
          */
+        await this.loadMarkets ();
+        symbol = this.symbol (symbol);
         const trades = await this.subscribe ('trade', symbol, params);
         if (this.newUpdates) {
             limit = trades.getLimit (symbol, limit);
@@ -128,6 +130,7 @@ module.exports = class bitmart extends bitmartRest {
         }
         await this.loadMarkets ();
         const market = this.market (symbol);
+        symbol = market['symbol'];
         if (market['type'] !== 'spot') {
             throw new ArgumentsRequired (this.id + ' watchOrders supports spot markets only');
         }
@@ -313,6 +316,19 @@ module.exports = class bitmart extends bitmartRest {
     }
 
     async watchOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
+        /**
+         * @method
+         * @name bitmart#watchOHLCV
+         * @description watches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+         * @param {string} symbol unified symbol of the market to fetch OHLCV data for
+         * @param {string} timeframe the length of time each candle represents
+         * @param {int|undefined} since timestamp in ms of the earliest candle to fetch
+         * @param {int|undefined} limit the maximum amount of candles to fetch
+         * @param {object} params extra parameters specific to the bitmart api endpoint
+         * @returns {[[int]]} A list of candles ordered as timestamp, open, high, low, close, volume
+         */
+        await this.loadMarkets ();
+        symbol = this.symbol (symbol);
         const timeframes = this.safeValue (this.options, 'timeframes', {});
         const interval = this.safeString (timeframes, timeframe);
         const name = 'kline' + interval;
@@ -383,9 +399,9 @@ module.exports = class bitmart extends bitmartRest {
          * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-book-structure} indexed by market symbols
          */
         const options = this.safeValue (this.options, 'watchOrderBook', {});
-        const depth = this.safeString (options, 'depth', 'depth400');
+        const depth = this.safeString (options, 'depth', 'depth50');
         const orderbook = await this.subscribe (depth, symbol, params);
-        return orderbook.limit (limit);
+        return orderbook.limit ();
     }
 
     handleDelta (bookside, delta) {
@@ -604,7 +620,8 @@ module.exports = class bitmart extends bitmartRest {
             const methods = {
                 'depth': this.handleOrderBook,
                 'depth5': this.handleOrderBook,
-                'depth400': this.handleOrderBook,
+                'depth20': this.handleOrderBook,
+                'depth50': this.handleOrderBook,
                 'ticker': this.handleTicker,
                 'trade': this.handleTrade,
                 // ...

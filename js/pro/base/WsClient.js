@@ -7,7 +7,8 @@ const functions = require ("../../base/functions.js")
         milliseconds,
     } = functions
     , Client = require ('./Client')
-    , WebSocket = isNode ? require ('ws') : window.WebSocket
+    // eslint-disable-next-line
+    , WebSocket = isNode ? require ('ws') : self.WebSocket
 
 module.exports = class WsClient extends Client {
 
@@ -17,7 +18,11 @@ module.exports = class WsClient extends Client {
         }
         this.connectionStarted = milliseconds ()
         this.setConnectionTimeout ()
-        this.connection = new WebSocket (this.url, this.protocols, this.options)
+        if (isNode) {
+            this.connection = new WebSocket (this.url, this.protocols, this.options)
+        } else {
+            this.connection = new WebSocket (this.url, this.protocols)
+        }
 
         this.connection.onopen = this.onOpen.bind (this)
         this.connection.onmessage = this.onMessage.bind (this)

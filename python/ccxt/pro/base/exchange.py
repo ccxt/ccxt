@@ -2,7 +2,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '2.0.56'
+__version__ = '2.4.39'
 
 # -----------------------------------------------------------------------------
 
@@ -165,11 +165,6 @@ class Exchange(BaseExchange):
             if value == timeframe:
                 return key
         return None
-
-    def format_scientific_notation_ftx(self, n):
-        if n == 0:
-            return '0e-00'
-        return format(n, 'g')
 
     async def watch_ticker(self, symbol, params={}):
         raise NotSupported(self.id + '.watch_ticker() not implemented yet')

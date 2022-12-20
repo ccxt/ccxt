@@ -2,7 +2,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '2.0.56'
+__version__ = '2.4.39'
 
 # -----------------------------------------------------------------------------
 
@@ -285,6 +285,15 @@ class Exchange(BaseExchange):
 
     # METHODS BELOW THIS LINE ARE TRANSPILED FROM JAVASCRIPT TO PYTHON AND PHP
 
+    def get_default_options(self):
+        return {
+            'defaultNetworkCodeReplacements': {
+                'ETH': {'ERC20': 'ETH'},
+                'TRX': {'TRC20': 'TRX'},
+                'CRO': {'CRC20': 'CRONOS'},
+            },
+        }
+
     def safe_ledger_entry(self, entry, currency=None):
         currency = self.safe_currency(None, currency)
         direction = self.safe_string(entry, 'direction')
@@ -346,7 +355,7 @@ class Exchange(BaseExchange):
             quoteCurrencies = []
             for i in range(0, len(values)):
                 market = values[i]
-                defaultCurrencyPrecision = 8 if (self.precisionMode == DECIMAL_PLACES) else self.parse_number('0.00000001')
+                defaultCurrencyPrecision = 8 if (self.precisionMode == DECIMAL_PLACES) else self.parse_number('1e-8')
                 marketPrecision = self.safe_value(market, 'precision', {})
                 if 'base' in market:
                     currencyPrecision = self.safe_value_2(marketPrecision, 'base', 'amount', defaultCurrencyPrecision)
@@ -398,11 +407,13 @@ class Exchange(BaseExchange):
         balance['free'] = {}
         balance['used'] = {}
         balance['total'] = {}
+        debtBalance = {}
         for i in range(0, len(codes)):
             code = codes[i]
             total = self.safe_string(balance[code], 'total')
             free = self.safe_string(balance[code], 'free')
             used = self.safe_string(balance[code], 'used')
+            debt = self.safe_string(balance[code], 'debt')
             if (total is None) and (free is not None) and (used is not None):
                 total = Precise.string_add(free, used)
             if (free is None) and (total is not None) and (used is not None):
@@ -415,6 +426,13 @@ class Exchange(BaseExchange):
             balance['free'][code] = balance[code]['free']
             balance['used'][code] = balance[code]['used']
             balance['total'][code] = balance[code]['total']
+            if debt is not None:
+                balance[code]['debt'] = self.parse_number(debt)
+                debtBalance[code] = balance[code]['debt']
+        debtBalanceArray = list(debtBalance.keys())
+        length = len(debtBalanceArray)
+        if length:
+            balance['debt'] = debtBalance
         return balance
 
     def safe_order(self, order, market=None):
@@ -518,10 +536,26 @@ class Exchange(BaseExchange):
             if amount is not None and filled is not None:
                 remaining = Precise.string_sub(amount, filled)
         # ensure that the average field is calculated correctly
+        inverse = self.safe_value(market, 'inverse', False)
+        contractSize = self.number_to_string(self.safe_value(market, 'contractSize', 1))
+        # inverse
+        # price = filled * contract size / cost
+        #
+        # linear
+        # price = cost / (filled * contract size)
         if average is None:
             if (filled is not None) and (cost is not None) and Precise.string_gt(filled, '0'):
-                average = Precise.string_div(cost, filled)
-        # also ensure the cost field is calculated correctly
+                filledTimesContractSize = Precise.string_mul(filled, contractSize)
+                if inverse:
+                    average = Precise.string_div(filledTimesContractSize, cost)
+                else:
+                    average = Precise.string_div(cost, filledTimesContractSize)
+        # similarly
+        # inverse
+        # cost = filled * contract size / price
+        #
+        # linear
+        # cost = filled * contract size * price
         costPriceExists = (average is not None) or (price is not None)
         if parseCost and (filled is not None) and costPriceExists:
             multiplyPrice = None
@@ -530,13 +564,11 @@ class Exchange(BaseExchange):
             else:
                 multiplyPrice = average
             # contract trading
-            contractSize = self.safe_string(market, 'contractSize')
-            if contractSize is not None:
-                inverse = self.safe_value(market, 'inverse', False)
-                if inverse:
-                    multiplyPrice = Precise.string_div('1', multiplyPrice)
-                multiplyPrice = Precise.string_mul(multiplyPrice, contractSize)
-            cost = Precise.string_mul(multiplyPrice, filled)
+            filledTimesContractSize = Precise.string_mul(filled, contractSize)
+            if inverse:
+                cost = Precise.string_div(filledTimesContractSize, multiplyPrice)
+            else:
+                cost = Precise.string_mul(filledTimesContractSize, multiplyPrice)
         # support for market orders
         orderType = self.safe_value(order, 'type')
         emptyPrice = (price is None) or Precise.string_equals(price, '0')
@@ -553,14 +585,18 @@ class Exchange(BaseExchange):
             if 'rate' in fee:
                 fee['rate'] = self.safe_number(fee, 'rate')
             entry['fee'] = fee
-        # timeInForceHandling
         timeInForce = self.safe_string(order, 'timeInForce')
+        postOnly = self.safe_value(order, 'postOnly')
+        # timeInForceHandling
         if timeInForce is None:
             if self.safe_string(order, 'type') == 'market':
                 timeInForce = 'IOC'
             # allow postOnly override
-            if self.safe_value(order, 'postOnly', False):
+            if postOnly:
                 timeInForce = 'PO'
+        elif postOnly is None:
+            # timeInForce is not None here
+            postOnly = timeInForce == 'PO'
         return self.extend(order, {
             'lastTradeTimestamp': lastTradeTimeTimestamp,
             'price': self.parse_number(price),
@@ -570,6 +606,7 @@ class Exchange(BaseExchange):
             'filled': self.parse_number(filled),
             'remaining': self.parse_number(remaining),
             'timeInForce': timeInForce,
+            'postOnly': postOnly,
             'trades': trades,
         })
 
@@ -612,6 +649,8 @@ class Exchange(BaseExchange):
         return self.filter_by_symbol_since_limit(results, symbol, since, limit, tail)
 
     def calculate_fee(self, symbol, type, side, amount, price, takerOrMaker='taker', params={}):
+        if type == 'market' and takerOrMaker == 'maker':
+            raise ArgumentsRequired(self.id + ' calculateFee() - you have provided incompatible arguments - "market" type order can not be "maker". Change either the "type" or the "takerOrMaker" argument to calculate the fee.')
         market = self.markets[symbol]
         feeSide = self.safe_string(market, 'feeSide', 'quote')
         key = 'quote'
@@ -628,7 +667,7 @@ class Exchange(BaseExchange):
             # the fee is always in the currency you get
             cost = amountString
             if side == 'sell':
-                cost = priceString
+                cost = Precise.string_mul(cost, priceString)
             else:
                 key = 'base'
         elif feeSide == 'give':
@@ -638,7 +677,13 @@ class Exchange(BaseExchange):
                 cost = Precise.string_mul(cost, priceString)
             else:
                 key = 'base'
-        rate = self.number_to_string(market[takerOrMaker])
+        # for derivatives, the fee is in 'settle' currency
+        if not market['spot']:
+            key = 'settle'
+        # even if `takerOrMaker` argument was set to 'maker', for 'market' orders we should forcefully override it to 'taker'
+        if type == 'market':
+            takerOrMaker = 'taker'
+        rate = self.safe_string(market, takerOrMaker)
         if cost is not None:
             cost = Precise.string_mul(cost, rate)
         return {
@@ -896,6 +941,14 @@ class Exchange(BaseExchange):
             result.append(self.symbol(symbols[i]))
         return result
 
+    def market_codes(self, codes):
+        if codes is None:
+            return codes
+        result = []
+        for i in range(0, len(codes)):
+            result.append(self.common_currency_code(codes[i]))
+        return result
+
     def parse_bids_asks(self, bidasks, priceKey=0, amountKey=1):
         bidasks = self.to_array(bidasks)
         result = []
@@ -968,6 +1021,124 @@ class Exchange(BaseExchange):
             return aliases[network]
         else:
             raise NotSupported(self.id + ' network ' + network + ' is not yet supported')
+
+    def network_code_to_id(self, networkCode, currencyCode=None):
+        """
+         * @ignore
+        tries to convert the provided networkCode(which is expected to be an unified network code) to a network id. In order to achieve self, derived class needs to have 'options->networks' defined.
+        :param str networkCode: unified network code
+        :param str|None currencyCode: unified currency code, but self argument is not required by default, unless there is an exchange(like huobi) that needs an override of the method to be able to pass currencyCode argument additionally
+        :returns [str|None]: exchange-specific network id
+        """
+        networkIdsByCodes = self.safe_value(self.options, 'networks', {})
+        networkId = self.safe_string(networkIdsByCodes, networkCode)
+        # for example, if 'ETH' is passed for networkCode, but 'ETH' key not defined in `options->networks` object
+        if networkId is None:
+            if currencyCode is None:
+                # if currencyCode was not provided, then we just set passed value to networkId
+                networkId = networkCode
+            else:
+                # if currencyCode was provided, then we try to find if that currencyCode has a replacement(i.e. ERC20 for ETH)
+                defaultNetworkCodeReplacements = self.safe_value(self.options, 'defaultNetworkCodeReplacements', {})
+                if currencyCode in defaultNetworkCodeReplacements:
+                    # if there is a replacement for the passed networkCode, then we use it to find network-id in `options->networks` object
+                    replacementObject = defaultNetworkCodeReplacements[currencyCode]  # i.e. {'ERC20': 'ETH'}
+                    keys = list(replacementObject.keys())
+                    for i in range(0, len(keys)):
+                        key = keys[i]
+                        value = replacementObject[key]
+                        # if value matches to provided unified networkCode, then we use it's key to find network-id in `options->networks` object
+                        if value == networkCode:
+                            networkId = self.safe_string(networkIdsByCodes, key)
+                            break
+                # if it wasn't found, we just set the provided value to network-id
+                if networkId is None:
+                    networkId = networkCode
+        return networkId
+
+    def network_id_to_code(self, networkId, currencyCode=None):
+        """
+         * @ignore
+        tries to convert the provided exchange-specific networkId to an unified network Code. In order to achieve self, derived class needs to have 'options->networksById' defined.
+        :param str networkId: unified network code
+        :param str|None currencyCode: unified currency code, but self argument is not required by default, unless there is an exchange(like huobi) that needs an override of the method to be able to pass currencyCode argument additionally
+        :returns [str|None]: unified network code
+        """
+        networkCodesByIds = self.safe_value(self.options, 'networksById', {})
+        networkCode = self.safe_string(networkCodesByIds, networkId, networkId)
+        # replace mainnet network-codes(i.e. ERC20->ETH)
+        if currencyCode is not None:
+            defaultNetworkCodeReplacements = self.safe_value(self.options, 'defaultNetworkCodeReplacements', {})
+            if currencyCode in defaultNetworkCodeReplacements:
+                replacementObject = self.safe_value(defaultNetworkCodeReplacements, currencyCode, {})
+                networkCode = self.safe_string(replacementObject, networkCode, networkCode)
+        return networkCode
+
+    def network_codes_to_ids(self, networkCodes=None):
+        """
+         * @ignore
+        tries to convert the provided networkCode(which is expected to be an unified network code) to a network id. In order to achieve self, derived class needs to have 'options->networks' defined.
+        :param [str]|None networkCodes: unified network codes
+        :returns [str|None]: exchange-specific network ids
+        """
+        if networkCodes is None:
+            return None
+        ids = []
+        for i in range(0, len(networkCodes)):
+            networkCode = networkCodes[i]
+            ids.append(self.networkCodeToId(networkCode))
+        return ids
+
+    def handle_network_code_and_params(self, params):
+        networkCodeInParams = self.safe_string_2(params, 'networkCode', 'network')
+        if networkCodeInParams is not None:
+            params = self.omit(params, ['networkCode', 'network'])
+        # if it was not defined by user, we should not set it from 'defaultNetworks', because handleNetworkCodeAndParams is for only request-side and thus we do not fill it with anything. We can only use 'defaultNetworks' after parsing response-side
+        return [networkCodeInParams, params]
+
+    def default_network_code(self, currencyCode):
+        defaultNetworkCode = None
+        defaultNetworks = self.safe_value(self.options, 'defaultNetworks', {})
+        if currencyCode in defaultNetworks:
+            # if currency had set its network in "defaultNetworks", use it
+            defaultNetworkCode = defaultNetworks[currencyCode]
+        else:
+            # otherwise, try to use the global-scope 'defaultNetwork' value(even if that network is not supported by currency, it doesn't make any problem, self will be just used "at first" if currency supports self network at all)
+            defaultNetwork = self.safe_value(self.options, 'defaultNetwork')
+            if defaultNetwork is not None:
+                defaultNetworkCode = defaultNetwork
+        return defaultNetworkCode
+
+    def select_network_code_from_unified_networks(self, currencyCode, networkCode, indexedNetworkEntries):
+        return self.selectNetworkKeyFromNetworks(currencyCode, networkCode, indexedNetworkEntries, True)
+
+    def select_network_id_from_raw_networks(self, currencyCode, networkCode, indexedNetworkEntries):
+        return self.selectNetworkKeyFromNetworks(currencyCode, networkCode, indexedNetworkEntries, False)
+
+    def select_network_key_from_networks(self, currencyCode, networkCode, indexedNetworkEntries, isIndexedByUnifiedNetworkCode=False):
+        # self method is used against raw & unparse network entries, which are just indexed by network id
+        chosenNetworkId = None
+        availableNetworkIds = list(indexedNetworkEntries.keys())
+        responseNetworksLength = len(availableNetworkIds)
+        if networkCode is not None:
+            if responseNetworksLength == 0:
+                raise NotSupported(self.id + ' - ' + networkCode + ' network did not return any result for ' + currencyCode)
+            else:
+                # if networkCode was provided by user, we should check it after response, as the referenced exchange doesn't support network-code during request
+                networkId = networkCode if isIndexedByUnifiedNetworkCode else self.networkCodeToId(networkCode, currencyCode)
+                if networkId in indexedNetworkEntries:
+                    chosenNetworkId = networkId
+                else:
+                    raise NotSupported(self.id + ' - ' + networkId + ' network was not found for ' + currencyCode + ', use one of ' + ', '.join(availableNetworkIds))
+        else:
+            if responseNetworksLength == 0:
+                raise NotSupported(self.id + ' - no networks were returned for ' + currencyCode)
+            else:
+                # if networkCode was not provided by user, then we try to use the default network(if it was defined in "defaultNetworks"), otherwise, we just return the first network entry
+                defaultNetworkCode = self.defaultNetworkCode(currencyCode)
+                defaultNetworkId = defaultNetworkCode if isIndexedByUnifiedNetworkCode else self.networkCodeToId(defaultNetworkCode, currencyCode)
+                chosenNetworkId = defaultNetworkId if (defaultNetworkId in indexedNetworkEntries) else availableNetworkIds[0]
+        return chosenNetworkId
 
     def safe_number_2(self, dictionary, key1, key2, d=None):
         value = self.safe_string_2(dictionary, key1, key2)
@@ -1187,7 +1358,7 @@ class Exchange(BaseExchange):
     def safe_currency(self, currencyId, currency=None):
         if (currencyId is None) and (currency is not None):
             return currency
-        if (self.currencies_by_id is not None) and (currencyId in self.currencies_by_id):
+        if (self.currencies_by_id is not None) and (currencyId in self.currencies_by_id) and (self.currencies_by_id[currencyId] is not None):
             return self.currencies_by_id[currencyId]
         code = currencyId
         if currencyId is not None:
@@ -1269,7 +1440,7 @@ class Exchange(BaseExchange):
                 if error:
                     raise AuthenticationError(self.id + ' requires "' + key + '" credential')
                 else:
-                    return error
+                    return False
         return True
 
     def oath(self):
@@ -1322,6 +1493,12 @@ class Exchange(BaseExchange):
     async def fetch_transaction_fees(self, codes=None, params={}):
         raise NotSupported(self.id + ' fetchTransactionFees() is not supported yet')
 
+    async def fetch_deposit_withdraw_fee(self, code, params={}):
+        if not self.has['fetchDepositWithdrawFees']:
+            raise NotSupported(self.id + ' fetchDepositWithdrawFee() is not supported yet')
+        fees = await self.fetchDepositWithdrawFees([code], params)
+        return self.safe_value(fees, code)
+
     def get_supported_mapping(self, key, mapping={}):
         if key in mapping:
             return mapping[key]
@@ -1370,14 +1547,14 @@ class Exchange(BaseExchange):
         params = self.omit(params, ['defaultType', 'type'])
         return [type, params]
 
-    def handle_sub_type_and_params(self, methodName, market=None, params={}):
+    def handle_sub_type_and_params(self, methodName, market=None, params={}, defaultValue='linear'):
         subType = None
         # if set in params, it takes precedence
-        subTypeInParams = self.safe_string_2(params, 'subType', 'subType')
+        subTypeInParams = self.safe_string_2(params, 'subType', 'defaultSubType')
         # avoid omitting if it's not present
         if subTypeInParams is not None:
             subType = subTypeInParams
-            params = self.omit(params, ['defaultSubType', 'subType'])
+            params = self.omit(params, ['subType', 'defaultSubType'])
         else:
             # at first, check from market object
             if market is not None:
@@ -1387,10 +1564,17 @@ class Exchange(BaseExchange):
                     subType = 'inverse'
             # if it was not defined in market object
             if subType is None:
-                exchangeWideValue = self.safe_string_2(self.options, 'defaultSubType', 'subType', 'linear')
-                methodOptions = self.safe_value(self.options, methodName, {})
-                subType = self.safe_string_2(methodOptions, 'defaultSubType', 'subType', exchangeWideValue)
+                values = self.handleOptionAndParams(None, methodName, 'subType', defaultValue)  # no need to re-test params here
+                subType = values[0]
         return [subType, params]
+
+    def handle_margin_mode_and_params(self, methodName, params={}, defaultValue=None):
+        """
+         * @ignore
+        :param dict params: extra parameters specific to the exchange api endpoint
+        :returns [str|None, dict]: the marginMode in lowercase as specified by params["marginMode"], params["defaultMarginMode"] self.options["marginMode"] or self.options["defaultMarginMode"]
+        """
+        return self.handleOptionAndParams(params, methodName, 'marginMode', defaultValue)
 
     def throw_exactly_matched_exception(self, exact, string, message):
         if string in exact:
@@ -1552,11 +1736,17 @@ class Exchange(BaseExchange):
 
     def price_to_precision(self, symbol, price):
         market = self.market(symbol)
-        return self.decimal_to_precision(price, ROUND, market['precision']['price'], self.precisionMode, self.paddingMode)
+        result = self.decimal_to_precision(price, ROUND, market['precision']['price'], self.precisionMode, self.paddingMode)
+        if result == '0':
+            raise ArgumentsRequired(self.id + ' price of ' + market['symbol'] + ' must be greater than minimum price precision of ' + self.number_to_string(market['precision']['price']))
+        return result
 
     def amount_to_precision(self, symbol, amount):
         market = self.market(symbol)
-        return self.decimal_to_precision(amount, TRUNCATE, market['precision']['amount'], self.precisionMode, self.paddingMode)
+        result = self.decimal_to_precision(amount, TRUNCATE, market['precision']['amount'], self.precisionMode, self.paddingMode)
+        if result == '0':
+            raise ArgumentsRequired(self.id + ' amount of ' + market['symbol'] + ' must be greater than minimum amount precision of ' + self.number_to_string(market['precision']['amount']))
+        return result
 
     def fee_to_precision(self, symbol, fee):
         market = self.market(symbol)
@@ -1725,6 +1915,12 @@ class Exchange(BaseExchange):
             result[parsed['symbol']] = parsed
         return result
 
+    def is_trigger_order(self, params):
+        isTrigger = self.safe_value_2(params, 'trigger', 'stop')
+        if isTrigger:
+            params = self.omit(params, ['trigger', 'stop'])
+        return [isTrigger, params]
+
     def is_post_only(self, isMarketOrder, exchangeSpecificParam, params={}):
         """
          * @ignore
@@ -1862,26 +2058,107 @@ class Exchange(BaseExchange):
         :returns: the exchange specific account name or the isolated margin id for transfers
         """
         accountsByType = self.safe_value(self.options, 'accountsByType', {})
-        symbols = self.symbols
         lowercaseAccount = account.lower()
         if lowercaseAccount in accountsByType:
             return accountsByType[lowercaseAccount]
-        elif self.in_array(account, symbols):
+        elif (account in self.markets) or (account in self.markets_by_id):
             market = self.market(account)
             return market['id']
         else:
             return account
 
-    def handle_margin_mode_and_params(self, methodName, params={}):
+    def check_required_argument(self, methodName, argument, argumentName, options=[]):
         """
          * @ignore
-        :param dict params: extra parameters specific to the exchange api endpoint
-        :returns [str|None, dict]: the marginMode in lowercase as specified by params["marginMode"], params["defaultMarginMode"] self.options["marginMode"] or self.options["defaultMarginMode"]
+        :param str argument: the argument to check
+        :param str argumentName: the name of the argument to check
+        :param str methodName: the name of the method that the argument is being checked for
+        :param [str] options: a list of options that the argument can be
+        :returns None:
         """
-        defaultMarginMode = self.safe_string_2(self.options, 'marginMode', 'defaultMarginMode')
-        methodOptions = self.safe_value(self.options, methodName, {})
-        methodMarginMode = self.safe_string_2(methodOptions, 'marginMode', 'defaultMarginMode', defaultMarginMode)
-        marginMode = self.safe_string_lower_2(params, 'marginMode', 'defaultMarginMode', methodMarginMode)
-        if marginMode is not None:
-            params = self.omit(params, ['marginMode', 'defaultMarginMode'])
-        return [marginMode, params]
+        if (argument is None) or ((len(options) > 0) and (not(self.in_array(argument, options)))):
+            messageOptions = ', '.join(options)
+            message = self.id + ' ' + methodName + '() requires a ' + argumentName + ' argument'
+            if messageOptions != '':
+                message += ', one of ' + '(' + messageOptions + ')'
+            raise ArgumentsRequired(message)
+
+    def check_required_margin_argument(self, methodName, symbol, marginMode):
+        """
+         * @ignore
+        :param str symbol: unified symbol of the market
+        :param str methodName: name of the method that requires a symbol
+        :param str marginMode: is either 'isolated' or 'cross'
+        """
+        if (marginMode == 'isolated') and (symbol is None):
+            raise ArgumentsRequired(self.id + ' ' + methodName + '() requires a symbol argument for isolated margin')
+        elif (marginMode == 'cross') and (symbol is not None):
+            raise ArgumentsRequired(self.id + ' ' + methodName + '() cannot have a symbol argument for cross margin')
+
+    def check_required_symbol(self, methodName, symbol):
+        """
+         * @ignore
+        :param str symbol: unified symbol of the market
+        :param str methodName: name of the method that requires a symbol
+        """
+        self.checkRequiredArgument(methodName, symbol, 'symbol')
+
+    def parse_deposit_withdraw_fees(self, response, codes=None, currencyIdKey=None):
+        """
+         * @ignore
+        :param [object]|dict response: unparsed response from the exchange
+        :param [str]|None codes: the unified currency codes to fetch transactions fees for, returns all currencies when None
+        :param str|None currencyIdKey: *should only be None when response is a dictionary* the object key that corresponds to the currency id
+        :returns dict: objects with withdraw and deposit fees, indexed by currency codes
+        """
+        depositWithdrawFees = {}
+        codes = self.marketCodes(codes)
+        isArray = isinstance(response, list)
+        responseKeys = response
+        if not isArray:
+            responseKeys = list(response.keys())
+        for i in range(0, len(responseKeys)):
+            entry = responseKeys[i]
+            dictionary = entry if isArray else response[entry]
+            currencyId = self.safe_string(dictionary, currencyIdKey) if isArray else entry
+            currency = self.safe_value(self.currencies_by_id, currencyId)
+            code = self.safe_string(currency, 'code', currencyId)
+            if (codes is None) or (self.in_array(code, codes)):
+                depositWithdrawFees[code] = self.parseDepositWithdrawFee(dictionary, currency)
+        return depositWithdrawFees
+
+    def deposit_withdraw_fee(self, info):
+        return {
+            'info': info,
+            'withdraw': {
+                'fee': None,
+                'percentage': None,
+            },
+            'deposit': {
+                'fee': None,
+                'percentage': None,
+            },
+            'networks': {},
+        }
+
+    def assign_default_deposit_withdraw_fees(self, fee, currency=None):
+        """
+         * @ignore
+        Takes a depositWithdrawFee structure and assigns the default values for withdraw and deposit
+        :param dict fee: A deposit withdraw fee structure
+        :param dict currency: A currency structure, the response from self.currency()
+        :returns dict: A deposit withdraw fee structure
+        """
+        networkKeys = list(fee['networks'].keys())
+        numNetworks = len(networkKeys)
+        if numNetworks == 1:
+            fee['withdraw'] = fee['networks'][networkKeys[0]]['withdraw']
+            fee['deposit'] = fee['networks'][networkKeys[0]]['deposit']
+            return fee
+        currencyCode = self.safe_string(currency, 'code')
+        for i in range(0, numNetworks):
+            network = networkKeys[i]
+            if network == currencyCode:
+                fee['withdraw'] = fee['networks'][networkKeys[i]]['withdraw']
+                fee['deposit'] = fee['networks'][networkKeys[i]]['deposit']
+        return fee

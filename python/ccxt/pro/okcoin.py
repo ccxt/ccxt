@@ -76,6 +76,8 @@ class okcoin(Exchange, ccxt.async_support.okcoin):
         :param dict params: extra parameters specific to the okcoin api endpoint
         :returns [dict]: a list of `trade structures <https://docs.ccxt.com/en/latest/manual.html?#public-trades>`
         """
+        await self.load_markets()
+        symbol = self.symbol(symbol)
         trades = await self.subscribe('trade', symbol, params)
         if self.newUpdates:
             limit = trades.getLimit(symbol, limit)
@@ -90,7 +92,10 @@ class okcoin(Exchange, ccxt.async_support.okcoin):
         :param dict params: extra parameters specific to the okcoin api endpoint
         :returns [dict]: a list of `order structures <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
         """
+        await self.load_markets()
         await self.authenticate()
+        if symbol is not None:
+            symbol = self.symbol(symbol)
         orderType = self.safe_string(self.options, 'watchOrders', 'order')
         trades = await self.subscribe(orderType, symbol, params)
         if self.newUpdates:
@@ -232,6 +237,17 @@ class okcoin(Exchange, ccxt.async_support.okcoin):
         return message
 
     async def watch_ohlcv(self, symbol, timeframe='1m', since=None, limit=None, params={}):
+        """
+        watches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+        :param str symbol: unified symbol of the market to fetch OHLCV data for
+        :param str timeframe: the length of time each candle represents
+        :param int|None since: timestamp in ms of the earliest candle to fetch
+        :param int|None limit: the maximum amount of candles to fetch
+        :param dict params: extra parameters specific to the okcoin api endpoint
+        :returns [[int]]: A list of candles ordered as timestamp, open, high, low, close, volume
+        """
+        await self.load_markets()
+        symbol = self.symbol(symbol)
         interval = self.timeframes[timeframe]
         name = 'candle' + interval + 's'
         ohlcv = await self.subscribe(name, symbol, params)
@@ -293,7 +309,7 @@ class okcoin(Exchange, ccxt.async_support.okcoin):
         options = self.safe_value(self.options, 'watchOrderBook', {})
         depth = self.safe_string(options, 'depth', 'depth_l2_tbt')
         orderbook = await self.subscribe(depth, symbol, params)
-        return orderbook.limit(limit)
+        return orderbook.limit()
 
     def handle_delta(self, bookside, delta):
         price = self.safe_float(delta, 0)

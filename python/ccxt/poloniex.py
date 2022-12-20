@@ -20,7 +20,7 @@ from ccxt.base.errors import ExchangeNotAvailable
 from ccxt.base.errors import OnMaintenance
 from ccxt.base.errors import InvalidNonce
 from ccxt.base.errors import RequestTimeout
-from ccxt.base.decimal_to_precision import DECIMAL_PLACES
+from ccxt.base.decimal_to_precision import TICK_SIZE
 from ccxt.base.precise import Precise
 
 
@@ -136,6 +136,7 @@ class poloniex(Exchange):
                         'orders': 20,
                         'orders/{id}': 4,
                         'orders/history': 20,
+                        'orders/killSwitchStatus': 4,
                         'smartorders': 20,
                         'smartorders/{id}': 4,
                         'smartorders/history': 20,
@@ -147,6 +148,8 @@ class poloniex(Exchange):
                         'wallets/address': 20,
                         'wallets/withdraw': 20,
                         'orders': 4,
+                        'orders/killSwitch': 4,
+                        'orders/batch': 20,
                         'smartorders': 4,
                     },
                     'delete': {
@@ -235,7 +238,7 @@ class poloniex(Exchange):
                     'futures': 'future',
                 },
             },
-            'precisionMode': DECIMAL_PLACES,
+            'precisionMode': TICK_SIZE,
             'exceptions': {
                 'exact': {
                     'You may only place orders that reduce your position.': InvalidOrder,
@@ -419,8 +422,8 @@ class poloniex(Exchange):
                 'strike': None,
                 'optionType': None,
                 'precision': {
-                    'amount': self.safe_integer(symbolTradeLimit, 'quantityScale'),
-                    'price': self.safe_integer(symbolTradeLimit, 'priceScale'),
+                    'amount': self.parse_number(self.parse_precision(self.safe_string(symbolTradeLimit, 'quantityScale'))),
+                    'price': self.parse_number(self.parse_precision(self.safe_string(symbolTradeLimit, 'priceScale'))),
                 },
                 'limits': {
                     'amount': {
@@ -469,7 +472,7 @@ class poloniex(Exchange):
         #
         timestamp = self.safe_integer(ticker, 'ts')
         marketId = self.safe_string(ticker, 'symbol')
-        market = self.market(marketId)
+        market = self.safe_market(marketId)
         close = self.safe_string(ticker, 'close')
         relativeChange = self.safe_string(ticker, 'percentChange')
         percentage = Precise.string_mul(relativeChange, '100')

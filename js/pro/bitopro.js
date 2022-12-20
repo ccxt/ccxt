@@ -68,6 +68,7 @@ module.exports = class bitopro extends bitoproRest {
         }
         await this.loadMarkets ();
         const market = this.market (symbol);
+        symbol = market['symbol'];
         const messageHash = 'ORDER_BOOK' + ':' + symbol;
         let endPart = undefined;
         if (limit === undefined) {
@@ -76,7 +77,7 @@ module.exports = class bitopro extends bitoproRest {
             endPart = market['id'] + ':' + limit;
         }
         const orderbook = await this.watchPublic ('order-books', messageHash, endPart);
-        return orderbook.limit (limit);
+        return orderbook.limit ();
     }
 
     handleOrderBook (client, message) {
@@ -129,6 +130,7 @@ module.exports = class bitopro extends bitoproRest {
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
+        symbol = market['symbol'];
         const messageHash = 'TRADE' + ':' + symbol;
         const trades = await this.watchPublic ('trades', messageHash, market['id'], limit);
         if (this.newUpdates) {
@@ -187,6 +189,7 @@ module.exports = class bitopro extends bitoproRest {
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
+        symbol = market['symbol'];
         const messageHash = 'TICKER' + ':' + symbol;
         return await this.watchPublic ('tickers', messageHash, market['id']);
     }

@@ -34,7 +34,7 @@ class bitmart(Exchange, ccxt.async_support.bitmart):
             'options': {
                 'defaultType': 'spot',
                 'watchOrderBook': {
-                    'depth': 'depth5',  # depth5, depth400
+                    'depth': 'depth5',  # depth5, depth20, depth50
                 },
                 'ws': {
                     'inflate': True,
@@ -92,6 +92,8 @@ class bitmart(Exchange, ccxt.async_support.bitmart):
         :param dict params: extra parameters specific to the bitmart api endpoint
         :returns [dict]: a list of `trade structures <https://docs.ccxt.com/en/latest/manual.html?#public-trades>`
         """
+        await self.load_markets()
+        symbol = self.symbol(symbol)
         trades = await self.subscribe('trade', symbol, params)
         if self.newUpdates:
             limit = trades.getLimit(symbol, limit)
@@ -119,6 +121,7 @@ class bitmart(Exchange, ccxt.async_support.bitmart):
             raise ArgumentsRequired(self.id + ' watchOrders requires a symbol argument')
         await self.load_markets()
         market = self.market(symbol)
+        symbol = market['symbol']
         if market['type'] != 'spot':
             raise ArgumentsRequired(self.id + ' watchOrders supports spot markets only')
         channel = 'spot/user/order'
@@ -290,6 +293,17 @@ class bitmart(Exchange, ccxt.async_support.bitmart):
         return message
 
     async def watch_ohlcv(self, symbol, timeframe='1m', since=None, limit=None, params={}):
+        """
+        watches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+        :param str symbol: unified symbol of the market to fetch OHLCV data for
+        :param str timeframe: the length of time each candle represents
+        :param int|None since: timestamp in ms of the earliest candle to fetch
+        :param int|None limit: the maximum amount of candles to fetch
+        :param dict params: extra parameters specific to the bitmart api endpoint
+        :returns [[int]]: A list of candles ordered as timestamp, open, high, low, close, volume
+        """
+        await self.load_markets()
+        symbol = self.symbol(symbol)
         timeframes = self.safe_value(self.options, 'timeframes', {})
         interval = self.safe_string(timeframes, timeframe)
         name = 'kline' + interval
@@ -353,9 +367,9 @@ class bitmart(Exchange, ccxt.async_support.bitmart):
         :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/en/latest/manual.html#order-book-structure>` indexed by market symbols
         """
         options = self.safe_value(self.options, 'watchOrderBook', {})
-        depth = self.safe_string(options, 'depth', 'depth400')
+        depth = self.safe_string(options, 'depth', 'depth50')
         orderbook = await self.subscribe(depth, symbol, params)
-        return orderbook.limit(limit)
+        return orderbook.limit()
 
     def handle_delta(self, bookside, delta):
         price = self.safe_float(delta, 0)
@@ -553,7 +567,8 @@ class bitmart(Exchange, ccxt.async_support.bitmart):
             methods = {
                 'depth': self.handle_order_book,
                 'depth5': self.handle_order_book,
-                'depth400': self.handle_order_book,
+                'depth20': self.handle_order_book,
+                'depth50': self.handle_order_book,
                 'ticker': self.handle_ticker,
                 'trade': self.handle_trade,
                 # ...

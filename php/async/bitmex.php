@@ -47,7 +47,9 @@ class bitmex extends Exchange {
                 'editOrder' => true,
                 'fetchBalance' => true,
                 'fetchClosedOrders' => true,
-                'fetchDepositAddress' => false,
+                'fetchDepositAddress' => true,
+                'fetchDepositAddresses' => false,
+                'fetchDepositAddressesByNetwork' => false,
                 'fetchFundingHistory' => false,
                 'fetchFundingRate' => false,
                 'fetchFundingRateHistory' => true,
@@ -225,6 +227,33 @@ class bitmex extends Exchange {
                 // https://github.com/ccxt/ccxt/issues/4789
                 'api-expires' => 5, // in seconds
                 'fetchOHLCVOpenTimestamp' => true,
+                'networks' => array(
+                    'BTC' => 'btc',
+                    'ETH' => 'eth',
+                    'BSC' => 'bsc',
+                    'BNB' => 'bsc',
+                    'TRON' => 'tron',
+                    'ERC20' => 'eth',
+                    'BEP20' => 'bsc',
+                    'TRC20' => 'tron',
+                    'TRX' => 'tron',
+                    'AVAX' => 'avax',
+                    'NEAR' => 'near',
+                    'XTZ' => 'xtz',
+                    'DOT' => 'dot',
+                    'SOL' => 'sol',
+                ),
+                'networksById' => array(
+                    'btc' => 'BTC',
+                    'eth' => 'ERC20',
+                    'bsc' => 'BSC',
+                    'tron' => 'TRX',
+                    'avax' => 'AVAX',
+                    'near' => 'NEAR',
+                    'xtz' => 'XTZ',
+                    'dot' => 'DOT',
+                    'sol' => 'SOL',
+                ),
             ),
             'commonCurrencies' => array(
                 'USDt' => 'USDT',
@@ -232,6 +261,8 @@ class bitmex extends Exchange {
                 'XBT' => 'BTC',
                 'Gwei' => 'ETH',
                 'GWEI' => 'ETH',
+                'LAMP' => 'SOL',
+                'LAMp' => 'SOL',
             ),
         ));
     }
@@ -400,6 +431,7 @@ class bitmex extends Exchange {
                 $contract = !$index;
                 $initMargin = $this->safe_string($market, 'initMargin', '1');
                 $maxLeverage = $this->parse_number(Precise::string_div('1', $initMargin));
+                $multiplierString = Precise::string_abs($this->safe_string($market, 'multiplier'));
                 $result[] = array(
                     'id' => $id,
                     'symbol' => $symbol,
@@ -423,7 +455,7 @@ class bitmex extends Exchange {
                     'inverse' => $contract ? $inverse : null,
                     'taker' => $this->safe_number($market, 'takerFee'),
                     'maker' => $this->safe_number($market, 'makerFee'),
-                    'contractSize' => $this->safe_number($market, 'multiplier'),
+                    'contractSize' => $this->parse_number($multiplierString),
                     'expiry' => $expiry,
                     'expiryDatetime' => $expiryDatetime,
                     'strike' => $this->safe_number($market, 'optionStrikePrice'),
@@ -2672,6 +2704,45 @@ class bitmex extends Exchange {
                 'enabled' => $enabled,
             );
             return Async\await($this->privatePostPositionIsolate (array_merge($request, $params)));
+        }) ();
+    }
+
+    public function fetch_deposit_address($code, $params = array ()) {
+        return Async\async(function () use ($code, $params) {
+            /**
+             * fetch the deposit address for a $currency associated with this account
+             * @see https://www.bitmex.com/api/explorer/#!/User/User_getDepositAddress
+             * @param {string} $code unified $currency $code
+             * @param {array} $params extra parameters specific to the bitmex api endpoint
+             * @param {string} $params->network deposit chain, can view all chains via $this->publicGetWalletAssets, default is eth, unless the $currency has a default chain within $this->options['networks']
+             * @return {array} an {@link https://docs.ccxt.com/en/latest/manual.html#address-structure address structure}
+             */
+            Async\await($this->load_markets());
+            $networkCode = $this->safe_string_upper($params, 'network');
+            if ($networkCode === null) {
+                throw new ArgumentsRequired($this->id . ' fetchDepositAddress requires $params["network"]');
+            }
+            $currency = $this->currency($code);
+            $currencyId = $currency['id'];
+            $networkId = $this->network_code_to_id($networkCode, $currency['code']);
+            $idLength = count($currencyId);
+            $currencyId = strtolower(mb_substr($currencyId, 0, $idLength - 1 - 0) . mb_substr($currencyId, $idLength - 1, $idLength - $idLength - 1));  // make the last letter lowercase
+            $params = $this->omit($params, 'network');
+            $request = array(
+                'currency' => $currencyId,
+                'network' => $networkId,
+            );
+            $response = Async\await($this->privateGetUserDepositAddress (array_merge($request, $params)));
+            //
+            //    '"bc1qmex3puyrzn2gduqcnlu70c2uscpyaa9nm2l2j9le2lt2wkgmw33sy7ndjg"'
+            //
+            return array(
+                'currency' => $code,
+                'address' => str_replace('"', '', $response->replace ('"', '')),  // Done twice because some languages only replace the first instance
+                'tag' => null,
+                'network' => strtoupper($this->network_id_to_code($networkId)),
+                'info' => $response,
+            );
         }) ();
     }
 

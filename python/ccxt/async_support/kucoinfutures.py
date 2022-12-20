@@ -59,6 +59,8 @@ class kucoinfutures(kucoin):
                 'fetchCurrencies': False,
                 'fetchDepositAddress': True,
                 'fetchDeposits': True,
+                'fetchDepositWithdrawFee': False,
+                'fetchDepositWithdrawFees': False,
                 'fetchFundingHistory': True,
                 'fetchFundingRate': True,
                 'fetchFundingRateHistory': False,
@@ -83,7 +85,7 @@ class kucoinfutures(kucoin):
                 'fetchTickers': False,
                 'fetchTime': True,
                 'fetchTrades': True,
-                'fetchTransactionFee': True,
+                'fetchTransactionFee': False,
                 'fetchWithdrawals': True,
                 'setMarginMode': False,
                 'transfer': True,
@@ -1872,12 +1874,21 @@ class kucoinfutures(kucoin):
 
     async def fetch_transaction_fee(self, code, params={}):
         """
-        fetch the fee for a transaction
+        *DEPRECATED* please use fetchDepositWithdrawFee instead
         :param str code: unified currency code
         :param dict params: extra parameters specific to the kucoinfutures api endpoint
         :returns dict: a `fee structure <https://docs.ccxt.com/en/latest/manual.html#fee-structure>`
         """
-        raise BadRequest(self.id + ' fetchTransactionFee() is not supported yet')
+        raise BadRequest(self.id + ' fetchTransactionFee() is not supported')
+
+    async def fetch_deposit_withdraw_fee(self, code, params={}):
+        """
+        Not supported
+        :param str code: unified currency code
+        :param dict params: extra parameters specific to the kucoinfutures api endpoint
+        :returns dict: a `fee structure <https://docs.ccxt.com/en/latest/manual.html#fee-structure>`
+        """
+        raise BadRequest(self.id + ' fetchDepositWithdrawFee() is not supported')
 
     async def fetch_ledger(self, code=None, since=None, limit=None, params={}):
         raise BadRequest(self.id + ' fetchLedger() is not supported yet')

@@ -14,6 +14,7 @@ from ccxt.base.errors import InsufficientFunds
 from ccxt.base.errors import InvalidAddress
 from ccxt.base.errors import InvalidOrder
 from ccxt.base.errors import NotSupported
+from ccxt.base.errors import InvalidNonce
 from ccxt.base.decimal_to_precision import TICK_SIZE
 from ccxt.base.precise import Precise
 
@@ -62,6 +63,8 @@ class mexc3(Exchange):
                 'fetchDepositAddresses': None,
                 'fetchDepositAddressesByNetwork': True,
                 'fetchDeposits': True,
+                'fetchDepositWithdrawFee': 'emulated',
+                'fetchDepositWithdrawFees': True,
                 'fetchFundingHistory': True,
                 'fetchFundingRate': True,
                 'fetchFundingRateHistory': True,
@@ -97,8 +100,8 @@ class mexc3(Exchange):
                 'fetchTradingFee': None,
                 'fetchTradingFees': True,
                 'fetchTradingLimits': None,
-                'fetchTransactionFee': None,
-                'fetchTransactionFees': None,
+                'fetchTransactionFee': 'emulated',
+                'fetchTransactionFees': True,
                 'fetchTransactions': None,
                 'fetchTransfer': True,
                 'fetchTransfers': True,
@@ -203,6 +206,7 @@ class mexc3(Exchange):
                             'batchOrders': 1,
                             'capital/withdraw/apply': 1,
                             'capital/transfer': 1,
+                            'capital/deposit/address': 1,
                             'capital/sub-account/universalTransfer': 1,
                             'margin/tradeMode': 1,
                             'margin/order': 1,
@@ -412,6 +416,9 @@ class mexc3(Exchange):
                     'BEP20': 'BEP20(BSC)',
                     'BSC': 'BEP20(BSC)',
                 },
+                'networksById': {
+                    'BEP20(BSC)': 'BSC',
+                },
                 'networkAliases': {
                     'BSC(BEP20)': 'BSC',
                 },
@@ -430,12 +437,13 @@ class mexc3(Exchange):
                 'FLUX1': 'FLUX',  # switched places
                 'FLUX': 'FLUX1',  # switched places
                 'FREE': 'FreeRossDAO',  # conflict with FREE Coin
-                'GMT': 'GMT Token',
+                'GMT': 'GMT Token',  # Conflict with GMT(STEPN)
+                'STEPN': 'GMT',  # Conflict with GMT Token
                 'HERO': 'Step Hero',  # conflict with Metahero
                 'MIMO': 'Mimosa',
                 'PROS': 'Pros.Finance',  # conflict with Prosper
                 'SIN': 'Sin City Token',
-                'STEPN': 'GMT',
+                'SOUL': 'Soul Swap',
             },
             'exceptions': {
                 'exact': {
@@ -447,7 +455,8 @@ class mexc3(Exchange):
                     '2009': InvalidOrder,  # {"success":false,"code":2009,"message":"Position is not exists or closed."}
                     '2011': BadRequest,
                     '30004': InsufficientFunds,
-                    '33333': 'BadRequest',  # {"msg":"Not support transfer","code":33333}
+                    '33333': BadRequest,  # {"msg":"Not support transfer","code":33333}
+                    '44444': BadRequest,
                     '1002': InvalidOrder,
                     '30019': BadRequest,
                     '30005': InvalidOrder,
@@ -459,6 +468,7 @@ class mexc3(Exchange):
                     '88009': ExchangeError,  # v3 {"msg":"Loan record does not exist","code":88009}
                     '88013': InvalidOrder,  # {"msg":"最小交易额不能小于：5USDT","code":88013}
                     '88015': InsufficientFunds,  # {"msg":"持仓不足","code":88015}
+                    '700003': InvalidNonce,  # {"code":700003,"msg":"Timestamp for self request is outside of the recvWindow."}
                 },
                 'broad': {
                     'Order quantity error, please try to modify.': BadRequest,  # code:2011
@@ -2725,51 +2735,242 @@ class mexc3(Exchange):
             }
         return result
 
-    def fetch_balance(self, params={}):
-        """
-        query for balance and get the amount of funds available for trading or funds locked in orders
-        :param dict params: extra parameters specific to the mexc3 api endpoint
-        :returns dict: a `balance structure <https://docs.ccxt.com/en/latest/manual.html?#balance-structure>`
-        """
-        self.load_markets()
-        marketType, query = self.handle_market_type_and_params('fetchBalance', None, params)
-        result = {}
-        response = None
-        if marketType == 'spot':
-            response = self.fetch_account_helper('spot', query)
-            balances = self.safe_value(response, 'balances', [])
-            for i in range(0, len(balances)):
-                entry = balances[i]
+    def parse_balance(self, response, marketType):
+        #
+        # spot
+        #
+        #     {
+        #         "asset": "USDT",
+        #         "free": "0.000000000674",
+        #         "locked": "0"
+        #     }
+        #
+        # swap
+        #
+        #     {
+        #         "currency": "BSV",
+        #         "positionMargin": 0,
+        #         "availableBalance": 0,
+        #         "cashBalance": 0,
+        #         "frozenBalance": 0,
+        #         "equity": 0,
+        #         "unrealized": 0,
+        #         "bonus": 0
+        #     }
+        #
+        # margin
+        #
+        #     {
+        #         "baseAsset": {
+        #             "asset": "BTC",
+        #             "borrowEnabled": True,
+        #             "borrowed": "0",
+        #             "free": "0",
+        #             "interest": "0",
+        #             "locked": "0",
+        #             "netAsset": "0",
+        #             "netAssetOfBtc": "0",
+        #             "repayEnabled": True,
+        #             "totalAsset": "0"
+        #         }
+        #         "quoteAsset": {
+        #             "asset": "USDT",
+        #             "borrowEnabled": True,
+        #             "borrowed": "0",
+        #             "free": "10",
+        #             "interest": "0",
+        #             "locked": "0",
+        #             "netAsset": "10",
+        #             "netAssetOfBtc": "0",
+        #             "repayEnabled": True,
+        #             "totalAsset": "10"
+        #         }
+        #         "symbol": "BTCUSDT",
+        #         "isolatedCreated": True,
+        #         "enabled": True,
+        #         "marginLevel": "999",
+        #         "marginRatio": "9",
+        #         "indexPrice": "16741.137068965517241379",
+        #         "liquidatePrice": "--",
+        #         "liquidateRate": "--",
+        #         "tradeEnabled": True
+        #     }
+        #
+        wallet = None
+        if marketType == 'margin':
+            wallet = self.safe_value(response, 'assets', [])
+        elif marketType == 'swap':
+            wallet = self.safe_value(response, 'data', [])
+        else:
+            wallet = self.safe_value(response, 'balances', [])
+        result = {'info': response}
+        if marketType == 'margin':
+            for i in range(0, len(wallet)):
+                entry = wallet[i]
+                marketId = self.safe_string(entry, 'symbol')
+                symbol = self.safe_symbol(marketId, None)
+                base = self.safe_value(entry, 'baseAsset', {})
+                quote = self.safe_value(entry, 'quoteAsset', {})
+                baseCode = self.safe_currency_code(self.safe_string(base, 'asset'))
+                quoteCode = self.safe_currency_code(self.safe_string(quote, 'asset'))
+                subResult = {}
+                subResult[baseCode] = self.parse_balance_helper(base)
+                subResult[quoteCode] = self.parse_balance_helper(quote)
+                result[symbol] = self.safe_balance(subResult)
+            return result
+        elif marketType == 'swap':
+            for i in range(0, len(wallet)):
+                entry = wallet[i]
+                currencyId = self.safe_string(entry, 'currency')
+                code = self.safe_currency_code(currencyId)
+                account = self.account()
+                account['free'] = self.safe_string(entry, 'availableBalance')
+                account['used'] = self.safe_string(entry, 'frozenBalance')
+                result[code] = account
+            return self.safe_balance(result)
+        else:
+            for i in range(0, len(wallet)):
+                entry = wallet[i]
                 currencyId = self.safe_string(entry, 'asset')
                 code = self.safe_currency_code(currencyId)
                 account = self.account()
                 account['free'] = self.safe_string(entry, 'free')
                 account['used'] = self.safe_string(entry, 'locked')
                 result[code] = account
-        elif marketType == 'swap':
-            response = self.contractPrivateGetAccountAssets(query)
-            #
-            #     {
-            #         "success":true,
-            #         "code":0,
-            #         "data":[
-            #             {"currency":"BSV","positionMargin":0,"availableBalance":0,"cashBalance":0,"frozenBalance":0,"equity":0,"unrealized":0,"bonus":0},
-            #             {"currency":"BCH","positionMargin":0,"availableBalance":0,"cashBalance":0,"frozenBalance":0,"equity":0,"unrealized":0,"bonus":0},
-            #             {"currency":"CRV","positionMargin":0,"availableBalance":0,"cashBalance":0,"frozenBalance":0,"equity":0,"unrealized":0,"bonus":0},
-            #         ]
-            #     }
-            #
-            data = self.safe_value(response, 'data', [])
-            for i in range(0, len(data)):
-                balance = data[i]
-                currencyId = self.safe_string(balance, 'currency')
-                code = self.safe_currency_code(currencyId)
-                account = self.account()
-                account['free'] = self.safe_string(balance, 'availableBalance')
-                account['used'] = self.safe_string(balance, 'frozenBalance')
-                result[code] = account
-        result['info'] = response
-        return self.safe_balance(result)
+            return self.safe_balance(result)
+
+    def parse_balance_helper(self, entry):
+        account = self.account()
+        account['used'] = self.safe_string(entry, 'locked')
+        account['free'] = self.safe_string(entry, 'free')
+        account['total'] = self.safe_string(entry, 'totalAsset')
+        debt = self.safe_string(entry, 'borrowed')
+        interest = self.safe_string(entry, 'interest')
+        account['debt'] = Precise.string_add(debt, interest)
+        return account
+
+    def fetch_balance(self, params={}):
+        """
+        query for balance and get the amount of funds available for trading or funds locked in orders
+        see https://mxcdevelop.github.io/apidocs/spot_v3_en/#account-information
+        see https://mxcdevelop.github.io/apidocs/contract_v1_en/#get-all-informations-of-user-39-s-asset
+        see https://mxcdevelop.github.io/apidocs/spot_v3_en/#isolated-account
+        :param dict params: extra parameters specific to the mexc3 api endpoint
+        :param str|None params['symbols']:  # required for margin, market id's separated by commas
+        :returns dict: a `balance structure <https://docs.ccxt.com/en/latest/manual.html?#balance-structure>`
+        """
+        self.load_markets()
+        marketType = None
+        request = {}
+        marketType, params = self.handle_market_type_and_params('fetchBalance', None, params)
+        method = self.get_supported_mapping(marketType, {
+            'spot': 'spotPrivateGetAccount',
+            'swap': 'contractPrivateGetAccountAssets',
+            'margin': 'spotPrivateGetMarginIsolatedAccount',
+        })
+        marginMode = self.safe_string(params, 'marginMode')
+        isMargin = self.safe_value(params, 'margin', False)
+        if (marginMode is not None) or (isMargin) or (marketType == 'margin'):
+            parsedSymbols = None
+            symbol = self.safe_string(params, 'symbol')
+            if symbol is None:
+                symbols = self.safe_value(params, 'symbols')
+                if symbols is not None:
+                    parsedSymbols = ','.join(self.market_ids(symbols))
+            else:
+                market = self.market(symbol)
+                parsedSymbols = market['id']
+            self.check_required_argument('fetchBalance', parsedSymbols, 'symbol or symbols')
+            method = 'spotPrivateGetMarginIsolatedAccount'
+            marketType = 'margin'
+            request['symbols'] = parsedSymbols
+        params = self.omit(params, ['margin', 'marginMode', 'symbol', 'symbols'])
+        response = getattr(self, method)(self.extend(request, params))
+        #
+        # spot
+        #
+        #     {
+        #         "makerCommission": 0,
+        #         "takerCommission": 20,
+        #         "buyerCommission": 0,
+        #         "sellerCommission": 0,
+        #         "canTrade": True,
+        #         "canWithdraw": True,
+        #         "canDeposit": True,
+        #         "updateTime": null,
+        #         "accountType": "SPOT",
+        #         "balances": [
+        #             {
+        #                 "asset": "USDT",
+        #                 "free": "0.000000000674",
+        #                 "locked": "0"
+        #             },
+        #         ],
+        #         "permissions": ["SPOT"]
+        #     }
+        #
+        # swap
+        #
+        #     {
+        #         "success": True,
+        #         "code": 0,
+        #         "data": [
+        #             {
+        #                 "currency": "BSV",
+        #                 "positionMargin": 0,
+        #                 "availableBalance": 0,
+        #                 "cashBalance": 0,
+        #                 "frozenBalance": 0,
+        #                 "equity": 0,
+        #                 "unrealized": 0,
+        #                 "bonus": 0
+        #             },
+        #         ]
+        #     }
+        #
+        # margin
+        #
+        #     {
+        #         "assets": [
+        #             {
+        #                 "baseAsset": {
+        #                     "asset": "BTC",
+        #                     "borrowEnabled": True,
+        #                     "borrowed": "0",
+        #                     "free": "0",
+        #                     "interest": "0",
+        #                     "locked": "0",
+        #                     "netAsset": "0",
+        #                     "netAssetOfBtc": "0",
+        #                     "repayEnabled": True,
+        #                     "totalAsset": "0"
+        #                 },
+        #                 "quoteAsset": {
+        #                     "asset": "USDT",
+        #                     "borrowEnabled": True,
+        #                     "borrowed": "0",
+        #                     "free": "10",
+        #                     "interest": "0",
+        #                     "locked": "0",
+        #                     "netAsset": "10",
+        #                     "netAssetOfBtc": "0",
+        #                     "repayEnabled": True,
+        #                     "totalAsset": "10"
+        #                 },
+        #                 "symbol": "BTCUSDT",
+        #                 "isolatedCreated": True,
+        #                 "enabled": True,
+        #                 "marginLevel": "999",
+        #                 "marginRatio": "9",
+        #                 "indexPrice": "16741.137068965517241379",
+        #                 "liquidatePrice": "--",
+        #                 "liquidateRate": "--",
+        #                 "tradeEnabled": True
+        #             }
+        #         ]
+        #     }
+        #
+        return self.parse_balance(response, marketType)
 
     def fetch_my_trades(self, symbol=None, since=None, limit=None, params={}):
         """
@@ -3359,7 +3560,7 @@ class mexc3(Exchange):
             networkId = self.safe_string(depositAddress, 'network')
             network = self.safe_network(networkId)
             address = self.safe_string(depositAddress, 'address', None)
-            tag = self.safe_string(depositAddress, 'tag', None)
+            tag = self.safe_string_2(depositAddress, 'tag', 'memo', None)
             result.append({
                 'currency': currency['id'],
                 'network': network,
@@ -3563,7 +3764,7 @@ class mexc3(Exchange):
             'address': address,
             'addressTo': address,
             'addressFrom': None,
-            'tag': None,
+            'tag': self.safe_string(transaction, 'memo'),
             'tagTo': None,
             'tagFrom': None,
             'type': type,
@@ -3948,13 +4149,13 @@ class mexc3(Exchange):
         self.check_address(address)
         self.load_markets()
         currency = self.currency(code)
-        if tag is not None:
-            address += ':' + tag
         request = {
             'coin': currency['id'],
             'address': address,
             'amount': amount,
         }
+        if tag is not None:
+            request['memo'] = tag
         if network is not None:
             request['network'] = network
             params = self.omit(params, 'network')
@@ -4063,6 +4264,185 @@ class mexc3(Exchange):
             'symbol': symbol,
         })
 
+    def fetch_transaction_fees(self, codes=None, params={}):
+        """
+        fetch deposit and withdrawal fees
+        see https://mxcdevelop.github.io/apidocs/spot_v3_en/#query-the-currency-information
+        :param [str]|None codes: returns fees for all currencies if None
+        :param dict params: extra parameters specific to the mexc3 api endpoint
+        :returns [dict]: a list of `fee structures <https://docs.ccxt.com/en/latest/manual.html#fee-structure>`
+        """
+        self.load_markets()
+        response = self.spotPrivateGetCapitalConfigGetall(params)
+        #
+        #    [
+        #       {
+        #           coin: 'AGLD',
+        #           name: 'Adventure Gold',
+        #           networkList: [
+        #               {
+        #                   coin: 'AGLD',
+        #                   depositDesc: null,
+        #                   depositEnable: True,
+        #                   minConfirm: '0',
+        #                   name: 'Adventure Gold',
+        #                   network: 'ERC20',
+        #                   withdrawEnable: True,
+        #                   withdrawFee: '10.000000000000000000',
+        #                   withdrawIntegerMultiple: null,
+        #                   withdrawMax: '1200000.000000000000000000',
+        #                   withdrawMin: '20.000000000000000000',
+        #                   sameAddress: False,
+        #                   contract: '0x32353a6c91143bfd6c7d363b546e62a9a2489a20',
+        #                   withdrawTips: null,
+        #                   depositTips: null
+        #               }
+        #               ...
+        #           ]
+        #       },
+        #       ...
+        #    ]
+        #
+        return self.parse_transaction_fees(response, codes)
+
+    def parse_transaction_fees(self, response, codes=None):
+        withdrawFees = {}
+        for i in range(0, len(response)):
+            entry = response[i]
+            currencyId = self.safe_string(entry, 'coin')
+            currency = self.safe_currency(currencyId)
+            code = self.safe_string(currency, 'code')
+            if (codes is None) or (self.in_array(code, codes)):
+                withdrawFees[code] = self.parse_transaction_fee(entry, currency)
+        return {
+            'withdraw': withdrawFees,
+            'deposit': {},
+            'info': response,
+        }
+
+    def parse_transaction_fee(self, transaction, currency=None):
+        #
+        #    {
+        #        coin: 'AGLD',
+        #        name: 'Adventure Gold',
+        #        networkList: [
+        #            {
+        #                coin: 'AGLD',
+        #                depositDesc: null,
+        #                depositEnable: True,
+        #                minConfirm: '0',
+        #                name: 'Adventure Gold',
+        #                network: 'ERC20',
+        #                withdrawEnable: True,
+        #                withdrawFee: '10.000000000000000000',
+        #                withdrawIntegerMultiple: null,
+        #                withdrawMax: '1200000.000000000000000000',
+        #                withdrawMin: '20.000000000000000000',
+        #                sameAddress: False,
+        #                contract: '0x32353a6c91143bfd6c7d363b546e62a9a2489a20',
+        #                withdrawTips: null,
+        #                depositTips: null
+        #            }
+        #            ...
+        #        ]
+        #    }
+        #
+        networkList = self.safe_value(transaction, 'networkList', [])
+        result = {}
+        for j in range(0, len(networkList)):
+            networkEntry = networkList[j]
+            networkId = self.safe_string(networkEntry, 'network')
+            networkCode = self.safe_string(self.options['networks'], networkId, networkId)
+            fee = self.safe_number(networkEntry, 'withdrawFee')
+            result[networkCode] = fee
+        return result
+
+    def fetch_deposit_withdraw_fees(self, codes=None, params={}):
+        """
+        fetch deposit and withdrawal fees
+        see https://mxcdevelop.github.io/apidocs/spot_v3_en/#query-the-currency-information
+        :param [str]|None codes: returns fees for all currencies if None
+        :param dict params: extra parameters specific to the mexc3 api endpoint
+        :returns [dict]: a list of `fee structures <https://docs.ccxt.com/en/latest/manual.html#fee-structure>`
+        """
+        self.load_markets()
+        response = self.spotPrivateGetCapitalConfigGetall(params)
+        #
+        #    [
+        #       {
+        #           coin: 'AGLD',
+        #           name: 'Adventure Gold',
+        #           networkList: [
+        #               {
+        #                   coin: 'AGLD',
+        #                   depositDesc: null,
+        #                   depositEnable: True,
+        #                   minConfirm: '0',
+        #                   name: 'Adventure Gold',
+        #                   network: 'ERC20',
+        #                   withdrawEnable: True,
+        #                   withdrawFee: '10.000000000000000000',
+        #                   withdrawIntegerMultiple: null,
+        #                   withdrawMax: '1200000.000000000000000000',
+        #                   withdrawMin: '20.000000000000000000',
+        #                   sameAddress: False,
+        #                   contract: '0x32353a6c91143bfd6c7d363b546e62a9a2489a20',
+        #                   withdrawTips: null,
+        #                   depositTips: null
+        #               }
+        #               ...
+        #           ]
+        #       },
+        #       ...
+        #    ]
+        #
+        return self.parse_deposit_withdraw_fees(response, codes, 'coin')
+
+    def parse_deposit_withdraw_fee(self, fee, currency=None):
+        #
+        #    {
+        #        coin: 'AGLD',
+        #        name: 'Adventure Gold',
+        #        networkList: [
+        #            {
+        #                coin: 'AGLD',
+        #                depositDesc: null,
+        #                depositEnable: True,
+        #                minConfirm: '0',
+        #                name: 'Adventure Gold',
+        #                network: 'ERC20',
+        #                withdrawEnable: True,
+        #                withdrawFee: '10.000000000000000000',
+        #                withdrawIntegerMultiple: null,
+        #                withdrawMax: '1200000.000000000000000000',
+        #                withdrawMin: '20.000000000000000000',
+        #                sameAddress: False,
+        #                contract: '0x32353a6c91143bfd6c7d363b546e62a9a2489a20',
+        #                withdrawTips: null,
+        #                depositTips: null
+        #            }
+        #            ...
+        #        ]
+        #    }
+        #
+        networkList = self.safe_value(fee, 'networkList', [])
+        result = self.deposit_withdraw_fee(fee)
+        for j in range(0, len(networkList)):
+            networkEntry = networkList[j]
+            networkId = self.safe_string(networkEntry, 'network')
+            networkCode = self.network_id_to_code(networkId, self.safe_string(currency, 'code'))
+            result['networks'][networkCode] = {
+                'withdraw': {
+                    'fee': self.safe_number(networkEntry, 'withdrawFee'),
+                    'percentage': None,
+                },
+                'deposit': {
+                    'fee': None,
+                    'percentage': None,
+                },
+            }
+        return self.assign_default_deposit_withdraw_fees(result)
+
     def parse_margin_loan(self, info, currency=None):
         #
         #     {
@@ -4079,7 +4459,7 @@ class mexc3(Exchange):
             'info': info,
         }
 
-    def handle_margin_mode_and_params(self, methodName, params={}):
+    def handle_margin_mode_and_params(self, methodName, params={}, defaultValue=None):
         """
          * @ignore
         marginMode specified by params["marginMode"], self.options["marginMode"], self.options["defaultMarginMode"], params["margin"] = True or self.options["defaultType"] = 'margin'
@@ -4090,7 +4470,7 @@ class mexc3(Exchange):
         defaultType = self.safe_string(self.options, 'defaultType')
         isMargin = self.safe_value(params, 'margin', False)
         marginMode = None
-        marginMode, params = super(mexc3, self).handle_margin_mode_and_params(methodName, params)
+        marginMode, params = super(mexc3, self).handle_margin_mode_and_params(methodName, params, defaultValue)
         if (defaultType == 'margin') or (isMargin is True):
             marginMode = 'isolated'
         return [marginMode, params]

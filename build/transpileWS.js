@@ -18,6 +18,8 @@ const fs = require ('fs')
     , Exchange = require ('../js/pro/base/Exchange.js')
     , tsFilename = './ccxt.d.ts'
 
+    const wsExchangeIds = require ('../exchanges.json').ws
+
 // ============================================================================
 
 class CCXTProTranspiler extends Transpiler {
@@ -220,8 +222,8 @@ class CCXTProTranspiler extends Transpiler {
         log.bright.cyan ('Exporting WS TypeScript class names →', file.yellow)
         
         const commonImports = [
-            '        export const exchanges: string[];',
-            '        class Exchange  extends ExchangePro {};'
+            '        export const exchanges: string[]',
+            '        class Exchange  extends ExchangePro {}'
         ]
 
         const replacements = [
@@ -229,7 +231,7 @@ class CCXTProTranspiler extends Transpiler {
                 file:file,
                 regex: /\n\n\s+export\snamespace\spro\s{\n\s+[\s\S]+}/,
                 replacement: "\n\n    export namespace pro {\n" + commonImports.join('\n') + '\n' + Object.keys (classes).map (className => {
-                    return '        class ' + className + ' extends Exchange {};'
+                    return '        class ' + className + ' extends Exchange {}'
                 }).join ("\n") + "\n    }\n}"
             }
         ]
@@ -242,14 +244,15 @@ class CCXTProTranspiler extends Transpiler {
     
     // -----------------------------------------------------------------------
     
-    exportTypeScriptDeclarations (file, classes) {
+    async exportTypeScriptDeclarations (file, jsFolder) {
 
+        const classes = await this.getTSClassDeclarationsAllFiles (wsExchangeIds, jsFolder);
         this.exportTypeScriptClassNames (file, classes)
     }
 
     // -----------------------------------------------------------------------
     
-    transpileEverything (force = false, child = false) {
+    async transpileEverything (force = false, child = false) {
 
         // default pattern is '.js'
         // const [ /* node */, /* script */, pattern ] = process.argv.filter (x => !x.startsWith ('--'))
@@ -257,13 +260,14 @@ class CCXTProTranspiler extends Transpiler {
             // , python2Folder = './python/ccxtpro/', // CCXT Pro does not support Python 2
             , python3Folder = './python/ccxt/pro/'
             , phpAsyncFolder     = './php/pro/'
+            , jsFolder = './js/pro/'
             , options = { /* python2Folder, */ python3Folder, phpAsyncFolder, exchanges }
 
         // createFolderRecursively (python2Folder)
         createFolderRecursively (python3Folder)
         createFolderRecursively (phpAsyncFolder)
 
-        const classes = this.transpileDerivedExchangeFiles ('./js/pro/', options, '.js', force, child || exchanges.length)
+        const classes = this.transpileDerivedExchangeFiles (jsFolder, options, '.js', force, child || exchanges.length)
 
         if (child) {
             return
@@ -280,7 +284,7 @@ class CCXTProTranspiler extends Transpiler {
 
         // HINT: if we're going to support specific class definitions
         // this process won't work anymore as it will override the definitions
-        this.exportTypeScriptDeclarations (tsFilename, classes)
+        await this.exportTypeScriptDeclarations (tsFilename, jsFolder)
 
         //*/
 
@@ -309,10 +313,11 @@ if (require.main === module) {
         log.bright.green ({ force })
     }
     if (multiprocess) {
-        const exchanges = require ('../exchanges.json').ws
-        parallelizeTranspiling (exchanges)
+        parallelizeTranspiling (wsExchangeIds)
     } else {
-        transpiler.transpileEverything (force)
+        (async () => {
+            await transpiler.transpileEverything (force, child)
+        })()
     }
 
 } else {

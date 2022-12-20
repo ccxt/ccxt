@@ -540,6 +540,7 @@ module.exports = class bitmex extends bitmexRest {
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
+        symbol = market['symbol'];
         const table = 'trade';
         const messageHash = table + ':' + market['id'];
         const url = this.urls['api']['ws'];
@@ -621,6 +622,7 @@ module.exports = class bitmex extends bitmexRest {
         const subscriptionHash = name;
         let messageHash = name;
         if (symbol !== undefined) {
+            symbol = this.symbol (symbol);
             messageHash += ':' + symbol;
         }
         const url = this.urls['api']['ws'];
@@ -837,6 +839,7 @@ module.exports = class bitmex extends bitmexRest {
         const subscriptionHash = name;
         let messageHash = name;
         if (symbol !== undefined) {
+            symbol = this.symbol (symbol);
             messageHash += ':' + symbol;
         }
         const url = this.urls['api']['ws'];
@@ -969,12 +972,24 @@ module.exports = class bitmex extends bitmexRest {
             ],
         };
         const orderbook = await this.watch (url, messageHash, this.deepExtend (request, params), messageHash);
-        return orderbook.limit (limit);
+        return orderbook.limit ();
     }
 
     async watchOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
+        /**
+         * @method
+         * @name bitmex#watchOHLCV
+         * @description watches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+         * @param {string} symbol unified symbol of the market to fetch OHLCV data for
+         * @param {string} timeframe the length of time each candle represents
+         * @param {int|undefined} since timestamp in ms of the earliest candle to fetch
+         * @param {int|undefined} limit the maximum amount of candles to fetch
+         * @param {object} params extra parameters specific to the bitmex api endpoint
+         * @returns {[[int]]} A list of candles ordered as timestamp, open, high, low, close, volume
+         */
         await this.loadMarkets ();
         const market = this.market (symbol);
+        symbol = market['symbol'];
         const table = 'tradeBin' + this.timeframes[timeframe];
         const messageHash = table + ':' + market['id'];
         const url = this.urls['api']['ws'];

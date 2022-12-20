@@ -143,6 +143,7 @@ class idex(Exchange, ccxt.async_support.idex):
         """
         await self.load_markets()
         market = self.market(symbol)
+        symbol = market['symbol']
         name = 'trades'
         subscribeObject = {
             'name': name,
@@ -222,8 +223,18 @@ class idex(Exchange, ccxt.async_support.idex):
         }
 
     async def watch_ohlcv(self, symbol, timeframe='1m', since=None, limit=None, params={}):
+        """
+        watches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+        :param str symbol: unified symbol of the market to fetch OHLCV data for
+        :param str timeframe: the length of time each candle represents
+        :param int|None since: timestamp in ms of the earliest candle to fetch
+        :param int|None limit: the maximum amount of candles to fetch
+        :param dict params: extra parameters specific to the idex api endpoint
+        :returns [[int]]: A list of candles ordered as timestamp, open, high, low, close, volume
+        """
         await self.load_markets()
         market = self.market(symbol)
+        symbol = market['symbol']
         name = 'candles'
         interval = self.timeframes[timeframe]
         subscribeObject = {
@@ -390,7 +401,7 @@ class idex(Exchange, ccxt.async_support.idex):
             subscription['limit'] = limit
         # 1. Connect to the WebSocket API endpoint and subscribe to the L2 Order Book for the target market.
         orderbook = await self.subscribe(subscribeObject, messageHash, subscription)
-        return orderbook.limit(limit)
+        return orderbook.limit()
 
     def handle_order_book(self, client, message):
         data = self.safe_value(message, 'data')
@@ -474,6 +485,7 @@ class idex(Exchange, ccxt.async_support.idex):
         }
         messageHash = name
         if symbol is not None:
+            symbol = self.symbol(symbol)
             marketId = self.market_id(symbol)
             subscribeObject['markets'] = [marketId]
             messageHash = name + ':' + marketId

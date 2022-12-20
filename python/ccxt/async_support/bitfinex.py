@@ -52,6 +52,8 @@ class bitfinex(Exchange):
                 'fetchClosedOrders': True,
                 'fetchDepositAddress': True,
                 'fetchDeposits': None,
+                'fetchDepositWithdrawFee': 'emulated',
+                'fetchDepositWithdrawFees': True,
                 'fetchIndexOHLCV': False,
                 'fetchLeverageTiers': False,
                 'fetchMarginMode': False,
@@ -406,9 +408,9 @@ class bitfinex(Exchange):
 
     async def fetch_transaction_fees(self, codes=None, params={}):
         """
-        fetch transaction fees
+        *DEPRECATED* please use fetchDepositWithdrawFees instead
         see https://docs.bitfinex.com/v1/reference/rest-auth-fees
-        :param [str]|None codes: not used by bitfinex2 fetchTransactionFees()
+        :param [str]|None codes: list of unified currency codes
         :param dict params: extra parameters specific to the bitfinex api endpoint
         :returns [dict]: a list of `fees structures <https://docs.ccxt.com/en/latest/manual.html#fee-structure>`
         """
@@ -427,7 +429,7 @@ class bitfinex(Exchange):
         for i in range(0, len(ids)):
             id = ids[i]
             code = self.safe_currency_code(id)
-            if codes is not None and not self.in_array(code, codes):
+            if (codes is not None) and not self.in_array(code, codes):
                 continue
             result[code] = {
                 'withdraw': self.safe_number(fees, id),
@@ -435,6 +437,44 @@ class bitfinex(Exchange):
                 'info': self.safe_number(fees, id),
             }
         return result
+
+    async def fetch_deposit_withdraw_fees(self, codes=None, params={}):
+        """
+        fetch deposit and withdraw fees
+        see https://docs.bitfinex.com/v1/reference/rest-auth-fees
+        :param [str]|None codes: list of unified currency codes
+        :param dict params: extra parameters specific to the bitfinex api endpoint
+        :returns [dict]: a list of `fees structures <https://docs.ccxt.com/en/latest/manual.html#fee-structure>`
+        """
+        await self.load_markets()
+        response = await self.privatePostAccountFees(params)
+        #
+        #    {
+        #        'withdraw': {
+        #            'BTC': '0.0004',
+        #            ...
+        #        }
+        #    }
+        #
+        withdraw = self.safe_value(response, 'withdraw')
+        return self.parse_deposit_withdraw_fees(withdraw, codes)
+
+    def parse_deposit_withdraw_fee(self, fee, currency=None):
+        #
+        #    '0.0004'
+        #
+        return {
+            'withdraw': {
+                'fee': self.parse_number(fee),
+                'percentage': None,
+            },
+            'deposit': {
+                'fee': None,
+                'percentage': None,
+            },
+            'networks': {},
+            'info': fee,
+        }
 
     async def fetch_trading_fees(self, params={}):
         """
@@ -1352,33 +1392,30 @@ class bitfinex(Exchange):
         #     }
         #
         timestamp = self.safe_timestamp(transaction, 'timestamp_created')
-        updated = self.safe_timestamp(transaction, 'timestamp')
         currencyId = self.safe_string(transaction, 'currency')
         code = self.safe_currency_code(currencyId, currency)
-        type = self.safe_string_lower(transaction, 'type')  # DEPOSIT or WITHDRAWAL
-        status = self.parse_transaction_status(self.safe_string(transaction, 'status'))
         feeCost = self.safe_string(transaction, 'fee')
         if feeCost is not None:
             feeCost = Precise.string_abs(feeCost)
-        tag = self.safe_string(transaction, 'description')
         return {
             'info': transaction,
             'id': self.safe_string_2(transaction, 'id', 'withdrawal_id'),
             'txid': self.safe_string(transaction, 'txid'),
+            'type': self.safe_string_lower(transaction, 'type'),  # DEPOSIT or WITHDRAWAL,
+            'currency': code,
+            'network': None,
+            'amount': self.safe_number(transaction, 'amount'),
+            'status': self.parse_transaction_status(self.safe_string(transaction, 'status')),
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
-            'network': None,
             'address': self.safe_string(transaction, 'address'),  # todo: self is actually the tag for XRP transfers(the address is missing)
-            'addressTo': None,
             'addressFrom': None,
-            'tag': tag,
-            'tagTo': None,
+            'addressTo': None,
+            'tag': self.safe_string(transaction, 'description'),
             'tagFrom': None,
-            'type': type,
-            'amount': self.safe_number(transaction, 'amount'),
-            'currency': code,
-            'status': status,
-            'updated': updated,
+            'tagTo': None,
+            'updated': self.safe_timestamp(transaction, 'timestamp'),
+            'comment': None,
             'fee': {
                 'currency': code,
                 'cost': self.parse_number(feeCost),

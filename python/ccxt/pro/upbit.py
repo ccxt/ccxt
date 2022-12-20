@@ -31,6 +31,7 @@ class upbit(Exchange, ccxt.async_support.upbit):
     async def watch_public(self, symbol, channel, params={}):
         await self.load_markets()
         market = self.market(symbol)
+        symbol = market['symbol']
         marketId = market['id']
         url = self.urls['api']['ws']
         self.options[channel] = self.safe_value(self.options, channel, {})
@@ -69,6 +70,8 @@ class upbit(Exchange, ccxt.async_support.upbit):
         :param dict params: extra parameters specific to the upbit api endpoint
         :returns [dict]: a list of `trade structures <https://docs.ccxt.com/en/latest/manual.html?#public-trades>`
         """
+        await self.load_markets()
+        symbol = self.symbol(symbol)
         trades = await self.watch_public(symbol, 'trade')
         if self.newUpdates:
             limit = trades.getLimit(symbol, limit)
@@ -83,7 +86,7 @@ class upbit(Exchange, ccxt.async_support.upbit):
         :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/en/latest/manual.html#order-book-structure>` indexed by market symbols
         """
         orderbook = await self.watch_public(symbol, 'orderbook')
-        return orderbook.limit(limit)
+        return orderbook.limit()
 
     def handle_ticker(self, client, message):
         # 2020-03-17T23:07:36.511Z 'onMessage' <Buffer 7b 22 74 79 70 65 22 3a 22 74 69 63 6b 65 72 22 2c 22 63 6f 64 65 22 3a 22 42 54 43 2d 45 54 48 22 2c 22 6f 70 65 6e 69 6e 67 5f 70 72 69 63 65 22 3a ... >

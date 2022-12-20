@@ -126,6 +126,7 @@ module.exports = class Exchange {
                 'fetchTradingLimits': undefined,
                 'fetchTransactions': undefined,
                 'fetchTransfers': undefined,
+                'fetchWithdrawAddresses': undefined,
                 'fetchWithdrawal': undefined,
                 'fetchWithdrawals': undefined,
                 'reduceMargin': undefined,
@@ -187,6 +188,7 @@ module.exports = class Exchange {
                 '404': ExchangeNotAvailable,
                 '409': ExchangeNotAvailable,
                 '410': ExchangeNotAvailable,
+                '451': ExchangeNotAvailable,
                 '500': ExchangeNotAvailable,
                 '501': ExchangeNotAvailable,
                 '502': ExchangeNotAvailable,
@@ -203,6 +205,7 @@ module.exports = class Exchange {
                 '408': RequestTimeout,
                 '504': RequestTimeout,
                 '401': AuthenticationError,
+                '407': AuthenticationError,
                 '511': AuthenticationError,
             },
             'commonCurrencies': { // gets extended/overwritten in subclasses
@@ -234,7 +237,7 @@ module.exports = class Exchange {
         //         }
         //     }
         //
-        this.options = {} // exchange-specific options, if any
+        this.options = this.getDefaultOptions(); // exchange-specific options, if any
         // fetch implementation options (JS only)
         this.fetchOptions = {
             // keepalive: true, // does not work in Chrome, https://github.com/ccxt/ccxt/issues/6368
@@ -797,6 +800,16 @@ module.exports = class Exchange {
     // ------------------------------------------------------------------------
     // METHODS BELOW THIS LINE ARE TRANSPILED FROM JAVASCRIPT TO PYTHON AND PHP
 
+    getDefaultOptions () {
+        return {
+            'defaultNetworkCodeReplacements': {
+                'ETH': { 'ERC20': 'ETH' },
+                'TRX': { 'TRC20': 'TRX' },
+                'CRO': { 'CRC20': 'CRONOS' },
+            },
+        };
+    }
+
     safeLedgerEntry (entry, currency = undefined) {
         currency = this.safeCurrency (undefined, currency);
         let direction = this.safeString (entry, 'direction');
@@ -867,7 +880,7 @@ module.exports = class Exchange {
             let quoteCurrencies = [];
             for (let i = 0; i < values.length; i++) {
                 const market = values[i];
-                const defaultCurrencyPrecision = (this.precisionMode === DECIMAL_PLACES) ? 8 : this.parseNumber ('0.00000001');
+                const defaultCurrencyPrecision = (this.precisionMode === DECIMAL_PLACES) ? 8 : this.parseNumber ('1e-8');
                 const marketPrecision = this.safeValue (market, 'precision', {});
                 if ('base' in market) {
                     const currencyPrecision = this.safeValue2 (marketPrecision, 'base', 'amount', defaultCurrencyPrecision);
@@ -927,11 +940,13 @@ module.exports = class Exchange {
         balance['free'] = {};
         balance['used'] = {};
         balance['total'] = {};
+        const debtBalance = {};
         for (let i = 0; i < codes.length; i++) {
             const code = codes[i];
             let total = this.safeString (balance[code], 'total');
             let free = this.safeString (balance[code], 'free');
             let used = this.safeString (balance[code], 'used');
+            const debt = this.safeString (balance[code], 'debt');
             if ((total === undefined) && (free !== undefined) && (used !== undefined)) {
                 total = Precise.stringAdd (free, used);
             }
@@ -947,6 +962,15 @@ module.exports = class Exchange {
             balance['free'][code] = balance[code]['free'];
             balance['used'][code] = balance[code]['used'];
             balance['total'][code] = balance[code]['total'];
+            if (debt !== undefined) {
+                balance[code]['debt'] = this.parseNumber (debt);
+                debtBalance[code] = balance[code]['debt'];
+            }
+        }
+        const debtBalanceArray = Object.keys (debtBalance);
+        const length = debtBalanceArray.length;
+        if (length) {
+            balance['debt'] = debtBalance;
         }
         return balance;
     }
@@ -1082,12 +1106,29 @@ module.exports = class Exchange {
             }
         }
         // ensure that the average field is calculated correctly
+        const inverse = this.safeValue (market, 'inverse', false);
+        const contractSize = this.numberToString (this.safeValue (market, 'contractSize', 1));
+        // inverse
+        // price = filled * contract size / cost
+        //
+        // linear
+        // price = cost / (filled * contract size)
         if (average === undefined) {
             if ((filled !== undefined) && (cost !== undefined) && Precise.stringGt (filled, '0')) {
-                average = Precise.stringDiv (cost, filled);
+                const filledTimesContractSize = Precise.stringMul (filled, contractSize);
+                if (inverse) {
+                    average = Precise.stringDiv (filledTimesContractSize, cost);
+                } else {
+                    average = Precise.stringDiv (cost, filledTimesContractSize);
+                }
             }
         }
-        // also ensure the cost field is calculated correctly
+        // similarly
+        // inverse
+        // cost = filled * contract size / price
+        //
+        // linear
+        // cost = filled * contract size * price
         const costPriceExists = (average !== undefined) || (price !== undefined);
         if (parseCost && (filled !== undefined) && costPriceExists) {
             let multiplyPrice = undefined;
@@ -1097,15 +1138,12 @@ module.exports = class Exchange {
                 multiplyPrice = average;
             }
             // contract trading
-            const contractSize = this.safeString (market, 'contractSize');
-            if (contractSize !== undefined) {
-                const inverse = this.safeValue (market, 'inverse', false);
-                if (inverse) {
-                    multiplyPrice = Precise.stringDiv ('1', multiplyPrice);
-                }
-                multiplyPrice = Precise.stringMul (multiplyPrice, contractSize);
+            const filledTimesContractSize = Precise.stringMul (filled, contractSize);
+            if (inverse) {
+                cost = Precise.stringDiv (filledTimesContractSize, multiplyPrice);
+            } else {
+                cost = Precise.stringMul (filledTimesContractSize, multiplyPrice);
             }
-            cost = Precise.stringMul (multiplyPrice, filled);
         }
         // support for market orders
         const orderType = this.safeValue (order, 'type');
@@ -1126,16 +1164,20 @@ module.exports = class Exchange {
             }
             entry['fee'] = fee;
         }
-        // timeInForceHandling
         let timeInForce = this.safeString (order, 'timeInForce');
+        let postOnly = this.safeValue (order, 'postOnly');
+        // timeInForceHandling
         if (timeInForce === undefined) {
             if (this.safeString (order, 'type') === 'market') {
                 timeInForce = 'IOC';
             }
             // allow postOnly override
-            if (this.safeValue (order, 'postOnly', false)) {
+            if (postOnly) {
                 timeInForce = 'PO';
             }
+        } else if (postOnly === undefined) {
+            // timeInForce is not undefined here
+            postOnly = timeInForce === 'PO';
         }
         return this.extend (order, {
             'lastTradeTimestamp': lastTradeTimeTimestamp,
@@ -1146,6 +1188,7 @@ module.exports = class Exchange {
             'filled': this.parseNumber (filled),
             'remaining': this.parseNumber (remaining),
             'timeInForce': timeInForce,
+            'postOnly': postOnly,
             'trades': trades,
         });
     }
@@ -1193,6 +1236,9 @@ module.exports = class Exchange {
     }
 
     calculateFee (symbol, type, side, amount, price, takerOrMaker = 'taker', params = {}) {
+        if (type === 'market' && takerOrMaker === 'maker') {
+            throw new ArgumentsRequired (this.id + ' calculateFee() - you have provided incompatible arguments - "market" type order can not be "maker". Change either the "type" or the "takerOrMaker" argument to calculate the fee.');
+        }
         const market = this.markets[symbol];
         const feeSide = this.safeString (market, 'feeSide', 'quote');
         let key = 'quote';
@@ -1209,7 +1255,7 @@ module.exports = class Exchange {
             // the fee is always in the currency you get
             cost = amountString;
             if (side === 'sell') {
-                cost = priceString;
+                cost = Precise.stringMul (cost, priceString);
             } else {
                 key = 'base';
             }
@@ -1222,7 +1268,15 @@ module.exports = class Exchange {
                 key = 'base';
             }
         }
-        const rate = this.numberToString (market[takerOrMaker]);
+        // for derivatives, the fee is in 'settle' currency
+        if (!market['spot']) {
+            key = 'settle';
+        }
+        // even if `takerOrMaker` argument was set to 'maker', for 'market' orders we should forcefully override it to 'taker'
+        if (type === 'market') {
+            takerOrMaker = 'taker';
+        }
+        const rate = this.safeString (market, takerOrMaker);
         if (cost !== undefined) {
             cost = Precise.stringMul (cost, rate);
         }
@@ -1528,6 +1582,17 @@ module.exports = class Exchange {
         return result;
     }
 
+    marketCodes (codes) {
+        if (codes === undefined) {
+            return codes;
+        }
+        const result = [];
+        for (let i = 0; i < codes.length; i++) {
+            result.push (this.commonCurrencyCode (codes[i]));
+        }
+        return result;
+    }
+
     parseBidsAsks (bidasks, priceKey = 0, amountKey = 1) {
         bidasks = this.toArray (bidasks);
         const result = [];
@@ -1610,6 +1675,155 @@ module.exports = class Exchange {
         } else {
             throw new NotSupported (this.id + ' network ' + network + ' is not yet supported');
         }
+    }
+
+    networkCodeToId (networkCode, currencyCode = undefined) {
+        /**
+         * @ignore
+         * @method
+         * @name exchange#networkCodeToId
+         * @description tries to convert the provided networkCode (which is expected to be an unified network code) to a network id. In order to achieve this, derived class needs to have 'options->networks' defined.
+         * @param {string} networkCode unified network code
+         * @param {string|undefined} currencyCode unified currency code, but this argument is not required by default, unless there is an exchange (like huobi) that needs an override of the method to be able to pass currencyCode argument additionally
+         * @returns {[string|undefined]} exchange-specific network id
+         */
+        const networkIdsByCodes = this.safeValue (this.options, 'networks', {});
+        let networkId = this.safeString (networkIdsByCodes, networkCode);
+        // for example, if 'ETH' is passed for networkCode, but 'ETH' key not defined in `options->networks` object
+        if (networkId === undefined) {
+            if (currencyCode === undefined) {
+                // if currencyCode was not provided, then we just set passed value to networkId
+                networkId = networkCode;
+            } else {
+                // if currencyCode was provided, then we try to find if that currencyCode has a replacement (i.e. ERC20 for ETH)
+                const defaultNetworkCodeReplacements = this.safeValue (this.options, 'defaultNetworkCodeReplacements', {});
+                if (currencyCode in defaultNetworkCodeReplacements) {
+                    // if there is a replacement for the passed networkCode, then we use it to find network-id in `options->networks` object
+                    const replacementObject = defaultNetworkCodeReplacements[currencyCode]; // i.e. { 'ERC20': 'ETH' }
+                    const keys = Object.keys (replacementObject);
+                    for (let i = 0; i < keys.length; i++) {
+                        const key = keys[i];
+                        const value = replacementObject[key];
+                        // if value matches to provided unified networkCode, then we use it's key to find network-id in `options->networks` object
+                        if (value === networkCode) {
+                            networkId = this.safeString (networkIdsByCodes, key);
+                            break;
+                        }
+                    }
+                }
+                // if it wasn't found, we just set the provided value to network-id
+                if (networkId === undefined) {
+                    networkId = networkCode;
+                }
+            }
+        }
+        return networkId;
+    }
+
+    networkIdToCode (networkId, currencyCode = undefined) {
+        /**
+         * @ignore
+         * @method
+         * @name exchange#networkIdToCode
+         * @description tries to convert the provided exchange-specific networkId to an unified network Code. In order to achieve this, derived class needs to have 'options->networksById' defined.
+         * @param {string} networkId unified network code
+         * @param {string|undefined} currencyCode unified currency code, but this argument is not required by default, unless there is an exchange (like huobi) that needs an override of the method to be able to pass currencyCode argument additionally
+         * @returns {[string|undefined]} unified network code
+         */
+        const networkCodesByIds = this.safeValue (this.options, 'networksById', {});
+        let networkCode = this.safeString (networkCodesByIds, networkId, networkId);
+        // replace mainnet network-codes (i.e. ERC20->ETH)
+        if (currencyCode !== undefined) {
+            const defaultNetworkCodeReplacements = this.safeValue (this.options, 'defaultNetworkCodeReplacements', {});
+            if (currencyCode in defaultNetworkCodeReplacements) {
+                const replacementObject = this.safeValue (defaultNetworkCodeReplacements, currencyCode, {});
+                networkCode = this.safeString (replacementObject, networkCode, networkCode);
+            }
+        }
+        return networkCode;
+    }
+
+    networkCodesToIds (networkCodes = undefined) {
+        /**
+         * @ignore
+         * @method
+         * @name exchange#networkCodesToIds
+         * @description tries to convert the provided networkCode (which is expected to be an unified network code) to a network id. In order to achieve this, derived class needs to have 'options->networks' defined.
+         * @param {[string]|undefined} networkCodes unified network codes
+         * @returns {[string|undefined]} exchange-specific network ids
+         */
+        if (networkCodes === undefined) {
+            return undefined;
+        }
+        const ids = [];
+        for (let i = 0; i < networkCodes.length; i++) {
+            const networkCode = networkCodes[i];
+            ids.push (this.networkCodeToId (networkCode));
+        }
+        return ids;
+    }
+
+    handleNetworkCodeAndParams (params) {
+        const networkCodeInParams = this.safeString2 (params, 'networkCode', 'network');
+        if (networkCodeInParams !== undefined) {
+            params = this.omit (params, [ 'networkCode', 'network' ]);
+        }
+        // if it was not defined by user, we should not set it from 'defaultNetworks', because handleNetworkCodeAndParams is for only request-side and thus we do not fill it with anything. We can only use 'defaultNetworks' after parsing response-side
+        return [ networkCodeInParams, params ];
+    }
+
+    defaultNetworkCode (currencyCode) {
+        let defaultNetworkCode = undefined;
+        const defaultNetworks = this.safeValue (this.options, 'defaultNetworks', {});
+        if (currencyCode in defaultNetworks) {
+            // if currency had set its network in "defaultNetworks", use it
+            defaultNetworkCode = defaultNetworks[currencyCode];
+        } else {
+            // otherwise, try to use the global-scope 'defaultNetwork' value (even if that network is not supported by currency, it doesn't make any problem, this will be just used "at first" if currency supports this network at all)
+            const defaultNetwork = this.safeValue (this.options, 'defaultNetwork');
+            if (defaultNetwork !== undefined) {
+                defaultNetworkCode = defaultNetwork;
+            }
+        }
+        return defaultNetworkCode;
+    }
+
+    selectNetworkCodeFromUnifiedNetworks (currencyCode, networkCode, indexedNetworkEntries) {
+        return this.selectNetworkKeyFromNetworks (currencyCode, networkCode, indexedNetworkEntries, true);
+    }
+
+    selectNetworkIdFromRawNetworks (currencyCode, networkCode, indexedNetworkEntries) {
+        return this.selectNetworkKeyFromNetworks (currencyCode, networkCode, indexedNetworkEntries, false);
+    }
+
+    selectNetworkKeyFromNetworks (currencyCode, networkCode, indexedNetworkEntries, isIndexedByUnifiedNetworkCode = false) {
+        // this method is used against raw & unparse network entries, which are just indexed by network id
+        let chosenNetworkId = undefined;
+        const availableNetworkIds = Object.keys (indexedNetworkEntries);
+        const responseNetworksLength = availableNetworkIds.length;
+        if (networkCode !== undefined) {
+            if (responseNetworksLength === 0) {
+                throw new NotSupported (this.id + ' - ' + networkCode + ' network did not return any result for ' + currencyCode);
+            } else {
+                // if networkCode was provided by user, we should check it after response, as the referenced exchange doesn't support network-code during request
+                const networkId = isIndexedByUnifiedNetworkCode ? networkCode : this.networkCodeToId (networkCode, currencyCode);
+                if (networkId in indexedNetworkEntries) {
+                    chosenNetworkId = networkId;
+                } else {
+                    throw new NotSupported (this.id + ' - ' + networkId + ' network was not found for ' + currencyCode + ', use one of ' + availableNetworkIds.join (', '));
+                }
+            }
+        } else {
+            if (responseNetworksLength === 0) {
+                throw new NotSupported (this.id + ' - no networks were returned for ' + currencyCode);
+            } else {
+                // if networkCode was not provided by user, then we try to use the default network (if it was defined in "defaultNetworks"), otherwise, we just return the first network entry
+                const defaultNetworkCode = this.defaultNetworkCode (currencyCode);
+                const defaultNetworkId = isIndexedByUnifiedNetworkCode ? defaultNetworkCode : this.networkCodeToId (defaultNetworkCode, currencyCode);
+                chosenNetworkId = (defaultNetworkId in indexedNetworkEntries) ? defaultNetworkId : availableNetworkIds[0];
+            }
+        }
+        return chosenNetworkId;
     }
 
     safeNumber2 (dictionary, key1, key2, d = undefined) {
@@ -1886,7 +2100,7 @@ module.exports = class Exchange {
         if ((currencyId === undefined) && (currency !== undefined)) {
             return currency;
         }
-        if ((this.currencies_by_id !== undefined) && (currencyId in this.currencies_by_id)) {
+        if ((this.currencies_by_id !== undefined) && (currencyId in this.currencies_by_id) && (this.currencies_by_id[currencyId] !== undefined)) {
             return this.currencies_by_id[currencyId];
         }
         let code = currencyId;
@@ -1976,7 +2190,7 @@ module.exports = class Exchange {
                 if (error) {
                     throw new AuthenticationError (this.id + ' requires "' + key + '" credential');
                 } else {
-                    return error;
+                    return false;
                 }
             }
         }
@@ -2049,6 +2263,14 @@ module.exports = class Exchange {
         throw new NotSupported (this.id + ' fetchTransactionFees() is not supported yet');
     }
 
+    async fetchDepositWithdrawFee (code, params = {}) {
+        if (!this.has['fetchDepositWithdrawFees']) {
+            throw new NotSupported (this.id + ' fetchDepositWithdrawFee() is not supported yet');
+        }
+        const fees = await this.fetchDepositWithdrawFees ([ code ], params);
+        return this.safeValue (fees, code);
+    }
+
     getSupportedMapping (key, mapping = {}) {
         if (key in mapping) {
             return mapping[key];
@@ -2110,14 +2332,14 @@ module.exports = class Exchange {
         return [ type, params ];
     }
 
-    handleSubTypeAndParams (methodName, market = undefined, params = {}) {
+    handleSubTypeAndParams (methodName, market = undefined, params = {}, defaultValue = 'linear') {
         let subType = undefined;
         // if set in params, it takes precedence
-        const subTypeInParams = this.safeString2 (params, 'subType', 'subType');
+        const subTypeInParams = this.safeString2 (params, 'subType', 'defaultSubType');
         // avoid omitting if it's not present
         if (subTypeInParams !== undefined) {
             subType = subTypeInParams;
-            params = this.omit (params, [ 'defaultSubType', 'subType' ]);
+            params = this.omit (params, [ 'subType', 'defaultSubType' ]);
         } else {
             // at first, check from market object
             if (market !== undefined) {
@@ -2129,12 +2351,21 @@ module.exports = class Exchange {
             }
             // if it was not defined in market object
             if (subType === undefined) {
-                const exchangeWideValue = this.safeString2 (this.options, 'defaultSubType', 'subType', 'linear');
-                const methodOptions = this.safeValue (this.options, methodName, {});
-                subType = this.safeString2 (methodOptions, 'defaultSubType', 'subType', exchangeWideValue);
+                const values = this.handleOptionAndParams (undefined, methodName, 'subType', defaultValue); // no need to re-test params here
+                subType = values[0];
             }
         }
         return [ subType, params ];
+    }
+
+    handleMarginModeAndParams (methodName, params = {}, defaultValue = undefined) {
+        /**
+         * @ignore
+         * @method
+         * @param {object} params extra parameters specific to the exchange api endpoint
+         * @returns {[string|undefined, object]} the marginMode in lowercase as specified by params["marginMode"], params["defaultMarginMode"] this.options["marginMode"] or this.options["defaultMarginMode"]
+         */
+        return this.handleOptionAndParams (params, methodName, 'marginMode', defaultValue);
     }
 
     throwExactlyMatchedException (exact, string, message) {
@@ -2349,12 +2580,20 @@ module.exports = class Exchange {
 
     priceToPrecision (symbol, price) {
         const market = this.market (symbol);
-        return this.decimalToPrecision (price, ROUND, market['precision']['price'], this.precisionMode, this.paddingMode);
+        const result = this.decimalToPrecision (price, ROUND, market['precision']['price'], this.precisionMode, this.paddingMode);
+        if (result === '0') {
+            throw new ArgumentsRequired (this.id + ' price of ' + market['symbol'] + ' must be greater than minimum price precision of ' + this.numberToString (market['precision']['price']));
+        }
+        return result;
     }
 
     amountToPrecision (symbol, amount) {
         const market = this.market (symbol);
-        return this.decimalToPrecision (amount, TRUNCATE, market['precision']['amount'], this.precisionMode, this.paddingMode);
+        const result = this.decimalToPrecision (amount, TRUNCATE, market['precision']['amount'], this.precisionMode, this.paddingMode);
+        if (result === '0') {
+            throw new ArgumentsRequired (this.id + ' amount of ' + market['symbol'] + ' must be greater than minimum amount precision of ' + this.numberToString (market['precision']['amount']));
+        }
+        return result;
     }
 
     feeToPrecision (symbol, fee) {
@@ -2566,6 +2805,14 @@ module.exports = class Exchange {
         return result;
     }
 
+    isTriggerOrder (params) {
+        const isTrigger = this.safeValue2 (params, 'trigger', 'stop');
+        if (isTrigger) {
+            params = this.omit (params, [ 'trigger', 'stop' ]);
+        }
+        return [ isTrigger, params ];
+    }
+
     isPostOnly (isMarketOrder, exchangeSpecificParam, params = {}) {
         /**
          * @ignore
@@ -2734,11 +2981,10 @@ module.exports = class Exchange {
          * @returns the exchange specific account name or the isolated margin id for transfers
          */
         const accountsByType = this.safeValue (this.options, 'accountsByType', {});
-        const symbols = this.symbols;
         const lowercaseAccount = account.toLowerCase ();
         if (lowercaseAccount in accountsByType) {
             return accountsByType[lowercaseAccount];
-        } else if (this.inArray (account, symbols)) {
+        } else if ((account in this.markets) || (account in this.markets_by_id)) {
             const market = this.market (account);
             return market['id'];
         } else {
@@ -2746,20 +2992,119 @@ module.exports = class Exchange {
         }
     }
 
-    handleMarginModeAndParams (methodName, params = {}) {
+    checkRequiredArgument (methodName, argument, argumentName, options = []) {
         /**
          * @ignore
          * @method
-         * @param {object} params extra parameters specific to the exchange api endpoint
-         * @returns {[string|undefined, object]} the marginMode in lowercase as specified by params["marginMode"], params["defaultMarginMode"] this.options["marginMode"] or this.options["defaultMarginMode"]
+         * @param {string} argument the argument to check
+         * @param {string} argumentName the name of the argument to check
+         * @param {string} methodName the name of the method that the argument is being checked for
+         * @param {[string]} options a list of options that the argument can be
+         * @returns {undefined}
          */
-        const defaultMarginMode = this.safeString2 (this.options, 'marginMode', 'defaultMarginMode');
-        const methodOptions = this.safeValue (this.options, methodName, {});
-        const methodMarginMode = this.safeString2 (methodOptions, 'marginMode', 'defaultMarginMode', defaultMarginMode);
-        const marginMode = this.safeStringLower2 (params, 'marginMode', 'defaultMarginMode', methodMarginMode);
-        if (marginMode !== undefined) {
-            params = this.omit (params, [ 'marginMode', 'defaultMarginMode' ]);
+        if ((argument === undefined) || ((options.length > 0) && (!(this.inArray (argument, options))))) {
+            const messageOptions = options.join (', ');
+            let message = this.id + ' ' + methodName + '() requires a ' + argumentName + ' argument';
+            if (messageOptions !== '') {
+                message += ', one of ' + '(' + messageOptions + ')';
+            }
+            throw new ArgumentsRequired (message);
         }
-        return [ marginMode, params ];
+    }
+
+    checkRequiredMarginArgument (methodName, symbol, marginMode) {
+        /**
+         * @ignore
+         * @method
+         * @param {string} symbol unified symbol of the market
+         * @param {string} methodName name of the method that requires a symbol
+         * @param {string} marginMode is either 'isolated' or 'cross'
+         */
+        if ((marginMode === 'isolated') && (symbol === undefined)) {
+            throw new ArgumentsRequired (this.id + ' ' + methodName + '() requires a symbol argument for isolated margin');
+        } else if ((marginMode === 'cross') && (symbol !== undefined)) {
+            throw new ArgumentsRequired (this.id + ' ' + methodName + '() cannot have a symbol argument for cross margin');
+        }
+    }
+
+    checkRequiredSymbol (methodName, symbol) {
+        /**
+         * @ignore
+         * @method
+         * @param {string} symbol unified symbol of the market
+         * @param {string} methodName name of the method that requires a symbol
+         */
+        this.checkRequiredArgument (methodName, symbol, 'symbol');
+    }
+
+    parseDepositWithdrawFees (response, codes = undefined, currencyIdKey = undefined) {
+        /**
+         * @ignore
+         * @method
+         * @param {[object]|object} response unparsed response from the exchange
+         * @param {[string]|undefined} codes the unified currency codes to fetch transactions fees for, returns all currencies when undefined
+         * @param {str|undefined} currencyIdKey *should only be undefined when response is a dictionary* the object key that corresponds to the currency id
+         * @returns {object} objects with withdraw and deposit fees, indexed by currency codes
+         */
+        const depositWithdrawFees = {};
+        codes = this.marketCodes (codes);
+        const isArray = Array.isArray (response);
+        let responseKeys = response;
+        if (!isArray) {
+            responseKeys = Object.keys (response);
+        }
+        for (let i = 0; i < responseKeys.length; i++) {
+            const entry = responseKeys[i];
+            const dictionary = isArray ? entry : response[entry];
+            const currencyId = isArray ? this.safeString (dictionary, currencyIdKey) : entry;
+            const currency = this.safeValue (this.currencies_by_id, currencyId);
+            const code = this.safeString (currency, 'code', currencyId);
+            if ((codes === undefined) || (this.inArray (code, codes))) {
+                depositWithdrawFees[code] = this.parseDepositWithdrawFee (dictionary, currency);
+            }
+        }
+        return depositWithdrawFees;
+    }
+
+    depositWithdrawFee (info) {
+        return {
+            'info': info,
+            'withdraw': {
+                'fee': undefined,
+                'percentage': undefined,
+            },
+            'deposit': {
+                'fee': undefined,
+                'percentage': undefined,
+            },
+            'networks': {},
+        };
+    }
+
+    assignDefaultDepositWithdrawFees (fee, currency = undefined) {
+        /**
+         * @ignore
+         * @method
+         * @description Takes a depositWithdrawFee structure and assigns the default values for withdraw and deposit
+         * @param {object} fee A deposit withdraw fee structure
+         * @param {object} currency A currency structure, the response from this.currency ()
+         * @returns {object} A deposit withdraw fee structure
+         */
+        const networkKeys = Object.keys (fee['networks']);
+        const numNetworks = networkKeys.length;
+        if (numNetworks === 1) {
+            fee['withdraw'] = fee['networks'][networkKeys[0]]['withdraw'];
+            fee['deposit'] = fee['networks'][networkKeys[0]]['deposit'];
+            return fee;
+        }
+        const currencyCode = this.safeString (currency, 'code');
+        for (let i = 0; i < numNetworks; i++) {
+            const network = networkKeys[i];
+            if (network === currencyCode) {
+                fee['withdraw'] = fee['networks'][networkKeys[i]]['withdraw'];
+                fee['deposit'] = fee['networks'][networkKeys[i]]['deposit'];
+            }
+        }
+        return fee;
     }
 };

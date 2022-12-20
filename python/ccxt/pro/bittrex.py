@@ -207,6 +207,8 @@ class bittrex(Exchange, ccxt.async_support.bittrex):
         :returns [dict]: a list of `order structures <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
         """
         await self.load_markets()
+        if symbol is not None:
+            symbol = self.symbol(symbol)
         authentication = await self.authenticate()
         orders = await self.subscribe_to_orders(authentication, params)
         if self.newUpdates:
@@ -328,6 +330,7 @@ class bittrex(Exchange, ccxt.async_support.bittrex):
     async def subscribe_to_ticker(self, negotiation, symbol, params={}):
         await self.load_markets()
         market = self.market(symbol)
+        symbol = market['symbol']
         name = 'ticker'
         messageHash = name + '_' + market['id']
         subscription = {
@@ -361,7 +364,17 @@ class bittrex(Exchange, ccxt.async_support.bittrex):
         client.resolve(ticker, messageHash)
 
     async def watch_ohlcv(self, symbol, timeframe='1m', since=None, limit=None, params={}):
+        """
+        watches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+        :param str symbol: unified symbol of the market to fetch OHLCV data for
+        :param str timeframe: the length of time each candle represents
+        :param int|None since: timestamp in ms of the earliest candle to fetch
+        :param int|None limit: the maximum amount of candles to fetch
+        :param dict params: extra parameters specific to the bittrex api endpoint
+        :returns [[int]]: A list of candles ordered as timestamp, open, high, low, close, volume
+        """
         await self.load_markets()
+        symbol = self.symbol(symbol)
         negotiation = await self.negotiate()
         ohlcv = await self.subscribe_to_ohlcv(negotiation, symbol, timeframe, params)
         if self.newUpdates:
@@ -426,6 +439,7 @@ class bittrex(Exchange, ccxt.async_support.bittrex):
         :returns [dict]: a list of `trade structures <https://docs.ccxt.com/en/latest/manual.html?#public-trades>`
         """
         await self.load_markets()
+        symbol = self.symbol(symbol)
         negotiation = await self.negotiate()
         trades = await self.subscribe_to_trades(negotiation, symbol, params)
         if self.newUpdates:
@@ -486,6 +500,7 @@ class bittrex(Exchange, ccxt.async_support.bittrex):
         :returns [dict]: a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure
         """
         await self.load_markets()
+        symbol = self.symbol(symbol)
         authentication = await self.authenticate()
         trades = await self.subscribe_to_my_trades(authentication, params)
         if self.newUpdates:
@@ -539,6 +554,7 @@ class bittrex(Exchange, ccxt.async_support.bittrex):
         if (limit != 1) and (limit != 25) and (limit != 500):
             raise BadRequest(self.id + ' watchOrderBook() limit argument must be None, 1, 25 or 500, default is 25')
         await self.load_markets()
+        symbol = self.symbol(symbol)
         negotiation = await self.negotiate()
         #
         #     1. Subscribe to the relevant socket streams
@@ -551,7 +567,7 @@ class bittrex(Exchange, ccxt.async_support.bittrex):
         #     8. If a message is received that is not the next in order, return to step 2 in self process
         #
         orderbook = await self.subscribe_to_order_book(negotiation, symbol, limit, params)
-        return orderbook.limit(limit)
+        return orderbook.limit()
 
     async def subscribe_to_order_book(self, negotiation, symbol, limit=None, params={}):
         await self.load_markets()

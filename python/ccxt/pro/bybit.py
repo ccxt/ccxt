@@ -7,10 +7,8 @@ from ccxt.pro.base.exchange import Exchange
 import ccxt.async_support
 from ccxt.pro.base.cache import ArrayCache, ArrayCacheBySymbolById, ArrayCacheByTimestamp
 import hashlib
+from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
-from ccxt.base.errors import BadRequest
-from ccxt.base.errors import NotSupported
-from ccxt.base.precise import Precise
 
 
 class bybit(Exchange, ccxt.async_support.bybit):
@@ -27,64 +25,85 @@ class bybit(Exchange, ccxt.async_support.bybit):
                 'watchTicker': True,
                 'watchTickers': False,  # for now
                 'watchTrades': True,
+                'watchPosition': None,
             },
             'urls': {
                 'api': {
                     'ws': {
-                        'inverse': {
-                            'public': 'wss://stream.{hostname}/realtime',
-                            'private': 'wss://stream.{hostname}/realtime',
-                        },
-                        'linear': {
-                            'public': 'wss://stream.{hostname}/realtime_public',
-                            'private': 'wss://stream.{hostname}/realtime_private',
-                        },
-                        'spot': {
-                            'public': 'wss://stream.{hostname}/spot/quote/ws/v2',
-                            'private': 'wss://stream.{hostname}/spot/ws',
-                        },
-                        'usdc': {
-                            'option': {
-                                'public': 'wss://stream.{hostname}/trade/option/usdc/public/v1',
-                                'private': 'wss://stream.{hostname}/trade/option/usdc/private/v1',
+                        'public': {
+                            'spot': 'wss://stream.{hostname}/spot/public/v3',
+                            'inverse': 'wss://stream.{hostname}/contract/inverse/public/v3',
+                            'usdt': 'wss://stream.{hostname}/contract/usdt/public/v3',
+                            'usdc': {
+                                'option': 'wss://stream.{hostname}/option/usdc/public/v3',
+                                'swap': 'wss://stream.{hostname}/contract/usdc/public/v3',
                             },
-                            'swap': {
-                                'public': 'wss://stream.{hostname}/perpetual/ws/v1/realtime_public',
-                                'private': 'wss://stream.{hostname}/trade/option/usdc/private/v1',
+                        },
+                        'private': {
+                            'spot': 'wss://stream.{hostname}/spot/private/v3',
+                            'contract': {
+                                'unified': 'wss://stream.{hostname}/unified/private/v3',
+                                'nonUnified': 'wss://stream.{hostname}/contract/private/v3',
                             },
                         },
                     },
                 },
                 'test': {
                     'ws': {
-                        'inverse': {
-                            'public': 'wss://stream-testnet.{hostname}/realtime',
-                            'private': 'wss://stream-testnet.{hostname}/realtime',
-                        },
-                        'linear': {
-                            'public': 'wss://stream-testnet.{hostname}/realtime_public',
-                            'private': 'wss://stream-testnet.{hostname}/realtime_private',
-                        },
-                        'spot': {
-                            'public': 'wss://stream-testnet.{hostname}/spot/quote/ws/v2',
-                            'private': 'wss://stream-testnet.{hostname}/spot/ws',
-                        },
-                        'usdc': {
-                            'option': {
-                                'public': 'wss://stream-testnet.{hostname}/trade/option/usdc/public/v1',
-                                'private': 'wss://stream-testnet.{hostname}/trade/option/usdc/private/v1',
+                        'public': {
+                            'spot': 'wss://stream-testnet.{hostname}/spot/public/v3',
+                            'inverse': 'wss://stream-testnet.{hostname}/contract/inverse/public/v3',
+                            'usdt': 'wss://stream-testnet.{hostname}/contract/usdt/public/v3',
+                            'usdc': {
+                                'option': 'wss://stream-testnet.{hostname}/option/usdc/public/v3',
+                                'swap': 'wss://stream-testnet.{hostname}/contract/usdc/public/v3',
                             },
-                            'swap': {
-                                'public': 'wss://stream-testnet.{hostname}/perpetual/ws/v1/realtime_public',
-                                'private': 'wss://stream-testnet.{hostname}/trade/option/usdc/private/v1',
+                        },
+                        'private': {
+                            'spot': 'wss://stream-testnet.{hostname}/spot/private/v3',
+                            'contract': {
+                                'unified': 'wss://stream-testnet.{hostname}/unified/private/v3',
+                                'nonUnified': 'wss://stream-testnet.{hostname}/contract/private/v3',
                             },
                         },
                     },
                 },
             },
             'options': {
-                'watchTicker': {
-                    'name': 'realtimes',  # or bookTicker
+                'spot': {
+                    'timeframes': {
+                        '1m': '1m',
+                        '3m': '3m',
+                        '5m': '5m',
+                        '15m': '15m',
+                        '30m': '30m',
+                        '1h': '1h',
+                        '2h': '2h',
+                        '4h': '4h',
+                        '6h': '6h',
+                        '12h': '12h',
+                        '1d': '1d',
+                        '1w': '1w',
+                        '1M': '1M',
+                    },
+                    'watchTickerTopic': 'tickers',  # 'tickers' for 24hr statistical ticker or 'bookticker' for Best bid price and best ask price
+                },
+                'contract': {
+                    'timeframes': {
+                        '1m': '1',
+                        '3m': '3',
+                        '5m': '5',
+                        '15m': '15',
+                        '30m': '30',
+                        '1h': '60',
+                        '2h': '120',
+                        '4h': '240',
+                        '6h': '360',
+                        '12h': '720',
+                        '1d': 'D',
+                        '1w': 'W',
+                        '1M': 'M',
+                    },
                 },
             },
             'streaming': {
@@ -99,43 +118,53 @@ class bybit(Exchange, ccxt.async_support.bybit):
             },
         })
 
-    def get_url_by_market_type(self, symbol=None, isPrivate=False, method=None, params={}):
+    def request_id(self):
+        requestId = self.sum(self.safe_integer(self.options, 'requestId', 0), 1)
+        self.options['requestId'] = requestId
+        return requestId
+
+    def get_url_by_market_type(self, symbol=None, isPrivate=False, isUnifiedMargin=False, method=None, params={}):
         accessibility = 'private' if isPrivate else 'public'
         isUsdcSettled = None
         isSpot = None
         type = None
-        isLinear = None
+        isUsdtSettled = None
         market = None
         url = self.urls['api']['ws']
         if symbol is not None:
             market = self.market(symbol)
             isUsdcSettled = market['settle'] == 'USDC'
+            isUsdtSettled = market['settle'] == 'USDT'
             isSpot = market['spot']
             type = market['type']
-            isLinear = market['linear']
         else:
             type, params = self.handle_market_type_and_params(method, None, params)
-            defaultSubType = self.safe_string(self.options, 'defaultSubType', 'linear')
-            subType = self.safe_string(params, 'subType', defaultSubType)
             defaultSettle = self.safe_string(self.options, 'defaultSettle')
             defaultSettle = self.safe_string_2(params, 'settle', 'defaultSettle', defaultSettle)
             isUsdcSettled = (defaultSettle == 'USDC')
+            isUsdtSettled = (defaultSettle == 'USDT')
             isSpot = (type == 'spot')
-            isLinear = (subType == 'linear')
-        if isSpot:
-            url = url['spot'][accessibility]
-        elif isUsdcSettled:
-            url = url['usdc'][type][accessibility]
-        elif isLinear:
-            url = url['linear'][accessibility]
+        if isPrivate:
+            if isSpot:
+                url = url[accessibility]['spot']
+            else:
+                margin = 'unified' if isUnifiedMargin else 'nonUnified'
+                url = url[accessibility]['contract'][margin]
         else:
-            # inverse
-            url = url['inverse'][accessibility]
+            if isSpot:
+                url = url[accessibility]['spot']
+            elif isUsdcSettled:
+                url = url[accessibility]['usdc'][type]
+            elif isUsdtSettled:
+                url = url[accessibility]['usdt']
+            else:
+                # inverse
+                url = url[accessibility]['inverse']
         url = self.implode_hostname(url)
         return url
 
     def clean_params(self, params):
-        params = self.omit(params, ['type', 'subType', 'settle', 'defaultSettle'])
+        params = self.omit(params, ['type', 'subType', 'settle', 'defaultSettle', 'unifiedMargin'])
         return params
 
     async def watch_ticker(self, symbol, params={}):
@@ -148,344 +177,130 @@ class bybit(Exchange, ccxt.async_support.bybit):
         await self.load_markets()
         market = self.market(symbol)
         messageHash = 'ticker:' + market['symbol']
-        url = self.get_url_by_market_type(symbol, False, params)
+        url = self.get_url_by_market_type(symbol, False, False, params)
         params = self.clean_params(params)
+        topic = 'tickers'
         if market['spot']:
-            options = self.safe_value(self.options, 'watchTicker', {})
-            channel = self.safe_string(options, 'name', 'realtimes')
-            reqParams = {
-                'symbol': market['id'],
-            }
-            return await self.watch_spot_public(url, channel, messageHash, reqParams, params)
-        else:
-            channel = 'instrument_info.100ms.' + market['id']
-            reqParams = [channel]
-            return await self.watch_contract_public(url, messageHash, reqParams, params)
+            spotOptions = self.safe_value(self.options, 'spot', {})
+            topic = self.safe_string(spotOptions, 'watchTickerTopic', 'tickers')
+        topic += '.' + market['id']
+        topics = [topic]
+        return await self.watch_topics(url, messageHash, topics, params)
 
     def handle_ticker(self, client, message):
         #
-        # {
-        #     topic: 'bookTicker',
-        #     params: {symbol: 'BTCUSDT', binary: 'false', symbolName: 'BTCUSDT'},
-        #     data: {
-        #       symbol: 'BTCUSDT',
-        #       bidPrice: '29150.8',
-        #       bidQty: '0.171947',
-        #       askPrice: '29156.72',
-        #       askQty: '0.017764',
-        #       time: 1652956849565
-        #     }
-        # }
-        #
-        #  spot realtimes
+        #  spot - tickers
         #    {
-        #        topic: 'realtimes',
-        #        params: {symbol: 'BTCUSDT', binary: 'false', symbolName: 'BTCUSDT'},
-        #        data: {
-        #          t: 1652883737410,
-        #          s: 'BTCUSDT',
-        #          o: '30422.68',
-        #          h: '30715',
-        #          l: '29288.44',
-        #          c: '29462.94',
-        #          v: '4350.340495',
-        #          qv: '130497543.0334267',
-        #          m: '-0.0315'
-        #        }
-        #    }
-        #
-        # swap/futures use an incremental approach sending first the snapshot and then the updates
-        #
-        # snapshot message
-        #     {
-        #         "topic":"instrument_info.100ms.BTCUSDT",
-        #         "type":"snapshot",
-        #         "data":{
-        #            "id":1,
-        #            "symbol":"BTCUSDT",
-        #            "last_price_e4":"291050000",
-        #            "last_price":"29105.00",
-        #            "bid1_price_e4":"291045000",
-        #            "bid1_price":"29104.50",
-        #            "ask1_price_e4":"291050000",
-        #            "ask1_price":"29105.00",
-        #            "last_tick_direction":"ZeroPlusTick",
-        #            "prev_price_24h_e4":"297900000",
-        #            "prev_price_24h":"29790.00",
-        #            "price_24h_pcnt_e6":"-22994",
-        #            "high_price_24h_e4":"300200000",
-        #            "high_price_24h":"30020.00",
-        #            "low_price_24h_e4":"286330000",
-        #            "low_price_24h":"28633.00",
-        #            "prev_price_1h_e4":"291435000",
-        #            "prev_price_1h":"29143.50",
-        #            "price_1h_pcnt_e6":"-1321",
-        #            "mark_price_e4":"291148200",
-        #            "mark_price":"29114.82",
-        #            "index_price_e4":"291173600",
-        #            "index_price":"29117.36",
-        #            "open_interest_e8":"2725210700000",
-        #            "total_turnover_e8":"6184585271557950000",
-        #            "turnover_24h_e8":"373066109692150560",
-        #            "total_volume_e8":"3319897492699924",
-        #            "volume_24h_e8":"12774825300000",
-        #            "funding_rate_e6":"-97",
-        #            "predicted_funding_rate_e6":"100",
-        #            "cross_seq":"11834024892",
-        #            "created_at":"1970-01-01T00:00:00.000Z",
-        #            "updated_at":"2022-05-19T08:52:10.000Z",
-        #            "next_funding_time":"2022-05-19T16:00:00Z",
-        #            "count_down_hour":"8",
-        #            "funding_rate_interval":"8",
-        #            "settle_time_e9":"0",
-        #            "delisting_status":"0"
-        #         },
-        #         "cross_seq":"11834024953",
-        #         "timestamp_e6":"1652950330515050"
-        #     }
-        #
-        # update message
-        #    {
-        #        "topic":"instrument_info.100ms.BTCUSDT",
-        #        "type":"delta",
-        #        "data":{
-        #           "update":[
-        #              {
-        #                 "id":1,
-        #                 "symbol":"BTCUSDT",
-        #                 "open_interest_e8":"2721359000000",
-        #                 "cross_seq":"11834107074",
-        #                 "created_at":"1970-01-01T00:00:00.000Z",
-        #                 "updated_at":"2022-05-19T08:54:18.000Z"
-        #              }
-        #           ]
+        #        "data": {
+        #            "t": 1661742216005,
+        #            "s": "BTCUSDT",
+        #            "o": "19820",
+        #            "h": "20071.93",
+        #            "l": "19365.85",
+        #            "c": "19694.27",
+        #            "v": "9997.246174",
+        #            "qv": "197357775.97621786",
+        #            "m": "-0.0063"
         #        },
-        #        "cross_seq":"11834107125",
-        #        "timestamp_e6":"1652950458616087"
+        #        "type": "delta",
+        #        "topic": "tickers.BTCUSDT",
+        #        "ts": 1661742216011
+        #    }
+        #  spot - bookticker
+        #    {
+        #        "data": {
+        #            "s": "BTCUSDT",
+        #            "bp": "19693.04",
+        #            "bq": "0.913957",
+        #            "ap": "19694.27",
+        #            "aq": "0.705447",
+        #            "t": 1661742216108
+        #        },
+        #        "type": "delta",
+        #        "topic": "bookticker.BTCUSDT",
+        #        "ts": 1661742216109
+        #    }
+        #  swap
+        #    {
+        #        "topic":"tickers.BTCUSDT",
+        #        "type":"snapshot",
+        #        "data":{
+        #            "symbol":"BTCUSDT",
+        #            "tickDirection":"ZeroMinusTick",
+        #            "price24hPcnt":"0.032786",
+        #            "lastPrice":"22019.00",
+        #            "prevPrice24h":"21320.00",
+        #            "highPrice24h":"22522.00",
+        #            "lowPrice24h":"20745.00",
+        #            "prevPrice1h":"22186.50",
+        #            "markPrice":"22010.11",
+        #            "indexPrice":"22009.01",
+        #            "openInterest":"44334.438",
+        #            "turnover24h":"4609010554.786498",
+        #            "volume24h":"213532.606",
+        #            "fundingRate":"0.0001",
+        #            "nextFundingTime":"2022-07-18T16:00:00Z",
+        #            "bid1Price":"22019.00",
+        #            "bid1Size":"41.530",
+        #            "ask1Price":"22019.50",
+        #            "ask1Size":"7.041",
+        #            "basisRate":"0",
+        #            "deliveryFeeRate":"0"
+        #        },
+        #        "cs":14236992078,
+        #        "ts":1663203915102
         #    }
         #
         topic = self.safe_string(message, 'topic', '')
-        if (topic == 'realtimes') or (topic == 'bookTicker'):
-            # spot markets
-            data = self.safe_value(message, 'data')
-            ticker = self.parse_ws_ticker(data)
-            symbol = ticker['symbol']
-            self.tickers[symbol] = ticker
-            messageHash = 'ticker:' + symbol
-            client.resolve(ticker, messageHash)
-            return
         updateType = self.safe_string(message, 'type', '')
         data = self.safe_value(message, 'data', {})
+        isSpot = self.safe_string(data, 's') is not None
         symbol = None
-        if updateType == 'snapshot':
-            parsed = self.parse_ws_ticker(data)
+        parsed = None
+        if (updateType == 'snapshot') or isSpot:
+            parsed = self.parse_ticker(data)
             symbol = parsed['symbol']
-            self.tickers[symbol] = parsed
-        if updateType == 'delta':
+        elif updateType == 'delta':
             topicParts = topic.split('.')
             topicLength = len(topicParts)
             marketId = self.safe_string(topicParts, topicLength - 1)
             market = self.market(marketId)
             symbol = market['symbol']
-            updates = self.safe_value(data, 'update', [])
+            # update the info in place
             ticker = self.safe_value(self.tickers, symbol, {})
-            for i in range(0, len(updates)):
-                update = updates[i]
-                ticker = self.update_ticker(ticker, update)
-            self.tickers[symbol] = ticker
+            rawTicker = self.safe_value(ticker, 'info', {})
+            merged = self.extend(rawTicker, data)
+            parsed = self.parse_ticker(merged)
+        timestamp = self.safe_integer(message, 'ts')
+        parsed['timestamp'] = timestamp
+        parsed['datetime'] = self.iso8601(timestamp)
+        self.tickers[symbol] = parsed
         messageHash = 'ticker:' + symbol
         client.resolve(self.tickers[symbol], messageHash)
 
-    def update_ticker(self, ticker, update):
-        # First we update the raw ticker with the new values
-        # then we parse it again, although we could just
-        # update the changed values in the already parsed ticker
-        # doing that would lead to an inconsistent info object
-        # inside ticker
-        rawTicker = ticker['info']
-        updateKeys = list(update.keys())
-        updateLength = len(updateKeys)
-        if updateLength > 0:
-            for i in range(0, len(updateKeys)):
-                key = updateKeys[i]
-                if key in rawTicker:
-                    rawTicker[key] = update[key]
-            parsed = self.parse_ws_ticker(rawTicker)
-            return parsed
-        return ticker
-
-    def parse_ws_ticker(self, ticker, market=None):
-        #
-        # spot
-        #   {
-        #          symbol: 'BTCUSDT',
-        #          bidPrice: '29150.8',
-        #          bidQty: '0.171947',
-        #          askPrice: '29156.72',
-        #          askQty: '0.017764',
-        #          time: 1652956849565
-        #   }
-        #
-        #   {
-        #          t: 1652883737410,
-        #          s: 'BTCUSDT',
-        #          o: '30422.68',
-        #          h: '30715',
-        #          l: '29288.44',
-        #          c: '29462.94',
-        #          v: '4350.340495',
-        #          qv: '130497543.0334267',
-        #          m: '-0.0315'
-        #    }
-        #
-        # swap
-        #
-        #   {
-        #            "id":1,
-        #            "symbol":"BTCUSDT",
-        #            "last_price_e4":"291050000",
-        #            "last_price":"29105.00",
-        #            "bid1_price_e4":"291045000",
-        #            "bid1_price":"29104.50",
-        #            "ask1_price_e4":"291050000",
-        #            "ask1_price":"29105.00",
-        #            "last_tick_direction":"ZeroPlusTick",
-        #            "prev_price_24h_e4":"297900000",
-        #            "prev_price_24h":"29790.00",
-        #            "price_24h_pcnt_e6":"-22994",
-        #            "high_price_24h_e4":"300200000",
-        #            "high_price_24h":"30020.00",
-        #            "low_price_24h_e4":"286330000",
-        #            "low_price_24h":"28633.00",
-        #            "prev_price_1h_e4":"291435000",
-        #            "prev_price_1h":"29143.50",
-        #            "price_1h_pcnt_e6":"-1321",
-        #            "mark_price_e4":"291148200",
-        #            "mark_price":"29114.82",
-        #            "index_price_e4":"291173600",
-        #            "index_price":"29117.36",
-        #            "open_interest_e8":"2725210700000",
-        #            "total_turnover_e8":"6184585271557950000",
-        #            "turnover_24h_e8":"373066109692150560",
-        #            "total_volume_e8":"3319897492699924",
-        #            "volume_24h_e8":"12774825300000",
-        #            "funding_rate_e6":"-97",
-        #            "predicted_funding_rate_e6":"100",
-        #            "cross_seq":"11834024892",
-        #            "created_at":"1970-01-01T00:00:00.000Z",
-        #            "updated_at":"2022-05-19T08:52:10.000Z",
-        #            "next_funding_time":"2022-05-19T16:00:00Z",
-        #            "count_down_hour":"8",
-        #            "funding_rate_interval":"8",
-        #            "settle_time_e9":"0",
-        #            "delisting_status":"0"
-        #         },
-        #         "cross_seq":"11834024953",
-        #         "timestamp_e6":"1652950330515050"
-        #     }
-        #
-        # option
-        #    {
-        #        "symbol":"BTC-19NOV21-58000-P",
-        #        "bidPrice":"421",
-        #        "askPrice":"465",
-        #        "bidIv":"0.7785",
-        #        "askIv":"0.8012",
-        #        "bidSize":"17",
-        #        "askSize":"18",
-        #        "markPrice":"442.51157238",
-        #        "markPriceIv":"0.7897",
-        #        "indexPrice":"67102.13",
-        #        "underlyingPrice":"67407.49",
-        #        "lastPrice":"0",
-        #        "delta":"-0.10385629",
-        #        "gamma":"0.00002132",
-        #        "theta":"-82.72572574",
-        #        "vega":"19.33584131",
-        #        "change24h":"0",
-        #        "volume24h":"0",
-        #        "turnover24h":"0",
-        #        "high24h":"0",
-        #        "low24h":"0",
-        #        "totalVolume":"0",
-        #        "totalTurnover":"0",
-        #        "openInterest":"0",
-        #        "predictedDeliveryPrice":"62330.90608575"
-        #    }
-        #
-        timestamp = self.safe_integer_2(ticker, 'time', 't')
-        if timestamp is None:
-            timestamp = self.parse8601(self.safe_string_2(ticker, 'updated_at', 'updatedAt'))
-            if timestamp is None:
-                timestampE9 = self.safe_string(ticker, 'updated_at_e9')
-                timestamp = Precise.string_div(timestampE9, '1000000')
-                timestamp = self.parse_number(timestamp)
-                timestamp = int(timestamp) if (timestamp is not None) else None
-        marketId = self.safe_string_2(ticker, 'symbol', 's')
-        symbol = self.safe_symbol(marketId, market)
-        last = self.safe_string_n(ticker, ['l', 'last_price', 'lastPrice'])
-        open = self.safe_string_n(ticker, ['prev_price_24h', 'o', 'prevPrice24h'])
-        quoteVolume = self.safe_string_n(ticker, ['v', 'turnover24h'])
-        if quoteVolume is None:
-            quoteVolume = self.safe_string_2(ticker, 'turnover_24h_e8', 'turnover24hE8')
-            quoteVolume = Precise.string_div(quoteVolume, '100000000')
-        baseVolume = self.safe_string_n(ticker, ['qv', 'volume24h', 'volume_24h'])
-        if baseVolume is None:
-            baseVolume = self.safe_string_2(ticker, 'volume_24h_e8', 'volume24hE8')
-            baseVolume = Precise.string_div(baseVolume, '100000000')
-        bid = self.safe_string_n(ticker, ['bidPrice', 'bid1_price', 'bid1Price'])
-        ask = self.safe_string_n(ticker, ['askPrice', 'ask1_price', 'ask1Price'])
-        high = self.safe_string_n(ticker, ['high_price_24h', 'high24h', 'h', 'highPrice24h'])
-        low = self.safe_string_n(ticker, ['low_price_24h', 'low24h', 'l', 'lowPrice24h'])
-        percentage = self.safe_string(ticker, 'm')
-        if percentage is None:
-            percentage = self.safe_string_2(ticker, 'price_24h_pcnt_e6', 'price24hPcntE6')
-            percentage = Precise.string_div(percentage, '1000000')
-        change = self.safe_string(ticker, 'change24h')
-        return self.safe_ticker({
-            'symbol': symbol,
-            'timestamp': timestamp,
-            'datetime': self.iso8601(timestamp),
-            'high': high,
-            'low': low,
-            'bid': bid,
-            'bidVolume': self.safe_string_2(ticker, 'bidSize', 'bidQty'),
-            'ask': ask,
-            'askVolume': self.safe_string_2(ticker, 'askSize', 'askQty'),
-            'vwap': None,
-            'open': open,
-            'close': last,
-            'last': last,
-            'previousClose': None,
-            'change': change,
-            'percentage': percentage,
-            'average': None,
-            'baseVolume': baseVolume,
-            'quoteVolume': quoteVolume,
-            'info': ticker,
-        }, market)
-
     async def watch_ohlcv(self, symbol, timeframe='1m', since=None, limit=None, params={}):
+        """
+        watches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+        :param str symbol: unified symbol of the market to fetch OHLCV data for
+        :param str timeframe: the length of time each candle represents
+        :param int|None since: timestamp in ms of the earliest candle to fetch
+        :param int|None limit: the maximum amount of candles to fetch
+        :param dict params: extra parameters specific to the bybit api endpoint
+        :returns [[int]]: A list of candles ordered as timestamp, open, high, low, close, volume
+        """
         await self.load_markets()
         market = self.market(symbol)
         symbol = market['symbol']
-        interval = self.timeframes[timeframe]
-        url = self.get_url_by_market_type(symbol, False, params)
+        url = self.get_url_by_market_type(symbol, False, False, params)
         params = self.clean_params(params)
-        messageHash = 'kline' + ':' + timeframe + ':' + symbol
         ohlcv = None
-        if market['spot']:
-            channel = 'kline'
-            reqParams = {
-                'symbol': market['id'],
-                'klineType': timeframe,  # spot uses the same timeframe as ours
-            }
-            ohlcv = await self.watch_spot_public(url, channel, messageHash, reqParams, params)
-        else:
-            prefix = 'candle' if market['linear'] else 'klineV2'
-            channel = prefix + '.' + interval + '.' + market['id']
-            reqParams = [channel]
-            ohlcv = await self.watch_contract_public(url, messageHash, reqParams, params)
+        marketType = 'spot' if market['spot'] else 'contract'
+        marketOptions = self.safe_value(self.options, marketType, {})
+        timeframes = self.safe_value(marketOptions, 'timeframes', {})
+        timeframeId = self.safe_string(timeframes, timeframe, timeframe)
+        topics = ['kline.' + timeframeId + '.' + market['id']]
+        messageHash = 'kline' + ':' + timeframeId + ':' + symbol
+        ohlcv = await self.watch_topics(url, messageHash, topics, params)
         if self.newUpdates:
             limit = ohlcv.getLimit(symbol, limit)
         return self.filter_by_since_limit(ohlcv, since, limit, 0, True)
@@ -494,350 +309,207 @@ class bybit(Exchange, ccxt.async_support.bybit):
         #
         # swap
         #    {
-        #        topic: 'klineV2.1.LTCUSD',
-        #        data: [
+        #        "topic":"kline.1.BTCUSDT",
+        #        "data":[
         #          {
-        #            start: 1652893140,
-        #            end: 1652893200,
-        #            open: 67.9,
-        #            close: 67.84,
-        #            high: 67.91,
-        #            low: 67.84,
-        #            volume: 56,
-        #            turnover: 0.82528936,
-        #            timestamp: '1652893152874413',
-        #            confirm: False,
-        #            cross_seq: 63544166
+        #            "start":1658150220000,
+        #            "end":1658150279999,
+        #            "interval":"1",
+        #            "open":"22212",
+        #            "close":"22214",
+        #            "high":"22214.5",
+        #            "low":"22212",
+        #            "volume":"5.456",
+        #            "turnover":"121193.36",
+        #            "confirm":false,
+        #            "timestamp":1658150224542
         #          }
         #        ],
-        #        timestamp_e6: 1652893152874413
+        #        "ts":1658150224542,
+        #        "type":"snapshot"
         #    }
         #
         # spot
         #    {
-        #        topic: 'kline',
-        #        params: {
-        #          symbol: 'LTCUSDT',
-        #          binary: 'false',
-        #          klineType: '1m',
-        #          symbolName: 'LTCUSDT'
+        #        "data": {
+        #            "t": 1661742000000,
+        #            "s": "BTCUSDT",
+        #            "c": "19685.55",
+        #            "h": "19756.95",
+        #            "l": "19674.61",
+        #            "o": "19705.38",
+        #            "v": "0.232154"
         #        },
-        #        data: {
-        #          t: 1652893440000,
-        #          s: 'LTCUSDT',
-        #          sn: 'LTCUSDT',
-        #          c: '67.92',
-        #          h: '68.05',
-        #          l: '67.92',
-        #          o: '68.05',
-        #          v: '9.71302'
-        #        }
+        #        "type": "delta",
+        #        "topic": "kline.1h.BTCUSDT",
+        #        "ts": 1661745259605
         #    }
         #
         data = self.safe_value(message, 'data', {})
         topic = self.safe_string(message, 'topic')
+        topicParts = topic.split('.')
+        topicLength = len(topicParts)
+        timeframeId = self.safe_string(topicParts, 1)
+        marketId = self.safe_string(topicParts, topicLength - 1)
+        market = self.safe_market(marketId)
+        symbol = market['symbol']
+        ohlcvsByTimeframe = self.safe_value(self.ohlcvs, symbol)
+        if ohlcvsByTimeframe is None:
+            self.ohlcvs[symbol] = {}
+        stored = self.safe_value(ohlcvsByTimeframe, timeframeId)
+        if stored is None:
+            limit = self.safe_integer(self.options, 'OHLCVLimit', 1000)
+            stored = ArrayCacheByTimestamp(limit)
+            self.ohlcvs[symbol][timeframeId] = stored
         if isinstance(data, list):
-            # swap messages
-            topicParts = topic.split('.')
-            topicLength = len(topicParts)
-            marketId = self.safe_string(topicParts, topicLength - 1)
-            timeframe = self.safe_string(topicParts, topicLength - 2)
-            marketIds = {}
             for i in range(0, len(data)):
-                ohlcv = data[i]
-                market = self.market(marketId)
-                symbol = market['symbol']
-                parsed = self.parse_ws_ohlcv(ohlcv, market)
-                stored = self.safe_value(self.ohlcvs, symbol)
-                if stored is None:
-                    limit = self.safe_integer(self.options, 'OHLCVLimit', 1000)
-                    stored = ArrayCacheByTimestamp(limit)
-                    self.ohlcvs[symbol] = stored
+                parsed = self.parse_ws_contract_ohlcv(data[i])
                 stored.append(parsed)
-                marketIds[symbol] = timeframe
-            keys = list(marketIds.keys())
-            for i in range(0, len(keys)):
-                symbol = keys[i]
-                interval = marketIds[symbol]
-                timeframe = self.find_timeframe(interval)
-                messageHash = 'kline' + ':' + timeframe + ':' + symbol
-                stored = self.safe_value(self.ohlcvs, symbol)
-                client.resolve(stored, messageHash)
         else:
-            # spot messages
-            params = self.safe_value(message, 'params', {})
-            data = self.safe_value(message, 'data')
-            marketId = self.safe_string(params, 'symbol')
-            timeframe = self.safe_string(params, 'klineType')
-            market = self.market(marketId)
-            parsed = self.parse_ws_ohlcv(data, market)
-            symbol = market['symbol']
-            stored = self.safe_value(self.ohlcvs, symbol)
-            if stored is None:
-                limit = self.safe_integer(self.options, 'OHLCVLimit', 1000)
-                stored = ArrayCacheByTimestamp(limit)
-                self.ohlcvs[symbol] = stored
+            parsed = self.parseSpotOHLCV(data)
             stored.append(parsed)
-            messageHash = 'kline' + ':' + timeframe + ':' + symbol
-            client.resolve(stored, messageHash)
+        messageHash = 'kline' + ':' + timeframeId + ':' + symbol
+        client.resolve(stored, messageHash)
 
-    def parse_ws_ohlcv(self, ohlcv, market=None):
+    def parse_ws_contract_ohlcv(self, ohlcv):
         #
-        # swap
-        #   {
-        #      start: 1652893140,
-        #      end: 1652893200,
-        #      open: 67.9,
-        #      close: 67.84,
-        #      high: 67.91,
-        #      low: 67.84,
-        #      volume: 56,
-        #      turnover: 0.82528936,
-        #      timestamp: '1652893152874413',  # microseconds
-        #      confirm: False,
-        #      cross_seq: 63544166
-        #   }
+        #     {
+        #         "start": 1670363160000,
+        #         "end": 1670363219999,
+        #         "interval": "1",
+        #         "open": "16987.5",
+        #         "close": "16987.5",
+        #         "high": "16988",
+        #         "low": "16987.5",
+        #         "volume": "23.511",
+        #         "turnover": "399396.344",
+        #         "confirm": False,
+        #         "timestamp": 1670363219614
+        #     }
         #
-        # spot
-        #
-        #   {
-        #      t: 1652893440000,
-        #      s: 'LTCUSDT',
-        #      sn: 'LTCUSDT',
-        #      c: '67.92',
-        #      h: '68.05',
-        #      l: '67.92',
-        #      o: '68.05',
-        #      v: '9.71302'
-        #   }
-        #
-        timestamp = self.safe_integer(ohlcv, 't')
-        if timestamp is None:
-            timestamp = self.safe_timestamp(ohlcv, 'start')
         return [
-            timestamp,
-            self.safe_number_2(ohlcv, 'open', 'o'),
-            self.safe_number_2(ohlcv, 'high', 'h'),
-            self.safe_number_2(ohlcv, 'low', 'l'),
-            self.safe_number_2(ohlcv, 'close', 'c'),
-            self.safe_number_2(ohlcv, 'volume', 'v'),
+            self.safe_integer(ohlcv, 'timestamp'),
+            self.safe_number(ohlcv, 'open'),
+            self.safe_number(ohlcv, 'high'),
+            self.safe_number(ohlcv, 'low'),
+            self.safe_number(ohlcv, 'close'),
+            self.safe_number_2(ohlcv, 'volume', 'turnover'),
         ]
 
     async def watch_order_book(self, symbol, limit=None, params={}):
         """
         watches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
         :param str symbol: unified symbol of the market to fetch the order book for
-        :param int|None limit: the maximum amount of order book entries to return
+        :param int|None limit: the maximum amount of order book entries to return.
         :param dict params: extra parameters specific to the bybit api endpoint
         :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/en/latest/manual.html#order-book-structure>` indexed by market symbols
         """
         await self.load_markets()
         market = self.market(symbol)
         symbol = market['symbol']
-        url = self.get_url_by_market_type(symbol, False, params)
+        url = self.get_url_by_market_type(symbol, False, False, params)
         params = self.clean_params(params)
         messageHash = 'orderbook' + ':' + symbol
-        orderbook = None
-        if market['spot']:
-            channel = 'depth'
-            reqParams = {
-                'symbol': market['id'],
-            }
-            orderbook = await self.watch_spot_public(url, channel, messageHash, reqParams, params)
-        else:
-            channel = None
-            if market['option']:
-                channel = 'delta.orderbook100' + '.' + market['marketId']
+        if limit is None:
+            if market['spot']:
+                limit = 40
             else:
-                if limit is not None:
-                    if limit != 25 and limit != 200:
-                        raise BadRequest(self.id + ' watchOrderBook limit argument must be either 25 or 200')
-                else:
-                    limit = 25
-                prefix = 'orderBookL2_25' if (limit == 25) else 'orderBook_200.100ms'
-                channel = prefix + '.' + market['id']
-            reqParams = [channel]
-            orderbook = await self.watch_contract_public(url, messageHash, reqParams, params)
-        return orderbook.limit(limit)
+                limit = 200
+        topics = ['orderbook.' + str(limit) + '.' + market['id']]
+        orderbook = await self.watch_topics(url, messageHash, topics, params)
+        return orderbook.limit()
 
     def handle_order_book(self, client, message):
         #
         # spot snapshot
-        # {
-        #     topic: 'depth',
-        #     params: {symbol: 'BTCUSDT', binary: 'false', symbolName: 'BTCUSDT'},
-        #     data: {
-        #       s: 'BTCUSDT',
-        #       t: 1652970523792,
-        #       v: '34407758_140450607_2',
-        #       b: [
-        #            [
-        #                "9780.79",
-        #                "0.01"
-        #            ],
-        #       ],
-        #       a: [
-        #            [
-        #               "9781.21",
-        #               "0.042842"
-        #            ]
-        #       ]
+        #     {
+        #         "data": {
+        #             "s": "BTCUSDT",
+        #             "t": 1661743689733,
+        #             "b": [
+        #                 [
+        #                     "19721.9",
+        #                     "0.784806"
+        #                 ],
+        #                 ...
+        #             ],
+        #             "a": [
+        #                 [
+        #                     "19721.91",
+        #                     "0.192687"
+        #                 ],
+        #                 ...
+        #             ]
+        #         },
+        #         "type": "delta",  # docs say to ignore, always snapshot
+        #         "topic": "orderbook.40.BTCUSDT",
+        #         "ts": 1661743689735
         #     }
-        #   }
         #
-        # contract snapshot
+        # contract
         #    {
-        #        topic: 'orderBookL2_25.BTCUSDT',
-        #        type: 'snapshot',
-        #        data: {
-        #          order_book: [
-        #              {
-        #                  "price":"29907.50",
-        #                  "symbol":"BTCUSDT",
-        #                  "id":"299075000",
-        #                  "side":"Buy",
-        #                  "size":0.763
-        #              }
-        #          ]
-        #        },
-        #        cross_seq: '11846360142',
-        #        timestamp_e6: '1652973544516741'
+        #        "topic": "orderbook.50.BTCUSDT",
+        #        "type": "snapshot",
+        #        "ts": 1668748553479,
+        #        "data": {
+        #            "s": "BTCUSDT",
+        #            "b": [
+        #                [
+        #                    "17053.00",  #price
+        #                    "0.021"  #size
+        #                ],
+        #                ....
+        #            ],
+        #            "a": [
+        #                [
+        #                    "17054.00",
+        #                    "6.288"
+        #                ],
+        #                ....
+        #            ],
+        #            "u": 3083181,
+        #            "seq": 7545268447
+        #        }
         #    }
         #
-        # contract delta
-        #
-        # {
-        #     topic: 'orderBookL2_25.BTCUSDT',
-        #     type: 'delta',
-        #     data: {
-        #         "delete": [
-        #             {
-        #                   "price": "3001.00",
-        #                   "symbol": "BTCUSDT",
-        #                   "id": 30010000,
-        #                   "side": "Sell"
-        #             }
-        #          ],
-        #          "update": [
-        #             {
-        #                   "price": "2999.00",
-        #                   "symbol": "BTCUSDT",
-        #                   "id": 29990000,
-        #                   "side": "Buy",
-        #                   "size": 8
-        #             }
-        #          ],
-        #          "insert": [
-        #             {
-        #                   "price": "2998.00",
-        #                   "symbol": "BTCUSDT",
-        #                   "id": 29980000,
-        #                   "side": "Buy",
-        #                   "size": 8
-        #             }
-        #            ],
-        #          },
-        #          cross_seq: '11848736847',
-        #          timestamp_e6: '1652976712534987'
-        #     }
-        #
-        topic = self.safe_string(message, 'topic', '')
+        isSpot = client.url.find('spot') >= 0
+        type = self.safe_string(message, 'type')
+        isSnapshot = (type == 'snapshot')
+        if isSpot:
+            isSnapshot = True
         data = self.safe_value(message, 'data', {})
-        if topic == 'depth':
-            # spot branch, we get the snapshot in every message
-            marketId = self.safe_string(data, 's')
-            market = self.market(marketId)
-            symbol = market['symbol']
-            timestamp = self.safe_integer(data, 't')
+        marketId = self.safe_string(data, 's')
+        market = self.safe_market(marketId)
+        symbol = self.safe_symbol(marketId, market)
+        timestamp = self.safe_integer(message, 'ts')
+        orderbook = self.safe_value(self.orderbooks, symbol)
+        if orderbook is None:
+            orderbook = self.order_book()
+        if isSnapshot:
             snapshot = self.parse_order_book(data, symbol, timestamp, 'b', 'a')
-            orderbook = None
-            if not (symbol in self.orderbooks):
-                orderbook = self.order_book(snapshot)
-                self.orderbooks[symbol] = orderbook
-            else:
-                orderbook = self.orderbooks[symbol]
-                orderbook.reset(snapshot)
-            messageHash = 'orderbook' + ':' + symbol
-            client.resolve(orderbook, messageHash)
-            return
-        if topic.find('orderBook') >= 0:
-            # contract branch
-            type = self.safe_string(message, 'type')
-            topicParts = topic.split('.')
-            topicLength = len(topicParts)
-            marketId = self.safe_string(topicParts, topicLength - 1)
-            market = self.market(marketId)
-            symbol = market['symbol']
-            messageHash = 'orderbook' + ':' + symbol
-            nonce = self.safe_integer_2(message, 'cross_seq', 'crossSeq')
-            timestamp = self.safe_integer_product_2(message, 'timestamp_e6', 'timestampE6', 0.001)
-            if type == 'snapshot':
-                rawOrderBook = self.safe_value_2(data, 'order_book', 'orderBook', data)
-                snapshot = self.parse_order_book(rawOrderBook, symbol, timestamp, 'Buy', 'Sell', 'price', 'size')
-                snapshot['nonce'] = nonce
-                orderbook = None
-                if not (symbol in self.orderbooks):
-                    orderbook = self.order_book(snapshot)
-                    self.orderbooks[symbol] = orderbook
-                else:
-                    orderbook = self.orderbooks[symbol]
-                    orderbook.reset(snapshot)
-            elif type == 'delta':
-                deleted = self.safe_value(data, 'delete', [])
-                updated = self.safe_value(data, 'update', [])
-                inserted = self.safe_value(data, 'insert', [])
-                updatedDeleted = []
-                for i in range(0, len(deleted)):
-                    entry = deleted[i]
-                    entry['size'] = 0
-                    updatedDeleted.append(entry)
-                deltas = updatedDeleted
-                deltas = self.array_concat(deltas, updated)
-                deltas = self.array_concat(deltas, inserted)
-                orderbook = self.safe_value(self.orderbooks, symbol)
-                orderbook['nonce'] = nonce
-                orderbook['timestamp'] = timestamp
-                orderbook['datetime'] = self.iso8601(timestamp)
-                self.handle_deltas(orderbook, deltas)
-            client.resolve(self.orderbooks[symbol], messageHash)
-
-    def handle_deltas(self, orderbook, deltas):
-        #
-        #   [
-        #      {
-        #            "price": "2999.00",
-        #            "symbol": "BTCUSDT",
-        #            "id": 29990000,
-        #            "side": "Buy",
-        #            "size": 8
-        #      }
-        #   ]
-        #
-        for i in range(0, len(deltas)):
-            delta = deltas[i]
-            side = self.safe_string(delta, 'side')
-            if side == 'Buy':
-                self.handle_delta(orderbook['bids'], deltas[i])
-            else:
-                self.handle_delta(orderbook['asks'], deltas[i])
+            orderbook.reset(snapshot)
+        else:
+            asks = self.safe_value(orderbook, 'a', [])
+            bids = self.safe_value(orderbook, 'b', [])
+            self.handle_deltas(orderbook['asks'], asks)
+            self.handle_deltas(orderbook['bids'], bids)
+            orderbook['timestamp'] = timestamp
+            orderbook['datetime'] = self.iso8601(timestamp)
+        messageHash = 'orderbook' + ':' + symbol
+        self.orderbooks[symbol] = orderbook
+        client.resolve(orderbook, messageHash)
 
     def handle_delta(self, bookside, delta):
-        #
-        #   {
-        #         "price": "2999.00",
-        #         "symbol": "BTCUSDT",
-        #         "id": 29990000,
-        #         "side": "Buy",
-        #         "size": 8
-        #   }
-        #
-        price = self.safe_number(delta, 'price')
-        amount = self.safe_number(delta, 'size')
-        bookside.store(price, amount)
+        bidAsk = self.parse_bid_ask(delta, 0, 1)
+        bookside.storeArray(bidAsk)
+
+    def handle_deltas(self, bookside, deltas):
+        for i in range(0, len(deltas)):
+            self.handle_delta(bookside, deltas[i])
 
     async def watch_trades(self, symbol, since=None, limit=None, params={}):
         """
-        watches information on multiple trades made by the user
+        watches information on multiple trades made in a market
         :param str symbol: unified market symbol of the market orders were made in
         :param int|None since: the earliest time in ms to fetch orders for
         :param int|None limit: the maximum number of  orde structures to retrieve
@@ -847,24 +519,19 @@ class bybit(Exchange, ccxt.async_support.bybit):
         await self.load_markets()
         market = self.market(symbol)
         symbol = market['symbol']
-        commonChannel = 'trade'
-        url = self.get_url_by_market_type(symbol, False, params)
+        url = self.get_url_by_market_type(symbol, False, False, params)
         params = self.clean_params(params)
-        messageHash = commonChannel + ':' + symbol
-        trades = None
+        messageHash = 'trade:' + symbol
+        topic = None
         if market['spot']:
-            reqParams = {
-                'symbol': market['id'],
-            }
-            trades = await self.watch_spot_public(url, commonChannel, messageHash, reqParams, params)
+            topic = 'trade.' + market['id']
         else:
-            channel = None
+            topic = 'publicTrade.'
             if market['option']:
-                channel = 'recenttrades' + '.' + market['baseId']
+                topic += market['baseId']
             else:
-                channel = commonChannel + '.' + market['id']
-            reqParams = [channel]
-            trades = await self.watch_contract_public(url, messageHash, reqParams, params)
+                topic += market['id']
+        trades = await self.watch_topics(url, messageHash, [topic], params)
         if self.newUpdates:
             limit = trades.getLimit(symbol, limit)
         return self.filter_by_since_limit(trades, since, limit, 'timestamp', True)
@@ -873,52 +540,49 @@ class bybit(Exchange, ccxt.async_support.bybit):
         #
         # swap
         #    {
-        #        topic: 'trade.BTCUSDT',
-        #        data: [
-        #          {
-        #            symbol: 'BTCUSDT',
-        #            tick_direction: 'ZeroPlusTick',
-        #            price: '29678.00',
-        #            size: 0.025,
-        #            timestamp: '2022-05-19T13:36:01.000Z',
-        #            trade_time_ms: '1652967361915',
-        #            side: 'Buy',
-        #            trade_id: '78352b1f-17b7-522a-9eea-b06f0deaf23e'
-        #          }
+        #        "topic": "publicTrade.BTCUSDT",
+        #        "type": "snapshot",
+        #        "ts": 1662694953823,
+        #        "data": [
+        #            {
+        #                "T": 1662694953819,
+        #                "s": "BTCUSDT",
+        #                "S": "Buy",
+        #                "v": "0.010",
+        #                "p": "19792.50",
+        #                "L": "PlusTick",
+        #                "i": "5c9ab13e-6010-522c-aecd-02c4d9c8db3d",
+        #                "BT": False
+        #            }
         #        ]
         #    }
         #
         # spot
-        #
         #    {
-        #        topic: 'trade',
-        #        params: {symbol: 'BTCUSDT', binary: 'false', symbolName: 'BTCUSDT'},
-        #        data: {
-        #          v: '2290000000003002848',
-        #          t: 1652967602261,
-        #          p: '29698.82',
-        #          q: '0.189531',
-        #          m: True
-        #        }
+        #        "data": {
+        #            "v": "2100000000001992601",
+        #            "t": 1661742109857,
+        #            "p": "19706.87",
+        #            "q": "0.000158",
+        #            "m": True
+        #        },
+        #        "type": "delta",
+        #        "topic": "trade.BTCUSDT",
+        #        "ts": 1661742109863
         #    }
         #
-        marketId = None
-        data = self.safe_value(message, 'data', [])
+        data = self.safe_value(message, 'data', {})
         topic = self.safe_string(message, 'topic')
         trades = None
-        if not isinstance(data, list):
-            # spot markets
-            params = self.safe_value(message, 'params', {})
-            marketId = self.safe_string(params, 'symbol')
-            # injecting marketId in trade
-            data['symbol'] = marketId
-            trades = [data]
-        else:
-            # contract markets
-            parts = topic.split('.')
-            marketId = self.safe_string(parts, 1)
-            trades = data
+        parts = topic.split('.')
+        marketId = self.safe_string(parts, 1)
         market = self.safe_market(marketId)
+        if isinstance(data, list):
+            # contract markets
+            trades = data
+        else:
+            # spot markets
+            trades = [data]
         symbol = market['symbol']
         stored = self.safe_value(self.trades, symbol)
         if stored is None:
@@ -933,64 +597,41 @@ class bybit(Exchange, ccxt.async_support.bybit):
 
     def parse_ws_trade(self, trade, market=None):
         #
-        # swap public
-        #
-        #     {
-        #       symbol: 'BTCUSDT',
-        #       tick_direction: 'ZeroPlusTick',
-        #       price: '29678.00',
-        #       size: 0.025,
-        #       timestamp: '2022-05-19T13:36:01.000Z',
-        #       trade_time_ms: '1652967361915',
-        #       side: 'Buy',
-        #       trade_id: '78352b1f-17b7-522a-9eea-b06f0deaf23e'
-        #     }
-        #
-        # swap private
+        # contract public
         #    {
-        #        symbol: 'LTCUSDT',
-        #        side: 'Buy',
-        #        order_id: '6773a86c-24c3-4066-90b6-d45c6653f35f',
-        #        exec_id: '91d4962c-828f-58f1-9a1e-388c357d9344',
-        #        order_link_id: '',
-        #        price: 71.8,
-        #        order_qty: 0.1,
-        #        exec_type: 'Trade',
-        #        exec_qty: 0.1,
-        #        exec_fee: 0.004308,
-        #        leaves_qty: 0,
-        #        is_maker: False,
-        #        trade_time: '2022-05-23T14:08:08.875206Z'
-        #    }
-        #
-        # option
-        #
-        #     {
-        #         "symbol":"BTC-31DEC21-36000-P",
-        #         "tradeId":"787bf079-b6a5-5bc0-a76d-59dad9036e7b",
-        #         "price":"371",
-        #         "size":"0.01",
-        #         "tradeTime":"1636510323144",
-        #         "side":"Buy",
-        #         "crossSeq":"118388"
+        #         T: 1670198879981,
+        #         s: 'BTCUSDT',
+        #         S: 'Buy',
+        #         v: '0.001',
+        #         p: '17130.00',
+        #         L: 'ZeroPlusTick',
+        #         i: 'a807f4ee-2e8b-5f21-a02a-3e258ddbfdc9',
+        #         BT: False
         #     }
+        # contract private
         #
-        # usdc
-        #   {
-        #       "orderId":"290b1b83-b6bb-4327-9839-8c5b9c322b4c",
-        #       "orderLinkId":"",
-        #       "tradeId":"3a69833e-f23c-5530-83a9-ccbb4af34926",
-        #       "symbol":"BTCPERP",
-        #       "side":"Sell",
-        #       "execPrice":"30331",
-        #       "execQty":"0.001",
-        #       "execFee":"0.0181986",
-        #       "feeRate":"0.0006",
-        #       "tradeTime":1653321686805,
-        #       "lastLiquidityInd":"TAKER",
-        #       "execValue":"30.331",
-        #       "execType":"TRADE"
-        #   }
+        # parsed by rest implementation
+        #    {
+        #        "symbol": "BITUSDT",
+        #        "execFee": "0.02022",
+        #        "execId": "beba036f-9fb4-59a7-84b7-2620e5d13e1c",
+        #        "execPrice": "0.674",
+        #        "execQty": "50",
+        #        "execType": "Trade",
+        #        "execValue": "33.7",
+        #        "feeRate": "0.0006",
+        #        "lastLiquidityInd": "RemovedLiquidity",
+        #        "leavesQty": "0",
+        #        "orderId": "ddbea432-2bd7-45dd-ab42-52d920b8136d",
+        #        "orderLinkId": "b001",
+        #        "orderPrice": "0.707",
+        #        "orderQty": "50",
+        #        "orderType": "Market",
+        #        "stopOrderType": "UNKNOWN",
+        #        "side": "Buy",
+        #        "execTime": "1659057535081",
+        #        "closedSize": "0"
+        #    }
         #
         # spot public
         #
@@ -1004,50 +645,39 @@ class bybit(Exchange, ccxt.async_support.bybit):
         #     }
         #
         # spot private
-        #
         #     {
-        #         'e': 'ticketInfo',
-        #         'E': '1653313467249',  # event time
-        #         's': 'LTCUSDT',
-        #         'q': '0.13621',
-        #         't': '1653313467227',  # timestamp
-        #         'p': '72.43',
-        #         'T': '2200000000004436641',  # trade Id
-        #         'o': '1162472050160422400',  # order Id
-        #         'c': '1653313466834',  # client Id
-        #         'O': '1162471954312183040',
-        #         'a': '24478790',  # account id
-        #         'A': '18478961',
-        #         'm': False,  # isMaker
+        #         "e": "ticketInfo",
+        #         "E": "1662348310386",
+        #         "s": "BTCUSDT",
+        #         "q": "0.001007",
+        #         "t": "1662348310373",
+        #         "p": "19842.02",
+        #         "T": "2100000000002220938",
+        #         "o": "1238261807653647872",
+        #         "c": "spotx008",
+        #         "O": "1238225004531834368",
+        #         "a": "533287",
+        #         "A": "642908",
+        #         "m": False,
+        #         "S": "BUY"
         #     }
         #
-        id = self.safe_string_n(trade, ['trade_id', 'v', 'tradeId', 'T', 'exec_id'])
-        marketId = self.safe_string_2(trade, 'symbol', 's')
+        id = self.safe_string_n(trade, ['i', 'T', 'v'])
+        marketId = self.safe_string(trade, 's')
         market = self.safe_market(marketId, market)
         symbol = market['symbol']
-        price = self.safe_string_n(trade, ['p', 'price', 'execPrice'])
-        amount = self.safe_string_n(trade, ['q', 'size', 'exec_qty', 'execQty'])
-        cost = self.safe_string_2(trade, 'exec_value', 'execValue')
-        timestamp = self.safe_integer_n(trade, ['trade_time_ms', 't', 'tradeTime', 'tradeTimeMs'])
-        if timestamp is None:
-            timestamp = self.parse8601(self.safe_string(trade, 'trade_time'))
-        side = self.safe_string_lower(trade, 'side')
-        isMaker = self.safe_value_2(trade, 'm', 'is_maker')
-        if isMaker is None:
-            lastLiquidityInd = self.safe_string(trade, 'lastLiquidityInd')
-            isMaker = (lastLiquidityInd == 'MAKER')
-        takerOrMaker = 'maker' if isMaker else 'taker'
-        orderId = self.safe_string_n(trade, ['o', 'order_id', 'tradeTime'])
-        fee = None
-        isContract = self.safe_value(market, 'contract')
-        if isContract:
-            feeCost = self.safe_string_2(trade, 'exec_fee', 'execFee')
-            if feeCost is not None:
-                feeCurrency = market['quote'] if market['linear'] else market['base']
-                fee = {
-                    'cost': feeCost,
-                    'currency': feeCurrency,
-                }
+        timestamp = self.safe_integer_2(trade, 't', 'T')
+        side = self.safe_string_lower(trade, 'S')
+        takerOrMaker = None
+        m = self.safe_value(trade, 'm')
+        if side is None:
+            side = 'buy' if m else 'sell'
+        else:
+            # spot private
+            takerOrMaker = m
+        price = self.safe_string(trade, 'p')
+        amount = self.safe_string_2(trade, 'q', 'v')
+        orderId = self.safe_string(trade, 'o')
         return self.safe_trade({
             'id': id,
             'info': trade,
@@ -1060,9 +690,17 @@ class bybit(Exchange, ccxt.async_support.bybit):
             'takerOrMaker': takerOrMaker,
             'price': price,
             'amount': amount,
-            'cost': cost,
-            'fee': fee,
+            'cost': None,
+            'fee': None,
         }, market)
+
+    def get_private_type(self, url):
+        if url.find('spot') >= 0:
+            return 'spot'
+        elif url.find('unified') >= 0:
+            return 'unified'
+        elif url.find('contract') >= 0:
+            return 'contract'
 
     async def watch_my_trades(self, symbol=None, since=None, limit=None, params={}):
         """
@@ -1071,121 +709,105 @@ class bybit(Exchange, ccxt.async_support.bybit):
         :param int|None since: the earliest time in ms to fetch orders for
         :param int|None limit: the maximum number of  orde structures to retrieve
         :param dict params: extra parameters specific to the bybit api endpoint
+        :param boolean params['unifiedMargin']: use unified margin account
         :returns [dict]: a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure
         """
         method = 'watchMyTrades'
-        messageHash = 'usertrade'
+        messageHash = 'myTrades'
         await self.load_markets()
-        market = None
-        type = None
-        isUsdcSettled = None
-        url = self.get_url_by_market_type(symbol, True, method, params)
         if symbol is not None:
-            market = self.market(symbol)
-            symbol = market['symbol']
+            symbol = self.symbol(symbol)
             messageHash += ':' + symbol
-            type = market['type']
-            isUsdcSettled = market['settle'] == 'USDC'
-        else:
-            type, params = self.handle_market_type_and_params(method, None, params)
-            settle = self.safe_string(self.options, 'defaultSettle')
-            settle = self.safe_string_2(params, 'settle', 'defaultSettle', settle)
-            isUsdcSettled = settle == 'USDC'
-        params = self.clean_params(params)
-        trades = None
-        if type == 'spot':
-            trades = await self.watch_spot_private(url, messageHash, params)
-        else:
-            channel = None
-            if isUsdcSettled:
-                channel = 'user.openapi.option.trade' if (type == 'option') else 'user.openapi.perp.trade'
-            else:
-                channel = 'execution'
-            reqParams = [channel]
-            messageHash += ':' + channel
-            trades = await self.watch_contract_private(url, messageHash, reqParams, params)
+        isUnifiedMargin = await self.isUnifiedMarginEnabled()
+        url = self.get_url_by_market_type(symbol, True, isUnifiedMargin, method, params)
+        await self.authenticate(url)
+        topicByMarket = {
+            'spot': 'ticketInfo',
+            'contract': 'user.execution.contractAccount',
+            'unified': 'user.execution.unifiedAccount',
+        }
+        topic = self.safe_value(topicByMarket, self.get_private_type(url))
+        trades = await self.watch_topics(url, messageHash, [topic], params)
         if self.newUpdates:
             limit = trades.getLimit(symbol, limit)
         return self.filter_by_since_limit(trades, since, limit, 'timestamp', True)
 
     def handle_my_trades(self, client, message):
         #
-        # spot
+        #    {
+        #        "type": "snapshot",
+        #        "topic": "ticketInfo",
+        #        "ts": "1662348310388",
+        #        "data": [
+        #            {
+        #                "e": "ticketInfo",
+        #                "E": "1662348310386",
+        #                "s": "BTCUSDT",
+        #                "q": "0.001007",
+        #                "t": "1662348310373",
+        #                "p": "19842.02",
+        #                "T": "2100000000002220938",
+        #                "o": "1238261807653647872",
+        #                "c": "spotx008",
+        #                "O": "1238225004531834368",
+        #                "a": "533287",
+        #                "A": "642908",
+        #                "m": False,
+        #                "S": "BUY"
+        #            }
+        #        ]
+        #    }
+        # contract
+        #     {
+        #         topic: 'user.execution.contractAccount',
+        #         data: [
+        #           {
+        #             symbol: 'BTCUSD',
+        #             execFee: '0.00000004',
+        #             execId: '7d0f66da-8312-52a9-959b-9fba58a90af0',
+        #             execPrice: '17228.00',
+        #             execQty: '1',
+        #             execType: 'Trade',
+        #             execValue: '0.00005804',
+        #             feeRate: '0.0006',
+        #             lastLiquidityInd: 'RemovedLiquidity',
+        #             leavesQty: '0',
+        #             orderId: '6111f83d-2c8c-463a-b9a8-77885eae2f57',
+        #             orderLinkId: '',
+        #             orderPrice: '17744.50',
+        #             orderQty: '1',
+        #             orderType: 'Market',
+        #             stopOrderType: 'UNKNOWN',
+        #             side: 'Buy',
+        #             execTime: '1670210101997',
+        #             closedSize: '0'
+        #           }
+        #         ]
+        #     }
         #
-        #   [
-        #       {
-        #           'e': 'ticketInfo',
-        #           'E': '1653313467249',
-        #           's': 'LTCUSDT',
-        #           'q': '0.13621',
-        #           't': '1653313467227',
-        #           'p': '72.43',
-        #           'T': '2200000000004436641',
-        #           'o': '1162472050160422400',
-        #           'c': '1653313466834',
-        #           'O': '1162471954312183040',
-        #           'a': '24478790',
-        #           'A': '18478961',
-        #           'm': False,
-        #       }
-        #   ]
-        #
-        # usdc
-        #
-        #   {
-        #       "id":"b4c38cdc-5708-4c24-9f26-b3468f7b9658",
-        #       "topic":"user.openapi.perp.trade",
-        #       "creationTime":1653321605512,
-        #       "data":{
-        #          "result":[
-        #             {
-        #                "orderId":"cfafeaae-f4a5-4ee5-bd03-b899251b1557",
-        #                "orderLinkId":"",
-        #                "tradeId":"29a3b7da-f593-55c4-9f23-afd9d6715668",
-        #                "symbol":"BTCPERP",
-        #                "side":"Buy",
-        #                "execPrice":"30333.5",
-        #                "execQty":"0.001",
-        #                "execFee":"0.0182001",
-        #                "feeRate":"0.0006",
-        #                "tradeTime":1653321605486,
-        #                "lastLiquidityInd":"TAKER",
-        #                "execValue":"30.3335",
-        #                "execType":"TRADE"
-        #             }
-        #          ],
-        #          "version":5,
-        #          "baseLine":1
-        #       }
-        #   }
-        #
-        topic = self.safe_string(message, 'topic', '')
-        data = []
-        if isinstance(message, list):
-            data = message
-        else:
-            data = self.safe_value(message, 'data', [])
-            if 'result' in data:
-                # usdc
-                data = data['result']
+        topic = self.safe_string(message, 'topic')
+        spot = topic == 'ticketInfo'
+        data = self.safe_value(message, 'data', [])
+        # unified margin
+        data = self.safe_value(data, 'result', data)
         if self.myTrades is None:
             limit = self.safe_integer(self.options, 'tradesLimit', 1000)
             self.myTrades = ArrayCacheBySymbolById(limit)
         trades = self.myTrades
-        marketSymbols = {}
+        symbols = {}
+        method = 'parseWsTrade' if spot else 'parseTrade'
         for i in range(0, len(data)):
             rawTrade = data[i]
-            parsed = self.parse_ws_trade(rawTrade)
+            parsed = getattr(self, method)(rawTrade)
             symbol = parsed['symbol']
-            marketSymbols[symbol] = True
+            symbols[symbol] = True
             trades.append(parsed)
-        symbols = list(marketSymbols.keys())
-        for i in range(0, len(symbols)):
-            symbol = symbols[i]
-            messageHash = 'usertrade:' + symbol + ':' + topic
+        keys = list(symbols.keys())
+        for i in range(0, len(keys)):
+            messageHash = 'myTrades:' + keys[i]
             client.resolve(trades, messageHash)
         # non-symbol specific
-        messageHash = 'usertrade:' + topic
+        messageHash = 'myTrades'
         client.resolve(trades, messageHash)
 
     async def watch_orders(self, symbol=None, since=None, limit=None, params={}):
@@ -1197,200 +819,170 @@ class bybit(Exchange, ccxt.async_support.bybit):
         :param dict params: extra parameters specific to the bybit api endpoint
         :returns [dict]: a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure
         """
-        method = 'watchOrders'
-        messageHash = 'order'
         await self.load_markets()
-        market = None
-        type = None
-        isUsdcSettled = None
-        url = self.get_url_by_market_type(symbol, True, method, params)
+        method = 'watchOrders'
+        messageHash = 'orders'
         if symbol is not None:
-            market = self.market(symbol)
-            symbol = market['symbol']
+            symbol = self.symbol(symbol)
             messageHash += ':' + symbol
-            type = market['type']
-            isUsdcSettled = market['settle'] == 'USDC'
-        else:
-            type, params = self.handle_market_type_and_params(method, None, params)
-            settle = self.safe_string(self.options, 'defaultSettle')
-            settle = self.safe_string_2(params, 'settle', 'defaultSettle', settle)
-            isUsdcSettled = settle == 'USDC'
-        params = self.clean_params(params)
-        orders = None
-        if type == 'spot':
-            orders = await self.watch_spot_private(url, messageHash, params)
-        else:
-            channel = None
-            if isUsdcSettled:
-                channel = 'user.openapi.option.order' if (type == 'option') else 'user.openapi.perp.order'
-            else:
-                orderType = self.safe_string(params, 'orderType')
-                stop = self.safe_value(params, 'stop', False)
-                isStopOrder = stop or (orderType == 'stop') or (orderType == 'conditional')
-                params = self.omit(params, ['stop', 'orderType'])
-                channel = 'stop_order' if isStopOrder else 'order'
-            reqParams = [channel]
-            messageHash += ':' + channel
-            orders = await self.watch_contract_private(url, messageHash, reqParams, params)
+        isUnifiedMargin = await self.isUnifiedMarginEnabled()
+        url = self.get_url_by_market_type(None, True, isUnifiedMargin, method, params)
+        await self.authenticate(url)
+        topicsByMarket = {
+            'spot': ['order', 'stopOrder'],
+            'contract': ['user.order.contractAccount'],
+            'unified': ['user.order.unifiedAccount'],
+        }
+        topics = self.safe_value(topicsByMarket, self.get_private_type(url))
+        orders = await self.watch_topics(url, messageHash, topics, params)
         if self.newUpdates:
             limit = orders.getLimit(symbol, limit)
         return self.filter_by_symbol_since_limit(orders, symbol, since, limit, True)
 
     def handle_order(self, client, message, subscription=None):
         #
-        # spot order
-        #
-        #     [
-        #         {
-        #           e: 'executionReport',
-        #           E: '1653297251061',
-        #           s: 'LTCUSDT',
-        #           c: '1653297250740',
-        #           S: 'SELL',
-        #           o: 'MARKET_OF_BASE',
-        #           f: 'GTC',
-        #           q: '0.16233',
-        #           p: '0',
-        #           X: 'NEW',
-        #           i: '1162336018974750208',
-        #           M: '0',
-        #           l: '0',
-        #           z: '0',
-        #           L: '0',
-        #           n: '0',
-        #           N: '',
-        #           u: True,
-        #           w: True,
-        #           m: False,
-        #           O: '1653297251042',
-        #           Z: '0',
-        #           A: '0',
-        #           C: False,
-        #           v: '0',
-        #           d: 'NO_LIQ'
-        #         }
-        #     ]
-        #
-        # swap order
+        #     spot
         #     {
-        #         topic: 'order',
-        #         action: '',
-        #         data: [
-        #           {
-        #             order_id: 'f52071fd-6604-4cff-8112-82958ec55d3f',
-        #             order_link_id: '',
-        #             symbol: 'LTCUSDT',
-        #             side: 'Buy',
-        #             order_type: 'Market',
-        #             price: 75.5,
-        #             qty: 0.1,
-        #             leaves_qty: 0,
-        #             last_exec_price: 71.93,
-        #             cum_exec_qty: 0.1,
-        #             cum_exec_value: 7.193,
-        #             cum_exec_fee: 0.0043158,
-        #             time_in_force: 'ImmediateOrCancel',
-        #             create_type: 'CreateByUser',
-        #             cancel_type: 'UNKNOWN',
-        #             order_status: 'Filled',
-        #             take_profit: 0,
-        #             stop_loss: 0,
-        #             trailing_stop: 0,
-        #             create_time: '2022-05-23T09:32:34.266539338Z',
-        #             update_time: '2022-05-23T09:32:34.270607105Z',
-        #             reduce_only: False,
-        #             close_on_trigger: False,
-        #             position_idx: '1'
-        #           }
+        #         "type": "snapshot",
+        #         "topic": "order",
+        #         "ts": "1662348310441",
+        #         "data": [
+        #             {
+        #                 "e": "order",
+        #                 "E": "1662348310441",
+        #                 "s": "BTCUSDT",
+        #                 "c": "spotx008",
+        #                 "S": "BUY",
+        #                 "o": "MARKET_OF_QUOTE",
+        #                 "f": "GTC",
+        #                 "q": "20",
+        #                 "p": "0",
+        #                 "X": "CANCELED",
+        #                 "i": "1238261807653647872",
+        #                 "M": "1238225004531834368",
+        #                 "l": "0.001007",
+        #                 "z": "0.001007",
+        #                 "L": "19842.02",
+        #                 "n": "0",
+        #                 "N": "BTC",
+        #                 "u": True,
+        #                 "w": True,
+        #                 "m": False,
+        #                 "O": "1662348310368",
+        #                 "Z": "19.98091414",
+        #                 "A": "0",
+        #                 "C": False,
+        #                 "v": "0",
+        #                 "d": "NO_LIQ",
+        #                 "t": "2100000000002220938"
+        #             }
         #         ]
         #     }
-        # usdc order
-        #
+        #  contract
         #     {
-        #         "id":"401a6485-5701-49f2-9d0b-c09d97d56748",
-        #         "topic":"user.openapi.perp.order",
-        #         "creationTime":1653304042137,
-        #         "data":{
-        #            "result":[
-        #               {
-        #                  "orderId":"fe2e0765-fa47-4516-a962-fb021b9418e7",
-        #                  "orderLinkId":"",
-        #                  "createdAt":1653304042104,
-        #                  "updatedAt":1653304042107,
-        #                  "symbol":"BTCPERP",
-        #                  "orderStatus":"New",
-        #                  "side":"Buy",
-        #                  "price":"20000.0000",
-        #                  "qty":"0.001",
-        #                  "cumExecQty":"0",
-        #                  "leavesQty":"0.001",
-        #                  "orderIM":"20.012",
-        #                  "realisedPnl":null,
-        #                  "orderType":"Limit",
-        #                  "reduceOnly":0,
-        #                  "timeInForce":"GoodTillCancel",
-        #                  "cumExecFee":"0",
-        #                  "orderPnl":"",
-        #                  "basePrice":"",
-        #                  "cumExecValue":"0",
-        #                  "closeOnTrigger":"false",
-        #                  "triggerBy":"UNKNOWN",
-        #                  "takeProfit":"0",
-        #                  "stopLoss":"0",
-        #                  "tpTriggerBy":"UNKNOWN",
-        #                  "slTriggerBy":"UNKNOWN",
-        #                  "triggerPrice":"0",
-        #                  "stopOrderType":"UNKNOWN",
-        #                  "cancelType":"UNKNOWN"
-        #               }
-        #            ],
-        #            "version":2,
-        #            "baseLine":1,
-        #            "dataType":"CHANGE"
-        #         }
-        #      }
+        #         "topic": "user.order.contractAccount",
+        #         "data": [
+        #             {
+        #                 "symbol": "BTCUSD",
+        #                 "orderId": "ee013d82-fafc-4504-97b1-d92aca21eedd",
+        #                 "side": "Buy",
+        #                 "orderType": "Market",
+        #                 "stopOrderType": "UNKNOWN",
+        #                 "price": "21920.00",
+        #                 "qty": "200",
+        #                 "timeInForce": "ImmediateOrCancel",
+        #                 "orderStatus": "Filled",
+        #                 "triggerPrice": "0.00",
+        #                 "orderLinkId": "inv001",
+        #                 "createdTime": "1661338622771",
+        #                 "updatedTime": "1661338622775",
+        #                 "takeProfit": "0.00",
+        #                 "stopLoss": "0.00",
+        #                 "tpTriggerBy": "UNKNOWN",
+        #                 "slTriggerBy": "UNKNOWN",
+        #                 "triggerBy": "UNKNOWN",
+        #                 "reduceOnly": False,
+        #                 "closeOnTrigger": False,
+        #                 "triggerDirection": 0,
+        #                 "leavesQty": "0",
+        #                 "lastExecQty": "200",
+        #                 "lastExecPrice": "21282.00",
+        #                 "cumExecQty": "200",
+        #                 "cumExecValue": "0.00939761"
+        #             }
+        #         ]
+        #     }
+        # unified
+        #     {
+        #         "id": "f91080af-5187-4261-a802-7604419771aa",
+        #         "topic": "user.order.unifiedAccount",
+        #         "ts": 1661932033707,
+        #         "data": {
+        #             "result": [
+        #                 {
+        #                     "orderId": "415f8961-4073-4d74-bc3e-df2830e52843",
+        #                     "orderLinkId": "",
+        #                     "symbol": "BTCUSDT",
+        #                     "side": "Buy",
+        #                     "orderType": "Limit",
+        #                     "price": "17000.00000000",
+        #                     "qty": "0.0100",
+        #                     "timeInForce": "GoodTillCancel",
+        #                     "orderStatus": "New",
+        #                     "cumExecQty": "0.0000",
+        #                     "cumExecValue": "0.00000000",
+        #                     "cumExecFee": "0.00000000",
+        #                     "stopOrderType": "UNKNOWN",
+        #                     "triggerBy": "UNKNOWN",
+        #                     "triggerPrice": "",
+        #                     "reduceOnly": True,
+        #                     "closeOnTrigger": True,
+        #                     "createdTime": 1661932033636,
+        #                     "updatedTime": 1661932033644,
+        #                     "iv": "",
+        #                     "orderIM": "",
+        #                     "takeProfit": "",
+        #                     "stopLoss": "",
+        #                     "tpTriggerBy": "UNKNOWN",
+        #                     "slTriggerBy": "UNKNOWN",
+        #                     "basePrice": "",
+        #                     "blockTradeId": "",
+        #                     "leavesQty": "0.0100"
+        #                 }
+        #             ],
+        #             "version": 284
+        #         },
+        #         "type": "snapshot"
+        #     }
         #
         topic = self.safe_string(message, 'topic', '')
-        data = []
-        isSpot = False
-        if isinstance(message, list):
-            data = message
-            isSpot = True
-        else:
-            data = self.safe_value(message, 'data', [])
-            if 'result' in data:
-                # usdc
-                data = data['result']
-        dataLength = len(data)
-        if dataLength == 0:
-            return
         if self.orders is None:
             limit = self.safe_integer(self.options, 'ordersLimit', 1000)
             self.orders = ArrayCacheBySymbolById(limit)
         orders = self.orders
-        marketSymbols = {}
-        for i in range(0, len(data)):
-            rawOrder = data[i]
-            parsed = None
-            if isSpot:
-                # spot orders have a different format
-                # from the REST API
-                parsed = self.parse_ws_order(rawOrder)
-            else:
-                parsed = self.parse_order(rawOrder)
+        rawOrders = []
+        parser = None
+        if topic == 'order':
+            rawOrders = self.safe_value(message, 'data', [])
+            parser = 'parseWsSpotOrder'
+        else:
+            parser = 'parseContractOrder'
+            rawOrders = self.safe_value(message, 'data', [])
+            rawOrders = self.safe_value(rawOrders, 'result', rawOrders)
+        symbols = {}
+        for i in range(0, len(rawOrders)):
+            parsed = getattr(self, parser)(rawOrders[i])
             symbol = parsed['symbol']
-            marketSymbols[symbol] = True
+            symbols[symbol] = True
             orders.append(parsed)
-        symbols = list(marketSymbols.keys())
-        for i in range(0, len(symbols)):
-            symbol = symbols[i]
-            messageHash = 'order:' + symbol + ':' + topic
+        symbolsArray = list(symbols.keys())
+        for i in range(0, len(symbolsArray)):
+            messageHash = 'orders:' + symbolsArray[i]
             client.resolve(orders, messageHash)
-        messageHash = 'order:' + topic
-        # non-symbol specific
+        messageHash = 'orders'
         client.resolve(orders, messageHash)
 
-    def parse_ws_order(self, order, market=None):
+    def parse_ws_spot_order(self, order, market=None):
         #
         #    {
         #        e: 'executionReport',
@@ -1428,13 +1020,19 @@ class bybit(Exchange, ccxt.async_support.bybit):
         price = self.safe_string(order, 'p')
         if price == '0':
             price = None  # market orders
-        amount = self.safe_string(order, 'q')
         filled = self.safe_string(order, 'z')
         status = self.parse_order_status(self.safe_string(order, 'X'))
         side = self.safe_string_lower(order, 'S')
         lastTradeTimestamp = self.safe_string(order, 'E')
         timeInForce = self.safe_string(order, 'f')
+        amount = None
+        cost = self.safe_string(order, 'Z')
+        q = self.safe_string(order, 'q')
         type = self.safe_string_lower(order, 'o')
+        if type.find('quote') >= 0:
+            amount = filled
+        else:
+            amount = q
         if type.find('market') >= 0:
             type = 'market'
         fee = None
@@ -1449,7 +1047,7 @@ class bybit(Exchange, ccxt.async_support.bybit):
         return self.safe_order({
             'info': order,
             'id': id,
-            'clientOrderId': None,
+            'clientOrderId': self.safe_string(order, 'c'),
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
             'lastTradeTimestamp': lastTradeTimestamp,
@@ -1461,13 +1059,12 @@ class bybit(Exchange, ccxt.async_support.bybit):
             'price': price,
             'stopPrice': None,
             'amount': amount,
-            'cost': None,
+            'cost': cost,
             'average': None,
             'filled': filled,
             'remaining': None,
             'status': status,
             'fee': fee,
-            'trades': None,
         }, market)
 
     async def watch_balance(self, params={}):
@@ -1477,130 +1074,181 @@ class bybit(Exchange, ccxt.async_support.bybit):
         :returns dict: a `balance structure <https://docs.ccxt.com/en/latest/manual.html?#balance-structure>`
         """
         method = 'watchBalance'
-        type = None
-        type, params = self.handle_market_type_and_params(method, None, params)
-        if type != 'spot' and type != 'swap':
-            raise NotSupported(self.id + ' watchBalance does not support ' + type + ' type')
-        messageHash = 'balance:' + type
-        url = self.get_url_by_market_type(None, True, method, params)
-        params = self.clean_params(params)
-        if type == 'spot':
-            return await self.watch_spot_private(url, messageHash, params)
-        else:
-            reqParams = [
-                'wallet',
-            ]
-            return await self.watch_contract_private(url, messageHash, reqParams, params)
+        messageHash = 'balances'
+        isUnifiedMargin = await self.isUnifiedMarginEnabled()
+        url = self.get_url_by_market_type(None, True, isUnifiedMargin, method, params)
+        await self.authenticate(url)
+        topicByMarket = {
+            'spot': 'outboundAccountInfo',
+            'contract': 'user.wallet.contractAccount',
+            'unified': 'user.wallet.unifiedAccount',
+        }
+        topics = [self.safe_value(topicByMarket, self.get_private_type(url))]
+        return await self.watch_topics(url, messageHash, topics, params)
 
     def handle_balance(self, client, message):
         #
-        # swap
-        #
-        #   {
-        #       "topic":"wallet",
-        #       "data":[
-        #          {
-        #             "wallet_balance":10.052857,
-        #             "available_balance":5.049857
-        #             "coin": "BTC",  # if not available = usdt
-        #          }
-        #       ]
-        #   }
-        #
-        # spot message
-        #
-        # [
-        #     {
-        #        "e":"outboundAccountInfo",
-        #        "E":"1653039590765",
-        #        "T":true,
-        #        "W":true,
-        #        "D":true,
-        #        "B":[
-        #           {
-        #              "a":"USDT",
-        #              "f":"14.6634752497",
-        #              "l":"10"
-        #           }
+        # spot
+        #    {
+        #        "type": "snapshot",
+        #        "topic": "outboundAccountInfo",
+        #        "ts": "1662107217641",
+        #        "data": [
+        #            {
+        #                "e": "outboundAccountInfo",
+        #                "E": "1662107217640",
+        #                "T": True,
+        #                "W": True,
+        #                "D": True,
+        #                "B": [
+        #                    {
+        #                        "a": "USDT",
+        #                        "f": "176.81254174",
+        #                        "l": "201.575"
+        #                    }
+        #                ]
+        #            }
         #        ]
-        #     }
-        # ]
+        #    }
+        # contract
+        #    {
+        #        "topic": "user.wallet.contractAccount",
+        #        "data": [
+        #            {
+        #                "coin": "USDT",
+        #                "equity": "610.3984319",
+        #                "walletBalance": "609.7384319",
+        #                "positionMargin": "4.7582882",
+        #                "availableBalance": "604.9801437",
+        #                "orderMargin": "0",
+        #                "unrealisedPnl": "0.66",
+        #                "cumRealisedPnl": "-0.2615681"
+        #            }
+        #        ]
+        #    }
+        # unified
+        #    {
+        #        "id": "46bd0430-1d03-48f7-a503-c6c020d07536",
+        #        "topic": "user.wallet.unifiedAccount",
+        #        "ts": 1649150852199,
+        #        "data": {
+        #            "result": {
+        #                "accountIMRate": "0.0002",
+        #                "accountMMRate": "0.0000",
+        #                "totalEquity": "510444.50000000",
+        #                "totalWalletBalance": "510444.50000000",
+        #                "totalMarginBalance": "510444.50000000",
+        #                "totalAvailableBalance": "510333.52491801",
+        #                "totalPerpUPL": "0.00000000",
+        #                "totalInitialMargin": "110.97508199",
+        #                "totalMaintenanceMargin": "9.13733489",
+        #                "coin": [{
+        #                    "currencyCoin": "USDC",
+        #                    "equity": "0.00000000",
+        #                    "usdValue": "0.00000000",
+        #                    "walletBalance": "0.00000000",
+        #                    "marginBalance": "510444.50000000",
+        #                    "availableBalance": "510333.52491801",
+        #                    "marginBalanceWithoutConvert": "0.00000000",
+        #                    "availableBalanceWithoutConvert": "0.00000000",
+        #                    "borrowSize": "0.00000000",
+        #                    "availableToBorrow": "200000.00000000",
+        #                    "accruedInterest": "0.00000000",
+        #                    "totalOrderIM": "0.00000000",
+        #                    "totalPositionIM": "0.00000000",
+        #                    "totalPositionMM": "0.00000000"
+        #                }]
+        #            },
+        #            "version": 19
+        #        },
+        #        "type": "snapshot"
+        #    }
         #
-        topic = self.safe_string(message, 'topic')
+        if self.balance is None:
+            self.balance = {}
         messageHash = 'balance'
-        if topic == 'wallet':
+        topic = self.safe_value(message, 'topic')
+        info = None
+        rawBalances = []
+        if topic == 'outboundAccountInfo':
             data = self.safe_value(message, 'data', [])
-            # swap
             for i in range(0, len(data)):
-                account = self.account()
-                balance = data[i]
-                currencyId = self.safe_string(balance, 'coin', 'USDT')
-                code = self.safe_currency_code(currencyId)
-                account['free'] = self.safe_string(balance, 'available_balance')
-                account['total'] = self.safe_string(balance, 'wallet_balance')
-                self.balance[code] = account
-                self.balance = self.safe_balance(self.balance)
-            messageHash += ':' + 'swap'
-            client.resolve(self.balance, messageHash)
-            return
-        if isinstance(message, list):
-            # spot balance
-            for i in range(0, len(message)):
-                balances = self.safe_value(message[i], 'B', [])
-                for j in range(0, len(balances)):
-                    balance = balances[j]
-                    account = self.account()
-                    code = self.safe_currency_code(self.safe_string(balance, 'a'))
-                    account['free'] = self.safe_string(balance, 'f')
-                    account['used'] = self.safe_string(balance, 'l')
-                    self.balance[code] = account
-                    self.balance = self.safe_balance(self.balance)
-            messageHash += ':' + 'spot'
-            client.resolve(self.balance, messageHash)
+                B = self.safe_value(data[i], 'B', [])
+                rawBalances = self.array_concat(rawBalances, B)
+            info = rawBalances
+        if topic == 'user.wallet.contractAccount':
+            rawBalances = self.safe_value(message, 'data', [])
+            info = rawBalances
+        if topic == 'user.wallet.unifiedAccount':
+            data = self.safe_value(message, 'data', {})
+            result = self.safe_value(data, 'result', {})
+            rawBalances = self.safe_value(result, 'coin', [])
+            info = result
+        for i in range(0, len(rawBalances)):
+            self.parse_ws_balance(rawBalances[i])
+        self.balance['info'] = info
+        timestamp = self.safe_integer(message, 'ts')
+        self.balance['timestamp'] = timestamp
+        self.balance['datetime'] = self.iso8601(timestamp)
+        self.balance = self.safe_balance(self.balance)
+        messageHash = 'balances'
+        client.resolve(self.balance, messageHash)
 
-    async def watch_contract_public(self, url, messageHash, reqParams={}, params={}):
+    def parse_ws_balance(self, balance):
+        #
+        # spot
+        #    {
+        #        "a": "USDT",
+        #        "f": "176.81254174",
+        #        "l": "201.575"
+        #    }
+        # contract
+        #    {
+        #        "coin": "USDT",
+        #        "equity": "610.3984319",
+        #        "walletBalance": "609.7384319",
+        #        "positionMargin": "4.7582882",
+        #        "availableBalance": "604.9801437",
+        #        "orderMargin": "0",
+        #        "unrealisedPnl": "0.66",
+        #        "cumRealisedPnl": "-0.2615681"
+        #    }
+        # unified
+        #    {
+        #        "currencyCoin": "USDC",
+        #        "equity": "0.00000000",
+        #        "usdValue": "0.00000000",
+        #        "walletBalance": "0.00000000",
+        #        "marginBalance": "510444.50000000",
+        #        "availableBalance": "510333.52491801",
+        #        "marginBalanceWithoutConvert": "0.00000000",
+        #        "availableBalanceWithoutConvert": "0.00000000",
+        #        "borrowSize": "0.00000000",
+        #        "availableToBorrow": "200000.00000000",
+        #        "accruedInterest": "0.00000000",
+        #        "totalOrderIM": "0.00000000",
+        #        "totalPositionIM": "0.00000000",
+        #        "totalPositionMM": "0.00000000"
+        #    }
+        #
+        account = self.account()
+        currencyId = self.safe_string_n(balance, ['a', 'currencyCoin', 'coin'])
+        code = self.safe_currency_code(currencyId)
+        account['free'] = self.safe_string_n(balance, ['availableBalanceWithoutConvert', 'availableBalance', 'f'])
+        account['used'] = self.safe_string(balance, 'l')
+        account['total'] = self.safe_string(balance, 'walletBalance')
+        self.balance[code] = account
+
+    async def watch_topics(self, url, messageHash, topics=[], params={}):
         request = {
             'op': 'subscribe',
-            'args': reqParams,
+            'req_id': self.request_id(),
+            'args': topics,
         }
         message = self.extend(request, params)
         return await self.watch(url, messageHash, message, messageHash)
 
-    async def watch_spot_public(self, url, channel, messageHash, reqParams={}, params={}):
-        reqParams = self.extend(reqParams, {
-            'binary': False,
-        })
-        request = {
-            'topic': channel,
-            'event': 'sub',
-            'params': reqParams,
-        }
-        message = self.extend(request, params)
-        return await self.watch(url, messageHash, message, messageHash)
-
-    async def watch_spot_private(self, url, messageHash, params={}):
-        channel = 'private'
-        # sending the authentication message automatically
-        # subscribes to all 3 private topics.
-        self.check_required_credentials()
-        expires = self.milliseconds() + 10000
-        expires = str(expires)
-        path = 'GET/realtime'
-        auth = path + expires
-        signature = self.hmac(self.encode(auth), self.encode(self.secret), hashlib.sha256, 'hex')
-        request = {
-            'op': 'auth',
-            'args': [
-                self.apiKey, expires, signature,
-            ],
-        }
-        return await self.watch(url, messageHash, request, channel)
-
-    async def watch_contract_private(self, url, messageHash, reqParams, params={}):
-        await self.authenticate_contract(url, params)
-        return await self.watch_contract_public(url, messageHash, reqParams, params)
-
-    async def authenticate_contract(self, url, params={}):
+    async def authenticate(self, url, params={}):
         self.check_required_credentials()
         messageHash = 'login'
         client = self.client(url)
@@ -1652,13 +1300,15 @@ class bybit(Exchange, ccxt.async_support.bybit):
             if code is not None:
                 feedback = self.id + ' ' + self.json(message)
                 self.throw_exactly_matched_exception(self.exceptions['exact'], code, feedback)
-            success = self.safe_value(message, 'success', False)
-            if not success:
+            success = self.safe_value(message, 'success')
+            if success is not None and not success:
                 ret_msg = self.safe_string(message, 'ret_msg')
                 request = self.safe_value(message, 'request', {})
                 op = self.safe_string(request, 'op')
                 if op == 'auth':
                     raise AuthenticationError('Authentication failed: ' + ret_msg)
+                else:
+                    raise ExchangeError(self.id + ' ' + ret_msg)
         except Exception as e:
             if isinstance(e, AuthenticationError):
                 client.reject(e, 'authenticated')
@@ -1666,87 +1316,10 @@ class bybit(Exchange, ccxt.async_support.bybit):
                 if method in client.subscriptions:
                     del client.subscriptions[method]
                 return False
+            raise e
         return message
 
     def handle_message(self, client, message):
-        #
-        #    {
-        #        topic: 'realtimes',
-        #        params: {symbol: 'BTCUSDT', binary: 'false', symbolName: 'BTCUSDT'},
-        #        data: {
-        #          t: 1652883737410,
-        #          s: 'BTCUSDT',
-        #          o: '30422.68',
-        #          h: '30715',
-        #          l: '29288.44',
-        #          c: '29462.94',
-        #          v: '4350.340495',
-        #          qv: '130497543.0334267',
-        #          m: '-0.0315'
-        #        }
-        #    }
-        #    {
-        #        topic: 'klineV2.1.LTCUSD',
-        #        data: [
-        #          {
-        #            start: 1652893140,
-        #            end: 1652893200,
-        #            open: 67.9,
-        #            close: 67.84,
-        #            high: 67.91,
-        #            low: 67.84,
-        #            volume: 56,
-        #            turnover: 0.82528936,
-        #            timestamp: '1652893152874413',
-        #            confirm: False,
-        #            cross_seq: 63544166
-        #          }
-        #        ],
-        #        timestamp_e6: 1652893152874413
-        #    }
-        #
-        #    {
-        #        topic: 'kline',
-        #        event: 'sub',
-        #        params: {
-        #          symbol: 'LTCUSDT',
-        #          binary: 'false',
-        #          klineType: '1m',
-        #          symbolName: 'LTCUSDT'
-        #        },
-        #        code: '0',
-        #        msg: 'Success'
-        #    }
-        #
-        #    {
-        #        topic: 'trade.BTCUSDT',
-        #        data: [
-        #          {
-        #            symbol: 'BTCUSDT',
-        #            tick_direction: 'ZeroPlusTick',
-        #            price: '29678.00',
-        #            size: 0.025,
-        #            timestamp: '2022-05-19T13:36:01.000Z',
-        #            trade_time_ms: '1652967361915',
-        #            side: 'Buy',
-        #            trade_id: '78352b1f-17b7-522a-9eea-b06f0deaf23e'
-        #          }
-        #        ]
-        #    }
-        #    {
-        #        success: True,
-        #        ret_msg: '',
-        #        conn_id: '55f508ad-d17b-48d8-8b19-669280a25a72',
-        #        request: {
-        #          op: 'auth',
-        #          args: [
-        #            'cH4MQfkrFNKYiLfpVB',
-        #            '1653038985746',
-        #            'eede78af3eb916ffc569a5c1466b83e36034324f480ca2684728d17fb606acae'
-        #          ]
-        #        }
-        #    }
-        #
         if not self.handle_error_message(client, message):
             return
         # contract pong
@@ -1759,7 +1332,7 @@ class bybit(Exchange, ccxt.async_support.bybit):
         if pong is not None:
             self.handle_pong(client, message)
             return
-        # usdc pong
+        # pong
         op = self.safe_string(message, 'op')
         if op == 'pong':
             self.handle_pong(client, message)
@@ -1768,61 +1341,38 @@ class bybit(Exchange, ccxt.async_support.bybit):
         if event == 'sub':
             self.handle_subscription_status(client, message)
             return
-        # contract public and private
         topic = self.safe_string(message, 'topic', '')
-        if (topic.find('kline') >= 0 or topic.find('candle') >= 0):
-            self.handle_ohlcv(client, message)
-            return
-        if (topic.find('realtimes') >= 0 or topic.find('instrument_info') >= 0):
-            self.handle_ticker(client, message)
-            return
-        if (topic.find('trade') >= 0):
-            if (topic.find('user') >= 0):
-                self.handle_my_trades(client, message)
-                return
-            self.handle_trades(client, message)
-        if topic.find('orderBook') >= 0:
-            self.handle_order_book(client, message)
-            return
-        if topic.find('order') >= 0:
-            self.handle_order(client, message)
-            return
         methods = {
-            'realtimes': self.handle_ticker,
-            'bookTicker': self.handle_ticker,
+            'orderbook': self.handle_order_book,
+            'kline': self.handle_ohlcv,
+            'order': self.handle_order,
+            'stopOrder': self.handle_order,
+            'ticker': self.handle_ticker,
+            'trade': self.handle_trades,
+            'publicTrade': self.handle_trades,
             'depth': self.handle_order_book,
             'wallet': self.handle_balance,
+            'outboundAccountInfo': self.handle_balance,
             'execution': self.handle_my_trades,
+            'ticketInfo': self.handle_my_trades,
         }
-        method = self.safe_value(methods, topic)
-        if method is not None:
-            method(client, message)
-        # contract auth acknowledgement
-        request = self.safe_value(message, 'request', {})
-        reqOp = self.safe_string(request, 'op')
-        if reqOp == 'auth':
-            self.handle_authenticate(client, message)
-        # usdc auth
+        keys = list(methods.keys())
+        for i in range(0, len(keys)):
+            key = keys[i]
+            if topic.find(keys[i]) >= 0:
+                method = methods[key]
+                method(client, message)
+                return
+        # unified auth acknowledgement
         type = self.safe_string(message, 'type')
-        if type == 'AUTH_RESP':
+        if (op == 'auth') or (type == 'AUTH_RESP'):
             self.handle_authenticate(client, message)
-        # private spot topics
-        if isinstance(message, list):
-            first = self.safe_value(message, 0)
-            topic = self.safe_string(first, 'e')
-            if topic == 'outboundAccountInfo':
-                self.handle_balance(client, message)
-            if topic == 'executionReport':
-                self.handle_order(client, message)
-            if topic == 'ticketInfo':
-                self.handle_my_trades(client, message)
 
-    def ping(self, client):
-        url = client.url
-        timestamp = self.milliseconds()
-        if url.find('spot') >= 0:
-            return {'ping': timestamp}
-        return {'op': 'ping'}
+    def ping(self):
+        return {
+            'req_id': self.request_id(),
+            'op': 'ping',
+        }
 
     def handle_pong(self, client, message):
         #
@@ -1843,20 +1393,16 @@ class bybit(Exchange, ccxt.async_support.bybit):
         #    {
         #        success: True,
         #        ret_msg: '',
-        #        conn_id: '55f508ad-d17b-48d8-8b19-669280a25a72',
-        #        request: {
-        #          op: 'auth',
-        #          args: [
-        #            'cH4MQfkrFNKYiLfpVB',
-        #            '1653038985746',
-        #            'eede78af3eb916ffc569a5c1466b83e36034324f480ca2684728d17fb606acae'
-        #          ]
-        #        }
+        #        op: 'auth',
+        #        conn_id: 'ce3dpomvha7dha97tvp0-2xh'
         #    }
         #
-        # self will only be effective for swap markets,
-        # spot markets don't have self 'authenticated' future
-        client.resolve(message, 'authenticated')
+        success = self.safe_value(message, 'success')
+        if success:
+            client.resolve(message, 'authenticated')
+        else:
+            error = AuthenticationError(self.id + ' ' + self.json(message))
+            client.reject(error, 'authenticated')
         return message
 
     def handle_subscription_status(self, client, message):

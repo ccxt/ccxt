@@ -14,7 +14,7 @@ class wavesexchange extends Exchange {
             'id' => 'wavesexchange',
             'name' => 'Waves.Exchange',
             'countries' => array( 'CH' ), // Switzerland
-            'certified' => true,
+            'certified' => false,
             'pro' => false,
             'has' => array(
                 'CORS' => null,
@@ -62,6 +62,7 @@ class wavesexchange extends Exchange {
                 'fetchPositionsRisk' => false,
                 'fetchPremiumIndexOHLCV' => false,
                 'fetchTicker' => true,
+                'fetchTickers' => true,
                 'fetchTrades' => true,
                 'fetchTransfer' => false,
                 'fetchTransfers' => false,
@@ -1394,10 +1395,10 @@ class wavesexchange extends Exchange {
         $this->check_required_keys();
         $this->sign_in();
         $wavesAddress = $this->get_waves_address();
-        $response = Async\await($this->forwardPostMatcherOrdersWavesAddressCancel (array(
+        $response = $this->forwardPostMatcherOrdersWavesAddressCancel (array(
             'wavesAddress' => $wavesAddress,
             'orderId' => $id,
-        )));
+        ));
         //  {
         //    "success":true,
         //    "message":[[array("orderId":"EBpJeGM36KKFz5gTJAUKDBm89V8wqxKipSFBdU35AN3c","success":true,"status":"OrderCanceled")]],

@@ -61,6 +61,9 @@ class gate extends \ccxt\async\gate {
                 'watchTradesSubscriptions' => array(),
                 'watchTickerSubscriptions' => array(),
                 'watchOrderBookSubscriptions' => array(),
+                'watchTicker' => array(
+                    'name' => 'tickers', // or book_ticker
+                ),
                 'watchOrderBook' => array(
                     'interval' => '100ms',
                 ),
@@ -119,7 +122,7 @@ class gate extends \ccxt\async\gate {
                 'limit' => $limit,
             );
             $orderbook = Async\await($this->subscribe_public($url, $method, $messageHash, $payload, $subscriptionParams));
-            return $orderbook->limit ($limit);
+            return $orderbook->limit ();
         }) ();
     }
 
@@ -171,7 +174,7 @@ class gate extends \ccxt\async\gate {
                         }
                     } else {
                         // throw upon failing to synchronize in $maxAttempts
-                        $client->subscriptions[$messageHash] = null;
+                        unset($client->subscriptions[$messageHash]);
                         throw new InvalidNonce($this->id . ' failed to synchronize WebSocket feed with the $snapshot for $symbol ' . $symbol . ' in ' . (string) $maxAttempts . ' attempts');
                     }
                 } else {
@@ -366,7 +369,9 @@ class gate extends \ccxt\async\gate {
             $marketId = $market['id'];
             $type = $market['type'];
             $messageType = $this->get_uniform_type($type);
-            $channel = $messageType . '.' . 'tickers';
+            $options = $this->safe_value($this->options, 'watchTicker', array());
+            $topic = $this->safe_string($options, 'name', 'tickers');
+            $channel = $messageType . '.' . $topic;
             $messageHash = $channel . '.' . $market['symbol'];
             $payload = array( $marketId );
             $url = $this->get_url_by_market_type($type, $market['inverse']);
@@ -390,6 +395,21 @@ class gate extends \ccxt\async\gate {
         //          quote_volume => '227267634.93123952',
         //          high_24h => '47698',
         //          low_24h => '42721.03'
+        //        }
+        //    }
+        //    {
+        //        time => 1671363004,
+        //        time_ms => 1671363004235,
+        //        $channel => 'spot.book_ticker',
+        //        event => 'update',
+        //        $result => {
+        //          t => 1671363004228,
+        //          u => 9793320464,
+        //          s => 'BTC_USDT',
+        //          b => '16716.8',
+        //          B => '0.0134',
+        //          a => '16716.9',
+        //          A => '0.0353'
         //        }
         //    }
         //
@@ -487,6 +507,15 @@ class gate extends \ccxt\async\gate {
 
     public function watch_ohlcv($symbol, $timeframe = '1m', $since = null, $limit = null, $params = array ()) {
         return Async\async(function () use ($symbol, $timeframe, $since, $limit, $params) {
+            /**
+             * watches historical candlestick data containing the open, high, low, and close price, and the volume of a $market
+             * @param {string} $symbol unified $symbol of the $market to fetch OHLCV data for
+             * @param {string} $timeframe the length of time each candle represents
+             * @param {int|null} $since timestamp in ms of the earliest candle to fetch
+             * @param {int|null} $limit the maximum amount of candles to fetch
+             * @param {array} $params extra parameters specific to the gate api endpoint
+             * @return {[[int]]} A list of candles ordered as timestamp, open, high, low, close, volume
+             */
             Async\await($this->load_markets());
             $market = $this->market($symbol);
             $symbol = $market['symbol'];
@@ -663,6 +692,7 @@ class gate extends \ccxt\async\gate {
         if ($cachedTrades === null) {
             $limit = $this->safe_integer($this->options, 'tradesLimit', 1000);
             $cachedTrades = new ArrayCacheBySymbolById ($limit);
+            $this->myTrades = $cachedTrades;
         }
         $parsed = $this->parse_trades($result);
         $marketIds = array();
@@ -805,25 +835,37 @@ class gate extends \ccxt\async\gate {
              * @param {int|null} $since the earliest time in ms to fetch $orders for
              * @param {int|null} $limit the maximum number of  orde structures to retrieve
              * @param {array} $params extra parameters specific to the gate api endpoint
-             * @return {[array]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structures}
+             * @param {string} $params->type spot, margin, swap, future, or option. Required if listening to all symbols.
+             * @param {boolean} $params->isInverse if future, listen to inverse or linear contracts
+             * @return {[array]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure
              */
-            if ($symbol === null) {
-                throw new ArgumentsRequired($this->id . ' watchOrders requires a $symbol argument');
-            }
             Async\await($this->load_markets());
-            $market = $this->market($symbol);
-            $symbol = $market['symbol'];
-            $type = 'spot';
-            if ($market['future'] || $market['swap']) {
-                $type = 'futures';
-            } elseif ($market['option']) {
-                $type = 'options';
+            $market = null;
+            if ($symbol !== null) {
+                $market = $this->market($symbol);
+                $symbol = $market['symbol'];
             }
-            $method = $type . '.orders';
+            $type = null;
+            $query = null;
+            list($type, $query) = $this->handle_market_type_and_params('watchOrders', $market, $params);
+            $typeId = $this->get_supported_mapping($type, array(
+                'spot' => 'spot',
+                'margin' => 'spot',
+                'future' => 'futures',
+                'swap' => 'futures',
+                'option' => 'options',
+            ));
+            $method = $typeId . '.orders';
             $messageHash = $method;
-            $messageHash = $method . ':' . $market['id'];
-            $url = $this->get_url_by_market_type($market['type'], $market['inverse']);
-            $payload = [ $market['id'] ];
+            $payload = array( '!' . 'all' );
+            if ($symbol !== null) {
+                $messageHash = $method . ':' . $market['id'];
+                $payload = [ $market['id'] ];
+            }
+            $subType = null;
+            list($subType, $query) = $this->handle_sub_type_and_params('watchOrders', $market, $query);
+            $isInverse = ($subType === 'inverse');
+            $url = $this->get_url_by_market_type($type, $isInverse);
             // uid required for non spot markets
             $requiresUid = ($type !== 'spot');
             $orders = Async\await($this->subscribe_private($url, $method, $messageHash, $payload, $requiresUid));
@@ -901,6 +943,7 @@ class gate extends \ccxt\async\gate {
                 $messageHash = $channel . ':' . $keys[$i];
                 $client->resolve ($this->orders, $messageHash);
             }
+            $client->resolve ($this->orders, $channel);
         }
     }
 
@@ -1116,6 +1159,7 @@ class gate extends \ccxt\async\gate {
             'candlesticks' => array($this, 'handle_ohlcv'),
             'orders' => array($this, 'handle_order'),
             'tickers' => array($this, 'handle_ticker'),
+            'book_ticker' => array($this, 'handle_ticker'),
             'trades' => array($this, 'handle_trades'),
             'order_book_update' => array($this, 'handle_order_book'),
             'balances' => array($this, 'handle_balance_message'),

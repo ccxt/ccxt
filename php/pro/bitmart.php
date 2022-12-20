@@ -35,7 +35,7 @@ class bitmart extends \ccxt\async\bitmart {
             'options' => array(
                 'defaultType' => 'spot',
                 'watchOrderBook' => array(
-                    'depth' => 'depth5', // depth5, depth400
+                    'depth' => 'depth5', // depth5, depth20, depth50
                 ),
                 'ws' => array(
                     'inflate' => true,
@@ -101,6 +101,8 @@ class bitmart extends \ccxt\async\bitmart {
              * @param {array} $params extra parameters specific to the bitmart api endpoint
              * @return {[array]} a list of ~@link https://docs.ccxt.com/en/latest/manual.html?#public-$trades trade structures~
              */
+            Async\await($this->load_markets());
+            $symbol = $this->symbol($symbol);
             $trades = Async\await($this->subscribe('trade', $symbol, $params));
             if ($this->newUpdates) {
                 $limit = $trades->getLimit ($symbol, $limit);
@@ -136,6 +138,7 @@ class bitmart extends \ccxt\async\bitmart {
             }
             Async\await($this->load_markets());
             $market = $this->market($symbol);
+            $symbol = $market['symbol'];
             if ($market['type'] !== 'spot') {
                 throw new ArgumentsRequired($this->id . ' watchOrders supports spot markets only');
             }
@@ -323,6 +326,17 @@ class bitmart extends \ccxt\async\bitmart {
 
     public function watch_ohlcv($symbol, $timeframe = '1m', $since = null, $limit = null, $params = array ()) {
         return Async\async(function () use ($symbol, $timeframe, $since, $limit, $params) {
+            /**
+             * watches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+             * @param {string} $symbol unified $symbol of the market to fetch OHLCV data for
+             * @param {string} $timeframe the length of time each candle represents
+             * @param {int|null} $since timestamp in ms of the earliest candle to fetch
+             * @param {int|null} $limit the maximum amount of candles to fetch
+             * @param {array} $params extra parameters specific to the bitmart api endpoint
+             * @return {[[int]]} A list of candles ordered as timestamp, open, high, low, close, volume
+             */
+            Async\await($this->load_markets());
+            $symbol = $this->symbol($symbol);
             $timeframes = $this->safe_value($this->options, 'timeframes', array());
             $interval = $this->safe_string($timeframes, $timeframe);
             $name = 'kline' . $interval;
@@ -393,9 +407,9 @@ class bitmart extends \ccxt\async\bitmart {
              * @return {array} A dictionary of {@link https://docs.ccxt.com/en/latest/manual.html#order-book-structure order book structures} indexed by market symbols
              */
             $options = $this->safe_value($this->options, 'watchOrderBook', array());
-            $depth = $this->safe_string($options, 'depth', 'depth400');
+            $depth = $this->safe_string($options, 'depth', 'depth50');
             $orderbook = Async\await($this->subscribe($depth, $symbol, $params));
-            return $orderbook->limit ($limit);
+            return $orderbook->limit ();
         }) ();
     }
 
@@ -617,7 +631,8 @@ class bitmart extends \ccxt\async\bitmart {
             $methods = array(
                 'depth' => array($this, 'handle_order_book'),
                 'depth5' => array($this, 'handle_order_book'),
-                'depth400' => array($this, 'handle_order_book'),
+                'depth20' => array($this, 'handle_order_book'),
+                'depth50' => array($this, 'handle_order_book'),
                 'ticker' => array($this, 'handle_ticker'),
                 'trade' => array($this, 'handle_trade'),
                 // ...
