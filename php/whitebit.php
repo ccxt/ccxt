@@ -46,6 +46,8 @@ class whitebit extends Exchange {
                 'fetchDeposit' => true,
                 'fetchDepositAddress' => true,
                 'fetchDeposits' => true,
+                'fetchDepositWithdrawFee' => 'emulated',
+                'fetchDepositWithdrawFees' => true,
                 'fetchFundingHistory' => false,
                 'fetchFundingRate' => false,
                 'fetchFundingRateHistory' => false,
@@ -219,6 +221,9 @@ class whitebit extends Exchange {
                     'spot' => 'spot',
                     'margin' => 'collateral',
                     'trade' => 'spot',
+                ),
+                'networksById' => array(
+                    'BEP20' => 'BSC',
                 ),
             ),
             'precisionMode' => TICK_SIZE,
@@ -422,7 +427,7 @@ class whitebit extends Exchange {
 
     public function fetch_transaction_fees($codes = null, $params = array ()) {
         /**
-         * fetch transaction fees
+         * *DEPRECATED* please use fetchDepositWithdrawFees instead
          * @param {[string]|null} $codes not used by fetchTransactionFees ()
          * @param {array} $params extra parameters specific to the whitebit api endpoint
          * @return {array} a list of {@link https://docs.ccxt.com/en/latest/manual.html#fee-structure fee structures}
@@ -471,6 +476,154 @@ class whitebit extends Exchange {
             'deposit' => $depositFees,
             'info' => $response,
         );
+    }
+
+    public function fetch_deposit_withdraw_fees($codes = null, $params = array ()) {
+        /**
+         * fetch deposit and withdraw fees
+         * @param {[string]|null} $codes not used by fetchDepositWithdrawFees ()
+         * @param {array} $params extra parameters specific to the whitebit api endpoint
+         * @return {array} a list of {@link https://docs.ccxt.com/en/latest/manual.html#fee-structure fee structures}
+         */
+        $this->load_markets();
+        $response = $this->v4PublicGetFee ($params);
+        //
+        //    {
+        //        "1INCH" => {
+        //            "is_depositable" => true,
+        //            "is_withdrawal" => true,
+        //            "ticker" => "1INCH",
+        //            "name" => "1inch",
+        //            "providers" => array(),
+        //            "withdraw" => array(
+        //                "max_amount" => "0",
+        //                "min_amount" => "21.5",
+        //                "fixed" => "17.5",
+        //                "flex" => null
+        //            ),
+        //            "deposit" => array(
+        //                "max_amount" => "0",
+        //                "min_amount" => "19.5",
+        //                "fixed" => null,
+        //                "flex" => null
+        //            }
+        //        ),
+        //        'WBT (ERC20)' => array(
+        //            is_depositable => true,
+        //            is_withdrawal => true,
+        //            ticker => 'WBT',
+        //            name => 'WhiteBIT Token',
+        //            providers => array(),
+        //            withdraw => array( max_amount => '0', min_amount => '0.7', fixed => '0.253', flex => null ),
+        //            deposit => array( max_amount => '0', min_amount => '0.35', fixed => null, flex => null )
+        //        ),
+        //        'WBT (TRC20)' => array(
+        //            is_depositable => true,
+        //            is_withdrawal => true,
+        //            ticker => 'WBT',
+        //            name => 'WhiteBIT Token',
+        //            providers => array(),
+        //            withdraw => array( max_amount => '0', min_amount => '1.5', fixed => '0.075', flex => null ),
+        //            deposit => array( max_amount => '0', min_amount => '0.75', fixed => null, flex => null )
+        //        ),
+        //        ...
+        //    }
+        //
+        return $this->parse_deposit_withdraw_fees($response, $codes);
+    }
+
+    public function parse_deposit_withdraw_fees($response, $codes = null, $currencyIdKey = null) {
+        //
+        //    {
+        //        "1INCH" => {
+        //            "is_depositable" => true,
+        //            "is_withdrawal" => true,
+        //            "ticker" => "1INCH",
+        //            "name" => "1inch",
+        //            "providers" => array(),
+        //            "withdraw" => array(
+        //                "max_amount" => "0",
+        //                "min_amount" => "21.5",
+        //                "fixed" => "17.5",
+        //                "flex" => null
+        //            ),
+        //            "deposit" => array(
+        //                "max_amount" => "0",
+        //                "min_amount" => "19.5",
+        //                "fixed" => null,
+        //                "flex" => null
+        //            }
+        //        ),
+        //        'WBT (ERC20)' => array(
+        //            is_depositable => true,
+        //            is_withdrawal => true,
+        //            ticker => 'WBT',
+        //            name => 'WhiteBIT Token',
+        //            providers => array(),
+        //            $withdraw => array( max_amount => '0', min_amount => '0.7', fixed => '0.253', flex => null ),
+        //            $deposit => array( max_amount => '0', min_amount => '0.35', fixed => null, flex => null )
+        //        ),
+        //        'WBT (TRC20)' => array(
+        //            is_depositable => true,
+        //            is_withdrawal => true,
+        //            ticker => 'WBT',
+        //            name => 'WhiteBIT Token',
+        //            providers => array(),
+        //            $withdraw => array( max_amount => '0', min_amount => '1.5', fixed => '0.075', flex => null ),
+        //            $deposit => array( max_amount => '0', min_amount => '0.75', fixed => null, flex => null )
+        //        ),
+        //        ...
+        //    }
+        //
+        $depositWithdrawFees = array();
+        $codes = $this->market_codes($codes);
+        $currencyIds = is_array($response) ? array_keys($response) : array();
+        for ($i = 0; $i < count($currencyIds); $i++) {
+            $entry = $currencyIds[$i];
+            $splitEntry = explode(' ', $entry);
+            $currencyId = $splitEntry[0];
+            $feeInfo = $response[$entry];
+            $code = $this->safe_currency_code($currencyId);
+            if (($codes === null) || ($this->in_array($code, $codes))) {
+                $depositWithdrawFee = $this->safe_value($depositWithdrawFees, $code);
+                if ($depositWithdrawFee === null) {
+                    $depositWithdrawFees[$code] = $this->deposit_withdraw_fee(array());
+                }
+                $depositWithdrawFees[$code]['info'][$entry] = $feeInfo;
+                $networkId = $this->safe_string($splitEntry, 1);
+                $withdraw = $this->safe_value($feeInfo, 'withdraw');
+                $deposit = $this->safe_value($feeInfo, 'deposit');
+                $withdrawFee = $this->safe_number($withdraw, 'fixed');
+                $depositFee = $this->safe_number($deposit, 'fixed');
+                $withdrawResult = array(
+                    'fee' => $withdrawFee,
+                    'percentage' => ($withdrawFee !== null) ? false : null,
+                );
+                $depositResult = array(
+                    'fee' => $depositFee,
+                    'percentage' => ($depositFee !== null) ? false : null,
+                );
+                if ($networkId !== null) {
+                    $networkLength = count($networkId);
+                    $networkId = mb_substr($networkId, 1, $networkLength - 1 - 1);
+                    $networkCode = $this->network_id_to_code($networkId);
+                    $depositWithdrawFees[$code]['networks'][$networkCode] = array(
+                        'withdraw' => $withdrawResult,
+                        'deposit' => $depositResult,
+                    );
+                } else {
+                    $depositWithdrawFees[$code]['withdraw'] = $withdrawResult;
+                    $depositWithdrawFees[$code]['deposit'] = $depositResult;
+                }
+            }
+        }
+        $depositWithdrawCodes = is_array($depositWithdrawFees) ? array_keys($depositWithdrawFees) : array();
+        for ($i = 0; $i < count($depositWithdrawCodes); $i++) {
+            $code = $depositWithdrawCodes[$i];
+            $currency = $this->currency($code);
+            $depositWithdrawFees[$code] = $this->assign_default_deposit_withdraw_fees($depositWithdrawFees[$code], $currency);
+        }
+        return $depositWithdrawFees;
     }
 
     public function fetch_trading_fees($params = array ()) {
@@ -828,7 +981,7 @@ class whitebit extends Exchange {
         $orderId = $this->safe_string_2($trade, 'dealOrderId', 'orderId');
         $cost = $this->safe_string($trade, 'deal');
         $price = $this->safe_string($trade, 'price');
-        $amount = $this->safe_string_2($trade, 'amount', 'base_volume');
+        $amount = $this->safe_string_2($trade, 'amount', 'quote_volume');
         $id = $this->safe_string_2($trade, 'id', 'tradeID');
         $side = $this->safe_string_2($trade, 'type', 'side');
         $symbol = $market['symbol'];

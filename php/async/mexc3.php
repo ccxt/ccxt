@@ -59,6 +59,8 @@ class mexc3 extends Exchange {
                 'fetchDepositAddresses' => null,
                 'fetchDepositAddressesByNetwork' => true,
                 'fetchDeposits' => true,
+                'fetchDepositWithdrawFee' => 'emulated',
+                'fetchDepositWithdrawFees' => true,
                 'fetchFundingHistory' => true,
                 'fetchFundingRate' => true,
                 'fetchFundingRateHistory' => true,
@@ -410,6 +412,9 @@ class mexc3 extends Exchange {
                     'BEP20' => 'BEP20(BSC)',
                     'BSC' => 'BEP20(BSC)',
                 ),
+                'networksById' => array(
+                    'BEP20(BSC)' => 'BSC',
+                ),
                 'networkAliases' => array(
                     'BSC(BEP20)' => 'BSC',
                 ),
@@ -428,13 +433,13 @@ class mexc3 extends Exchange {
                 'FLUX1' => 'FLUX', // switched places
                 'FLUX' => 'FLUX1', // switched places
                 'FREE' => 'FreeRossDAO', // conflict with FREE Coin
-                'GMT' => 'GMT Token',
+                'GMT' => 'GMT Token', // Conflict with GMT (STEPN)
+                'STEPN' => 'GMT', // Conflict with GMT Token
                 'HERO' => 'Step Hero', // conflict with Metahero
                 'MIMO' => 'Mimosa',
                 'PROS' => 'Pros.Finance', // conflict with Prosper
                 'SIN' => 'Sin City Token',
                 'SOUL' => 'Soul Swap',
-                'STEPN' => 'GMT',
             ),
             'exceptions' => array(
                 'exact' => array(
@@ -2930,55 +2935,253 @@ class mexc3 extends Exchange {
         }) ();
     }
 
+    public function parse_balance($response, $marketType) {
+        //
+        // spot
+        //
+        //     {
+        //         "asset" => "USDT",
+        //         "free" => "0.000000000674",
+        //         "locked" => "0"
+        //     }
+        //
+        // swap
+        //
+        //     {
+        //         "currency" => "BSV",
+        //         "positionMargin" => 0,
+        //         "availableBalance" => 0,
+        //         "cashBalance" => 0,
+        //         "frozenBalance" => 0,
+        //         "equity" => 0,
+        //         "unrealized" => 0,
+        //         "bonus" => 0
+        //     }
+        //
+        // margin
+        //
+        //     {
+        //         "baseAsset" => {
+        //             "asset" => "BTC",
+        //             "borrowEnabled" => true,
+        //             "borrowed" => "0",
+        //             "free" => "0",
+        //             "interest" => "0",
+        //             "locked" => "0",
+        //             "netAsset" => "0",
+        //             "netAssetOfBtc" => "0",
+        //             "repayEnabled" => true,
+        //             "totalAsset" => "0"
+        //         }
+        //         "quoteAsset" => {
+        //             "asset" => "USDT",
+        //             "borrowEnabled" => true,
+        //             "borrowed" => "0",
+        //             "free" => "10",
+        //             "interest" => "0",
+        //             "locked" => "0",
+        //             "netAsset" => "10",
+        //             "netAssetOfBtc" => "0",
+        //             "repayEnabled" => true,
+        //             "totalAsset" => "10"
+        //         }
+        //         "symbol" => "BTCUSDT",
+        //         "isolatedCreated" => true,
+        //         "enabled" => true,
+        //         "marginLevel" => "999",
+        //         "marginRatio" => "9",
+        //         "indexPrice" => "16741.137068965517241379",
+        //         "liquidatePrice" => "--",
+        //         "liquidateRate" => "--",
+        //         "tradeEnabled" => true
+        //     }
+        //
+        $wallet = null;
+        if ($marketType === 'margin') {
+            $wallet = $this->safe_value($response, 'assets', array());
+        } elseif ($marketType === 'swap') {
+            $wallet = $this->safe_value($response, 'data', array());
+        } else {
+            $wallet = $this->safe_value($response, 'balances', array());
+        }
+        $result = array( 'info' => $response );
+        if ($marketType === 'margin') {
+            for ($i = 0; $i < count($wallet); $i++) {
+                $entry = $wallet[$i];
+                $marketId = $this->safe_string($entry, 'symbol');
+                $symbol = $this->safe_symbol($marketId, null);
+                $base = $this->safe_value($entry, 'baseAsset', array());
+                $quote = $this->safe_value($entry, 'quoteAsset', array());
+                $baseCode = $this->safe_currency_code($this->safe_string($base, 'asset'));
+                $quoteCode = $this->safe_currency_code($this->safe_string($quote, 'asset'));
+                $subResult = array();
+                $subResult[$baseCode] = $this->parse_balance_helper($base);
+                $subResult[$quoteCode] = $this->parse_balance_helper($quote);
+                $result[$symbol] = $this->safe_balance($subResult);
+            }
+            return $result;
+        } elseif ($marketType === 'swap') {
+            for ($i = 0; $i < count($wallet); $i++) {
+                $entry = $wallet[$i];
+                $currencyId = $this->safe_string($entry, 'currency');
+                $code = $this->safe_currency_code($currencyId);
+                $account = $this->account();
+                $account['free'] = $this->safe_string($entry, 'availableBalance');
+                $account['used'] = $this->safe_string($entry, 'frozenBalance');
+                $result[$code] = $account;
+            }
+            return $this->safe_balance($result);
+        } else {
+            for ($i = 0; $i < count($wallet); $i++) {
+                $entry = $wallet[$i];
+                $currencyId = $this->safe_string($entry, 'asset');
+                $code = $this->safe_currency_code($currencyId);
+                $account = $this->account();
+                $account['free'] = $this->safe_string($entry, 'free');
+                $account['used'] = $this->safe_string($entry, 'locked');
+                $result[$code] = $account;
+            }
+            return $this->safe_balance($result);
+        }
+    }
+
+    public function parse_balance_helper($entry) {
+        $account = $this->account();
+        $account['used'] = $this->safe_string($entry, 'locked');
+        $account['free'] = $this->safe_string($entry, 'free');
+        $account['total'] = $this->safe_string($entry, 'totalAsset');
+        $debt = $this->safe_string($entry, 'borrowed');
+        $interest = $this->safe_string($entry, 'interest');
+        $account['debt'] = Precise::string_add($debt, $interest);
+        return $account;
+    }
+
     public function fetch_balance($params = array ()) {
         return Async\async(function () use ($params) {
             /**
-             * $query for $balance and get the amount of funds available for trading or funds locked in orders
+             * query for balance and get the amount of funds available for trading or funds locked in orders
+             * @see https://mxcdevelop.github.io/apidocs/spot_v3_en/#account-information
+             * @see https://mxcdevelop.github.io/apidocs/contract_v1_en/#get-all-informations-of-user-39-s-asset
+             * @see https://mxcdevelop.github.io/apidocs/spot_v3_en/#isolated-account
              * @param {array} $params extra parameters specific to the mexc3 api endpoint
-             * @return {array} a ~@link https://docs.ccxt.com/en/latest/manual.html?#$balance-structure $balance structure~
+             * @param {string|null} $params->symbols // required for margin, $market id's separated by commas
+             * @return {array} a ~@link https://docs.ccxt.com/en/latest/manual.html?#balance-structure balance structure~
              */
             Async\await($this->load_markets());
-            list($marketType, $query) = $this->handle_market_type_and_params('fetchBalance', null, $params);
-            $result = array();
-            $response = null;
-            if ($marketType === 'spot') {
-                $response = Async\await($this->fetch_account_helper('spot', $query));
-                $balances = $this->safe_value($response, 'balances', array());
-                for ($i = 0; $i < count($balances); $i++) {
-                    $entry = $balances[$i];
-                    $currencyId = $this->safe_string($entry, 'asset');
-                    $code = $this->safe_currency_code($currencyId);
-                    $account = $this->account();
-                    $account['free'] = $this->safe_string($entry, 'free');
-                    $account['used'] = $this->safe_string($entry, 'locked');
-                    $result[$code] = $account;
+            $marketType = null;
+            $request = array();
+            list($marketType, $params) = $this->handle_market_type_and_params('fetchBalance', null, $params);
+            $method = $this->get_supported_mapping($marketType, array(
+                'spot' => 'spotPrivateGetAccount',
+                'swap' => 'contractPrivateGetAccountAssets',
+                'margin' => 'spotPrivateGetMarginIsolatedAccount',
+            ));
+            $marginMode = $this->safe_string($params, 'marginMode');
+            $isMargin = $this->safe_value($params, 'margin', false);
+            if (($marginMode !== null) || ($isMargin) || ($marketType === 'margin')) {
+                $parsedSymbols = null;
+                $symbol = $this->safe_string($params, 'symbol');
+                if ($symbol === null) {
+                    $symbols = $this->safe_value($params, 'symbols');
+                    if ($symbols !== null) {
+                        $parsedSymbols = implode(',', $this->market_ids($symbols));
+                    }
+                } else {
+                    $market = $this->market($symbol);
+                    $parsedSymbols = $market['id'];
                 }
-            } elseif ($marketType === 'swap') {
-                $response = Async\await($this->contractPrivateGetAccountAssets ($query));
-                //
-                //     {
-                //         "success":true,
-                //         "code":0,
-                //         "data":array(
-                //             array("currency":"BSV","positionMargin":0,"availableBalance":0,"cashBalance":0,"frozenBalance":0,"equity":0,"unrealized":0,"bonus":0),
-                //             array("currency":"BCH","positionMargin":0,"availableBalance":0,"cashBalance":0,"frozenBalance":0,"equity":0,"unrealized":0,"bonus":0),
-                //             array("currency":"CRV","positionMargin":0,"availableBalance":0,"cashBalance":0,"frozenBalance":0,"equity":0,"unrealized":0,"bonus":0),
-                //         )
-                //     }
-                //
-                $data = $this->safe_value($response, 'data', array());
-                for ($i = 0; $i < count($data); $i++) {
-                    $balance = $data[$i];
-                    $currencyId = $this->safe_string($balance, 'currency');
-                    $code = $this->safe_currency_code($currencyId);
-                    $account = $this->account();
-                    $account['free'] = $this->safe_string($balance, 'availableBalance');
-                    $account['used'] = $this->safe_string($balance, 'frozenBalance');
-                    $result[$code] = $account;
-                }
+                $this->check_required_argument('fetchBalance', $parsedSymbols, 'symbol or symbols');
+                $method = 'spotPrivateGetMarginIsolatedAccount';
+                $marketType = 'margin';
+                $request['symbols'] = $parsedSymbols;
             }
-            $result['info'] = $response;
-            return $this->safe_balance($result);
+            $params = $this->omit($params, array( 'margin', 'marginMode', 'symbol', 'symbols' ));
+            $response = Async\await($this->$method (array_merge($request, $params)));
+            //
+            // spot
+            //
+            //     {
+            //         "makerCommission" => 0,
+            //         "takerCommission" => 20,
+            //         "buyerCommission" => 0,
+            //         "sellerCommission" => 0,
+            //         "canTrade" => true,
+            //         "canWithdraw" => true,
+            //         "canDeposit" => true,
+            //         "updateTime" => null,
+            //         "accountType" => "SPOT",
+            //         "balances" => array(
+            //             array(
+            //                 "asset" => "USDT",
+            //                 "free" => "0.000000000674",
+            //                 "locked" => "0"
+            //             ),
+            //         ),
+            //         "permissions" => ["SPOT"]
+            //     }
+            //
+            // swap
+            //
+            //     {
+            //         "success" => true,
+            //         "code" => 0,
+            //         "data" => array(
+            //             array(
+            //                 "currency" => "BSV",
+            //                 "positionMargin" => 0,
+            //                 "availableBalance" => 0,
+            //                 "cashBalance" => 0,
+            //                 "frozenBalance" => 0,
+            //                 "equity" => 0,
+            //                 "unrealized" => 0,
+            //                 "bonus" => 0
+            //             ),
+            //         )
+            //     }
+            //
+            // margin
+            //
+            //     {
+            //         "assets" => array(
+            //             {
+            //                 "baseAsset" => array(
+            //                     "asset" => "BTC",
+            //                     "borrowEnabled" => true,
+            //                     "borrowed" => "0",
+            //                     "free" => "0",
+            //                     "interest" => "0",
+            //                     "locked" => "0",
+            //                     "netAsset" => "0",
+            //                     "netAssetOfBtc" => "0",
+            //                     "repayEnabled" => true,
+            //                     "totalAsset" => "0"
+            //                 ),
+            //                 "quoteAsset" => array(
+            //                     "asset" => "USDT",
+            //                     "borrowEnabled" => true,
+            //                     "borrowed" => "0",
+            //                     "free" => "10",
+            //                     "interest" => "0",
+            //                     "locked" => "0",
+            //                     "netAsset" => "10",
+            //                     "netAssetOfBtc" => "0",
+            //                     "repayEnabled" => true,
+            //                     "totalAsset" => "10"
+            //                 ),
+            //                 "symbol" => "BTCUSDT",
+            //                 "isolatedCreated" => true,
+            //                 "enabled" => true,
+            //                 "marginLevel" => "999",
+            //                 "marginRatio" => "9",
+            //                 "indexPrice" => "16741.137068965517241379",
+            //                 "liquidatePrice" => "--",
+            //                 "liquidateRate" => "--",
+            //                 "tradeEnabled" => true
+            //             }
+            //         )
+            //     }
+            //
+            return $this->parse_balance($response, $marketType);
         }) ();
     }
 
@@ -3625,7 +3828,7 @@ class mexc3 extends Exchange {
                 $networkId = $this->safe_string($depositAddress, 'network');
                 $network = $this->safe_network($networkId);
                 $address = $this->safe_string($depositAddress, 'address', null);
-                $tag = $this->safe_string($depositAddress, 'tag', null);
+                $tag = $this->safe_string_2($depositAddress, 'tag', 'memo', null);
                 $result[] = array(
                     'currency' => $currency['id'],
                     'network' => $network,
@@ -4510,6 +4713,97 @@ class mexc3 extends Exchange {
         return $result;
     }
 
+    public function fetch_deposit_withdraw_fees($codes = null, $params = array ()) {
+        return Async\async(function () use ($codes, $params) {
+            /**
+             * fetch deposit and withdrawal fees
+             * @see https://mxcdevelop.github.io/apidocs/spot_v3_en/#query-the-currency-information
+             * @param {[string]|null} $codes returns fees for all currencies if null
+             * @param {array} $params extra parameters specific to the mexc3 api endpoint
+             * @return {[array]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#fee-structure fee structures}
+             */
+            Async\await($this->load_markets());
+            $response = Async\await($this->spotPrivateGetCapitalConfigGetall ($params));
+            //
+            //    array(
+            //       {
+            //           coin => 'AGLD',
+            //           name => 'Adventure Gold',
+            //           networkList => array(
+            //               array(
+            //                   coin => 'AGLD',
+            //                   depositDesc => null,
+            //                   depositEnable => true,
+            //                   minConfirm => '0',
+            //                   name => 'Adventure Gold',
+            //                   network => 'ERC20',
+            //                   withdrawEnable => true,
+            //                   withdrawFee => '10.000000000000000000',
+            //                   withdrawIntegerMultiple => null,
+            //                   withdrawMax => '1200000.000000000000000000',
+            //                   withdrawMin => '20.000000000000000000',
+            //                   sameAddress => false,
+            //                   contract => '0x32353a6c91143bfd6c7d363b546e62a9a2489a20',
+            //                   withdrawTips => null,
+            //                   depositTips => null
+            //               }
+            //               ...
+            //           )
+            //       ),
+            //       ...
+            //    )
+            //
+            return $this->parse_deposit_withdraw_fees($response, $codes, 'coin');
+        }) ();
+    }
+
+    public function parse_deposit_withdraw_fee($fee, $currency = null) {
+        //
+        //    {
+        //        coin => 'AGLD',
+        //        name => 'Adventure Gold',
+        //        $networkList => array(
+        //            {
+        //                coin => 'AGLD',
+        //                depositDesc => null,
+        //                depositEnable => true,
+        //                minConfirm => '0',
+        //                name => 'Adventure Gold',
+        //                network => 'ERC20',
+        //                withdrawEnable => true,
+        //                withdrawFee => '10.000000000000000000',
+        //                withdrawIntegerMultiple => null,
+        //                withdrawMax => '1200000.000000000000000000',
+        //                withdrawMin => '20.000000000000000000',
+        //                sameAddress => false,
+        //                contract => '0x32353a6c91143bfd6c7d363b546e62a9a2489a20',
+        //                withdrawTips => null,
+        //                depositTips => null
+        //            }
+        //            ...
+        //        )
+        //    }
+        //
+        $networkList = $this->safe_value($fee, 'networkList', array());
+        $result = $this->deposit_withdraw_fee($fee);
+        for ($j = 0; $j < count($networkList); $j++) {
+            $networkEntry = $networkList[$j];
+            $networkId = $this->safe_string($networkEntry, 'network');
+            $networkCode = $this->network_id_to_code($networkId, $this->safe_string($currency, 'code'));
+            $result['networks'][$networkCode] = array(
+                'withdraw' => array(
+                    'fee' => $this->safe_number($networkEntry, 'withdrawFee'),
+                    'percentage' => null,
+                ),
+                'deposit' => array(
+                    'fee' => null,
+                    'percentage' => null,
+                ),
+            );
+        }
+        return $this->assign_default_deposit_withdraw_fees($result);
+    }
+
     public function parse_margin_loan($info, $currency = null) {
         //
         //     {
@@ -4527,7 +4821,7 @@ class mexc3 extends Exchange {
         );
     }
 
-    public function handle_margin_mode_and_params($methodName, $params = array ()) {
+    public function handle_margin_mode_and_params($methodName, $params = array (), $defaultValue = null) {
         /**
          * @ignore
          * $marginMode specified by $params["marginMode"], $this->options["marginMode"], $this->options["defaultMarginMode"], $params["margin"] = true or $this->options["defaultType"] = 'margin'
@@ -4538,7 +4832,7 @@ class mexc3 extends Exchange {
         $defaultType = $this->safe_string($this->options, 'defaultType');
         $isMargin = $this->safe_value($params, 'margin', false);
         $marginMode = null;
-        list($marginMode, $params) = parent::handle_margin_mode_and_params($methodName, $params);
+        list($marginMode, $params) = parent::handle_margin_mode_and_params($methodName, $params, $defaultValue);
         if (($defaultType === 'margin') || ($isMargin === true)) {
             $marginMode = 'isolated';
         }

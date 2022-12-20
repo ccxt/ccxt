@@ -36,7 +36,7 @@ use Elliptic\EdDSA;
 use BN\BN;
 use Exception;
 
-$version = '2.1.102';
+$version = '2.4.43';
 
 // rounding mode
 const TRUNCATE = 0;
@@ -55,18 +55,16 @@ const PAD_WITH_ZERO = 1;
 
 class Exchange {
 
-    const VERSION = '2.1.102';
+    const VERSION = '2.4.43';
 
     private static $base58_alphabet = '123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz';
     private static $base58_encoder = null;
     private static $base58_decoder = null;
 
     public static $exchanges = array(
-        'aax',
         'alpaca',
         'ascendex',
         'bequant',
-        'bibox',
         'bigone',
         'binance',
         'binancecoinm',
@@ -103,9 +101,7 @@ class Exchange {
         'btctradeua',
         'btcturk',
         'buda',
-        'bw',
         'bybit',
-        'bytetrade',
         'cex',
         'coinbase',
         'coinbaseprime',
@@ -116,7 +112,6 @@ class Exchange {
         'coinmate',
         'coinone',
         'coinspot',
-        'crex24',
         'cryptocom',
         'currencycom',
         'delta',
@@ -145,7 +140,6 @@ class Exchange {
         'latoken',
         'lbank',
         'lbank2',
-        'liquid',
         'luno',
         'lykke',
         'mercado',
@@ -287,6 +281,7 @@ class Exchange {
         'parseNumber' => 'parse_number',
         'checkOrderArguments' => 'check_order_arguments',
         'handleHttpStatusCode' => 'handle_http_status_code',
+        'getDefaultOptions' => 'get_default_options',
         'safeLedgerEntry' => 'safe_ledger_entry',
         'setMarkets' => 'set_markets',
         'safeBalance' => 'safe_balance',
@@ -307,6 +302,14 @@ class Exchange {
         'filterBySymbol' => 'filter_by_symbol',
         'parseOHLCV' => 'parse_ohlcv',
         'getNetwork' => 'get_network',
+        'networkCodeToId' => 'network_code_to_id',
+        'networkIdToCode' => 'network_id_to_code',
+        'networkCodesToIds' => 'network_codes_to_ids',
+        'handleNetworkCodeAndParams' => 'handle_network_code_and_params',
+        'defaultNetworkCode' => 'default_network_code',
+        'selectNetworkCodeFromUnifiedNetworks' => 'select_network_code_from_unified_networks',
+        'selectNetworkIdFromRawNetworks' => 'select_network_id_from_raw_networks',
+        'selectNetworkKeyFromNetworks' => 'select_network_key_from_networks',
         'safeNumber2' => 'safe_number_2',
         'parseOrderBook' => 'parse_order_book',
         'parseOHLCVs' => 'parse_ohlcvs',
@@ -349,11 +352,13 @@ class Exchange {
         'fetchFundingFees' => 'fetch_funding_fees',
         'fetchTransactionFee' => 'fetch_transaction_fee',
         'fetchTransactionFees' => 'fetch_transaction_fees',
+        'fetchDepositWithdrawFee' => 'fetch_deposit_withdraw_fee',
         'getSupportedMapping' => 'get_supported_mapping',
         'fetchBorrowRate' => 'fetch_borrow_rate',
         'handleOptionAndParams' => 'handle_option_and_params',
         'handleMarketTypeAndParams' => 'handle_market_type_and_params',
         'handleSubTypeAndParams' => 'handle_sub_type_and_params',
+        'handleMarginModeAndParams' => 'handle_margin_mode_and_params',
         'throwExactlyMatchedException' => 'throw_exactly_matched_exception',
         'throwBroadlyMatchedException' => 'throw_broadly_matched_exception',
         'findBroadlyMatchedKey' => 'find_broadly_matched_key',
@@ -421,10 +426,12 @@ class Exchange {
         'fetchPremiumIndexOHLCV' => 'fetch_premium_index_ohlcv',
         'handleTimeInForce' => 'handle_time_in_force',
         'convertTypeToAccount' => 'convert_type_to_account',
-        'handleMarginModeAndParams' => 'handle_margin_mode_and_params',
         'checkRequiredArgument' => 'check_required_argument',
         'checkRequiredMarginArgument' => 'check_required_margin_argument',
         'checkRequiredSymbol' => 'check_required_symbol',
+        'parseDepositWithdrawFees' => 'parse_deposit_withdraw_fees',
+        'depositWithdrawFee' => 'deposit_withdraw_fee',
+        'assignDefaultDepositWithdrawFees' => 'assign_default_deposit_withdraw_fees',
     );
 
     public static function split($string, $delimiters = array(' ')) {
@@ -456,10 +463,23 @@ class Exchange {
     }
 
     public static function safe_string_lower($object, $key, $default_value = null) {
-        return static::valid_object_value($object, $key) ? strtolower(strval($object[$key])) : $default_value;
+        if (static::valid_object_value($object, $key)) {
+            return strtolower(strval($object[$key]));
+        } else if ($default_value === null) {
+            return $default_value;
+        } else {
+            return strtolower($default_value);
+        }
     }
 
     public static function safe_string_upper($object, $key, $default_value = null) {
+        if (static::valid_object_value($object, $key)) {
+            return strtoupper(strval($object[$key]));
+        } else if ($default_value === null) {
+            return $default_value;
+        } else {
+            return strtoupper($default_value);
+        }
         return static::valid_object_value($object, $key) ? strtoupper(strval($object[$key])) : $default_value;
     }
 
@@ -534,12 +554,24 @@ class Exchange {
 
     public static function safe_string_lower_n($object, $array, $default_value = null) {
         $value = static::get_object_value_from_key_array($object, $array);
-        return (static::valid_string($value) && is_scalar($value)) ? strtolower(strval($value)) : $default_value;
+        if (static::valid_string($value) && is_scalar($value)) {
+            return strtolower(strval($value));
+        } else if ($default_value === null) {
+            return $default_value;
+        } else {
+            return strtolower($default_value);
+        }
     }
 
     public static function safe_string_upper_n($object, $array, $default_value = null) {
         $value = static::get_object_value_from_key_array($object, $array);
-        return (static::valid_string($value) && is_scalar($value)) ? strtoupper(strval($value)) : $default_value;
+        if (static::valid_string($value) && is_scalar($value)) {
+            return strtoupper(strval($value));
+        } else if ($default_value === null) {
+            return $default_value;
+        } else {
+            return strtoupper($default_value);
+        }
     }
 
     public static function safe_integer_n($object, $array, $default_value = null) {
@@ -563,7 +595,7 @@ class Exchange {
 
     public static function get_object_value_from_key_array($object, $array) {
         foreach($array as $key) {
-            if (isset($object[$key])) {
+            if (isset($object[$key]) && $object[$key] !== '') {
                 return $object[$key];
             }
         }
@@ -1141,7 +1173,7 @@ class Exchange {
         $this->headers = array();
         $this->hostname = null; // in case of inaccessibility of the "main" domain
 
-        $this->options = array(); // exchange-specific options if any
+        $this->options = $this->get_default_options(); // exchange-specific options if any
 
         $this->skipJsonOnStatusCodes = false; // TODO: reserved, rewrite the curl routine to parse JSON body anyway
         $this->quoteJsonNumbers = true; // treat numbers in json as quoted precise strings
@@ -1203,6 +1235,7 @@ class Exchange {
             '404' => 'ExchangeNotAvailable',
             '409' => 'ExchangeNotAvailable',
             '410' => 'ExchangeNotAvailable',
+            '451' => 'ExchangeNotAvailable',
             '500' => 'ExchangeNotAvailable',
             '501' => 'ExchangeNotAvailable',
             '502' => 'ExchangeNotAvailable',
@@ -1219,6 +1252,7 @@ class Exchange {
             '408' => 'RequestTimeout',
             '504' => 'RequestTimeout',
             '401' => 'AuthenticationError',
+            '407' => 'AuthenticationError',
             '511' => 'AuthenticationError',
         );
         $this->verbose = false;
@@ -2441,6 +2475,16 @@ class Exchange {
 
     // METHODS BELOW THIS LINE ARE TRANSPILED FROM JAVASCRIPT TO PYTHON AND PHP
 
+    public function get_default_options() {
+        return array(
+            'defaultNetworkCodeReplacements' => array(
+                'ETH' => array( 'ERC20' => 'ETH' ),
+                'TRX' => array( 'TRC20' => 'TRX' ),
+                'CRO' => array( 'CRC20' => 'CRONOS' ),
+            ),
+        );
+    }
+
     public function safe_ledger_entry($entry, $currency = null) {
         $currency = $this->safe_currency(null, $currency);
         $direction = $this->safe_string($entry, 'direction');
@@ -2511,7 +2555,7 @@ class Exchange {
             $quoteCurrencies = array();
             for ($i = 0; $i < count($values); $i++) {
                 $market = $values[$i];
-                $defaultCurrencyPrecision = ($this->precisionMode === DECIMAL_PLACES) ? 8 : $this->parse_number('0.00000001');
+                $defaultCurrencyPrecision = ($this->precisionMode === DECIMAL_PLACES) ? 8 : $this->parse_number('1e-8');
                 $marketPrecision = $this->safe_value($market, 'precision', array());
                 if (is_array($market) && array_key_exists('base', $market)) {
                     $currencyPrecision = $this->safe_value_2($marketPrecision, 'base', 'amount', $defaultCurrencyPrecision);
@@ -2737,12 +2781,29 @@ class Exchange {
             }
         }
         // ensure that the $average field is calculated correctly
+        $inverse = $this->safe_value($market, 'inverse', false);
+        $contractSize = $this->number_to_string($this->safe_value($market, 'contractSize', 1));
+        // $inverse
+        // $price = $filled * contract size / $cost
+        //
+        // linear
+        // $price = $cost / ($filled * contract size)
         if ($average === null) {
             if (($filled !== null) && ($cost !== null) && Precise::string_gt($filled, '0')) {
-                $average = Precise::string_div($cost, $filled);
+                $filledTimesContractSize = Precise::string_mul($filled, $contractSize);
+                if ($inverse) {
+                    $average = Precise::string_div($filledTimesContractSize, $cost);
+                } else {
+                    $average = Precise::string_div($cost, $filledTimesContractSize);
+                }
             }
         }
-        // also ensure the $cost field is calculated correctly
+        // similarly
+        // $inverse
+        // $cost = $filled * contract size / $price
+        //
+        // linear
+        // $cost = $filled * contract size * $price
         $costPriceExists = ($average !== null) || ($price !== null);
         if ($parseCost && ($filled !== null) && $costPriceExists) {
             $multiplyPrice = null;
@@ -2752,15 +2813,12 @@ class Exchange {
                 $multiplyPrice = $average;
             }
             // contract trading
-            $contractSize = $this->safe_string($market, 'contractSize');
-            if ($contractSize !== null) {
-                $inverse = $this->safe_value($market, 'inverse', false);
-                if ($inverse) {
-                    $multiplyPrice = Precise::string_div('1', $multiplyPrice);
-                }
-                $multiplyPrice = Precise::string_mul($multiplyPrice, $contractSize);
+            $filledTimesContractSize = Precise::string_mul($filled, $contractSize);
+            if ($inverse) {
+                $cost = Precise::string_div($filledTimesContractSize, $multiplyPrice);
+            } else {
+                $cost = Precise::string_mul($filledTimesContractSize, $multiplyPrice);
             }
-            $cost = Precise::string_mul($multiplyPrice, $filled);
         }
         // support for $market orders
         $orderType = $this->safe_value($order, 'type');
@@ -2781,16 +2839,20 @@ class Exchange {
             }
             $entry['fee'] = $fee;
         }
-        // timeInForceHandling
         $timeInForce = $this->safe_string($order, 'timeInForce');
+        $postOnly = $this->safe_value($order, 'postOnly');
+        // timeInForceHandling
         if ($timeInForce === null) {
             if ($this->safe_string($order, 'type') === 'market') {
                 $timeInForce = 'IOC';
             }
-            // allow postOnly override
-            if ($this->safe_value($order, 'postOnly', false)) {
+            // allow $postOnly override
+            if ($postOnly) {
                 $timeInForce = 'PO';
             }
+        } elseif ($postOnly === null) {
+            // $timeInForce is not null here
+            $postOnly = $timeInForce === 'PO';
         }
         return array_merge($order, array(
             'lastTradeTimestamp' => $lastTradeTimeTimestamp,
@@ -2801,6 +2863,7 @@ class Exchange {
             'filled' => $this->parse_number($filled),
             'remaining' => $this->parse_number($remaining),
             'timeInForce' => $timeInForce,
+            'postOnly' => $postOnly,
             'trades' => $trades,
         ));
     }
@@ -3289,6 +3352,149 @@ class Exchange {
         }
     }
 
+    public function network_code_to_id($networkCode, $currencyCode = null) {
+        /**
+         * @ignore
+         * tries to convert the provided $networkCode (which is expected to be an unified network code) to a network id. In order to achieve this, derived class needs to have 'options->networks' defined.
+         * @param {string} $networkCode unified network code
+         * @param {string|null} $currencyCode unified currency code, but this argument is not required by default, unless there is an exchange (like huobi) that needs an override of the method to be able to pass $currencyCode argument additionally
+         * @return {[string|null]} exchange-specific network id
+         */
+        $networkIdsByCodes = $this->safe_value($this->options, 'networks', array());
+        $networkId = $this->safe_string($networkIdsByCodes, $networkCode);
+        // for example, if 'ETH' is passed for $networkCode, but 'ETH' $key not defined in `options->networks` object
+        if ($networkId === null) {
+            if ($currencyCode === null) {
+                // if $currencyCode was not provided, then we just set passed $value to $networkId
+                $networkId = $networkCode;
+            } else {
+                // if $currencyCode was provided, then we try to find if that $currencyCode has a replacement ($i->e. ERC20 for ETH)
+                $defaultNetworkCodeReplacements = $this->safe_value($this->options, 'defaultNetworkCodeReplacements', array());
+                if (is_array($defaultNetworkCodeReplacements) && array_key_exists($currencyCode, $defaultNetworkCodeReplacements)) {
+                    // if there is a replacement for the passed $networkCode, then we use it to find network-id in `options->networks` object
+                    $replacementObject = $defaultNetworkCodeReplacements[$currencyCode]; // $i->e. array( 'ERC20' => 'ETH' )
+                    $keys = is_array($replacementObject) ? array_keys($replacementObject) : array();
+                    for ($i = 0; $i < count($keys); $i++) {
+                        $key = $keys[$i];
+                        $value = $replacementObject[$key];
+                        // if $value matches to provided unified $networkCode, then we use it's $key to find network-id in `options->networks` object
+                        if ($value === $networkCode) {
+                            $networkId = $this->safe_string($networkIdsByCodes, $key);
+                            break;
+                        }
+                    }
+                }
+                // if it wasn't found, we just set the provided $value to network-id
+                if ($networkId === null) {
+                    $networkId = $networkCode;
+                }
+            }
+        }
+        return $networkId;
+    }
+
+    public function network_id_to_code($networkId, $currencyCode = null) {
+        /**
+         * @ignore
+         * tries to convert the provided exchange-specific $networkId to an unified network Code. In order to achieve this, derived class needs to have 'options->networksById' defined.
+         * @param {string} $networkId unified network code
+         * @param {string|null} $currencyCode unified currency code, but this argument is not required by default, unless there is an exchange (like huobi) that needs an override of the method to be able to pass $currencyCode argument additionally
+         * @return {[string|null]} unified network code
+         */
+        $networkCodesByIds = $this->safe_value($this->options, 'networksById', array());
+        $networkCode = $this->safe_string($networkCodesByIds, $networkId, $networkId);
+        // replace mainnet network-codes (i.e. ERC20->ETH)
+        if ($currencyCode !== null) {
+            $defaultNetworkCodeReplacements = $this->safe_value($this->options, 'defaultNetworkCodeReplacements', array());
+            if (is_array($defaultNetworkCodeReplacements) && array_key_exists($currencyCode, $defaultNetworkCodeReplacements)) {
+                $replacementObject = $this->safe_value($defaultNetworkCodeReplacements, $currencyCode, array());
+                $networkCode = $this->safe_string($replacementObject, $networkCode, $networkCode);
+            }
+        }
+        return $networkCode;
+    }
+
+    public function network_codes_to_ids($networkCodes = null) {
+        /**
+         * @ignore
+         * tries to convert the provided $networkCode (which is expected to be an unified network code) to a network id. In order to achieve this, derived class needs to have 'options->networks' defined.
+         * @param {[string]|null} $networkCodes unified network codes
+         * @return {[string|null]} exchange-specific network $ids
+         */
+        if ($networkCodes === null) {
+            return null;
+        }
+        $ids = array();
+        for ($i = 0; $i < count($networkCodes); $i++) {
+            $networkCode = $networkCodes[$i];
+            $ids[] = $this->networkCodeToId ($networkCode);
+        }
+        return $ids;
+    }
+
+    public function handle_network_code_and_params($params) {
+        $networkCodeInParams = $this->safe_string_2($params, 'networkCode', 'network');
+        if ($networkCodeInParams !== null) {
+            $params = $this->omit ($params, array( 'networkCode', 'network' ));
+        }
+        // if it was not defined by user, we should not set it from 'defaultNetworks', because handleNetworkCodeAndParams is for only request-side and thus we do not fill it with anything. We can only use 'defaultNetworks' after parsing response-side
+        return array( $networkCodeInParams, $params );
+    }
+
+    public function default_network_code($currencyCode) {
+        $defaultNetworkCode = null;
+        $defaultNetworks = $this->safe_value($this->options, 'defaultNetworks', array());
+        if (is_array($defaultNetworks) && array_key_exists($currencyCode, $defaultNetworks)) {
+            // if currency had set its network in "defaultNetworks", use it
+            $defaultNetworkCode = $defaultNetworks[$currencyCode];
+        } else {
+            // otherwise, try to use the global-scope 'defaultNetwork' value (even if that network is not supported by currency, it doesn't make any problem, this will be just used "at first" if currency supports this network at all)
+            $defaultNetwork = $this->safe_value($this->options, 'defaultNetwork');
+            if ($defaultNetwork !== null) {
+                $defaultNetworkCode = $defaultNetwork;
+            }
+        }
+        return $defaultNetworkCode;
+    }
+
+    public function select_network_code_from_unified_networks($currencyCode, $networkCode, $indexedNetworkEntries) {
+        return $this->selectNetworkKeyFromNetworks ($currencyCode, $networkCode, $indexedNetworkEntries, true);
+    }
+
+    public function select_network_id_from_raw_networks($currencyCode, $networkCode, $indexedNetworkEntries) {
+        return $this->selectNetworkKeyFromNetworks ($currencyCode, $networkCode, $indexedNetworkEntries, false);
+    }
+
+    public function select_network_key_from_networks($currencyCode, $networkCode, $indexedNetworkEntries, $isIndexedByUnifiedNetworkCode = false) {
+        // this method is used against raw & unparse network entries, which are just indexed by network id
+        $chosenNetworkId = null;
+        $availableNetworkIds = is_array($indexedNetworkEntries) ? array_keys($indexedNetworkEntries) : array();
+        $responseNetworksLength = count($availableNetworkIds);
+        if ($networkCode !== null) {
+            if ($responseNetworksLength === 0) {
+                throw new NotSupported($this->id . ' - ' . $networkCode . ' network did not return any result for ' . $currencyCode);
+            } else {
+                // if $networkCode was provided by user, we should check it after response, as the referenced exchange doesn't support network-code during request
+                $networkId = $isIndexedByUnifiedNetworkCode ? $networkCode : $this->networkCodeToId ($networkCode, $currencyCode);
+                if (is_array($indexedNetworkEntries) && array_key_exists($networkId, $indexedNetworkEntries)) {
+                    $chosenNetworkId = $networkId;
+                } else {
+                    throw new NotSupported($this->id . ' - ' . $networkId . ' network was not found for ' . $currencyCode . ', use one of ' . implode(', ', $availableNetworkIds));
+                }
+            }
+        } else {
+            if ($responseNetworksLength === 0) {
+                throw new NotSupported($this->id . ' - no networks were returned for ' . $currencyCode);
+            } else {
+                // if $networkCode was not provided by user, then we try to use the default network (if it was defined in "defaultNetworks"), otherwise, we just return the first network entry
+                $defaultNetworkCode = $this->defaultNetworkCode ($currencyCode);
+                $defaultNetworkId = $isIndexedByUnifiedNetworkCode ? $defaultNetworkCode : $this->networkCodeToId ($defaultNetworkCode, $currencyCode);
+                $chosenNetworkId = (is_array($indexedNetworkEntries) && array_key_exists($defaultNetworkId, $indexedNetworkEntries)) ? $defaultNetworkId : $availableNetworkIds[0];
+            }
+        }
+        return $chosenNetworkId;
+    }
+
     public function safe_number_2($dictionary, $key1, $key2, $d = null) {
         $value = $this->safe_string_2($dictionary, $key1, $key2);
         return $this->parse_number($value, $d);
@@ -3653,7 +3859,7 @@ class Exchange {
                 if ($error) {
                     throw new AuthenticationError($this->id . ' requires "' . $key . '" credential');
                 } else {
-                    return $error;
+                    return false;
                 }
             }
         }
@@ -3726,6 +3932,14 @@ class Exchange {
         throw new NotSupported($this->id . ' fetchTransactionFees() is not supported yet');
     }
 
+    public function fetch_deposit_withdraw_fee($code, $params = array ()) {
+        if (!$this->has['fetchDepositWithdrawFees']) {
+            throw new NotSupported($this->id . ' fetchDepositWithdrawFee() is not supported yet');
+        }
+        $fees = $this->fetchDepositWithdrawFees (array( $code ), $params);
+        return $this->safe_value($fees, $code);
+    }
+
     public function get_supported_mapping($key, $mapping = array ()) {
         if (is_array($mapping) && array_key_exists($key, $mapping)) {
             return $mapping[$key];
@@ -3787,14 +4001,14 @@ class Exchange {
         return array( $type, $params );
     }
 
-    public function handle_sub_type_and_params($methodName, $market = null, $params = array ()) {
+    public function handle_sub_type_and_params($methodName, $market = null, $params = array (), $defaultValue = 'linear') {
         $subType = null;
         // if set in $params, it takes precedence
-        $subTypeInParams = $this->safe_string_2($params, 'subType', 'subType');
+        $subTypeInParams = $this->safe_string_2($params, 'subType', 'defaultSubType');
         // avoid omitting if it's not present
         if ($subTypeInParams !== null) {
             $subType = $subTypeInParams;
-            $params = $this->omit ($params, array( 'defaultSubType', 'subType' ));
+            $params = $this->omit ($params, array( 'subType', 'defaultSubType' ));
         } else {
             // at first, check from $market object
             if ($market !== null) {
@@ -3806,12 +4020,20 @@ class Exchange {
             }
             // if it was not defined in $market object
             if ($subType === null) {
-                $exchangeWideValue = $this->safe_string_2($this->options, 'defaultSubType', 'subType', 'linear');
-                $methodOptions = $this->safe_value($this->options, $methodName, array());
-                $subType = $this->safe_string_2($methodOptions, 'defaultSubType', 'subType', $exchangeWideValue);
+                $values = $this->handleOptionAndParams (null, $methodName, 'subType', $defaultValue); // no need to re-test $params here
+                $subType = $values[0];
             }
         }
         return array( $subType, $params );
+    }
+
+    public function handle_margin_mode_and_params($methodName, $params = array (), $defaultValue = null) {
+        /**
+         * @ignore
+         * @param {array} $params extra parameters specific to the exchange api endpoint
+         * @return array([string|null, object]) the marginMode in lowercase as specified by $params["marginMode"], $params["defaultMarginMode"] $this->options["marginMode"] or $this->options["defaultMarginMode"]
+         */
+        return $this->handleOptionAndParams ($params, $methodName, 'marginMode', $defaultValue);
     }
 
     public function throw_exactly_matched_exception($exact, $string, $message) {
@@ -4026,12 +4248,20 @@ class Exchange {
 
     public function price_to_precision($symbol, $price) {
         $market = $this->market ($symbol);
-        return $this->decimal_to_precision($price, ROUND, $market['precision']['price'], $this->precisionMode, $this->paddingMode);
+        $result = $this->decimal_to_precision($price, ROUND, $market['precision']['price'], $this->precisionMode, $this->paddingMode);
+        if ($result === '0') {
+            throw new ArgumentsRequired($this->id . ' $price of ' . $market['symbol'] . ' must be greater than minimum $price precision of ' . $this->number_to_string($market['precision']['price']));
+        }
+        return $result;
     }
 
     public function amount_to_precision($symbol, $amount) {
         $market = $this->market ($symbol);
-        return $this->decimal_to_precision($amount, TRUNCATE, $market['precision']['amount'], $this->precisionMode, $this->paddingMode);
+        $result = $this->decimal_to_precision($amount, TRUNCATE, $market['precision']['amount'], $this->precisionMode, $this->paddingMode);
+        if ($result === '0') {
+            throw new ArgumentsRequired($this->id . ' $amount of ' . $market['symbol'] . ' must be greater than minimum $amount precision of ' . $this->number_to_string($market['precision']['amount']));
+        }
+        return $result;
     }
 
     public function fee_to_precision($symbol, $fee) {
@@ -4421,22 +4651,6 @@ class Exchange {
         }
     }
 
-    public function handle_margin_mode_and_params($methodName, $params = array ()) {
-        /**
-         * @ignore
-         * @param {array} $params extra parameters specific to the exchange api endpoint
-         * @return array([string|null, object]) the $marginMode in lowercase as specified by $params["marginMode"], $params["defaultMarginMode"] $this->options["marginMode"] or $this->options["defaultMarginMode"]
-         */
-        $defaultMarginMode = $this->safe_string_2($this->options, 'marginMode', 'defaultMarginMode');
-        $methodOptions = $this->safe_value($this->options, $methodName, array());
-        $methodMarginMode = $this->safe_string_2($methodOptions, 'marginMode', 'defaultMarginMode', $defaultMarginMode);
-        $marginMode = $this->safe_string_lower_2($params, 'marginMode', 'defaultMarginMode', $methodMarginMode);
-        if ($marginMode !== null) {
-            $params = $this->omit ($params, array( 'marginMode', 'defaultMarginMode' ));
-        }
-        return array( $marginMode, $params );
-    }
-
     public function check_required_argument($methodName, $argument, $argumentName, $options = []) {
         /**
          * @ignore
@@ -4477,5 +4691,74 @@ class Exchange {
          * @param {string} $methodName name of the method that requires a $symbol
          */
         $this->checkRequiredArgument ($methodName, $symbol, 'symbol');
+    }
+
+    public function parse_deposit_withdraw_fees($response, $codes = null, $currencyIdKey = null) {
+        /**
+         * @ignore
+         * @param {[object]|array} $response unparsed $response from the exchange
+         * @param {[string]|null} $codes the unified $currency $codes to fetch transactions fees for, returns all currencies when null
+         * @param {str|null} $currencyIdKey *should only be null when $response is a $dictionary* the object key that corresponds to the $currency id
+         * @return {array} objects with withdraw and deposit fees, indexed by $currency $codes
+         */
+        $depositWithdrawFees = array();
+        $codes = $this->marketCodes ($codes);
+        $isArray = gettype($response) === 'array' && array_keys($response) === array_keys(array_keys($response));
+        $responseKeys = $response;
+        if (!$isArray) {
+            $responseKeys = is_array($response) ? array_keys($response) : array();
+        }
+        for ($i = 0; $i < count($responseKeys); $i++) {
+            $entry = $responseKeys[$i];
+            $dictionary = $isArray ? $entry : $response[$entry];
+            $currencyId = $isArray ? $this->safe_string($dictionary, $currencyIdKey) : $entry;
+            $currency = $this->safe_value($this->currencies_by_id, $currencyId);
+            $code = $this->safe_string($currency, 'code', $currencyId);
+            if (($codes === null) || ($this->in_array($code, $codes))) {
+                $depositWithdrawFees[$code] = $this->parseDepositWithdrawFee ($dictionary, $currency);
+            }
+        }
+        return $depositWithdrawFees;
+    }
+
+    public function deposit_withdraw_fee($info) {
+        return array(
+            'info' => $info,
+            'withdraw' => array(
+                'fee' => null,
+                'percentage' => null,
+            ),
+            'deposit' => array(
+                'fee' => null,
+                'percentage' => null,
+            ),
+            'networks' => array(),
+        );
+    }
+
+    public function assign_default_deposit_withdraw_fees($fee, $currency = null) {
+        /**
+         * @ignore
+         * Takes a depositWithdrawFee structure and assigns the default values for withdraw and deposit
+         * @param {array} $fee A deposit withdraw $fee structure
+         * @param {array} $currency A $currency structure, the response from $this->currency ()
+         * @return {array} A deposit withdraw $fee structure
+         */
+        $networkKeys = is_array($fee['networks']) ? array_keys($fee['networks']) : array();
+        $numNetworks = count($networkKeys);
+        if ($numNetworks === 1) {
+            $fee['withdraw'] = $fee['networks'][$networkKeys[0]]['withdraw'];
+            $fee['deposit'] = $fee['networks'][$networkKeys[0]]['deposit'];
+            return $fee;
+        }
+        $currencyCode = $this->safe_string($currency, 'code');
+        for ($i = 0; $i < $numNetworks; $i++) {
+            $network = $networkKeys[$i];
+            if ($network === $currencyCode) {
+                $fee['withdraw'] = $fee['networks'][$networkKeys[$i]]['withdraw'];
+                $fee['deposit'] = $fee['networks'][$networkKeys[$i]]['deposit'];
+            }
+        }
+        return $fee;
     }
 }

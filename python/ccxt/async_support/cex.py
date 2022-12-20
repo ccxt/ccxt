@@ -13,7 +13,6 @@ from ccxt.base.errors import NullResponse
 from ccxt.base.errors import InsufficientFunds
 from ccxt.base.errors import InvalidOrder
 from ccxt.base.errors import OrderNotFound
-from ccxt.base.errors import NotSupported
 from ccxt.base.errors import DDoSProtection
 from ccxt.base.errors import RateLimitExceeded
 from ccxt.base.errors import InvalidNonce
@@ -29,6 +28,7 @@ class cex(Exchange):
             'name': 'CEX.IO',
             'countries': ['GB', 'EU', 'CY', 'RU'],
             'rateLimit': 1500,
+            'pro': True,
             'has': {
                 'CORS': None,
                 'spot': True,
@@ -137,6 +137,7 @@ class cex(Exchange):
                         'cancel_replace_order/{pair}/',
                         'close_position/{pair}/',
                         'get_address/',
+                        'get_crypto_address',
                         'get_myfee/',
                         'get_order/',
                         'get_order_tx/',
@@ -198,6 +199,23 @@ class cex(Exchange):
                         'cd': 'canceled',
                         'a': 'open',
                     },
+                },
+                'defaultNetwork': 'ERC20',
+                'defaultNetworks': {
+                    'USDT': 'TRC20',
+                },
+                'networks': {
+                    'ERC20': 'Ethereum',
+                    'BTC': 'BTC',
+                    'BEP20': 'Binance Smart Chain',
+                    'BSC': 'Binance Smart Chain',
+                    'TRC20': 'Tron',
+                },
+                'networksById': {
+                    'Ethereum': 'ERC20',
+                    'BTC': 'BTC',
+                    'Binance Smart Chain': 'BEP20',
+                    'Tron': 'TRC20',
                 },
             },
         })
@@ -304,7 +322,7 @@ class cex(Exchange):
                 'active': active,
                 'deposit': None,
                 'withdraw': None,
-                'precision': self.parse_number(self.parse_precision(self.safe_string(currency, 'precision'))),
+                'precision': self.parse_number(self.safe_string(currency, 'precision')),
                 'fee': None,
                 'limits': {
                     'amount': {
@@ -1414,23 +1432,47 @@ class cex(Exchange):
         :param dict params: extra parameters specific to the cex api endpoint
         :returns dict: an `address structure <https://docs.ccxt.com/en/latest/manual.html#address-structure>`
         """
-        if code == 'XRP' or code == 'XLM':
-            # https://github.com/ccxt/ccxt/pull/2327#issuecomment-375204856
-            raise NotSupported(self.id + ' fetchDepositAddress() does not support XRP and XLM addresses yet(awaiting docs from CEX.io)')
         await self.load_markets()
         currency = self.currency(code)
         request = {
             'currency': currency['id'],
         }
-        response = await self.privatePostGetAddress(self.extend(request, params))
-        address = self.safe_string(response, 'data')
+        networkCode, query = self.handle_network_code_and_params(params)
+        # atm, cex doesn't support network in the request
+        response = await self.privatePostGetCryptoAddress(self.extend(request, query))
+        #
+        #    {
+        #         "e": "get_crypto_address",
+        #         "ok": "ok",
+        #         "data": {
+        #             "name": "BTC",
+        #             "addresses": [
+        #                 {
+        #                     "blockchain": "Bitcoin",
+        #                     "address": "2BvKwe1UwrdTjq2nzhscFYXwqCjCaaHCeq"
+        #
+        #                     # for others coins(i.e. XRP, XLM) other keys are present:
+        #                     #     "destination": "rF1sdh25BJX3qFwneeTBwaq3zPEWYcwjp2",
+        #                     #     "destinationTag": "7519113655",
+        #                     #     "memo": "XLM-memo12345",
+        #                 }
+        #             ]
+        #         }
+        #     }
+        #
+        data = self.safe_value(response, 'data', {})
+        addresses = self.safe_value(data, 'addresses', [])
+        chainsIndexedById = self.index_by(addresses, 'blockchain')
+        selectedNetworkId = self.select_network_id_from_raw_networks(code, networkCode, chainsIndexedById)
+        addressObject = self.safe_value(chainsIndexedById, selectedNetworkId, {})
+        address = self.safe_string_2(addressObject, 'address', 'destination')
         self.check_address(address)
         return {
             'currency': code,
             'address': address,
-            'tag': None,
-            'network': None,
-            'info': response,
+            'tag': self.safe_string_2(addressObject, 'destinationTag', 'memo'),
+            'network': self.network_id_to_code(selectedNetworkId),
+            'info': data,
         }
 
     def nonce(self):

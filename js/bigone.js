@@ -130,6 +130,7 @@ module.exports = class bigone extends Exchange {
                 'transfer': {
                     'fillResponseFromRequest': true,
                 },
+                'exchangeMillisecondsCorrection': -100,
             },
             'precisionMode': TICK_SIZE,
             'exceptions': {
@@ -1134,13 +1135,15 @@ module.exports = class bigone extends Exchange {
     }
 
     nonce () {
-        return this.microseconds () * 1000;
+        const exchangeTimeCorrection = this.safeInteger (this.options, 'exchangeMillisecondsCorrection', 0) * 1000000;
+        return this.microseconds () * 1000 + exchangeTimeCorrection;
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         const query = this.omit (params, this.extractParams (path));
         const baseUrl = this.implodeHostname (this.urls['api'][api]);
         let url = baseUrl + '/' + this.implodeParams (path, params);
+        headers = {};
         if (api === 'public') {
             if (Object.keys (query).length) {
                 url += '?' + this.urlencode (query);
@@ -1155,9 +1158,7 @@ module.exports = class bigone extends Exchange {
                 // 'recv_window': '30', // default 30
             };
             const jwt = this.jwt (request, this.encode (this.secret));
-            headers = {
-                'Authorization': 'Bearer ' + jwt,
-            };
+            headers['Authorization'] = 'Bearer ' + jwt;
             if (method === 'GET') {
                 if (Object.keys (query).length) {
                     url += '?' + this.urlencode (query);
@@ -1167,6 +1168,7 @@ module.exports = class bigone extends Exchange {
                 body = this.json (query);
             }
         }
+        headers['User-Agent'] = 'ccxt/' + this.id + '-' + this.version;
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
 

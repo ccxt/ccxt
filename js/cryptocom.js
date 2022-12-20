@@ -330,7 +330,12 @@ module.exports = class cryptocom extends Exchange {
         //                    margin_trading_enabled_5x: true,
         //                    margin_trading_enabled_10x: true,
         //                    max_quantity: '100000000',
-        //                    min_quantity: '0.01'
+        //                    min_quantity: '0.01',
+        //                    max_price:'1',
+        //                    min_price:'0.00000001',
+        //                    last_update_date:1667263094857,
+        //                    quantity_tick_size:'0.1',
+        //                    price_tick_size:'0.00000001'
         //               },
         //            ]
         //        }
@@ -346,8 +351,7 @@ module.exports = class cryptocom extends Exchange {
             const quoteId = this.safeString (market, 'quote_currency');
             const base = this.safeCurrencyCode (baseId);
             const quote = this.safeCurrencyCode (quoteId);
-            const priceDecimals = this.safeString (market, 'price_decimals');
-            const minPrice = this.parsePrecision (priceDecimals);
+            const minPrice = this.safeString (market, 'min_price');
             const minQuantity = this.safeString (market, 'min_quantity');
             let maxLeverage = this.parseNumber ('1');
             const margin_trading_enabled_5x = this.safeValue (market, 'margin_trading_enabled_5x');
@@ -383,8 +387,8 @@ module.exports = class cryptocom extends Exchange {
                 'strike': undefined,
                 'optionType': undefined,
                 'precision': {
-                    'amount': this.parseNumber (this.parsePrecision (this.safeString (market, 'quantity_decimals'))),
-                    'price': this.parseNumber (this.parsePrecision (priceDecimals)),
+                    'amount': this.safeNumber (market, 'quantity_tick_size'),
+                    'price': this.safeNumber (market, 'price_tick_size'),
                 },
                 'limits': {
                     'leverage': {
@@ -397,7 +401,7 @@ module.exports = class cryptocom extends Exchange {
                     },
                     'price': {
                         'min': this.parseNumber (minPrice),
-                        'max': undefined,
+                        'max': this.safeNumber (market, 'max_price'),
                     },
                     'cost': {
                         'min': this.parseNumber (Precise.stringMul (minQuantity, minPrice)),
@@ -790,6 +794,13 @@ module.exports = class cryptocom extends Exchange {
             'future': 'derivativesPublicGetPublicGetCandlestick',
             'swap': 'derivativesPublicGetPublicGetCandlestick',
         });
+        if (marketType !== 'spot') {
+            let reqLimit = 100;
+            if (limit !== undefined) {
+                reqLimit = limit;
+            }
+            request['count'] = reqLimit;
+        }
         const response = await this[method] (this.extend (request, query));
         // {
         //     "code":0,

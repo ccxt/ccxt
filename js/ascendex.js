@@ -731,6 +731,28 @@ module.exports = class ascendex extends Exchange {
         return this.safeBalance (result);
     }
 
+    parseMarginBalance (response) {
+        const timestamp = this.milliseconds ();
+        const result = {
+            'info': response,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+        };
+        const balances = this.safeValue (response, 'data', []);
+        for (let i = 0; i < balances.length; i++) {
+            const balance = balances[i];
+            const code = this.safeCurrencyCode (this.safeString (balance, 'asset'));
+            const account = this.account ();
+            account['free'] = this.safeString (balance, 'availableBalance');
+            account['total'] = this.safeString (balance, 'totalBalance');
+            const debt = this.safeString (balance, 'borrowed');
+            const interest = this.safeString (balance, 'interest');
+            account['debt'] = Precise.stringAdd (debt, interest);
+            result[code] = account;
+        }
+        return this.safeBalance (result);
+    }
+
     parseSwapBalance (response) {
         const timestamp = this.milliseconds ();
         const result = {
@@ -760,7 +782,12 @@ module.exports = class ascendex extends Exchange {
          */
         await this.loadMarkets ();
         await this.loadAccounts ();
-        const [ marketType, query ] = this.handleMarketTypeAndParams ('fetchBalance', undefined, params);
+        let query = undefined;
+        let marketType = undefined;
+        [ marketType, query ] = this.handleMarketTypeAndParams ('fetchBalance', undefined, params);
+        const isMargin = this.safeValue (params, 'margin', false);
+        marketType = isMargin ? 'margin' : marketType;
+        params = this.omit (params, 'margin');
         const options = this.safeValue (this.options, 'fetchBalance', {});
         const accountsByType = this.safeValue (this.options, 'accountsByType', {});
         const accountCategory = this.safeString (accountsByType, marketType, 'cash');
@@ -824,6 +851,8 @@ module.exports = class ascendex extends Exchange {
         //
         if (marketType === 'swap') {
             return this.parseSwapBalance (response);
+        } else if (marketType === 'margin') {
+            return this.parseMarginBalance (response);
         } else {
             return this.parseBalance (response);
         }
@@ -1113,8 +1142,7 @@ module.exports = class ascendex extends Exchange {
         const priceString = this.safeString2 (trade, 'price', 'p');
         const amountString = this.safeString (trade, 'q');
         const buyerIsMaker = this.safeValue (trade, 'bm', false);
-        const makerOrTaker = buyerIsMaker ? 'maker' : 'taker';
-        const side = buyerIsMaker ? 'buy' : 'sell';
+        const side = buyerIsMaker ? 'sell' : 'buy';
         market = this.safeMarket (undefined, market);
         return this.safeTrade ({
             'info': trade,
@@ -1124,7 +1152,7 @@ module.exports = class ascendex extends Exchange {
             'id': undefined,
             'order': undefined,
             'type': undefined,
-            'takerOrMaker': makerOrTaker,
+            'takerOrMaker': undefined,
             'side': side,
             'price': priceString,
             'amount': amountString,
@@ -1138,6 +1166,7 @@ module.exports = class ascendex extends Exchange {
          * @method
          * @name ascendex#fetchTrades
          * @description get the list of most recent trades for a particular symbol
+         * @see https://ascendex.github.io/ascendex-pro-api/#market-trades
          * @param {string} symbol unified symbol of the market to fetch trades for
          * @param {int|undefined} since timestamp in ms of the earliest trade to fetch
          * @param {int|undefined} limit the maximum amount of trades to fetch
@@ -2395,39 +2424,35 @@ module.exports = class ascendex extends Exchange {
         //         }
         //     }
         //
-        const id = this.safeString (transaction, 'requestId');
-        const amount = this.safeNumber (transaction, 'amount');
         const destAddress = this.safeValue (transaction, 'destAddress', {});
         const address = this.safeString (destAddress, 'address');
         const tag = this.safeString (destAddress, 'destTag');
-        const txid = this.safeString (transaction, 'networkTransactionId');
-        const type = this.safeString (transaction, 'transactionType');
         const timestamp = this.safeInteger (transaction, 'time');
         const currencyId = this.safeString (transaction, 'asset');
         const code = this.safeCurrencyCode (currencyId, currency);
-        const status = this.parseTransactionStatus (this.safeString (transaction, 'status'));
-        const feeCost = this.safeNumber (transaction, 'commission');
         return {
             'info': transaction,
-            'id': id,
+            'id': this.safeString (transaction, 'requestId'),
+            'txid': this.safeString (transaction, 'networkTransactionId'),
+            'type': this.safeString (transaction, 'transactionType'),
             'currency': code,
-            'amount': amount,
             'network': undefined,
-            'address': address,
-            'addressTo': address,
-            'addressFrom': undefined,
-            'tag': tag,
-            'tagTo': tag,
-            'tagFrom': undefined,
-            'status': status,
-            'type': type,
-            'updated': undefined,
-            'txid': txid,
+            'amount': this.safeNumber (transaction, 'amount'),
+            'status': this.parseTransactionStatus (this.safeString (transaction, 'status')),
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
+            'address': address,
+            'addressFrom': undefined,
+            'addressTo': address,
+            'tag': tag,
+            'tagFrom': undefined,
+            'tagTo': tag,
+            'updated': undefined,
+            'comment': undefined,
             'fee': {
                 'currency': code,
-                'cost': feeCost,
+                'cost': this.safeNumber (transaction, 'commission'),
+                'rate': undefined,
             },
         };
     }

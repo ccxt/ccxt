@@ -44,6 +44,14 @@ class binance(Exchange, ccxt.async_support.binance):
                 },
             },
             'options': {
+                'streamLimits': {
+                    'spot': 50,  # max 1024
+                    'margin': 50,  # max 1024
+                    'future': 50,  # max 200
+                    'delivery': 50,  # max 200
+                },
+                'streamBySubscriptionsHash': {},
+                'streamIndex': -1,
                 # get updates every 1000ms or 100ms
                 # or every 0ms in real-time for futures
                 'watchOrderBookRate': 100,
@@ -76,6 +84,30 @@ class binance(Exchange, ccxt.async_support.binance):
         newValue = self.sum(previousValue, 1)
         self.options['requestId'][url] = newValue
         return newValue
+
+    def stream(self, type, subscriptionHash):
+        streamBySubscriptionsHash = self.safe_value(self.options, 'streamBySubscriptionsHash', {})
+        stream = self.safe_string(streamBySubscriptionsHash, subscriptionHash)
+        if stream is None:
+            streamIndex = self.safe_integer(self.options, 'streamIndex', -1)
+            streamLimits = self.safe_value(self.options, 'streamLimits')
+            streamLimit = self.safe_integer(streamLimits, type)
+            streamIndex = streamIndex + 1
+            normalizedIndex = streamIndex % streamLimit
+            self.options['streamIndex'] = streamIndex
+            stream = self.number_to_string(normalizedIndex)
+            self.options['streamBySubscriptionsHash'][subscriptionHash] = stream
+        return stream
+
+    def on_error(self, client, error):
+        self.options['streamBySubscriptionsHash'] = {}
+        self.options['streamIndex'] = -1
+        super(binance, self).on_error(client, error)
+
+    def on_close(self, client, error):
+        self.options['streamBySubscriptionsHash'] = {}
+        self.options['streamIndex'] = -1
+        super(binance, self).on_close(client, error)
 
     async def watch_order_book(self, symbol, limit=None, params={}):
         """
@@ -133,7 +165,7 @@ class binance(Exchange, ccxt.async_support.binance):
         #
         name = 'depth'
         messageHash = market['lowercaseId'] + '@' + name
-        url = self.urls['api']['ws'][type]  # + '/' + messageHash
+        url = self.urls['api']['ws'][type] + '/' + self.stream(type, messageHash)
         requestId = self.request_id(url)
         watchOrderBookRate = self.safe_string(self.options, 'watchOrderBookRate', '100')
         request = {
@@ -341,7 +373,7 @@ class binance(Exchange, ccxt.async_support.binance):
         watchTradesType = self.safe_string_2(options, 'type', 'defaultType', defaultType)
         type = self.safe_string(params, 'type', watchTradesType)
         query = self.omit(params, 'type')
-        url = self.urls['api']['ws'][type]
+        url = self.urls['api']['ws'][type] + '/' + self.stream(type, messageHash)
         requestId = self.request_id(url)
         request = {
             'method': 'SUBSCRIBE',
@@ -551,7 +583,7 @@ class binance(Exchange, ccxt.async_support.binance):
         watchOHLCVType = self.safe_string_2(options, 'type', 'defaultType', defaultType)
         type = self.safe_string(params, 'type', watchOHLCVType)
         query = self.omit(params, 'type')
-        url = self.urls['api']['ws'][type]
+        url = self.urls['api']['ws'][type] + '/' + self.stream(type, messageHash)
         requestId = self.request_id(url)
         request = {
             'method': 'SUBSCRIBE',
@@ -626,19 +658,20 @@ class binance(Exchange, ccxt.async_support.binance):
         watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
         :param str symbol: unified symbol of the market to fetch the ticker for
         :param dict params: extra parameters specific to the binance api endpoint
+        :param str params['name']: stream to use can be ticker or bookTicker
         :returns dict: a `ticker structure <https://docs.ccxt.com/en/latest/manual.html#ticker-structure>`
         """
         await self.load_markets()
         market = self.market(symbol)
         marketId = market['lowercaseId']
+        type = None
+        type, params = self.handle_market_type_and_params('watchTicker', market, params)
         options = self.safe_value(self.options, 'watchTicker', {})
         name = self.safe_string(options, 'name', 'ticker')
+        name = self.safe_string(params, 'name', name)
+        params = self.omit(params, 'name')
         messageHash = marketId + '@' + name
-        defaultType = self.safe_string_2(self.options, 'defaultType', 'spot')
-        watchTickerType = self.safe_string_2(options, 'type', 'defaultType', defaultType)
-        type = self.safe_string(params, 'type', watchTickerType)
-        query = self.omit(params, 'type')
-        url = self.urls['api']['ws'][type]
+        url = self.urls['api']['ws'][type] + '/' + self.stream(type, messageHash)
         requestId = self.request_id(url)
         request = {
             'method': 'SUBSCRIBE',
@@ -650,7 +683,7 @@ class binance(Exchange, ccxt.async_support.binance):
         subscribe = {
             'id': requestId,
         }
-        return await self.watch(url, messageHash, self.extend(request, query), messageHash, subscribe)
+        return await self.watch(url, messageHash, self.extend(request, params), messageHash, subscribe)
 
     def handle_ticker(self, client, message):
         #

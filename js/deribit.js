@@ -1174,6 +1174,7 @@ module.exports = class deribit extends Exchange {
         const timestamp = this.safeInteger (trade, 'timestamp');
         const side = this.safeString (trade, 'direction');
         const priceString = this.safeString (trade, 'price');
+        market = this.safeMarket (marketId, market);
         // Amount for inverse perpetual and futures is in USD which in ccxt is the cost
         // For options amount and linear is in corresponding cryptocurrency contracts, e.g., BTC or ETH
         const amount = this.safeString (trade, 'amount');
@@ -1641,6 +1642,8 @@ module.exports = class deribit extends Exchange {
         await this.loadMarkets ();
         const market = this.market (symbol);
         if (market['inverse']) {
+            amount = this.amountToPrecision (symbol, amount);
+        } else if (market['settle'] === 'USDC') {
             amount = this.amountToPrecision (symbol, amount);
         } else {
             amount = this.currencyToPrecision (symbol, amount);

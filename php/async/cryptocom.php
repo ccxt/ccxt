@@ -337,7 +337,12 @@ class cryptocom extends Exchange {
             //                    $margin_trading_enabled_5x => true,
             //                    $margin_trading_enabled_10x => true,
             //                    max_quantity => '100000000',
-            //                    min_quantity => '0.01'
+            //                    min_quantity => '0.01',
+            //                    max_price:'1',
+            //                    min_price:'0.00000001',
+            //                    last_update_date:1667263094857,
+            //                    quantity_tick_size:'0.1',
+            //                    price_tick_size:'0.00000001'
             //               ),
             //            )
             //        }
@@ -353,8 +358,7 @@ class cryptocom extends Exchange {
                 $quoteId = $this->safe_string($market, 'quote_currency');
                 $base = $this->safe_currency_code($baseId);
                 $quote = $this->safe_currency_code($quoteId);
-                $priceDecimals = $this->safe_string($market, 'price_decimals');
-                $minPrice = $this->parse_precision($priceDecimals);
+                $minPrice = $this->safe_string($market, 'min_price');
                 $minQuantity = $this->safe_string($market, 'min_quantity');
                 $maxLeverage = $this->parse_number('1');
                 $margin_trading_enabled_5x = $this->safe_value($market, 'margin_trading_enabled_5x');
@@ -390,8 +394,8 @@ class cryptocom extends Exchange {
                     'strike' => null,
                     'optionType' => null,
                     'precision' => array(
-                        'amount' => $this->parse_number($this->parse_precision($this->safe_string($market, 'quantity_decimals'))),
-                        'price' => $this->parse_number($this->parse_precision($priceDecimals)),
+                        'amount' => $this->safe_number($market, 'quantity_tick_size'),
+                        'price' => $this->safe_number($market, 'price_tick_size'),
                     ),
                     'limits' => array(
                         'leverage' => array(
@@ -404,7 +408,7 @@ class cryptocom extends Exchange {
                         ),
                         'price' => array(
                             'min' => $this->parse_number($minPrice),
-                            'max' => null,
+                            'max' => $this->safe_number($market, 'max_price'),
                         ),
                         'cost' => array(
                             'min' => $this->parse_number(Precise::string_mul($minQuantity, $minPrice)),
@@ -799,6 +803,13 @@ class cryptocom extends Exchange {
                 'future' => 'derivativesPublicGetPublicGetCandlestick',
                 'swap' => 'derivativesPublicGetPublicGetCandlestick',
             ));
+            if ($marketType !== 'spot') {
+                $reqLimit = 100;
+                if ($limit !== null) {
+                    $reqLimit = $limit;
+                }
+                $request['count'] = $reqLimit;
+            }
             $response = Async\await($this->$method (array_merge($request, $query)));
             // {
             //     "code":0,

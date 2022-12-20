@@ -401,7 +401,7 @@ module.exports = class phemex extends Exchange {
                 'defaultSubType': 'linear',
                 'accountsByType': {
                     'spot': 'spot',
-                    'future': 'future',
+                    'swap': 'future',
                 },
                 'transfer': {
                     'fillResponseFromRequest': true,
@@ -2932,7 +2932,10 @@ module.exports = class phemex extends Exchange {
         const leverage = this.safeNumber (position, 'leverage');
         const entryPriceString = this.safeString (position, 'avgEntryPrice');
         const rawSide = this.safeString (position, 'side');
-        const side = (rawSide === 'Buy') ? 'long' : 'short';
+        let side = undefined;
+        if (rawSide !== undefined) {
+            side = (rawSide === 'Buy') ? 'long' : 'short';
+        }
         let priceDiff = undefined;
         const currency = this.safeString (position, 'currency');
         if (currency === 'USD') {
@@ -3434,6 +3437,7 @@ module.exports = class phemex extends Exchange {
          * @param {string} fromAccount account to transfer from
          * @param {string} toAccount account to transfer to
          * @param {object} params extra parameters specific to the phemex api endpoint
+         * @param {string|undefined} params.bizType for transferring between main and sub-acounts either 'SPOT' or 'PERPETUAL' default is 'SPOT'
          * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/en/latest/manual.html#transfer-structure}
          */
         await this.loadMarkets ();

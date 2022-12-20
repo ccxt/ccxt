@@ -720,6 +720,28 @@ class ascendex extends Exchange {
         return $this->safe_balance($result);
     }
 
+    public function parse_margin_balance($response) {
+        $timestamp = $this->milliseconds();
+        $result = array(
+            'info' => $response,
+            'timestamp' => $timestamp,
+            'datetime' => $this->iso8601($timestamp),
+        );
+        $balances = $this->safe_value($response, 'data', array());
+        for ($i = 0; $i < count($balances); $i++) {
+            $balance = $balances[$i];
+            $code = $this->safe_currency_code($this->safe_string($balance, 'asset'));
+            $account = $this->account();
+            $account['free'] = $this->safe_string($balance, 'availableBalance');
+            $account['total'] = $this->safe_string($balance, 'totalBalance');
+            $debt = $this->safe_string($balance, 'borrowed');
+            $interest = $this->safe_string($balance, 'interest');
+            $account['debt'] = Precise::string_add($debt, $interest);
+            $result[$code] = $account;
+        }
+        return $this->safe_balance($result);
+    }
+
     public function parse_swap_balance($response) {
         $timestamp = $this->milliseconds();
         $result = array(
@@ -747,7 +769,12 @@ class ascendex extends Exchange {
          */
         $this->load_markets();
         $this->load_accounts();
+        $query = null;
+        $marketType = null;
         list($marketType, $query) = $this->handle_market_type_and_params('fetchBalance', null, $params);
+        $isMargin = $this->safe_value($params, 'margin', false);
+        $marketType = $isMargin ? 'margin' : $marketType;
+        $params = $this->omit($params, 'margin');
         $options = $this->safe_value($this->options, 'fetchBalance', array());
         $accountsByType = $this->safe_value($this->options, 'accountsByType', array());
         $accountCategory = $this->safe_string($accountsByType, $marketType, 'cash');
@@ -811,6 +838,8 @@ class ascendex extends Exchange {
         //
         if ($marketType === 'swap') {
             return $this->parse_swap_balance($response);
+        } elseif ($marketType === 'margin') {
+            return $this->parse_margin_balance($response);
         } else {
             return $this->parse_balance($response);
         }
@@ -1092,8 +1121,7 @@ class ascendex extends Exchange {
         $priceString = $this->safe_string_2($trade, 'price', 'p');
         $amountString = $this->safe_string($trade, 'q');
         $buyerIsMaker = $this->safe_value($trade, 'bm', false);
-        $makerOrTaker = $buyerIsMaker ? 'maker' : 'taker';
-        $side = $buyerIsMaker ? 'buy' : 'sell';
+        $side = $buyerIsMaker ? 'sell' : 'buy';
         $market = $this->safe_market(null, $market);
         return $this->safe_trade(array(
             'info' => $trade,
@@ -1103,7 +1131,7 @@ class ascendex extends Exchange {
             'id' => null,
             'order' => null,
             'type' => null,
-            'takerOrMaker' => $makerOrTaker,
+            'takerOrMaker' => null,
             'side' => $side,
             'price' => $priceString,
             'amount' => $amountString,
@@ -1115,6 +1143,7 @@ class ascendex extends Exchange {
     public function fetch_trades($symbol, $since = null, $limit = null, $params = array ()) {
         /**
          * get the list of most recent $trades for a particular $symbol
+         * @see https://ascendex.github.io/ascendex-pro-api/#$market-$trades
          * @param {string} $symbol unified $symbol of the $market to fetch $trades for
          * @param {int|null} $since timestamp in ms of the earliest trade to fetch
          * @param {int|null} $limit the maximum amount of $trades to fetch
@@ -2338,10 +2367,10 @@ class ascendex extends Exchange {
         //         time => 1591606166000,
         //         asset => "USDT",
         //         transactionType => "deposit",
-        //         $amount => "25",
+        //         amount => "25",
         //         commission => "0",
         //         networkTransactionId => "0xbc4eabdce92f14dbcc01d799a5f8ca1f02f4a3a804b6350ea202be4d3c738fce",
-        //         $status => "pending",
+        //         status => "pending",
         //         numConfirmed => 8,
         //         numConfirmations => 20,
         //         $destAddress => {
@@ -2350,39 +2379,35 @@ class ascendex extends Exchange {
         //         }
         //     }
         //
-        $id = $this->safe_string($transaction, 'requestId');
-        $amount = $this->safe_number($transaction, 'amount');
         $destAddress = $this->safe_value($transaction, 'destAddress', array());
         $address = $this->safe_string($destAddress, 'address');
         $tag = $this->safe_string($destAddress, 'destTag');
-        $txid = $this->safe_string($transaction, 'networkTransactionId');
-        $type = $this->safe_string($transaction, 'transactionType');
         $timestamp = $this->safe_integer($transaction, 'time');
         $currencyId = $this->safe_string($transaction, 'asset');
         $code = $this->safe_currency_code($currencyId, $currency);
-        $status = $this->parse_transaction_status($this->safe_string($transaction, 'status'));
-        $feeCost = $this->safe_number($transaction, 'commission');
         return array(
             'info' => $transaction,
-            'id' => $id,
+            'id' => $this->safe_string($transaction, 'requestId'),
+            'txid' => $this->safe_string($transaction, 'networkTransactionId'),
+            'type' => $this->safe_string($transaction, 'transactionType'),
             'currency' => $code,
-            'amount' => $amount,
             'network' => null,
-            'address' => $address,
-            'addressTo' => $address,
-            'addressFrom' => null,
-            'tag' => $tag,
-            'tagTo' => $tag,
-            'tagFrom' => null,
-            'status' => $status,
-            'type' => $type,
-            'updated' => null,
-            'txid' => $txid,
+            'amount' => $this->safe_number($transaction, 'amount'),
+            'status' => $this->parse_transaction_status($this->safe_string($transaction, 'status')),
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
+            'address' => $address,
+            'addressFrom' => null,
+            'addressTo' => $address,
+            'tag' => $tag,
+            'tagFrom' => null,
+            'tagTo' => $tag,
+            'updated' => null,
+            'comment' => null,
             'fee' => array(
                 'currency' => $code,
-                'cost' => $feeCost,
+                'cost' => $this->safe_number($transaction, 'commission'),
+                'rate' => null,
             ),
         );
     }

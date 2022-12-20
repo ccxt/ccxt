@@ -40,6 +40,8 @@ class bitfinex extends Exchange {
                 'fetchClosedOrders' => true,
                 'fetchDepositAddress' => true,
                 'fetchDeposits' => null,
+                'fetchDepositWithdrawFee' => 'emulated',
+                'fetchDepositWithdrawFees' => true,
                 'fetchIndexOHLCV' => false,
                 'fetchLeverageTiers' => false,
                 'fetchMarginMode' => false,
@@ -396,7 +398,7 @@ class bitfinex extends Exchange {
     public function fetch_transaction_fees($codes = null, $params = array ()) {
         return Async\async(function () use ($codes, $params) {
             /**
-             * fetch transaction $fees
+             * *DEPRECATED* please use fetchDepositWithdrawFees instead
              * @see https://docs.bitfinex.com/v1/reference/rest-auth-$fees
              * @param {[string]|null} $codes list of unified currency $codes
              * @param {array} $params extra parameters specific to the bitfinex api endpoint
@@ -428,6 +430,48 @@ class bitfinex extends Exchange {
             }
             return $result;
         }) ();
+    }
+
+    public function fetch_deposit_withdraw_fees($codes = null, $params = array ()) {
+        return Async\async(function () use ($codes, $params) {
+            /**
+             * fetch deposit and $withdraw fees
+             * @see https://docs.bitfinex.com/v1/reference/rest-auth-fees
+             * @param {[string]|null} $codes list of unified currency $codes
+             * @param {array} $params extra parameters specific to the bitfinex api endpoint
+             * @return {[array]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#fee-structure fees structures}
+             */
+            Async\await($this->load_markets());
+            $response = Async\await($this->privatePostAccountFees ($params));
+            //
+            //    {
+            //        'withdraw' => {
+            //            'BTC' => '0.0004',
+            //            ...
+            //        }
+            //    }
+            //
+            $withdraw = $this->safe_value($response, 'withdraw');
+            return $this->parse_deposit_withdraw_fees($withdraw, $codes);
+        }) ();
+    }
+
+    public function parse_deposit_withdraw_fee($fee, $currency = null) {
+        //
+        //    '0.0004'
+        //
+        return array(
+            'withdraw' => array(
+                'fee' => $this->parse_number($fee),
+                'percentage' => null,
+            ),
+            'deposit' => array(
+                'fee' => null,
+                'percentage' => null,
+            ),
+            'networks' => array(),
+            'info' => $fee,
+        );
     }
 
     public function fetch_trading_fees($params = array ()) {
@@ -1458,34 +1502,31 @@ class bitfinex extends Exchange {
         //     }
         //
         $timestamp = $this->safe_timestamp($transaction, 'timestamp_created');
-        $updated = $this->safe_timestamp($transaction, 'timestamp');
         $currencyId = $this->safe_string($transaction, 'currency');
         $code = $this->safe_currency_code($currencyId, $currency);
-        $type = $this->safe_string_lower($transaction, 'type'); // DEPOSIT or WITHDRAWAL
-        $status = $this->parse_transaction_status($this->safe_string($transaction, 'status'));
         $feeCost = $this->safe_string($transaction, 'fee');
         if ($feeCost !== null) {
             $feeCost = Precise::string_abs($feeCost);
         }
-        $tag = $this->safe_string($transaction, 'description');
         return array(
             'info' => $transaction,
             'id' => $this->safe_string_2($transaction, 'id', 'withdrawal_id'),
             'txid' => $this->safe_string($transaction, 'txid'),
+            'type' => $this->safe_string_lower($transaction, 'type'), // DEPOSIT or WITHDRAWAL,
+            'currency' => $code,
+            'network' => null,
+            'amount' => $this->safe_number($transaction, 'amount'),
+            'status' => $this->parse_transaction_status($this->safe_string($transaction, 'status')),
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
-            'network' => null,
-            'address' => $this->safe_string($transaction, 'address'), // todo => this is actually the $tag for XRP transfers (the address is missing)
-            'addressTo' => null,
+            'address' => $this->safe_string($transaction, 'address'), // todo => this is actually the tag for XRP transfers (the address is missing)
             'addressFrom' => null,
-            'tag' => $tag,
-            'tagTo' => null,
+            'addressTo' => null,
+            'tag' => $this->safe_string($transaction, 'description'),
             'tagFrom' => null,
-            'type' => $type,
-            'amount' => $this->safe_number($transaction, 'amount'),
-            'currency' => $code,
-            'status' => $status,
-            'updated' => $updated,
+            'tagTo' => null,
+            'updated' => $this->safe_timestamp($transaction, 'timestamp'),
+            'comment' => null,
             'fee' => array(
                 'currency' => $code,
                 'cost' => $this->parse_number($feeCost),

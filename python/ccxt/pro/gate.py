@@ -61,6 +61,9 @@ class gate(Exchange, ccxt.async_support.gate):
                 'watchTradesSubscriptions': {},
                 'watchTickerSubscriptions': {},
                 'watchOrderBookSubscriptions': {},
+                'watchTicker': {
+                    'name': 'tickers',  # or book_ticker
+                },
                 'watchOrderBook': {
                     'interval': '100ms',
                 },
@@ -337,7 +340,9 @@ class gate(Exchange, ccxt.async_support.gate):
         marketId = market['id']
         type = market['type']
         messageType = self.get_uniform_type(type)
-        channel = messageType + '.' + 'tickers'
+        options = self.safe_value(self.options, 'watchTicker', {})
+        topic = self.safe_string(options, 'name', 'tickers')
+        channel = messageType + '.' + topic
         messageHash = channel + '.' + market['symbol']
         payload = [marketId]
         url = self.get_url_by_market_type(type, market['inverse'])
@@ -359,6 +364,21 @@ class gate(Exchange, ccxt.async_support.gate):
         #          quote_volume: '227267634.93123952',
         #          high_24h: '47698',
         #          low_24h: '42721.03'
+        #        }
+        #    }
+        #    {
+        #        time: 1671363004,
+        #        time_ms: 1671363004235,
+        #        channel: 'spot.book_ticker',
+        #        event: 'update',
+        #        result: {
+        #          t: 1671363004228,
+        #          u: 9793320464,
+        #          s: 'BTC_USDT',
+        #          b: '16716.8',
+        #          B: '0.0134',
+        #          a: '16716.9',
+        #          A: '0.0353'
         #        }
         #    }
         #
@@ -1032,6 +1052,7 @@ class gate(Exchange, ccxt.async_support.gate):
             'candlesticks': self.handle_ohlcv,
             'orders': self.handle_order,
             'tickers': self.handle_ticker,
+            'book_ticker': self.handle_ticker,
             'trades': self.handle_trades,
             'order_book_update': self.handle_order_book,
             'balances': self.handle_balance_message,
