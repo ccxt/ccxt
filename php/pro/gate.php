@@ -370,7 +370,7 @@ class gate extends \ccxt\async\gate {
             $type = $market['type'];
             $messageType = $this->get_uniform_type($type);
             $options = $this->safe_value($this->options, 'watchTicker', array());
-            $topic = $this->safe_string($options, 'topic', 'tickers');
+            $topic = $this->safe_string($options, 'name', 'tickers');
             $channel = $messageType . '.' . $topic;
             $messageHash = $channel . '.' . $market['symbol'];
             $payload = array( $marketId );
