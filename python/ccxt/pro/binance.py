@@ -45,10 +45,10 @@ class binance(Exchange, ccxt.async_support.binance):
             },
             'options': {
                 'streamLimits': {
-                    'spot': 1024,
-                    'margin': 1024,
-                    'future': 200,
-                    'delivery': 200,
+                    'spot': 50,  # max 1024
+                    'margin': 50,  # max 1024
+                    'future': 50,  # max 200
+                    'delivery': 50,  # max 200
                 },
                 'streamBySubscriptionsHash': {},
                 'streamIndex': -1,
@@ -93,10 +93,9 @@ class binance(Exchange, ccxt.async_support.binance):
             streamLimits = self.safe_value(self.options, 'streamLimits')
             streamLimit = self.safe_integer(streamLimits, type)
             streamIndex = streamIndex + 1
-            if streamIndex == streamLimit:
-                streamIndex = 0
+            normalizedIndex = streamIndex % streamLimit
             self.options['streamIndex'] = streamIndex
-            stream = self.number_to_string(streamIndex)
+            stream = self.number_to_string(normalizedIndex)
             self.options['streamBySubscriptionsHash'][subscriptionHash] = stream
         return stream
 

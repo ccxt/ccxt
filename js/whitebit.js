@@ -47,6 +47,8 @@ module.exports = class whitebit extends Exchange {
                 'fetchDeposit': true,
                 'fetchDepositAddress': true,
                 'fetchDeposits': true,
+                'fetchDepositWithdrawFee': 'emulated',
+                'fetchDepositWithdrawFees': true,
                 'fetchFundingHistory': false,
                 'fetchFundingRate': false,
                 'fetchFundingRateHistory': false,
@@ -220,6 +222,9 @@ module.exports = class whitebit extends Exchange {
                     'spot': 'spot',
                     'margin': 'collateral',
                     'trade': 'spot',
+                },
+                'networksById': {
+                    'BEP20': 'BSC',
                 },
             },
             'precisionMode': TICK_SIZE,
@@ -430,7 +435,7 @@ module.exports = class whitebit extends Exchange {
         /**
          * @method
          * @name whitebit#fetchTransactionFees
-         * @description fetch transaction fees
+         * @description *DEPRECATED* please use fetchDepositWithdrawFees instead
          * @param {[string]|undefined} codes not used by fetchTransactionFees ()
          * @param {object} params extra parameters specific to the whitebit api endpoint
          * @returns {object} a list of [fee structures]{@link https://docs.ccxt.com/en/latest/manual.html#fee-structure}
@@ -479,6 +484,156 @@ module.exports = class whitebit extends Exchange {
             'deposit': depositFees,
             'info': response,
         };
+    }
+
+    async fetchDepositWithdrawFees (codes = undefined, params = {}) {
+        /**
+         * @method
+         * @name whitebit#fetchDepositWithdrawFees
+         * @description fetch deposit and withdraw fees
+         * @param {[string]|undefined} codes not used by fetchDepositWithdrawFees ()
+         * @param {object} params extra parameters specific to the whitebit api endpoint
+         * @returns {object} a list of [fee structures]{@link https://docs.ccxt.com/en/latest/manual.html#fee-structure}
+         */
+        await this.loadMarkets ();
+        const response = await this.v4PublicGetFee (params);
+        //
+        //    {
+        //        "1INCH": {
+        //            "is_depositable": true,
+        //            "is_withdrawal": true,
+        //            "ticker": "1INCH",
+        //            "name": "1inch",
+        //            "providers": [],
+        //            "withdraw": {
+        //                "max_amount": "0",
+        //                "min_amount": "21.5",
+        //                "fixed": "17.5",
+        //                "flex": null
+        //            },
+        //            "deposit": {
+        //                "max_amount": "0",
+        //                "min_amount": "19.5",
+        //                "fixed": null,
+        //                "flex": null
+        //            }
+        //        },
+        //        'WBT (ERC20)': {
+        //            is_depositable: true,
+        //            is_withdrawal: true,
+        //            ticker: 'WBT',
+        //            name: 'WhiteBIT Token',
+        //            providers: [],
+        //            withdraw: { max_amount: '0', min_amount: '0.7', fixed: '0.253', flex: null },
+        //            deposit: { max_amount: '0', min_amount: '0.35', fixed: null, flex: null }
+        //        },
+        //        'WBT (TRC20)': {
+        //            is_depositable: true,
+        //            is_withdrawal: true,
+        //            ticker: 'WBT',
+        //            name: 'WhiteBIT Token',
+        //            providers: [],
+        //            withdraw: { max_amount: '0', min_amount: '1.5', fixed: '0.075', flex: null },
+        //            deposit: { max_amount: '0', min_amount: '0.75', fixed: null, flex: null }
+        //        },
+        //        ...
+        //    }
+        //
+        return this.parseDepositWithdrawFees (response, codes);
+    }
+
+    parseDepositWithdrawFees (response, codes = undefined, currencyIdKey = undefined) {
+        //
+        //    {
+        //        "1INCH": {
+        //            "is_depositable": true,
+        //            "is_withdrawal": true,
+        //            "ticker": "1INCH",
+        //            "name": "1inch",
+        //            "providers": [],
+        //            "withdraw": {
+        //                "max_amount": "0",
+        //                "min_amount": "21.5",
+        //                "fixed": "17.5",
+        //                "flex": null
+        //            },
+        //            "deposit": {
+        //                "max_amount": "0",
+        //                "min_amount": "19.5",
+        //                "fixed": null,
+        //                "flex": null
+        //            }
+        //        },
+        //        'WBT (ERC20)': {
+        //            is_depositable: true,
+        //            is_withdrawal: true,
+        //            ticker: 'WBT',
+        //            name: 'WhiteBIT Token',
+        //            providers: [],
+        //            withdraw: { max_amount: '0', min_amount: '0.7', fixed: '0.253', flex: null },
+        //            deposit: { max_amount: '0', min_amount: '0.35', fixed: null, flex: null }
+        //        },
+        //        'WBT (TRC20)': {
+        //            is_depositable: true,
+        //            is_withdrawal: true,
+        //            ticker: 'WBT',
+        //            name: 'WhiteBIT Token',
+        //            providers: [],
+        //            withdraw: { max_amount: '0', min_amount: '1.5', fixed: '0.075', flex: null },
+        //            deposit: { max_amount: '0', min_amount: '0.75', fixed: null, flex: null }
+        //        },
+        //        ...
+        //    }
+        //
+        const depositWithdrawFees = {};
+        codes = this.marketCodes (codes);
+        const currencyIds = Object.keys (response);
+        for (let i = 0; i < currencyIds.length; i++) {
+            const entry = currencyIds[i];
+            const splitEntry = entry.split (' ');
+            const currencyId = splitEntry[0];
+            const feeInfo = response[entry];
+            const code = this.safeCurrencyCode (currencyId);
+            if ((codes === undefined) || (this.inArray (code, codes))) {
+                const depositWithdrawFee = this.safeValue (depositWithdrawFees, code);
+                if (depositWithdrawFee === undefined) {
+                    depositWithdrawFees[code] = this.depositWithdrawFee ({});
+                }
+                depositWithdrawFees[code]['info'][entry] = feeInfo;
+                let networkId = this.safeString (splitEntry, 1);
+                const withdraw = this.safeValue (feeInfo, 'withdraw');
+                const deposit = this.safeValue (feeInfo, 'deposit');
+                const withdrawFee = this.safeNumber (withdraw, 'fixed');
+                const depositFee = this.safeNumber (deposit, 'fixed');
+                const withdrawResult = {
+                    'fee': withdrawFee,
+                    'percentage': (withdrawFee !== undefined) ? false : undefined,
+                };
+                const depositResult = {
+                    'fee': depositFee,
+                    'percentage': (depositFee !== undefined) ? false : undefined,
+                };
+                if (networkId !== undefined) {
+                    const networkLength = networkId.length;
+                    networkId = networkId.slice (1, networkLength - 1);
+                    const networkCode = this.networkIdToCode (networkId);
+                    depositWithdrawFees[code]['networks'][networkCode] = {
+                        'withdraw': withdrawResult,
+                        'deposit': depositResult,
+                    };
+                } else {
+                    depositWithdrawFees[code]['withdraw'] = withdrawResult;
+                    depositWithdrawFees[code]['deposit'] = depositResult;
+                }
+            }
+        }
+        const depositWithdrawCodes = Object.keys (depositWithdrawFees);
+        for (let i = 0; i < depositWithdrawCodes.length; i++) {
+            const code = depositWithdrawCodes[i];
+            const currency = this.currency (code);
+            depositWithdrawFees[code] = this.assignDefaultDepositWithdrawFees (depositWithdrawFees[code], currency);
+        }
+        return depositWithdrawFees;
     }
 
     async fetchTradingFees (params = {}) {

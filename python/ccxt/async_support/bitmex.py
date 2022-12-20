@@ -50,7 +50,9 @@ class bitmex(Exchange):
                 'editOrder': True,
                 'fetchBalance': True,
                 'fetchClosedOrders': True,
-                'fetchDepositAddress': False,
+                'fetchDepositAddress': True,
+                'fetchDepositAddresses': False,
+                'fetchDepositAddressesByNetwork': False,
                 'fetchFundingHistory': False,
                 'fetchFundingRate': False,
                 'fetchFundingRateHistory': True,
@@ -228,6 +230,33 @@ class bitmex(Exchange):
                 # https://github.com/ccxt/ccxt/issues/4789
                 'api-expires': 5,  # in seconds
                 'fetchOHLCVOpenTimestamp': True,
+                'networks': {
+                    'BTC': 'btc',
+                    'ETH': 'eth',
+                    'BSC': 'bsc',
+                    'BNB': 'bsc',
+                    'TRON': 'tron',
+                    'ERC20': 'eth',
+                    'BEP20': 'bsc',
+                    'TRC20': 'tron',
+                    'TRX': 'tron',
+                    'AVAX': 'avax',
+                    'NEAR': 'near',
+                    'XTZ': 'xtz',
+                    'DOT': 'dot',
+                    'SOL': 'sol',
+                },
+                'networksById': {
+                    'btc': 'BTC',
+                    'eth': 'ERC20',
+                    'bsc': 'BSC',
+                    'tron': 'TRX',
+                    'avax': 'AVAX',
+                    'near': 'NEAR',
+                    'xtz': 'XTZ',
+                    'dot': 'DOT',
+                    'sol': 'SOL',
+                },
             },
             'commonCurrencies': {
                 'USDt': 'USDT',
@@ -235,6 +264,8 @@ class bitmex(Exchange):
                 'XBT': 'BTC',
                 'Gwei': 'ETH',
                 'GWEI': 'ETH',
+                'LAMP': 'SOL',
+                'LAMp': 'SOL',
             },
         })
 
@@ -2509,6 +2540,41 @@ class bitmex(Exchange):
             'enabled': enabled,
         }
         return await self.privatePostPositionIsolate(self.extend(request, params))
+
+    async def fetch_deposit_address(self, code, params={}):
+        """
+        fetch the deposit address for a currency associated with self account
+        see https://www.bitmex.com/api/explorer/#not /User/User_getDepositAddress
+        :param str code: unified currency code
+        :param dict params: extra parameters specific to the bitmex api endpoint
+        :param str params['network']: deposit chain, can view all chains via self.publicGetWalletAssets, default is eth, unless the currency has a default chain within self.options['networks']
+        :returns dict: an `address structure <https://docs.ccxt.com/en/latest/manual.html#address-structure>`
+        """
+        await self.load_markets()
+        networkCode = self.safe_string_upper(params, 'network')
+        if networkCode is None:
+            raise ArgumentsRequired(self.id + ' fetchDepositAddress requires params["network"]')
+        currency = self.currency(code)
+        currencyId = currency['id']
+        networkId = self.network_code_to_id(networkCode, currency['code'])
+        idLength = len(currencyId)
+        currencyId = currencyId[0:idLength - 1] + currencyId[idLength - 1:idLength].lower()  # make the last letter lowercase
+        params = self.omit(params, 'network')
+        request = {
+            'currency': currencyId,
+            'network': networkId,
+        }
+        response = await self.privateGetUserDepositAddress(self.extend(request, params))
+        #
+        #    '"bc1qmex3puyrzn2gduqcnlu70c2uscpyaa9nm2l2j9le2lt2wkgmw33sy7ndjg"'
+        #
+        return {
+            'currency': code,
+            'address': response.replace('"', '').replace('"', ''),  # Done twice because some languages only replace the first instance
+            'tag': None,
+            'network': self.network_id_to_code(networkId).upper(),
+            'info': response,
+        }
 
     def calculate_rate_limiter_cost(self, api, method, path, params, config={}, context={}):
         isAuthenticated = self.check_required_credentials(False)

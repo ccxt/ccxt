@@ -61,7 +61,7 @@ class bkex extends Exchange {
                 'fetchLedgerEntry' => null,
                 'fetchLeverageTiers' => null,
                 'fetchMarginMode' => false,
-                'fetchMarketLeverageTiers' => null,
+                'fetchMarketLeverageTiers' => true,
                 'fetchMarkets' => true,
                 'fetchMarkOHLCV' => null,
                 'fetchMyTrades' => null,
@@ -1797,6 +1797,72 @@ class bkex extends Exchange {
         }
         $sorted = $this->sort_by($rates, 'timestamp');
         return $this->filter_by_symbol_since_limit($sorted, $market['symbol'], $since, $limit);
+    }
+
+    public function fetch_market_leverage_tiers($symbol, $params = array ()) {
+        /**
+         * @see https://bkexapi.github.io/docs/api_en.htm?shell#contract-riskLimit
+         * retrieve information on the maximum leverage, for different trade sizes for a single $market
+         * @param {string} $symbol unified $market $symbol
+         * @param {array} $params extra parameters specific to the bkex api endpoint
+         * @return {array} a {@link https://docs.ccxt.com/en/latest/manual.html#leverage-tiers-structure leverage tiers structure}
+         */
+        $this->load_markets();
+        $market = $this->market($symbol);
+        if (!$market['swap']) {
+            throw new BadRequest($this->id . ' fetchMarketLeverageTiers() supports swap markets only');
+        }
+        $request = array(
+            'symbol' => $market['id'],
+        );
+        $response = $this->publicSwapGetMarketRiskLimit (array_merge($request, $params));
+        //
+        //     {
+        //         "code" => 0,
+        //         "msg" => "success",
+        //         "data" => array(
+        //             array(
+        //                 "symbol" => "btc_usdt",
+        //                 "minValue" => "0",
+        //                 "maxValue" => "500000",
+        //                 "maxLeverage" => 100,
+        //                 "maintenanceMarginRate" => "0.005"
+        //             ),
+        //         )
+        //     }
+        //
+        $data = $this->safe_value($response, 'data', array());
+        return $this->parse_market_leverage_tiers($data, $market);
+    }
+
+    public function parse_market_leverage_tiers($info, $market) {
+        //
+        //     array(
+        //         array(
+        //             "symbol" => "btc_usdt",
+        //             "minValue" => "0",
+        //             "maxValue" => "500000",
+        //             "maxLeverage" => 100,
+        //             "maintenanceMarginRate" => "0.005"
+        //         ),
+        //     )
+        //
+        $tiers = array();
+        for ($i = 0; $i < count($info); $i++) {
+            $tier = $info[$i];
+            $marketId = $this->safe_string($info, 'symbol');
+            $market = $this->safe_market($marketId, $market);
+            $tiers[] = array(
+                'tier' => $this->sum($i, 1),
+                'currency' => $market['settle'],
+                'minNotional' => $this->safe_number($tier, 'minValue'),
+                'maxNotional' => $this->safe_number($tier, 'maxValue'),
+                'maintenanceMarginRate' => $this->safe_number($tier, 'maintenanceMarginRate'),
+                'maxLeverage' => $this->safe_number($tier, 'maxLeverage'),
+                'info' => $tier,
+            );
+        }
+        return $tiers;
     }
 
     public function sign($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {

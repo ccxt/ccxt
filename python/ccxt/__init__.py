@@ -22,7 +22,7 @@
 
 # ----------------------------------------------------------------------------
 
-__version__ = '2.2.103'
+__version__ = '2.4.33'
 
 # ----------------------------------------------------------------------------
 
@@ -76,7 +76,6 @@ from ccxt.base.errors import error_hierarchy                          # noqa: F4
 from ccxt.alpaca import alpaca                                        # noqa: F401
 from ccxt.ascendex import ascendex                                    # noqa: F401
 from ccxt.bequant import bequant                                      # noqa: F401
-from ccxt.bibox import bibox                                          # noqa: F401
 from ccxt.bigone import bigone                                        # noqa: F401
 from ccxt.binance import binance                                      # noqa: F401
 from ccxt.binancecoinm import binancecoinm                            # noqa: F401
@@ -190,7 +189,6 @@ exchanges = [
     'alpaca',
     'ascendex',
     'bequant',
-    'bibox',
     'bigone',
     'binance',
     'binancecoinm',

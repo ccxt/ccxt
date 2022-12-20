@@ -454,7 +454,6 @@ declare module 'ccxt' {
     export class alpaca extends Exchange {}
     export class ascendex extends Exchange {}
     export class bequant extends hitbtc {}
-    export class bibox extends Exchange {}
     export class bigone extends Exchange {}
     export class binance extends Exchange {}
     export class binancecoinm extends binance {}
@@ -571,7 +570,6 @@ declare module 'ccxt' {
         | 'alpaca'
         | 'ascendex'
         | 'bequant'
-        | 'bibox'
         | 'bigone'
         | 'binance'
         | 'binancecoinm'

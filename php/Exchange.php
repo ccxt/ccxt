@@ -36,7 +36,7 @@ use Elliptic\EdDSA;
 use BN\BN;
 use Exception;
 
-$version = '2.2.103';
+$version = '2.4.33';
 
 // rounding mode
 const TRUNCATE = 0;
@@ -55,7 +55,7 @@ const PAD_WITH_ZERO = 1;
 
 class Exchange {
 
-    const VERSION = '2.2.103';
+    const VERSION = '2.4.33';
 
     private static $base58_alphabet = '123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz';
     private static $base58_encoder = null;
@@ -65,7 +65,6 @@ class Exchange {
         'alpaca',
         'ascendex',
         'bequant',
-        'bibox',
         'bigone',
         'binance',
         'binancecoinm',
@@ -305,6 +304,7 @@ class Exchange {
         'getNetwork' => 'get_network',
         'networkCodeToId' => 'network_code_to_id',
         'networkIdToCode' => 'network_id_to_code',
+        'networkCodesToIds' => 'network_codes_to_ids',
         'handleNetworkCodeAndParams' => 'handle_network_code_and_params',
         'defaultNetworkCode' => 'default_network_code',
         'selectNetworkCodeFromUnifiedNetworks' => 'select_network_code_from_unified_networks',
@@ -595,7 +595,7 @@ class Exchange {
 
     public static function get_object_value_from_key_array($object, $array) {
         foreach($array as $key) {
-            if (isset($object[$key])) {
+            if (isset($object[$key]) && $object[$key] !== '') {
                 return $object[$key];
             }
         }
@@ -1252,6 +1252,7 @@ class Exchange {
             '408' => 'RequestTimeout',
             '504' => 'RequestTimeout',
             '401' => 'AuthenticationError',
+            '407' => 'AuthenticationError',
             '511' => 'AuthenticationError',
         );
         $this->verbose = false;
@@ -3411,6 +3412,24 @@ class Exchange {
             }
         }
         return $networkCode;
+    }
+
+    public function network_codes_to_ids($networkCodes = null) {
+        /**
+         * @ignore
+         * tries to convert the provided $networkCode (which is expected to be an unified network code) to a network id. In order to achieve this, derived class needs to have 'options->networks' defined.
+         * @param {[string]|null} $networkCodes unified network codes
+         * @return {[string|null]} exchange-specific network $ids
+         */
+        if ($networkCodes === null) {
+            return null;
+        }
+        $ids = array();
+        for ($i = 0; $i < count($networkCodes); $i++) {
+            $networkCode = $networkCodes[$i];
+            $ids[] = $this->networkCodeToId ($networkCode);
+        }
+        return $ids;
     }
 
     public function handle_network_code_and_params($params) {

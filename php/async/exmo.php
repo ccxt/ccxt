@@ -44,6 +44,8 @@ class exmo extends Exchange {
                 'fetchDeposit' => true,
                 'fetchDepositAddress' => true,
                 'fetchDeposits' => true,
+                'fetchDepositWithdrawFee' => 'emulated',
+                'fetchDepositWithdrawFees' => true,
                 'fetchFundingHistory' => false,
                 'fetchFundingRate' => false,
                 'fetchFundingRateHistory' => false,
@@ -181,7 +183,7 @@ class exmo extends Exchange {
                 ),
                 'transaction' => array(
                     'tierBased' => false,
-                    'percentage' => false, // fixed transaction fees for crypto, see fetchTransactionFees below
+                    'percentage' => false, // fixed transaction fees for crypto, see fetchDepositWithdrawFees below
                 ),
             ),
             'options' => array(
@@ -432,7 +434,7 @@ class exmo extends Exchange {
     public function fetch_transaction_fees($codes = null, $params = array ()) {
         return Async\async(function () use ($codes, $params) {
             /**
-             * fetch transaction fees
+             * *DEPRECATED* please use fetchDepositWithdrawFees instead
              * @see https://documenter.getpostman.com/view/10287440/SzYXWKPi#4190035d-24b1-453d-833b-37e0a52f88e2
              * @param {[string]|null} $codes list of unified $currency $codes
              * @param {array} $params extra parameters specific to the exmo api endpoint
@@ -501,6 +503,95 @@ class exmo extends Exchange {
             $this->options['transactionFees'] = $result;
             return $result;
         }) ();
+    }
+
+    public function fetch_deposit_withdraw_fees($codes = null, $params = array ()) {
+        return Async\async(function () use ($codes, $params) {
+            /**
+             * fetch deposit and withdraw fees
+             * @see https://documenter.getpostman.com/view/10287440/SzYXWKPi#4190035d-24b1-453d-833b-37e0a52f88e2
+             * @param {[string]|null} $codes list of unified currency $codes
+             * @param {array} $params extra parameters specific to the exmo api endpoint
+             * @return {array} a list of {@link https://docs.ccxt.com/en/latest/manual.html#fees-structure transaction fees structures}
+             */
+            Async\await($this->load_markets());
+            $response = Async\await($this->publicGetPaymentsProvidersCryptoList ($params));
+            //
+            //    {
+            //        "USDT" => array(
+            //            array(
+            //                "type" => "deposit", // or "withdraw"
+            //                "name" => "USDT (ERC20)",
+            //                "currency_name" => "USDT",
+            //                "min" => "10",
+            //                "max" => "0",
+            //                "enabled" => true,
+            //                "comment" => "Minimum deposit amount is 10 USDT",
+            //                "commission_desc" => "0%",
+            //                "currency_confirmations" => 2
+            //            ),
+            //            ...
+            //        ),
+            //        ...
+            //    }
+            //
+            $result = $this->parse_deposit_withdraw_fees($response, $codes);
+            // cache them for later use
+            $this->options['transactionFees'] = $result;
+            return $result;
+        }) ();
+    }
+
+    public function parse_deposit_withdraw_fee($fee, $currency = null) {
+        //
+        //    array(
+        //        array(
+        //            "type" => "deposit", // or "withdraw"
+        //            "name" => "BTC",
+        //            "currency_name" => "BTC",
+        //            "min" => "0.001",
+        //            "max" => "0",
+        //            "enabled" => true,
+        //            "comment" => "Minimum deposit amount is 0.001 BTC. We do not support BSC and BEP20 $network, please consider this when sending funds",
+        //            "commission_desc" => "0%",
+        //            "currency_confirmations" => 1
+        //        ),
+        //        ...
+        //    )
+        //
+        $result = $this->deposit_withdraw_fee($fee);
+        for ($i = 0; $i < count($fee); $i++) {
+            $provider = $fee[$i];
+            $type = $this->safe_string($provider, 'type');
+            $networkId = $this->safe_string($provider, 'name');
+            $networkCode = $this->network_id_to_code($networkId, $this->safe_string($currency, 'code'));
+            $commissionDesc = $this->safe_string($provider, 'commission_desc');
+            $splitCommissionDesc = array();
+            $percentage = null;
+            if ($commissionDesc !== null) {
+                $splitCommissionDesc = explode('%', $commissionDesc);
+                $splitCommissionDescLength = count($splitCommissionDesc);
+                $percentage = $splitCommissionDescLength >= 2;
+            }
+            $network = $this->safe_value($result['networks'], $networkCode);
+            if ($network === null) {
+                $result['networks'][$networkCode] = array(
+                    'withdraw' => array(
+                        'fee' => null,
+                        'percentage' => null,
+                    ),
+                    'deposit' => array(
+                        'fee' => null,
+                        'percentage' => null,
+                    ),
+                );
+            }
+            $result['networks'][$networkCode][$type] = array(
+                'fee' => $this->parse_fixed_float_value($this->safe_string($splitCommissionDesc, 0)),
+                'percentage' => $percentage,
+            );
+        }
+        return $this->assign_default_deposit_withdraw_fees($result);
     }
 
     public function fetch_currencies($params = array ()) {
@@ -673,7 +764,7 @@ class exmo extends Exchange {
                     'swap' => false,
                     'future' => false,
                     'option' => false,
-                    'active' => true,
+                    'active' => null,
                     'contract' => false,
                     'linear' => null,
                     'inverse' => null,

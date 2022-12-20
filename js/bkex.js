@@ -61,7 +61,7 @@ module.exports = class bkex extends Exchange {
                 'fetchLedgerEntry': undefined,
                 'fetchLeverageTiers': undefined,
                 'fetchMarginMode': false,
-                'fetchMarketLeverageTiers': undefined,
+                'fetchMarketLeverageTiers': true,
                 'fetchMarkets': true,
                 'fetchMarkOHLCV': undefined,
                 'fetchMyTrades': undefined,
@@ -1842,6 +1842,74 @@ module.exports = class bkex extends Exchange {
         }
         const sorted = this.sortBy (rates, 'timestamp');
         return this.filterBySymbolSinceLimit (sorted, market['symbol'], since, limit);
+    }
+
+    async fetchMarketLeverageTiers (symbol, params = {}) {
+        /**
+         * @method
+         * @name bkex#fetchMarketLeverageTiers
+         * @see https://bkexapi.github.io/docs/api_en.htm?shell#contract-riskLimit
+         * @description retrieve information on the maximum leverage, for different trade sizes for a single market
+         * @param {string} symbol unified market symbol
+         * @param {object} params extra parameters specific to the bkex api endpoint
+         * @returns {object} a [leverage tiers structure]{@link https://docs.ccxt.com/en/latest/manual.html#leverage-tiers-structure}
+         */
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        if (!market['swap']) {
+            throw new BadRequest (this.id + ' fetchMarketLeverageTiers() supports swap markets only');
+        }
+        const request = {
+            'symbol': market['id'],
+        };
+        const response = await this.publicSwapGetMarketRiskLimit (this.extend (request, params));
+        //
+        //     {
+        //         "code": 0,
+        //         "msg": "success",
+        //         "data": [
+        //             {
+        //                 "symbol": "btc_usdt",
+        //                 "minValue": "0",
+        //                 "maxValue": "500000",
+        //                 "maxLeverage": 100,
+        //                 "maintenanceMarginRate": "0.005"
+        //             },
+        //         ]
+        //     }
+        //
+        const data = this.safeValue (response, 'data', []);
+        return this.parseMarketLeverageTiers (data, market);
+    }
+
+    parseMarketLeverageTiers (info, market) {
+        //
+        //     [
+        //         {
+        //             "symbol": "btc_usdt",
+        //             "minValue": "0",
+        //             "maxValue": "500000",
+        //             "maxLeverage": 100,
+        //             "maintenanceMarginRate": "0.005"
+        //         },
+        //     ]
+        //
+        const tiers = [];
+        for (let i = 0; i < info.length; i++) {
+            const tier = info[i];
+            const marketId = this.safeString (info, 'symbol');
+            market = this.safeMarket (marketId, market);
+            tiers.push ({
+                'tier': this.sum (i, 1),
+                'currency': market['settle'],
+                'minNotional': this.safeNumber (tier, 'minValue'),
+                'maxNotional': this.safeNumber (tier, 'maxValue'),
+                'maintenanceMarginRate': this.safeNumber (tier, 'maintenanceMarginRate'),
+                'maxLeverage': this.safeNumber (tier, 'maxLeverage'),
+                'info': tier,
+            });
+        }
+        return tiers;
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
