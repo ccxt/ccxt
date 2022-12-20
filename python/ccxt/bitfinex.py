@@ -1392,33 +1392,30 @@ class bitfinex(Exchange):
         #     }
         #
         timestamp = self.safe_timestamp(transaction, 'timestamp_created')
-        updated = self.safe_timestamp(transaction, 'timestamp')
         currencyId = self.safe_string(transaction, 'currency')
         code = self.safe_currency_code(currencyId, currency)
-        type = self.safe_string_lower(transaction, 'type')  # DEPOSIT or WITHDRAWAL
-        status = self.parse_transaction_status(self.safe_string(transaction, 'status'))
         feeCost = self.safe_string(transaction, 'fee')
         if feeCost is not None:
             feeCost = Precise.string_abs(feeCost)
-        tag = self.safe_string(transaction, 'description')
         return {
             'info': transaction,
             'id': self.safe_string_2(transaction, 'id', 'withdrawal_id'),
             'txid': self.safe_string(transaction, 'txid'),
+            'type': self.safe_string_lower(transaction, 'type'),  # DEPOSIT or WITHDRAWAL,
+            'currency': code,
+            'network': None,
+            'amount': self.safe_number(transaction, 'amount'),
+            'status': self.parse_transaction_status(self.safe_string(transaction, 'status')),
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
-            'network': None,
             'address': self.safe_string(transaction, 'address'),  # todo: self is actually the tag for XRP transfers(the address is missing)
-            'addressTo': None,
             'addressFrom': None,
-            'tag': tag,
-            'tagTo': None,
+            'addressTo': None,
+            'tag': self.safe_string(transaction, 'description'),
             'tagFrom': None,
-            'type': type,
-            'amount': self.safe_number(transaction, 'amount'),
-            'currency': code,
-            'status': status,
-            'updated': updated,
+            'tagTo': None,
+            'updated': self.safe_timestamp(transaction, 'timestamp'),
+            'comment': None,
             'fee': {
                 'currency': code,
                 'cost': self.parse_number(feeCost),
