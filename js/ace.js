@@ -115,13 +115,6 @@ module.exports = class ace extends Exchange {
                 },
                 'private': {
                     'post': [
-                        'v1/coin/customerAccount',
-                        'v1/kline/getKlineMin',
-                        'v1/order/order',
-                        'v1/order/cancel',
-                        'v1/order/getOrderList',
-                        'v1/order/showOrderStatus',
-                        'v1/order/showOrderHistory',
                         'v2/coin/customerAccount',
                         'v2/kline/getKline',
                         'v2/order/order',
@@ -550,6 +543,8 @@ module.exports = class ace extends Exchange {
             '0': 'open',
             '1': 'open',
             '2': 'closed',
+            '4': 'canceled',
+            '5': 'canceled',
         };
         return this.safeString (statuses, status, undefined);
     }
@@ -566,9 +561,9 @@ module.exports = class ace extends Exchange {
         //             "orderTime": "2021-01-22 17:35:37",
         //             "orderTimeStamp": 1611308137656,
         //             "baseCurrencyId": 1,
-        //             "baseCurrencyNameEn": "TWD",
-        //             "currencyId": 14,
-        //             "currencyNameEn": "USDT",
+        //             "baseCurrencyName": "TWD",
+        //             "quoteCurrencyId": 14,
+        //             "quoteCurrencyName": "USDT",
         //             "buyOrSell": "1",
         //             "num": "6.0000000000000000",
         //             "price": "32.5880000000000000",
@@ -583,6 +578,7 @@ module.exports = class ace extends Exchange {
         //
         let id = undefined;
         let timestamp = undefined;
+        let orderTime = undefined;
         let symbol = undefined;
         let price = undefined;
         let amount = undefined;
@@ -595,13 +591,14 @@ module.exports = class ace extends Exchange {
             id = order;
         } else {
             id = this.safeString (order, 'orderNo');
-            timestamp = this.safeInteger (order, 'orderTimeStamp');
+            orderTime = this.safeString (order, 'orderTime');
+            timestamp = this.parse8601 (orderTime);
             const orderSide = this.safeNumber (order, 'buyOrSell');
             side = (orderSide === 1) ? 'buy' : 'sell';
             amount = this.safeString (order, 'num');
             price = this.safeString (order, 'price');
-            const quoteId = this.safeString (order, 'baseCurrencyNameEn');
-            const baseId = this.safeString (order, 'currencyNameEn');
+            const quoteId = this.safeString (order, 'quoteCurrencyName');
+            const baseId = this.safeString (order, 'baseCurrencyName');
             if (quoteId !== undefined && baseId !== undefined) {
                 symbol = baseId + '/' + quoteId;
             }
@@ -615,7 +612,7 @@ module.exports = class ace extends Exchange {
             'id': id,
             'clientOrderId': undefined,
             'timestamp': timestamp,
-            'datetime': this.iso8601 (timestamp),
+            'datetime': orderTime,
             'lastTradeTimestamp': undefined,
             'symbol': symbol,
             'type': type,
@@ -662,7 +659,7 @@ module.exports = class ace extends Exchange {
             'num': this.amountToPrecision (symbol, amount),
             'price': this.priceToPrecision (symbol, price),
         };
-        const response = await this.privatePostV1OrderOrder (this.extend (request, params), params);
+        const response = await this.privatePostV2OrderOrder (this.extend (request, params), params);
         //
         //     {
         //         "attachment": "15697850529570392100421100482693",
@@ -689,7 +686,7 @@ module.exports = class ace extends Exchange {
         const request = {
             'orderNo': id,
         };
-        const response = await this.privatePostV1OrderCancel (this.extend (request, params));
+        const response = await this.privatePostV2OrderCancel (this.extend (request, params));
         //
         //     {
         //         "attachment": 200,
@@ -712,25 +709,25 @@ module.exports = class ace extends Exchange {
          */
         await this.loadMarkets ();
         const request = {
-            'orderId': id,
+            'orderNo': id,
         };
-        const response = await this.privatePostV1OrderShowOrderStatus (this.extend (request, params));
+        const response = await this.privatePostV2OrderShowOrderStatus (this.extend (request, params));
         //
         //     {
         //         "attachment": {
-        //         "remainNum": "0.00000000",
-        //         "orderNo": "15681910422154042100431100441305",
-        //         "num": "0.85000000",
-        //         "tradeNum": "0.85000000",
-        //         "baseCurrencyId": 2,
-        //         "baseCurrencyName": "Bitcoin",
-        //         "buyOrSell": 1,
-        //         "orderTime": "2019-09-11 16:37:22.216",
-        //         "currencyName": "Ethereum",
-        //         "price": "0.03096500",
-        //         "averagePrice": "0.03096500",
-        //         "currencyId": 4,
-        //         "status": 2
+        //             "buyOrSell": 1,
+        //             "averagePrice": "490849.75000000",
+        //             "num": "0.00000000",
+        //             "orderTime": "2022-11-29 18:03:06.318",
+        //             "price": "490849.75000000",
+        //             "status": 4,
+        //             "tradeNum": "0.02697000",
+        //             "remainNum": "0.97303000",
+        //             "baseCurrencyId": 2,
+        //             "baseCurrencyName": "BTC",
+        //             "quoteCurrencyId": 1,
+        //             "quoteCurrencyName": "TWD",
+        //             "orderNo": "16697161898600391472461100244406"
         //         },
         //         "message": null,
         //         "parameters": null,
@@ -759,21 +756,15 @@ module.exports = class ace extends Exchange {
         const market = this.market (symbol);
         const currencyToId = this.safeValue (this.options, 'currencyToId');
         const request = {
-            'baseCurrencyId': this.safeNumber (currencyToId, market['quoteId']),
-            'tradeCurrencyId': this.safeNumber (currencyToId, market['baseId']),
+            'quoteCurrencyId': this.safeNumber (currencyToId, market['quote']),
+            'baseCurrencyId': this.safeNumber (currencyToId, market['base']),
             // 'start': 0,
         };
-        if (since !== undefined) {
-            request['startTimestamp'] = since;
-        }
         if (limit !== undefined) {
             request['size'] = limit;
         }
-        const response = await this.privatePostV1OrderGetOrderList (this.extend (request, params), params);
-        let orders = this.safeValue (response, 'attachment');
-        if (orders === undefined) {
-            orders = [];
-        }
+        const response = await this.privatePostV2OrderGetOrderList (this.extend (request, params), params);
+        const orders = this.safeValue (response, 'attachment');
         //
         //     {
         //         "attachment": [
@@ -783,9 +774,9 @@ module.exports = class ace extends Exchange {
         //                 "orderTime": "2021-01-22 17:35:37",
         //                 "orderTimeStamp": 1611308137656,
         //                 "baseCurrencyId": 1,
-        //                 "baseCurrencyNameEn": "TWD",
-        //                 "currencyId": 14,
-        //                 "currencyNameEn": "USDT",
+        //                 "baseCurrencyName": "TWD",
+        //                 "quoteCurrencyId": 14,
+        //                 "quoteCurrencyName": "USDT",
         //                 "buyOrSell": "1",
         //                 "num": "6.0000000000000000",
         //                 "price": "32.5880000000000000",
@@ -853,45 +844,36 @@ module.exports = class ace extends Exchange {
         await this.loadMarkets ();
         const market = this.safeMarket (symbol);
         const request = {
-            'orderId': id,
+            'orderNo': id,
         };
-        const response = await this.privatePostV1OrderShowOrderHistory (this.extend (request, params));
+        const response = await this.privatePostV2OrderShowOrderHistory (this.extend (request, params));
         //
         //     {
         //         "attachment": {
+        //             "order": {
+        //                 "buyOrSell": 1,
+        //                 "averagePrice": "491343.74000000",
+        //                 "num": "1.00000000",
+        //                 "orderTime": "2022-11-29 18:32:22.232",
+        //                 "price": "491343.74000000",
+        //                 "status": 1,
+        //                 "tradeNum": "0.01622200",
+        //                 "remainNum": "0.98377800",
+        //                 "baseCurrencyId": 2,
+        //                 "baseCurrencyName": "BTC",
+        //                 "quoteCurrencyId": 1,
+        //                 "quoteCurrencyName": "TWD",
+        //                 "orderNo": "16697179457740441472471100214402"
+        //             },
         //             "trades": [
         //                 {
-        //                     "amount": 0.0030965,
-        //                     "tradeNo": "15681920522485652100751000417788",
-        //                     "price": "0.03096500",
-        //                     "num": "0.10000000",
-        //                     "bi": 1,
-        //                     "time": "2019-09-11 16:54:12.248"
-        //                 },
-        //                 {
-        //                     "amount": 0.02322375,
-        //                     "tradeNo": "15682679767395912100751000467937",
-        //                     "price": "0.03096500",
-        //                     "num": "0.75000000",
-        //                     "bi": 1,
-        //                     "time": "2019-09-12 13:59:36.739"
+        //                     "price": "491343.74000000",
+        //                     "num": "0.01622200",
+        //                     "time": "2022-11-29 18:32:25.789",
+        //                     "tradeNo": "16697179457897791471461000223437",
+        //                     "amount": "7970.57815028"
         //                 }
-        //             ],
-        //             "order": {
-        //                 "remainNum": "0.00000000",
-        //                 "orderNo": "15681910422154042100431100441305",
-        //                 "num": "0.85000000",
-        //                 "tradeNum": "0.85000000",
-        //                 "baseCurrencyId": 2,
-        //                 "baseCurrencyName": "Bitcoin",
-        //                 "buyOrSell": 1,
-        //                 "orderTime": "2019-09-11 16:37:22.216",
-        //                 "currencyName": "Ethereum",
-        //                 "price": "0.03096500",
-        //                 "averagePrice": "0.03096500",
-        //                 "currencyId": 4,
-        //                 "status": 2
-        //             }
+        //             ]
         //         },
         //         "message": null,
         //         "parameters": null,
