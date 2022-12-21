@@ -563,8 +563,6 @@ module.exports = class ascendex extends Exchange {
             let baseId = this.safeString (market, 'baseAsset');
             let quoteId = this.safeString (market, 'quoteAsset');
             const settleId = this.safeValue (market, 'settlementAsset');
-            let base = this.safeCurrencyCode (baseId);
-            let quote = this.safeCurrencyCode (quoteId);
             const settle = this.safeCurrencyCode (settleId);
             const status = this.safeString (market, 'status');
             const domain = this.safeString (market, 'domain');
@@ -579,6 +577,14 @@ module.exports = class ascendex extends Exchange {
             let maxQty = this.safeNumber (market, 'maxQty');
             let minPrice = this.safeNumber (market, 'tickSize');
             let maxPrice = undefined;
+            if (baseId === undefined) {
+                const underlying = this.safeString2 (market, 'underlying', 'symbol');
+                const parts = underlying.split ('/');
+                baseId = this.safeString (parts, 0);
+                quoteId = this.safeString (parts, 1);
+            }
+            const base = this.safeCurrencyCode (baseId);
+            const quote = this.safeCurrencyCode (quoteId);
             let symbol = base + '/' + quote;
             if (swap) {
                 const lotSizeFilter = this.safeValue (market, 'lotSizeFilter');
@@ -587,12 +593,6 @@ module.exports = class ascendex extends Exchange {
                 const priceFilter = this.safeValue (market, 'priceFilter');
                 minPrice = this.safeNumber (priceFilter, 'minPrice');
                 maxPrice = this.safeNumber (priceFilter, 'maxPrice');
-                const underlying = this.safeString (market, 'underlying');
-                const parts = underlying.split ('/');
-                baseId = this.safeString (parts, 0);
-                quoteId = this.safeString (parts, 1);
-                base = this.safeCurrencyCode (baseId);
-                quote = this.safeCurrencyCode (quoteId);
                 symbol = base + '/' + quote + ':' + settle;
             }
             const fee = this.safeNumber (market, 'commissionReserveRate');
