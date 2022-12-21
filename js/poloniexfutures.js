@@ -866,6 +866,13 @@ module.exports = class poloniexfutures extends Exchange {
         };
     }
 
+    objectValuesToString (o) {
+        Object.keys (o).forEach ((k) => {
+            o[k] = '' + o[k];
+        });
+        return o;
+    }
+
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let url = this.urls['api'][api];
         const versions = this.safeValue (this.options, 'versions', {});
@@ -883,15 +890,21 @@ module.exports = class poloniexfutures extends Exchange {
             }
         } else {
             this.checkRequiredCredentials ();
+            const bodyEncoded = this.urlencode (query);
             if (method !== 'GET' && method !== 'HEAD') {
-                body = this.urlencode (query);
-                url += '?' + body;
+                body = query;
+            } else {
+                url += '?' + bodyEncoded;
             }
             const now = this.milliseconds ().toString ();
-            let payload = now + method + tail;
+            let endpart = '';
             if (body !== undefined) {
-                payload += '?' + body;
+                body = this.objectValuesToString (body);
+                body = this.json (query);
+                endpart = body;
             }
+            const endpoint = '/api/v1/' + this.implodeParams (path, params);
+            const payload = now + method + endpoint + endpart;
             console.log (payload);
             const signature = this.hmac (this.encode (payload), this.encode (this.secret), 'sha256', 'base64');
             headers = {
