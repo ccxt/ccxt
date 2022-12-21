@@ -3,7 +3,7 @@
 //  ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
-const { ArgumentsRequired, BadRequest, AuthenticationError } = require ('./base/errors');
+const { ArgumentsRequired, BadRequest, AuthenticationError, InsufficientFunds } = require ('./base/errors');
 const { TICK_SIZE } = require ('./base/functions/number');
 const Precise = require ('./base/Precise');
 
@@ -221,6 +221,8 @@ module.exports = class ace extends Exchange {
             'precisionMode': TICK_SIZE,
             'exceptions': {
                 'exact': {
+                    '2021': InsufficientFunds,
+                    '2061': BadRequest,
                     '9996': BadRequest,
                     '20182': AuthenticationError,
                 },
