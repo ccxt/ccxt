@@ -779,7 +779,7 @@ module.exports = class okx extends Exchange {
                     'KLAYTN': 'Klaytn',
                     'KUSAMA': 'Kusama',
                     'LISK': 'Lisk',
-                    'LITECOIN': 'Litecoin',
+                    'LTC': 'Litecoin',
                     'METIS': 'Metis',
                     'MINA': 'Mina',
                     'MONERO': 'Monero',
@@ -1335,8 +1335,6 @@ module.exports = class okx extends Exchange {
         //
         const data = this.safeValue (response, 'data', []);
         const result = {};
-        this.options['networkChainIdsByNames'] = {};
-        this.options['networkNamesByChainIds'] = {};
         const dataByCurrencyId = this.groupBy (data, 'ccy');
         const currencyIds = Object.keys (dataByCurrencyId);
         for (let i = 0; i < currencyIds.length; i++) {
@@ -1345,7 +1343,6 @@ module.exports = class okx extends Exchange {
             const code = currency['code'];
             const chains = dataByCurrencyId[currencyId];
             const networks = {};
-            this.options['networkChainIdsByNames'][code] = {};
             let currencyActive = false;
             let depositEnabled = undefined;
             let withdrawEnabled = undefined;
@@ -1368,10 +1365,8 @@ module.exports = class okx extends Exchange {
                 } else if (!canWithdraw) {
                     withdrawEnabled = false;
                 }
-                const title = this.getCommonNetworkNameFromId (networkId);
-                this.options['networkChainIdsByNames'][code][title] = networkId;
-                this.options['networkNamesByChainIds'][networkId] = title;
-                const networkCode = this.networkIdToCode (networkId, code);
+                const title = this.getExchangeSpecificNetworkCommonNameFromId (networkId);
+                const networkCode = this.defineNetworkIdNameCodeMappings (code, title, networkId);
                 const precision = this.parsePrecision (this.safeString (chain, 'wdTickSz'));
                 maxPrecision = (maxPrecision === undefined) ? precision : Precise.stringMin (maxPrecision, precision);
                 networks[networkCode] = {
@@ -1414,7 +1409,7 @@ module.exports = class okx extends Exchange {
         return result;
     }
 
-    getCommonNetworkNameFromId (networkId, currencyCode = undefined) {
+    getExchangeSpecificNetworkCommonNameFromId (networkId, currencyCode = undefined) {
         const parts = networkId.split ('-'); // might have two hyphens, i.e. USDT-Avalanche C-Chain
         let title = this.safeString (parts, 1, networkId);
         const secondPart = this.safeString (parts, 2);

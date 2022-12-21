@@ -444,7 +444,7 @@ module.exports = class gate extends Exchange {
                     'HRC20': 'HT',
                     'CRONOS': 'CRO',
                     'OKC': 'OKT',
-                    'LITECOIN': 'LTC',
+                    'LTC': 'LTC',
                     'AVALANCHEC': 'AVAX_C',
                     'AVALANCHEX': 'AVAX',
                     'DOGECOIN': 'DOGE', // DOGEEVM is different

@@ -962,7 +962,7 @@ module.exports = class huobi extends Exchange {
                     'NERVOS': 'CKB',
                     'CYBERMILES': 'CMT',
                     'COSMOS': 'ATOM1',
-                    // 'CRC20': 'CRC20', TBD
+                    // 'CRC20': 'CRC20', // this is for chiliz
                     'DASH': 'DASH',
                     'AVALANCHEC': [ 'AVAXCCHAIN', 'C-CHAIN', 'CCHAIN', 'CCHAINERC20' ], // huobi has too many aliases for avax-c
                     'AVALANCHEX': 'AVAX',
@@ -990,7 +990,7 @@ module.exports = class huobi extends Exchange {
                     'IOTA': 'IOTA',
                     'KLAYTN': 'KLAY',
                     'KUSAMA': 'KSM',
-                    'LITECOIN': 'LTC',
+                    'LTC': 'LTC',
                     'MONERO': 'XMR',
                     'NEAR': 'NEAR',
                     'ONTOLOGY': 'ONTOLOGY',
@@ -2921,15 +2921,12 @@ module.exports = class huobi extends Exchange {
         //
         const data = this.safeValue (response, 'data', []);
         const result = {};
-        this.options['networkChainIdsByNames'] = {};
-        this.options['networkNamesByChainIds'] = {};
         for (let i = 0; i < data.length; i++) {
             const entry = data[i];
             const currencyId = this.safeString (entry, 'currency');
             const code = this.safeCurrencyCode (currencyId);
             const chains = this.safeValue (entry, 'chains', []);
             const networks = {};
-            this.options['networkChainIdsByNames'][code] = {};
             const instStatus = this.safeString (entry, 'instStatus');
             const currencyActive = instStatus === 'normal';
             let minPrecision = undefined;
@@ -2941,9 +2938,7 @@ module.exports = class huobi extends Exchange {
                 const chainEntry = chains[j];
                 const uniqueChainId = this.safeString (chainEntry, 'chain'); // i.e. usdterc20, trc20usdt ...
                 const title = this.safeString (chainEntry, 'displayName');
-                this.options['networkChainIdsByNames'][code][title] = uniqueChainId;
-                this.options['networkNamesByChainIds'][uniqueChainId] = title;
-                const networkCode = this.networkIdToCode (uniqueChainId, code);
+                const networkCode = this.defineNetworkIdNameCodeMappings (code, title, uniqueChainId);
                 minWithdraw = this.safeNumber (chainEntry, 'minWithdrawAmt');
                 maxWithdraw = this.safeNumber (chainEntry, 'maxWithdrawAmt');
                 const withdrawStatus = this.safeString (chainEntry, 'withdrawStatus');

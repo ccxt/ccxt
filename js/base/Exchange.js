@@ -323,7 +323,7 @@ module.exports = class Exchange {
                 this[property] = value
             }
         }
-        this.defineNetworkCodesByIds ();
+        this.defineNetworkOptions ();
         // http client options
         const agentOptions = {
             'keepAlive': true,
@@ -808,9 +808,12 @@ module.exports = class Exchange {
                 'TRX': { 'TRC20': 'TRX' },
                 'CRO': { 'CRC20': 'CRONOS' },
             },
+            // this list is for common CCXT unified network codes
             'networkCodeAliases': {
-                'BTC': 'BTC',
-                'LTC': 'LITECOIN',
+                'BITCOIN': 'BTC',
+                'LITECOIN': 'LTC',
+                'ETH': 'ERC20',
+                'TRX': 'TRC20',
                 'TRON': 'TRC20',
                 'BSC': 'BEP20',
                 'CRONOS': 'CRC20',
@@ -831,9 +834,46 @@ module.exports = class Exchange {
                 'XEC': 'ECASH',
                 'ZEC': 'ZCASH',
             },
-            'hasUniqueNetworkIds': false, // if set to `true` it means that network ID-to-CODE relation defined in `networks|netwroksById` was done by common exchange-specific network-name (i.e. Erc-20) instead of the actual network-id (i.e. usdterc20), becuase in such case each currency has unique exchange-specific network-id (which is impossible to be pre-defined in `options`) and within fetchCurrencies() we set them automatically through `options['networkChainIdsByNames' && 'networkNamesByChainIds']`. To see examples, check OKX/HUOBI implementations
-            'networksByIdAuto': {}, // do not touch, auto filled later
+            // visual titles are just for exception messages, to make users awere of details
+            'networksDescriptiveTitles': {
+                'BTC': 'Bitcoin',
+                'ERC20': 'Ethereum',
+                'CRC20': 'Crypto.com CRONOS',
+                'TRC20': 'TRON TRC20',
+                'BEP20': 'Binance Smart Chain BEP20',
+            },
+            // below field needs to be s set to `true` for some exceptional exchanges. Setting it to `true` means that network ID-to-CODE relation defined in `networks|netwroksById` was done by common exchange-specific network-name (i.e. Erc-20) instead of the actual network-id (i.e. usdterc20), becuase in such case each currency has unique exchange-specific network-id (which is impossible to be pre-defined in `options`) and within fetchCurrencies() we set them automatically through '_chainIdsByNames' && '_namesByChainIds'. To see examples, check OKX/HUOBI implementations
+            'hasUniqueNetworkIds': false,
+            // below field will contain automatically generated network id/code/name mappings (users are not meant to interact with it directly, and it will be moved into a class-wide property later)
+            '_networkData': {
+                '_codesByIds': {},
+                // so, in case of unique networks ids per currency, we will have three different entities: 1) unified code i.e. 'ERC20' 2) exchange specific network name i.e. 'Erc-20'  3) currency specific network-id i.e. 'usdterc20'
+                '_chainIdsByNames': {},
+                '_namesByChainIds': {},
+                '_namesByCodes': {},
+            },
+            'networkCodesConflicts': {},
+            'networkCodesConflictsApproved': {},
         };
+    }
+
+    defineNetworkIdNameCodeMappings (currencyCode, exchangeSpecificNetworkTitle, uniqueCurrencySpecificNetworkId) {
+        // [mapping] id to name
+        this.options['_networkData']['_namesByChainIds'][uniqueCurrencySpecificNetworkId] = exchangeSpecificNetworkTitle;
+        // [mapping] title to id
+        if (!(currencyCode in this.options['_networkData']['_chainIdsByNames'])) {
+            this.options['_networkData']['_chainIdsByNames'][currencyCode] = {};
+        }
+        this.options['_networkData']['_chainIdsByNames'][currencyCode][exchangeSpecificNetworkTitle] = uniqueCurrencySpecificNetworkId;
+        // set networkCode
+        const networkCode = this.networkIdToCode (uniqueCurrencySpecificNetworkId, currencyCode);
+        // [mapping] networkCode to title
+        if (!(currencyCode in this.options['_networkData']['_namesByCodes'])) {
+            this.options['_networkData']['_namesByCodes'][currencyCode] = {};
+        }
+        this.options['_networkData']['_namesByCodes'][currencyCode][networkCode] = exchangeSpecificNetworkTitle;
+        //
+        return networkCode;
     }
 
     safeLedgerEntry (entry, currency = undefined) {
@@ -1703,29 +1743,62 @@ module.exports = class Exchange {
         }
     }
 
-    defineNetworkCodesByIds () {
+    defineNetworkOptions () {
         if ('networks' in this.options) {
             // auto define 'networksById' in options, by reverting  key<>value from 'networks' entries
-            const result = {};
+            const codesByIds = {};
             const networkCodesSupportedList = Object.keys (this.options['networks']);
             for (let i = 0; i < networkCodesSupportedList.length; i++) {
                 const networkCode = networkCodesSupportedList[i];
-                const networkId = this.options['networks'][networkCode];
-                result[networkId] = networkCode;
+                const networkIdValue = this.options['networks'][networkCode];
+                if (Array.isArray (networkIdValue)) {
+                    // if exchange had multiple ids, i.e. `ERC20: [ 'Eth', 'Ethereum' ]`
+                    for (let j = 0; j < networkIdValue.length; j++) {
+                        codesByIds[networkIdValue[j]] = networkCode;
+                    }
+                } else {
+                    codesByIds[networkIdValue] = networkCode;
+                }
             }
-            this.options['networksByIdAuto'] = result;
-            // define all unified network codes for this exchange
+            this.options['_networkData']['_codesByIds'] = codesByIds;
+            //
+            // get the list of all unified network codes, unified for this exchange
+            //
             const networks = this.safeValue (this.options, 'networks', {});
             const keysOfNetworks = Object.keys (networks);
-            const defaultNetworkCodeReplacements = this.safeValue (this.options, 'defaultNetworkCodeReplacements', {});
-            const keysOfReplacements = Object.keys (defaultNetworkCodeReplacements);
             const networkCodeAliases = this.safeValue (this.options, 'networkCodeAliases', {});
             const keysOfAliases = Object.keys (networkCodeAliases);
-            const concatenatedFirst = this.arrayConcat (keysOfNetworks, keysOfReplacements);
-            const concatenatedSecond = this.arrayConcat (keysOfAliases, concatenatedFirst);
-            const concatenatedUnique = this.unique (concatenatedSecond);
-            this.options['networkCodesSupportedList'] = concatenatedUnique;
+            const concatenatedUniqueNetworkCodes = this.unique (this.arrayConcat (keysOfAliases, keysOfNetworks));
+            //
+            // create a list of all supported unified networkCodes
+            this.options['networkCodesSupportedList'] = concatenatedUniqueNetworkCodes;
+            //
+            // define base unified networkCodes list/dict
+            const valuesOfAliases = this.values (networkCodeAliases);
+            const baseUnifiedNetworkCodesList = this.unique (this.arrayConcat (keysOfAliases, valuesOfAliases));
+            //
+            // define conflicting network-id against unified networkCodes
+            const allNetworkIds = Object.keys (codesByIds);
+            for (let i = 0; i < allNetworkIds.length; i++) {
+                const networkId = allNetworkIds[i];
+                const isInImplementedNetworks = networkId in networks;
+                const matchesUnifiedNetworkCode = this.inArray (networkId, baseUnifiedNetworkCodesList);
+                // if it matches somewhere in unified codes, but not present in implementation, that means it is not unified (implemented) in derived exchange class, because of conflict (otherwise, if it's not conflicting, developer should implement that networkCode)
+                if (!isInImplementedNetworks && matchesUnifiedNetworkCode) {
+                    // add into conflicting dict (with empty string as value at first)
+                    this.options['networkCodesConflicts'][networkId] = '';
+                    // if we have alternative networkCode for it, then offer it instead of empty string
+                    if ()
+                    aliasNetworkCode;
+                    // later that will be checked in exception, if it does have a value (instead of empty string) it will be offered to user as an alternative
+                }
+            }
         }
+    }
+
+    getUnfiedNetworkCodesList (networkCode) {
+        // define all unified network codes for this exchange, so users can use them in their userland codes to know in advance, whether specific networkCode they want to use, is supported by this exchange or not
+        return this.options['networkCodesSupportedList'];
     }
 
     networkCodeToId (networkCode, currencyCode = undefined) {
@@ -1738,21 +1811,48 @@ module.exports = class Exchange {
          * @param {string|undefined} currencyCode unified currency code, but this argument is not required by default, unless there is an exchange (like huobi) that needs an override of the method to be able to pass currencyCode argument additionally
          * @returns {[string|undefined]} exchange-specific network id
          */
+        // check if conflicting id was provided
+        const conflictingCodes = this.safeValue (this.options, 'networkCodesConflicts');
+        if (conflictingCodes !== undefined) {
+            if (networkCode in conflictingCodes) {
+                const targetConflictingNetworkCode = conflictingCodes[networkCode];
+                const userOptions = this.safeValue (this.options, 'networkCodesConflictsApproved', {});
+                if (!(networkCode in userOptions)) {
+                    const commonDefaultTitle = this.safeValue (this.options['networksDescriptiveTitles'], networkCode);
+                    throw new ArgumentsRequired (this.id + ' networkCodeToId : You provided unified networkCode ' + networkCode + ' which is an unified networkCode for ' + commonDefaultTitle + '. However, specifically this exchange have assigned this exact networkId to different network, which is typically refered by ' + targetConflictingNetworkCode + ' networkCode. So, to avoid confusion, you can set the networkCode explicitly to ' + targetConflictingNetworkCode + ' in your code, or alternatively set the exchange.options["networkCodesConflictsApproved"]["' + networkCode + '"] = true');
+                }
+            }
+        }
+        // if exchange has flat structure from 'Currencies' endpoint with unique exchange-specific chain-ids (i.e. trc20usdt, which is combination of chain slug and currency), then at first we should get the values which were set in fetchCurrencies
         if (this.options['hasUniqueNetworkIds']) {
-            // if exchange has flat structure from 'Currencies' endpoint with unique exchange-specific chain-ids (i.e. trc20usdt, which is combination of chain slug and currency), then at first we should get the values which were set in fetchCurrencies
             if (currencyCode === undefined) {
                 throw new ArgumentsRequired (this.id + ' networkCodeToId() requires a currencyCode argument');
             }
-            const keys = Object.keys (this.options['networkChainIdsByNames']);
-            const keysLength = keys.length;
-            if (keysLength === 0) {
+            const keys = Object.keys (this.safeValue (this.options['_networkData'], '_chainIdsByNames', {}));
+            if (!keys.length) {
                 throw new ExchangeError (this.id + ' networkCodeToId() - markets need to be loaded at first');
             }
         }
         const networkIdsByCodes = this.safeValue (this.options, 'networks', {});
-        let networkId = this.safeString (networkIdsByCodes, networkCode);
+        let networkId = this.safeValue (networkIdsByCodes, networkCode);
+        if (Array.isArray (networkId)) {
+            let found = false;
+            if (currencyCode !== undefined) {
+                const _namesByCodes = this.safeValue (this.options['_networkData'], '_namesByCodes', {});
+                const currencyData = this.safeValue (_namesByCodes, currencyCode, {});
+                const networkData = this.safeValue (currencyData, networkCode);
+                if (networkData !== undefined) {
+                    networkId = _namesByCodes[currencyCode][networkCode];
+                    found = true;
+                }
+            }
+            if (!found) {
+                const idsList = networkId.join (', ');
+                throw new ArgumentsRequired (this.id + ' networkCodeToId() can not autoamtically detect the network-id for given networkCode ' + networkCode + '. Please choose one from list: ' + idsList);
+            }
+        }
         if (networkId === undefined) {
-            // if `networkCode` argument was i.e. `SOL`, which was not defined in `options->networks`, then try to locate in aliases
+            // if `networkCode` argument was i.e. `SOL`, which was not defined in `options->networks`, but might be predefined alias, then try to locate in "aliases"
             const aliases = this.safeValue (this.options, 'networkCodeAliases');
             if (aliases !== undefined) {
                 if (networkCode in aliases) {
@@ -1773,11 +1873,10 @@ module.exports = class Exchange {
                     const replacementObject = defaultNetworkCodeReplacements[currencyCode]; // i.e. { 'ERC20': 'ETH' }
                     const keys = Object.keys (replacementObject);
                     for (let i = 0; i < keys.length; i++) {
-                        const primaryCode = keys[i];
-                        const value = replacementObject[primaryCode];
+                        const key = keys[i];
                         // if value matches to provided unified networkCode, then we use it's key to find network-id in `options->networks` object
-                        if (value === networkCode) {
-                            networkId = this.safeString (networkIdsByCodes, primaryCode);
+                        if (replacementObject[key] === networkCode) {
+                            networkId = this.safeString (networkIdsByCodes, key);
                             break;
                         }
                     }
@@ -1790,11 +1889,12 @@ module.exports = class Exchange {
         }
         if (this.options['hasUniqueNetworkIds']) {
             // at this stage, "networkId" will be just an intermediary, exchange-specific common network title i.e. 'Erc20', so we have to convert to actual networkId
-            const uniqueNetworkIds = this.safeValue (this.options['networkChainIdsByNames'], currencyCode, {});
-            return this.safeValue (uniqueNetworkIds, networkId, networkId);
-        } else {
-            return networkId;
+            // 1) at first, check if it was present during fetchCurrencies (because there are cases, when API might return data, which contains curerncy & network ids, which were not mentioned in fetchCurrencies)
+            const uniqueNetworkIds = this.safeValue (this.options['_networkData']['_chainIdsByNames'], currencyCode, {});
+            // 2) if currency was present, check if it had (in fetchCurrencies) present the provided networkId
+            networkId = this.safeValue (uniqueNetworkIds, networkId, networkId);
         }
+        return networkId;
     }
 
     networkIdToCode (networkId, currencyCode = undefined) {
@@ -1809,15 +1909,15 @@ module.exports = class Exchange {
          */
         if (this.options['hasUniqueNetworkIds']) {
             // if exchange has flat structure from 'Currencies' endpoint with unique exchange-specific chain-ids (i.e. trc20usdt, which is combination of chain slug and currency), then at first we should get the values which were set in fetchCurrencies
-            const keys = Object.keys (this.options['networkNamesByChainIds']);
+            const keys = Object.keys (this.options['_networkData']['_namesByChainIds']);
             const keysLength = keys.length;
             if (keysLength === 0) {
                 throw new ExchangeError (this.id + ' networkIdToCode() - markets need to be loaded at first');
             }
-            let networkTitle = this.safeValue (this.options['networkNamesByChainIds'], networkId);
+            let networkTitle = this.safeValue (this.options['_networkData']['_namesByChainIds'], networkId);
             if (networkTitle === undefined) {
-                // Some exchanges (i.e. OKX) might have inconsistent data. For example, fetchDepositAddress('BTC') might return exchange specific network-id (i.e. BTCK-erc20), which was not present in fetchCurrencies for that currency. So, if it was not found in this.options['networkNamesByChainIds'], then we should just get the network-id part from that string to compare it againt the common `networksById`
-                networkTitle = this.getCommonNetworkNameFromId (networkId, currencyCode);
+                // Some exchanges (i.e. OKX) might have inconsistent data. For example, fetchDepositAddress('BTC') might return exchange specific network-id (i.e. BTCK-erc20), which was not present in fetchCurrencies for that currency. So, if it was not found in '_namesByChainIds', then we should just get the network-id part from that string to compare it againt the common `networksById`
+                networkTitle = this.getExchangeSpecificNetworkCommonNameFromId (networkId, currencyCode);
             }
             networkId = networkTitle;
         }
@@ -1825,7 +1925,7 @@ module.exports = class Exchange {
         let networkCode = this.safeString (networkCodesByIds, networkId);
         if (networkCode === undefined) {
             // if `networkId` was not found in `networksById` (possibly because it was not defined in options at all) then check in auto-inversed `networks` object. If given `networkId` will not be present there, then return `networkId` as-is
-            const networkCodesByIdsAuto = this.safeValue (this.options, 'networksByIdAuto', {});
+            const networkCodesByIdsAuto = this.safeValue (this.options['_networkData'], '_codesByIds', {});
             networkCode = this.safeString (networkCodesByIdsAuto, networkId, networkId);
         }
         // replace mainnet network-codes (i.e. ERC20->ETH)
@@ -1839,7 +1939,7 @@ module.exports = class Exchange {
         return networkCode;
     }
 
-    getCommonNetworkNameFromId (networkId, currencyCode = undefined) {
+    getExchangeSpecificNetworkCommonNameFromId (networkId, currencyCode = undefined) {
         // this method is here to be overriden in derived class (i.e. OKX, HUOBI)
         return networkId;
     }
@@ -1881,9 +1981,9 @@ module.exports = class Exchange {
         // this method is used against raw & unparse network entries, which are just indexed by network id
         let chosenNetworkId = undefined;
         const availableNetworkIds = Object.keys (indexedNetworkEntries);
-        const responseNetworksLength = availableNetworkIds.length;
+        const networkIdsArePresent = availableNetworkIds.length;
         if (networkCode !== undefined) {
-            if (responseNetworksLength === 0) {
+            if (!networkIdsArePresent) {
                 throw new NotSupported (this.id + ' - ' + networkCode + ' network did not return any result for ' + currencyCode);
             } else {
                 // if networkCode was provided by user, we should check it after response, as the referenced exchange doesn't support network-code during request
@@ -1895,7 +1995,7 @@ module.exports = class Exchange {
                 }
             }
         } else {
-            if (responseNetworksLength === 0) {
+            if (!networkIdsArePresent) {
                 throw new NotSupported (this.id + ' - no networks were returned for ' + currencyCode);
             } else {
                 // if networkCode was not provided by user, then we try to use the default network (if it was defined in "defaultNetworks"), otherwise, we just return the first network entry
