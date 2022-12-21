@@ -1775,22 +1775,43 @@ module.exports = class Exchange {
             //
             // define base unified networkCodes list/dict
             const valuesOfAliases = this.values (networkCodeAliases);
-            const baseUnifiedNetworkCodesList = this.unique (this.arrayConcat (keysOfAliases, valuesOfAliases));
+            const baseAllUnifiedNetworkCodesList = this.unique (this.arrayConcat (keysOfAliases, valuesOfAliases));
             //
             // define conflicting network-id against unified networkCodes
-            const allNetworkIds = Object.keys (codesByIds);
-            for (let i = 0; i < allNetworkIds.length; i++) {
-                const networkId = allNetworkIds[i];
+            const keysNetworkIds = Object.keys (codesByIds);
+            for (let i = 0; i < keysNetworkIds.length; i++) {
+                const networkId = keysNetworkIds[i];
+                const networkCode = codesByIds[networkId];
                 const isInImplementedNetworks = networkId in networks;
-                const matchesUnifiedNetworkCode = this.inArray (networkId, baseUnifiedNetworkCodesList);
+                const matchesUnifiedNetworkCode = this.inArray (networkId, baseAllUnifiedNetworkCodesList);
+                let alternativeNetworkCode = undefined;
                 // if it matches somewhere in unified codes, but not present in implementation, that means it is not unified (implemented) in derived exchange class, because of conflict (otherwise, if it's not conflicting, developer should implement that networkCode)
                 if (!isInImplementedNetworks && matchesUnifiedNetworkCode) {
                     // add into conflicting dict (with empty string as value at first)
-                    this.options['networkCodesConflicts'][networkId] = '';
+                    alternativeNetworkCode = '';
                     // if we have alternative networkCode for it, then offer it instead of empty string
-                    if ()
-                    aliasNetworkCode;
+                    if (networkId in networkCodeAliases) {
+                        // if that conflicting networkId is present as key in aliases, then offer its value
+                        alternativeNetworkCode = networkCodeAliases[networkId];
+                    } else {
+                        // if that conflicting networkId is present as value in aliases, then offer its key
+                        const keys2 = Object.keys (networkCodeAliases);
+                        for (let j = 0; j < keys2.length; j++) {
+                            const key = keys2[j];
+                            const value = networkCodeAliases[key];
+                            if (value === networkId) {
+                                alternativeNetworkCode = key;
+                                break;
+                            }
+                        }
+                    }
                     // later that will be checked in exception, if it does have a value (instead of empty string) it will be offered to user as an alternative
+                }
+                if (alternativeNetworkCode !== undefined) {
+                    this.options['networkCodesConflicts'][networkId] = {
+                        'original': networkCode,
+                        'alternative': alternativeNetworkCode,
+                    };
                 }
             }
         }
@@ -1813,14 +1834,24 @@ module.exports = class Exchange {
          */
         // check if conflicting id was provided
         const conflictingCodes = this.safeValue (this.options, 'networkCodesConflicts');
-        if (conflictingCodes !== undefined) {
-            if (networkCode in conflictingCodes) {
-                const targetConflictingNetworkCode = conflictingCodes[networkCode];
-                const userOptions = this.safeValue (this.options, 'networkCodesConflictsApproved', {});
-                if (!(networkCode in userOptions)) {
-                    const commonDefaultTitle = this.safeValue (this.options['networksDescriptiveTitles'], networkCode);
-                    throw new ArgumentsRequired (this.id + ' networkCodeToId : You provided unified networkCode ' + networkCode + ' which is an unified networkCode for ' + commonDefaultTitle + '. However, specifically this exchange have assigned this exact networkId to different network, which is typically refered by ' + targetConflictingNetworkCode + ' networkCode. So, to avoid confusion, you can set the networkCode explicitly to ' + targetConflictingNetworkCode + ' in your code, or alternatively set the exchange.options["networkCodesConflictsApproved"]["' + networkCode + '"] = true');
+        const conflictingObject = this.safeValue (conflictingCodes, networkCode);
+        if (conflictingObject !== undefined) {
+            const userOptions = this.safeValue (this.options, 'networkCodesConflictsApproved', {});
+            if (!(networkCode in userOptions)) {
+                const alternativeUnifiedNetworkCode = conflictingObject['alternative'];
+                const exchangeSpecificUnifiedNetworkCode = conflictingObject['original'];
+                const commonDefaultTitle = this.safeValue (this.options['networksDescriptiveTitles'], networkCode, networkCode);
+                let errorMessage = undefined;
+                if (alternativeUnifiedNetworkCode !== '') {
+
+
+                    errorMessage = this.id + ' networkCodeToId : You provided unified networkCode ' + networkCode + ' which is an unified networkCode being called for ' + commonDefaultTitle + '. However, this exchange decided to assign this exact networkId to different network, which is typically should be referred by ' + exchangeSpecificUnifiedNetworkCode + ' networkCode. So, to avoid confusion, you can set the networkCode explicitly to ' + exchangeSpecificUnifiedNetworkCode + ' in your code, or alternatively set the exchange.options["networkCodesConflictsApproved"]["' + networkCode + '"] = true';
+                } else {
+
+                    
+                    errorMessage = this.id + ' networkCodeToId : You provided unified networkCode ' + networkCode + ' which is an unified networkCode being called for ' + commonDefaultTitle + '. However, this exchange decided to assign this exact networkId to different network, which is typically refered by ' + exchangeSpecificUnifiedNetworkCode + ' networkCode. So, to avoid confusion, you can set the networkCode explicitly to ' + exchangeSpecificUnifiedNetworkCode + ' in your code, or alternatively set the exchange.options["networkCodesConflictsApproved"]["' + networkCode + '"] = true';
                 }
+                throw new ArgumentsRequired (errorMessage);
             }
         }
         // if exchange has flat structure from 'Currencies' endpoint with unique exchange-specific chain-ids (i.e. trc20usdt, which is combination of chain slug and currency), then at first we should get the values which were set in fetchCurrencies
