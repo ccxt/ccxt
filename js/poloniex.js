@@ -147,7 +147,7 @@ module.exports = class poloniex extends Exchange {
                     'put': {
                         'orders/{id}': 4,
                         'smartorders/{id}': 4,
-                    },                    
+                    },
                 },
             },
             'fees': {
