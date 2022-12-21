@@ -420,6 +420,7 @@ class mexc3 extends Exchange {
                 ),
                 'recvWindow' => 5 * 1000, // 5 sec, default
                 'maxTimeTillEnd' => 90 * 86400 * 1000 - 1, // 90 days
+                'broker' => 'CCXT',
             ),
             'commonCurrencies' => array(
                 'BEYONDPROTOCOL' => 'BEYOND',
@@ -4860,6 +4861,7 @@ class mexc3 extends Exchange {
                 $url .= '&' . 'signature=' . $signature;
                 $headers = array(
                     'X-MEXC-APIKEY' => $this->apiKey,
+                    'source' => $this->safe_string($this->options, 'broker', 'CCXT'),
                 );
             }
             if ($method === 'POST') {

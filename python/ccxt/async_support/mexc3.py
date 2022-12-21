@@ -424,6 +424,7 @@ class mexc3(Exchange):
                 },
                 'recvWindow': 5 * 1000,  # 5 sec, default
                 'maxTimeTillEnd': 90 * 86400 * 1000 - 1,  # 90 days
+                'broker': 'CCXT',
             },
             'commonCurrencies': {
                 'BEYONDPROTOCOL': 'BEYOND',
@@ -4494,6 +4495,7 @@ class mexc3(Exchange):
                 url += '&' + 'signature=' + signature
                 headers = {
                     'X-MEXC-APIKEY': self.apiKey,
+                    'source': self.safe_string(self.options, 'broker', 'CCXT'),
                 }
             if method == 'POST':
                 headers['Content-Type'] = 'application/json'
