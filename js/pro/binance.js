@@ -65,7 +65,7 @@ module.exports = class binance extends binanceRest {
                     'name': 'ticker', // ticker = 1000ms L1+OHLCV, bookTicker = real-time L1
                 },
                 'watchTickers': {
-                    'name': '!ticker', // !ticker or !miniTicker
+                    'name': '!' + 'ticker', // !ticker or !miniTicker
                 },
                 'watchBalance': {
                     'fetchBalanceSnapshot': false, // or true
@@ -766,7 +766,7 @@ module.exports = class binance extends binanceRest {
         let type = undefined;
         [ type, params ] = this.handleMarketTypeAndParams ('watchTickers', market, params);
         const options = this.safeValue (this.options, 'watchTickers', {});
-        let name = this.safeString (options, 'name', '!ticker');
+        let name = this.safeString (options, 'name', '!' + 'ticker');
         name = this.safeString (params, 'name', name);
         params = this.omit (params, 'name');
         const messageHash = name + '@arr';
