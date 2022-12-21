@@ -1970,6 +1970,8 @@ class bitfinex2(Exchange):
         feeCost = None
         txid = None
         addressTo = None
+        network = None
+        comment = None
         if transactionLength == 8:
             data = self.safe_value(transaction, 4, [])
             timestamp = self.safe_integer(transaction, 0)
@@ -1977,7 +1979,7 @@ class bitfinex2(Exchange):
                 code = currency['code']
             feeCost = self.safe_string(data, 8)
             if feeCost is not None:
-                feeCost = Precise.string_neg(feeCost)
+                feeCost = Precise.string_abs(feeCost)
             amount = self.safe_number(data, 5)
             id = self.safe_value(data, 0)
             status = 'ok'
@@ -1990,27 +1992,31 @@ class bitfinex2(Exchange):
             id = self.safe_string(transaction, 0)
             currencyId = self.safe_string(transaction, 1)
             code = self.safe_currency_code(currencyId, currency)
+            networkId = self.safe_string(transaction, 2)
+            network = self.safe_network(networkId)
             timestamp = self.safe_integer(transaction, 5)
             updated = self.safe_integer(transaction, 6)
             status = self.parse_transaction_status(self.safe_string(transaction, 9))
-            amount = self.safe_string(transaction, 12)
-            if amount is not None:
-                if Precise.string_lt(amount, '0'):
+            signedAmount = self.safe_string(transaction, 12)
+            amount = Precise.string_abs(signedAmount)
+            if signedAmount is not None:
+                if Precise.string_lt(signedAmount, '0'):
                     type = 'withdrawal'
                 else:
                     type = 'deposit'
             feeCost = self.safe_string(transaction, 13)
             if feeCost is not None:
-                feeCost = Precise.string_neg(feeCost)
+                feeCost = Precise.string_abs(feeCost)
             addressTo = self.safe_string(transaction, 16)
             txid = self.safe_string(transaction, 20)
+            comment = self.safe_string(transaction, 21)
         return {
             'info': transaction,
             'id': id,
             'txid': txid,
             'type': type,
             'currency': code,
-            'network': None,
+            'network': network,
             'amount': self.parse_number(amount),
             'status': status,
             'timestamp': timestamp,
@@ -2022,7 +2028,7 @@ class bitfinex2(Exchange):
             'tagFrom': None,
             'tagTo': tag,
             'updated': updated,
-            'comment': None,
+            'comment': comment,
             'fee': {
                 'currency': code,
                 'cost': self.parse_number(feeCost),
