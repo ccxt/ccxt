@@ -5,6 +5,7 @@
 const Exchange = require ('./base/Exchange');
 const { ArgumentsRequired, BadRequest, AuthenticationError } = require ('./base/errors');
 const { TICK_SIZE } = require ('./base/functions/number');
+const Precise = require ('./base/Precise');
 
 //  ---------------------------------------------------------------------------
 
@@ -46,7 +47,7 @@ module.exports = class ace extends Exchange {
                 'fetchMarginMode': false,
                 'fetchMarkets': true,
                 'fetchMarkOHLCV': false,
-                'fetchMyTrades': false,
+                'fetchMyTrades': true,
                 'fetchOHLCV': true,
                 'fetchOpenInterestHistory': false,
                 'fetchOpenOrders': false,
@@ -799,31 +800,74 @@ module.exports = class ace extends Exchange {
 
     parseTrade (trade, market = undefined) {
         //
-        //     {
-        //         "amount": 0.0030965,
-        //         "tradeNo": "15681920522485652100751000417788",
-        //         "price": "0.03096500",
-        //         "num": "0.10000000",
-        //         "bi": 1,
-        //         "time": "2019-09-11 16:54:12.248"
-        //     }
+        // fetchOrderTrades
+        //         {
+        //             "amount": 0.0030965,
+        //             "tradeNo": "15681920522485652100751000417788",
+        //             "price": "0.03096500",
+        //             "num": "0.10000000",
+        //             "bi": 1,
+        //             "time": "2019-09-11 16:54:12.248"
+        //         }
         //
+        // fetchMyTrades
+        //         {
+        //             "buyOrSell": 1,
+        //             "orderNo": "16708156853695560053601100247906",
+        //             "num": "1",
+        //             "price": "16895",
+        //             "orderAmount": "16895",
+        //             "tradeNum": "0.1",
+        //             "tradePrice": "16895",
+        //             "tradeAmount": "1689.5",
+        //             "fee": "0",
+        //             "feeSave": "0",
+        //             "status": 1,
+        //             "isSelf": false,
+        //             "tradeNo": "16708186395087940051961000274150",
+        //             "tradeTime": "2022-12-12 12:17:19",
+        //             "tradeTimestamp": 1670818639508,
+        //             "quoteCurrencyId": 14,
+        //             "quoteCurrencyName": "USDT",
+        //             "baseCurrencyId": 2,
+        //             "baseCurrencyName": "BTC"
+        //         }
         const id = this.safeString (trade, 'tradeNo');
         const price = this.safeString (trade, 'price');
         const amount = this.safeString (trade, 'num');
-        const datetime = this.safeString (trade, 'time');
+        const datetime = this.safeString2 (trade, 'time', 'tradeTime');
+        let symbol = market['symbol'];
+        const quoteId = this.safeString (trade, 'quoteCurrencyName');
+        const baseId = this.safeString (trade, 'baseCurrencyName');
+        if (quoteId !== undefined && baseId !== undefined) {
+            symbol = baseId + '/' + quoteId;
+        }
+        let side = undefined;
+        const tradeSide = this.safeNumber (trade, 'buyOrSell');
+        if (tradeSide !== undefined) {
+            side = (tradeSide === 1) ? 'buy' : 'sell';
+        }
+        const feeString = this.safeString (trade, 'fee');
+        let fee = undefined;
+        if (feeString !== undefined) {
+            const feeSaveString = this.safeString (trade, 'feeSave');
+            fee = {
+                'cost': Precise.stringSub (feeString, feeSaveString),
+                'currency': quoteId,
+            };
+        }
         return this.safeTrade ({
             'info': trade,
             'id': id,
-            'order': undefined,
-            'symbol': undefined,
-            'side': undefined,
+            'order': this.safeString (trade, 'orderNo'),
+            'symbol': symbol,
+            'side': side,
             'type': undefined,
             'takerOrMaker': undefined,
             'price': price,
             'amount': amount,
             'cost': undefined,
-            'fee': undefined,
+            'fee': fee,
             'timestamp': this.parse8601 (datetime),
             'datetime': datetime,
         }, market);
@@ -886,6 +930,66 @@ module.exports = class ace extends Exchange {
             return trades;
         }
         return await this.parseTrades (trades, market, since, limit);
+    }
+
+    async fetchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        /**
+         * @method
+         * @name ace#fetchTrades
+         * @description get the list of most recent trades for a particular symbol
+         * @param {string} symbol unified symbol of the market to fetch trades for
+         * @param {int|undefined} since timestamp in ms of the earliest trade to fetch
+         * @param {int|undefined} limit the maximum amount of trades to fetch
+         * @param {object} params extra parameters specific to the ace api endpoint
+         * @returns {[object]} a list of [trade structures]{@link https://docs.ccxt.com/en/latest/manual.html?#public-trades}
+         */
+        await this.loadMarkets ();
+        const market = this.safeMarket (symbol);
+        const currencyToId = this.safeValue (this.options, 'currencyToId');
+        const request = {
+            // 'buyOrSell': 1,
+            // 'start': 0,
+        };
+        if (market['id'] !== undefined) {
+            request['quoteCurrencyId'] = this.safeNumber (currencyToId, market['quote']);
+            request['baseCurrencyId'] = this.safeNumber (currencyToId, market['base']);
+        }
+        if (limit !== undefined) {
+            request['size'] = limit; // default 10, max 500
+        }
+        const response = await this.privatePostV2OrderGetTradeList (this.extend (request, params));
+        //
+        //     {
+        //         "attachment": [
+        //             {
+        //                 "buyOrSell": 1,
+        //                 "orderNo": "16708156853695560053601100247906",
+        //                 "num": "1",
+        //                 "price": "16895",
+        //                 "orderAmount": "16895",
+        //                 "tradeNum": "0.1",
+        //                 "tradePrice": "16895",
+        //                 "tradeAmount": "1689.5",
+        //                 "fee": "0",
+        //                 "feeSave": "0",
+        //                 "status": 1,
+        //                 "isSelf": false,
+        //                 "tradeNo": "16708186395087940051961000274150",
+        //                 "tradeTime": "2022-12-12 12:17:19",
+        //                 "tradeTimestamp": 1670818639508,
+        //                 "quoteCurrencyId": 14,
+        //                 "quoteCurrencyName": "USDT",
+        //                 "baseCurrencyId": 2,
+        //                 "baseCurrencyName": "BTC"
+        //             }
+        //         ],
+        //         "message": null,
+        //         "parameters": null,
+        //         "status": 200
+        //     }
+        //
+        const trades = this.safeValue (response, 'attachment', []);
+        return this.parseTrades (trades, market, since, limit);
     }
 
     parseBalance (response) {
