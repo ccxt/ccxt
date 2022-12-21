@@ -962,7 +962,7 @@ module.exports = class huobi extends Exchange {
                     'NERVOS': 'CKB',
                     'CYBERMILES': 'CMT',
                     'COSMOS': 'ATOM1',
-                    'CRC20': 'CRC20',
+                    // 'CRC20': 'CRC20', TBD
                     'DASH': 'DASH',
                     'AVALANCHEC': [ 'AVAXCCHAIN', 'C-CHAIN', 'CCHAIN', 'CCHAINERC20' ], // huobi has too many aliases for avax-c
                     'AVALANCHEX': 'AVAX',
@@ -983,7 +983,7 @@ module.exports = class huobi extends Exchange {
                     'CHILIZ': [ 'CHZCHAIN', 'CHZ20', 'CRC20' ], // 'CRC20' is used by houbi only for Chiliz, not CRONOS network
                     'ERC20': [ 'ERC20', 'ERC20ETH' ], // 'ERC20ETH' is used by houbi only for ETH coin
                     'CRONOS': 'CRO',
-                    'ETHEREUMCLASSIC': 'ETC',
+                    'ETC': 'ETC',
                     'ETHW': 'ETHW',
                     'FILECOIN': 'FIL',
                     'INTERNETCOMPUTER': 'ICP',

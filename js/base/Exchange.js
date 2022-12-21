@@ -809,31 +809,30 @@ module.exports = class Exchange {
                 'CRO': { 'CRC20': 'CRONOS' },
             },
             'networkCodeAliases': {
+                'BTC': 'BTC',
+                'LTC': 'LITECOIN',
                 'TRON': 'TRC20',
                 'BSC': 'BEP20',
                 'CRONOS': 'CRC20',
                 'HECO': 'HRC20',
-                'BNB': 'BEP2',
-                'OKX': 'OKC',
-                'LTC': 'LITECOIN',
-                'BTC': 'BITCOIN',
+                // 'BNB': 'BEP2', // BNB is risky, as some exchanges are undeliberately calling 'BNB' network for BINANCE smart chain
                 'DOGE': 'DOGECOIN',
                 'SOL': 'SOLANA',
-                'MATIC': 'POLYGON', // PRC20  tbd
+                'MATIC': 'POLYGON', // tbd PRC20
+                'OKX': 'OKC',
                 'ATOM': 'COSMOS',
                 'DOT': 'POLKADOT',
                 'LUNA': 'TERRA',
                 'LUNC': 'TERRACLASSIC',
                 'TON': 'THEOPENNETWORK',
                 'RUNE': 'THORCHAIN',
-                'ETC': 'ETHEREUMCLASSIC',
                 'BCH': 'BITCOINCASH',
                 'BSV': 'BITCOINCASHSV',
                 'XEC': 'ECASH',
                 'ZEC': 'ZCASH',
             },
-            'hasUniqueNetworkIds': false, // if set to `true` it means that network ID-to-CODE relation defined in `networks|netwroksById` was done by common exchange-specific network-name (i.e. Erc-20) instead of the actual network-id (i.e. usdterc20), becuase in such case each currency has unique exchange-specific network-id (which is impossible to be pre-defined in `options`) and within fetchCurrencies() we set them automatically through `options['networkChainIdsByNames' && 'networkNamesByChainIds'] `. To see examples, check OKX/HUOBI implementations
-            'networksByIdAuto': {},
+            'hasUniqueNetworkIds': false, // if set to `true` it means that network ID-to-CODE relation defined in `networks|netwroksById` was done by common exchange-specific network-name (i.e. Erc-20) instead of the actual network-id (i.e. usdterc20), becuase in such case each currency has unique exchange-specific network-id (which is impossible to be pre-defined in `options`) and within fetchCurrencies() we set them automatically through `options['networkChainIdsByNames' && 'networkNamesByChainIds']`. To see examples, check OKX/HUOBI implementations
+            'networksByIdAuto': {}, // do not touch, auto filled later
         };
     }
 
@@ -1705,26 +1704,28 @@ module.exports = class Exchange {
     }
 
     defineNetworkCodesByIds () {
-        // auto define 'networksById' in options, by reverting  key<>value from 'networks' entries
-        const result = {};
-        const networkCodesSupportedList = Object.keys (this.options['networks']);
-        for (let i = 0; i < networkCodesSupportedList.length; i++) {
-            const networkCode = networkCodesSupportedList[i];
-            const networkId = this.options['networks'][networkCode];
-            result[networkId] = networkCode;
+        if ('networks' in this.options) {
+            // auto define 'networksById' in options, by reverting  key<>value from 'networks' entries
+            const result = {};
+            const networkCodesSupportedList = Object.keys (this.options['networks']);
+            for (let i = 0; i < networkCodesSupportedList.length; i++) {
+                const networkCode = networkCodesSupportedList[i];
+                const networkId = this.options['networks'][networkCode];
+                result[networkId] = networkCode;
+            }
+            this.options['networksByIdAuto'] = result;
+            // define all unified network codes for this exchange
+            const networks = this.safeValue (this.options, 'networks', {});
+            const keysOfNetworks = Object.keys (networks);
+            const defaultNetworkCodeReplacements = this.safeValue (this.options, 'defaultNetworkCodeReplacements', {});
+            const keysOfReplacements = Object.keys (defaultNetworkCodeReplacements);
+            const networkCodeAliases = this.safeValue (this.options, 'networkCodeAliases', {});
+            const keysOfAliases = Object.keys (networkCodeAliases);
+            const concatenatedFirst = this.arrayConcat (keysOfNetworks, keysOfReplacements);
+            const concatenatedSecond = this.arrayConcat (keysOfAliases, concatenatedFirst);
+            const concatenatedUnique = this.unique (concatenatedSecond);
+            this.options['networkCodesSupportedList'] = concatenatedUnique;
         }
-        this.options['networksByIdAuto'] = result;
-        // define all unified network codes for this exchange
-        const networks = this.safeValue (this.options, 'networks', {});
-        const keysOfNetworks = Object.keys (networks);
-        const defaultNetworkCodeReplacements = this.safeValue (this.options, 'defaultNetworkCodeReplacements', {});
-        const keysOfReplacements = Object.keys (defaultNetworkCodeReplacements);
-        const networkCodeAliases = this.safeValue (this.options, 'networkCodeAliases', {});
-        const keysOfAliases = Object.keys (networkCodeAliases);
-        const concatenatedFirst = this.arrayConcat (keysOfNetworks, keysOfReplacements);
-        const concatenatedSecond = this.arrayConcat (keysOfAliases, concatenatedFirst);
-        const concatenatedUnique = this.unique (concatenatedSecond);
-        this.options['networkCodesSupportedList'] = concatenatedUnique;
     }
 
     networkCodeToId (networkCode, currencyCode = undefined) {

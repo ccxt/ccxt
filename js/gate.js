@@ -435,14 +435,14 @@ module.exports = class gate extends Exchange {
                 // gate networks and currencies are hardcoded in withdrawal page HTML (i.e. pastebin(dot)com/Lqxv3DV1 and pastebin(dot)com/mRriY4WG)
                 'networks': {
                     'BITCOIN': 'BTC',
-                    'TRX': 'TRX',
                     'TRC20': 'TRX',
-                    'ETH': 'ETH',
+                    'TRX': 'TRX',
                     'ERC20': 'ETH',
+                    'ETH': 'ETH',
                     'BEP2': 'BNB',
                     'BEP20': 'BSC',
                     'HRC20': 'HT',
-                    'CRC20': 'CRO',
+                    'CRONOS': 'CRO',
                     'OKC': 'OKT',
                     'LITECOIN': 'LTC',
                     'AVALANCHEC': 'AVAX_C',
@@ -452,7 +452,7 @@ module.exports = class gate extends Exchange {
                     'COSMOS': 'ATOM',
                     'GATECHAIN': 'GT', // GTEVM is different (same as GRC20)
                     'SOLANA': 'SOL',
-                    'ETHEREUMCLASSIC': 'ETC',
+                    'ETC': 'ETC',
                     'POLYGON': 'MATIC',
                     'TERRA': 'LUNA',
                     'TERRACLASSIC': 'LUNC',
@@ -519,7 +519,7 @@ module.exports = class gate extends Exchange {
                     'SUPERBITCOIN': 'SBTC',
                     'PROTON': 'XPR',
                     'CENTRIFUGE': 'CFG',
-                    'STEPAPP': 'FITFI',
+                    'STEP': 'FITFI',
                     'SYSCOIN': 'SYS',
                     'CHIA': 'XCH', // XCH_OLD is different
                     'TELOS': 'TLOS', // TLOSEVM is different
@@ -681,11 +681,7 @@ module.exports = class gate extends Exchange {
                     'CUBENETWORK': 'CUBE',
                     'CLASSZZ': 'CZZ',
                     // dead:   MANTA, CSM (probvably crust shadow),
-                    // undetermined: ASK_OLD, ASTREVM, BTMV1, ETH2, GALA2 (ZPT), GAS_OLD (NKN_N2), GATEIO (POINT), GEMINIS, GTEVM (LION_GTEVM),  CTO, EQ, HKO, KAZE, KPHA (probably phala), KPN (apron?), KSX, LBTC, LUK (MLK), NEO_OLD (NEO_OLD), PHAKSM, PICA, PKS, SUB (subsocial), SUBG (subgame), SUPV1, TIPS0, TUR, UNIQUE, USC, USDTEST, 
-                },
-                'networksById': {
-                    'Bitcoin': 'BITCOIN',
-                    'Btc': 'BITCOIN',
+                    // undetermined: ASK_OLD, ASTREVM, BTMV1, ETH2, GALA2 (ZPT), GAS_OLD (NKN_N2), GATEIO (POINT), GEMINIS, GTEVM (LION_GTEVM),  CTO, EQ, HKO, KAZE, KPHA (probably phala), KPN (apron?), KSX, LBTC, LUK (MLK), NEO_OLD (NEO_OLD), PHAKSM, PICA, PKS, SUB (subsocial), SUBG (subgame), SUPV1, TIPS0, TUR, UNIQUE, USC, USDTEST,
                 },
                 'timeInForce': {
                     'GTC': 'gtc',

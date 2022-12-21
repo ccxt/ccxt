@@ -717,11 +717,12 @@ module.exports = class okx extends Exchange {
                     'BEP20': 'BSC',
                     'ERC20': 'ERC20',
                     'TRC20': 'TRC20',
-                    'CRC20': 'Crypto',
+                    'CRONOS': 'Crypto',
                     // sorted
                     'ACALA': 'Acala',
                     'AELF': 'AELF',
                     'ALGORAND': 'Algorand',
+                    'BHP': 'BHP',
                     'APTOS': 'Aptos',
                     'ARBITRUM': 'Arbitrum one',
                     'ARK': 'ARK',
@@ -743,9 +744,17 @@ module.exports = class okx extends Exchange {
                     'CONFLUX': 'Conflux',
                     'CORTEX': 'Cortex',
                     'COSMOS': 'Cosmos',
+                    'MDNA': 'DNA',
+                    'STEP': 'Step Network',
+                    'EMINER': 'Eminer',
                     'CYBERMILES': 'CyberMiles',
+                    'TRUECHAIN': 'TrueChain',
+                    'QTUM': 'Quantum',
+                    'INTCHAIN': 'INTCHAIN',
+                    'YOUCHAIN': 'YOUCHAIN',
                     'DECRED': 'Decred',
                     'DIGIBYTE': 'Digibyte',
+                    'ICON': 'ICON',
                     'DOGECOIN': 'Dogecoin',
                     'ECASH': 'XEC',
                     'ELROND': 'Elrond',
@@ -807,6 +816,8 @@ module.exports = class okx extends Exchange {
                     'ZCASH': 'Zcash',
                     'ZILLIQA': 'Zilliqa',
                     'ZKSYNC': 'ZKSYNC',
+                    'YOYOW': 'YOYOW',
+                    // undetermined : "CELO-TOKEN", "Digital Cash", "N3", Khala
                 },
                 'fetchOpenInterestHistory': {
                     'timeframes': {
@@ -891,13 +902,7 @@ module.exports = class okx extends Exchange {
                 'brokerId': 'e847386590ce4dBC',
             },
             'commonCurrencies': {
-                // the exchange refers to ERC20 version of Aeternity (AEToken)
-                'AE': 'AET', // https://github.com/ccxt/ccxt/issues/4981
-                'BOX': 'DefiBox',
-                'HOT': 'Hydro Protocol',
                 'HSR': 'HC',
-                'MAG': 'Maggie',
-                'SBTC': 'Super Bitcoin',
                 'TRADE': 'Unitrade',
                 'YOYO': 'YOYOW',
                 'WIN': 'WinToken', // https://github.com/ccxt/ccxt/issues/5701
