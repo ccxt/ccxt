@@ -754,7 +754,6 @@ module.exports = class okx extends Exchange {
                     'YOUCHAIN': 'YOUCHAIN',
                     'DECRED': 'Decred',
                     'DIGIBYTE': 'Digibyte',
-                    'ICON': 'ICON',
                     'DOGECOIN': 'Dogecoin',
                     'ECASH': 'XEC',
                     'ELROND': 'Elrond',
