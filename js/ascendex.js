@@ -462,20 +462,20 @@ module.exports = class ascendex extends Exchange {
         const products = await this.v1PublicGetProducts (params);
         //
         //     {
-        //         "code":0,
-        //         "data":[
+        //         "code": 0,
+        //         "data": [
         //             {
-        //                 "symbol":"LBA/BTC",
-        //                 "baseAsset":"LBA",
-        //                 "quoteAsset":"BTC",
-        //                 "status":"Normal",
-        //                 "minNotional":"0.000625",
-        //                 "maxNotional":"6.25",
-        //                 "marginTradable":false,
-        //                 "commissionType":"Quote",
-        //                 "commissionReserveRate":"0.001",
-        //                 "tickSize":"0.000000001",
-        //                 "lotSize":"1"
+        //                 "symbol": "LBA/BTC",
+        //                 "baseAsset": "LBA",
+        //                 "quoteAsset": "BTC",
+        //                 "status": "Normal",
+        //                 "minNotional": "0.000625",
+        //                 "maxNotional": "6.25",
+        //                 "marginTradable": false,
+        //                 "commissionType": "Quote",
+        //                 "commissionReserveRate": "0.001",
+        //                 "tickSize": "0.000000001",
+        //                 "lotSize": "1"
         //             },
         //         ]
         //     }
@@ -483,61 +483,70 @@ module.exports = class ascendex extends Exchange {
         const cash = await this.v1PublicGetCashProducts (params);
         //
         //     {
-        //         "code":0,
-        //         "data":[
+        //         "code": 0,
+        //         "data": [
         //             {
-        //                 "symbol":"QTUM/BTC",
-        //                 "displayName":"QTUM/BTC",
-        //                 "domain":"BTC",
-        //                 "tradingStartTime":1569506400000,
-        //                 "collapseDecimals":"0.0001,0.000001,0.00000001",
-        //                 "minQty":"0.000000001",
-        //                 "maxQty":"1000000000",
-        //                 "minNotional":"0.000625",
-        //                 "maxNotional":"12.5",
-        //                 "statusCode":"Normal",
-        //                 "statusMessage":"",
-        //                 "tickSize":"0.00000001",
-        //                 "useTick":false,
-        //                 "lotSize":"0.1",
-        //                 "useLot":false,
-        //                 "commissionType":"Quote",
-        //                 "commissionReserveRate":"0.001",
-        //                 "qtyScale":1,
-        //                 "priceScale":8,
-        //                 "notionalScale":4
+        //                 "symbol": "QTUM/BTC",
+        //                 "displayName": "QTUM/BTC",
+        //                 "domain": "BTC",
+        //                 "tradingStartTime": 1569506400000,
+        //                 "collapseDecimals": "0.0001,0.000001,0.00000001",
+        //                 "minQty": "0.000000001",
+        //                 "maxQty": "1000000000",
+        //                 "minNotional": "0.000625",
+        //                 "maxNotional": "12.5",
+        //                 "statusCode": "Normal",
+        //                 "statusMessage": "",
+        //                 "tickSize": "0.00000001",
+        //                 "useTick": false,
+        //                 "lotSize": "0.1",
+        //                 "useLot": false,
+        //                 "commissionType": "Quote",
+        //                 "commissionReserveRate": "0.001",
+        //                 "qtyScale": 1,
+        //                 "priceScale": 8,
+        //                 "notionalScale": 4
         //             }
         //         ]
         //     }
         //
         const perpetuals = await this.v2PublicGetFuturesContract (params);
         //
-        //     {
-        //         "code":0,
-        //         "data":[
-        //             {
-        //                 "symbol":"BTC-PERP",
-        //                 "status":"Normal",
-        //                 "displayName":"BTCUSDT",
-        //                 "settlementAsset":"USDT",
-        //                 "underlying":"BTC/USDT",
-        //                 "tradingStartTime":1579701600000,
-        //                 "priceFilter":{"minPrice":"1","maxPrice":"1000000","tickSize":"1"},
-        //                 "lotSizeFilter":{"minQty":"0.0001","maxQty":"1000000000","lotSize":"0.0001"},
-        //                 "commissionType":"Quote",
-        //                 "commissionReserveRate":"0.001",
-        //                 "marketOrderPriceMarkup":"0.03",
-        //                 "marginRequirements":[
-        //                     {"positionNotionalLowerBound":"0","positionNotionalUpperBound":"50000","initialMarginRate":"0.01","maintenanceMarginRate":"0.006"},
-        //                     {"positionNotionalLowerBound":"50000","positionNotionalUpperBound":"200000","initialMarginRate":"0.02","maintenanceMarginRate":"0.012"},
-        //                     {"positionNotionalLowerBound":"200000","positionNotionalUpperBound":"2000000","initialMarginRate":"0.04","maintenanceMarginRate":"0.024"},
-        //                     {"positionNotionalLowerBound":"2000000","positionNotionalUpperBound":"20000000","initialMarginRate":"0.1","maintenanceMarginRate":"0.06"},
-        //                     {"positionNotionalLowerBound":"20000000","positionNotionalUpperBound":"40000000","initialMarginRate":"0.2","maintenanceMarginRate":"0.12"},
-        //                     {"positionNotionalLowerBound":"40000000","positionNotionalUpperBound":"1000000000","initialMarginRate":"0.333333","maintenanceMarginRate":"0.2"}
-        //                 ]
-        //             }
-        //         ]
-        //     }
+        //    {
+        //        "code": 0,
+        //        "data": [
+        //            {
+        //                "symbol": "BTC-PERP",
+        //                "status": "Normal",
+        //                "displayName": "BTCUSDT",
+        //                "settlementAsset": "USDT",
+        //                "underlying": "BTC/USDT",
+        //                "tradingStartTime": 1579701600000,
+        //                "priceFilter": {
+        //                    "minPrice": "1",
+        //                    "maxPrice": "1000000",
+        //                    "tickSize": "1"
+        //                },
+        //                "lotSizeFilter": {
+        //                    "minQty": "0.0001",
+        //                    "maxQty": "1000000000",
+        //                    "lotSize": "0.0001"
+        //                },
+        //                "commissionType": "Quote",
+        //                "commissionReserveRate": "0.001",
+        //                "marketOrderPriceMarkup": "0.03",
+        //                "marginRequirements": [
+        //                    {
+        //                        "positionNotionalLowerBound": "0",
+        //                        "positionNotionalUpperBound": "50000",
+        //                        "initialMarginRate": "0.01",
+        //                        "maintenanceMarginRate": "0.006"
+        //                    },
+        //                    ...
+        //                ]
+        //            }
+        //        ]
+        //    }
         //
         const productsData = this.safeValue (products, 'data', []);
         const productsById = this.indexBy (productsData, 'symbol');
