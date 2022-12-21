@@ -41,6 +41,7 @@ export default class btcmarkets extends Exchange {
                 'fetchBorrowRates': false,
                 'fetchBorrowRatesPerSymbol': false,
                 'fetchClosedOrders': 'emulated',
+                'fetchDepositAddress': true,
                 'fetchDeposits': true,
                 'fetchDepositsWithdrawals': true,
                 'fetchFundingHistory': false,
@@ -1230,6 +1231,48 @@ export default class btcmarkets extends Exchange {
         }
         const url = this.urls['api'][api] + request;
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
+    }
+
+    async fetchDepositAddress (code, params = {}) {
+        /**
+         * @method
+         * @name btcmarkets#fetchDepositAddress
+         * @description fetch the deposit address for a currency associated with this account
+         * @param {string} code unified currency code
+         * @param {object} params extra parameters specific to the btcmarkets api endpoint
+         * @returns {object} an [address structure]{@link https://docs.ccxt.com/en/latest/manual.html#address-structure}
+         */
+        await this.loadMarkets ();
+        const currency = this.currency (code);
+        const request = {
+            'assetName': currency['id'],
+        };
+        const response = await this.privateGetAddresses (this.extend (request, params));
+        //
+        //    {
+        //        "address": "1BvBMSEYstWetqTFn5Au4m4GFg7xJaNVN2",
+        //        "assetName": "BTC"
+        //    }
+        //
+        return this.parseDepositAddress (response);
+    }
+
+    parseDepositAddress (depositAddress, currency = undefined) {
+        //
+        //    {
+        //        "address": "1BvBMSEYstWetqTFn5Au4m4GFg7xJaNVN2",
+        //        "assetName": "BTC"
+        //    }
+        //
+        const currencyId = this.safeString (depositAddress, 'assetName');
+        return {
+            'currency': this.safeCurrencyCode (currencyId, currency),
+            'address': this.safeString (depositAddress, 'address'),
+            'tag': undefined,
+            'network': undefined,
+            'note': undefined,
+            'info': depositAddress,
+        };
     }
 
     handleErrors (code, reason, url, method, headers, body, response, requestHeaders, requestBody) {
