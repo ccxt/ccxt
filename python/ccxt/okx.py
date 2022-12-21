@@ -320,6 +320,7 @@ class okx(Exchange):
                         'account/simulated_margin': 10,
                         'account/borrow-repay': 5 / 3,
                         'account/quick-margin-borrow-repay': 4,
+                        'account/activate-option': 4,
                         'asset/transfer': 10,
                         'asset/withdrawal': 5 / 3,
                         'asset/purchase_redempt': 5 / 3,
