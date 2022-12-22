@@ -1162,7 +1162,7 @@ module.exports = class bybit extends Exchange {
     }
 
     async fetchDerivativesMarkets (params) {
-        params['limit'] = 1000; // maximize number of requests
+        params['limit'] = 1000; // minimize number of requests
         const response = await this.publicGetDerivativesV3PublicInstrumentsInfo (params);
         const data = this.safeValue (response, 'result', {});
         let markets = this.safeValue (data, 'list', []);
