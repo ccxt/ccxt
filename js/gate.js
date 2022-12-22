@@ -434,7 +434,7 @@ module.exports = class gate extends Exchange {
                 },
                 // gate networks and currencies are hardcoded in withdrawal page HTML (i.e. pastebin(dot)com/Lqxv3DV1 and pastebin(dot)com/mRriY4WG)
                 'networks': {
-                    'BITCOIN': 'BTC',
+                    'BTC': 'BTC',
                     'TRC20': 'TRX',
                     'TRX': 'TRX',
                     'ERC20': 'ETH',
@@ -442,7 +442,7 @@ module.exports = class gate extends Exchange {
                     'BEP2': 'BNB',
                     'BEP20': 'BSC',
                     'HRC20': 'HT',
-                    'CRONOS': 'CRO',
+                    'CRC20': 'CRO',
                     'OKC': 'OKT',
                     'LTC': 'LTC',
                     'AVALANCHEC': 'AVAX_C',

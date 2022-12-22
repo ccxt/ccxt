@@ -713,11 +713,11 @@ module.exports = class okx extends Exchange {
                 'hasUniqueNetworkIds': true,
                 'networks': {
                     // the list consist of "network names", instead of unique currency-specific network-ids
-                    'BITCOIN': 'Bitcoin',
+                    'BTC': 'Bitcoin',
                     'BEP20': 'BSC',
                     'ERC20': 'ERC20',
                     'TRC20': 'TRC20',
-                    'CRONOS': 'Crypto',
+                    'CRC20': 'Crypto',
                     // sorted
                     'ACALA': 'Acala',
                     'AELF': 'AELF',
@@ -1365,7 +1365,7 @@ module.exports = class okx extends Exchange {
                     withdrawEnabled = false;
                 }
                 const title = this.getExchangeSpecificNetworkCommonNameFromId (networkId);
-                const networkCode = this.defineNetworkIdNameCodeMappings (code, title, networkId);
+                const networkCode = this.defineNetworkCodeNameIdMappings (code, title, networkId);
                 const precision = this.parsePrecision (this.safeString (chain, 'wdTickSz'));
                 maxPrecision = (maxPrecision === undefined) ? precision : Precise.stringMin (maxPrecision, precision);
                 networks[networkCode] = {

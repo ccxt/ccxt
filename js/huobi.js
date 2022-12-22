@@ -932,7 +932,7 @@ module.exports = class huobi extends Exchange {
                     'BAND': 'BAND',
                     'BEP20': [ 'BEP20', 'BEP20BNB' ], // 'BEP20BNB' is exceptionary for BNB
                     'HRC20': 'HECO',
-                    'BITCOIN': 'BTC',
+                    'BTC': 'BTC',
                     'BITCOINCASHSV': 'BSV',
                     'BITCOINCASH': 'BCC', // exception: 'HBCH' for  huobi bch
                     'BITCOINDIAMOND': 'BCD',
@@ -2938,7 +2938,7 @@ module.exports = class huobi extends Exchange {
                 const chainEntry = chains[j];
                 const uniqueChainId = this.safeString (chainEntry, 'chain'); // i.e. usdterc20, trc20usdt ...
                 const title = this.safeString (chainEntry, 'displayName');
-                const networkCode = this.defineNetworkIdNameCodeMappings (code, title, uniqueChainId);
+                const networkCode = this.defineNetworkCodeNameIdMappings (code, title, uniqueChainId);
                 minWithdraw = this.safeNumber (chainEntry, 'minWithdrawAmt');
                 maxWithdraw = this.safeNumber (chainEntry, 'maxWithdrawAmt');
                 const withdrawStatus = this.safeString (chainEntry, 'withdrawStatus');
