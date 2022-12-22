@@ -51,6 +51,8 @@ class exmo(Exchange):
                 'fetchDeposit': True,
                 'fetchDepositAddress': True,
                 'fetchDeposits': True,
+                'fetchDepositWithdrawFee': 'emulated',
+                'fetchDepositWithdrawFees': True,
                 'fetchFundingHistory': False,
                 'fetchFundingRate': False,
                 'fetchFundingRateHistory': False,
@@ -188,7 +190,7 @@ class exmo(Exchange):
                 },
                 'transaction': {
                     'tierBased': False,
-                    'percentage': False,  # fixed transaction fees for crypto, see fetchTransactionFees below
+                    'percentage': False,  # fixed transaction fees for crypto, see fetchDepositWithdrawFees below
                 },
             },
             'options': {
@@ -409,21 +411,13 @@ class exmo(Exchange):
 
     def fetch_transaction_fees(self, codes=None, params={}):
         """
-        fetch transaction fees
+        *DEPRECATED* please use fetchDepositWithdrawFees instead
+        see https://documenter.getpostman.com/view/10287440/SzYXWKPi#4190035d-24b1-453d-833b-37e0a52f88e2
         :param [str]|None codes: list of unified currency codes
         :param dict params: extra parameters specific to the exmo api endpoint
         :returns dict: a list of `transaction fees structures <https://docs.ccxt.com/en/latest/manual.html#fees-structure>`
         """
         self.load_markets()
-        currencyList = self.publicGetCurrencyListExtended(params)
-        #
-        #     [
-        #         {"name":"VLX","description":"Velas"},
-        #         {"name":"RUB","description":"Russian Ruble"},
-        #         {"name":"BTC","description":"Bitcoin"},
-        #         {"name":"USD","description":"US Dollar"}
-        #     ]
-        #
         cryptoList = self.publicGetPaymentsProvidersCryptoList(params)
         #
         #     {
@@ -459,27 +453,111 @@ class exmo(Exchange):
         #         ],
         #     }
         #
-        result = {
-            'info': cryptoList,
-            'withdraw': {},
-            'deposit': {},
-        }
-        for i in range(0, len(currencyList)):
-            currency = currencyList[i]
-            currencyId = self.safe_string(currency, 'name')
-            code = self.safe_currency_code(currencyId)
+        result = {}
+        cryptoListKeys = list(cryptoList.keys())
+        for i in range(0, len(cryptoListKeys)):
+            code = cryptoListKeys[i]
+            if codes is not None and not self.in_array(code, codes):
+                continue
+            result[code] = {
+                'deposit': None,
+                'withdraw': None,
+            }
+            currency = self.currency(code)
+            currencyId = self.safe_string(currency, 'id')
             providers = self.safe_value(cryptoList, currencyId, [])
             for j in range(0, len(providers)):
                 provider = providers[j]
                 type = self.safe_string(provider, 'type')
                 commissionDesc = self.safe_string(provider, 'commission_desc')
-                newFee = self.parse_fixed_float_value(commissionDesc)
-                previousFee = self.safe_number(result[type], code)
-                if (previousFee is None) or ((newFee is not None) and (newFee < previousFee)):
-                    result[type][code] = newFee
+                fee = self.parse_fixed_float_value(commissionDesc)
+                result[code][type] = fee
+            result[code]['info'] = providers
         # cache them for later use
         self.options['transactionFees'] = result
         return result
+
+    def fetch_deposit_withdraw_fees(self, codes=None, params={}):
+        """
+        fetch deposit and withdraw fees
+        see https://documenter.getpostman.com/view/10287440/SzYXWKPi#4190035d-24b1-453d-833b-37e0a52f88e2
+        :param [str]|None codes: list of unified currency codes
+        :param dict params: extra parameters specific to the exmo api endpoint
+        :returns dict: a list of `transaction fees structures <https://docs.ccxt.com/en/latest/manual.html#fees-structure>`
+        """
+        self.load_markets()
+        response = self.publicGetPaymentsProvidersCryptoList(params)
+        #
+        #    {
+        #        "USDT": [
+        #            {
+        #                "type": "deposit",  # or "withdraw"
+        #                "name": "USDT(ERC20)",
+        #                "currency_name": "USDT",
+        #                "min": "10",
+        #                "max": "0",
+        #                "enabled": True,
+        #                "comment": "Minimum deposit amount is 10 USDT",
+        #                "commission_desc": "0%",
+        #                "currency_confirmations": 2
+        #            },
+        #            ...
+        #        ],
+        #        ...
+        #    }
+        #
+        result = self.parse_deposit_withdraw_fees(response, codes)
+        # cache them for later use
+        self.options['transactionFees'] = result
+        return result
+
+    def parse_deposit_withdraw_fee(self, fee, currency=None):
+        #
+        #    [
+        #        {
+        #            "type": "deposit",  # or "withdraw"
+        #            "name": "BTC",
+        #            "currency_name": "BTC",
+        #            "min": "0.001",
+        #            "max": "0",
+        #            "enabled": True,
+        #            "comment": "Minimum deposit amount is 0.001 BTC. We do not support BSC and BEP20 network, please consider self when sending funds",
+        #            "commission_desc": "0%",
+        #            "currency_confirmations": 1
+        #        },
+        #        ...
+        #    ]
+        #
+        result = self.deposit_withdraw_fee(fee)
+        for i in range(0, len(fee)):
+            provider = fee[i]
+            type = self.safe_string(provider, 'type')
+            networkId = self.safe_string(provider, 'name')
+            networkCode = self.network_id_to_code(networkId, self.safe_string(currency, 'code'))
+            commissionDesc = self.safe_string(provider, 'commission_desc')
+            splitCommissionDesc = []
+            percentage = None
+            if commissionDesc is not None:
+                splitCommissionDesc = commissionDesc.split('%')
+                splitCommissionDescLength = len(splitCommissionDesc)
+                percentage = splitCommissionDescLength >= 2
+            network = self.safe_value(result['networks'], networkCode)
+            if network is None:
+                result['networks'][networkCode] = {
+                    'withdraw': {
+                        'fee': None,
+                        'percentage': None,
+                    },
+                    'deposit': {
+                        'fee': None,
+                        'percentage': None,
+                    },
+                }
+            result['networks'][networkCode][type] = {
+                'fee': self.parse_fixed_float_value(self.safe_string(splitCommissionDesc, 0)),
+                'percentage': percentage,
+            }
+        return self.assign_default_deposit_withdraw_fees(result)
 
     def fetch_currencies(self, params={}):
         """
@@ -583,7 +661,7 @@ class exmo(Exchange):
                 'deposit': depositEnabled,
                 'withdraw': withdrawEnabled,
                 'fee': fee,
-                'precision': self.parse_number('0.00000001'),
+                'precision': self.parse_number('1e-8'),
                 'limits': limits,
                 'info': providers,
             }
@@ -637,7 +715,7 @@ class exmo(Exchange):
                 'swap': False,
                 'future': False,
                 'option': False,
-                'active': True,
+                'active': None,
                 'contract': False,
                 'linear': None,
                 'inverse': None,
@@ -649,7 +727,7 @@ class exmo(Exchange):
                 'strike': None,
                 'optionType': None,
                 'precision': {
-                    'amount': self.parse_number('0.00000001'),
+                    'amount': self.parse_number('1e-8'),
                     'price': self.parse_number(self.parse_precision(self.safe_string(market, 'price_precision'))),
                 },
                 'limits': {
@@ -696,12 +774,11 @@ class exmo(Exchange):
         now = self.milliseconds()
         if since is None:
             if limit is None:
-                raise ArgumentsRequired(self.id + ' fetchOHLCV() requires a since argument or a limit argument')
-            else:
-                if limit > maxLimit:
-                    raise BadRequest(self.id + ' fetchOHLCV() will serve ' + str(maxLimit) + ' candles at most')
-                request['from'] = int(now / 1000) - limit * duration - 1
-                request['to'] = int(now / 1000)
+                limit = 1000  # cap default at generous amount
+            if limit > maxLimit:
+                limit = maxLimit  # avoid exception
+            request['from'] = int(now / 1000) - limit * duration - 1
+            request['to'] = int(now / 1000)
         else:
             request['from'] = int(since / 1000) - 1
             if limit is None:
@@ -830,10 +907,7 @@ class exmo(Exchange):
         marketIds = list(response.keys())
         for i in range(0, len(marketIds)):
             marketId = marketIds[i]
-            symbol = marketId
-            if marketId in self.markets_by_id:
-                market = self.markets_by_id[marketId]
-                symbol = market['symbol']
+            symbol = self.safe_symbol(marketId)
             result[symbol] = self.parse_order_book(response[marketId], symbol, None, 'bid', 'ask')
         return result
 
@@ -955,7 +1029,6 @@ class exmo(Exchange):
         #     }
         #
         timestamp = self.safe_timestamp(trade, 'date')
-        symbol = None
         id = self.safe_string(trade, 'trade_id')
         orderId = self.safe_string(trade, 'order_id')
         priceString = self.safe_string(trade, 'price')
@@ -964,16 +1037,8 @@ class exmo(Exchange):
         side = self.safe_string(trade, 'type')
         type = None
         marketId = self.safe_string(trade, 'pair')
-        if marketId is not None:
-            if marketId in self.markets_by_id:
-                market = self.markets_by_id[marketId]
-            else:
-                baseId, quoteId = marketId.split('_')
-                base = self.safe_currency_code(baseId)
-                quote = self.safe_currency_code(quoteId)
-                symbol = base + '/' + quote
-        if (symbol is None) and (market is not None):
-            symbol = market['symbol']
+        market = self.safe_market(marketId, market, '_')
+        symbol = market['symbol']
         takerOrMaker = self.safe_string(trade, 'exec_type')
         fee = None
         feeCostString = self.safe_string(trade, 'commission_amount')
@@ -1078,19 +1143,9 @@ class exmo(Exchange):
         marketIds = list(response.keys())
         for i in range(0, len(marketIds)):
             marketId = marketIds[i]
-            symbol = None
-            if marketId in self.markets_by_id:
-                market = self.markets_by_id[marketId]
-                symbol = market['symbol']
-            else:
-                baseId, quoteId = marketId.split('_')
-                base = self.safe_currency_code(baseId)
-                quote = self.safe_currency_code(quoteId)
-                symbol = base + '/' + quote
+            resultMarket = self.safe_market(marketId, None, '_')
             items = response[marketId]
-            trades = self.parse_trades(items, market, since, limit, {
-                'symbol': symbol,
-            })
+            trades = self.parse_trades(items, resultMarket, since, limit)
             result = self.array_concat(result, trades)
         return self.filter_by_since_limit(result, since, limit)
 
@@ -1281,9 +1336,7 @@ class exmo(Exchange):
         orders = []
         for i in range(0, len(marketIds)):
             marketId = marketIds[i]
-            market = None
-            if marketId in self.markets_by_id:
-                market = self.markets_by_id[marketId]
+            market = self.safe_market(marketId)
             parsedOrders = self.parse_orders(response[marketId], market)
             orders = self.array_concat(orders, parsedOrders)
         return self.filter_by_symbol_since_limit(orders, symbol, since, limit)
@@ -1336,8 +1389,7 @@ class exmo(Exchange):
                 marketId = order['in_currency'] + '_' + order['out_currency']
             else:
                 marketId = order['out_currency'] + '_' + order['in_currency']
-        if (marketId is not None) and (marketId in self.markets_by_id):
-            market = self.markets_by_id[marketId]
+        market = self.safe_market(marketId, market)
         amount = self.safe_number(order, 'quantity')
         if amount is None:
             amountField = 'in_amount' if (side == 'buy') else 'out_amount'
@@ -1459,6 +1511,12 @@ class exmo(Exchange):
         """
         self.load_markets()
         response = self.privatePostDepositAddress(params)
+        #
+        #     {
+        #         "TRX":"TBnwrf4ZdoYXE3C8L2KMs7YPSL3fg6q6V9",
+        #         "USDTTRC20":"TBnwrf4ZdoYXE3C8L2KMs7YPSL3fg6q6V9"
+        #     }
+        #
         depositAddress = self.safe_string(response, code)
         address = None
         tag = None
@@ -1568,6 +1626,14 @@ class exmo(Exchange):
         #             "error": ""
         #          },
         #
+        # withdraw
+        #
+        #          {
+        #              "result":true,
+        #              "error":"",
+        #              "task_id":11775077
+        #          },
+        #
         id = self.safe_string_2(transaction, 'order_id', 'task_id')
         timestamp = self.safe_timestamp_2(transaction, 'dt', 'created')
         updated = self.safe_timestamp(transaction, 'updated')
@@ -1604,7 +1670,9 @@ class exmo(Exchange):
             key = 'withdraw' if (type == 'withdrawal') else 'deposit'
             feeCost = self.safe_string(transaction, 'commission')
             if feeCost is None:
-                feeCost = self.safe_string(self.options['transactionFees'][key], code)
+                transactionFees = self.safe_value(self.options, 'transactionFees', {})
+                codeFees = self.safe_value(transactionFees, code, {})
+                feeCost = self.safe_string(codeFees, key)
             # users don't pay for cashbacks, no fees for that
             provider = self.safe_string(transaction, 'provider')
             if provider == 'cashback':

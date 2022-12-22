@@ -6,8 +6,6 @@ namespace ccxt;
 // https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 use Exception; // a common import
-use \ccxt\ExchangeError;
-use \ccxt\ArgumentsRequired;
 
 class luno extends Exchange {
 
@@ -19,6 +17,7 @@ class luno extends Exchange {
             // 300 calls per minute = 5 calls per second = 1000ms / 5 = 200ms between requests
             'rateLimit' => 200,
             'version' => '1',
+            'pro' => true,
             'has' => array(
                 'CORS' => null,
                 'spot' => true,
@@ -49,6 +48,7 @@ class luno extends Exchange {
                 'fetchMarkets' => true,
                 'fetchMarkOHLCV' => false,
                 'fetchMyTrades' => true,
+                'fetchOHLCV' => false, // overload of base fetchOHLCV, as it doesn't work in this exchange
                 'fetchOpenInterestHistory' => false,
                 'fetchOpenOrders' => true,
                 'fetchOrder' => true,
@@ -62,7 +62,8 @@ class luno extends Exchange {
                 'fetchTicker' => true,
                 'fetchTickers' => true,
                 'fetchTrades' => true,
-                'fetchTradingFees' => true,
+                'fetchTradingFee' => true,
+                'fetchTradingFees' => false,
                 'reduceMargin' => false,
                 'setLeverage' => false,
                 'setMarginMode' => false,
@@ -747,16 +748,29 @@ class luno extends Exchange {
         return $this->parse_trades($trades, $market, $since, $limit);
     }
 
-    public function fetch_trading_fees($params = array ()) {
+    public function fetch_trading_fee($symbol, $params = array ()) {
         /**
-         * fetch the trading fees for multiple markets
+         * fetch the trading fees for a $market
+         * @param {string} $symbol unified $market $symbol
          * @param {array} $params extra parameters specific to the luno api endpoint
-         * @return {array} a dictionary of {@link https://docs.ccxt.com/en/latest/manual.html#fee-structure fee structures} indexed by market symbols
+         * @return {array} a {@link https://docs.ccxt.com/en/latest/manual.html#fee-structure fee structure}
          */
         $this->load_markets();
-        $response = $this->privateGetFeeInfo ($params);
+        $market = $this->market($symbol);
+        $request = array(
+            'symbol' => $market['id'],
+        );
+        $response = $this->privateGetFeeInfo (array_merge($request, $params));
+        //
+        //     {
+        //          "maker_fee" => "0.00250000",
+        //          "taker_fee" => "0.00500000",
+        //          "thirty_day_volume" => "0"
+        //     }
+        //
         return array(
             'info' => $response,
+            'symbol' => $symbol,
             'maker' => $this->safe_number($response, 'maker_fee'),
             'taker' => $this->safe_number($response, 'taker_fee'),
         );
@@ -784,14 +798,14 @@ class luno extends Exchange {
             $request['type'] = strtoupper($side);
             // todo add createMarketBuyOrderRequires $price logic as it is implemented in the other exchanges
             if ($side === 'buy') {
-                $request['counter_volume'] = floatval($this->amount_to_precision($market['symbol'], $amount));
+                $request['counter_volume'] = $this->amount_to_precision($market['symbol'], $amount);
             } else {
-                $request['base_volume'] = floatval($this->amount_to_precision($market['symbol'], $amount));
+                $request['base_volume'] = $this->amount_to_precision($market['symbol'], $amount);
             }
         } else {
             $method .= 'Postorder';
-            $request['volume'] = floatval($this->amount_to_precision($market['symbol'], $amount));
-            $request['price'] = floatval($this->price_to_precision($market['symbol'], $price));
+            $request['volume'] = $this->amount_to_precision($market['symbol'], $amount);
+            $request['price'] = $this->price_to_precision($market['symbol'], $price);
             $request['type'] = ($side === 'buy') ? 'BID' : 'ASK';
         }
         $response = $this->$method (array_merge($request, $params));

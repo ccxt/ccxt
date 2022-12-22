@@ -39,6 +39,8 @@ module.exports = class exmo extends Exchange {
                 'fetchDeposit': true,
                 'fetchDepositAddress': true,
                 'fetchDeposits': true,
+                'fetchDepositWithdrawFee': 'emulated',
+                'fetchDepositWithdrawFees': true,
                 'fetchFundingHistory': false,
                 'fetchFundingRate': false,
                 'fetchFundingRateHistory': false,
@@ -176,7 +178,7 @@ module.exports = class exmo extends Exchange {
                 },
                 'transaction': {
                     'tierBased': false,
-                    'percentage': false, // fixed transaction fees for crypto, see fetchTransactionFees below
+                    'percentage': false, // fixed transaction fees for crypto, see fetchDepositWithdrawFees below
                 },
             },
             'options': {
@@ -422,21 +424,13 @@ module.exports = class exmo extends Exchange {
         /**
          * @method
          * @name exmo#fetchTransactionFees
-         * @description fetch transaction fees
+         * @description *DEPRECATED* please use fetchDepositWithdrawFees instead
+         * @see https://documenter.getpostman.com/view/10287440/SzYXWKPi#4190035d-24b1-453d-833b-37e0a52f88e2
          * @param {[string]|undefined} codes list of unified currency codes
          * @param {object} params extra parameters specific to the exmo api endpoint
          * @returns {object} a list of [transaction fees structures]{@link https://docs.ccxt.com/en/latest/manual.html#fees-structure}
          */
         await this.loadMarkets ();
-        const currencyList = await this.publicGetCurrencyListExtended (params);
-        //
-        //     [
-        //         {"name":"VLX","description":"Velas"},
-        //         {"name":"RUB","description":"Russian Ruble"},
-        //         {"name":"BTC","description":"Bitcoin"},
-        //         {"name":"USD","description":"US Dollar"}
-        //     ]
-        //
         const cryptoList = await this.publicGetPaymentsProvidersCryptoList (params);
         //
         //     {
@@ -472,30 +466,121 @@ module.exports = class exmo extends Exchange {
         //         ],
         //     }
         //
-        const result = {
-            'info': cryptoList,
-            'withdraw': {},
-            'deposit': {},
-        };
-        for (let i = 0; i < currencyList.length; i++) {
-            const currency = currencyList[i];
-            const currencyId = this.safeString (currency, 'name');
-            const code = this.safeCurrencyCode (currencyId);
+        const result = {};
+        const cryptoListKeys = Object.keys (cryptoList);
+        for (let i = 0; i < cryptoListKeys.length; i++) {
+            const code = cryptoListKeys[i];
+            if (codes !== undefined && !this.inArray (code, codes)) {
+                continue;
+            }
+            result[code] = {
+                'deposit': undefined,
+                'withdraw': undefined,
+            };
+            const currency = this.currency (code);
+            const currencyId = this.safeString (currency, 'id');
             const providers = this.safeValue (cryptoList, currencyId, []);
             for (let j = 0; j < providers.length; j++) {
                 const provider = providers[j];
                 const type = this.safeString (provider, 'type');
                 const commissionDesc = this.safeString (provider, 'commission_desc');
-                const newFee = this.parseFixedFloatValue (commissionDesc);
-                const previousFee = this.safeNumber (result[type], code);
-                if ((previousFee === undefined) || ((newFee !== undefined) && (newFee < previousFee))) {
-                    result[type][code] = newFee;
-                }
+                const fee = this.parseFixedFloatValue (commissionDesc);
+                result[code][type] = fee;
             }
+            result[code]['info'] = providers;
         }
         // cache them for later use
         this.options['transactionFees'] = result;
         return result;
+    }
+
+    async fetchDepositWithdrawFees (codes = undefined, params = {}) {
+        /**
+         * @method
+         * @name exmo#fetchDepositWithdrawFees
+         * @description fetch deposit and withdraw fees
+         * @see https://documenter.getpostman.com/view/10287440/SzYXWKPi#4190035d-24b1-453d-833b-37e0a52f88e2
+         * @param {[string]|undefined} codes list of unified currency codes
+         * @param {object} params extra parameters specific to the exmo api endpoint
+         * @returns {object} a list of [transaction fees structures]{@link https://docs.ccxt.com/en/latest/manual.html#fees-structure}
+         */
+        await this.loadMarkets ();
+        const response = await this.publicGetPaymentsProvidersCryptoList (params);
+        //
+        //    {
+        //        "USDT": [
+        //            {
+        //                "type": "deposit", // or "withdraw"
+        //                "name": "USDT (ERC20)",
+        //                "currency_name": "USDT",
+        //                "min": "10",
+        //                "max": "0",
+        //                "enabled": true,
+        //                "comment": "Minimum deposit amount is 10 USDT",
+        //                "commission_desc": "0%",
+        //                "currency_confirmations": 2
+        //            },
+        //            ...
+        //        ],
+        //        ...
+        //    }
+        //
+        const result = this.parseDepositWithdrawFees (response, codes);
+        // cache them for later use
+        this.options['transactionFees'] = result;
+        return result;
+    }
+
+    parseDepositWithdrawFee (fee, currency = undefined) {
+        //
+        //    [
+        //        {
+        //            "type": "deposit", // or "withdraw"
+        //            "name": "BTC",
+        //            "currency_name": "BTC",
+        //            "min": "0.001",
+        //            "max": "0",
+        //            "enabled": true,
+        //            "comment": "Minimum deposit amount is 0.001 BTC. We do not support BSC and BEP20 network, please consider this when sending funds",
+        //            "commission_desc": "0%",
+        //            "currency_confirmations": 1
+        //        },
+        //        ...
+        //    ]
+        //
+        const result = this.depositWithdrawFee (fee);
+        for (let i = 0; i < fee.length; i++) {
+            const provider = fee[i];
+            const type = this.safeString (provider, 'type');
+            const networkId = this.safeString (provider, 'name');
+            const networkCode = this.networkIdToCode (networkId, this.safeString (currency, 'code'));
+            const commissionDesc = this.safeString (provider, 'commission_desc');
+            let splitCommissionDesc = [];
+            let percentage = undefined;
+            if (commissionDesc !== undefined) {
+                splitCommissionDesc = commissionDesc.split ('%');
+                const splitCommissionDescLength = splitCommissionDesc.length;
+                percentage = splitCommissionDescLength >= 2;
+            }
+            const network = this.safeValue (result['networks'], networkCode);
+            if (network === undefined) {
+                result['networks'][networkCode] = {
+                    'withdraw': {
+                        'fee': undefined,
+                        'percentage': undefined,
+                    },
+                    'deposit': {
+                        'fee': undefined,
+                        'percentage': undefined,
+                    },
+                };
+            }
+            result['networks'][networkCode][type] = {
+                'fee': this.parseFixedFloatValue (this.safeString (splitCommissionDesc, 0)),
+                'percentage': percentage,
+            };
+        }
+        return this.assignDefaultDepositWithdrawFees (result);
     }
 
     async fetchCurrencies (params = {}) {
@@ -611,7 +696,7 @@ module.exports = class exmo extends Exchange {
                 'deposit': depositEnabled,
                 'withdraw': withdrawEnabled,
                 'fee': fee,
-                'precision': this.parseNumber ('0.00000001'),
+                'precision': this.parseNumber ('1e-8'),
                 'limits': limits,
                 'info': providers,
             };
@@ -669,7 +754,7 @@ module.exports = class exmo extends Exchange {
                 'swap': false,
                 'future': false,
                 'option': false,
-                'active': true,
+                'active': undefined,
                 'contract': false,
                 'linear': undefined,
                 'inverse': undefined,
@@ -681,7 +766,7 @@ module.exports = class exmo extends Exchange {
                 'strike': undefined,
                 'optionType': undefined,
                 'precision': {
-                    'amount': this.parseNumber ('0.00000001'),
+                    'amount': this.parseNumber ('1e-8'),
                     'price': this.parseNumber (this.parsePrecision (this.safeString (market, 'price_precision'))),
                 },
                 'limits': {
@@ -732,14 +817,13 @@ module.exports = class exmo extends Exchange {
         const now = this.milliseconds ();
         if (since === undefined) {
             if (limit === undefined) {
-                throw new ArgumentsRequired (this.id + ' fetchOHLCV() requires a since argument or a limit argument');
-            } else {
-                if (limit > maxLimit) {
-                    throw new BadRequest (this.id + ' fetchOHLCV() will serve ' + maxLimit.toString () + ' candles at most');
-                }
-                request['from'] = parseInt (now / 1000) - limit * duration - 1;
-                request['to'] = parseInt (now / 1000);
+                limit = 1000; // cap default at generous amount
             }
+            if (limit > maxLimit) {
+                limit = maxLimit; // avoid exception
+            }
+            request['from'] = parseInt (now / 1000) - limit * duration - 1;
+            request['to'] = parseInt (now / 1000);
         } else {
             request['from'] = parseInt (since / 1000) - 1;
             if (limit === undefined) {
@@ -889,11 +973,7 @@ module.exports = class exmo extends Exchange {
         const marketIds = Object.keys (response);
         for (let i = 0; i < marketIds.length; i++) {
             const marketId = marketIds[i];
-            let symbol = marketId;
-            if (marketId in this.markets_by_id) {
-                const market = this.markets_by_id[marketId];
-                symbol = market['symbol'];
-            }
+            const symbol = this.safeSymbol (marketId);
             result[symbol] = this.parseOrderBook (response[marketId], symbol, undefined, 'bid', 'ask');
         }
         return result;
@@ -1025,7 +1105,6 @@ module.exports = class exmo extends Exchange {
         //     }
         //
         const timestamp = this.safeTimestamp (trade, 'date');
-        let symbol = undefined;
         const id = this.safeString (trade, 'trade_id');
         const orderId = this.safeString (trade, 'order_id');
         const priceString = this.safeString (trade, 'price');
@@ -1034,19 +1113,8 @@ module.exports = class exmo extends Exchange {
         const side = this.safeString (trade, 'type');
         const type = undefined;
         const marketId = this.safeString (trade, 'pair');
-        if (marketId !== undefined) {
-            if (marketId in this.markets_by_id) {
-                market = this.markets_by_id[marketId];
-            } else {
-                const [ baseId, quoteId ] = marketId.split ('_');
-                const base = this.safeCurrencyCode (baseId);
-                const quote = this.safeCurrencyCode (quoteId);
-                symbol = base + '/' + quote;
-            }
-        }
-        if ((symbol === undefined) && (market !== undefined)) {
-            symbol = market['symbol'];
-        }
+        market = this.safeMarket (marketId, market, '_');
+        const symbol = market['symbol'];
         const takerOrMaker = this.safeString (trade, 'exec_type');
         let fee = undefined;
         const feeCostString = this.safeString (trade, 'commission_amount');
@@ -1163,20 +1231,9 @@ module.exports = class exmo extends Exchange {
         const marketIds = Object.keys (response);
         for (let i = 0; i < marketIds.length; i++) {
             const marketId = marketIds[i];
-            let symbol = undefined;
-            if (marketId in this.markets_by_id) {
-                market = this.markets_by_id[marketId];
-                symbol = market['symbol'];
-            } else {
-                const [ baseId, quoteId ] = marketId.split ('_');
-                const base = this.safeCurrencyCode (baseId);
-                const quote = this.safeCurrencyCode (quoteId);
-                symbol = base + '/' + quote;
-            }
+            const resultMarket = this.safeMarket (marketId, undefined, '_');
             const items = response[marketId];
-            const trades = this.parseTrades (items, market, since, limit, {
-                'symbol': symbol,
-            });
+            const trades = this.parseTrades (items, resultMarket, since, limit);
             result = this.arrayConcat (result, trades);
         }
         return this.filterBySinceLimit (result, since, limit);
@@ -1390,10 +1447,7 @@ module.exports = class exmo extends Exchange {
         let orders = [];
         for (let i = 0; i < marketIds.length; i++) {
             const marketId = marketIds[i];
-            let market = undefined;
-            if (marketId in this.markets_by_id) {
-                market = this.markets_by_id[marketId];
-            }
+            const market = this.safeMarket (marketId);
             const parsedOrders = this.parseOrders (response[marketId], market);
             orders = this.arrayConcat (orders, parsedOrders);
         }
@@ -1450,9 +1504,7 @@ module.exports = class exmo extends Exchange {
                 marketId = order['out_currency'] + '_' + order['in_currency'];
             }
         }
-        if ((marketId !== undefined) && (marketId in this.markets_by_id)) {
-            market = this.markets_by_id[marketId];
-        }
+        market = this.safeMarket (marketId, market);
         let amount = this.safeNumber (order, 'quantity');
         if (amount === undefined) {
             const amountField = (side === 'buy') ? 'in_amount' : 'out_amount';
@@ -1598,6 +1650,12 @@ module.exports = class exmo extends Exchange {
          */
         await this.loadMarkets ();
         const response = await this.privatePostDepositAddress (params);
+        //
+        //     {
+        //         "TRX":"TBnwrf4ZdoYXE3C8L2KMs7YPSL3fg6q6V9",
+        //         "USDTTRC20":"TBnwrf4ZdoYXE3C8L2KMs7YPSL3fg6q6V9"
+        //     }
+        //
         const depositAddress = this.safeString (response, code);
         let address = undefined;
         let tag = undefined;
@@ -1718,6 +1776,14 @@ module.exports = class exmo extends Exchange {
         //             "error": ""
         //          },
         //
+        // withdraw
+        //
+        //          {
+        //              "result":true,
+        //              "error":"",
+        //              "task_id":11775077
+        //          },
+        //
         const id = this.safeString2 (transaction, 'order_id', 'task_id');
         const timestamp = this.safeTimestamp2 (transaction, 'dt', 'created');
         const updated = this.safeTimestamp (transaction, 'updated');
@@ -1760,7 +1826,9 @@ module.exports = class exmo extends Exchange {
             const key = (type === 'withdrawal') ? 'withdraw' : 'deposit';
             let feeCost = this.safeString (transaction, 'commission');
             if (feeCost === undefined) {
-                feeCost = this.safeString (this.options['transactionFees'][key], code);
+                const transactionFees = this.safeValue (this.options, 'transactionFees', {});
+                const codeFees = this.safeValue (transactionFees, code, {});
+                feeCost = this.safeString (codeFees, key);
             }
             // users don't pay for cashbacks, no fees for that
             const provider = this.safeString (transaction, 'provider');

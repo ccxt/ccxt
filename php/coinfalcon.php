@@ -6,7 +6,6 @@ namespace ccxt;
 // https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 use Exception; // a common import
-use \ccxt\ArgumentsRequired;
 
 class coinfalcon extends Exchange {
 
@@ -124,10 +123,6 @@ class coinfalcon extends Exchange {
                     'maker' => 0.0,
                     'taker' => 0.002, // tiered fee starts at 0.2%
                 ),
-            ),
-            'precision' => array(
-                'amount' => $this->parse_number('0.00000001'),
-                'price' => $this->parse_number('0.00000001'),
             ),
             'precisionMode' => TICK_SIZE,
         ));

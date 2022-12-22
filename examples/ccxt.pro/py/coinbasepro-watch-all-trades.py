@@ -1,12 +1,12 @@
 # -*- coding: utf-8 -*-
 
-import ccxtpro
+import ccxt.pro
 from asyncio import run
 
 async def main():
-    exchange = ccxtpro.coinbasepro()
+    exchange = ccxt.pro.coinbasepro()
     method = 'watchTrades'
-    print('CCXT Pro version', ccxtpro.__version__)
+    print('CCXT Pro version', ccxt.pro.__version__)
     if exchange.has[method]:
         last_id = ''
         while True:

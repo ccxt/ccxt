@@ -18,6 +18,7 @@ module.exports = class woo extends Exchange {
             'rateLimit': 100,
             'version': 'v1',
             'certified': false,
+            'pro': true,
             'hostname': 'woo.org',
             'has': {
                 'CORS': undefined,
@@ -125,12 +126,14 @@ module.exports = class woo extends Exchange {
                     'pub': {
                         'get': {
                             'hist/kline': 10,
+                            'hist/trades': 1,
                         },
                     },
                     'public': {
                         'get': {
                             'info': 1,
                             'info/{symbol}': 1,
+                            'system_info': 1,
                             'market_trades': 1,
                             'token': 1,
                             'token_network': 1,
@@ -153,7 +156,7 @@ module.exports = class woo extends Exchange {
                             'order/{oid}/trades': 1,
                             'client/trades': 1,
                             'client/info': 60,
-                            'asset/deposit': 120,
+                            'asset/deposit': 10,
                             'asset/history': 60,
                             'sub_account/all': 60,
                             'sub_account/assets': 60,
@@ -168,7 +171,7 @@ module.exports = class woo extends Exchange {
                         'post': {
                             'order': 5, // 2 requests per 1 second per symbol
                             'asset/main_sub_transfer': 30, // 20 requests per 60 seconds
-                            'asset/withdraw': 120,  // implemented in ccxt, disabled on the exchange side https://kronosresearch.github.io/wootrade-documents/#token-withdraw
+                            'asset/withdraw': 30,  // implemented in ccxt, disabled on the exchange side https://kronosresearch.github.io/wootrade-documents/#token-withdraw
                             'interest/repay': 60,
                             'client/account_mode': 120,
                             'client/leverage': 120,
@@ -185,6 +188,23 @@ module.exports = class woo extends Exchange {
                     'private': {
                         'get': {
                             'client/holding': 1,
+                        },
+                    },
+                },
+                'v3': {
+                    'private': {
+                        'get': {
+                            'algo/order/{oid}': 1,
+                            'algo/orders': 1,
+                        },
+                        'post': {
+                            'algo/order': 5,
+                        },
+                        'delete': {
+                            'algo/order/{oid}': 1,
+                            'algo/orders/pending': 1,
+                            'algo/orders/pending/{symbol}': 1,
+                            'orders/pending': 1,
                         },
                     },
                 },
@@ -614,6 +634,7 @@ module.exports = class woo extends Exchange {
             const networks = networksByCurrencyId[currencyId];
             const code = this.safeCurrencyCode (currencyId);
             let name = undefined;
+            let minPrecision = undefined;
             const resultingNetworks = {};
             for (let j = 0; j < networks.length; j++) {
                 const network = networks[j];
@@ -621,7 +642,10 @@ module.exports = class woo extends Exchange {
                 const networkId = this.safeString (network, 'token');
                 const splitted = networkId.split ('_');
                 const unifiedNetwork = splitted[0];
-                const precision = this.parseNumber (this.parsePrecision (this.safeString (network, 'decimals')));
+                const precision = this.parsePrecision (this.safeString (network, 'decimals'));
+                if (precision !== undefined) {
+                    minPrecision = (minPrecision === undefined) ? precision : Precise.stringMin (precision, minPrecision);
+                }
                 resultingNetworks[unifiedNetwork] = {
                     'id': networkId,
                     'network': unifiedNetwork,
@@ -639,7 +663,7 @@ module.exports = class woo extends Exchange {
                     'deposit': undefined,
                     'withdraw': undefined,
                     'fee': undefined,
-                    'precision': precision, // will be filled down below
+                    'precision': this.parseNumber (precision),
                     'info': network,
                 };
             }
@@ -647,10 +671,12 @@ module.exports = class woo extends Exchange {
                 'id': currencyId,
                 'name': name,
                 'code': code,
-                'precision': undefined,
+                'precision': this.parseNumber (minPrecision),
                 'active': undefined,
                 'fee': undefined,
                 'networks': resultingNetworks,
+                'deposit': undefined,
+                'withdraw': undefined,
                 'limits': {
                     'deposit': {
                         'min': undefined,
@@ -661,7 +687,7 @@ module.exports = class woo extends Exchange {
                         'max': undefined,
                     },
                 },
-                'info': networks, // will be filled down below
+                'info': networks,
             };
         }
         return result;
@@ -1045,7 +1071,7 @@ module.exports = class woo extends Exchange {
         return this.parseOrderBook (response, symbol, timestamp, 'bids', 'asks', 'price', 'quantity');
     }
 
-    async fetchOHLCV (symbol, timeframe = '1h', since = undefined, limit = undefined, params = {}) {
+    async fetchOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
         /**
          * @method
          * @name woo#fetchOHLCV
@@ -1778,12 +1804,17 @@ module.exports = class woo extends Exchange {
             url += path;
             const ts = this.nonce ().toString ();
             let auth = this.urlencode (params);
-            if (method === 'POST' || method === 'DELETE') {
+            if (version === 'v3' && (method === 'POST')) {
                 body = auth;
+                auth = ts + method + '/' + version + '/' + path + body;
             } else {
-                url += '?' + auth;
+                if (method === 'POST' || method === 'DELETE') {
+                    body = auth;
+                } else {
+                    url += '?' + auth;
+                }
+                auth += '|' + ts;
             }
-            auth += '|' + ts;
             const signature = this.hmac (this.encode (auth), this.encode (this.secret), 'sha256');
             headers = {
                 'x-api-key': this.apiKey,
@@ -2158,6 +2189,7 @@ module.exports = class woo extends Exchange {
         const notional = Precise.stringMul (size, markPrice);
         return {
             'info': position,
+            'id': undefined,
             'symbol': this.safeString (market, 'symbol'),
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),

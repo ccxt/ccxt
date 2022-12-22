@@ -903,7 +903,7 @@ class bitfinex2(Exchange):
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
             'status': self.parse_transfer_status(status),
-            'amount': self.safe_number(transfer, 7),
+            'amount': self.safe_number(info, 7),
             'currency': self.safe_currency_code(currencyId, currency),
             'fromAccount': fromAccount,
             'toAccount': toAccount,
@@ -1970,14 +1970,16 @@ class bitfinex2(Exchange):
         feeCost = None
         txid = None
         addressTo = None
+        network = None
+        comment = None
         if transactionLength == 8:
             data = self.safe_value(transaction, 4, [])
             timestamp = self.safe_integer(transaction, 0)
             if currency is not None:
                 code = currency['code']
-            feeCost = self.safe_number(data, 8)
+            feeCost = self.safe_string(data, 8)
             if feeCost is not None:
-                feeCost = -feeCost
+                feeCost = Precise.string_abs(feeCost)
             amount = self.safe_number(data, 5)
             id = self.safe_value(data, 0)
             status = 'ok'
@@ -1990,41 +1992,46 @@ class bitfinex2(Exchange):
             id = self.safe_string(transaction, 0)
             currencyId = self.safe_string(transaction, 1)
             code = self.safe_currency_code(currencyId, currency)
+            networkId = self.safe_string(transaction, 2)
+            network = self.safe_network(networkId)
             timestamp = self.safe_integer(transaction, 5)
             updated = self.safe_integer(transaction, 6)
             status = self.parse_transaction_status(self.safe_string(transaction, 9))
-            amount = self.safe_number(transaction, 12)
-            if amount is not None:
-                if amount < 0:
+            signedAmount = self.safe_string(transaction, 12)
+            amount = Precise.string_abs(signedAmount)
+            if signedAmount is not None:
+                if Precise.string_lt(signedAmount, '0'):
                     type = 'withdrawal'
                 else:
                     type = 'deposit'
-            feeCost = self.safe_number(transaction, 13)
+            feeCost = self.safe_string(transaction, 13)
             if feeCost is not None:
-                feeCost = -feeCost
+                feeCost = Precise.string_abs(feeCost)
             addressTo = self.safe_string(transaction, 16)
             txid = self.safe_string(transaction, 20)
+            comment = self.safe_string(transaction, 21)
         return {
             'info': transaction,
             'id': id,
             'txid': txid,
+            'type': type,
+            'currency': code,
+            'network': network,
+            'amount': self.parse_number(amount),
+            'status': status,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
-            'network': None,
-            'addressFrom': None,
             'address': addressTo,  # self is actually the tag for XRP transfers(the address is missing)
+            'addressFrom': None,
             'addressTo': addressTo,
-            'tagFrom': None,
             'tag': tag,  # refix it properly for the tag from description
+            'tagFrom': None,
             'tagTo': tag,
-            'type': type,
-            'amount': amount,
-            'currency': code,
-            'status': status,
             'updated': updated,
+            'comment': comment,
             'fee': {
                 'currency': code,
-                'cost': feeCost,
+                'cost': self.parse_number(feeCost),
                 'rate': None,
             },
         }
@@ -2355,9 +2362,9 @@ class bitfinex2(Exchange):
             errorCode = self.number_to_string(response[1])
             errorText = response[2]
             feedback = self.id + ' ' + errorText
+            self.throw_broadly_matched_exception(self.exceptions['broad'], errorText, feedback)
             self.throw_exactly_matched_exception(self.exceptions['exact'], errorCode, feedback)
             self.throw_exactly_matched_exception(self.exceptions['exact'], errorText, feedback)
-            self.throw_broadly_matched_exception(self.exceptions['broad'], errorText, feedback)
             raise ExchangeError(self.id + ' ' + errorText + '(#' + errorCode + ')')
         return response
 

@@ -6,10 +6,6 @@ namespace ccxt;
 // https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 use Exception; // a common import
-use \ccxt\ExchangeError;
-use \ccxt\ArgumentsRequired;
-use \ccxt\OrderNotFound;
-use \ccxt\NotSupported;
 
 class bitso extends Exchange {
 
@@ -45,6 +41,8 @@ class bitso extends Exchange {
                 'fetchDepositAddress' => true,
                 'fetchDepositAddresses' => false,
                 'fetchDeposits' => true,
+                'fetchDepositWithdrawFee' => 'emulated',
+                'fetchDepositWithdrawFees' => true,
                 'fetchFundingHistory' => false,
                 'fetchFundingRate' => false,
                 'fetchFundingRateHistory' => false,
@@ -1205,13 +1203,17 @@ class bitso extends Exchange {
     public function fetch_deposits($code = null, $since = null, $limit = null, $params = array ()) {
         /**
          * fetch all deposits made to an account
-         * @param {string|null} $code unified currency $code
+         * @param {string|null} $code unified $currency $code
          * @param {int|null} $since the earliest time in ms to fetch deposits for
          * @param {int|null} $limit the maximum number of deposits structures to retrieve
          * @param {array} $params extra parameters specific to the exmo api endpoint
          * @return {[array]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure transaction structures}
          */
         $this->load_markets();
+        $currency = null;
+        if ($code !== null) {
+            $currency = $this->currency($code);
+        }
         $response = $this->privateGetFundings ($params);
         //
         //     {
@@ -1220,7 +1222,7 @@ class bitso extends Exchange {
         //             fid => '6112c6369100d6ecceb7f54f17cf0511',
         //             status => 'complete',
         //             created_at => '2022-06-08T12:02:49+0000',
-        //             currency => 'btc',
+        //             $currency => 'btc',
         //             method => 'btc',
         //             method_name => 'Bitcoin',
         //             amount => '0.00080000',
@@ -1237,7 +1239,7 @@ class bitso extends Exchange {
         //     }
         //
         $transactions = $this->safe_value($response, 'payload', array());
-        return $this->parse_transactions($transactions, $code, $since, $limit, $params);
+        return $this->parse_transactions($transactions, $currency, $since, $limit, $params);
     }
 
     public function fetch_deposit_address($code, $params = array ()) {
@@ -1272,8 +1274,101 @@ class bitso extends Exchange {
 
     public function fetch_transaction_fees($codes = null, $params = array ()) {
         /**
-         * fetch transaction fees
-         * @param {[string]|null} $codes not used by bitso fetchTransactionFees
+         * *DEPRECATED* please use fetchDepositWithdrawFees instead
+         * @see https://bitso.com/api_info#fees
+         * @param {[string]|null} $codes list of unified currency $codes
+         * @param {array} $params extra parameters specific to the bitso api endpoint
+         * @return {[array]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#fee-structure fee structures}
+         */
+        $this->load_markets();
+        $response = $this->privateGetFees ($params);
+        //
+        //    {
+        //        success => true,
+        //        $payload => {
+        //            fees => array(
+        //                array(
+        //                    book => 'btc_mxn',
+        //                    fee_percent => '0.6500',
+        //                    fee_decimal => '0.00650000',
+        //                    taker_fee_percent => '0.6500',
+        //                    taker_fee_decimal => '0.00650000',
+        //                    maker_fee_percent => '0.5000',
+        //                    maker_fee_decimal => '0.00500000',
+        //                    volume_currency => 'mxn',
+        //                    current_volume => '0.00',
+        //                    next_volume => '1500000.00',
+        //                    next_maker_fee_percent => '0.490',
+        //                    next_taker_fee_percent => '0.637',
+        //                    nextVolume => '1500000.00',
+        //                    nextFee => '0.490',
+        //                    nextTakerFee => '0.637'
+        //                ),
+        //                ...
+        //            ),
+        //            deposit_fees => array(
+        //                array(
+        //                    currency => 'btc',
+        //                    method => 'rewards',
+        //                    fee => '0.00',
+        //                    is_fixed => false
+        //                ),
+        //                ...
+        //            ),
+        //            withdrawal_fees => {
+        //                ada => '0.20958100',
+        //                bch => '0.00009437',
+        //                ars => '0',
+        //                btc => '0.00001209',
+        //                ...
+        //            }
+        //        }
+        //    }
+        //
+        $result = array();
+        $payload = $this->safe_value($response, 'payload', array());
+        $depositFees = $this->safe_value($payload, 'deposit_fees', array());
+        for ($i = 0; $i < count($depositFees); $i++) {
+            $depositFee = $depositFees[$i];
+            $currencyId = $this->safe_string($depositFee, 'currency');
+            $code = $this->safe_currency_code($currencyId);
+            if (($codes !== null) && !$this->in_array($code, $codes)) {
+                continue;
+            }
+            $result[$code] = array(
+                'deposit' => $this->safe_number($depositFee, 'fee'),
+                'withdraw' => null,
+                'info' => array(
+                    'deposit' => $depositFee,
+                    'withdraw' => null,
+                ),
+            );
+        }
+        $withdrawalFees = $this->safe_value($payload, 'withdrawal_fees', array());
+        $currencyIds = is_array($withdrawalFees) ? array_keys($withdrawalFees) : array();
+        for ($i = 0; $i < count($currencyIds); $i++) {
+            $currencyId = $currencyIds[$i];
+            $code = $this->safe_currency_code($currencyId);
+            if (($codes !== null) && !$this->in_array($code, $codes)) {
+                continue;
+            }
+            $result[$code] = array(
+                'deposit' => $this->safe_value($result[$code], 'deposit'),
+                'withdraw' => $this->safe_number($withdrawalFees, $currencyId),
+                'info' => array(
+                    'deposit' => $this->safe_value($result[$code]['info'], 'deposit'),
+                    'withdraw' => $this->safe_number($withdrawalFees, $currencyId),
+                ),
+            );
+        }
+        return $result;
+    }
+
+    public function fetch_deposit_withdraw_fees($codes = null, $params = array ()) {
+        /**
+         * fetch deposit and withdraw fees
+         * @see https://bitso.com/api_info#fees
+         * @param {[string]|null} $codes list of unified currency $codes
          * @param {array} $params extra parameters specific to the bitso api endpoint
          * @return {[array]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#fee-structure fee structures}
          */
@@ -1323,27 +1418,87 @@ class bitso extends Exchange {
         //    }
         //
         $payload = $this->safe_value($response, 'payload', array());
-        $depositFees = $this->safe_value($payload, 'deposit_fees', array());
-        $deposit = array();
-        for ($i = 0; $i < count($depositFees); $i++) {
-            $depositFee = $depositFees[$i];
-            $currencyId = $this->safe_string($depositFee, 'currency');
+        return $this->parse_deposit_withdraw_fees($payload, $codes);
+    }
+
+    public function parse_deposit_withdraw_fees($response, $codes = null, $currencyIdKey = null) {
+        //
+        //    {
+        //        fees => array(
+        //            array(
+        //                book => 'btc_mxn',
+        //                fee_percent => '0.6500',
+        //                fee_decimal => '0.00650000',
+        //                taker_fee_percent => '0.6500',
+        //                taker_fee_decimal => '0.00650000',
+        //                maker_fee_percent => '0.5000',
+        //                maker_fee_decimal => '0.00500000',
+        //                volume_currency => 'mxn',
+        //                current_volume => '0.00',
+        //                next_volume => '1500000.00',
+        //                next_maker_fee_percent => '0.490',
+        //                next_taker_fee_percent => '0.637',
+        //                nextVolume => '1500000.00',
+        //                nextFee => '0.490',
+        //                nextTakerFee => '0.637'
+        //            ),
+        //            ...
+        //        ),
+        //        deposit_fees => array(
+        //            array(
+        //                currency => 'btc',
+        //                method => 'rewards',
+        //                fee => '0.00',
+        //                is_fixed => false
+        //            ),
+        //            ...
+        //        ),
+        //        withdrawal_fees => {
+        //            ada => '0.20958100',
+        //            bch => '0.00009437',
+        //            ars => '0',
+        //            btc => '0.00001209',
+        //            ...
+        //        }
+        //    }
+        //
+        $result = array();
+        $depositResponse = $this->safe_value($response, 'deposit_fees', array());
+        $withdrawalResponse = $this->safe_value($response, 'withdrawal_fees', array());
+        for ($i = 0; $i < count($depositResponse); $i++) {
+            $entry = $depositResponse[$i];
+            $currencyId = $this->safe_string($entry, 'currency');
             $code = $this->safe_currency_code($currencyId);
-            $deposit[$code] = $this->safe_number($depositFee, 'fee');
+            if (($codes === null) || (is_array($codes) && array_key_exists($code, $codes))) {
+                $result[$code] = array(
+                    'deposit' => array(
+                        'fee' => $this->safe_number($entry, 'fee'),
+                        'percentage' => !$this->safe_value($entry, 'is_fixed'),
+                    ),
+                    'withdraw' => array(
+                        'fee' => null,
+                        'percentage' => null,
+                    ),
+                    'networks' => array(),
+                    'info' => $entry,
+                );
+            }
         }
-        $withdraw = array();
-        $withdrawalFees = $this->safe_value($payload, 'withdrawal_fees', array());
-        $currencyIds = is_array($withdrawalFees) ? array_keys($withdrawalFees) : array();
-        for ($i = 0; $i < count($currencyIds); $i++) {
-            $currencyId = $currencyIds[$i];
+        $withdrawalKeys = is_array($withdrawalResponse) ? array_keys($withdrawalResponse) : array();
+        for ($i = 0; $i < count($withdrawalKeys); $i++) {
+            $currencyId = $withdrawalKeys[$i];
             $code = $this->safe_currency_code($currencyId);
-            $withdraw[$code] = $this->safe_number($withdrawalFees, $currencyId);
+            if (($codes === null) || (is_array($codes) && array_key_exists($code, $codes))) {
+                $withdrawFee = $this->parse_number($withdrawalResponse[$currencyId]);
+                $resultValue = $this->safe_value($result, $code);
+                if ($resultValue === null) {
+                    $result[$code] = $this->deposit_withdraw_fee(array());
+                }
+                $result[$code]['withdraw']['fee'] = $withdrawFee;
+                $result[$code]['info'][$code] = $withdrawFee;
+            }
         }
-        return array(
-            'info' => $response,
-            'deposit' => $deposit,
-            'withdraw' => $withdraw,
-        );
+        return $result;
     }
 
     public function withdraw($code, $amount, $address, $tag = null, $params = array ()) {
