@@ -1564,6 +1564,9 @@ module.exports = class Exchange {
     }
 
     marketIds (symbols) {
+        if (symbols === undefined) {
+            return symbols;
+        }
         const result = [];
         for (let i = 0; i < symbols.length; i++) {
             result.push (this.marketId (symbols[i]));
