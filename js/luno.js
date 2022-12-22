@@ -965,31 +965,31 @@ module.exports = class luno extends Exchange {
         const timestamp = this.safeValue (entry, 'timestamp');
         const currencyId = this.safeString (entry, 'currency');
         const code = this.safeCurrencyCode (currencyId, currency);
-        const available_delta = this.safeNumber (entry, 'available_delta');
-        const balance_delta = this.safeNumber (entry, 'balance_delta');
-        const after = this.safeNumber (entry, 'balance');
+        const available_delta = this.safeString (entry, 'available_delta');
+        const balance_delta = this.safeString (entry, 'balance_delta');
+        const after = this.safeString (entry, 'balance');
         const comment = this.safeString (entry, 'description');
         let before = after;
-        let amount = 0.0;
+        let amount = '0.0';
         const result = this.parseLedgerComment (comment);
         const type = result['type'];
         const referenceId = result['referenceId'];
         let direction = undefined;
         let status = undefined;
-        if (balance_delta !== 0.0) {
-            before = after - balance_delta; // TODO: float precision
+        if (!Precise.stringEquals (balance_delta, '0.0')) {
+            before = after - balance_delta;
             status = 'ok';
-            amount = Math.abs (balance_delta);
-        } else if (available_delta < 0.0) {
+            amount = Precise.stringAbs (balance_delta);
+        } else if (Precise.stringLt (available_delta, '0.0')) {
             status = 'pending';
-            amount = Math.abs (available_delta);
-        } else if (available_delta > 0.0) {
+            amount = Precise.stringAbs (available_delta);
+        } else if (Precise.stringGt (available_delta, '0.0')) {
             status = 'canceled';
-            amount = Math.abs (available_delta);
+            amount = Precise.stringAbs (available_delta);
         }
-        if (balance_delta > 0 || available_delta > 0) {
+        if (Precise.stringGt (balance_delta, '0') || Precise.stringGt (available_delta, '0')) {
             direction = 'in';
-        } else if (balance_delta < 0 || available_delta < 0) {
+        } else if (Precise.stringLt (balance_delta, '0') || Precise.stringLt (available_delta, '0')) {
             direction = 'out';
         }
         return {
@@ -1000,7 +1000,7 @@ module.exports = class luno extends Exchange {
             'referenceAccount': undefined,
             'type': type,
             'currency': code,
-            'amount': amount,
+            'amount': this.parseNumber (amount),
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'before': before,
