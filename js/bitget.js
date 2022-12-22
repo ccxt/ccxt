@@ -844,9 +844,19 @@ module.exports = class bitget extends Exchange {
             const request = {
                 'symbol': market['id'],
             };
-            const response = await this.privateMixGetOrderCurrent (this.extend (request, params));
+            let method = 'privateMixGetOrderCurrent';
+            const stop = this.safeValue (params, 'stop');
+            if (stop) {
+                method = 'privateMixGetPlanCurrentPlan';
+                params = this.omit (params, 'stop');
+            }
+            const response = await this[method] (this.extend (request, params));
             const data = this.safeValue (response, 'data');
             return this.parseOrders (data, market, since, limit);
+        }
+        const stop = this.safeValue (params, 'stop');
+        if (stop) {
+            throw new NotSupported (this.id + ' ' + 'fetchOpenOrders() requires a symbol for stop orders.');
         }
         const subTypes = this.getSubTypes ();
         let promises = [];
@@ -2134,6 +2144,7 @@ module.exports = class bitget extends Exchange {
             }
             return result;
         } else {
+            const request = {};
             const response = await this[method] (this.extend (request, query));
             // spot
             //     {
@@ -2220,6 +2231,16 @@ module.exports = class bitget extends Exchange {
             'init': 'open',
             'full_fill': 'closed',
             'filled': 'closed',
+            'not_trigger': 'untriggered',
+        };
+        return this.safeString (statuses, status, status);
+    }
+
+    parseStopTrigger (status) {
+        const statuses = {
+            'market_price': 'last',
+            'mark_price': 'mark',
+            'index_price': 'index',
         };
         return this.safeString (statuses, status, status);
     }
@@ -2268,20 +2289,21 @@ module.exports = class bitget extends Exchange {
         // stop
         //
         //     {
-        //         "orderId": "910246821491617792",
-        //         "symbol": "BTCUSDT_UMCBL",
-        //         "marginCoin": "USDT",
-        //         "size": "16",
-        //         "executePrice": "20000",
-        //         "triggerPrice": "24000",
-        //         "status": "not_trigger",
-        //         "orderType": "limit",
-        //         "planType": "normal_plan",
-        //         "side": "open_long",
-        //         "triggerType": "market_price",
-        //         "presetTakeProfitPrice": "0",
-        //         "presetTakeLossPrice": "0",
-        //         "cTime": "1652745674488"
+        //         'orderId': '989690453925896192',
+        //       'symbol': 'AAVEUSDT_UMCBL',
+        //       'marginCoin': 'USDT',
+        //       'size': '0.6',
+        //       'executePrice': '0',
+        //       'triggerPrice': '54.781',
+        //       'status': 'not_trigger',
+        //       'orderType': 'market',
+        //       'planType': 'normal_plan',
+        //       'side': 'open_short',
+        //       'triggerType': 'market_price',
+        //       'presetTakeProfitPrice': '0',
+        //       'presetTakeLossPrice': '0',
+        //       'rangeRate': '',
+        //       'cTime': '1671686512452'
         //     }
         //
         const marketId = this.safeString (order, 'symbol');
@@ -2293,19 +2315,33 @@ module.exports = class bitget extends Exchange {
         const filled = this.safeString2 (order, 'fillQuantity', 'filledQty');
         const cost = this.safeString2 (order, 'fillTotalAmount', 'filledAmount');
         const average = this.safeString (order, 'fillPrice');
-        const type = this.safeString (order, 'orderType');
+        let type = this.safeString (order, 'orderType');
         const timestamp = this.safeInteger (order, 'cTime');
         let side = this.safeString2 (order, 'side', 'posSide');
         if ((side === 'open_long') || (side === 'close_short')) {
             side = 'buy';
+            if (type === 'market') {
+                type = 'stop';
+            } else {
+                type = 'stopLimit';
+            }
         } else if ((side === 'close_long') || (side === 'open_short')) {
             side = 'sell';
+            if (type === 'market') {
+                type = 'stop';
+            } else {
+                type = 'stopLimit';
+            }
         }
         const clientOrderId = this.safeString2 (order, 'clientOrderId', 'clientOid');
         const fee = undefined;
         const rawStatus = this.safeString2 (order, 'status', 'state');
         const status = this.parseOrderStatus (rawStatus);
         const lastTradeTimestamp = this.safeInteger (order, 'uTime');
+        const reduce = false;
+        const close = false;
+        const rawStopTrigger = this.safeString (order, 'triggerType');
+        const trigger = this.parseStopTrigger (rawStopTrigger);
         return this.safeOrder ({
             'info': order,
             'id': id,
@@ -2328,6 +2364,9 @@ module.exports = class bitget extends Exchange {
             'status': status,
             'fee': fee,
             'trades': undefined,
+            'reduce': reduce,  // TEALSTREET
+            'close': close,  // TEALSTREET
+            'trigger': trigger,  // TEALSTREET
         }, market);
     }
 

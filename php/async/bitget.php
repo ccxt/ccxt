@@ -853,9 +853,19 @@ class bitget extends Exchange {
                 $request = array(
                     'symbol' => $market['id'],
                 );
-                $response = Async\await($this->privateMixGetOrderCurrent (array_merge($request, $params)));
+                $method = 'privateMixGetOrderCurrent';
+                $stop = $this->safe_value($params, 'stop');
+                if ($stop) {
+                    $method = 'privateMixGetPlanCurrentPlan';
+                    $params = $this->omit($params, 'stop');
+                }
+                $response = Async\await($this->$method (array_merge($request, $params)));
                 $data = $this->safe_value($response, 'data');
                 return $this->parse_orders($data, $market, $since, $limit);
+            }
+            $stop = $this->safe_value($params, 'stop');
+            if ($stop) {
+                throw new NotSupported($this->id . ' ' . 'fetchOpenOrders() requires a $symbol for $stop $orders->');
             }
             $subTypes = $this->get_sub_types();
             $promises = array();
@@ -2145,6 +2155,7 @@ class bitget extends Exchange {
                 }
                 return $result;
             } else {
+                $request = array();
                 $response = Async\await($this->$method (array_merge($request, $query)));
                 // spot
                 //     {
@@ -2232,6 +2243,16 @@ class bitget extends Exchange {
             'init' => 'open',
             'full_fill' => 'closed',
             'filled' => 'closed',
+            'not_trigger' => 'untriggered',
+        );
+        return $this->safe_string($statuses, $status, $status);
+    }
+
+    public function parse_stop_trigger($status) {
+        $statuses = array(
+            'market_price' => 'last',
+            'mark_price' => 'mark',
+            'index_price' => 'index',
         );
         return $this->safe_string($statuses, $status, $status);
     }
@@ -2280,20 +2301,21 @@ class bitget extends Exchange {
         // stop
         //
         //     {
-        //         "orderId" => "910246821491617792",
-        //         "symbol" => "BTCUSDT_UMCBL",
-        //         "marginCoin" => "USDT",
-        //         "size" => "16",
-        //         "executePrice" => "20000",
-        //         "triggerPrice" => "24000",
-        //         "status" => "not_trigger",
-        //         "orderType" => "limit",
-        //         "planType" => "normal_plan",
-        //         "side" => "open_long",
-        //         "triggerType" => "market_price",
-        //         "presetTakeProfitPrice" => "0",
-        //         "presetTakeLossPrice" => "0",
-        //         "cTime" => "1652745674488"
+        //         'orderId' => '989690453925896192',
+        //       'symbol' => 'AAVEUSDT_UMCBL',
+        //       'marginCoin' => 'USDT',
+        //       'size' => '0.6',
+        //       'executePrice' => '0',
+        //       'triggerPrice' => '54.781',
+        //       'status' => 'not_trigger',
+        //       'orderType' => 'market',
+        //       'planType' => 'normal_plan',
+        //       'side' => 'open_short',
+        //       'triggerType' => 'market_price',
+        //       'presetTakeProfitPrice' => '0',
+        //       'presetTakeLossPrice' => '0',
+        //       'rangeRate' => '',
+        //       'cTime' => '1671686512452'
         //     }
         //
         $marketId = $this->safe_string($order, 'symbol');
@@ -2310,14 +2332,28 @@ class bitget extends Exchange {
         $side = $this->safe_string_2($order, 'side', 'posSide');
         if (($side === 'open_long') || ($side === 'close_short')) {
             $side = 'buy';
+            if ($type === 'market') {
+                $type = 'stop';
+            } else {
+                $type = 'stopLimit';
+            }
         } elseif (($side === 'close_long') || ($side === 'open_short')) {
             $side = 'sell';
+            if ($type === 'market') {
+                $type = 'stop';
+            } else {
+                $type = 'stopLimit';
+            }
         }
         $clientOrderId = $this->safe_string_2($order, 'clientOrderId', 'clientOid');
         $fee = null;
         $rawStatus = $this->safe_string_2($order, 'status', 'state');
         $status = $this->parse_order_status($rawStatus);
         $lastTradeTimestamp = $this->safe_integer($order, 'uTime');
+        $reduce = false;
+        $close = false;
+        $rawStopTrigger = $this->safe_string($order, 'triggerType');
+        $trigger = $this->parse_stop_trigger($rawStopTrigger);
         return $this->safe_order(array(
             'info' => $order,
             'id' => $id,
@@ -2340,6 +2376,9 @@ class bitget extends Exchange {
             'status' => $status,
             'fee' => $fee,
             'trades' => null,
+            'reduce' => $reduce,  // TEALSTREET
+            'close' => $close,  // TEALSTREET
+            'trigger' => $trigger,  // TEALSTREET
         ), $market);
     }
 

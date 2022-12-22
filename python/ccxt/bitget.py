@@ -856,9 +856,17 @@ class bitget(Exchange):
             request = {
                 'symbol': market['id'],
             }
-            response = self.privateMixGetOrderCurrent(self.extend(request, params))
+            method = 'privateMixGetOrderCurrent'
+            stop = self.safe_value(params, 'stop')
+            if stop:
+                method = 'privateMixGetPlanCurrentPlan'
+                params = self.omit(params, 'stop')
+            response = getattr(self, method)(self.extend(request, params))
             data = self.safe_value(response, 'data')
             return self.parse_orders(data, market, since, limit)
+        stop = self.safe_value(params, 'stop')
+        if stop:
+            raise NotSupported(self.id + ' ' + 'fetchOpenOrders() requires a symbol for stop orders.')
         subTypes = self.get_sub_types()
         promises = []
         for i in range(0, len(subTypes)):
@@ -2050,6 +2058,7 @@ class bitget(Exchange):
                 result = self.deep_extend(result, parsedBalance)
             return result
         else:
+            request = {}
             response = getattr(self, method)(self.extend(request, query))
             # spot
             #     {
@@ -2132,6 +2141,15 @@ class bitget(Exchange):
             'init': 'open',
             'full_fill': 'closed',
             'filled': 'closed',
+            'not_trigger': 'untriggered',
+        }
+        return self.safe_string(statuses, status, status)
+
+    def parse_stop_trigger(self, status):
+        statuses = {
+            'market_price': 'last',
+            'mark_price': 'mark',
+            'index_price': 'index',
         }
         return self.safe_string(statuses, status, status)
 
@@ -2179,20 +2197,21 @@ class bitget(Exchange):
         # stop
         #
         #     {
-        #         "orderId": "910246821491617792",
-        #         "symbol": "BTCUSDT_UMCBL",
-        #         "marginCoin": "USDT",
-        #         "size": "16",
-        #         "executePrice": "20000",
-        #         "triggerPrice": "24000",
-        #         "status": "not_trigger",
-        #         "orderType": "limit",
-        #         "planType": "normal_plan",
-        #         "side": "open_long",
-        #         "triggerType": "market_price",
-        #         "presetTakeProfitPrice": "0",
-        #         "presetTakeLossPrice": "0",
-        #         "cTime": "1652745674488"
+        #         'orderId': '989690453925896192',
+        #       'symbol': 'AAVEUSDT_UMCBL',
+        #       'marginCoin': 'USDT',
+        #       'size': '0.6',
+        #       'executePrice': '0',
+        #       'triggerPrice': '54.781',
+        #       'status': 'not_trigger',
+        #       'orderType': 'market',
+        #       'planType': 'normal_plan',
+        #       'side': 'open_short',
+        #       'triggerType': 'market_price',
+        #       'presetTakeProfitPrice': '0',
+        #       'presetTakeLossPrice': '0',
+        #       'rangeRate': '',
+        #       'cTime': '1671686512452'
         #     }
         #
         marketId = self.safe_string(order, 'symbol')
@@ -2209,13 +2228,25 @@ class bitget(Exchange):
         side = self.safe_string_2(order, 'side', 'posSide')
         if (side == 'open_long') or (side == 'close_short'):
             side = 'buy'
+            if type == 'market':
+                type = 'stop'
+            else:
+                type = 'stopLimit'
         elif (side == 'close_long') or (side == 'open_short'):
             side = 'sell'
+            if type == 'market':
+                type = 'stop'
+            else:
+                type = 'stopLimit'
         clientOrderId = self.safe_string_2(order, 'clientOrderId', 'clientOid')
         fee = None
         rawStatus = self.safe_string_2(order, 'status', 'state')
         status = self.parse_order_status(rawStatus)
         lastTradeTimestamp = self.safe_integer(order, 'uTime')
+        reduce = False
+        close = False
+        rawStopTrigger = self.safe_string(order, 'triggerType')
+        trigger = self.parse_stop_trigger(rawStopTrigger)
         return self.safe_order({
             'info': order,
             'id': id,
@@ -2238,6 +2269,9 @@ class bitget(Exchange):
             'status': status,
             'fee': fee,
             'trades': None,
+            'reduce': reduce,  # TEALSTREET
+            'close': close,  # TEALSTREET
+            'trigger': trigger,  # TEALSTREET
         }, market)
 
     def create_order(self, symbol, type, side, amount, price=None, params={}):
