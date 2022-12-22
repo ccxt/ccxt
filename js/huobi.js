@@ -962,7 +962,6 @@ module.exports = class huobi extends Exchange {
                     'NERVOS': 'CKB',
                     'CYBERMILES': 'CMT',
                     'COSMOS': 'ATOM1',
-                    // 'CRC20': 'CRC20', // this is for chiliz
                     'DASH': 'DASH',
                     'AVALANCHEC': [ 'AVAXCCHAIN', 'C-CHAIN', 'CCHAIN', 'CCHAINERC20' ], // huobi has too many aliases for avax-c
                     'AVALANCHEX': 'AVAX',
