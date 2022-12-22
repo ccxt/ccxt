@@ -3621,9 +3621,20 @@ module.exports = class okx extends Exchange {
         //        "selected": true
         //     }
         //
+        // some coins (i.e. TON) might have additional fields:
+        //
+        //        ...
+        //        addrEx: {
+        //           comment: "6038774",
+        //        },
+        //
         const address = this.safeString (depositAddress, 'addr');
         let tag = this.safeString2 (depositAddress, 'tag', 'pmtId');
         tag = this.safeString (depositAddress, 'memo', tag);
+        if (tag === undefined) {
+            const addrEx = this.safeValue (depositAddress, 'addrEx', {});
+            tag = this.safeString (addrEx, 'comment');
+        }
         const currencyId = this.safeString (depositAddress, 'ccy');
         // inconsistent naming responses from exchange, the provided network id here, might not be present in data obtained from fetchCurrencies
         const networkId = this.safeString (depositAddress, 'chain');
