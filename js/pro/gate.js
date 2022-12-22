@@ -370,6 +370,37 @@ module.exports = class gate extends gateRest {
         return await this.subscribePublic (url, channel, messageHash, payload);
     }
 
+    async watchTickers (symbols = undefined, params = {}) {
+        /**
+         * @method
+         * @name gate#watchTickers
+         * @description watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for all markets of a specific list
+         * @param {Array} symbols unified symbol of the market to fetch the ticker for
+         * @param {object} params extra parameters specific to the gate api endpoint
+         * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
+         */
+        await this.loadMarkets ();
+        symbols = this.marketSymbols (symbols);
+        if (symbols === undefined) {
+            throw new ArgumentsRequired (this.id + ' watchTickers requires symbols');
+        }
+        const market = this.market (symbols[0]);
+        const type = market['type'];
+        const messageType = this.getUniformType (type);
+        const marketIds = this.marketIds (symbols);
+        const options = this.safeValue (this.options, 'watchTickers', {});
+        const topic = this.safeString (options, 'name', 'tickers');
+        const channel = messageType + '.' + topic;
+        const messageHash = 'watchTickers';
+        const payload = [];
+        for (let i = 0; i < marketIds.length; i++) {
+            payload.push (marketIds[i]);
+        }
+        const url = this.getUrlByMarketType (type, market['inverse']);
+        const tickers = await this.subscribePublic (url, channel, messageHash, payload);
+        return this.filterByArray (tickers, 'symbol', symbols, false);
+    }
+
     handleTicker (client, message) {
         //
         //    {
@@ -416,6 +447,13 @@ module.exports = class gate extends gateRest {
             this.tickers[symbol] = parsed;
             const messageHash = channel + '.' + symbol;
             client.resolve (this.tickers[symbol], messageHash);
+        }
+        const messageHashes = Object.keys (client.futures);
+        for (let i = 0; i < messageHashes.length; i++) {
+            const messageHash = messageHashes[i];
+            if (messageHash === 'watchTickers') {
+                client.resolve (this.tickers, messageHash);
+            }
         }
     }
 
