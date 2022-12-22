@@ -86,11 +86,11 @@ class bitget(Exchange, ccxt.async_support.bitget):
         marketId = self.safe_string(arg, 'instId')
         if instType == 'sp':
             marketId += '_SPBL'
-        elif marketId.endsWith('PERP'):
+        elif marketId[-4:] == 'PERP':
             marketId = marketId + '_CMCBL'
-        elif marketId.endsWith('USDT'):
+        elif marketId[-4:] == 'USDT':
             marketId = marketId + '_UMCBL'
-        elif marketId.endsWith('USD'):
+        elif marketId[-3:] == 'USD':
             marketId = marketId + '_DMCBL'
         return marketId
 

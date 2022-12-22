@@ -90,11 +90,11 @@ class bitget extends \ccxt\async\bitget {
         $marketId = $this->safe_string($arg, 'instId');
         if ($instType === 'sp') {
             $marketId .= '_SPBL';
-        } elseif ($marketId->endsWith ('PERP')) {
+        } elseif (mb_substr($marketId, -4) === 'PERP') {
             $marketId = $marketId . '_CMCBL';
-        } elseif ($marketId->endsWith ('USDT')) {
+        } elseif (mb_substr($marketId, -4) === 'USDT') {
             $marketId = $marketId . '_UMCBL';
-        } elseif ($marketId->endsWith ('USD')) {
+        } elseif (mb_substr($marketId, -3) === 'USD') {
             $marketId = $marketId . '_DMCBL';
         }
         return $marketId;

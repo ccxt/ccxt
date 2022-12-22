@@ -953,7 +953,7 @@ class bitget extends Exchange {
         //
         $marketId = $this->safe_string($market, 'symbol');
         $quoteId = $this->safe_string($market, 'quoteCoin');
-        if ($quoteId === 'USD') {
+        if (mb_substr($marketId, -5) === 'CMCBL') {
             $quoteId = 'USDC';
         }
         $baseId = $this->safe_string($market, 'baseCoin');

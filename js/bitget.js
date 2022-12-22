@@ -943,7 +943,7 @@ module.exports = class bitget extends Exchange {
         //
         const marketId = this.safeString (market, 'symbol');
         let quoteId = this.safeString (market, 'quoteCoin');
-        if (quoteId === 'USD') {
+        if (marketId.slice (-5) === 'CMCBL') {
             quoteId = 'USDC';
         }
         const baseId = this.safeString (market, 'baseCoin');

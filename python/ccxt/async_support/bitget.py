@@ -944,7 +944,7 @@ class bitget(Exchange):
         #
         marketId = self.safe_string(market, 'symbol')
         quoteId = self.safe_string(market, 'quoteCoin')
-        if quoteId == 'USD':
+        if marketId[-5:] == 'CMCBL':
             quoteId = 'USDC'
         baseId = self.safe_string(market, 'baseCoin')
         quote = self.safe_currency_code(quoteId)
