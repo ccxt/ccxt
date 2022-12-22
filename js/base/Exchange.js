@@ -1820,7 +1820,7 @@ module.exports = class Exchange {
         }
     }
 
-    getUnfiedNetworkCodes (networkCode) {
+    getUnfiedNetworkCodes () {
         // A dedicate method might be needed to refer to unified "method that returns unified networks codes", users can use them in their userland codes.
         return this.options['networks'];
     }
