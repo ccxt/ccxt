@@ -560,8 +560,6 @@ module.exports = class ascendex extends Exchange {
         for (let i = 0; i < ids.length; i++) {
             const id = ids[i];
             const market = dataById[id];
-            let baseId = this.safeString (market, 'baseAsset');
-            let quoteId = this.safeString (market, 'quoteAsset');
             const settleId = this.safeValue (market, 'settlementAsset');
             const settle = this.safeCurrencyCode (settleId);
             const status = this.safeString (market, 'status');
@@ -577,12 +575,10 @@ module.exports = class ascendex extends Exchange {
             let maxQty = this.safeNumber (market, 'maxQty');
             let minPrice = this.safeNumber (market, 'tickSize');
             let maxPrice = undefined;
-            if (baseId === undefined) {
-                const underlying = this.safeString2 (market, 'underlying', 'symbol');
-                const parts = underlying.split ('/');
-                baseId = this.safeString (parts, 0);
-                quoteId = this.safeString (parts, 1);
-            }
+            const underlying = this.safeString2 (market, 'underlying', 'symbol');
+            const parts = underlying.split ('/');
+            const baseId = this.safeString (parts, 0);
+            const quoteId = this.safeString (parts, 1);
             const base = this.safeCurrencyCode (baseId);
             const quote = this.safeCurrencyCode (quoteId);
             let symbol = base + '/' + quote;
