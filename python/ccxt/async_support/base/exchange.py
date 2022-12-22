@@ -2,7 +2,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '2.4.47'
+__version__ = '2.4.48'
 
 # -----------------------------------------------------------------------------
 
@@ -928,6 +928,8 @@ class Exchange(BaseExchange):
         return result
 
     def market_ids(self, symbols):
+        if symbols is None:
+            return symbols
         result = []
         for i in range(0, len(symbols)):
             result.append(self.market_id(symbols[i]))

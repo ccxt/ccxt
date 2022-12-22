@@ -1157,14 +1157,14 @@ class bybit(Exchange):
         params['limit'] = 1000  # minimize number of requests
         response = await self.publicGetDerivativesV3PublicInstrumentsInfo(params)
         data = self.safe_value(response, 'result', {})
-        markets = self.safe_value_2(data, 'list', 'dataList', [])
-        paginationCursor = self.safe_string(data, 'cursor')
+        markets = self.safe_value(data, 'list', [])
+        paginationCursor = self.safe_string(data, 'nextPageCursor')
         if paginationCursor is not None:
             while(paginationCursor is not None):
                 params['cursor'] = paginationCursor
                 response = await self.publicGetDerivativesV3PublicInstrumentsInfo(params)
                 data = self.safe_value(response, 'result', {})
-                rawMarkets = self.safe_value_2(data, 'list', 'dataList', [])
+                rawMarkets = self.safe_value(data, 'list', [])
                 rawMarketsLength = len(rawMarkets)
                 if rawMarketsLength == 0:
                     break
@@ -1216,9 +1216,8 @@ class bybit(Exchange):
         #         "retCode": 0,
         #         "retMsg": "success",
         #         "result": {
-        #             "resultTotalSize": 1,
-        #             "cursor": "",
-        #             "dataList": [
+        #             "nextPageCursor": "",
+        #             "list": [
         #                 {
         #                     "category": "option",
         #                     "symbol": "BTC-30SEP22-35000-P",

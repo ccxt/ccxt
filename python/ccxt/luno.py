@@ -878,30 +878,30 @@ class luno(Exchange):
         timestamp = self.safe_value(entry, 'timestamp')
         currencyId = self.safe_string(entry, 'currency')
         code = self.safe_currency_code(currencyId, currency)
-        available_delta = self.safe_number(entry, 'available_delta')
-        balance_delta = self.safe_number(entry, 'balance_delta')
-        after = self.safe_number(entry, 'balance')
+        available_delta = self.safe_string(entry, 'available_delta')
+        balance_delta = self.safe_string(entry, 'balance_delta')
+        after = self.safe_string(entry, 'balance')
         comment = self.safe_string(entry, 'description')
         before = after
-        amount = 0.0
+        amount = '0.0'
         result = self.parse_ledger_comment(comment)
         type = result['type']
         referenceId = result['referenceId']
         direction = None
         status = None
-        if balance_delta != 0.0:
-            before = after - balance_delta  # TODO: float precision
+        if not Precise.string_equals(balance_delta, '0.0'):
+            before = after - balance_delta
             status = 'ok'
-            amount = abs(balance_delta)
-        elif available_delta < 0.0:
+            amount = Precise.string_abs(balance_delta)
+        elif Precise.string_lt(available_delta, '0.0'):
             status = 'pending'
-            amount = abs(available_delta)
-        elif available_delta > 0.0:
+            amount = Precise.string_abs(available_delta)
+        elif Precise.string_gt(available_delta, '0.0'):
             status = 'canceled'
-            amount = abs(available_delta)
-        if balance_delta > 0 or available_delta > 0:
+            amount = Precise.string_abs(available_delta)
+        if Precise.string_gt(balance_delta, '0') or Precise.string_gt(available_delta, '0'):
             direction = 'in'
-        elif balance_delta < 0 or available_delta < 0:
+        elif Precise.string_lt(balance_delta, '0') or Precise.string_lt(available_delta, '0'):
             direction = 'out'
         return {
             'id': id,
@@ -911,7 +911,7 @@ class luno(Exchange):
             'referenceAccount': None,
             'type': type,
             'currency': code,
-            'amount': amount,
+            'amount': self.parse_number(amount),
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
             'before': before,

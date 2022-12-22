@@ -65,7 +65,7 @@ class alpaca(Exchange):
                 'fetchL2OrderBook': False,
                 'fetchMarkets': True,
                 'fetchMyTrades': False,
-                'fetchOHLCV': False,
+                'fetchOHLCV': True,
                 'fetchOpenOrder': False,
                 'fetchOpenOrders': True,
                 'fetchOrder': True,
@@ -424,7 +424,7 @@ class alpaca(Exchange):
         if limit is not None:
             request['limit'] = limit
         if since is not None:
-            request['start'] = int(since / 1000)
+            request['start'] = self.yyyymmdd(since)
         method = self.safe_string(self.options, 'fetchOHLCVMethod', 'cryptoPublicGetCryptoBars')
         response = await getattr(self, method)(self.extend(request, params))
         #

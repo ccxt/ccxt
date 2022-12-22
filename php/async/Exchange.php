@@ -34,11 +34,11 @@ use Exception;
 
 include 'Throttle.php';
 
-$version = '2.4.47';
+$version = '2.4.48';
 
 class Exchange extends \ccxt\Exchange {
 
-    const VERSION = '2.4.47';
+    const VERSION = '2.4.48';
 
     public $browser;
     public $marketsLoading = null;
@@ -1007,6 +1007,9 @@ class Exchange extends \ccxt\Exchange {
     }
 
     public function market_ids($symbols) {
+        if ($symbols === null) {
+            return $symbols;
+        }
         $result = array();
         for ($i = 0; $i < count($symbols); $i++) {
             $result[] = $this->market_id($symbols[$i]);
