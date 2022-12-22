@@ -58,7 +58,7 @@ module.exports = class alpaca extends Exchange {
                 'fetchL2OrderBook': false,
                 'fetchMarkets': true,
                 'fetchMyTrades': false,
-                'fetchOHLCV': false,
+                'fetchOHLCV': true,
                 'fetchOpenOrder': false,
                 'fetchOpenOrders': true,
                 'fetchOrder': true,
