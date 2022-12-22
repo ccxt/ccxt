@@ -590,7 +590,7 @@ class Exchange {
 
     public static function safe_value_n($object, $array, $default_value = null) {
         $value = static::get_object_value_from_key_array($object, $array);
-        return (isset($value) && is_scalar($value)) ? $value : $default_value;
+        return isset($value) ? $value : $default_value;
     }
 
     public static function get_object_value_from_key_array($object, $array) {
