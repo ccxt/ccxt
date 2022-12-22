@@ -1709,21 +1709,19 @@ module.exports = class Exchange {
                 'ECASH': [ 'XEC' ],
                 'ZCASH': [ 'ZEC' ],
             },
-            // visual titles are just for exception messages, to make users awere of details
-            'networksDescriptiveTitles': {
-            },
             // below field needs to be s set to `true` for some exceptional exchanges. Setting it to `true` means that network ID-to-CODE relation defined in `networks|netwroksById` was done by common exchange-specific network-name (i.e. Erc-20) instead of the actual network-id (i.e. usdterc20), becuase in such case each currency has unique exchange-specific network-id (which is impossible to be pre-defined in `options`) and within fetchCurrencies() we set them automatically through '_chainIdsByNames' && '_namesByChainIds'. To see examples, check OKX/HUOBI implementations
             'hasUniqueNetworkIds': false,
             // below field will contain automatically generated network id/code/name mappings (users are not meant to interact with it directly, and it will be moved into a class-wide property later)
             '_networkData': {
-                '_codesByIds': {},
                 // so, in case of unique networks ids per currency, we will have three different entities: 1) unified code i.e. 'ERC20' 2) exchange specific network name i.e. 'Erc-20'  3) currency specific network-id i.e. 'usdterc20'
                 '_chainIdsByNames': {},
                 '_namesByChainIds': {},
                 '_namesByCodes': {},
+                // other data-containers
+                '_codesByIds': {},
                 '_networkCodesConflicts': {},
             },
-            'networkCodesConflictsApproved': {},
+            'networkCodesConflictsApproved': {}, // this can be set be user
         };
     }
 
@@ -1863,7 +1861,11 @@ module.exports = class Exchange {
             const userOptions = this.safeValue (this.options, 'networkCodesConflictsApproved', {});
             if (!(networkCode in userOptions)) {
                 const exchangeSpecificUnifiedNetworkCode = conflictingObject['exchangeSpecificCode'];
-                const errorMessage = this.id + ' networkCodeToId() : you have provided network code (' + networkCode + '), which is in the list of unified CCXT networkCodes' + ((conflictingObject['aliasCode'] !== undefined) ? ' (alternatively can be referred as ' + conflictingObject['aliasCode'].join ('|') + ')' : '') + '. However, specifically this exchange has accidentaly chosen this networkCode to refer to a different network (which CCXT referrs by ' + exchangeSpecificUnifiedNetworkCode + '). So, if you meant to use that unified network (instead of ' + exchangeSpecificUnifiedNetworkCode + ' network) then express your approval by setting `exchange.options["networkCodesConflictsApproved"]["' + networkCode + '"] = true` so this exception will not be thrown for you. Otherwise, if you were not intending to use that CCXT unified network, then please use ' + exchangeSpecificUnifiedNetworkCode + ' to avoid ambiguity.';
+                let extraMessage = '';
+                if (conflictingObject['aliasCode'] !== undefined) {
+                    extraMessage = ' (alternatively can be referred as ' + (conflictingObject['aliasCode']).join ('|') + ')';
+                }
+                const errorMessage = this.id + ' networkCodeToId() : you have provided network code (' + networkCode + '), which is in the list of unified CCXT networkCodes' + extraMessage + '. However, specifically this exchange has accidentaly chosen this networkCode to refer to a different network (which should be referred by ' + exchangeSpecificUnifiedNetworkCode + ' in CCXT). So, if you meant to use that unified network (instead of ' + exchangeSpecificUnifiedNetworkCode + ' network) then express your approval by setting `exchange.options["networkCodesConflictsApproved"]["' + networkCode + '"] = true` so this exception will not be thrown for you. Otherwise, if you were not intending to use that CCXT unified network, then please use ' + exchangeSpecificUnifiedNetworkCode + ' to avoid ambiguity.';
                 throw new ArgumentsRequired (errorMessage);
             }
         }
@@ -1921,7 +1923,8 @@ module.exports = class Exchange {
                     for (let i = 0; i < keys.length; i++) {
                         const key = keys[i];
                         // if value matches to provided unified networkCode, then we use it's key to find network-id in `options->networks` object
-                        if (replacementObject[key] === networkCode) {
+                        const value = replacementObject[key];
+                        if (value === networkCode) {
                             networkId = this.safeString (networkIdsByCodes, key);
                             break;
                         }
@@ -2027,9 +2030,9 @@ module.exports = class Exchange {
         // this method is used against raw & unparse network entries, which are just indexed by network id
         let chosenNetworkId = undefined;
         const availableNetworkIds = Object.keys (indexedNetworkEntries);
-        const networkIdsArePresent = availableNetworkIds.length;
+        const responseNetworksLength = availableNetworkIds.length; // network ids are Available
         if (networkCode !== undefined) {
-            if (!networkIdsArePresent) {
+            if (responseNetworksLength === 0) {
                 throw new NotSupported (this.id + ' - ' + networkCode + ' network did not return any result for ' + currencyCode);
             } else {
                 // if networkCode was provided by user, we should check it after response, as the referenced exchange doesn't support network-code during request
@@ -2041,7 +2044,7 @@ module.exports = class Exchange {
                 }
             }
         } else {
-            if (!networkIdsArePresent) {
+            if (responseNetworksLength === 0) {
                 throw new NotSupported (this.id + ' - no networks were returned for ' + currencyCode);
             } else {
                 // if networkCode was not provided by user, then we try to use the default network (if it was defined in "defaultNetworks"), otherwise, we just return the first network entry
