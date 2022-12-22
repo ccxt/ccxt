@@ -758,10 +758,10 @@ module.exports = class binance extends binanceRest {
          * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
          */
         await this.loadMarkets ();
-        symbols = this.marketSymbols (symbols);
+        const marketIds = this.marketIds (symbols);
         let market = undefined;
-        if (symbols !== undefined) {
-            market = this.market (symbols[0]);
+        if (marketIds !== undefined) {
+            market = this.market (marketIds[0]);
         }
         let type = undefined;
         [ type, params ] = this.handleMarketTypeAndParams ('watchTickers', market, params);
@@ -769,14 +769,25 @@ module.exports = class binance extends binanceRest {
         let name = this.safeString (options, 'name', '!ticker');
         name = this.safeString (params, 'name', name);
         params = this.omit (params, 'name');
-        const messageHash = name + '@arr';
+        let messageHash = '';
+        let wsParams = [];
+        if (name === 'bookTicker') {
+            // simulate watchTickers with subscribe multiple individual bookTicker topic
+            messageHash = 'bookTicker@arr';
+            for (let i = 0; i < marketIds.length; i++) {
+                wsParams.push (marketIds[i].toLowerCase () + '@bookTicker');
+            }
+        } else {
+            messageHash = name + '@arr';
+            wsParams = [
+                messageHash,
+            ];
+        }
         const url = this.urls['api']['ws'][type] + '/' + this.stream (type, messageHash);
         const requestId = this.requestId (url);
         const request = {
             'method': 'SUBSCRIBE',
-            'params': [
-                messageHash,
-            ],
+            'params': wsParams,
             'id': requestId,
         };
         const subscribe = {
@@ -908,11 +919,19 @@ module.exports = class binance extends binanceRest {
             event = 'miniTicker';
         }
         const wsMarketId = this.safeStringLower (message, 's');
-        const messageHash = wsMarketId + '@' + event;
+        let messageHash = wsMarketId + '@' + event;
         const result = this.parseWsTicker (message);
         const symbol = result['symbol'];
         this.tickers[symbol] = result;
         client.resolve (result, messageHash);
+        // check whether message is for watching bookTickers
+        const messageHashes = Object.keys (client.futures);
+        for (let i = 0; i < messageHashes.length; i++) {
+            messageHash = messageHashes[i];
+            if (messageHash === 'bookTicker@arr') {
+                client.resolve (this.tickers, messageHash);
+            }
+        }
     }
 
     handleTickers (client, message) {
