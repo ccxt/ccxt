@@ -803,6 +803,7 @@ class bitget(Exchange):
                 ],
                 'defaultType': 'swap',  # 'spot', 'swap'
                 'defaultSubType': 'linear',  # 'linear', 'inverse'
+                'subTypes': ['umcbl', 'dmcbl', 'cmcbl'],
                 'createMarketBuyOrderRequiresPrice': True,
                 'broker': {
                     'spot': 'CCXT#',
@@ -813,6 +814,9 @@ class bitget(Exchange):
                 },
             },
         })
+
+    def get_sub_types(self):
+        return self.safe_value(self.options, 'subTypes', ['umcbl', 'dmcbl', 'cmcbl'])
 
     def get_supported_mapping(self, key, mapping={}):
         # swap and future use same api for bitget
@@ -939,6 +943,8 @@ class bitget(Exchange):
         #
         marketId = self.safe_string(market, 'symbol')
         quoteId = self.safe_string(market, 'quoteCoin')
+        if quoteId == 'USD':
+            quoteId = 'USDC'
         baseId = self.safe_string(market, 'baseCoin')
         quote = self.safe_currency_code(quoteId)
         base = self.safe_currency_code(baseId)
@@ -2014,47 +2020,59 @@ class bitget(Exchange):
         })
         request = {}
         if marketType == 'swap':
-            defaultSubType = self.safe_string(self.options, 'defaultSubType')
-            request['productType'] = 'UMCBL' if (defaultSubType == 'linear') else 'DMCBL'
-        response = getattr(self, method)(self.extend(request, query))
-        # spot
-        #     {
-        #       code: '00000',
-        #       msg: 'success',
-        #       requestTime: 1645928868827,
-        #       data: [
-        #         {
-        #           coinId: 1,
-        #           coinName: 'BTC',
-        #           available: '0.00070000',
-        #           frozen: '0.00000000',
-        #           lock: '0.00000000',
-        #           uTime: '1645921706000'
-        #         }
-        #       ]
-        #     }
-        #
-        # swap
-        #     {
-        #       code: '00000',
-        #       msg: 'success',
-        #       requestTime: 1645928929251,
-        #       data: [
-        #         {
-        #           marginCoin: 'USDT',
-        #           locked: '0',
-        #           available: '8.078525',
-        #           crossMaxAvailable: '8.078525',
-        #           fixedMaxAvailable: '8.078525',
-        #           maxTransferOut: '8.078525',
-        #           equity: '10.02508',
-        #           usdtEquity: '10.02508',
-        #           btcEquity: '0.00026057027'
-        #         }
-        #       ]
-        #     }
-        data = self.safe_value(response, 'data')
-        return self.parse_balance(data)
+            subTypes = self.get_sub_types()
+            requests = []
+            for i in range(0, len(subTypes)):
+                subType = subTypes[i]
+                request['productType'] = subType
+                requests.append(getattr(self, method)(self.extend(request, query)))
+            result = {}
+            for i in range(0, len(responses)):
+                response = responses[i]
+                data = self.safe_value(response, 'data', response)
+                parsedBalance = self.parse_balance(data)
+                result = self.deep_extend(result, parsedBalance)
+            return result
+        else:
+            response = getattr(self, method)(self.extend(request, query))
+            # spot
+            #     {
+            #       code: '00000',
+            #       msg: 'success',
+            #       requestTime: 1645928868827,
+            #       data: [
+            #         {
+            #           coinId: 1,
+            #           coinName: 'BTC',
+            #           available: '0.00070000',
+            #           frozen: '0.00000000',
+            #           lock: '0.00000000',
+            #           uTime: '1645921706000'
+            #         }
+            #       ]
+            #     }
+            #
+            # swap
+            #     {
+            #       code: '00000',
+            #       msg: 'success',
+            #       requestTime: 1645928929251,
+            #       data: [
+            #         {
+            #           marginCoin: 'USDT',
+            #           locked: '0',
+            #           available: '8.078525',
+            #           crossMaxAvailable: '8.078525',
+            #           fixedMaxAvailable: '8.078525',
+            #           maxTransferOut: '8.078525',
+            #           equity: '10.02508',
+            #           usdtEquity: '10.02508',
+            #           btcEquity: '0.00026057027'
+            #         }
+            #       ]
+            #     }
+            data = self.safe_value(response, 'data')
+            return self.parse_balance(data)
 
     def parse_balance(self, balance):
         result = {'info': balance}

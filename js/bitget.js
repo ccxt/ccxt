@@ -783,6 +783,7 @@ module.exports = class bitget extends Exchange {
                 ],
                 'defaultType': 'swap', // 'spot', 'swap'
                 'defaultSubType': 'linear', // 'linear', 'inverse'
+                'subTypes': [ 'umcbl', 'dmcbl', 'cmcbl' ],
                 'createMarketBuyOrderRequiresPrice': true,
                 'broker': {
                     'spot': 'CCXT#',
@@ -793,6 +794,10 @@ module.exports = class bitget extends Exchange {
                 },
             },
         });
+    }
+
+    getSubTypes () {
+        return this.safeValue (this.options, 'subTypes', [ 'umcbl', 'dmcbl', 'cmcbl' ]);
     }
 
     getSupportedMapping (key, mapping = {}) {
@@ -937,7 +942,10 @@ module.exports = class bitget extends Exchange {
         //    }
         //
         const marketId = this.safeString (market, 'symbol');
-        const quoteId = this.safeString (market, 'quoteCoin');
+        let quoteId = this.safeString (market, 'quoteCoin');
+        if (quoteId === 'USD') {
+            quoteId = 'USDC';
+        }
         const baseId = this.safeString (market, 'baseCoin');
         const quote = this.safeCurrencyCode (quoteId);
         const base = this.safeCurrencyCode (baseId);
@@ -2089,48 +2097,63 @@ module.exports = class bitget extends Exchange {
         });
         const request = {};
         if (marketType === 'swap') {
-            const defaultSubType = this.safeString (this.options, 'defaultSubType');
-            request['productType'] = (defaultSubType === 'linear') ? 'UMCBL' : 'DMCBL';
+            const subTypes = this.getSubTypes ();
+            const requests = [];
+            for (let i = 0; i < subTypes.length; i++) {
+                const subType = subTypes[i];
+                request['productType'] = subType;
+                requests.push (this[method] (this.extend (request, query)));
+            }
+            const responses = await Promise.all (requests);
+            let result = {};
+            for (let i = 0; i < responses.length; i++) {
+                const response = responses[i];
+                const data = this.safeValue (response, 'data', response);
+                const parsedBalance = this.parseBalance (data);
+                result = this.deepExtend (result, parsedBalance);
+            }
+            return result;
+        } else {
+            const response = await this[method] (this.extend (request, query));
+            // spot
+            //     {
+            //       code: '00000',
+            //       msg: 'success',
+            //       requestTime: 1645928868827,
+            //       data: [
+            //         {
+            //           coinId: 1,
+            //           coinName: 'BTC',
+            //           available: '0.00070000',
+            //           frozen: '0.00000000',
+            //           lock: '0.00000000',
+            //           uTime: '1645921706000'
+            //         }
+            //       ]
+            //     }
+            //
+            // swap
+            //     {
+            //       code: '00000',
+            //       msg: 'success',
+            //       requestTime: 1645928929251,
+            //       data: [
+            //         {
+            //           marginCoin: 'USDT',
+            //           locked: '0',
+            //           available: '8.078525',
+            //           crossMaxAvailable: '8.078525',
+            //           fixedMaxAvailable: '8.078525',
+            //           maxTransferOut: '8.078525',
+            //           equity: '10.02508',
+            //           usdtEquity: '10.02508',
+            //           btcEquity: '0.00026057027'
+            //         }
+            //       ]
+            //     }
+            const data = this.safeValue (response, 'data');
+            return this.parseBalance (data);
         }
-        const response = await this[method] (this.extend (request, query));
-        // spot
-        //     {
-        //       code: '00000',
-        //       msg: 'success',
-        //       requestTime: 1645928868827,
-        //       data: [
-        //         {
-        //           coinId: 1,
-        //           coinName: 'BTC',
-        //           available: '0.00070000',
-        //           frozen: '0.00000000',
-        //           lock: '0.00000000',
-        //           uTime: '1645921706000'
-        //         }
-        //       ]
-        //     }
-        //
-        // swap
-        //     {
-        //       code: '00000',
-        //       msg: 'success',
-        //       requestTime: 1645928929251,
-        //       data: [
-        //         {
-        //           marginCoin: 'USDT',
-        //           locked: '0',
-        //           available: '8.078525',
-        //           crossMaxAvailable: '8.078525',
-        //           fixedMaxAvailable: '8.078525',
-        //           maxTransferOut: '8.078525',
-        //           equity: '10.02508',
-        //           usdtEquity: '10.02508',
-        //           btcEquity: '0.00026057027'
-        //         }
-        //       ]
-        //     }
-        const data = this.safeValue (response, 'data');
-        return this.parseBalance (data);
     }
 
     parseBalance (balance) {

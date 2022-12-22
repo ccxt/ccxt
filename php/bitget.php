@@ -782,6 +782,7 @@ class bitget extends Exchange {
                 ),
                 'defaultType' => 'swap', // 'spot', 'swap'
                 'defaultSubType' => 'linear', // 'linear', 'inverse'
+                'subTypes' => array( 'umcbl', 'dmcbl', 'cmcbl' ),
                 'createMarketBuyOrderRequiresPrice' => true,
                 'broker' => array(
                     'spot' => 'CCXT#',
@@ -792,6 +793,10 @@ class bitget extends Exchange {
                 ),
             ),
         ));
+    }
+
+    public function get_sub_types() {
+        return $this->safe_value($this->options, 'subTypes', array( 'umcbl', 'dmcbl', 'cmcbl' ));
     }
 
     public function get_supported_mapping($key, $mapping = array ()) {
@@ -931,6 +936,9 @@ class bitget extends Exchange {
         //
         $marketId = $this->safe_string($market, 'symbol');
         $quoteId = $this->safe_string($market, 'quoteCoin');
+        if ($quoteId === 'USD') {
+            $quoteId = 'USDC';
+        }
         $baseId = $this->safe_string($market, 'baseCoin');
         $quote = $this->safe_currency_code($quoteId);
         $base = $this->safe_currency_code($baseId);
@@ -2056,48 +2064,62 @@ class bitget extends Exchange {
         ));
         $request = array();
         if ($marketType === 'swap') {
-            $defaultSubType = $this->safe_string($this->options, 'defaultSubType');
-            $request['productType'] = ($defaultSubType === 'linear') ? 'UMCBL' : 'DMCBL';
+            $subTypes = $this->get_sub_types();
+            $requests = array();
+            for ($i = 0; $i < count($subTypes); $i++) {
+                $subType = $subTypes[$i];
+                $request['productType'] = $subType;
+                $requests[] = $this->$method (array_merge($request, $query));
+            }
+            $result = array();
+            for ($i = 0; $i < count($responses); $i++) {
+                $response = $responses[$i];
+                $data = $this->safe_value($response, 'data', $response);
+                $parsedBalance = $this->parse_balance($data);
+                $result = $this->deep_extend($result, $parsedBalance);
+            }
+            return $result;
+        } else {
+            $response = $this->$method (array_merge($request, $query));
+            // spot
+            //     {
+            //       code => '00000',
+            //       msg => 'success',
+            //       requestTime => 1645928868827,
+            //       $data => array(
+            //         {
+            //           coinId => 1,
+            //           coinName => 'BTC',
+            //           available => '0.00070000',
+            //           frozen => '0.00000000',
+            //           lock => '0.00000000',
+            //           uTime => '1645921706000'
+            //         }
+            //       )
+            //     }
+            //
+            // swap
+            //     {
+            //       code => '00000',
+            //       msg => 'success',
+            //       requestTime => 1645928929251,
+            //       $data => array(
+            //         {
+            //           marginCoin => 'USDT',
+            //           locked => '0',
+            //           available => '8.078525',
+            //           crossMaxAvailable => '8.078525',
+            //           fixedMaxAvailable => '8.078525',
+            //           maxTransferOut => '8.078525',
+            //           equity => '10.02508',
+            //           usdtEquity => '10.02508',
+            //           btcEquity => '0.00026057027'
+            //         }
+            //       )
+            //     }
+            $data = $this->safe_value($response, 'data');
+            return $this->parse_balance($data);
         }
-        $response = $this->$method (array_merge($request, $query));
-        // spot
-        //     {
-        //       code => '00000',
-        //       msg => 'success',
-        //       requestTime => 1645928868827,
-        //       $data => array(
-        //         {
-        //           coinId => 1,
-        //           coinName => 'BTC',
-        //           available => '0.00070000',
-        //           frozen => '0.00000000',
-        //           lock => '0.00000000',
-        //           uTime => '1645921706000'
-        //         }
-        //       )
-        //     }
-        //
-        // swap
-        //     {
-        //       code => '00000',
-        //       msg => 'success',
-        //       requestTime => 1645928929251,
-        //       $data => array(
-        //         {
-        //           marginCoin => 'USDT',
-        //           locked => '0',
-        //           available => '8.078525',
-        //           crossMaxAvailable => '8.078525',
-        //           fixedMaxAvailable => '8.078525',
-        //           maxTransferOut => '8.078525',
-        //           equity => '10.02508',
-        //           usdtEquity => '10.02508',
-        //           btcEquity => '0.00026057027'
-        //         }
-        //       )
-        //     }
-        $data = $this->safe_value($response, 'data');
-        return $this->parse_balance($data);
     }
 
     public function parse_balance($balance) {
