@@ -204,6 +204,7 @@ module.exports = class bitget extends Exchange {
                         },
                         'post': {
                             'account/setLeverage': 8,
+                            'account/setPositionMode': 8,
                             'account/setMargin': 8,
                             'account/setMarginMode': 8,
                             'order/placeOrder': 2,
@@ -806,14 +807,40 @@ module.exports = class bitget extends Exchange {
         }
     }
 
+    async setPositionMode (hedged, symbol = undefined, params = {}) {
+        /**
+         * @method
+         * @name binance#setPositionMode
+         * @description set hedged to true or false for a market
+         * @param {bool} hedged set to true to use dualSidePosition
+         * @param {string|undefined} symbol not used by binance setPositionMode ()
+         * @param {object} params extra parameters specific to the binance api endpoint
+         * @returns {object} response from the exchange
+         */
+        // BITGET HAS NOT IMPLEMENTED THIS YET
+        const unifiedResponse = {
+            'symbol': null,
+            'tradeMode': 'hedged',
+        };
+        return unifiedResponse;
+        // const defaultSubType = this.safeString (this.options, 'defaultSubType');
+        // const request = {
+        //     'productType': (defaultSubType === 'linear') ? 'umcbl' : 'dmcbl',
+        //     'holdMode': hedged ? 'double_hold' : 'single_hold',
+        // };
+        // const response = await this.privateMixPostAccountSetPositionMode (this.extend (request, params));
+        // return response;
+    }
+
     async fetchOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
         const defaultSubType = this.safeString (this.options, 'defaultSubType');
         const request = {
             'productType': (defaultSubType === 'linear') ? 'umcbl' : 'dmcbl',
         };
-        const positions = await this.privateMixGetOrderMarginCoinCurrent (this.extend (request, params));
-        return this.parsePositions (positions);
+        const response = await this.privateMixGetOrderMarginCoinCurrent (this.extend (request, params));
+        const orders = this.safeValue (response, 'data');
+        return this.parseOrders (orders);
     }
 
     async fetchTime (params = {}) {
@@ -1002,7 +1029,7 @@ module.exports = class bitget extends Exchange {
             'inverse': inverse,
             'taker': this.safeNumber (market, 'takerFeeRate'),
             'maker': this.safeNumber (market, 'makerFeeRate'),
-            'contractSize': this.safeNumber (market, 'sizeMultiplier'),
+            'contractSize': 1,
             'expiry': expiry,
             'expiryDatetime': expiryDatetime,
             'strike': undefined,
@@ -2404,6 +2431,8 @@ module.exports = class bitget extends Exchange {
         }
         await this.loadMarkets ();
         const market = this.market (symbol);
+        // const orderType = this.safeString (params, 'type');
+        params = this.omit (params, [ 'type' ]);
         const [ marketType, query ] = this.handleMarketTypeAndParams ('cancelOrder', market, params);
         let method = this.getSupportedMapping (marketType, {
             'spot': 'privateSpotPostTradeCancelOrder',
@@ -3199,17 +3228,20 @@ module.exports = class bitget extends Exchange {
         } else if (hedged === 'single_hold') {
             hedged = false;
         }
-        let contracts = this.safeInteger (position, 'openDelegateCount');
+        const side = this.safeString (position, 'holdSide');
+        let contracts = this.safeFloat2 (position, 'available', 'openDelegateCount');
         let liquidation = this.safeNumber (position, 'liquidationPrice');
         if (contracts === 0) {
             contracts = undefined;
+        } else if (side === 'short' && contracts > 0) {
+            contracts = -1 * contracts;
         }
         if (liquidation === 0) {
             liquidation = undefined;
         }
         return {
             'info': position,
-            'id': undefined,
+            'id': market['symbol'] + ':' + side,
             'symbol': market['symbol'],
             'notional': undefined,
             'marginMode': marginMode,
@@ -3220,7 +3252,7 @@ module.exports = class bitget extends Exchange {
             'contracts': contracts,
             'contractSize': this.safeNumber (position, 'total'),
             'markPrice': undefined,
-            'side': this.safeString (position, 'holdSide'),
+            'side': side,
             'hedged': hedged,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
@@ -3466,7 +3498,7 @@ module.exports = class bitget extends Exchange {
         return response;
     }
 
-    async setLeverage (leverage, symbol = undefined, params = {}) {
+    async setLeverage (symbol, buyLeverage, sellLeverage, params = {}) {
         /**
          * @method
          * @name bitget#setLeverage
@@ -3484,7 +3516,7 @@ module.exports = class bitget extends Exchange {
         const request = {
             'symbol': market['id'],
             'marginCoin': market['settleId'],
-            'leverage': leverage,
+            'leverage': buyLeverage,
             // 'holdSide': 'long',
         };
         return await this.privateMixPostAccountSetLeverage (this.extend (request, params));

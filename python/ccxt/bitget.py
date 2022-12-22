@@ -30,24 +30,6 @@ from ccxt.base.precise import Precise
 
 class bitget(Exchange):
 
-    def get_supported_mapping(self, key, mapping={}):
-        # swap and future use same api for bitget
-        if key == 'future':
-            key = 'swap'
-        if key in mapping:
-            return mapping[key]
-        else:
-            raise NotSupported(self.id + ' ' + key + ' does not have a value in mapping')
-
-    def fetch_orders(self, symbol=None, since=None, limit=None, params={}):
-        self.load_markets()
-        defaultSubType = self.safe_string(self.options, 'defaultSubType')
-        request = {
-            'productType': 'umcbl' if (defaultSubType == 'linear') else 'dmcbl',
-        }
-        positions = self.privateMixGetOrderMarginCoinCurrent(self.extend(request, params))
-        return self.parse_positions(positions)
-
     def describe(self):
         return self.deep_extend(super(bitget, self).describe(), {
             'id': 'bitget',
@@ -242,6 +224,7 @@ class bitget(Exchange):
                         },
                         'post': {
                             'account/setLeverage': 8,
+                            'account/setPositionMode': 8,
                             'account/setMargin': 8,
                             'account/setMarginMode': 8,
                             'order/placeOrder': 2,
@@ -831,6 +814,47 @@ class bitget(Exchange):
             },
         })
 
+    def get_supported_mapping(self, key, mapping={}):
+        # swap and future use same api for bitget
+        if key == 'future':
+            key = 'swap'
+        if key in mapping:
+            return mapping[key]
+        else:
+            raise NotSupported(self.id + ' ' + key + ' does not have a value in mapping')
+
+    def set_position_mode(self, hedged, symbol=None, params={}):
+        """
+        set hedged to True or False for a market
+        :param bool hedged: set to True to use dualSidePosition
+        :param str|None symbol: not used by binance setPositionMode()
+        :param dict params: extra parameters specific to the binance api endpoint
+        :returns dict: response from the exchange
+        """
+        # BITGET HAS NOT IMPLEMENTED THIS YET
+        unifiedResponse = {
+            'symbol': None,
+            'tradeMode': 'hedged',
+        }
+        return unifiedResponse
+        # defaultSubType = self.safe_string(self.options, 'defaultSubType')
+        # request = {
+        #     'productType': 'umcbl' if (defaultSubType == 'linear') else 'dmcbl',
+        #     'holdMode': 'double_hold' if hedged else 'single_hold',
+        # }
+        # response = self.privateMixPostAccountSetPositionMode(self.extend(request, params))
+        # return response
+
+    def fetch_orders(self, symbol=None, since=None, limit=None, params={}):
+        self.load_markets()
+        defaultSubType = self.safe_string(self.options, 'defaultSubType')
+        request = {
+            'productType': 'umcbl' if (defaultSubType == 'linear') else 'dmcbl',
+        }
+        response = self.privateMixGetOrderMarginCoinCurrent(self.extend(request, params))
+        orders = self.safe_value(response, 'data')
+        return self.parse_orders(orders)
+
     def fetch_time(self, params={}):
         """
         fetches the current integer timestamp in milliseconds from the exchange server
@@ -1002,7 +1026,7 @@ class bitget(Exchange):
             'inverse': inverse,
             'taker': self.safe_number(market, 'takerFeeRate'),
             'maker': self.safe_number(market, 'makerFeeRate'),
-            'contractSize': self.safe_number(market, 'sizeMultiplier'),
+            'contractSize': 1,
             'expiry': expiry,
             'expiryDatetime': expiryDatetime,
             'strike': None,
@@ -2303,6 +2327,8 @@ class bitget(Exchange):
             raise ArgumentsRequired(self.id + ' cancelOrder() requires a symbol argument for spot orders')
         self.load_markets()
         market = self.market(symbol)
+        # orderType = self.safe_string(params, 'type')
+        params = self.omit(params, ['type'])
         marketType, query = self.handle_market_type_and_params('cancelOrder', market, params)
         method = self.get_supported_mapping(marketType, {
             'spot': 'privateSpotPostTradeCancelOrder',
@@ -3039,15 +3065,18 @@ class bitget(Exchange):
             hedged = True
         elif hedged == 'single_hold':
             hedged = False
-        contracts = self.safe_integer(position, 'openDelegateCount')
+        side = self.safe_string(position, 'holdSide')
+        contracts = self.safe_float_2(position, 'available', 'openDelegateCount')
         liquidation = self.safe_number(position, 'liquidationPrice')
         if contracts == 0:
             contracts = None
+        elif side == 'short' and contracts > 0:
+            contracts = -1 * contracts
         if liquidation == 0:
             liquidation = None
         return {
             'info': position,
-            'id': None,
+            'id': market['symbol'] + ':' + side,
             'symbol': market['symbol'],
             'notional': None,
             'marginMode': marginMode,
@@ -3058,7 +3087,7 @@ class bitget(Exchange):
             'contracts': contracts,
             'contractSize': self.safe_number(position, 'total'),
             'markPrice': None,
-            'side': self.safe_string(position, 'holdSide'),
+            'side': side,
             'hedged': hedged,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
@@ -3278,7 +3307,7 @@ class bitget(Exchange):
         #
         return response
 
-    def set_leverage(self, leverage, symbol=None, params={}):
+    def set_leverage(self, symbol, buyLeverage, sellLeverage, params={}):
         """
         set the level of leverage for a market
         :param float leverage: the rate of leverage
@@ -3293,7 +3322,7 @@ class bitget(Exchange):
         request = {
             'symbol': market['id'],
             'marginCoin': market['settleId'],
-            'leverage': leverage,
+            'leverage': buyLeverage,
             # 'holdSide': 'long',
         }
         return self.privateMixPostAccountSetLeverage(self.extend(request, params))

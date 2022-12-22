@@ -17,30 +17,6 @@ use React\Async;
 
 class bitget extends Exchange {
 
-    public function get_supported_mapping($key, $mapping = array ()) {
-        // swap and future use same api for bitget
-        if ($key === 'future') {
-            $key = 'swap';
-        }
-        if (is_array($mapping) && array_key_exists($key, $mapping)) {
-            return $mapping[$key];
-        } else {
-            throw new NotSupported($this->id . ' ' . $key . ' does not have a value in mapping');
-        }
-    }
-
-    public function fetch_orders($symbol = null, $since = null, $limit = null, $params = array ()) {
-        return Async\async(function () use ($symbol, $since, $limit, $params) {
-            Async\await($this->load_markets());
-            $defaultSubType = $this->safe_string($this->options, 'defaultSubType');
-            $request = array(
-                'productType' => ($defaultSubType === 'linear') ? 'umcbl' : 'dmcbl',
-            );
-            $positions = Async\await($this->privateMixGetOrderMarginCoinCurrent (array_merge($request, $params)));
-            return $this->parse_positions($positions);
-        }) ();
-    }
-
     public function describe() {
         return $this->deep_extend(parent::describe(), array(
             'id' => 'bitget',
@@ -235,6 +211,7 @@ class bitget extends Exchange {
                         ),
                         'post' => array(
                             'account/setLeverage' => 8,
+                            'account/setPositionMode' => 8,
                             'account/setMargin' => 8,
                             'account/setMarginMode' => 8,
                             'order/placeOrder' => 2,
@@ -825,6 +802,56 @@ class bitget extends Exchange {
         ));
     }
 
+    public function get_supported_mapping($key, $mapping = array ()) {
+        // swap and future use same api for bitget
+        if ($key === 'future') {
+            $key = 'swap';
+        }
+        if (is_array($mapping) && array_key_exists($key, $mapping)) {
+            return $mapping[$key];
+        } else {
+            throw new NotSupported($this->id . ' ' . $key . ' does not have a value in mapping');
+        }
+    }
+
+    public function set_position_mode($hedged, $symbol = null, $params = array ()) {
+        return Async\async(function () use ($hedged, $symbol, $params) {
+            /**
+             * set $hedged to true or false for a market
+             * @param {bool} $hedged set to true to use dualSidePosition
+             * @param {string|null} $symbol not used by binance setPositionMode ()
+             * @param {array} $params extra parameters specific to the binance api endpoint
+             * @return {array} $response from the exchange
+             */
+            // BITGET HAS NOT IMPLEMENTED THIS YET
+            $unifiedResponse = array(
+                'symbol' => null,
+                'tradeMode' => 'hedged',
+            );
+            return $unifiedResponse;
+            // $defaultSubType = $this->safe_string($this->options, 'defaultSubType');
+            // $request = array(
+            //     'productType' => ($defaultSubType === 'linear') ? 'umcbl' : 'dmcbl',
+            //     'holdMode' => $hedged ? 'double_hold' : 'single_hold',
+            // );
+            // $response = Async\await($this->privateMixPostAccountSetPositionMode (array_merge($request, $params)));
+            // return $response;
+        }) ();
+    }
+
+    public function fetch_orders($symbol = null, $since = null, $limit = null, $params = array ()) {
+        return Async\async(function () use ($symbol, $since, $limit, $params) {
+            Async\await($this->load_markets());
+            $defaultSubType = $this->safe_string($this->options, 'defaultSubType');
+            $request = array(
+                'productType' => ($defaultSubType === 'linear') ? 'umcbl' : 'dmcbl',
+            );
+            $response = Async\await($this->privateMixGetOrderMarginCoinCurrent (array_merge($request, $params)));
+            $orders = $this->safe_value($response, 'data');
+            return $this->parse_orders($orders);
+        }) ();
+    }
+
     public function fetch_time($params = array ()) {
         return Async\async(function () use ($params) {
             /**
@@ -1011,7 +1038,7 @@ class bitget extends Exchange {
             'inverse' => $inverse,
             'taker' => $this->safe_number($market, 'takerFeeRate'),
             'maker' => $this->safe_number($market, 'makerFeeRate'),
-            'contractSize' => $this->safe_number($market, 'sizeMultiplier'),
+            'contractSize' => 1,
             'expiry' => $expiry,
             'expiryDatetime' => $expiryDatetime,
             'strike' => null,
@@ -2414,6 +2441,8 @@ class bitget extends Exchange {
             }
             Async\await($this->load_markets());
             $market = $this->market($symbol);
+            // $orderType = $this->safe_string($params, 'type');
+            $params = $this->omit($params, array( 'type' ));
             list($marketType, $query) = $this->handle_market_type_and_params('cancelOrder', $market, $params);
             $method = $this->get_supported_mapping($marketType, array(
                 'spot' => 'privateSpotPostTradeCancelOrder',
@@ -3210,17 +3239,20 @@ class bitget extends Exchange {
         } elseif ($hedged === 'single_hold') {
             $hedged = false;
         }
-        $contracts = $this->safe_integer($position, 'openDelegateCount');
+        $side = $this->safe_string($position, 'holdSide');
+        $contracts = $this->safe_float_2($position, 'available', 'openDelegateCount');
         $liquidation = $this->safe_number($position, 'liquidationPrice');
         if ($contracts === 0) {
             $contracts = null;
+        } elseif ($side === 'short' && $contracts > 0) {
+            $contracts = -1 * $contracts;
         }
         if ($liquidation === 0) {
             $liquidation = null;
         }
         return array(
             'info' => $position,
-            'id' => null,
+            'id' => $market['symbol'] . ':' . $side,
             'symbol' => $market['symbol'],
             'notional' => null,
             'marginMode' => $marginMode,
@@ -3231,7 +3263,7 @@ class bitget extends Exchange {
             'contracts' => $contracts,
             'contractSize' => $this->safe_number($position, 'total'),
             'markPrice' => null,
-            'side' => $this->safe_string($position, 'holdSide'),
+            'side' => $side,
             'hedged' => $hedged,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
@@ -3479,11 +3511,11 @@ class bitget extends Exchange {
         }) ();
     }
 
-    public function set_leverage($leverage, $symbol = null, $params = array ()) {
-        return Async\async(function () use ($leverage, $symbol, $params) {
+    public function set_leverage($symbol, $buyLeverage, $sellLeverage, $params = array ()) {
+        return Async\async(function () use ($symbol, $buyLeverage, $sellLeverage, $params) {
             /**
-             * set the level of $leverage for a $market
-             * @param {float} $leverage the rate of $leverage
+             * set the level of leverage for a $market
+             * @param {float} leverage the rate of leverage
              * @param {string} $symbol unified $market $symbol
              * @param {array} $params extra parameters specific to the bitget api endpoint
              * @return {array} response from the exchange
@@ -3496,7 +3528,7 @@ class bitget extends Exchange {
             $request = array(
                 'symbol' => $market['id'],
                 'marginCoin' => $market['settleId'],
-                'leverage' => $leverage,
+                'leverage' => $buyLeverage,
                 // 'holdSide' => 'long',
             );
             return Async\await($this->privateMixPostAccountSetLeverage (array_merge($request, $params)));
