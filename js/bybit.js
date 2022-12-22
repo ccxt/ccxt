@@ -1173,7 +1173,8 @@ module.exports = class bybit extends Exchange {
                 const response = await this.publicGetDerivativesV3PublicInstrumentsInfo (params);
                 const data = this.safeValue (response, 'result', {});
                 const rawMarkets = this.safeValue (data, 'list', []);
-                if (rawMarkets.length === 0) {
+                const rawMarketsLength = rawMarkets.length;
+                if (rawMarketsLength === 0) {
                     break;
                 }
                 markets = this.arrayConcat (rawMarkets, markets);
