@@ -837,15 +837,34 @@ module.exports = class bitget extends Exchange {
         // return response;
     }
 
-    async fetchOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+    async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
-        const defaultSubType = this.safeString (this.options, 'defaultSubType');
-        const request = {
-            'productType': (defaultSubType === 'linear') ? 'umcbl' : 'dmcbl',
-        };
-        const response = await this.privateMixGetOrderMarginCoinCurrent (this.extend (request, params));
-        const orders = this.safeValue (response, 'data');
-        return this.parseOrders (orders);
+        if (symbol) {
+            const market = this.market (symbol);
+            const request = {
+                'symbol': market['id'],
+            };
+            const response = await this.privateMixGetOrderCurrent (this.extend (request, params));
+            const data = this.safeValue (response, 'data');
+            return this.parseOrders (data, market, since, limit);
+        }
+        const subTypes = this.getSubTypes ();
+        let promises = [];
+        for (let i = 0; i < subTypes.length; i++) {
+            const subType = subTypes[i];
+            const request = {
+                'productType': subType,
+            };
+            promises.push (this.privateMixGetOrderMarginCoinCurrent (this.extend (request, params)));
+        }
+        promises = await Promise.all (promises);
+        let orders = [];
+        for (let i = 0; i < promises.length; i++) {
+            const response = promises[i];
+            const data = this.safeValue (response, 'data');
+            orders = this.arrayConcat (orders, data);
+        }
+        return this.parseOrders (orders, undefined, since, limit);
     }
 
     async fetchTime (params = {}) {
@@ -2095,20 +2114,21 @@ module.exports = class bitget extends Exchange {
             'spot': 'privateSpotGetAccountAssets',
             'swap': 'privateMixGetAccountAccounts',
         });
-        const request = {};
         if (marketType === 'swap') {
             const subTypes = this.getSubTypes ();
-            const requests = [];
+            let promises = [];
             for (let i = 0; i < subTypes.length; i++) {
                 const subType = subTypes[i];
-                request['productType'] = subType;
-                requests.push (this[method] (this.extend (request, query)));
+                const request = {
+                    'productType': subType,
+                };
+                promises.push (this[method] (this.extend (request, query)));
             }
-            const responses = await Promise.all (requests);
+            promises = await Promise.all (promises);
             let result = {};
-            for (let i = 0; i < responses.length; i++) {
-                const response = responses[i];
-                const data = this.safeValue (response, 'data', response);
+            for (let i = 0; i < promises.length; i++) {
+                const response = promises[i];
+                const data = this.safeValue (response, 'data');
                 const parsedBalance = this.parseBalance (data);
                 result = this.deepExtend (result, parsedBalance);
             }
@@ -2570,11 +2590,10 @@ module.exports = class bitget extends Exchange {
          * @returns {[object]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
          */
         await this.loadMarkets ();
-        let market = undefined;
-        let defaultSubType = this.safeString (this.options, 'defaultSubType');
+        const market = undefined;
+        const defaultSubType = this.safeString (this.options, 'defaultSubType');
         if (symbol !== undefined) {
-            market = this.market (symbol);
-            defaultSubType = (market['linear']) ? 'linear' : 'inverse';
+            return await this.cancelAllOrdersForSymbol (symbol, params);
         }
         const productType = (defaultSubType === 'linear') ? 'UMCBL' : 'DMCBL';
         const [ marketType, query ] = this.handleMarketTypeAndParams ('cancelAllOrders', market, params);
@@ -2623,6 +2642,18 @@ module.exports = class bitget extends Exchange {
         //     }
         //
         return response;
+    }
+
+    async cancelAllOrdersForSymbol (symbol, params = {}) {
+        const market = this.market (symbol);
+        const ordersForSymbol = await this.fetchOpenOrders (symbol);
+        const orderIds = this.pluck (ordersForSymbol, 'id');
+        const request = {
+            'symbol': market['id'],
+            'orderIds': orderIds,
+            'marginCoin': market['settleId'],
+        };
+        return await this.privateMixPostOrderCancelBatchOrders (this.extend (request, params));
     }
 
     async fetchOrder (id, symbol = undefined, params = {}) {
@@ -2705,7 +2736,7 @@ module.exports = class bitget extends Exchange {
         return this.parseOrder (first, market);
     }
 
-    async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+    async fetchOpenOrders2 (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         /**
          * @method
          * @name bitget#fetchOpenOrders

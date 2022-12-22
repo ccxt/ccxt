@@ -850,15 +850,31 @@ class bitget(Exchange):
         # response = await self.privateMixPostAccountSetPositionMode(self.extend(request, params))
         # return response
 
-    async def fetch_orders(self, symbol=None, since=None, limit=None, params={}):
+    async def fetch_open_orders(self, symbol=None, since=None, limit=None, params={}):
         await self.load_markets()
-        defaultSubType = self.safe_string(self.options, 'defaultSubType')
-        request = {
-            'productType': 'umcbl' if (defaultSubType == 'linear') else 'dmcbl',
-        }
-        response = await self.privateMixGetOrderMarginCoinCurrent(self.extend(request, params))
-        orders = self.safe_value(response, 'data')
-        return self.parse_orders(orders)
+        if symbol:
+            market = self.market(symbol)
+            request = {
+                'symbol': market['id'],
+            }
+            response = await self.privateMixGetOrderCurrent(self.extend(request, params))
+            data = self.safe_value(response, 'data')
+            return self.parse_orders(data, market, since, limit)
+        subTypes = self.get_sub_types()
+        promises = []
+        for i in range(0, len(subTypes)):
+            subType = subTypes[i]
+            request = {
+                'productType': subType,
+            }
+            promises.append(self.privateMixGetOrderMarginCoinCurrent(self.extend(request, params)))
+        promises = await asyncio.gather(*promises)
+        orders = []
+        for i in range(0, len(promises)):
+            response = promises[i]
+            data = self.safe_value(response, 'data')
+            orders = self.array_concat(orders, data)
+        return self.parse_orders(orders, None, since, limit)
 
     async def fetch_time(self, params={}):
         """
@@ -2019,19 +2035,20 @@ class bitget(Exchange):
             'spot': 'privateSpotGetAccountAssets',
             'swap': 'privateMixGetAccountAccounts',
         })
-        request = {}
         if marketType == 'swap':
             subTypes = self.get_sub_types()
-            requests = []
+            promises = []
             for i in range(0, len(subTypes)):
                 subType = subTypes[i]
-                request['productType'] = subType
-                requests.append(getattr(self, method)(self.extend(request, query)))
-            responses = await asyncio.gather(*requests)
+                request = {
+                    'productType': subType,
+                }
+                promises.append(getattr(self, method)(self.extend(request, query)))
+            promises = await asyncio.gather(*promises)
             result = {}
-            for i in range(0, len(responses)):
-                response = responses[i]
-                data = self.safe_value(response, 'data', response)
+            for i in range(0, len(promises)):
+                response = promises[i]
+                data = self.safe_value(response, 'data')
                 parsedBalance = self.parse_balance(data)
                 result = self.deep_extend(result, parsedBalance)
             return result
@@ -2454,8 +2471,7 @@ class bitget(Exchange):
         market = None
         defaultSubType = self.safe_string(self.options, 'defaultSubType')
         if symbol is not None:
-            market = self.market(symbol)
-            defaultSubType = 'linear' if (market['linear']) else 'inverse'
+            return await self.cancel_all_orders_for_symbol(symbol, params)
         productType = 'UMCBL' if (defaultSubType == 'linear') else 'DMCBL'
         marketType, query = self.handle_market_type_and_params('cancelAllOrders', market, params)
         if marketType == 'spot':
@@ -2499,6 +2515,17 @@ class bitget(Exchange):
         #     }
         #
         return response
+
+    async def cancel_all_orders_for_symbol(self, symbol, params={}):
+        market = self.market(symbol)
+        ordersForSymbol = await self.fetch_open_orders(symbol)
+        orderIds = self.pluck(ordersForSymbol, 'id')
+        request = {
+            'symbol': market['id'],
+            'orderIds': orderIds,
+            'marginCoin': market['settleId'],
+        }
+        return await self.privateMixPostOrderCancelBatchOrders(self.extend(request, params))
 
     async def fetch_order(self, id, symbol=None, params={}):
         """
@@ -2576,7 +2603,7 @@ class bitget(Exchange):
         first = self.safe_value(data, 0, data)
         return self.parse_order(first, market)
 
-    async def fetch_open_orders(self, symbol=None, since=None, limit=None, params={}):
+    async def fetch_open_orders_2(self, symbol=None, since=None, limit=None, params={}):
         """
         fetch all unfilled currently open orders
         :param str symbol: unified market symbol

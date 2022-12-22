@@ -834,15 +834,33 @@ class bitget extends Exchange {
         // return $response;
     }
 
-    public function fetch_orders($symbol = null, $since = null, $limit = null, $params = array ()) {
+    public function fetch_open_orders($symbol = null, $since = null, $limit = null, $params = array ()) {
         $this->load_markets();
-        $defaultSubType = $this->safe_string($this->options, 'defaultSubType');
-        $request = array(
-            'productType' => ($defaultSubType === 'linear') ? 'umcbl' : 'dmcbl',
-        );
-        $response = $this->privateMixGetOrderMarginCoinCurrent (array_merge($request, $params));
-        $orders = $this->safe_value($response, 'data');
-        return $this->parse_orders($orders);
+        if ($symbol) {
+            $market = $this->market($symbol);
+            $request = array(
+                'symbol' => $market['id'],
+            );
+            $response = $this->privateMixGetOrderCurrent (array_merge($request, $params));
+            $data = $this->safe_value($response, 'data');
+            return $this->parse_orders($data, $market, $since, $limit);
+        }
+        $subTypes = $this->get_sub_types();
+        $promises = array();
+        for ($i = 0; $i < count($subTypes); $i++) {
+            $subType = $subTypes[$i];
+            $request = array(
+                'productType' => $subType,
+            );
+            $promises[] = $this->privateMixGetOrderMarginCoinCurrent (array_merge($request, $params));
+        }
+        $orders = array();
+        for ($i = 0; $i < count($promises); $i++) {
+            $response = $promises[$i];
+            $data = $this->safe_value($response, 'data');
+            $orders = $this->array_concat($orders, $data);
+        }
+        return $this->parse_orders($orders, null, $since, $limit);
     }
 
     public function fetch_time($params = array ()) {
@@ -2062,19 +2080,20 @@ class bitget extends Exchange {
             'spot' => 'privateSpotGetAccountAssets',
             'swap' => 'privateMixGetAccountAccounts',
         ));
-        $request = array();
         if ($marketType === 'swap') {
             $subTypes = $this->get_sub_types();
-            $requests = array();
+            $promises = array();
             for ($i = 0; $i < count($subTypes); $i++) {
                 $subType = $subTypes[$i];
-                $request['productType'] = $subType;
-                $requests[] = $this->$method (array_merge($request, $query));
+                $request = array(
+                    'productType' => $subType,
+                );
+                $promises[] = $this->$method (array_merge($request, $query));
             }
             $result = array();
-            for ($i = 0; $i < count($responses); $i++) {
-                $response = $responses[$i];
-                $data = $this->safe_value($response, 'data', $response);
+            for ($i = 0; $i < count($promises); $i++) {
+                $response = $promises[$i];
+                $data = $this->safe_value($response, 'data');
                 $parsedBalance = $this->parse_balance($data);
                 $result = $this->deep_extend($result, $parsedBalance);
             }
@@ -2531,8 +2550,7 @@ class bitget extends Exchange {
         $market = null;
         $defaultSubType = $this->safe_string($this->options, 'defaultSubType');
         if ($symbol !== null) {
-            $market = $this->market($symbol);
-            $defaultSubType = ($market['linear']) ? 'linear' : 'inverse';
+            return $this->cancel_all_orders_for_symbol($symbol, $params);
         }
         $productType = ($defaultSubType === 'linear') ? 'UMCBL' : 'DMCBL';
         list($marketType, $query) = $this->handle_market_type_and_params('cancelAllOrders', $market, $params);
@@ -2581,6 +2599,18 @@ class bitget extends Exchange {
         //     }
         //
         return $response;
+    }
+
+    public function cancel_all_orders_for_symbol($symbol, $params = array ()) {
+        $market = $this->market($symbol);
+        $ordersForSymbol = $this->fetch_open_orders($symbol);
+        $orderIds = $this->pluck($ordersForSymbol, 'id');
+        $request = array(
+            'symbol' => $market['id'],
+            'orderIds' => $orderIds,
+            'marginCoin' => $market['settleId'],
+        );
+        return $this->privateMixPostOrderCancelBatchOrders (array_merge($request, $params));
     }
 
     public function fetch_order($id, $symbol = null, $params = array ()) {
@@ -2661,7 +2691,7 @@ class bitget extends Exchange {
         return $this->parse_order($first, $market);
     }
 
-    public function fetch_open_orders($symbol = null, $since = null, $limit = null, $params = array ()) {
+    public function fetch_open_orders_2($symbol = null, $since = null, $limit = null, $params = array ()) {
         /**
          * fetch all unfilled currently open orders
          * @param {string} $symbol unified $market $symbol
