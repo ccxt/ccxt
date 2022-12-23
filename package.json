@@ -23,7 +23,8 @@
   "readme": "README.md",
   "scripts": {
     "docker": "docker-compose run --rm ccxt",
-    "tsBuild": "tsc",
+    "fixTSBug": "replace-in-files --string='export {};' --replacement='' js/src/static_dependencies",
+    "tsBuild": "tsc && npm run fixTSBug",
     "build": "npm run tsBuild && npm run pre-transpile && npm run transpile && npm run post-transpile && npm run update-badges",
     "force-build": "npm run tsBuild && npm run pre-transpile && npm run force-transpile-fast && npm run post-transpile && npm run update-badges",
     "force-build-slow": "npm run tsBuild && npm run pre-transpile && npm run force-transpile && npm run post-transpile && npm run update-badges",
@@ -111,6 +112,7 @@
     "https-proxy-agent": "^5.0.1",
     "ololog": "1.1.155",
     "replace-in-file": "^6.3.5",
+    "replace-in-files-cli": "^2.0.0",
     "rollup": "^2.70.1",
     "rollup-plugin-polyfill-node": "^0.9.0",
     "typescript": "^4.9.4"
