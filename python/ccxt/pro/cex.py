@@ -263,7 +263,7 @@ class cex(Exchange, ccxt.async_support.cex):
         request = self.deep_extend(message, params)
         ticker = await self.watch(url, messageHash, request, messageHash)
         tickerSymbol = ticker['symbol']
-        if symbols is not None and not self.in_array(symbols, tickerSymbol):
+        if symbols is not None and not self.in_array(tickerSymbol, symbols):
             return await self.watch_tickers(symbols, params)
         if self.newUpdates:
             result = {}
