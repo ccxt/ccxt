@@ -3,7 +3,7 @@
 //  ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
-const { AccountNotEnabled, ArgumentsRequired, AuthenticationError, ExchangeError, PermissionDenied, ExchangeNotAvailable, OnMaintenance, InvalidOrder, OrderNotFound, InsufficientFunds, BadSymbol, BadRequest, RateLimitExceeded, RequestTimeout, NetworkError, InvalidAddress, NotSupported } = require ('./base/errors');
+const { AccountNotEnabled, ArgumentsRequired, AuthenticationError, ExchangeError, PermissionDenied, ExchangeNotAvailable, OnMaintenance, InvalidOrder, OrderNotFound, InsufficientFunds, BadSymbol, BadRequest, RateLimitExceeded, RequestTimeout, NetworkError, NotSupported } = require ('./base/errors');
 const { TICK_SIZE, TRUNCATE } = require ('./base/functions/number');
 const Precise = require ('./base/Precise');
 
@@ -74,6 +74,7 @@ module.exports = class huobi extends Exchange {
                 'fetchMarkOHLCV': true,
                 'fetchMyTrades': true,
                 'fetchOHLCV': true,
+                'fetchOpenInterest': true,
                 'fetchOpenInterestHistory': true,
                 'fetchOpenOrder': undefined,
                 'fetchOpenOrders': true,
@@ -99,7 +100,7 @@ module.exports = class huobi extends Exchange {
                 'fetchTransactionFees': undefined,
                 'fetchTransactions': undefined,
                 'fetchTransfers': undefined,
-                'fetchWithdrawAddressesByNetwork': true,
+                'fetchWithdrawAddresses': true,
                 'fetchWithdrawal': undefined,
                 'fetchWithdrawals': true,
                 'fetchWithdrawalWhitelist': undefined,
@@ -153,7 +154,6 @@ module.exports = class huobi extends Exchange {
                     'status': 'https://{hostname}',
                     'contract': 'https://{hostname}',
                     'spot': 'https://{hostname}',
-                    'market': 'https://{hostname}',
                     'public': 'https://{hostname}',
                     'private': 'https://{hostname}',
                     'v2Public': 'https://{hostname}',
@@ -161,7 +161,7 @@ module.exports = class huobi extends Exchange {
                 },
                 'www': 'https://www.huobi.com',
                 'referral': {
-                    'url': 'https://www.huobi.com/en-us/topic/double-reward/?invite_code=6rmm2223',
+                    'url': 'https://www.huobi.com/en-us/v/register/double-invite/?inviter_id=11343840&invite_code=6rmm2223',
                     'discount': 0.15,
                 },
                 'doc': [
@@ -237,18 +237,6 @@ module.exports = class huobi extends Exchange {
                         'etp/redemption': 5, // 杠杆ETP换出
                         'etp/{transactId}/cancel': 10, // 杠杆ETP单个撤单
                         'etp/batch-cancel': 50, // 杠杆ETP批量撤单
-                    },
-                },
-                'market': {
-                    'get': {
-                        'history/kline': 1, // 获取K线数据
-                        'detail/merged': 1, // 获取聚合行情(Ticker)
-                        'depth': 1, // 获取 Market Depth 数据
-                        'trade': 1, // 获取 Trade Detail 数据
-                        'history/trade': 1, // 批量获取最近的交易记录
-                        'detail': 1, // 获取 Market Detail 24小时成交量数据
-                        'tickers': 1,
-                        'etp': 1, // 获取杠杆ETP实时净值
                     },
                 },
                 'public': {
@@ -362,19 +350,26 @@ module.exports = class huobi extends Exchange {
                             'v2/market-status': 1,
                             'v1/common/symbols': 1,
                             'v1/common/currencys': 1,
+                            'v2/settings/common/currencies': 1,
                             'v2/reference/currencies': 1,
                             'v1/common/timestamp': 1,
                             'v1/common/exchange': 1, // order limits
+                            'v1/settings/common/chains': 1,
+                            'v1/settings/common/currencys': 1,
+                            'v1/settings/common/symbols': 1,
+                            'v2/settings/common/symbols': 1,
+                            'v1/settings/common/market-symbols': 1,
                             // Market Data
                             'market/history/candles': 1,
                             'market/history/kline': 1,
                             'market/detail/merged': 1,
                             'market/tickers': 1,
+                            'market/detail': 1,
                             'market/depth': 1,
                             'market/trade': 1,
                             'market/history/trade': 1,
                             'market/detail/': 1,
-                            'market/etp': 1,
+                            'market/etp': 1, // Get real-time equity of leveraged ETP
                             // ETP
                             'v2/etp/reference': 1,
                             'v2/etp/rebalance': 1,
@@ -396,6 +391,7 @@ module.exports = class huobi extends Exchange {
                             'v2/account/withdraw/address': 1,
                             'v2/reference/currencies': 1,
                             'v1/query/deposit-withdraw': 1,
+                            'v1/query/withdraw/client-order-id': 1,
                             // Sub user management
                             'v2/user/api-key': 1,
                             'v2/user/uid': 1,
@@ -410,6 +406,7 @@ module.exports = class huobi extends Exchange {
                             'v1/order/openOrders': 0.4,
                             'v1/order/orders/{order-id}': 0.4,
                             'v1/order/orders/getClientOrder': 0.4,
+                            'v1/order/orders/{order-id}/matchresult': 0.4,
                             'v1/order/orders/{order-id}/matchresults': 0.4,
                             'v1/order/orders': 0.4,
                             'v1/order/history': 1,
@@ -429,6 +426,7 @@ module.exports = class huobi extends Exchange {
                             'v2/account/repayment': 5,
                             // Stable Coin Exchange
                             'v1/stable-coin/quote': 1,
+                            'v1/stable_coin/exchange_rate': 1,
                             // ETP
                             'v2/etp/transactions': 5,
                             'v2/etp/transaction': 5,
@@ -501,6 +499,7 @@ module.exports = class huobi extends Exchange {
                             'index/market/history/mark_price_kline': 1,
                             'market/detail/merged': 1,
                             'market/detail/batch_merged': 1,
+                            'v2/market/detail/batch_merged': 1,
                             'market/trade': 1,
                             'market/history/trade': 1,
                             'api/v1/contract_risk_info': 1,
@@ -516,6 +515,7 @@ module.exports = class huobi extends Exchange {
                             'index/market/history/index': 1,
                             'index/market/history/basis': 1,
                             'api/v1/contract_estimated_settlement_price': 1,
+                            'api/v3/contract_liquidation_orders': 1,
                             // Swap Market Data interface
                             'swap-api/v1/swap_contract_info': 1,
                             'swap-api/v1/swap_index': 1,
@@ -526,6 +526,8 @@ module.exports = class huobi extends Exchange {
                             'swap-ex/market/history/kline': 1,
                             'index/market/history/swap_mark_price_kline': 1,
                             'swap-ex/market/detail/merged': 1,
+                            'v2/swap-ex/market/detail/batch_merged': 1,
+                            'index/market/history/swap_premium_index_kline': 1,
                             'swap-ex/market/detail/batch_merged': 1,
                             'swap-ex/market/trade': 1,
                             'swap-ex/market/history/trade': 1,
@@ -543,7 +545,7 @@ module.exports = class huobi extends Exchange {
                             'swap-api/v1/swap_funding_rate': 1,
                             'swap-api/v1/swap_batch_funding_rate': 1,
                             'swap-api/v1/swap_historical_funding_rate': 1,
-                            'index/market/history/swap_premium_index_kline': 1,
+                            'swap-api/v3/swap_liquidation_orders': 1,
                             'index/market/history/swap_estimated_rate_kline': 1,
                             'index/market/history/swap_basis': 1,
                             // Swap Market Data interface
@@ -557,6 +559,7 @@ module.exports = class huobi extends Exchange {
                             'index/market/history/linear_swap_mark_price_kline': 1,
                             'linear-swap-ex/market/detail/merged': 1,
                             'linear-swap-ex/market/detail/batch_merged': 1,
+                            'v2/linear-swap-ex/market/detail/batch_merged': 1,
                             'linear-swap-ex/market/trade': 1,
                             'linear-swap-ex/market/history/trade': 1,
                             'linear-swap-api/v1/swap_risk_info': 1,
@@ -576,6 +579,7 @@ module.exports = class huobi extends Exchange {
                             'linear-swap-api/v1/swap_funding_rate': 1,
                             'linear-swap-api/v1/swap_batch_funding_rate': 1,
                             'linear-swap-api/v1/swap_historical_funding_rate': 1,
+                            'linear-swap-api/v3/swap_liquidation_orders': 1,
                             'index/market/history/linear_swap_premium_index_kline': 1,
                             'index/market/history/linear_swap_estimated_rate_kline': 1,
                             'index/market/history/linear_swap_basis': 1,
@@ -612,6 +616,8 @@ module.exports = class huobi extends Exchange {
                             'api/v1/contract_master_sub_transfer': 1,
                             'api/v1/contract_master_sub_transfer_record': 1,
                             'api/v1/contract_available_level_rate': 1,
+                            'api/v3/contract_financial_record': 1,
+                            'api/v3/contract_financial_record_exact': 1,
                             // Future Trade Interface
                             'api/v1/contract_order': 1,
                             'v1/contract_batchorder': 1,
@@ -626,6 +632,10 @@ module.exports = class huobi extends Exchange {
                             'api/v1/contract_hisorders_exact': 1,
                             'api/v1/contract_matchresults': 1,
                             'api/v1/contract_matchresults_exact': 1,
+                            'api/v3/contract_hisorders': 1,
+                            'api/v3/contract_hisorders_exact': 1,
+                            'api/v3/contract_matchresults': 1,
+                            'api/v3/contract_matchresults_exact': 1,
                             // Contract Strategy Order Interface
                             'api/v1/contract_trigger_order': 1,
                             'api/v1/contract_trigger_cancel': 1,
@@ -663,6 +673,8 @@ module.exports = class huobi extends Exchange {
                             'swap-api/v1/swap_position_limit': 1,
                             'swap-api/v1/swap_master_sub_transfer': 1,
                             'swap-api/v1/swap_master_sub_transfer_record': 1,
+                            'swap-api/v3/swap_financial_record': 1,
+                            'swap-api/v3/swap_financial_record_exact': 1,
                             // Swap Trade Interface
                             'swap-api/v1/swap_order': 1,
                             'swap-api/v1/swap_batchorder': 1,
@@ -677,6 +689,10 @@ module.exports = class huobi extends Exchange {
                             'swap-api/v1/swap_hisorders_exact': 1,
                             'swap-api/v1/swap_matchresults': 1,
                             'swap-api/v1/swap_matchresults_exact': 1,
+                            'swap-api/v3/swap_matchresults': 1,
+                            'swap-api/v3/swap_matchresults_exact': 1,
+                            'swap-api/v3/swap_hisorders': 1,
+                            'swap-api/v3/swap_hisorders_exact': 1,
                             // Swap Strategy Order Interface
                             'swap-api/v1/swap_trigger_order': 1,
                             'swap-api/v1/swap_trigger_cancel': 1,
@@ -728,6 +744,8 @@ module.exports = class huobi extends Exchange {
                             'linear-swap-api/v1/swap_master_sub_transfer': 1,
                             'linear-swap-api/v1/swap_master_sub_transfer_record': 1,
                             'linear-swap-api/v1/swap_transfer_inner': 1,
+                            'linear-swap-api/v3/swap_financial_record': 1,
+                            'linear-swap-api/v3/swap_financial_record_exact': 1,
                             // Swap Trade Interface
                             'linear-swap-api/v1/swap_order': 1,
                             'linear-swap-api/v1/swap_cross_order': 1,
@@ -757,6 +775,14 @@ module.exports = class huobi extends Exchange {
                             'linear-swap-api/v1/swap_cross_matchresults_exact': 1,
                             'linear-swap-api/v1/swap_switch_position_mode': 1,
                             'linear-swap-api/v1/swap_cross_switch_position_mode': 1,
+                            'linear-swap-api/v3/swap_matchresults': 1,
+                            'linear-swap-api/v3/swap_cross_matchresults': 1,
+                            'linear-swap-api/v3/swap_matchresults_exact': 1,
+                            'linear-swap-api/v3/swap_cross_matchresults_exact': 1,
+                            'linear-swap-api/v3/swap_hisorders': 1,
+                            'linear-swap-api/v3/swap_cross_hisorders': 1,
+                            'linear-swap-api/v3/swap_hisorders_exact': 1,
+                            'linear-swap-api/v3/swap_cross_hisorders_exact': 1,
                             // Swap Strategy Order Interface
                             'linear-swap-api/v1/swap_trigger_order': 1,
                             'linear-swap-api/v1/swap_cross_trigger_order': 1,
@@ -812,6 +838,7 @@ module.exports = class huobi extends Exchange {
                     // err-code
                     '403': AuthenticationError,  // {"status":"error","err_code":403,"err_msg":"Incorrect Access key [Access key错误]","ts":1652774224344}
                     '1010': AccountNotEnabled, // {"status":"error","err_code":1010,"err_msg":"Account doesnt exist.","ts":1648137970490}
+                    '1003': AuthenticationError, // {code: '1003', message: 'invalid signature'}
                     '1013': BadSymbol, // {"status":"error","err_code":1013,"err_msg":"This contract symbol doesnt exist.","ts":1640550459583}
                     '1017': OrderNotFound, // {"status":"error","err_code":1017,"err_msg":"Order doesnt exist.","ts":1640550859242}
                     '1034': InvalidOrder, // {"status":"error","err_code":1034,"err_msg":"Incorrect field of order price type.","ts":1643802870182}
@@ -840,6 +867,7 @@ module.exports = class huobi extends Exchange {
                     'order-marketorder-amount-min-error': InvalidOrder, // market order amount error, min: `0.01`
                     'order-limitorder-price-min-error': InvalidOrder, // limit order price error
                     'order-limitorder-price-max-error': InvalidOrder, // limit order price error
+                    'order-value-min-error': InvalidOrder, // {"status":"error","err-code":"order-value-min-error","err-msg":"Order total cannot be lower than: 1 USDT","data":null}
                     'order-invalid-price': InvalidOrder, // {"status":"error","err-code":"order-invalid-price","err-msg":"invalid price","data":null}
                     'order-holding-limit-failed': InvalidOrder, // {"status":"error","err-code":"order-holding-limit-failed","err-msg":"Order failed, exceeded the holding limit of this currency","data":null}
                     'order-orderprice-precision-error': InvalidOrder, // {"status":"error","err-code":"order-orderprice-precision-error","err-msg":"order price precision error, scale: `4`","data":null}
@@ -861,6 +889,8 @@ module.exports = class huobi extends Exchange {
                     'invalid-address': BadRequest, // {"status":"error","err-code":"invalid-address","err-msg":"Invalid address.","data":null},
                     'base-currency-chain-error': BadRequest, // {"status":"error","err-code":"base-currency-chain-error","err-msg":"The current currency chain does not exist","data":null},
                     'dw-insufficient-balance': InsufficientFunds, // {"status":"error","err-code":"dw-insufficient-balance","err-msg":"Insufficient balance. You can only transfer `12.3456` at most.","data":null}
+                    'base-withdraw-fee-error': BadRequest, // {"status":"error","err-code":"base-withdraw-fee-error","err-msg":"withdrawal fee is not within limits","data":null}
+                    'dw-withdraw-min-limit': BadRequest, // {"status":"error","err-code":"dw-withdraw-min-limit","err-msg":"The withdrawal amount is less than the minimum limit.","data":null}
                 },
             },
             'precisionMode': TICK_SIZE,
@@ -878,17 +908,54 @@ module.exports = class huobi extends Exchange {
                         },
                     },
                 },
+                'withdraw': {
+                    'includeFee': false,
+                },
                 'defaultType': 'spot', // spot, future, swap
                 'defaultSubType': 'linear', // inverse, linear
                 'defaultNetwork': 'ERC20',
+                'defaultNetworks': {
+                    'ETH': 'ERC20',
+                    'BTC': 'BTC',
+                    'USDT': 'TRC20',
+                },
                 'networks': {
-                    'ETH': 'erc20',
-                    'TRX': 'trc20',
-                    'HRC20': 'hrc20',
-                    'HECO': 'hrc20',
-                    'HT': 'hrc20',
-                    'ALGO': 'algo',
-                    'OMNI': '',
+                    // by displaynames
+                    'ALGO': 'ALGO',
+                    'ALGORAND': 'ALGO',
+                    'BEP20': 'BEP20',
+                    'BSC': 'BEP20',
+                    'ERC20': 'ERC20',
+                    'ETH': 'ERC20',
+                    'AVALANCHE': 'AVAXCCHAIN',
+                    'AVAX': 'AVAXCCHAIN',
+                    'HRC20': 'HECO',
+                    'HECO': 'HECO',
+                    // 'HT': 'HECO', // HT is not acceptable networkcode for unification
+                    'TRC20': 'TRC20',
+                    'TRX': 'TRC20',
+                    'BTC': 'BTC',
+                    'BITCOIN': 'BTC',
+                    'ARBITRUM': 'ARB',
+                    'ARB': 'ARB',
+                    'SOLANA': 'SOL',
+                    'SOL': 'SOL',
+                    'SPL': 'SOL',
+                    'PRC20': 'PRC20',
+                    'POLYGON': 'PRC20',
+                    'MATIC': 'PRC20',
+                },
+                'networksById': {
+                    'ALGO': 'ALGO',
+                    'BEP20': 'BEP20',
+                    'ERC20': 'ERC20',
+                    'AVAXCCHAIN': 'AVALANCHE',
+                    'HECO': 'HRC20',
+                    'TRC20': 'TRC20',
+                    'BTC': 'BTC',
+                    'ARB': 'ARBITRUM',
+                    'SOL': 'SOLANA',
+                    'PRC20': 'POLYGON',
                 },
                 // https://github.com/ccxt/ccxt/issues/5376
                 'fetchOrdersByStatesMethod': 'spot_private_get_v1_order_orders', // 'spot_private_get_v1_order_history' // https://github.com/ccxt/ccxt/pull/5392
@@ -967,6 +1034,7 @@ module.exports = class huobi extends Exchange {
                 // https://en.cryptonomist.ch/blog/eidoo/the-edo-to-pnt-upgrade-what-you-need-to-know-updated/
                 'PNT': 'Penta',
                 'SBTC': 'Super Bitcoin',
+                'SOUL': 'Soulsaver',
                 'BIFI': 'Bitcoin File', // conflict with Beefy.Finance https://github.com/ccxt/ccxt/issues/8706
             },
         });
@@ -1562,6 +1630,16 @@ module.exports = class huobi extends Exchange {
                 }
             }
             const contractSize = this.safeNumber (market, 'contract_size');
+            let minCost = this.safeNumber (market, 'min-order-value');
+            const maxAmount = this.safeNumber (market, 'max-order-amt');
+            let minAmount = this.safeNumber (market, 'min-order-amt');
+            if (contract) {
+                if (linear) {
+                    minAmount = contractSize;
+                } else if (inverse) {
+                    minCost = contractSize;
+                }
+            }
             let pricePrecision = undefined;
             let amountPrecision = undefined;
             let costPrecision = undefined;
@@ -1576,12 +1654,9 @@ module.exports = class huobi extends Exchange {
             let maker = undefined;
             let taker = undefined;
             if (spot) {
-                maker = (base === 'OMG') ? 0 : 0.2 / 100;
-                taker = (base === 'OMG') ? 0 : 0.2 / 100;
+                maker = (base === 'OMG') ? this.parseNumber ('0') : this.parseNumber ('0.002');
+                taker = (base === 'OMG') ? this.parseNumber ('0') : this.parseNumber ('0.002');
             }
-            const minAmount = this.safeNumber (market, 'min-order-amt');
-            const maxAmount = this.safeNumber (market, 'max-order-amt');
-            const minCost = this.safeNumber (market, 'min-order-value', 0);
             let active = undefined;
             if (spot) {
                 const state = this.safeString (market, 'state');
@@ -1832,20 +1907,26 @@ module.exports = class huobi extends Exchange {
          * @method
          * @name huobi#fetchTickers
          * @description fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
+         * @see https://huobiapi.github.io/docs/spot/v1/en/#get-latest-tickers-for-all-pairs
+         * @see https://huobiapi.github.io/docs/usdt_swap/v1/en/#general-get-a-batch-of-market-data-overview
+         * @see https://huobiapi.github.io/docs/dm/v1/en/#get-a-batch-of-market-data-overview
+         * @see https://huobiapi.github.io/docs/coin_margined_swap/v1/en/#get-a-batch-of-market-data-overview-v2
          * @param {[string]|undefined} symbols unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
          * @param {object} params extra parameters specific to the huobi api endpoint
          * @returns {object} an array of [ticker structures]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
          */
         await this.loadMarkets ();
         symbols = this.marketSymbols (symbols);
-        const options = this.safeValue (this.options, 'fetchTickers', {});
-        const defaultType = this.safeString (this.options, 'defaultType', 'spot');
-        let type = this.safeString (options, 'type', defaultType);
-        type = this.safeString (params, 'type', type);
+        const first = this.safeString (symbols, 0);
+        let market = undefined;
+        if (first !== undefined) {
+            market = this.market (first);
+        }
+        let type = undefined;
+        let subType = undefined;
         let method = 'spotPublicGetMarketTickers';
-        const defaultSubType = this.safeString (this.options, 'defaultSubType', 'inverse');
-        let subType = this.safeString (options, 'subType', defaultSubType);
-        subType = this.safeString (params, 'subType', subType);
+        [ type, params ] = this.handleMarketTypeAndParams ('fetchTickers', market, params);
+        [ subType, params ] = this.handleSubTypeAndParams ('fetchTickers', market, params);
         const request = {};
         const future = (type === 'future');
         const swap = (type === 'swap');
@@ -2169,7 +2250,7 @@ module.exports = class huobi extends Exchange {
         if (filledPoints !== undefined) {
             if ((feeCost === undefined) || Precise.stringEquals (feeCost, '0')) {
                 const feeDeductCurrency = this.safeString (trade, 'fee-deduct-currency');
-                if (feeDeductCurrency !== '') {
+                if (feeDeductCurrency !== undefined) {
                     feeCost = filledPoints;
                     feeCurrency = this.safeCurrencyCode (feeDeductCurrency);
                 }
@@ -2290,23 +2371,30 @@ module.exports = class huobi extends Exchange {
             if (symbol === undefined) {
                 throw new ArgumentsRequired (this.id + ' fetchMyTrades() requires a symbol for ' + marketType + ' orders');
             }
-            request['contract_code'] = market['id'];
+            request['contract'] = market['id'];
             request['trade_type'] = 0; // 0 all, 1 open long, 2 open short, 3 close short, 4 close long, 5 liquidate long positions, 6 liquidate short positions
+            if (since !== undefined) {
+                request['start_time'] = since; // a date within 120 days from today
+                // request['end_time'] = this.sum (request['start_time'], 172800000); // 48 hours window
+            }
+            if (limit !== undefined) {
+                request['page_size'] = limit; // default 100, max 500
+            }
             if (market['linear']) {
                 let marginMode = undefined;
                 [ marginMode, params ] = this.handleMarginModeAndParams ('fetchMyTrades', params);
                 marginMode = (marginMode === undefined) ? 'cross' : marginMode;
                 if (marginMode === 'isolated') {
-                    method = 'contractPrivatePostLinearSwapApiV1SwapMatchresultsExact';
+                    method = 'contractPrivatePostLinearSwapApiV3SwapMatchresultsExact';
                 } else if (marginMode === 'cross') {
-                    method = 'contractPrivatePostLinearSwapApiV1SwapCrossMatchresultsExact';
+                    method = 'contractPrivatePostLinearSwapApiV3SwapCrossMatchresultsExact';
                 }
             } else if (market['inverse']) {
                 if (marketType === 'future') {
-                    method = 'contractPrivatePostApiV1ContractMatchresultsExact';
+                    method = 'contractPrivatePostApiV3ContractMatchresultsExact';
                     request['symbol'] = market['settleId'];
                 } else if (marketType === 'swap') {
-                    method = 'contractPrivatePostSwapApiV1SwapMatchresultsExact';
+                    method = 'contractPrivatePostSwapApiV3SwapMatchresultsExact';
                 } else {
                     throw new NotSupported (this.id + ' fetchMyTrades() does not support ' + marketType + ' markets');
                 }
@@ -2703,43 +2791,39 @@ module.exports = class huobi extends Exchange {
         //
         const data = this.safeValue (response, 'data', []);
         const result = {};
+        this.options['networkChainIdsByNames'] = {};
+        this.options['networkNamesByChainIds'] = {};
         for (let i = 0; i < data.length; i++) {
             const entry = data[i];
             const currencyId = this.safeString (entry, 'currency');
             const code = this.safeCurrencyCode (currencyId);
+            this.options['networkChainIdsByNames'][code] = {};
             const chains = this.safeValue (entry, 'chains', []);
             const networks = {};
             const instStatus = this.safeString (entry, 'instStatus');
             const currencyActive = instStatus === 'normal';
-            let fee = undefined;
             let minPrecision = undefined;
             let minWithdraw = undefined;
             let maxWithdraw = undefined;
             let deposit = undefined;
             let withdraw = undefined;
             for (let j = 0; j < chains.length; j++) {
-                const chain = chains[j];
-                const networkId = this.safeString (chain, 'chain');
-                let baseChainProtocol = this.safeString (chain, 'baseChainProtocol');
-                const huobiToken = 'h' + currencyId;
-                if (baseChainProtocol === undefined) {
-                    if (huobiToken === networkId) {
-                        baseChainProtocol = 'ERC20';
-                    } else {
-                        baseChainProtocol = this.safeString (chain, 'displayName');
-                    }
-                }
-                const network = this.safeNetwork (baseChainProtocol);
-                minWithdraw = this.safeNumber (chain, 'minWithdrawAmt');
-                maxWithdraw = this.safeNumber (chain, 'maxWithdrawAmt');
-                const withdrawStatus = this.safeString (chain, 'withdrawStatus');
-                const depositStatus = this.safeString (chain, 'depositStatus');
+                const chainEntry = chains[j];
+                const uniqueChainId = this.safeString (chainEntry, 'chain'); // i.e. usdterc20, trc20usdt ...
+                const title = this.safeString (chainEntry, 'displayName');
+                this.options['networkChainIdsByNames'][code][title] = uniqueChainId;
+                this.options['networkNamesByChainIds'][uniqueChainId] = title;
+                const networkCode = this.networkIdToCode (title, code);
+                minWithdraw = this.safeNumber (chainEntry, 'minWithdrawAmt');
+                maxWithdraw = this.safeNumber (chainEntry, 'maxWithdrawAmt');
+                const withdrawStatus = this.safeString (chainEntry, 'withdrawStatus');
+                const depositStatus = this.safeString (chainEntry, 'depositStatus');
                 const withdrawEnabled = (withdrawStatus === 'allowed');
                 const depositEnabled = (depositStatus === 'allowed');
                 const active = withdrawEnabled && depositEnabled;
-                const precision = this.parsePrecision (this.safeString (chain, 'withdrawPrecision'));
+                const precision = this.parsePrecision (this.safeString (chainEntry, 'withdrawPrecision'));
                 if (precision !== undefined) {
-                    minPrecision = (minPrecision === undefined) ? precision : Precise.stringMax (precision, minPrecision);
+                    minPrecision = (minPrecision === undefined) ? precision : Precise.stringMin (precision, minPrecision);
                 }
                 if (withdrawEnabled && !withdraw) {
                     withdraw = true;
@@ -2751,11 +2835,11 @@ module.exports = class huobi extends Exchange {
                 } else if (!depositEnabled) {
                     deposit = false;
                 }
-                fee = this.safeNumber (chain, 'transactFeeWithdraw');
-                networks[network] = {
-                    'info': chain,
-                    'id': networkId,
-                    'network': network,
+                const fee = this.safeNumber (chainEntry, 'transactFeeWithdraw');
+                networks[networkCode] = {
+                    'info': chainEntry,
+                    'id': uniqueChainId,
+                    'network': networkCode,
                     'limits': {
                         'withdraw': {
                             'min': minWithdraw,
@@ -2769,8 +2853,6 @@ module.exports = class huobi extends Exchange {
                     'precision': this.parseNumber (precision),
                 };
             }
-            const networksKeys = Object.keys (networks);
-            const networkLength = networksKeys.length;
             result[code] = {
                 'info': entry,
                 'code': code,
@@ -2778,7 +2860,7 @@ module.exports = class huobi extends Exchange {
                 'active': currencyActive,
                 'deposit': deposit,
                 'withdraw': withdraw,
-                'fee': (networkLength <= 1) ? fee : undefined,
+                'fee': undefined,
                 'name': undefined,
                 'limits': {
                     'amount': {
@@ -2786,8 +2868,8 @@ module.exports = class huobi extends Exchange {
                         'max': undefined,
                     },
                     'withdraw': {
-                        'min': (networkLength <= 1) ? minWithdraw : undefined,
-                        'max': (networkLength <= 1) ? maxWithdraw : undefined,
+                        'min': minWithdraw,
+                        'max': maxWithdraw,
                     },
                 },
                 'precision': this.parseNumber (minPrecision),
@@ -2795,6 +2877,31 @@ module.exports = class huobi extends Exchange {
             };
         }
         return result;
+    }
+
+    networkIdToCode (networkId, currencyCode = undefined) {
+        // here network-id is provided as a pair of currency & chain (i.e. trc20usdt)
+        const keys = Object.keys (this.options['networkNamesByChainIds']);
+        const keysLength = keys.length;
+        if (keysLength === 0) {
+            throw new ExchangeError (this.id + ' networkIdToCode() - markets need to be loaded at first');
+        }
+        const networkTitle = this.safeValue (this.options['networkNamesByChainIds'], networkId, networkId);
+        return super.networkIdToCode (networkTitle);
+    }
+
+    networkCodeToId (networkCode, currencyCode = undefined) { // here network-id is provided as a pair of currency & chain (i.e. trc20usdt)
+        if (currencyCode === undefined) {
+            throw new ArgumentsRequired (this.id + ' networkCodeToId() requires a currencyCode argument');
+        }
+        const keys = Object.keys (this.options['networkChainIdsByNames']);
+        const keysLength = keys.length;
+        if (keysLength === 0) {
+            throw new ExchangeError (this.id + ' networkCodeToId() - markets need to be loaded at first');
+        }
+        const uniqueNetworkIds = this.safeValue (this.options['networkChainIdsByNames'], currencyCode, {});
+        const networkTitle = super.networkCodeToId (networkCode);
+        return this.safeValue (uniqueNetworkIds, networkTitle, networkTitle);
     }
 
     async fetchBalance (params = {}) {
@@ -3396,32 +3503,31 @@ module.exports = class huobi extends Exchange {
             // POST /api/v1/contract_hisorders inverse futures ----------------
             // 'symbol': market['settleId'], // BTC, ETH, ...
             // 'order_type': '1', // 1 limit，3 opponent，4 lightning, 5 trigger order, 6 pst_only, 7 optimal_5, 8 optimal_10, 9 optimal_20, 10 fok, 11 ioc
-            // POST /swap-api/v1/swap_hisorders inverse swap ------------------
-            // POST /linear-swap-api/v1/swap_hisorders linear isolated --------
-            // POST /linear-swap-api/v1/swap_cross_hisorders linear cross -----
-            'contract_code': market['id'],
-            'trade_type': 0, // 0 all, 1 buy long, 2 sell short, 3 buy short, 4 sell long, 5 sell liquidation, 6 buy liquidation, 7 Delivery long, 8 Delivery short 11 reduce positions to close long, 12 reduce positions to close short
-            'type': 1, // 1 all orders, 2 finished orders
-            'status': '0', // comma separated, 0 all, 3 submitted orders, 4 partially matched, 5 partially cancelled, 6 fully matched and closed, 7 canceled
-            'create_date': 90, // in days?
-            // 'page_index': 1,
-            // 'page_size': limit, // default 20, max 50
-            // 'sort_by': 'create_date', // create_date descending, update_time descending
+            // POST /swap-api/v3/swap_hisorders inverse swap ------------------
+            // POST /linear-swap-api/v3/swap_hisorders linear isolated --------
+            // POST /linear-swap-api/v3/swap_cross_hisorders linear cross -----
+            'contract': market['id'],
+            'trade_type': 0, // 0:All; 1: Open long; 2: Open short; 3: Close short; 4: Close long; 5: Liquidate long positions; 6: Liquidate short positions, 17:buy(one-way mode), 18:sell(one-way mode)
+            'type': 1, // 1:All Orders,2:Order in Finished Status
+            'status': '0', // support multiple query seperated by ',',such as '3,4,5', 0: all. 3. Have sumbmitted the orders; 4. Orders partially matched; 5. Orders cancelled with partially matched; 6. Orders fully matched; 7. Orders cancelled;
         };
+        if (since !== undefined) {
+            request['start_time'] = since; // max 90 days back
+            // request['end_time'] = since + 172800000; // 48 hours window
+        }
         let method = undefined;
-        request['contract_code'] = market['id'];
         if (market['linear']) {
             let marginMode = undefined;
             [ marginMode, params ] = this.handleMarginModeAndParams ('fetchContractOrders', params);
             marginMode = (marginMode === undefined) ? 'cross' : marginMode;
             method = this.getSupportedMapping (marginMode, {
-                'isolated': 'contractPrivatePostLinearSwapApiV1SwapHisorders',
-                'cross': 'contractPrivatePostLinearSwapApiV1SwapCrossHisorders',
+                'isolated': 'contractPrivatePostLinearSwapApiV3SwapHisorders',
+                'cross': 'contractPrivatePostLinearSwapApiV3SwapCrossHisorders',
             });
         } else if (market['inverse']) {
             method = this.getSupportedMapping (marketType, {
-                'future': 'contractPrivatePostApiV1ContractHisorders',
-                'swap': 'contractPrivatePostSwapApiV1SwapHisorders',
+                'future': 'contractPrivatePostApiV3ContractHisorders',
+                'swap': 'contractPrivatePostSwapApiV3SwapHisorders',
             });
             if (marketType === 'future') {
                 request['symbol'] = market['settleId'];
@@ -3480,8 +3586,7 @@ module.exports = class huobi extends Exchange {
         //         "ts": 1604370617322
         //     }
         //
-        const data = this.safeValue (response, 'data', {});
-        const orders = this.safeValue (data, 'orders', []);
+        const orders = this.safeValue (response, 'data', []);
         return this.parseOrders (orders, market, since, limit);
     }
 
@@ -3997,6 +4102,10 @@ module.exports = class huobi extends Exchange {
          * @param {float} amount how much of currency you want to trade in units of base currency
          * @param {float|undefined} price the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
          * @param {object} params extra parameters specific to the huobi api endpoint
+         * @param {float|undefined} params.stopPrice *spot and margin only* The price at which a trigger order is triggered at
+         * @param {string|undefined} params.operator *spot and margin only* gte or lte, trigger price condition
+         * @param {string|undefined} params.offset *contract only* 'open', 'close', or 'both', required in hedge mode
+         * @param {bool|undefined} params.postOnly *contract only* true or false
          * @returns {object} an [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
          */
         await this.loadMarkets ();
@@ -4078,7 +4187,9 @@ module.exports = class huobi extends Exchange {
                     // https://github.com/ccxt/ccxt/pull/4395
                     // https://github.com/ccxt/ccxt/issues/7611
                     // we use amountToPrecision here because the exchange requires cost in base precision
-                    request['amount'] = this.costToPrecision (symbol, parseFloat (amount) * parseFloat (price));
+                    const amountString = this.numberToString (amount);
+                    const priceString = this.numberToString (price);
+                    request['amount'] = this.costToPrecision (symbol, Precise.stringMul (amountString, priceString));
                 }
             } else {
                 request['amount'] = this.costToPrecision (symbol, amount);
@@ -4121,23 +4232,20 @@ module.exports = class huobi extends Exchange {
 
     async createContractOrder (symbol, type, side, amount, price = undefined, params = {}) {
         const offset = this.safeString (params, 'offset');
-        if (offset === undefined) {
-            throw new ArgumentsRequired (this.id + ' createOrder() requires a string offset parameter for contract orders, open or close');
-        }
         const stopPrice = this.safeString (params, 'stopPrice');
         if (stopPrice !== undefined) {
             throw new NotSupported (this.id + ' createOrder() supports tp_trigger_price + tp_order_price for take profit orders and/or sl_trigger_price + sl_order price for stop loss orders, stop orders are supported only with open long orders and open short orders');
         }
         const market = this.market (symbol);
         const request = {
-            // 'symbol': 'BTC', // optional, case-insenstive, both uppercase and lowercase are supported, "BTC", "ETH", ...
+            // 'symbol': 'BTC', // optional, case-insensitive, both uppercase and lowercase are supported, "BTC", "ETH", ...
             // 'contract_type': 'this_week', // optional, this_week, next_week, quarter, next_quarter
             'contract_code': market['id'], // optional BTC180914
             // 'client_order_id': clientOrderId, // optional, must be less than 9223372036854775807
             // 'price': this.priceToPrecision (symbol, price), // optional
             'volume': this.amountToPrecision (symbol, amount),
             'direction': side, // buy, sell
-            'offset': offset, // open, close
+            // 'offset': offset, // open, close, both
             //
             //     direction buy, offset open = open long
             //     direction sell, offset close = close long
@@ -4566,16 +4674,6 @@ module.exports = class huobi extends Exchange {
         return response;
     }
 
-    safeNetwork (networkId) {
-        const lastCharacterIndex = networkId.length - 1;
-        const lastCharacter = networkId[lastCharacterIndex];
-        if (lastCharacter === '1') {
-            networkId = networkId.slice (0, lastCharacterIndex);
-        }
-        const networksById = {};
-        return this.safeString (networksById, networkId, networkId);
-    }
-
     parseDepositAddress (depositAddress, currency = undefined) {
         //
         //     {
@@ -4590,18 +4688,14 @@ module.exports = class huobi extends Exchange {
         const currencyId = this.safeString (depositAddress, 'currency');
         currency = this.safeCurrency (currencyId, currency);
         const code = this.safeCurrencyCode (currencyId, currency);
-        const networkId = this.safeString (depositAddress, 'chain');
-        const networks = this.safeValue (currency, 'networks', {});
-        const networksById = this.indexBy (networks, 'id');
-        const networkValue = this.safeValue (networksById, networkId, networkId);
-        const network = this.safeString (networkValue, 'network');
         const note = this.safeString (depositAddress, 'note');
+        const networkId = this.safeString (depositAddress, 'chain');
         this.checkAddress (address);
         return {
             'currency': code,
             'address': address,
             'tag': tag,
-            'network': network,
+            'network': this.networkIdToCode (networkId, code),
             'note': note,
             'info': depositAddress,
         };
@@ -4649,39 +4743,14 @@ module.exports = class huobi extends Exchange {
          * @param {object} params extra parameters specific to the huobi api endpoint
          * @returns {object} an [address structure]{@link https://docs.ccxt.com/en/latest/manual.html#address-structure}
          */
-        const rawNetwork = this.safeStringUpper (params, 'network');
-        const networks = this.safeValue (this.options, 'networks', {});
-        const network = this.safeStringUpper (networks, rawNetwork, rawNetwork);
-        params = this.omit (params, 'network');
-        const response = await this.fetchDepositAddressesByNetwork (code, params);
-        let result = undefined;
-        if (network === undefined) {
-            result = this.safeValue (response, code);
-            if (result === undefined) {
-                const alias = this.safeString (networks, code, code);
-                result = this.safeValue (response, alias);
-                if (result === undefined) {
-                    const defaultNetwork = this.safeString (this.options, 'defaultNetwork', 'ERC20');
-                    result = this.safeValue (response, defaultNetwork);
-                    if (result === undefined) {
-                        const values = Object.values (response);
-                        result = this.safeValue (values, 0);
-                        if (result === undefined) {
-                            throw new InvalidAddress (this.id + ' fetchDepositAddress() cannot find deposit address for ' + code);
-                        }
-                    }
-                }
-            }
-            return result;
-        }
-        result = this.safeValue (response, network);
-        if (result === undefined) {
-            throw new InvalidAddress (this.id + ' fetchDepositAddress() cannot find ' + network + ' deposit address for ' + code);
-        }
-        return result;
+        await this.loadMarkets ();
+        const [ networkCode, paramsOmited ] = this.handleNetworkCodeAndParams (params);
+        const indexedAddresses = await this.fetchDepositAddressesByNetwork (code, paramsOmited);
+        const selectedNetworkCode = this.selectNetworkCodeFromUnifiedNetworks (code, networkCode, indexedAddresses);
+        return indexedAddresses[selectedNetworkCode];
     }
 
-    async fetchWithdrawAddressesByNetwork (code, params = {}) {
+    async fetchWithdrawAddresses (code, note = undefined, networkCode = undefined, params = {}) {
         await this.loadMarkets ();
         const currency = this.currency (code);
         const request = {
@@ -4703,41 +4772,17 @@ module.exports = class huobi extends Exchange {
         //     }
         //
         const data = this.safeValue (response, 'data', []);
-        const parsed = this.parseDepositAddresses (data, [ code ], false);
-        return this.indexBy (parsed, 'network');
-    }
-
-    async fetchWithdrawAddress (code, params = {}) {
-        const rawNetwork = this.safeStringUpper (params, 'network');
-        const networks = this.safeValue (this.options, 'networks', {});
-        const network = this.safeStringUpper (networks, rawNetwork, rawNetwork);
-        params = this.omit (params, 'network');
-        const response = await this.fetchWithdrawAddressesByNetwork (code, params);
-        let result = undefined;
-        if (network === undefined) {
-            result = this.safeValue (response, code);
-            if (result === undefined) {
-                const alias = this.safeString (networks, code, code);
-                result = this.safeValue (response, alias);
-                if (result === undefined) {
-                    const defaultNetwork = this.safeString (this.options, 'defaultNetwork', 'ERC20');
-                    result = this.safeValue (response, defaultNetwork);
-                    if (result === undefined) {
-                        const values = Object.values (response);
-                        result = this.safeValue (values, 0);
-                        if (result === undefined) {
-                            throw new InvalidAddress (this.id + ' fetchWithdrawAddress() cannot find withdraw address for ' + code);
-                        }
-                    }
-                }
+        const allAddresses = this.parseDepositAddresses (data, [ code ], false);
+        const addresses = [];
+        for (let i = 0; i < allAddresses.length; i++) {
+            const address = allAddresses[i];
+            const noteMatch = (note === undefined) || (address['note'] === note);
+            const networkMatch = (networkCode === undefined) || (address['network'] === networkCode);
+            if (noteMatch && networkMatch) {
+                addresses.push (address);
             }
-            return result;
         }
-        result = this.safeValue (response, network);
-        if (result === undefined) {
-            throw new InvalidAddress (this.id + ' fetchWithdrawAddress() cannot find ' + network + ' withdraw address for ' + code);
-        }
-        return result;
+        return addresses;
     }
 
     async fetchDeposits (code = undefined, since = undefined, limit = undefined, params = {}) {
@@ -4770,7 +4815,32 @@ module.exports = class huobi extends Exchange {
             request['size'] = limit; // max 100
         }
         const response = await this.spotPrivateGetV1QueryDepositWithdraw (this.extend (request, params));
-        // return response
+        //
+        //    {
+        //         "status": "ok",
+        //         "data": [
+        //             {
+        //                 "id": "75115912",
+        //                 "type": "deposit",
+        //                 "sub-type": "NORMAL",
+        //                 "request-id": "trc20usdt-a2e229a44ef2a948c874366230bb56aa73631cc0a03d177bd8b4c9d38262d7ff-200",
+        //                 "currency": "usdt",
+        //                 "chain": "trc20usdt",
+        //                 "tx-hash": "a2e229a44ef2a948c874366230bb56aa73631cc0a03d177bd8b4c9d38262d7ff",
+        //                 "amount": "12.000000000000000000",
+        //                 "from-addr-tag": "",
+        //                 "address-id": "0",
+        //                 "address": "TRFTd1FxepQE6CnpwzUEMEbFaLm5bJK67s",
+        //                 "address-tag": "",
+        //                 "fee": "0",
+        //                 "state": "safe",
+        //                 "wallet-confirm": "2",
+        //                 "created-at": "1621843808662",
+        //                 "updated-at": "1621843857137"
+        //             },
+        //         ]
+        //     }
+        //
         return this.parseTransactions (response['data'], currency, since, limit);
     }
 
@@ -4804,7 +4874,30 @@ module.exports = class huobi extends Exchange {
             request['size'] = limit; // max 100
         }
         const response = await this.spotPrivateGetV1QueryDepositWithdraw (this.extend (request, params));
-        // return response
+        //
+        //    {
+        //         "status": "ok",
+        //         "data": [
+        //             {
+        //                 "id": "61335312",
+        //                 "type": "withdraw",
+        //                 "sub-type": "NORMAL",
+        //                 "currency": "usdt",
+        //                 "chain": "trc20usdt",
+        //                 "tx-hash": "30a3111f2fead74fae45c6218ca3150fc33cab2aa59cfe41526b96aae79ce4ec",
+        //                 "amount": "12.000000000000000000",
+        //                 "from-addr-tag": "",
+        //                 "address-id": "27321591",
+        //                 "address": "TRf5JacJQRsF4Nm2zu11W6maDGeiEWQu9e",
+        //                 "address-tag": "",
+        //                 "fee": "1.000000000000000000",
+        //                 "state": "confirmed",
+        //                 "created-at": "1621852316553",
+        //                 "updated-at": "1621852467041"
+        //             },
+        //         ]
+        //     }
+        //
         return this.parseTransactions (response['data'], currency, since, limit);
     }
 
@@ -4813,35 +4906,43 @@ module.exports = class huobi extends Exchange {
         // fetchDeposits
         //
         //     {
-        //         'id': 8211029,
-        //         'type': 'deposit',
-        //         'currency': 'eth',
-        //         'chain': 'eth',
-        //         'tx-hash': 'bd315....',
-        //         'amount': 0.81162421,
-        //         'address': '4b8b....',
-        //         'address-tag': '',
-        //         'fee': 0,
-        //         'state': 'safe',
-        //         'created-at': 1542180380965,
-        //         'updated-at': 1542180788077
-        //     }
+        //         "id": "75115912",
+        //         "type": "deposit",
+        //         "sub-type": "NORMAL",
+        //         "request-id": "trc20usdt-a2e229a44ef2a948c874366230bb56aa73631cc0a03d177bd8b4c9d38262d7ff-200",
+        //         "currency": "usdt",
+        //         "chain": "trc20usdt",
+        //         "tx-hash": "a2e229a44ef2a948c874366230bb56aa73631cc0a03d177bd8b4c9d38262d7ff",
+        //         "amount": "2849.000000000000000000",
+        //         "from-addr-tag": "",
+        //         "address-id": "0",
+        //         "address": "TRFTd1FxepQE6CnpwzUEMEbFaLm5bJK67s",
+        //         "address-tag": "",
+        //         "fee": "0",
+        //         "state": "safe",
+        //         "wallet-confirm": "2",
+        //         "created-at": "1621843808662",
+        //         "updated-at": "1621843857137"
+        //     },
         //
         // fetchWithdrawals
         //
         //     {
-        //         'id': 6908275,
-        //         'type': 'withdraw',
-        //         'currency': 'btc',
-        //         'chain': 'btc',
-        //         'tx-hash': 'c1a1a....',
-        //         'amount': 0.80257005,
-        //         'address': '1QR....',
-        //         'address-tag': '',
-        //         'fee': 0.0005,
-        //         'state': 'confirmed',
-        //         'created-at': 1552107295685,
-        //         'updated-at': 1552108032859
+        //         "id": "61335312",
+        //         "type": "withdraw",
+        //         "sub-type": "NORMAL",
+        //         "currency": "usdt",
+        //         "chain": "trc20usdt",
+        //         "tx-hash": "30a3111f2fead74fae45c6218ca3150fc33cab2aa59cfe41526b96aae79ce4ec",
+        //         "amount": "12.000000000000000000",
+        //         "from-addr-tag": "",
+        //         "address-id": "27321591",
+        //         "address": "TRf5JacJQRsF4Nm2zu11W6maDGeiEWQu9e",
+        //         "address-tag": "",
+        //         "fee": "1.000000000000000000",
+        //         "state": "confirmed",
+        //         "created-at": "1621852316553",
+        //         "updated-at": "1621852467041"
         //     }
         //
         // withdraw
@@ -4861,13 +4962,14 @@ module.exports = class huobi extends Exchange {
         if (feeCost !== undefined) {
             feeCost = Precise.stringAbs (feeCost);
         }
+        const networkId = this.safeString (transaction, 'chain');
         return {
             'info': transaction,
             'id': this.safeString2 (transaction, 'id', 'data'),
             'txid': this.safeString (transaction, 'tx-hash'),
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'network': this.safeStringUpper (transaction, 'chain'),
+            'network': this.networkIdToCode (networkId, code),
             'address': this.safeString (transaction, 'address'),
             'addressTo': undefined,
             'addressFrom': undefined,
@@ -4929,24 +5031,39 @@ module.exports = class huobi extends Exchange {
         const currency = this.currency (code);
         const request = {
             'address': address, // only supports existing addresses in your withdraw address list
-            'amount': amount,
             'currency': currency['id'].toLowerCase (),
         };
         if (tag !== undefined) {
             request['addr-tag'] = tag; // only for XRP?
         }
-        const networks = this.safeValue (this.options, 'networks', {});
-        let network = this.safeStringUpper (params, 'network'); // this line allows the user to specify either ERC20 or ETH
-        network = this.safeStringLower (networks, network, network); // handle ETH>ERC20 alias
-        if (network !== undefined) {
-            // possible chains - usdterc20, trc20usdt, hrc20usdt, usdt, algousdt
-            if (network === 'erc20') {
-                request['chain'] = currency['id'] + network;
-            } else {
-                request['chain'] = network + currency['id'];
-            }
-            params = this.omit (params, 'network');
+        let networkCode = undefined;
+        [ networkCode, params ] = this.handleNetworkCodeAndParams (params);
+        if (networkCode !== undefined) {
+            request['chain'] = this.networkCodeToId (networkCode, code);
         }
+        amount = parseFloat (this.currencyToPrecision (code, amount, networkCode));
+        const withdrawOptions = this.safeValue (this.options, 'withdraw', {});
+        if (this.safeValue (withdrawOptions, 'includeFee', false)) {
+            let fee = this.safeNumber (params, 'fee');
+            if (fee === undefined) {
+                const currencies = await this.fetchCurrencies ();
+                this.currencies = this.deepExtend (this.currencies, currencies);
+                const targetNetwork = this.safeValue (currency['networks'], networkCode, {});
+                fee = this.safeNumber (targetNetwork, 'fee');
+                if (fee === undefined) {
+                    throw new ArgumentsRequired (this.id + ' withdraw() function can not find withdraw fee for chosen network. You need to re-load markets with "exchange.loadMarkets(true)", or provide the "fee" parameter');
+                }
+            }
+            // fee needs to be deducted from whole amount
+            const feeString = this.currencyToPrecision (code, fee, networkCode);
+            params = this.omit (params, 'fee');
+            const amountString = this.numberToString (amount);
+            const amountSubtractedString = Precise.stringSub (amountString, feeString);
+            const amountSubtracted = parseFloat (amountSubtractedString);
+            request['fee'] = parseFloat (feeString);
+            amount = parseFloat (this.currencyToPrecision (code, amountSubtracted, networkCode));
+        }
+        request['amount'] = amount;
         const response = await this.spotPrivatePostV1DwWithdrawApiCreate (this.extend (request, params));
         //
         //     {
@@ -5485,9 +5602,7 @@ module.exports = class huobi extends Exchange {
         const query = this.omit (params, this.extractParams (path));
         if (typeof api === 'string') {
             // signing implementation for the old endpoints
-            if (api === 'market') {
-                url += api;
-            } else if ((api === 'public') || (api === 'private')) {
+            if ((api === 'public') || (api === 'private')) {
                 url += this.version;
             } else if ((api === 'v2Public') || (api === 'v2Private')) {
                 url += 'v2';
@@ -5610,6 +5725,12 @@ module.exports = class huobi extends Exchange {
                 throw new ExchangeError (feedback);
             }
         }
+        if ('code' in response) {
+            // {code: '1003', message: 'invalid signature'}
+            const feedback = this.id + ' ' + body;
+            const code = this.safeString (response, 'code');
+            this.throwExactlyMatchedException (this.exceptions['exact'], code, feedback);
+        }
     }
 
     async fetchFundingHistory (symbol = undefined, since = undefined, limit = undefined, params = {}) {
@@ -5630,8 +5751,11 @@ module.exports = class huobi extends Exchange {
         const request = {
             'type': '30,31',
         };
+        if (since !== undefined) {
+            request['start_date'] = since;
+        }
         if (market['linear']) {
-            method = 'contractPrivatePostLinearSwapApiV1SwapFinancialRecordExact';
+            method = 'contractPrivatePostLinearSwapApiV3SwapFinancialRecordExact';
             //
             // {
             //   status: 'ok',
@@ -5657,43 +5781,42 @@ module.exports = class huobi extends Exchange {
             [ marginMode, params ] = this.handleMarginModeAndParams ('fetchFundingHistory', params);
             marginMode = (marginMode === undefined) ? 'cross' : marginMode;
             if (marginMode === 'isolated') {
-                request['margin_account'] = market['id'];
+                request['mar_acct'] = market['id'];
             } else {
-                request['margin_account'] = market['quoteId'];
+                request['mar_acct'] = market['quoteId'];
             }
         } else {
             if (marketType === 'swap') {
-                method = 'contractPrivatePostSwapApiV1SwapFinancialRecordExact';
-                request['contract_code'] = market['id'];
+                method = 'contractPrivatePostSwapApiV3SwapFinancialRecordExact';
+                request['contract'] = market['id'];
+                //
+                //     {
+                //         "code": 200,
+                //         "msg": "",
+                //         "data": [
+                //             {
+                //                 "query_id": 138798248,
+                //                 "id": 117840,
+                //                 "type": 5,
+                //                 "amount": -0.024464850000000000,
+                //                 "ts": 1638758435635,
+                //                 "contract_code": "BTC-USDT-211210",
+                //                 "asset": "USDT",
+                //                 "margin_account": "USDT",
+                //                 "face_margin_account": ""
+                //             }
+                //         ],
+                //         "ts": 1604312615051
+                //     }
+                //
             } else {
-                throw new ExchangeError (this.id + ' fetchFundingHistory() only makes sense for swap contracts');
+                method = 'contractPrivatePostApiV3ContractFinancialRecordExact';
+                request['symbol'] = market['id'];
             }
-            //
-            // swap
-            //     {
-            //       status: 'ok',
-            //       data: {
-            //         financial_record: [
-            //           {
-            //             id: '1667436164',
-            //             symbol: 'BTC',
-            //             type: '30',
-            //             amount: '3.9755491985E-8',
-            //             ts: '1641168097323',
-            //             contract_code: 'BTC-USD'
-            //           },
-            //         ],
-            //         remain_size: '0',
-            //         next_id: null
-            //       },
-            //       ts: '1641190296379'
-            //     }
-            //
         }
         const response = await this[method] (this.extend (request, query));
-        const data = this.safeValue (response, 'data', {});
-        const financialRecord = this.safeValue (data, 'financial_record', []);
-        return this.parseIncomes (financialRecord, market, since, limit);
+        const data = this.safeValue (response, 'data', []);
+        return this.parseIncomes (data, market, since, limit);
     }
 
     async setLeverage (leverage, symbol = undefined, params = {}) {
@@ -5869,6 +5992,7 @@ module.exports = class huobi extends Exchange {
         const marginRatio = Precise.stringDiv (maintenanceMargin, collateral);
         return {
             'info': position,
+            'id': undefined,
             'symbol': symbol,
             'contracts': this.parseNumber (contracts),
             'contractSize': contractSize,
@@ -6508,7 +6632,7 @@ module.exports = class huobi extends Exchange {
             const currency = this.safeString (item, 'trade_partition');
             const id = this.safeString (item, marketIdKey);
             const symbol = this.safeSymbol (id);
-            if (this.inArray (symbols, symbol)) {
+            if (this.inArray (symbol, symbols)) {
                 for (let j = 0; j < list.length; j++) {
                     const obj = list[j];
                     const leverage = this.safeString (obj, 'lever_rate');
@@ -6537,13 +6661,16 @@ module.exports = class huobi extends Exchange {
         /**
          * @method
          * @name huobi#fetchOpenInterestHistory
-         * @description Retrieves the open intestest history of a currency
+         * @description Retrieves the open interest history of a currency
+         * @see https://huobiapi.github.io/docs/dm/v1/en/#query-information-on-open-interest
+         * @see https://huobiapi.github.io/docs/coin_margined_swap/v1/en/#query-information-on-open-interest
+         * @see https://huobiapi.github.io/docs/usdt_swap/v1/en/#general-query-information-on-open-interest
          * @param {string} symbol Unified CCXT market symbol
          * @param {string} timeframe '1h', '4h', '12h', or '1d'
          * @param {int|undefined} since Not used by huobi api, but response parsed by CCXT
          * @param {int|undefined} limit Default：48，Data Range [1,200]
          * @param {object} params Exchange specific parameters
-         * @param {int} params.amount_type *required* Open interest unit. 1-cont，2-cryptocurrenty
+         * @param {int} params.amount_type *required* Open interest unit. 1-cont，2-cryptocurrency
          * @param {int|undefined} params.pair eg BTC-USDT *Only for USDT-M*
          * @returns {object} an array of [open interest structures]{@link https://docs.ccxt.com/en/latest/manual.html#open-interest-structure}
          */
@@ -6560,7 +6687,7 @@ module.exports = class huobi extends Exchange {
         const market = this.market (symbol);
         const amountType = this.safeNumber2 (params, 'amount_type', 'amountType');
         if (amountType === undefined) {
-            throw new ArgumentsRequired (this.id + ' fetchOpenInterestHistory requires parameter params.amountType to be either 1 (cont), or 2 (cryptocurrenty)');
+            throw new ArgumentsRequired (this.id + ' fetchOpenInterestHistory requires parameter params.amountType to be either 1 (cont), or 2 (cryptocurrency)');
         }
         const request = {
             'period': timeframes[timeframe],
@@ -6646,10 +6773,117 @@ module.exports = class huobi extends Exchange {
         //
         const data = this.safeValue (response, 'data');
         const tick = this.safeValue (data, 'tick');
-        return this.parseOpenInterests (tick, undefined, since, limit);
+        return this.parseOpenInterests (tick, market, since, limit);
+    }
+
+    async fetchOpenInterest (symbol, params = {}) {
+        /**
+         * @method
+         * @name huobi#fetchOpenInterest
+         * @description Retrieves the open interest of a currency
+         * @see https://huobiapi.github.io/docs/dm/v1/en/#get-contract-open-interest-information
+         * @see https://huobiapi.github.io/docs/coin_margined_swap/v1/en/#get-swap-open-interest-information
+         * @see https://huobiapi.github.io/docs/usdt_swap/v1/en/#general-get-swap-open-interest-information
+         * @param {string} symbol Unified CCXT market symbol
+         * @param {object} params exchange specific parameters
+         * @returns {object} an open interest structure{@link https://docs.ccxt.com/en/latest/manual.html#interest-history-structure}
+         */
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        if (!market['contract']) {
+            throw new BadRequest (this.id + ' fetchOpenInterest() supports contract markets only');
+        }
+        if (market['option']) {
+            throw new NotSupported (this.id + ' fetchOpenInterest() does not currently support option markets');
+        }
+        const request = {
+            'contract_code': market['id'],
+        };
+        let method = undefined;
+        if (market['future']) {
+            request['contract_type'] = this.safeString (market['info'], 'contract_type');
+            request['symbol'] = market['baseId'];
+            method = 'contractPublicGetApiV1ContractOpenInterest'; // COIN-M futures
+        } else if (market['linear']) {
+            request['contract_type'] = 'swap';
+            method = 'contractPublicGetLinearSwapApiV1SwapOpenInterest'; // USDT-M
+        } else {
+            method = 'contractPublicGetSwapApiV1SwapOpenInterest'; // COIN-M swaps
+        }
+        const response = await this[method] (this.extend (request, params));
+        //
+        // USDT-M contractPublicGetLinearSwapApiV1SwapOpenInterest
+        //
+        //     {
+        //         "status": "ok",
+        //         "data": [
+        //             {
+        //                 "volume": 7192610.000000000000000000,
+        //                 "amount": 7192.610000000000000000,
+        //                 "symbol": "BTC",
+        //                 "value": 134654290.332000000000000000,
+        //                 "contract_code": "BTC-USDT",
+        //                 "trade_amount": 70692.804,
+        //                 "trade_volume": 70692804,
+        //                 "trade_turnover": 1379302592.9518,
+        //                 "business_type": "swap",
+        //                 "pair": "BTC-USDT",
+        //                 "contract_type": "swap",
+        //                 "trade_partition": "USDT"
+        //             }
+        //         ],
+        //         "ts": 1664336503144
+        //     }
+        //
+        // COIN-M Swap contractPublicGetSwapApiV1SwapOpenInterest
+        //
+        //     {
+        //         "status": "ok",
+        //         "data": [
+        //             {
+        //                 "volume": 518018.000000000000000000,
+        //                 "amount": 2769.675777407074725180,
+        //                 "symbol": "BTC",
+        //                 "contract_code": "BTC-USD",
+        //                 "trade_amount": 9544.4032080046491323463688602729806842458,
+        //                 "trade_volume": 1848448,
+        //                 "trade_turnover": 184844800.000000000000000000
+        //             }
+        //         ],
+        //         "ts": 1664337226028
+        //     }
+        //
+        // COIN-M Futures contractPublicGetApiV1ContractOpenInterest
+        //
+        //     {
+        //         "status": "ok",
+        //         "data": [
+        //             {
+        //                 "volume": 118850.000000000000000000,
+        //                 "amount": 635.502025211544374189,
+        //                 "symbol": "BTC",
+        //                 "contract_type": "this_week",
+        //                 "contract_code": "BTC220930",
+        //                 "trade_amount": 1470.9400749347598691119206024033947897351,
+        //                 "trade_volume": 286286,
+        //                 "trade_turnover": 28628600.000000000000000000
+        //             }
+        //         ],
+        //         "ts": 1664337928805
+        //     }
+        //
+        const data = this.safeValue (response, 'data', []);
+        const openInterest = this.parseOpenInterest (data[0], market);
+        const timestamp = this.safeInteger (response, 'ts');
+        return this.extend (openInterest, {
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+        });
     }
 
     parseOpenInterest (interest, market = undefined) {
+        //
+        // fetchOpenInterestHistory
         //
         //    {
         //        volume: '4385.4350000000000000',
@@ -6658,11 +6892,57 @@ module.exports = class huobi extends Exchange {
         //        value: '194059884.1850000000000000'
         //    }
         //
-        const timestamp = this.safeNumber (interest, 'ts');
+        // fetchOpenInterest: USDT-M
+        //
+        //     {
+        //         "volume": 7192610.000000000000000000,
+        //         "amount": 7192.610000000000000000,
+        //         "symbol": "BTC",
+        //         "value": 134654290.332000000000000000,
+        //         "contract_code": "BTC-USDT",
+        //         "trade_amount": 70692.804,
+        //         "trade_volume": 70692804,
+        //         "trade_turnover": 1379302592.9518,
+        //         "business_type": "swap",
+        //         "pair": "BTC-USDT",
+        //         "contract_type": "swap",
+        //         "trade_partition": "USDT"
+        //     }
+        //
+        // fetchOpenInterest: COIN-M Swap
+        //
+        //     {
+        //         "volume": 518018.000000000000000000,
+        //         "amount": 2769.675777407074725180,
+        //         "symbol": "BTC",
+        //         "contract_code": "BTC-USD",
+        //         "trade_amount": 9544.4032080046491323463688602729806842458,
+        //         "trade_volume": 1848448,
+        //         "trade_turnover": 184844800.000000000000000000
+        //     }
+        //
+        // fetchOpenInterest: COIN-M Futures
+        //
+        //     {
+        //         "volume": 118850.000000000000000000,
+        //         "amount": 635.502025211544374189,
+        //         "symbol": "BTC",
+        //         "contract_type": "this_week",
+        //         "contract_code": "BTC220930",
+        //         "trade_amount": 1470.9400749347598691119206024033947897351,
+        //         "trade_volume": 286286,
+        //         "trade_turnover": 28628600.000000000000000000
+        //     }
+        //
+        const timestamp = this.safeInteger (interest, 'ts');
+        const amount = this.safeNumber (interest, 'volume');
+        const value = this.safeNumber (interest, 'value');
         return {
             'symbol': this.safeString (market, 'symbol'),
-            'baseVolume': this.safeNumber (interest, 'volume'),
-            'quoteVolume': this.safeValue (interest, 'value'),
+            'baseVolume': amount,  // deprecated
+            'quoteVolume': value,  // deprecated
+            'openInterestAmount': amount,
+            'openInterestValue': value,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'info': interest,

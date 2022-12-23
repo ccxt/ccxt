@@ -373,8 +373,8 @@ class bittrex(Exchange):
                 'strike': None,
                 'optionType': None,
                 'precision': {
-                    'amount': self.parse_number('0.00000001'),
-                    'price': self.parse_number(self.parse_precision(self.safe_string(market, 'precision', '8'))),
+                    'amount': self.parse_number('1e-8'),  # seems exchange has same amount-precision across all pairs in UI too. This is same as 'minTradeSize' digits after dot
+                    'price': self.parse_number(self.parse_precision(self.safe_string(market, 'precision'))),
                 },
                 'limits': {
                     'leverage': {
@@ -488,7 +488,7 @@ class bittrex(Exchange):
             currency = response[i]
             id = self.safe_string(currency, 'symbol')
             code = self.safe_currency_code(id)
-            precision = self.parse_number('0.00000001')  # default precision, todo: fix "magic constants"
+            precision = self.parse_number('1e-8')  # default precision, seems exchange has same amount-precision across all pairs in UI too. todo: fix "magic constants"
             fee = self.safe_number(currency, 'txFee')  # todo: redesign
             isActive = self.safe_string(currency, 'status')
             result[code] = {
@@ -722,9 +722,15 @@ class bittrex(Exchange):
         priceString = self.safe_string(trade, 'rate')
         amountString = self.safe_string(trade, 'quantity')
         takerOrMaker = None
+        side = self.safe_string_lower_2(trade, 'takerSide', 'direction')
         isTaker = self.safe_value(trade, 'isTaker')
         if isTaker is not None:
             takerOrMaker = 'taker' if isTaker else 'maker'
+            if not isTaker:  # as noted in PR  #15655 self API provides confusing value - when it's 'maker' trade, then side value should reversed
+                if side == 'buy':
+                    side = 'sell'
+                elif side == 'sell':
+                    side = 'buy'
         fee = None
         feeCostString = self.safe_string(trade, 'commission')
         if feeCostString is not None:
@@ -732,7 +738,6 @@ class bittrex(Exchange):
                 'cost': feeCostString,
                 'currency': market['quote'],
             }
-        side = self.safe_string_lower_2(trade, 'takerSide', 'direction')
         return self.safe_trade({
             'info': trade,
             'timestamp': timestamp,
@@ -1313,8 +1318,11 @@ class bittrex(Exchange):
         request = {
             'txId': id,
         }
+        currency = None
+        if code is not None:
+            currency = self.currency(code)
         response = self.privateGetDepositsByTxIdTxId(self.extend(request, params))
-        transactions = self.parse_transactions(response, code, None, None)
+        transactions = self.parse_transactions(response, currency, None, None)
         return self.safe_value(transactions, 0)
 
     def fetch_deposits(self, code=None, since=None, limit=None, params={}):
@@ -1383,8 +1391,11 @@ class bittrex(Exchange):
         request = {
             'txId': id,
         }
+        currency = None
+        if code is not None:
+            currency = self.currency(code)
         response = self.privateGetWithdrawalsByTxIdTxId(self.extend(request, params))
-        transactions = self.parse_transactions(response, code, None, None)
+        transactions = self.parse_transactions(response, currency, None, None)
         return self.safe_value(transactions, 0)
 
     def fetch_withdrawals(self, code=None, since=None, limit=None, params={}):

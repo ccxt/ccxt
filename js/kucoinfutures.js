@@ -47,6 +47,8 @@ module.exports = class kucoinfutures extends kucoin {
                 'fetchCurrencies': false,
                 'fetchDepositAddress': true,
                 'fetchDeposits': true,
+                'fetchDepositWithdrawFee': false,
+                'fetchDepositWithdrawFees': false,
                 'fetchFundingHistory': true,
                 'fetchFundingRate': true,
                 'fetchFundingRateHistory': false,
@@ -71,7 +73,7 @@ module.exports = class kucoinfutures extends kucoin {
                 'fetchTickers': false,
                 'fetchTime': true,
                 'fetchTrades': true,
-                'fetchTransactionFee': true,
+                'fetchTransactionFee': false,
                 'fetchWithdrawals': true,
                 'setMarginMode': false,
                 'transfer': true,
@@ -404,14 +406,7 @@ module.exports = class kucoinfutures extends kucoin {
         //            "lastTradePrice": 4545.4500000000,
         //            "nextFundingRateTime": 25481884,
         //            "maxLeverage": 100,
-        //            "sourceExchanges":  [
-        //                "huobi",
-        //                "Okex",
-        //                "Binance",
-        //                "Kucoin",
-        //                "Poloniex",
-        //                "Hitbtc"
-        //            ],
+        //            "sourceExchanges":  [ "huobi", "Okex", "Binance", "Kucoin", "Poloniex", "Hitbtc" ],
         //            "premiumsSymbol1M": ".ETHUSDTMPI",
         //            "premiumsSymbol8H": ".ETHUSDTMPI8H",
         //            "fundingBaseSymbol1M": ".ETHINT",
@@ -443,11 +438,25 @@ module.exports = class kucoinfutures extends kucoin {
                 symbol = symbol + '-' + this.yymmdd (expiry, '');
                 type = 'future';
             }
-            const baseMinSizeString = this.safeString (market, 'baseMinSize');
-            const quoteMaxSizeString = this.safeString (market, 'quoteMaxSize');
             const inverse = this.safeValue (market, 'isInverse');
             const status = this.safeString (market, 'status');
             const multiplier = this.safeString (market, 'multiplier');
+            const tickSize = this.safeNumber (market, 'tickSize');
+            const lotSize = this.safeNumber (market, 'lotSize');
+            let limitAmountMin = lotSize;
+            if (limitAmountMin === undefined) {
+                limitAmountMin = this.safeNumber (market, 'baseMinSize');
+            }
+            let limitAmountMax = this.safeNumber (market, 'maxOrderQty');
+            if (limitAmountMax === undefined) {
+                limitAmountMax = this.safeNumber (market, 'baseMaxSize');
+            }
+            let limitPriceMax = this.safeNumber (market, 'maxPrice');
+            if (limitPriceMax === undefined) {
+                const baseMinSizeString = this.safeString (market, 'baseMinSize');
+                const quoteMaxSizeString = this.safeString (market, 'quoteMaxSize');
+                limitPriceMax = this.parseNumber (Precise.stringDiv (quoteMaxSizeString, baseMinSizeString));
+            }
             result.push ({
                 'id': id,
                 'symbol': symbol,
@@ -475,8 +484,8 @@ module.exports = class kucoinfutures extends kucoin {
                 'strike': undefined,
                 'optionType': undefined,
                 'precision': {
-                    'amount': this.safeNumber (market, 'lotSize'),
-                    'price': this.safeNumber (market, 'tickSize'),
+                    'amount': lotSize,
+                    'price': tickSize,
                 },
                 'limits': {
                     'leverage': {
@@ -484,16 +493,16 @@ module.exports = class kucoinfutures extends kucoin {
                         'max': this.safeNumber (market, 'maxLeverage'),
                     },
                     'amount': {
-                        'min': this.parseNumber (baseMinSizeString),
-                        'max': this.safeNumber (market, 'baseMaxSize'),
+                        'min': limitAmountMin,
+                        'max': limitAmountMax,
                     },
                     'price': {
-                        'min': undefined,
-                        'max': this.parseNumber (Precise.stringDiv (quoteMaxSizeString, baseMinSizeString)),
+                        'min': tickSize,
+                        'max': limitPriceMax,
                     },
                     'cost': {
                         'min': this.safeNumber (market, 'quoteMinSize'),
-                        'max': this.parseNumber (quoteMaxSizeString),
+                        'max': this.safeNumber (market, 'quoteMaxSize'),
                     },
                 },
                 'info': market,
@@ -520,7 +529,7 @@ module.exports = class kucoinfutures extends kucoin {
         return this.safeNumber (response, 'data');
     }
 
-    async fetchOHLCV (symbol, timeframe = '15m', since = undefined, limit = undefined, params = {}) {
+    async fetchOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
         /**
          * @method
          * @name kucoinfutures#fetchOHLCV
@@ -983,6 +992,7 @@ module.exports = class kucoinfutures extends kucoin {
         const marginMode = crossMode ? 'cross' : 'isolated';
         return {
             'info': position,
+            'id': undefined,
             'symbol': this.safeString (market, 'symbol'),
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
@@ -1989,12 +1999,24 @@ module.exports = class kucoinfutures extends kucoin {
         /**
          * @method
          * @name kucoinfutures#fetchTransactionFee
-         * @description fetch the fee for a transaction
+         * @description *DEPRECATED* please use fetchDepositWithdrawFee instead
          * @param {string} code unified currency code
          * @param {object} params extra parameters specific to the kucoinfutures api endpoint
          * @returns {object} a [fee structure]{@link https://docs.ccxt.com/en/latest/manual.html#fee-structure}
          */
-        throw new BadRequest (this.id + ' fetchTransactionFee() is not supported yet');
+        throw new BadRequest (this.id + ' fetchTransactionFee() is not supported');
+    }
+
+    async fetchDepositWithdrawFee (code, params = {}) {
+        /**
+         * @method
+         * @name kucoinfutures#fetchDepositWithdrawFee
+         * @description Not supported
+         * @param {string} code unified currency code
+         * @param {object} params extra parameters specific to the kucoinfutures api endpoint
+         * @returns {object} a [fee structure]{@link https://docs.ccxt.com/en/latest/manual.html#fee-structure}
+         */
+        throw new BadRequest (this.id + ' fetchDepositWithdrawFee() is not supported');
     }
 
     async fetchLedger (code = undefined, since = undefined, limit = undefined, params = {}) {

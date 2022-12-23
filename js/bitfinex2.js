@@ -924,7 +924,7 @@ module.exports = class bitfinex2 extends Exchange {
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'status': this.parseTransferStatus (status),
-            'amount': this.safeNumber (transfer, 7),
+            'amount': this.safeNumber (info, 7),
             'currency': this.safeCurrencyCode (currencyId, currency),
             'fromAccount': fromAccount,
             'toAccount': toAccount,
@@ -2105,15 +2105,17 @@ module.exports = class bitfinex2 extends Exchange {
         let feeCost = undefined;
         let txid = undefined;
         let addressTo = undefined;
+        let network = undefined;
+        let comment = undefined;
         if (transactionLength === 8) {
             const data = this.safeValue (transaction, 4, []);
             timestamp = this.safeInteger (transaction, 0);
             if (currency !== undefined) {
                 code = currency['code'];
             }
-            feeCost = this.safeNumber (data, 8);
+            feeCost = this.safeString (data, 8);
             if (feeCost !== undefined) {
-                feeCost = -feeCost;
+                feeCost = Precise.stringAbs (feeCost);
             }
             amount = this.safeNumber (data, 5);
             id = this.safeValue (data, 0);
@@ -2128,45 +2130,50 @@ module.exports = class bitfinex2 extends Exchange {
             id = this.safeString (transaction, 0);
             const currencyId = this.safeString (transaction, 1);
             code = this.safeCurrencyCode (currencyId, currency);
+            const networkId = this.safeString (transaction, 2);
+            network = this.safeNetwork (networkId);
             timestamp = this.safeInteger (transaction, 5);
             updated = this.safeInteger (transaction, 6);
             status = this.parseTransactionStatus (this.safeString (transaction, 9));
-            amount = this.safeNumber (transaction, 12);
-            if (amount !== undefined) {
-                if (amount < 0) {
+            const signedAmount = this.safeString (transaction, 12);
+            amount = Precise.stringAbs (signedAmount);
+            if (signedAmount !== undefined) {
+                if (Precise.stringLt (signedAmount, '0')) {
                     type = 'withdrawal';
                 } else {
                     type = 'deposit';
                 }
             }
-            feeCost = this.safeNumber (transaction, 13);
+            feeCost = this.safeString (transaction, 13);
             if (feeCost !== undefined) {
-                feeCost = -feeCost;
+                feeCost = Precise.stringAbs (feeCost);
             }
             addressTo = this.safeString (transaction, 16);
             txid = this.safeString (transaction, 20);
+            comment = this.safeString (transaction, 21);
         }
         return {
             'info': transaction,
             'id': id,
             'txid': txid,
+            'type': type,
+            'currency': code,
+            'network': network,
+            'amount': this.parseNumber (amount),
+            'status': status,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'network': undefined,
-            'addressFrom': undefined,
             'address': addressTo, // this is actually the tag for XRP transfers (the address is missing)
+            'addressFrom': undefined,
             'addressTo': addressTo,
-            'tagFrom': undefined,
             'tag': tag, // refix it properly for the tag from description
+            'tagFrom': undefined,
             'tagTo': tag,
-            'type': type,
-            'amount': amount,
-            'currency': code,
-            'status': status,
             'updated': updated,
+            'comment': comment,
             'fee': {
                 'currency': code,
-                'cost': feeCost,
+                'cost': this.parseNumber (feeCost),
                 'rate': undefined,
             },
         };
@@ -2527,9 +2534,9 @@ module.exports = class bitfinex2 extends Exchange {
             const errorCode = this.numberToString (response[1]);
             const errorText = response[2];
             const feedback = this.id + ' ' + errorText;
+            this.throwBroadlyMatchedException (this.exceptions['broad'], errorText, feedback);
             this.throwExactlyMatchedException (this.exceptions['exact'], errorCode, feedback);
             this.throwExactlyMatchedException (this.exceptions['exact'], errorText, feedback);
-            this.throwBroadlyMatchedException (this.exceptions['broad'], errorText, feedback);
             throw new ExchangeError (this.id + ' ' + errorText + ' (#' + errorCode + ')');
         }
         return response;

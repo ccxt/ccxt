@@ -751,6 +751,7 @@ module.exports = class okcoin extends Exchange {
                 'accountsByType': {
                     'spot': '1',
                     'funding': '6',
+                    'main': '6',
                 },
                 'accountsById': {
                     '1': 'spot',
@@ -1150,7 +1151,7 @@ module.exports = class okcoin extends Exchange {
                     'deposit': depositEnabled,
                     'withdraw': withdrawEnabled,
                     'fee': undefined, // todo: redesign
-                    'precision': this.parseNumber ('0.00000001'),
+                    'precision': this.parseNumber ('1e-8'), // todo: fix
                     'limits': {
                         'amount': { 'min': undefined, 'max': undefined },
                         'withdraw': {
@@ -1319,9 +1320,14 @@ module.exports = class okcoin extends Exchange {
          * @param {object} params extra parameters specific to the okcoin api endpoint
          * @returns {object} an array of [ticker structures]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
          */
-        const defaultType = this.safeString2 (this.options, 'fetchTickers', 'defaultType');
-        const type = this.safeString (params, 'type', defaultType);
         symbols = this.marketSymbols (symbols);
+        const first = this.safeString (symbols, 0);
+        let market = undefined;
+        if (first !== undefined) {
+            market = this.market (first);
+        }
+        let type = undefined;
+        [ type, params ] = this.handleMarketTypeAndParams ('fetchTickers', market, params);
         return await this.fetchTickersByType (type, symbols, this.omit (params, 'type'));
     }
 
@@ -1385,32 +1391,9 @@ module.exports = class okcoin extends Exchange {
         //             "side":"short", // "buy" in futures trades
         //         }
         //
-        let symbol = undefined;
         const marketId = this.safeString (trade, 'instrument_id');
-        let base = undefined;
-        let quote = undefined;
-        if (marketId in this.markets_by_id) {
-            market = this.markets_by_id[marketId];
-            symbol = market['symbol'];
-            base = market['base'];
-            quote = market['quote'];
-        } else if (marketId !== undefined) {
-            const parts = marketId.split ('-');
-            const numParts = parts.length;
-            if (numParts === 2) {
-                const [ baseId, quoteId ] = parts;
-                base = this.safeCurrencyCode (baseId);
-                quote = this.safeCurrencyCode (quoteId);
-                symbol = base + '/' + quote;
-            } else {
-                symbol = marketId;
-            }
-        }
-        if ((symbol === undefined) && (market !== undefined)) {
-            symbol = market['symbol'];
-            base = market['base'];
-            quote = market['quote'];
-        }
+        market = this.safeMarket (marketId, market, '-');
+        const symbol = market['symbol'];
         const timestamp = this.parse8601 (this.safeString2 (trade, 'timestamp', 'created_at'));
         const priceString = this.safeString (trade, 'price');
         let amountString = this.safeString2 (trade, 'size', 'qty');
@@ -1425,7 +1408,7 @@ module.exports = class okcoin extends Exchange {
         const feeCostString = this.safeString (trade, 'fee');
         let fee = undefined;
         if (feeCostString !== undefined) {
-            const feeCurrency = (side === 'buy') ? base : quote;
+            const feeCurrency = (side === 'buy') ? market['base'] : market['quote'];
             fee = {
                 // fee is either a positive number (invitation rebate)
                 // or a negative number (transaction fee deduction)
@@ -1827,10 +1810,7 @@ module.exports = class okcoin extends Exchange {
         for (let i = 0; i < info.length; i++) {
             const balance = info[i];
             const marketId = this.safeString (balance, 'instrument_id');
-            let symbol = marketId;
-            if (marketId in this.markets_by_id) {
-                symbol = this.markets_by_id[marketId]['symbol'];
-            }
+            const symbol = this.safeSymbol (marketId);
             const balanceTimestamp = this.parse8601 (this.safeString (balance, 'timestamp'));
             timestamp = (timestamp === undefined) ? balanceTimestamp : Math.max (timestamp, balanceTimestamp);
             const account = this.account ();
@@ -3774,11 +3754,7 @@ module.exports = class okcoin extends Exchange {
         const after = this.safeNumber (item, 'balance');
         const status = 'ok';
         const marketId = this.safeString (item, 'instrument_id');
-        let symbol = undefined;
-        if (marketId in this.markets_by_id) {
-            const market = this.markets_by_id[marketId];
-            symbol = market['symbol'];
-        }
+        const symbol = this.safeSymbol (marketId);
         return {
             'info': item,
             'id': id,

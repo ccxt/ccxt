@@ -58,7 +58,7 @@ module.exports = class alpaca extends Exchange {
                 'fetchL2OrderBook': false,
                 'fetchMarkets': true,
                 'fetchMyTrades': false,
-                'fetchOHLCV': false,
+                'fetchOHLCV': true,
                 'fetchOpenOrder': false,
                 'fetchOpenOrders': true,
                 'fetchOrder': true,
@@ -186,7 +186,7 @@ module.exports = class alpaca extends Exchange {
                     'GNSS', // Genesis
                     'ERSX', // ErisX
                 ],
-                'defaultTimeInForce': 'day', // fok, gtc, ioc
+                'defaultTimeInForce': 'gtc', // fok, gtc, ioc
                 'clientOrderId': 'ccxt_{id}',
             },
             'exceptions': {
@@ -534,8 +534,7 @@ module.exports = class alpaca extends Exchange {
             request['limit_price'] = this.priceToPrecision (symbol, price);
         }
         const defaultTIF = this.safeString (this.options, 'defaultTimeInForce');
-        const timeInForce = this.safeString (params, 'timeInForce', defaultTIF);
-        request['time_in_force'] = timeInForce;
+        request['time_in_force'] = this.safeString (params, 'timeInForce', defaultTIF);
         params = this.omit (params, [ 'timeInForce', 'triggerPrice' ]);
         const clientOrderIdprefix = this.safeString (this.options, 'clientOrderId');
         const uuid = this.uuid ();
