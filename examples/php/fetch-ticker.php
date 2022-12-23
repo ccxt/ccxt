@@ -1,16 +1,16 @@
 <?php
 // ##############################################################
-// to see asynchronous version, check: 'async-await-methods.php' example
+// to see asynchronous version, check: https://github.com/ccxt/ccxt/blob/master/examples/php/async-await.php
 // ##############################################################
 
 include dirname(dirname(dirname(__FILE__))) . '/ccxt.php';
 date_default_timezone_set('UTC');
 
-$classname = '\\ccxt\\binance';
-$symbol = 'ETH/USDT';
-$exchange = new $classname(array(
+$exchange = new \ccxt\binance(array(
+    // 'verbose' => true, // for debugging
     'timeout' => 30000,
 ));
+$symbol = 'ETH/USDT';
 
 try {
     $result = $exch->fetch_ticker($symbol);

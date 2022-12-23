@@ -1,12 +1,12 @@
 <?php
 // ##############################################################
-// to see asynchronous version, check: 'async-await.php' example
+// to see asynchronous version, check: https://github.com/ccxt/ccxt/blob/master/examples/php/async-await.php
 // ##############################################################
 
 include dirname(dirname(dirname(__FILE__))) . '/ccxt.php';
 date_default_timezone_set('UTC');
 
-$exchange = new \ccxt\binance(array(
+$exchange =new \ccxt\binance(array(
     // 'verbose' => true, // for debugging
     'timeout' => 30000,
 ));
