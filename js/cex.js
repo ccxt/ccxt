@@ -784,7 +784,7 @@ module.exports = class cex extends Exchange {
         if ((placedAmount !== undefined) && (remaining !== undefined)) {
             filled = Precise.stringMax (Precise.stringSub (placedAmount, remaining), '0');
         }
-        return {
+        return this.safeOrder ({
             'id': this.safeString (response, 'id'),
             'info': response,
             'clientOrderId': undefined,
@@ -795,15 +795,15 @@ module.exports = class cex extends Exchange {
             'side': this.safeString (response, 'type'),
             'symbol': market['symbol'],
             'status': status,
-            'price': this.safeNumber (response, 'price'),
-            'amount': this.parseNumber (placedAmount),
+            'price': this.safeString (response, 'price'),
+            'amount': placedAmount,
             'cost': undefined,
             'average': undefined,
-            'remaining': this.parseNumber (remaining),
+            'remaining': remaining,
             'filled': filled,
             'fee': undefined,
             'trades': undefined,
-        };
+        });
     }
 
     async cancelOrder (id, symbol = undefined, params = {}) {
@@ -925,7 +925,7 @@ module.exports = class cex extends Exchange {
                     //     ds: 0 }
                     continue;
                 }
-                const tradePrice = this.safeNumber (item, 'price');
+                const tradePrice = this.safeString (item, 'price');
                 if (tradePrice === undefined) {
                     // this represents the order
                     //   {
@@ -1059,7 +1059,7 @@ module.exports = class cex extends Exchange {
                 });
             }
         }
-        this.safeOrder ({
+        return this.safeOrder ({
             'info': order,
             'id': orderId,
             'clientOrderId': undefined,
@@ -1446,7 +1446,7 @@ module.exports = class cex extends Exchange {
             const time = this.safeString (order, 'time');
             const lastTxTime = this.safeString (order, 'lastTxTime');
             const timestamp = this.parse8601 (time);
-            results.push ({
+            const safeOrder = this.safeOrder ({
                 'info': order,
                 'id': this.safeString (order, 'id'),
                 'timestamp': timestamp,
@@ -1455,18 +1455,19 @@ module.exports = class cex extends Exchange {
                 'status': status,
                 'symbol': symbol,
                 'side': side,
-                'price': this.parseNumber (price),
-                'amount': this.parseNumber (orderAmount),
-                'average': this.parseNumber (average),
+                'price': price,
+                'amount': orderAmount,
+                'average': average,
                 'type': type,
-                'filled': this.parseNumber (filled),
-                'cost': this.parseNumber (cost),
-                'remaining': this.parseNumber (remaining),
+                'filled': filled,
+                'cost': cost,
+                'remaining': remaining,
                 'fee': {
-                    'cost': this.parseNumber (fee),
+                    'cost': fee,
                     'currency': quote,
                 },
             });
+            results.push (safeOrder);
         }
         return results;
     }
