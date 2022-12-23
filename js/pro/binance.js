@@ -4,7 +4,7 @@
 
 const binanceRest = require ('../binance.js');
 const Precise = require ('../base/Precise');
-const { ExchangeError } = require ('../base/errors');
+const { ExchangeError, ArgumentsRequired } = require ('../base/errors');
 const { ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById } = require ('./base/Cache');
 
 // -----------------------------------------------------------------------------
@@ -769,20 +769,23 @@ module.exports = class binance extends binanceRest {
         let name = this.safeString (options, 'name', '!' + 'ticker');
         name = this.safeString (params, 'name', name);
         params = this.omit (params, 'name');
-        let messageHash = '';
         let wsParams = [];
+        const marketSymbols = this.marketSymbols (symbols);
+        let messageHash = name + '@arr';
         if (name === 'bookTicker') {
+            if (marketIds === undefined) {
+                throw new ArgumentsRequired (this.id + ' watchTickers() requires symbols for bookTicker');
+            }
             // simulate watchTickers with subscribe multiple individual bookTicker topic
-            messageHash = 'bookTicker@arr';
             for (let i = 0; i < marketIds.length; i++) {
                 wsParams.push (marketIds[i].toLowerCase () + '@bookTicker');
             }
         } else {
-            messageHash = name + '@arr';
             wsParams = [
                 messageHash,
             ];
         }
+        messageHash += marketSymbols.join ('|');
         const url = this.urls['api']['ws'][type] + '/' + this.stream (type, messageHash);
         const requestId = this.requestId (url);
         const request = {
@@ -924,34 +927,22 @@ module.exports = class binance extends binanceRest {
         const symbol = result['symbol'];
         this.tickers[symbol] = result;
         client.resolve (result, messageHash);
-        // check whether message is for watching bookTickers
+        // check whether message is for watching tickers
         const messageHashes = Object.keys (client.futures);
+        const tickersEvent = event + '@arr';
         for (let i = 0; i < messageHashes.length; i++) {
             messageHash = messageHashes[i];
-            if (messageHash === 'bookTicker@arr') {
+            if (messageHash.indexOf (tickersEvent) >= 0 && messageHash.indexOf (symbol) >= 0) {
                 client.resolve (this.tickers, messageHash);
             }
         }
     }
 
     handleTickers (client, message) {
-        let event = undefined;
         for (let i = 0; i < message.length; i++) {
-            const data = message[i];
-            event = this.safeString (data, 'e', 'bookTicker');
-            if (event === '24hrTicker') {
-                event = 'ticker';
-            } else if (event === '24hrMiniTicker') {
-                event = 'miniTicker';
-            }
-            const wsMarketId = this.safeStringLower (data, 's');
-            const messageHash = wsMarketId + '@' + event;
-            const ticker = this.parseWsTicker (data);
-            const symbol = ticker['symbol'];
-            this.tickers[symbol] = ticker;
-            client.resolve (ticker, messageHash);
+            const ticker = message[i];
+            this.handleTicker (client, ticker);
         }
-        client.resolve (this.tickers, '!' + event + '@arr');
     }
 
     async authenticate (params = {}) {
