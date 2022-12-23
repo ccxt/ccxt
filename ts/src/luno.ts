@@ -976,7 +976,7 @@ export default class luno extends Exchange {
         let direction = undefined;
         let status = undefined;
         if (!Precise.stringEquals (balance_delta, '0.0')) {
-            before = after - balance_delta;
+            before = Precise.stringSub (after, balance_delta);
             status = 'ok';
             amount = Precise.stringAbs (balance_delta);
         } else if (Precise.stringLt (available_delta, '0.0')) {

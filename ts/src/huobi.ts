@@ -5064,7 +5064,7 @@ export default class huobi extends Exchange {
             amount = parseFloat (this.currencyToPrecision (code, amountSubtracted, networkCode));
         }
         request['amount'] = amount;
-        const response = await this.spotPrivatePostV1DwWithdrawApiCreate (this.extend (request, params));
+        const response = await (this as any).spotPrivatePostV1DwWithdrawApiCreate (this.extend (request, params));
         //
         //     {
         //         "status": "ok",

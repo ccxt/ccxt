@@ -495,7 +495,7 @@ export default class whitebit extends Exchange {
          * @returns {object} a list of [fee structures]{@link https://docs.ccxt.com/en/latest/manual.html#fee-structure}
          */
         await this.loadMarkets ();
-        const response = await this.v4PublicGetFee (params);
+        const response = await (this as any).v4PublicGetFee (params);
         //
         //    {
         //        "1INCH": {

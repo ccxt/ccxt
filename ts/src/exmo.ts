@@ -504,7 +504,7 @@ export default class exmo extends Exchange {
          * @returns {object} a list of [transaction fees structures]{@link https://docs.ccxt.com/en/latest/manual.html#fees-structure}
          */
         await this.loadMarkets ();
-        const response = await this.publicGetPaymentsProvidersCryptoList (params);
+        const response = await (this as any).publicGetPaymentsProvidersCryptoList (params);
         //
         //    {
         //        "USDT": [
