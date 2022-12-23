@@ -795,8 +795,8 @@ export default class bkex extends Exchange {
         //     }
         //
         const marketId = this.safeString (ticker, 'symbol');
+        market = this.safeMarket (marketId, market);
         const symbol = this.safeSymbol (marketId, market);
-        market = this.market (symbol);
         const timestamp = this.safeInteger2 (ticker, 'ts', 'lastTime');
         const baseCurrencyVolume = market['swap'] ? 'amount' : 'volume';
         const quoteCurrencyVolume = market['swap'] ? 'volume' : 'quoteVolume';

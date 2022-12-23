@@ -4,6 +4,7 @@
 import { Exchange } from './base/Exchange.js';
 import { ExchangeError, BadSymbol, AuthenticationError, InsufficientFunds, InvalidOrder, ArgumentsRequired, OrderNotFound, InvalidAddress, BadRequest, RateLimitExceeded, PermissionDenied, ExchangeNotAvailable, AccountSuspended, OnMaintenance } from './base/errors.js';
 import { SIGNIFICANT_DIGITS, DECIMAL_PLACES, TRUNCATE, ROUND } from './base/functions/number.js';
+import { Precise } from './base/Precise.js';
 
 // ----------------------------------------------------------------------------
 
@@ -941,23 +942,24 @@ export default class bitvavo extends Exchange {
          * @method
          * @name bitvavo#createOrder
          * @description create a trade order
+         * @see https://docs.bitvavo.com/#tag/Orders/paths/~1order/post
          * @param {string} symbol unified symbol of the market to create an order in
          * @param {string} type 'market' or 'limit'
          * @param {string} side 'buy' or 'sell'
          * @param {float} amount how much of currency you want to trade in units of base currency
          * @param {float|undefined} price the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
          * @param {object} params extra parameters specific to the bitvavo api endpoint
-         * @param {string} params.timeInForce "GTC", "IOC", or "PO"
-         * @param {float} params.stopPrice The price at which a trigger order is triggered at
-         * @param {float} params.triggerPrice The price at which a trigger order is triggered at
-         * @param {bool} params.postOnly If true, the order will only be posted to the order book and not executed immediately
-         * @param {float} params.stopLossPrice The price at which a stop loss order is triggered at
-         * @param {float} params.takeProfitPrice The price at which a take profit order is triggered at
-         * @param {string} params.triggerType "price"
-         * @param {string} params.triggerReference "lastTrade", "bestBid", "bestAsk", "midPrice" Only for stop orders: Use this to determine which parameter will trigger the order
-         * @param {string} params.selfTradePrevention "decrementAndCancel", "cancelOldest", "cancelNewest", "cancelBoth"
-         * @param {bool} params.disableMarketProtection don't cancel if the next fill price is 10% worse than the best fill price
-         * @param {bool} params.responseRequired Set this to 'false' when only an acknowledgement of success or failure is required, this is faster.
+         * @param {string|undefined} params.timeInForce "GTC", "IOC", or "PO"
+         * @param {float|undefined} params.stopPrice The price at which a trigger order is triggered at
+         * @param {float|undefined} params.triggerPrice The price at which a trigger order is triggered at
+         * @param {bool|undefined} params.postOnly If true, the order will only be posted to the order book and not executed immediately
+         * @param {float|undefined} params.stopLossPrice The price at which a stop loss order is triggered at
+         * @param {float|undefined} params.takeProfitPrice The price at which a take profit order is triggered at
+         * @param {string|undefined} params.triggerType "price"
+         * @param {string|undefined} params.triggerReference "lastTrade", "bestBid", "bestAsk", "midPrice" Only for stop orders: Use this to determine which parameter will trigger the order
+         * @param {string|undefined} params.selfTradePrevention "decrementAndCancel", "cancelOldest", "cancelNewest", "cancelBoth"
+         * @param {bool|undefined} params.disableMarketProtection don't cancel if the next fill price is 10% worse than the best fill price
+         * @param {bool|undefined} params.responseRequired Set this to 'false' when only an acknowledgement of success or failure is required, this is faster.
          * @returns {object} an [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
          */
         await this.loadMarkets ();
@@ -978,17 +980,20 @@ export default class bitvavo extends Exchange {
         if (isMarketOrder) {
             let cost = undefined;
             if (price !== undefined) {
-                cost = amount * price;
+                const priceString = this.numberToString (price);
+                const amountString = this.numberToString (amount);
+                const quoteAmount = Precise.stringMul (amountString, priceString);
+                cost = this.parseNumber (quoteAmount);
             } else {
-                cost = this.safeNumber2 (params, 'cost', 'amountQuote');
+                cost = this.safeNumber (params, 'cost');
             }
             if (cost !== undefined) {
-                const precision = market['precision']['price'];
+                const precision = this.currency (market['quote'])['precision'];
                 request['amountQuote'] = this.decimalToPrecision (cost, TRUNCATE, precision, this.precisionMode);
             } else {
                 request['amount'] = this.amountToPrecision (symbol, amount);
             }
-            params = this.omit (params, [ 'cost', 'amountQuote' ]);
+            params = this.omit (params, [ 'cost' ]);
         } else if (isLimitOrder) {
             request['price'] = this.priceToPrecision (symbol, price);
             request['amount'] = this.amountToPrecision (symbol, amount);
