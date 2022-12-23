@@ -458,6 +458,8 @@ export default class Exchange {
                 'fetchMarkOHLCV': undefined,
                 'fetchMyTrades': undefined,
                 'fetchOHLCV': 'emulated',
+                'fetchOpenInterest': undefined,
+                'fetchOpenInterestHistory': undefined,
                 'fetchOpenOrder': undefined,
                 'fetchOpenOrders': undefined,
                 'fetchOrder': undefined,
@@ -2190,6 +2192,9 @@ export default class Exchange {
     }
 
     marketIds (symbols) {
+        if (symbols === undefined) {
+            return symbols;
+        }
         const result = [];
         for (let i = 0; i < symbols.length; i++) {
             result.push (this.marketId (symbols[i]));
@@ -2367,6 +2372,26 @@ export default class Exchange {
             }
         }
         return networkCode;
+    }
+
+    networkCodesToIds (networkCodes = undefined) {
+        /**
+         * @ignore
+         * @method
+         * @name exchange#networkCodesToIds
+         * @description tries to convert the provided networkCode (which is expected to be an unified network code) to a network id. In order to achieve this, derived class needs to have 'options->networks' defined.
+         * @param {[string]|undefined} networkCodes unified network codes
+         * @returns {[string|undefined]} exchange-specific network ids
+         */
+        if (networkCodes === undefined) {
+            return undefined;
+        }
+        const ids = [];
+        for (let i = 0; i < networkCodes.length; i++) {
+            const networkCode = networkCodes[i];
+            ids.push (this.networkCodeToId (networkCode));
+        }
+        return ids;
     }
 
     handleNetworkCodeAndParams (params) {

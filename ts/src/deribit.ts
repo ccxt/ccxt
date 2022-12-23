@@ -1642,6 +1642,8 @@ export default class deribit extends Exchange {
         const market = this.market (symbol);
         if (market['inverse']) {
             amount = this.amountToPrecision (symbol, amount);
+        } else if (market['settle'] === 'USDC') {
+            amount = this.amountToPrecision (symbol, amount);
         } else {
             amount = this.currencyToPrecision (symbol, amount);
         }

@@ -36,7 +36,7 @@ use Elliptic\EdDSA;
 use BN\BN;
 use Exception;
 
-$version = '2.4.29';
+$version = '2.4.49';
 
 // rounding mode
 const TRUNCATE = 0;
@@ -55,7 +55,7 @@ const PAD_WITH_ZERO = 1;
 
 class Exchange {
 
-    const VERSION = '2.4.29';
+    const VERSION = '2.4.49';
 
     private static $base58_alphabet = '123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz';
     private static $base58_encoder = null;
@@ -304,6 +304,7 @@ class Exchange {
         'getNetwork' => 'get_network',
         'networkCodeToId' => 'network_code_to_id',
         'networkIdToCode' => 'network_id_to_code',
+        'networkCodesToIds' => 'network_codes_to_ids',
         'handleNetworkCodeAndParams' => 'handle_network_code_and_params',
         'defaultNetworkCode' => 'default_network_code',
         'selectNetworkCodeFromUnifiedNetworks' => 'select_network_code_from_unified_networks',
@@ -588,7 +589,7 @@ class Exchange {
 
     public static function safe_value_n($object, $array, $default_value = null) {
         $value = static::get_object_value_from_key_array($object, $array);
-        return (isset($value) && is_scalar($value)) ? $value : $default_value;
+        return isset($value) ? $value : $default_value;
     }
 
     public static function get_object_value_from_key_array($object, $array) {
@@ -3264,6 +3265,9 @@ class Exchange {
     }
 
     public function market_ids($symbols) {
+        if ($symbols === null) {
+            return $symbols;
+        }
         $result = array();
         for ($i = 0; $i < count($symbols); $i++) {
             $result[] = $this->market_id($symbols[$i]);
@@ -3437,6 +3441,24 @@ class Exchange {
             }
         }
         return $networkCode;
+    }
+
+    public function network_codes_to_ids($networkCodes = null) {
+        /**
+         * @ignore
+         * tries to convert the provided $networkCode (which is expected to be an unified network code) to a network id. In order to achieve this, derived class needs to have 'options->networks' defined.
+         * @param {[string]|null} $networkCodes unified network codes
+         * @return {[string|null]} exchange-specific network $ids
+         */
+        if ($networkCodes === null) {
+            return null;
+        }
+        $ids = array();
+        for ($i = 0; $i < count($networkCodes); $i++) {
+            $networkCode = $networkCodes[$i];
+            $ids[] = $this->networkCodeToId ($networkCode);
+        }
+        return $ids;
     }
 
     public function handle_network_code_and_params($params) {

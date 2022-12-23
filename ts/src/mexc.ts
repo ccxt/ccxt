@@ -282,6 +282,7 @@ export default class mexc extends Exchange {
                 'cancelOrder': {
                     'method': 'spotPrivateDeleteOrderCancel', // contractPrivatePostOrderCancel contractPrivatePostPlanorderCancel
                 },
+                'broker': 'CCXT',
             },
             'commonCurrencies': {
                 'BEYONDPROTOCOL': 'BEYOND',
@@ -3136,6 +3137,7 @@ export default class mexc extends Exchange {
                 'ApiKey': this.apiKey,
                 'Request-Time': timestamp,
                 'Content-Type': 'application/json',
+                'source': this.safeString (this.options, 'broker', 'CCXT'),
             };
             if (method === 'POST') {
                 auth = this.json (params);

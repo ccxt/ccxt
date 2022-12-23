@@ -183,6 +183,8 @@ export default class mexc3 extends Exchange {
                             'rebate/taxQuery': 1,
                             'rebate/detail': 1,
                             'rebate/detail/kickback': 1,
+                            'rebate/referCode': 1,
+                            'mxDeduct/enable': 1,
                         },
                         'post': {
                             'order': 1,
@@ -200,6 +202,7 @@ export default class mexc3 extends Exchange {
                             'margin/order': 1,
                             'margin/loan': 1,
                             'margin/repay': 1,
+                            'mxDeduct/enable': 1,
                         },
                         'delete': {
                             'order': 1,
@@ -412,6 +415,7 @@ export default class mexc3 extends Exchange {
                 },
                 'recvWindow': 5 * 1000, // 5 sec, default
                 'maxTimeTillEnd': 90 * 86400 * 1000 - 1, // 90 days
+                'broker': 'CCXT',
             },
             'commonCurrencies': {
                 'BEYONDPROTOCOL': 'BEYOND',
@@ -4831,6 +4835,7 @@ export default class mexc3 extends Exchange {
                 url += '&' + 'signature=' + signature;
                 headers = {
                     'X-MEXC-APIKEY': this.apiKey,
+                    'source': this.safeString (this.options, 'broker', 'CCXT'),
                 };
             }
             if (method === 'POST') {

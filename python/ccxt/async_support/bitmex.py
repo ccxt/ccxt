@@ -998,24 +998,24 @@ class bitmex(Exchange):
 
     def parse_transaction(self, transaction, currency=None):
         #
-        #   {
-        #      'transactID': 'ffe699c2-95ee-4c13-91f9-0faf41daec25',
-        #      'account': 123456,
-        #      'currency': 'XBt',
-        #      'transactType': 'Withdrawal',
-        #      'amount': -100100000,
-        #      'fee': 100000,
-        #      'transactStatus': 'Completed',
-        #      'address': '385cR5DM96n1HvBDMzLHPYcw89fZAXULJP',
-        #      'tx': '3BMEXabcdefghijklmnopqrstuvwxyz123',
-        #      'text': '',
-        #      'transactTime': '2019-01-02T01:00:00.000Z',
-        #      'walletBalance': 99900000,
-        #      'marginBalance': None,
-        #      'timestamp': '2019-01-02T13:00:00.000Z'
-        #   }
+        #    {
+        #        'transactID': 'ffe699c2-95ee-4c13-91f9-0faf41daec25',
+        #        'account': 123456,
+        #        'currency': 'XBt',
+        #        'network':'',
+        #        'transactType': 'Withdrawal',
+        #        'amount': -100100000,
+        #        'fee': 100000,
+        #        'transactStatus': 'Completed',
+        #        'address': '385cR5DM96n1HvBDMzLHPYcw89fZAXULJP',
+        #        'tx': '3BMEXabcdefghijklmnopqrstuvwxyz123',
+        #        'text': '',
+        #        'transactTime': '2019-01-02T01:00:00.000Z',
+        #        'walletBalance': 99900000,
+        #        'marginBalance': None,
+        #        'timestamp': '2019-01-02T13:00:00.000Z'
+        #    }
         #
-        id = self.safe_string(transaction, 'transactID')
         currencyId = self.safe_string(transaction, 'currency')
         currency = self.safe_currency(currencyId, currency)
         # For deposits, transactTime == timestamp
@@ -1036,33 +1036,33 @@ class bitmex(Exchange):
         amountString = Precise.string_div(Precise.string_abs(amountString), scale)
         feeCostString = self.safe_string(transaction, 'fee')
         feeCostString = Precise.string_div(feeCostString, scale)
-        fee = {
-            'cost': self.parse_number(feeCostString),
-            'currency': currency['code'],
-        }
         status = self.safe_string(transaction, 'transactStatus')
         if status is not None:
             status = self.parse_transaction_status(status)
         return {
             'info': transaction,
-            'id': id,
-            'txid': None,
+            'id': self.safe_string(transaction, 'transactID'),
+            'txid': self.safe_string(transaction, 'tx'),
+            'type': type,
+            'currency': currency['code'],
+            'network': self.safe_string(transaction, 'status'),
+            'amount': self.parse_number(amountString),
+            'status': status,
             'timestamp': transactTime,
             'datetime': self.iso8601(transactTime),
-            'network': None,
-            'addressFrom': addressFrom,
             'address': address,
+            'addressFrom': addressFrom,
             'addressTo': addressTo,
-            'tagFrom': None,
             'tag': None,
+            'tagFrom': None,
             'tagTo': None,
-            'type': type,
-            'amount': self.parse_number(amountString),
-            'currency': currency['code'],
-            'status': status,
             'updated': timestamp,
             'comment': None,
-            'fee': fee,
+            'fee': {
+                'currency': currency['code'],
+                'cost': self.parse_number(feeCostString),
+                'rate': None,
+            },
         }
 
     async def fetch_ticker(self, symbol, params={}):

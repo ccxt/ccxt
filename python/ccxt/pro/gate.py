@@ -341,7 +341,7 @@ class gate(Exchange, ccxt.async_support.gate):
         type = market['type']
         messageType = self.get_uniform_type(type)
         options = self.safe_value(self.options, 'watchTicker', {})
-        topic = self.safe_string(options, 'topic', 'tickers')
+        topic = self.safe_string(options, 'name', 'tickers')
         channel = messageType + '.' + topic
         messageHash = channel + '.' + market['symbol']
         payload = [marketId]

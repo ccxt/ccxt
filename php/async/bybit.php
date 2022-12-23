@@ -1180,14 +1180,14 @@ class bybit extends Exchange {
             $params['limit'] = 1000; // minimize number of requests
             $response = Async\await($this->publicGetDerivativesV3PublicInstrumentsInfo ($params));
             $data = $this->safe_value($response, 'result', array());
-            $markets = $this->safe_value_2($data, 'list', 'dataList', array());
-            $paginationCursor = $this->safe_string($data, 'cursor');
+            $markets = $this->safe_value($data, 'list', array());
+            $paginationCursor = $this->safe_string($data, 'nextPageCursor');
             if ($paginationCursor !== null) {
                 while ($paginationCursor !== null) {
                     $params['cursor'] = $paginationCursor;
                     $response = Async\await($this->publicGetDerivativesV3PublicInstrumentsInfo ($params));
                     $data = $this->safe_value($response, 'result', array());
-                    $rawMarkets = $this->safe_value_2($data, 'list', 'dataList', array());
+                    $rawMarkets = $this->safe_value($data, 'list', array());
                     $rawMarketsLength = count($rawMarkets);
                     if ($rawMarketsLength === 0) {
                         break;
@@ -1242,9 +1242,8 @@ class bybit extends Exchange {
             //         "retCode" => 0,
             //         "retMsg" => "success",
             //         "result" => {
-            //             "resultTotalSize" => 1,
-            //             "cursor" => "",
-            //             "dataList" => array(
+            //             "nextPageCursor" => "",
+            //             "list" => array(
             //                 {
             //                     "category" => "option",
             //                     "symbol" => "BTC-30SEP22-35000-P",

@@ -2102,6 +2102,8 @@ export default class bitfinex2 extends Exchange {
         let feeCost = undefined;
         let txid = undefined;
         let addressTo = undefined;
+        let network = undefined;
+        let comment = undefined;
         if (transactionLength === 8) {
             const data = this.safeValue (transaction, 4, []);
             timestamp = this.safeInteger (transaction, 0);
@@ -2110,7 +2112,7 @@ export default class bitfinex2 extends Exchange {
             }
             feeCost = this.safeString (data, 8);
             if (feeCost !== undefined) {
-                feeCost = Precise.stringNeg (feeCost);
+                feeCost = Precise.stringAbs (feeCost);
             }
             amount = this.safeNumber (data, 5);
             id = this.safeValue (data, 0);
@@ -2125,12 +2127,15 @@ export default class bitfinex2 extends Exchange {
             id = this.safeString (transaction, 0);
             const currencyId = this.safeString (transaction, 1);
             code = this.safeCurrencyCode (currencyId, currency);
+            const networkId = this.safeString (transaction, 2);
+            network = this.safeNetwork (networkId);
             timestamp = this.safeInteger (transaction, 5);
             updated = this.safeInteger (transaction, 6);
             status = this.parseTransactionStatus (this.safeString (transaction, 9));
-            amount = this.safeString (transaction, 12);
-            if (amount !== undefined) {
-                if (Precise.stringLt (amount, '0')) {
+            const signedAmount = this.safeString (transaction, 12);
+            amount = Precise.stringAbs (signedAmount);
+            if (signedAmount !== undefined) {
+                if (Precise.stringLt (signedAmount, '0')) {
                     type = 'withdrawal';
                 } else {
                     type = 'deposit';
@@ -2138,29 +2143,31 @@ export default class bitfinex2 extends Exchange {
             }
             feeCost = this.safeString (transaction, 13);
             if (feeCost !== undefined) {
-                feeCost = Precise.stringNeg (feeCost);
+                feeCost = Precise.stringAbs (feeCost);
             }
             addressTo = this.safeString (transaction, 16);
             txid = this.safeString (transaction, 20);
+            comment = this.safeString (transaction, 21);
         }
         return {
             'info': transaction,
             'id': id,
             'txid': txid,
+            'type': type,
+            'currency': code,
+            'network': network,
+            'amount': this.parseNumber (amount),
+            'status': status,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'network': undefined,
-            'addressFrom': undefined,
             'address': addressTo, // this is actually the tag for XRP transfers (the address is missing)
+            'addressFrom': undefined,
             'addressTo': addressTo,
-            'tagFrom': undefined,
             'tag': tag, // refix it properly for the tag from description
+            'tagFrom': undefined,
             'tagTo': tag,
-            'type': type,
-            'amount': this.parseNumber (amount),
-            'currency': code,
-            'status': status,
             'updated': updated,
+            'comment': comment,
             'fee': {
                 'currency': code,
                 'cost': this.parseNumber (feeCost),

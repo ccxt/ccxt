@@ -87,6 +87,7 @@ export default class btcex extends Exchange {
                 '3m': '3',
                 '5m': '5',
                 '15m': '15',
+                '30m': '30',
                 '1h': '60',
                 '2h': '120',
                 '3h': '180',
@@ -575,7 +576,7 @@ export default class btcex extends Exchange {
         //     }
         //
         return [
-            this.safeInteger (ohlcv, 'tick'),
+            this.safeTimestamp (ohlcv, 'tick'),
             this.safeNumber (ohlcv, 'open'),
             this.safeNumber (ohlcv, 'high'),
             this.safeNumber (ohlcv, 'low'),

@@ -467,7 +467,7 @@ export default class huobijp extends Exchange {
             const leverageRatio = this.safeString (market, 'leverage-ratio', '1');
             const superLeverageRatio = this.safeString (market, 'super-margin-leverage-ratio', '1');
             const margin = Precise.stringGt (leverageRatio, '1') || Precise.stringGt (superLeverageRatio, '1');
-            const fee = (base === 'OMG') ? 0 : 0.2 / 100;
+            const fee = (base === 'OMG') ? this.parseNumber ('0') : this.parseNumber ('0.002');
             result.push ({
                 'id': baseId + quoteId,
                 'symbol': base + '/' + quote,
@@ -1425,7 +1425,10 @@ export default class huobijp extends Exchange {
                     // https://github.com/ccxt/ccxt/pull/4395
                     // https://github.com/ccxt/ccxt/issues/7611
                     // we use amountToPrecision here because the exchange requires cost in base precision
-                    request['amount'] = this.costToPrecision (symbol, parseFloat (amount) * parseFloat (price));
+                    const amountString = this.numberToString (amount);
+                    const priceString = this.numberToString (price);
+                    const baseAmount = Precise.stringMul (amountString, priceString);
+                    request['amount'] = this.costToPrecision (symbol, baseAmount);
                 }
             } else {
                 request['amount'] = this.costToPrecision (symbol, amount);
@@ -1731,41 +1734,36 @@ export default class huobijp extends Exchange {
         //     }
         //
         const timestamp = this.safeInteger (transaction, 'created-at');
-        const updated = this.safeInteger (transaction, 'updated-at');
         const code = this.safeCurrencyCode (this.safeString (transaction, 'currency'));
         let type = this.safeString (transaction, 'type');
         if (type === 'withdraw') {
             type = 'withdrawal';
         }
-        const status = this.parseTransactionStatus (this.safeString (transaction, 'state'));
-        const tag = this.safeString (transaction, 'address-tag');
-        let feeCost = this.safeNumber (transaction, 'fee');
+        let feeCost = this.safeString (transaction, 'fee');
         if (feeCost !== undefined) {
-            feeCost = Math.abs (feeCost);
+            feeCost = Precise.stringAbs (feeCost);
         }
-        const address = this.safeString (transaction, 'address');
-        const network = this.safeStringUpper (transaction, 'chain');
         return {
             'info': transaction,
             'id': this.safeString2 (transaction, 'id', 'data'),
             'txid': this.safeString (transaction, 'tx-hash'),
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'network': network,
-            'address': address,
+            'network': this.safeStringUpper (transaction, 'chain'),
+            'address': this.safeString (transaction, 'address'),
             'addressTo': undefined,
             'addressFrom': undefined,
-            'tag': tag,
+            'tag': this.safeString (transaction, 'address-tag'),
             'tagTo': undefined,
             'tagFrom': undefined,
             'type': type,
             'amount': this.safeNumber (transaction, 'amount'),
             'currency': code,
-            'status': status,
-            'updated': updated,
+            'status': this.parseTransactionStatus (this.safeString (transaction, 'state')),
+            'updated': this.safeInteger (transaction, 'updated-at'),
             'fee': {
                 'currency': code,
-                'cost': feeCost,
+                'cost': this.parseNumber (feeCost),
                 'rate': undefined,
             },
         };

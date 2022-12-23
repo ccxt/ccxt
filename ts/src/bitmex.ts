@@ -1046,24 +1046,24 @@ export default class bitmex extends Exchange {
 
     parseTransaction (transaction, currency = undefined) {
         //
-        //   {
-        //      'transactID': 'ffe699c2-95ee-4c13-91f9-0faf41daec25',
-        //      'account': 123456,
-        //      'currency': 'XBt',
-        //      'transactType': 'Withdrawal',
-        //      'amount': -100100000,
-        //      'fee': 100000,
-        //      'transactStatus': 'Completed',
-        //      'address': '385cR5DM96n1HvBDMzLHPYcw89fZAXULJP',
-        //      'tx': '3BMEXabcdefghijklmnopqrstuvwxyz123',
-        //      'text': '',
-        //      'transactTime': '2019-01-02T01:00:00.000Z',
-        //      'walletBalance': 99900000,
-        //      'marginBalance': None,
-        //      'timestamp': '2019-01-02T13:00:00.000Z'
-        //   }
+        //    {
+        //        'transactID': 'ffe699c2-95ee-4c13-91f9-0faf41daec25',
+        //        'account': 123456,
+        //        'currency': 'XBt',
+        //        'network':'',
+        //        'transactType': 'Withdrawal',
+        //        'amount': -100100000,
+        //        'fee': 100000,
+        //        'transactStatus': 'Completed',
+        //        'address': '385cR5DM96n1HvBDMzLHPYcw89fZAXULJP',
+        //        'tx': '3BMEXabcdefghijklmnopqrstuvwxyz123',
+        //        'text': '',
+        //        'transactTime': '2019-01-02T01:00:00.000Z',
+        //        'walletBalance': 99900000,
+        //        'marginBalance': None,
+        //        'timestamp': '2019-01-02T13:00:00.000Z'
+        //    }
         //
-        const id = this.safeString (transaction, 'transactID');
         const currencyId = this.safeString (transaction, 'currency');
         currency = this.safeCurrency (currencyId, currency);
         // For deposits, transactTime == timestamp
@@ -1085,34 +1085,34 @@ export default class bitmex extends Exchange {
         amountString = Precise.stringDiv (Precise.stringAbs (amountString), scale);
         let feeCostString = this.safeString (transaction, 'fee');
         feeCostString = Precise.stringDiv (feeCostString, scale);
-        const fee = {
-            'cost': this.parseNumber (feeCostString),
-            'currency': currency['code'],
-        };
         let status = this.safeString (transaction, 'transactStatus');
         if (status !== undefined) {
             status = this.parseTransactionStatus (status);
         }
         return {
             'info': transaction,
-            'id': id,
-            'txid': undefined,
+            'id': this.safeString (transaction, 'transactID'),
+            'txid': this.safeString (transaction, 'tx'),
+            'type': type,
+            'currency': currency['code'],
+            'network': this.safeString (transaction, 'status'),
+            'amount': this.parseNumber (amountString),
+            'status': status,
             'timestamp': transactTime,
             'datetime': this.iso8601 (transactTime),
-            'network': undefined,
-            'addressFrom': addressFrom,
             'address': address,
+            'addressFrom': addressFrom,
             'addressTo': addressTo,
-            'tagFrom': undefined,
             'tag': undefined,
+            'tagFrom': undefined,
             'tagTo': undefined,
-            'type': type,
-            'amount': this.parseNumber (amountString),
-            'currency': currency['code'],
-            'status': status,
             'updated': timestamp,
             'comment': undefined,
-            'fee': fee,
+            'fee': {
+                'currency': currency['code'],
+                'cost': this.parseNumber (feeCostString),
+                'rate': undefined,
+            },
         };
     }
 

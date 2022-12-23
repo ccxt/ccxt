@@ -1165,14 +1165,14 @@ export default class bybit extends Exchange {
         params['limit'] = 1000; // minimize number of requests
         const response = await (this as any).publicGetDerivativesV3PublicInstrumentsInfo (params);
         const data = this.safeValue (response, 'result', {});
-        let markets = this.safeValue2 (data, 'list', 'dataList', []);
-        let paginationCursor = this.safeString (data, 'cursor');
+        let markets = this.safeValue (data, 'list', []);
+        let paginationCursor = this.safeString (data, 'nextPageCursor');
         if (paginationCursor !== undefined) {
             while (paginationCursor !== undefined) {
                 params['cursor'] = paginationCursor;
                 const response = await (this as any).publicGetDerivativesV3PublicInstrumentsInfo (params);
                 const data = this.safeValue (response, 'result', {});
-                const rawMarkets = this.safeValue2 (data, 'list', 'dataList', []);
+                const rawMarkets = this.safeValue (data, 'list', []);
                 const rawMarketsLength = rawMarkets.length;
                 if (rawMarketsLength === 0) {
                     break;
@@ -1227,9 +1227,8 @@ export default class bybit extends Exchange {
         //         "retCode": 0,
         //         "retMsg": "success",
         //         "result": {
-        //             "resultTotalSize": 1,
-        //             "cursor": "",
-        //             "dataList": [
+        //             "nextPageCursor": "",
+        //             "list": [
         //                 {
         //                     "category": "option",
         //                     "symbol": "BTC-30SEP22-35000-P",

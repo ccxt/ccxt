@@ -367,7 +367,7 @@ export default class gate extends gateRest {
         const type = market['type'];
         const messageType = this.getUniformType (type);
         const options = this.safeValue (this.options, 'watchTicker', {});
-        const topic = this.safeString (options, 'topic', 'tickers');
+        const topic = this.safeString (options, 'name', 'tickers');
         const channel = messageType + '.' + topic;
         const messageHash = channel + '.' + market['symbol'];
         const payload = [ marketId ];
