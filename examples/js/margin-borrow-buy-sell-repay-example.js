@@ -16,7 +16,7 @@ async function example () {
     const amount_to_trade = 20; // how many coins to sell
     const order_type = 'limit'; // order type (can be market, limit or etc)
     const limit_price = 0.99; // price to sell at (set undefined/null/None if market-order)
-    const margin_magnitude = 5; // target margin (leverage). This might also be obtainable using other unified methods, but for example purposes, we set here manually
+    const margin_magnitude = 5; // target margin (aka 'leverage'). This might also be obtainable using other unified methods, but for example purposes, we set here manually
     // ########## end of user-inputs ##########
 
     // for example purposes, let's also check available balance at first
