@@ -1,6 +1,6 @@
 <?php
 // ##########################################
-// to see asynchronous version, check: https://github.com/ccxt/ccxt/blob/master/examples/php/async-await.php
+// for asynchronous (async/await) version check: https://github.com/ccxt/ccxt/blob/master/examples/php/async-await.php
 // ##########################################
 
 include dirname(dirname(dirname(__FILE__))) . '/ccxt.php';
