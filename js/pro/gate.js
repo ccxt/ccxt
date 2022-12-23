@@ -391,15 +391,23 @@ module.exports = class gate extends gateRest {
         const options = this.safeValue (this.options, 'watchTickers', {});
         const topic = this.safeString (options, 'name', 'tickers');
         const channel = messageType + '.' + topic;
-        let messageHash = 'watchTickers';
+        const messageHash = 'tickers';
         const payload = [];
         for (let i = 0; i < marketIds.length; i++) {
             payload.push (marketIds[i]);
         }
-        messageHash += symbols.join ('|');
         const url = this.getUrlByMarketType (type, market['inverse']);
-        const tickers = await this.subscribePublic (url, channel, messageHash, payload);
-        return this.filterByArray (tickers, 'symbol', symbols, false);
+        const ticker = await this.subscribePublic (url, channel, messageHash, payload);
+        const tickerSymbol = ticker['symbol'];
+        if (symbols !== undefined && !this.inArray (tickerSymbol, symbols)) {
+            return await this.watchTickers (symbols, params);
+        }
+        if (this.newUpdates) {
+            const result = {};
+            result[tickerSymbol] = ticker;
+            return result;
+        }
+        return this.filterByArray (this.tickers, 'symbol', symbols, false);
     }
 
     handleTicker (client, message) {
@@ -441,7 +449,6 @@ module.exports = class gate extends gateRest {
         if (!Array.isArray (result)) {
             result = [ result ];
         }
-        const symbols = [];
         for (let i = 0; i < result.length; i++) {
             const ticker = result[i];
             const parsed = this.parseTicker (ticker);
@@ -449,18 +456,7 @@ module.exports = class gate extends gateRest {
             this.tickers[symbol] = parsed;
             const messageHash = channel + '.' + symbol;
             client.resolve (this.tickers[symbol], messageHash);
-            symbols.push (symbol);
-        }
-        const messageHashes = Object.keys (client.futures);
-        for (let i = 0; i < messageHashes.length; i++) {
-            const messageHash = messageHashes[i];
-            if (messageHash.indexOf ('watchTickers') >= 0) {
-                for (let j = 0; j < symbols.length; j++) {
-                    if (messageHash.indexOf (symbols[j]) >= 0) {
-                        client.resolve (this.tickers, messageHash);
-                    }
-                }
-            }
+            client.resolve (parsed, 'tickers');
         }
     }
 
