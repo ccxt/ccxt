@@ -26,6 +26,7 @@ module.exports = class poloniexfutures extends Exchange {
                 'swap': true,
                 'future': false,
                 'option': undefined,
+                'createOrder': true,
                 'fetchBalance': true,
                 'fetchCurrencies': false,
                 'fetchMarkets': true,
@@ -781,7 +782,6 @@ module.exports = class poloniexfutures extends Exchange {
          * @param {bool} params.forceHold A mark to forcely hold the funds for an order, even though it's an order to reduce the position size. This helps the order stay on the order book and not get canceled when the position size changes. Set to false by default.
          * @returns {object} an [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
          */
-        // FIXME
         await this.loadMarkets ();
         const market = this.market (symbol);
         // required param, cannot be used twice
@@ -866,13 +866,6 @@ module.exports = class poloniexfutures extends Exchange {
         };
     }
 
-    objectValuesToString (o) {
-        Object.keys (o).forEach ((k) => {
-            o[k] = '' + o[k];
-        });
-        return o;
-    }
-
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let url = this.urls['api'][api];
         const versions = this.safeValue (this.options, 'versions', {});
@@ -899,13 +892,11 @@ module.exports = class poloniexfutures extends Exchange {
             const now = this.milliseconds ().toString ();
             let endpart = '';
             if (body !== undefined) {
-                body = this.objectValuesToString (body);
                 body = this.json (query);
                 endpart = body;
             }
             const endpoint = '/api/v1/' + this.implodeParams (path, params);
             const payload = now + method + endpoint + endpart;
-            console.log (payload);
             const signature = this.hmac (this.encode (payload), this.encode (this.secret), 'sha256', 'base64');
             headers = {
                 'PF-API-SIGN': signature,
@@ -913,6 +904,7 @@ module.exports = class poloniexfutures extends Exchange {
                 'PF-API-KEY': this.apiKey,
                 'PF-API-PASSPHRASE': this.password,
             };
+            headers['Content-Type'] = 'application/json';
         }
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
