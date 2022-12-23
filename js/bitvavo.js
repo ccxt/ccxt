@@ -986,7 +986,7 @@ module.exports = class bitvavo extends Exchange {
                 const quoteAmount = Precise.stringMul (amountString, priceString);
                 cost = this.parseNumber (quoteAmount);
             } else {
-                cost = this.safeNumber2 (params, 'cost');
+                cost = this.safeNumber (params, 'cost');
             }
             if (cost !== undefined) {
                 const precision = this.currency (market['quote'])['precision'];
