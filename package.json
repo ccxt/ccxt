@@ -108,11 +108,12 @@
     "eslint": "^8.8.0",
     "eslint-config-airbnb-base": "15.0.0",
     "eslint-plugin-import": "2.25.4",
-    "rollup": "^2.70.1",
-    "rollup-plugin-polyfill-node": "^0.9.0",
     "https-proxy-agent": "^5.0.1",
     "ololog": "1.1.155",
-    "replace-in-file": "^6.3.5"
+    "replace-in-file": "^6.3.5",
+    "rollup": "^2.70.1",
+    "rollup-plugin-polyfill-node": "^0.9.0",
+    "typescript": "^4.9.4"
   },
   "author": {
     "name": "Igor Kroitor",
