@@ -319,7 +319,7 @@ export default class itbit extends Exchange {
             'amount': amount,
             'cost': cost,
             'fee': undefined,
-        };
+        } as any;
         if (feeCost !== undefined) {
             if (rebatesApplied !== undefined) {
                 if (feeCurrency === rebateCurrency) {

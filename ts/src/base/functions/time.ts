@@ -47,7 +47,7 @@ class TimedOut extends Error {
         const message = 'timed out';
         super (message);
         this.constructor = TimedOut;
-        // @ts-expect-error
+        // // @ts-expect-error
         this.__proto__ = TimedOut.prototype;
         this.message = message;
     }
