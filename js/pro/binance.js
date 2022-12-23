@@ -65,7 +65,7 @@ module.exports = class binance extends binanceRest {
                     'name': 'ticker', // ticker = 1000ms L1+OHLCV, bookTicker = real-time L1
                 },
                 'watchTickers': {
-                    'name': '!' + 'ticker', // !ticker or !miniTicker
+                    'name': 'ticker', // ticker or miniTicker or bookTicker
                 },
                 'watchBalance': {
                     'fetchBalanceSnapshot': false, // or true
@@ -758,20 +758,21 @@ module.exports = class binance extends binanceRest {
          * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
          */
         await this.loadMarkets ();
+        symbols = this.marketSymbols (symbols);
         const marketIds = this.marketIds (symbols);
         let market = undefined;
         if (marketIds !== undefined) {
-            market = this.market (marketIds[0]);
+            market = this.safeMarket (marketIds[0]);
         }
         let type = undefined;
         [ type, params ] = this.handleMarketTypeAndParams ('watchTickers', market, params);
         const options = this.safeValue (this.options, 'watchTickers', {});
-        let name = this.safeString (options, 'name', '!' + 'ticker');
+        let name = this.safeString (options, 'name', 'ticker');
         name = this.safeString (params, 'name', name);
+        const oriParams = params;
         params = this.omit (params, 'name');
         let wsParams = [];
-        const marketSymbols = this.marketSymbols (symbols);
-        let messageHash = name + '@arr';
+        const messageHash = '!' + name + '@arr';
         if (name === 'bookTicker') {
             if (marketIds === undefined) {
                 throw new ArgumentsRequired (this.id + ' watchTickers() requires symbols for bookTicker');
@@ -785,7 +786,6 @@ module.exports = class binance extends binanceRest {
                 messageHash,
             ];
         }
-        messageHash += marketSymbols.join ('|');
         const url = this.urls['api']['ws'][type] + '/' + this.stream (type, messageHash);
         const requestId = this.requestId (url);
         const request = {
@@ -797,7 +797,21 @@ module.exports = class binance extends binanceRest {
             'id': requestId,
         };
         const tickers = await this.watch (url, messageHash, this.extend (request, params), messageHash, subscribe);
-        return this.filterByArray (tickers, 'symbol', symbols, false);
+        const result = {};
+        for (let i = 0; i < tickers.length; i++) {
+            const ticker = tickers[i];
+            const tickerSymbol = ticker['symbol'];
+            if (symbols !== undefined && this.inArray (tickerSymbol, symbols)) {
+                result[tickerSymbol] = ticker;
+            }
+        }
+        if (Object.keys (result).length > 0) {
+            if (this.newUpdates) {
+                return result;
+            }
+            return this.filterByArray (this.tickers, 'symbol', symbols);
+        }
+        return await this.watchTickers (symbols, oriParams);
     }
 
     parseWsTicker (message) {
@@ -922,27 +936,36 @@ module.exports = class binance extends binanceRest {
             event = 'miniTicker';
         }
         const wsMarketId = this.safeStringLower (message, 's');
-        let messageHash = wsMarketId + '@' + event;
+        const messageHash = wsMarketId + '@' + event;
         const result = this.parseWsTicker (message);
         const symbol = result['symbol'];
         this.tickers[symbol] = result;
         client.resolve (result, messageHash);
-        // check whether message is for watching tickers
-        const messageHashes = Object.keys (client.futures);
-        const tickersEvent = event + '@arr';
-        for (let i = 0; i < messageHashes.length; i++) {
-            messageHash = messageHashes[i];
-            if (messageHash.indexOf (tickersEvent) >= 0 && messageHash.indexOf (symbol) >= 0) {
-                client.resolve (this.tickers, messageHash);
-            }
+        if (event === 'bookTicker') {
+            // watch bookTickers
+            client.resolve ([ result ], '!' + 'bookTicker@arr');
         }
     }
 
     handleTickers (client, message) {
+        let event = undefined;
         for (let i = 0; i < message.length; i++) {
             const ticker = message[i];
-            this.handleTicker (client, ticker);
+            event = this.safeString (ticker, 'e');
+            if (event === '24hrTicker') {
+                event = 'ticker';
+            } else if (event === '24hrMiniTicker') {
+                event = 'miniTicker';
+            }
+            const wsMarketId = this.safeStringLower (ticker, 's');
+            const messageHash = wsMarketId + '@' + event;
+            const result = this.parseWsTicker (ticker);
+            const symbol = result['symbol'];
+            this.tickers[symbol] = result;
+            client.resolve (result, messageHash);
         }
+        const values = Object.values (this.tickers);
+        client.resolve (values, '!' + event + '@arr');
     }
 
     async authenticate (params = {}) {
