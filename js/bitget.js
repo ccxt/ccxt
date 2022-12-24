@@ -3276,8 +3276,9 @@ module.exports = class bitget extends Exchange {
         const request = {
             'symbol': market['id'],
         };
-        const response = await this.publicMixGetMarketCurrentFundRate (this.extend (request, params));
-        //
+        const fundingRate = await this.publicMixGetMarketCurrentFundRate (this.extend (request, params));
+        const fundingTime = await this.publicMixGetMarketFundingTime (this.extend (request, params));
+        // Current Fund Rate
         //     {
         //         "code": "00000",
         //         "msg": "success",
@@ -3288,7 +3289,19 @@ module.exports = class bitget extends Exchange {
         //         }
         //     }
         //
-        const data = this.safeValue (response, 'data', {});
+        // Funding Time
+        //     {
+        //         "code":"00000",
+        //         "data":{
+        //             "symbol":"BTCUSDT_UMCBL",
+        //             "fundingTime":"1627311600000"
+        //         },
+        //         "msg":"success",
+        //         "requestTime":1627291915767
+        //     }
+        const fundingRateData = this.safeValue (fundingRate, 'data', {});
+        const fundingTimeData = this.safeValue (fundingTime, 'data', {});
+        const data = this.extend (fundingRateData, fundingTimeData);
         return this.parseFundingRate (data, market);
     }
 
@@ -3296,11 +3309,13 @@ module.exports = class bitget extends Exchange {
         //
         //     {
         //         "symbol": "BTCUSDT_UMCBL",
-        //         "fundingRate": "-0.000182"
+        //         "fundingRate": "-0.000182",
+        //         "fundingTime":"1627311600000"
         //     }
         //
         const marketId = this.safeString (contract, 'symbol');
         const symbol = this.safeSymbol (marketId, market);
+        const fundingTime = this.safeInteger (contract, 'fundingTime');
         return {
             'info': contract,
             'symbol': symbol,
@@ -3311,8 +3326,8 @@ module.exports = class bitget extends Exchange {
             'timestamp': undefined,
             'datetime': undefined,
             'fundingRate': this.safeNumber (contract, 'fundingRate'),
-            'fundingTimestamp': undefined,
-            'fundingDatetime': undefined,
+            'fundingTimestamp': fundingTime,
+            'fundingDatetime': this.iso8601 (fundingTime),
             'nextFundingRate': undefined,
             'nextFundingTimestamp': undefined,
             'nextFundingDatetime': undefined,
