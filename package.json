@@ -23,7 +23,7 @@
   "readme": "README.md",
   "scripts": {
     "docker": "docker-compose run --rm ccxt",
-    "fixTSBug": "replace-in-files --string='export {};' --replacement='' js/src/static_dependencies",
+    "fixTSBug": "replace-in-files --string='export {};' --replacement='' ./js/src/static_dependencies",
     "tsBuild": "tsc && npm run fixTSBug",
     "build": "npm run tsBuild && npm run pre-transpile && npm run transpile && npm run post-transpile && npm run update-badges",
     "force-build": "npm run tsBuild && npm run pre-transpile && npm run force-transpile-fast && npm run post-transpile && npm run update-badges",
