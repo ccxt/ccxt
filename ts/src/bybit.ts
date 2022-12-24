@@ -2047,7 +2047,7 @@ export default class bybit extends Exchange {
         //         }
         //     }
         //
-        const result = this.safeValue (response, 'result');
+        const result = this.safeValue (response, 'result', {});
         const ohlcvs = this.safeValue (result, 'list', []);
         return this.parseOHLCVs (ohlcvs, market, timeframe, since, limit);
     }
@@ -6070,8 +6070,9 @@ export default class bybit extends Exchange {
             symbols = [ symbols ];
         }
         symbols = this.marketSymbols (symbols);
+        const marketId = this.marketId (symbols[0]);
         const request = {
-            'dataFilter': 'valid',
+            'symbol': marketId,
         };
         let settle = undefined;
         [ settle, params ] = this.handleOptionAndParams (params, 'fetchPositions', 'settle', settle);

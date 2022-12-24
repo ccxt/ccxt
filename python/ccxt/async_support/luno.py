@@ -890,7 +890,7 @@ class luno(Exchange):
         direction = None
         status = None
         if not Precise.string_equals(balance_delta, '0.0'):
-            before = after - balance_delta
+            before = Precise.string_sub(after, balance_delta)
             status = 'ok'
             amount = Precise.string_abs(balance_delta)
         elif Precise.string_lt(available_delta, '0.0'):

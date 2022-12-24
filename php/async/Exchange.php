@@ -36,11 +36,11 @@ use \ccxt\pro\ClientTrait;
 
 include 'Throttle.php';
 
-$version = '2.4.52';
+$version = '2.4.55';
 
 class Exchange extends \ccxt\Exchange {
 
-    const VERSION = '2.4.52';
+    const VERSION = '2.4.55';
 
     public $streaming = array(
         'keepAlive' => 30000,
