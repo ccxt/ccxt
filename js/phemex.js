@@ -89,6 +89,7 @@ module.exports = class phemex extends Exchange {
                 },
                 'api': {
                     'v1': 'https://{hostname}/v1',
+                    'v2': 'https://{hostname}',
                     'public': 'https://{hostname}/exchange/public',
                     'private': 'https://{hostname}',
                 },
@@ -136,6 +137,14 @@ module.exports = class phemex extends Exchange {
                         'md/spot/ticker/24hr/all', // ?symbol=<symbol>&id=<id>
                         'exchange/public/products', // contracts only
                     ],
+                },
+                'v2': {
+                    'get': [
+                        'md/v2/orderbook', // ?symbol=<symbol>&id=<id>
+                        'md/v2/trade', // ?symbol=<symbol>&id=<id>
+                        'md/v2/ticker/24hr', // ?symbol=<symbol>&id=<id>
+                        'md/v2/ticker/24hr/all', // ?id=<id>
+                    ]
                 },
                 'private': {
                     'get': [
