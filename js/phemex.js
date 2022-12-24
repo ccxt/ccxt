@@ -1192,7 +1192,18 @@ module.exports = class phemex extends Exchange {
             'symbol': market['id'],
             // 'id': 123456789, // optional request id
         };
-        const method = market['spot'] ? 'v1GetMdSpotTicker24hr' : 'v1GetMdTicker24hr';
+        if (market['spot']) {
+            var method = 'v1GetMdSpotTicker24hr';
+        } else {
+            info = self.safeValue(market, 'info', {})
+            type = self.safeStringLower('info', 'type')
+
+            if (type === 'perpetual') {
+                var method = 'v1GetMdTicker24hr';
+            } else {
+                var method = 'v2GetMdV2Ticker24hr';
+            }
+        }
         const response = await this[method] (this.extend (request, params));
         //
         // spot
@@ -3077,7 +3088,13 @@ module.exports = class phemex extends Exchange {
         const request = {
             'symbol': market['id'],
         };
-        const response = await this.v1GetMdTicker24hr (this.extend (request, params));
+        const info = self.safeValue (market, 'info', {});
+        const type = self.safeStringLower (info, 'type');
+        if (type === 'perpetual') {
+            var response = await this.v1GetMdTicker24hr (this.extend (request, params));
+        } else {
+            var response = await this.v2GetMdV2Ticker24hr (this.extend (request, params));
+        }
         //
         //     {
         //         "error": null,
