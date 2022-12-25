@@ -816,6 +816,18 @@ class bitget(Exchange):
             },
         })
 
+    def set_sandbox_mode(self, enabled):
+        currSubTypes = self.get_sub_types()
+        if enabled:
+            self.options['subTypesBackup'] = currSubTypes
+            newSubTypes = []
+            for i in range(0, len(currSubTypes)):
+                newSubTypes.append('s' + currSubTypes[i])
+            self.options['subTypes'] = newSubTypes
+        elif 'subTypesBackup' in self.options:
+            self.options['subTypes'] = self.options['subTypesBackup']
+            del self.options['subTypesBackup']
+
     def get_sub_types(self):
         return self.safe_value(self.options, 'subTypes', ['umcbl', 'dmcbl', 'cmcbl'])
 
@@ -923,7 +935,7 @@ class bitget(Exchange):
         for i in range(0, len(types)):
             type = types[i]
             if type == 'swap':
-                subTypes = ['umcbl', 'dmcbl', 'cmcbl', 'sumcbl', 'sdmcbl', 'scmcbl']
+                subTypes = self.get_sub_types()
                 for j in range(0, len(subTypes)):
                     markets = await self.fetch_markets_by_type(type, self.extend(params, {
                         'productType': subTypes[j],
@@ -979,7 +991,9 @@ class bitget(Exchange):
         #
         marketId = self.safe_string(market, 'symbol')
         quoteId = self.safe_string(market, 'quoteCoin')
-        if marketId[-5:] == 'CMCBL':
+        if marketId[-6:] == 'SCMCBL':
+            quoteId = 'SUSDC'
+        elif marketId[-5:] == 'CMCBL':
             quoteId = 'USDC'
         baseId = self.safe_string(market, 'baseCoin')
         quote = self.safe_currency_code(quoteId)

@@ -795,6 +795,21 @@ class bitget extends Exchange {
         ));
     }
 
+    public function set_sandbox_mode($enabled) {
+        $currSubTypes = $this->get_sub_types();
+        if ($enabled) {
+            $this->options['subTypesBackup'] = $currSubTypes;
+            $newSubTypes = array();
+            for ($i = 0; $i < count($currSubTypes); $i++) {
+                $newSubTypes[] = 's' . $currSubTypes[$i];
+            }
+            $this->options['subTypes'] = $newSubTypes;
+        } elseif (is_array($this->options) && array_key_exists('subTypesBackup', $this->options)) {
+            $this->options['subTypes'] = $this->options['subTypesBackup'];
+            unset($this->options['subTypesBackup']);
+        }
+    }
+
     public function get_sub_types() {
         return $this->safe_value($this->options, 'subTypes', array( 'umcbl', 'dmcbl', 'cmcbl' ));
     }
@@ -913,7 +928,7 @@ class bitget extends Exchange {
         for ($i = 0; $i < count($types); $i++) {
             $type = $types[$i];
             if ($type === 'swap') {
-                $subTypes = array( 'umcbl', 'dmcbl', 'cmcbl', 'sumcbl', 'sdmcbl', 'scmcbl' );
+                $subTypes = $this->get_sub_types();
                 for ($j = 0; $j < count($subTypes); $j++) {
                     $markets = $this->fetch_markets_by_type($type, array_merge($params, array(
                         'productType' => $subTypes[$j],
@@ -975,7 +990,9 @@ class bitget extends Exchange {
         //
         $marketId = $this->safe_string($market, 'symbol');
         $quoteId = $this->safe_string($market, 'quoteCoin');
-        if (mb_substr($marketId, -5) === 'CMCBL') {
+        if (mb_substr($marketId, -6) === 'SCMCBL') {
+            $quoteId = 'SUSDC';
+        } elseif (mb_substr($marketId, -5) === 'CMCBL') {
             $quoteId = 'USDC';
         }
         $baseId = $this->safe_string($market, 'baseCoin');

@@ -796,6 +796,21 @@ module.exports = class bitget extends Exchange {
         });
     }
 
+    setSandboxMode (enabled) {
+        const currSubTypes = this.getSubTypes ();
+        if (enabled) {
+            this.options['subTypesBackup'] = currSubTypes;
+            const newSubTypes = [];
+            for (let i = 0; i < currSubTypes.length; i++) {
+                newSubTypes.push ('s' + currSubTypes[i]);
+            }
+            this.options['subTypes'] = newSubTypes;
+        } else if ('subTypesBackup' in this.options) {
+            this.options['subTypes'] = this.options['subTypesBackup'];
+            delete this.options['subTypesBackup'];
+        }
+    }
+
     getSubTypes () {
         return this.safeValue (this.options, 'subTypes', [ 'umcbl', 'dmcbl', 'cmcbl' ]);
     }
@@ -922,7 +937,7 @@ module.exports = class bitget extends Exchange {
         for (let i = 0; i < types.length; i++) {
             const type = types[i];
             if (type === 'swap') {
-                const subTypes = [ 'umcbl', 'dmcbl', 'cmcbl', 'sumcbl', 'sdmcbl', 'scmcbl' ];
+                const subTypes = this.getSubTypes ();
                 for (let j = 0; j < subTypes.length; j++) {
                     const markets = await this.fetchMarketsByType (type, this.extend (params, {
                         'productType': subTypes[j],
@@ -984,7 +999,9 @@ module.exports = class bitget extends Exchange {
         //
         const marketId = this.safeString (market, 'symbol');
         let quoteId = this.safeString (market, 'quoteCoin');
-        if (marketId.slice (-5) === 'CMCBL') {
+        if (marketId.slice (-6) === 'SCMCBL') {
+            quoteId = 'SUSDC';
+        } else if (marketId.slice (-5) === 'CMCBL') {
             quoteId = 'USDC';
         }
         const baseId = this.safeString (market, 'baseCoin');

@@ -83,6 +83,12 @@ module.exports = class bitget extends bitgetRest {
         let marketId = this.safeString (arg, 'instId');
         if (instType === 'sp') {
             marketId += '_SPBL';
+        } else if (marketId.slice (-5) === 'SPERP') {
+            marketId = marketId + '_SCMCBL';
+        } else if (marketId.slice (-5) === 'SUSDT') {
+            marketId = marketId + '_SUMCBL';
+        } else if (marketId.slice (-4) === 'SUSD') {
+            marketId = marketId + '_SDMCBL';
         } else if (marketId.slice (-4) === 'PERP') {
             marketId = marketId + '_CMCBL';
         } else if (marketId.slice (-4) === 'USDT') {
