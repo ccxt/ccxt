@@ -4514,6 +4514,7 @@ class huobi(Exchange):
             currency = self.currency(code)
         request = {
             'type': 'deposit',
+            'direct': 'next',
             'from': 0,  # From 'id' ... if you want to get results after a particular transaction id, pass the id in params.from
         }
         if currency is not None:
@@ -4566,6 +4567,7 @@ class huobi(Exchange):
             currency = self.currency(code)
         request = {
             'type': 'withdraw',
+            'direct': 'next',
             'from': 0,  # From 'id' ... if you want to get results after a particular transaction id, pass the id in params.from
         }
         if currency is not None:

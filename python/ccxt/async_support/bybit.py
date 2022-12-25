@@ -1992,7 +1992,7 @@ class bybit(Exchange):
         #         }
         #     }
         #
-        result = self.safe_value(response, 'result')
+        result = self.safe_value(response, 'result', {})
         ohlcvs = self.safe_value(result, 'list', [])
         return self.parse_ohlcvs(ohlcvs, market, timeframe, since, limit)
 
@@ -5703,8 +5703,9 @@ class bybit(Exchange):
         elif symbols is not None:
             symbols = [symbols]
         symbols = self.market_symbols(symbols)
+        marketId = self.market_id(symbols[0])
         request = {
-            'dataFilter': 'valid',
+            'symbol': marketId,
         }
         settle = None
         settle, params = self.handle_option_and_params(params, 'fetchPositions', 'settle', settle)

@@ -4756,6 +4756,7 @@ class huobi extends Exchange {
         }
         $request = array(
             'type' => 'deposit',
+            'direct' => 'next',
             'from' => 0, // From 'id' ... if you want to get results after a particular transaction id, pass the id in $params->from
         );
         if ($currency !== null) {
@@ -4813,6 +4814,7 @@ class huobi extends Exchange {
         }
         $request = array(
             'type' => 'withdraw',
+            'direct' => 'next',
             'from' => 0, // From 'id' ... if you want to get results after a particular transaction id, pass the id in $params->from
         );
         if ($currency !== null) {

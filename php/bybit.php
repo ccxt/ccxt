@@ -2036,7 +2036,7 @@ class bybit extends Exchange {
         //         }
         //     }
         //
-        $result = $this->safe_value($response, 'result');
+        $result = $this->safe_value($response, 'result', array());
         $ohlcvs = $this->safe_value($result, 'list', array());
         return $this->parse_ohlcvs($ohlcvs, $market, $timeframe, $since, $limit);
     }
@@ -6015,8 +6015,9 @@ class bybit extends Exchange {
             $symbols = array( $symbols );
         }
         $symbols = $this->market_symbols($symbols);
+        $marketId = $this->market_id($symbols[0]);
         $request = array(
-            'dataFilter' => 'valid',
+            'symbol' => $marketId,
         );
         $settle = null;
         list($settle, $params) = $this->handle_option_and_params($params, 'fetchPositions', 'settle', $settle);
