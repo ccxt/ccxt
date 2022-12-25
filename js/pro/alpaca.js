@@ -212,7 +212,7 @@ module.exports = class alpaca extends alpacaRest {
     handleOrderBook (client, message) {
         //
         // snapshot
-        //    [{
+        //    {
         //        T: "o",
         //        S: "BTC/USDT",
         //        t: "2022-12-16T06:35:31.585113205Z",
@@ -229,28 +229,27 @@ module.exports = class alpaca extends alpacaRest {
         //            ...
         //        ],
         //        r: true,
-        //    }]
+        //    }
         //
-        const first = this.safeValue (message, 0, {});
-        const marketId = this.safeString (first, 'S');
+        const marketId = this.safeString (message, 'S');
         const symbol = this.safeSymbol (marketId);
-        const datetime = this.safeString (first, 't');
-        const timestamp = this.iso8601 (datetime);
-        const isSnapshot = this.safeValue (first, 'r', false);
+        const datetime = this.safeString (message, 't');
+        const timestamp = this.parse8601 (datetime);
+        const isSnapshot = this.safeValue (message, 'r', false);
         let orderbook = this.safeValue (this.orderbooks, symbol);
         if (orderbook === undefined) {
             orderbook = this.orderBook ();
         }
         if (isSnapshot) {
-            const snapshot = this.parseOrderBook (first, symbol, timestamp, 'b', 'a', 'p', 's');
+            const snapshot = this.parseOrderBook (message, symbol, timestamp, 'b', 'a', 'p', 's');
             orderbook.reset (snapshot);
         } else {
-            const asks = this.safeValue (first, 'a', []);
-            const bids = this.safeValue (first, 'b', []);
+            const asks = this.safeValue (message, 'a', []);
+            const bids = this.safeValue (message, 'b', []);
             this.handleDeltas (orderbook['asks'], asks);
             this.handleDeltas (orderbook['bids'], bids);
             orderbook['timestamp'] = timestamp;
-            orderbook['datetime'] = this.iso8601 (timestamp);
+            orderbook['datetime'] = datetime;
         }
         const messageHash = 'orderbook' + ':' + symbol;
         this.orderbooks[symbol] = orderbook;
