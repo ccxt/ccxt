@@ -3571,7 +3571,6 @@ class bitget(Exchange):
         #   "marginMode":"crossed",
         #   "holdMode":"double_hold"
         # }
-        marketId = market['id']
         marginMode = self.safe_string(data, 'marginMode')
         isIsolated = (marginMode == 'fixed')
         leverage = self.safe_float(data, 'crossMarginLeverage')

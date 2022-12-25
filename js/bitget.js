@@ -3807,7 +3807,6 @@ module.exports = class bitget extends Exchange {
         //   "marginMode":"crossed",
         //   "holdMode":"double_hold"
         // }
-        const marketId = market['id'];
         const marginMode = this.safeString (data, 'marginMode');
         const isIsolated = (marginMode === 'fixed');
         const leverage = this.safeFloat (data, 'crossMarginLeverage');

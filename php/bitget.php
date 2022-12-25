@@ -3732,7 +3732,6 @@ class bitget extends Exchange {
         //   "marginMode":"crossed",
         //   "holdMode":"double_hold"
         // }
-        $marketId = $market['id'];
         $marginMode = $this->safe_string($data, 'marginMode');
         $isIsolated = ($marginMode === 'fixed');
         $leverage = $this->safe_float($data, 'crossMarginLeverage');
