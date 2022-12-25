@@ -3208,13 +3208,15 @@ class bitget(Exchange):
             hedged = False
         side = self.safe_string(position, 'holdSide')
         contracts = self.safe_float_2(position, 'total', 'openDelegateCount')
-        liquidation = self.safe_number(position, 'liquidationPrice')
+        liquidation = self.safe_number_2(position, 'liquidationPrice', 'liqPx')
         if contracts == 0:
             contracts = None
         elif side == 'short' and contracts > 0:
             contracts = -1 * contracts
         if liquidation == 0:
             liquidation = None
+        initialMargin = self.safe_number(position, 'margin')
+        markPrice = self.safe_number(position, 'markPrice')
         return {
             'info': position,
             'id': market['symbol'] + ':' + side,
@@ -3228,7 +3230,7 @@ class bitget(Exchange):
             'percentage': None,
             'contracts': contracts,
             'contractSize': self.safe_number(position, 'total'),
-            'markPrice': None,
+            'markPrice': markPrice,
             'side': side,
             'hedged': hedged,
             'timestamp': timestamp,
@@ -3236,7 +3238,7 @@ class bitget(Exchange):
             'maintenanceMargin': None,
             'maintenanceMarginPercentage': self.safe_number(position, 'keepMarginRate'),
             'collateral': self.safe_number(position, 'margin'),
-            'initialMargin': None,
+            'initialMargin': initialMargin,
             'initialMarginPercentage': None,
             'leverage': self.safe_number(position, 'leverage'),
             'marginRatio': None,
@@ -3461,13 +3463,35 @@ class bitget(Exchange):
             raise ArgumentsRequired(self.id + ' setLeverage() requires a symbol argument')
         await self.load_markets()
         market = self.market(symbol)
-        request = {
-            'symbol': market['id'],
-            'marginCoin': market['settleId'],
-            'leverage': buyLeverage,
-            # 'holdSide': 'long',
-        }
-        return await self.privateMixPostAccountSetLeverage(self.extend(request, params))
+        marginMode = self.safe_string_2(params, 'marginType', 'marginMode')
+        params = self.omit(params, ['marginType', 'marginMode', 'tradeMode'])
+        if marginMode == 'isolated':
+            promises = []
+            request = {
+                'symbol': market['id'],
+                'marginCoin': market['settleId'],
+            }
+            if buyLeverage is not None:
+                request['leverage'] = buyLeverage
+                request['holdSide'] = 'long'
+                promises.append(self.privateMixPostAccountSetLeverage(self.extend(request, params)))
+            if sellLeverage is not None:
+                request['leverage'] = sellLeverage
+                request['holdSide'] = 'short'
+                promises.append(self.privateMixPostAccountSetLeverage(self.extend(request, params)))
+            promises = await asyncio.gather(*promises)
+            if len(promises) == 1:
+                return promises[0]
+            else:
+                return promises
+        else:
+            request = {
+                'symbol': market['id'],
+                'marginCoin': market['settleId'],
+                'leverage': buyLeverage,
+                # 'holdSide': 'long',
+            }
+            return await self.privateMixPostAccountSetLeverage(self.extend(request, params))
 
     async def switch_isolated(self, symbol, isIsolated, buyLeverage, sellLeverage, params={}):
         if isIsolated:

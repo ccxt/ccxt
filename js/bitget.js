@@ -3394,7 +3394,7 @@ module.exports = class bitget extends Exchange {
         }
         const side = this.safeString (position, 'holdSide');
         let contracts = this.safeFloat2 (position, 'total', 'openDelegateCount');
-        let liquidation = this.safeNumber (position, 'liquidationPrice');
+        let liquidation = this.safeNumber2 (position, 'liquidationPrice', 'liqPx');
         if (contracts === 0) {
             contracts = undefined;
         } else if (side === 'short' && contracts > 0) {
@@ -3403,6 +3403,8 @@ module.exports = class bitget extends Exchange {
         if (liquidation === 0) {
             liquidation = undefined;
         }
+        const initialMargin = this.safeNumber (position, 'margin');
+        const markPrice = this.safeNumber (position, 'markPrice');
         return {
             'info': position,
             'id': market['symbol'] + ':' + side,
@@ -3416,7 +3418,7 @@ module.exports = class bitget extends Exchange {
             'percentage': undefined,
             'contracts': contracts,
             'contractSize': this.safeNumber (position, 'total'),
-            'markPrice': undefined,
+            'markPrice': markPrice,
             'side': side,
             'hedged': hedged,
             'timestamp': timestamp,
@@ -3424,7 +3426,7 @@ module.exports = class bitget extends Exchange {
             'maintenanceMargin': undefined,
             'maintenanceMarginPercentage': this.safeNumber (position, 'keepMarginRate'),
             'collateral': this.safeNumber (position, 'margin'),
-            'initialMargin': undefined,
+            'initialMargin': initialMargin,
             'initialMarginPercentage': undefined,
             'leverage': this.safeNumber (position, 'leverage'),
             'marginRatio': undefined,
@@ -3678,13 +3680,39 @@ module.exports = class bitget extends Exchange {
         }
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const request = {
-            'symbol': market['id'],
-            'marginCoin': market['settleId'],
-            'leverage': buyLeverage,
-            // 'holdSide': 'long',
-        };
-        return await this.privateMixPostAccountSetLeverage (this.extend (request, params));
+        const marginMode = this.safeString2 (params, 'marginType', 'marginMode');
+        params = this.omit (params, [ 'marginType', 'marginMode', 'tradeMode' ]);
+        if (marginMode === 'isolated') {
+            let promises = [];
+            const request = {
+                'symbol': market['id'],
+                'marginCoin': market['settleId'],
+            };
+            if (buyLeverage !== undefined) {
+                request['leverage'] = buyLeverage;
+                request['holdSide'] = 'long';
+                promises.push (this.privateMixPostAccountSetLeverage (this.extend (request, params)));
+            }
+            if (sellLeverage !== undefined) {
+                request['leverage'] = sellLeverage;
+                request['holdSide'] = 'short';
+                promises.push (this.privateMixPostAccountSetLeverage (this.extend (request, params)));
+            }
+            promises = await Promise.all (promises);
+            if (promises.length === 1) {
+                return promises[0];
+            } else {
+                return promises;
+            }
+        } else {
+            const request = {
+                'symbol': market['id'],
+                'marginCoin': market['settleId'],
+                'leverage': buyLeverage,
+                // 'holdSide': 'long',
+            };
+            return await this.privateMixPostAccountSetLeverage (this.extend (request, params));
+        }
     }
 
     async switchIsolated (symbol, isIsolated, buyLeverage, sellLeverage, params = {}) {

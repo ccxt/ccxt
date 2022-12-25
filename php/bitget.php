@@ -3334,7 +3334,7 @@ class bitget extends Exchange {
         }
         $side = $this->safe_string($position, 'holdSide');
         $contracts = $this->safe_float_2($position, 'total', 'openDelegateCount');
-        $liquidation = $this->safe_number($position, 'liquidationPrice');
+        $liquidation = $this->safe_number_2($position, 'liquidationPrice', 'liqPx');
         if ($contracts === 0) {
             $contracts = null;
         } elseif ($side === 'short' && $contracts > 0) {
@@ -3343,6 +3343,8 @@ class bitget extends Exchange {
         if ($liquidation === 0) {
             $liquidation = null;
         }
+        $initialMargin = $this->safe_number($position, 'margin');
+        $markPrice = $this->safe_number($position, 'markPrice');
         return array(
             'info' => $position,
             'id' => $market['symbol'] . ':' . $side,
@@ -3356,7 +3358,7 @@ class bitget extends Exchange {
             'percentage' => null,
             'contracts' => $contracts,
             'contractSize' => $this->safe_number($position, 'total'),
-            'markPrice' => null,
+            'markPrice' => $markPrice,
             'side' => $side,
             'hedged' => $hedged,
             'timestamp' => $timestamp,
@@ -3364,7 +3366,7 @@ class bitget extends Exchange {
             'maintenanceMargin' => null,
             'maintenanceMarginPercentage' => $this->safe_number($position, 'keepMarginRate'),
             'collateral' => $this->safe_number($position, 'margin'),
-            'initialMargin' => null,
+            'initialMargin' => $initialMargin,
             'initialMarginPercentage' => null,
             'leverage' => $this->safe_number($position, 'leverage'),
             'marginRatio' => null,
@@ -3606,13 +3608,38 @@ class bitget extends Exchange {
         }
         $this->load_markets();
         $market = $this->market($symbol);
-        $request = array(
-            'symbol' => $market['id'],
-            'marginCoin' => $market['settleId'],
-            'leverage' => $buyLeverage,
-            // 'holdSide' => 'long',
-        );
-        return $this->privateMixPostAccountSetLeverage (array_merge($request, $params));
+        $marginMode = $this->safe_string_2($params, 'marginType', 'marginMode');
+        $params = $this->omit($params, array( 'marginType', 'marginMode', 'tradeMode' ));
+        if ($marginMode === 'isolated') {
+            $promises = array();
+            $request = array(
+                'symbol' => $market['id'],
+                'marginCoin' => $market['settleId'],
+            );
+            if ($buyLeverage !== null) {
+                $request['leverage'] = $buyLeverage;
+                $request['holdSide'] = 'long';
+                $promises[] = $this->privateMixPostAccountSetLeverage (array_merge($request, $params));
+            }
+            if ($sellLeverage !== null) {
+                $request['leverage'] = $sellLeverage;
+                $request['holdSide'] = 'short';
+                $promises[] = $this->privateMixPostAccountSetLeverage (array_merge($request, $params));
+            }
+            if (strlen($promises) === 1) {
+                return $promises[0];
+            } else {
+                return $promises;
+            }
+        } else {
+            $request = array(
+                'symbol' => $market['id'],
+                'marginCoin' => $market['settleId'],
+                'leverage' => $buyLeverage,
+                // 'holdSide' => 'long',
+            );
+            return $this->privateMixPostAccountSetLeverage (array_merge($request, $params));
+        }
     }
 
     public function switch_isolated($symbol, $isIsolated, $buyLeverage, $sellLeverage, $params = array ()) {
