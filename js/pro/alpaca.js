@@ -3,7 +3,7 @@
 //  ---------------------------------------------------------------------------
 
 const alpacaRest = require ('../alpaca.js');
-const { ExchangeError } = require ('../base/errors');
+const { ExchangeError, AuthenticationError } = require ('../base/errors');
 const { ArrayCache, ArrayCacheBySymbolById, ArrayCacheByTimestamp } = require ('./base/Cache');
 
 //  ---------------------------------------------------------------------------
@@ -587,11 +587,20 @@ module.exports = class alpaca extends alpacaRest {
         let future = this.safeValue (client.subscriptions, messageHash);
         if (future === undefined) {
             future = client.future ('authenticated');
-            const request = {
+            let request = {
                 'action': 'auth',
                 'key': this.apiKey,
                 'secret': this.secret,
             };
+            if (url === this.urls['api']['ws']['trading']) {
+                request = { // this auth request is being deprecated in test environment
+                    'action': 'authenticate',
+                    'data': {
+                        'key_id': this.apiKey,
+                        'secret_key': this.secret,
+                    },
+                };
+            }
             this.spawn (this.watch, url, messageHash, request, messageHash, future);
         }
         return await future;
@@ -607,7 +616,7 @@ module.exports = class alpaca extends alpacaRest {
         //
         const code = this.safeString (message, 'code');
         const msg = this.safeValue (message, 'msg', {});
-        throw new ExchangeError (this.id + ' code: ' + code + 'message: ' + msg);
+        throw new ExchangeError (this.id + ' code: ' + code + ' message: ' + msg);
     }
 
     handleConnected (client, message) {
@@ -684,9 +693,24 @@ module.exports = class alpaca extends alpacaRest {
         //            "action": "authenticate"
         //        }
         //    }
+        // error
+        //    {
+        //        stream: 'authorization',
+        //        data: {
+        //            action: 'authenticate',
+        //            message: 'access key verification failed',
+        //            status: 'unauthorized'
+        //        }
+        //    }
         //
-        client.resolve (message, 'authenticated');
-        return message;
+        const T = this.safeString (message, 'T');
+        const data = this.safeValue (message, 'data', {});
+        const status = this.safeString (data, 'status');
+        if (T === 'success' || status === 'authorized') {
+            client.resolve (message, 'authenticated');
+            return;
+        }
+        throw new AuthenticationError (this.id + ' failed to authenticate.');
     }
 
     handleSubscription (client, message) {
