@@ -15,11 +15,11 @@ module.exports = class huobi extends huobiRest {
                 'ws': true,
                 'watchOrderBook': true,
                 'watchOrders': true,
-                'watchTickers': false, // for now
+                'watchTickers': false,
                 'watchTicker': true,
                 'watchTrades': true,
                 'watchMyTrades': true,
-                'watchBalance': true, // for now
+                'watchBalance': true,
                 'watchOHLCV': true,
             },
             'urls': {
@@ -89,7 +89,9 @@ module.exports = class huobi extends huobiRest {
                 'ws': {
                     'gunzip': true,
                 },
-                'watchTickerTopic': 'market.{marketId}.detail', // 'market.{marketId}.bbo' or 'market.{marketId}.ticker'
+                'watchTicker': {
+                    'name': 'market.{marketId}.detail', // 'market.{marketId}.bbo' or 'market.{marketId}.ticker'
+                },
             },
             'exceptions': {
                 'ws': {
@@ -124,7 +126,11 @@ module.exports = class huobi extends huobiRest {
         await this.loadMarkets ();
         const market = this.market (symbol);
         symbol = market['symbol'];
-        const topic = this.safeString (this.options, 'watchTickerTopic', 'market.{marketId}.detail');
+        const options = this.safeValue (this.options, 'watchTicker', {});
+        const topic = this.safeString (options, 'name', 'market.{marketId}.detail');
+        if (topic === 'market.{marketId}.ticker' && market['type'] !== 'spot') {
+            throw new BadRequest (this.id + ' watchTicker() with name market.{marketId}.ticker is only allowed for spot markets, use market.{marketId}.detail instead');
+        }
         const messageHash = this.implodeParams (topic, { 'marketId': market['id'] });
         const url = this.getUrlByMarketType (market['type'], market['linear']);
         return await this.subscribePublic (url, symbol, messageHash, undefined, params);
