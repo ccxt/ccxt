@@ -861,16 +861,23 @@ module.exports = class Exchange {
 
     setMarkets (markets, currencies = undefined) {
         const values = [];
+        this.markets_by_id = {};
         const marketValues = this.toArray (markets);
+        // handle marketId conflicts
         for (let i = 0; i < marketValues.length; i++) {
+            const value = marketValues[i];
+            if (value['id'] in this.markets_by_id) {
+                this.markets_by_id[value['id']].push (value);
+            } else {
+                this.markets_by_id[value['id']] = [ value ];
+            }
             const market = this.deepExtend (this.safeMarket (), {
                 'precision': this.precision,
                 'limits': this.limits,
-            }, this.fees['trading'], marketValues[i]);
+            }, this.fees['trading'], value);
             values.push (market);
         }
         this.markets = this.indexBy (values, 'symbol');
-        this.markets_by_id = this.indexBy (markets, 'id');
         const marketsSortedBySymbol = this.keysort (this.markets);
         const marketsSortedById = this.keysort (this.markets_by_id);
         this.symbols = Object.keys (marketsSortedBySymbol);
@@ -2118,7 +2125,7 @@ module.exports = class Exchange {
         };
     }
 
-    safeMarket (marketId = undefined, market = undefined, delimiter = undefined) {
+    safeMarket (marketId = undefined, market = undefined, delimiter = undefined, marketType = 'spot') {
         const result = {
             'id': marketId,
             'symbol': marketId,
@@ -2165,7 +2172,18 @@ module.exports = class Exchange {
         };
         if (marketId !== undefined) {
             if ((this.markets_by_id !== undefined) && (marketId in this.markets_by_id)) {
-                market = this.markets_by_id[marketId];
+                const markets = this.markets_by_id[marketId];
+                const length = markets.length;
+                if (length === 1) {
+                    return markets[0];
+                } else {
+                    for (let i = 0; i < markets.length; i++) {
+                        const market = markets[i];
+                        if (market[marketType]) {
+                            return market;
+                        }
+                    }
+                }
             } else if (delimiter !== undefined) {
                 const parts = marketId.split (delimiter);
                 const partsLength = parts.length;
