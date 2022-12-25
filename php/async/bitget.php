@@ -3758,64 +3758,53 @@ class bitget extends Exchange {
                 'symbol' => $market['id'],
                 'marginCoin' => $market['settleId'],
             );
-            $response = Async\await($this->privateMixGetPositionSinglePosition (array_merge($request, $params)));
+            $response = Async\await($this->privateMixGetAccountAccount (array_merge($request, $params)));
             $data = $this->safe_value($response, 'data');
             return $this->parse_account_configuration($data, $market);
         }) ();
     }
 
-    public function parse_account_configuration($data, $market = null) {
-        // [array(
+    public function parse_account_configuration($data, $market) {
+        // {
         //     "marginCoin":"USDT",
-        //   "symbol":"BTCUSDT_UMCBL",
-        //   "holdSide":"long",
-        //   "openDelegateCount":"0",
-        //   "margin":"10",
-        //   "available":"0",
-        //   "locked":"0",
-        //   "total":"0",
-        //   "leverage":25,
-        //   "achievedProfits":"0",
-        //   "averageOpenPrice":"0",
-        //   "marginMode":"fixed",
-        //   "holdMode":"double_hold",
-        //   "unrealizedPL":"0",
-        //   "keepMarginRate":"0.015",
-        //   "marketPrice":"0",
-        //   "ctime":"1626232130664"
-        // ), ...]
+        //   "locked":0,
+        //   "available":13168.86110692,
+        //   "crossMaxAvailable":13168.86110692,
+        //   "fixedMaxAvailable":13168.86110692,
+        //   "maxTransferOut":13168.86110692,
+        //   "equity":13178.86110692,
+        //   "usdtEquity":13178.861106922,
+        //   "btcEquity":0.344746495477,
+        //   "crossRiskRate":0,
+        //   "crossMarginLeverage":20,
+        //   "fixedLongLeverage":20,
+        //   "fixedShortLeverage":20,
+        //   "marginMode":"crossed",
+        //   "holdMode":"double_hold"
+        // }
+        $marketId = $market['id'];
+        $marginMode = $this->safe_string($data, 'marginMode');
+        $isIsolated = ($marginMode === 'fixed');
+        $leverage = $this->safe_float($data, 'crossMarginLeverage');
+        $buyLeverage = $this->safe_float($data, 'fixedLongLeverage');
+        $sellLeverage = $this->safe_float($data, 'fixedShortLeverage');
+        $marginCoin = $this->safe_string($data, 'marginCoin');
+        $holdMode = $this->safe_string($data, 'holdMode');
+        $tradeMode = $holdMode === 'double_hold' ? 'hedged' : 'oneway';
         $accountConfig = array(
             'info' => $data,
             'markets' => array(),
         );
-        for ($i = 0; $i < count($data); $i++) {
-            $posInfo = $data[$i];
-            $marginMode = $this->safe_string($posInfo, 'marginMode');
-            $symbol = $this->safe_string($posInfo, 'symbol');
-            $marginCoin = $this->safe_string($posInfo, 'marginCoin');
-            $leverage = $this->safe_float($posInfo, 'leverage');
-            $holdMode = $this->safe_string($posInfo, 'holdMode');
-            $holdSide = $this->safe_string($posInfo, 'holdSide');
-            $isIsolated = ($marginMode === 'fixed');
-            if (!$this->safe_value($accountConfig['markets'], $symbol)) {
-                $accountConfig['markets'][$symbol] = array();
-            }
-            $leverageConfig = $accountConfig['markets'][$symbol];
-            $leverageConfig['marginType'] = $isIsolated ? 'isolated' : 'cross';
-            $leverageConfig['marginCoin'] = $marginCoin;
-            $leverageConfig['leverage'] = $leverage;
-            if ($holdMode === 'double_hold') {
-                $leverageConfig['tradeMode'] = 'hedged';
-                if ($holdSide === 'short') {
-                    $leverageConfig['sellLeverage'] = $leverage;
-                } else {
-                    $leverageConfig['buyLeverage'] = $leverage;
-                }
-            } else {
-                $leverageConfig['tradeMode'] = 'oneway';
-            }
-            $leverageConfig['isIsolated'] = $isIsolated;
-        }
+        $leverageConfigs = $accountConfig['markets'];
+        $leverageConfigs[$market['symbol']] = array(
+            'marginType' => $isIsolated ? 'isolated' : 'cross',
+            'isIsolated' => $isIsolated,
+            'leverage' => $leverage,
+            'buyLeverage' => $buyLeverage,
+            'sellLeverage' => $sellLeverage,
+            'marginCoin' => $marginCoin,
+            'tradeMode' => $tradeMode,
+        );
         return $accountConfig;
     }
 

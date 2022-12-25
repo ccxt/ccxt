@@ -3507,58 +3507,51 @@ class bitget(Exchange):
             'symbol': market['id'],
             'marginCoin': market['settleId'],
         }
-        response = self.privateMixGetPositionSinglePosition(self.extend(request, params))
+        response = self.privateMixGetAccountAccount(self.extend(request, params))
         data = self.safe_value(response, 'data')
         return self.parse_account_configuration(data, market)
 
-    def parse_account_configuration(self, data, market=None):
-        # [{
+    def parse_account_configuration(self, data, market):
+        # {
         #     "marginCoin":"USDT",
-        #   "symbol":"BTCUSDT_UMCBL",
-        #   "holdSide":"long",
-        #   "openDelegateCount":"0",
-        #   "margin":"10",
-        #   "available":"0",
-        #   "locked":"0",
-        #   "total":"0",
-        #   "leverage":25,
-        #   "achievedProfits":"0",
-        #   "averageOpenPrice":"0",
-        #   "marginMode":"fixed",
-        #   "holdMode":"double_hold",
-        #   "unrealizedPL":"0",
-        #   "keepMarginRate":"0.015",
-        #   "marketPrice":"0",
-        #   "ctime":"1626232130664"
-        # }, ...]
+        #   "locked":0,
+        #   "available":13168.86110692,
+        #   "crossMaxAvailable":13168.86110692,
+        #   "fixedMaxAvailable":13168.86110692,
+        #   "maxTransferOut":13168.86110692,
+        #   "equity":13178.86110692,
+        #   "usdtEquity":13178.861106922,
+        #   "btcEquity":0.344746495477,
+        #   "crossRiskRate":0,
+        #   "crossMarginLeverage":20,
+        #   "fixedLongLeverage":20,
+        #   "fixedShortLeverage":20,
+        #   "marginMode":"crossed",
+        #   "holdMode":"double_hold"
+        # }
+        marketId = market['id']
+        marginMode = self.safe_string(data, 'marginMode')
+        isIsolated = (marginMode == 'fixed')
+        leverage = self.safe_float(data, 'crossMarginLeverage')
+        buyLeverage = self.safe_float(data, 'fixedLongLeverage')
+        sellLeverage = self.safe_float(data, 'fixedShortLeverage')
+        marginCoin = self.safe_string(data, 'marginCoin')
+        holdMode = self.safe_string(data, 'holdMode')
+        tradeMode = holdMode == 'hedged' if 'double_hold' else 'oneway'
         accountConfig = {
             'info': data,
             'markets': {},
         }
-        for i in range(0, len(data)):
-            posInfo = data[i]
-            marginMode = self.safe_string(posInfo, 'marginMode')
-            symbol = self.safe_string(posInfo, 'symbol')
-            marginCoin = self.safe_string(posInfo, 'marginCoin')
-            leverage = self.safe_float(posInfo, 'leverage')
-            holdMode = self.safe_string(posInfo, 'holdMode')
-            holdSide = self.safe_string(posInfo, 'holdSide')
-            isIsolated = (marginMode == 'fixed')
-            if not self.safe_value(accountConfig['markets'], symbol):
-                accountConfig['markets'][symbol] = {}
-            leverageConfig = accountConfig['markets'][symbol]
-            leverageConfig['marginType'] = 'isolated' if isIsolated else 'cross'
-            leverageConfig['marginCoin'] = marginCoin
-            leverageConfig['leverage'] = leverage
-            if holdMode == 'double_hold':
-                leverageConfig['tradeMode'] = 'hedged'
-                if holdSide == 'short':
-                    leverageConfig['sellLeverage'] = leverage
-                else:
-                    leverageConfig['buyLeverage'] = leverage
-            else:
-                leverageConfig['tradeMode'] = 'oneway'
-            leverageConfig['isIsolated'] = isIsolated
+        leverageConfigs = accountConfig['markets']
+        leverageConfigs[market['symbol']] = {
+            'marginType': 'isolated' if isIsolated else 'cross',
+            'isIsolated': isIsolated,
+            'leverage': leverage,
+            'buyLeverage': buyLeverage,
+            'sellLeverage': sellLeverage,
+            'marginCoin': marginCoin,
+            'tradeMode': tradeMode,
+        }
         return accountConfig
 
     def fetch_open_interest(self, symbol, params={}):

@@ -3739,63 +3739,52 @@ module.exports = class bitget extends Exchange {
             'symbol': market['id'],
             'marginCoin': market['settleId'],
         };
-        const response = await this.privateMixGetPositionSinglePosition (this.extend (request, params));
+        const response = await this.privateMixGetAccountAccount (this.extend (request, params));
         const data = this.safeValue (response, 'data');
         return this.parseAccountConfiguration (data, market);
     }
 
-    parseAccountConfiguration (data, market = undefined) {
-        // [{
+    parseAccountConfiguration (data, market) {
+        // {
         //     "marginCoin":"USDT",
-        //   "symbol":"BTCUSDT_UMCBL",
-        //   "holdSide":"long",
-        //   "openDelegateCount":"0",
-        //   "margin":"10",
-        //   "available":"0",
-        //   "locked":"0",
-        //   "total":"0",
-        //   "leverage":25,
-        //   "achievedProfits":"0",
-        //   "averageOpenPrice":"0",
-        //   "marginMode":"fixed",
-        //   "holdMode":"double_hold",
-        //   "unrealizedPL":"0",
-        //   "keepMarginRate":"0.015",
-        //   "marketPrice":"0",
-        //   "ctime":"1626232130664"
-        // }, ...]
+        //   "locked":0,
+        //   "available":13168.86110692,
+        //   "crossMaxAvailable":13168.86110692,
+        //   "fixedMaxAvailable":13168.86110692,
+        //   "maxTransferOut":13168.86110692,
+        //   "equity":13178.86110692,
+        //   "usdtEquity":13178.861106922,
+        //   "btcEquity":0.344746495477,
+        //   "crossRiskRate":0,
+        //   "crossMarginLeverage":20,
+        //   "fixedLongLeverage":20,
+        //   "fixedShortLeverage":20,
+        //   "marginMode":"crossed",
+        //   "holdMode":"double_hold"
+        // }
+        const marketId = market['id'];
+        const marginMode = this.safeString (data, 'marginMode');
+        const isIsolated = (marginMode === 'fixed');
+        const leverage = this.safeFloat (data, 'crossMarginLeverage');
+        const buyLeverage = this.safeFloat (data, 'fixedLongLeverage');
+        const sellLeverage = this.safeFloat (data, 'fixedShortLeverage');
+        const marginCoin = this.safeString (data, 'marginCoin');
+        const holdMode = this.safeString (data, 'holdMode');
+        const tradeMode = holdMode === 'double_hold' ? 'hedged' : 'oneway';
         const accountConfig = {
             'info': data,
             'markets': {},
         };
-        for (let i = 0; i < data.length; i++) {
-            const posInfo = data[i];
-            const marginMode = this.safeString (posInfo, 'marginMode');
-            const symbol = this.safeString (posInfo, 'symbol');
-            const marginCoin = this.safeString (posInfo, 'marginCoin');
-            const leverage = this.safeFloat (posInfo, 'leverage');
-            const holdMode = this.safeString (posInfo, 'holdMode');
-            const holdSide = this.safeString (posInfo, 'holdSide');
-            const isIsolated = (marginMode === 'fixed');
-            if (!this.safeValue (accountConfig['markets'], symbol)) {
-                accountConfig['markets'][symbol] = {};
-            }
-            const leverageConfig = accountConfig['markets'][symbol];
-            leverageConfig['marginType'] = isIsolated ? 'isolated' : 'cross';
-            leverageConfig['marginCoin'] = marginCoin;
-            leverageConfig['leverage'] = leverage;
-            if (holdMode === 'double_hold') {
-                leverageConfig['tradeMode'] = 'hedged';
-                if (holdSide === 'short') {
-                    leverageConfig['sellLeverage'] = leverage;
-                } else {
-                    leverageConfig['buyLeverage'] = leverage;
-                }
-            } else {
-                leverageConfig['tradeMode'] = 'oneway';
-            }
-            leverageConfig['isIsolated'] = isIsolated;
-        }
+        const leverageConfigs = accountConfig['markets'];
+        leverageConfigs[market['symbol']] = {
+            'marginType': isIsolated ? 'isolated' : 'cross',
+            'isIsolated': isIsolated,
+            'leverage': leverage,
+            'buyLeverage': buyLeverage,
+            'sellLeverage': sellLeverage,
+            'marginCoin': marginCoin,
+            'tradeMode': tradeMode,
+        };
         return accountConfig;
     }
 
