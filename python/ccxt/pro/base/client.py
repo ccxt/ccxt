@@ -11,6 +11,7 @@ class Client(object):
     url = None
     ws = None
     futures = {}
+    options = {} # ws-specific options
     subscriptions = {}
     rejections = {}
     on_message_callback = None
