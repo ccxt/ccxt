@@ -658,7 +658,7 @@ module.exports = class gemini extends geminiRest {
             'X-GEMINI-PAYLOAD': this.decode (b64),
             'X-GEMINI-SIGNATURE': signature,
         };
-        await this.client (url);
+        this.client (url);
         this.options['ws']['options']['headers'] = originalHeaders;
     }
 };
