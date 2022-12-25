@@ -807,8 +807,8 @@ class bitget(Exchange):
                 'subTypes': ['umcbl', 'dmcbl', 'cmcbl'],
                 'createMarketBuyOrderRequiresPrice': True,
                 'broker': {
-                    'spot': 'CCXT#',
-                    'swap': 'CCXT#',
+                    # 'spot': 'CCXT#',
+                    # 'swap': 'CCXT#',
                 },
                 'withdraw': {
                     'fillResponseFromRequest': True,
@@ -857,14 +857,25 @@ class bitget(Exchange):
             request = {
                 'symbol': market['id'],
             }
-            method = 'privateMixGetOrderCurrent'
             stop = self.safe_value(params, 'stop')
             if stop:
-                method = 'privateMixGetPlanCurrentPlan'
                 params = self.omit(params, 'stop')
-            response = await getattr(self, method)(self.extend(request, params))
-            data = self.safe_value(response, 'data')
-            return self.parse_orders(data, market, since, limit)
+                promises = []
+                request['isPlan'] = 'plan'
+                promises.append(self.privateMixGetPlanCurrentPlan(self.extend(request, params)))
+                request['isPlan'] = 'profit_loss'
+                promises.append(self.privateMixGetPlanCurrentPlan(self.extend(request, params)))
+                promises = await asyncio.gather(*promises)
+                orders = []
+                for i in range(0, len(promises)):
+                    response = promises[i]
+                    data = self.safe_value(response, 'data')
+                    orders = self.array_concat(orders, data)
+                return self.parse_orders(orders, None, since, limit)
+            else:
+                response = await self.privateMixGetOrderCurrent(self.extend(request, params))
+                data = self.safe_value(response, 'data')
+                return self.parse_orders(data, market, since, limit)
         stop = self.safe_value(params, 'stop')
         if stop:
             raise NotSupported(self.id + ' ' + 'fetchOpenOrders() requires a symbol for stop orders.')
@@ -2228,28 +2239,35 @@ class bitget(Exchange):
         average = self.safe_string(order, 'fillPrice')
         type = self.safe_string(order, 'orderType')
         timestamp = self.safe_integer(order, 'cTime')
+        rawStopTrigger = self.safe_string(order, 'triggerType')
+        trigger = self.parse_stop_trigger(rawStopTrigger)
         side = self.safe_string_2(order, 'side', 'posSide')
+        reduce = False
+        close = False
+        if side and side.split('_')[0] == 'close':
+            reduce = True
+            close = True
         if (side == 'open_long') or (side == 'close_short'):
             side = 'buy'
-            if type == 'market':
-                type = 'stop'
-            else:
-                type = 'stopLimit'
         elif (side == 'close_long') or (side == 'open_short'):
             side = 'sell'
+        if rawStopTrigger:
             if type == 'market':
                 type = 'stop'
             else:
                 type = 'stopLimit'
+        else:
+            if type == 'market':
+                type = 'market'
+            else:
+                type = 'limit'
         clientOrderId = self.safe_string_2(order, 'clientOrderId', 'clientOid')
         fee = None
         rawStatus = self.safe_string_2(order, 'status', 'state')
         status = self.parse_order_status(rawStatus)
         lastTradeTimestamp = self.safe_integer(order, 'uTime')
-        reduce = False
-        close = False
-        rawStopTrigger = self.safe_string(order, 'triggerType')
-        trigger = self.parse_stop_trigger(rawStopTrigger)
+        timeInForce = self.safe_string(order, 'timeInForce')
+        postOnly = timeInForce == 'postOnly'
         return self.safe_order({
             'info': order,
             'id': id,
@@ -2259,8 +2277,8 @@ class bitget(Exchange):
             'lastTradeTimestamp': lastTradeTimestamp,
             'symbol': symbol,
             'type': type,
-            'timeInForce': None,
-            'postOnly': None,
+            'timeInForce': 'GTC',
+            'postOnly': postOnly,
             'side': side,
             'price': price,
             'stopPrice': self.safe_number(order, 'triggerPrice'),
@@ -2288,20 +2306,54 @@ class bitget(Exchange):
         :param dict params: extra parameters specific to the bitget api endpoint
         :returns dict: an `order structure <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
         """
+        # {
+        #     'stopPrice': 0.3866,
+        #   'timeInForce': 'GTC',
+        #   'reduceOnly': None,
+        #   'trigger': 'Last',
+        #   'closeOnTrigger': True,
+        #   'basePrice': 0.3894
+        # }
         await self.load_markets()
         market = self.market(symbol)
         marketType, query = self.handle_market_type_and_params('createOrder', market, params)
+        triggerPrice = self.safe_value_2(params, 'stopPrice', 'triggerPrice')
+        isTriggerOrder = triggerPrice is not None
+        stopLossPrice = None
+        isStopLossOrder = None
+        takeProfitPrice = None
+        isTakeProfitOrder = None
+        reduceOnly = self.safe_value_2(params, 'close', 'reduceOnly', False)
+        basePrice = self.safe_value(params, 'basePrice')
+        if triggerPrice is not None and basePrice is not None:
+            # triggerOrder is NOT stopOrder
+            isTriggerOrder = not reduceOnly
+            type = 'market'
+            if not isTriggerOrder:
+                if side == 'buy':
+                    if triggerPrice > basePrice:
+                        isStopLossOrder = True
+                        stopLossPrice = triggerPrice
+                    else:
+                        isTakeProfitOrder = True
+                        takeProfitPrice = triggerPrice
+                else:
+                    if triggerPrice < basePrice:
+                        isStopLossOrder = True
+                        stopLossPrice = triggerPrice
+                    else:
+                        isTakeProfitOrder = True
+                        takeProfitPrice = triggerPrice
+        else:
+            stopLossPrice = self.safe_value(params, 'stopLossPrice')
+            isStopLossOrder = stopLossPrice is not None
+            takeProfitPrice = self.safe_value(params, 'takeProfitPrice')
+            isTakeProfitOrder = takeProfitPrice is not None
         request = {
             'symbol': market['id'],
             'orderType': type,
         }
         isMarketOrder = type == 'market'
-        triggerPrice = self.safe_value_2(params, 'stopPrice', 'triggerPrice')
-        isTriggerOrder = triggerPrice is not None
-        stopLossPrice = self.safe_value(params, 'stopLossPrice')
-        isStopLossOrder = stopLossPrice is not None
-        takeProfitPrice = self.safe_value(params, 'takeProfitPrice')
-        isTakeProfitOrder = takeProfitPrice is not None
         isStopOrder = isStopLossOrder or isTakeProfitOrder
         if self.sum(isTriggerOrder, isStopLossOrder, isTakeProfitOrder) > 1:
             raise ExchangeError(self.id + ' createOrder() params can only contain one of triggerPrice, stopLossPrice, takeProfitPrice')
@@ -2345,13 +2397,13 @@ class bitget(Exchange):
             request['size'] = self.amount_to_precision(symbol, amount)
             if postOnly:
                 request['timeInForceValue'] = 'post_only'
-            reduceOnly = self.safe_value(params, 'reduceOnly', False)
-            if triggerPrice is not None:
+            if isTriggerOrder:
                 # default triggerType to market price for unification
                 triggerType = self.safe_string(params, 'triggerType', 'market_price')
                 request['triggerType'] = triggerType
                 request['triggerPrice'] = self.price_to_precision(symbol, triggerPrice)
-                request['executePrice'] = self.price_to_precision(symbol, price)
+                if price:
+                    request['executePrice'] = self.price_to_precision(symbol, price)
                 method = 'privateMixPostPlanPlacePlan'
             if isStopOrder:
                 if not isMarketOrder:
@@ -2362,7 +2414,7 @@ class bitget(Exchange):
                 elif isTakeProfitOrder:
                     request['triggerPrice'] = self.price_to_precision(symbol, takeProfitPrice)
                     request['planType'] = 'profit_plan'
-                request['holdSide'] = 'long' if (side == 'buy') else 'short'
+                request['holdSide'] = 'short' if (side == 'buy') else 'long'
                 method = 'privateMixPostPlanPlaceTPSL'
             else:
                 if reduceOnly:
@@ -2405,13 +2457,17 @@ class bitget(Exchange):
             'spot': 'privateSpotPostTradeCancelOrder',
             'swap': 'privateMixPostOrderCancelOrder',
         })
+        stop = self.safe_value(params, 'stop')
+        planType = self.safe_string(params, 'planType')
+        idComponents = id.split(':')
+        formattedId = idComponents[0]
+        if not planType and (len(idComponents) > 1):
+            planType = idComponents[1]
         request = {
             'symbol': market['id'],
-            'orderId': id,
+            'orderId': formattedId,
         }
-        stop = self.safe_value(params, 'stop')
-        if stop:
-            planType = self.safe_string(params, 'planType')
+        if stop or planType:
             if planType is None:
                 raise ArgumentsRequired(self.id + ' cancelOrder() requires a planType parameter for stop orders, either normal_plan, profit_plan or loss_plan')
             request['planType'] = planType
@@ -3134,6 +3190,10 @@ class bitget(Exchange):
         #     }
         #
         marketId = self.safe_string(position, 'symbol')
+        marketIdParts = marketId.split('_')
+        instType = ''
+        if len(marketIdParts) > 1:
+            instType = marketIdParts[1].lower()
         market = self.safe_market(marketId, market)
         timestamp = self.safe_integer(position, 'cTime')
         marginMode = self.safe_string(position, 'marginMode')
@@ -3147,7 +3207,7 @@ class bitget(Exchange):
         elif hedged == 'single_hold':
             hedged = False
         side = self.safe_string(position, 'holdSide')
-        contracts = self.safe_float_2(position, 'available', 'openDelegateCount')
+        contracts = self.safe_float_2(position, 'total', 'openDelegateCount')
         liquidation = self.safe_number(position, 'liquidationPrice')
         if contracts == 0:
             contracts = None
@@ -3158,6 +3218,7 @@ class bitget(Exchange):
         return {
             'info': position,
             'id': market['symbol'] + ':' + side,
+            'instType': instType,
             'symbol': market['symbol'],
             'notional': None,
             'marginMode': marginMode,
@@ -3408,6 +3469,12 @@ class bitget(Exchange):
         }
         return await self.privateMixPostAccountSetLeverage(self.extend(request, params))
 
+    async def switch_isolated(self, symbol, isIsolated, buyLeverage, sellLeverage, params={}):
+        if isIsolated:
+            await self.set_margin_mode('fixed', symbol, params)
+        else:
+            await self.set_margin_mode('crossed', symbol, params)
+
     async def set_margin_mode(self, marginMode, symbol=None, params={}):
         """
         set margin mode to 'cross' or 'isolated'
@@ -3428,7 +3495,75 @@ class bitget(Exchange):
             'marginCoin': market['settleId'],
             'marginMode': marginMode,
         }
-        return await self.privateMixPostAccountSetMarginMode(self.extend(request, params))
+        try:
+            return await self.privateMixPostAccountSetMarginMode(self.extend(request, params))
+        except Exception as e:
+            # bitget {"code":"45117","msg":"当前持有仓位或委托，无法调整保证金模式","requestTime":1671924219093,"data":null}
+            if isinstance(e, ExchangeError):
+                if str(e).find('45117') >= 0:
+                    raise ExchangeError(self.id + ' ' + self.json({'code': 45117, 'msg': 'Cannot switch Margin Type for market with open positions or orders.'}))
+            raise e
+
+    async def fetch_account_configuration(self, symbol, params={}):
+        await self.load_markets()
+        market = self.market(symbol)
+        request = {
+            'symbol': market['id'],
+            'marginCoin': market['settleId'],
+        }
+        response = await self.privateMixGetPositionSinglePosition(self.extend(request, params))
+        data = self.safe_value(response, 'data')
+        return self.parse_account_configuration(data, market)
+
+    def parse_account_configuration(self, data, market=None):
+        # [{
+        #     "marginCoin":"USDT",
+        #   "symbol":"BTCUSDT_UMCBL",
+        #   "holdSide":"long",
+        #   "openDelegateCount":"0",
+        #   "margin":"10",
+        #   "available":"0",
+        #   "locked":"0",
+        #   "total":"0",
+        #   "leverage":25,
+        #   "achievedProfits":"0",
+        #   "averageOpenPrice":"0",
+        #   "marginMode":"fixed",
+        #   "holdMode":"double_hold",
+        #   "unrealizedPL":"0",
+        #   "keepMarginRate":"0.015",
+        #   "marketPrice":"0",
+        #   "ctime":"1626232130664"
+        # }, ...]
+        accountConfig = {
+            'info': data,
+            'markets': {},
+        }
+        for i in range(0, len(data)):
+            posInfo = data[i]
+            marginMode = self.safe_string(posInfo, 'marginMode')
+            symbol = self.safe_string(posInfo, 'symbol')
+            marginCoin = self.safe_string(posInfo, 'marginCoin')
+            leverage = self.safe_float(posInfo, 'leverage')
+            holdMode = self.safe_string(posInfo, 'holdMode')
+            holdSide = self.safe_string(posInfo, 'holdSide')
+            isIsolated = (marginMode == 'fixed')
+            if not self.safe_value(accountConfig['markets'], symbol):
+                accountConfig['markets'][symbol] = {}
+            leverageConfig = accountConfig['markets'][symbol]
+            leverageConfig['marginType'] = 'isolated' if isIsolated else 'cross'
+            leverageConfig['marginCoin'] = marginCoin
+            leverageConfig['leverage'] = leverage
+            if holdMode == 'double_hold':
+                leverageConfig['tradeMode'] = 'hedged'
+                if holdSide == 'short':
+                    leverageConfig['sellLeverage'] = leverage
+                else:
+                    leverageConfig['buyLeverage'] = leverage
+            else:
+                leverageConfig['tradeMode'] = 'oneway'
+            leverageConfig['isIsolated'] = isIsolated
+        return accountConfig
 
     async def fetch_open_interest(self, symbol, params={}):
         """
