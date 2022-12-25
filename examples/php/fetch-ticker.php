@@ -6,14 +6,14 @@
 include dirname(dirname(dirname(__FILE__))) . '/ccxt.php';
 date_default_timezone_set('UTC');
 
-$exchange = new \ccxt\binance(array(
+$exchange = new \ccxt\okx(array(
     // 'verbose' => true, // for debugging
     'timeout' => 30000,
 ));
 $symbol = 'ETH/USDT';
 
 try {
-    $result = $exch->fetch_ticker($symbol);
+    $result = $exchange->fetch_ticker($symbol);
     echo "Ticker: " . $result['symbol'] . ', 24hr high: '. $result['high']. "\n";
 } catch (Exception $e) {
     if ($e instanceof \ccxt\NetworkError) {
