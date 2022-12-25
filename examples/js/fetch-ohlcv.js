@@ -4,7 +4,7 @@ const ccxt = require ('../../ccxt.js');
 // AUTO-TRANSPILE //
 
 async function example () {
-    const myex = new ccxt['binance']({});
+    const myex = new ccxt['okx']({});
     const ohlcv = await myex.fetchOHLCV ('BTC/USDT', '1h');
     const length = ohlcv.length;
     if (length > 0) {
