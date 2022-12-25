@@ -39,5 +39,6 @@
     "ascendex":      { "skip": true },
     "btcex":         { "skip": true },
     "wazirx":        { "skipWs": true },
-    "okx":          { "skipWs": true }
+    "okx":           { "skipWs": true },
+    "deribit":       { "skipWs": true }
 }
