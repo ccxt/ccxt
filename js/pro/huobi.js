@@ -89,6 +89,7 @@ module.exports = class huobi extends huobiRest {
                 'ws': {
                     'gunzip': true,
                 },
+                'watchTickerTopic': 'market.{marketId}.detail', // 'market.{marketId}.bbo' or 'market.{marketId}.ticker'
             },
             'exceptions': {
                 'ws': {
@@ -123,13 +124,15 @@ module.exports = class huobi extends huobiRest {
         await this.loadMarkets ();
         const market = this.market (symbol);
         symbol = market['symbol'];
-        const messageHash = 'market.' + market['id'] + '.detail';
+        const topic = this.safeString (this.options, 'watchTickerTopic', 'market.{marketId}.detail');
+        const messageHash = this.implodeParams (topic, { 'marketId': market['id'] });
         const url = this.getUrlByMarketType (market['type'], market['linear']);
         return await this.subscribePublic (url, symbol, messageHash, undefined, params);
     }
 
     handleTicker (client, message) {
         //
+        // 'market.btcusdt.detail'
         //     {
         //         ch: 'market.btcusdt.detail',
         //         ts: 1583494163784,
@@ -143,6 +146,20 @@ module.exports = class huobi extends huobiRest {
         //             amount: 26184.202558551195,
         //             version: 209988464418,
         //             count: 265673
+        //         }
+        //     }
+        // 'market.btcusdt.bbo'
+        //     {
+        //         ch: 'market.btcusdt.bbo',
+        //         ts: 1671941599613,
+        //         tick: {
+        //             seqId: 161499562790,
+        //             ask: 16829.51,
+        //             askSize: 0.707776,
+        //             bid: 16829.5,
+        //             bidSize: 1.685945,
+        //             quoteTime: 1671941599612,
+        //             symbol: 'btcusdt'
         //         }
         //     }
         //
@@ -1572,6 +1589,8 @@ module.exports = class huobi extends huobiRest {
                 'depth': this.handleOrderBook,
                 'mbp': this.handleOrderBook,
                 'detail': this.handleTicker,
+                'bbo': this.handleTicker,
+                'ticker': this.handleTicker,
                 'trade': this.handleTrades,
                 'kline': this.handleOHLCV,
             };
