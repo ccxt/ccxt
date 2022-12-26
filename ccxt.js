@@ -215,10 +215,11 @@ for (const exchange in pro) {
     const ccxtExchange = exchanges[exchange]
     if (ccxtExchange) {
         const baseExchange = Object.getPrototypeOf (ccxtExchange)
-        if (baseExchange.name === 'Exchange') {
+        // TODO: Tealstreet: the baseExchange.name was not 'Exchange' for some reason... need to fix this later
+        // if (baseExchange.name === 'Exchange') {
             Object.setPrototypeOf (ccxtExchange, wsExchange)
             Object.setPrototypeOf (ccxtExchange.prototype, wsExchange.prototype)
-        }
+        // }
     }
 }
 

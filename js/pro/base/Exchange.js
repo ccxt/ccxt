@@ -143,19 +143,20 @@ module.exports = class Exchange extends BaseExchange {
         connected.then (() => {
             if (!client.subscriptions[subscribeHash]) {
                 client.subscriptions[subscribeHash] = subscription || true;
-                const options = this.safeValue (this.options, 'ws');
-                const cost = this.safeValue (options, 'cost', 1);
+                // const options = this.safeValue (this.options, 'ws');
+                // const cost = this.safeValue (options, 'cost', 1);
                 if (message) {
-                    if (this.enableRateLimit && client.throttle) {
-                        // add cost here |
-                        //               |
-                        //               V
-                        client.throttle (cost).then (() => {
-                            client.send (message);
-                        }).catch ((e) => { throw e });
-                    } else {
-                        client.send (message);
-                    }
+                    // TODO: Tealstreet: for some reason this causing lag. Need to investigate
+                    // if (this.enableRateLimit && client.throttle) {
+                    //     // add cost here |
+                    //     //               |
+                    //     //               V
+                    //     client.throttle (cost).then (() => {
+                    //         client.send (message);
+                    //     }).catch ((e) => { throw e });
+                    // } else {
+                    client.send (message);
+                    // }
                 }
             }
         })
