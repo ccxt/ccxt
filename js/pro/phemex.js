@@ -753,31 +753,22 @@ module.exports = class phemex extends phemexRest {
             if (ordersLength === 0) {
                 return;
             }
-            const fills = this.safeValue (message, 'fills', []);
-            trades = fills;
+            trades = this.safeValue (message, 'fills', []);
             for (let i = 0; i < orders.length; i++) {
                 const rawOrder = orders[i];
-                const marketId = this.safeString (rawOrder, 'symbol');
-                // skip delisted spot markets
-                if (marketId in this.markets_by_id) {
-                    const parsedOrder = this.parseOrder (rawOrder);
-                    parsedOrders.push (parsedOrder);
-                }
+                const parsedOrder = this.parseOrder (rawOrder);
+                parsedOrders.push (parsedOrder);
             }
         } else {
             for (let i = 0; i < message.length; i++) {
                 const update = message[i];
-                const marketId = this.safeString (update, 'symbol');
-                if (marketId in this.markets_by_id) {
-                    // skip delisted swap markets
-                    const action = this.safeString (update, 'action');
-                    if ((action !== undefined) && (action !== 'Cancel')) {
-                        // order + trade info together
-                        trades.push (update);
-                    }
-                    const parsedOrder = this.parseWSSwapOrder (update);
-                    parsedOrders.push (parsedOrder);
+                const action = this.safeString (update, 'action');
+                if ((action !== undefined) && (action !== 'Cancel')) {
+                    // order + trade info together
+                    trades.push (update);
                 }
+                const parsedOrder = this.parseWSSwapOrder (update);
+                parsedOrders.push (parsedOrder);
             }
         }
         this.handleMyTrades (client, trades);
