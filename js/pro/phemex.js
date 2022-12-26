@@ -600,17 +600,14 @@ module.exports = class phemex extends phemexRest {
         for (let i = 0; i < message.length; i++) {
             const rawTrade = message[i];
             const marketId = this.safeString (rawTrade, 'symbol');
-            // skip delisted  markets
-            if (marketId in this.markets_by_id) {
-                const parsed = this.parseTrade (rawTrade);
-                cachedTrades.append (parsed);
-                const symbol = parsed['symbol'];
-                const market = this.market (symbol);
-                if (type === undefined) {
-                    type = market['type'];
-                }
-                marketIds[symbol] = true;
+            const market = this.safeMarket (marketId);
+            const parsed = this.parseTrade (rawTrade);
+            cachedTrades.append (parsed);
+            const symbol = parsed['symbol'];
+            if (type === undefined) {
+                type = market['type'];
             }
+            marketIds[symbol] = true;
         }
         const keys = Object.keys (marketIds);
         for (let i = 0; i < keys.length; i++) {
