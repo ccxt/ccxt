@@ -936,11 +936,16 @@ class bitget(Exchange):
             type = types[i]
             if type == 'swap':
                 subTypes = self.get_sub_types()
+                promises = []
                 for j in range(0, len(subTypes)):
-                    markets = await self.fetch_markets_by_type(type, self.extend(params, {
+                    promises.append(self.fetch_markets_by_type(type, self.extend(params, {
                         'productType': subTypes[j],
-                    }))
-                    result = self.array_concat(result, markets)
+                    })))
+                promises = await asyncio.gather(*promises)
+                result = []
+                for j in range(0, len(promises)):
+                    result = self.array_concat(result, promises[j])
+                return result
             else:
                 markets = await self.fetch_markets_by_type(types[i], params)
                 result = self.array_concat(result, markets)

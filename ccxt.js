@@ -215,11 +215,11 @@ for (const exchange in pro) {
     const ccxtExchange = exchanges[exchange]
     if (ccxtExchange) {
         const baseExchange = Object.getPrototypeOf (ccxtExchange)
-        // TODO: Tealstreet: the baseExchange.name was not 'Exchange' for some reason... need to fix this later
-        // if (baseExchange.name === 'Exchange') {
+        // TODO: Tealstreet: babel / webpack sometimes minifies object with name 'Exchange' to 'e'. Need a more reliable solution
+        if (baseExchange.name === 'Exchange' || baseExchange.name === 'e') {
             Object.setPrototypeOf (ccxtExchange, wsExchange)
             Object.setPrototypeOf (ccxtExchange.prototype, wsExchange.prototype)
-        // }
+        }
     }
 }
 

@@ -947,12 +947,18 @@ class bitget extends Exchange {
                 $type = $types[$i];
                 if ($type === 'swap') {
                     $subTypes = $this->get_sub_types();
+                    $promises = array();
                     for ($j = 0; $j < count($subTypes); $j++) {
-                        $markets = Async\await($this->fetch_markets_by_type($type, array_merge($params, array(
+                        $promises[] = $this->fetch_markets_by_type($type, array_merge($params, array(
                             'productType' => $subTypes[$j],
-                        ))));
-                        $result = $this->array_concat($result, $markets);
+                        )));
                     }
+                    $promises = Async\await(Promise\all($promises));
+                    $result = array();
+                    for ($j = 0; $j < count($promises); $j++) {
+                        $result = $this->array_concat($result, $promises[$j]);
+                    }
+                    return $result;
                 } else {
                     $markets = Async\await($this->fetch_markets_by_type($types[$i], $params));
                     $result = $this->array_concat($result, $markets);

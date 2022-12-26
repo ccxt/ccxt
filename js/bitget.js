@@ -938,12 +938,18 @@ module.exports = class bitget extends Exchange {
             const type = types[i];
             if (type === 'swap') {
                 const subTypes = this.getSubTypes ();
+                let promises = [];
                 for (let j = 0; j < subTypes.length; j++) {
-                    const markets = await this.fetchMarketsByType (type, this.extend (params, {
+                    promises.push (this.fetchMarketsByType (type, this.extend (params, {
                         'productType': subTypes[j],
-                    }));
-                    result = this.arrayConcat (result, markets);
+                    })));
                 }
+                promises = await Promise.all (promises);
+                let result = [];
+                for (let j = 0; j < promises.length; j++) {
+                    result = this.arrayConcat (result, promises[j]);
+                }
+                return result;
             } else {
                 const markets = await this.fetchMarketsByType (types[i], params);
                 result = this.arrayConcat (result, markets);
