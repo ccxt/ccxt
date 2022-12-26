@@ -1813,9 +1813,7 @@ module.exports = class bitstamp extends Exchange {
             for (let i = 0; i < keys.length; i++) {
                 if (keys[i].indexOf ('_') >= 0) {
                     const marketId = keys[i].replace ('_', '');
-                    if (marketId in this.markets_by_id) {
-                        market = this.markets_by_id[marketId];
-                    }
+                    market = this.safeMarket (marketId, market);
                 }
             }
             // if the market is still not defined

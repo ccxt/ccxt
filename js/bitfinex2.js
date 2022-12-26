@@ -1153,12 +1153,10 @@ module.exports = class bitfinex2 extends Exchange {
         const result = {};
         for (let i = 0; i < tickers.length; i++) {
             const ticker = tickers[i];
-            const id = ticker[0];
-            if (id in this.markets_by_id) {
-                const market = this.markets_by_id[id];
-                const symbol = market['symbol'];
-                result[symbol] = this.parseTicker (ticker, market);
-            }
+            const marketId = this.safeString (ticker, 0);
+            const market = this.safeMarket (marketId);
+            const symbol = market['symbol'];
+            result[symbol] = this.parseTicker (ticker, market);
         }
         return this.filterByArray (result, 'symbol', symbols);
     }
@@ -1252,12 +1250,7 @@ module.exports = class bitfinex2 extends Exchange {
         const timestamp = this.safeInteger (trade, timestampIndex);
         if (isPrivate) {
             const marketId = trade[1];
-            if (marketId in this.markets_by_id) {
-                market = this.markets_by_id[marketId];
-                symbol = market['symbol'];
-            } else {
-                symbol = this.parseSymbol (marketId);
-            }
+            symbol = this.parseSymbol (marketId);
             orderId = this.safeString (trade, 3);
             const maker = this.safeInteger (trade, 8);
             takerOrMaker = (maker === 1) ? 'maker' : 'taker';
@@ -1271,11 +1264,6 @@ module.exports = class bitfinex2 extends Exchange {
             };
             const orderType = trade[6];
             type = this.safeString (this.options['exchangeTypes'], orderType);
-        }
-        if (symbol === undefined) {
-            if (market !== undefined) {
-                symbol = market['symbol'];
-            }
         }
         return this.safeTrade ({
             'id': id,
@@ -1441,16 +1429,8 @@ module.exports = class bitfinex2 extends Exchange {
 
     parseOrder (order, market = undefined) {
         const id = this.safeString (order, 0);
-        let symbol = undefined;
         const marketId = this.safeString (order, 3);
-        if (marketId in this.markets_by_id) {
-            market = this.markets_by_id[marketId];
-        } else {
-            symbol = this.parseSymbol (marketId);
-        }
-        if ((symbol === undefined) && (market !== undefined)) {
-            symbol = market['symbol'];
-        }
+        const symbol = this.parseSymbol (marketId);
         // https://github.com/ccxt/ccxt/issues/6686
         // const timestamp = this.safeTimestamp (order, 5);
         const timestamp = this.safeInteger (order, 5);
@@ -1477,7 +1457,7 @@ module.exports = class bitfinex2 extends Exchange {
             price = undefined;
             stopPrice = this.safeNumber (order, 16);
             if (orderType === 'EXCHANGE STOP LIMIT') {
-                price = this.safeNumber (order, 19);
+                price = this.safeString (order, 19);
             }
         }
         let status = undefined;
