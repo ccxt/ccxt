@@ -573,6 +573,7 @@ module.exports = class poloniexfutures extends Exchange {
          * @method
          * @name poloniexfutures#fetchL3OrderBook
          * @description fetches level 3 information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+         * @see https://futures-docs.poloniex.com/#get-full-order-book-level-3
          * @param {string} symbol unified market symbol
          * @param {int|undefined} limit max number of orders to return, default is undefined
          * @param {object} params extra parameters specific to the blockchaincom api endpoint
@@ -919,6 +920,7 @@ module.exports = class poloniexfutures extends Exchange {
          * @method
          * @name poloniexfutures#cancelOrder
          * @description cancels an open order
+         * @see https://futures-docs.poloniex.com/#cancel-an-order
          * @param {string} id order id
          * @param {string|undefined} symbol unified symbol of the market the order was made in
          * @param {object} params extra parameters specific to the poloniexfutures api endpoint
@@ -979,6 +981,7 @@ module.exports = class poloniexfutures extends Exchange {
          * @method
          * @name poloniexfutures#fetchPositions
          * @description fetch all open positions
+         * @see https://futures-docs.poloniex.com/#get-position-list
          * @param {[string]|undefined} symbols list of unified market symbols
          * @param {object} params extra parameters specific to the poloniexfutures api endpoint
          * @returns {[object]} a list of [position structure]{@link https://docs.ccxt.com/en/latest/manual.html#position-structure}
@@ -1127,6 +1130,79 @@ module.exports = class poloniexfutures extends Exchange {
         };
     }
 
+    async fetchFundingHistory (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        /**
+         * @method
+         * @name poloniexfutures#fetchFundingHistory
+         * @description fetch the history of funding payments paid and received on this account
+         * @see https://futures-docs.poloniex.com/#get-funding-history
+         * @param {string} symbol unified market symbol
+         * @param {int|undefined} since the earliest time in ms to fetch funding history for
+         * @param {int|undefined} limit the maximum number of funding history structures to retrieve
+         * @param {object} params extra parameters specific to the poloniexfutures api endpoint
+         * @returns {object} a [funding history structure]{@link https://docs.ccxt.com/en/latest/manual.html#funding-history-structure}
+         */
+        if (symbol === undefined) {
+            throw new ArgumentsRequired (this.id + ' fetchFundingHistory() requires a symbol argument');
+        }
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const request = {
+            'symbol': market['id'],
+        };
+        if (since !== undefined) {
+            request['startAt'] = since;
+        }
+        if (limit !== undefined) {
+            // * Since is ignored if limit is defined
+            request['maxCount'] = limit;
+        }
+        const response = await this.privateGetFundingHistory (this.extend (request, params));
+        //
+        //    {
+        //        "code": "200000",
+        //        "data": {
+        //            "dataList": [
+        //                {
+        //                    "id": 239471298749817,
+        //                    "symbol": "ETHUSDTM",
+        //                    "timePoint": 1638532800000,
+        //                    "fundingRate": 0.000100,
+        //                    "markPrice": 4612.8300000000,
+        //                    "positionQty": 12,
+        //                    "positionCost": 553.5396000000,
+        //                    "funding": -0.0553539600,
+        //                    "settleCurrency": "USDT"
+        //                },
+        //                ...
+        //            ],
+        //            "hasMore": true
+        //        }
+        //    }
+        //
+        const data = this.safeValue (response, 'data');
+        const dataList = this.safeValue (data, 'dataList', []);
+        const fees = [];
+        for (let i = 0; i < dataList.length; i++) {
+            const listItem = dataList[i];
+            const timestamp = this.safeInteger (listItem, 'timePoint');
+            fees.push ({
+                'info': listItem,
+                'symbol': symbol,
+                'code': this.safeCurrencyCode (this.safeString (listItem, 'settleCurrency')),
+                'timestamp': timestamp,
+                'datetime': this.iso8601 (timestamp),
+                'id': this.safeNumber (listItem, 'id'),
+                'amount': this.safeNumber (listItem, 'funding'),
+                'fundingRate': this.safeNumber (listItem, 'fundingRate'),
+                'markPrice': this.safeNumber (listItem, 'markPrice'),
+                'positionQty': this.safeNumber (listItem, 'positionQty'),
+                'positionCost': this.safeNumber (listItem, 'positionCost'),
+            });
+        }
+        return fees;
+    }
+
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let url = this.urls['api'][api];
         const versions = this.safeValue (this.options, 'versions', {});
@@ -1137,18 +1213,22 @@ module.exports = class poloniexfutures extends Exchange {
         const tail = '/api/' + version + '/' + this.implodeParams (path, params);
         url += tail;
         const query = this.omit (params, path);
+        const queryLength = Object.keys (query).length;
         if (api === 'public') {
-            const queryLength = Object.keys (query).length;
             if (queryLength) {
                 url += '?' + this.urlencode (query);
             }
         } else {
             this.checkRequiredCredentials ();
+            let endpoint = '/api/v1/' + this.implodeParams (path, params);
             const bodyEncoded = this.urlencode (query);
             if (method !== 'GET' && method !== 'HEAD') {
                 body = query;
             } else {
-                url += '?' + bodyEncoded;
+                if (queryLength) {
+                    url += '?' + bodyEncoded;
+                    endpoint += '?' + bodyEncoded;
+                }
             }
             const now = this.milliseconds ().toString ();
             let endpart = '';
@@ -1156,7 +1236,6 @@ module.exports = class poloniexfutures extends Exchange {
                 body = this.json (query);
                 endpart = body;
             }
-            const endpoint = '/api/v1/' + this.implodeParams (path, params);
             const payload = now + method + endpoint + endpart;
             console.log (payload);
             const signature = this.hmac (this.encode (payload), this.encode (this.secret), 'sha256', 'base64');
