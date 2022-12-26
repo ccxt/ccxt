@@ -330,7 +330,8 @@ module.exports = class poloniexfutures extends Exchange {
         //
         const result = [];
         const data = this.safeValue (response, 'data', []);
-        for (let i = 0; i < data.length; i++) {
+        const dataLength = data.length;
+        for (let i = 0; i < dataLength; i++) {
             const market = data[i];
             const id = this.safeString (market, 'symbol');
             const baseId = this.safeString (market, 'baseCurrency');
@@ -1182,8 +1183,9 @@ module.exports = class poloniexfutures extends Exchange {
         //
         const data = this.safeValue (response, 'data');
         const dataList = this.safeValue (data, 'dataList', []);
+        const dataListLength = dataList.length;
         const fees = [];
-        for (let i = 0; i < dataList.length; i++) {
+        for (let i = 0; i < dataListLength; i++) {
             const listItem = dataList[i];
             const timestamp = this.safeInteger (listItem, 'timePoint');
             fees.push ({
@@ -1201,6 +1203,67 @@ module.exports = class poloniexfutures extends Exchange {
             });
         }
         return fees;
+    }
+
+    async cancelAllOrders (symbol = undefined, params = {}) {
+        /**
+         * @method
+         * @name poloniexfutures#cancelAllOrders
+         * @description cancel all open orders
+         * @param {string|undefined} symbol unified market symbol, only orders in the market of this symbol are cancelled when symbol is not undefined
+         * @param {object} params extra parameters specific to the poloniexfutures api endpoint
+         * @param {object} params.stop When true, all the trigger orders will be cancelled
+         * @returns {[object]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
+         */
+        await this.loadMarkets ();
+        const request = {};
+        if (symbol !== undefined) {
+            request['symbol'] = this.marketId (symbol);
+        }
+        const stop = this.safeValue (params, 'stop');
+        const method = stop ? 'privateDeleteStopOrders' : 'privateDeleteOrders';
+        const response = await this[method] (this.extend (request, params));
+        //
+        //   {
+        //       code: "200000",
+        //       data: {
+        //           cancelledOrderIds: [
+        //                "619714b8b6353000014c505a",
+        //           ],
+        //       },
+        //   }
+        //
+        const data = this.safeValue (response, 'data');
+        const result = [];
+        const cancelledOrderIds = this.safeValue (data, 'cancelledOrderIds');
+        const cancelledOrderIdsLength = cancelledOrderIds.length;
+        for (let i = 0; i < cancelledOrderIdsLength; i++) {
+            const cancelledOrderId = this.safeString (cancelledOrderIds, i);
+            result.push ({
+                'id': cancelledOrderId,
+                'clientOrderId': undefined,
+                'timestamp': undefined,
+                'datetime': undefined,
+                'lastTradeTimestamp': undefined,
+                'symbol': undefined,
+                'type': undefined,
+                'side': undefined,
+                'price': undefined,
+                'amount': undefined,
+                'cost': undefined,
+                'average': undefined,
+                'filled': undefined,
+                'remaining': undefined,
+                'status': undefined,
+                'fee': undefined,
+                'trades': undefined,
+                'timeInForce': undefined,
+                'postOnly': undefined,
+                'stopPrice': undefined,
+                'info': response,
+            });
+        }
+        return result;
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
