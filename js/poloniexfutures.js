@@ -39,6 +39,10 @@ module.exports = class poloniexfutures extends Exchange {
                 'fetchTickers': true,
                 'fetchTime': true,
                 'fetchTrades': true,
+                'fetchOrdersByStatus': true,
+                'fetchOpenOrders': true,
+                'fetchClosedOrders': true,
+                'fetchOrder': true,
             },
             'timeframes': {
                 '1m': 1,
@@ -1266,6 +1270,194 @@ module.exports = class poloniexfutures extends Exchange {
         return result;
     }
 
+    async fetchOrdersByStatus (status, symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        /**
+         * @method
+         * @name poloniexfutures#fetchOrdersByStatus
+         * @description fetches a list of orders placed on the exchange
+         * @see https://docs.kucoin.com/futures/#get-order-list
+         * @see https://docs.kucoin.com/futures/#get-untriggered-stop-order-list
+         * @param {string} status 'active' or 'closed', only 'active' is valid for stop orders
+         * @param {string|undefined} symbol unified symbol for the market to retrieve orders from
+         * @param {int|undefined} since timestamp in ms of the earliest order to retrieve
+         * @param {int|undefined} limit The maximum number of orders to retrieve
+         * @param {object} params exchange specific parameters
+         * @param {bool|undefined} params.stop set to true to retrieve untriggered stop orders
+         * @param {int|undefined} params.until End time in ms
+         * @param {string|undefined} params.side buy or sell
+         * @param {string|undefined} params.type limit or market
+         * @returns An [array of order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
+         */
+        await this.loadMarkets ();
+        const stop = this.safeValue (params, 'stop');
+        const until = this.safeInteger2 (params, 'until', 'till');
+        params = this.omit (params, [ 'stop', 'until', 'till' ]);
+        if (status === 'closed') {
+            status = 'done';
+        } else if (status === 'open') {
+            status = 'active';
+        }
+        const request = {};
+        if (!stop) {
+            request['status'] = status;
+        } else if (status !== 'active') {
+            throw new BadRequest (this.id + ' fetchOrdersByStatus() can only fetch untriggered stop orders');
+        }
+        let market = undefined;
+        if (symbol !== undefined) {
+            market = this.market (symbol);
+            request['symbol'] = market['id'];
+        }
+        if (since !== undefined) {
+            request['startAt'] = since;
+        }
+        if (until !== undefined) {
+            request['endAt'] = until;
+        }
+        const method = stop ? 'privateGetStopOrders' : 'privateGetOrders';
+        const response = await this[method] (this.extend (request, params));
+        const responseData = this.safeValue (response, 'data', {});
+        const orders = this.safeValue (responseData, 'items', []);
+        return this.parseOrders (orders, market, since, limit);
+    }
+
+    async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        /**
+         * @method
+         * @name poloniexfutures#fetchOpenOrders
+         * @description fetch all unfilled currently open orders
+         * @see https://docs.kucoin.com/futures/#get-order-list
+         * @see https://docs.kucoin.com/futures/#get-untriggered-stop-order-list
+         * @param {string|undefined} symbol unified market symbol
+         * @param {int|undefined} since the earliest time in ms to fetch open orders for
+         * @param {int|undefined} limit the maximum number of  open orders structures to retrieve
+         * @param {object} params extra parameters specific to the poloniexfutures api endpoint
+         * @param {int|undefined} params.till end time in ms
+         * @param {string|undefined} params.side buy or sell
+         * @param {string|undefined} params.type limit, or market
+         * @returns {[object]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
+         */
+        return await this.fetchOrdersByStatus ('active', symbol, since, limit, params);
+    }
+
+    async fetchClosedOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        /**
+         * @method
+         * @name poloniexfutures#fetchClosedOrders
+         * @description fetches information on multiple closed orders made by the user
+         * @see https://docs.kucoin.com/futures/#get-order-list
+         * @see https://docs.kucoin.com/futures/#get-untriggered-stop-order-list
+         * @param {string|undefined} symbol unified market symbol of the market orders were made in
+         * @param {int|undefined} since the earliest time in ms to fetch orders for
+         * @param {int|undefined} limit the maximum number of  orde structures to retrieve
+         * @param {object} params extra parameters specific to the poloniexfutures api endpoint
+         * @param {int|undefined} params.till end time in ms
+         * @param {string|undefined} params.side buy or sell
+         * @param {string|undefined} params.type limit, or market
+         * @returns {[object]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
+         */
+        return await this.fetchOrdersByStatus ('done', symbol, since, limit, params);
+    }
+
+    async fetchOrder (id = undefined, symbol = undefined, params = {}) {
+        /**
+         * @method
+         * @name poloniexfutures#fetchOrder
+         * @description fetches information on an order made by the user
+         * @see https://docs.kucoin.com/futures/#get-details-of-a-single-order
+         * @param {string|undefined} symbol unified symbol of the market the order was made in
+         * @param {object} params extra parameters specific to the poloniexfutures api endpoint
+         * @returns {object} An [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
+         */
+        await this.loadMarkets ();
+        const request = {};
+        let method = 'privateGetOrdersOrderId';
+        if (id === undefined) {
+            const clientOrderId = this.safeString2 (params, 'clientOid', 'clientOrderId');
+            if (clientOrderId === undefined) {
+                throw new InvalidOrder (this.id + ' fetchOrder() requires parameter id or params.clientOid');
+            }
+            request['clientOid'] = clientOrderId;
+            method = 'futuresPrivateGetOrdersByClientOid';
+            params = this.omit (params, [ 'clientOid', 'clientOrderId' ]);
+        } else {
+            request['order-id'] = id;
+        }
+        const response = await this[method] (this.extend (request, params));
+        const market = (symbol !== undefined) ? this.market (symbol) : undefined;
+        const responseData = this.safeValue (response, 'data');
+        return this.parseOrder (responseData, market);
+    }
+
+    parseOrder (order, market = undefined) {
+        const marketId = this.safeString (order, 'symbol');
+        market = this.safeMarket (marketId, market);
+        const symbol = market['symbol'];
+        const orderId = this.safeString (order, 'id');
+        const type = this.safeString (order, 'type');
+        const timestamp = this.safeInteger (order, 'createdAt');
+        const datetime = this.iso8601 (timestamp);
+        const price = this.safeString (order, 'price');
+        // price is zero for market order
+        // omitZero is called in safeOrder2
+        const side = this.safeString (order, 'side');
+        const feeCurrencyId = this.safeString (order, 'feeCurrency');
+        const feeCurrency = this.safeCurrencyCode (feeCurrencyId);
+        const feeCost = this.safeNumber (order, 'fee');
+        const amount = this.safeString (order, 'size');
+        const filled = this.safeString (order, 'dealSize');
+        const rawCost = this.safeString2 (order, 'dealFunds', 'filledValue');
+        const leverage = this.safeString (order, 'leverage');
+        const cost = Precise.stringDiv (rawCost, leverage);
+        let average = undefined;
+        if (Precise.stringGt (filled, '0')) {
+            const contractSize = this.safeString (market, 'contractSize');
+            if (market['linear']) {
+                average = Precise.stringDiv (rawCost, Precise.stringMul (contractSize, filled));
+            } else {
+                average = Precise.stringDiv (Precise.stringMul (contractSize, filled), rawCost);
+            }
+        }
+        // precision reported by their api is 8 d.p.
+        // const average = Precise.stringDiv (rawCost, Precise.stringMul (filled, market['contractSize']));
+        // bool
+        const isActive = this.safeValue (order, 'isActive', false);
+        const cancelExist = this.safeValue (order, 'cancelExist', false);
+        let status = isActive ? 'open' : 'closed';
+        status = cancelExist ? 'canceled' : status;
+        const fee = {
+            'currency': feeCurrency,
+            'cost': feeCost,
+        };
+        const clientOrderId = this.safeString (order, 'clientOid');
+        const timeInForce = this.safeString (order, 'timeInForce');
+        const stopPrice = this.safeNumber (order, 'stopPrice');
+        const postOnly = this.safeValue (order, 'postOnly');
+        return this.safeOrder ({
+            'id': orderId,
+            'clientOrderId': clientOrderId,
+            'symbol': symbol,
+            'type': type,
+            'timeInForce': timeInForce,
+            'postOnly': postOnly,
+            'side': side,
+            'amount': amount,
+            'price': price,
+            'stopPrice': stopPrice,
+            'cost': cost,
+            'filled': filled,
+            'remaining': undefined,
+            'timestamp': timestamp,
+            'datetime': datetime,
+            'fee': fee,
+            'status': status,
+            'info': order,
+            'lastTradeTimestamp': undefined,
+            'average': average,
+            'trades': undefined,
+        }, market);
+    }
+
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let url = this.urls['api'][api];
         const versions = this.safeValue (this.options, 'versions', {});
@@ -1288,7 +1480,7 @@ module.exports = class poloniexfutures extends Exchange {
             if (method !== 'GET' && method !== 'HEAD') {
                 body = query;
             } else {
-                if (queryLength) {
+                if (queryLength && bodyEncoded !== '') {
                     url += '?' + bodyEncoded;
                     endpoint += '?' + bodyEncoded;
                 }
