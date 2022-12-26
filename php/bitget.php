@@ -826,6 +826,18 @@ class bitget extends Exchange {
         }
     }
 
+    public function get_sub_type_from_market_id($marketId) {
+        if (!$marketId) {
+            return null;
+        }
+        $subTypeParts = explode('_', $marketId);
+        if (strlen($subTypeParts) > 1) {
+            return strtolower($subTypeParts[1]);
+        } else {
+            return '';
+        }
+    }
+
     public function set_position_mode($hedged, $symbol = null, $params = array ()) {
         /**
          * set $hedged to true or false for a market
@@ -851,52 +863,50 @@ class bitget extends Exchange {
 
     public function fetch_open_orders($symbol = null, $since = null, $limit = null, $params = array ()) {
         $this->load_markets();
+        $subTypes = array();
+        $request = array();
+        $market = null;
         if ($symbol) {
             $market = $this->market($symbol);
-            $request = array(
-                'symbol' => $market['id'],
-            );
-            $stop = $this->safe_value($params, 'stop');
-            if ($stop) {
-                $params = $this->omit($params, 'stop');
-                $promises = array();
+            $subTypes = [ $this->get_sub_type_from_market_id($market['id']) ];
+            $request['symbol'] = $market['id'];
+        } else {
+            $subTypes = $this->get_sub_types();
+        }
+        $stop = $this->safe_value($params, 'stop');
+        if ($stop) {
+            $params = $this->omit($params, 'stop');
+            $promises = array();
+            for ($i = 0; $i < count($subTypes); $i++) {
+                $subType = $subTypes[$i];
+                $request['productType'] = $subType;
                 $request['isPlan'] = 'plan';
                 $promises[] = $this->privateMixGetPlanCurrentPlan (array_merge($request, $params));
                 $request['isPlan'] = 'profit_loss';
                 $promises[] = $this->privateMixGetPlanCurrentPlan (array_merge($request, $params));
-                $orders = array();
-                for ($i = 0; $i < count($promises); $i++) {
-                    $response = $promises[$i];
-                    $data = $this->safe_value($response, 'data');
-                    $orders = $this->array_concat($orders, $data);
-                }
-                return $this->parse_orders($orders, null, $since, $limit);
-            } else {
-                $response = $this->privateMixGetOrderCurrent (array_merge($request, $params));
-                $data = $this->safe_value($response, 'data');
-                return $this->parse_orders($data, $market, $since, $limit);
             }
+            $orders = array();
+            for ($i = 0; $i < count($promises); $i++) {
+                $response = $promises[$i];
+                $data = $this->safe_value($response, 'data');
+                $orders = $this->array_concat($orders, $data);
+            }
+            return $this->parse_orders($orders, null, $since, $limit);
+        } else {
+            $promises = array();
+            for ($i = 0; $i < count($subTypes); $i++) {
+                $subType = $subTypes[$i];
+                $request['productType'] = $subType;
+                $promises[] = $this->privateMixGetOrderMarginCoinCurrent (array_merge($request, $params));
+            }
+            $orders = array();
+            for ($i = 0; $i < count($promises); $i++) {
+                $response = $promises[$i];
+                $data = $this->safe_value($response, 'data');
+                $orders = $this->array_concat($orders, $data);
+            }
+            return $this->parse_orders($orders, null, $since, $limit);
         }
-        $stop = $this->safe_value($params, 'stop');
-        if ($stop) {
-            throw new NotSupported($this->id . ' ' . 'fetchOpenOrders() requires a $symbol for $stop $orders->');
-        }
-        $subTypes = $this->get_sub_types();
-        $promises = array();
-        for ($i = 0; $i < count($subTypes); $i++) {
-            $subType = $subTypes[$i];
-            $request = array(
-                'productType' => $subType,
-            );
-            $promises[] = $this->privateMixGetOrderMarginCoinCurrent (array_merge($request, $params));
-        }
-        $orders = array();
-        for ($i = 0; $i < count($promises); $i++) {
-            $response = $promises[$i];
-            $data = $this->safe_value($response, 'data');
-            $orders = $this->array_concat($orders, $data);
-        }
-        return $this->parse_orders($orders, null, $since, $limit);
     }
 
     public function fetch_time($params = array ()) {
@@ -2305,6 +2315,7 @@ class bitget extends Exchange {
         //     }
         //
         $marketId = $this->safe_string($order, 'symbol');
+        $instType = $this->get_sub_type_from_market_id($marketId);
         $market = $this->safe_market($marketId);
         $symbol = $market['symbol'];
         $id = $this->safe_string($order, 'orderId');
@@ -2352,6 +2363,7 @@ class bitget extends Exchange {
         return $this->safe_order(array(
             'info' => $order,
             'id' => $id,
+            'instType' => $instType,
             'clientOrderId' => $clientOrderId,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
@@ -3335,11 +3347,7 @@ class bitget extends Exchange {
         //     }
         //
         $marketId = $this->safe_string($position, 'symbol');
-        $marketIdParts = explode('_', $marketId);
-        $instType = '';
-        if (strlen($marketIdParts) > 1) {
-            $instType = strtolower($marketIdParts[1]);
-        }
+        $instType = $this->get_sub_type_from_market_id($marketId);
         $market = $this->safe_market($marketId, $market);
         $timestamp = $this->safe_integer($position, 'cTime');
         $marginMode = $this->safe_string($position, 'marginMode');

@@ -827,6 +827,18 @@ module.exports = class bitget extends Exchange {
         }
     }
 
+    getSubTypeFromMarketId (marketId) {
+        if (!marketId) {
+            return undefined;
+        }
+        const subTypeParts = marketId.split ('_');
+        if (subTypeParts.length > 1) {
+            return subTypeParts[1].toLowerCase ();
+        } else {
+            return '';
+        }
+    }
+
     async setPositionMode (hedged, symbol = undefined, params = {}) {
         /**
          * @method
@@ -854,54 +866,52 @@ module.exports = class bitget extends Exchange {
 
     async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
+        let subTypes = [];
+        const request = {};
+        let market = undefined;
         if (symbol) {
-            const market = this.market (symbol);
-            const request = {
-                'symbol': market['id'],
-            };
-            const stop = this.safeValue (params, 'stop');
-            if (stop) {
-                params = this.omit (params, 'stop');
-                let promises = [];
+            market = this.market (symbol);
+            subTypes = [ this.getSubTypeFromMarketId (market['id']) ];
+            request['symbol'] = market['id'];
+        } else {
+            subTypes = this.getSubTypes ();
+        }
+        const stop = this.safeValue (params, 'stop');
+        if (stop) {
+            params = this.omit (params, 'stop');
+            let promises = [];
+            for (let i = 0; i < subTypes.length; i++) {
+                const subType = subTypes[i];
+                request['productType'] = subType;
                 request['isPlan'] = 'plan';
                 promises.push (this.privateMixGetPlanCurrentPlan (this.extend (request, params)));
                 request['isPlan'] = 'profit_loss';
                 promises.push (this.privateMixGetPlanCurrentPlan (this.extend (request, params)));
-                promises = await Promise.all (promises);
-                let orders = [];
-                for (let i = 0; i < promises.length; i++) {
-                    const response = promises[i];
-                    const data = this.safeValue (response, 'data');
-                    orders = this.arrayConcat (orders, data);
-                }
-                return this.parseOrders (orders, undefined, since, limit);
-            } else {
-                const response = await this.privateMixGetOrderCurrent (this.extend (request, params));
-                const data = this.safeValue (response, 'data');
-                return this.parseOrders (data, market, since, limit);
             }
+            promises = await Promise.all (promises);
+            let orders = [];
+            for (let i = 0; i < promises.length; i++) {
+                const response = promises[i];
+                const data = this.safeValue (response, 'data');
+                orders = this.arrayConcat (orders, data);
+            }
+            return this.parseOrders (orders, undefined, since, limit);
+        } else {
+            let promises = [];
+            for (let i = 0; i < subTypes.length; i++) {
+                const subType = subTypes[i];
+                request['productType'] = subType;
+                promises.push (this.privateMixGetOrderMarginCoinCurrent (this.extend (request, params)));
+            }
+            promises = await Promise.all (promises);
+            let orders = [];
+            for (let i = 0; i < promises.length; i++) {
+                const response = promises[i];
+                const data = this.safeValue (response, 'data');
+                orders = this.arrayConcat (orders, data);
+            }
+            return this.parseOrders (orders, undefined, since, limit);
         }
-        const stop = this.safeValue (params, 'stop');
-        if (stop) {
-            throw new NotSupported (this.id + ' ' + 'fetchOpenOrders() requires a symbol for stop orders.');
-        }
-        const subTypes = this.getSubTypes ();
-        let promises = [];
-        for (let i = 0; i < subTypes.length; i++) {
-            const subType = subTypes[i];
-            const request = {
-                'productType': subType,
-            };
-            promises.push (this.privateMixGetOrderMarginCoinCurrent (this.extend (request, params)));
-        }
-        promises = await Promise.all (promises);
-        let orders = [];
-        for (let i = 0; i < promises.length; i++) {
-            const response = promises[i];
-            const data = this.safeValue (response, 'data');
-            orders = this.arrayConcat (orders, data);
-        }
-        return this.parseOrders (orders, undefined, since, limit);
     }
 
     async fetchTime (params = {}) {
@@ -2342,6 +2352,7 @@ module.exports = class bitget extends Exchange {
         //     }
         //
         const marketId = this.safeString (order, 'symbol');
+        const instType = this.getSubTypeFromMarketId (marketId);
         market = this.safeMarket (marketId);
         const symbol = market['symbol'];
         const id = this.safeString (order, 'orderId');
@@ -2389,6 +2400,7 @@ module.exports = class bitget extends Exchange {
         return this.safeOrder ({
             'info': order,
             'id': id,
+            'instType': instType,
             'clientOrderId': clientOrderId,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
@@ -3396,11 +3408,7 @@ module.exports = class bitget extends Exchange {
         //     }
         //
         const marketId = this.safeString (position, 'symbol');
-        const marketIdParts = marketId.split ('_');
-        let instType = '';
-        if (marketIdParts.length > 1) {
-            instType = marketIdParts[1].toLowerCase ();
-        }
+        const instType = this.getSubTypeFromMarketId (marketId);
         market = this.safeMarket (marketId, market);
         const timestamp = this.safeInteger (position, 'cTime');
         let marginMode = this.safeString (position, 'marginMode');

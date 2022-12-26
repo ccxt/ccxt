@@ -839,6 +839,15 @@ class bitget(Exchange):
         else:
             raise NotSupported(self.id + ' ' + key + ' does not have a value in mapping')
 
+    def get_sub_type_from_market_id(self, marketId):
+        if not marketId:
+            return None
+        subTypeParts = marketId.split('_')
+        if len(subTypeParts) > 1:
+            return subTypeParts[1].lower()
+        else:
+            return ''
+
     def set_position_mode(self, hedged, symbol=None, params={}):
         """
         set hedged to True or False for a market
@@ -863,46 +872,44 @@ class bitget(Exchange):
 
     def fetch_open_orders(self, symbol=None, since=None, limit=None, params={}):
         self.load_markets()
+        subTypes = []
+        request = {}
+        market = None
         if symbol:
             market = self.market(symbol)
-            request = {
-                'symbol': market['id'],
-            }
-            stop = self.safe_value(params, 'stop')
-            if stop:
-                params = self.omit(params, 'stop')
-                promises = []
+            subTypes = [self.get_sub_type_from_market_id(market['id'])]
+            request['symbol'] = market['id']
+        else:
+            subTypes = self.get_sub_types()
+        stop = self.safe_value(params, 'stop')
+        if stop:
+            params = self.omit(params, 'stop')
+            promises = []
+            for i in range(0, len(subTypes)):
+                subType = subTypes[i]
+                request['productType'] = subType
                 request['isPlan'] = 'plan'
                 promises.append(self.privateMixGetPlanCurrentPlan(self.extend(request, params)))
                 request['isPlan'] = 'profit_loss'
                 promises.append(self.privateMixGetPlanCurrentPlan(self.extend(request, params)))
-                orders = []
-                for i in range(0, len(promises)):
-                    response = promises[i]
-                    data = self.safe_value(response, 'data')
-                    orders = self.array_concat(orders, data)
-                return self.parse_orders(orders, None, since, limit)
-            else:
-                response = self.privateMixGetOrderCurrent(self.extend(request, params))
+            orders = []
+            for i in range(0, len(promises)):
+                response = promises[i]
                 data = self.safe_value(response, 'data')
-                return self.parse_orders(data, market, since, limit)
-        stop = self.safe_value(params, 'stop')
-        if stop:
-            raise NotSupported(self.id + ' ' + 'fetchOpenOrders() requires a symbol for stop orders.')
-        subTypes = self.get_sub_types()
-        promises = []
-        for i in range(0, len(subTypes)):
-            subType = subTypes[i]
-            request = {
-                'productType': subType,
-            }
-            promises.append(self.privateMixGetOrderMarginCoinCurrent(self.extend(request, params)))
-        orders = []
-        for i in range(0, len(promises)):
-            response = promises[i]
-            data = self.safe_value(response, 'data')
-            orders = self.array_concat(orders, data)
-        return self.parse_orders(orders, None, since, limit)
+                orders = self.array_concat(orders, data)
+            return self.parse_orders(orders, None, since, limit)
+        else:
+            promises = []
+            for i in range(0, len(subTypes)):
+                subType = subTypes[i]
+                request['productType'] = subType
+                promises.append(self.privateMixGetOrderMarginCoinCurrent(self.extend(request, params)))
+            orders = []
+            for i in range(0, len(promises)):
+                response = promises[i]
+                data = self.safe_value(response, 'data')
+                orders = self.array_concat(orders, data)
+            return self.parse_orders(orders, None, since, limit)
 
     def fetch_time(self, params={}):
         """
@@ -2243,6 +2250,7 @@ class bitget(Exchange):
         #     }
         #
         marketId = self.safe_string(order, 'symbol')
+        instType = self.get_sub_type_from_market_id(marketId)
         market = self.safe_market(marketId)
         symbol = market['symbol']
         id = self.safe_string(order, 'orderId')
@@ -2285,6 +2293,7 @@ class bitget(Exchange):
         return self.safe_order({
             'info': order,
             'id': id,
+            'instType': instType,
             'clientOrderId': clientOrderId,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
@@ -3204,10 +3213,7 @@ class bitget(Exchange):
         #     }
         #
         marketId = self.safe_string(position, 'symbol')
-        marketIdParts = marketId.split('_')
-        instType = ''
-        if len(marketIdParts) > 1:
-            instType = marketIdParts[1].lower()
+        instType = self.get_sub_type_from_market_id(marketId)
         market = self.safe_market(marketId, market)
         timestamp = self.safe_integer(position, 'cTime')
         marginMode = self.safe_string(position, 'marginMode')
