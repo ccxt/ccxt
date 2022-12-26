@@ -6,6 +6,7 @@ const { BadRequest, ArgumentsRequired, InvalidOrder } = require ('./base/errors'
 const Precise = require ('./base/Precise');
 const Exchange = require ('./base/Exchange');
 const { ExchangeError } = require ('./base/errors');
+const { TICK_SIZE } = require ('./base/functions/number');
 
 //  ---------------------------------------------------------------------------
 
@@ -32,6 +33,7 @@ module.exports = class poloniexfutures extends Exchange {
                 'fetchMarkets': true,
                 'fetchOHLCV': true,
                 'fetchOrderBook': true,
+                'fetchPositions': true,
                 'fetchTicker': true,
                 'fetchTickers': true,
                 'fetchTime': true,
@@ -114,6 +116,7 @@ module.exports = class poloniexfutures extends Exchange {
                     ],
                 },
             },
+            'precisionMode': TICK_SIZE,
             'fees': {
                 // TODO
                 // 'trading': {
@@ -876,7 +879,6 @@ module.exports = class poloniexfutures extends Exchange {
          * @param {object} params extra parameters specific to the poloniexfutures api endpoint
          * @returns {object} An [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
          */
-        // FIXME: 401 Unauthorized {"code":"400005","msg":"Invalid PF-API-SIGN"}
         await this.loadMarkets ();
         const request = {
             'order-id': id,
@@ -889,10 +891,195 @@ module.exports = class poloniexfutures extends Exchange {
         //           cancelledOrderIds: [
         //                "619714b8b6353000014c505a",
         //           ],
+        //           cancelFailedOrders: [
+        //              {
+        //                  orderId: "63a9c5c2b9e7d70007eb0cd5", orderState: "2"}
+        //          ],
         //       },
         //   }
         //
-        return this.safeValue (response, 'data');
+        const data = this.safeValue (response, 'data');
+        const cancelledOrderIds = this.safeValue (data, 'cancelledOrderIds');
+        const cancelledOrderIdsLength = cancelledOrderIds.length;
+        if (cancelledOrderIdsLength === 0) {
+            throw new InvalidOrder (this.id + ' cancelOrder() order already cancelled');
+        }
+        return {
+            'id': this.safeString (cancelledOrderIds, 0),
+            'clientOrderId': undefined,
+            'timestamp': undefined,
+            'datetime': undefined,
+            'lastTradeTimestamp': undefined,
+            'symbol': undefined,
+            'type': undefined,
+            'side': undefined,
+            'price': undefined,
+            'amount': undefined,
+            'cost': undefined,
+            'average': undefined,
+            'filled': undefined,
+            'remaining': undefined,
+            'status': undefined,
+            'fee': undefined,
+            'trades': undefined,
+            'timeInForce': undefined,
+            'postOnly': undefined,
+            'stopPrice': undefined,
+            'info': response,
+        };
+    }
+
+    async fetchPositions (symbols = undefined, params = {}) {
+        /**
+         * @method
+         * @name poloniexfutures#fetchPositions
+         * @description fetch all open positions
+         * @param {[string]|undefined} symbols list of unified market symbols
+         * @param {object} params extra parameters specific to the poloniexfutures api endpoint
+         * @returns {[object]} a list of [position structure]{@link https://docs.ccxt.com/en/latest/manual.html#position-structure}
+         */
+        await this.loadMarkets ();
+        const response = await this.privateGetPositions (params);
+        //
+        //    {
+        //        "code": "200000",
+        //        "data": [
+        //            {
+        //                "id": "615ba79f83a3410001cde321",
+        //                "symbol": "ETHUSDTM",
+        //                "autoDeposit": false,
+        //                "maintMarginReq": 0.005,
+        //                "riskLimit": 1000000,
+        //                "realLeverage": 18.61,
+        //                "crossMode": false,
+        //                "delevPercentage": 0.86,
+        //                "openingTimestamp": 1638563515618,
+        //                "currentTimestamp": 1638576872774,
+        //                "currentQty": 2,
+        //                "currentCost": 83.64200000,
+        //                "currentComm": 0.05018520,
+        //                "unrealisedCost": 83.64200000,
+        //                "realisedGrossCost": 0.00000000,
+        //                "realisedCost": 0.05018520,
+        //                "isOpen": true,
+        //                "markPrice": 4225.01,
+        //                "markValue": 84.50020000,
+        //                "posCost": 83.64200000,
+        //                "posCross": 0.0000000000,
+        //                "posInit": 3.63660870,
+        //                "posComm": 0.05236717,
+        //                "posLoss": 0.00000000,
+        //                "posMargin": 3.68897586,
+        //                "posMaint": 0.50637594,
+        //                "maintMargin": 4.54717586,
+        //                "realisedGrossPnl": 0.00000000,
+        //                "realisedPnl": -0.05018520,
+        //                "unrealisedPnl": 0.85820000,
+        //                "unrealisedPnlPcnt": 0.0103,
+        //                "unrealisedRoePcnt": 0.2360,
+        //                "avgEntryPrice": 4182.10,
+        //                "liquidationPrice": 4023.00,
+        //                "bankruptPrice": 4000.25,
+        //                "settleCurrency": "USDT",
+        //                "isInverse": false
+        //            }
+        //        ]
+        //    }
+        //
+        const data = this.safeValue (response, 'data');
+        return this.parsePositions (data, symbols);
+    }
+
+    parsePosition (position, market = undefined) {
+        //
+        //    {
+        //        "code": "200000",
+        //        "data": [
+        //            {
+        //                "id": "615ba79f83a3410001cde321",         // Position ID
+        //                "symbol": "ETHUSDTM",                     // Symbol
+        //                "autoDeposit": false,                     // Auto deposit margin or not
+        //                "maintMarginReq": 0.005,                  // Maintenance margin requirement
+        //                "riskLimit": 1000000,                     // Risk limit
+        //                "realLeverage": 25.92,                    // Leverage of the order
+        //                "crossMode": false,                       // Cross mode or not
+        //                "delevPercentage": 0.76,                  // ADL ranking percentile
+        //                "openingTimestamp": 1638578546031,        // Open time
+        //                "currentTimestamp": 1638578563580,        // Current timestamp
+        //                "currentQty": 2,                          // Current postion quantity
+        //                "currentCost": 83.787,                    // Current postion value
+        //                "currentComm": 0.0167574,                 // Current commission
+        //                "unrealisedCost": 83.787,                 // Unrealised value
+        //                "realisedGrossCost": 0.0,                 // Accumulated realised gross profit value
+        //                "realisedCost": 0.0167574,                // Current realised position value
+        //                "isOpen": true,                           // Opened position or not
+        //                "markPrice": 4183.38,                     // Mark price
+        //                "markValue": 83.6676,                     // Mark value
+        //                "posCost": 83.787,                        // Position value
+        //                "posCross": 0.0,                          // added margin
+        //                "posInit": 3.35148,                       // Leverage margin
+        //                "posComm": 0.05228309,                    // Bankruptcy cost
+        //                "posLoss": 0.0,                           // Funding fees paid out
+        //                "posMargin": 3.40376309,                  // Position margin
+        //                "posMaint": 0.50707892,                   // Maintenance margin
+        //                "maintMargin": 3.28436309,                // Position margin
+        //                "realisedGrossPnl": 0.0,                  // Accumulated realised gross profit value
+        //                "realisedPnl": -0.0167574,                // Realised profit and loss
+        //                "unrealisedPnl": -0.1194,                 // Unrealised profit and loss
+        //                "unrealisedPnlPcnt": -0.0014,             // Profit-loss ratio of the position
+        //                "unrealisedRoePcnt": -0.0356,             // Rate of return on investment
+        //                "avgEntryPrice": 4189.35,                 // Average entry price
+        //                "liquidationPrice": 4044.55,              // Liquidation price
+        //                "bankruptPrice": 4021.75,                 // Bankruptcy price
+        //                "settleCurrency": "USDT",                 // Currency used to clear and settle the trades
+        //                "isInverse": false
+        //            }
+        //        ]
+        //    }
+        //
+        const symbol = this.safeString (position, 'symbol');
+        market = this.safeMarket (symbol, market);
+        const timestamp = this.safeNumber (position, 'currentTimestamp');
+        const size = this.safeString (position, 'currentQty');
+        let side = undefined;
+        if (Precise.stringGt (size, '0')) {
+            side = 'long';
+        } else if (Precise.stringLt (size, '0')) {
+            side = 'short';
+        }
+        const notional = Precise.stringAbs (this.safeString (position, 'posCost'));
+        const initialMargin = this.safeString (position, 'posInit');
+        const initialMarginPercentage = Precise.stringDiv (initialMargin, notional);
+        // const marginRatio = Precise.stringDiv (maintenanceRate, collateral);
+        const unrealisedPnl = this.safeString (position, 'unrealisedPnl');
+        const crossMode = this.safeValue (position, 'crossMode');
+        // currently crossMode is always set to false and only isolated positions are supported
+        const marginMode = crossMode ? 'cross' : 'isolated';
+        return {
+            'info': position,
+            'id': undefined,
+            'symbol': this.safeString (market, 'symbol'),
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'initialMargin': this.parseNumber (initialMargin),
+            'initialMarginPercentage': this.parseNumber (initialMarginPercentage),
+            'maintenanceMargin': this.safeNumber (position, 'posMaint'),
+            'maintenanceMarginPercentage': this.safeNumber (position, 'maintMarginReq'),
+            'entryPrice': this.safeNumber (position, 'avgEntryPrice'),
+            'notional': this.parseNumber (notional),
+            'leverage': this.safeNumber (position, 'realLeverage'),
+            'unrealizedPnl': this.parseNumber (unrealisedPnl),
+            'contracts': this.parseNumber (Precise.stringAbs (size)),
+            'contractSize': this.safeValue (market, 'contractSize'),
+            //     realisedPnl: position['realised_pnl'],
+            'marginRatio': undefined,
+            'liquidationPrice': this.safeNumber (position, 'liquidationPrice'),
+            'markPrice': this.safeNumber (position, 'markPrice'),
+            'collateral': this.safeNumber (position, 'maintMargin'),
+            'marginMode': marginMode,
+            'side': side,
+            'percentage': this.parseNumber (Precise.stringDiv (unrealisedPnl, initialMargin)),
+        };
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
