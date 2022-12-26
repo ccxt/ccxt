@@ -760,7 +760,7 @@ module.exports = class poloniexfutures extends Exchange {
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
         /**
          * @method
-         * @name kucoinfutures#createOrder
+         * @name poloniexfutures#createOrder
          * @description Create an order on the exchange
          * @see https://futures-docs.poloniex.com/#place-an-order
          * @param {string} symbol Unified CCXT market symbol
@@ -866,6 +866,35 @@ module.exports = class poloniexfutures extends Exchange {
         };
     }
 
+    async cancelOrder (id, symbol = undefined, params = {}) {
+        /**
+         * @method
+         * @name poloniexfutures#cancelOrder
+         * @description cancels an open order
+         * @param {string} id order id
+         * @param {string|undefined} symbol unified symbol of the market the order was made in
+         * @param {object} params extra parameters specific to the poloniexfutures api endpoint
+         * @returns {object} An [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
+         */
+        // FIXME: 401 Unauthorized {"code":"400005","msg":"Invalid PF-API-SIGN"}
+        await this.loadMarkets ();
+        const request = {
+            'order-id': id,
+        };
+        const response = await this.privateDeleteOrdersOrderId (this.extend (request, params));
+        //
+        //   {
+        //       code: "200000",
+        //       data: {
+        //           cancelledOrderIds: [
+        //                "619714b8b6353000014c505a",
+        //           ],
+        //       },
+        //   }
+        //
+        return this.safeValue (response, 'data');
+    }
+
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let url = this.urls['api'][api];
         const versions = this.safeValue (this.options, 'versions', {});
@@ -897,6 +926,7 @@ module.exports = class poloniexfutures extends Exchange {
             }
             const endpoint = '/api/v1/' + this.implodeParams (path, params);
             const payload = now + method + endpoint + endpart;
+            console.log (payload);
             const signature = this.hmac (this.encode (payload), this.encode (this.secret), 'sha256', 'base64');
             headers = {
                 'PF-API-SIGN': signature,
@@ -905,6 +935,7 @@ module.exports = class poloniexfutures extends Exchange {
                 'PF-API-PASSPHRASE': this.password,
             };
             headers['Content-Type'] = 'application/json';
+            console.log (headers);
         }
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
