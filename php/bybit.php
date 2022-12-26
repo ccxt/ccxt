@@ -6007,18 +6007,17 @@ class bybit extends Exchange {
 
     public function fetch_derivatives_positions($symbols = null, $params = array ()) {
         $this->load_markets();
+        $request = array();
         if (gettype($symbols) === 'array' && array_keys($symbols) === array_keys(array_keys($symbols))) {
             if (strlen($symbols) > 1) {
                 throw new ArgumentsRequired($this->id . ' fetchPositions() does not accept an array with more than one symbol');
             }
+            $request['symbol'] = $this->market_id($symbols[0]);
         } elseif ($symbols !== null) {
-            $symbols = array( $symbols );
+            $request['symbol'] = $this->market_id($symbols);
+        } else {
+            $request['dataFilter'] = 'valid';
         }
-        $symbols = $this->market_symbols($symbols);
-        $marketId = $this->market_id($symbols[0]);
-        $request = array(
-            'symbol' => $marketId,
-        );
         $settle = null;
         list($settle, $params) = $this->handle_option_and_params($params, 'fetchPositions', 'settle', $settle);
         if ($settle !== null) {
