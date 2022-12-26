@@ -862,8 +862,9 @@ module.exports = class Exchange {
     setMarkets (markets, currencies = undefined) {
         const values = [];
         this.markets_by_id = {};
-        const marketValues = this.toArray (markets);
         // handle marketId conflicts
+        // we insert spot markets first
+        const marketValues = this.sortBy (this.toArray (markets), 'spot', true);
         for (let i = 0; i < marketValues.length; i++) {
             const value = marketValues[i];
             if (value['id'] in this.markets_by_id) {
@@ -2552,7 +2553,9 @@ module.exports = class Exchange {
             if (symbol in this.markets) {
                 return this.markets[symbol];
             } else if (symbol in this.markets_by_id) {
-                return this.markets_by_id[symbol];
+                // we insert spot markets first so this will return a spot market
+                // if there is a conflict between the spot and swap markets
+                return this.markets_by_id[symbol][0];
             }
         }
         throw new BadSymbol (this.id + ' does not have market symbol ' + symbol);
