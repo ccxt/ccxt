@@ -2283,8 +2283,8 @@ module.exports = class bitget extends Exchange {
 
     parseStopTrigger (status) {
         const statuses = {
-            'market_price': 'last',
-            'mark_price': 'mark',
+            'market_price': 'mark',
+            'fill_price': 'last',
             'index_price': 'index',
         };
         return this.safeString (statuses, status, status);
@@ -2546,8 +2546,12 @@ module.exports = class bitget extends Exchange {
                 request['timeInForceValue'] = 'post_only';
             }
             if (isTriggerOrder) {
-                // default triggerType to market price for unification
-                const triggerType = this.safeString (params, 'triggerType', 'market_price');
+                let triggerType = this.safeString2 (params, 'triggerType', 'trigger', 'fill_price');
+                if (triggerType === 'Mark' || triggerType === 'market_price') {
+                    triggerType = 'market_price';
+                } else {
+                    triggerType = 'fill_price';
+                }
                 request['triggerType'] = triggerType;
                 request['triggerPrice'] = this.priceToPrecision (symbol, triggerPrice);
                 if (price) {

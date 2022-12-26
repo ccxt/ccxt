@@ -2182,8 +2182,8 @@ class bitget(Exchange):
 
     def parse_stop_trigger(self, status):
         statuses = {
-            'market_price': 'last',
-            'mark_price': 'mark',
+            'market_price': 'mark',
+            'fill_price': 'last',
             'index_price': 'index',
         }
         return self.safe_string(statuses, status, status)
@@ -2420,9 +2420,12 @@ class bitget(Exchange):
             request['size'] = self.amount_to_precision(symbol, amount)
             if postOnly:
                 request['timeInForceValue'] = 'post_only'
+            triggerType = self.safe_string_2(params, 'triggerType', 'trigger', 'fill_price')
+            if triggerType == 'Mark' or triggerType == 'market_price':
+                triggerType = 'market_price'
+            else:
+                triggerType = 'fill_price'
             if isTriggerOrder:
-                # default triggerType to market price for unification
-                triggerType = self.safe_string(params, 'triggerType', 'market_price')
                 request['triggerType'] = triggerType
                 request['triggerPrice'] = self.price_to_precision(symbol, triggerPrice)
                 if price:
@@ -2431,6 +2434,7 @@ class bitget(Exchange):
             if isStopOrder:
                 if not isMarketOrder:
                     raise ExchangeError(self.id + ' createOrder() bitget stopLoss or takeProfit orders must be market orders')
+                request['triggerType'] = triggerType
                 if isStopLossOrder:
                     request['triggerPrice'] = self.price_to_precision(symbol, stopLossPrice)
                     request['planType'] = 'loss_plan'

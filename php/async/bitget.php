@@ -2295,8 +2295,8 @@ class bitget extends Exchange {
 
     public function parse_stop_trigger($status) {
         $statuses = array(
-            'market_price' => 'last',
-            'mark_price' => 'mark',
+            'market_price' => 'mark',
+            'fill_price' => 'last',
             'index_price' => 'index',
         );
         return $this->safe_string($statuses, $status, $status);
@@ -2557,8 +2557,12 @@ class bitget extends Exchange {
                     $request['timeInForceValue'] = 'post_only';
                 }
                 if ($isTriggerOrder) {
-                    // default $triggerType to $market $price for unification
-                    $triggerType = $this->safe_string($params, 'triggerType', 'market_price');
+                    $triggerType = $this->safe_string_2($params, 'triggerType', 'trigger', 'fill_price');
+                    if ($triggerType === 'Mark' || $triggerType === 'market_price') {
+                        $triggerType = 'market_price';
+                    } else {
+                        $triggerType = 'fill_price';
+                    }
                     $request['triggerType'] = $triggerType;
                     $request['triggerPrice'] = $this->price_to_precision($symbol, $triggerPrice);
                     if ($price) {
