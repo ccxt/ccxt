@@ -33,6 +33,7 @@ module.exports = class poloniexfutures extends Exchange {
                 'fetchMarkets': true,
                 'fetchOHLCV': true,
                 'fetchOrderBook': true,
+                'fetchL3OrderBook': true,
                 'fetchPositions': true,
                 'fetchTicker': true,
                 'fetchTickers': true,
@@ -565,6 +566,50 @@ module.exports = class poloniexfutures extends Exchange {
             orderbook = this.parseOrderBook (data, market['symbol'], timestamp, 'bids', 'asks', 1, 2);
         }
         return orderbook;
+    }
+
+    async fetchL3OrderBook (symbol, limit = undefined, params = {}) {
+        /**
+         * @method
+         * @name poloniexfutures#fetchL3OrderBook
+         * @description fetches level 3 information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+         * @param {string} symbol unified market symbol
+         * @param {int|undefined} limit max number of orders to return, default is undefined
+         * @param {object} params extra parameters specific to the blockchaincom api endpoint
+         * @returns {object} an [order book structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-book-structure}
+         */
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const request = {
+            'symbol': market['id'],
+        };
+        const response = await this.publicGetLevel3Snapshot (this.extend (request, params));
+        // {
+        //     "code": "200000",
+        //     "data": {
+        //     "symbol": "BTCUSDTPERP",
+        //     "sequence": 1669149851334,
+        //     "asks": [
+        //         [
+        //             "639c95388cba5100084eabce",
+        //             "16952.0",
+        //             "1",
+        //             1671206200542484700
+        //         ],
+        //     ],
+        //     "bids": [
+        //         [
+        //             "626659d83385c200072e690b",
+        //             "17.0",
+        //             "1000",
+        //             1650874840161291000
+        //         ],
+        //     ],
+        // }
+        //
+        const data = this.safeValue (response, 'data', {});
+        const timestamp = parseInt (this.safeInteger (data, 'ts') / 1000000);
+        return this.parseOrderBook (data, market['symbol'], timestamp, 'bids', 'asks', 1, 2);
     }
 
     parseTrade (trade, market = undefined) {
