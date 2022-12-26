@@ -1741,9 +1741,20 @@ class huobi(Exchange):
         #         askSize:  0.4156
         #     }
         #
+        # watchTikcer - bbo
+        #     {
+        #         seqId: 161499562790,
+        #         ask: 16829.51,
+        #         askSize: 0.707776,
+        #         bid: 16829.5,
+        #         bidSize: 1.685945,
+        #         quoteTime: 1671941599612,
+        #         symbol: 'btcusdt'
+        #     }
+        #
         marketId = self.safe_string_2(ticker, 'symbol', 'contract_code')
         symbol = self.safe_symbol(marketId, market)
-        timestamp = self.safe_integer(ticker, 'ts')
+        timestamp = self.safe_integer_2(ticker, 'ts', 'quoteTime')
         bid = None
         bidVolume = None
         ask = None

@@ -9,6 +9,7 @@ use Exception; // a common import
 use ccxt\ExchangeError;
 use ccxt\AuthenticationError;
 use ccxt\ArgumentsRequired;
+use ccxt\BadRequest;
 use ccxt\InvalidNonce;
 use React\Async;
 
@@ -22,11 +23,11 @@ class huobi extends \ccxt\async\huobi {
                 'ws' => true,
                 'watchOrderBook' => true,
                 'watchOrders' => true,
-                'watchTickers' => false, // for now
+                'watchTickers' => false,
                 'watchTicker' => true,
                 'watchTrades' => true,
                 'watchMyTrades' => true,
-                'watchBalance' => true, // for now
+                'watchBalance' => true,
                 'watchOHLCV' => true,
             ),
             'urls' => array(
@@ -96,6 +97,9 @@ class huobi extends \ccxt\async\huobi {
                 'ws' => array(
                     'gunzip' => true,
                 ),
+                'watchTicker' => array(
+                    'name' => 'market.{marketId}.detail', // 'market.{marketId}.bbo' or 'market.{marketId}.ticker'
+                ),
             ),
             'exceptions' => array(
                 'ws' => array(
@@ -129,7 +133,12 @@ class huobi extends \ccxt\async\huobi {
             Async\await($this->load_markets());
             $market = $this->market($symbol);
             $symbol = $market['symbol'];
-            $messageHash = 'market.' . $market['id'] . '.detail';
+            $options = $this->safe_value($this->options, 'watchTicker', array());
+            $topic = $this->safe_string($options, 'name', 'market.{marketId}.detail');
+            if ($topic === 'market.{marketId}.ticker' && $market['type'] !== 'spot') {
+                throw new BadRequest($this->id . ' watchTicker() with name $market->{marketId}.ticker is only allowed for spot markets, use $market->{marketId}.detail instead');
+            }
+            $messageHash = $this->implode_params($topic, array( 'marketId' => $market['id'] ));
             $url = $this->get_url_by_market_type($market['type'], $market['linear']);
             return Async\await($this->subscribe_public($url, $symbol, $messageHash, null, $params));
         }) ();
@@ -137,6 +146,7 @@ class huobi extends \ccxt\async\huobi {
 
     public function handle_ticker($client, $message) {
         //
+        // 'market.btcusdt.detail'
         //     {
         //         $ch => 'market.btcusdt.detail',
         //         ts => 1583494163784,
@@ -150,6 +160,20 @@ class huobi extends \ccxt\async\huobi {
         //             amount => 26184.202558551195,
         //             version => 209988464418,
         //             count => 265673
+        //         }
+        //     }
+        // 'market.btcusdt.bbo'
+        //     {
+        //         $ch => 'market.btcusdt.bbo',
+        //         ts => 1671941599613,
+        //         $tick => {
+        //             seqId => 161499562790,
+        //             ask => 16829.51,
+        //             askSize => 0.707776,
+        //             bid => 16829.5,
+        //             bidSize => 1.685945,
+        //             quoteTime => 1671941599612,
+        //             $symbol => 'btcusdt'
         //         }
         //     }
         //
@@ -1581,6 +1605,8 @@ class huobi extends \ccxt\async\huobi {
                 'depth' => array($this, 'handle_order_book'),
                 'mbp' => array($this, 'handle_order_book'),
                 'detail' => array($this, 'handle_ticker'),
+                'bbo' => array($this, 'handle_ticker'),
+                'ticker' => array($this, 'handle_ticker'),
                 'trade' => array($this, 'handle_trades'),
                 'kline' => array($this, 'handle_ohlcv'),
             );
