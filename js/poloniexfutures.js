@@ -9,6 +9,9 @@ const { ExchangeError } = require ('./base/errors');
 const { TICK_SIZE } = require ('./base/functions/number');
 
 //  ---------------------------------------------------------------------------
+// TODO: batchOrders -> https://futures-docs.poloniex.com/#place-multiple-orders
+// TODO: fetchDeposits -> https://futures-docs.poloniex.com/#get-transaction-history
+// TODO: fetchTransfers -> https://futures-docs.poloniex.com/#get-transaction-history
 
 module.exports = class poloniexfutures extends Exchange {
     describe () {
@@ -633,22 +636,80 @@ module.exports = class poloniexfutures extends Exchange {
         //         "ts": 1671207023485924400
         //     }
         //
+        // fetchMyTrades
+        //
+        //   {
+        //       "symbol": "BTCUSDTPERP",  //Ticker symbol of the contract
+        //       "tradeId": "5ce24c1f0c19fc3c58edc47c",  //Trade ID
+        //       "orderId": "5ce24c16b210233c36ee321d",  // Order ID
+        //       "side": "sell",  //Transaction side
+        //       "liquidity": "taker",  //Liquidity- taker or maker
+        //       "price": "8302",  //Filled price
+        //       "size": 10,  //Filled amount
+        //       "value": "0.001204529",  //Order value
+        //       "feeRate": "0.0005",  //Floating fees
+        //       "fixFee": "0.00000006",  //Fixed fees
+        //       "feeCurrency": "XBT",  //Charging currency
+        //       "stop": "",  //A mark to the stop order type
+        //       "fee": "0.0000012022",  //Transaction fee
+        //       "orderType": "limit",  //Order type
+        //       "tradeType": "trade",  //Trade type (trade, liquidation, ADL or settlement)
+        //       "createdAt": 1558334496000,  //Time the order created
+        //       "settleCurrency": "XBT", //settlement currency
+        //       "tradeTime": 1558334496000000000 //trade time in nanosecond
+        //   }
+        //
+        const marketId = this.safeString (trade, 'symbol');
+        market = this.safeMarket (marketId, market, '-');
+        const id = this.safeString (trade, 'tradeId');
+        const orderId = this.safeString (trade, 'orderId');
+        const takerOrMaker = this.safeString (trade, 'liquidity');
         let timestamp = this.safeInteger (trade, 'ts');
-        timestamp = parseInt (timestamp / 1000000);
+        if (timestamp !== undefined) {
+            timestamp = parseInt (timestamp / 1000000);
+        } else {
+            timestamp = this.safeInteger (trade, 'createdAt');
+            // if it's a historical v1 trade, the exchange returns timestamp in seconds
+            if (('dealValue' in trade) && (timestamp !== undefined)) {
+                timestamp = timestamp * 1000;
+            }
+        }
+        const priceString = this.safeString (trade, 'price');
+        const amountString = this.safeString (trade, 'size');
+        const side = this.safeString (trade, 'side');
+        let fee = undefined;
+        const feeCostString = this.safeString (trade, 'fee');
+        if (feeCostString !== undefined) {
+            const feeCurrencyId = this.safeString (trade, 'feeCurrency');
+            let feeCurrency = this.safeCurrencyCode (feeCurrencyId);
+            if (feeCurrency === undefined) {
+                feeCurrency = (side === 'sell') ? market['quote'] : market['base'];
+            }
+            fee = {
+                'cost': feeCostString,
+                'currency': feeCurrency,
+                'rate': this.safeString (trade, 'feeRate'),
+            };
+        }
+        let type = this.safeString (trade, 'orderType');
+        if (type === 'match') {
+            type = undefined;
+        }
+        const costString = this.safeString (trade, 'value');
         return this.safeTrade ({
             'info': trade,
-            'id': this.safeString (trade, 'tradeId'),
-            'order': undefined,
+            'id': id,
+            'order': orderId,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'symbol': market['symbol'],
-            'type': undefined,
-            'takerOrMaker': undefined,
-            'side': this.safeString (trade, 'side'),
-            'price': this.safeString (trade, 'price'),
-            'amount': this.safeString (trade, 'size'),
-            'cost': undefined,
-            'fee': undefined,
+            'type': type,
+            'takerOrMaker': takerOrMaker,
+            'side': side,
+            'price': priceString,
+            'amount': amountString,
+            'cost': costString,
+            'fee': fee,
         }, market);
     }
 
@@ -1506,6 +1567,74 @@ module.exports = class poloniexfutures extends Exchange {
             'previousFundingTimestamp': fundingTimestamp,
             'previousFundingDatetime': this.iso8601 (fundingTimestamp),
         };
+    }
+
+    async fetchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        /**
+         * @method
+         * @name poloniexfutures#fetchMyTrades
+         * @description fetch all trades made by the user
+         * @see https://futures-docs.poloniex.com/#get-fills
+         * @param {string|undefined} symbol unified market symbol
+         * @param {int|undefined} since the earliest time in ms to fetch trades for
+         * @param {int|undefined} limit the maximum number of trades structures to retrieve
+         * @param {object} params extra parameters specific to the poloniexfutures api endpoint
+         * @param {string|undefined} orderIdFills filles for a specific order (other parameters can be ignored if specified)
+         * @param {string|undefined} symbol of the contract
+         * @param {string|undefined} side buy or sell
+         * @param {string|undefined} type  limit, market, limit_stop or market_stop
+         * @param {int|undefined} startAt start time (milisecond)
+         * @param {int|undefined} endAt end time (milisecond)
+         * @returns {[object]} a list of [trade structures]{@link https://docs.ccxt.com/en/latest/manual.html#trade-structure}
+         */
+        await this.loadMarkets ();
+        const request = {
+        };
+        let market = undefined;
+        if (symbol !== undefined) {
+            market = this.market (symbol);
+            request['symbol'] = market['id'];
+        }
+        if (since !== undefined) {
+            request['startAt'] = since;
+        }
+        const response = await this.privateGetFills (this.extend (request, params));
+        //
+        //    {
+        //        "code": "200000",
+        //        "data": {
+        //          "currentPage":1,
+        //          "pageSize":1,
+        //          "totalNum":251915,
+        //          "totalPage":251915,
+        //          "items":[
+        //              {
+        //                "symbol": "BTCUSDTPERP",  //Ticker symbol of the contract
+        //                "tradeId": "5ce24c1f0c19fc3c58edc47c",  //Trade ID
+        //                "orderId": "5ce24c16b210233c36ee321d",  // Order ID
+        //                "side": "sell",  //Transaction side
+        //                "liquidity": "taker",  //Liquidity- taker or maker
+        //                "price": "8302",  //Filled price
+        //                "size": 10,  //Filled amount
+        //                "value": "0.001204529",  //Order value
+        //                "feeRate": "0.0005",  //Floating fees
+        //                "fixFee": "0.00000006",  //Fixed fees
+        //                "feeCurrency": "XBT",  //Charging currency
+        //                "stop": "",  //A mark to the stop order type
+        //                "fee": "0.0000012022",  //Transaction fee
+        //                "orderType": "limit",  //Order type
+        //                "tradeType": "trade",  //Trade type (trade, liquidation, ADL or settlement)
+        //                "createdAt": 1558334496000,  //Time the order created
+        //                "settleCurrency": "XBT", //settlement currency
+        //                "tradeTime": 1558334496000000000 //trade time in nanosecond
+        //              }
+        //          ]
+        //        }
+        //    }
+        //
+        const data = this.safeValue (response, 'data', {});
+        const trades = this.safeValue (data, 'items', {});
+        return this.parseTrades (trades, market, since, limit);
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {

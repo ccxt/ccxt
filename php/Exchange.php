@@ -155,6 +155,7 @@ class Exchange {
         'paymium',
         'phemex',
         'poloniex',
+        'poloniexfutures',
         'probit',
         'qtrade',
         'ripio',
