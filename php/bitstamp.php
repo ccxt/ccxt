@@ -758,11 +758,11 @@ class bitstamp extends Exchange {
         if ($numCurrencyIds === 2) {
             $marketId = $currencyIds[0] . $currencyIds[1];
             if (is_array($this->markets_by_id) && array_key_exists($marketId, $this->markets_by_id)) {
-                return $this->markets_by_id[$marketId];
+                return $this->safe_market($marketId);
             }
             $marketId = $currencyIds[1] . $currencyIds[0];
             if (is_array($this->markets_by_id) && array_key_exists($marketId, $this->markets_by_id)) {
-                return $this->markets_by_id[$marketId];
+                return $this->safe_market($marketId);
             }
         }
         return null;
@@ -816,24 +816,14 @@ class bitstamp extends Exchange {
         $orderId = $this->safe_string($trade, 'order_id');
         $type = null;
         $costString = $this->safe_string($trade, 'cost');
-        $rawBaseId = null;
-        $rawQuoteId = null;
         $rawMarketId = null;
         if ($market === null) {
             $keys = is_array($trade) ? array_keys($trade) : array();
             for ($i = 0; $i < count($keys); $i++) {
                 $currentKey = $keys[$i];
                 if ($currentKey !== 'order_id' && mb_strpos($currentKey, '_') !== false) {
-                    $marketId = str_replace('_', '', $currentKey);
-                    if (is_array($this->markets_by_id) && array_key_exists($marketId, $this->markets_by_id)) {
-                        $market = $this->markets_by_id[$marketId];
-                    } else {
-                        $rawMarketId = $currentKey;
-                        $parts = explode('_', $currentKey);
-                        $rawBaseId = $this->safe_string($parts, 0);
-                        $rawQuoteId = $this->safe_string($parts, 1);
-                        $market = $this->safe_market($marketId);
-                    }
+                    $rawMarketId = $currentKey;
+                    $market = $this->safe_market($rawMarketId, $market, '_');
                 }
             }
         }
@@ -843,13 +833,10 @@ class bitstamp extends Exchange {
             $market = $this->get_market_from_trade($trade);
         }
         $feeCostString = $this->safe_string($trade, 'fee');
-        $feeCurrency = ($market['quote'] !== null) ? $market['quote'] : $rawQuoteId;
-        $baseId = ($market['baseId'] !== null) ? $market['baseId'] : $rawBaseId;
-        $quoteId = ($market['quoteId'] !== null) ? $market['quoteId'] : $rawQuoteId;
-        $priceId = ($rawMarketId !== null) ? $rawMarketId : $market['marketId'];
-        $priceString = $this->safe_string($trade, $priceId, $priceString);
-        $amountString = $this->safe_string($trade, $baseId, $amountString);
-        $costString = $this->safe_string($trade, $quoteId, $costString);
+        $feeCurrency = $market['quote'];
+        $priceString = $this->safe_string($trade, $rawMarketId, $priceString);
+        $amountString = $this->safe_string($trade, $market['baseId'], $amountString);
+        $costString = $this->safe_string($trade, $market['quoteId'], $costString);
         $symbol = $market['symbol'];
         $datetimeString = $this->safe_string_2($trade, 'date', 'datetime');
         $timestamp = null;
@@ -1776,9 +1763,7 @@ class bitstamp extends Exchange {
             for ($i = 0; $i < count($keys); $i++) {
                 if (mb_strpos($keys[$i], '_') !== false) {
                     $marketId = str_replace('_', '', $keys[$i]);
-                    if (is_array($this->markets_by_id) && array_key_exists($marketId, $this->markets_by_id)) {
-                        $market = $this->markets_by_id[$marketId];
-                    }
+                    $market = $this->safe_market($marketId, $market);
                 }
             }
             // if the $market is still not defined

@@ -664,7 +664,7 @@ class indodax extends Exchange {
             for ($i = 0; $i < count($marketIds); $i++) {
                 $marketId = $marketIds[$i];
                 $marketOrders = $rawOrders[$marketId];
-                $market = $this->markets_by_id[$marketId];
+                $market = $this->safe_market($marketId);
                 $parsedOrders = $this->parse_orders($marketOrders, $market, $since, $limit);
                 $exchangeOrders = $this->array_concat($exchangeOrders, $parsedOrders);
             }

@@ -1115,11 +1115,10 @@ class bitfinex2(Exchange):
         result = {}
         for i in range(0, len(tickers)):
             ticker = tickers[i]
-            id = ticker[0]
-            if id in self.markets_by_id:
-                market = self.markets_by_id[id]
-                symbol = market['symbol']
-                result[symbol] = self.parse_ticker(ticker, market)
+            marketId = self.safe_string(ticker, 0)
+            market = self.safe_market(marketId)
+            symbol = market['symbol']
+            result[symbol] = self.parse_ticker(ticker, market)
         return self.filter_by_array(result, 'symbol', symbols)
 
     async def fetch_ticker(self, symbol, params={}):
@@ -1204,11 +1203,7 @@ class bitfinex2(Exchange):
         timestamp = self.safe_integer(trade, timestampIndex)
         if isPrivate:
             marketId = trade[1]
-            if marketId in self.markets_by_id:
-                market = self.markets_by_id[marketId]
-                symbol = market['symbol']
-            else:
-                symbol = self.parse_symbol(marketId)
+            symbol = self.parse_symbol(marketId)
             orderId = self.safe_string(trade, 3)
             maker = self.safe_integer(trade, 8)
             takerOrMaker = 'maker' if (maker == 1) else 'taker'
@@ -1222,9 +1217,6 @@ class bitfinex2(Exchange):
             }
             orderType = trade[6]
             type = self.safe_string(self.options['exchangeTypes'], orderType)
-        if symbol is None:
-            if market is not None:
-                symbol = market['symbol']
         return self.safe_trade({
             'id': id,
             'timestamp': timestamp,
@@ -1373,14 +1365,8 @@ class bitfinex2(Exchange):
 
     def parse_order(self, order, market=None):
         id = self.safe_string(order, 0)
-        symbol = None
         marketId = self.safe_string(order, 3)
-        if marketId in self.markets_by_id:
-            market = self.markets_by_id[marketId]
-        else:
-            symbol = self.parse_symbol(marketId)
-        if (symbol is None) and (market is not None):
-            symbol = market['symbol']
+        symbol = self.parse_symbol(marketId)
         # https://github.com/ccxt/ccxt/issues/6686
         # timestamp = self.safe_timestamp(order, 5)
         timestamp = self.safe_integer(order, 5)
@@ -1404,7 +1390,7 @@ class bitfinex2(Exchange):
             price = None
             stopPrice = self.safe_number(order, 16)
             if orderType == 'EXCHANGE STOP LIMIT':
-                price = self.safe_number(order, 19)
+                price = self.safe_string(order, 19)
         status = None
         statusString = self.safe_string(order, 13)
         if statusString is not None:
