@@ -2562,6 +2562,11 @@ module.exports = class Exchange {
             } else if (symbol in this.markets_by_id) {
                 // we insert spot markets first so this will return a spot market
                 // if there is a conflict between the spot and swap markets
+                const markets = this.markets_by_id[symbol];
+                const length = markets.length;
+                if (length > 1) {
+                    throw new BadSymbol (this.id + ' ambiguous symbol ' + symbol + ' due to market id conflict, use the unified symbol schema of BASE/QUOTE[:SETTLE[-YYMMDD]] e.g. BTC/USDT and BTC/USDT:USDT');
+                }
                 return this.markets_by_id[symbol][0];
             }
         }
