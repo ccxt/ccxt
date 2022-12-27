@@ -1189,7 +1189,7 @@ $okcoinusd = new $okcoinusd();
 $okcoinusd->load_markets();
 
 $okcoinusd->markets['BTC/USD'];                    // symbol → market (get market by symbol)
-$okcoinusd->markets_by_id['btc_usd'];              // id → market (get market by id)
+$okcoinusd->markets_by_id['btc_usd'][0];              // id → market (get market by id)
 
 $okcoinusd->markets['BTC/USD']['id'];              // symbol → id (get id by symbol)
 $okcoinusd->markets_by_id['btc_usd'][0]['symbol']; // id → symbol (get symbol by id)
