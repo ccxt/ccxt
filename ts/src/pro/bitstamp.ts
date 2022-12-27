@@ -255,24 +255,15 @@ export default class bitstamp extends bitstampRest {
             return super.parseTrade (trade, market);
         }
         const id = this.safeString (trade, 'id');
-        const timestamp = parseInt ((microtimestamp / 1000).toString ());
-        const price = this.safeFloat (trade, 'price');
-        const amount = this.safeFloat (trade, 'amount');
-        let cost = undefined;
-        if ((price !== undefined) && (amount !== undefined)) {
-            cost = price * amount;
-        }
-        let symbol = undefined;
+        const timestamp = this.parseToInt (microtimestamp / 1000);
+        const price = this.safeString (trade, 'price');
+        const amount = this.safeString (trade, 'amount');
         const marketId = this.safeString (trade, 's');
-        if (marketId in this.markets_by_id) {
-            market = this.markets_by_id[marketId];
-        }
-        if ((symbol === undefined) && (market !== undefined)) {
-            symbol = market['symbol'];
-        }
-        const rawSide = this.safeInteger (trade, 'type');
-        const side = (rawSide === 0) ? 'buy' : 'sell';
-        return {
+        market = this.safeMarket (marketId, market);
+        const symbol = market['symbol'];
+        const sideRaw = this.safeInteger (trade, 'type');
+        const side = (sideRaw === 0) ? 'buy' : 'sell';
+        return this.safeTrade ({
             'info': trade,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
@@ -284,9 +275,9 @@ export default class bitstamp extends bitstampRest {
             'side': side,
             'price': price,
             'amount': amount,
-            'cost': cost,
+            'cost': undefined,
             'fee': undefined,
-        };
+        }, market);
     }
 
     handleTrade (client, message) {

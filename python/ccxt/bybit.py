@@ -1990,7 +1990,7 @@ class bybit(Exchange):
         #         }
         #     }
         #
-        result = self.safe_value(response, 'result')
+        result = self.safe_value(response, 'result', {})
         ohlcvs = self.safe_value(result, 'list', [])
         return self.parse_ohlcvs(ohlcvs, market, timeframe, since, limit)
 
@@ -5695,15 +5695,15 @@ class bybit(Exchange):
 
     def fetch_derivatives_positions(self, symbols=None, params={}):
         self.load_markets()
+        request = {}
         if isinstance(symbols, list):
             if len(symbols) > 1:
                 raise ArgumentsRequired(self.id + ' fetchPositions() does not accept an array with more than one symbol')
+            request['symbol'] = self.market_id(symbols[0])
         elif symbols is not None:
-            symbols = [symbols]
-        symbols = self.market_symbols(symbols)
-        request = {
-            'dataFilter': 'valid',
-        }
+            request['symbol'] = self.market_id(symbols)
+        else:
+            request['dataFilter'] = 'valid'
         settle = None
         settle, params = self.handle_option_and_params(params, 'fetchPositions', 'settle', settle)
         if settle is not None:

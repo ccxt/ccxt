@@ -9,6 +9,7 @@ from ccxt.pro.base.cache import ArrayCache, ArrayCacheBySymbolById, ArrayCacheBy
 import hashlib
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
+from ccxt.base.errors import BadRequest
 
 
 class bybit(Exchange, ccxt.async_support.bybit):
@@ -70,6 +71,9 @@ class bybit(Exchange, ccxt.async_support.bybit):
                 },
             },
             'options': {
+                'watchTicker': {
+                    'name': 'tickers',  # 'tickers' for 24hr statistical ticker or 'bookticker' for Best bid price and best ask price
+                },
                 'spot': {
                     'timeframes': {
                         '1m': '1m',
@@ -86,7 +90,6 @@ class bybit(Exchange, ccxt.async_support.bybit):
                         '1w': '1w',
                         '1M': '1M',
                     },
-                    'watchTickerTopic': 'tickers',  # 'tickers' for 24hr statistical ticker or 'bookticker' for Best bid price and best ask price
                 },
                 'contract': {
                     'timeframes': {
@@ -179,10 +182,10 @@ class bybit(Exchange, ccxt.async_support.bybit):
         messageHash = 'ticker:' + market['symbol']
         url = self.get_url_by_market_type(symbol, False, False, params)
         params = self.clean_params(params)
-        topic = 'tickers'
-        if market['spot']:
-            spotOptions = self.safe_value(self.options, 'spot', {})
-            topic = self.safe_string(spotOptions, 'watchTickerTopic', 'tickers')
+        options = self.safe_value(self.options, 'watchTicker', {})
+        topic = self.safe_string(options, 'name', 'tickers')
+        if not market['spot'] and topic != 'tickers':
+            raise BadRequest(self.id + ' watchTicker() only supports name tickers for contract markets')
         topic += '.' + market['id']
         topics = [topic]
         return await self.watch_topics(url, messageHash, topics, params)
@@ -489,8 +492,8 @@ class bybit(Exchange, ccxt.async_support.bybit):
             snapshot = self.parse_order_book(data, symbol, timestamp, 'b', 'a')
             orderbook.reset(snapshot)
         else:
-            asks = self.safe_value(orderbook, 'a', [])
-            bids = self.safe_value(orderbook, 'b', [])
+            asks = self.safe_value(data, 'a', [])
+            bids = self.safe_value(data, 'b', [])
             self.handle_deltas(orderbook['asks'], asks)
             self.handle_deltas(orderbook['bids'], bids)
             orderbook['timestamp'] = timestamp

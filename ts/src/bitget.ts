@@ -1530,10 +1530,7 @@ export default class bitget extends Exchange {
         //         usdtVolume: '5552388715.9215'
         //     }
         //
-        let marketId = this.safeString (ticker, 'symbol');
-        if (!(marketId in this.markets_by_id)) {
-            marketId += '_SPBL';
-        }
+        const marketId = this.safeString (ticker, 'symbol');
         const symbol = this.safeSymbol (marketId, market);
         const high = this.safeString (ticker, 'high24h');
         const low = this.safeString (ticker, 'low24h');

@@ -1136,12 +1136,10 @@ class bitfinex2 extends Exchange {
         $result = array();
         for ($i = 0; $i < count($tickers); $i++) {
             $ticker = $tickers[$i];
-            $id = $ticker[0];
-            if (is_array($this->markets_by_id) && array_key_exists($id, $this->markets_by_id)) {
-                $market = $this->markets_by_id[$id];
-                $symbol = $market['symbol'];
-                $result[$symbol] = $this->parse_ticker($ticker, $market);
-            }
+            $marketId = $this->safe_string($ticker, 0);
+            $market = $this->safe_market($marketId);
+            $symbol = $market['symbol'];
+            $result[$symbol] = $this->parse_ticker($ticker, $market);
         }
         return $this->filter_by_array($result, 'symbol', $symbols);
     }
@@ -1233,12 +1231,7 @@ class bitfinex2 extends Exchange {
         $timestamp = $this->safe_integer($trade, $timestampIndex);
         if ($isPrivate) {
             $marketId = $trade[1];
-            if (is_array($this->markets_by_id) && array_key_exists($marketId, $this->markets_by_id)) {
-                $market = $this->markets_by_id[$marketId];
-                $symbol = $market['symbol'];
-            } else {
-                $symbol = $this->parse_symbol($marketId);
-            }
+            $symbol = $this->parse_symbol($marketId);
             $orderId = $this->safe_string($trade, 3);
             $maker = $this->safe_integer($trade, 8);
             $takerOrMaker = ($maker === 1) ? 'maker' : 'taker';
@@ -1252,11 +1245,6 @@ class bitfinex2 extends Exchange {
             );
             $orderType = $trade[6];
             $type = $this->safe_string($this->options['exchangeTypes'], $orderType);
-        }
-        if ($symbol === null) {
-            if ($market !== null) {
-                $symbol = $market['symbol'];
-            }
         }
         return $this->safe_trade(array(
             'id' => $id,
@@ -1418,16 +1406,8 @@ class bitfinex2 extends Exchange {
 
     public function parse_order($order, $market = null) {
         $id = $this->safe_string($order, 0);
-        $symbol = null;
         $marketId = $this->safe_string($order, 3);
-        if (is_array($this->markets_by_id) && array_key_exists($marketId, $this->markets_by_id)) {
-            $market = $this->markets_by_id[$marketId];
-        } else {
-            $symbol = $this->parse_symbol($marketId);
-        }
-        if (($symbol === null) && ($market !== null)) {
-            $symbol = $market['symbol'];
-        }
+        $symbol = $this->parse_symbol($marketId);
         // https://github.com/ccxt/ccxt/issues/6686
         // $timestamp = $this->safe_timestamp($order, 5);
         $timestamp = $this->safe_integer($order, 5);
@@ -1454,7 +1434,7 @@ class bitfinex2 extends Exchange {
             $price = null;
             $stopPrice = $this->safe_number($order, 16);
             if ($orderType === 'EXCHANGE STOP LIMIT') {
-                $price = $this->safe_number($order, 19);
+                $price = $this->safe_string($order, 19);
             }
         }
         $status = null;

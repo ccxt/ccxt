@@ -619,9 +619,7 @@ export default class coinex extends coinexRest {
             message['params'] = [ market['id'] ];
             messageHash += ':' + symbol;
         } else {
-            // deprecated usage of markets_by_id...
-            const markets = Object.keys (this.markets_by_id);
-            message['params'] = markets;
+            message['params'] = this.ids;
         }
         const url = this.urls['api']['ws'][type];
         const request = this.deepExtend (message, query);

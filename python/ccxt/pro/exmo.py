@@ -601,14 +601,14 @@ class exmo(Exchange, ccxt.async_support.exmo):
             future.resolve(True)
 
     async def authenticate(self, params={}):
+        messageHash = 'authenticated'
         type, query = self.handle_market_type_and_params('authenticate', None, params)
         url = self.urls['api']['ws'][type]
         client = self.client(url)
-        time = self.milliseconds()
-        messageHash = 'authenticated'
         future = client.future('authenticated')
         authenticated = self.safe_value(client.subscriptions, messageHash)
         if authenticated is None:
+            time = self.milliseconds()
             self.check_required_credentials()
             requestId = self.request_id()
             signData = self.apiKey + str(time)

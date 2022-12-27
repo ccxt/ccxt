@@ -112,30 +112,28 @@ export default class bitfinex extends bitfinexRest {
         const marketId = this.safeString (subscription, 'pair');
         const messageHash = channel + ':' + marketId;
         const tradesLimit = this.safeInteger (this.options, 'tradesLimit', 1000);
-        if (marketId in this.markets_by_id) {
-            const market = this.markets_by_id[marketId];
-            const symbol = market['symbol'];
-            const data = this.safeValue (message, 1);
-            let stored = this.safeValue (this.trades, symbol);
-            if (stored === undefined) {
-                stored = new ArrayCache (tradesLimit);
-                this.trades[symbol] = stored;
-            }
-            if (Array.isArray (data)) {
-                const trades = this.parseTrades (data, market);
-                for (let i = 0; i < trades.length; i++) {
-                    stored.append (trades[i]);
-                }
-            } else {
-                const second = this.safeString (message, 1);
-                if (second !== 'tu') {
-                    return;
-                }
-                const trade = this.parseTrade (message, market);
-                stored.append (trade);
-            }
-            client.resolve (stored, messageHash);
+        const market = this.safeMarket (marketId);
+        const symbol = market['symbol'];
+        const data = this.safeValue (message, 1);
+        let stored = this.safeValue (this.trades, symbol);
+        if (stored === undefined) {
+            stored = new ArrayCache (tradesLimit);
+            this.trades[symbol] = stored;
         }
+        if (Array.isArray (data)) {
+            const trades = this.parseTrades (data, market);
+            for (let i = 0; i < trades.length; i++) {
+                stored.append (trades[i]);
+            }
+        } else {
+            const second = this.safeString (message, 1);
+            if (second !== 'tu') {
+                return;
+            }
+            const trade = this.parseTrade (message, market);
+            stored.append (trade);
+        }
+        client.resolve (stored, messageHash);
         return message;
     }
 

@@ -3310,7 +3310,6 @@ export default class binance extends Exchange {
         }
         const initialUppercaseType = type.toUpperCase ();
         let uppercaseType = initialUppercaseType;
-        request['type'] = uppercaseType;
         const stopPrice = this.safeNumber (query, 'stopPrice');
         if (stopPrice !== undefined) {
             if (uppercaseType === 'MARKET') {
@@ -3347,6 +3346,7 @@ export default class binance extends Exchange {
             // delivery and future
             request['newOrderRespType'] = 'RESULT';  // "ACK", "RESULT", default "ACK"
         }
+        request['type'] = uppercaseType;
         // additional required fields depending on the order type
         let timeInForceIsRequired = false;
         let priceIsRequired = false;
