@@ -11,6 +11,7 @@ const { TICK_SIZE } = require ('./base/functions/number');
 // TODO: batchOrders -> https://futures-docs.poloniex.com/#place-multiple-orders
 // TODO: fetchDeposits -> https://futures-docs.poloniex.com/#get-transaction-history
 // TODO: fetchTransfers -> https://futures-docs.poloniex.com/#get-transaction-history
+// TODO: Add python testing to PR description
 
 module.exports = class poloniexfutures extends Exchange {
     describe () {
@@ -127,14 +128,18 @@ module.exports = class poloniexfutures extends Exchange {
             },
             'precisionMode': TICK_SIZE,
             'fees': {
-                // TODO
-                // 'trading': {
-                //     'feeSide': 'get',
-                //     // starting from Jan 8 2020
-                //     'maker': this.parseNumber ('0.0009'),
-                //     'taker': this.parseNumber ('0.0009'),
-                // },
-                // 'funding': {},
+                'trading': {
+                    'tierBased': false,
+                    'percentage': true,
+                    'taker': this.parseNumber ('0.00075'),
+                    'maker': this.parseNumber ('0.0001'),
+                },
+                'funding': {
+                    'tierBased': false,
+                    'percentage': false,
+                    'withdraw': {},
+                    'deposit': {},
+                },
             },
             'limits': {
                 // TODO
