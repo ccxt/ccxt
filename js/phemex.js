@@ -3156,14 +3156,32 @@ module.exports = class phemex extends Exchange {
         //         "volume": 4053863
         //     }
         //
+        // linear swap v2
+        //
+        //     {
+        //         "closeRp":"16820.5",
+        //         "fundingRateRr":"0.0001",
+        //         "highRp":"16962.1",
+        //         "indexPriceRp":"16830.15651565",
+        //         "lowRp":"16785",
+        //         "markPriceRp":"16830.97534951",
+        //         "openInterestRv":"1323.596",
+        //         "openRp":"16851.7",
+        //         "predFundingRateRr":"0.0001",
+        //         "symbol":"BTCUSDT",
+        //         "timestamp":"1672142789065593096",
+        //         "turnoverRv":"124835296.0538",
+        //         "volumeRq":"7406.95"
+        //     }
+        //
         const marketId = this.safeString (contract, 'symbol');
         const symbol = this.safeSymbol (marketId, market);
         const timestamp = this.safeIntegerProduct (contract, 'timestamp', 0.000001);
         return {
             'info': contract,
             'symbol': symbol,
-            'markPrice': this.fromEp (this.safeString (contract, 'markEp'), market),
-            'indexPrice': this.fromEp (this.safeString (contract, 'indexEp'), market),
+            'markPrice': this.fromEp (this.safeString2 (contract, 'markEp', 'markPriceRp'), market),
+            'indexPrice': this.fromEp (this.safeString2 (contract, 'indexEp', 'indexPriceRp'), market),
             'interestRate': undefined,
             'estimatedSettlePrice': undefined,
             'timestamp': timestamp,
@@ -3171,7 +3189,7 @@ module.exports = class phemex extends Exchange {
             'fundingRate': this.fromEr (this.safeString (contract, 'fundingRateEr'), market),
             'fundingTimestamp': undefined,
             'fundingDatetime': undefined,
-            'nextFundingRate': this.fromEr (this.safeString (contract, 'predFundingRateEr'), market),
+            'nextFundingRate': this.fromEr (this.safeString2 (contract, 'predFundingRateEr', 'predFundingRateRr'), market),
             'nextFundingTimestamp': undefined,
             'nextFundingDatetime': undefined,
             'previousFundingRate': undefined,
