@@ -5215,8 +5215,8 @@ module.exports = class huobi extends Exchange {
                     'datetime': this.iso8601 (timestamp),
                 };
             }
-            const market = this.markets_by_id[this.safeString (rate, 'symbol')];
-            const symbol = market['symbol'];
+            const marketId = this.safeString (rate, 'symbol');
+            const symbol = this.safeSymbol (marketId);
             rates[symbol] = symbolRates;
         }
         return rates;
