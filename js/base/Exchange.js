@@ -861,16 +861,24 @@ module.exports = class Exchange {
 
     setMarkets (markets, currencies = undefined) {
         const values = [];
-        const marketValues = this.toArray (markets);
+        this.markets_by_id = {};
+        // handle marketId conflicts
+        // we insert spot markets first
+        const marketValues = this.sortBy (this.toArray (markets), 'spot', true);
         for (let i = 0; i < marketValues.length; i++) {
+            const value = marketValues[i];
+            if (value['id'] in this.markets_by_id) {
+                this.markets_by_id[value['id']].push (value);
+            } else {
+                this.markets_by_id[value['id']] = [ value ];
+            }
             const market = this.deepExtend (this.safeMarket (), {
                 'precision': this.precision,
                 'limits': this.limits,
-            }, this.fees['trading'], marketValues[i]);
+            }, this.fees['trading'], value);
             values.push (market);
         }
         this.markets = this.indexBy (values, 'symbol');
-        this.markets_by_id = this.indexBy (markets, 'id');
         const marketsSortedBySymbol = this.keysort (this.markets);
         const marketsSortedById = this.keysort (this.markets_by_id);
         this.symbols = Object.keys (marketsSortedBySymbol);
@@ -2125,7 +2133,7 @@ module.exports = class Exchange {
         };
     }
 
-    safeMarket (marketId = undefined, market = undefined, delimiter = undefined) {
+    safeMarket (marketId = undefined, market = undefined, delimiter = undefined, marketType = 'spot') {
         const result = {
             'id': marketId,
             'symbol': marketId,
@@ -2172,7 +2180,18 @@ module.exports = class Exchange {
         };
         if (marketId !== undefined) {
             if ((this.markets_by_id !== undefined) && (marketId in this.markets_by_id)) {
-                market = this.markets_by_id[marketId];
+                const markets = this.markets_by_id[marketId];
+                const length = markets.length;
+                if (length === 1) {
+                    return markets[0];
+                } else {
+                    for (let i = 0; i < markets.length; i++) {
+                        const market = markets[i];
+                        if (market[marketType]) {
+                            return market;
+                        }
+                    }
+                }
             } else if (delimiter !== undefined) {
                 const parts = marketId.split (delimiter);
                 const partsLength = parts.length;
@@ -2541,7 +2560,14 @@ module.exports = class Exchange {
             if (symbol in this.markets) {
                 return this.markets[symbol];
             } else if (symbol in this.markets_by_id) {
-                return this.markets_by_id[symbol];
+                // we insert spot markets first so this will return a spot market
+                // if there is a conflict between the spot and swap markets
+                const markets = this.markets_by_id[symbol];
+                const length = markets.length;
+                if (length > 1) {
+                    throw new BadSymbol (this.id + ' ambiguous symbol ' + symbol + ' due to market id conflict, use the unified symbol schema of BASE/QUOTE[:SETTLE[-YYMMDD]] e.g. BTC/USDT and BTC/USDT:USDT');
+                }
+                return this.markets_by_id[symbol][0];
             }
         }
         throw new BadSymbol (this.id + ' does not have market symbol ' + symbol);

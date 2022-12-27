@@ -1041,22 +1041,19 @@ module.exports = class bybit extends Exchange {
         if (this.options['adjustForTimeDifference']) {
             await this.loadTimeDifference ();
         }
-        const [ type, query ] = this.handleMarketTypeAndParams ('fetchMarkets', undefined, params);
-        if (type === 'spot') {
-            // spot and swap ids are equal
-            // so they can't be loaded together
-            return await this.fetchSpotMarkets (query);
-        }
         let promises = [
+            this.fetchSpotMarkets (params),
             this.fetchDerivativesMarkets ({ 'category': 'linear' }),
             this.fetchDerivativesMarkets ({ 'category': 'inverse' }),
             this.fetchDerivativesMarkets ({ 'category': 'option' }),
         ];
         promises = await Promise.all (promises);
-        const linearMarkets = promises[0];
-        const inverseMarkets = promises[1];
-        const optionMarkets = promises[2];
-        let markets = linearMarkets;
+        const spotMarkets = promises[0];
+        const linearMarkets = promises[1];
+        const inverseMarkets = promises[2];
+        const optionMarkets = promises[3];
+        let markets = spotMarkets;
+        markets = this.arrayConcat (markets, linearMarkets);
         markets = this.arrayConcat (markets, inverseMarkets);
         return this.arrayConcat (markets, optionMarkets);
     }
@@ -2315,12 +2312,12 @@ module.exports = class bybit extends Exchange {
             side = (isBuyer === 0) ? 'buy' : 'sell';
         }
         const marketId = this.safeString (trade, 'symbol');
-        market = this.safeMarket (marketId, market);
-        let fee = {};
-        const feeToken = this.safeString (trade, 'feeTokenId');
-        if (feeToken !== undefined) {
+        market = this.safeMarket (marketId, market, undefined, 'spot');
+        let fee = undefined;
+        const feeCost = this.safeString (trade, 'execFee');
+        if (feeCost !== undefined) {
+            const feeToken = this.safeString (trade, 'feeTokenId');
             const feeCurrency = this.safeCurrencyCode (feeToken);
-            const feeCost = this.safeString (trade, 'execFee');
             fee = {
                 'cost': feeCost,
                 'currency': feeCurrency,
@@ -2460,7 +2457,7 @@ module.exports = class bybit extends Exchange {
         //
         const id = this.safeStringN (trade, [ 'execId', 'id', 'tradeId' ]);
         const marketId = this.safeString (trade, 'symbol');
-        market = this.safeMarket (marketId, market);
+        market = this.safeMarket (marketId, market, undefined, 'contract');
         const symbol = market['symbol'];
         const amountString = this.safeStringN (trade, [ 'orderQty', 'size', 'execQty' ]);
         const priceString = this.safeStringN (trade, [ 'orderPrice', 'price', 'execPrice' ]);
@@ -3206,7 +3203,7 @@ module.exports = class bybit extends Exchange {
         //     }
         //
         const marketId = this.safeString (order, 'symbol');
-        market = this.safeMarket (marketId, market);
+        market = this.safeMarket (marketId, market, undefined, 'contract');
         const symbol = market['symbol'];
         const timestamp = this.safeInteger (order, 'createdTime');
         const id = this.safeString (order, 'orderId');
@@ -3298,7 +3295,7 @@ module.exports = class bybit extends Exchange {
         //     }
         //
         const marketId = this.safeString (order, 'symbol');
-        market = this.safeMarket (marketId, market);
+        market = this.safeMarket (marketId, market, undefined, 'spot');
         const timestamp = this.safeInteger (order, 'createTime');
         const type = this.safeStringLower (order, 'orderType');
         let price = this.safeString (order, 'orderPrice');
@@ -6271,7 +6268,7 @@ module.exports = class bybit extends Exchange {
         //     }
         //
         const contract = this.safeString (position, 'symbol');
-        market = this.safeMarket (contract, market);
+        market = this.safeMarket (contract, market, undefined, 'contract');
         const size = Precise.stringAbs (this.safeString (position, 'size'));
         let side = this.safeString (position, 'side');
         side = (side === 'Buy') ? 'long' : 'short';
@@ -6519,7 +6516,7 @@ module.exports = class bybit extends Exchange {
         //
         const result = this.safeValue (response, 'result', {});
         const id = this.safeString (result, 'symbol');
-        market = this.safeMarket (id, market);
+        market = this.safeMarket (id, market, undefined, 'contract');
         const data = this.safeValue (result, 'list', []);
         return this.parseOpenInterests (data, market, since, limit);
     }
@@ -6574,7 +6571,7 @@ module.exports = class bybit extends Exchange {
         //
         const result = this.safeValue (response, 'result', {});
         const id = this.safeString (result, 'symbol');
-        market = this.safeMarket (id, market);
+        market = this.safeMarket (id, market, undefined, 'contract');
         const data = this.safeValue (result, 'list', []);
         return this.parseOpenInterest (data[0], market);
     }
