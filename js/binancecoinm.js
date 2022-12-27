@@ -28,7 +28,7 @@ module.exports = class binancecoinm extends binance {
                 'createStopMarketOrder': true,
             },
             'options': {
-                'defaultType': 'delivery',
+                'defaultType': 'swap',
                 'leverageBrackets': undefined,
             },
         });
