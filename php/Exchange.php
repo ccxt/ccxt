@@ -36,7 +36,7 @@ use Elliptic\EdDSA;
 use BN\BN;
 use Exception;
 
-$version = '2.4.65';
+$version = '2.4.66';
 
 // rounding mode
 const TRUNCATE = 0;
@@ -55,7 +55,7 @@ const PAD_WITH_ZERO = 1;
 
 class Exchange {
 
-    const VERSION = '2.4.65';
+    const VERSION = '2.4.66';
 
     private static $base58_alphabet = '123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz';
     private static $base58_encoder = null;
@@ -4225,17 +4225,18 @@ class Exchange {
             if (is_array($this->markets) && array_key_exists($symbol, $this->markets)) {
                 return $this->markets[$symbol];
             } elseif (is_array($this->markets_by_id) && array_key_exists($symbol, $this->markets_by_id)) {
-                // we insert spot $markets first so this will return a spot market
-                // if there is a conflict between the spot and swap $markets
                 $markets = $this->markets_by_id[$symbol];
-                $length = count($markets);
-                if ($length > 1) {
-                    throw new BadSymbol($this->id . ' ambiguous $symbol ' . $symbol . ' due to market id conflict, use the unified $symbol schema of BASE/QUOTE[:SETTLE[-YYMMDD]] e.g. BTC/USDT and BTC/USDT:USDT');
+                $defaultType = $this->safe_string($this->options, 'defaultType', 'spot');
+                for ($i = 0; $i < count($markets); $i++) {
+                    $market = $markets[$i];
+                    if ($market[$defaultType]) {
+                        return $market;
+                    }
                 }
-                return $this->markets_by_id[$symbol][0];
+                return $markets[0];
             }
         }
-        throw new BadSymbol($this->id . ' does not have market $symbol ' . $symbol);
+        throw new BadSymbol($this->id . ' does not have $market $symbol ' . $symbol);
     }
 
     public function handle_withdraw_tag_and_params($tag, $params) {

@@ -2,7 +2,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '2.4.65'
+__version__ = '2.4.66'
 
 # -----------------------------------------------------------------------------
 
@@ -1721,13 +1721,13 @@ class Exchange(BaseExchange):
             if symbol in self.markets:
                 return self.markets[symbol]
             elif symbol in self.markets_by_id:
-                # we insert spot markets first so self will return a spot market
-                # if there is a conflict between the spot and swap markets
                 markets = self.markets_by_id[symbol]
-                length = len(markets)
-                if length > 1:
-                    raise BadSymbol(self.id + ' ambiguous symbol ' + symbol + ' due to market id conflict, use the unified symbol schema of BASE/QUOTE[:SETTLE[-YYMMDD]] e.g. BTC/USDT and BTC/USDT:USDT')
-                return self.markets_by_id[symbol][0]
+                defaultType = self.safe_string(self.options, 'defaultType', 'spot')
+                for i in range(0, len(markets)):
+                    market = markets[i]
+                    if market[defaultType]:
+                        return market
+                return markets[0]
         raise BadSymbol(self.id + ' does not have market symbol ' + symbol)
 
     def handle_withdraw_tag_and_params(self, tag, params):
