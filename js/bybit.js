@@ -1045,17 +1045,14 @@ module.exports = class bybit extends Exchange {
             this.fetchSpotMarkets (params),
             this.fetchDerivativesMarkets ({ 'category': 'linear' }),
             this.fetchDerivativesMarkets ({ 'category': 'inverse' }),
-            this.fetchDerivativesMarkets ({ 'category': 'option' }),
         ];
         promises = await Promise.all (promises);
         const spotMarkets = promises[0];
         const linearMarkets = promises[1];
         const inverseMarkets = promises[2];
-        const optionMarkets = promises[3];
         let markets = spotMarkets;
         markets = this.arrayConcat (markets, linearMarkets);
-        markets = this.arrayConcat (markets, inverseMarkets);
-        return this.arrayConcat (markets, optionMarkets);
+        return this.arrayConcat (markets, inverseMarkets);
     }
 
     async fetchSpotMarkets (params) {
