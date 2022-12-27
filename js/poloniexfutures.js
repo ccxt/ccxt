@@ -2,10 +2,9 @@
 
 //  ---------------------------------------------------------------------------
 
-const { BadRequest, ArgumentsRequired, InvalidOrder } = require ('./base/errors');
+const { BadRequest, ArgumentsRequired, InvalidOrder, AuthenticationError, NotSupported, RateLimitExceeded, ExchangeNotAvailable, InvalidNonce, AccountSuspended, OrderNotFound } = require ('./base/errors');
 const Precise = require ('./base/Precise');
 const Exchange = require ('./base/Exchange');
-const { ExchangeError } = require ('./base/errors');
 const { TICK_SIZE } = require ('./base/functions/number');
 
 //  ---------------------------------------------------------------------------
@@ -46,6 +45,8 @@ module.exports = class poloniexfutures extends Exchange {
                 'fetchOpenOrders': true,
                 'fetchClosedOrders': true,
                 'fetchOrder': true,
+                'fetchMyTrades': true,
+                'fetchFundingRate': true,
             },
             'timeframes': {
                 '1m': 1,
@@ -70,7 +71,7 @@ module.exports = class poloniexfutures extends Exchange {
                 'fees': 'https://poloniex.com/fee-schedule',
                 'referral': 'https://poloniex.com/signup?c=UBFZJRPJ',
             },
-            'api': {
+            'api': { // TODO: Add rate limit numbers to api endpoints
                 'public': {
                     'get': [
                         'contracts/active',
@@ -230,35 +231,31 @@ module.exports = class poloniexfutures extends Exchange {
             },
             'exceptions': {
                 // TODO
-                // 'exact': {
-                //     'You may only place orders that reduce your position.': InvalidOrder,
-                //     'Invalid order number, or you are not the person who placed the order.': OrderNotFound,
-                //     'Permission denied': PermissionDenied,
-                //     'Permission denied.': PermissionDenied,
-                //     'Connection timed out. Please try again.': RequestTimeout,
-                //     'Internal error. Please try again.': ExchangeNotAvailable,
-                //     'Currently in maintenance mode.': OnMaintenance,
-                //     'Order not found, or you are not the person who placed it.': OrderNotFound,
-                //     'Invalid API key/secret pair.': AuthenticationError,
-                //     'Please do not make more than 8 API calls per second.': DDoSProtection,
-                //     'Rate must be greater than zero.': InvalidOrder, // {"error":"Rate must be greater than zero."}
-                //     'Invalid currency pair.': BadSymbol, // {"error":"Invalid currency pair."}
-                //     'Invalid currencyPair parameter.': BadSymbol, // {"error":"Invalid currencyPair parameter."}
-                //     'Trading is disabled in this market.': BadSymbol, // {"error":"Trading is disabled in this market."}
-                //     'Invalid orderNumber parameter.': OrderNotFound,
-                //     'Order is beyond acceptable bounds.': InvalidOrder, // {"error":"Order is beyond acceptable bounds.","fee":"0.00155000","currencyPair":"USDT_BOBA"}
-                // },
-                // 'broad': {
-                //     'Total must be at least': InvalidOrder, // {"error":"Total must be at least 0.0001."}
-                //     'This account is frozen.': AccountSuspended,
-                //     'This account is locked.': AccountSuspended, // {"error":"This account is locked."}
-                //     'Not enough': InsufficientFunds,
-                //     'Nonce must be greater': InvalidNonce,
-                //     'You have already called cancelOrder or moveOrder on this order.': CancelPending,
-                //     'Amount must be at least': InvalidOrder, // {"error":"Amount must be at least 0.000001."}
-                //     'is either completed or does not exist': OrderNotFound, // {"error":"Order 587957810791 is either completed or does not exist."}
-                //     'Error pulling ': ExchangeError, // {"error":"Error pulling order book"}
-                // },
+                'exact': {
+                    '400': BadRequest, // Bad Request -- Invalid request format
+                    '401': AuthenticationError, // Unauthorized -- Invalid API Key
+                    '403': NotSupported, // Forbidden -- The request is forbidden
+                    '404': NotSupported, // Not Found -- The specified resource could not be found
+                    '405': NotSupported, // Method Not Allowed -- You tried to access the resource with an invalid method.
+                    '415': BadRequest,  // Content-Type -- application/json
+                    '429': RateLimitExceeded, // Too Many Requests -- Access limit breached
+                    '500': ExchangeNotAvailable, // Internal Server Error -- We had a problem with our server. Try again later.
+                    '503': ExchangeNotAvailable, // Service Unavailable -- We're temporarily offline for maintenance. Please try again later.
+                    '400001': AuthenticationError, // Any of KC-API-KEY, KC-API-SIGN, KC-API-TIMESTAMP, KC-API-PASSPHRASE is missing in your request header.
+                    '400002': InvalidNonce, // KC-API-TIMESTAMP Invalid -- Time differs from server time by more than 5 seconds
+                    '400003': AuthenticationError, // KC-API-KEY not exists
+                    '400004': AuthenticationError, // KC-API-PASSPHRASE error
+                    '400005': AuthenticationError, // Signature error -- Please check your signature
+                    '400006': AuthenticationError, // The IP address is not in the API whitelist
+                    '400007': AuthenticationError, // Access Denied -- Your API key does not have sufficient permissions to access the URI
+                    '404000': NotSupported, // URL Not Found -- The requested resource could not be found
+                    '400100': BadRequest, // Parameter Error -- You tried to access the resource with invalid parameters
+                    '411100': AccountSuspended, // User is frozen -- Please contact us via support center
+                    '500000': ExchangeNotAvailable, // Internal Server Error -- We had a problem with our server. Try again later.
+                },
+                'broad': {
+                    'Position does not exist': OrderNotFound, // { "code":"200000", "msg":"Position does not exist" }
+                },
             },
         });
     }
@@ -1686,16 +1683,21 @@ module.exports = class poloniexfutures extends Exchange {
     }
 
     handleErrors (code, reason, url, method, headers, body, response, requestHeaders, requestBody) {
-        if (response === undefined) {
+        if (!response) {
+            this.throwBroadlyMatchedException (this.exceptions['broad'], body, body);
             return;
         }
-        // {"error":"Permission denied."}
-        if ('error' in response) {
-            const message = response['error'];
-            const feedback = this.id + ' ' + body;
-            this.throwExactlyMatchedException (this.exceptions['exact'], message, feedback);
-            this.throwBroadlyMatchedException (this.exceptions['broad'], message, feedback);
-            throw new ExchangeError (feedback); // unknown message
-        }
+        //
+        // bad
+        //     { "code": "400100", "msg": "validation.createOrder.clientOidIsRequired" }
+        // good
+        //     { code: '200000', data: { ... }}
+        //
+        const errorCode = this.safeString (response, 'code');
+        const message = this.safeString (response, 'msg', '');
+        const feedback = this.id + ' ' + message;
+        this.throwExactlyMatchedException (this.exceptions['exact'], message, feedback);
+        this.throwExactlyMatchedException (this.exceptions['exact'], errorCode, feedback);
+        this.throwBroadlyMatchedException (this.exceptions['broad'], body, feedback);
     }
 };
