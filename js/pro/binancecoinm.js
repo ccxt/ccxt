@@ -16,7 +16,7 @@ module.exports = class binancecoinm extends binance {
             },
             'options': {
                 'defaultType': 'swap',
-                'defaultSubType': 'linear',
+                'defaultSubType': 'inverse',
             },
         });
     }
