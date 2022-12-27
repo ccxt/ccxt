@@ -1143,24 +1143,41 @@ module.exports = class phemex extends Exchange {
         //         "turnoverEv": 47228362330,
         //         "volume": 4053863
         //     }
+        // linear swap v2
+        //
+        //     {
+        //         "closeRp":"16820.5",
+        //         "fundingRateRr":"0.0001",
+        //         "highRp":"16962.1",
+        //         "indexPriceRp":"16830.15651565",
+        //         "lowRp":"16785",
+        //         "markPriceRp":"16830.97534951",
+        //         "openInterestRv":"1323.596",
+        //         "openRp":"16851.7",
+        //         "predFundingRateRr":"0.0001",
+        //         "symbol":"BTCUSDT",
+        //         "timestamp":"1672142789065593096",
+        //         "turnoverRv":"124835296.0538",
+        //         "volumeRq":"7406.95"
+        //     }
         //
         const marketId = this.safeString (ticker, 'symbol');
         market = this.safeMarket (marketId, market);
         const symbol = market['symbol'];
         const timestamp = this.safeIntegerProduct (ticker, 'timestamp', 0.000001);
-        const last = this.fromEp (this.safeString (ticker, 'lastEp'), market);
-        const quoteVolume = this.fromEv (this.safeString (ticker, 'turnoverEv'), market);
+        const last = this.fromEp (this.safeString2 (ticker, 'lastEp', 'closeRp'), market);
+        const quoteVolume = this.fromEv (this.safeString2 (ticker, 'turnoverEv', 'turnoverRv'), market);
         let baseVolume = this.safeString (ticker, 'volume');
         if (baseVolume === undefined) {
-            baseVolume = this.fromEv (this.safeString (ticker, 'volumeEv'), market);
+            baseVolume = this.fromEv (this.safeString2 (ticker, 'volumeEv', 'volumeRq'), market);
         }
         const open = this.fromEp (this.safeString (ticker, 'openEp'), market);
         return this.safeTicker ({
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'high': this.fromEp (this.safeString (ticker, 'highEp'), market),
-            'low': this.fromEp (this.safeString (ticker, 'lowEp'), market),
+            'high': this.fromEp (this.safeString2 (ticker, 'highEp', 'highRp'), market),
+            'low': this.fromEp (this.safeString2 (ticker, 'lowEp', 'lowRp'), market),
             'bid': this.fromEp (this.safeString (ticker, 'bidEp'), market),
             'bidVolume': undefined,
             'ask': this.fromEp (this.safeString (ticker, 'askEp'), market),
@@ -1194,15 +1211,12 @@ module.exports = class phemex extends Exchange {
             'symbol': market['id'],
             // 'id': 123456789, // optional request id
         };
-        if (market['spot']) {
-            var method = 'v1GetMdSpotTicker24hr';
-        } else {
-            info = self.safeValue (market, 'info', {});
-            type = self.safeStringLower ('info', 'type');
-            if (type === 'perpetual') {
-                var method = 'v1GetMdTicker24hr';
+        let method = 'v1GetMdSpotTicker24hr';
+        if (market['swap']) {
+            if (!market['linear']) {
+                method = 'v1GetMdTicker24hr';
             } else {
-                var method = 'v2GetMdV2Ticker24hr';
+                method = 'v2GetMdV2Ticker24hr';
             }
         }
         const response = await this[method] (this.extend (request, params));
@@ -3089,12 +3103,11 @@ module.exports = class phemex extends Exchange {
         const request = {
             'symbol': market['id'],
         };
-        const info = self.safeValue (market, 'info', {});
-        const type = self.safeStringLower (info, 'type');
-        if (type === 'perpetual') {
-            var response = await this.v1GetMdTicker24hr (this.extend (request, params));
+        let response = {};
+        if (!market['linear']) {
+            response = await this.v1GetMdTicker24hr (this.extend (request, params));
         } else {
-            var response = await this.v2GetMdV2Ticker24hr (this.extend (request, params));
+            response = await this.v2GetMdV2Ticker24hr (this.extend (request, params));
         }
         //
         //     {
