@@ -260,7 +260,7 @@ module.exports = class bitstamp extends bitstampRest {
         const price = this.safeString (trade, 'price');
         const amount = this.safeString (trade, 'amount');
         const marketId = this.safeString (trade, 's');
-        market = this.safeMarket (marketId, undefined, market);
+        market = this.safeMarket (marketId, market);
         const symbol = market['symbol'];
         let side = this.safeInteger (trade, 'type');
         side = (side === 0) ? 'buy' : 'sell';
