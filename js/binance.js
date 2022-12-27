@@ -1410,17 +1410,6 @@ module.exports = class binance extends Exchange {
         return super.market (symbol);
     }
 
-    safeSymbol (marketId, market = undefined, delimiter = undefined) {
-        market = this.safeMarket (marketId, market, delimiter);
-        const legacySymbols = this.safeValue (this.options, 'legacySymbols', false);
-        const defaultType = this.safeValue (this.options, 'defaultType');
-        if (defaultType !== 'spot' && legacySymbols) {
-            // legacy symbol
-            return market['base'] + '/' + market['quote'];
-        }
-        return market['symbol'];
-    }
-
     safeMarket (marketId = undefined, market = undefined, delimiter = undefined, marketType = 'spot') {
         const parsedMarket = super.safeMarket (marketId, market, delimiter, marketType);
         const legacySymbols = this.safeValue (this.options, 'legacySymbols', false);
