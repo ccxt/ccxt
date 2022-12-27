@@ -1275,8 +1275,8 @@ module.exports = class poloniexfutures extends Exchange {
          * @method
          * @name poloniexfutures#fetchOrdersByStatus
          * @description fetches a list of orders placed on the exchange
-         * @see https://docs.kucoin.com/futures/#get-order-list
-         * @see https://docs.kucoin.com/futures/#get-untriggered-stop-order-list
+         * @see https://futures-docs.poloniex.com/#get-order-list
+         * @see https://futures-docs.poloniex.com/#get-untriggered-stop-order-list
          * @param {string} status 'active' or 'closed', only 'active' is valid for stop orders
          * @param {string|undefined} symbol unified symbol for the market to retrieve orders from
          * @param {int|undefined} since timestamp in ms of the earliest order to retrieve
@@ -1326,8 +1326,8 @@ module.exports = class poloniexfutures extends Exchange {
          * @method
          * @name poloniexfutures#fetchOpenOrders
          * @description fetch all unfilled currently open orders
-         * @see https://docs.kucoin.com/futures/#get-order-list
-         * @see https://docs.kucoin.com/futures/#get-untriggered-stop-order-list
+         * @see https://futures-docs.poloniex.com/#get-order-list
+         * @see https://futures-docs.poloniex.com/#get-untriggered-stop-order-list
          * @param {string|undefined} symbol unified market symbol
          * @param {int|undefined} since the earliest time in ms to fetch open orders for
          * @param {int|undefined} limit the maximum number of  open orders structures to retrieve
@@ -1345,8 +1345,8 @@ module.exports = class poloniexfutures extends Exchange {
          * @method
          * @name poloniexfutures#fetchClosedOrders
          * @description fetches information on multiple closed orders made by the user
-         * @see https://docs.kucoin.com/futures/#get-order-list
-         * @see https://docs.kucoin.com/futures/#get-untriggered-stop-order-list
+         * @see https://futures-docs.poloniex.com/#get-order-list
+         * @see https://futures-docs.poloniex.com/#get-untriggered-stop-order-list
          * @param {string|undefined} symbol unified market symbol of the market orders were made in
          * @param {int|undefined} since the earliest time in ms to fetch orders for
          * @param {int|undefined} limit the maximum number of  orde structures to retrieve
@@ -1364,7 +1364,8 @@ module.exports = class poloniexfutures extends Exchange {
          * @method
          * @name poloniexfutures#fetchOrder
          * @description fetches information on an order made by the user
-         * @see https://docs.kucoin.com/futures/#get-details-of-a-single-order
+         * @see https://futures-docs.poloniex.com/#get-details-of-a-single-order
+         * @see https://futures-docs.poloniex.com/#get-single-order-by-clientoid
          * @param {string|undefined} symbol unified symbol of the market the order was made in
          * @param {object} params extra parameters specific to the poloniexfutures api endpoint
          * @returns {object} An [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
@@ -1378,7 +1379,7 @@ module.exports = class poloniexfutures extends Exchange {
                 throw new InvalidOrder (this.id + ' fetchOrder() requires parameter id or params.clientOid');
             }
             request['clientOid'] = clientOrderId;
-            method = 'futuresPrivateGetOrdersByClientOid';
+            method = 'privateGetOrdersByClientOid';
             params = this.omit (params, [ 'clientOid', 'clientOrderId' ]);
         } else {
             request['order-id'] = id;
@@ -1456,6 +1457,55 @@ module.exports = class poloniexfutures extends Exchange {
             'average': average,
             'trades': undefined,
         }, market);
+    }
+
+    async fetchFundingRate (symbol, params = {}) {
+        /**
+         * @method
+         * @name poloniexfutures#fetchFundingRate
+         * @description fetch the current funding rate
+         * @see https://futures-docs.poloniex.com/#get-premium-index
+         * @param {string} symbol unified market symbol
+         * @param {object} params extra parameters specific to the poloniexfutures api endpoint
+         * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/en/latest/manual.html#funding-rate-structure}
+         */
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const request = {
+            'symbol': market['id'],
+        };
+        const response = await this.publicGetFundingRateSymbolCurrent (this.extend (request, params));
+        //
+        //    {
+        //        "symbol": ".BTCUSDTPERPFPI8H",
+        //        "granularity": 28800000,
+        //        "timePoint": 1558000800000,
+        //        "value": 0.00375,
+        //        "predictedValue": 0.00375
+        //    }
+        //
+        const data = this.safeValue (response, 'data');
+        const fundingTimestamp = this.safeNumber (data, 'timePoint');
+        // the website displayes the previous funding rate as "funding rate"
+        return {
+            'info': data,
+            'symbol': market['symbol'],
+            'markPrice': undefined,
+            'indexPrice': undefined,
+            'interestRate': undefined,
+            'estimatedSettlePrice': undefined,
+            'timestamp': undefined,
+            'datetime': undefined,
+            'fundingRate': this.safeNumber (data, 'predictedValue'),
+            'fundingTimestamp': undefined,
+            'fundingDatetime': undefined,
+            'nextFundingRate': undefined,
+            'nextFundingTimestamp': undefined,
+            'nextFundingDatetime': undefined,
+            'previousFundingRate': this.safeNumber (data, 'value'),
+            'previousFundingTimestamp': fundingTimestamp,
+            'previousFundingDatetime': this.iso8601 (fundingTimestamp),
+        };
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
