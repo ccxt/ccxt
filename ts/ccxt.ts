@@ -477,7 +477,6 @@ export {
     phemex,
     poloniex,
     probit,
-    qtrade,
     ripio,
     stex,
     therock,
