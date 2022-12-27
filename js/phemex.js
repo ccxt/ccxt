@@ -89,6 +89,7 @@ module.exports = class phemex extends Exchange {
                 },
                 'api': {
                     'v1': 'https://{hostname}/v1',
+                    'v2': 'https://{hostname}',
                     'public': 'https://{hostname}/exchange/public',
                     'private': 'https://{hostname}',
                 },
@@ -124,6 +125,8 @@ module.exports = class phemex extends Exchange {
                         'products', // contracts only
                         'nomics/trades', // ?market=<symbol>&since=<since>
                         'md/kline', // ?from=1589811875&resolution=1800&symbol=sBTCUSDT&to=1592457935
+                        'md/v2/kline/list', // perpetual api ?symbol=<symbol>&to=<to>&from=<from>&resolution=<resolution>
+                        'md/v2/kline/last', // perpetual ?symbol=<symbol>&resolution=<resolution>&limit=<limit>
                     ],
                 },
                 'v1': {
@@ -135,6 +138,14 @@ module.exports = class phemex extends Exchange {
                         'md/spot/ticker/24hr', // ?symbol=<symbol>&id=<id>
                         'md/spot/ticker/24hr/all', // ?symbol=<symbol>&id=<id>
                         'exchange/public/products', // contracts only
+                    ],
+                },
+                'v2': {
+                    'get': [
+                        'md/v2/orderbook', // ?symbol=<symbol>&id=<id>
+                        'md/v2/trade', // ?symbol=<symbol>&id=<id>
+                        'md/v2/ticker/24hr', // ?symbol=<symbol>&id=<id>
+                        'md/v2/ticker/24hr/all', // ?id=<id>
                     ],
                 },
                 'private': {
