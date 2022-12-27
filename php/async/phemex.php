@@ -1149,24 +1149,41 @@ class phemex extends Exchange {
         //         "turnoverEv" => 47228362330,
         //         "volume" => 4053863
         //     }
+        // linear swap v2
+        //
+        //     {
+        //         "closeRp":"16820.5",
+        //         "fundingRateRr":"0.0001",
+        //         "highRp":"16962.1",
+        //         "indexPriceRp":"16830.15651565",
+        //         "lowRp":"16785",
+        //         "markPriceRp":"16830.97534951",
+        //         "openInterestRv":"1323.596",
+        //         "openRp":"16851.7",
+        //         "predFundingRateRr":"0.0001",
+        //         "symbol":"BTCUSDT",
+        //         "timestamp":"1672142789065593096",
+        //         "turnoverRv":"124835296.0538",
+        //         "volumeRq":"7406.95"
+        //     }
         //
         $marketId = $this->safe_string($ticker, 'symbol');
         $market = $this->safe_market($marketId, $market);
         $symbol = $market['symbol'];
         $timestamp = $this->safe_integer_product($ticker, 'timestamp', 0.000001);
-        $last = $this->from_ep($this->safe_string($ticker, 'lastEp'), $market);
-        $quoteVolume = $this->from_ev($this->safe_string($ticker, 'turnoverEv'), $market);
+        $last = $this->from_ep($this->safe_string_2($ticker, 'lastEp', 'closeRp'), $market);
+        $quoteVolume = $this->from_ev($this->safe_string_2($ticker, 'turnoverEv', 'turnoverRv'), $market);
         $baseVolume = $this->safe_string($ticker, 'volume');
         if ($baseVolume === null) {
-            $baseVolume = $this->from_ev($this->safe_string($ticker, 'volumeEv'), $market);
+            $baseVolume = $this->from_ev($this->safe_string_2($ticker, 'volumeEv', 'volumeRq'), $market);
         }
         $open = $this->from_ep($this->safe_string($ticker, 'openEp'), $market);
         return $this->safe_ticker(array(
             'symbol' => $symbol,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
-            'high' => $this->from_ep($this->safe_string($ticker, 'highEp'), $market),
-            'low' => $this->from_ep($this->safe_string($ticker, 'lowEp'), $market),
+            'high' => $this->from_ep($this->safe_string_2($ticker, 'highEp', 'highRp'), $market),
+            'low' => $this->from_ep($this->safe_string_2($ticker, 'lowEp', 'lowRp'), $market),
             'bid' => $this->from_ep($this->safe_string($ticker, 'bidEp'), $market),
             'bidVolume' => null,
             'ask' => $this->from_ep($this->safe_string($ticker, 'askEp'), $market),
@@ -1199,7 +1216,14 @@ class phemex extends Exchange {
                 'symbol' => $market['id'],
                 // 'id' => 123456789, // optional $request id
             );
-            $method = $market['spot'] ? 'v1GetMdSpotTicker24hr' : 'v1GetMdTicker24hr';
+            $method = 'v1GetMdSpotTicker24hr';
+            if ($market['swap']) {
+                if (!$market['linear']) {
+                    $method = 'v1GetMdTicker24hr';
+                } else {
+                    $method = 'v2GetMdV2Ticker24hr';
+                }
+            }
             $response = Async\await($this->$method (array_merge($request, $params)));
             //
             // spot
@@ -3086,7 +3110,12 @@ class phemex extends Exchange {
             $request = array(
                 'symbol' => $market['id'],
             );
-            $response = Async\await($this->v1GetMdTicker24hr (array_merge($request, $params)));
+            $response = array();
+            if (!$market['linear']) {
+                $response = Async\await($this->v1GetMdTicker24hr (array_merge($request, $params)));
+            } else {
+                $response = Async\await($this->v2GetMdV2Ticker24hr (array_merge($request, $params)));
+            }
             //
             //     {
             //         "error" => null,
@@ -3135,14 +3164,32 @@ class phemex extends Exchange {
         //         "volume" => 4053863
         //     }
         //
+        // linear swap v2
+        //
+        //     {
+        //         "closeRp":"16820.5",
+        //         "fundingRateRr":"0.0001",
+        //         "highRp":"16962.1",
+        //         "indexPriceRp":"16830.15651565",
+        //         "lowRp":"16785",
+        //         "markPriceRp":"16830.97534951",
+        //         "openInterestRv":"1323.596",
+        //         "openRp":"16851.7",
+        //         "predFundingRateRr":"0.0001",
+        //         "symbol":"BTCUSDT",
+        //         "timestamp":"1672142789065593096",
+        //         "turnoverRv":"124835296.0538",
+        //         "volumeRq":"7406.95"
+        //     }
+        //
         $marketId = $this->safe_string($contract, 'symbol');
         $symbol = $this->safe_symbol($marketId, $market);
         $timestamp = $this->safe_integer_product($contract, 'timestamp', 0.000001);
         return array(
             'info' => $contract,
             'symbol' => $symbol,
-            'markPrice' => $this->from_ep($this->safe_string($contract, 'markEp'), $market),
-            'indexPrice' => $this->from_ep($this->safe_string($contract, 'indexEp'), $market),
+            'markPrice' => $this->from_ep($this->safe_string_2($contract, 'markEp', 'markPriceRp'), $market),
+            'indexPrice' => $this->from_ep($this->safe_string_2($contract, 'indexEp', 'indexPriceRp'), $market),
             'interestRate' => null,
             'estimatedSettlePrice' => null,
             'timestamp' => $timestamp,
@@ -3150,7 +3197,7 @@ class phemex extends Exchange {
             'fundingRate' => $this->from_er($this->safe_string($contract, 'fundingRateEr'), $market),
             'fundingTimestamp' => null,
             'fundingDatetime' => null,
-            'nextFundingRate' => $this->from_er($this->safe_string($contract, 'predFundingRateEr'), $market),
+            'nextFundingRate' => $this->from_er($this->safe_string_2($contract, 'predFundingRateEr', 'predFundingRateRr'), $market),
             'nextFundingTimestamp' => null,
             'nextFundingDatetime' => null,
             'previousFundingRate' => null,
