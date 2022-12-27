@@ -6062,18 +6062,17 @@ module.exports = class bybit extends Exchange {
 
     async fetchDerivativesPositions (symbols = undefined, params = {}) {
         await this.loadMarkets ();
+        const request = {};
         if (Array.isArray (symbols)) {
             if (symbols.length > 1) {
                 throw new ArgumentsRequired (this.id + ' fetchPositions() does not accept an array with more than one symbol');
             }
+            request['symbol'] = this.marketId (symbols[0]);
         } else if (symbols !== undefined) {
-            symbols = [ symbols ];
+            request['symbol'] = this.marketId (symbols);
+        } else {
+            request['dataFilter'] = 'valid';
         }
-        symbols = this.marketSymbols (symbols);
-        const marketId = this.marketId (symbols[0]);
-        const request = {
-            'symbol': marketId,
-        };
         let settle = undefined;
         [ settle, params ] = this.handleOptionAndParams (params, 'fetchPositions', 'settle', settle);
         if (settle !== undefined) {

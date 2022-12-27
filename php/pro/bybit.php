@@ -521,8 +521,8 @@ class bybit extends \ccxt\async\bybit {
             $snapshot = $this->parse_order_book($data, $symbol, $timestamp, 'b', 'a');
             $orderbook->reset ($snapshot);
         } else {
-            $asks = $this->safe_value($orderbook, 'a', array());
-            $bids = $this->safe_value($orderbook, 'b', array());
+            $asks = $this->safe_value($data, 'a', array());
+            $bids = $this->safe_value($data, 'b', array());
             $this->handle_deltas($orderbook['asks'], $asks);
             $this->handle_deltas($orderbook['bids'], $bids);
             $orderbook['timestamp'] = $timestamp;

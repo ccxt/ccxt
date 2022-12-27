@@ -4,7 +4,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '2.4.55'
+__version__ = '2.4.60'
 
 # -----------------------------------------------------------------------------
 
@@ -147,7 +147,6 @@ from ccxt.async_support.paymium import paymium                                  
 from ccxt.async_support.phemex import phemex                                    # noqa: F401
 from ccxt.async_support.poloniex import poloniex                                # noqa: F401
 from ccxt.async_support.probit import probit                                    # noqa: F401
-from ccxt.async_support.qtrade import qtrade                                    # noqa: F401
 from ccxt.async_support.ripio import ripio                                      # noqa: F401
 from ccxt.async_support.stex import stex                                        # noqa: F401
 from ccxt.async_support.therock import therock                                  # noqa: F401
@@ -260,7 +259,6 @@ exchanges = [
     'phemex',
     'poloniex',
     'probit',
-    'qtrade',
     'ripio',
     'stex',
     'therock',
