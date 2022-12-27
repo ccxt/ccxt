@@ -1425,7 +1425,7 @@ module.exports = class binance extends Exchange {
         const defaultType = this.safeValue (this.options, 'defaultType');
         if (defaultType !== 'spot' && legacySymbols) {
             // legacy symbol
-            const legacySymbol = market['base'] + '/' + market['quote'];
+            const legacySymbol = parsedMarket['base'] + '/' + parsedMarket['quote'];
             parsedMarket['symbol'] = legacySymbol;
         }
         return parsedMarket;
