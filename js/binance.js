@@ -1,4 +1,3 @@
-'use strict';
 
 //  ---------------------------------------------------------------------------
 
@@ -1393,6 +1392,31 @@ module.exports = class binance extends Exchange {
             return true;
         }
         return false;
+    }
+
+    market (symbol) {
+        const defaultType = this.safeString (this.options, 'defaultType');
+        const isUnified = symbol.indexOf (':') > -1;
+        if (defaultType !== 'spot' && !isUnified) {
+            // convert BTC/USDT into BTC/USDT:USDT
+            const symbolParts = symbol.split ('/');
+            symbol = symbol + this.safeString (symbolParts, 1);
+            this.options['legacySymbols'] = true;
+        } else {
+            this.options['legacySymbols'] = false;
+        }
+        return super.market (symbol);
+    }
+
+    safeSymbol (marketId, market = undefined, delimiter = undefined) {
+        market = this.safeMarket (marketId, market, delimiter);
+        const legacySymbols = this.safeValue (this.options, 'legacySymbols', false);
+        const defaultType = this.safeValue (this.options, 'defaultType');
+        if (defaultType !== 'spot' && legacySymbols) {
+            // legacy symbol
+            return market['base'] + '/' + market['quote'];
+        }
+        return market['symbol'];
     }
 
     costToPrecision (symbol, cost) {
