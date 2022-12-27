@@ -1297,6 +1297,8 @@ The ``limit`` argument does not guarantee that the number of bids or asks will a
 watchTicker
 """""""""""
 
+Some exchanges allow different topics to listen to tickers (ie: bookTicker). You can set this in ``exchange.options['watchTicker']['name']``
+
 .. code-block:: JavaScript
 
    // JavaScript
