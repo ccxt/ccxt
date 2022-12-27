@@ -1400,7 +1400,7 @@ module.exports = class binance extends Exchange {
         if (defaultType !== 'spot' && !isUnified) {
             // convert BTC/USDT into BTC/USDT:USDT
             const symbolParts = symbol.split ('/');
-            symbol = symbol + this.safeString (symbolParts, 1);
+            symbol = symbol + ':' + this.safeString (symbolParts, 1);
             this.options['legacySymbols'] = true;
         } else {
             this.options['legacySymbols'] = false;
