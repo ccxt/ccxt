@@ -103,6 +103,7 @@ class phemex(Exchange):
                 },
                 'api': {
                     'v1': 'https://{hostname}/v1',
+                    'v2': 'https://{hostname}',
                     'public': 'https://{hostname}/exchange/public',
                     'private': 'https://{hostname}',
                 },
@@ -138,6 +139,8 @@ class phemex(Exchange):
                         'products',  # contracts only
                         'nomics/trades',  # ?market=<symbol>&since=<since>
                         'md/kline',  # ?from=1589811875&resolution=1800&symbol=sBTCUSDT&to=1592457935
+                        'md/v2/kline/list',  # perpetual api ?symbol=<symbol>&to=<to>&from=<from>&resolution=<resolution>
+                        'md/v2/kline/last',  # perpetual ?symbol=<symbol>&resolution=<resolution>&limit=<limit>
                     ],
                 },
                 'v1': {
@@ -149,6 +152,14 @@ class phemex(Exchange):
                         'md/spot/ticker/24hr',  # ?symbol=<symbol>&id=<id>
                         'md/spot/ticker/24hr/all',  # ?symbol=<symbol>&id=<id>
                         'exchange/public/products',  # contracts only
+                    ],
+                },
+                'v2': {
+                    'get': [
+                        'md/v2/orderbook',  # ?symbol=<symbol>&id=<id>
+                        'md/v2/trade',  # ?symbol=<symbol>&id=<id>
+                        'md/v2/ticker/24hr',  # ?symbol=<symbol>&id=<id>
+                        'md/v2/ticker/24hr/all',  # ?id=<id>
                     ],
                 },
                 'private': {
@@ -1099,23 +1110,40 @@ class phemex(Exchange):
         #         "turnoverEv": 47228362330,
         #         "volume": 4053863
         #     }
+        # linear swap v2
+        #
+        #     {
+        #         "closeRp":"16820.5",
+        #         "fundingRateRr":"0.0001",
+        #         "highRp":"16962.1",
+        #         "indexPriceRp":"16830.15651565",
+        #         "lowRp":"16785",
+        #         "markPriceRp":"16830.97534951",
+        #         "openInterestRv":"1323.596",
+        #         "openRp":"16851.7",
+        #         "predFundingRateRr":"0.0001",
+        #         "symbol":"BTCUSDT",
+        #         "timestamp":"1672142789065593096",
+        #         "turnoverRv":"124835296.0538",
+        #         "volumeRq":"7406.95"
+        #     }
         #
         marketId = self.safe_string(ticker, 'symbol')
         market = self.safe_market(marketId, market)
         symbol = market['symbol']
         timestamp = self.safe_integer_product(ticker, 'timestamp', 0.000001)
-        last = self.from_ep(self.safe_string(ticker, 'lastEp'), market)
-        quoteVolume = self.from_ev(self.safe_string(ticker, 'turnoverEv'), market)
+        last = self.from_ep(self.safe_string_2(ticker, 'lastEp', 'closeRp'), market)
+        quoteVolume = self.from_ev(self.safe_string_2(ticker, 'turnoverEv', 'turnoverRv'), market)
         baseVolume = self.safe_string(ticker, 'volume')
         if baseVolume is None:
-            baseVolume = self.from_ev(self.safe_string(ticker, 'volumeEv'), market)
+            baseVolume = self.from_ev(self.safe_string_2(ticker, 'volumeEv', 'volumeRq'), market)
         open = self.from_ep(self.safe_string(ticker, 'openEp'), market)
         return self.safe_ticker({
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
-            'high': self.from_ep(self.safe_string(ticker, 'highEp'), market),
-            'low': self.from_ep(self.safe_string(ticker, 'lowEp'), market),
+            'high': self.from_ep(self.safe_string_2(ticker, 'highEp', 'highRp'), market),
+            'low': self.from_ep(self.safe_string_2(ticker, 'lowEp', 'lowRp'), market),
             'bid': self.from_ep(self.safe_string(ticker, 'bidEp'), market),
             'bidVolume': None,
             'ask': self.from_ep(self.safe_string(ticker, 'askEp'), market),
@@ -1146,7 +1174,12 @@ class phemex(Exchange):
             'symbol': market['id'],
             # 'id': 123456789,  # optional request id
         }
-        method = 'v1GetMdSpotTicker24hr' if market['spot'] else 'v1GetMdTicker24hr'
+        method = 'v1GetMdSpotTicker24hr'
+        if market['swap']:
+            if not market['linear']:
+                method = 'v1GetMdTicker24hr'
+            else:
+                method = 'v2GetMdV2Ticker24hr'
         response = getattr(self, method)(self.extend(request, params))
         #
         # spot
@@ -2895,7 +2928,11 @@ class phemex(Exchange):
         request = {
             'symbol': market['id'],
         }
-        response = self.v1GetMdTicker24hr(self.extend(request, params))
+        response = {}
+        if not market['linear']:
+            response = self.v1GetMdTicker24hr(self.extend(request, params))
+        else:
+            response = self.v2GetMdV2Ticker24hr(self.extend(request, params))
         #
         #     {
         #         "error": null,
@@ -2942,14 +2979,32 @@ class phemex(Exchange):
         #         "volume": 4053863
         #     }
         #
+        # linear swap v2
+        #
+        #     {
+        #         "closeRp":"16820.5",
+        #         "fundingRateRr":"0.0001",
+        #         "highRp":"16962.1",
+        #         "indexPriceRp":"16830.15651565",
+        #         "lowRp":"16785",
+        #         "markPriceRp":"16830.97534951",
+        #         "openInterestRv":"1323.596",
+        #         "openRp":"16851.7",
+        #         "predFundingRateRr":"0.0001",
+        #         "symbol":"BTCUSDT",
+        #         "timestamp":"1672142789065593096",
+        #         "turnoverRv":"124835296.0538",
+        #         "volumeRq":"7406.95"
+        #     }
+        #
         marketId = self.safe_string(contract, 'symbol')
         symbol = self.safe_symbol(marketId, market)
         timestamp = self.safe_integer_product(contract, 'timestamp', 0.000001)
         return {
             'info': contract,
             'symbol': symbol,
-            'markPrice': self.from_ep(self.safe_string(contract, 'markEp'), market),
-            'indexPrice': self.from_ep(self.safe_string(contract, 'indexEp'), market),
+            'markPrice': self.from_ep(self.safe_string_2(contract, 'markEp', 'markPriceRp'), market),
+            'indexPrice': self.from_ep(self.safe_string_2(contract, 'indexEp', 'indexPriceRp'), market),
             'interestRate': None,
             'estimatedSettlePrice': None,
             'timestamp': timestamp,
@@ -2957,7 +3012,7 @@ class phemex(Exchange):
             'fundingRate': self.from_er(self.safe_string(contract, 'fundingRateEr'), market),
             'fundingTimestamp': None,
             'fundingDatetime': None,
-            'nextFundingRate': self.from_er(self.safe_string(contract, 'predFundingRateEr'), market),
+            'nextFundingRate': self.from_er(self.safe_string_2(contract, 'predFundingRateEr', 'predFundingRateRr'), market),
             'nextFundingTimestamp': None,
             'nextFundingDatetime': None,
             'previousFundingRate': None,

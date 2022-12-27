@@ -1515,9 +1515,6 @@ class bitget extends Exchange {
         //     }
         //
         $marketId = $this->safe_string($ticker, 'symbol');
-        if (!(is_array($this->markets_by_id) && array_key_exists($marketId, $this->markets_by_id))) {
-            $marketId .= '_SPBL';
-        }
         $symbol = $this->safe_symbol($marketId, $market);
         $high = $this->safe_string($ticker, 'high24h');
         $low = $this->safe_string($ticker, 'low24h');

@@ -8,6 +8,7 @@ namespace ccxt\pro;
 use Exception; // a common import
 use ccxt\ExchangeError;
 use ccxt\AuthenticationError;
+use ccxt\BadRequest;
 use React\Async;
 
 class bybit extends \ccxt\async\bybit {
@@ -71,6 +72,9 @@ class bybit extends \ccxt\async\bybit {
                 ),
             ),
             'options' => array(
+                'watchTicker' => array(
+                    'name' => 'tickers', // 'tickers' for 24hr statistical ticker or 'bookticker' for Best bid price and best ask price
+                ),
                 'spot' => array(
                     'timeframes' => array(
                         '1m' => '1m',
@@ -87,7 +91,6 @@ class bybit extends \ccxt\async\bybit {
                         '1w' => '1w',
                         '1M' => '1M',
                     ),
-                    'watchTickerTopic' => 'tickers', // 'tickers' for 24hr statistical ticker or 'bookticker' for Best bid price and best ask price
                 ),
                 'contract' => array(
                     'timeframes' => array(
@@ -189,10 +192,10 @@ class bybit extends \ccxt\async\bybit {
             $messageHash = 'ticker:' . $market['symbol'];
             $url = $this->get_url_by_market_type($symbol, false, false, $params);
             $params = $this->clean_params($params);
-            $topic = 'tickers';
-            if ($market['spot']) {
-                $spotOptions = $this->safe_value($this->options, 'spot', array());
-                $topic = $this->safe_string($spotOptions, 'watchTickerTopic', 'tickers');
+            $options = $this->safe_value($this->options, 'watchTicker', array());
+            $topic = $this->safe_string($options, 'name', 'tickers');
+            if (!$market['spot'] && $topic !== 'tickers') {
+                throw new BadRequest($this->id . ' watchTicker() only supports name tickers for contract markets');
             }
             $topic .= '.' . $market['id'];
             $topics = array( $topic );

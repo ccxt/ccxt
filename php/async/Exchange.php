@@ -34,11 +34,11 @@ use Exception;
 
 include 'Throttle.php';
 
-$version = '2.4.60';
+$version = '2.4.64';
 
 class Exchange extends \ccxt\Exchange {
 
-    const VERSION = '2.4.60';
+    const VERSION = '2.4.64';
 
     public $browser;
     public $marketsLoading = null;
@@ -426,12 +426,16 @@ class Exchange extends \ccxt\Exchange {
         $average = $this->omit_zero($this->safe_string($order, 'average'));
         $price = $this->omit_zero($this->safe_string($order, 'price'));
         $lastTradeTimeTimestamp = $this->safe_integer($order, 'lastTradeTimestamp');
+        $symbol = $this->safe_string($order, 'symbol');
+        $side = $this->safe_string($order, 'side');
         $parseFilled = ($filled === null);
         $parseCost = ($cost === null);
         $parseLastTradeTimeTimestamp = ($lastTradeTimeTimestamp === null);
         $fee = $this->safe_value($order, 'fee');
         $parseFee = ($fee === null);
         $parseFees = $this->safe_value($order, 'fees') === null;
+        $parseSymbol = $symbol === null;
+        $parseSide = $side === null;
         $shouldParseFees = $parseFee || $parseFees;
         $fees = $this->safe_value($order, 'fees', array());
         $trades = array();
@@ -440,12 +444,7 @@ class Exchange extends \ccxt\Exchange {
             $oldNumber = $this->number;
             // we parse $trades as strings here!
             $this->number = 'strval';
-            $trades = $this->parse_trades($rawTrades, $market, null, null, array(
-                'symbol' => $order['symbol'],
-                'side' => $order['side'],
-                'type' => $order['type'],
-                'order' => $order['id'],
-            ));
+            $trades = $this->parse_trades($rawTrades, $market);
             $this->number = $oldNumber;
             $tradesLength = 0;
             $isArray = gettype($trades) === 'array' && array_keys($trades) === array_keys(array_keys($trades));
@@ -481,6 +480,12 @@ class Exchange extends \ccxt\Exchange {
                     $tradeCost = $this->safe_string($trade, 'cost');
                     if ($parseCost && ($tradeCost !== null)) {
                         $cost = Precise::string_add($cost, $tradeCost);
+                    }
+                    if ($parseSymbol) {
+                        $symbol = $this->safe_string($trade, 'symbol');
+                    }
+                    if ($parseSide) {
+                        $side = $this->safe_string($trade, 'side');
                     }
                     $tradeTimestamp = $this->safe_value($trade, 'timestamp');
                     if ($parseLastTradeTimeTimestamp && ($tradeTimestamp !== null)) {
@@ -621,6 +626,8 @@ class Exchange extends \ccxt\Exchange {
             $postOnly = $timeInForce === 'PO';
         }
         return array_merge($order, array(
+            'symbol' => $symbol,
+            'side' => $side,
             'lastTradeTimestamp' => $lastTradeTimeTimestamp,
             'price' => $this->parse_number($price),
             'amount' => $this->parse_number($amount),

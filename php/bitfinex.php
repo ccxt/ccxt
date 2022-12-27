@@ -861,24 +861,9 @@ class bitfinex extends Exchange {
 
     public function parse_ticker($ticker, $market = null) {
         $timestamp = $this->safe_timestamp($ticker, 'timestamp');
-        $symbol = null;
-        if ($market !== null) {
-            $symbol = $market['symbol'];
-        } elseif (is_array($ticker) && array_key_exists('pair', $ticker)) {
-            $marketId = $this->safe_string($ticker, 'pair');
-            if ($marketId !== null) {
-                if (is_array($this->markets_by_id) && array_key_exists($marketId, $this->markets_by_id)) {
-                    $market = $this->markets_by_id[$marketId];
-                    $symbol = $market['symbol'];
-                } else {
-                    $baseId = mb_substr($marketId, 0, 3 - 0);
-                    $quoteId = mb_substr($marketId, 3, 6 - 3);
-                    $base = $this->safe_currency_code($baseId);
-                    $quote = $this->safe_currency_code($quoteId);
-                    $symbol = $base . '/' . $quote;
-                }
-            }
-        }
+        $marketId = $this->safe_string($market, 'pair');
+        $market = $this->safe_market($marketId, $market);
+        $symbol = $market['symbol'];
         $last = $this->safe_string($ticker, 'last_price');
         return $this->safe_ticker(array(
             'symbol' => $symbol,

@@ -587,7 +587,7 @@ if ($exchange->has['watchOrderBook']) {
 ```
 
 ##### watchTicker
-
+Some exchanges allow different topics to listen to tickers (ie: bookTicker). You can set this in `exchange.options['watchTicker']['name']`
 ```JavaScript
 // JavaScript
 if (exchange.has['watchTicker']) {

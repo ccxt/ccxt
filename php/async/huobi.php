@@ -5197,7 +5197,7 @@ class huobi extends Exchange {
             /**
              * fetch borrow $rates for $currencies within individual markets
              * @param {array} $params extra parameters specific to the huobi api endpoint
-             * @return {array} a dictionary of {@link https://docs.ccxt.com/en/latest/manual.html#borrow-$rate-structure borrow $rate structures} indexed by $market $symbol
+             * @return {array} a dictionary of {@link https://docs.ccxt.com/en/latest/manual.html#borrow-$rate-structure borrow $rate structures} indexed by market $symbol
              */
             Async\await($this->load_markets());
             $response = Async\await($this->spotPrivateGetV1MarginLoanInfo ($params));
@@ -5251,8 +5251,8 @@ class huobi extends Exchange {
                         'datetime' => $this->iso8601($timestamp),
                     );
                 }
-                $market = $this->markets_by_id[$this->safe_string($rate, 'symbol')];
-                $symbol = $market['symbol'];
+                $marketId = $this->safe_string($rate, 'symbol');
+                $symbol = $this->safe_symbol($marketId);
                 $rates[$symbol] = $symbolRates;
             }
             return $rates;

@@ -4893,8 +4893,8 @@ class huobi(Exchange):
                     'timestamp': timestamp,
                     'datetime': self.iso8601(timestamp),
                 }
-            market = self.markets_by_id[self.safe_string(rate, 'symbol')]
-            symbol = market['symbol']
+            marketId = self.safe_string(rate, 'symbol')
+            symbol = self.safe_symbol(marketId)
             rates[symbol] = symbolRates
         return rates
 

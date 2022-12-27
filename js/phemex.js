@@ -89,6 +89,7 @@ module.exports = class phemex extends Exchange {
                 },
                 'api': {
                     'v1': 'https://{hostname}/v1',
+                    'v2': 'https://{hostname}',
                     'public': 'https://{hostname}/exchange/public',
                     'private': 'https://{hostname}',
                 },
@@ -124,6 +125,8 @@ module.exports = class phemex extends Exchange {
                         'products', // contracts only
                         'nomics/trades', // ?market=<symbol>&since=<since>
                         'md/kline', // ?from=1589811875&resolution=1800&symbol=sBTCUSDT&to=1592457935
+                        'md/v2/kline/list', // perpetual api ?symbol=<symbol>&to=<to>&from=<from>&resolution=<resolution>
+                        'md/v2/kline/last', // perpetual ?symbol=<symbol>&resolution=<resolution>&limit=<limit>
                     ],
                 },
                 'v1': {
@@ -135,6 +138,14 @@ module.exports = class phemex extends Exchange {
                         'md/spot/ticker/24hr', // ?symbol=<symbol>&id=<id>
                         'md/spot/ticker/24hr/all', // ?symbol=<symbol>&id=<id>
                         'exchange/public/products', // contracts only
+                    ],
+                },
+                'v2': {
+                    'get': [
+                        'md/v2/orderbook', // ?symbol=<symbol>&id=<id>
+                        'md/v2/trade', // ?symbol=<symbol>&id=<id>
+                        'md/v2/ticker/24hr', // ?symbol=<symbol>&id=<id>
+                        'md/v2/ticker/24hr/all', // ?id=<id>
                     ],
                 },
                 'private': {
@@ -1132,24 +1143,41 @@ module.exports = class phemex extends Exchange {
         //         "turnoverEv": 47228362330,
         //         "volume": 4053863
         //     }
+        // linear swap v2
+        //
+        //     {
+        //         "closeRp":"16820.5",
+        //         "fundingRateRr":"0.0001",
+        //         "highRp":"16962.1",
+        //         "indexPriceRp":"16830.15651565",
+        //         "lowRp":"16785",
+        //         "markPriceRp":"16830.97534951",
+        //         "openInterestRv":"1323.596",
+        //         "openRp":"16851.7",
+        //         "predFundingRateRr":"0.0001",
+        //         "symbol":"BTCUSDT",
+        //         "timestamp":"1672142789065593096",
+        //         "turnoverRv":"124835296.0538",
+        //         "volumeRq":"7406.95"
+        //     }
         //
         const marketId = this.safeString (ticker, 'symbol');
         market = this.safeMarket (marketId, market);
         const symbol = market['symbol'];
         const timestamp = this.safeIntegerProduct (ticker, 'timestamp', 0.000001);
-        const last = this.fromEp (this.safeString (ticker, 'lastEp'), market);
-        const quoteVolume = this.fromEv (this.safeString (ticker, 'turnoverEv'), market);
+        const last = this.fromEp (this.safeString2 (ticker, 'lastEp', 'closeRp'), market);
+        const quoteVolume = this.fromEv (this.safeString2 (ticker, 'turnoverEv', 'turnoverRv'), market);
         let baseVolume = this.safeString (ticker, 'volume');
         if (baseVolume === undefined) {
-            baseVolume = this.fromEv (this.safeString (ticker, 'volumeEv'), market);
+            baseVolume = this.fromEv (this.safeString2 (ticker, 'volumeEv', 'volumeRq'), market);
         }
         const open = this.fromEp (this.safeString (ticker, 'openEp'), market);
         return this.safeTicker ({
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'high': this.fromEp (this.safeString (ticker, 'highEp'), market),
-            'low': this.fromEp (this.safeString (ticker, 'lowEp'), market),
+            'high': this.fromEp (this.safeString2 (ticker, 'highEp', 'highRp'), market),
+            'low': this.fromEp (this.safeString2 (ticker, 'lowEp', 'lowRp'), market),
             'bid': this.fromEp (this.safeString (ticker, 'bidEp'), market),
             'bidVolume': undefined,
             'ask': this.fromEp (this.safeString (ticker, 'askEp'), market),
@@ -1183,7 +1211,14 @@ module.exports = class phemex extends Exchange {
             'symbol': market['id'],
             // 'id': 123456789, // optional request id
         };
-        const method = market['spot'] ? 'v1GetMdSpotTicker24hr' : 'v1GetMdTicker24hr';
+        let method = 'v1GetMdSpotTicker24hr';
+        if (market['swap']) {
+            if (!market['linear']) {
+                method = 'v1GetMdTicker24hr';
+            } else {
+                method = 'v2GetMdV2Ticker24hr';
+            }
+        }
         const response = await this[method] (this.extend (request, params));
         //
         // spot
@@ -3068,7 +3103,12 @@ module.exports = class phemex extends Exchange {
         const request = {
             'symbol': market['id'],
         };
-        const response = await this.v1GetMdTicker24hr (this.extend (request, params));
+        let response = {};
+        if (!market['linear']) {
+            response = await this.v1GetMdTicker24hr (this.extend (request, params));
+        } else {
+            response = await this.v2GetMdV2Ticker24hr (this.extend (request, params));
+        }
         //
         //     {
         //         "error": null,
@@ -3116,14 +3156,32 @@ module.exports = class phemex extends Exchange {
         //         "volume": 4053863
         //     }
         //
+        // linear swap v2
+        //
+        //     {
+        //         "closeRp":"16820.5",
+        //         "fundingRateRr":"0.0001",
+        //         "highRp":"16962.1",
+        //         "indexPriceRp":"16830.15651565",
+        //         "lowRp":"16785",
+        //         "markPriceRp":"16830.97534951",
+        //         "openInterestRv":"1323.596",
+        //         "openRp":"16851.7",
+        //         "predFundingRateRr":"0.0001",
+        //         "symbol":"BTCUSDT",
+        //         "timestamp":"1672142789065593096",
+        //         "turnoverRv":"124835296.0538",
+        //         "volumeRq":"7406.95"
+        //     }
+        //
         const marketId = this.safeString (contract, 'symbol');
         const symbol = this.safeSymbol (marketId, market);
         const timestamp = this.safeIntegerProduct (contract, 'timestamp', 0.000001);
         return {
             'info': contract,
             'symbol': symbol,
-            'markPrice': this.fromEp (this.safeString (contract, 'markEp'), market),
-            'indexPrice': this.fromEp (this.safeString (contract, 'indexEp'), market),
+            'markPrice': this.fromEp (this.safeString2 (contract, 'markEp', 'markPriceRp'), market),
+            'indexPrice': this.fromEp (this.safeString2 (contract, 'indexEp', 'indexPriceRp'), market),
             'interestRate': undefined,
             'estimatedSettlePrice': undefined,
             'timestamp': timestamp,
@@ -3131,7 +3189,7 @@ module.exports = class phemex extends Exchange {
             'fundingRate': this.fromEr (this.safeString (contract, 'fundingRateEr'), market),
             'fundingTimestamp': undefined,
             'fundingDatetime': undefined,
-            'nextFundingRate': this.fromEr (this.safeString (contract, 'predFundingRateEr'), market),
+            'nextFundingRate': this.fromEr (this.safeString2 (contract, 'predFundingRateEr', 'predFundingRateRr'), market),
             'nextFundingTimestamp': undefined,
             'nextFundingDatetime': undefined,
             'previousFundingRate': undefined,
