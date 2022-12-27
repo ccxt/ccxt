@@ -166,7 +166,6 @@ from ccxt.okx import okx                                              # noqa: F4
 from ccxt.paymium import paymium                                      # noqa: F401
 from ccxt.phemex import phemex                                        # noqa: F401
 from ccxt.poloniex import poloniex                                    # noqa: F401
-from ccxt.poloniexfutures import poloniexfutures                      # noqa: F401
 from ccxt.probit import probit                                        # noqa: F401
 from ccxt.qtrade import qtrade                                        # noqa: F401
 from ccxt.ripio import ripio                                          # noqa: F401

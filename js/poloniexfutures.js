@@ -141,26 +141,6 @@ module.exports = class poloniexfutures extends Exchange {
                     'deposit': {},
                 },
             },
-            'limits': {
-                // TODO
-                // 'amount': {
-                //     'min': 0.000001,
-                //     'max': undefined,
-                // },
-                // 'price': {
-                //     'min': 0.00000001,
-                //     'max': 1000000000,
-                // },
-                // 'cost': {
-                //     'min': 0.00000000,
-                //     'max': 1000000000,
-                // },
-            },
-            'precision': {
-                // TODO
-                // 'amount': 8,
-                // 'price': 8,
-            },
             'commonCurrencies': {
                 // 'AIR': 'AirCoin',
                 // 'APH': 'AphroditeCoin',
@@ -196,28 +176,9 @@ module.exports = class poloniexfutures extends Exchange {
             },
             'options': {
                 'networks': {
-                    // TODO
-                    // 'ERC20': 'ETH',
-                    // 'TRX': 'TRON',
-                    // 'TRC20': 'TRON',
-                },
-                'limits': {
-                    // TODO
-                    // 'cost': {
-                    //     'min': {
-                    //         'BTC': 0.0001,
-                    //         'ETH': 0.0001,
-                    //         'USDT': 1.0,
-                    //         'TRX': 100,
-                    //         'BNB': 0.06,
-                    //         'USDC': 1.0,
-                    //         'USDJ': 1.0,
-                    //         'TUSD': 0.0001,
-                    //         'DAI': 1.0,
-                    //         'PAX': 1.0,
-                    //         'BUSD': 1.0,
-                    //     },
-                    // },
+                    'OMNI': 'omni',
+                    'ERC20': 'eth',
+                    'TRC20': 'trx',
                 },
                 'versions': {
                     'public': {
