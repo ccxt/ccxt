@@ -1606,22 +1606,6 @@ module.exports = class binance extends Exchange {
          * @param {object} params extra parameters specific to the exchange api endpoint
          * @returns {[object]} an array of objects representing market data
          */
-        // const defaultType = this.safeString2 (this.options, 'fetchMarkets', 'defaultType', 'spot');
-        // const type = this.safeString (params, 'type', defaultType);
-        // const query = this.omit (params, 'type');
-        // const spot = (type === 'spot');
-        // const margin = (type === 'margin');
-        // const future = (this.isLinearSwap(type));
-        // const delivery = (this.isInverseSwap(type));
-        // if ((!spot) && (!margin) && (!future) && (!delivery)) {
-        //     throw new ExchangeError (this.id + " does not support '" + type + "' type, set exchange.options['defaultType'] to 'spot', 'margin', 'delivery' or 'future'"); // eslint-disable-line quotes
-        // }
-        // let method = 'publicGetExchangeInfo';
-        // if (future) {
-        //     method = 'fapiPublicGetExchangeInfo';
-        // } else if (delivery) {
-        //     method = 'dapiPublicGetExchangeInfo';
-        // }
         const unresolvedMarkets = [
             this.publicGetExchangeInfo (),
             this.fapiPublicGetExchangeInfo (),
@@ -1634,7 +1618,6 @@ module.exports = class binance extends Exchange {
         let markets = spotMarkets;
         markets = this.arrayConcat (markets, futureMarkets);
         markets = this.arrayConcat (markets, deliveryMarkets);
-        // const response = await this[method] (query);
         //
         // spot / margin
         //
