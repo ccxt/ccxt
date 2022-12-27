@@ -1378,7 +1378,7 @@ module.exports = class binance extends Exchange {
         if (type === 'delivery') {
             return true;
         }
-        if (type === 'swap' && subType === 'linear') {
+        if (type === 'swap' && subType === 'inverse') {
             return true;
         }
         return false;
@@ -1388,7 +1388,7 @@ module.exports = class binance extends Exchange {
         if (type === 'future') {
             return true;
         }
-        if (type === 'swap' && subType === 'inverse') {
+        if (type === 'swap' && subType === 'linear') {
             return true;
         }
         return false;
@@ -1397,12 +1397,19 @@ module.exports = class binance extends Exchange {
     market (symbol) {
         if (symbol !== undefined) {
             const defaultType = this.safeString (this.options, 'defaultType');
-            const isUnified = symbol.indexOf (':') > -1;
-            if (defaultType !== 'spot' && !isUnified) {
-                // convert BTC/USDT into BTC/USDT:USDT
+            const subType = this.safeString (this.options, 'defaultSubType');
+            const isLegacySymbol = (symbol.indexOf ('/') > -1) && (symbol.indexOf (':') === -1);
+            if (isLegacySymbol) {
                 const symbolParts = symbol.split ('/');
-                symbol = symbol + ':' + this.safeString (symbolParts, 1);
-                this.options['legacySymbols'] = true;
+                if (this.isLinearSwap (defaultType, subType)) {
+                    // convert BTC/USDT into BTC/USDT:USDT
+                    symbol = symbol + ':' + this.safeString (symbolParts, 1);
+                    this.options['legacySymbols'] = true;
+                } else if (this.isInverseSwap (defaultType, subType)) {
+                    // convert BTC/USD into BTC/USD:BTC
+                    symbol = symbol + ':' + this.safeString (symbolParts, 0);
+                    this.options['legacySymbols'] = true;
+                }
             } else {
                 this.options['legacySymbols'] = false;
             }
@@ -1412,15 +1419,18 @@ module.exports = class binance extends Exchange {
 
     safeMarket (marketId = undefined, market = undefined, delimiter = undefined, marketType = 'spot') {
         const defaultType = this.safeValue (this.options, 'defaultType');
+        const subType = this.safeString (this.options, 'defaultSubType');
         const parsedMarket = super.safeMarket (marketId, market, delimiter, defaultType);
         const legacySymbols = this.safeValue (this.options, 'legacySymbols', false);
-        if (defaultType !== 'spot' && legacySymbols) {
-            // avoid changing it by reference
-            const newMarket = this.extend (parsedMarket, {});
-            // legacy symbol
-            const legacySymbol = parsedMarket['base'] + '/' + parsedMarket['quote'];
-            newMarket['symbol'] = legacySymbol;
-            return newMarket;
+        if (legacySymbols) {
+            if (this.isLinearSwap (defaultType, subType) || this.isInverseSwap (defaultType, subType)) {
+                // avoid changing it by reference
+                const newMarket = this.extend (parsedMarket, {});
+                // legacy symbol
+                const legacySymbol = parsedMarket['base'] + '/' + parsedMarket['quote'];
+                newMarket['symbol'] = legacySymbol;
+                return newMarket;
+            }
         }
         return parsedMarket;
     }
