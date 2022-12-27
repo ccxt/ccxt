@@ -29,6 +29,7 @@ module.exports = class binanceusdm extends binance {
             },
             'options': {
                 'defaultType': 'swap',
+                'defaultSubType': 'linear',
                 // https://www.binance.com/en/support/faq/360033162192
                 // tier amount, maintenance margin, initial margin
                 'leverageBrackets': undefined,
