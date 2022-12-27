@@ -1797,10 +1797,11 @@ module.exports = class binance extends Exchange {
             const base = this.safeCurrencyCode (baseId);
             const quote = this.safeCurrencyCode (quoteId);
             const settle = this.safeCurrencyCode (settleId);
+            const contractType = this.safeString (market, 'contractType');
             const contract = ('contractType' in market);
             const spot = !contract;
             let expiry = this.safeInteger (market, 'deliveryDate');
-            if (expiry === 4133404800000) {
+            if (contractType === 'PERPETUAL') {
                 expiry = undefined;
                 swap = true;
             } else {
