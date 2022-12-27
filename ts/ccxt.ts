@@ -296,7 +296,6 @@ const exchanges = {
     'phemex':                 phemex,
     'poloniex':               poloniex,
     'probit':                 probit,
-    'qtrade':                 qtrade,
     'ripio':                  ripio,
     'stex':                   stex,
     'therock':                therock,
