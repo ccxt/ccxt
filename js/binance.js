@@ -788,7 +788,7 @@ module.exports = class binance extends Exchange {
                     'taker': this.parseNumber ('0.001'),
                     'maker': this.parseNumber ('0.001'),
                 },
-                'future': {
+                'linear': {
                     'trading': {
                         'feeSide': 'quote',
                         'tierBased': true,
@@ -823,7 +823,7 @@ module.exports = class binance extends Exchange {
                         },
                     },
                 },
-                'delivery': {
+                'inverse': {
                     'trading': {
                         'feeSide': 'base',
                         'tierBased': true,
@@ -1596,23 +1596,35 @@ module.exports = class binance extends Exchange {
          * @param {object} params extra parameters specific to the exchange api endpoint
          * @returns {[object]} an array of objects representing market data
          */
-        const defaultType = this.safeString2 (this.options, 'fetchMarkets', 'defaultType', 'spot');
-        const type = this.safeString (params, 'type', defaultType);
-        const query = this.omit (params, 'type');
-        const spot = (type === 'spot');
-        const margin = (type === 'margin');
-        const future = (type === 'future');
-        const delivery = (type === 'delivery');
-        if ((!spot) && (!margin) && (!future) && (!delivery)) {
-            throw new ExchangeError (this.id + " does not support '" + type + "' type, set exchange.options['defaultType'] to 'spot', 'margin', 'delivery' or 'future'"); // eslint-disable-line quotes
-        }
-        let method = 'publicGetExchangeInfo';
-        if (future) {
-            method = 'fapiPublicGetExchangeInfo';
-        } else if (delivery) {
-            method = 'dapiPublicGetExchangeInfo';
-        }
-        const response = await this[method] (query);
+        // const defaultType = this.safeString2 (this.options, 'fetchMarkets', 'defaultType', 'spot');
+        // const type = this.safeString (params, 'type', defaultType);
+        // const query = this.omit (params, 'type');
+        // const spot = (type === 'spot');
+        // const margin = (type === 'margin');
+        // const future = (type === 'future');
+        // const delivery = (type === 'delivery');
+        // if ((!spot) && (!margin) && (!future) && (!delivery)) {
+        //     throw new ExchangeError (this.id + " does not support '" + type + "' type, set exchange.options['defaultType'] to 'spot', 'margin', 'delivery' or 'future'"); // eslint-disable-line quotes
+        // }
+        // let method = 'publicGetExchangeInfo';
+        // if (future) {
+        //     method = 'fapiPublicGetExchangeInfo';
+        // } else if (delivery) {
+        //     method = 'dapiPublicGetExchangeInfo';
+        // }
+        const unresolvedMarkets = [
+            this.publicGetExchangeInfo (),
+            this.fapiPublicGetExchangeInfo (),
+            this.dapiPublicGetExchangeInfo (),
+        ];
+        const promises = await Promise.all (unresolvedMarkets);
+        const spotMarkets = this.safeValue (promises[0], 'symbols', []);
+        const futureMarkets = this.safeValue (promises[1], 'symbols', []);
+        const deliveryMarkets = this.safeValue (promises[2], 'symbols', []);
+        let markets = spotMarkets;
+        markets = this.arrayConcat (markets, futureMarkets);
+        markets = this.arrayConcat (markets, deliveryMarkets);
+        // const response = await this[method] (query);
         //
         // spot / margin
         //
@@ -1765,9 +1777,10 @@ module.exports = class binance extends Exchange {
         if (this.options['adjustForTimeDifference']) {
             await this.loadTimeDifference ();
         }
-        const markets = this.safeValue (response, 'symbols', []);
         const result = [];
         for (let i = 0; i < markets.length; i++) {
+            let swap = false;
+            let future = false;
             const market = markets[i];
             const id = this.safeString (market, 'symbol');
             const lowercaseId = this.safeStringLower (market, 'symbol');
@@ -1777,16 +1790,14 @@ module.exports = class binance extends Exchange {
             const base = this.safeCurrencyCode (baseId);
             const quote = this.safeCurrencyCode (quoteId);
             const settle = this.safeCurrencyCode (settleId);
-            const contract = future || delivery;
-            const contractType = this.safeString (market, 'contractType');
-            const idSymbol = contract && (contractType !== 'PERPETUAL');
-            let symbol = undefined;
-            let expiry = undefined;
-            if (idSymbol) {
-                symbol = id;
-                expiry = this.safeInteger (market, 'deliveryDate');
+            const contract = ('contractType' in market);
+            const spot = !contract;
+            let expiry = this.safeInteger (market, 'deliveryDate');
+            if (expiry === 4133404800000) {
+                expiry = undefined;
+                swap = true;
             } else {
-                symbol = base + '/' + quote;
+                future = true;
             }
             const filters = this.safeValue (market, 'filters', []);
             const filtersByType = this.indexBy (filters, 'filterType');
@@ -1795,11 +1806,19 @@ module.exports = class binance extends Exchange {
             let fees = this.fees;
             let linear = undefined;
             let inverse = undefined;
+            let symbol = base + '/' + quote;
             if (contract) {
+                if (swap) {
+                    expiry = this.safeInteger (market, 'deliveryDate');
+                    symbol = symbol + ':' + settle;
+                } else if (future) {
+                    symbol = symbol + ':' + settle + '-' + this.yymmdd (expiry);
+                }
                 contractSize = this.safeNumber (market, 'contractSize', this.parseNumber ('1'));
-                fees = this.fees[type];
                 linear = settle === quote;
                 inverse = settle === base;
+                const feesType = linear ? 'linear' : 'inverse';
+                fees = this.safeValue (this.fees, feesType, {});
             }
             let active = (status === 'TRADING');
             if (spot) {
@@ -1812,6 +1831,14 @@ module.exports = class binance extends Exchange {
                 }
             }
             const isMarginTradingAllowed = this.safeValue (market, 'isMarginTradingAllowed', false);
+            let unifiedType = undefined;
+            if (spot) {
+                unifiedType = 'spot';
+            } else if (swap) {
+                unifiedType = 'swap';
+            } else if (future) {
+                unifiedType = 'future';
+            }
             const entry = {
                 'id': id,
                 'lowercaseId': lowercaseId,
@@ -1822,12 +1849,11 @@ module.exports = class binance extends Exchange {
                 'baseId': baseId,
                 'quoteId': quoteId,
                 'settleId': settleId,
-                'type': type,
+                'type': unifiedType,
                 'spot': spot,
                 'margin': spot && isMarginTradingAllowed,
-                'swap': future,
+                'swap': swap,
                 'future': future,
-                'delivery': delivery,
                 'option': false,
                 'active': active,
                 'contract': contract,
