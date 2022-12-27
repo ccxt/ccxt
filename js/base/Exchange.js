@@ -995,12 +995,16 @@ module.exports = class Exchange {
         let average = this.omitZero (this.safeString (order, 'average'));
         let price = this.omitZero (this.safeString (order, 'price'));
         let lastTradeTimeTimestamp = this.safeInteger (order, 'lastTradeTimestamp');
+        let symbol = this.safeString (order, 'symbol');
+        let side = this.safeString (order, 'side');
         const parseFilled = (filled === undefined);
         const parseCost = (cost === undefined);
         const parseLastTradeTimeTimestamp = (lastTradeTimeTimestamp === undefined);
         const fee = this.safeValue (order, 'fee');
         const parseFee = (fee === undefined);
         const parseFees = this.safeValue (order, 'fees') === undefined;
+        const parseSymbol = symbol === undefined;
+        const parseSide = side === undefined;
         const shouldParseFees = parseFee || parseFees;
         const fees = this.safeValue (order, 'fees', []);
         let trades = [];
@@ -1009,12 +1013,7 @@ module.exports = class Exchange {
             const oldNumber = this.number;
             // we parse trades as strings here!
             this.number = String;
-            trades = this.parseTrades (rawTrades, market, undefined, undefined, {
-                'symbol': order['symbol'],
-                'side': order['side'],
-                'type': order['type'],
-                'order': order['id'],
-            });
+            trades = this.parseTrades (rawTrades, market);
             this.number = oldNumber;
             let tradesLength = 0;
             const isArray = Array.isArray (trades);
@@ -1050,6 +1049,12 @@ module.exports = class Exchange {
                     const tradeCost = this.safeString (trade, 'cost');
                     if (parseCost && (tradeCost !== undefined)) {
                         cost = Precise.stringAdd (cost, tradeCost);
+                    }
+                    if (parseSymbol) {
+                        symbol = this.safeString (trade, 'symbol');
+                    }
+                    if (parseSide) {
+                        side = this.safeString (trade, 'side');
                     }
                     const tradeTimestamp = this.safeValue (trade, 'timestamp');
                     if (parseLastTradeTimeTimestamp && (tradeTimestamp !== undefined)) {
@@ -1190,6 +1195,8 @@ module.exports = class Exchange {
             postOnly = timeInForce === 'PO';
         }
         return this.extend (order, {
+            'symbol': symbol,
+            'side': side,
             'lastTradeTimestamp': lastTradeTimeTimestamp,
             'price': this.parseNumber (price),
             'amount': this.parseNumber (amount),

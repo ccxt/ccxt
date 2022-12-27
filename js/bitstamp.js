@@ -767,11 +767,11 @@ module.exports = class bitstamp extends Exchange {
         if (numCurrencyIds === 2) {
             let marketId = currencyIds[0] + currencyIds[1];
             if (marketId in this.markets_by_id) {
-                return this.markets_by_id[marketId];
+                return this.safeMarket (marketId);
             }
             marketId = currencyIds[1] + currencyIds[0];
             if (marketId in this.markets_by_id) {
-                return this.markets_by_id[marketId];
+                return this.safeMarket (marketId);
             }
         }
         return undefined;
@@ -825,24 +825,14 @@ module.exports = class bitstamp extends Exchange {
         const orderId = this.safeString (trade, 'order_id');
         const type = undefined;
         let costString = this.safeString (trade, 'cost');
-        let rawBaseId = undefined;
-        let rawQuoteId = undefined;
         let rawMarketId = undefined;
         if (market === undefined) {
             const keys = Object.keys (trade);
             for (let i = 0; i < keys.length; i++) {
                 const currentKey = keys[i];
                 if (currentKey !== 'order_id' && currentKey.indexOf ('_') >= 0) {
-                    const marketId = currentKey.replace ('_', '');
-                    if (marketId in this.markets_by_id) {
-                        market = this.markets_by_id[marketId];
-                    } else {
-                        rawMarketId = currentKey;
-                        const parts = currentKey.split ('_');
-                        rawBaseId = this.safeString (parts, 0);
-                        rawQuoteId = this.safeString (parts, 1);
-                        market = this.safeMarket (marketId);
-                    }
+                    rawMarketId = currentKey;
+                    market = this.safeMarket (rawMarketId, market, '_');
                 }
             }
         }
@@ -852,13 +842,10 @@ module.exports = class bitstamp extends Exchange {
             market = this.getMarketFromTrade (trade);
         }
         const feeCostString = this.safeString (trade, 'fee');
-        const feeCurrency = (market['quote'] !== undefined) ? market['quote'] : rawQuoteId;
-        const baseId = (market['baseId'] !== undefined) ? market['baseId'] : rawBaseId;
-        const quoteId = (market['quoteId'] !== undefined) ? market['quoteId'] : rawQuoteId;
-        const priceId = (rawMarketId !== undefined) ? rawMarketId : market['marketId'];
-        priceString = this.safeString (trade, priceId, priceString);
-        amountString = this.safeString (trade, baseId, amountString);
-        costString = this.safeString (trade, quoteId, costString);
+        const feeCurrency = market['quote'];
+        priceString = this.safeString (trade, rawMarketId, priceString);
+        amountString = this.safeString (trade, market['baseId'], amountString);
+        costString = this.safeString (trade, market['quoteId'], costString);
         symbol = market['symbol'];
         const datetimeString = this.safeString2 (trade, 'date', 'datetime');
         let timestamp = undefined;
