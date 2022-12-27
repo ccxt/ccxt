@@ -900,15 +900,17 @@ module.exports = class binance extends Exchange {
                     'funding': 'FUNDING',
                     'margin': 'MARGIN',
                     'cross': 'MARGIN',
-                    'future': 'UMFUTURE',
-                    'delivery': 'CMFUTURE',
+                    'future': 'UMFUTURE', // backwards compatibility
+                    'delivery': 'CMFUTURE', // backwards compatbility
+                    'linear': 'UMFUTURE',
+                    'inverse': 'CMFUTURE',
                 },
                 'accountsById': {
                     'MAIN': 'spot',
                     'FUNDING': 'funding',
                     'MARGIN': 'margin',
-                    'UMFUTURE': 'future',
-                    'CMFUTURE': 'delivery',
+                    'UMFUTURE': 'linear',
+                    'CMFUTURE': 'inverse',
                 },
                 'networks': {
                     'ERC20': 'ETH',
@@ -1373,6 +1375,14 @@ module.exports = class binance extends Exchange {
         });
     }
 
+    isInverseSwap (type) {
+        return (type === 'delivery' || type === 'inverse');
+    }
+
+    isLinearSwap (type) {
+        return (type === 'future' || type === 'linear');
+    }
+
     costToPrecision (symbol, cost) {
         return this.decimalToPrecision (cost, TRUNCATE, this.markets[symbol]['precision']['quote'], this.precisionMode, this.paddingMode);
     }
@@ -1402,9 +1412,9 @@ module.exports = class binance extends Exchange {
         const type = this.safeString (params, 'type', defaultType);
         const query = this.omit (params, 'type');
         let method = 'publicGetTime';
-        if (type === 'future') {
+        if (this.isLinearSwap (type)) {
             method = 'fapiPublicGetTime';
-        } else if (type === 'delivery') {
+        } else if (this.isInverseSwap (type)) {
             method = 'dapiPublicGetTime';
         }
         const response = await this[method] (query);
@@ -1601,8 +1611,8 @@ module.exports = class binance extends Exchange {
         // const query = this.omit (params, 'type');
         // const spot = (type === 'spot');
         // const margin = (type === 'margin');
-        // const future = (type === 'future');
-        // const delivery = (type === 'delivery');
+        // const future = (this.isLinearSwap(type));
+        // const delivery = (this.isInverseSwap(type));
         // if ((!spot) && (!margin) && (!future) && (!delivery)) {
         //     throw new ExchangeError (this.id + " does not support '" + type + "' type, set exchange.options['defaultType'] to 'spot', 'margin', 'delivery' or 'future'"); // eslint-disable-line quotes
         // }
@@ -2041,11 +2051,11 @@ module.exports = class binance extends Exchange {
         const [ marginMode, query ] = this.handleMarginModeAndParams ('fetchBalance', params);
         let method = 'privateGetAccount';
         const request = {};
-        if (type === 'future') {
+        if (this.isLinearSwap (type)) {
             const options = this.safeValue (this.options, type, {});
             const fetchBalanceOptions = this.safeValue (options, 'fetchBalance', {});
             method = this.safeString (fetchBalanceOptions, 'method', 'fapiPrivateV2GetAccount');
-        } else if (type === 'delivery') {
+        } else if (this.isInverseSwap (type)) {
             const options = this.safeValue (this.options, type, {});
             const fetchBalanceOptions = this.safeValue (options, 'fetchBalance', {});
             method = this.safeString (fetchBalanceOptions, 'method', 'dapiPrivateGetAccount');
@@ -2505,9 +2515,9 @@ module.exports = class binance extends Exchange {
         const type = this.safeString (params, 'type', defaultType);
         const query = this.omit (params, 'type');
         let method = undefined;
-        if (type === 'future') {
+        if (this.isLinearSwap (type)) {
             method = 'fapiPublicGetTickerBookTicker';
-        } else if (type === 'delivery') {
+        } else if (this.isInverseSwap (type)) {
             method = 'dapiPublicGetTickerBookTicker';
         } else {
             method = 'publicGetTickerBookTicker';
@@ -2530,9 +2540,9 @@ module.exports = class binance extends Exchange {
         const type = this.safeString (params, 'type', defaultType);
         const query = this.omit (params, 'type');
         let defaultMethod = undefined;
-        if (type === 'future') {
+        if (this.isLinearSwap (type)) {
             defaultMethod = 'fapiPublicGetTicker24hr';
-        } else if (type === 'delivery') {
+        } else if (this.isInverseSwap (type)) {
             defaultMethod = 'dapiPublicGetTicker24hr';
         } else {
             defaultMethod = 'publicGetTicker24hr';
@@ -2838,36 +2848,36 @@ module.exports = class binance extends Exchange {
         };
         const [ type, query ] = this.handleMarketTypeAndParams ('fetchTrades', market, params);
         let defaultMethod = undefined;
-        if (type === 'future') {
+        if (this.isLinearSwap (type)) {
             if (market['linear']) {
                 defaultMethod = 'fapiPublicGetAggTrades';
             } else if (market['inverse']) {
                 defaultMethod = 'dapiPublicGetAggTrades';
             }
-        } else if (type === 'delivery') {
+        } else if (this.isInverseSwap (type)) {
             defaultMethod = 'dapiPublicGetAggTrades';
         } else {
             defaultMethod = 'publicGetAggTrades';
         }
         let method = this.safeString (this.options, 'fetchTradesMethod', defaultMethod);
         if (method === 'publicGetAggTrades') {
-            if (type === 'future') {
+            if (this.isLinearSwap (type)) {
                 if (market['linear']) {
                     method = 'fapiPublicGetAggTrades';
                 } else if (market['inverse']) {
                     method = 'dapiPublicGetAggTrades';
                 }
-            } else if (type === 'delivery') {
+            } else if (this.isInverseSwap (type)) {
                 method = 'dapiPublicGetAggTrades';
             }
         } else if (method === 'publicGetHistoricalTrades') {
-            if (type === 'future') {
+            if (this.isLinearSwap (type)) {
                 if (market['linear']) {
                     method = 'fapiPublicGetHistoricalTrades';
                 } else if (market['inverse']) {
                     method = 'dapiPublicGetHistoricalTrades';
                 }
-            } else if (type === 'delivery') {
+            } else if (this.isInverseSwap (type)) {
                 method = 'dapiPublicGetHistoricalTrades';
             }
         }
@@ -3312,9 +3322,9 @@ module.exports = class binance extends Exchange {
             'side': side.toUpperCase (),
         };
         let method = 'privatePostOrder';
-        if (marketType === 'future') {
+        if (this.isLinearSwap (marketType)) {
             method = 'fapiPrivatePostOrder';
-        } else if (marketType === 'delivery') {
+        } else if (this.isInverseSwap (marketType)) {
             method = 'dapiPrivatePostOrder';
         } else if (marketType === 'margin' || marginMode !== undefined) {
             method = 'sapiPostMarginOrder';
@@ -3502,9 +3512,9 @@ module.exports = class binance extends Exchange {
             'symbol': market['id'],
         };
         let method = 'privateGetOrder';
-        if (type === 'future') {
+        if (this.isLinearSwap (type)) {
             method = 'fapiPrivateGetOrder';
-        } else if (type === 'delivery') {
+        } else if (this.isInverseSwap (type)) {
             method = 'dapiPrivateGetOrder';
         } else if (type === 'margin' || marginMode !== undefined) {
             method = 'sapiGetMarginOrder';
@@ -3547,9 +3557,9 @@ module.exports = class binance extends Exchange {
             'symbol': market['id'],
         };
         let method = 'privateGetAllOrders';
-        if (type === 'future') {
+        if (this.isLinearSwap (type)) {
             method = 'fapiPrivateGetAllOrders';
-        } else if (type === 'delivery') {
+        } else if (this.isInverseSwap (type)) {
             method = 'dapiPrivateGetAllOrders';
         } else if (type === 'margin' || marginMode !== undefined) {
             method = 'sapiGetMarginAllOrders';
@@ -3646,9 +3656,9 @@ module.exports = class binance extends Exchange {
         }
         const requestParams = this.omit (query, 'type');
         let method = 'privateGetOpenOrders';
-        if (type === 'future') {
+        if (this.isLinearSwap (type)) {
             method = 'fapiPrivateGetOpenOrders';
-        } else if (type === 'delivery') {
+        } else if (this.isInverseSwap (type)) {
             method = 'dapiPrivateGetOpenOrders';
         } else if (type === 'margin' || marginMode !== undefined) {
             method = 'sapiGetMarginOpenOrders';
@@ -3709,9 +3719,9 @@ module.exports = class binance extends Exchange {
             request['origClientOrderId'] = origClientOrderId;
         }
         let method = 'privateDeleteOrder';
-        if (type === 'future') {
+        if (this.isLinearSwap (type)) {
             method = 'fapiPrivateDeleteOrder';
-        } else if (type === 'delivery') {
+        } else if (this.isInverseSwap (type)) {
             method = 'dapiPrivateDeleteOrder';
         } else if (type === 'margin' || marginMode !== undefined) {
             method = 'sapiDeleteMarginOrder';
@@ -3750,9 +3760,9 @@ module.exports = class binance extends Exchange {
         params = this.omit (params, [ 'type' ]);
         const [ marginMode, query ] = this.handleMarginModeAndParams ('cancelAllOrders', params);
         let method = 'privateDeleteOpenOrders';
-        if (type === 'future') {
+        if (this.isLinearSwap (type)) {
             method = 'fapiPrivateDeleteAllOpenOrders';
-        } else if (type === 'delivery') {
+        } else if (this.isInverseSwap (type)) {
             method = 'dapiPrivateDeleteAllOpenOrders';
         } else if (type === 'margin' || marginMode !== undefined) {
             method = 'sapiDeleteMarginOpenOrders';
@@ -3818,8 +3828,8 @@ module.exports = class binance extends Exchange {
         const type = this.safeString (params, 'type', market['type']);
         params = this.omit (params, 'type');
         let method = undefined;
-        const linear = (type === 'future');
-        const inverse = (type === 'delivery');
+        const linear = (this.isLinearSwap (type));
+        const inverse = (this.isInverseSwap (type));
         let marginMode = undefined;
         [ marginMode, params ] = this.handleMarginModeAndParams ('fetchMyTrades', params);
         if (type === 'spot' || type === 'margin') {
@@ -3857,7 +3867,7 @@ module.exports = class binance extends Exchange {
             params = this.omit (params, [ 'endTime', 'until' ]);
         }
         if (limit !== undefined) {
-            if (type === 'future' || type === 'delivery') {
+            if (this.isLinearSwap (type) || this.isInverseSwap (type)) {
                 limit = Math.min (limit, 1000); // above 1000, returns error
             }
             request['limit'] = limit;
@@ -5088,14 +5098,17 @@ module.exports = class binance extends Exchange {
          */
         await this.loadMarkets ();
         let method = undefined;
-        const defaultType = this.safeString2 (this.options, 'fetchTradingFees', 'defaultType', 'future');
+        const defaultType = this.safeString2 (this.options, 'fetchTradingFees', 'defaultType', 'linear');
         const type = this.safeString (params, 'type', defaultType);
         const query = this.omit (params, 'type');
-        if ((type === 'spot') || (type === 'margin')) {
+        const isSpotOrMargin = (type === 'spot') || (type === 'margin');
+        const isLinear = this.isLinearSwap (type);
+        const isInverse = this.isInverseSwap (type);
+        if (isSpotOrMargin) {
             method = 'sapiGetAssetTradeFee';
-        } else if (type === 'future') {
+        } else if (isLinear) {
             method = 'fapiPrivateGetAccount';
-        } else if (type === 'delivery') {
+        } else if (isInverse) {
             method = 'dapiPrivateGetAccount';
         }
         const response = await this[method] (query);
@@ -5147,7 +5160,7 @@ module.exports = class binance extends Exchange {
         //         "updateTime": 0
         //     }
         //
-        if ((type === 'spot') || (type === 'margin')) {
+        if (isSpotOrMargin) {
             //
             //    [
             //       {
@@ -5169,7 +5182,7 @@ module.exports = class binance extends Exchange {
                 result[symbol] = fee;
             }
             return result;
-        } else if (type === 'future') {
+        } else if (isLinear) {
             //
             //     {
             //         "feeTier": 0,       // account commisssion tier
@@ -5209,7 +5222,7 @@ module.exports = class binance extends Exchange {
                 };
             }
             return result;
-        } else if (type === 'delivery') {
+        } else if (isInverse) {
             //
             //     {
             //         "canDeposit": true,
@@ -5330,9 +5343,9 @@ module.exports = class binance extends Exchange {
         const defaultType = this.safeString2 (this.options, 'fetchFundingRateHistory', 'defaultType', 'future');
         const type = this.safeString (params, 'type', defaultType);
         params = this.omit (params, 'type');
-        if (type === 'future') {
+        if (this.isLinearSwap (type)) {
             method = 'fapiPublicGetFundingRate';
-        } else if (type === 'delivery') {
+        } else if (this.isInverseSwap (type)) {
             method = 'dapiPublicGetFundingRate';
         }
         if (symbol !== undefined) {
@@ -5399,9 +5412,9 @@ module.exports = class binance extends Exchange {
         const defaultType = this.safeString2 (this.options, 'fetchFundingRates', 'defaultType', 'future');
         const type = this.safeString (params, 'type', defaultType);
         const query = this.omit (params, 'type');
-        if (type === 'future') {
+        if (this.isLinearSwap (type)) {
             method = 'fapiPublicGetPremiumIndex';
-        } else if (type === 'delivery') {
+        } else if (this.isInverseSwap (type)) {
             method = 'dapiPublicGetPremiumIndex';
         } else {
             throw new NotSupported (this.id + ' fetchFundingRates() supports linear and inverse contracts only');
@@ -5480,7 +5493,7 @@ module.exports = class binance extends Exchange {
             const position = positions[i];
             const marketId = this.safeString (position, 'symbol');
             const market = this.safeMarket (marketId);
-            const code = (this.options['defaultType'] === 'future') ? market['quote'] : market['base'];
+            const code = (this.isLinearSwap (this.options['defaultType'])) ? market['quote'] : market['base'];
             // sometimes not all the codes are correctly returned...
             if (code in balances) {
                 const parsed = this.parseAccountPosition (this.extend (position, {
@@ -5869,9 +5882,9 @@ module.exports = class binance extends Exchange {
             const defaultType = this.safeString (this.options, 'defaultType', 'future');
             const type = this.safeString (params, 'type', defaultType);
             const query = this.omit (params, 'type');
-            if (type === 'future') {
+            if (this.isLinearSwap (type)) {
                 method = 'fapiPrivateGetLeverageBracket';
-            } else if (type === 'delivery') {
+            } else if (this.isInverseSwap (type)) {
                 method = 'dapiPrivateV2GetLeverageBracket';
             } else {
                 throw new NotSupported (this.id + ' loadLeverageBrackets() supports linear and inverse contracts only');
@@ -5908,9 +5921,9 @@ module.exports = class binance extends Exchange {
         await this.loadMarkets ();
         const [ type, query ] = this.handleMarketTypeAndParams ('fetchLeverageTiers', undefined, params);
         let method = undefined;
-        if (type === 'future') {
+        if (this.isLinearSwap (type)) {
             method = 'fapiPrivateGetLeverageBracket';
-        } else if (type === 'delivery') {
+        } else if (this.isInverseSwap (type)) {
             method = 'dapiPrivateV2GetLeverageBracket';
         } else {
             throw new NotSupported (this.id + ' fetchLeverageTiers() supports linear and inverse contracts only');
@@ -6038,9 +6051,9 @@ module.exports = class binance extends Exchange {
         const defaultType = this.safeString (this.options, 'defaultType', 'future');
         const type = this.safeString (params, 'type', defaultType);
         const query = this.omit (params, 'type');
-        if (type === 'future') {
+        if (this.isLinearSwap (type)) {
             method = 'fapiPrivateGetAccount';
-        } else if (type === 'delivery') {
+        } else if (this.isInverseSwap (type)) {
             method = 'dapiPrivateGetAccount';
         } else {
             throw new NotSupported (this.id + ' fetchPositions() supports linear and inverse contracts only');
@@ -6073,7 +6086,7 @@ module.exports = class binance extends Exchange {
         defaultType = this.safeString (this.options, 'defaultType', defaultType);
         const type = this.safeString (params, 'type', defaultType);
         params = this.omit (params, 'type');
-        if ((type === 'future') || (type === 'linear')) {
+        if (this.isLinearSwap (type)) {
             method = 'fapiPrivateGetPositionRisk';
             // ### Response examples ###
             //
@@ -6129,7 +6142,7 @@ module.exports = class binance extends Exchange {
             //             "updateTime": 0
             //         }
             //     ]
-        } else if ((type === 'delivery') || (type === 'inverse')) {
+        } else if ((this.isInverseSwap (type)) || (type === 'inverse')) {
             method = 'dapiPrivateGetPositionRisk';
         } else {
             throw new NotSupported (this.id + ' fetchPositionsRisk() supports linear and inverse contracts only');
@@ -6158,7 +6171,7 @@ module.exports = class binance extends Exchange {
         await this.loadMarkets ();
         let market = undefined;
         let method = undefined;
-        let defaultType = 'future';
+        let defaultType = 'linear';
         const request = {
             'incomeType': 'FUNDING_FEE', // "TRANSFER"，"WELCOME_BONUS", "REALIZED_PNL"，"FUNDING_FEE", "COMMISSION" and "INSURANCE_CLEAR"
         };
@@ -6166,9 +6179,9 @@ module.exports = class binance extends Exchange {
             market = this.market (symbol);
             request['symbol'] = market['id'];
             if (market['linear']) {
-                defaultType = 'future';
+                defaultType = 'linear';
             } else if (market['inverse']) {
-                defaultType = 'delivery';
+                defaultType = 'inverse';
             } else {
                 throw new NotSupported (this.id + ' fetchFundingHistory() supports linear and inverse contracts only');
             }
@@ -6182,9 +6195,9 @@ module.exports = class binance extends Exchange {
         defaultType = this.safeString2 (this.options, 'fetchFundingHistory', 'defaultType', defaultType);
         const type = this.safeString (params, 'type', defaultType);
         params = this.omit (params, 'type');
-        if ((type === 'future') || (type === 'linear')) {
+        if (this.isLinearSwap (type)) {
             method = 'fapiPrivateGetIncome';
-        } else if ((type === 'delivery') || (type === 'inverse')) {
+        } else if (this.isInverseSwap (type)) {
             method = 'dapiPrivateGetIncome';
         } else {
             throw new NotSupported (this.id + ' fetchFundingHistory() supports linear and inverse contracts only');
@@ -6313,7 +6326,7 @@ module.exports = class binance extends Exchange {
             'dualSidePosition': dualSidePosition,
         };
         let method = undefined;
-        if (type === 'delivery') {
+        if (this.isInverseSwap (type)) {
             method = 'dapiPrivatePostPositionSideDual';
         } else {
             // default to future
@@ -6524,7 +6537,7 @@ module.exports = class binance extends Exchange {
         };
         let method = undefined;
         let code = undefined;
-        if (type === 'future') {
+        if (this.isLinearSwap (type)) {
             method = 'fapiPrivatePostPositionMargin';
             code = market['quote'];
         } else {
@@ -6964,7 +6977,7 @@ module.exports = class binance extends Exchange {
         }
         const symbolKey = market['linear'] ? 'symbol' : 'pair';
         request[symbolKey] = market['id'];
-        if (market['delivery']) {
+        if (market['inverse']) {
             request['contractType'] = this.safeString (params, 'contractType', 'CURRENT_QUARTER');
         }
         if (since !== undefined) {
