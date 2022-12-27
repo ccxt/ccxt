@@ -1715,7 +1715,7 @@ Here's an overview of generic exchange properties with values added for example:
        'markets':          { ... }          // dictionary of markets/pairs by symbol
        'symbols':          [ ... ]          // sorted list of string symbols (traded pairs)
        'currencies':       { ... }          // dictionary of currencies by currency code
-       'markets_by_id':    { ... },         // dictionary of dictionaries (markets) by id
+       'markets_by_id':    { ... },         // dictionary of array of dictionaries (markets) by id
        'currencies_by_id': { ... },         // dictionary of dictionaries (markets) by id
        'apiKey':   '92560ffae9b8a0421...',  // string public apiKey (ASCII, hex, Base64, ...)
        'secret':   '9aHjPmW+EtRRKN/Oi...'   // string private secret key
@@ -1794,7 +1794,7 @@ Below is a detailed description of each of the base exchange properties:
   ``currencies``\ : An associative array (a dict) of currencies by codes (usually 3 or 4 letters) available with an exchange. Currencies are loaded and reloaded from markets.
 
  * 
-  ``markets_by_id``\ : An associative array of markets indexed by exchange-specific ids. Markets should be loaded prior to accessing this property.
+  ``markets_by_id``\ : An associative array of arrays of markets indexed by exchange-specific ids. Typically a length one array unless there are multiple markets with the same marketId. Markets should be loaded prior to accessing this property.
 
  * 
   `proxy`: A string literal containing base URL of http(s) proxy, `''` by default. For use with web browsers and from blocked locations. An example of a proxy string is `'http://cors-anywhere.herokuapp.com/'`. The absolute exchange endpoint URL is appended to this string before sending the HTTP request.
@@ -2525,10 +2525,10 @@ Methods For Markets And Currencies
        await bitfinex.loadMarkets ()
 
        bitfinex.markets['BTC/USD']                   // symbol → market (get market by symbol)
-       bitfinex.markets_by_id['XRPBTC']              // id → market (get market by id)
+       bitfinex.markets_by_id['XRPBTC'][0]           // id → market (get market by id)
 
        bitfinex.markets['BTC/USD']['id']             // symbol → id (get id by symbol)
-       bitfinex.markets_by_id['XRPBTC']['symbol']    // id → symbol (get symbol by id)
+       bitfinex.markets_by_id['XRPBTC'][0]['symbol'] // id → symbol (get symbol by id)
 
    }) ()
 
@@ -2538,26 +2538,26 @@ Methods For Markets And Currencies
 
    print(exchange.load_markets())
 
-   etheur1 = exchange.markets['ETH/EUR']      # get market structure by symbol
-   etheur2 = exchange.market('ETH/EUR')       # same result in a slightly different way
+   etheur1 = exchange.markets['ETH/EUR']         # get market structure by symbol
+   etheur2 = exchange.market('ETH/EUR')          # same result in a slightly different way
 
-   etheurId = exchange.market_id('ETH/EUR')   # get market id by symbol
+   etheurId = exchange.market_id('ETH/EUR')      # get market id by symbol
 
-   symbols = exchange.symbols                 # get a list of symbols
-   symbols2 = list(exchange.markets.keys())   # same as previous line
+   symbols = exchange.symbols                    # get a list of symbols
+   symbols2 = list(exchange.markets.keys())      # same as previous line
 
-   print(exchange.id, symbols)                # print all symbols
+   print(exchange.id, symbols)                   # print all symbols
 
-   currencies = exchange.currencies           # a dictionary of currencies
+   currencies = exchange.currencies              # a dictionary of currencies
 
    kraken = ccxt.kraken()
    kraken.load_markets()
 
-   kraken.markets['BTC/USD']                  # symbol → market (get market by symbol)
-   kraken.markets_by_id['XXRPZUSD']           # id → market (get market by id)
+   kraken.markets['BTC/USD']                     # symbol → market (get market by symbol)
+   kraken.markets_by_id['XXRPZUSD'][0]           # id → market (get market by id)
 
-   kraken.markets['BTC/USD']['id']            # symbol → id (get id by symbol)
-   kraken.markets_by_id['XXRPZUSD']['symbol'] # id → symbol (get symbol by id)
+   kraken.markets['BTC/USD']['id']               # symbol → id (get id by symbol)
+   kraken.markets_by_id['XXRPZUSD'][0]['symbol'] # id → symbol (get symbol by id)
 
 .. code-block:: PHP
 
@@ -2565,28 +2565,28 @@ Methods For Markets And Currencies
 
    $var_dump($exchange->load_markets());
 
-   $dashcny1 = $exchange->markets['DASH/CNY'];     // get market structure by symbol
-   $dashcny2 = $exchange->market('DASH/CNY');      // same result in a slightly different way
+   $dashcny1 = $exchange->markets['DASH/CNY'];        // get market structure by symbol
+   $dashcny2 = $exchange->market('DASH/CNY');         // same result in a slightly different way
 
-   $dashcnyId = $exchange->market_id('DASH/CNY');  // get market id by symbol
+   $dashcnyId = $exchange->market_id('DASH/CNY');     // get market id by symbol
 
-   $symbols = $exchange->symbols;                  // get an array of symbols
-   $symbols2 = array_keys($exchange->markets);     // same as previous line
+   $symbols = $exchange->symbols;                     // get an array of symbols
+   $symbols2 = array_keys($exchange->markets);        // same as previous line
 
-   var_dump($exchange->id, $symbols);              // print all symbols
+   var_dump($exchange->id, $symbols);                 // print all symbols
 
-   $currencies = $exchange->currencies;            // an associative array of currencies
+   $currencies = $exchange->currencies;               // an associative array of currencies
 
    $okcoinusd = '\\ccxt\\okcoinusd';
    $okcoinusd = new $okcoinusd();
 
    $okcoinusd->load_markets();
 
-   $okcoinusd->markets['BTC/USD'];                 // symbol → market (get market by symbol)
-   $okcoinusd->markets_by_id['btc_usd'];           // id → market (get market by id)
+   $okcoinusd->markets['BTC/USD'];                    // symbol → market (get market by symbol)
+   $okcoinusd->markets_by_id['btc_usd'][0];              // id → market (get market by id)
 
-   $okcoinusd->markets['BTC/USD']['id'];           // symbol → id (get id by symbol)
-   $okcoinusd->markets_by_id['btc_usd']['symbol']; // id → symbol (get symbol by id)
+   $okcoinusd->markets['BTC/USD']['id'];              // symbol → id (get id by symbol)
+   $okcoinusd->markets_by_id['btc_usd'][0]['symbol']; // id → symbol (get symbol by id)
 
 Naming Consistency
 ^^^^^^^^^^^^^^^^^^

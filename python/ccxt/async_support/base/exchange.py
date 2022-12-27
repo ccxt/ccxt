@@ -2,7 +2,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '2.4.64'
+__version__ = '2.4.65'
 
 # -----------------------------------------------------------------------------
 
@@ -335,15 +335,22 @@ class Exchange(BaseExchange):
 
     def set_markets(self, markets, currencies=None):
         values = []
-        marketValues = self.to_array(markets)
+        self.markets_by_id = {}
+        # handle marketId conflicts
+        # we insert spot markets first
+        marketValues = self.sort_by(self.to_array(markets), 'spot', True)
         for i in range(0, len(marketValues)):
+            value = marketValues[i]
+            if value['id'] in self.markets_by_id:
+                self.markets_by_id[value['id']].append(value)
+            else:
+                self.markets_by_id[value['id']] = [value]
             market = self.deep_extend(self.safe_market(), {
                 'precision': self.precision,
                 'limits': self.limits,
-            }, self.fees['trading'], marketValues[i])
+            }, self.fees['trading'], value)
             values.append(market)
         self.markets = self.index_by(values, 'symbol')
-        self.markets_by_id = self.index_by(markets, 'id')
         marketsSortedBySymbol = self.keysort(self.markets)
         marketsSortedById = self.keysort(self.markets_by_id)
         self.symbols = list(marketsSortedBySymbol.keys())
@@ -1375,7 +1382,7 @@ class Exchange(BaseExchange):
             'code': code,
         }
 
-    def safe_market(self, marketId=None, market=None, delimiter=None):
+    def safe_market(self, marketId=None, market=None, delimiter=None, marketType='spot'):
         result = {
             'id': marketId,
             'symbol': marketId,
@@ -1422,7 +1429,15 @@ class Exchange(BaseExchange):
         }
         if marketId is not None:
             if (self.markets_by_id is not None) and (marketId in self.markets_by_id):
-                market = self.markets_by_id[marketId]
+                markets = self.markets_by_id[marketId]
+                length = len(markets)
+                if length == 1:
+                    return markets[0]
+                else:
+                    for i in range(0, len(markets)):
+                        market = markets[i]
+                        if market[marketType]:
+                            return market
             elif delimiter is not None:
                 parts = marketId.split(delimiter)
                 partsLength = len(parts)
@@ -1706,7 +1721,13 @@ class Exchange(BaseExchange):
             if symbol in self.markets:
                 return self.markets[symbol]
             elif symbol in self.markets_by_id:
-                return self.markets_by_id[symbol]
+                # we insert spot markets first so self will return a spot market
+                # if there is a conflict between the spot and swap markets
+                markets = self.markets_by_id[symbol]
+                length = len(markets)
+                if length > 1:
+                    raise BadSymbol(self.id + ' ambiguous symbol ' + symbol + ' due to market id conflict, use the unified symbol schema of BASE/QUOTE[:SETTLE[-YYMMDD]] e.g. BTC/USDT and BTC/USDT:USDT')
+                return self.markets_by_id[symbol][0]
         raise BadSymbol(self.id + ' does not have market symbol ' + symbol)
 
     def handle_withdraw_tag_and_params(self, tag, params):

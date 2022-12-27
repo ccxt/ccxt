@@ -34,11 +34,11 @@ use Exception;
 
 include 'Throttle.php';
 
-$version = '2.4.64';
+$version = '2.4.65';
 
 class Exchange extends \ccxt\Exchange {
 
-    const VERSION = '2.4.64';
+    const VERSION = '2.4.65';
 
     public $browser;
     public $marketsLoading = null;
@@ -300,16 +300,24 @@ class Exchange extends \ccxt\Exchange {
 
     public function set_markets($markets, $currencies = null) {
         $values = array();
-        $marketValues = $this->to_array($markets);
+        $this->markets_by_id = array();
+        // handle marketId conflicts
+        // we insert spot $markets first
+        $marketValues = $this->sort_by($this->to_array($markets), 'spot', true);
         for ($i = 0; $i < count($marketValues); $i++) {
+            $value = $marketValues[$i];
+            if (is_array($this->markets_by_id) && array_key_exists($value['id'], $this->markets_by_id)) {
+                $this->markets_by_id[$value['id']][] = $value;
+            } else {
+                $this->markets_by_id[$value['id']] = array( $value );
+            }
             $market = $this->deep_extend($this->safe_market(), array(
                 'precision' => $this->precision,
                 'limits' => $this->limits,
-            ), $this->fees['trading'], $marketValues[$i]);
+            ), $this->fees['trading'], $value);
             $values[] = $market;
         }
         $this->markets = $this->index_by($values, 'symbol');
-        $this->markets_by_id = $this->index_by($markets, 'id');
         $marketsSortedBySymbol = $this->keysort ($this->markets);
         $marketsSortedById = $this->keysort ($this->markets_by_id);
         $this->symbols = is_array($marketsSortedBySymbol) ? array_keys($marketsSortedBySymbol) : array();
@@ -1580,7 +1588,7 @@ class Exchange extends \ccxt\Exchange {
         );
     }
 
-    public function safe_market($marketId = null, $market = null, $delimiter = null) {
+    public function safe_market($marketId = null, $market = null, $delimiter = null, $marketType = 'spot') {
         $result = array(
             'id' => $marketId,
             'symbol' => $marketId,
@@ -1627,7 +1635,18 @@ class Exchange extends \ccxt\Exchange {
         );
         if ($marketId !== null) {
             if (($this->markets_by_id !== null) && (is_array($this->markets_by_id) && array_key_exists($marketId, $this->markets_by_id))) {
-                $market = $this->markets_by_id[$marketId];
+                $markets = $this->markets_by_id[$marketId];
+                $length = count($markets);
+                if ($length === 1) {
+                    return $markets[0];
+                } else {
+                    for ($i = 0; $i < count($markets); $i++) {
+                        $market = $markets[$i];
+                        if ($market[$marketType]) {
+                            return $market;
+                        }
+                    }
+                }
             } elseif ($delimiter !== null) {
                 $parts = explode($delimiter, $marketId);
                 $partsLength = count($parts);
@@ -2014,16 +2033,23 @@ class Exchange extends \ccxt\Exchange {
 
     public function market($symbol) {
         if ($this->markets === null) {
-            throw new ExchangeError($this->id . ' markets not loaded');
+            throw new ExchangeError($this->id . ' $markets not loaded');
         }
         if ($this->markets_by_id === null) {
-            throw new ExchangeError($this->id . ' markets not loaded');
+            throw new ExchangeError($this->id . ' $markets not loaded');
         }
         if (gettype($symbol) === 'string') {
             if (is_array($this->markets) && array_key_exists($symbol, $this->markets)) {
                 return $this->markets[$symbol];
             } elseif (is_array($this->markets_by_id) && array_key_exists($symbol, $this->markets_by_id)) {
-                return $this->markets_by_id[$symbol];
+                // we insert spot $markets first so this will return a spot market
+                // if there is a conflict between the spot and swap $markets
+                $markets = $this->markets_by_id[$symbol];
+                $length = count($markets);
+                if ($length > 1) {
+                    throw new BadSymbol($this->id . ' ambiguous $symbol ' . $symbol . ' due to market id conflict, use the unified $symbol schema of BASE/QUOTE[:SETTLE[-YYMMDD]] e.g. BTC/USDT and BTC/USDT:USDT');
+                }
+                return $this->markets_by_id[$symbol][0];
             }
         }
         throw new BadSymbol($this->id . ' does not have market $symbol ' . $symbol);

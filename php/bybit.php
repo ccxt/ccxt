@@ -1035,23 +1035,17 @@ class bybit extends Exchange {
         if ($this->options['adjustForTimeDifference']) {
             $this->load_time_difference();
         }
-        list($type, $query) = $this->handle_market_type_and_params('fetchMarkets', null, $params);
-        if ($type === 'spot') {
-            // spot and swap ids are equal
-            // so they can't be loaded together
-            return $this->fetch_spot_markets($query);
-        }
         $promises = array(
+            $this->fetch_spot_markets($params),
             $this->fetch_derivatives_markets(array( 'category' => 'linear' )),
             $this->fetch_derivatives_markets(array( 'category' => 'inverse' )),
-            $this->fetch_derivatives_markets(array( 'category' => 'option' )),
         );
-        $linearMarkets = $promises[0];
-        $inverseMarkets = $promises[1];
-        $optionMarkets = $promises[2];
-        $markets = $linearMarkets;
-        $markets = $this->array_concat($markets, $inverseMarkets);
-        return $this->array_concat($markets, $optionMarkets);
+        $spotMarkets = $promises[0];
+        $linearMarkets = $promises[1];
+        $inverseMarkets = $promises[2];
+        $markets = $spotMarkets;
+        $markets = $this->array_concat($markets, $linearMarkets);
+        return $this->array_concat($markets, $inverseMarkets);
     }
 
     public function fetch_spot_markets($params) {
@@ -2298,12 +2292,12 @@ class bybit extends Exchange {
             $side = ($isBuyer === 0) ? 'buy' : 'sell';
         }
         $marketId = $this->safe_string($trade, 'symbol');
-        $market = $this->safe_market($marketId, $market);
-        $fee = array();
-        $feeToken = $this->safe_string($trade, 'feeTokenId');
-        if ($feeToken !== null) {
+        $market = $this->safe_market($marketId, $market, null, 'spot');
+        $fee = null;
+        $feeCost = $this->safe_string($trade, 'execFee');
+        if ($feeCost !== null) {
+            $feeToken = $this->safe_string($trade, 'feeTokenId');
             $feeCurrency = $this->safe_currency_code($feeToken);
-            $feeCost = $this->safe_string($trade, 'execFee');
             $fee = array(
                 'cost' => $feeCost,
                 'currency' => $feeCurrency,
@@ -2443,7 +2437,7 @@ class bybit extends Exchange {
         //
         $id = $this->safe_string_n($trade, array( 'execId', 'id', 'tradeId' ));
         $marketId = $this->safe_string($trade, 'symbol');
-        $market = $this->safe_market($marketId, $market);
+        $market = $this->safe_market($marketId, $market, null, 'contract');
         $symbol = $market['symbol'];
         $amountString = $this->safe_string_n($trade, array( 'orderQty', 'size', 'execQty' ));
         $priceString = $this->safe_string_n($trade, array( 'orderPrice', 'price', 'execPrice' ));
@@ -3183,7 +3177,7 @@ class bybit extends Exchange {
         //     }
         //
         $marketId = $this->safe_string($order, 'symbol');
-        $market = $this->safe_market($marketId, $market);
+        $market = $this->safe_market($marketId, $market, null, 'contract');
         $symbol = $market['symbol'];
         $timestamp = $this->safe_integer($order, 'createdTime');
         $id = $this->safe_string($order, 'orderId');
@@ -3275,7 +3269,7 @@ class bybit extends Exchange {
         //     }
         //
         $marketId = $this->safe_string($order, 'symbol');
-        $market = $this->safe_market($marketId, $market);
+        $market = $this->safe_market($marketId, $market, null, 'spot');
         $timestamp = $this->safe_integer($order, 'createTime');
         $type = $this->safe_string_lower($order, 'orderType');
         $price = $this->safe_string($order, 'orderPrice');
@@ -6214,7 +6208,7 @@ class bybit extends Exchange {
         //     }
         //
         $contract = $this->safe_string($position, 'symbol');
-        $market = $this->safe_market($contract, $market);
+        $market = $this->safe_market($contract, $market, null, 'contract');
         $size = Precise::string_abs($this->safe_string($position, 'size'));
         $side = $this->safe_string($position, 'side');
         $side = ($side === 'Buy') ? 'long' : 'short';
@@ -6460,7 +6454,7 @@ class bybit extends Exchange {
         //
         $result = $this->safe_value($response, 'result', array());
         $id = $this->safe_string($result, 'symbol');
-        $market = $this->safe_market($id, $market);
+        $market = $this->safe_market($id, $market, null, 'contract');
         $data = $this->safe_value($result, 'list', array());
         return $this->parse_open_interests($data, $market, $since, $limit);
     }
@@ -6513,7 +6507,7 @@ class bybit extends Exchange {
         //
         $result = $this->safe_value($response, 'result', array());
         $id = $this->safe_string($result, 'symbol');
-        $market = $this->safe_market($id, $market);
+        $market = $this->safe_market($id, $market, null, 'contract');
         $data = $this->safe_value($result, 'list', array());
         return $this->parse_open_interest($data[0], $market);
     }
