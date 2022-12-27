@@ -2313,11 +2313,11 @@ module.exports = class bybit extends Exchange {
         }
         const marketId = this.safeString (trade, 'symbol');
         market = this.safeMarket (marketId, market, undefined, 'spot');
-        let fee = {};
-        const feeToken = this.safeString (trade, 'feeTokenId');
-        if (feeToken !== undefined) {
+        let fee = undefined;
+        const feeCost = this.safeString (trade, 'execFee');
+        if (feeCost !== undefined) {
+            const feeToken = this.safeString (trade, 'feeTokenId');
             const feeCurrency = this.safeCurrencyCode (feeToken);
-            const feeCost = this.safeString (trade, 'execFee');
             fee = {
                 'cost': feeCost,
                 'currency': feeCurrency,
