@@ -125,6 +125,8 @@ module.exports = class phemex extends Exchange {
                         'products', // contracts only
                         'nomics/trades', // ?market=<symbol>&since=<since>
                         'md/kline', // ?from=1589811875&resolution=1800&symbol=sBTCUSDT&to=1592457935
+                        'md/v2/kline/list', // perpetual api ?symbol=<symbol>&to=<to>&from=<from>&resolution=<resolution>
+                        'md/v2/kline/last', // perpetual ?symbol=<symbol>&resolution=<resolution>&limit=<limit>
                     ],
                 },
                 'v1': {
@@ -144,7 +146,7 @@ module.exports = class phemex extends Exchange {
                         'md/v2/trade', // ?symbol=<symbol>&id=<id>
                         'md/v2/ticker/24hr', // ?symbol=<symbol>&id=<id>
                         'md/v2/ticker/24hr/all', // ?id=<id>
-                    ]
+                    ],
                 },
                 'private': {
                     'get': [
@@ -1195,9 +1197,8 @@ module.exports = class phemex extends Exchange {
         if (market['spot']) {
             var method = 'v1GetMdSpotTicker24hr';
         } else {
-            info = self.safeValue(market, 'info', {})
-            type = self.safeStringLower('info', 'type')
-
+            info = self.safeValue (market, 'info', {});
+            type = self.safeStringLower ('info', 'type');
             if (type === 'perpetual') {
                 var method = 'v1GetMdTicker24hr';
             } else {

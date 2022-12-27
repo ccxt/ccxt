@@ -774,7 +774,7 @@ class phemex extends Exchange {
         for ($i = 0; $i < count($products); $i++) {
             $market = $products[$i];
             $type = $this->safe_string_lower($market, 'type');
-            if ($type === 'perpetual') {
+            if (($type === 'perpetual') || ($type === 'perpetualv2')) {
                 $id = $this->safe_string($market, 'symbol');
                 $riskLimitValues = $this->safe_value($riskLimitsById, $id, array());
                 $market = array_merge($market, $riskLimitValues);

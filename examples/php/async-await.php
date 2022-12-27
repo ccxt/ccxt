@@ -10,39 +10,49 @@ await($exchange->load_markets());
 $symbols = array('BTC/USDT', 'ETH/USDT');
 
 
-$promises = [];
-foreach ($symbols as $symbol) {
-    $promises[] = $exchange->fetch_ticker($symbol);
-}
-$tickers = await(React\Promise\all($promises));
-echo "########## Combined await ##########\n";
-echo "{$tickers[0]['symbol']} {$tickers[0]['close']}  |  {$tickers[1]['symbol']} {$tickers[1]['close']}\n";
-
-
-
+// ###########################################
 echo "########## Individual await ##########\n";
 foreach ($symbols as $symbol) {
     $ticker = await($exchange->fetch_ticker($symbol));
     echo "{$ticker['symbol']} {$ticker['close']}\n";
 }
+// ###########################################
+
+
+// ###########################################
+echo "########### Combined await ###########\n";
+$promises = [];
+foreach ($symbols as $symbol) {
+    $promises[] = $exchange->fetch_ticker($symbol);
+}
+$tickers = await(React\Promise\all($promises));
+echo "{$tickers[0]['symbol']} {$tickers[0]['close']}  |  {$tickers[1]['symbol']} {$tickers[1]['close']}\n";
+// ###########################################
 
 
 
+// ###########################################
 $exchange->fetch_ticker($symbols[0])->then(function($ticker){
-    echo "########## Callback style ##########\n";
-    echo "### Callback->then finished: {$ticker['symbol']} {$ticker['close']}\n";
+    echo "########## Callback->then ##########\n";
+    echo "{$ticker['symbol']} {$ticker['close']}\n";
 });
+// ###########################################
 
 
 
-
+// ################### custom async function ########################
 function myFunc ($exchange, $symbol) {
     return async(function () use ($exchange, $symbol) {
-        // example sleep
-        await(React\Promise\Timer\sleep(0.5));
-        $ticker = await($exchange->fetch_ticker($symbol));
-        echo "########## Custom async function ##########\n";
-        echo "### Custom async function : {$ticker['symbol']} {$ticker['close']}\n";
+        try {
+            // example sleep
+            await(React\Promise\Timer\sleep(0.5));
+            $ticker = await($exchange->fetch_ticker($symbol));
+            echo "########## Custom async function ##########\n";
+            echo "{$ticker['symbol']} {$ticker['close']}\n";
+        } catch (\ccxt\NetworkError $e) {
+            echo '[Network Error] ' . $e->getMessage() . "\n";
+        }
     });
 }
 await(myFunc($exchange, $symbols[0])());
+// ###########################################

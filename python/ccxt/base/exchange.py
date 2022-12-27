@@ -4,7 +4,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '2.4.55'
+__version__ = '2.4.61'
 
 # -----------------------------------------------------------------------------
 
@@ -1948,12 +1948,16 @@ class Exchange(object):
         average = self.omit_zero(self.safe_string(order, 'average'))
         price = self.omit_zero(self.safe_string(order, 'price'))
         lastTradeTimeTimestamp = self.safe_integer(order, 'lastTradeTimestamp')
+        symbol = self.safe_string(order, 'symbol')
+        side = self.safe_string(order, 'side')
         parseFilled = (filled is None)
         parseCost = (cost is None)
         parseLastTradeTimeTimestamp = (lastTradeTimeTimestamp is None)
         fee = self.safe_value(order, 'fee')
         parseFee = (fee is None)
         parseFees = self.safe_value(order, 'fees') is None
+        parseSymbol = symbol is None
+        parseSide = side is None
         shouldParseFees = parseFee or parseFees
         fees = self.safe_value(order, 'fees', [])
         trades = []
@@ -1962,12 +1966,7 @@ class Exchange(object):
             oldNumber = self.number
             # we parse trades as strings here!
             self.number = str
-            trades = self.parse_trades(rawTrades, market, None, None, {
-                'symbol': order['symbol'],
-                'side': order['side'],
-                'type': order['type'],
-                'order': order['id'],
-            })
+            trades = self.parse_trades(rawTrades, market)
             self.number = oldNumber
             tradesLength = 0
             isArray = isinstance(trades, list)
@@ -1995,6 +1994,10 @@ class Exchange(object):
                     tradeCost = self.safe_string(trade, 'cost')
                     if parseCost and (tradeCost is not None):
                         cost = Precise.string_add(cost, tradeCost)
+                    if parseSymbol:
+                        symbol = self.safe_string(trade, 'symbol')
+                    if parseSide:
+                        side = self.safe_string(trade, 'side')
                     tradeTimestamp = self.safe_value(trade, 'timestamp')
                     if parseLastTradeTimeTimestamp and (tradeTimestamp is not None):
                         if lastTradeTimeTimestamp is None:
@@ -2101,6 +2104,8 @@ class Exchange(object):
             # timeInForce is not None here
             postOnly = timeInForce == 'PO'
         return self.extend(order, {
+            'symbol': symbol,
+            'side': side,
             'lastTradeTimestamp': lastTradeTimeTimestamp,
             'price': self.parse_number(price),
             'amount': self.parse_number(amount),

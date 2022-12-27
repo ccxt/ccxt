@@ -120,30 +120,28 @@ class bitfinex extends \ccxt\async\bitfinex {
         $marketId = $this->safe_string($subscription, 'pair');
         $messageHash = $channel . ':' . $marketId;
         $tradesLimit = $this->safe_integer($this->options, 'tradesLimit', 1000);
-        if (is_array($this->markets_by_id) && array_key_exists($marketId, $this->markets_by_id)) {
-            $market = $this->markets_by_id[$marketId];
-            $symbol = $market['symbol'];
-            $data = $this->safe_value($message, 1);
-            $stored = $this->safe_value($this->trades, $symbol);
-            if ($stored === null) {
-                $stored = new ArrayCache ($tradesLimit);
-                $this->trades[$symbol] = $stored;
-            }
-            if (gettype($data) === 'array' && array_keys($data) === array_keys(array_keys($data))) {
-                $trades = $this->parse_trades($data, $market);
-                for ($i = 0; $i < count($trades); $i++) {
-                    $stored->append ($trades[$i]);
-                }
-            } else {
-                $second = $this->safe_string($message, 1);
-                if ($second !== 'tu') {
-                    return;
-                }
-                $trade = $this->parse_trade($message, $market);
-                $stored->append ($trade);
-            }
-            $client->resolve ($stored, $messageHash);
+        $market = $this->safe_market($marketId);
+        $symbol = $market['symbol'];
+        $data = $this->safe_value($message, 1);
+        $stored = $this->safe_value($this->trades, $symbol);
+        if ($stored === null) {
+            $stored = new ArrayCache ($tradesLimit);
+            $this->trades[$symbol] = $stored;
         }
+        if (gettype($data) === 'array' && array_keys($data) === array_keys(array_keys($data))) {
+            $trades = $this->parse_trades($data, $market);
+            for ($i = 0; $i < count($trades); $i++) {
+                $stored->append ($trades[$i]);
+            }
+        } else {
+            $second = $this->safe_string($message, 1);
+            if ($second !== 'tu') {
+                return;
+            }
+            $trade = $this->parse_trade($message, $market);
+            $stored->append ($trade);
+        }
+        $client->resolve ($stored, $messageHash);
         return $message;
     }
 

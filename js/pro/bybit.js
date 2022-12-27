@@ -516,8 +516,8 @@ module.exports = class bybit extends bybitRest {
             const snapshot = this.parseOrderBook (data, symbol, timestamp, 'b', 'a');
             orderbook.reset (snapshot);
         } else {
-            const asks = this.safeValue (orderbook, 'a', []);
-            const bids = this.safeValue (orderbook, 'b', []);
+            const asks = this.safeValue (data, 'a', []);
+            const bids = this.safeValue (data, 'b', []);
             this.handleDeltas (orderbook['asks'], asks);
             this.handleDeltas (orderbook['bids'], bids);
             orderbook['timestamp'] = timestamp;

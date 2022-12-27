@@ -489,8 +489,8 @@ class bybit(Exchange, ccxt.async_support.bybit):
             snapshot = self.parse_order_book(data, symbol, timestamp, 'b', 'a')
             orderbook.reset(snapshot)
         else:
-            asks = self.safe_value(orderbook, 'a', [])
-            bids = self.safe_value(orderbook, 'b', [])
+            asks = self.safe_value(data, 'a', [])
+            bids = self.safe_value(data, 'b', [])
             self.handle_deltas(orderbook['asks'], asks)
             self.handle_deltas(orderbook['bids'], bids)
             orderbook['timestamp'] = timestamp

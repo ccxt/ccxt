@@ -782,7 +782,7 @@ class phemex(Exchange):
         for i in range(0, len(products)):
             market = products[i]
             type = self.safe_string_lower(market, 'type')
-            if type == 'perpetual':
+            if (type == 'perpetual') or (type == 'perpetualv2'):
                 id = self.safe_string(market, 'symbol')
                 riskLimitValues = self.safe_value(riskLimitsById, id, {})
                 market = self.extend(market, riskLimitValues)

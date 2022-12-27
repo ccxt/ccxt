@@ -619,9 +619,7 @@ class coinex extends \ccxt\async\coinex {
                 $message['params'] = [ $market['id'] ];
                 $messageHash .= ':' . $symbol;
             } else {
-                // deprecated usage of markets_by_id...
-                $markets = is_array($this->markets_by_id) ? array_keys($this->markets_by_id) : array();
-                $message['params'] = $markets;
+                $message['params'] = $this->ids;
             }
             $url = $this->urls['api']['ws'][$type];
             $request = $this->deep_extend($message, $query);
