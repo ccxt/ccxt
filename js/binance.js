@@ -1395,15 +1395,17 @@ module.exports = class binance extends Exchange {
     }
 
     market (symbol) {
-        const defaultType = this.safeString (this.options, 'defaultType');
-        const isUnified = symbol.indexOf (':') > -1;
-        if (defaultType !== 'spot' && !isUnified) {
-            // convert BTC/USDT into BTC/USDT:USDT
-            const symbolParts = symbol.split ('/');
-            symbol = symbol + ':' + this.safeString (symbolParts, 1);
-            this.options['legacySymbols'] = true;
-        } else {
-            this.options['legacySymbols'] = false;
+        if (symbol !== undefined) {
+            const defaultType = this.safeString (this.options, 'defaultType');
+            const isUnified = symbol.indexOf (':') > -1;
+            if (defaultType !== 'spot' && !isUnified) {
+                // convert BTC/USDT into BTC/USDT:USDT
+                const symbolParts = symbol.split ('/');
+                symbol = symbol + ':' + this.safeString (symbolParts, 1);
+                this.options['legacySymbols'] = true;
+            } else {
+                this.options['legacySymbols'] = false;
+            }
         }
         return super.market (symbol);
     }
