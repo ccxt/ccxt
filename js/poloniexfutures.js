@@ -137,37 +137,6 @@ module.exports = class poloniexfutures extends Exchange {
                 },
             },
             'commonCurrencies': {
-                // 'AIR': 'AirCoin',
-                // 'APH': 'AphroditeCoin',
-                // 'BCC': 'BTCtalkcoin',
-                // 'BCHABC': 'BCHABC',
-                // 'BDG': 'Badgercoin',
-                // 'BTM': 'Bitmark',
-                // 'CON': 'Coino',
-                // 'GOLD': 'GoldEagles',
-                // 'GPUC': 'GPU',
-                // 'HOT': 'Hotcoin',
-                // 'ITC': 'Information Coin',
-                // 'KEY': 'KEYCoin',
-                // 'MASK': 'NFTX Hashmasks Index', // conflict with Mask Network
-                // 'MEME': 'Degenerator Meme', // Degenerator Meme migrated to Meme Inu, this exchange still has the old price
-                // 'PLX': 'ParallaxCoin',
-                // 'REPV2': 'REP',
-                // 'STR': 'XLM',
-                // 'SOC': 'SOCC',
-                // 'TRADE': 'Unitrade',
-                // 'XAP': 'API Coin',
-                // // this is not documented in the API docs for Poloniex
-                // // https://github.com/ccxt/ccxt/issues/7084
-                // // when the user calls withdraw ('USDT', amount, address, tag, params)
-                // // with params = { 'currencyToWithdrawAs': 'USDTTRON' }
-                // // or params = { 'currencyToWithdrawAs': 'USDTETH' }
-                // // fetchWithdrawals ('USDT') returns the corresponding withdrawals
-                // // with a USDTTRON or a USDTETH currency id, respectfully
-                // // therefore we have map them back to the original code USDT
-                // // otherwise the returned withdrawals are filtered out
-                // 'USDTTRON': 'USDT',
-                // 'USDTETH': 'USDT',
             },
             'options': {
                 'networks': {
