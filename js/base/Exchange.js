@@ -2119,7 +2119,7 @@ module.exports = class Exchange {
         };
     }
 
-    safeMarket (marketId = undefined, market = undefined, delimiter = undefined, marketType = 'spot') {
+    safeMarket (marketId = undefined, market = undefined, delimiter = undefined, marketType = undefined) {
         const result = {
             'id': marketId,
             'symbol': marketId,
@@ -2171,6 +2171,9 @@ module.exports = class Exchange {
                 if (length === 1) {
                     return markets[0];
                 } else {
+                    if (marketType === undefined) {
+                        throw new ArgumentsRequired (this.id + ' safeMarket() requires a fourth argument for ' + marketId + ' to disambiguate between different markets with the same market id');
+                    }
                     for (let i = 0; i < markets.length; i++) {
                         const market = markets[i];
                         if (market[marketType]) {
