@@ -527,7 +527,7 @@ class bitget(Exchange, ccxt.async_support.bitget):
         amount = self.safe_string(trade, 2)
         return self.safe_trade({
             'info': trade,
-            'id': None,
+            'id': self.uuid(),
             'order': None,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),

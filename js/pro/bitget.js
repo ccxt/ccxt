@@ -562,7 +562,7 @@ module.exports = class bitget extends bitgetRest {
         const amount = this.safeString (trade, 2);
         return this.safeTrade ({
             'info': trade,
-            'id': undefined,
+            'id': this.uuid (),
             'order': undefined,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),

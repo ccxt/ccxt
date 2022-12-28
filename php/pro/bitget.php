@@ -569,7 +569,7 @@ class bitget extends \ccxt\async\bitget {
         $amount = $this->safe_string($trade, 2);
         return $this->safe_trade(array(
             'info' => $trade,
-            'id' => null,
+            'id' => $this->uuid(),
             'order' => null,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
