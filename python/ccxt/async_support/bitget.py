@@ -2430,16 +2430,20 @@ class bitget(Exchange):
                 request['force'] = 'gtc'
         else:
             request['clientOid'] = clientOrderId
-            request['size'] = self.amount_to_precision(symbol, amount)
+            isCloseOrder = True
+            if amount and amount > 0:
+                request['size'] = self.amount_to_precision(symbol, amount)
+                isCloseOrder = False
             if postOnly:
                 request['timeInForceValue'] = 'post_only'
-            if isTriggerOrder:
+            if isTriggerOrder or isStopOrder:
                 triggerType = self.safe_string_2(params, 'triggerType', 'trigger', 'fill_price')
                 if triggerType == 'Mark' or triggerType == 'market_price':
                     triggerType = 'market_price'
                 else:
                     triggerType = 'fill_price'
                 request['triggerType'] = triggerType
+            if isTriggerOrder:
                 request['triggerPrice'] = self.price_to_precision(symbol, triggerPrice)
                 if price:
                     request['executePrice'] = self.price_to_precision(symbol, price)
@@ -2454,7 +2458,10 @@ class bitget(Exchange):
                     request['triggerPrice'] = self.price_to_precision(symbol, takeProfitPrice)
                     request['planType'] = 'profit_plan'
                 request['holdSide'] = 'short' if (side == 'buy') else 'long'
-                method = 'privateMixPostPlanPlaceTPSL'
+                if isCloseOrder:
+                    method = 'privateMixPostPlanPlacePositionsTPSL'
+                else:
+                    method = 'privateMixPostPlanPlaceTPSL'
             else:
                 if reduceOnly:
                     request['side'] = 'close_short' if (side == 'buy') else 'close_long'

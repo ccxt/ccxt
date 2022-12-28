@@ -2510,11 +2510,15 @@ class bitget extends Exchange {
             }
         } else {
             $request['clientOid'] = $clientOrderId;
-            $request['size'] = $this->amount_to_precision($symbol, $amount);
+            $isCloseOrder = true;
+            if ($amount && $amount > 0) {
+                $request['size'] = $this->amount_to_precision($symbol, $amount);
+                $isCloseOrder = false;
+            }
             if ($postOnly) {
                 $request['timeInForceValue'] = 'post_only';
             }
-            if ($isTriggerOrder) {
+            if ($isTriggerOrder || $isStopOrder) {
                 $triggerType = $this->safe_string_2($params, 'triggerType', 'trigger', 'fill_price');
                 if ($triggerType === 'Mark' || $triggerType === 'market_price') {
                     $triggerType = 'market_price';
@@ -2522,6 +2526,8 @@ class bitget extends Exchange {
                     $triggerType = 'fill_price';
                 }
                 $request['triggerType'] = $triggerType;
+            }
+            if ($isTriggerOrder) {
                 $request['triggerPrice'] = $this->price_to_precision($symbol, $triggerPrice);
                 if ($price) {
                     $request['executePrice'] = $this->price_to_precision($symbol, $price);
@@ -2540,7 +2546,11 @@ class bitget extends Exchange {
                     $request['planType'] = 'profit_plan';
                 }
                 $request['holdSide'] = ($side === 'buy') ? 'short' : 'long';
-                $method = 'privateMixPostPlanPlaceTPSL';
+                if ($isCloseOrder) {
+                    $method = 'privateMixPostPlanPlacePositionsTPSL';
+                } else {
+                    $method = 'privateMixPostPlanPlaceTPSL';
+                }
             } else {
                 if ($reduceOnly) {
                     $request['side'] = ($side === 'buy') ? 'close_short' : 'close_long';
