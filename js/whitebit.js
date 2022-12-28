@@ -167,6 +167,7 @@ module.exports = class whitebit extends Exchange {
                             'trades/{market}',
                             'time',
                             'ping',
+                            'markets',
                         ],
                     },
                     'private': {
@@ -261,51 +262,33 @@ module.exports = class whitebit extends Exchange {
          * @method
          * @name whitebit#fetchMarkets
          * @description retrieves data on all markets for whitebit
-         * @see https://github.com/whitebit-exchange/api-docs/blob/main/docs/Public/http-v2.md#market-info
-         * @see https://github.com/whitebit-exchange/api-docs/blob/main/docs/Public/http-v4.md#collateral-markets-list
+         * @see https://whitebit-exchange.github.io/api-docs/docs/Public/http-v4#market-info
          * @param {object} params extra parameters specific to the exchange api endpoint
          * @returns {[object]} an array of objects representing market data
          */
-        let promises = [ this.v4PublicGetCollateralMarkets (params), this.v2PublicGetMarkets (params) ];
+        const markets = await this.v4PublicGetMarkets ();
         //
-        // Spot
+        //    [
+        //        {
+        //          "name": "SON_USD",         // Market pair name
+        //          "stock": "SON",            // Ticker of stock currency
+        //          "money": "USD",            // Ticker of money currency
+        //          "stockPrec": "3",          // Stock currency precision
+        //          "moneyPrec": "2",          // Precision of money currency
+        //          "feePrec": "4",            // Fee precision
+        //          "makerFee": "0.001",       // Default maker fee ratio
+        //          "takerFee": "0.001",       // Default taker fee ratio
+        //          "minAmount": "0.001",      // Minimal amount of stock to trade
+        //          "minTotal": "0.001",       // Minimal amount of money to trade
+        //          "tradesEnabled": true,     // Is trading enabled
+        //          "isCollateral": true,      // Is margin trading enabled
+        //          "type": "spot"             // Market type. Possible values: "spot", "futures"
+        //        },
+        //        {
+        //          ...
+        //        }
+        //    ]
         //
-        //    {
-        //        "success": true,
-        //        "message": "",
-        //        "result": [
-        //            {
-        //                "name": "C98_USDT",
-        //                "stock": "C98",
-        //                "money": "USDT",
-        //                "stockPrec": "3",
-        //                "moneyPrec": "5",
-        //                "feePrec": "6",
-        //                "makerFee": "0.001",
-        //                "takerFee": "0.001",
-        //                "minAmount": "2.5",
-        //                "minTotal": "5.05",
-        //                "tradesEnabled": true
-        //            },
-        //            ...
-        //        ]
-        //    }
-        //
-        //
-        // Margin
-        //
-        //     [
-        //         "ADA_BTC",
-        //         "ADA_USDT",
-        //         "APE_USDT",
-        //         ...
-        //     ]
-        //
-        promises = await Promise.all (promises);
-        const marginMarketsResponse = promises[0];
-        const response = promises[1];
-        const markets = this.safeValue (response, 'result', []);
-        const marginMarkets = this.safeValue (marginMarketsResponse, 'result', []);
         const result = [];
         for (let i = 0; i < markets.length; i++) {
             const market = markets[i];
@@ -314,22 +297,25 @@ module.exports = class whitebit extends Exchange {
             const quoteId = this.safeString (market, 'money');
             const base = this.safeCurrencyCode (baseId);
             const quote = this.safeCurrencyCode (quoteId);
-            const symbol = base + '/' + quote;
             const active = this.safeValue (market, 'tradesEnabled');
-            const isMargin = this.inArray (id, marginMarkets);
+            const isMargin = this.safeValue (market, 'isCollateral');
+            const typeId = this.safeString (market, 'type');
+            const type = (typeId === 'futures') ? 'swap' : 'spot';
+            const settle = (type === 'swap') ? 'USDT' : undefined;
+            const symbol = (type === 'spot') ? base + '/' + quote : base + '/' + settle + ':' + settle;
             const entry = {
                 'id': id,
                 'symbol': symbol,
                 'base': base,
                 'quote': quote,
-                'settle': undefined,
+                'settle': settle,
                 'baseId': baseId,
                 'quoteId': quoteId,
                 'settleId': undefined,
-                'type': 'spot',
-                'spot': true,
+                'type': type,
+                'spot': (type === 'spot'),
                 'margin': isMargin,
-                'swap': false,
+                'swap': (type === 'swap'),
                 'future': false,
                 'option': false,
                 'active': active,
@@ -1068,7 +1054,7 @@ module.exports = class whitebit extends Exchange {
             request['end'] = end;
         }
         if (limit !== undefined) {
-            request['limit'] = limit; // max 1440
+            request['limit'] = Math.min (limit, 1440);
         }
         const response = await this.v1PublicGetKline (this.extend (request, params));
         //
@@ -1292,7 +1278,7 @@ module.exports = class whitebit extends Exchange {
             'market': market['id'],
         };
         if (limit !== undefined) {
-            request['limit'] = limit; // default 50 max 100
+            request['limit'] = Math.min (limit, 100);
         }
         const response = await this.v4PrivatePostOrders (this.extend (request, params));
         //
@@ -1338,7 +1324,7 @@ module.exports = class whitebit extends Exchange {
             request['market'] = market['id'];
         }
         if (limit !== undefined) {
-            request['limit'] = limit; // default 50 max 100
+            request['limit'] = Math.min (limit, 100); // default 50 max 100
         }
         const response = await this.v4PrivatePostTradeAccountOrderHistory (this.extend (request, params));
         //
@@ -1499,7 +1485,7 @@ module.exports = class whitebit extends Exchange {
             request['market'] = market['id'];
         }
         if (limit !== undefined) {
-            request['limit'] = limit; // default 50, max 100
+            request['limit'] = Math.min (limit, 100);
         }
         const response = await this.v4PrivatePostTradeAccountOrder (this.extend (request, params));
         //
@@ -1894,7 +1880,7 @@ module.exports = class whitebit extends Exchange {
             request['ticker'] = currency['id'];
         }
         if (limit !== undefined) {
-            request['limit'] = limit;
+            request['limit'] = Math.min (limit, 100);
         }
         const response = await this.v4PrivatePostMainAccountHistory (this.extend (request, params));
         //
