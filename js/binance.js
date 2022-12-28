@@ -1417,22 +1417,6 @@ module.exports = class binance extends Exchange {
         return super.market (symbol);
     }
 
-    safeMarket (marketId = undefined, market = undefined, delimiter = undefined, marketType = 'spot') {
-        const parsedMarket = super.safeMarket (marketId, market, delimiter, marketType);
-        const legacySymbols = this.safeValue (this.options, 'legacySymbols', false);
-        if (legacySymbols) {
-            if (this.isLinear (defaultType, subType) || this.isInverse (defaultType, subType)) {
-                // avoid changing it by reference
-                const newMarket = this.extend (parsedMarket, {});
-                // legacy symbol
-                const legacySymbol = parsedMarket['base'] + '/' + parsedMarket['quote'];
-                newMarket['symbol'] = legacySymbol;
-                return newMarket;
-            }
-        }
-        return parsedMarket;
-    }
-
     costToPrecision (symbol, cost) {
         return this.decimalToPrecision (cost, TRUNCATE, this.markets[symbol]['precision']['quote'], this.precisionMode, this.paddingMode);
     }
@@ -5549,7 +5533,7 @@ module.exports = class binance extends Exchange {
         for (let i = 0; i < positions.length; i++) {
             const position = positions[i];
             const marketId = this.safeString (position, 'symbol');
-            const market = this.safeMarket (marketId);
+            const market = this.safeMarket (marketId, undefined, undefined, 'contract');
             const code = market['linear'] ? market['quote'] : market['base'];
             // sometimes not all the codes are correctly returned...
             if (code in balances) {
@@ -5605,7 +5589,7 @@ module.exports = class binance extends Exchange {
         //     }
         //
         const marketId = this.safeString (position, 'symbol');
-        market = this.safeMarket (marketId, market);
+        market = this.safeMarket (marketId, market, undefined, 'contract');
         const symbol = this.safeString (market, 'symbol');
         const leverageString = this.safeString (position, 'leverage');
         const leverage = parseInt (leverageString);
@@ -5799,7 +5783,7 @@ module.exports = class binance extends Exchange {
         //     }
         //
         const marketId = this.safeString (position, 'symbol');
-        market = this.safeMarket (marketId, market);
+        market = this.safeMarket (marketId, market, undefined, 'contract');
         const symbol = this.safeString (market, 'symbol');
         const leverageBrackets = this.safeValue (this.options, 'leverageBrackets', {});
         const leverageBracket = this.safeValue (leverageBrackets, symbol, []);
@@ -6055,7 +6039,7 @@ module.exports = class binance extends Exchange {
         //    }
         //
         const marketId = this.safeString (info, 'symbol');
-        market = this.safeMarket (marketId, market);
+        market = this.safeMarket (marketId, market, undefined, 'contract');
         const brackets = this.safeValue (info, 'brackets', []);
         const tiers = [];
         for (let j = 0; j < brackets.length; j++) {
@@ -7084,7 +7068,6 @@ module.exports = class binance extends Exchange {
     parseOpenInterest (interest, market = undefined) {
         const timestamp = this.safeInteger (interest, 'timestamp');
         const id = this.safeString (interest, 'symbol');
-        market = this.safeMarket (id, market);
         const amount = this.safeNumber (interest, 'sumOpenInterest');
         const value = this.safeNumber (interest, 'sumOpenInterestValue');
         return {
