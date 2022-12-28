@@ -2120,9 +2120,6 @@ module.exports = class Exchange {
     }
 
     safeMarket (marketId = undefined, market = undefined, delimiter = undefined, marketType = 'spot') {
-        if (market !== undefined) {
-            return market;
-        }
         const result = {
             'id': marketId,
             'symbol': marketId,
@@ -2195,6 +2192,9 @@ module.exports = class Exchange {
                     return result;
                 }
             }
+        }
+        if (market !== undefined) {
+            return market;
         }
         return result;
     }
