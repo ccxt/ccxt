@@ -1504,7 +1504,7 @@ module.exports = class mexc3 extends Exchange {
             ticker = this.safeValue (response, 'data', {});
         }
         // when it's single symbol request, the returned structure is different (singular object) for both spot & swap, thus we need to wrap inside array
-        return this.parseTicker (ticker, symbol);
+        return this.parseTicker (ticker, market);
     }
 
     parseTicker (ticker, market = undefined) {
