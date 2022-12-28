@@ -1477,7 +1477,7 @@ module.exports = class gate extends Exchange {
         //    }
         //
         const marketId = this.safeString (contract, 'name');
-        const symbol = this.safeSymbol (marketId, market);
+        const symbol = this.safeSymbol (marketId, market, '_', 'swap');
         const markPrice = this.safeNumber (contract, 'mark_price');
         const indexPrice = this.safeNumber (contract, 'index_price');
         const interestRate = this.safeNumber (contract, 'interest_rate');
@@ -2099,7 +2099,8 @@ module.exports = class gate extends Exchange {
         //     }
         //
         const marketId = this.safeStringN (ticker, [ 'currency_pair', 'contract', 's' ]);
-        const symbol = this.safeSymbol (marketId, market);
+        const marketType = ('contract' in ticker) ? 'contract' : 'spot';
+        const symbol = this.safeSymbol (marketId, market, '_', marketType);
         const last = this.safeString (ticker, 'last');
         const ask = this.safeString2 (ticker, 'lowest_ask', 'a');
         const bid = this.safeString2 (ticker, 'highest_bid', 'b');
@@ -2212,7 +2213,7 @@ module.exports = class gate extends Exchange {
             'future': 'privateDeliveryGetSettleAccounts',
         });
         let response = await this[method] (this.extend (request, requestQuery));
-        const contract = (type === 'swap' || type === 'future');
+        const contract = ((type === 'swap') || (type === 'future'));
         if (contract) {
             response = [ response ];
         }
@@ -2348,7 +2349,7 @@ module.exports = class gate extends Exchange {
             const entry = data[i];
             if (isolated) {
                 const marketId = this.safeString (entry, 'currency_pair');
-                const symbol = this.safeSymbol (marketId, undefined, '_');
+                const symbol = this.safeSymbol (marketId, undefined, '_', 'margin');
                 const base = this.safeValue (entry, 'base', {});
                 const quote = this.safeValue (entry, 'quote', {});
                 const baseCode = this.safeCurrencyCode (this.safeString (base, 'currency'));
@@ -3614,7 +3615,9 @@ module.exports = class gate extends Exchange {
         if (lastTradeTimestamp === undefined) {
             lastTradeTimestamp = this.safeTimestamp2 (order, 'update_time', 'finish_time');
         }
+        const marketType = ('currency_pair' in order) ? 'spot' : 'contract';
         const exchangeSymbol = this.safeString2 (order, 'currency_pair', 'market', contract);
+        const symbol = this.safeSymbol (exchangeSymbol, market, '_', marketType);
         // Everything below this(above return) is related to fees
         const fees = [];
         const gtFee = this.safeString (order, 'gt_fee');
@@ -3648,7 +3651,7 @@ module.exports = class gate extends Exchange {
             'datetime': this.iso8601 (timestamp),
             'lastTradeTimestamp': lastTradeTimestamp,
             'status': status,
-            'symbol': this.safeSymbol (exchangeSymbol),
+            'symbol': symbol,
             'type': type,
             'timeInForce': timeInForce,
             'postOnly': postOnly,
@@ -4820,7 +4823,7 @@ module.exports = class gate extends Exchange {
             'id': this.safeInteger (info, 'id'),
             'currency': this.safeCurrencyCode (currencyId, currency),
             'amount': this.safeNumber (info, 'amount'),
-            'symbol': this.safeSymbol (marketId, undefined),
+            'symbol': this.safeSymbol (marketId, undefined, '_', 'margin'),
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'info': info,
