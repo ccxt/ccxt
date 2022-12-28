@@ -1405,7 +1405,7 @@ module.exports = class binance extends Exchange {
                     // convert BTC/USDT into BTC/USDT:USDT
                     symbol = symbol + ':' + this.safeString (symbolParts, 1);
                     this.options['legacySymbols'] = true;
-                } else if (this.isInverseSwap (defaultType, subType)) {
+                } else if (this.isInverseSwap (defaultType, subType) && this.safeString (symbolParts, 1) === 'USD') {
                     // convert BTC/USD into BTC/USD:BTC
                     symbol = symbol + ':' + this.safeString (symbolParts, 0);
                     this.options['legacySymbols'] = true;
