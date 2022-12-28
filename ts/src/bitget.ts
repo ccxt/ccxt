@@ -3509,7 +3509,7 @@ export default class bitget extends Exchange {
             const market = this.market (symbol);
             request['productType'] = market['linear'] ? 'umcbl' : 'dmcbl';
         }
-        const response = await this.privateMixPostAccountSetPositionMode (this.extend (request, params));
+        const response = await (this as any).privateMixPostAccountSetPositionMode (this.extend (request, params));
         //
         //    {
         //         "code": "40919",

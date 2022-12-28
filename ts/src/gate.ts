@@ -672,11 +672,11 @@ export default class gate extends Exchange {
          * @param {object} params extra parameters specific to the exchange api endpoint
          * @returns {[object]} an array of objects representing market data
          */
-        let promises = [
+        const rawPromises = [
             this.fetchSpotMarkets (params),
             this.fetchContractMarkets (params),
         ];
-        promises = await Promise.all (promises);
+        const promises = await Promise.all (rawPromises);
         const spotMarkets = promises[0];
         const contractMarkets = promises[1];
         return this.arrayConcat (spotMarkets, contractMarkets);
