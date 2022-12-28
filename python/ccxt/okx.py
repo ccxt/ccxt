@@ -4089,18 +4089,20 @@ class okx(Exchange):
         marketId = self.safe_string(position, 'instId')
         market = self.safe_market(marketId, market)
         symbol = market['symbol']
-        contractsString = self.safe_string(position, 'pos')
-        contractsAbs = Precise.string_abs(contractsString)
+        pos = self.safe_string(position, 'pos')  # 'pos' field: One way mode: 0 if position is not open, 1 if open | Two way(hedge) mode: -1 if short, 1 if long, 0 if position is not open
+        contractsAbs = Precise.string_abs(pos)
         contracts = None
         side = self.safe_string(position, 'posSide')
         hedged = side != 'net'
-        if contractsString is not None:
+        if pos is not None:
             contracts = self.parse_number(contractsAbs)
             if side == 'net':
-                if Precise.string_gt(contractsString, '0'):
+                if Precise.string_gt(pos, '0'):
                     side = 'long'
-                else:
+                elif Precise.string_lt(pos, '0'):
                     side = 'short'
+                else:
+                    side = None
         contractSize = self.safe_value(market, 'contractSize')
         contractSizeString = self.number_to_string(contractSize)
         markPriceString = self.safe_string(position, 'markPx')
