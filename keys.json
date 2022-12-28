@@ -1,5 +1,5 @@
 {
-    "aax":           { "skip": true, "skipWs": true },
+    "alpaca":        { "skip": true, "skipWs": true },
     "binance":       { "skipWs": true, "httpProxy": "http://51.83.140.52:11230" },
     "binanceusdm":   { "skipWs": true, "httpProxy": "http://51.83.140.52:11230" },
     "binancecoinm":  { "skipWs": true, "httpProxy": "http://51.83.140.52:11230" },
@@ -12,8 +12,6 @@
     "currencycom":   { "skip": true, "skipWs": true },
     "cryptocom":     { "skipWs": true },
     "dsx":           { "skipWs": true },
-    "ftx":           { "skip": true, "skipWs": true },
-    "ftxus":         { "skip": true, "skipWs": true },
     "huobipro":      { "skipWs": true },
     "okcoin":        { "skipWs": true },
     "poloniex":      { "skipWs": true },
