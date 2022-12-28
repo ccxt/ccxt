@@ -1660,12 +1660,12 @@ module.exports = class binance extends Exchange {
          * @param {object} params extra parameters specific to the exchange api endpoint
          * @returns {[object]} an array of objects representing market data
          */
-        const unresolvedMarkets = [
-            this.publicGetExchangeInfo (),
-            this.fapiPublicGetExchangeInfo (),
-            this.dapiPublicGetExchangeInfo (),
+        let promises = [
+            this.publicGetExchangeInfo (params),
+            this.fapiPublicGetExchangeInfo (params),
+            this.dapiPublicGetExchangeInfo (params),
         ];
-        const promises = await Promise.all (unresolvedMarkets);
+        promises = await Promise.all (promises);
         const spotMarkets = this.safeValue (promises[0], 'symbols', []);
         const futureMarkets = this.safeValue (promises[1], 'symbols', []);
         const deliveryMarkets = this.safeValue (promises[2], 'symbols', []);
@@ -1974,6 +1974,8 @@ module.exports = class binance extends Exchange {
             }
             result.push (entry);
         }
+        const debug = result.map (x => x.symbol)
+        console.log (debug.length, debug)
         return result;
     }
 
