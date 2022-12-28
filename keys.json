@@ -1,4 +1,5 @@
 {
+    "alpaca":        { "skipWs": true },
     "aax":           { "skip": true, "skipWs": true },
     "binance":       { "skipWs": true, "httpProxy": "http://51.83.140.52:11230" },
     "binanceusdm":   { "skipWs": true, "httpProxy": "http://51.83.140.52:11230" },
