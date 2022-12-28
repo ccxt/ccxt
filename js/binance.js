@@ -1974,8 +1974,6 @@ module.exports = class binance extends Exchange {
             }
             result.push (entry);
         }
-        const debug = result.map (x => x.symbol)
-        console.log (debug.length, debug)
         return result;
     }
 
