@@ -36,11 +36,11 @@ use \ccxt\pro\ClientTrait;
 
 include 'Throttle.php';
 
-$version = '2.4.64';
+$version = '2.4.71';
 
 class Exchange extends \ccxt\Exchange {
 
-    const VERSION = '2.4.64';
+    const VERSION = '2.4.71';
 
     public $streaming = array(
         'keepAlive' => 30000,
@@ -372,16 +372,24 @@ class Exchange extends \ccxt\Exchange {
 
     public function set_markets($markets, $currencies = null) {
         $values = array();
-        $marketValues = $this->to_array($markets);
+        $this->markets_by_id = array();
+        // handle marketId conflicts
+        // we insert spot $markets first
+        $marketValues = $this->sort_by($this->to_array($markets), 'spot', true);
         for ($i = 0; $i < count($marketValues); $i++) {
+            $value = $marketValues[$i];
+            if (is_array($this->markets_by_id) && array_key_exists($value['id'], $this->markets_by_id)) {
+                $this->markets_by_id[$value['id']][] = $value;
+            } else {
+                $this->markets_by_id[$value['id']] = array( $value );
+            }
             $market = $this->deep_extend($this->safe_market(), array(
                 'precision' => $this->precision,
                 'limits' => $this->limits,
-            ), $this->fees['trading'], $marketValues[$i]);
+            ), $this->fees['trading'], $value);
             $values[] = $market;
         }
         $this->markets = $this->index_by($values, 'symbol');
-        $this->markets_by_id = $this->index_by($markets, 'id');
         $marketsSortedBySymbol = $this->keysort ($this->markets);
         $marketsSortedById = $this->keysort ($this->markets_by_id);
         $this->symbols = is_array($marketsSortedBySymbol) ? array_keys($marketsSortedBySymbol) : array();
@@ -829,20 +837,6 @@ class Exchange extends \ccxt\Exchange {
         $parseFees = $this->safe_value($trade, 'fees') === null;
         $shouldParseFees = $parseFee || $parseFees;
         $fees = array();
-        if ($shouldParseFees) {
-            $tradeFees = $this->safe_value($trade, 'fees');
-            if ($tradeFees !== null) {
-                for ($j = 0; $j < count($tradeFees); $j++) {
-                    $tradeFee = $tradeFees[$j];
-                    $fees[] = array_merge(array(), $tradeFee);
-                }
-            } else {
-                $tradeFee = $this->safe_value($trade, 'fee');
-                if ($tradeFee !== null) {
-                    $fees[] = array_merge(array(), $tradeFee);
-                }
-            }
-        }
         $fee = $this->safe_value($trade, 'fee');
         if ($shouldParseFees) {
             $reducedFees = $this->reduceFees ? $this->reduce_fees_by_currency($fees) : $fees;
@@ -1648,7 +1642,7 @@ class Exchange extends \ccxt\Exchange {
         );
     }
 
-    public function safe_market($marketId = null, $market = null, $delimiter = null) {
+    public function safe_market($marketId = null, $market = null, $delimiter = null, $marketType = 'spot') {
         $result = array(
             'id' => $marketId,
             'symbol' => $marketId,
@@ -1695,7 +1689,18 @@ class Exchange extends \ccxt\Exchange {
         );
         if ($marketId !== null) {
             if (($this->markets_by_id !== null) && (is_array($this->markets_by_id) && array_key_exists($marketId, $this->markets_by_id))) {
-                $market = $this->markets_by_id[$marketId];
+                $markets = $this->markets_by_id[$marketId];
+                $length = count($markets);
+                if ($length === 1) {
+                    return $markets[0];
+                } else {
+                    for ($i = 0; $i < count($markets); $i++) {
+                        $market = $markets[$i];
+                        if ($market[$marketType]) {
+                            return $market;
+                        }
+                    }
+                }
             } elseif ($delimiter !== null) {
                 $parts = explode($delimiter, $marketId);
                 $partsLength = count($parts);
@@ -2085,19 +2090,27 @@ class Exchange extends \ccxt\Exchange {
 
     public function market($symbol) {
         if ($this->markets === null) {
-            throw new ExchangeError($this->id . ' markets not loaded');
+            throw new ExchangeError($this->id . ' $markets not loaded');
         }
         if ($this->markets_by_id === null) {
-            throw new ExchangeError($this->id . ' markets not loaded');
+            throw new ExchangeError($this->id . ' $markets not loaded');
         }
         if (gettype($symbol) === 'string') {
             if (is_array($this->markets) && array_key_exists($symbol, $this->markets)) {
                 return $this->markets[$symbol];
             } elseif (is_array($this->markets_by_id) && array_key_exists($symbol, $this->markets_by_id)) {
-                return $this->markets_by_id[$symbol];
+                $markets = $this->markets_by_id[$symbol];
+                $defaultType = $this->safe_string($this->options, 'defaultType', 'spot');
+                for ($i = 0; $i < count($markets); $i++) {
+                    $market = $markets[$i];
+                    if ($market[$defaultType]) {
+                        return $market;
+                    }
+                }
+                return $markets[0];
             }
         }
-        throw new BadSymbol($this->id . ' does not have market $symbol ' . $symbol);
+        throw new BadSymbol($this->id . ' does not have $market $symbol ' . $symbol);
     }
 
     public function handle_withdraw_tag_and_params($tag, $params) {

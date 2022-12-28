@@ -1379,7 +1379,6 @@ class exmo(Exchange):
         #
         id = self.safe_string(order, 'order_id')
         timestamp = self.safe_timestamp(order, 'created')
-        symbol = None
         side = self.safe_string(order, 'type')
         marketId = None
         if 'pair' in order:
@@ -1390,68 +1389,22 @@ class exmo(Exchange):
             else:
                 marketId = order['out_currency'] + '_' + order['in_currency']
         market = self.safe_market(marketId, market)
-        amount = self.safe_number(order, 'quantity')
+        symbol = market['symbol']
+        amount = self.safe_string(order, 'quantity')
         if amount is None:
             amountField = 'in_amount' if (side == 'buy') else 'out_amount'
-            amount = self.safe_number(order, amountField)
-        price = self.safe_number(order, 'price')
-        cost = self.safe_number(order, 'amount')
-        filled = 0.0
-        trades = []
+            amount = self.safe_string(order, amountField)
+        price = self.safe_string(order, 'price')
+        cost = self.safe_string(order, 'amount')
         transactions = self.safe_value(order, 'trades', [])
-        feeCost = None
-        lastTradeTimestamp = None
-        average = None
-        numTransactions = len(transactions)
-        if numTransactions > 0:
-            feeCost = 0
-            for i in range(0, numTransactions):
-                trade = self.parse_trade(transactions[i], market)
-                if id is None:
-                    id = trade['order']
-                if timestamp is None:
-                    timestamp = trade['timestamp']
-                if timestamp > trade['timestamp']:
-                    timestamp = trade['timestamp']
-                filled = self.sum(filled, trade['amount'])
-                feeCost = self.sum(feeCost, trade['fee']['cost'])
-                trades.append(trade)
-            lastTradeTimestamp = trades[numTransactions - 1]['timestamp']
-        status = self.safe_string(order, 'status')  # in case we need to redefine it for canceled orders
-        remaining = None
-        if amount is not None:
-            remaining = amount - filled
-            if filled >= amount:
-                status = 'closed'
-            else:
-                status = 'open'
-        if market is None:
-            market = self.get_market_from_trades(trades)
-        feeCurrency = None
-        if market is not None:
-            symbol = market['symbol']
-            feeCurrency = market['quote']
-        if cost is None:
-            if price is not None:
-                cost = price * filled
-        else:
-            if filled > 0:
-                if average is None:
-                    average = cost / filled
-                if price is None:
-                    price = cost / filled
-        fee = {
-            'cost': feeCost,
-            'currency': feeCurrency,
-        }
         clientOrderId = self.safe_integer(order, 'client_id')
-        return {
+        return self.safe_order({
             'id': id,
             'clientOrderId': clientOrderId,
             'datetime': self.iso8601(timestamp),
             'timestamp': timestamp,
-            'lastTradeTimestamp': lastTradeTimestamp,
-            'status': status,
+            'lastTradeTimestamp': None,
+            'status': None,
             'symbol': symbol,
             'type': 'limit',
             'timeInForce': None,
@@ -1461,13 +1414,13 @@ class exmo(Exchange):
             'stopPrice': None,
             'cost': cost,
             'amount': amount,
-            'filled': filled,
-            'remaining': remaining,
-            'average': average,
-            'trades': trades,
-            'fee': fee,
+            'filled': None,
+            'remaining': None,
+            'average': None,
+            'trades': transactions,
+            'fee': None,
             'info': order,
-        }
+        }, market)
 
     def fetch_canceled_orders(self, symbol=None, since=None, limit=None, params={}):
         """

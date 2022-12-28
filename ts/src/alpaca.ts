@@ -22,6 +22,7 @@ export default class alpaca extends Exchange {
             'countries': [ 'US' ],
             'rateLimit': 333, // 3 req per second
             'hostname': 'alpaca.markets',
+            'pro': true,
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/187234005-b864db3d-f1e3-447a-aaf9-a9fc7b955d07.jpg',
                 'www': 'https://alpaca.markets',
@@ -766,7 +767,8 @@ export default class alpaca extends Exchange {
         //       "i":"355681339"
         //   }
         //
-        const symbol = this.safeSymbol (undefined, market);
+        const marketId = this.safeString (trade, 'S');
+        const symbol = this.safeSymbol (marketId, market);
         const datetime = this.safeString (trade, 't');
         const timestamp = this.parse8601 (datetime);
         const alpacaSide = this.safeString (trade, 'tks');

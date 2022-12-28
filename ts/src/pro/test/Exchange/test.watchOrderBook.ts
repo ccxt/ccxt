@@ -22,7 +22,8 @@ export default async (exchange, symbol) => {
         'luno', // requires authentication for public orderbooks
         'ripio',
         'gopax', // requires authentication for public orderbooks
-        'woo'
+        'woo',
+        'alpaca', // requires auth
     ]
 
     if (skippedExchanges.includes (exchange.id)) {

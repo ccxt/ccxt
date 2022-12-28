@@ -1952,20 +1952,6 @@ export default class Exchange {
         const parseFees = this.safeValue (trade, 'fees') === undefined;
         const shouldParseFees = parseFee || parseFees;
         const fees = [];
-        if (shouldParseFees) {
-            const tradeFees = this.safeValue (trade, 'fees');
-            if (tradeFees !== undefined) {
-                for (let j = 0; j < tradeFees.length; j++) {
-                    const tradeFee = tradeFees[j];
-                    fees.push (this.extend ({}, tradeFee));
-                }
-            } else {
-                const tradeFee = this.safeValue (trade, 'fee');
-                if (tradeFee !== undefined) {
-                    fees.push (this.extend ({}, tradeFee));
-                }
-            }
-        }
         const fee = this.safeValue (trade, 'fee');
         if (shouldParseFees) {
             const reducedFees = this.reduceFees ? this.reduceFeesByCurrency (fees) : fees;
@@ -3185,14 +3171,15 @@ export default class Exchange {
             if (symbol in this.markets) {
                 return this.markets[symbol];
             } else if (symbol in this.markets_by_id) {
-                // we insert spot markets first so this will return a spot market
-                // if there is a conflict between the spot and swap markets
                 const markets = this.markets_by_id[symbol];
-                const length = markets.length;
-                if (length > 1) {
-                    throw new BadSymbol (this.id + ' ambiguous symbol ' + symbol + ' due to market id conflict, use the unified symbol schema of BASE/QUOTE[:SETTLE[-YYMMDD]] e.g. BTC/USDT and BTC/USDT:USDT');
+                const defaultType = this.safeString (this.options, 'defaultType', 'spot');
+                for (let i = 0; i < markets.length; i++) {
+                    const market = markets[i];
+                    if (market[defaultType]) {
+                        return market;
+                    }
                 }
-                return this.markets_by_id[symbol][0];
+                return markets[0];
             }
         }
         throw new BadSymbol (this.id + ' does not have market symbol ' + symbol);

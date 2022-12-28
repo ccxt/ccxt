@@ -4335,18 +4335,20 @@ export default class okx extends Exchange {
         const marketId = this.safeString (position, 'instId');
         market = this.safeMarket (marketId, market);
         const symbol = market['symbol'];
-        const contractsString = this.safeString (position, 'pos');
-        const contractsAbs = Precise.stringAbs (contractsString);
+        const pos = this.safeString (position, 'pos'); // 'pos' field: One way mode: 0 if position is not open, 1 if open | Two way (hedge) mode: -1 if short, 1 if long, 0 if position is not open
+        const contractsAbs = Precise.stringAbs (pos);
         let contracts = undefined;
         let side = this.safeString (position, 'posSide');
         const hedged = side !== 'net';
-        if (contractsString !== undefined) {
+        if (pos !== undefined) {
             contracts = this.parseNumber (contractsAbs);
             if (side === 'net') {
-                if (Precise.stringGt (contractsString, '0')) {
+                if (Precise.stringGt (pos, '0')) {
                     side = 'long';
-                } else {
+                } else if (Precise.stringLt (pos, '0')) {
                     side = 'short';
+                } else {
+                    side = undefined;
                 }
             }
         }

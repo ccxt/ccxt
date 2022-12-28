@@ -20,7 +20,8 @@ export default async (exchange, symbol) => {
         'cex',
         'ripio',
         'mexc',
-        'woo'
+        'woo',
+        'alpaca', // requires auth
     ]
 
     if (skippedExchanges.includes (exchange.id)) {

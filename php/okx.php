@@ -4265,18 +4265,20 @@ class okx extends Exchange {
         $marketId = $this->safe_string($position, 'instId');
         $market = $this->safe_market($marketId, $market);
         $symbol = $market['symbol'];
-        $contractsString = $this->safe_string($position, 'pos');
-        $contractsAbs = Precise::string_abs($contractsString);
+        $pos = $this->safe_string($position, 'pos'); // 'pos' field => One way mode => 0 if $position is not open, 1 if open | Two way (hedge) mode => -1 if short, 1 if long, 0 if $position is not open
+        $contractsAbs = Precise::string_abs($pos);
         $contracts = null;
         $side = $this->safe_string($position, 'posSide');
         $hedged = $side !== 'net';
-        if ($contractsString !== null) {
+        if ($pos !== null) {
             $contracts = $this->parse_number($contractsAbs);
             if ($side === 'net') {
-                if (Precise::string_gt($contractsString, '0')) {
+                if (Precise::string_gt($pos, '0')) {
                     $side = 'long';
-                } else {
+                } elseif (Precise::string_lt($pos, '0')) {
                     $side = 'short';
+                } else {
+                    $side = null;
                 }
             }
         }

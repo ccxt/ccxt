@@ -14,6 +14,7 @@ use ccxt\InvalidOrder;
 use ccxt\NotSupported;
 use ccxt\Precise;
 use React\Async;
+use React\Promise;
 
 class bitget extends Exchange {
 
@@ -89,7 +90,7 @@ class bitget extends Exchange {
                 'reduceMargin' => true,
                 'setLeverage' => true,
                 'setMarginMode' => true,
-                'setPositionMode' => false,
+                'setPositionMode' => true,
                 'transfer' => true,
                 'withdraw' => false,
             ),
@@ -213,6 +214,7 @@ class bitget extends Exchange {
                             'account/setLeverage' => 8,
                             'account/setMargin' => 8,
                             'account/setMarginMode' => 8,
+                            'account/setPositionMode' => 8,
                             'order/placeOrder' => 2,
                             'order/batch-orders' => 2,
                             'order/cancel-order' => 2,
@@ -824,26 +826,30 @@ class bitget extends Exchange {
     public function fetch_markets($params = array ()) {
         return Async\async(function () use ($params) {
             /**
-             * retrieves data on all $markets for bitget
+             * retrieves data on all markets for bitget
              * @param {array} $params extra parameters specific to the exchange api endpoint
              * @return {[array]} an array of objects representing market data
              */
             $types = $this->safe_value($this->options, 'fetchMarkets', array( 'spot', 'swap' ));
-            $result = array();
+            $promises = array();
             for ($i = 0; $i < count($types); $i++) {
                 $type = $types[$i];
                 if ($type === 'swap') {
-                    $subTypes = array( 'umcbl', 'dmcbl', 'cmcbl', 'sumcbl', 'sdmcbl', 'scmcbl' );
+                    // the following are simulated trading markets array( 'sumcbl', 'sdmcbl', 'scmcbl' );
+                    $subTypes = array( 'umcbl', 'dmcbl', 'cmcbl' );
                     for ($j = 0; $j < count($subTypes); $j++) {
-                        $markets = Async\await($this->fetch_markets_by_type($type, array_merge($params, array(
+                        $promises[] = $this->fetch_markets_by_type($type, array_merge($params, array(
                             'productType' => $subTypes[$j],
-                        ))));
-                        $result = $this->array_concat($result, $markets);
+                        )));
                     }
                 } else {
-                    $markets = Async\await($this->fetch_markets_by_type($types[$i], $params));
-                    $result = $this->array_concat($result, $markets);
+                    $promises[] = $this->fetch_markets_by_type($types[$i], $params);
                 }
+            }
+            $promises = Async\await(Promise\all($promises));
+            $result = $promises[0];
+            for ($i = 1; $i < count($promises); $i++) {
+                $result = $this->array_concat($result, $promises[$i]);
             }
             return $result;
         }) ();
@@ -3488,6 +3494,42 @@ class bitget extends Exchange {
                 'marginMode' => $marginMode,
             );
             return Async\await($this->privateMixPostAccountSetMarginMode (array_merge($request, $params)));
+        }) ();
+    }
+
+    public function set_position_mode($hedged, $symbol = null, $params = array ()) {
+        return Async\async(function () use ($hedged, $symbol, $params) {
+            /**
+             * set $hedged to true or false for a $market
+             * @param {bool} $hedged set to true to use dualSidePosition
+             * @param {string|null} $symbol not used by binance setPositionMode ()
+             * @param {array} $params extra parameters specific to the binance api endpoint
+             * @return {array} $response from the exchange
+             *
+             */
+            $productType = $this->safe_string($params, 'productType');
+            if (($productType === null) && ($symbol === null)) {
+                throw new ArgumentsRequired($this->id . ' setPositionMode() requires a $symbol or the $productType parameter');
+            }
+            Async\await($this->load_markets());
+            $holdMode = $hedged ? 'double_hold' : 'single_hold';
+            $request = array(
+                'holdMode' => $holdMode,
+            );
+            if ($symbol !== null) {
+                $market = $this->market($symbol);
+                $request['productType'] = $market['linear'] ? 'umcbl' : 'dmcbl';
+            }
+            $response = Async\await($this->privateMixPostAccountSetPositionMode (array_merge($request, $params)));
+            //
+            //    {
+            //         "code" => "40919",
+            //         "msg" => "This function is not open yet",
+            //         "requestTime" => 1672212431093,
+            //         "data" => null
+            //     }
+            //
+            return $response;
         }) ();
     }
 
