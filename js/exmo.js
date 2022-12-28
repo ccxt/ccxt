@@ -1492,7 +1492,6 @@ module.exports = class exmo extends Exchange {
         //
         const id = this.safeString (order, 'order_id');
         const timestamp = this.safeTimestamp (order, 'created');
-        let symbol = undefined;
         const side = this.safeString (order, 'type');
         let marketId = undefined;
         if ('pair' in order) {
@@ -1505,6 +1504,7 @@ module.exports = class exmo extends Exchange {
             }
         }
         market = this.safeMarket (marketId, market);
+        const symbol = market['symbol'];
         let amount = this.safeString (order, 'quantity');
         if (amount === undefined) {
             const amountField = (side === 'buy') ? 'in_amount' : 'out_amount';
@@ -1513,10 +1513,6 @@ module.exports = class exmo extends Exchange {
         const price = this.safeString (order, 'price');
         const cost = this.safeString (order, 'amount');
         const transactions = this.safeValue (order, 'trades', []);
-        const status = this.safeString (order, 'status'); // in case we need to redefine it for canceled orders
-        if (market !== undefined) {
-            symbol = market['symbol'];
-        }
         const clientOrderId = this.safeInteger (order, 'client_id');
         return this.safeOrder ({
             'id': id,
@@ -1524,7 +1520,7 @@ module.exports = class exmo extends Exchange {
             'datetime': this.iso8601 (timestamp),
             'timestamp': timestamp,
             'lastTradeTimestamp': undefined,
-            'status': status,
+            'status': undefined,
             'symbol': symbol,
             'type': 'limit',
             'timeInForce': undefined,
