@@ -30,7 +30,7 @@ module.exports = class kucoin extends kucoinRest {
                     'delay': 1000, // warmup delay in ms before synchronizing
                 },
                 'watchTicker': {
-                    'topic': 'market/snapshot', // market/ticker
+                    'name': 'market/snapshot', // market/ticker
                 },
             },
             'streaming': {
@@ -138,7 +138,7 @@ module.exports = class kucoin extends kucoinRest {
         symbol = market['symbol'];
         const negotiation = await this.negotiate ();
         const options = this.safeValue (this.options, 'watchTicker', {});
-        const channel = this.safeString (options, 'topic', 'market/snapshot');
+        const channel = this.safeString2 (options, 'name', 'topic', 'market/snapshot'); // topic option is deprecated use name instead
         const topic = '/' + channel + ':' + market['id'];
         const messageHash = topic;
         return await this.subscribe (negotiation, topic, messageHash, undefined, symbol, params);

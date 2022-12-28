@@ -14,6 +14,7 @@ use ccxt\InvalidOrder;
 use ccxt\NotSupported;
 use ccxt\Precise;
 use React\Async;
+use React\Promise;
 
 class gate extends Exchange {
 
@@ -73,6 +74,7 @@ class gate extends Exchange {
                 'swap' => true,
                 'future' => true,
                 'option' => null,
+                'addMargin' => true,
                 'borrowMargin' => true,
                 'cancelAllOrders' => true,
                 'cancelOrder' => true,
@@ -123,6 +125,7 @@ class gate extends Exchange {
                 'fetchTradingFees' => true,
                 'fetchTransactionFees' => true,
                 'fetchWithdrawals' => true,
+                'reduceMargin' => true,
                 'repayMargin' => true,
                 'setLeverage' => true,
                 'setMarginMode' => false,
@@ -472,7 +475,7 @@ class gate extends Exchange {
                 ),
                 'future' => array(
                     'fetchMarkets' => array(
-                        'settlementCurrencies' => array( 'usdt', 'btc' ),
+                        'settlementCurrencies' => array( 'usdt' ),
                     ),
                 ),
             ),
@@ -680,22 +683,14 @@ class gate extends Exchange {
              * @param {array} $params extra parameters specific to the exchange api endpoint
              * @return {[array]} an array of objects representing market data
              */
-            $result = array();
-            list($type, $query) = $this->handle_market_type_and_params('fetchMarkets', null, $params);
-            if ($type === 'spot' || $type === 'margin') {
-                $result = Async\await($this->fetch_spot_markets($query));
-            }
-            if ($type === 'swap' || $type === 'future') {
-                $result = Async\await($this->fetch_contract_markets($query)); // futures and swaps
-            }
-            if ($type === 'option') {
-                $result = Async\await($this->fetch_option_markets($query));
-            }
-            $resultLength = count($result);
-            if ($resultLength === 0) {
-                throw new ExchangeError($this->id . " does not support '" . $type . "' $type, set exchange.options['defaultType'] to " . "'spot', 'margin', 'swap', 'future' or 'option'"); // eslint-disable-line quotes
-            }
-            return $result;
+            $promises = array(
+                $this->fetch_spot_markets($params),
+                $this->fetch_contract_markets($params),
+            );
+            $promises = Async\await(Promise\all($promises));
+            $spotMarkets = $promises[0];
+            $contractMarkets = $promises[1];
+            return $this->array_concat($spotMarkets, $contractMarkets);
         }) ();
     }
 
@@ -1924,7 +1919,7 @@ class gate extends Exchange {
         //
         $timestamp = $this->safe_timestamp($info, 'time');
         $marketId = $this->safe_string($info, 'text');
-        $market = $this->safe_market($marketId, $market);
+        $market = $this->safe_market($marketId, $market, '_', 'swap');
         return array(
             'info' => $info,
             'symbol' => $this->safe_string($market, 'symbol'),
@@ -2104,13 +2099,27 @@ class gate extends Exchange {
         //         "index_price" => "6531"
         //     }
         //
-        $marketId = $this->safe_string_2($ticker, 'currency_pair', 'contract');
+        // bookTicker
+        //    {
+        //        t => 1671363004228,
+        //        u => 9793320464,
+        //        s => 'BTC_USDT',
+        //        b => '16716.8', // best $bid price
+        //        B => '0.0134', // best $bid size
+        //        a => '16716.9', // best $ask price
+        //        A => '0.0353' // best $ask size
+        //     }
+        //
+        $marketId = $this->safe_string_n($ticker, array( 'currency_pair', 'contract', 's' ));
         $symbol = $this->safe_symbol($marketId, $market);
         $last = $this->safe_string($ticker, 'last');
-        $ask = $this->safe_string($ticker, 'lowest_ask');
-        $bid = $this->safe_string($ticker, 'highest_bid');
+        $ask = $this->safe_string_2($ticker, 'lowest_ask', 'a');
+        $bid = $this->safe_string_2($ticker, 'highest_bid', 'b');
         $high = $this->safe_string($ticker, 'high_24h');
         $low = $this->safe_string($ticker, 'low_24h');
+        $bidVolume = $this->safe_string($ticker, 'B');
+        $askVolume = $this->safe_string($ticker, 'A');
+        $timestamp = $this->safe_integer($ticker, 't');
         $baseVolume = $this->safe_string_2($ticker, 'base_volume', 'volume_24h_base');
         if ($baseVolume === 'nan') {
             $baseVolume = '0';
@@ -2122,14 +2131,14 @@ class gate extends Exchange {
         $percentage = $this->safe_string($ticker, 'change_percentage');
         return $this->safe_ticker(array(
             'symbol' => $symbol,
-            'timestamp' => null,
-            'datetime' => null,
+            'timestamp' => $timestamp,
+            'datetime' => $this->iso8601($timestamp),
             'high' => $high,
             'low' => $low,
             'bid' => $bid,
-            'bidVolume' => null,
+            'bidVolume' => $bidVolume,
             'ask' => $ask,
-            'askVolume' => null,
+            'askVolume' => $askVolume,
             'vwap' => null,
             'open' => null,
             'close' => $last,
@@ -2822,7 +2831,8 @@ class gate extends Exchange {
         $timestamp = $this->safe_timestamp_2($trade, 'time', 'create_time');
         $timestamp = $this->safe_integer($trade, 'create_time_ms', $timestamp);
         $marketId = $this->safe_string_2($trade, 'currency_pair', 'contract');
-        $market = $this->safe_market($marketId, $market);
+        $marketType = (is_array($trade) && array_key_exists('contract', $trade)) ? 'contract' : 'spot';
+        $market = $this->safe_market($marketId, $market, '_', $marketType);
         $amountString = $this->safe_string_2($trade, 'amount', 'size');
         $priceString = $this->safe_string($trade, 'price');
         $contractSide = Precise::string_lt($amountString, '0') ? 'sell' : 'buy';
@@ -4259,7 +4269,7 @@ class gate extends Exchange {
         //     }
         //
         $contract = $this->safe_string($position, 'contract');
-        $market = $this->safe_market($contract, $market);
+        $market = $this->safe_market($contract, $market, '_', 'contract');
         $size = $this->safe_string($position, 'size');
         $side = null;
         if (Precise::string_gt($size, '0')) {
@@ -4855,7 +4865,7 @@ class gate extends Exchange {
             $this->check_required_credentials();
             $queryString = '';
             $requiresURLEncoding = false;
-            if ($type === 'futures' && $method === 'POST') {
+            if ((($type === 'futures') || ($type === 'delivery')) && $method === 'POST') {
                 $pathParts = explode('/', $path);
                 $secondPart = $this->safe_string($pathParts, 1, '');
                 $requiresURLEncoding = (mb_strpos($secondPart, 'dual') !== false) || (mb_strpos($secondPart, 'positions') !== false);
@@ -4894,6 +4904,88 @@ class gate extends Exchange {
             );
         }
         return array( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
+    }
+
+    public function modify_margin_helper($symbol, $amount, $params = array ()) {
+        return Async\async(function () use ($symbol, $amount, $params) {
+            Async\await($this->load_markets());
+            $market = $this->market($symbol);
+            list($request, $query) = $this->prepare_request($market, null, $params);
+            $request['change'] = $this->number_to_string($amount);
+            $method = $this->get_supported_mapping($market['type'], array(
+                'swap' => 'privateFuturesPostSettlePositionsContractMargin',
+                'future' => 'privateDeliveryPostSettlePositionsContractMargin',
+            ));
+            $response = Async\await($this->$method (array_merge($request, $query)));
+            return $this->parse_margin_modification($response, $market);
+        }) ();
+    }
+
+    public function parse_margin_modification($data, $market = null) {
+        //
+        //     {
+        //         "value" => "11.9257",
+        //         "leverage" => "5",
+        //         "mode" => "single",
+        //         "realised_point" => "0",
+        //         "contract" => "ETH_USDT",
+        //         "entry_price" => "1203.45",
+        //         "mark_price" => "1192.57",
+        //         "history_point" => "0",
+        //         "realised_pnl" => "-0.00577656",
+        //         "close_order" => null,
+        //         "size" => "1",
+        //         "cross_leverage_limit" => "0",
+        //         "pending_orders" => "0",
+        //         "adl_ranking" => "5",
+        //         "maintenance_rate" => "0.005",
+        //         "unrealised_pnl" => "-0.1088",
+        //         "user" => "1486602",
+        //         "leverage_max" => "100",
+        //         "history_pnl" => "0",
+        //         "risk_limit" => "1000000",
+        //         "margin" => "5.415925875",
+        //         "last_close_pnl" => "0",
+        //         "liq_price" => "665.69"
+        //     }
+        //
+        $contract = $this->safe_string($data, 'contract');
+        $market = $this->safe_market($contract, $market, '_', 'contract');
+        $total = $this->safe_number($data, 'margin');
+        return array(
+            'info' => $data,
+            'amount' => null,
+            'code' => $this->safe_value($market, 'quote'),
+            'symbol' => $market['symbol'],
+            'total' => $total,
+            'status' => 'ok',
+        );
+    }
+
+    public function reduce_margin($symbol, $amount, $params = array ()) {
+        return Async\async(function () use ($symbol, $amount, $params) {
+            /**
+             * remove margin from a position
+             * @param {string} $symbol unified market $symbol
+             * @param {float} $amount the $amount of margin to remove
+             * @param {array} $params extra parameters specific to the exmo api endpoint
+             * @return {array} a {@link https://docs.ccxt.com/en/latest/manual.html#reduce-margin-structure margin structure}
+             */
+            return Async\await($this->modify_margin_helper($symbol, -$amount, $params));
+        }) ();
+    }
+
+    public function add_margin($symbol, $amount, $params = array ()) {
+        return Async\async(function () use ($symbol, $amount, $params) {
+            /**
+             * add margin
+             * @param {string} $symbol unified market $symbol
+             * @param {float} $amount amount of margin to add
+             * @param {array} $params extra parameters specific to the exmo api endpoint
+             * @return {array} a {@link https://docs.ccxt.com/en/latest/manual.html#add-margin-structure margin structure}
+             */
+            return Async\await($this->modify_margin_helper($symbol, $amount, $params));
+        }) ();
     }
 
     public function handle_errors($code, $reason, $url, $method, $headers, $body, $response, $requestHeaders, $requestBody) {

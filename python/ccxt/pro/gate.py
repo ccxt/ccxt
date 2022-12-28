@@ -61,6 +61,9 @@ class gate(Exchange, ccxt.async_support.gate):
                 'watchTradesSubscriptions': {},
                 'watchTickerSubscriptions': {},
                 'watchOrderBookSubscriptions': {},
+                'watchTicker': {
+                    'name': 'tickers',  # or book_ticker
+                },
                 'watchOrderBook': {
                     'interval': '100ms',
                 },
@@ -337,11 +340,46 @@ class gate(Exchange, ccxt.async_support.gate):
         marketId = market['id']
         type = market['type']
         messageType = self.get_uniform_type(type)
-        channel = messageType + '.' + 'tickers'
+        options = self.safe_value(self.options, 'watchTicker', {})
+        topic = self.safe_string(options, 'name', 'tickers')
+        channel = messageType + '.' + topic
         messageHash = channel + '.' + market['symbol']
         payload = [marketId]
         url = self.get_url_by_market_type(type, market['inverse'])
         return await self.subscribe_public(url, channel, messageHash, payload)
+
+    async def watch_tickers(self, symbols=None, params={}):
+        """
+        watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for all markets of a specific list
+        :param Array symbols: unified symbol of the market to fetch the ticker for
+        :param dict params: extra parameters specific to the gate api endpoint
+        :returns dict: a `ticker structure <https://docs.ccxt.com/en/latest/manual.html#ticker-structure>`
+        """
+        await self.load_markets()
+        symbols = self.market_symbols(symbols)
+        if symbols is None:
+            raise ArgumentsRequired(self.id + ' watchTickers requires symbols')
+        market = self.market(symbols[0])
+        type = market['type']
+        messageType = self.get_uniform_type(type)
+        marketIds = self.market_ids(symbols)
+        options = self.safe_value(self.options, 'watchTickers', {})
+        topic = self.safe_string(options, 'name', 'tickers')
+        channel = messageType + '.' + topic
+        messageHash = 'tickers'
+        payload = []
+        for i in range(0, len(marketIds)):
+            payload.append(marketIds[i])
+        url = self.get_url_by_market_type(type, market['inverse'])
+        ticker = await self.subscribe_public(url, channel, messageHash, payload)
+        tickerSymbol = ticker['symbol']
+        if symbols is not None and not self.in_array(tickerSymbol, symbols):
+            return await self.watch_tickers(symbols, params)
+        if self.newUpdates:
+            result = {}
+            result[tickerSymbol] = ticker
+            return result
+        return self.filter_by_array(self.tickers, 'symbol', symbols, False)
 
     def handle_ticker(self, client, message):
         #
@@ -361,6 +399,21 @@ class gate(Exchange, ccxt.async_support.gate):
         #          low_24h: '42721.03'
         #        }
         #    }
+        #    {
+        #        time: 1671363004,
+        #        time_ms: 1671363004235,
+        #        channel: 'spot.book_ticker',
+        #        event: 'update',
+        #        result: {
+        #          t: 1671363004228,
+        #          u: 9793320464,
+        #          s: 'BTC_USDT',
+        #          b: '16716.8',
+        #          B: '0.0134',
+        #          a: '16716.9',
+        #          A: '0.0353'
+        #        }
+        #    }
         #
         channel = self.safe_string(message, 'channel')
         result = self.safe_value(message, 'result')
@@ -373,6 +426,7 @@ class gate(Exchange, ccxt.async_support.gate):
             self.tickers[symbol] = parsed
             messageHash = channel + '.' + symbol
             client.resolve(self.tickers[symbol], messageHash)
+            client.resolve(parsed, 'tickers')
 
     async def watch_trades(self, symbol, since=None, limit=None, params={}):
         """
@@ -1032,6 +1086,7 @@ class gate(Exchange, ccxt.async_support.gate):
             'candlesticks': self.handle_ohlcv,
             'orders': self.handle_order,
             'tickers': self.handle_ticker,
+            'book_ticker': self.handle_ticker,
             'trades': self.handle_trades,
             'order_book_update': self.handle_order_book,
             'balances': self.handle_balance_message,

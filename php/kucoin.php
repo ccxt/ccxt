@@ -51,6 +51,8 @@ class kucoin extends Exchange {
                 'fetchDepositAddress' => true,
                 'fetchDepositAddressesByNetwork' => true,
                 'fetchDeposits' => true,
+                'fetchDepositWithdrawFee' => true,
+                'fetchDepositWithdrawFees' => false,
                 'fetchFundingHistory' => false,
                 'fetchFundingRate' => false,
                 'fetchFundingRateHistory' => false,
@@ -488,6 +490,9 @@ class kucoin extends Exchange {
                     'HRC20' => 'heco',
                     'HT' => 'heco',
                 ),
+                'networksById' => array(
+                    'BEP20' => 'BSC',
+                ),
             ),
         ));
     }
@@ -776,7 +781,7 @@ class kucoin extends Exchange {
 
     public function fetch_transaction_fee($code, $params = array ()) {
         /**
-         * fetch the fee for a transaction
+         * *DEPRECATED* please use fetchDepositWithdrawFee instead
          * @see https://docs.kucoin.com/#get-withdrawal-quotas
          * @param {string} $code unified $currency $code
          * @param {array} $params extra parameters specific to the kucoin api endpoint
@@ -804,6 +809,84 @@ class kucoin extends Exchange {
             'withdraw' => $withdrawFees,
             'deposit' => array(),
         );
+    }
+
+    public function fetch_deposit_withdraw_fee($code, $params = array ()) {
+        /**
+         * fetch the fee for deposits and withdrawals
+         * @see https://docs.kucoin.com/#get-withdrawal-quotas
+         * @param {string} $code unified $currency $code
+         * @param {array} $params extra parameters specific to the kucoin api endpoint
+         * @param {string|null} $params->network The chain of $currency-> This only apply for multi-chain $currency, and there is no need for single chain $currency; you can query the chain through the $response of the GET /api/v2/currencies/{$currency} interface
+         * @return {array} a {@link https://docs.ccxt.com/en/latest/manual.html#fee-structure fee structure}
+         */
+        $this->load_markets();
+        $currency = $this->currency($code);
+        $request = array(
+            'currency' => $currency['id'],
+        );
+        $networkCode = $this->safe_string_upper($params, 'network');
+        $network = $this->network_code_to_id($networkCode, $code);
+        if ($network !== null) {
+            $request['chain'] = $network;
+            $params = $this->omit($params, array( 'network' ));
+        }
+        $response = $this->privateGetWithdrawalsQuotas (array_merge($request, $params));
+        //
+        //    {
+        //        "code" => "200000",
+        //        "data" => {
+        //            "currency" => "USDT",
+        //            "limitBTCAmount" => "1.00000000",
+        //            "usedBTCAmount" => "0.00000000",
+        //            "remainAmount" => "16548.072149",
+        //            "availableAmount" => "0",
+        //            "withdrawMinFee" => "25",
+        //            "innerWithdrawMinFee" => "0",
+        //            "withdrawMinSize" => "50",
+        //            "isWithdrawEnabled" => true,
+        //            "precision" => 6,
+        //            "chain" => "ERC20"
+        //        }
+        //    }
+        //
+        $data = $this->safe_value($response, 'data');
+        return $this->parse_deposit_withdraw_fee($data, $currency);
+    }
+
+    public function parse_deposit_withdraw_fee($fee, $currency = null) {
+        //
+        //    {
+        //        "currency" => "USDT",
+        //        "limitBTCAmount" => "1.00000000",
+        //        "usedBTCAmount" => "0.00000000",
+        //        "remainAmount" => "16548.072149",
+        //        "availableAmount" => "0",
+        //        "withdrawMinFee" => "25",
+        //        "innerWithdrawMinFee" => "0",
+        //        "withdrawMinSize" => "50",
+        //        "isWithdrawEnabled" => true,
+        //        "precision" => 6,
+        //        "chain" => "ERC20"
+        //    }
+        //
+        $result = $this->deposit_withdraw_fee($fee);
+        $isWithdrawEnabled = $this->safe_value($fee, 'isWithdrawEnabled');
+        if ($isWithdrawEnabled) {
+            $networkId = $this->safe_string($fee, 'chain');
+            $networkCode = $this->network_id_to_code($networkId, $this->safe_string($currency, 'code'));
+            $result['networks'][$networkCode] = array(
+                'withdraw' => array(
+                    'fee' => $this->safe_number($fee, 'withdrawMinFee'),
+                    'percentage' => null,
+                ),
+                'deposit' => array(
+                    'fee' => null,
+                    'percentage' => null,
+                ),
+            );
+        }
+        return $this->assign_default_deposit_withdraw_fees($result);
     }
 
     public function is_futures_method($methodName, $params) {

@@ -61,7 +61,7 @@ Full public and private HTTP REST APIs for all exchanges are implemented. WebSoc
 - [Exchange Structure](#exchange-structure)
 - [Rate Limit](#rate-limit)
 
-The CCXT library currently supports the following 105 cryptocurrency exchange markets and trading APIs:
+The CCXT library currently supports the following 104 cryptocurrency exchange markets and trading APIs:
 
 | logo                                                                                                                                                                                                            | id                 | name                                                                                                    | ver                                                                                                                                                | certified                                                                                                                   | pro                                                                          |
 |-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|--------------------|---------------------------------------------------------------------------------------------------------|:--------------------------------------------------------------------------------------------------------------------------------------------------:|-----------------------------------------------------------------------------------------------------------------------------|------------------------------------------------------------------------------|
@@ -124,7 +124,7 @@ The CCXT library currently supports the following 105 cryptocurrency exchange ma
 | [![gate](https://user-images.githubusercontent.com/1294454/31784029-0313c702-b509-11e7-9ccc-bc0da6a0e435.jpg)](https://www.gate.io/ref/2436035)                                                                 | gate               | [Gate.io](https://www.gate.io/ref/2436035)                                                              | [![API Version 4](https://img.shields.io/badge/4-lightgray)](https://www.gate.io/docs/apiv4/en/index.html)                                         | [![CCXT Certified](https://img.shields.io/badge/CCXT-Certified-green.svg)](https://github.com/ccxt/ccxt/wiki/Certification) | [![CCXT Pro](https://img.shields.io/badge/CCXT-Pro-black)](https://ccxt.pro) |
 | [![gemini](https://user-images.githubusercontent.com/1294454/27816857-ce7be644-6096-11e7-82d6-3c257263229c.jpg)](https://gemini.com/)                                                                           | gemini             | [Gemini](https://gemini.com/)                                                                           | [![API Version 1](https://img.shields.io/badge/1-lightgray)](https://docs.gemini.com/rest-api)                                                     |                                                                                                                             |                                                                              |
 | [![hitbtc](https://user-images.githubusercontent.com/1294454/27766555-8eaec20e-5edc-11e7-9c5b-6dc69fc42f5e.jpg)](https://hitbtc.com/?ref_id=5a5d39a65d466)                                                      | hitbtc             | [HitBTC](https://hitbtc.com/?ref_id=5a5d39a65d466)                                                      | [![API Version 2](https://img.shields.io/badge/2-lightgray)](https://api.hitbtc.com/v2)                                                            |                                                                                                                             | [![CCXT Pro](https://img.shields.io/badge/CCXT-Pro-black)](https://ccxt.pro) |
-| [![hitbtc3](https://user-images.githubusercontent.com/1294454/27766555-8eaec20e-5edc-11e7-9c5b-6dc69fc42f5e.jpg)](https://hitbtc.com/?ref_id=5a5d39a65d466)                                                     | hitbtc3            | [HitBTC](https://hitbtc.com/?ref_id=5a5d39a65d466)                                                      | [![API Version 3](https://img.shields.io/badge/3-lightgray)](https://api.hitbtc.com)                                                               |                                                                                                                             | [![CCXT Pro](https://img.shields.io/badge/CCXT-Pro-black)](https://ccxt.pro) |
+| [![hitbtc3](https://user-images.githubusercontent.com/1294454/27766555-8eaec20e-5edc-11e7-9c5b-6dc69fc42f5e.jpg)](https://hitbtc.com/?ref_id=5a5d39a65d466)                                                     | hitbtc3            | [HitBTC](https://hitbtc.com/?ref_id=5a5d39a65d466)                                                      | [![API Version 3](https://img.shields.io/badge/3-lightgray)](https://api.hitbtc.com)                                                               |                                                                                                                             |                                                                              |
 | [![hollaex](https://user-images.githubusercontent.com/1294454/75841031-ca375180-5ddd-11ea-8417-b975674c23cb.jpg)](https://pro.hollaex.com/signup?affiliation_code=QSWA6G)                                       | hollaex            | [HollaEx](https://pro.hollaex.com/signup?affiliation_code=QSWA6G)                                       | [![API Version 2](https://img.shields.io/badge/2-lightgray)](https://apidocs.hollaex.com)                                                          |                                                                                                                             | [![CCXT Pro](https://img.shields.io/badge/CCXT-Pro-black)](https://ccxt.pro) |
 | [![huobi](https://user-images.githubusercontent.com/1294454/76137448-22748a80-604e-11ea-8069-6e389271911d.jpg)](https://www.huobi.com/en-us/v/register/double-invite/?inviter_id=11343840&invite_code=6rmm2223) | huobi              | [Huobi](https://www.huobi.com/en-us/v/register/double-invite/?inviter_id=11343840&invite_code=6rmm2223) | [![API Version 1](https://img.shields.io/badge/1-lightgray)](https://huobiapi.github.io/docs/spot/v1/cn/)                                          | [![CCXT Certified](https://img.shields.io/badge/CCXT-Certified-green.svg)](https://github.com/ccxt/ccxt/wiki/Certification) | [![CCXT Pro](https://img.shields.io/badge/CCXT-Pro-black)](https://ccxt.pro) |
 | [![huobijp](https://user-images.githubusercontent.com/1294454/85734211-85755480-b705-11ea-8b35-0b7f1db33a2f.jpg)](https://www.huobi.co.jp/register/?invite_code=znnq3)                                          | huobijp            | [Huobi Japan](https://www.huobi.co.jp/register/?invite_code=znnq3)                                      | [![API Version 1](https://img.shields.io/badge/1-lightgray)](https://api-doc.huobi.co.jp)                                                          |                                                                                                                             | [![CCXT Pro](https://img.shields.io/badge/CCXT-Pro-black)](https://ccxt.pro) |
@@ -153,7 +153,6 @@ The CCXT library currently supports the following 105 cryptocurrency exchange ma
 | [![phemex](https://user-images.githubusercontent.com/1294454/85225056-221eb600-b3d7-11ea-930d-564d2690e3f6.jpg)](https://phemex.com/register?referralCode=EDNVJ)                                                | phemex             | [Phemex](https://phemex.com/register?referralCode=EDNVJ)                                                | [![API Version 1](https://img.shields.io/badge/1-lightgray)](https://github.com/phemex/phemex-api-docs)                                            |                                                                                                                             | [![CCXT Pro](https://img.shields.io/badge/CCXT-Pro-black)](https://ccxt.pro) |
 | [![poloniex](https://user-images.githubusercontent.com/1294454/27766817-e9456312-5ee6-11e7-9b3c-b628ca5626a5.jpg)](https://poloniex.com/signup?c=UBFZJRPJ)                                                      | poloniex           | [Poloniex](https://poloniex.com/signup?c=UBFZJRPJ)                                                      | [![API Version *](https://img.shields.io/badge/*-lightgray)](https://docs.poloniex.com)                                                            |                                                                                                                             |                                                                              |
 | [![probit](https://user-images.githubusercontent.com/51840849/79268032-c4379480-7ea2-11ea-80b3-dd96bb29fd0d.jpg)](https://www.probit.com/r/34608773)                                                            | probit             | [ProBit](https://www.probit.com/r/34608773)                                                             | [![API Version 1](https://img.shields.io/badge/1-lightgray)](https://docs-en.probit.com)                                                           |                                                                                                                             |                                                                              |
-| [![qtrade](https://user-images.githubusercontent.com/51840849/80491487-74a99c00-896b-11ea-821e-d307e832f13e.jpg)](https://qtrade.io/?ref=BKOQWVFGRH2C)                                                          | qtrade             | [qTrade](https://qtrade.io/?ref=BKOQWVFGRH2C)                                                           | [![API Version 1](https://img.shields.io/badge/1-lightgray)](https://qtrade-exchange.github.io/qtrade-docs)                                        |                                                                                                                             |                                                                              |
 | [![ripio](https://user-images.githubusercontent.com/1294454/94507548-a83d6a80-0218-11eb-9998-28b9cec54165.jpg)](https://exchange.ripio.com)                                                                     | ripio              | [Ripio](https://exchange.ripio.com)                                                                     | [![API Version 1](https://img.shields.io/badge/1-lightgray)](https://exchange.ripio.com/en/api/)                                                   |                                                                                                                             | [![CCXT Pro](https://img.shields.io/badge/CCXT-Pro-black)](https://ccxt.pro) |
 | [![stex](https://user-images.githubusercontent.com/1294454/69680782-03fd0b80-10bd-11ea-909e-7f603500e9cc.jpg)](https://app.stex.com?ref=36416021)                                                               | stex               | [STEX](https://app.stex.com?ref=36416021)                                                               | [![API Version 3](https://img.shields.io/badge/3-lightgray)](https://apidocs.stex.com/)                                                            |                                                                                                                             |                                                                              |
 | [![therock](https://user-images.githubusercontent.com/1294454/27766869-75057fa2-5ee9-11e7-9a6f-13e641fa4707.jpg)](https://therocktrading.com)                                                                   | therock            | [TheRockTrading](https://therocktrading.com)                                                            | [![API Version 1](https://img.shields.io/badge/1-lightgray)](https://api.therocktrading.com/doc/v1/index.html)                                     |                                                                                                                             |                                                                              |
@@ -395,7 +394,7 @@ Here's an overview of generic exchange properties with values added for example:
     'markets':          { ... }          // dictionary of markets/pairs by symbol
     'symbols':          [ ... ]          // sorted list of string symbols (traded pairs)
     'currencies':       { ... }          // dictionary of currencies by currency code
-    'markets_by_id':    { ... },         // dictionary of dictionaries (markets) by id
+    'markets_by_id':    { ... },         // dictionary of array of dictionaries (markets) by id
     'currencies_by_id': { ... },         // dictionary of dictionaries (markets) by id
     'apiKey':   '92560ffae9b8a0421...',  // string public apiKey (ASCII, hex, Base64, ...)
     'secret':   '9aHjPmW+EtRRKN/Oi...'   // string private secret key
@@ -452,7 +451,7 @@ Below is a detailed description of each of the base exchange properties:
 
 - `currencies`: An associative array (a dict) of currencies by codes (usually 3 or 4 letters) available with an exchange. Currencies are loaded and reloaded from markets.
 
-- `markets_by_id`: An associative array of markets indexed by exchange-specific ids. Markets should be loaded prior to accessing this property.
+- `markets_by_id`: An associative array of arrays of markets indexed by exchange-specific ids. Typically a length one array unless there are multiple markets with the same marketId. Markets should be loaded prior to accessing this property.
 
 - `proxy`: A string literal containing base URL of http(s) proxy, `''` by default. For use with web browsers and from blocked locations. An example of a proxy string is `'http://cors-anywhere.herokuapp.com/'`. The absolute exchange endpoint URL is appended to this string before sending the HTTP request.
 
@@ -1132,10 +1131,10 @@ Most of the time users will be working with market symbols. You will get a stand
     await bitfinex.loadMarkets ()
 
     bitfinex.markets['BTC/USD']                   // symbol → market (get market by symbol)
-    bitfinex.markets_by_id['XRPBTC']              // id → market (get market by id)
+    bitfinex.markets_by_id['XRPBTC'][0]           // id → market (get market by id)
 
     bitfinex.markets['BTC/USD']['id']             // symbol → id (get id by symbol)
-    bitfinex.markets_by_id['XRPBTC']['symbol']    // id → symbol (get symbol by id)
+    bitfinex.markets_by_id['XRPBTC'][0]['symbol'] // id → symbol (get symbol by id)
 
 }) ()
 ```
@@ -1145,26 +1144,26 @@ Most of the time users will be working with market symbols. You will get a stand
 
 print(exchange.load_markets())
 
-etheur1 = exchange.markets['ETH/EUR']      # get market structure by symbol
-etheur2 = exchange.market('ETH/EUR')       # same result in a slightly different way
+etheur1 = exchange.markets['ETH/EUR']         # get market structure by symbol
+etheur2 = exchange.market('ETH/EUR')          # same result in a slightly different way
 
-etheurId = exchange.market_id('ETH/EUR')   # get market id by symbol
+etheurId = exchange.market_id('ETH/EUR')      # get market id by symbol
 
-symbols = exchange.symbols                 # get a list of symbols
-symbols2 = list(exchange.markets.keys())   # same as previous line
+symbols = exchange.symbols                    # get a list of symbols
+symbols2 = list(exchange.markets.keys())      # same as previous line
 
-print(exchange.id, symbols)                # print all symbols
+print(exchange.id, symbols)                   # print all symbols
 
-currencies = exchange.currencies           # a dictionary of currencies
+currencies = exchange.currencies              # a dictionary of currencies
 
 kraken = ccxt.kraken()
 kraken.load_markets()
 
-kraken.markets['BTC/USD']                  # symbol → market (get market by symbol)
-kraken.markets_by_id['XXRPZUSD']           # id → market (get market by id)
+kraken.markets['BTC/USD']                     # symbol → market (get market by symbol)
+kraken.markets_by_id['XXRPZUSD'][0]           # id → market (get market by id)
 
-kraken.markets['BTC/USD']['id']            # symbol → id (get id by symbol)
-kraken.markets_by_id['XXRPZUSD']['symbol'] # id → symbol (get symbol by id)
+kraken.markets['BTC/USD']['id']               # symbol → id (get id by symbol)
+kraken.markets_by_id['XXRPZUSD'][0]['symbol'] # id → symbol (get symbol by id)
 ```
 
 ```PHP
@@ -1172,28 +1171,28 @@ kraken.markets_by_id['XXRPZUSD']['symbol'] # id → symbol (get symbol by id)
 
 $var_dump($exchange->load_markets());
 
-$dashcny1 = $exchange->markets['DASH/CNY'];     // get market structure by symbol
-$dashcny2 = $exchange->market('DASH/CNY');      // same result in a slightly different way
+$dashcny1 = $exchange->markets['DASH/CNY'];        // get market structure by symbol
+$dashcny2 = $exchange->market('DASH/CNY');         // same result in a slightly different way
 
-$dashcnyId = $exchange->market_id('DASH/CNY');  // get market id by symbol
+$dashcnyId = $exchange->market_id('DASH/CNY');     // get market id by symbol
 
-$symbols = $exchange->symbols;                  // get an array of symbols
-$symbols2 = array_keys($exchange->markets);     // same as previous line
+$symbols = $exchange->symbols;                     // get an array of symbols
+$symbols2 = array_keys($exchange->markets);        // same as previous line
 
-var_dump($exchange->id, $symbols);              // print all symbols
+var_dump($exchange->id, $symbols);                 // print all symbols
 
-$currencies = $exchange->currencies;            // an associative array of currencies
+$currencies = $exchange->currencies;               // an associative array of currencies
 
 $okcoinusd = '\\ccxt\\okcoinusd';
 $okcoinusd = new $okcoinusd();
 
 $okcoinusd->load_markets();
 
-$okcoinusd->markets['BTC/USD'];                 // symbol → market (get market by symbol)
-$okcoinusd->markets_by_id['btc_usd'];           // id → market (get market by id)
+$okcoinusd->markets['BTC/USD'];                    // symbol → market (get market by symbol)
+$okcoinusd->markets_by_id['btc_usd'][0];              // id → market (get market by id)
 
-$okcoinusd->markets['BTC/USD']['id'];           // symbol → id (get id by symbol)
-$okcoinusd->markets_by_id['btc_usd']['symbol']; // id → symbol (get symbol by id)
+$okcoinusd->markets['BTC/USD']['id'];              // symbol → id (get id by symbol)
+$okcoinusd->markets_by_id['btc_usd'][0]['symbol']; // id → symbol (get symbol by id)
 ```
 
 ### Naming Consistency

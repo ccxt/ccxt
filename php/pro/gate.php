@@ -61,6 +61,9 @@ class gate extends \ccxt\async\gate {
                 'watchTradesSubscriptions' => array(),
                 'watchTickerSubscriptions' => array(),
                 'watchOrderBookSubscriptions' => array(),
+                'watchTicker' => array(
+                    'name' => 'tickers', // or book_ticker
+                ),
                 'watchOrderBook' => array(
                     'interval' => '100ms',
                 ),
@@ -366,11 +369,53 @@ class gate extends \ccxt\async\gate {
             $marketId = $market['id'];
             $type = $market['type'];
             $messageType = $this->get_uniform_type($type);
-            $channel = $messageType . '.' . 'tickers';
+            $options = $this->safe_value($this->options, 'watchTicker', array());
+            $topic = $this->safe_string($options, 'name', 'tickers');
+            $channel = $messageType . '.' . $topic;
             $messageHash = $channel . '.' . $market['symbol'];
             $payload = array( $marketId );
             $url = $this->get_url_by_market_type($type, $market['inverse']);
             return Async\await($this->subscribe_public($url, $channel, $messageHash, $payload));
+        }) ();
+    }
+
+    public function watch_tickers($symbols = null, $params = array ()) {
+        return Async\async(function () use ($symbols, $params) {
+            /**
+             * watches a price $ticker, a statistical calculation with the information calculated over the past 24 hours for all markets of a specific list
+             * @param {Array} $symbols unified symbol of the $market to fetch the $ticker for
+             * @param {array} $params extra parameters specific to the gate api endpoint
+             * @return {array} a {@link https://docs.ccxt.com/en/latest/manual.html#$ticker-structure $ticker structure}
+             */
+            Async\await($this->load_markets());
+            $symbols = $this->market_symbols($symbols);
+            if ($symbols === null) {
+                throw new ArgumentsRequired($this->id . ' watchTickers requires symbols');
+            }
+            $market = $this->market($symbols[0]);
+            $type = $market['type'];
+            $messageType = $this->get_uniform_type($type);
+            $marketIds = $this->market_ids($symbols);
+            $options = $this->safe_value($this->options, 'watchTickers', array());
+            $topic = $this->safe_string($options, 'name', 'tickers');
+            $channel = $messageType . '.' . $topic;
+            $messageHash = 'tickers';
+            $payload = array();
+            for ($i = 0; $i < count($marketIds); $i++) {
+                $payload[] = $marketIds[$i];
+            }
+            $url = $this->get_url_by_market_type($type, $market['inverse']);
+            $ticker = Async\await($this->subscribe_public($url, $channel, $messageHash, $payload));
+            $tickerSymbol = $ticker['symbol'];
+            if ($symbols !== null && !$this->in_array($tickerSymbol, $symbols)) {
+                return Async\await($this->watch_tickers($symbols, $params));
+            }
+            if ($this->newUpdates) {
+                $result = array();
+                $result[$tickerSymbol] = $ticker;
+                return $result;
+            }
+            return $this->filter_by_array($this->tickers, 'symbol', $symbols, false);
         }) ();
     }
 
@@ -392,6 +437,21 @@ class gate extends \ccxt\async\gate {
         //          low_24h => '42721.03'
         //        }
         //    }
+        //    {
+        //        time => 1671363004,
+        //        time_ms => 1671363004235,
+        //        $channel => 'spot.book_ticker',
+        //        event => 'update',
+        //        $result => {
+        //          t => 1671363004228,
+        //          u => 9793320464,
+        //          s => 'BTC_USDT',
+        //          b => '16716.8',
+        //          B => '0.0134',
+        //          a => '16716.9',
+        //          A => '0.0353'
+        //        }
+        //    }
         //
         $channel = $this->safe_string($message, 'channel');
         $result = $this->safe_value($message, 'result');
@@ -405,6 +465,7 @@ class gate extends \ccxt\async\gate {
             $this->tickers[$symbol] = $parsed;
             $messageHash = $channel . '.' . $symbol;
             $client->resolve ($this->tickers[$symbol], $messageHash);
+            $client->resolve ($parsed, 'tickers');
         }
     }
 
@@ -1139,6 +1200,7 @@ class gate extends \ccxt\async\gate {
             'candlesticks' => array($this, 'handle_ohlcv'),
             'orders' => array($this, 'handle_order'),
             'tickers' => array($this, 'handle_ticker'),
+            'book_ticker' => array($this, 'handle_ticker'),
             'trades' => array($this, 'handle_trades'),
             'order_book_update' => array($this, 'handle_order_book'),
             'balances' => array($this, 'handle_balance_message'),

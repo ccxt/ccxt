@@ -103,6 +103,7 @@ class btcex(Exchange):
                 '3m': '3',
                 '5m': '5',
                 '15m': '15',
+                '30m': '30',
                 '1h': '60',
                 '2h': '120',
                 '3h': '180',
@@ -577,7 +578,7 @@ class btcex(Exchange):
         #     }
         #
         return [
-            self.safe_integer(ohlcv, 'tick'),
+            self.safe_timestamp(ohlcv, 'tick'),
             self.safe_number(ohlcv, 'open'),
             self.safe_number(ohlcv, 'high'),
             self.safe_number(ohlcv, 'low'),

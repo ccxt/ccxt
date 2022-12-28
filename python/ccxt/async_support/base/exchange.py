@@ -2,7 +2,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '2.4.18'
+__version__ = '2.4.70'
 
 # -----------------------------------------------------------------------------
 
@@ -335,15 +335,22 @@ class Exchange(BaseExchange):
 
     def set_markets(self, markets, currencies=None):
         values = []
-        marketValues = self.to_array(markets)
+        self.markets_by_id = {}
+        # handle marketId conflicts
+        # we insert spot markets first
+        marketValues = self.sort_by(self.to_array(markets), 'spot', True)
         for i in range(0, len(marketValues)):
+            value = marketValues[i]
+            if value['id'] in self.markets_by_id:
+                self.markets_by_id[value['id']].append(value)
+            else:
+                self.markets_by_id[value['id']] = [value]
             market = self.deep_extend(self.safe_market(), {
                 'precision': self.precision,
                 'limits': self.limits,
-            }, self.fees['trading'], marketValues[i])
+            }, self.fees['trading'], value)
             values.append(market)
         self.markets = self.index_by(values, 'symbol')
-        self.markets_by_id = self.index_by(markets, 'id')
         marketsSortedBySymbol = self.keysort(self.markets)
         marketsSortedById = self.keysort(self.markets_by_id)
         self.symbols = list(marketsSortedBySymbol.keys())
@@ -445,12 +452,16 @@ class Exchange(BaseExchange):
         average = self.omit_zero(self.safe_string(order, 'average'))
         price = self.omit_zero(self.safe_string(order, 'price'))
         lastTradeTimeTimestamp = self.safe_integer(order, 'lastTradeTimestamp')
+        symbol = self.safe_string(order, 'symbol')
+        side = self.safe_string(order, 'side')
         parseFilled = (filled is None)
         parseCost = (cost is None)
         parseLastTradeTimeTimestamp = (lastTradeTimeTimestamp is None)
         fee = self.safe_value(order, 'fee')
         parseFee = (fee is None)
         parseFees = self.safe_value(order, 'fees') is None
+        parseSymbol = symbol is None
+        parseSide = side is None
         shouldParseFees = parseFee or parseFees
         fees = self.safe_value(order, 'fees', [])
         trades = []
@@ -459,12 +470,7 @@ class Exchange(BaseExchange):
             oldNumber = self.number
             # we parse trades as strings here!
             self.number = str
-            trades = self.parse_trades(rawTrades, market, None, None, {
-                'symbol': order['symbol'],
-                'side': order['side'],
-                'type': order['type'],
-                'order': order['id'],
-            })
+            trades = self.parse_trades(rawTrades, market)
             self.number = oldNumber
             tradesLength = 0
             isArray = isinstance(trades, list)
@@ -492,6 +498,10 @@ class Exchange(BaseExchange):
                     tradeCost = self.safe_string(trade, 'cost')
                     if parseCost and (tradeCost is not None):
                         cost = Precise.string_add(cost, tradeCost)
+                    if parseSymbol:
+                        symbol = self.safe_string(trade, 'symbol')
+                    if parseSide:
+                        side = self.safe_string(trade, 'side')
                     tradeTimestamp = self.safe_value(trade, 'timestamp')
                     if parseLastTradeTimeTimestamp and (tradeTimestamp is not None):
                         if lastTradeTimeTimestamp is None:
@@ -598,6 +608,8 @@ class Exchange(BaseExchange):
             # timeInForce is not None here
             postOnly = timeInForce == 'PO'
         return self.extend(order, {
+            'symbol': symbol,
+            'side': side,
             'lastTradeTimestamp': lastTradeTimeTimestamp,
             'price': self.parse_number(price),
             'amount': self.parse_number(amount),
@@ -711,16 +723,6 @@ class Exchange(BaseExchange):
         parseFees = self.safe_value(trade, 'fees') is None
         shouldParseFees = parseFee or parseFees
         fees = []
-        if shouldParseFees:
-            tradeFees = self.safe_value(trade, 'fees')
-            if tradeFees is not None:
-                for j in range(0, len(tradeFees)):
-                    tradeFee = tradeFees[j]
-                    fees.append(self.extend({}, tradeFee))
-            else:
-                tradeFee = self.safe_value(trade, 'fee')
-                if tradeFee is not None:
-                    fees.append(self.extend({}, tradeFee))
         fee = self.safe_value(trade, 'fee')
         if shouldParseFees:
             reducedFees = self.reduce_fees_by_currency(fees) if self.reduceFees else fees
@@ -928,6 +930,8 @@ class Exchange(BaseExchange):
         return result
 
     def market_ids(self, symbols):
+        if symbols is None:
+            return symbols
         result = []
         for i in range(0, len(symbols)):
             result.append(self.market_id(symbols[i]))
@@ -1073,6 +1077,21 @@ class Exchange(BaseExchange):
                 replacementObject = self.safe_value(defaultNetworkCodeReplacements, currencyCode, {})
                 networkCode = self.safe_string(replacementObject, networkCode, networkCode)
         return networkCode
+
+    def network_codes_to_ids(self, networkCodes=None):
+        """
+         * @ignore
+        tries to convert the provided networkCode(which is expected to be an unified network code) to a network id. In order to achieve self, derived class needs to have 'options->networks' defined.
+        :param [str]|None networkCodes: unified network codes
+        :returns [str|None]: exchange-specific network ids
+        """
+        if networkCodes is None:
+            return None
+        ids = []
+        for i in range(0, len(networkCodes)):
+            networkCode = networkCodes[i]
+            ids.append(self.networkCodeToId(networkCode))
+        return ids
 
     def handle_network_code_and_params(self, params):
         networkCodeInParams = self.safe_string_2(params, 'networkCode', 'network')
@@ -1353,7 +1372,7 @@ class Exchange(BaseExchange):
             'code': code,
         }
 
-    def safe_market(self, marketId=None, market=None, delimiter=None):
+    def safe_market(self, marketId=None, market=None, delimiter=None, marketType='spot'):
         result = {
             'id': marketId,
             'symbol': marketId,
@@ -1400,7 +1419,15 @@ class Exchange(BaseExchange):
         }
         if marketId is not None:
             if (self.markets_by_id is not None) and (marketId in self.markets_by_id):
-                market = self.markets_by_id[marketId]
+                markets = self.markets_by_id[marketId]
+                length = len(markets)
+                if length == 1:
+                    return markets[0]
+                else:
+                    for i in range(0, len(markets)):
+                        market = markets[i]
+                        if market[marketType]:
+                            return market
             elif delimiter is not None:
                 parts = marketId.split(delimiter)
                 partsLength = len(parts)
@@ -1684,7 +1711,13 @@ class Exchange(BaseExchange):
             if symbol in self.markets:
                 return self.markets[symbol]
             elif symbol in self.markets_by_id:
-                return self.markets_by_id[symbol]
+                markets = self.markets_by_id[symbol]
+                defaultType = self.safe_string(self.options, 'defaultType', 'spot')
+                for i in range(0, len(markets)):
+                    market = markets[i]
+                    if market[defaultType]:
+                        return market
+                return markets[0]
         raise BadSymbol(self.id + ' does not have market symbol ' + symbol)
 
     def handle_withdraw_tag_and_params(self, tag, params):

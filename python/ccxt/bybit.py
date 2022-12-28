@@ -1036,22 +1036,17 @@ class bybit(Exchange):
         """
         if self.options['adjustForTimeDifference']:
             self.load_time_difference()
-        type, query = self.handle_market_type_and_params('fetchMarkets', None, params)
-        if type == 'spot':
-            # spot and swap ids are equal
-            # so they can't be loaded together
-            return self.fetch_spot_markets(query)
         promises = [
+            self.fetch_spot_markets(params),
             self.fetch_derivatives_markets({'category': 'linear'}),
             self.fetch_derivatives_markets({'category': 'inverse'}),
-            self.fetch_derivatives_markets({'category': 'option'}),
         ]
-        linearMarkets = promises[0]
-        inverseMarkets = promises[1]
-        optionMarkets = promises[2]
-        markets = linearMarkets
-        markets = self.array_concat(markets, inverseMarkets)
-        return self.array_concat(markets, optionMarkets)
+        spotMarkets = promises[0]
+        linearMarkets = promises[1]
+        inverseMarkets = promises[2]
+        markets = spotMarkets
+        markets = self.array_concat(markets, linearMarkets)
+        return self.array_concat(markets, inverseMarkets)
 
     def fetch_spot_markets(self, params):
         response = self.publicGetSpotV3PublicSymbols(params)
@@ -1155,14 +1150,14 @@ class bybit(Exchange):
         params['limit'] = 1000  # minimize number of requests
         response = self.publicGetDerivativesV3PublicInstrumentsInfo(params)
         data = self.safe_value(response, 'result', {})
-        markets = self.safe_value_2(data, 'list', 'dataList', [])
-        paginationCursor = self.safe_string(data, 'cursor')
+        markets = self.safe_value(data, 'list', [])
+        paginationCursor = self.safe_string(data, 'nextPageCursor')
         if paginationCursor is not None:
             while(paginationCursor is not None):
                 params['cursor'] = paginationCursor
                 response = self.publicGetDerivativesV3PublicInstrumentsInfo(params)
                 data = self.safe_value(response, 'result', {})
-                rawMarkets = self.safe_value_2(data, 'list', 'dataList', [])
+                rawMarkets = self.safe_value(data, 'list', [])
                 rawMarketsLength = len(rawMarkets)
                 if rawMarketsLength == 0:
                     break
@@ -1214,9 +1209,8 @@ class bybit(Exchange):
         #         "retCode": 0,
         #         "retMsg": "success",
         #         "result": {
-        #             "resultTotalSize": 1,
-        #             "cursor": "",
-        #             "dataList": [
+        #             "nextPageCursor": "",
+        #             "list": [
         #                 {
         #                     "category": "option",
         #                     "symbol": "BTC-30SEP22-35000-P",
@@ -1880,7 +1874,7 @@ class bybit(Exchange):
         #     ]
         #
         return [
-            self.safe_number(ohlcv, 0),
+            self.safe_integer(ohlcv, 0),
             self.safe_number(ohlcv, 1),
             self.safe_number(ohlcv, 2),
             self.safe_number(ohlcv, 3),
@@ -1991,7 +1985,7 @@ class bybit(Exchange):
         #         }
         #     }
         #
-        result = self.safe_value(response, 'result')
+        result = self.safe_value(response, 'result', {})
         ohlcvs = self.safe_value(result, 'list', [])
         return self.parse_ohlcvs(ohlcvs, market, timeframe, since, limit)
 
@@ -2235,12 +2229,12 @@ class bybit(Exchange):
             takerOrMaker = 'maker' if (isMaker == 0) else 'taker'
             side = 'buy' if (isBuyer == 0) else 'sell'
         marketId = self.safe_string(trade, 'symbol')
-        market = self.safe_market(marketId, market)
-        fee = {}
-        feeToken = self.safe_string(trade, 'feeTokenId')
-        if feeToken is not None:
+        market = self.safe_market(marketId, market, None, 'spot')
+        fee = None
+        feeCost = self.safe_string(trade, 'execFee')
+        if feeCost is not None:
+            feeToken = self.safe_string(trade, 'feeTokenId')
             feeCurrency = self.safe_currency_code(feeToken)
-            feeCost = self.safe_string(trade, 'execFee')
             fee = {
                 'cost': feeCost,
                 'currency': feeCurrency,
@@ -2378,7 +2372,7 @@ class bybit(Exchange):
         #
         id = self.safe_string_n(trade, ['execId', 'id', 'tradeId'])
         marketId = self.safe_string(trade, 'symbol')
-        market = self.safe_market(marketId, market)
+        market = self.safe_market(marketId, market, None, 'contract')
         symbol = market['symbol']
         amountString = self.safe_string_n(trade, ['orderQty', 'size', 'execQty'])
         priceString = self.safe_string_n(trade, ['orderPrice', 'price', 'execPrice'])
@@ -3078,7 +3072,7 @@ class bybit(Exchange):
         #     }
         #
         marketId = self.safe_string(order, 'symbol')
-        market = self.safe_market(marketId, market)
+        market = self.safe_market(marketId, market, None, 'contract')
         symbol = market['symbol']
         timestamp = self.safe_integer(order, 'createdTime')
         id = self.safe_string(order, 'orderId')
@@ -3166,7 +3160,7 @@ class bybit(Exchange):
         #     }
         #
         marketId = self.safe_string(order, 'symbol')
-        market = self.safe_market(marketId, market)
+        market = self.safe_market(marketId, market, None, 'spot')
         timestamp = self.safe_integer(order, 'createTime')
         type = self.safe_string_lower(order, 'orderType')
         price = self.safe_string(order, 'orderPrice')
@@ -5696,15 +5690,15 @@ class bybit(Exchange):
 
     def fetch_derivatives_positions(self, symbols=None, params={}):
         self.load_markets()
+        request = {}
         if isinstance(symbols, list):
             if len(symbols) > 1:
                 raise ArgumentsRequired(self.id + ' fetchPositions() does not accept an array with more than one symbol')
+            request['symbol'] = self.market_id(symbols[0])
         elif symbols is not None:
-            symbols = [symbols]
-        symbols = self.market_symbols(symbols)
-        request = {
-            'dataFilter': 'valid',
-        }
+            request['symbol'] = self.market_id(symbols)
+        else:
+            request['dataFilter'] = 'valid'
         settle = None
         settle, params = self.handle_option_and_params(params, 'fetchPositions', 'settle', settle)
         if settle is not None:
@@ -5893,7 +5887,7 @@ class bybit(Exchange):
         #     }
         #
         contract = self.safe_string(position, 'symbol')
-        market = self.safe_market(contract, market)
+        market = self.safe_market(contract, market, None, 'contract')
         size = Precise.string_abs(self.safe_string(position, 'size'))
         side = self.safe_string(position, 'side')
         side = 'long' if (side == 'Buy') else 'short'
@@ -6118,7 +6112,7 @@ class bybit(Exchange):
         #
         result = self.safe_value(response, 'result', {})
         id = self.safe_string(result, 'symbol')
-        market = self.safe_market(id, market)
+        market = self.safe_market(id, market, None, 'contract')
         data = self.safe_value(result, 'list', [])
         return self.parse_open_interests(data, market, since, limit)
 
@@ -6168,7 +6162,7 @@ class bybit(Exchange):
         #
         result = self.safe_value(response, 'result', {})
         id = self.safe_string(result, 'symbol')
-        market = self.safe_market(id, market)
+        market = self.safe_market(id, market, None, 'contract')
         data = self.safe_value(result, 'list', [])
         return self.parse_open_interest(data[0], market)
 

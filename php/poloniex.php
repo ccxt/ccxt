@@ -143,6 +143,10 @@ class poloniex extends Exchange {
                         'smartorders/cancelByIds' => 20,
                         'smartorders' => 20,
                     ),
+                    'put' => array(
+                        'orders/{id}' => 4,
+                        'smartorders/{id}' => 4,
+                    ),
                 ),
             ),
             'fees' => array(

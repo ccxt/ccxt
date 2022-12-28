@@ -58,7 +58,7 @@ class alpaca extends Exchange {
                 'fetchL2OrderBook' => false,
                 'fetchMarkets' => true,
                 'fetchMyTrades' => false,
-                'fetchOHLCV' => false,
+                'fetchOHLCV' => true,
                 'fetchOpenOrder' => false,
                 'fetchOpenOrders' => true,
                 'fetchOrder' => true,
@@ -425,7 +425,7 @@ class alpaca extends Exchange {
             $request['limit'] = $limit;
         }
         if ($since !== null) {
-            $request['start'] = intval($since / 1000);
+            $request['start'] = $this->yyyymmdd($since);
         }
         $method = $this->safe_string($this->options, 'fetchOHLCVMethod', 'cryptoPublicGetCryptoBars');
         $response = $this->$method (array_merge($request, $params));

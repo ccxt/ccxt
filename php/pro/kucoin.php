@@ -36,7 +36,7 @@ class kucoin extends \ccxt\async\kucoin {
                     'delay' => 1000, // warmup delay in ms before synchronizing
                 ),
                 'watchTicker' => array(
-                    'topic' => 'market/snapshot', // market/ticker
+                    'name' => 'market/snapshot', // market/ticker
                 ),
             ),
             'streaming' => array(
@@ -147,7 +147,7 @@ class kucoin extends \ccxt\async\kucoin {
             $symbol = $market['symbol'];
             $negotiation = Async\await($this->negotiate());
             $options = $this->safe_value($this->options, 'watchTicker', array());
-            $channel = $this->safe_string($options, 'topic', 'market/snapshot');
+            $channel = $this->safe_string_2($options, 'name', 'topic', 'market/snapshot'); // $topic option is deprecated use name instead
             $topic = '/' . $channel . ':' . $market['id'];
             $messageHash = $topic;
             return Async\await($this->subscribe($negotiation, $topic, $messageHash, null, $symbol, $params));

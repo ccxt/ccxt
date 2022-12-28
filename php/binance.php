@@ -3284,7 +3284,6 @@ class binance extends Exchange {
         }
         $initialUppercaseType = strtoupper($type);
         $uppercaseType = $initialUppercaseType;
-        $request['type'] = $uppercaseType;
         $stopPrice = $this->safe_number($query, 'stopPrice');
         if ($stopPrice !== null) {
             if ($uppercaseType === 'MARKET') {
@@ -3321,6 +3320,7 @@ class binance extends Exchange {
             // delivery and future
             $request['newOrderRespType'] = 'RESULT';  // "ACK", "RESULT", default "ACK"
         }
+        $request['type'] = $uppercaseType;
         // additional required fields depending on the order $type
         $timeInForceIsRequired = false;
         $priceIsRequired = false;
