@@ -2135,7 +2135,7 @@ class bitget(Exchange):
             return self.parse_balance(data)
 
     def parse_balance(self, balance):
-        result = {'info': balance}
+        result = {'info': {}}
         #
         #     {
         #       coinId: '1',
@@ -2162,11 +2162,18 @@ class bitget(Exchange):
             entry = balance[i]
             currencyId = self.safe_string_2(entry, 'coinId', 'marginCoin')
             code = self.safe_currency_code(currencyId)
+            info = self.safe_value(entry, 'info', {})
+            infoForCode = self.safe_value(info, code, {})
+            result['info'][code] = self.deep_extend(infoForCode, entry)
             account = self.account()
             frozen = self.safe_string(entry, 'frozen')
             locked = self.safe_string_2(entry, 'lock', 'locked')
-            account['used'] = Precise.string_add(frozen, locked)
-            account['free'] = self.safe_string(entry, 'available')
+            used = Precise.string_add(frozen, locked)
+            free = self.safe_string(entry, 'available', '0')
+            total = self.safe_string(entry, 'equity', Precise.string_add(free, used))
+            account['used'] = used
+            account['free'] = free
+            account['total'] = total
             result[code] = account
         return self.safe_balance(result)
 
@@ -2290,6 +2297,7 @@ class bitget(Exchange):
         lastTradeTimestamp = self.safe_integer(order, 'uTime')
         timeInForce = self.safe_string(order, 'timeInForce')
         postOnly = timeInForce == 'postOnly'
+        stopPrice = self.safe_number(order, 'triggerPrice')
         return self.safe_order({
             'info': order,
             'id': id,
@@ -2304,7 +2312,7 @@ class bitget(Exchange):
             'postOnly': postOnly,
             'side': side,
             'price': price,
-            'stopPrice': self.safe_number(order, 'triggerPrice'),
+            'stopPrice': stopPrice,
             'average': average,
             'cost': cost,
             'amount': amount,
@@ -2420,12 +2428,12 @@ class bitget(Exchange):
             request['size'] = self.amount_to_precision(symbol, amount)
             if postOnly:
                 request['timeInForceValue'] = 'post_only'
-            triggerType = self.safe_string_2(params, 'triggerType', 'trigger', 'fill_price')
-            if triggerType == 'Mark' or triggerType == 'market_price':
-                triggerType = 'market_price'
-            else:
-                triggerType = 'fill_price'
             if isTriggerOrder:
+                triggerType = self.safe_string_2(params, 'triggerType', 'trigger', 'fill_price')
+                if triggerType == 'Mark' or triggerType == 'market_price':
+                    triggerType = 'market_price'
+                else:
+                    triggerType = 'fill_price'
                 request['triggerType'] = triggerType
                 request['triggerPrice'] = self.price_to_precision(symbol, triggerPrice)
                 if price:
@@ -2434,7 +2442,6 @@ class bitget(Exchange):
             if isStopOrder:
                 if not isMarketOrder:
                     raise ExchangeError(self.id + ' createOrder() bitget stopLoss or takeProfit orders must be market orders')
-                request['triggerType'] = triggerType
                 if isStopLossOrder:
                     request['triggerPrice'] = self.price_to_precision(symbol, stopLossPrice)
                     request['planType'] = 'loss_plan'

@@ -2245,7 +2245,7 @@ class bitget extends Exchange {
     }
 
     public function parse_balance($balance) {
-        $result = array( 'info' => $balance );
+        $result = array( 'info' => array());
         //
         //     {
         //       coinId => '1',
@@ -2272,11 +2272,18 @@ class bitget extends Exchange {
             $entry = $balance[$i];
             $currencyId = $this->safe_string_2($entry, 'coinId', 'marginCoin');
             $code = $this->safe_currency_code($currencyId);
+            $info = $this->safe_value($entry, 'info', array());
+            $infoForCode = $this->safe_value($info, $code, array());
+            $result['info'][$code] = $this->deep_extend($infoForCode, $entry);
             $account = $this->account();
             $frozen = $this->safe_string($entry, 'frozen');
             $locked = $this->safe_string_2($entry, 'lock', 'locked');
-            $account['used'] = Precise::string_add($frozen, $locked);
-            $account['free'] = $this->safe_string($entry, 'available');
+            $used = Precise::string_add($frozen, $locked);
+            $free = $this->safe_string($entry, 'available', '0');
+            $total = $this->safe_string($entry, 'equity', Precise::string_add($free, $used));
+            $account['used'] = $used;
+            $account['free'] = $free;
+            $account['total'] = $total;
             $result[$code] = $account;
         }
         return $this->safe_balance($result);
@@ -2409,6 +2416,7 @@ class bitget extends Exchange {
         $lastTradeTimestamp = $this->safe_integer($order, 'uTime');
         $timeInForce = $this->safe_string($order, 'timeInForce');
         $postOnly = $timeInForce === 'postOnly';
+        $stopPrice = $this->safe_number($order, 'triggerPrice');
         return $this->safe_order(array(
             'info' => $order,
             'id' => $id,
@@ -2423,7 +2431,7 @@ class bitget extends Exchange {
             'postOnly' => $postOnly,
             'side' => $side,
             'price' => $price,
-            'stopPrice' => $this->safe_number($order, 'triggerPrice'),
+            'stopPrice' => $stopPrice,
             'average' => $average,
             'cost' => $cost,
             'amount' => $amount,
