@@ -8,10 +8,6 @@ const Exchange = require ('./base/Exchange');
 const { TICK_SIZE } = require ('./base/functions/number');
 
 //  ---------------------------------------------------------------------------
-// TODO: batchOrders -> https://futures-docs.poloniex.com/#place-multiple-orders
-// TODO: fetchDeposits -> https://futures-docs.poloniex.com/#get-transaction-history
-// TODO: fetchTransfers -> https://futures-docs.poloniex.com/#get-transaction-history
-// TODO: Add python testing to PR description
 
 module.exports = class poloniexfutures extends Exchange {
     describe () {
@@ -19,7 +15,8 @@ module.exports = class poloniexfutures extends Exchange {
             'id': 'poloniexfutures',
             'name': 'Poloniex Futures',
             'countries': [ 'US' ],
-            // 'rateLimit': 1000, // up to 6 calls per second
+            // 3 requests per second for some unauthenticated market endpoints => 1000ms / 3 = 333ms between requests
+            'rateLimit': 333,
             'certified': false,
             'pro': false,
             'version': 'v1',
@@ -32,22 +29,22 @@ module.exports = class poloniexfutures extends Exchange {
                 'option': undefined,
                 'createOrder': true,
                 'fetchBalance': true,
+                'fetchClosedOrders': true,
                 'fetchCurrencies': false,
-                'fetchMarkets': true,
-                'fetchOHLCV': true,
-                'fetchOrderBook': true,
+                'fetchFundingRate': true,
                 'fetchL3OrderBook': true,
+                'fetchMarkets': true,
+                'fetchMyTrades': true,
+                'fetchOHLCV': true,
+                'fetchOpenOrders': true,
+                'fetchOrder': true,
+                'fetchOrderBook': true,
+                'fetchOrdersByStatus': true,
                 'fetchPositions': true,
                 'fetchTicker': true,
                 'fetchTickers': true,
                 'fetchTime': true,
                 'fetchTrades': true,
-                'fetchOrdersByStatus': true,
-                'fetchOpenOrders': true,
-                'fetchClosedOrders': true,
-                'fetchOrder': true,
-                'fetchMyTrades': true,
-                'fetchFundingRate': true,
             },
             'timeframes': {
                 '1m': 1,
@@ -72,58 +69,56 @@ module.exports = class poloniexfutures extends Exchange {
                 'fees': 'https://poloniex.com/fee-schedule',
                 'referral': 'https://poloniex.com/signup?c=UBFZJRPJ',
             },
-            'api': { // TODO: Add rate limit numbers to api endpoints
+            'api': {
                 'public': {
-                    'get': [
-                        'contracts/active',
-                        'contracts/{symbol}',
-                        'ticker',
-                        'ticker', // v2
-                        'tickers', // v2
-                        'level2/snapshot',
-                        'level2/depth',
-                        'level2/message/query',
-                        'level3/snapshot', // v2
-                        'trade/history',
-                        'interest/query',
-                        'index/query',
-                        'mark-price/{symbol}/current',
-                        'premium/query',
-                        'funding-rate/{symbol}/current',
-                        'timestamp',
-                        'status',
-                        'kline/query',
-                    ],
-                    'post': [
-                        'bullet-public',
-                    ],
+                    'get': {
+                        'contracts/active': 1,
+                        'contracts/{symbol}': 1,
+                        'ticker': 1,
+                        'tickers': 1, // v2
+                        'level2/snapshot': 0.05,
+                        'level2/depth': 0.05,
+                        'level2/message/query': 0.05,
+                        'level3/snapshot': 0.05, // v2
+                        'trade/history': 1,
+                        'interest/query': 1,
+                        'index/query': 1,
+                        'mark-price/{symbol}/current': 1,
+                        'premium/query': 1,
+                        'funding-rate/{symbol}/current': 1,
+                        'timestamp': 1,
+                        'status': 1,
+                        'kline/query': 1,
+                    },
+                    'post': {
+                        'bullet-public': 1,
+                    },
                 },
                 'private': {
-                    'get': [
-                        'account-overview',
-                        'transaction-history',
-                        'orders',
-                        'stopOrders',
-                        'recentDoneOrders',
-                        'orders/{order-id}',
-                        'fills',
-                        'openOrderStatistics',
-                        'position',
-                        'positions',
-                        'funding-history',
-                    ],
-                    'post': [
-                        'orders',
-                        'orders',
-                        'position/margin/auto-deposit-status',
-                        'position/margin/deposit-margin',
-                        'bullet-private',
-                    ],
-                    'delete': [
-                        'orders/{order-id}',
-                        'orders',
-                        'stopOrders',
-                    ],
+                    'get': {
+                        'account-overview': 10,
+                        'transaction-history': 10,
+                        'orders': 10,
+                        'stopOrders': 10,
+                        'recentDoneOrders': 10,
+                        'orders/{order-id}': 10,
+                        'fills': 10,
+                        'openOrderStatistics': 10,
+                        'position': 6.66,
+                        'positions': 6.66,
+                        'funding-history': 10,
+                    },
+                    'post': {
+                        'orders': 6.66,
+                        'position/margin/auto-deposit-status': 6.66,
+                        'position/margin/deposit-margin': 6.66,
+                        'bullet-private': 10,
+                    },
+                    'delete': {
+                        'orders/{order-id}': 6.66,
+                        'orders': 0.06,
+                        'stopOrders': 0.06,
+                    },
                 },
             },
             'precisionMode': TICK_SIZE,
@@ -196,7 +191,6 @@ module.exports = class poloniexfutures extends Exchange {
                 },
             },
             'exceptions': {
-                // TODO
                 'exact': {
                     '400': BadRequest, // Bad Request -- Invalid request format
                     '401': AuthenticationError, // Unauthorized -- Invalid API Key
@@ -1543,10 +1537,8 @@ module.exports = class poloniexfutures extends Exchange {
          * @param {int|undefined} limit the maximum number of trades structures to retrieve
          * @param {object} params extra parameters specific to the poloniexfutures api endpoint
          * @param {string|undefined} orderIdFills filles for a specific order (other parameters can be ignored if specified)
-         * @param {string|undefined} symbol of the contract
          * @param {string|undefined} side buy or sell
          * @param {string|undefined} type  limit, market, limit_stop or market_stop
-         * @param {int|undefined} startAt start time (milisecond)
          * @param {int|undefined} endAt end time (milisecond)
          * @returns {[object]} a list of [trade structures]{@link https://docs.ccxt.com/en/latest/manual.html#trade-structure}
          */
@@ -1634,7 +1626,6 @@ module.exports = class poloniexfutures extends Exchange {
                 endpart = body;
             }
             const payload = now + method + endpoint + endpart;
-            console.log (payload);
             const signature = this.hmac (this.encode (payload), this.encode (this.secret), 'sha256', 'base64');
             headers = {
                 'PF-API-SIGN': signature,
@@ -1643,7 +1634,6 @@ module.exports = class poloniexfutures extends Exchange {
                 'PF-API-PASSPHRASE': this.password,
             };
             headers['Content-Type'] = 'application/json';
-            console.log (headers);
         }
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }

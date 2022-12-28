@@ -279,7 +279,6 @@ exchanges = [
     'paymium',
     'phemex',
     'poloniex',
-    'poloniexfutures',
     'probit',
     'qtrade',
     'ripio',
