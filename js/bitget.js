@@ -2397,6 +2397,7 @@ module.exports = class bitget extends Exchange {
         const lastTradeTimestamp = this.safeInteger (order, 'uTime');
         const timeInForce = this.safeString (order, 'timeInForce');
         const postOnly = timeInForce === 'postOnly';
+        const stopPrice = this.safeNumber (order, 'triggerPrice');
         return this.safeOrder ({
             'info': order,
             'id': id,
@@ -2411,7 +2412,7 @@ module.exports = class bitget extends Exchange {
             'postOnly': postOnly,
             'side': side,
             'price': price,
-            'stopPrice': this.safeNumber (order, 'triggerPrice'),
+            'stopPrice': stopPrice,
             'average': average,
             'cost': cost,
             'amount': amount,
