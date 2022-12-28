@@ -2202,7 +2202,7 @@ class bitget extends Exchange {
         //       coinId => '1',
         //       coinName => 'BTC',
         //       available => '0.00099900',
-        //       $frozen => '0.00000000',
+        //       frozen => '0.00000000',
         //       lock => '0.00000000',
         //       uTime => '1661595535000'
         //     }
@@ -2227,11 +2227,9 @@ class bitget extends Exchange {
             $infoForCode = $this->safe_value($info, $code, array());
             $result['info'][$code] = $this->deep_extend($infoForCode, $entry);
             $account = $this->account();
-            $frozen = $this->safe_string($entry, 'frozen');
-            $locked = $this->safe_string_2($entry, 'lock', 'locked');
-            $used = Precise::string_add($frozen, $locked);
-            $free = $this->safe_string($entry, 'available', '0');
-            $total = $this->safe_string($entry, 'equity', Precise::string_add($free, $used));
+            $free = $this->safe_string_2($entry, 'crossMaxAvailable', 'available', '0');
+            $total = $this->safe_string_2($entry, 'equity', 'available', '0');
+            $used = Precise::string_sub($total, $free);
             $account['used'] = $used;
             $account['free'] = $free;
             $account['total'] = $total;

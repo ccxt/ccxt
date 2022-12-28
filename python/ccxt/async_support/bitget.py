@@ -2171,11 +2171,9 @@ class bitget(Exchange):
             infoForCode = self.safe_value(info, code, {})
             result['info'][code] = self.deep_extend(infoForCode, entry)
             account = self.account()
-            frozen = self.safe_string(entry, 'frozen')
-            locked = self.safe_string_2(entry, 'lock', 'locked')
-            used = Precise.string_add(frozen, locked)
-            free = self.safe_string(entry, 'available', '0')
-            total = self.safe_string(entry, 'equity', Precise.string_add(free, used))
+            free = self.safe_string_2(entry, 'crossMaxAvailable', 'available', '0')
+            total = self.safe_string_2(entry, 'equity', 'available', '0')
+            used = Precise.string_sub(total, free)
             account['used'] = used
             account['free'] = free
             account['total'] = total
