@@ -2,7 +2,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '2.4.68'
+__version__ = '2.4.69'
 
 # -----------------------------------------------------------------------------
 
@@ -723,16 +723,6 @@ class Exchange(BaseExchange):
         parseFees = self.safe_value(trade, 'fees') is None
         shouldParseFees = parseFee or parseFees
         fees = []
-        if shouldParseFees:
-            tradeFees = self.safe_value(trade, 'fees')
-            if tradeFees is not None:
-                for j in range(0, len(tradeFees)):
-                    tradeFee = tradeFees[j]
-                    fees.append(self.extend({}, tradeFee))
-            else:
-                tradeFee = self.safe_value(trade, 'fee')
-                if tradeFee is not None:
-                    fees.append(self.extend({}, tradeFee))
         fee = self.safe_value(trade, 'fee')
         if shouldParseFees:
             reducedFees = self.reduce_fees_by_currency(fees) if self.reduceFees else fees
