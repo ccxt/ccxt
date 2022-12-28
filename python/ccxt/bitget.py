@@ -102,7 +102,7 @@ class bitget(Exchange):
                 'reduceMargin': True,
                 'setLeverage': True,
                 'setMarginMode': True,
-                'setPositionMode': False,
+                'setPositionMode': True,
                 'transfer': True,
                 'withdraw': False,
             },
@@ -226,6 +226,7 @@ class bitget(Exchange):
                             'account/setLeverage': 8,
                             'account/setMargin': 8,
                             'account/setMarginMode': 8,
+                            'account/setPositionMode': 8,
                             'order/placeOrder': 2,
                             'order/batch-orders': 2,
                             'order/cancel-order': 2,
@@ -837,19 +838,21 @@ class bitget(Exchange):
         :returns [dict]: an array of objects representing market data
         """
         types = self.safe_value(self.options, 'fetchMarkets', ['spot', 'swap'])
-        result = []
+        promises = []
         for i in range(0, len(types)):
             type = types[i]
             if type == 'swap':
-                subTypes = ['umcbl', 'dmcbl', 'cmcbl', 'sumcbl', 'sdmcbl', 'scmcbl']
+                # the following are simulated trading markets ['sumcbl', 'sdmcbl', 'scmcbl']
+                subTypes = ['umcbl', 'dmcbl', 'cmcbl']
                 for j in range(0, len(subTypes)):
-                    markets = self.fetch_markets_by_type(type, self.extend(params, {
+                    promises.append(self.fetch_markets_by_type(type, self.extend(params, {
                         'productType': subTypes[j],
-                    }))
-                    result = self.array_concat(result, markets)
+                    })))
             else:
-                markets = self.fetch_markets_by_type(types[i], params)
-                result = self.array_concat(result, markets)
+                promises.append(self.fetch_markets_by_type(types[i], params))
+        result = promises[0]
+        for i in range(1, len(promises)):
+            result = self.array_concat(result, promises[i])
         return result
 
     def parse_markets(self, markets):
@@ -3287,6 +3290,37 @@ class bitget(Exchange):
             'marginMode': marginMode,
         }
         return self.privateMixPostAccountSetMarginMode(self.extend(request, params))
+
+    def set_position_mode(self, hedged, symbol=None, params={}):
+        """
+        set hedged to True or False for a market
+        :param bool hedged: set to True to use dualSidePosition
+        :param str|None symbol: not used by binance setPositionMode()
+        :param dict params: extra parameters specific to the binance api endpoint
+        :returns dict: response from the exchange
+         *
+        """
+        productType = self.safe_string(params, 'productType')
+        if (productType is None) and (symbol is None):
+            raise ArgumentsRequired(self.id + ' setPositionMode() requires a symbol or the productType parameter')
+        self.load_markets()
+        holdMode = 'double_hold' if hedged else 'single_hold'
+        request = {
+            'holdMode': holdMode,
+        }
+        if symbol is not None:
+            market = self.market(symbol)
+            request['productType'] = 'umcbl' if market['linear'] else 'dmcbl'
+        response = self.privateMixPostAccountSetPositionMode(self.extend(request, params))
+        #
+        #    {
+        #         "code": "40919",
+        #         "msg": "This function is not open yet",
+        #         "requestTime": 1672212431093,
+        #         "data": null
+        #     }
+        #
+        return response
 
     def fetch_open_interest(self, symbol, params={}):
         """

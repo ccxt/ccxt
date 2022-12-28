@@ -1503,7 +1503,6 @@ class exmo extends Exchange {
         //
         $id = $this->safe_string($order, 'order_id');
         $timestamp = $this->safe_timestamp($order, 'created');
-        $symbol = null;
         $side = $this->safe_string($order, 'type');
         $marketId = null;
         if (is_array($order) && array_key_exists('pair', $order)) {
@@ -1516,83 +1515,23 @@ class exmo extends Exchange {
             }
         }
         $market = $this->safe_market($marketId, $market);
-        $amount = $this->safe_number($order, 'quantity');
+        $symbol = $market['symbol'];
+        $amount = $this->safe_string($order, 'quantity');
         if ($amount === null) {
             $amountField = ($side === 'buy') ? 'in_amount' : 'out_amount';
-            $amount = $this->safe_number($order, $amountField);
+            $amount = $this->safe_string($order, $amountField);
         }
-        $price = $this->safe_number($order, 'price');
-        $cost = $this->safe_number($order, 'amount');
-        $filled = 0.0;
-        $trades = array();
+        $price = $this->safe_string($order, 'price');
+        $cost = $this->safe_string($order, 'amount');
         $transactions = $this->safe_value($order, 'trades', array());
-        $feeCost = null;
-        $lastTradeTimestamp = null;
-        $average = null;
-        $numTransactions = count($transactions);
-        if ($numTransactions > 0) {
-            $feeCost = 0;
-            for ($i = 0; $i < $numTransactions; $i++) {
-                $trade = $this->parse_trade($transactions[$i], $market);
-                if ($id === null) {
-                    $id = $trade['order'];
-                }
-                if ($timestamp === null) {
-                    $timestamp = $trade['timestamp'];
-                }
-                if ($timestamp > $trade['timestamp']) {
-                    $timestamp = $trade['timestamp'];
-                }
-                $filled = $this->sum($filled, $trade['amount']);
-                $feeCost = $this->sum($feeCost, $trade['fee']['cost']);
-                $trades[] = $trade;
-            }
-            $lastTradeTimestamp = $trades[$numTransactions - 1]['timestamp'];
-        }
-        $status = $this->safe_string($order, 'status'); // in case we need to redefine it for canceled orders
-        $remaining = null;
-        if ($amount !== null) {
-            $remaining = $amount - $filled;
-            if ($filled >= $amount) {
-                $status = 'closed';
-            } else {
-                $status = 'open';
-            }
-        }
-        if ($market === null) {
-            $market = $this->get_market_from_trades($trades);
-        }
-        $feeCurrency = null;
-        if ($market !== null) {
-            $symbol = $market['symbol'];
-            $feeCurrency = $market['quote'];
-        }
-        if ($cost === null) {
-            if ($price !== null) {
-                $cost = $price * $filled;
-            }
-        } else {
-            if ($filled > 0) {
-                if ($average === null) {
-                    $average = $cost / $filled;
-                }
-                if ($price === null) {
-                    $price = $cost / $filled;
-                }
-            }
-        }
-        $fee = array(
-            'cost' => $feeCost,
-            'currency' => $feeCurrency,
-        );
         $clientOrderId = $this->safe_integer($order, 'client_id');
-        return array(
+        return $this->safe_order(array(
             'id' => $id,
             'clientOrderId' => $clientOrderId,
             'datetime' => $this->iso8601($timestamp),
             'timestamp' => $timestamp,
-            'lastTradeTimestamp' => $lastTradeTimestamp,
-            'status' => $status,
+            'lastTradeTimestamp' => null,
+            'status' => null,
             'symbol' => $symbol,
             'type' => 'limit',
             'timeInForce' => null,
@@ -1602,13 +1541,13 @@ class exmo extends Exchange {
             'stopPrice' => null,
             'cost' => $cost,
             'amount' => $amount,
-            'filled' => $filled,
-            'remaining' => $remaining,
-            'average' => $average,
-            'trades' => $trades,
-            'fee' => $fee,
+            'filled' => null,
+            'remaining' => null,
+            'average' => null,
+            'trades' => $transactions,
+            'fee' => null,
             'info' => $order,
-        );
+        ), $market);
     }
 
     public function fetch_canceled_orders($symbol = null, $since = null, $limit = null, $params = array ()) {
