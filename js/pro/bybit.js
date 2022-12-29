@@ -367,7 +367,9 @@ module.exports = class bybit extends bybitRest {
         const topicLength = topicParts.length;
         const timeframeId = this.safeString (topicParts, 1);
         const marketId = this.safeString (topicParts, topicLength - 1);
-        const market = this.safeMarket (marketId);
+        const isSpot = client.url.indexOf ('spot') > -1;
+        const marketType = isSpot ? 'spot' : 'contract';
+        const market = this.safeMarket (marketId, undefined, undefined, marketType);
         const symbol = market['symbol'];
         const ohlcvsByTimeframe = this.safeValue (this.ohlcvs, symbol);
         if (ohlcvsByTimeframe === undefined) {
@@ -507,8 +509,9 @@ module.exports = class bybit extends bybitRest {
         }
         const data = this.safeValue (message, 'data', {});
         const marketId = this.safeString (data, 's');
-        const market = this.safeMarket (marketId);
-        const symbol = this.safeSymbol (marketId, market);
+        const marketType = isSpot ? 'spot' : 'contract';
+        const market = this.safeMarket (marketId, undefined, undefined, marketType);
+        const symbol = market['symbol'];
         const timestamp = this.safeInteger (message, 'ts');
         let orderbook = this.safeValue (this.orderbooks, symbol);
         if (orderbook === undefined) {
@@ -615,8 +618,10 @@ module.exports = class bybit extends bybitRest {
         const topic = this.safeString (message, 'topic');
         let trades = undefined;
         const parts = topic.split ('.');
+        const tradeType = this.safeString (parts, 0);
+        const marketType = (tradeType === 'trade') ? 'spot' : 'contract';
         const marketId = this.safeString (parts, 1);
-        const market = this.safeMarket (marketId);
+        const market = this.safeMarket (marketId, undefined, undefined, marketType);
         if (Array.isArray (data)) {
             // contract markets
             trades = data;
@@ -707,8 +712,10 @@ module.exports = class bybit extends bybitRest {
         //     }
         //
         const id = this.safeStringN (trade, [ 'i', 'T', 'v' ]);
+        const isContract = ('BT' in trade);
+        const marketType = isContract ? 'contract' : 'spot';
         const marketId = this.safeString (trade, 's');
-        market = this.safeMarket (marketId, market);
+        market = this.safeMarket (marketId, market, undefined, marketType);
         const symbol = market['symbol'];
         const timestamp = this.safeInteger2 (trade, 't', 'T');
         let side = this.safeStringLower (trade, 'S');
@@ -1082,7 +1089,7 @@ module.exports = class bybit extends bybitRest {
         //
         const id = this.safeString (order, 'i');
         const marketId = this.safeString (order, 's');
-        const symbol = this.safeSymbol (marketId, market);
+        const symbol = this.safeSymbol (marketId, market, undefined, 'spot');
         const timestamp = this.safeInteger (order, 'O');
         let price = this.safeString (order, 'p');
         if (price === '0') {
