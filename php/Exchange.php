@@ -1923,11 +1923,10 @@ class Exchange {
         if (strpos($str, 'e') > -1) {
             $numStr = preg_replace ('/\de/', '', $str);
             return ((int)$numStr) * -1;
-        } else {
-            // default strings like '0.0001'
-            $parts = explode('.', preg_replace('/0+$/', '', $str));
-            return (count($parts) > 1) ? strlen($parts[1]) : 0;
         }
+        // default strings like '0.0001'
+        $parts = explode('.', preg_replace('/0+$/', '', $str));
+        return (count($parts) > 1) ? strlen($parts[1]) : 0;
     }
 
     public function __call($function, $params) {
