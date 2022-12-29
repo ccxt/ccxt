@@ -187,8 +187,8 @@ async function testExchange (exchange) {
     }
 
     let symbol = getTestSymbol (exchange, [
-        'BTC/USD',
         'BTC/USDT',
+        'BTC/USD',
         'BTC/CNY',
         'BTC/EUR',
         'BTC/ETH',
