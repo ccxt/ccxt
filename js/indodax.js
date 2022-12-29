@@ -995,11 +995,16 @@ module.exports = class indodax extends Exchange {
         const timestamp = this.safeTimestamp2 (transaction, 'success_time', 'submit_time');
         const depositId = this.safeString (transaction, 'deposit_id');
         const feeCost = this.safeNumber (transaction, 'fee');
-        let fee = undefined;
+        let fee = {
+            'currency': undefined,
+            'cost': undefined,
+            'rate': undefined,
+        };
         if (feeCost !== undefined) {
             fee = {
                 'currency': this.safeCurrencyCode (undefined, currency),
                 'cost': feeCost,
+                'rate': undefined,
             };
         }
         return {
