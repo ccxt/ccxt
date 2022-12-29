@@ -74,6 +74,7 @@ function runCommand(args, updateTs = true) {
             }
         } else {
             log.bright.red("Error running tests!")
+            exit(1);
         }
     })
 }
