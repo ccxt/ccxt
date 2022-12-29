@@ -1,0 +1,2151 @@
+'use strict';
+
+//  ---------------------------------------------------------------------------
+
+const huobiRest = require ('../huobi.js');
+const { ExchangeError, InvalidNonce, ArgumentsRequired, BadRequest, BadSymbol, AuthenticationError } = require ('../base/errors');
+const { ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById } = require ('./base/Cache');
+
+//  ---------------------------------------------------------------------------
+
+module.exports = class huobi extends huobiRest {
+    describe () {
+        return this.deepExtend (super.describe (), {
+            'has': {
+                'ws': true,
+                'watchOrderBook': true,
+                'watchOrders': true,
+                'watchTickers': false,
+                'watchTicker': true,
+                'watchTrades': true,
+                'watchMyTrades': true,
+                'watchBalance': true,
+                'watchOHLCV': true,
+            },
+            'urls': {
+                'api': {
+                    'ws': {
+                        'api': {
+                            'spot': {
+                                'public': 'wss://{hostname}/ws',
+                                'private': 'wss://{hostname}/ws/v2',
+                            },
+                            'future': {
+                                'linear': {
+                                    'public': 'wss://api.hbdm.com/linear-swap-ws',
+                                    'private': 'wss://api.hbdm.com/linear-swap-notification',
+                                },
+                                'inverse': {
+                                    'public': 'wss://api.hbdm.com/ws',
+                                    'private': 'wss://api.hbdm.com/notification',
+                                },
+                            },
+                            'swap': {
+                                'inverse': {
+                                    'public': 'wss://api.hbdm.com/swap-ws',
+                                    'private': 'wss://api.hbdm.com/swap-notification',
+                                },
+                                'linear': {
+                                    'public': 'wss://api.hbdm.com/linear-swap-ws',
+                                    'private': 'wss://api.hbdm.com/linear-swap-notification',
+                                },
+                            },
+                        },
+                        // these settings work faster for clients hosted on AWS
+                        'api-aws': {
+                            'spot': {
+                                'public': 'wss://api-aws.huobi.pro/ws',
+                                'private': 'wss://api-aws.huobi.pro/ws/v2',
+                            },
+                            'future': {
+                                'linear': {
+                                    'public': 'wss://api.hbdm.vn/linear-swap-ws',
+                                    'private': 'wss://api.hbdm.vn/linear-swap-notification',
+                                },
+                                'inverse': {
+                                    'public': 'wss://api.hbdm.vn/ws',
+                                    'private': 'wss://api.hbdm.vn/notification',
+                                },
+                            },
+                            'swap': {
+                                'inverse': {
+                                    'public': 'wss://api.hbdm.vn/swap-ws',
+                                    'private': 'wss://api.hbdm.vn/swap-notification',
+                                },
+                                'linear': {
+                                    'public': 'wss://api.hbdm.vn/linear-swap-ws',
+                                    'private': 'wss://api.hbdm.vn/linear-swap-notification',
+                                },
+                            },
+                        },
+                    },
+                },
+            },
+            'options': {
+                'tradesLimit': 1000,
+                'OHLCVLimit': 1000,
+                'api': 'api', // or api-aws for clients hosted on AWS
+                'maxOrderBookSyncAttempts': 3,
+                'ws': {
+                    'gunzip': true,
+                },
+                'watchTicker': {
+                    'name': 'market.{marketId}.detail', // 'market.{marketId}.bbo' or 'market.{marketId}.ticker'
+                },
+            },
+            'exceptions': {
+                'ws': {
+                    'exact': {
+                        'bad-request': BadRequest, // {  ts: 1586323747018,  status: 'error',    'err-code': 'bad-request',  err-msg': 'invalid mbp.150.symbol linkusdt', id: '2'}
+                        '2002': AuthenticationError, // { action: 'sub', code: 2002, ch: 'accounts.update#2', message: 'invalid.auth.state' }
+                        '2021': BadRequest,
+                        '2001': BadSymbol, // { action: 'sub', code: 2001, ch: 'orders#2ltcusdt', message: 'invalid.symbol'}
+                        '2011': BadSymbol, // { op: 'sub', cid: '1649149285', topic: 'orders_cross.hereltc-usdt', 'err-code': 2011, 'err-msg': "Contract doesn't exist.", ts: 1649149287637 }
+                        '2040': BadRequest, // { op: 'sub', cid: '1649152947', 'err-code': 2040, 'err-msg': 'Missing required parameter.', ts: 1649152948684 }
+                    },
+                },
+            },
+        });
+    }
+
+    requestId () {
+        const requestId = this.sum (this.safeInteger (this.options, 'requestId', 0), 1);
+        this.options['requestId'] = requestId;
+        return requestId.toString ();
+    }
+
+    async watchTicker (symbol, params = {}) {
+        /**
+         * @method
+         * @name huobi#watchTicker
+         * @description watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+         * @param {string} symbol unified symbol of the market to fetch the ticker for
+         * @param {object} params extra parameters specific to the huobi api endpoint
+         * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
+         */
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        symbol = market['symbol'];
+        const options = this.safeValue (this.options, 'watchTicker', {});
+        const topic = this.safeString (options, 'name', 'market.{marketId}.detail');
+        if (topic === 'market.{marketId}.ticker' && market['type'] !== 'spot') {
+            throw new BadRequest (this.id + ' watchTicker() with name market.{marketId}.ticker is only allowed for spot markets, use market.{marketId}.detail instead');
+        }
+        const messageHash = this.implodeParams (topic, { 'marketId': market['id'] });
+        const url = this.getUrlByMarketType (market['type'], market['linear']);
+        return await this.subscribePublic (url, symbol, messageHash, undefined, params);
+    }
+
+    handleTicker (client, message) {
+        //
+        // 'market.btcusdt.detail'
+        //     {
+        //         ch: 'market.btcusdt.detail',
+        //         ts: 1583494163784,
+        //         tick: {
+        //             id: 209988464418,
+        //             low: 8988,
+        //             high: 9155.41,
+        //             open: 9078.91,
+        //             close: 9136.46,
+        //             vol: 237813910.5928412,
+        //             amount: 26184.202558551195,
+        //             version: 209988464418,
+        //             count: 265673
+        //         }
+        //     }
+        // 'market.btcusdt.bbo'
+        //     {
+        //         ch: 'market.btcusdt.bbo',
+        //         ts: 1671941599613,
+        //         tick: {
+        //             seqId: 161499562790,
+        //             ask: 16829.51,
+        //             askSize: 0.707776,
+        //             bid: 16829.5,
+        //             bidSize: 1.685945,
+        //             quoteTime: 1671941599612,
+        //             symbol: 'btcusdt'
+        //         }
+        //     }
+        //
+        const tick = this.safeValue (message, 'tick', {});
+        const ch = this.safeString (message, 'ch');
+        const parts = ch.split ('.');
+        const marketId = this.safeString (parts, 1);
+        const market = this.safeMarket (marketId);
+        const ticker = this.parseTicker (tick, market);
+        const timestamp = this.safeValue (message, 'ts');
+        ticker['timestamp'] = timestamp;
+        ticker['datetime'] = this.iso8601 (timestamp);
+        const symbol = ticker['symbol'];
+        this.tickers[symbol] = ticker;
+        client.resolve (ticker, ch);
+        return message;
+    }
+
+    async watchTrades (symbol, since = undefined, limit = undefined, params = {}) {
+        /**
+         * @method
+         * @name huobi#watchTrades
+         * @description get the list of most recent trades for a particular symbol
+         * @param {string} symbol unified symbol of the market to fetch trades for
+         * @param {int|undefined} since timestamp in ms of the earliest trade to fetch
+         * @param {int|undefined} limit the maximum amount of trades to fetch
+         * @param {object} params extra parameters specific to the huobi api endpoint
+         * @returns {[object]} a list of [trade structures]{@link https://docs.ccxt.com/en/latest/manual.html?#public-trades}
+         */
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        symbol = market['symbol'];
+        const messageHash = 'market.' + market['id'] + '.trade.detail';
+        const url = this.getUrlByMarketType (market['type'], market['linear']);
+        const trades = await this.subscribePublic (url, symbol, messageHash, undefined, params);
+        if (this.newUpdates) {
+            limit = trades.getLimit (symbol, limit);
+        }
+        return this.filterBySinceLimit (trades, since, limit, 'timestamp', true);
+    }
+
+    handleTrades (client, message) {
+        //
+        //     {
+        //         ch: "market.btcusdt.trade.detail",
+        //         ts: 1583495834011,
+        //         tick: {
+        //             id: 105004645372,
+        //             ts: 1583495833751,
+        //             data: [
+        //                 {
+        //                     id: 1.050046453727319e+22,
+        //                     ts: 1583495833751,
+        //                     tradeId: 102090727790,
+        //                     amount: 0.003893,
+        //                     price: 9150.01,
+        //                     direction: "sell"
+        //                 }
+        //             ]
+        //         }
+        //     }
+        //
+        const tick = this.safeValue (message, 'tick', {});
+        const data = this.safeValue (tick, 'data', {});
+        const ch = this.safeString (message, 'ch');
+        const parts = ch.split ('.');
+        const marketId = this.safeString (parts, 1);
+        const market = this.safeMarket (marketId);
+        const symbol = market['symbol'];
+        let tradesCache = this.safeValue (this.trades, symbol);
+        if (tradesCache === undefined) {
+            const limit = this.safeInteger (this.options, 'tradesLimit', 1000);
+            tradesCache = new ArrayCache (limit);
+            this.trades[symbol] = tradesCache;
+        }
+        for (let i = 0; i < data.length; i++) {
+            const trade = this.parseTrade (data[i], market);
+            tradesCache.append (trade);
+        }
+        client.resolve (tradesCache, ch);
+        return message;
+    }
+
+    async watchOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
+        /**
+         * @method
+         * @name huobi#watchOHLCV
+         * @description watches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+         * @param {string} symbol unified symbol of the market to fetch OHLCV data for
+         * @param {string} timeframe the length of time each candle represents
+         * @param {int|undefined} since timestamp in ms of the earliest candle to fetch
+         * @param {int|undefined} limit the maximum amount of candles to fetch
+         * @param {object} params extra parameters specific to the huobi api endpoint
+         * @returns {[[int]]} A list of candles ordered as timestamp, open, high, low, close, volume
+         */
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        symbol = market['symbol'];
+        const interval = this.timeframes[timeframe];
+        const messageHash = 'market.' + market['id'] + '.kline.' + interval;
+        const url = this.getUrlByMarketType (market['type'], market['linear']);
+        const ohlcv = await this.subscribePublic (url, symbol, messageHash, undefined, params);
+        if (this.newUpdates) {
+            limit = ohlcv.getLimit (symbol, limit);
+        }
+        return this.filterBySinceLimit (ohlcv, since, limit, 0, true);
+    }
+
+    handleOHLCV (client, message) {
+        //
+        //     {
+        //         ch: 'market.btcusdt.kline.1min',
+        //         ts: 1583501786794,
+        //         tick: {
+        //             id: 1583501760,
+        //             open: 9094.5,
+        //             close: 9094.51,
+        //             low: 9094.5,
+        //             high: 9094.51,
+        //             amount: 0.44639786263800907,
+        //             vol: 4059.76919054,
+        //             count: 16
+        //         }
+        //     }
+        //
+        const ch = this.safeString (message, 'ch');
+        const parts = ch.split ('.');
+        const marketId = this.safeString (parts, 1);
+        const market = this.safeMarket (marketId);
+        const symbol = market['symbol'];
+        const interval = this.safeString (parts, 3);
+        const timeframe = this.findTimeframe (interval);
+        this.ohlcvs[symbol] = this.safeValue (this.ohlcvs, symbol, {});
+        let stored = this.safeValue (this.ohlcvs[symbol], timeframe);
+        if (stored === undefined) {
+            const limit = this.safeInteger (this.options, 'OHLCVLimit', 1000);
+            stored = new ArrayCacheByTimestamp (limit);
+            this.ohlcvs[symbol][timeframe] = stored;
+        }
+        const tick = this.safeValue (message, 'tick');
+        const parsed = this.parseOHLCV (tick, market);
+        stored.append (parsed);
+        client.resolve (stored, ch);
+    }
+
+    async watchOrderBook (symbol, limit = undefined, params = {}) {
+        /**
+         * @method
+         * @name huobi#watchOrderBook
+         * @see https://huobiapi.github.io/docs/dm/v1/en/#subscribe-market-depth-data
+         * @see https://huobiapi.github.io/docs/coin_margined_swap/v1/en/#subscribe-incremental-market-depth-data
+         * @see https://huobiapi.github.io/docs/usdt_swap/v1/en/#general-subscribe-incremental-market-depth-data
+         * @description watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+         * @param {string} symbol unified symbol of the market to fetch the order book for
+         * @param {int|undefined} limit the maximum amount of order book entries to return
+         * @param {object} params extra parameters specific to the huobi api endpoint
+         * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-book-structure} indexed by market symbols
+         */
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        symbol = market['symbol'];
+        const allowedSpotLimits = [ 150 ];
+        const allowedSwapLimits = [ 20, 150 ];
+        limit = (limit === undefined) ? 150 : limit;
+        if (market['spot'] && !this.inArray (limit, allowedSpotLimits)) {
+            throw new ExchangeError (this.id + ' watchOrderBook spot market accepts limits of 150 only');
+        }
+        if (!market['spot'] && !this.inArray (limit, allowedSwapLimits)) {
+            throw new ExchangeError (this.id + ' watchOrderBook swap market accepts limits of 20 and 150 only');
+        }
+        let messageHash = undefined;
+        if (market['spot']) {
+            messageHash = 'market.' + market['id'] + '.mbp.' + limit.toString ();
+        } else {
+            messageHash = 'market.' + market['id'] + '.depth.size_' + limit.toString () + '.high_freq';
+        }
+        const url = this.getUrlByMarketType (market['type'], market['linear']);
+        let method = this.handleOrderBookSubscription;
+        if (!market['spot']) {
+            params['data_type'] = 'incremental';
+            method = undefined;
+        }
+        const orderbook = await this.subscribePublic (url, symbol, messageHash, method, params);
+        return orderbook.limit ();
+    }
+
+    handleOrderBookSnapshot (client, message, subscription) {
+        //
+        //     {
+        //         id: 1583473663565,
+        //         rep: 'market.btcusdt.mbp.150',
+        //         status: 'ok',
+        //         data: {
+        //             seqNum: 104999417756,
+        //             bids: [
+        //                 [9058.27, 0],
+        //                 [9058.43, 0],
+        //                 [9058.99, 0],
+        //             ],
+        //             asks: [
+        //                 [9084.27, 0.2],
+        //                 [9085.69, 0],
+        //                 [9085.81, 0],
+        //             ]
+        //         }
+        //     }
+        //
+        const symbol = this.safeString (subscription, 'symbol');
+        const messageHash = this.safeString (subscription, 'messageHash');
+        try {
+            const orderbook = this.orderbooks[symbol];
+            const data = this.safeValue (message, 'data');
+            const messages = orderbook.cache;
+            const firstMessage = this.safeValue (messages, 0, {});
+            const snapshot = this.parseOrderBook (data, symbol);
+            const tick = this.safeValue (firstMessage, 'tick');
+            const sequence = this.safeInteger (tick, 'seqNum');
+            const nonce = this.safeInteger (data, 'seqNum');
+            snapshot['nonce'] = nonce;
+            if ((sequence !== undefined) && (nonce < sequence)) {
+                const maxAttempts = this.safeInteger (this.options, 'maxOrderBookSyncAttempts', 3);
+                let numAttempts = this.safeInteger (subscription, 'numAttempts', 0);
+                // retry to synchronize if we have not reached maxAttempts yet
+                if (numAttempts < maxAttempts) {
+                    // safety guard
+                    if (messageHash in client.subscriptions) {
+                        numAttempts = this.sum (numAttempts, 1);
+                        subscription['numAttempts'] = numAttempts;
+                        client.subscriptions[messageHash] = subscription;
+                        this.spawn (this.watchOrderBookSnapshot, client, message, subscription);
+                    }
+                } else {
+                    // throw upon failing to synchronize in maxAttempts
+                    throw new InvalidNonce (this.id + ' failed to synchronize WebSocket feed with the snapshot for symbol ' + symbol + ' in ' + maxAttempts.toString () + ' attempts');
+                }
+            } else {
+                orderbook.reset (snapshot);
+                // unroll the accumulated deltas
+                for (let i = 0; i < messages.length; i++) {
+                    const message = messages[i];
+                    this.handleOrderBookMessage (client, message, orderbook);
+                }
+                this.orderbooks[symbol] = orderbook;
+                client.resolve (orderbook, messageHash);
+            }
+        } catch (e) {
+            client.reject (e, messageHash);
+        }
+    }
+
+    async watchOrderBookSnapshot (client, message, subscription) {
+        const symbol = this.safeString (subscription, 'symbol');
+        const limit = this.safeInteger (subscription, 'limit');
+        const params = this.safeValue (subscription, 'params');
+        const attempts = this.safeInteger (subscription, 'numAttempts', 0);
+        const messageHash = this.safeString (subscription, 'messageHash');
+        const market = this.market (symbol);
+        const url = this.getUrlByMarketType (market['type'], market['linear']);
+        const requestId = this.requestId ();
+        const request = {
+            'req': messageHash,
+            'id': requestId,
+        };
+        // this is a temporary subscription by a specific requestId
+        // it has a very short lifetime until the snapshot is received over ws
+        const snapshotSubscription = {
+            'id': requestId,
+            'messageHash': messageHash,
+            'symbol': symbol,
+            'limit': limit,
+            'params': params,
+            'numAttempts': attempts,
+            'method': this.handleOrderBookSnapshot,
+        };
+        const orderbook = await this.watch (url, requestId, request, requestId, snapshotSubscription);
+        return orderbook.limit ();
+    }
+
+    handleDelta (bookside, delta) {
+        const price = this.safeFloat (delta, 0);
+        const amount = this.safeFloat (delta, 1);
+        bookside.store (price, amount);
+    }
+
+    handleDeltas (bookside, deltas) {
+        for (let i = 0; i < deltas.length; i++) {
+            this.handleDelta (bookside, deltas[i]);
+        }
+    }
+
+    handleOrderBookMessage (client, message, orderbook) {
+        // spot markets
+        //
+        //     {
+        //         ch: "market.btcusdt.mbp.150",
+        //         ts: 1583472025885,
+        //         tick: {
+        //             seqNum: 104998984994,
+        //             prevSeqNum: 104998984977,
+        //             bids: [
+        //                 [9058.27, 0],
+        //                 [9058.43, 0],
+        //                 [9058.99, 0],
+        //             ],
+        //             asks: [
+        //                 [9084.27, 0.2],
+        //                 [9085.69, 0],
+        //                 [9085.81, 0],
+        //             ]
+        //         }
+        //     }
+        //
+        // non-spot market update
+        //
+        //     {
+        //         "ch":"market.BTC220218.depth.size_150.high_freq",
+        //         "tick":{
+        //             "asks":[],
+        //             "bids":[
+        //                 [43445.74,1],
+        //                 [43444.48,0 ],
+        //                 [40593.92,9]
+        //             ],
+        //             "ch":"market.BTC220218.depth.size_150.high_freq",
+        //             "event":"update",
+        //             "id":152727500274,
+        //             "mrid":152727500274,
+        //             "ts":1645023376098,
+        //             "version":37536690
+        //         },
+        //         "ts":1645023376098
+        //     }
+        // non-spot market snapshot
+        //
+        //     {
+        //         "ch":"market.BTC220218.depth.size_150.high_freq",
+        //         "tick":{
+        //             "asks":[
+        //                 [43445.74,1],
+        //                 [43444.48,0 ],
+        //                 [40593.92,9]
+        //             ],
+        //             "bids":[
+        //                 [43445.74,1],
+        //                 [43444.48,0 ],
+        //                 [40593.92,9]
+        //             ],
+        //             "ch":"market.BTC220218.depth.size_150.high_freq",
+        //             "event":"snapshot",
+        //             "id":152727500274,
+        //             "mrid":152727500274,
+        //             "ts":1645023376098,
+        //             "version":37536690
+        //         },
+        //         "ts":1645023376098
+        //     }
+        //
+        const ch = this.safeValue (message, 'ch');
+        const parts = ch.split ('.');
+        const marketId = this.safeString (parts, 1);
+        const symbol = this.safeSymbol (marketId);
+        const tick = this.safeValue (message, 'tick', {});
+        const seqNum = this.safeInteger2 (tick, 'seqNum', 'version');
+        const prevSeqNum = this.safeInteger (tick, 'prevSeqNum');
+        const event = this.safeString (tick, 'event');
+        const timestamp = this.safeInteger (message, 'ts');
+        if (event === 'snapshot') {
+            const snapshot = this.parseOrderBook (tick, symbol, timestamp);
+            orderbook.reset (snapshot);
+            orderbook['nonce'] = seqNum;
+        }
+        if ((prevSeqNum === undefined || prevSeqNum <= orderbook['nonce']) && (seqNum > orderbook['nonce'])) {
+            const asks = this.safeValue (tick, 'asks', []);
+            const bids = this.safeValue (tick, 'bids', []);
+            this.handleDeltas (orderbook['asks'], asks);
+            this.handleDeltas (orderbook['bids'], bids);
+            orderbook['nonce'] = seqNum;
+            orderbook['timestamp'] = timestamp;
+            orderbook['datetime'] = this.iso8601 (timestamp);
+        }
+        return orderbook;
+    }
+
+    handleOrderBook (client, message) {
+        //
+        // deltas
+        //
+        // spot markets
+        //
+        //     {
+        //         ch: "market.btcusdt.mbp.150",
+        //         ts: 1583472025885,
+        //         tick: {
+        //             seqNum: 104998984994,
+        //             prevSeqNum: 104998984977,
+        //             bids: [
+        //                 [9058.27, 0],
+        //                 [9058.43, 0],
+        //                 [9058.99, 0],
+        //             ],
+        //             asks: [
+        //                 [9084.27, 0.2],
+        //                 [9085.69, 0],
+        //                 [9085.81, 0],
+        //             ]
+        //         }
+        //     }
+        //
+        // non spot markets
+        //
+        //     {
+        //         "ch":"market.BTC220218.depth.size_150.high_freq",
+        //         "tick":{
+        //             "asks":[],
+        //             "bids":[
+        //                 [43445.74,1],
+        //                 [43444.48,0 ],
+        //                 [40593.92,9]
+        //             ],
+        //             "ch":"market.BTC220218.depth.size_150.high_freq",
+        //             "event":"update",
+        //             "id":152727500274,
+        //             "mrid":152727500274,
+        //             "ts":1645023376098,
+        //             "version":37536690
+        //         },
+        //         "ts":1645023376098
+        //     }
+        //
+        const tick = this.safeValue (message, 'tick', {});
+        const event = this.safeString (tick, 'event');
+        const messageHash = this.safeString (message, 'ch');
+        const ch = this.safeValue (message, 'ch');
+        const parts = ch.split ('.');
+        const marketId = this.safeString (parts, 1);
+        const symbol = this.safeSymbol (marketId);
+        let orderbook = this.safeValue (this.orderbooks, symbol);
+        if (orderbook === undefined) {
+            const size = this.safeString (parts, 3);
+            const sizeParts = size.split ('_');
+            const limit = this.safeInteger (sizeParts, 1);
+            orderbook = this.orderBook ({}, limit);
+        }
+        if (orderbook['nonce'] === undefined) {
+            orderbook.cache.push (message);
+        }
+        if (event !== undefined || orderbook['nonce'] !== undefined) {
+            this.orderbooks[symbol] = this.handleOrderBookMessage (client, message, orderbook);
+            client.resolve (orderbook, messageHash);
+        }
+    }
+
+    handleOrderBookSubscription (client, message, subscription) {
+        const symbol = this.safeString (subscription, 'symbol');
+        const limit = this.safeInteger (subscription, 'limit');
+        if (symbol in this.orderbooks) {
+            delete this.orderbooks[symbol];
+        }
+        this.orderbooks[symbol] = this.orderBook ({}, limit);
+        if (this.markets[symbol]['spot'] === true) {
+            this.spawn (this.watchOrderBookSnapshot, client, message, subscription);
+        }
+    }
+
+    async watchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        /**
+         * @method
+         * @name huobi#watchMyTrades
+         * @description watches information on multiple trades made by the user
+         * @param {string} symbol unified market symbol of the market orders were made in
+         * @param {int|undefined} since the earliest time in ms to fetch orders for
+         * @param {int|undefined} limit the maximum number of  orde structures to retrieve
+         * @param {object} params extra parameters specific to the huobi api endpoint
+         * @returns {[object]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure
+         */
+        this.checkRequiredCredentials ();
+        let type = undefined;
+        let marketId = '*'; // wildcard
+        let market = undefined;
+        let messageHash = undefined;
+        let channel = undefined;
+        let trades = undefined;
+        let subType = undefined;
+        if (symbol !== undefined) {
+            await this.loadMarkets ();
+            market = this.market (symbol);
+            symbol = market['symbol'];
+            type = market['type'];
+            subType = market['linear'] ? 'linear' : 'inverse';
+            marketId = market['lowercaseId'];
+        } else {
+            type = this.safeString (this.options, 'defaultType', 'spot');
+            type = this.safeString (params, 'type', type);
+            subType = this.safeString2 (this.options, 'subType', 'defaultSubType', 'linear');
+            subType = this.safeString (params, 'subType', subType);
+            params = this.omit (params, [ 'type', 'subType' ]);
+        }
+        if (type === 'spot') {
+            let mode = undefined;
+            if (mode === undefined) {
+                mode = this.safeString2 (this.options, 'watchMyTrades', 'mode', '0');
+                mode = this.safeString (params, 'mode', mode);
+                params = this.omit (params, 'mode');
+            }
+            messageHash = 'trade.clearing' + '#' + marketId + '#' + mode;
+            channel = messageHash;
+        } else {
+            const channelAndMessageHash = this.getOrderChannelAndMessageHash (type, subType, market, params);
+            channel = this.safeString (channelAndMessageHash, 0);
+            const orderMessageHash = this.safeString (channelAndMessageHash, 1);
+            // we will take advantage of the order messageHash because already handles stuff
+            // like symbol/margin/subtype/type variations
+            messageHash = orderMessageHash + ':' + 'trade';
+        }
+        trades = await this.subscribePrivate (channel, messageHash, type, subType, params);
+        if (this.newUpdates) {
+            limit = trades.getLimit (symbol, limit);
+        }
+        return this.filterBySymbolSinceLimit (trades, symbol, since, limit, true);
+    }
+
+    getOrderChannelAndMessageHash (type, subType, market = undefined, params = {}) {
+        let messageHash = undefined;
+        let channel = undefined;
+        let orderType = this.safeString (this.options, 'orderType', 'orders'); // orders or matchOrders
+        orderType = this.safeString (params, 'orderType', orderType);
+        params = this.omit (params, 'orderType');
+        const marketCode = (market !== undefined) ? market['lowercaseId'] : undefined;
+        const baseId = (market !== undefined) ? market['lowercaseBaseId'] : undefined;
+        const prefix = orderType;
+        messageHash = prefix;
+        if (subType === 'linear') {
+            // USDT Margined Contracts Example: LTC/USDT:USDT
+            const marginMode = this.safeString (params, 'margin', 'cross');
+            const marginPrefix = (marginMode === 'cross') ? prefix + '_cross' : prefix;
+            messageHash = marginPrefix;
+            if (marketCode !== undefined) {
+                messageHash += '.' + marketCode;
+                channel = messageHash;
+            } else {
+                channel = marginPrefix + '.' + '*';
+            }
+        } else if (type === 'future') {
+            // inverse futures Example: BCH/USD:BCH-220408
+            if (baseId !== undefined) {
+                channel = prefix + '.' + baseId;
+                messageHash = channel;
+            } else {
+                channel = prefix + '.' + '*';
+            }
+        } else {
+            // inverse swaps: Example: BTC/USD:BTC
+            if (marketCode !== undefined) {
+                channel = prefix + '.' + marketCode;
+                messageHash = channel;
+            } else {
+                channel = prefix + '.' + '*';
+            }
+        }
+        return [ channel, messageHash ];
+    }
+
+    async watchOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        /**
+         * @method
+         * @name huobi#watchOrders
+         * @description watches information on multiple orders made by the user
+         * @param {string|undefined} symbol unified market symbol of the market orders were made in
+         * @param {int|undefined} since the earliest time in ms to fetch orders for
+         * @param {int|undefined} limit the maximum number of  orde structures to retrieve
+         * @param {object} params extra parameters specific to the huobi api endpoint
+         * @returns {[object]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
+         */
+        await this.loadMarkets ();
+        let type = undefined;
+        let subType = undefined;
+        let market = undefined;
+        let suffix = '*'; // wildcard
+        if (symbol !== undefined) {
+            market = this.market (symbol);
+            symbol = market['symbol'];
+            type = market['type'];
+            suffix = market['lowercaseId'];
+            subType = market['linear'] ? 'linear' : 'inverse';
+        } else {
+            type = this.safeString (this.options, 'defaultType', 'spot');
+            type = this.safeString (params, 'type', type);
+            subType = this.safeString2 (this.options, 'subType', 'defaultSubType', 'linear');
+            subType = this.safeString (params, 'subType', subType);
+            params = this.omit (params, [ 'type', 'subType' ]);
+        }
+        let messageHash = undefined;
+        let channel = undefined;
+        if (type === 'spot') {
+            messageHash = 'orders' + '#' + suffix;
+            channel = messageHash;
+        } else {
+            const channelAndMessageHash = this.getOrderChannelAndMessageHash (type, subType, market, params);
+            channel = this.safeString (channelAndMessageHash, 0);
+            messageHash = this.safeString (channelAndMessageHash, 1);
+        }
+        const orders = await this.subscribePrivate (channel, messageHash, type, subType, params);
+        if (this.newUpdates) {
+            limit = orders.getLimit (symbol, limit);
+        }
+        return this.filterBySinceLimit (orders, since, limit, 'timestamp', true);
+    }
+
+    handleOrder (client, message) {
+        //
+        // spot
+        //
+        //     {
+        //         "action":"push",
+        //         "ch":"orders#btcusdt", // or 'orders#*' for global subscriptions
+        //         "data": {
+        //             orderSource: 'spot-web',
+        //             orderCreateTime: 1645116048355,
+        //             accountId: 44234548,
+        //             orderPrice: '100',
+        //             orderSize: '0.05',
+        //             symbol: 'ethusdt',
+        //             type: 'buy-limit',
+        //             orderId: '478861479986886',
+        //             eventType: 'creation',
+        //             clientOrderId: '',
+        //             orderStatus: 'submitted'
+        //         }
+        //     }
+        //
+        // spot wrapped trade
+        //
+        //     {
+        //         action: 'push',
+        //         ch: 'orders#ltcusdt',
+        //         data: {
+        //             tradePrice: '130.01',
+        //             tradeVolume: '0.0385',
+        //             tradeTime: 1648714741525,
+        //             aggressor: true,
+        //             execAmt: '0.0385',
+        //             orderSource: 'spot-web',
+        //             orderSize: '0.0385',
+        //             remainAmt: '0',
+        //             tradeId: 101541578884,
+        //             symbol: 'ltcusdt',
+        //             type: 'sell-market',
+        //             eventType: 'trade',
+        //             clientOrderId: '',
+        //             orderStatus: 'filled',
+        //             orderId: 509835753860328
+        //         }
+        //     }
+        //
+        // non spot order
+        //
+        // {
+        //     contract_type: 'swap',
+        //     pair: 'LTC-USDT',
+        //     business_type: 'swap',
+        //     op: 'notify',
+        //     topic: 'orders_cross.ltc-usdt',
+        //     ts: 1650354508696,
+        //     symbol: 'LTC',
+        //     contract_code: 'LTC-USDT',
+        //     volume: 1,
+        //     price: 110.34,
+        //     order_price_type: 'lightning',
+        //     direction: 'sell',
+        //     offset: 'close',
+        //     status: 6,
+        //     lever_rate: 1,
+        //     order_id: '966002354015051776',
+        //     order_id_str: '966002354015051776',
+        //     client_order_id: null,
+        //     order_source: 'web',
+        //     order_type: 1,
+        //     created_at: 1650354508649,
+        //     trade_volume: 1,
+        //     trade_turnover: 11.072,
+        //     fee: -0.005536,
+        //     trade_avg_price: 110.72,
+        //     margin_frozen: 0,
+        //     profit: -0.045,
+        //     trade: [
+        //       {
+        //         trade_fee: -0.005536,
+        //         fee_asset: 'USDT',
+        //         real_profit: 0.473,
+        //         profit: -0.045,
+        //         trade_id: 86678766507,
+        //         id: '86678766507-966002354015051776-1',
+        //         trade_volume: 1,
+        //         trade_price: 110.72,
+        //         trade_turnover: 11.072,
+        //         created_at: 1650354508656,
+        //         role: 'taker'
+        //       }
+        //     ],
+        //     canceled_at: 0,
+        //     fee_asset: 'USDT',
+        //     margin_asset: 'USDT',
+        //     uid: '359305390',
+        //     liquidation_type: '0',
+        //     margin_mode: 'cross',
+        //     margin_account: 'USDT',
+        //     is_tpsl: 0,
+        //     real_profit: 0.473,
+        //     trade_partition: 'USDT',
+        //     reduce_only: 1
+        //   }
+        //
+        //
+        const messageHash = this.safeString2 (message, 'ch', 'topic');
+        const data = this.safeValue (message, 'data');
+        let marketId = this.safeString (message, 'contract_code');
+        if (marketId === undefined) {
+            marketId = this.safeString (data, 'symbol');
+        }
+        const market = this.safeMarket (marketId);
+        let parsedOrder = undefined;
+        if (data !== undefined) {
+            // spot updates
+            const eventType = this.safeString (data, 'eventType');
+            if (eventType === 'trade') {
+                // when a spot order is filled we get an update message
+                // with the trade info
+                const parsedTrade = this.parseOrderTrade (data, market);
+                // inject trade in existing order by faking an order object
+                const orderId = this.safeString (parsedTrade, 'order');
+                const trades = [ parsedTrade ];
+                const order = {
+                    'id': orderId,
+                    'trades': trades,
+                    'status': 'closed',
+                    'symbol': market['symbol'],
+                };
+                parsedOrder = order;
+            } else {
+                parsedOrder = this.parseWsOrder (data, market);
+            }
+        } else {
+            // contract branch
+            parsedOrder = this.parseWsOrder (message, market);
+            const rawTrades = this.safeValue (message, 'trade', []);
+            const tradesLength = rawTrades.length;
+            if (tradesLength > 0) {
+                const tradesObject = {
+                    'trades': rawTrades,
+                    'ch': messageHash,
+                    'symbol': marketId,
+                };
+                // inject order params in every trade
+                const extendTradeParams = {
+                    'order': this.safeString (parsedOrder, 'id'),
+                    'type': this.safeString (parsedOrder, 'type'),
+                    'side': this.safeString (parsedOrder, 'side'),
+                };
+                // trades arrive inside an order update
+                // we're forwarding them to handleMyTrade
+                // so they can be properly resolved
+                this.handleMyTrade (client, tradesObject, extendTradeParams);
+            }
+        }
+        if (this.orders === undefined) {
+            const limit = this.safeInteger (this.options, 'ordersLimit', 1000);
+            this.orders = new ArrayCacheBySymbolById (limit);
+        }
+        const cachedOrders = this.orders;
+        cachedOrders.append (parsedOrder);
+        client.resolve (this.orders, messageHash);
+        // when we make a global subscription (for contracts only) our message hash can't have a symbol/currency attached
+        // so we're removing it here
+        let genericMessageHash = messageHash.replace ('.' + market['lowercaseId'], '');
+        genericMessageHash = genericMessageHash.replace ('.' + market['lowercaseBaseId'], '');
+        client.resolve (this.orders, genericMessageHash);
+    }
+
+    parseWsOrder (order, market = undefined) {
+        //
+        // spot
+        //
+        //     {
+        //         orderSource: 'spot-web',
+        //         orderCreateTime: 1645116048355, // creating only
+        //         accountId: 44234548,
+        //         orderPrice: '100',
+        //         orderSize: '0.05',
+        //         orderValue: '3.71676361', // market-buy only
+        //         symbol: 'ethusdt',
+        //         type: 'buy-limit',
+        //         orderId: '478861479986886',
+        //         eventType: 'creation',
+        //         clientOrderId: '',
+        //         orderStatus: 'submitted'
+        //         lastActTime:1645118621810 // except creating
+        //         execAmt:'0'
+        //     }
+        //
+        // swap order
+        //
+        //     {
+        //         contract_type: 'swap',
+        //         pair: 'LTC-USDT',
+        //         business_type: 'swap',
+        //         op: 'notify',
+        //         topic: 'orders_cross.ltc-usdt',
+        //         ts: 1648717911384,
+        //         symbol: 'LTC',
+        //         contract_code: 'LTC-USDT',
+        //         volume: 1,
+        //         price: 129.13,
+        //         order_price_type: 'lightning',
+        //         direction: 'sell',
+        //         offset: 'close',
+        //         status: 6,
+        //         lever_rate: 5,
+        //         order_id: '959137967397068800',
+        //         order_id_str: '959137967397068800',
+        //         client_order_id: null,
+        //         order_source: 'web',
+        //         order_type: 1,
+        //         created_at: 1648717911344,
+        //         trade_volume: 1,
+        //         trade_turnover: 12.952,
+        //         fee: -0.006476,
+        //         trade_avg_price: 129.52,
+        //         margin_frozen: 0,
+        //         profit: -0.005,
+        //         trade: [
+        //             {
+        //                 trade_fee: -0.006476,
+        //                 fee_asset: 'USDT',
+        //                 real_profit: -0.005,
+        //                 profit: -0.005,
+        //                 trade_id: 83619995370,
+        //                 id: '83619995370-959137967397068800-1',
+        //                 trade_volume: 1,
+        //                 trade_price: 129.52,
+        //                 trade_turnover: 12.952,
+        //                 created_at: 1648717911352,
+        //                 role: 'taker'
+        //             }
+        //         ],
+        //         canceled_at: 0,
+        //         fee_asset: 'USDT',
+        //         margin_asset: 'USDT',
+        //         uid: '359305390',
+        //         liquidation_type: '0',
+        //         margin_mode: 'cross',
+        //         margin_account: 'USDT',
+        //         is_tpsl: 0,
+        //         real_profit: -0.005,
+        //         trade_partition: 'USDT',
+        //         reduce_only: 1
+        //     }
+        //
+        //     {
+        //         "op":"notify",
+        //         "topic":"orders.ada",
+        //         "ts":1604388667226,
+        //         "symbol":"ADA",
+        //         "contract_type":"quarter",
+        //         "contract_code":"ADA201225",
+        //         "volume":1,
+        //         "price":0.0905,
+        //         "order_price_type":"post_only",
+        //         "direction":"sell",
+        //         "offset":"open",
+        //         "status":6,
+        //         "lever_rate":20,
+        //         "order_id":773207641127878656,
+        //         "order_id_str":"773207641127878656",
+        //         "client_order_id":null,
+        //         "order_source":"web",
+        //         "order_type":1,
+        //         "created_at":1604388667146,
+        //         "trade_volume":1,
+        //         "trade_turnover":10,
+        //         "fee":-0.022099447513812154,
+        //         "trade_avg_price":0.0905,
+        //         "margin_frozen":0,
+        //         "profit":0,
+        //         "trade":[],
+        //         "canceled_at":0,
+        //         "fee_asset":"ADA",
+        //         "uid":"123456789",
+        //         "liquidation_type":"0",
+        //         "is_tpsl": 0,
+        //         "real_profit": 0
+        //     }
+        //
+        const lastTradeTimestamp = this.safeInteger2 (order, 'lastActTime', 'ts');
+        const created = this.safeInteger (order, 'orderCreateTime');
+        const marketId = this.safeString2 (order, 'contract_code', 'symbol');
+        market = this.safeMarket (marketId, market);
+        const symbol = this.safeSymbol (marketId, market);
+        const amount = this.safeString2 (order, 'orderSize', 'volume');
+        const status = this.parseOrderStatus (this.safeString2 (order, 'orderStatus', 'status'));
+        const id = this.safeString2 (order, 'orderId', 'order_id');
+        const clientOrderId = this.safeString2 (order, 'clientOrderId', 'client_order_id');
+        const price = this.safeString2 (order, 'orderPrice', 'price');
+        const filled = this.safeString (order, 'execAmt');
+        let typeSide = this.safeString (order, 'type');
+        const feeCost = this.safeString (order, 'fee');
+        let fee = undefined;
+        if (feeCost !== undefined) {
+            const feeCurrencyId = this.safeString (order, 'fee_asset');
+            fee = {
+                'cost': feeCost,
+                'currency': this.safeCurrencyCode (feeCurrencyId),
+            };
+        }
+        const avgPrice = this.safeString (order, 'trade_avg_price');
+        const rawTrades = this.safeValue (order, 'trade');
+        if (typeSide !== undefined) {
+            typeSide = typeSide.split ('-');
+        }
+        let type = this.safeStringLower (typeSide, 1);
+        if (type === undefined) {
+            type = this.safeString (order, 'order_price_type');
+        }
+        let side = this.safeStringLower (typeSide, 0);
+        if (side === undefined) {
+            side = this.safeString (order, 'direction');
+        }
+        const cost = this.safeString (order, 'orderValue');
+        return this.safeOrder ({
+            'info': order,
+            'id': id,
+            'clientOrderId': clientOrderId,
+            'timestamp': created,
+            'datetime': this.iso8601 (created),
+            'lastTradeTimestamp': lastTradeTimestamp,
+            'status': status,
+            'symbol': symbol,
+            'type': type,
+            'timeInForce': undefined,
+            'postOnly': undefined,
+            'side': side,
+            'price': price,
+            'amount': amount,
+            'filled': filled,
+            'remaining': undefined,
+            'cost': cost,
+            'fee': fee,
+            'average': avgPrice,
+            'trades': rawTrades,
+        }, market);
+    }
+
+    parseOrderTrade (trade, market = undefined) {
+        // spot private wrapped trade
+        //
+        //     {
+        //         tradePrice: '130.01',
+        //         tradeVolume: '0.0385',
+        //         tradeTime: 1648714741525,
+        //         aggressor: true,
+        //         execAmt: '0.0385',
+        //         orderSource: 'spot-web',
+        //         orderSize: '0.0385',
+        //         remainAmt: '0',
+        //         tradeId: 101541578884,
+        //         symbol: 'ltcusdt',
+        //         type: 'sell-market',
+        //         eventType: 'trade',
+        //         clientOrderId: '',
+        //         orderStatus: 'filled',
+        //         orderId: 509835753860328
+        //     }
+        //
+        market = this.safeMarket (undefined, market);
+        const symbol = market['symbol'];
+        const tradeId = this.safeString (trade, 'tradeId');
+        const price = this.safeString (trade, 'tradePrice');
+        const amount = this.safeString (trade, 'tradeVolume');
+        const order = this.safeString (trade, 'orderId');
+        const timestamp = this.safeInteger (trade, 'tradeTime');
+        let type = this.safeString (trade, 'type');
+        let side = undefined;
+        if (type !== undefined) {
+            const typeParts = type.split ('-');
+            side = typeParts[0];
+            type = typeParts[1];
+        }
+        const aggressor = this.safeValue (trade, 'aggressor');
+        let takerOrMaker = undefined;
+        if (aggressor !== undefined) {
+            takerOrMaker = aggressor ? 'taker' : 'maker';
+        }
+        return this.safeTrade ({
+            'info': trade,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'symbol': symbol,
+            'id': tradeId,
+            'order': order,
+            'type': type,
+            'takerOrMaker': takerOrMaker,
+            'side': side,
+            'price': price,
+            'amount': amount,
+            'cost': undefined,
+            'fee': undefined,
+        }, market);
+    }
+
+    async watchBalance (params = {}) {
+        /**
+         * @method
+         * @name huobi#watchBalance
+         * @description query for balance and get the amount of funds available for trading or funds locked in orders
+         * @param {object} params extra parameters specific to the huobi api endpoint
+         * @returns {object} a [balance structure]{@link https://docs.ccxt.com/en/latest/manual.html?#balance-structure}
+         */
+        let type = this.safeString2 (this.options, 'watchBalance', 'defaultType', 'spot');
+        type = this.safeString (params, 'type', type);
+        let subType = this.safeString2 (this.options, 'watchBalance', 'subType', 'linear');
+        subType = this.safeString (params, 'subType', subType);
+        params = this.omit (params, [ 'type', 'subType' ]);
+        params = this.omit (params, 'type');
+        await this.loadMarkets ();
+        let messageHash = undefined;
+        let channel = undefined;
+        let marginMode = undefined;
+        if (type === 'spot') {
+            let mode = this.safeString2 (this.options, 'watchBalance', 'mode', '2');
+            mode = this.safeString (params, 'mode', mode);
+            messageHash = 'accounts.update' + '#' + mode;
+            channel = messageHash;
+        } else {
+            const symbol = this.safeString (params, 'symbol');
+            const currency = this.safeString (params, 'currency');
+            const market = (symbol !== undefined) ? this.market (symbol) : undefined;
+            const currencyCode = (currency !== undefined) ? this.currency (currency) : undefined;
+            marginMode = this.safeString (params, 'margin', 'cross');
+            params = this.omit (params, [ 'currency', 'symbol', 'margin' ]);
+            let prefix = 'accounts';
+            messageHash = prefix;
+            if (subType === 'linear') {
+                // usdt contracts account
+                prefix = (marginMode === 'cross') ? prefix + '_cross' : prefix;
+                messageHash = prefix;
+                if (marginMode === 'isolated') {
+                    // isolated margin only allows filtering by symbol3
+                    if (symbol !== undefined) {
+                        messageHash += '.' + market['id'];
+                        channel = messageHash;
+                    } else {
+                        // subscribe to all
+                        channel = prefix + '.' + '*';
+                    }
+                } else {
+                    // cross margin
+                    if (currencyCode !== undefined) {
+                        channel = prefix + '.' + currencyCode['id'];
+                        messageHash = channel;
+                    } else {
+                        // subscribe to all
+                        channel = prefix + '.' + '*';
+                    }
+                }
+            } else if (type === 'future') {
+                // inverse futures account
+                if (currencyCode !== undefined) {
+                    messageHash += '.' + currencyCode['id'];
+                    channel = messageHash;
+                } else {
+                    // subscribe to all
+                    channel = prefix + '.' + '*';
+                }
+            } else {
+                // inverse swaps account
+                if (market !== undefined) {
+                    messageHash += '.' + market['id'];
+                    channel = messageHash;
+                } else {
+                    // subscribe to all
+                    channel = prefix + '.' + '*';
+                }
+            }
+        }
+        const subscriptionParams = {
+            'type': type,
+            'subType': subType,
+            'margin': marginMode,
+        };
+        // we are differentiating the channel from the messageHash for global subscriptions (*)
+        // because huobi returns a different topic than the topic sent. Example: we send
+        // "accounts.*" and "accounts" is returned so we're setting channel = "accounts.*" and
+        // messageHash = "accounts" allowing handleBalance to freely resolve the topic in the message
+        return await this.subscribePrivate (channel, messageHash, type, subType, params, subscriptionParams);
+    }
+
+    handleBalance (client, message) {
+        // spot
+        //
+        //     {
+        //         "action": "push",
+        //         "ch": "accounts.update#0",
+        //         "data": {
+        //             "currency": "btc",
+        //             "accountId": 123456,
+        //             "balance": "23.111",
+        //             "available": "2028.699426619837209087",
+        //             "changeType": "transfer",
+        //             "accountType":"trade",
+        //             "seqNum": "86872993928",
+        //             "changeTime": 1568601800000
+        //         }
+        //     }
+        //
+        // inverse future
+        //
+        //     {
+        //         "op":"notify",
+        //         "topic":"accounts.ada",
+        //         "ts":1604388667226,
+        //         "event":"order.match",
+        //         "data":[
+        //             {
+        //                 "symbol":"ADA",
+        //                 "margin_balance":446.417641681222726716,
+        //                 "margin_static":445.554085945257745136,
+        //                 "margin_position":11.049723756906077348,
+        //                 "margin_frozen":0,
+        //                 "margin_available":435.367917924316649368,
+        //                 "profit_real":21.627049781983019459,
+        //                 "profit_unreal":0.86355573596498158,
+        //                 "risk_rate":40.000796572150656768,
+        //                 "liquidation_price":0.018674308027108984,
+        //                 "withdraw_available":423.927036163274725677,
+        //                 "lever_rate":20,
+        //                 "adjust_factor":0.4
+        //             }
+        //         ],
+        //         "uid":"123456789"
+        //     }
+        //
+        // usdt / linear future, swap
+        //
+        //     {
+        //         "op":"notify",
+        //         "topic":"accounts.btc-usdt", // or 'accounts' for global subscriptions
+        //         "ts":1603711370689,
+        //         "event":"order.open",
+        //         "data":[
+        //             {
+        //                 "margin_mode":"cross",
+        //                 "margin_account":"USDT",
+        //                 "margin_asset":"USDT",
+        //                 "margin_balance":30.959342395,
+        //                 "margin_static":30.959342395,
+        //                 "margin_position":0,
+        //                 "margin_frozen":10,
+        //                 "profit_real":0,
+        //                 "profit_unreal":0,
+        //                 "withdraw_available":20.959342395,
+        //                 "risk_rate":153.796711975,
+        //                 "position_mode":"dual_side",
+        //                 "contract_detail":[
+        //                     {
+        //                         "symbol":"LTC",
+        //                         "contract_code":"LTC-USDT",
+        //                         "margin_position":0,
+        //                         "margin_frozen":0,
+        //                         "margin_available":20.959342395,
+        //                         "profit_unreal":0,
+        //                         "liquidation_price":null,
+        //                         "lever_rate":1,
+        //                         "adjust_factor":0.01,
+        //                         "contract_type":"swap",
+        //                         "pair":"LTC-USDT",
+        //                         "business_type":"swap",
+        //                         "trade_partition":"USDT"
+        //                     },
+        //                 ],
+        //                 "futures_contract_detail":[],
+        //             }
+        //         ]
+        //     }
+        //
+        // inverse future
+        //
+        //     {
+        //         "op":"notify",
+        //         "topic":"accounts.ada",
+        //         "ts":1604388667226,
+        //         "event":"order.match",
+        //         "data":[
+        //             {
+        //                 "symbol":"ADA",
+        //                 "margin_balance":446.417641681222726716,
+        //                 "margin_static":445.554085945257745136,
+        //                 "margin_position":11.049723756906077348,
+        //                 "margin_frozen":0,
+        //                 "margin_available":435.367917924316649368,
+        //                 "profit_real":21.627049781983019459,
+        //                 "profit_unreal":0.86355573596498158,
+        //                 "risk_rate":40.000796572150656768,
+        //                 "liquidation_price":0.018674308027108984,
+        //                 "withdraw_available":423.927036163274725677,
+        //                 "lever_rate":20,
+        //                 "adjust_factor":0.4
+        //             }
+        //         ],
+        //         "uid":"123456789"
+        //     }
+        //
+        const channel = this.safeString (message, 'ch');
+        if (channel !== undefined) {
+            // spot balance
+            const data = this.safeValue (message, 'data', {});
+            const currencyId = this.safeString (data, 'currency');
+            const code = this.safeCurrencyCode (currencyId);
+            const account = this.account ();
+            account['free'] = this.safeString (data, 'available');
+            account['total'] = this.safeString (data, 'balance');
+            this.balance[code] = account;
+            this.balance = this.safeBalance (this.balance);
+            client.resolve (this.balance, channel);
+        } else {
+            // contract balance
+            const data = this.safeValue (message, 'data', []);
+            const dataLength = data.length;
+            if (dataLength === 0) {
+                return;
+            }
+            const first = this.safeValue (data, 0, {});
+            let messageHash = this.safeString (message, 'topic');
+            let subscription = this.safeValue2 (client.subscriptions, messageHash, messageHash + '.*');
+            if (subscription === undefined) {
+                // if subscription not found means that we subscribed to a specific currency/symbol
+                // and we use the first data entry to find it
+                // Example: topic = 'accounts'
+                // client.subscription hash = 'accounts.usdt'
+                // we do 'accounts' + '.' + data[0]]['margin_asset'] to get it
+                const marginAsset = this.safeString (first, 'margin_asset');
+                messageHash += '.' + marginAsset.toLowerCase ();
+                subscription = this.safeValue (client.subscriptions, messageHash);
+            }
+            const type = this.safeString (subscription, 'type');
+            const subType = this.safeString (subscription, 'subType');
+            if (subType === 'linear') {
+                const margin = this.safeString (subscription, 'margin');
+                if (margin === 'cross') {
+                    const fieldName = (type === 'future') ? 'futures_contract_detail' : 'contract_detail';
+                    const balances = this.safeValue (first, fieldName, []);
+                    const balancesLength = balances.length;
+                    if (balancesLength > 0) {
+                        for (let i = 0; i < balances.length; i++) {
+                            const balance = balances[i];
+                            const marketId = this.safeString2 (balance, 'contract_code', 'margin_account');
+                            const market = this.safeMarket (marketId);
+                            const currencyId = this.safeString (balance, 'margin_asset');
+                            const currency = this.safeCurrency (currencyId);
+                            const code = this.safeString (market, 'settle', currency['code']);
+                            // the exchange outputs positions for delisted markets
+                            // https://www.huobi.com/support/en-us/detail/74882968522337
+                            // we skip it if the market was delisted
+                            if (code !== undefined) {
+                                const account = this.account ();
+                                account['free'] = this.safeString2 (balance, 'margin_balance', 'margin_available');
+                                account['used'] = this.safeString (balance, 'margin_frozen');
+                                const accountsByCode = {};
+                                accountsByCode[code] = account;
+                                const symbol = market['symbol'];
+                                this.balance[symbol] = this.safeBalance (accountsByCode);
+                            }
+                        }
+                    }
+                } else {
+                    // isolated margin
+                    for (let i = 0; i < data.length; i++) {
+                        const isolatedBalance = data[i];
+                        const account = this.account ();
+                        account['free'] = this.safeString (isolatedBalance, 'margin_balance', 'margin_available');
+                        account['used'] = this.safeString (isolatedBalance, 'margin_frozen');
+                        const currencyId = this.safeString2 (isolatedBalance, 'margin_asset', 'symbol');
+                        const code = this.safeCurrencyCode (currencyId);
+                        this.balance[code] = account;
+                        this.balance = this.safeBalance (this.balance);
+                    }
+                }
+            } else {
+                // inverse branch
+                for (let i = 0; i < data.length; i++) {
+                    const balance = data[i];
+                    const currencyId = this.safeString (balance, 'symbol');
+                    const code = this.safeCurrencyCode (currencyId);
+                    const account = this.account ();
+                    account['free'] = this.safeString (balance, 'margin_available');
+                    account['used'] = this.safeString (balance, 'margin_frozen');
+                    this.balance[code] = account;
+                    this.balance = this.safeBalance (this.balance);
+                }
+            }
+            client.resolve (this.balance, messageHash);
+        }
+    }
+
+    handleSubscriptionStatus (client, message) {
+        //
+        //     {
+        //         "id": 1583414227,
+        //         "status": "ok",
+        //         "subbed": "market.btcusdt.mbp.150",
+        //         "ts": 1583414229143
+        //     }
+        //
+        const id = this.safeString (message, 'id');
+        const subscriptionsById = this.indexBy (client.subscriptions, 'id');
+        const subscription = this.safeValue (subscriptionsById, id);
+        if (subscription !== undefined) {
+            const method = this.safeValue (subscription, 'method');
+            if (method !== undefined) {
+                return method.call (this, client, message, subscription);
+            }
+            // clean up
+            if (id in client.subscriptions) {
+                delete client.subscriptions[id];
+            }
+        }
+        return message;
+    }
+
+    handleSystemStatus (client, message) {
+        //
+        // todo: answer the question whether handleSystemStatus should be renamed
+        // and unified as handleStatus for any usage pattern that
+        // involves system status and maintenance updates
+        //
+        //     {
+        //         id: '1578090234088', // connectId
+        //         type: 'welcome',
+        //     }
+        //
+        return message;
+    }
+
+    handleSubject (client, message) {
+        // spot
+        //     {
+        //         ch: "market.btcusdt.mbp.150",
+        //         ts: 1583472025885,
+        //         tick: {
+        //             seqNum: 104998984994,
+        //             prevSeqNum: 104998984977,
+        //             bids: [
+        //                 [9058.27, 0],
+        //                 [9058.43, 0],
+        //                 [9058.99, 0],
+        //             ],
+        //             asks: [
+        //                 [9084.27, 0.2],
+        //                 [9085.69, 0],
+        //                 [9085.81, 0],
+        //             ]
+        //         }
+        //     }
+        // non spot
+        //
+        //     {
+        //         "ch":"market.BTC220218.depth.size_150.high_freq",
+        //         "tick":{
+        //             "asks":[],
+        //             "bids":[
+        //                 [43445.74,1],
+        //                 [43444.48,0 ],
+        //                 [40593.92,9]
+        //             ],
+        //             "ch":"market.BTC220218.depth.size_150.high_freq",
+        //             "event":"update",
+        //             "id":152727500274,
+        //             "mrid":152727500274,
+        //             "ts":1645023376098,
+        //             "version":37536690
+        //         },
+        //         "ts":1645023376098
+        //     }
+        //
+        // spot private trade
+        //
+        //     {
+        //         "action":"push",
+        //         "ch":"trade.clearing#ltcusdt#1",
+        //         "data":{
+        //             "eventType":"trade",
+        //             "symbol":"ltcusdt",
+        //             // ...
+        //         },
+        //     }
+        //
+        // spot order
+        //
+        //     {
+        //         "action":"push",
+        //         "ch":"orders#btcusdt",
+        //         "data": {
+        //             "orderSide":"buy",
+        //             "lastActTime":1583853365586,
+        //             "clientOrderId":"abc123",
+        //             "orderStatus":"rejected",
+        //             "symbol":"btcusdt",
+        //             "eventType":"trigger",
+        //             "errCode": 2002,
+        //             "errMessage":"invalid.client.order.id (NT)"
+        //         }
+        //     }
+        //
+        // contract order
+        //
+        //     {
+        //         "op":"notify",
+        //         "topic":"orders.ada",
+        //         "ts":1604388667226,
+        //         // ?
+        //     }
+        //
+        const ch = this.safeValue (message, 'ch', '');
+        const parts = ch.split ('.');
+        const type = this.safeString (parts, 0);
+        if (type === 'market') {
+            const methodName = this.safeString (parts, 2);
+            const methods = {
+                'depth': this.handleOrderBook,
+                'mbp': this.handleOrderBook,
+                'detail': this.handleTicker,
+                'bbo': this.handleTicker,
+                'ticker': this.handleTicker,
+                'trade': this.handleTrades,
+                'kline': this.handleOHLCV,
+            };
+            const method = this.safeValue (methods, methodName);
+            if (method === undefined) {
+                return message;
+            } else {
+                return method.call (this, client, message);
+            }
+        }
+        // private spot subjects
+        const privateParts = ch.split ('#');
+        const privateType = this.safeString (privateParts, 0, '');
+        if (privateType === 'trade.clearing') {
+            this.handleMyTrade (client, message);
+            return;
+        }
+        if (privateType.indexOf ('accounts.update') !== -1) {
+            this.handleBalance (client, message);
+            return;
+        }
+        if (privateType === 'orders') {
+            this.handleOrder (client, message);
+            return;
+        }
+        // private contract subjects
+        const op = this.safeString (message, 'op');
+        if (op === 'notify') {
+            const topic = this.safeString (message, 'topic', '');
+            if (topic.indexOf ('orders') !== -1) {
+                this.handleOrder (client, message);
+            }
+            if (topic.indexOf ('account') !== -1) {
+                this.handleBalance (client, message);
+            }
+        }
+    }
+
+    async pong (client, message) {
+        //
+        //     { ping: 1583491673714 }
+        //     { action: 'ping', data: { ts: 1645108204665 } }
+        //     { op: 'ping', ts: '1645202800015' }
+        //
+        const ping = this.safeInteger (message, 'ping');
+        if (ping !== undefined) {
+            await client.send ({ 'pong': ping });
+            return;
+        }
+        const action = this.safeString (message, 'action');
+        if (action === 'ping') {
+            const data = this.safeValue (message, 'data');
+            const ping = this.safeInteger (data, 'ts');
+            await client.send ({ 'action': 'pong', 'data': { 'ts': ping }});
+            return;
+        }
+        const op = this.safeString (message, 'op');
+        if (op === 'ping') {
+            const ping = this.safeInteger (message, 'ts');
+            await client.send ({ 'op': 'pong', 'ts': ping });
+        }
+    }
+
+    handlePing (client, message) {
+        this.spawn (this.pong, client, message);
+    }
+
+    handleAuthenticate (client, message) {
+        //
+        // spot
+        //
+        //     {
+        //         "action": "req",
+        //         "code": 200,
+        //         "ch": "auth",
+        //         "data": {}
+        //     }
+        //
+        // non spot
+        //
+        //    {
+        //        op: 'auth',
+        //        type: 'api',
+        //        'err-code': 0,
+        //        ts: 1645200307319,
+        //        data: { 'user-id': '35930539' }
+        //    }
+        //
+        client.resolve (message, 'auth');
+        return message;
+    }
+
+    handleErrorMessage (client, message) {
+        //
+        //     {
+        //         action: 'sub',
+        //         code: 2002,
+        //         ch: 'accounts.update#2',
+        //         message: 'invalid.auth.state'
+        //      }
+        //
+        //     {
+        //         ts: 1586323747018,
+        //         status: 'error',
+        //         'err-code': 'bad-request',
+        //         'err-msg': 'invalid mbp.150.symbol linkusdt',
+        //         id: '2'
+        //     }
+        //
+        const status = this.safeString (message, 'status');
+        if (status === 'error') {
+            const id = this.safeString (message, 'id');
+            const subscriptionsById = this.indexBy (client.subscriptions, 'id');
+            const subscription = this.safeValue (subscriptionsById, id);
+            if (subscription !== undefined) {
+                const errorCode = this.safeString (message, 'err-code');
+                try {
+                    this.throwExactlyMatchedException (this.exceptions['ws']['exact'], errorCode, this.json (message));
+                } catch (e) {
+                    const messageHash = this.safeString (subscription, 'messageHash');
+                    client.reject (e, messageHash);
+                    client.reject (e, id);
+                    if (id in client.subscriptions) {
+                        delete client.subscriptions[id];
+                    }
+                }
+            }
+            return false;
+        }
+        const code = this.safeInteger (message, 'code');
+        if (code !== undefined && code !== 200) {
+            const feedback = this.id + ' ' + this.json (message);
+            try {
+                this.throwExactlyMatchedException (this.exceptions['ws']['exact'], code, feedback);
+            } catch (e) {
+                if (e instanceof AuthenticationError) {
+                    client.reject (e, 'auth');
+                    const method = 'auth';
+                    if (method in client.subscriptions) {
+                        delete client.subscriptions[method];
+                    }
+                    return false;
+                } else {
+                    client.reject (e);
+                }
+            }
+        }
+        return message;
+    }
+
+    handleMessage (client, message) {
+        if (this.handleErrorMessage (client, message)) {
+            //
+            //     {"id":1583414227,"status":"ok","subbed":"market.btcusdt.mbp.150","ts":1583414229143}
+            //
+            // first ping format
+            //
+            //    {'ping': 1645106821667 }
+            //
+            // second ping format
+            //
+            //    {"action":"ping","data":{"ts":1645106821667}}
+            //
+            // third pong format
+            //
+            //
+            // auth spot
+            //
+            //     {
+            //         "action": "req",
+            //         "code": 200,
+            //         "ch": "auth",
+            //         "data": {}
+            //     }
+            //
+            // auth non spot
+            //
+            //    {
+            //        op: 'auth',
+            //        type: 'api',
+            //        'err-code': 0,
+            //        ts: 1645200307319,
+            //        data: { 'user-id': '35930539' }
+            //    }
+            //
+            // trade
+            //
+            //     {
+            //         "action":"push",
+            //         "ch":"trade.clearing#ltcusdt#1",
+            //         "data":{
+            //             "eventType":"trade",
+            //             // ?
+            //         }
+            //     }
+            //
+            if ('id' in message) {
+                this.handleSubscriptionStatus (client, message);
+                return;
+            }
+            if ('action' in message) {
+                const action = this.safeString (message, 'action');
+                if (action === 'ping') {
+                    this.handlePing (client, message);
+                    return;
+                }
+                if (action === 'sub') {
+                    this.handleSubscriptionStatus (client, message);
+                    return;
+                }
+            }
+            if ('ch' in message) {
+                if (message['ch'] === 'auth') {
+                    this.handleAuthenticate (client, message);
+                    return;
+                } else {
+                    // route by channel aka topic aka subject
+                    this.handleSubject (client, message);
+                    return;
+                }
+            }
+            if ('op' in message) {
+                const op = this.safeString (message, 'op');
+                if (op === 'ping') {
+                    this.handlePing (client, message);
+                    return;
+                }
+                if (op === 'auth') {
+                    this.handleAuthenticate (client, message);
+                    return;
+                }
+                if (op === 'sub') {
+                    this.handleSubscriptionStatus (client, message);
+                    return;
+                }
+                if (op === 'notify') {
+                    this.handleSubject (client, message);
+                    return;
+                }
+            }
+            if ('ping' in message) {
+                this.handlePing (client, message);
+            }
+        }
+    }
+
+    handleMyTrade (client, message, extendParams = {}) {
+        //
+        // spot
+        //
+        //     {
+        //         "action":"push",
+        //         "ch":"trade.clearing#ltcusdt#1",
+        //         "data":{
+        //             "eventType":"trade",
+        //             "symbol":"ltcusdt",
+        //             "orderId":"478862728954426",
+        //             "orderSide":"buy",
+        //             "orderType":"buy-market",
+        //             "accountId":44234548,
+        //             "source":"spot-web",
+        //             "orderValue":"5.01724137",
+        //             "orderCreateTime":1645124660365,
+        //             "orderStatus":"filled",
+        //             "feeCurrency":"ltc",
+        //             "tradePrice":"118.89",
+        //             "tradeVolume":"0.042200701236437042",
+        //             "aggressor":true,
+        //             "tradeId":101539740584,
+        //             "tradeTime":1645124660368,
+        //             "transactFee":"0.000041778694224073",
+        //             "feeDeduct":"0",
+        //             "feeDeductType":""
+        //         }
+        //     }
+        //
+        // contract
+        //
+        //     {
+        //         "symbol": "ADA/USDT:USDT"
+        //         "ch": "orders_cross.ada-usdt"
+        //         "trades": [
+        //             {
+        //                 "trade_fee":-0.022099447513812154,
+        //                 "fee_asset":"ADA",
+        //                 "trade_id":113913755890,
+        //                 "id":"113913755890-773207641127878656-1",
+        //                 "trade_volume":1,
+        //                 "trade_price":0.0905,
+        //                 "trade_turnover":10,
+        //                 "created_at":1604388667194,
+        //                 "profit":0,
+        //                 "real_profit": 0,
+        //                 "role":"maker"
+        //             }
+        //         ],
+        //     }
+        //
+        if (this.myTrades === undefined) {
+            const limit = this.safeInteger (this.options, 'tradesLimit', 1000);
+            this.myTrades = new ArrayCacheBySymbolById (limit);
+        }
+        const cachedTrades = this.myTrades;
+        const messageHash = this.safeString (message, 'ch');
+        if (messageHash !== undefined) {
+            const data = this.safeValue (message, 'data');
+            if (data !== undefined) {
+                const parsed = this.parseWsTrade (data);
+                const symbol = this.safeString (parsed, 'symbol');
+                if (symbol !== undefined) {
+                    cachedTrades.append (parsed);
+                    client.resolve (this.myTrades, messageHash);
+                }
+            } else {
+                // this trades object is artificially created
+                // in handleOrder
+                const rawTrades = this.safeValue (message, 'trades', []);
+                const marketId = this.safeValue (message, 'symbol');
+                const market = this.market (marketId);
+                for (let i = 0; i < rawTrades.length; i++) {
+                    const trade = rawTrades[i];
+                    let parsedTrade = this.parseTrade (trade, market);
+                    // add extra params (side, type, ...) coming from the order
+                    parsedTrade = this.extend (parsedTrade, extendParams);
+                    cachedTrades.append (parsedTrade);
+                }
+                // messageHash here is the orders one, so
+                // we have to recreate the trades messageHash = orderMessageHash + ':' + 'trade'
+                const tradesHash = messageHash + ':' + 'trade';
+                client.resolve (this.myTrades, tradesHash);
+                // when we make an global order sub we have to send the channel like this
+                // ch = orders_cross.* and we store messageHash = 'orders_cross'
+                // however it is returned with the specific order update symbol: ch = orders_cross.btc-usd
+                // since this is a global sub, our messageHash does not specify any symbol (ex: orders_cross:trade)
+                // so we must remove it
+                let genericOrderHash = messageHash.replace ('.' + market['lowercaseId'], '');
+                genericOrderHash = genericOrderHash.replace ('.' + market['lowercaseBaseId'], '');
+                const genericTradesHash = genericOrderHash + ':' + 'trade';
+                client.resolve (this.myTrades, genericTradesHash);
+            }
+        }
+    }
+
+    parseWsTrade (trade) {
+        // spot private
+        //
+        //     {
+        //         "eventType":"trade",
+        //         "symbol":"ltcusdt",
+        //         "orderId":"478862728954426",
+        //         "orderSide":"buy",
+        //         "orderType":"buy-market",
+        //         "accountId":44234548,
+        //         "source":"spot-web",
+        //         "orderValue":"5.01724137",
+        //         "orderCreateTime":1645124660365,
+        //         "orderStatus":"filled",
+        //         "feeCurrency":"ltc",
+        //         "tradePrice":"118.89",
+        //         "tradeVolume":"0.042200701236437042",
+        //         "aggressor":true,
+        //         "tradeId":101539740584,
+        //         "tradeTime":1645124660368,
+        //         "transactFee":"0.000041778694224073",
+        //         "feeDeduct":"0",
+        //         "feeDeductType":""
+        //     }
+        //
+        const symbol = this.safeSymbol (this.safeString (trade, 'symbol'));
+        const side = this.safeString2 (trade, 'side', 'orderSide');
+        const tradeId = this.safeString (trade, 'tradeId');
+        const price = this.safeString (trade, 'tradePrice');
+        const amount = this.safeString (trade, 'tradeVolume');
+        const order = this.safeString (trade, 'orderId');
+        const timestamp = this.safeInteger (trade, 'tradeTime');
+        const market = this.market (symbol);
+        let orderType = this.safeString (trade, 'orderType');
+        const aggressor = this.safeValue (trade, 'aggressor');
+        let takerOrMaker = undefined;
+        if (aggressor !== undefined) {
+            takerOrMaker = aggressor ? 'taker' : 'maker';
+        }
+        let type = undefined;
+        if (orderType !== undefined) {
+            orderType = orderType.split ('-');
+            type = this.safeString (orderType, 1);
+        }
+        let fee = undefined;
+        const feeCurrency = this.safeCurrencyCode (this.safeString (trade, 'feeCurrency'));
+        if (feeCurrency !== undefined) {
+            fee = {
+                'cost': this.safeString (trade, 'transactFee'),
+                'currency': feeCurrency,
+            };
+        }
+        return this.safeTrade ({
+            'info': trade,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'symbol': symbol,
+            'id': tradeId,
+            'order': order,
+            'type': type,
+            'takerOrMaker': takerOrMaker,
+            'side': side,
+            'price': price,
+            'amount': amount,
+            'cost': undefined,
+            'fee': fee,
+        }, market);
+    }
+
+    getUrlByMarketType (type, isLinear = true, isPrivate = false) {
+        const api = this.safeString (this.options, 'api', 'api');
+        const hostname = { 'hostname': this.hostname };
+        let hostnameURL = undefined;
+        let url = undefined;
+        if (type === 'spot') {
+            if (isPrivate) {
+                hostnameURL = this.urls['api']['ws'][api]['spot']['private'];
+            } else {
+                hostnameURL = this.urls['api']['ws'][api]['spot']['public'];
+            }
+            url = this.implodeParams (hostnameURL, hostname);
+        } else {
+            const baseUrl = this.urls['api']['ws'][api][type];
+            const subTypeUrl = isLinear ? baseUrl['linear'] : baseUrl['inverse'];
+            url = isPrivate ? subTypeUrl['private'] : subTypeUrl['public'];
+        }
+        return url;
+    }
+
+    async subscribePublic (url, symbol, messageHash, method = undefined, params = {}) {
+        const requestId = this.requestId ();
+        const request = {
+            'sub': messageHash,
+            'id': requestId,
+        };
+        const subscription = {
+            'id': requestId,
+            'messageHash': messageHash,
+            'symbol': symbol,
+            'params': params,
+        };
+        if (method !== undefined) {
+            subscription['method'] = method;
+        }
+        return await this.watch (url, messageHash, this.extend (request, params), messageHash, subscription);
+    }
+
+    async subscribePrivate (channel, messageHash, type, subtype, params = {}, subscriptionParams = {}) {
+        const requestId = this.nonce ();
+        const subscription = {
+            'id': requestId,
+            'messageHash': messageHash,
+            'params': params,
+        };
+        const extendedSubsription = this.extend (subscription, subscriptionParams);
+        let request = undefined;
+        if (type === 'spot') {
+            request = {
+                'action': 'sub',
+                'ch': channel,
+            };
+        } else {
+            request = {
+                'op': 'sub',
+                'topic': channel,
+                'cid': requestId,
+            };
+        }
+        const isLinear = subtype === 'linear';
+        const url = this.getUrlByMarketType (type, isLinear, true);
+        const hostname = (type === 'spot') ? this.urls['hostnames']['spot'] : this.urls['hostnames']['contract'];
+        const authParams = {
+            'type': type,
+            'url': url,
+            'hostname': hostname,
+        };
+        if (type === 'spot') {
+            this.options['ws']['gunzip'] = false;
+        }
+        await this.authenticate (authParams);
+        return await this.watch (url, messageHash, this.extend (request, params), channel, extendedSubsription);
+    }
+
+    async authenticate (params = {}) {
+        const url = this.safeString (params, 'url');
+        const hostname = this.safeString (params, 'hostname');
+        const type = this.safeString (params, 'type');
+        if (url === undefined || hostname === undefined || type === undefined) {
+            throw new ArgumentsRequired (this.id + ' authenticate requires a url, hostname and type argument');
+        }
+        this.checkRequiredCredentials ();
+        const messageHash = 'auth';
+        const relativePath = url.replace ('wss://' + hostname, '');
+        const client = this.client (url);
+        let future = this.safeValue (client.subscriptions, messageHash);
+        if (future === undefined) {
+            future = client.future (messageHash);
+            const timestamp = this.ymdhms (this.milliseconds (), 'T');
+            let signatureParams = undefined;
+            if (type === 'spot') {
+                signatureParams = {
+                    'accessKey': this.apiKey,
+                    'signatureMethod': 'HmacSHA256',
+                    'signatureVersion': '2.1',
+                    'timestamp': timestamp,
+                };
+            } else {
+                signatureParams = {
+                    'AccessKeyId': this.apiKey,
+                    'SignatureMethod': 'HmacSHA256',
+                    'SignatureVersion': '2',
+                    'Timestamp': timestamp,
+                };
+            }
+            signatureParams = this.keysort (signatureParams);
+            const auth = this.urlencode (signatureParams);
+            const payload = [ 'GET', hostname, relativePath, auth ].join ("\n"); // eslint-disable-line quotes
+            const signature = this.hmac (this.encode (payload), this.encode (this.secret), 'sha256', 'base64');
+            let request = undefined;
+            if (type === 'spot') {
+                const params = {
+                    'authType': 'api',
+                    'accessKey': this.apiKey,
+                    'signatureMethod': 'HmacSHA256',
+                    'signatureVersion': '2.1',
+                    'timestamp': timestamp,
+                    'signature': signature,
+                };
+                request = {
+                    'params': params,
+                    'action': 'req',
+                    'ch': messageHash,
+                };
+            } else {
+                request = {
+                    'op': messageHash,
+                    'type': 'api',
+                    'AccessKeyId': this.apiKey,
+                    'SignatureMethod': 'HmacSHA256',
+                    'SignatureVersion': '2',
+                    'Timestamp': timestamp,
+                    'Signature': signature,
+                };
+            }
+            await this.watch (url, messageHash, request, messageHash, future);
+        }
+        return await future;
+    }
+};

@@ -1,11 +1,11 @@
 # -*- coding: utf-8 -*-
 
 import asyncio
-import ccxtpro
+import ccxt.pro
 
 
 async def loop(exchange_id, symbol):
-    exchange = getattr(ccxtpro, exchange_id)()
+    exchange = getattr(ccxt.pro, exchange_id)()
     while True:
         try:
             orderbook = await exchange.watch_order_book(symbol)
@@ -20,9 +20,9 @@ async def loop(exchange_id, symbol):
 
 async def main():
     symbols = {
-        'poloniex': 'BTC/USDT',
+        'kraken': 'BTC/USDT',
         'binance': 'BTC/USDT',
-        'bitmex': 'BTC/USD',
+        'bitmex': 'XBT_USDT',
     }
     await asyncio.gather(*[loop(exchange_id, symbol) for exchange_id, symbol in symbols.items()])
 

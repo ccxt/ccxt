@@ -6,11 +6,6 @@ namespace ccxt;
 // https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 use Exception; // a common import
-use \ccxt\ExchangeError;
-use \ccxt\ArgumentsRequired;
-use \ccxt\BadRequest;
-use \ccxt\BadSymbol;
-use \ccxt\OrderNotFound;
 
 class phemex extends Exchange {
 
@@ -93,6 +88,7 @@ class phemex extends Exchange {
                 ),
                 'api' => array(
                     'v1' => 'https://{hostname}/v1',
+                    'v2' => 'https://{hostname}',
                     'public' => 'https://{hostname}/exchange/public',
                     'private' => 'https://{hostname}',
                 ),
@@ -128,6 +124,8 @@ class phemex extends Exchange {
                         'products', // contracts only
                         'nomics/trades', // ?market=<symbol>&since=<since>
                         'md/kline', // ?from=1589811875&resolution=1800&symbol=sBTCUSDT&to=1592457935
+                        'md/v2/kline/list', // perpetual api ?symbol=<symbol>&to=<to>&from=<from>&resolution=<resolution>
+                        'md/v2/kline/last', // perpetual ?symbol=<symbol>&resolution=<resolution>&limit=<limit>
                     ),
                 ),
                 'v1' => array(
@@ -139,6 +137,14 @@ class phemex extends Exchange {
                         'md/spot/ticker/24hr', // ?symbol=<symbol>&id=<id>
                         'md/spot/ticker/24hr/all', // ?symbol=<symbol>&id=<id>
                         'exchange/public/products', // contracts only
+                    ),
+                ),
+                'v2' => array(
+                    'get' => array(
+                        'md/v2/orderbook', // ?symbol=<symbol>&id=<id>
+                        'md/v2/trade', // ?symbol=<symbol>&id=<id>
+                        'md/v2/ticker/24hr', // ?symbol=<symbol>&id=<id>
+                        'md/v2/ticker/24hr/all', // ?id=<id>
                     ),
                 ),
                 'private' => array(
@@ -405,7 +411,7 @@ class phemex extends Exchange {
                 'defaultSubType' => 'linear',
                 'accountsByType' => array(
                     'spot' => 'spot',
-                    'future' => 'future',
+                    'swap' => 'future',
                 ),
                 'transfer' => array(
                     'fillResponseFromRequest' => true,
@@ -779,7 +785,7 @@ class phemex extends Exchange {
         for ($i = 0; $i < count($products); $i++) {
             $market = $products[$i];
             $type = $this->safe_string_lower($market, 'type');
-            if ($type === 'perpetual') {
+            if (($type === 'perpetual') || ($type === 'perpetualv2')) {
                 $id = $this->safe_string($market, 'symbol');
                 $riskLimitValues = $this->safe_value($riskLimitsById, $id, array());
                 $market = array_merge($market, $riskLimitValues);
@@ -1048,22 +1054,26 @@ class phemex extends Exchange {
         );
         $duration = $this->parse_timeframe($timeframe);
         $now = $this->seconds();
-        // the exchange does not return the last 1m candle
+        $maxLimit = 2000; // maximum $limit, we shouldn't sent $request of more than it
+        if ($limit === null) {
+            $limit = 100; // set default, as exchange doesn't have any defaults and needs something to be set
+        } else {
+            $limit = min ($limit, $maxLimit);
+        }
         if ($since !== null) {
-            if ($limit === null) {
-                $limit = 2000; // max 2000
-            }
+            $limit = min ($limit, $maxLimit);
             $since = intval($since / 1000);
             $request['from'] = $since;
             // time ranges ending in the future are not accepted
             // https://github.com/ccxt/ccxt/issues/8050
             $request['to'] = min ($now, $this->sum($since, $duration * $limit));
-        } elseif ($limit !== null) {
-            $limit = min ($limit, 2000);
-            $request['from'] = $now - $duration * $this->sum($limit, 1);
-            $request['to'] = $now;
         } else {
-            throw new ArgumentsRequired($this->id . ' fetchOHLCV() requires a $since argument, or a $limit argument, or both');
+            if ($limit < $maxLimit) {
+                // whenever making a $request with `$now`, that expects current latest bar to be included, the exchange does not return the last 1m candle and thus excludes one bar. So, we have to add `1` to user's set `$limit` amount to get that amount of bars back
+                $limit = $limit + 1;
+            }
+            $request['from'] = $now - $duration * $limit;
+            $request['to'] = $now;
         }
         $this->load_markets();
         $market = $this->market($symbol);
@@ -1124,24 +1134,41 @@ class phemex extends Exchange {
         //         "turnoverEv" => 47228362330,
         //         "volume" => 4053863
         //     }
+        // linear swap v2
+        //
+        //     {
+        //         "closeRp":"16820.5",
+        //         "fundingRateRr":"0.0001",
+        //         "highRp":"16962.1",
+        //         "indexPriceRp":"16830.15651565",
+        //         "lowRp":"16785",
+        //         "markPriceRp":"16830.97534951",
+        //         "openInterestRv":"1323.596",
+        //         "openRp":"16851.7",
+        //         "predFundingRateRr":"0.0001",
+        //         "symbol":"BTCUSDT",
+        //         "timestamp":"1672142789065593096",
+        //         "turnoverRv":"124835296.0538",
+        //         "volumeRq":"7406.95"
+        //     }
         //
         $marketId = $this->safe_string($ticker, 'symbol');
         $market = $this->safe_market($marketId, $market);
         $symbol = $market['symbol'];
         $timestamp = $this->safe_integer_product($ticker, 'timestamp', 0.000001);
-        $last = $this->from_ep($this->safe_string($ticker, 'lastEp'), $market);
-        $quoteVolume = $this->from_ev($this->safe_string($ticker, 'turnoverEv'), $market);
+        $last = $this->from_ep($this->safe_string_2($ticker, 'lastEp', 'closeRp'), $market);
+        $quoteVolume = $this->from_ev($this->safe_string_2($ticker, 'turnoverEv', 'turnoverRv'), $market);
         $baseVolume = $this->safe_string($ticker, 'volume');
         if ($baseVolume === null) {
-            $baseVolume = $this->from_ev($this->safe_string($ticker, 'volumeEv'), $market);
+            $baseVolume = $this->from_ev($this->safe_string_2($ticker, 'volumeEv', 'volumeRq'), $market);
         }
         $open = $this->from_ep($this->safe_string($ticker, 'openEp'), $market);
         return $this->safe_ticker(array(
             'symbol' => $symbol,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
-            'high' => $this->from_ep($this->safe_string($ticker, 'highEp'), $market),
-            'low' => $this->from_ep($this->safe_string($ticker, 'lowEp'), $market),
+            'high' => $this->from_ep($this->safe_string_2($ticker, 'highEp', 'highRp'), $market),
+            'low' => $this->from_ep($this->safe_string_2($ticker, 'lowEp', 'lowRp'), $market),
             'bid' => $this->from_ep($this->safe_string($ticker, 'bidEp'), $market),
             'bidVolume' => null,
             'ask' => $this->from_ep($this->safe_string($ticker, 'askEp'), $market),
@@ -1173,7 +1200,14 @@ class phemex extends Exchange {
             'symbol' => $market['id'],
             // 'id' => 123456789, // optional $request id
         );
-        $method = $market['spot'] ? 'v1GetMdSpotTicker24hr' : 'v1GetMdTicker24hr';
+        $method = 'v1GetMdSpotTicker24hr';
+        if ($market['swap']) {
+            if (!$market['linear']) {
+                $method = 'v1GetMdTicker24hr';
+            } else {
+                $method = 'v2GetMdV2Ticker24hr';
+            }
+        }
         $response = $this->$method (array_merge($request, $params));
         //
         // spot
@@ -1989,7 +2023,10 @@ class phemex extends Exchange {
                 $params = $this->omit($params, 'cost');
                 if ($this->options['createOrderByQuoteRequiresPrice']) {
                     if ($price !== null) {
-                        $cost = $amount * $price;
+                        $amountString = $this->number_to_string($amount);
+                        $priceString = $this->number_to_string($price);
+                        $quoteAmount = Precise::string_mul($amountString, $priceString);
+                        $cost = $this->parse_number($quoteAmount);
                     } elseif ($cost === null) {
                         throw new ArgumentsRequired($this->id . ' createOrder() ' . $qtyType . ' requires a $price argument or a $cost parameter');
                     }
@@ -2891,7 +2928,10 @@ class phemex extends Exchange {
         $leverage = $this->safe_number($position, 'leverage');
         $entryPriceString = $this->safe_string($position, 'avgEntryPrice');
         $rawSide = $this->safe_string($position, 'side');
-        $side = ($rawSide === 'Buy') ? 'long' : 'short';
+        $side = null;
+        if ($rawSide !== null) {
+            $side = ($rawSide === 'Buy') ? 'long' : 'short';
+        }
         $priceDiff = null;
         $currency = $this->safe_string($position, 'currency');
         if ($currency === 'USD') {
@@ -2913,6 +2953,7 @@ class phemex extends Exchange {
         $marginRatio = Precise::string_div($maintenanceMarginString, $collateral);
         return array(
             'info' => $position,
+            'id' => null,
             'symbol' => $symbol,
             'contracts' => $this->parse_number($contracts),
             'contractSize' => $contractSize,
@@ -3019,7 +3060,12 @@ class phemex extends Exchange {
         $request = array(
             'symbol' => $market['id'],
         );
-        $response = $this->v1GetMdTicker24hr (array_merge($request, $params));
+        $response = array();
+        if (!$market['linear']) {
+            $response = $this->v1GetMdTicker24hr (array_merge($request, $params));
+        } else {
+            $response = $this->v2GetMdV2Ticker24hr (array_merge($request, $params));
+        }
         //
         //     {
         //         "error" => null,
@@ -3067,14 +3113,32 @@ class phemex extends Exchange {
         //         "volume" => 4053863
         //     }
         //
+        // linear swap v2
+        //
+        //     {
+        //         "closeRp":"16820.5",
+        //         "fundingRateRr":"0.0001",
+        //         "highRp":"16962.1",
+        //         "indexPriceRp":"16830.15651565",
+        //         "lowRp":"16785",
+        //         "markPriceRp":"16830.97534951",
+        //         "openInterestRv":"1323.596",
+        //         "openRp":"16851.7",
+        //         "predFundingRateRr":"0.0001",
+        //         "symbol":"BTCUSDT",
+        //         "timestamp":"1672142789065593096",
+        //         "turnoverRv":"124835296.0538",
+        //         "volumeRq":"7406.95"
+        //     }
+        //
         $marketId = $this->safe_string($contract, 'symbol');
         $symbol = $this->safe_symbol($marketId, $market);
         $timestamp = $this->safe_integer_product($contract, 'timestamp', 0.000001);
         return array(
             'info' => $contract,
             'symbol' => $symbol,
-            'markPrice' => $this->from_ep($this->safe_string($contract, 'markEp'), $market),
-            'indexPrice' => $this->from_ep($this->safe_string($contract, 'indexEp'), $market),
+            'markPrice' => $this->from_ep($this->safe_string_2($contract, 'markEp', 'markPriceRp'), $market),
+            'indexPrice' => $this->from_ep($this->safe_string_2($contract, 'indexEp', 'indexPriceRp'), $market),
             'interestRate' => null,
             'estimatedSettlePrice' => null,
             'timestamp' => $timestamp,
@@ -3082,7 +3146,7 @@ class phemex extends Exchange {
             'fundingRate' => $this->from_er($this->safe_string($contract, 'fundingRateEr'), $market),
             'fundingTimestamp' => null,
             'fundingDatetime' => null,
-            'nextFundingRate' => $this->from_er($this->safe_string($contract, 'predFundingRateEr'), $market),
+            'nextFundingRate' => $this->from_er($this->safe_string_2($contract, 'predFundingRateEr', 'predFundingRateRr'), $market),
             'nextFundingTimestamp' => null,
             'nextFundingDatetime' => null,
             'previousFundingRate' => null,
@@ -3378,6 +3442,7 @@ class phemex extends Exchange {
          * @param {string} $fromAccount account to $transfer from
          * @param {string} $toAccount account to $transfer to
          * @param {array} $params extra parameters specific to the phemex api endpoint
+         * @param {string|null} $params->bizType for transferring between main and sub-acounts either 'SPOT' or 'PERPETUAL' default is 'SPOT'
          * @return {array} a {@link https://docs.ccxt.com/en/latest/manual.html#$transfer-structure $transfer structure}
          */
         $this->load_markets();

@@ -26,7 +26,7 @@ class wavesexchange(Exchange):
             'id': 'wavesexchange',
             'name': 'Waves.Exchange',
             'countries': ['CH'],  # Switzerland
-            'certified': True,
+            'certified': False,
             'pro': False,
             'has': {
                 'CORS': None,
@@ -74,6 +74,7 @@ class wavesexchange(Exchange):
                 'fetchPositionsRisk': False,
                 'fetchPremiumIndexOHLCV': False,
                 'fetchTicker': True,
+                'fetchTickers': True,
                 'fetchTrades': True,
                 'fetchTransfer': False,
                 'fetchTransfers': False,
@@ -353,6 +354,7 @@ class wavesexchange(Exchange):
                 '106957828': AuthenticationError,
                 '106960131': AuthenticationError,
                 '106981137': AuthenticationError,
+                '9437184': BadRequest,  # {"error":9437184,"message":"The order is invalid: SpendAmount should be > 0","template":"The order is invalid: {{details}}","params":{"details":"SpendAmount should be > 0"},"status":"OrderRejected","success":false}
                 '9437193': OrderNotFound,
                 '1048577': BadRequest,
                 '1051904': AuthenticationError,

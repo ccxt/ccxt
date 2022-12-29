@@ -60,6 +60,8 @@ class whitebit(Exchange):
                 'fetchDeposit': True,
                 'fetchDepositAddress': True,
                 'fetchDeposits': True,
+                'fetchDepositWithdrawFee': 'emulated',
+                'fetchDepositWithdrawFees': True,
                 'fetchFundingHistory': False,
                 'fetchFundingRate': False,
                 'fetchFundingRateHistory': False,
@@ -233,6 +235,9 @@ class whitebit(Exchange):
                     'spot': 'spot',
                     'margin': 'collateral',
                     'trade': 'spot',
+                },
+                'networksById': {
+                    'BEP20': 'BSC',
                 },
             },
             'precisionMode': TICK_SIZE,
@@ -431,7 +436,7 @@ class whitebit(Exchange):
 
     def fetch_transaction_fees(self, codes=None, params={}):
         """
-        fetch transaction fees
+        *DEPRECATED* please use fetchDepositWithdrawFees instead
         :param [str]|None codes: not used by fetchTransactionFees()
         :param dict params: extra parameters specific to the whitebit api endpoint
         :returns dict: a list of `fee structures <https://docs.ccxt.com/en/latest/manual.html#fee-structure>`
@@ -479,6 +484,147 @@ class whitebit(Exchange):
             'deposit': depositFees,
             'info': response,
         }
+
+    def fetch_deposit_withdraw_fees(self, codes=None, params={}):
+        """
+        fetch deposit and withdraw fees
+        :param [str]|None codes: not used by fetchDepositWithdrawFees()
+        :param dict params: extra parameters specific to the whitebit api endpoint
+        :returns dict: a list of `fee structures <https://docs.ccxt.com/en/latest/manual.html#fee-structure>`
+        """
+        self.load_markets()
+        response = self.v4PublicGetFee(params)
+        #
+        #    {
+        #        "1INCH": {
+        #            "is_depositable": True,
+        #            "is_withdrawal": True,
+        #            "ticker": "1INCH",
+        #            "name": "1inch",
+        #            "providers": [],
+        #            "withdraw": {
+        #                "max_amount": "0",
+        #                "min_amount": "21.5",
+        #                "fixed": "17.5",
+        #                "flex": null
+        #            },
+        #            "deposit": {
+        #                "max_amount": "0",
+        #                "min_amount": "19.5",
+        #                "fixed": null,
+        #                "flex": null
+        #            }
+        #        },
+        #        'WBT(ERC20)': {
+        #            is_depositable: True,
+        #            is_withdrawal: True,
+        #            ticker: 'WBT',
+        #            name: 'WhiteBIT Token',
+        #            providers: [],
+        #            withdraw: {max_amount: '0', min_amount: '0.7', fixed: '0.253', flex: null},
+        #            deposit: {max_amount: '0', min_amount: '0.35', fixed: null, flex: null}
+        #        },
+        #        'WBT(TRC20)': {
+        #            is_depositable: True,
+        #            is_withdrawal: True,
+        #            ticker: 'WBT',
+        #            name: 'WhiteBIT Token',
+        #            providers: [],
+        #            withdraw: {max_amount: '0', min_amount: '1.5', fixed: '0.075', flex: null},
+        #            deposit: {max_amount: '0', min_amount: '0.75', fixed: null, flex: null}
+        #        },
+        #        ...
+        #    }
+        #
+        return self.parse_deposit_withdraw_fees(response, codes)
+
+    def parse_deposit_withdraw_fees(self, response, codes=None, currencyIdKey=None):
+        #
+        #    {
+        #        "1INCH": {
+        #            "is_depositable": True,
+        #            "is_withdrawal": True,
+        #            "ticker": "1INCH",
+        #            "name": "1inch",
+        #            "providers": [],
+        #            "withdraw": {
+        #                "max_amount": "0",
+        #                "min_amount": "21.5",
+        #                "fixed": "17.5",
+        #                "flex": null
+        #            },
+        #            "deposit": {
+        #                "max_amount": "0",
+        #                "min_amount": "19.5",
+        #                "fixed": null,
+        #                "flex": null
+        #            }
+        #        },
+        #        'WBT(ERC20)': {
+        #            is_depositable: True,
+        #            is_withdrawal: True,
+        #            ticker: 'WBT',
+        #            name: 'WhiteBIT Token',
+        #            providers: [],
+        #            withdraw: {max_amount: '0', min_amount: '0.7', fixed: '0.253', flex: null},
+        #            deposit: {max_amount: '0', min_amount: '0.35', fixed: null, flex: null}
+        #        },
+        #        'WBT(TRC20)': {
+        #            is_depositable: True,
+        #            is_withdrawal: True,
+        #            ticker: 'WBT',
+        #            name: 'WhiteBIT Token',
+        #            providers: [],
+        #            withdraw: {max_amount: '0', min_amount: '1.5', fixed: '0.075', flex: null},
+        #            deposit: {max_amount: '0', min_amount: '0.75', fixed: null, flex: null}
+        #        },
+        #        ...
+        #    }
+        #
+        depositWithdrawFees = {}
+        codes = self.market_codes(codes)
+        currencyIds = list(response.keys())
+        for i in range(0, len(currencyIds)):
+            entry = currencyIds[i]
+            splitEntry = entry.split(' ')
+            currencyId = splitEntry[0]
+            feeInfo = response[entry]
+            code = self.safe_currency_code(currencyId)
+            if (codes is None) or (self.in_array(code, codes)):
+                depositWithdrawFee = self.safe_value(depositWithdrawFees, code)
+                if depositWithdrawFee is None:
+                    depositWithdrawFees[code] = self.deposit_withdraw_fee({})
+                depositWithdrawFees[code]['info'][entry] = feeInfo
+                networkId = self.safe_string(splitEntry, 1)
+                withdraw = self.safe_value(feeInfo, 'withdraw')
+                deposit = self.safe_value(feeInfo, 'deposit')
+                withdrawFee = self.safe_number(withdraw, 'fixed')
+                depositFee = self.safe_number(deposit, 'fixed')
+                withdrawResult = {
+                    'fee': withdrawFee,
+                    'percentage': False if (withdrawFee is not None) else None,
+                }
+                depositResult = {
+                    'fee': depositFee,
+                    'percentage': False if (depositFee is not None) else None,
+                }
+                if networkId is not None:
+                    networkLength = len(networkId)
+                    networkId = networkId[1:networkLength - 1]
+                    networkCode = self.network_id_to_code(networkId)
+                    depositWithdrawFees[code]['networks'][networkCode] = {
+                        'withdraw': withdrawResult,
+                        'deposit': depositResult,
+                    }
+                else:
+                    depositWithdrawFees[code]['withdraw'] = withdrawResult
+                    depositWithdrawFees[code]['deposit'] = depositResult
+        depositWithdrawCodes = list(depositWithdrawFees.keys())
+        for i in range(0, len(depositWithdrawCodes)):
+            code = depositWithdrawCodes[i]
+            currency = self.currency(code)
+            depositWithdrawFees[code] = self.assign_default_deposit_withdraw_fees(depositWithdrawFees[code], currency)
+        return depositWithdrawFees
 
     def fetch_trading_fees(self, params={}):
         """
@@ -675,7 +821,7 @@ class whitebit(Exchange):
         #          ]
         #      }
         #
-        timestamp = Precise.string_mul(self.safe_string(response, 'timestamp'), '1000')
+        timestamp = self.parse_number(Precise.string_mul(self.safe_string(response, 'timestamp'), '1000'))
         return self.parse_order_book(response, symbol, timestamp)
 
     def fetch_trades(self, symbol, since=None, limit=None, params={}):
@@ -822,7 +968,7 @@ class whitebit(Exchange):
         orderId = self.safe_string_2(trade, 'dealOrderId', 'orderId')
         cost = self.safe_string(trade, 'deal')
         price = self.safe_string(trade, 'price')
-        amount = self.safe_string_2(trade, 'amount', 'base_volume')
+        amount = self.safe_string_2(trade, 'amount', 'quote_volume')
         id = self.safe_string_2(trade, 'id', 'tradeID')
         side = self.safe_string_2(trade, 'type', 'side')
         symbol = market['symbol']
@@ -977,7 +1123,7 @@ class whitebit(Exchange):
         postOnly = self.is_post_only(isMarketOrder, False, params)
         marginMode, query = self.handle_margin_mode_and_params('createOrder', params)
         if postOnly:
-            raise NotSupported(self.id + ' createOrder() does not support postOnly orders.')
+            request['postOnly'] = True
         method = None
         if isStopOrder:
             request['activation_price'] = self.price_to_precision(symbol, stopPrice)

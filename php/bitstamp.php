@@ -6,10 +6,6 @@ namespace ccxt;
 // https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 use Exception; // a common import
-use \ccxt\ExchangeError;
-use \ccxt\AuthenticationError;
-use \ccxt\ArgumentsRequired;
-use \ccxt\NotSupported;
 
 class bitstamp extends Exchange {
 
@@ -46,6 +42,8 @@ class bitstamp extends Exchange {
                 'fetchBorrowRatesPerSymbol' => false,
                 'fetchCurrencies' => true,
                 'fetchDepositAddress' => true,
+                'fetchDepositWithdrawFee' => 'emulated',
+                'fetchDepositWithdrawFees' => true,
                 'fetchFundingHistory' => false,
                 'fetchFundingRate' => false,
                 'fetchFundingRateHistory' => false,
@@ -760,11 +758,11 @@ class bitstamp extends Exchange {
         if ($numCurrencyIds === 2) {
             $marketId = $currencyIds[0] . $currencyIds[1];
             if (is_array($this->markets_by_id) && array_key_exists($marketId, $this->markets_by_id)) {
-                return $this->markets_by_id[$marketId];
+                return $this->safe_market($marketId);
             }
             $marketId = $currencyIds[1] . $currencyIds[0];
             if (is_array($this->markets_by_id) && array_key_exists($marketId, $this->markets_by_id)) {
-                return $this->markets_by_id[$marketId];
+                return $this->safe_market($marketId);
             }
         }
         return null;
@@ -818,24 +816,14 @@ class bitstamp extends Exchange {
         $orderId = $this->safe_string($trade, 'order_id');
         $type = null;
         $costString = $this->safe_string($trade, 'cost');
-        $rawBaseId = null;
-        $rawQuoteId = null;
         $rawMarketId = null;
         if ($market === null) {
             $keys = is_array($trade) ? array_keys($trade) : array();
             for ($i = 0; $i < count($keys); $i++) {
                 $currentKey = $keys[$i];
                 if ($currentKey !== 'order_id' && mb_strpos($currentKey, '_') !== false) {
-                    $marketId = str_replace('_', '', $currentKey);
-                    if (is_array($this->markets_by_id) && array_key_exists($marketId, $this->markets_by_id)) {
-                        $market = $this->markets_by_id[$marketId];
-                    } else {
-                        $rawMarketId = $currentKey;
-                        $parts = explode('_', $currentKey);
-                        $rawBaseId = $this->safe_string($parts, 0);
-                        $rawQuoteId = $this->safe_string($parts, 1);
-                        $market = $this->safe_market($marketId);
-                    }
+                    $rawMarketId = $currentKey;
+                    $market = $this->safe_market($rawMarketId, $market, '_');
                 }
             }
         }
@@ -845,13 +833,10 @@ class bitstamp extends Exchange {
             $market = $this->get_market_from_trade($trade);
         }
         $feeCostString = $this->safe_string($trade, 'fee');
-        $feeCurrency = ($market['quote'] !== null) ? $market['quote'] : $rawQuoteId;
-        $baseId = ($market['baseId'] !== null) ? $market['baseId'] : $rawBaseId;
-        $quoteId = ($market['quoteId'] !== null) ? $market['quoteId'] : $rawQuoteId;
-        $priceId = ($rawMarketId !== null) ? $rawMarketId : $market['marketId'];
-        $priceString = $this->safe_string($trade, $priceId, $priceString);
-        $amountString = $this->safe_string($trade, $baseId, $amountString);
-        $costString = $this->safe_string($trade, $quoteId, $costString);
+        $feeCurrency = $market['quote'];
+        $priceString = $this->safe_string($trade, $rawMarketId, $priceString);
+        $amountString = $this->safe_string($trade, $market['baseId'], $amountString);
+        $costString = $this->safe_string($trade, $market['quoteId'], $costString);
         $symbol = $market['symbol'];
         $datetimeString = $this->safe_string_2($trade, 'date', 'datetime');
         $timestamp = null;
@@ -990,7 +975,7 @@ class bitstamp extends Exchange {
         $duration = $this->parse_timeframe($timeframe);
         if ($limit === null) {
             if ($since === null) {
-                throw new ArgumentsRequired($this->id . ' fetchOHLCV() requires a $since argument or a $limit argument');
+                $request['limit'] = 1000; // we need to specify an allowed amount of `$limit` if no `$since` is set and there is no default $limit by exchange
             } else {
                 $limit = 1000;
                 $start = intval($since / 1000);
@@ -1125,34 +1110,138 @@ class bitstamp extends Exchange {
         return $this->parse_trading_fees($response);
     }
 
-    public function parse_transaction_fees($balance) {
-        $withdraw = array();
-        $ids = is_array($balance) ? array_keys($balance) : array();
-        for ($i = 0; $i < count($ids); $i++) {
-            $id = $ids[$i];
-            if (mb_strpos($id, '_withdrawal_fee') !== false) {
-                $currencyId = explode('_', $id)[0];
-                $code = $this->safe_currency_code($currencyId);
-                $withdraw[$code] = $this->safe_number($balance, $id);
-            }
-        }
-        return array(
-            'info' => $balance,
-            'withdraw' => $withdraw,
-            'deposit' => array(),
-        );
-    }
-
     public function fetch_transaction_fees($codes = null, $params = array ()) {
         /**
-         * fetch transaction fees
-         * @param {[string]|null} $codes not used by bitstamp fetchTransactionFees ()
+         * *DEPRECATED* please use fetchDepositWithdrawFees instead
+         * @see https://www.bitstamp.net/api/#balance
+         * @param {[string]|null} $codes list of unified currency $codes
          * @param {array} $params extra parameters specific to the bitstamp api endpoint
          * @return {[array]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#fee-structure fee structures}
          */
         $this->load_markets();
-        $balance = $this->privatePostBalance ($params);
-        return $this->parse_transaction_fees($balance);
+        $response = $this->privatePostBalance ($params);
+        return $this->parse_transaction_fees($response, $codes);
+    }
+
+    public function parse_transaction_fees($response, $codes = null) {
+        //
+        //  {
+        //     yfi_available => '0.00000000',
+        //     yfi_balance => '0.00000000',
+        //     yfi_reserved => '0.00000000',
+        //     yfi_withdrawal_fee => '0.00070000',
+        //     yfieur_fee => '0.000',
+        //     yfiusd_fee => '0.000',
+        //     zrx_available => '0.00000000',
+        //     zrx_balance => '0.00000000',
+        //     zrx_reserved => '0.00000000',
+        //     zrx_withdrawal_fee => '12.00000000',
+        //     zrxeur_fee => '0.000',
+        //     zrxusd_fee => '0.000',
+        //     ...
+        //  }
+        //
+        if ($codes === null) {
+            $codes = is_array($this->currencies) ? array_keys($this->currencies) : array();
+        }
+        $result = array();
+        $mainCurrencyId = null;
+        $ids = is_array($response) ? array_keys($response) : array();
+        for ($i = 0; $i < count($ids); $i++) {
+            $id = $ids[$i];
+            $currencyId = explode('_', $id)[0];
+            $code = $this->safe_currency_code($currencyId);
+            if ($codes !== null && !$this->in_array($code, $codes)) {
+                continue;
+            }
+            if (mb_strpos($id, '_available') !== false) {
+                $mainCurrencyId = $currencyId;
+                $result[$code] = array(
+                    'deposit' => null,
+                    'withdraw' => null,
+                    'info' => array(),
+                );
+            }
+            if ($currencyId === $mainCurrencyId) {
+                $result[$code]['info'][$id] = $this->safe_number($response, $id);
+            }
+            if (mb_strpos($id, '_withdrawal_fee') !== false) {
+                $result[$code]['withdraw'] = $this->safe_number($response, $id);
+            }
+        }
+        return $result;
+    }
+
+    public function fetch_deposit_withdraw_fees($codes = null, $params = array ()) {
+        /**
+         * fetch deposit and withdraw fees
+         * @see https://www.bitstamp.net/api/#balance
+         * @param {[string]|null} $codes list of unified currency $codes
+         * @param {array} $params extra parameters specific to the bitstamp api endpoint
+         * @return {[array]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#fee-structure fee structures}
+         */
+        $this->load_markets();
+        $response = $this->privatePostBalance ($params);
+        //
+        //    {
+        //        yfi_available => '0.00000000',
+        //        yfi_balance => '0.00000000',
+        //        yfi_reserved => '0.00000000',
+        //        yfi_withdrawal_fee => '0.00070000',
+        //        yfieur_fee => '0.000',
+        //        yfiusd_fee => '0.000',
+        //        zrx_available => '0.00000000',
+        //        zrx_balance => '0.00000000',
+        //        zrx_reserved => '0.00000000',
+        //        zrx_withdrawal_fee => '12.00000000',
+        //        zrxeur_fee => '0.000',
+        //        zrxusd_fee => '0.000',
+        //        ...
+        //    }
+        //
+        return $this->parse_deposit_withdraw_fees($response, $codes);
+    }
+
+    public function parse_deposit_withdraw_fees($response, $codes = null, $currencyIdKey = null) {
+        //
+        //    {
+        //        yfi_available => '0.00000000',
+        //        yfi_balance => '0.00000000',
+        //        yfi_reserved => '0.00000000',
+        //        yfi_withdrawal_fee => '0.00070000',
+        //        yfieur_fee => '0.000',
+        //        yfiusd_fee => '0.000',
+        //        zrx_available => '0.00000000',
+        //        zrx_balance => '0.00000000',
+        //        zrx_reserved => '0.00000000',
+        //        zrx_withdrawal_fee => '12.00000000',
+        //        zrxeur_fee => '0.000',
+        //        zrxusd_fee => '0.000',
+        //        ...
+        //    }
+        //
+        $result = array();
+        $ids = is_array($response) ? array_keys($response) : array();
+        for ($i = 0; $i < count($ids); $i++) {
+            $id = $ids[$i];
+            $currencyId = explode('_', $id)[0];
+            $code = $this->safe_currency_code($currencyId);
+            $dictValue = $this->safe_number($response, $id);
+            if ($codes !== null && !$this->in_array($code, $codes)) {
+                continue;
+            }
+            if (mb_strpos($id, '_available') !== false) {
+                $result[$code] = $this->deposit_withdraw_fee(array());
+            }
+            if (mb_strpos($id, '_withdrawal_fee') !== false) {
+                $result[$code]['withdraw']['fee'] = $dictValue;
+            }
+            $resultValue = $this->safe_value($result, $code);
+            if ($resultValue !== null) {
+                $result[$code]['info'][$id] = $dictValue;
+            }
+        }
+        return $result;
     }
 
     public function create_order($symbol, $type, $side, $amount, $price = null, $params = array ()) {
@@ -1536,8 +1625,10 @@ class bitstamp extends Exchange {
     }
 
     public function parse_transaction_status($status) {
-        // withdrawals:
-        // 0 (open), 1 (in process), 2 (finished), 3 (canceled) or 4 (failed).
+        //
+        //   withdrawals:
+        //   0 (open), 1 (in process), 2 (finished), 3 (canceled) or 4 (failed).
+        //
         $statuses = array(
             '0' => 'pending', // Open
             '1' => 'pending', // In process
@@ -1549,43 +1640,44 @@ class bitstamp extends Exchange {
     }
 
     public function parse_order($order, $market = null) {
-        // from fetch $order:
-        //   { $status => 'Finished',
-        //     $id => 731693945,
-        //     client_order_id => '',
-        //     $transactions:
-        //     array( { fee => '0.000019',
-        //         $price => '0.00015803',
-        //         datetime => '2018-01-07 10:45:34.132551',
-        //         btc => '0.0079015000000000',
-        //         tid => 42777395,
-        //         type => 2,
-        //         xrp => '50.00000000' } ) }
         //
-        // partially filled $order:
-        //   { "id" => 468646390,
-        //     "client_order_id" => "",
-        //     "status" => "Canceled",
-        //     "transactions" => [array(
-        //         "eth" => "0.23000000",
-        //         "fee" => "0.09",
-        //         "tid" => 25810126,
-        //         "usd" => "69.8947000000000000",
-        //         "type" => 2,
-        //         "price" => "303.89000000",
-        //         "datetime" => "2017-11-11 07:22:20.710567"
-        //     )]}
+        //   from fetch $order:
+        //     { $status => 'Finished',
+        //       $id => 731693945,
+        //       client_order_id => '',
+        //       $transactions:
+        //       array( { fee => '0.000019',
+        //           $price => '0.00015803',
+        //           datetime => '2018-01-07 10:45:34.132551',
+        //           btc => '0.0079015000000000',
+        //           tid => 42777395,
+        //           type => 2,
+        //           xrp => '50.00000000' } ) }
         //
-        // from create $order response:
-        //     {
-        //         $price => '0.00008012',
-        //         client_order_id => '',
-        //         currency_pair => 'XRP/BTC',
-        //         datetime => '2019-01-31 21:23:36',
-        //         $amount => '15.00000000',
-        //         type => '0',
-        //         $id => '2814205012'
-        //     }
+        //   partially filled $order:
+        //     { "id" => 468646390,
+        //       "client_order_id" => "",
+        //       "status" => "Canceled",
+        //       "transactions" => [array(
+        //           "eth" => "0.23000000",
+        //           "fee" => "0.09",
+        //           "tid" => 25810126,
+        //           "usd" => "69.8947000000000000",
+        //           "type" => 2,
+        //           "price" => "303.89000000",
+        //           "datetime" => "2017-11-11 07:22:20.710567"
+        //       )]}
+        //
+        //   from create $order response:
+        //       {
+        //           $price => '0.00008012',
+        //           client_order_id => '',
+        //           currency_pair => 'XRP/BTC',
+        //           datetime => '2019-01-31 21:23:36',
+        //           $amount => '15.00000000',
+        //           type => '0',
+        //           $id => '2814205012'
+        //       }
         //
         $id = $this->safe_string($order, 'id');
         $clientOrderId = $this->safe_string($order, 'client_order_id');
@@ -1671,9 +1763,7 @@ class bitstamp extends Exchange {
             for ($i = 0; $i < count($keys); $i++) {
                 if (mb_strpos($keys[$i], '_') !== false) {
                     $marketId = str_replace('_', '', $keys[$i]);
-                    if (is_array($this->markets_by_id) && array_key_exists($marketId, $this->markets_by_id)) {
-                        $market = $this->markets_by_id[$marketId];
-                    }
+                    $market = $this->safe_market($marketId, $market);
                 }
             }
             // if the $market is still not defined
@@ -1703,13 +1793,13 @@ class bitstamp extends Exchange {
             $parsedTransaction = $this->parse_transaction($item, $currency);
             $direction = null;
             if (is_array($item) && array_key_exists('amount', $item)) {
-                $amount = $this->safe_number($item, 'amount');
-                $direction = ($amount > 0) ? 'in' : 'out';
+                $amount = $this->safe_string($item, 'amount');
+                $direction = Precise::string_gt($amount, '0') ? 'in' : 'out';
             } elseif ((is_array($parsedTransaction) && array_key_exists('currency', $parsedTransaction)) && $parsedTransaction['currency'] !== null) {
                 $currencyCode = $this->safe_string($parsedTransaction, 'currency');
                 $currency = $this->currency($currencyCode);
-                $amount = $this->safe_number($item, $currency['id']);
-                $direction = ($amount > 0) ? 'in' : 'out';
+                $amount = $this->safe_string($item, $currency['id']);
+                $direction = Precise::string_gt($amount, '0') ? 'in' : 'out';
             }
             return array(
                 'id' => $parsedTransaction['id'],
@@ -1768,6 +1858,7 @@ class bitstamp extends Exchange {
             $market = $this->market($symbol);
         }
         $response = $this->privatePostOpenOrdersAll ($params);
+        //
         //     array(
         //         {
         //             price => '0.00008012',
@@ -1787,6 +1878,11 @@ class bitstamp extends Exchange {
     }
 
     public function get_currency_name($code) {
+        /**
+         * @ignore
+         * @param {string} $code Unified currency $code
+         * @return {string} lowercase version of $code
+         */
         return strtolower($code);
     }
 
@@ -1919,6 +2015,7 @@ class bitstamp extends Exchange {
         //     array("error" => "No permission found") // fetchDepositAddress returns this on apiKeys that don't have the permission required
         //     array("status" => "error", "reason" => array("__all__" => ["Minimum order size is 5.0 EUR."]))
         //     reuse of a nonce gives => array( $status => 'error', $reason => 'Invalid nonce', $code => 'API0004' )
+        //
         $status = $this->safe_string($response, 'status');
         $error = $this->safe_value($response, 'error');
         if (($status === 'error') || ($error !== null)) {

@@ -103,6 +103,7 @@ class phemex(Exchange):
                 },
                 'api': {
                     'v1': 'https://{hostname}/v1',
+                    'v2': 'https://{hostname}',
                     'public': 'https://{hostname}/exchange/public',
                     'private': 'https://{hostname}',
                 },
@@ -138,6 +139,8 @@ class phemex(Exchange):
                         'products',  # contracts only
                         'nomics/trades',  # ?market=<symbol>&since=<since>
                         'md/kline',  # ?from=1589811875&resolution=1800&symbol=sBTCUSDT&to=1592457935
+                        'md/v2/kline/list',  # perpetual api ?symbol=<symbol>&to=<to>&from=<from>&resolution=<resolution>
+                        'md/v2/kline/last',  # perpetual ?symbol=<symbol>&resolution=<resolution>&limit=<limit>
                     ],
                 },
                 'v1': {
@@ -149,6 +152,14 @@ class phemex(Exchange):
                         'md/spot/ticker/24hr',  # ?symbol=<symbol>&id=<id>
                         'md/spot/ticker/24hr/all',  # ?symbol=<symbol>&id=<id>
                         'exchange/public/products',  # contracts only
+                    ],
+                },
+                'v2': {
+                    'get': [
+                        'md/v2/orderbook',  # ?symbol=<symbol>&id=<id>
+                        'md/v2/trade',  # ?symbol=<symbol>&id=<id>
+                        'md/v2/ticker/24hr',  # ?symbol=<symbol>&id=<id>
+                        'md/v2/ticker/24hr/all',  # ?id=<id>
                     ],
                 },
                 'private': {
@@ -415,7 +426,7 @@ class phemex(Exchange):
                 'defaultSubType': 'linear',
                 'accountsByType': {
                     'spot': 'spot',
-                    'future': 'future',
+                    'swap': 'future',
                 },
                 'transfer': {
                     'fillResponseFromRequest': True,
@@ -782,7 +793,7 @@ class phemex(Exchange):
         for i in range(0, len(products)):
             market = products[i]
             type = self.safe_string_lower(market, 'type')
-            if type == 'perpetual':
+            if (type == 'perpetual') or (type == 'perpetualv2'):
                 id = self.safe_string(market, 'symbol')
                 riskLimitValues = self.safe_value(riskLimitsById, id, {})
                 market = self.extend(market, riskLimitValues)
@@ -1023,21 +1034,24 @@ class phemex(Exchange):
         }
         duration = self.parse_timeframe(timeframe)
         now = self.seconds()
-        # the exchange does not return the last 1m candle
+        maxLimit = 2000  # maximum limit, we shouldn't sent request of more than it
+        if limit is None:
+            limit = 100  # set default, as exchange doesn't have any defaults and needs something to be set
+        else:
+            limit = min(limit, maxLimit)
         if since is not None:
-            if limit is None:
-                limit = 2000  # max 2000
+            limit = min(limit, maxLimit)
             since = int(since / 1000)
             request['from'] = since
             # time ranges ending in the future are not accepted
             # https://github.com/ccxt/ccxt/issues/8050
             request['to'] = min(now, self.sum(since, duration * limit))
-        elif limit is not None:
-            limit = min(limit, 2000)
-            request['from'] = now - duration * self.sum(limit, 1)
-            request['to'] = now
         else:
-            raise ArgumentsRequired(self.id + ' fetchOHLCV() requires a since argument, or a limit argument, or both')
+            if limit < maxLimit:
+                # whenever making a request with `now`, that expects current latest bar to be included, the exchange does not return the last 1m candle and thus excludes one bar. So, we have to add `1` to user's set `limit` amount to get that amount of bars back
+                limit = limit + 1
+            request['from'] = now - duration * limit
+            request['to'] = now
         await self.load_markets()
         market = self.market(symbol)
         request['symbol'] = market['id']
@@ -1096,23 +1110,40 @@ class phemex(Exchange):
         #         "turnoverEv": 47228362330,
         #         "volume": 4053863
         #     }
+        # linear swap v2
+        #
+        #     {
+        #         "closeRp":"16820.5",
+        #         "fundingRateRr":"0.0001",
+        #         "highRp":"16962.1",
+        #         "indexPriceRp":"16830.15651565",
+        #         "lowRp":"16785",
+        #         "markPriceRp":"16830.97534951",
+        #         "openInterestRv":"1323.596",
+        #         "openRp":"16851.7",
+        #         "predFundingRateRr":"0.0001",
+        #         "symbol":"BTCUSDT",
+        #         "timestamp":"1672142789065593096",
+        #         "turnoverRv":"124835296.0538",
+        #         "volumeRq":"7406.95"
+        #     }
         #
         marketId = self.safe_string(ticker, 'symbol')
         market = self.safe_market(marketId, market)
         symbol = market['symbol']
         timestamp = self.safe_integer_product(ticker, 'timestamp', 0.000001)
-        last = self.from_ep(self.safe_string(ticker, 'lastEp'), market)
-        quoteVolume = self.from_ev(self.safe_string(ticker, 'turnoverEv'), market)
+        last = self.from_ep(self.safe_string_2(ticker, 'lastEp', 'closeRp'), market)
+        quoteVolume = self.from_ev(self.safe_string_2(ticker, 'turnoverEv', 'turnoverRv'), market)
         baseVolume = self.safe_string(ticker, 'volume')
         if baseVolume is None:
-            baseVolume = self.from_ev(self.safe_string(ticker, 'volumeEv'), market)
+            baseVolume = self.from_ev(self.safe_string_2(ticker, 'volumeEv', 'volumeRq'), market)
         open = self.from_ep(self.safe_string(ticker, 'openEp'), market)
         return self.safe_ticker({
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
-            'high': self.from_ep(self.safe_string(ticker, 'highEp'), market),
-            'low': self.from_ep(self.safe_string(ticker, 'lowEp'), market),
+            'high': self.from_ep(self.safe_string_2(ticker, 'highEp', 'highRp'), market),
+            'low': self.from_ep(self.safe_string_2(ticker, 'lowEp', 'lowRp'), market),
             'bid': self.from_ep(self.safe_string(ticker, 'bidEp'), market),
             'bidVolume': None,
             'ask': self.from_ep(self.safe_string(ticker, 'askEp'), market),
@@ -1143,7 +1174,12 @@ class phemex(Exchange):
             'symbol': market['id'],
             # 'id': 123456789,  # optional request id
         }
-        method = 'v1GetMdSpotTicker24hr' if market['spot'] else 'v1GetMdTicker24hr'
+        method = 'v1GetMdSpotTicker24hr'
+        if market['swap']:
+            if not market['linear']:
+                method = 'v1GetMdTicker24hr'
+            else:
+                method = 'v2GetMdV2Ticker24hr'
         response = await getattr(self, method)(self.extend(request, params))
         #
         # spot
@@ -1926,7 +1962,10 @@ class phemex(Exchange):
                 params = self.omit(params, 'cost')
                 if self.options['createOrderByQuoteRequiresPrice']:
                     if price is not None:
-                        cost = amount * price
+                        amountString = self.number_to_string(amount)
+                        priceString = self.number_to_string(price)
+                        quoteAmount = Precise.string_mul(amountString, priceString)
+                        cost = self.parse_number(quoteAmount)
                     elif cost is None:
                         raise ArgumentsRequired(self.id + ' createOrder() ' + qtyType + ' requires a price argument or a cost parameter')
                 cost = amount if (cost is None) else cost
@@ -2768,7 +2807,9 @@ class phemex(Exchange):
         leverage = self.safe_number(position, 'leverage')
         entryPriceString = self.safe_string(position, 'avgEntryPrice')
         rawSide = self.safe_string(position, 'side')
-        side = 'long' if (rawSide == 'Buy') else 'short'
+        side = None
+        if rawSide is not None:
+            side = 'long' if (rawSide == 'Buy') else 'short'
         priceDiff = None
         currency = self.safe_string(position, 'currency')
         if currency == 'USD':
@@ -2787,6 +2828,7 @@ class phemex(Exchange):
         marginRatio = Precise.string_div(maintenanceMarginString, collateral)
         return {
             'info': position,
+            'id': None,
             'symbol': symbol,
             'contracts': self.parse_number(contracts),
             'contractSize': contractSize,
@@ -2886,7 +2928,11 @@ class phemex(Exchange):
         request = {
             'symbol': market['id'],
         }
-        response = await self.v1GetMdTicker24hr(self.extend(request, params))
+        response = {}
+        if not market['linear']:
+            response = await self.v1GetMdTicker24hr(self.extend(request, params))
+        else:
+            response = await self.v2GetMdV2Ticker24hr(self.extend(request, params))
         #
         #     {
         #         "error": null,
@@ -2933,14 +2979,32 @@ class phemex(Exchange):
         #         "volume": 4053863
         #     }
         #
+        # linear swap v2
+        #
+        #     {
+        #         "closeRp":"16820.5",
+        #         "fundingRateRr":"0.0001",
+        #         "highRp":"16962.1",
+        #         "indexPriceRp":"16830.15651565",
+        #         "lowRp":"16785",
+        #         "markPriceRp":"16830.97534951",
+        #         "openInterestRv":"1323.596",
+        #         "openRp":"16851.7",
+        #         "predFundingRateRr":"0.0001",
+        #         "symbol":"BTCUSDT",
+        #         "timestamp":"1672142789065593096",
+        #         "turnoverRv":"124835296.0538",
+        #         "volumeRq":"7406.95"
+        #     }
+        #
         marketId = self.safe_string(contract, 'symbol')
         symbol = self.safe_symbol(marketId, market)
         timestamp = self.safe_integer_product(contract, 'timestamp', 0.000001)
         return {
             'info': contract,
             'symbol': symbol,
-            'markPrice': self.from_ep(self.safe_string(contract, 'markEp'), market),
-            'indexPrice': self.from_ep(self.safe_string(contract, 'indexEp'), market),
+            'markPrice': self.from_ep(self.safe_string_2(contract, 'markEp', 'markPriceRp'), market),
+            'indexPrice': self.from_ep(self.safe_string_2(contract, 'indexEp', 'indexPriceRp'), market),
             'interestRate': None,
             'estimatedSettlePrice': None,
             'timestamp': timestamp,
@@ -2948,7 +3012,7 @@ class phemex(Exchange):
             'fundingRate': self.from_er(self.safe_string(contract, 'fundingRateEr'), market),
             'fundingTimestamp': None,
             'fundingDatetime': None,
-            'nextFundingRate': self.from_er(self.safe_string(contract, 'predFundingRateEr'), market),
+            'nextFundingRate': self.from_er(self.safe_string_2(contract, 'predFundingRateEr', 'predFundingRateRr'), market),
             'nextFundingTimestamp': None,
             'nextFundingDatetime': None,
             'previousFundingRate': None,
@@ -3223,6 +3287,7 @@ class phemex(Exchange):
         :param str fromAccount: account to transfer from
         :param str toAccount: account to transfer to
         :param dict params: extra parameters specific to the phemex api endpoint
+        :param str|None params['bizType']: for transferring between main and sub-acounts either 'SPOT' or 'PERPETUAL' default is 'SPOT'
         :returns dict: a `transfer structure <https://docs.ccxt.com/en/latest/manual.html#transfer-structure>`
         """
         await self.load_markets()

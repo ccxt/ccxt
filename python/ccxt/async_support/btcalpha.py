@@ -49,6 +49,7 @@ class btcalpha(Exchange):
                 'fetchFundingRateHistory': False,
                 'fetchFundingRates': False,
                 'fetchIndexOHLCV': False,
+                'fetchL2OrderBook': True,
                 'fetchLeverage': False,
                 'fetchMarginMode': False,
                 'fetchMarkets': True,
@@ -81,7 +82,6 @@ class btcalpha(Exchange):
                 'withdraw': False,
             },
             'timeframes': {
-                '1m': '1',
                 '5m': '5',
                 '15m': '15',
                 '30m': '30',
@@ -104,7 +104,7 @@ class btcalpha(Exchange):
                     'get': [
                         'currencies/',
                         'pairs/',
-                        'orderbook/{pair_name}/',
+                        'orderbook/{pair_name}',
                         'exchanges/',
                         'charts/{pair}/{type}/chart/',
                     ],
@@ -282,7 +282,8 @@ class btcalpha(Exchange):
         #
         marketId = self.safe_string(trade, 'pair')
         market = self.safe_market(marketId, market, '_')
-        timestamp = self.safe_timestamp(trade, 'timestamp')
+        timestampRaw = self.safe_string(trade, 'timestamp')
+        timestamp = self.parse_number(Precise.string_mul(timestampRaw, '1000000'))
         priceString = self.safe_string(trade, 'price')
         amountString = self.safe_string(trade, 'amount')
         id = self.safe_string(trade, 'id')
@@ -605,9 +606,10 @@ class btcalpha(Exchange):
         if not response['success']:
             raise InvalidOrder(self.id + ' ' + self.json(response))
         order = self.parse_order(response, market)
-        amount = order['amount'] if (order['amount'] > 0) else amount
+        orderAmount = str(order['amount'])
+        amount = order['amount'] if Precise.string_gt(orderAmount, '0') else amount
         return self.extend(order, {
-            'amount': amount,
+            'amount': self.parse_number(amount),
         })
 
     async def cancel_order(self, id, symbol=None, params={}):

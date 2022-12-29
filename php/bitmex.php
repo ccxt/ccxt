@@ -6,13 +6,6 @@ namespace ccxt;
 // https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 use Exception; // a common import
-use \ccxt\ExchangeError;
-use \ccxt\ArgumentsRequired;
-use \ccxt\BadRequest;
-use \ccxt\BadSymbol;
-use \ccxt\InvalidOrder;
-use \ccxt\OrderNotFound;
-use \ccxt\DDoSProtection;
 
 class bitmex extends Exchange {
 
@@ -45,7 +38,9 @@ class bitmex extends Exchange {
                 'editOrder' => true,
                 'fetchBalance' => true,
                 'fetchClosedOrders' => true,
-                'fetchDepositAddress' => false,
+                'fetchDepositAddress' => true,
+                'fetchDepositAddresses' => false,
+                'fetchDepositAddressesByNetwork' => false,
                 'fetchFundingHistory' => false,
                 'fetchFundingRate' => false,
                 'fetchFundingRateHistory' => true,
@@ -223,6 +218,33 @@ class bitmex extends Exchange {
                 // https://github.com/ccxt/ccxt/issues/4789
                 'api-expires' => 5, // in seconds
                 'fetchOHLCVOpenTimestamp' => true,
+                'networks' => array(
+                    'BTC' => 'btc',
+                    'ETH' => 'eth',
+                    'BSC' => 'bsc',
+                    'BNB' => 'bsc',
+                    'TRON' => 'tron',
+                    'ERC20' => 'eth',
+                    'BEP20' => 'bsc',
+                    'TRC20' => 'tron',
+                    'TRX' => 'tron',
+                    'AVAX' => 'avax',
+                    'NEAR' => 'near',
+                    'XTZ' => 'xtz',
+                    'DOT' => 'dot',
+                    'SOL' => 'sol',
+                ),
+                'networksById' => array(
+                    'btc' => 'BTC',
+                    'eth' => 'ERC20',
+                    'bsc' => 'BSC',
+                    'tron' => 'TRX',
+                    'avax' => 'AVAX',
+                    'near' => 'NEAR',
+                    'xtz' => 'XTZ',
+                    'dot' => 'DOT',
+                    'sol' => 'SOL',
+                ),
             ),
             'commonCurrencies' => array(
                 'USDt' => 'USDT',
@@ -230,6 +252,8 @@ class bitmex extends Exchange {
                 'XBT' => 'BTC',
                 'Gwei' => 'ETH',
                 'GWEI' => 'ETH',
+                'LAMP' => 'SOL',
+                'LAMp' => 'SOL',
             ),
         ));
     }
@@ -397,6 +421,7 @@ class bitmex extends Exchange {
             $contract = !$index;
             $initMargin = $this->safe_string($market, 'initMargin', '1');
             $maxLeverage = $this->parse_number(Precise::string_div('1', $initMargin));
+            $multiplierString = Precise::string_abs($this->safe_string($market, 'multiplier'));
             $result[] = array(
                 'id' => $id,
                 'symbol' => $symbol,
@@ -420,7 +445,7 @@ class bitmex extends Exchange {
                 'inverse' => $contract ? $inverse : null,
                 'taker' => $this->safe_number($market, 'takerFee'),
                 'maker' => $this->safe_number($market, 'makerFee'),
-                'contractSize' => $this->safe_number($market, 'multiplier'),
+                'contractSize' => $this->parse_number($multiplierString),
                 'expiry' => $expiry,
                 'expiryDatetime' => $expiryDatetime,
                 'strike' => $this->safe_number($market, 'optionStrikePrice'),
@@ -1001,24 +1026,24 @@ class bitmex extends Exchange {
 
     public function parse_transaction($transaction, $currency = null) {
         //
-        //   {
-        //      'transactID' => 'ffe699c2-95ee-4c13-91f9-0faf41daec25',
-        //      'account' => 123456,
-        //      'currency' => 'XBt',
-        //      'transactType' => 'Withdrawal',
-        //      'amount' => -100100000,
-        //      'fee' => 100000,
-        //      'transactStatus' => 'Completed',
-        //      'address' => '385cR5DM96n1HvBDMzLHPYcw89fZAXULJP',
-        //      'tx' => '3BMEXabcdefghijklmnopqrstuvwxyz123',
-        //      'text' => '',
-        //      'transactTime' => '2019-01-02T01:00:00.000Z',
-        //      'walletBalance' => 99900000,
-        //      'marginBalance' => None,
-        //      'timestamp' => '2019-01-02T13:00:00.000Z'
-        //   }
+        //    {
+        //        'transactID' => 'ffe699c2-95ee-4c13-91f9-0faf41daec25',
+        //        'account' => 123456,
+        //        'currency' => 'XBt',
+        //        'network':'',
+        //        'transactType' => 'Withdrawal',
+        //        'amount' => -100100000,
+        //        'fee' => 100000,
+        //        'transactStatus' => 'Completed',
+        //        'address' => '385cR5DM96n1HvBDMzLHPYcw89fZAXULJP',
+        //        'tx' => '3BMEXabcdefghijklmnopqrstuvwxyz123',
+        //        'text' => '',
+        //        'transactTime' => '2019-01-02T01:00:00.000Z',
+        //        'walletBalance' => 99900000,
+        //        'marginBalance' => None,
+        //        'timestamp' => '2019-01-02T13:00:00.000Z'
+        //    }
         //
-        $id = $this->safe_string($transaction, 'transactID');
         $currencyId = $this->safe_string($transaction, 'currency');
         $currency = $this->safe_currency($currencyId, $currency);
         // For deposits, $transactTime == $timestamp
@@ -1040,34 +1065,34 @@ class bitmex extends Exchange {
         $amountString = Precise::string_div(Precise::string_abs($amountString), $scale);
         $feeCostString = $this->safe_string($transaction, 'fee');
         $feeCostString = Precise::string_div($feeCostString, $scale);
-        $fee = array(
-            'cost' => $this->parse_number($feeCostString),
-            'currency' => $currency['code'],
-        );
         $status = $this->safe_string($transaction, 'transactStatus');
         if ($status !== null) {
             $status = $this->parse_transaction_status($status);
         }
         return array(
             'info' => $transaction,
-            'id' => $id,
-            'txid' => null,
+            'id' => $this->safe_string($transaction, 'transactID'),
+            'txid' => $this->safe_string($transaction, 'tx'),
+            'type' => $type,
+            'currency' => $currency['code'],
+            'network' => $this->safe_string($transaction, 'status'),
+            'amount' => $this->parse_number($amountString),
+            'status' => $status,
             'timestamp' => $transactTime,
             'datetime' => $this->iso8601($transactTime),
-            'network' => null,
-            'addressFrom' => $addressFrom,
             'address' => $address,
+            'addressFrom' => $addressFrom,
             'addressTo' => $addressTo,
-            'tagFrom' => null,
             'tag' => null,
+            'tagFrom' => null,
             'tagTo' => null,
-            'type' => $type,
-            'amount' => $this->parse_number($amountString),
-            'currency' => $currency['code'],
-            'status' => $status,
             'updated' => $timestamp,
             'comment' => null,
-            'fee' => $fee,
+            'fee' => array(
+                'currency' => $currency['code'],
+                'cost' => $this->parse_number($feeCostString),
+                'rate' => null,
+            ),
         );
     }
 
@@ -2621,6 +2646,43 @@ class bitmex extends Exchange {
             'enabled' => $enabled,
         );
         return $this->privatePostPositionIsolate (array_merge($request, $params));
+    }
+
+    public function fetch_deposit_address($code, $params = array ()) {
+        /**
+         * fetch the deposit address for a $currency associated with this account
+         * @see https://www.bitmex.com/api/explorer/#!/User/User_getDepositAddress
+         * @param {string} $code unified $currency $code
+         * @param {array} $params extra parameters specific to the bitmex api endpoint
+         * @param {string} $params->network deposit chain, can view all chains via $this->publicGetWalletAssets, default is eth, unless the $currency has a default chain within $this->options['networks']
+         * @return {array} an {@link https://docs.ccxt.com/en/latest/manual.html#address-structure address structure}
+         */
+        $this->load_markets();
+        $networkCode = $this->safe_string_upper($params, 'network');
+        if ($networkCode === null) {
+            throw new ArgumentsRequired($this->id . ' fetchDepositAddress requires $params["network"]');
+        }
+        $currency = $this->currency($code);
+        $currencyId = $currency['id'];
+        $networkId = $this->network_code_to_id($networkCode, $currency['code']);
+        $idLength = count($currencyId);
+        $currencyId = strtolower(mb_substr($currencyId, 0, $idLength - 1 - 0) . mb_substr($currencyId, $idLength - 1, $idLength - $idLength - 1));  // make the last letter lowercase
+        $params = $this->omit($params, 'network');
+        $request = array(
+            'currency' => $currencyId,
+            'network' => $networkId,
+        );
+        $response = $this->privateGetUserDepositAddress (array_merge($request, $params));
+        //
+        //    '"bc1qmex3puyrzn2gduqcnlu70c2uscpyaa9nm2l2j9le2lt2wkgmw33sy7ndjg"'
+        //
+        return array(
+            'currency' => $code,
+            'address' => str_replace('"', '', $response->replace ('"', '')),  // Done twice because some languages only replace the first instance
+            'tag' => null,
+            'network' => strtoupper($this->network_id_to_code($networkId)),
+            'info' => $response,
+        );
     }
 
     public function calculate_rate_limiter_cost($api, $method, $path, $params, $config = array (), $context = array ()) {

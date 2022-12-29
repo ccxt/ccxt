@@ -6,13 +6,6 @@ namespace ccxt;
 // https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 use Exception; // a common import
-use \ccxt\ExchangeError;
-use \ccxt\AuthenticationError;
-use \ccxt\ArgumentsRequired;
-use \ccxt\MarginModeAlreadySet;
-use \ccxt\InvalidOrder;
-use \ccxt\NotSupported;
-use \ccxt\DDoSProtection;
 
 class tokocrypto extends Exchange {
 
@@ -2103,36 +2096,35 @@ class tokocrypto extends Exchange {
         // fetchDeposits
         //
         //     {
-        //         "id":5167969,
-        //         "asset":"BIDR",
-        //         "network":"BSC",
-        //         "address":"0x101a925704f6ff13295ab8dd7a60988d116aaedf",
-        //         "addressTag":"",
-        //         "txId":"113409337867",
-        //         "amount":"15000",
-        //         "transferType":1,
-        //         "status":1,
-        //         "insertTime":"1659429390000"
+        //         "id" => 5167969,
+        //         "asset" => "BIDR",
+        //         "network" => "BSC",
+        //         "address" => "0x101a925704f6ff13295ab8dd7a60988d116aaedf",
+        //         "addressTag" => "",
+        //         "txId" => "113409337867",
+        //         "amount" => "15000",
+        //         "transferType" => 1,
+        //         "status" => 1,
+        //         "insertTime" => "1659429390000"
         //     }
         //
         // fetchWithdrawals
         //
         //     {
-        //         "id":4245859,
-        //         "clientId":"198",
-        //         "asset":"BIDR",
-        //         "network":"BSC",
-        //         "address":"0xff1c75149cc492e7d5566145b859fcafc900b6e9",
-        //         "addressTag":"",
-        //         "amount":"10000",
-        //         "fee":"0",
-        //         "txId":"113501794501",
-        //         "transferType":1,
-        //         "status":10,
-        //         "createTime":1659521314413
+        //         "id" => 4245859,
+        //         "clientId" => "198",
+        //         "asset" => "BIDR",
+        //         "network" => "BSC",
+        //         "address" => "0xff1c75149cc492e7d5566145b859fcafc900b6e9",
+        //         "addressTag" => "",
+        //         "amount" => "10000",
+        //         "fee" => "0",
+        //         "txId" => "113501794501",
+        //         "transferType" => 1,
+        //         "status" => 10,
+        //         "createTime" => 1659521314413
         //     }
         //
-        $id = $this->safe_string($transaction, 'id');
         $address = $this->safe_string($transaction, 'address');
         $tag = $this->safe_string($transaction, 'addressTag'); // set but unused
         if ($tag !== null) {
@@ -2159,37 +2151,39 @@ class tokocrypto extends Exchange {
                 $timestamp = $createTime;
             }
         }
-        $status = $this->parse_transaction_status_by_type($this->safe_string($transaction, 'status'), $type);
-        $amount = $this->safe_number($transaction, 'amount');
         $feeCost = $this->safe_number_2($transaction, 'transactionFee', 'totalFee');
-        $fee = null;
+        $fee = array(
+            'currency' => null,
+            'cost' => null,
+            'rate' => null,
+        );
         if ($feeCost !== null) {
-            $fee = array( 'currency' => $code, 'cost' => $feeCost );
+            $fee['currency'] = $code;
+            $fee['cost'] = $feeCost;
         }
-        $updated = $this->safe_integer_2($transaction, 'successTime', 'updateTime');
         $internal = $this->safe_integer($transaction, 'transferType');
         if ($internal !== null) {
             $internal = $internal ? true : false;
         }
-        $network = $this->safe_string($transaction, 'network');
         return array(
             'info' => $transaction,
-            'id' => $id,
+            'id' => $this->safe_string($transaction, 'id'),
             'txid' => $txid,
+            'type' => $type,
+            'currency' => $code,
+            'network' => $this->safe_string($transaction, 'network'),
+            'amount' => $this->safe_number($transaction, 'amount'),
+            'status' => $this->parse_transaction_status_by_type($this->safe_string($transaction, 'status'), $type),
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
-            'network' => $network,
             'address' => $address,
-            'addressTo' => $address,
             'addressFrom' => null,
+            'addressTo' => $address,
             'tag' => $tag,
-            'tagTo' => $tag,
             'tagFrom' => null,
-            'type' => $type,
-            'amount' => $amount,
-            'currency' => $code,
-            'status' => $status,
-            'updated' => $updated,
+            'tagTo' => $tag,
+            'updated' => $this->safe_integer_2($transaction, 'successTime', 'updateTime'),
+            'comment' => null,
             'internal' => $internal,
             'fee' => $fee,
         );

@@ -6,8 +6,6 @@ namespace ccxt;
 // https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 use Exception; // a common import
-use \ccxt\ExchangeError;
-use \ccxt\NotSupported;
 
 class alpaca extends Exchange {
 
@@ -18,6 +16,7 @@ class alpaca extends Exchange {
             'countries' => array( 'US' ),
             'rateLimit' => 333, // 3 req per second
             'hostname' => 'alpaca.markets',
+            'pro' => true,
             'urls' => array(
                 'logo' => 'https://user-images.githubusercontent.com/1294454/187234005-b864db3d-f1e3-447a-aaf9-a9fc7b955d07.jpg',
                 'www' => 'https://alpaca.markets',
@@ -60,7 +59,7 @@ class alpaca extends Exchange {
                 'fetchL2OrderBook' => false,
                 'fetchMarkets' => true,
                 'fetchMyTrades' => false,
-                'fetchOHLCV' => false,
+                'fetchOHLCV' => true,
                 'fetchOpenOrder' => false,
                 'fetchOpenOrders' => true,
                 'fetchOrder' => true,
@@ -427,7 +426,7 @@ class alpaca extends Exchange {
             $request['limit'] = $limit;
         }
         if ($since !== null) {
-            $request['start'] = intval($since / 1000);
+            $request['start'] = $this->yyyymmdd($since);
         }
         $method = $this->safe_string($this->options, 'fetchOHLCVMethod', 'cryptoPublicGetCryptoBars');
         $response = $this->$method (array_merge($request, $params));
@@ -746,7 +745,8 @@ class alpaca extends Exchange {
         //       "i":"355681339"
         //   }
         //
-        $symbol = $this->safe_symbol(null, $market);
+        $marketId = $this->safe_string($trade, 'S');
+        $symbol = $this->safe_symbol($marketId, $market);
         $datetime = $this->safe_string($trade, 't');
         $timestamp = $this->parse8601($datetime);
         $alpacaSide = $this->safe_string($trade, 'tks');

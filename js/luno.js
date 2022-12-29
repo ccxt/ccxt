@@ -18,6 +18,7 @@ module.exports = class luno extends Exchange {
             // 300 calls per minute = 5 calls per second = 1000ms / 5 = 200ms between requests
             'rateLimit': 200,
             'version': '1',
+            'pro': true,
             'has': {
                 'CORS': undefined,
                 'spot': true,
@@ -48,6 +49,7 @@ module.exports = class luno extends Exchange {
                 'fetchMarkets': true,
                 'fetchMarkOHLCV': false,
                 'fetchMyTrades': true,
+                'fetchOHLCV': false, // overload of base fetchOHLCV, as it doesn't work in this exchange
                 'fetchOpenInterestHistory': false,
                 'fetchOpenOrders': true,
                 'fetchOrder': true,
@@ -61,7 +63,8 @@ module.exports = class luno extends Exchange {
                 'fetchTicker': true,
                 'fetchTickers': true,
                 'fetchTrades': true,
-                'fetchTradingFees': true,
+                'fetchTradingFee': true,
+                'fetchTradingFees': false,
                 'reduceMargin': false,
                 'setLeverage': false,
                 'setMarginMode': false,
@@ -770,18 +773,31 @@ module.exports = class luno extends Exchange {
         return this.parseTrades (trades, market, since, limit);
     }
 
-    async fetchTradingFees (params = {}) {
+    async fetchTradingFee (symbol, params = {}) {
         /**
          * @method
-         * @name luno#fetchTradingFees
-         * @description fetch the trading fees for multiple markets
+         * @name luno#fetchTradingFee
+         * @description fetch the trading fees for a market
+         * @param {string} symbol unified market symbol
          * @param {object} params extra parameters specific to the luno api endpoint
-         * @returns {object} a dictionary of [fee structures]{@link https://docs.ccxt.com/en/latest/manual.html#fee-structure} indexed by market symbols
+         * @returns {object} a [fee structure]{@link https://docs.ccxt.com/en/latest/manual.html#fee-structure}
          */
         await this.loadMarkets ();
-        const response = await this.privateGetFeeInfo (params);
+        const market = this.market (symbol);
+        const request = {
+            'symbol': market['id'],
+        };
+        const response = await this.privateGetFeeInfo (this.extend (request, params));
+        //
+        //     {
+        //          "maker_fee": "0.00250000",
+        //          "taker_fee": "0.00500000",
+        //          "thirty_day_volume": "0"
+        //     }
+        //
         return {
             'info': response,
+            'symbol': symbol,
             'maker': this.safeNumber (response, 'maker_fee'),
             'taker': this.safeNumber (response, 'taker_fee'),
         };
@@ -949,31 +965,31 @@ module.exports = class luno extends Exchange {
         const timestamp = this.safeValue (entry, 'timestamp');
         const currencyId = this.safeString (entry, 'currency');
         const code = this.safeCurrencyCode (currencyId, currency);
-        const available_delta = this.safeNumber (entry, 'available_delta');
-        const balance_delta = this.safeNumber (entry, 'balance_delta');
-        const after = this.safeNumber (entry, 'balance');
+        const available_delta = this.safeString (entry, 'available_delta');
+        const balance_delta = this.safeString (entry, 'balance_delta');
+        const after = this.safeString (entry, 'balance');
         const comment = this.safeString (entry, 'description');
         let before = after;
-        let amount = 0.0;
+        let amount = '0.0';
         const result = this.parseLedgerComment (comment);
         const type = result['type'];
         const referenceId = result['referenceId'];
         let direction = undefined;
         let status = undefined;
-        if (balance_delta !== 0.0) {
-            before = after - balance_delta; // TODO: float precision
+        if (!Precise.stringEquals (balance_delta, '0.0')) {
+            before = Precise.stringSub (after, balance_delta);
             status = 'ok';
-            amount = Math.abs (balance_delta);
-        } else if (available_delta < 0.0) {
+            amount = Precise.stringAbs (balance_delta);
+        } else if (Precise.stringLt (available_delta, '0.0')) {
             status = 'pending';
-            amount = Math.abs (available_delta);
-        } else if (available_delta > 0.0) {
+            amount = Precise.stringAbs (available_delta);
+        } else if (Precise.stringGt (available_delta, '0.0')) {
             status = 'canceled';
-            amount = Math.abs (available_delta);
+            amount = Precise.stringAbs (available_delta);
         }
-        if (balance_delta > 0 || available_delta > 0) {
+        if (Precise.stringGt (balance_delta, '0') || Precise.stringGt (available_delta, '0')) {
             direction = 'in';
-        } else if (balance_delta < 0 || available_delta < 0) {
+        } else if (Precise.stringLt (balance_delta, '0') || Precise.stringLt (available_delta, '0')) {
             direction = 'out';
         }
         return {
@@ -984,7 +1000,7 @@ module.exports = class luno extends Exchange {
             'referenceAccount': undefined,
             'type': type,
             'currency': code,
-            'amount': amount,
+            'amount': this.parseNumber (amount),
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'before': before,

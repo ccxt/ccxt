@@ -6,11 +6,6 @@ namespace ccxt;
 // https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 use Exception; // a common import
-use \ccxt\ExchangeError;
-use \ccxt\ArgumentsRequired;
-use \ccxt\InvalidOrder;
-use \ccxt\OrderNotFound;
-use \ccxt\NotSupported;
 
 class bitfinex2 extends Exchange {
 
@@ -918,7 +913,7 @@ class bitfinex2 extends Exchange {
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
             'status' => $this->parse_transfer_status($status),
-            'amount' => $this->safe_number($transfer, 7),
+            'amount' => $this->safe_number($info, 7),
             'currency' => $this->safe_currency_code($currencyId, $currency),
             'fromAccount' => $fromAccount,
             'toAccount' => $toAccount,
@@ -1141,12 +1136,10 @@ class bitfinex2 extends Exchange {
         $result = array();
         for ($i = 0; $i < count($tickers); $i++) {
             $ticker = $tickers[$i];
-            $id = $ticker[0];
-            if (is_array($this->markets_by_id) && array_key_exists($id, $this->markets_by_id)) {
-                $market = $this->markets_by_id[$id];
-                $symbol = $market['symbol'];
-                $result[$symbol] = $this->parse_ticker($ticker, $market);
-            }
+            $marketId = $this->safe_string($ticker, 0);
+            $market = $this->safe_market($marketId);
+            $symbol = $market['symbol'];
+            $result[$symbol] = $this->parse_ticker($ticker, $market);
         }
         return $this->filter_by_array($result, 'symbol', $symbols);
     }
@@ -1238,12 +1231,7 @@ class bitfinex2 extends Exchange {
         $timestamp = $this->safe_integer($trade, $timestampIndex);
         if ($isPrivate) {
             $marketId = $trade[1];
-            if (is_array($this->markets_by_id) && array_key_exists($marketId, $this->markets_by_id)) {
-                $market = $this->markets_by_id[$marketId];
-                $symbol = $market['symbol'];
-            } else {
-                $symbol = $this->parse_symbol($marketId);
-            }
+            $symbol = $this->parse_symbol($marketId);
             $orderId = $this->safe_string($trade, 3);
             $maker = $this->safe_integer($trade, 8);
             $takerOrMaker = ($maker === 1) ? 'maker' : 'taker';
@@ -1257,11 +1245,6 @@ class bitfinex2 extends Exchange {
             );
             $orderType = $trade[6];
             $type = $this->safe_string($this->options['exchangeTypes'], $orderType);
-        }
-        if ($symbol === null) {
-            if ($market !== null) {
-                $symbol = $market['symbol'];
-            }
         }
         return $this->safe_trade(array(
             'id' => $id,
@@ -1423,16 +1406,8 @@ class bitfinex2 extends Exchange {
 
     public function parse_order($order, $market = null) {
         $id = $this->safe_string($order, 0);
-        $symbol = null;
         $marketId = $this->safe_string($order, 3);
-        if (is_array($this->markets_by_id) && array_key_exists($marketId, $this->markets_by_id)) {
-            $market = $this->markets_by_id[$marketId];
-        } else {
-            $symbol = $this->parse_symbol($marketId);
-        }
-        if (($symbol === null) && ($market !== null)) {
-            $symbol = $market['symbol'];
-        }
+        $symbol = $this->parse_symbol($marketId);
         // https://github.com/ccxt/ccxt/issues/6686
         // $timestamp = $this->safe_timestamp($order, 5);
         $timestamp = $this->safe_integer($order, 5);
@@ -1459,7 +1434,7 @@ class bitfinex2 extends Exchange {
             $price = null;
             $stopPrice = $this->safe_number($order, 16);
             if ($orderType === 'EXCHANGE STOP LIMIT') {
-                $price = $this->safe_number($order, 19);
+                $price = $this->safe_string($order, 19);
             }
         }
         $status = null;
@@ -2065,15 +2040,17 @@ class bitfinex2 extends Exchange {
         $feeCost = null;
         $txid = null;
         $addressTo = null;
+        $network = null;
+        $comment = null;
         if ($transactionLength === 8) {
             $data = $this->safe_value($transaction, 4, array());
             $timestamp = $this->safe_integer($transaction, 0);
             if ($currency !== null) {
                 $code = $currency['code'];
             }
-            $feeCost = $this->safe_number($data, 8);
+            $feeCost = $this->safe_string($data, 8);
             if ($feeCost !== null) {
-                $feeCost = -$feeCost;
+                $feeCost = Precise::string_abs($feeCost);
             }
             $amount = $this->safe_number($data, 5);
             $id = $this->safe_value($data, 0);
@@ -2088,45 +2065,50 @@ class bitfinex2 extends Exchange {
             $id = $this->safe_string($transaction, 0);
             $currencyId = $this->safe_string($transaction, 1);
             $code = $this->safe_currency_code($currencyId, $currency);
+            $networkId = $this->safe_string($transaction, 2);
+            $network = $this->safe_network($networkId);
             $timestamp = $this->safe_integer($transaction, 5);
             $updated = $this->safe_integer($transaction, 6);
             $status = $this->parse_transaction_status($this->safe_string($transaction, 9));
-            $amount = $this->safe_number($transaction, 12);
-            if ($amount !== null) {
-                if ($amount < 0) {
+            $signedAmount = $this->safe_string($transaction, 12);
+            $amount = Precise::string_abs($signedAmount);
+            if ($signedAmount !== null) {
+                if (Precise::string_lt($signedAmount, '0')) {
                     $type = 'withdrawal';
                 } else {
                     $type = 'deposit';
                 }
             }
-            $feeCost = $this->safe_number($transaction, 13);
+            $feeCost = $this->safe_string($transaction, 13);
             if ($feeCost !== null) {
-                $feeCost = -$feeCost;
+                $feeCost = Precise::string_abs($feeCost);
             }
             $addressTo = $this->safe_string($transaction, 16);
             $txid = $this->safe_string($transaction, 20);
+            $comment = $this->safe_string($transaction, 21);
         }
         return array(
             'info' => $transaction,
             'id' => $id,
             'txid' => $txid,
+            'type' => $type,
+            'currency' => $code,
+            'network' => $network,
+            'amount' => $this->parse_number($amount),
+            'status' => $status,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
-            'network' => null,
-            'addressFrom' => null,
             'address' => $addressTo, // this is actually the $tag for XRP transfers (the address is missing)
+            'addressFrom' => null,
             'addressTo' => $addressTo,
-            'tagFrom' => null,
             'tag' => $tag, // refix it properly for the $tag from description
+            'tagFrom' => null,
             'tagTo' => $tag,
-            'type' => $type,
-            'amount' => $amount,
-            'currency' => $code,
-            'status' => $status,
             'updated' => $updated,
+            'comment' => $comment,
             'fee' => array(
                 'currency' => $code,
-                'cost' => $feeCost,
+                'cost' => $this->parse_number($feeCost),
                 'rate' => null,
             ),
         );
