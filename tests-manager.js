@@ -30,7 +30,7 @@ async function main() {
         // run all tests again
         runCommand(argv)
     } else {
-        const { stdout } = await execFile('git diff', ['--name-only'], { shell:true });
+        const { stdout } = await execFile('git diff master', ['--name-only'], { shell:true });
 
         if (stdout.length === 0) {
             return;
