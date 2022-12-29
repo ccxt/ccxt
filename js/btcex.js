@@ -279,7 +279,7 @@ module.exports = class btcex extends Exchange {
                     '8105': BadRequest, // GOOGLE_CODE_CHECK_FAIL 2FA Code error!
                     '8106': DDoSProtection, // SMS_CODE_LIMIT Your message service is over limit today, please try tomorrow
                     '8107': ExchangeError, // REQUEST_FAILED Request failed
-                    '10000': AuthenticationError, // {"id":"1672xxx","jsonrpc":"2.0","usIn":1672xxx,"usOut":1672xxx,"usDiff":2,"error":{"code":10000,"message":"Authentication Failure"}
+                    '10000': AuthenticationError, // {"id":"1672xxx","jsonrpc":"2.0","usIn":1672xxx,"usOut":1672xxx,"usDiff":2,"error":{"code":10000,"message":"Authentication Failure"}}
                     '11000': BadRequest, // CHANNEL_REGEX_ERROR channel regex not match
                 },
                 'broad': {
