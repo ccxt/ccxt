@@ -1984,6 +1984,26 @@ module.exports = class binance extends Exchange {
         return result;
     }
 
+    setMarkets (markets, currencies = undefined) {
+        super.setMarkets (markets, currencies);
+        const values = Object.values (this.markets);
+        let hasSpot = false;
+        for (let i = 0; i < values.length; i++) {
+            const entry = values[i];
+            hasSpot = hasSpot || entry['spot'];
+        }
+        if (!hasSpot) {
+            // we add aliases for swap markets
+            for (let i = 0; i < values.length; i++) {
+                const entry = values[i];
+                if (entry['swap']) {
+                    const symbolAlias = entry['base'] + '/' + entry['quote'];
+                    this.markets[symbolAlias] = entry;
+                }
+            }
+        }
+    }
+
     parseBalanceHelper (entry) {
         const account = this.account ();
         account['used'] = this.safeString (entry, 'locked');
