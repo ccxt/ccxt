@@ -30,7 +30,7 @@ argv.splice(0,3);
 
 async function main() {
     
-    if (false || (currentTs > dayInMs + lastRun)) {
+    if (currentTs > dayInMs + lastRun) {
         // run all tests again
         runCommand(argv)
     } else {
