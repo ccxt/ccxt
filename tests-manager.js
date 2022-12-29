@@ -67,9 +67,11 @@ function runCommand(args, updateTs = true) {
 
     pro.on('exit', code => {
         console.log("code", code)
-        if (code === 0 && updateTs) {
-            log.bright.green("All tests ran sucessfully, saving new timestamp!")
-            saveNewTS()
+        if (code === 0) {
+            if (updateTs) {
+                log.bright.green("All tests ran sucessfully, saving new timestamp!")
+                saveNewTS()
+            }
         } else {
             log.bright.red("Error running tests!")
         }
