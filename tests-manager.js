@@ -14,7 +14,7 @@ const TEST_TIMESTAMP = "./testTimestamp.json";
 
 const testFile = require(TEST_TIMESTAMP);
 const lastRun = testFile.lastRun;
-const threeHours = 60 * 60 * 3 * 1000;
+const sixHours = 60 * 60 * 6 * 1000;
 const currentTs = Date.now();
 
 if (process.argv.length < 3) {
@@ -30,7 +30,7 @@ argv.splice(0,3);
 
 async function main() {
 
-    if (currentTs > threeHours + lastRun) {
+    if (currentTs > sixHours + lastRun) {
         // run all tests again
         runCommand(argv)
     } else {
