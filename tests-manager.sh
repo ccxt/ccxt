@@ -1,6 +1,5 @@
 #!/usr/bin/env bash
 
-set -x
 if [ $# -gt 0 ]; then
   echo "E2BIG: too many arguments"
   exit 7
@@ -41,7 +40,7 @@ function run_tests {
   if [ -z "$ws_pid" ]; then
     # shellcheck disable=SC2086
     node run-tests-ws --js --python-async --php-async $ws_args &
-    ws_pid=$!
+    local ws_pid=$!
   fi
   wait $rest_pid && wait $ws_pid
 }
