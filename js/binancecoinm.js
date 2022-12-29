@@ -28,9 +28,6 @@ module.exports = class binancecoinm extends binance {
                 'createStopMarketOrder': true,
             },
             'options': {
-                // we set defaultType to undefined so that binance does prioritise
-                // spot markets in safeMarket
-                'defaultType': undefined,
                 'defaultSubType': 'inverse',
                 'leverageBrackets': undefined,
             },

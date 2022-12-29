@@ -870,6 +870,7 @@ module.exports = class binance extends Exchange {
                 // 'fetchTradesMethod': 'publicGetAggTrades', // publicGetTrades, publicGetHistoricalTrades
                 'defaultTimeInForce': 'GTC', // 'GTC' = Good To Cancel (default), 'IOC' = Immediate Or Cancel
                 'defaultType': 'spot', // 'spot', 'future', 'margin', 'delivery'
+                'defaultSubType': undefined, // 'linear', 'inverse'
                 'hasAlreadyAuthenticatedSuccessfully': false,
                 'warnOnFetchOpenOrdersWithoutSymbol': true,
                 // not an error
@@ -1375,11 +1376,19 @@ module.exports = class binance extends Exchange {
     }
 
     isInverse (type, subType = undefined) {
-        return (type === 'delivery') || (subType === 'inverse');
+        if (subType === undefined) {
+            return type === 'delivery';
+        } else {
+            return subType === 'inverse';
+        }
     }
 
     isLinear (type, subType = undefined) {
-        return (type === 'future') || (subType === 'linear');
+        if (subType === undefined) {
+            return type === 'future';
+        } else {
+            return subType === 'linear';
+        }
     }
 
     market (symbol) {
