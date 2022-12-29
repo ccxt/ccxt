@@ -43,6 +43,8 @@ module.exports = class stex extends Exchange {
                 'fetchDeposit': true,
                 'fetchDepositAddress': true,
                 'fetchDeposits': true,
+                'fetchDepositWithdrawFee': 'emulated',
+                'fetchDepositWithdrawFees': true,
                 'fetchFundingHistory': false,
                 'fetchFundingRate': false,
                 'fetchFundingRateHistory': false,
@@ -1118,14 +1120,7 @@ module.exports = class stex extends Exchange {
             type = undefined;
         }
         const side = this.safeStringLower (order, 'type');
-        const rawTrades = this.safeValue (order, 'trades');
-        let trades = undefined;
-        if (rawTrades !== undefined) {
-            trades = this.parseTrades (rawTrades, market, undefined, undefined, {
-                'symbol': symbol,
-                'order': id,
-            });
-        }
+        const trades = this.safeValue (order, 'trades');
         const stopPrice = this.safeNumber (order, 'trigger_price');
         const result = {
             'info': order,
@@ -2420,7 +2415,7 @@ module.exports = class stex extends Exchange {
         /**
          * @method
          * @name stex#fetchTransactionFees
-         * @description fetch transaction fees
+         * @description *DEPRECATED* please use fetchDepositWithdrawFees instead
          * @see https://apidocs.stex.com/#tag/Public/paths/~1public~1currencies/get
          * @param {[string]|undefined} codes list of unified currency codes
          * @param {object} params extra parameters specific to the stex api endpoint
@@ -2479,6 +2474,127 @@ module.exports = class stex extends Exchange {
                 'withdraw': this.safeNumber (currency, 'fee'),
                 'deposit': this.safeNumber (info, 'deposit_fee_const'),
                 'info': info,
+            };
+        }
+        return result;
+    }
+
+    async fetchDepositWithdrawFees (codes = undefined, params = {}) {
+        /**
+         * @method
+         * @name stex#fetchDepositWithdrawFees
+         * @description fetch deposit and withdraw fees
+         * @see https://apidocs.stex.com/#tag/Public/paths/~1public~1currencies/get
+         * @param {[string]|undefined} codes list of unified currency codes
+         * @param {object} params extra parameters specific to the stex api endpoint
+         * @returns {object} a list of [fee structures]{@link https://docs.ccxt.com/en/latest/manual.html#fee-structure}
+         */
+        await this.loadMarkets ();
+        const response = await this.publicGetCurrencies (params);
+        //
+        //     {
+        //         "success": true,
+        //         "data": [
+        //             {
+        //                 "id": 1,
+        //                 "code": "BTC",
+        //                 "name": "Bitcoin",
+        //                 "active": true,
+        //                 "delisted": false,
+        //                 "precision": 8,
+        //                 "minimum_tx_confirmations": 24,
+        //                 "minimum_withdrawal_amount": "0.009",
+        //                 "minimum_deposit_amount": "0.000003",
+        //                 "deposit_fee_currency_id": 1,
+        //                 "deposit_fee_currency_code": "ETH",
+        //                 "deposit_fee_const": "0.00001",
+        //                 "deposit_fee_percent": "0",
+        //                 "withdrawal_fee_currency_id": 1,
+        //                 "withdrawal_fee_currency_code": "ETH",
+        //                 "withdrawal_fee_const": "0.0015",
+        //                 "withdrawal_fee_percent": "0",
+        //                 "withdrawal_limit": "string",
+        //                 "block_explorer_url": "https://blockchain.info/tx/",
+        //                 "protocol_specific_settings": [
+        //                     {
+        //                         "protocol_name": "Tether OMNI",
+        //                         "protocol_id": 10,
+        //                         "active": true,
+        //                         "withdrawal_fee_currency_id": 1,
+        //                         "withdrawal_fee_const": 0.002,
+        //                         "withdrawal_fee_percent": 0,
+        //                         "block_explorer_url": "https://omniexplorer.info/search/"
+        //                     }
+        //                 ]
+        //             }
+        //             ...
+        //         ]
+        //     }
+        //
+        const data = this.safeValue (response, 'data');
+        return this.parseDepositWithdrawFees (data, codes, 'code');
+    }
+
+    parseDepositWithdrawFee (fee, currency = undefined) {
+        //
+        //    {
+        //        "id": 1,
+        //        "code": "BTC",
+        //        "name": "Bitcoin",
+        //        "active": true,
+        //        "delisted": false,
+        //        "precision": 8,
+        //        "minimum_tx_confirmations": 24,
+        //        "minimum_withdrawal_amount": "0.009",
+        //        "minimum_deposit_amount": "0.000003",
+        //        "deposit_fee_currency_id": 1,
+        //        "deposit_fee_currency_code": "ETH",
+        //        "deposit_fee_const": "0.00001",
+        //        "deposit_fee_percent": "0",
+        //        "withdrawal_fee_currency_id": 1,
+        //        "withdrawal_fee_currency_code": "ETH",
+        //        "withdrawal_fee_const": "0.0015",
+        //        "withdrawal_fee_percent": "0",
+        //        "withdrawal_limit": "string",
+        //        "block_explorer_url": "https://blockchain.info/tx/",
+        //        "protocol_specific_settings": [
+        //            {
+        //                "protocol_name": "Tether OMNI",
+        //                "protocol_id": 10,
+        //                "active": true,
+        //                "withdrawal_fee_currency_id": 1,
+        //                "withdrawal_fee_const": 0.002,
+        //                "withdrawal_fee_percent": 0,
+        //                "block_explorer_url": "https://omniexplorer.info/search/"
+        //            }
+        //        ]
+        //    }
+        //
+        const result = {
+            'withdraw': {
+                'fee': this.safeNumber (fee, 'withdrawal_fee_const'),
+                'percentage': false,
+            },
+            'deposit': {
+                'fee': this.safeNumber (fee, 'deposit_fee_const'),
+                'percentage': false,
+            },
+            'networks': {},
+        };
+        const networks = this.safeValue (fee, 'protocol_specific_settings', []);
+        for (let i = 0; i < networks.length; i++) {
+            const network = networks[i];
+            const networkId = this.safeString (network, 'protocol_name');
+            const networkCode = this.networkIdToCode (networkId);
+            result['networks'][networkCode] = {
+                'withdraw': {
+                    'fee': this.safeNumber (network, 'withdrawal_fee_const'),
+                    'percentage': false,
+                },
+                'deposit': {
+                    'fee': undefined,
+                    'percentage': undefined,
+                },
             };
         }
         return result;

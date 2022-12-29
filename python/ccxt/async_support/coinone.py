@@ -127,11 +127,6 @@ class coinone(Exchange):
                     'maker': 0.002,
                 },
             },
-            'precision': {
-                'price': self.parse_number('0.0001'),
-                'amount': self.parse_number('0.0001'),
-                'cost': self.parse_number('0.00000001'),
-            },
             'precisionMode': TICK_SIZE,
             'exceptions': {
                 '405': OnMaintenance,  # {"errorCode":"405","status":"maintenance","result":"error"}
@@ -211,8 +206,9 @@ class coinone(Exchange):
                 'strike': None,
                 'optionType': None,
                 'precision': {
-                    'amount': None,
-                    'price': None,
+                    'amount': self.parse_number('1e-4'),
+                    'price': self.parse_number('1e-4'),
+                    'cost': self.parse_number('1e-8'),
                 },
                 'limits': {
                     'leverage': {

@@ -39,7 +39,9 @@ module.exports = class bitmex extends Exchange {
                 'editOrder': true,
                 'fetchBalance': true,
                 'fetchClosedOrders': true,
-                'fetchDepositAddress': false,
+                'fetchDepositAddress': true,
+                'fetchDepositAddresses': false,
+                'fetchDepositAddressesByNetwork': false,
                 'fetchFundingHistory': false,
                 'fetchFundingRate': false,
                 'fetchFundingRateHistory': true,
@@ -217,6 +219,33 @@ module.exports = class bitmex extends Exchange {
                 // https://github.com/ccxt/ccxt/issues/4789
                 'api-expires': 5, // in seconds
                 'fetchOHLCVOpenTimestamp': true,
+                'networks': {
+                    'BTC': 'btc',
+                    'ETH': 'eth',
+                    'BSC': 'bsc',
+                    'BNB': 'bsc',
+                    'TRON': 'tron',
+                    'ERC20': 'eth',
+                    'BEP20': 'bsc',
+                    'TRC20': 'tron',
+                    'TRX': 'tron',
+                    'AVAX': 'avax',
+                    'NEAR': 'near',
+                    'XTZ': 'xtz',
+                    'DOT': 'dot',
+                    'SOL': 'sol',
+                },
+                'networksById': {
+                    'btc': 'BTC',
+                    'eth': 'ERC20',
+                    'bsc': 'BSC',
+                    'tron': 'TRX',
+                    'avax': 'AVAX',
+                    'near': 'NEAR',
+                    'xtz': 'XTZ',
+                    'dot': 'DOT',
+                    'sol': 'SOL',
+                },
             },
             'commonCurrencies': {
                 'USDt': 'USDT',
@@ -224,6 +253,8 @@ module.exports = class bitmex extends Exchange {
                 'XBT': 'BTC',
                 'Gwei': 'ETH',
                 'GWEI': 'ETH',
+                'LAMP': 'SOL',
+                'LAMp': 'SOL',
             },
         });
     }
@@ -393,6 +424,7 @@ module.exports = class bitmex extends Exchange {
             const contract = !index;
             const initMargin = this.safeString (market, 'initMargin', '1');
             const maxLeverage = this.parseNumber (Precise.stringDiv ('1', initMargin));
+            const multiplierString = Precise.stringAbs (this.safeString (market, 'multiplier'));
             result.push ({
                 'id': id,
                 'symbol': symbol,
@@ -416,7 +448,7 @@ module.exports = class bitmex extends Exchange {
                 'inverse': contract ? inverse : undefined,
                 'taker': this.safeNumber (market, 'takerFee'),
                 'maker': this.safeNumber (market, 'makerFee'),
-                'contractSize': this.safeNumber (market, 'multiplier'),
+                'contractSize': this.parseNumber (multiplierString),
                 'expiry': expiry,
                 'expiryDatetime': expiryDatetime,
                 'strike': this.safeNumber (market, 'optionStrikePrice'),
@@ -508,8 +540,19 @@ module.exports = class bitmex extends Exchange {
             let free = this.safeString (balance, 'availableMargin');
             let total = this.safeString (balance, 'marginBalance');
             if (code !== 'USDT') {
-                free = Precise.stringDiv (free, '1e8');
-                total = Precise.stringDiv (total, '1e8');
+                // tmp fix until this PR gets merged
+                // https://github.com/ccxt/ccxt/pull/15311
+                const symbol = code + '_USDT';
+                const market = this.safeMarket (symbol);
+                const info = this.safeValue (market, 'info', {});
+                const multiplier = this.safeString (info, 'underlyingToPositionMultiplier');
+                if (multiplier !== undefined) {
+                    free = Precise.stringDiv (free, multiplier);
+                    total = Precise.stringDiv (total, multiplier);
+                } else {
+                    free = Precise.stringDiv (free, '1e8');
+                    total = Precise.stringDiv (total, '1e8');
+                }
             } else {
                 free = Precise.stringDiv (free, '1e6');
                 total = Precise.stringDiv (total, '1e6');
@@ -1015,24 +1058,24 @@ module.exports = class bitmex extends Exchange {
 
     parseTransaction (transaction, currency = undefined) {
         //
-        //   {
-        //      'transactID': 'ffe699c2-95ee-4c13-91f9-0faf41daec25',
-        //      'account': 123456,
-        //      'currency': 'XBt',
-        //      'transactType': 'Withdrawal',
-        //      'amount': -100100000,
-        //      'fee': 100000,
-        //      'transactStatus': 'Completed',
-        //      'address': '385cR5DM96n1HvBDMzLHPYcw89fZAXULJP',
-        //      'tx': '3BMEXabcdefghijklmnopqrstuvwxyz123',
-        //      'text': '',
-        //      'transactTime': '2019-01-02T01:00:00.000Z',
-        //      'walletBalance': 99900000,
-        //      'marginBalance': None,
-        //      'timestamp': '2019-01-02T13:00:00.000Z'
-        //   }
+        //    {
+        //        'transactID': 'ffe699c2-95ee-4c13-91f9-0faf41daec25',
+        //        'account': 123456,
+        //        'currency': 'XBt',
+        //        'network':'',
+        //        'transactType': 'Withdrawal',
+        //        'amount': -100100000,
+        //        'fee': 100000,
+        //        'transactStatus': 'Completed',
+        //        'address': '385cR5DM96n1HvBDMzLHPYcw89fZAXULJP',
+        //        'tx': '3BMEXabcdefghijklmnopqrstuvwxyz123',
+        //        'text': '',
+        //        'transactTime': '2019-01-02T01:00:00.000Z',
+        //        'walletBalance': 99900000,
+        //        'marginBalance': None,
+        //        'timestamp': '2019-01-02T13:00:00.000Z'
+        //    }
         //
-        const id = this.safeString (transaction, 'transactID');
         const currencyId = this.safeString (transaction, 'currency');
         currency = this.safeCurrency (currencyId, currency);
         // For deposits, transactTime == timestamp
@@ -1054,34 +1097,34 @@ module.exports = class bitmex extends Exchange {
         amountString = Precise.stringDiv (Precise.stringAbs (amountString), scale);
         let feeCostString = this.safeString (transaction, 'fee');
         feeCostString = Precise.stringDiv (feeCostString, scale);
-        const fee = {
-            'cost': this.parseNumber (feeCostString),
-            'currency': currency['code'],
-        };
         let status = this.safeString (transaction, 'transactStatus');
         if (status !== undefined) {
             status = this.parseTransactionStatus (status);
         }
         return {
             'info': transaction,
-            'id': id,
-            'txid': undefined,
+            'id': this.safeString (transaction, 'transactID'),
+            'txid': this.safeString (transaction, 'tx'),
+            'type': type,
+            'currency': currency['code'],
+            'network': this.safeString (transaction, 'status'),
+            'amount': this.parseNumber (amountString),
+            'status': status,
             'timestamp': transactTime,
             'datetime': this.iso8601 (transactTime),
-            'network': undefined,
-            'addressFrom': addressFrom,
             'address': address,
+            'addressFrom': addressFrom,
             'addressTo': addressTo,
-            'tagFrom': undefined,
             'tag': undefined,
+            'tagFrom': undefined,
             'tagTo': undefined,
-            'type': type,
-            'amount': this.parseNumber (amountString),
-            'currency': currency['code'],
-            'status': status,
             'updated': timestamp,
             'comment': undefined,
-            'fee': fee,
+            'fee': {
+                'currency': currency['code'],
+                'cost': this.parseNumber (feeCostString),
+                'rate': undefined,
+            },
         };
     }
 
@@ -2663,6 +2706,45 @@ module.exports = class bitmex extends Exchange {
             'enabled': enabled,
         };
         return await this.privatePostPositionIsolate (this.extend (request, params));
+    }
+
+    async fetchDepositAddress (code, params = {}) {
+        /**
+         * @method
+         * @name bitmex#fetchDepositAddress
+         * @description fetch the deposit address for a currency associated with this account
+         * @see https://www.bitmex.com/api/explorer/#!/User/User_getDepositAddress
+         * @param {string} code unified currency code
+         * @param {object} params extra parameters specific to the bitmex api endpoint
+         * @param {string} params.network deposit chain, can view all chains via this.publicGetWalletAssets, default is eth, unless the currency has a default chain within this.options['networks']
+         * @returns {object} an [address structure]{@link https://docs.ccxt.com/en/latest/manual.html#address-structure}
+         */
+        await this.loadMarkets ();
+        const networkCode = this.safeStringUpper (params, 'network');
+        if (networkCode === undefined) {
+            throw new ArgumentsRequired (this.id + ' fetchDepositAddress requires params["network"]');
+        }
+        const currency = this.currency (code);
+        let currencyId = currency['id'];
+        const networkId = this.networkCodeToId (networkCode, currency['code']);
+        const idLength = currencyId.length;
+        currencyId = currencyId.slice (0, idLength - 1) + currencyId.slice (idLength - 1, idLength).toLowerCase ();  // make the last letter lowercase
+        params = this.omit (params, 'network');
+        const request = {
+            'currency': currencyId,
+            'network': networkId,
+        };
+        const response = await this.privateGetUserDepositAddress (this.extend (request, params));
+        //
+        //    '"bc1qmex3puyrzn2gduqcnlu70c2uscpyaa9nm2l2j9le2lt2wkgmw33sy7ndjg"'
+        //
+        return {
+            'currency': code,
+            'address': response.replace ('"', '').replace ('"', ''),  // Done twice because some languages only replace the first instance
+            'tag': undefined,
+            'network': this.networkIdToCode (networkId).toUpperCase (),
+            'info': response,
+        };
     }
 
     calculateRateLimiterCost (api, method, path, params, config = {}, context = {}) {

@@ -36,6 +36,8 @@ module.exports = class bitfinex extends Exchange {
                 'fetchClosedOrders': true,
                 'fetchDepositAddress': true,
                 'fetchDeposits': undefined,
+                'fetchDepositWithdrawFee': 'emulated',
+                'fetchDepositWithdrawFees': true,
                 'fetchIndexOHLCV': false,
                 'fetchLeverageTiers': false,
                 'fetchMarginMode': false,
@@ -393,7 +395,7 @@ module.exports = class bitfinex extends Exchange {
         /**
          * @method
          * @name bitfinex#fetchTransactionFees
-         * @description fetch transaction fees
+         * @description *DEPRECATED* please use fetchDepositWithdrawFees instead
          * @see https://docs.bitfinex.com/v1/reference/rest-auth-fees
          * @param {[string]|undefined} codes list of unified currency codes
          * @param {object} params extra parameters specific to the bitfinex api endpoint
@@ -424,6 +426,48 @@ module.exports = class bitfinex extends Exchange {
             };
         }
         return result;
+    }
+
+    async fetchDepositWithdrawFees (codes = undefined, params = {}) {
+        /**
+         * @method
+         * @name bitfinex#fetchDepositWithdrawFees
+         * @description fetch deposit and withdraw fees
+         * @see https://docs.bitfinex.com/v1/reference/rest-auth-fees
+         * @param {[string]|undefined} codes list of unified currency codes
+         * @param {object} params extra parameters specific to the bitfinex api endpoint
+         * @returns {[object]} a list of [fees structures]{@link https://docs.ccxt.com/en/latest/manual.html#fee-structure}
+         */
+        await this.loadMarkets ();
+        const response = await this.privatePostAccountFees (params);
+        //
+        //    {
+        //        'withdraw': {
+        //            'BTC': '0.0004',
+        //            ...
+        //        }
+        //    }
+        //
+        const withdraw = this.safeValue (response, 'withdraw');
+        return this.parseDepositWithdrawFees (withdraw, codes);
+    }
+
+    parseDepositWithdrawFee (fee, currency = undefined) {
+        //
+        //    '0.0004'
+        //
+        return {
+            'withdraw': {
+                'fee': this.parseNumber (fee),
+                'percentage': undefined,
+            },
+            'deposit': {
+                'fee': undefined,
+                'percentage': undefined,
+            },
+            'networks': {},
+            'info': fee,
+        };
     }
 
     async fetchTradingFees (params = {}) {
@@ -836,24 +880,9 @@ module.exports = class bitfinex extends Exchange {
 
     parseTicker (ticker, market = undefined) {
         const timestamp = this.safeTimestamp (ticker, 'timestamp');
-        let symbol = undefined;
-        if (market !== undefined) {
-            symbol = market['symbol'];
-        } else if ('pair' in ticker) {
-            const marketId = this.safeString (ticker, 'pair');
-            if (marketId !== undefined) {
-                if (marketId in this.markets_by_id) {
-                    market = this.markets_by_id[marketId];
-                    symbol = market['symbol'];
-                } else {
-                    const baseId = marketId.slice (0, 3);
-                    const quoteId = marketId.slice (3, 6);
-                    const base = this.safeCurrencyCode (baseId);
-                    const quote = this.safeCurrencyCode (quoteId);
-                    symbol = base + '/' + quote;
-                }
-            }
-        }
+        const marketId = this.safeString (market, 'pair');
+        market = this.safeMarket (marketId, market);
+        const symbol = market['symbol'];
         const last = this.safeString (ticker, 'last_price');
         return this.safeTicker ({
             'symbol': symbol,
@@ -1452,34 +1481,31 @@ module.exports = class bitfinex extends Exchange {
         //     }
         //
         const timestamp = this.safeTimestamp (transaction, 'timestamp_created');
-        const updated = this.safeTimestamp (transaction, 'timestamp');
         const currencyId = this.safeString (transaction, 'currency');
         const code = this.safeCurrencyCode (currencyId, currency);
-        const type = this.safeStringLower (transaction, 'type'); // DEPOSIT or WITHDRAWAL
-        const status = this.parseTransactionStatus (this.safeString (transaction, 'status'));
         let feeCost = this.safeString (transaction, 'fee');
         if (feeCost !== undefined) {
             feeCost = Precise.stringAbs (feeCost);
         }
-        const tag = this.safeString (transaction, 'description');
         return {
             'info': transaction,
             'id': this.safeString2 (transaction, 'id', 'withdrawal_id'),
             'txid': this.safeString (transaction, 'txid'),
+            'type': this.safeStringLower (transaction, 'type'), // DEPOSIT or WITHDRAWAL,
+            'currency': code,
+            'network': undefined,
+            'amount': this.safeNumber (transaction, 'amount'),
+            'status': this.parseTransactionStatus (this.safeString (transaction, 'status')),
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'network': undefined,
             'address': this.safeString (transaction, 'address'), // todo: this is actually the tag for XRP transfers (the address is missing)
-            'addressTo': undefined,
             'addressFrom': undefined,
-            'tag': tag,
-            'tagTo': undefined,
+            'addressTo': undefined,
+            'tag': this.safeString (transaction, 'description'),
             'tagFrom': undefined,
-            'type': type,
-            'amount': this.safeNumber (transaction, 'amount'),
-            'currency': code,
-            'status': status,
-            'updated': updated,
+            'tagTo': undefined,
+            'updated': this.safeTimestamp (transaction, 'timestamp'),
+            'comment': undefined,
             'fee': {
                 'currency': code,
                 'cost': this.parseNumber (feeCost),

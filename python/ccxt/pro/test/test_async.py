@@ -237,7 +237,15 @@ async def test():
     if (hasattr(exchange, 'skip') and exchange.skip) or (hasattr(exchange, 'skipWs') and exchange.skipWs):
         sys.stdout.write(exchange.id + ' [Skipped]\n')
         sys.stdout.flush()
+    elif (hasattr(exchange, 'alias') and exchange.alias):
+        sys.stdout.write(exchange.id + ' [Skipped alias]\n')
+        sys.stdout.flush()
     else:
+
+        # add http proxy if any
+        if hasattr(exchange, 'httpProxy'):
+            exchange.aiohttp_proxy = exchange.httpProxy
+
         print(exchange.id, argv.verbose)
         await exchange.load_markets()
         exchange.verbose = argv.verbose

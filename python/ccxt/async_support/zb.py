@@ -148,7 +148,7 @@ class zb(Exchange):
                 'doc': 'https://www.zb.com/i/developer',
                 'fees': 'https://www.zb.com/i/rate',
                 'referral': {
-                    'url': 'https://www.zbex.club/en/register?ref=4301lera',
+                    'url': 'https://www.zb.com/en/register?ref=4301lera',
                     'discount': 0.16,
                 },
             },
@@ -1323,13 +1323,15 @@ class zb(Exchange):
         response = await self.spotV1PublicGetAllTicker(params)
         result = {}
         marketsByIdWithoutUnderscore = {}
-        marketIds = list(self.markets_by_id.keys())
+        marketIds = self.ids
         for i in range(0, len(marketIds)):
-            tickerId = marketIds[i].replace('_', '')
-            marketsByIdWithoutUnderscore[tickerId] = self.markets_by_id[marketIds[i]]
+            marketId = marketIds[i]
+            tickerId = marketId.replace('_', '')
+            marketsByIdWithoutUnderscore[tickerId] = marketId
         ids = list(response.keys())
         for i in range(0, len(ids)):
-            market = self.safe_value(marketsByIdWithoutUnderscore, ids[i])
+            marketId = self.safe_value(marketsByIdWithoutUnderscore, ids[i])
+            market = self.safe_market(marketId, None, '_')
             if market is not None:
                 symbol = market['symbol']
                 ticker = self.safe_value(response, ids[i])

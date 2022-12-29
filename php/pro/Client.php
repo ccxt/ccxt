@@ -69,7 +69,7 @@ class Client {
             $future->reject($this->rejections[$message_hash]);
             unset($this->rejections[$message_hash]);
         }
-        return $future;
+        return $future->promise();
     }
 
     public function resolve($result, $message_hash) {
@@ -142,7 +142,8 @@ class Client {
         if ($this->verbose) {
             echo date('c'), ' connecting to ', $this->url, "\n";
         }
-        $promise = call_user_func($this->connector, $this->url);
+        $headers = property_exists($this, 'options') && array_key_exists('headers', $this->options) ? $this->options['headers'] : [];
+        $promise = call_user_func($this->connector, $this->url, [], $headers);
         Timer\timeout($promise, $timeout, Loop::get())->then(
             function($connection) {
                 if ($this->verbose) {

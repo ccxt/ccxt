@@ -17,6 +17,7 @@ class bitget extends Exchange {
             'version' => 'v1',
             'rateLimit' => 50, // up to 3000 requests per 5 minutes ≈ 600 requests per minute ≈ 10 requests per second ≈ 100 ms
             'certified' => true,
+            'pro' => true,
             'has' => array(
                 'CORS' => null,
                 'spot' => true,
@@ -80,8 +81,8 @@ class bitget extends Exchange {
                 'reduceMargin' => true,
                 'setLeverage' => true,
                 'setMarginMode' => true,
-                'setPositionMode' => false,
-                'transfer' => false,
+                'setPositionMode' => true,
+                'transfer' => true,
                 'withdraw' => false,
             ),
             'timeframes' => array(
@@ -160,6 +161,7 @@ class bitget extends Exchange {
                         ),
                         'post' => array(
                             'account/bills' => 2,
+                            'account/sub-account-spot-assets' => 200,
                             'trade/orders' => 2,
                             'trade/batch-orders' => 4,
                             'trade/cancel-order' => 2,
@@ -203,6 +205,7 @@ class bitget extends Exchange {
                             'account/setLeverage' => 8,
                             'account/setMargin' => 8,
                             'account/setMarginMode' => 8,
+                            'account/setPositionMode' => 8,
                             'order/placeOrder' => 2,
                             'order/batch-orders' => 2,
                             'order/cancel-order' => 2,
@@ -215,6 +218,7 @@ class bitget extends Exchange {
                             'plan/placePositionsTPSL' => 2,
                             'plan/modifyTPSLPlan' => 2,
                             'plan/cancelPlan' => 2,
+                            'plan/cancelAllPlan' => 2,
                             'trace/closeTrackOrder' => 2,
                             'trace/setUpCopySymbols' => 2,
                         ),
@@ -671,6 +675,7 @@ class bitget extends Exchange {
                     '40712' => '\\ccxt\\InsufficientFunds', // Insufficient margin
                     '40713' => '\\ccxt\\ExchangeError', // Cannot exceed the maximum transferable margin amount
                     '40714' => '\\ccxt\\ExchangeError', // No direct margin call is allowed
+                    '45110' => '\\ccxt\\InvalidOrder', // array("code":"45110","msg":"less than the minimum amount 5 USDT","requestTime":1669911118932,"data":null)
                     // spot
                     'invalid sign' => '\\ccxt\\AuthenticationError',
                     'invalid currency' => '\\ccxt\\BadSymbol', // invalid trading pair
@@ -809,26 +814,29 @@ class bitget extends Exchange {
 
     public function fetch_markets($params = array ()) {
         /**
-         * retrieves data on all $markets for bitget
+         * retrieves data on all markets for bitget
          * @param {array} $params extra parameters specific to the exchange api endpoint
          * @return {[array]} an array of objects representing market data
          */
         $types = $this->safe_value($this->options, 'fetchMarkets', array( 'spot', 'swap' ));
-        $result = array();
+        $promises = array();
         for ($i = 0; $i < count($types); $i++) {
             $type = $types[$i];
             if ($type === 'swap') {
-                $subTypes = array( 'umcbl', 'dmcbl', 'cmcbl', 'sumcbl', 'sdmcbl', 'scmcbl' );
+                // the following are simulated trading markets array( 'sumcbl', 'sdmcbl', 'scmcbl' );
+                $subTypes = array( 'umcbl', 'dmcbl', 'cmcbl' );
                 for ($j = 0; $j < count($subTypes); $j++) {
-                    $markets = $this->fetch_markets_by_type($type, array_merge($params, array(
+                    $promises[] = $this->fetch_markets_by_type($type, array_merge($params, array(
                         'productType' => $subTypes[$j],
                     )));
-                    $result = $this->array_concat($result, $markets);
                 }
             } else {
-                $markets = $this->fetch_markets_by_type($types[$i], $params);
-                $result = $this->array_concat($result, $markets);
+                $promises[] = $this->fetch_markets_by_type($types[$i], $params);
             }
+        }
+        $result = $promises[0];
+        for ($i = 1; $i < count($promises); $i++) {
+            $result = $this->array_concat($result, $promises[$i]);
         }
         return $result;
     }
@@ -1511,9 +1519,6 @@ class bitget extends Exchange {
         //     }
         //
         $marketId = $this->safe_string($ticker, 'symbol');
-        if (!(is_array($this->markets_by_id) && array_key_exists($marketId, $this->markets_by_id))) {
-            $marketId .= '_SPBL';
-        }
         $symbol = $this->safe_symbol($marketId, $market);
         $high = $this->safe_string($ticker, 'high24h');
         $low = $this->safe_string($ticker, 'low24h');
@@ -2051,12 +2056,24 @@ class bitget extends Exchange {
 
     public function parse_balance($balance) {
         $result = array( 'info' => $balance );
+        //
+        //     {
+        //       coinId => '1',
+        //       coinName => 'BTC',
+        //       available => '0.00099900',
+        //       $frozen => '0.00000000',
+        //       lock => '0.00000000',
+        //       uTime => '1661595535000'
+        //     }
+        //
         for ($i = 0; $i < count($balance); $i++) {
             $entry = $balance[$i];
             $currencyId = $this->safe_string_2($entry, 'coinId', 'marginCoin');
             $code = $this->safe_currency_code($currencyId);
             $account = $this->account();
-            $account['used'] = $this->safe_string_2($entry, 'lock', 'locked');
+            $frozen = $this->safe_string($entry, 'frozen');
+            $locked = $this->safe_string($entry, 'lock');
+            $account['used'] = Precise::string_add($frozen, $locked);
             $account['free'] = $this->safe_string($entry, 'available');
             $result[$code] = $account;
         }
@@ -2066,6 +2083,7 @@ class bitget extends Exchange {
     public function parse_order_status($status) {
         $statuses = array(
             'new' => 'open',
+            'init' => 'open',
             'full_fill' => 'closed',
             'filled' => 'closed',
         );
@@ -2421,16 +2439,13 @@ class bitget extends Exchange {
         /**
          * cancel all open orders
          * @see https://bitgetlimited.github.io/apidoc/en/mix/#cancel-all-order
+         * @see https://bitgetlimited.github.io/apidoc/en/mix/#cancel-all-trigger-order-tpsl
          * @param {string|null} $symbol unified $market $symbol
          * @param {array} $params extra parameters specific to the bitget api endpoint
          * @param {string} $params->code marginCoin unified $currency $code
          * @return {[array]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structures}
          */
         $this->load_markets();
-        $code = $this->safe_string_2($params, 'code', 'marginCoin');
-        if ($code === null) {
-            throw new ArgumentsRequired($this->id . ' cancelAllOrders () requires a $code argument in the params');
-        }
         $market = null;
         $defaultSubType = $this->safe_string($this->options, 'defaultSubType');
         if ($symbol !== null) {
@@ -2442,13 +2457,29 @@ class bitget extends Exchange {
         if ($marketType === 'spot') {
             throw new NotSupported($this->id . ' cancelAllOrders () does not support spot markets');
         }
-        $currency = $this->currency($code);
         $request = array(
-            'marginCoin' => $this->safe_currency_code($code, $currency),
             'productType' => $productType,
         );
+        $method = null;
+        $stop = $this->safe_value($params, 'stop');
+        $planType = $this->safe_string($params, 'planType');
+        if ($stop !== null || $planType !== null) {
+            if ($planType === null) {
+                throw new ArgumentsRequired($this->id . ' cancelOrder() requires a $planType parameter for $stop orders, either normal_plan, profit_plan, loss_plan, pos_profit, pos_loss, moving_plan or track_plan');
+            }
+            $method = 'privateMixPostPlanCancelAllPlan';
+            $params = $this->omit($params, array( 'stop' ));
+        } else {
+            $code = $this->safe_string_2($params, 'code', 'marginCoin');
+            if ($code === null) {
+                throw new ArgumentsRequired($this->id . ' cancelAllOrders () requires a $code argument [marginCoin] in the params');
+            }
+            $currency = $this->currency($code);
+            $request['marginCoin'] = $this->safe_currency_code($code, $currency);
+            $method = 'privateMixPostOrderCancelAllOrders';
+        }
         $params = $this->omit($query, array( 'code', 'marginCoin' ));
-        $response = $this->privateMixPostOrderCancelAllOrders (array_merge($request, $params));
+        $response = $this->$method (array_merge($request, $params));
         //
         //     {
         //         "code" => "00000",
@@ -3384,6 +3415,40 @@ class bitget extends Exchange {
         return $this->privateMixPostAccountSetMarginMode (array_merge($request, $params));
     }
 
+    public function set_position_mode($hedged, $symbol = null, $params = array ()) {
+        /**
+         * set $hedged to true or false for a $market
+         * @param {bool} $hedged set to true to use dualSidePosition
+         * @param {string|null} $symbol not used by binance setPositionMode ()
+         * @param {array} $params extra parameters specific to the binance api endpoint
+         * @return {array} $response from the exchange
+         *
+         */
+        $productType = $this->safe_string($params, 'productType');
+        if (($productType === null) && ($symbol === null)) {
+            throw new ArgumentsRequired($this->id . ' setPositionMode() requires a $symbol or the $productType parameter');
+        }
+        $this->load_markets();
+        $holdMode = $hedged ? 'double_hold' : 'single_hold';
+        $request = array(
+            'holdMode' => $holdMode,
+        );
+        if ($symbol !== null) {
+            $market = $this->market($symbol);
+            $request['productType'] = $market['linear'] ? 'umcbl' : 'dmcbl';
+        }
+        $response = $this->privateMixPostAccountSetPositionMode (array_merge($request, $params));
+        //
+        //    {
+        //         "code" => "40919",
+        //         "msg" => "This function is not open yet",
+        //         "requestTime" => 1672212431093,
+        //         "data" => null
+        //     }
+        //
+        return $response;
+    }
+
     public function fetch_open_interest($symbol, $params = array ()) {
         /**
          * Retrieves the open interest of a currency
@@ -3415,6 +3480,79 @@ class bitget extends Exchange {
         //
         $data = $this->safe_value($response, 'data', array());
         return $this->parse_open_interest($data, $market);
+    }
+
+    public function transfer($code, $amount, $fromAccount, $toAccount, $params = array ()) {
+        /**
+         * @see https://bitgetlimited.github.io/apidoc/en/spot/#transfer
+         * transfer $currency internally between wallets on the same account
+         * @param {string} $code unified $currency $code
+         * @param {float} $amount amount to transfer
+         * @param {string} $fromAccount account to transfer from
+         * @param {string} $toAccount account to transfer to
+         * @param {array} $params extra parameters specific to the bitget api endpoint
+         *
+         * EXCHANGE SPECIFIC PARAMS
+         * @param {string} $params->clientOid custom id
+         * @return {array} a {@link https://docs.ccxt.com/en/latest/manual.html#transfer-structure transfer structure}
+         */
+        $this->load_markets();
+        $currency = $this->currency($code);
+        $fromSwap = $fromAccount === 'swap';
+        $toSwap = $toAccount === 'swap';
+        $usdt = $currency['code'] === 'USDT';
+        if ($fromSwap) {
+            $fromAccount = $usdt ? 'mix_usdt' : 'mix_usd';
+        } elseif ($toSwap) {
+            $toAccount = $usdt ? 'mix_usdt' : 'mix_usd';
+        }
+        $request = array(
+            'fromType' => $fromAccount,
+            'toType' => $toAccount,
+            'amount' => $amount,
+            'coin' => $currency['info']['coinName'],
+        );
+        $response = $this->privateSpotPostWalletTransfer (array_merge($request, $params));
+        //
+        //    {
+        //        "code" => "00000",
+        //        "msg" => "success",
+        //        "requestTime" => 1668119107154,
+        //        "data" => "SUCCESS"
+        //    }
+        //
+        return $this->parse_transfer($response, $currency);
+    }
+
+    public function parse_transfer($transfer, $currency = null) {
+        //
+        //    {
+        //        "code" => "00000",
+        //        "msg" => "success",
+        //        "requestTime" => 1668119107154,
+        //        "data" => "SUCCESS"
+        //    }
+        //
+        $timestamp = $this->safe_integer($transfer, 'requestTime');
+        $msg = $this->safe_string($transfer, 'msg');
+        return array(
+            'info' => $transfer,
+            'id' => $this->safe_string($transfer, 'id'),
+            'timestamp' => $timestamp,
+            'datetime' => $this->iso8601($timestamp),
+            'currency' => $this->safe_string($currency, 'code'),
+            'amount' => $this->safe_number($transfer, 'size'),
+            'fromAccount' => null,
+            'toAccount' => null,
+            'status' => ($msg === 'success') ? 'ok' : $msg,
+        );
+    }
+
+    public function parse_transfer_status($status) {
+        $statuses = array(
+            'success' => 'ok',
+        );
+        return $this->safe_string($statuses, $status, $status);
     }
 
     public function parse_open_interest($interest, $market = null) {

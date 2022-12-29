@@ -153,14 +153,15 @@ module.exports = class okx extends Exchange {
                         'market/books-lite': 1.66,
                         'market/candles': 0.5,
                         'market/history-candles': 1,
-                        'market/history-mark-price-candles': 120,
-                        'market/history-index-candles': 120,
+                        'market/history-mark-price-candles': 2,
+                        'market/history-index-candles': 2,
                         'market/index-candles': 1,
                         'market/mark-price-candles': 1,
                         'market/trades': 1,
                         'market/platform-24-volume': 10,
-                        'market/open-oracle': 100,
+                        'market/open-oracle': 40,
                         'market/index-components': 1,
+                        'market/option/instrument-family-trades': 1,
                         // 'market/oracle',
                         'public/instruments': 1,
                         'public/delivery-exercise-history': 0.5,
@@ -215,7 +216,11 @@ module.exports = class okx extends Exchange {
                         'account/max-withdrawal': 1,
                         'account/risk-state': 2,
                         'account/borrow-repay-history': 4,
+                        'account/quick-margin-borrow-repay-history': 4,
                         'account/interest-limits': 4,
+                        'account/vip-interest-accrued': 4,
+                        'account/vip-loan-order-list': 4,
+                        'account/vip-loan-order-detail': 4,
                         'asset/asset-valuation': 1 / 5,
                         'asset/deposit-address': 5 / 3,
                         'asset/balances': 5 / 3,
@@ -228,6 +233,7 @@ module.exports = class okx extends Exchange {
                         'asset/deposit-lightning': 5,
                         'asset/lending-history': 5 / 3,
                         'asset/saving-balance': 5 / 3,
+                        'asset/non-tradable-assets': 5 / 3,
                         'trade/order': 1 / 3,
                         'trade/orders-pending': 1,
                         'trade/orders-history': 0.5,
@@ -249,6 +255,7 @@ module.exports = class okx extends Exchange {
                         'broker/nd/rebate-daily': 1,
                         'broker/nd/subaccount/apikey': 10,
                         'broker/nd/rebate-per-orders': 300,
+                        'asset/broker/nd/subaccount-withdrawal-history': 4,
                         // convert
                         'asset/convert/currencies': 5 / 3,
                         'asset/convert/currency-pair': 5 / 3,
@@ -261,6 +268,26 @@ module.exports = class okx extends Exchange {
                         'finance/staking-defi/offers': 1,
                         'finance/staking-defi/orders-active': 1,
                         'finance/staking-defi/orders-history': 1,
+                        'rfq/counterparties': 4,
+                        'rfq/maker-instrument-settings': 4,
+                        'rfq/rfqs': 10,
+                        'rfq/quotes': 10,
+                        'rfq/trades': 4,
+                        'rfq/public-trades': 4,
+                        // copytrading
+                        'copytrading/current-subpositions': 10,
+                        'copytrading/subpositions-history': 10,
+                        'copytrading/instruments': 10,
+                        'copytrading/profit-sharing-details': 10,
+                        'copytrading/total-profit-sharing': 10,
+                        'copytrading/unrealized-profit-sharing-details': 10,
+                        // grid trading
+                        'tradingBot/grid/orders-algo-pending': 1,
+                        'tradingBot/grid/orders-algo-history': 1,
+                        'tradingBot/grid/orders-algo-details': 1,
+                        'tradingBot/grid/sub-orders': 1,
+                        'tradingBot/grid/positions': 1,
+                        'tradingBot/grid/ai-param': 1,
                     },
                     'post': {
                         'account/set-position-mode': 4,
@@ -268,8 +295,11 @@ module.exports = class okx extends Exchange {
                         'account/position/margin-balance': 1,
                         'account/set-greeks': 4,
                         'account/set-isolated-mode': 4,
+                        'account/set-riskOffset-type': 2,
                         'account/simulated_margin': 10,
                         'account/borrow-repay': 5 / 3,
+                        'account/quick-margin-borrow-repay': 4,
+                        'account/activate-option': 4,
                         'asset/transfer': 10,
                         'asset/withdrawal': 5 / 3,
                         'asset/purchase_redempt': 5 / 3,
@@ -306,6 +336,28 @@ module.exports = class okx extends Exchange {
                         'finance/staking-defi/purchase': 3,
                         'finance/staking-defi/redeem': 3,
                         'finance/staking-defi/cancel': 3,
+                        'rfq/create-rfq': 4,
+                        'rfq/cancel-rfq': 4,
+                        'rfq/cancel-batch-rfqs': 10,
+                        'rfq/cancel-all-rfqs': 10,
+                        'rfq/execute-quote': 10,
+                        'rfq/maker-instrument-settings': 4,
+                        'rfq/mmp-reset': 4,
+                        'rfq/create-quote': 0.4,
+                        'rfq/cancel-quote': 0.4,
+                        'rfq/cancel-batch-quotes': 10,
+                        'rfq/cancel-all-quotes': 10,
+                        // copytrading
+                        'copytrading/algo-order': 20,
+                        'copytrading/close-subposition': 10,
+                        'copytrading/set-instruments': 10,
+                        // grid trading
+                        'tradingBot/grid/order-algo': 1,
+                        'tradingBot/grid/amend-order-algo': 1,
+                        'tradingBot/grid/stop-order-algo': 1,
+                        'tradingBot/grid/withdraw-income': 1,
+                        'tradingBot/grid/compute-margin-balance': 1,
+                        'tradingBot/grid/margin-balance': 1,
                     },
                 },
             },
@@ -366,6 +418,7 @@ module.exports = class okx extends Exchange {
                     '50026': ExchangeNotAvailable, // System error, please try again later.
                     '50027': PermissionDenied, // The account is restricted from trading
                     '50028': ExchangeError, // Unable to take the order, please reach out to support center for details
+                    '50044': BadRequest, // Must select one broker type
                     // API Class
                     '50100': ExchangeError, // API frozen, please contact customer service
                     '50101': AuthenticationError, // Broker id of APIKey does not match current environment
@@ -453,6 +506,11 @@ module.exports = class okx extends Exchange {
                     '51137': InvalidOrder, // Your opening price has triggered the limit price, and the max buy price is {0}
                     '51138': InvalidOrder, // Your opening price has triggered the limit price, and the min sell price is {0}
                     '51139': InvalidOrder, // Reduce-only feature is unavailable for the spot transactions by simple account
+                    '51156': BadRequest, // You're leading trades in long/short mode and can't use this API endpoint to close positions
+                    '51159': BadRequest, // You're leading trades in buy/sell mode. If you want to place orders using this API endpoint, the orders must be in the same direction as your existing positions and open orders.
+                    '51162': InvalidOrder, // You have {instrument} open orders. Cancel these orders and try again
+                    '51163': InvalidOrder, // You hold {instrument} positions. Close these positions and try again
+                    '51166': InvalidOrder, // Currently, we don't support leading trades with this instrument
                     '51201': InvalidOrder, // Value of per market order cannot exceed 100,000 USDT
                     '51202': InvalidOrder, // Market - order amount exceeds the max amount
                     '51203': InvalidOrder, // Order amount exceeds the limit {0}
@@ -488,6 +546,15 @@ module.exports = class okx extends Exchange {
                     '51278': InvalidOrder, // SL trigger price can not be lower than the last price
                     '51279': InvalidOrder, // TP trigger price can not be lower than the last price
                     '51280': InvalidOrder, // SL trigger price can not be higher than the last price
+                    '51321': InvalidOrder, // You're leading trades. Currently, we don't support leading trades with arbitrage, iceberg, or TWAP bots
+                    '51322': InvalidOrder, // You're leading trades that have been filled at market price. We've canceled your open stop orders to close your positions
+                    '51323': BadRequest, // You're already leading trades with take profit or stop loss settings. Cancel your existing stop orders to proceed
+                    '51324': BadRequest, // As a lead trader, you hold positions in {instrument}. To close your positions, place orders in the amount that equals the available amount for closing
+                    '51325': InvalidOrder, // As a lead trader, you must use market price when placing stop orders
+                    '51327': InvalidOrder, // closeFraction is only available for futures and perpetual swaps
+                    '51328': InvalidOrder, // closeFraction is only available for reduceOnly orders
+                    '51329': InvalidOrder, // closeFraction is only available in NET mode
+                    '51330': InvalidOrder, // closeFraction is only available for stop market orders
                     '51400': OrderNotFound, // Cancellation failed as the order does not exist
                     '51401': OrderNotFound, // Cancellation failed as the order is already canceled
                     '51402': OrderNotFound, // Cancellation failed as the order is already completed
@@ -512,6 +579,11 @@ module.exports = class okx extends Exchange {
                     '51601': ExchangeError, // Order status and order ID cannot exist at the same time
                     '51602': ExchangeError, // Either order status or order ID is required
                     '51603': OrderNotFound, // Order does not exist
+                    '51732': AuthenticationError, // Required user KYC level not met
+                    '51733': AuthenticationError, // User is under risk control
+                    '51734': AuthenticationError, // User KYC Country is not supported
+                    '51735': ExchangeError, // Sub-account is not supported
+                    '51736': InsufficientFunds, // Insufficient {ccy} balance
                     // Data class
                     '52000': ExchangeError, // No updates
                     // SPOT/MARGIN error codes 54000-54999
@@ -543,6 +615,8 @@ module.exports = class okx extends Exchange {
                     '58115': ExchangeError, // Sub-account does not exist
                     '58116': ExchangeError, // Transfer amount exceeds the limit
                     '58117': ExchangeError, // Account assets are abnormal, please deal with negative assets before transferring
+                    '58125': BadRequest, // Non-tradable assets can only be transferred from sub-accounts to main accounts
+                    '58126': BadRequest, // Non-tradable assets can only be transferred between funding accounts
                     '58200': ExchangeError, // Withdrawal from {0} to {1} is unavailable for this currency
                     '58201': ExchangeError, // Withdrawal amount exceeds the daily limit
                     '58202': ExchangeError, // The minimum withdrawal amount for NEO is 1, and the amount must be an integer
@@ -560,6 +634,9 @@ module.exports = class okx extends Exchange {
                     '58221': BadRequest, // Missing label of withdrawal address.
                     '58222': BadRequest, // Illegal withdrawal address.
                     '58224': BadRequest, // This type of crypto does not support on-chain withdrawing to OKX addresses. Please withdraw through internal transfers.
+                    '58227': BadRequest, // Withdrawal of non-tradable assets can be withdrawn all at once only
+                    '58228': BadRequest, // Withdrawal of non-tradable assets requires that the API Key must be bound to an IP
+                    '58229': InsufficientFunds, // Insufficient funding account balance to pay fees {fee} USDT
                     '58300': ExchangeError, // Deposit-address count exceeds the limit
                     '58350': InsufficientFunds, // Insufficient balance
                     // Account error codes 59000-59999
@@ -575,10 +652,13 @@ module.exports = class okx extends Exchange {
                     '59107': ExchangeError, // You have pending orders under the service, please modify the leverage after canceling all pending orders
                     '59108': InsufficientFunds, // Low leverage and insufficient margin, please adjust the leverage
                     '59109': ExchangeError, // Account equity less than the required margin amount after adjustment. Please adjust the leverage
+                    '59128': InvalidOrder, // As a lead trader, you can't lead trades in {instrument} with leverage higher than {num}
                     '59200': InsufficientFunds, // Insufficient account balance
                     '59201': InsufficientFunds, // Negative account balance
+                    '59216': BadRequest, // The position doesn't exist. Please try again
                     '59300': ExchangeError, // Margin call failed. Position does not exist
                     '59301': ExchangeError, // Margin adjustment failed for exceeding the max limit
+                    '59313': ExchangeError, // Unable to repay. You haven't borrowed any {ccy} {ccyPair} in Quick margin mode.
                     '59401': ExchangeError, // Holdings already reached the limit
                     '59500': ExchangeError, // Only the APIKey of the main account has permission
                     '59501': ExchangeError, // Only 50 APIKeys can be created per account
@@ -610,8 +690,12 @@ module.exports = class okx extends Exchange {
                     '60018': BadRequest, // The {0} {1} {2} {3} {4} does not exist
                     '60019': BadRequest, // Invalid op {op}
                     '63999': ExchangeError, // Internal system error
+                    '70010': BadRequest, // Timestamp parameters need to be in Unix timestamp format in milliseconds.
+                    '70013': BadRequest, // endTs needs to be bigger than or equal to beginTs.
+                    '70016': BadRequest, // Please specify your instrument settings for at least one instType.
                 },
                 'broad': {
+                    'Internal Server Error': ExchangeNotAvailable, // {"code":500,"data":{},"detailMsg":"","error_code":"500","error_message":"Internal Server Error","msg":"Internal Server Error"}
                     'server error': ExchangeNotAvailable, // {"code":500,"data":{},"detailMsg":"","error_code":"500","error_message":"server error 1236805249","msg":"server error 1236805249"}
                 },
             },
@@ -648,7 +732,6 @@ module.exports = class okx extends Exchange {
                 'createMarketBuyOrderRequiresPrice': false,
                 'fetchMarkets': [ 'spot', 'future', 'swap', 'option' ], // spot, future, swap, option
                 'defaultType': 'spot', // 'funding', 'spot', 'margin', 'future', 'swap', 'option'
-                'defaultMarginMode': 'cross', // cross, isolated
                 // 'fetchBalance': {
                 //     'type': 'spot', // 'funding', 'trading', 'spot'
                 // },
@@ -1446,7 +1529,14 @@ module.exports = class okx extends Exchange {
          * @param {object} params extra parameters specific to the okx api endpoint
          * @returns {object} an array of [ticker structures]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
          */
-        const [ type, query ] = this.handleMarketTypeAndParams ('fetchTickers', undefined, params);
+        await this.loadMarkets ();
+        symbols = this.marketSymbols (symbols);
+        const first = this.safeString (symbols, 0);
+        let market = undefined;
+        if (first !== undefined) {
+            market = this.market (first);
+        }
+        const [ type, query ] = this.handleMarketTypeAndParams ('fetchTickers', market, params);
         return await this.fetchTickersByType (type, symbols, query);
     }
 
@@ -1621,7 +1711,7 @@ module.exports = class okx extends Exchange {
             const now = this.milliseconds ();
             const difference = now - since;
             // if the since timestamp is more than limit candles back in the past
-            if (difference > limit * duration * 1000) {
+            if (difference > 1440 * duration * 1000) {
                 defaultType = 'HistoryCandles';
             }
             const durationInMilliseconds = duration * 1000;
@@ -1638,10 +1728,11 @@ module.exports = class okx extends Exchange {
         const type = this.safeString (params, 'type', defaultType);
         params = this.omit (params, 'type');
         let method = 'publicGetMarket' + type;
+        const isHistoryCandles = (type === 'HistoryCandles');
         if (price === 'mark') {
-            method = 'publicGetMarketMarkPriceCandles';
+            method = (isHistoryCandles) ? 'publicGetMarketHistoryMarkPriceCandles' : 'publicGetMarketMarkPriceCandles';
         } else if (price === 'index') {
-            method = 'publicGetMarketIndexCandles';
+            method = (isHistoryCandles) ? 'publicGetMarketHistoryIndexCandles' : 'publicGetMarketIndexCandles';
         }
         const response = await this[method] (this.extend (request, params));
         //
@@ -2469,7 +2560,7 @@ module.exports = class okx extends Exchange {
         if ((clientOrderId !== undefined) && (clientOrderId.length < 1)) {
             clientOrderId = undefined; // fix empty clientOrderId string
         }
-        const stopPrice = this.safeNumberN (order, [ 'triggerPx', 'slTriggerPx', 'tpTriggerPx' ]);
+        const stopPrice = this.safeNumberN (order, [ 'tpTriggerPx', 'triggerPx', 'slTriggerPx' ]);
         let reduceOnly = this.safeString (order, 'reduceOnly');
         if (reduceOnly !== undefined) {
             reduceOnly = (reduceOnly === 'true');
@@ -2748,6 +2839,7 @@ module.exports = class okx extends Exchange {
          * @param {bool} params.stop True if fetching trigger or conditional orders
          * @param {string} params.ordType "conditional", "oco", "trigger", "move_order_stop", "iceberg", or "twap"
          * @param {string|undefined} params.algoId Algo ID "'433845797218942976'"
+         * @param {int|undefined} params.until timestamp in ms to fetch orders for
          * @returns {object} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
          */
         await this.loadMarkets ();
@@ -2767,7 +2859,9 @@ module.exports = class okx extends Exchange {
             market = this.market (symbol);
             request['instId'] = market['id'];
         }
-        const [ type, query ] = this.handleMarketTypeAndParams ('fetchCanceledOrders', market, params);
+        let type = undefined;
+        let query = undefined;
+        [ type, query ] = this.handleMarketTypeAndParams ('fetchCanceledOrders', market, params);
         request['instType'] = this.convertToInstrumentType (type);
         if (limit !== undefined) {
             request['limit'] = limit; // default 100, max 100
@@ -2791,6 +2885,15 @@ module.exports = class okx extends Exchange {
                     throw new ArgumentsRequired (this.id + ' fetchCanceledOrders() requires an "ordType" string parameter, "conditional", "oco", "trigger", "move_order_stop", "iceberg", or "twap"');
                 }
                 request['ordType'] = ordType;
+            }
+        } else {
+            if (since !== undefined) {
+                request['begin'] = since;
+            }
+            const until = this.safeInteger2 (query, 'till', 'until');
+            if (until !== undefined) {
+                request['end'] = until;
+                query = this.omit (query, [ 'until', 'till' ]);
             }
         }
         const send = this.omit (query, [ 'method', 'stop', 'ordType' ]);
@@ -2910,6 +3013,7 @@ module.exports = class okx extends Exchange {
          * @param {bool} params.stop True if fetching trigger or conditional orders
          * @param {string} params.ordType "conditional", "oco", "trigger", "move_order_stop", "iceberg", or "twap"
          * @param {string|undefined} params.algoId Algo ID "'433845797218942976'"
+         * @param {int|undefined} params.until timestamp in ms to fetch orders for
          * @returns {[object]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
          */
         await this.loadMarkets ();
@@ -2929,7 +3033,9 @@ module.exports = class okx extends Exchange {
             market = this.market (symbol);
             request['instId'] = market['id'];
         }
-        const [ type, query ] = this.handleMarketTypeAndParams ('fetchClosedOrders', market, params);
+        let type = undefined;
+        let query = undefined;
+        [ type, query ] = this.handleMarketTypeAndParams ('fetchClosedOrders', market, params);
         request['instType'] = this.convertToInstrumentType (type);
         if (limit !== undefined) {
             request['limit'] = limit; // default 100, max 100
@@ -2949,6 +3055,14 @@ module.exports = class okx extends Exchange {
             }
             request['state'] = 'effective';
         } else {
+            if (since !== undefined) {
+                request['begin'] = since;
+            }
+            const until = this.safeInteger2 (query, 'till', 'until');
+            if (until !== undefined) {
+                request['end'] = until;
+                query = this.omit (query, [ 'until', 'till' ]);
+            }
             request['state'] = 'filled';
         }
         const send = this.omit (query, [ 'method', 'stop' ]);
@@ -4118,7 +4232,7 @@ module.exports = class okx extends Exchange {
                 marketIds.push (market['id']);
             }
             if (marketIds.length > 0) {
-                request['instId'] = marketIds.toString ();
+                request['instId'] = marketIds.join (',');
             }
         }
         const response = await this.privateGetAccountPositions (this.extend (request, params));
@@ -4221,18 +4335,20 @@ module.exports = class okx extends Exchange {
         const marketId = this.safeString (position, 'instId');
         market = this.safeMarket (marketId, market);
         const symbol = market['symbol'];
-        const contractsString = this.safeString (position, 'pos');
-        const contractsAbs = Precise.stringAbs (contractsString);
+        const pos = this.safeString (position, 'pos'); // 'pos' field: One way mode: 0 if position is not open, 1 if open | Two way (hedge) mode: -1 if short, 1 if long, 0 if position is not open
+        const contractsAbs = Precise.stringAbs (pos);
         let contracts = undefined;
         let side = this.safeString (position, 'posSide');
         const hedged = side !== 'net';
-        if (contractsString !== undefined) {
+        if (pos !== undefined) {
             contracts = this.parseNumber (contractsAbs);
             if (side === 'net') {
-                if (Precise.stringGt (contractsString, '0')) {
+                if (Precise.stringGt (pos, '0')) {
                     side = 'long';
-                } else {
+                } else if (Precise.stringLt (pos, '0')) {
                     side = 'short';
+                } else {
+                    side = undefined;
                 }
             }
         }

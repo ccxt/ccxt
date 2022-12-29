@@ -297,6 +297,7 @@ class mexc(Exchange):
                 'cancelOrder': {
                     'method': 'spotPrivateDeleteOrderCancel',  # contractPrivatePostOrderCancel contractPrivatePostPlanorderCancel
                 },
+                'broker': 'CCXT',
             },
             'commonCurrencies': {
                 'BEYONDPROTOCOL': 'BEYOND',
@@ -760,7 +761,12 @@ class mexc(Exchange):
         :returns dict: an array of `ticker structures <https://docs.ccxt.com/en/latest/manual.html#ticker-structure>`
         """
         self.load_markets()
-        marketType, query = self.handle_market_type_and_params('fetchTickers', None, params)
+        symbols = self.market_symbols(symbols)
+        first = self.safe_string(symbols, 0)
+        market = None
+        if first is not None:
+            market = self.market(first)
+        marketType, query = self.handle_market_type_and_params('fetchTickers', market, params)
         method = self.get_supported_mapping(marketType, {
             'spot': 'spotPublicGetMarketTicker',
             'swap': 'contractPublicGetTicker',
@@ -2917,6 +2923,7 @@ class mexc(Exchange):
                 'ApiKey': self.apiKey,
                 'Request-Time': timestamp,
                 'Content-Type': 'application/json',
+                'source': self.safe_string(self.options, 'broker', 'CCXT'),
             }
             if method == 'POST':
                 auth = self.json(params)

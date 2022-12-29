@@ -4,6 +4,7 @@
 # https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 from ccxt.async_support.base.exchange import Exchange
+import asyncio
 import hashlib
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
@@ -247,6 +248,11 @@ class gemini(Exchange):
             },
             'options': {
                 'fetchMarketsMethod': 'fetch_markets_from_web',
+                'fetchMarketFromWebRetries': 10,
+                'fetchMarketsFromAPI': {
+                    'fetchDetailsForAllSymbols': False,
+                    'fetchDetailsForMarketIds': [],
+                },
                 'fetchTickerMethod': 'fetchTickerV1',  # fetchTickerV1, fetchTickerV2, fetchTickerV1AndV2
                 'networkIds': {
                     'bitcoin': 'BTC',
@@ -281,7 +287,18 @@ class gemini(Exchange):
         return await getattr(self, method)(params)
 
     async def fetch_markets_from_web(self, params={}):
-        response = await self.webGetRestApi(params)
+        # This endpoint so we retry
+        maxRetries = self.safe_integer(self.options, 'fetchMarketFromWebRetries', 10)
+        response = None
+        retry = 0
+        while(retry < maxRetries):
+            try:
+                response = await self.webGetRestApi(params)
+                break
+            except Exception as e:
+                retry = retry + 1
+                if retry == maxRetries:
+                    raise e
         sections = response.split('<h1 id="symbols-and-minimums">Symbols and minimums</h1>')
         numSections = len(sections)
         error = self.id + ' fetchMarketsFromWeb() the ' + self.name + ' API doc HTML markup has changed, breaking the parser of order limits and precision info for ' + self.name + ' markets.'
@@ -375,6 +392,16 @@ class gemini(Exchange):
             })
         return result
 
+    def parse_market_active(self, status):
+        statuses = {
+            'open': True,
+            'closed': False,
+            'cancel_only': True,
+            'post_only': True,
+            'limit_only': True,
+        }
+        return self.safe_value(statuses, status, True)
+
     async def fetch_markets_from_api(self, params={}):
         response = await self.publicGetV1Symbols(params)
         #
@@ -384,27 +411,17 @@ class gemini(Exchange):
         #         ...
         #     ]
         #
-        result = []
+        result = {}
         for i in range(0, len(response)):
             marketId = response[i]
-            market = marketId
             idLength = len(marketId) - 0
-            baseId = marketId[0:idLength - 3]
+            baseId = marketId[0:idLength - 3]  # Not True for all markets
             quoteId = marketId[idLength - 3:idLength]
             base = self.safe_currency_code(baseId)
             quote = self.safe_currency_code(quoteId)
-            result.append({
+            result[marketId] = {
                 'id': marketId,
                 'symbol': base + '/' + quote,
-                'base': base,
-                'quote': quote,
-                'settle': None,
-                'baseId': baseId,
-                'quoteId': quoteId,
-                'settleId': None,
-                'type': 'spot',
-                'spot': True,
-                'margin': False,
                 'swap': False,
                 'future': False,
                 'option': False,
@@ -412,9 +429,6 @@ class gemini(Exchange):
                 'contract': False,
                 'linear': None,
                 'inverse': None,
-                'contractSize': None,
-                'expiry': None,
-                'expiryDatetime': None,
                 'strike': None,
                 'optionType': None,
                 'precision': {
@@ -431,6 +445,86 @@ class gemini(Exchange):
                         'max': None,
                     },
                     'price': {
+                        'max': None,
+                    },
+                },
+                'info': marketId,
+            }
+        options = self.safe_value(self.options, 'fetchMarketsFromAPI', {})
+        fetchDetailsForAllSymbols = self.safe_value(options, 'fetchDetailsForAllSymbols', False)
+        fetchDetailsForMarketIds = self.safe_value(options, 'fetchDetailsForMarketIds', [])
+        promises = []
+        marketIds = []
+        if fetchDetailsForAllSymbols:
+            marketIds = response
+        else:
+            marketIds = fetchDetailsForMarketIds
+        for i in range(0, len(marketIds)):
+            marketId = marketIds[i]
+            method = 'publicGetV1SymbolsDetailsSymbol'
+            request = {
+                'symbol': marketId,
+            }
+            promises.append(getattr(self, method)(self.extend(request, params)))
+            #
+            #     {
+            #         "symbol": "BTCUSD",
+            #         "base_currency": "BTC",
+            #         "quote_currency": "USD",
+            #         "tick_size": 1E-8,
+            #         "quote_increment": 0.01,
+            #         "min_order_size": "0.00001",
+            #         "status": "open",
+            #         "wrap_enabled": False
+            #     }
+            #
+        promises = await asyncio.gather(*promises)
+        for i in range(0, len(promises)):
+            response = promises[i]
+            marketId = self.safe_string_lower(response, 'symbol')
+            baseId = self.safe_string(response, 'base_currency')
+            base = self.safe_currency_code(baseId)
+            quoteId = self.safe_string(response, 'quote_currency')
+            quote = self.safe_currency_code(quoteId)
+            status = self.safe_string(response, 'status')
+            result[marketId] = ({
+                'id': marketId,
+                'symbol': base + '/' + quote,
+                'base': base,
+                'quote': quote,
+                'settle': None,
+                'baseId': baseId,
+                'quoteId': quoteId,
+                'settleId': None,
+                'type': 'spot',
+                'spot': True,
+                'margin': False,
+                'swap': False,
+                'future': False,
+                'option': False,
+                'active': self.parse_market_active(status),
+                'contract': False,
+                'linear': None,
+                'inverse': None,
+                'contractSize': None,
+                'expiry': None,
+                'expiryDatetime': None,
+                'strike': None,
+                'optionType': None,
+                'precision': {
+                    'price': self.safe_number(response, 'quote_increment'),
+                    'amount': self.safe_number(response, 'tick_size'),
+                },
+                'limits': {
+                    'leverage': {
+                        'min': None,
+                        'max': None,
+                    },
+                    'amount': {
+                        'min': self.safe_number(response, 'min_order_size'),
+                        'max': None,
+                    },
+                    'price': {
                         'min': None,
                         'max': None,
                     },
@@ -439,9 +533,9 @@ class gemini(Exchange):
                         'max': None,
                     },
                 },
-                'info': market,
+                'info': response,
             })
-        return result
+        return self.to_array(result)
 
     async def fetch_order_book(self, symbol, limit=None, params={}):
         """
@@ -709,6 +803,7 @@ class gemini(Exchange):
     async def fetch_trades(self, symbol, since=None, limit=None, params={}):
         """
         get the list of most recent trades for a particular symbol
+        see https://docs.gemini.com/rest-api/#trade-history
         :param str symbol: unified symbol of the market to fetch trades for
         :param int|None since: timestamp in ms of the earliest trade to fetch
         :param int|None limit: the maximum amount of trades to fetch
@@ -720,6 +815,10 @@ class gemini(Exchange):
         request = {
             'symbol': market['id'],
         }
+        if limit is not None:
+            request['limit_trades'] = limit
+        if since is not None:
+            request['timestamp'] = since
         response = await self.publicGetV1TradesSymbol(self.extend(request, params))
         #
         #     [

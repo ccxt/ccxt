@@ -85,14 +85,20 @@ module.exports = class cryptocom extends Exchange {
             },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/147792121-38ed5e36-c229-48d6-b49a-48d05fc19ed4.jpeg',
-                'test': 'https://uat-api.3ona.co/v2',
+                'test': {
+                    'spot': 'https://uat-api.3ona.co/v2',
+                    'derivatives': 'https://uat-api.3ona.co/v2',
+                },
                 'api': {
                     'spot': 'https://api.crypto.com/v2',
                     'derivatives': 'https://deriv-api.crypto.com/v1',
                 },
                 'www': 'https://crypto.com/',
                 'referral': 'https://crypto.com/exch/5835vstech',
-                'doc': 'https://exchange-docs.crypto.com/',
+                'doc': [
+                    'https://exchange-docs.crypto.com/spot/index.html',
+                    'https://exchange-docs.crypto.com/derivatives/index.html',
+                ],
                 'fees': 'https://crypto.com/exchange/document/fees-limits',
             },
             'api': {
@@ -123,6 +129,7 @@ module.exports = class cryptocom extends Exchange {
                             'private/create-order': 2 / 3,
                             'private/cancel-order': 2 / 3,
                             'private/cancel-all-orders': 2 / 3,
+                            'private/create-order-list': 10 / 3,
                             'private/get-order-history': 10 / 3,
                             'private/get-open-orders': 10 / 3,
                             'private/get-order-detail': 1 / 3,
@@ -147,9 +154,9 @@ module.exports = class cryptocom extends Exchange {
                             'private/margin/get-trades': 100,
                             'private/deriv/transfer': 10 / 3,
                             'private/deriv/get-transfer-history': 10 / 3,
-                            'private/subaccount/get-sub-accounts': 10 / 3,
-                            'private/subaccount/get-transfer-history': 10 / 3,
-                            'private/subaccount/transfer': 10 / 3,
+                            'private/get-accounts': 10 / 3,
+                            'private/get-subaccount-balances': 10 / 3,
+                            'private/create-subaccount-transfer': 10 / 3,
                             'private/otc/get-otc-user': 10 / 3,
                             'private/otc/get-instruments': 10 / 3,
                             'private/otc/request-quote': 100,
@@ -322,7 +329,12 @@ module.exports = class cryptocom extends Exchange {
         //                    margin_trading_enabled_5x: true,
         //                    margin_trading_enabled_10x: true,
         //                    max_quantity: '100000000',
-        //                    min_quantity: '0.01'
+        //                    min_quantity: '0.01',
+        //                    max_price:'1',
+        //                    min_price:'0.00000001',
+        //                    last_update_date:1667263094857,
+        //                    quantity_tick_size:'0.1',
+        //                    price_tick_size:'0.00000001'
         //               },
         //            ]
         //        }
@@ -338,8 +350,7 @@ module.exports = class cryptocom extends Exchange {
             const quoteId = this.safeString (market, 'quote_currency');
             const base = this.safeCurrencyCode (baseId);
             const quote = this.safeCurrencyCode (quoteId);
-            const priceDecimals = this.safeString (market, 'price_decimals');
-            const minPrice = this.parsePrecision (priceDecimals);
+            const minPrice = this.safeString (market, 'min_price');
             const minQuantity = this.safeString (market, 'min_quantity');
             let maxLeverage = this.parseNumber ('1');
             const margin_trading_enabled_5x = this.safeValue (market, 'margin_trading_enabled_5x');
@@ -375,8 +386,8 @@ module.exports = class cryptocom extends Exchange {
                 'strike': undefined,
                 'optionType': undefined,
                 'precision': {
-                    'amount': this.parseNumber (this.parsePrecision (this.safeString (market, 'quantity_decimals'))),
-                    'price': this.parseNumber (this.parsePrecision (priceDecimals)),
+                    'amount': this.safeNumber (market, 'quantity_tick_size'),
+                    'price': this.safeNumber (market, 'price_tick_size'),
                 },
                 'limits': {
                     'leverage': {
@@ -389,7 +400,7 @@ module.exports = class cryptocom extends Exchange {
                     },
                     'price': {
                         'min': this.parseNumber (minPrice),
-                        'max': undefined,
+                        'max': this.safeNumber (market, 'max_price'),
                     },
                     'cost': {
                         'min': this.parseNumber (Precise.stringMul (minQuantity, minPrice)),
@@ -517,13 +528,20 @@ module.exports = class cryptocom extends Exchange {
          * @method
          * @name cryptocom#fetchTickers
          * @description fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
+         * @see https://exchange-docs.crypto.com/spot/index.html#public-get-ticker
+         * @see https://exchange-docs.crypto.com/derivatives/index.html#public-get-tickers
          * @param {[string]|undefined} symbols unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
          * @param {object} params extra parameters specific to the cryptocom api endpoint
          * @returns {object} an array of [ticker structures]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
          */
         await this.loadMarkets ();
         symbols = this.marketSymbols (symbols);
-        const [ marketType, query ] = this.handleMarketTypeAndParams ('fetchTickers', undefined, params);
+        let market = undefined;
+        if (symbols !== undefined) {
+            const symbol = this.safeValue (symbols, 0);
+            market = this.market (symbol);
+        }
+        const [ marketType, query ] = this.handleMarketTypeAndParams ('fetchTickers', market, params);
         const method = this.getSupportedMapping (marketType, {
             'spot': 'spotPublicGetPublicGetTicker',
             'future': 'derivativesPublicGetPublicGetTickers',
@@ -775,6 +793,13 @@ module.exports = class cryptocom extends Exchange {
             'future': 'derivativesPublicGetPublicGetCandlestick',
             'swap': 'derivativesPublicGetPublicGetCandlestick',
         });
+        if (marketType !== 'spot') {
+            let reqLimit = 100;
+            if (limit !== undefined) {
+                reqLimit = limit;
+            }
+            request['count'] = reqLimit;
+        }
         const response = await this[method] (this.extend (request, query));
         // {
         //     "code":0,

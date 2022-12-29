@@ -4,6 +4,7 @@
 # https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 from ccxt.async_support.base.exchange import Exchange
+import asyncio
 import hashlib
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
@@ -38,6 +39,7 @@ class bitget(Exchange):
             'version': 'v1',
             'rateLimit': 50,  # up to 3000 requests per 5 minutes ≈ 600 requests per minute ≈ 10 requests per second ≈ 100 ms
             'certified': True,
+            'pro': True,
             'has': {
                 'CORS': None,
                 'spot': True,
@@ -101,8 +103,8 @@ class bitget(Exchange):
                 'reduceMargin': True,
                 'setLeverage': True,
                 'setMarginMode': True,
-                'setPositionMode': False,
-                'transfer': False,
+                'setPositionMode': True,
+                'transfer': True,
                 'withdraw': False,
             },
             'timeframes': {
@@ -181,6 +183,7 @@ class bitget(Exchange):
                         },
                         'post': {
                             'account/bills': 2,
+                            'account/sub-account-spot-assets': 200,
                             'trade/orders': 2,
                             'trade/batch-orders': 4,
                             'trade/cancel-order': 2,
@@ -224,6 +227,7 @@ class bitget(Exchange):
                             'account/setLeverage': 8,
                             'account/setMargin': 8,
                             'account/setMarginMode': 8,
+                            'account/setPositionMode': 8,
                             'order/placeOrder': 2,
                             'order/batch-orders': 2,
                             'order/cancel-order': 2,
@@ -236,6 +240,7 @@ class bitget(Exchange):
                             'plan/placePositionsTPSL': 2,
                             'plan/modifyTPSLPlan': 2,
                             'plan/cancelPlan': 2,
+                            'plan/cancelAllPlan': 2,
                             'trace/closeTrackOrder': 2,
                             'trace/setUpCopySymbols': 2,
                         },
@@ -692,6 +697,7 @@ class bitget(Exchange):
                     '40712': InsufficientFunds,  # Insufficient margin
                     '40713': ExchangeError,  # Cannot exceed the maximum transferable margin amount
                     '40714': ExchangeError,  # No direct margin call is allowed
+                    '45110': InvalidOrder,  # {"code":"45110","msg":"less than the minimum amount 5 USDT","requestTime":1669911118932,"data":null}
                     # spot
                     'invalid sign': AuthenticationError,
                     'invalid currency': BadSymbol,  # invalid trading pair
@@ -833,19 +839,22 @@ class bitget(Exchange):
         :returns [dict]: an array of objects representing market data
         """
         types = self.safe_value(self.options, 'fetchMarkets', ['spot', 'swap'])
-        result = []
+        promises = []
         for i in range(0, len(types)):
             type = types[i]
             if type == 'swap':
-                subTypes = ['umcbl', 'dmcbl', 'cmcbl', 'sumcbl', 'sdmcbl', 'scmcbl']
+                # the following are simulated trading markets ['sumcbl', 'sdmcbl', 'scmcbl']
+                subTypes = ['umcbl', 'dmcbl', 'cmcbl']
                 for j in range(0, len(subTypes)):
-                    markets = await self.fetch_markets_by_type(type, self.extend(params, {
+                    promises.append(self.fetch_markets_by_type(type, self.extend(params, {
                         'productType': subTypes[j],
-                    }))
-                    result = self.array_concat(result, markets)
+                    })))
             else:
-                markets = await self.fetch_markets_by_type(types[i], params)
-                result = self.array_concat(result, markets)
+                promises.append(self.fetch_markets_by_type(types[i], params))
+        promises = await asyncio.gather(*promises)
+        result = promises[0]
+        for i in range(1, len(promises)):
+            result = self.array_concat(result, promises[i])
         return result
 
     def parse_markets(self, markets):
@@ -1497,8 +1506,6 @@ class bitget(Exchange):
         #     }
         #
         marketId = self.safe_string(ticker, 'symbol')
-        if not (marketId in self.markets_by_id):
-            marketId += '_SPBL'
         symbol = self.safe_symbol(marketId, market)
         high = self.safe_string(ticker, 'high24h')
         low = self.safe_string(ticker, 'low24h')
@@ -2012,12 +2019,24 @@ class bitget(Exchange):
 
     def parse_balance(self, balance):
         result = {'info': balance}
+        #
+        #     {
+        #       coinId: '1',
+        #       coinName: 'BTC',
+        #       available: '0.00099900',
+        #       frozen: '0.00000000',
+        #       lock: '0.00000000',
+        #       uTime: '1661595535000'
+        #     }
+        #
         for i in range(0, len(balance)):
             entry = balance[i]
             currencyId = self.safe_string_2(entry, 'coinId', 'marginCoin')
             code = self.safe_currency_code(currencyId)
             account = self.account()
-            account['used'] = self.safe_string_2(entry, 'lock', 'locked')
+            frozen = self.safe_string(entry, 'frozen')
+            locked = self.safe_string(entry, 'lock')
+            account['used'] = Precise.string_add(frozen, locked)
             account['free'] = self.safe_string(entry, 'available')
             result[code] = account
         return self.safe_balance(result)
@@ -2025,6 +2044,7 @@ class bitget(Exchange):
     def parse_order_status(self, status):
         statuses = {
             'new': 'open',
+            'init': 'open',
             'full_fill': 'closed',
             'filled': 'closed',
         }
@@ -2351,15 +2371,13 @@ class bitget(Exchange):
         """
         cancel all open orders
         see https://bitgetlimited.github.io/apidoc/en/mix/#cancel-all-order
+        see https://bitgetlimited.github.io/apidoc/en/mix/#cancel-all-trigger-order-tpsl
         :param str|None symbol: unified market symbol
         :param dict params: extra parameters specific to the bitget api endpoint
         :param str params['code']: marginCoin unified currency code
         :returns [dict]: a list of `order structures <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
         """
         await self.load_markets()
-        code = self.safe_string_2(params, 'code', 'marginCoin')
-        if code is None:
-            raise ArgumentsRequired(self.id + ' cancelAllOrders() requires a code argument in the params')
         market = None
         defaultSubType = self.safe_string(self.options, 'defaultSubType')
         if symbol is not None:
@@ -2369,13 +2387,26 @@ class bitget(Exchange):
         marketType, query = self.handle_market_type_and_params('cancelAllOrders', market, params)
         if marketType == 'spot':
             raise NotSupported(self.id + ' cancelAllOrders() does not support spot markets')
-        currency = self.currency(code)
         request = {
-            'marginCoin': self.safe_currency_code(code, currency),
             'productType': productType,
         }
+        method = None
+        stop = self.safe_value(params, 'stop')
+        planType = self.safe_string(params, 'planType')
+        if stop is not None or planType is not None:
+            if planType is None:
+                raise ArgumentsRequired(self.id + ' cancelOrder() requires a planType parameter for stop orders, either normal_plan, profit_plan, loss_plan, pos_profit, pos_loss, moving_plan or track_plan')
+            method = 'privateMixPostPlanCancelAllPlan'
+            params = self.omit(params, ['stop'])
+        else:
+            code = self.safe_string_2(params, 'code', 'marginCoin')
+            if code is None:
+                raise ArgumentsRequired(self.id + ' cancelAllOrders() requires a code argument [marginCoin] in the params')
+            currency = self.currency(code)
+            request['marginCoin'] = self.safe_currency_code(code, currency)
+            method = 'privateMixPostOrderCancelAllOrders'
         params = self.omit(query, ['code', 'marginCoin'])
-        response = await self.privateMixPostOrderCancelAllOrders(self.extend(request, params))
+        response = await getattr(self, method)(self.extend(request, params))
         #
         #     {
         #         "code": "00000",
@@ -3262,6 +3293,37 @@ class bitget(Exchange):
         }
         return await self.privateMixPostAccountSetMarginMode(self.extend(request, params))
 
+    async def set_position_mode(self, hedged, symbol=None, params={}):
+        """
+        set hedged to True or False for a market
+        :param bool hedged: set to True to use dualSidePosition
+        :param str|None symbol: not used by binance setPositionMode()
+        :param dict params: extra parameters specific to the binance api endpoint
+        :returns dict: response from the exchange
+         *
+        """
+        productType = self.safe_string(params, 'productType')
+        if (productType is None) and (symbol is None):
+            raise ArgumentsRequired(self.id + ' setPositionMode() requires a symbol or the productType parameter')
+        await self.load_markets()
+        holdMode = 'double_hold' if hedged else 'single_hold'
+        request = {
+            'holdMode': holdMode,
+        }
+        if symbol is not None:
+            market = self.market(symbol)
+            request['productType'] = 'umcbl' if market['linear'] else 'dmcbl'
+        response = await self.privateMixPostAccountSetPositionMode(self.extend(request, params))
+        #
+        #    {
+        #         "code": "40919",
+        #         "msg": "This function is not open yet",
+        #         "requestTime": 1672212431093,
+        #         "data": null
+        #     }
+        #
+        return response
+
     async def fetch_open_interest(self, symbol, params={}):
         """
         Retrieves the open interest of a currency
@@ -3292,6 +3354,75 @@ class bitget(Exchange):
         #
         data = self.safe_value(response, 'data', {})
         return self.parse_open_interest(data, market)
+
+    async def transfer(self, code, amount, fromAccount, toAccount, params={}):
+        """
+        see https://bitgetlimited.github.io/apidoc/en/spot/#transfer
+        transfer currency internally between wallets on the same account
+        :param str code: unified currency code
+        :param float amount: amount to transfer
+        :param str fromAccount: account to transfer from
+        :param str toAccount: account to transfer to
+        :param dict params: extra parameters specific to the bitget api endpoint
+         *
+         * EXCHANGE SPECIFIC PARAMS
+        :param str params['clientOid']: custom id
+        :returns dict: a `transfer structure <https://docs.ccxt.com/en/latest/manual.html#transfer-structure>`
+        """
+        await self.load_markets()
+        currency = self.currency(code)
+        fromSwap = fromAccount == 'swap'
+        toSwap = toAccount == 'swap'
+        usdt = currency['code'] == 'USDT'
+        if fromSwap:
+            fromAccount = 'mix_usdt' if usdt else 'mix_usd'
+        elif toSwap:
+            toAccount = 'mix_usdt' if usdt else 'mix_usd'
+        request = {
+            'fromType': fromAccount,
+            'toType': toAccount,
+            'amount': amount,
+            'coin': currency['info']['coinName'],
+        }
+        response = await self.privateSpotPostWalletTransfer(self.extend(request, params))
+        #
+        #    {
+        #        "code": "00000",
+        #        "msg": "success",
+        #        "requestTime": 1668119107154,
+        #        "data": "SUCCESS"
+        #    }
+        #
+        return self.parse_transfer(response, currency)
+
+    def parse_transfer(self, transfer, currency=None):
+        #
+        #    {
+        #        "code": "00000",
+        #        "msg": "success",
+        #        "requestTime": 1668119107154,
+        #        "data": "SUCCESS"
+        #    }
+        #
+        timestamp = self.safe_integer(transfer, 'requestTime')
+        msg = self.safe_string(transfer, 'msg')
+        return {
+            'info': transfer,
+            'id': self.safe_string(transfer, 'id'),
+            'timestamp': timestamp,
+            'datetime': self.iso8601(timestamp),
+            'currency': self.safe_string(currency, 'code'),
+            'amount': self.safe_number(transfer, 'size'),
+            'fromAccount': None,
+            'toAccount': None,
+            'status': 'ok' if (msg == 'success') else msg,
+        }
+
+    def parse_transfer_status(self, status):
+        statuses = {
+            'success': 'ok',
+        }
+        return self.safe_string(statuses, status, status)
 
     def parse_open_interest(self, interest, market=None):
         #

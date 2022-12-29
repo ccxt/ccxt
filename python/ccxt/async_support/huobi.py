@@ -14,7 +14,6 @@ from ccxt.base.errors import ArgumentsRequired
 from ccxt.base.errors import BadRequest
 from ccxt.base.errors import BadSymbol
 from ccxt.base.errors import InsufficientFunds
-from ccxt.base.errors import InvalidAddress
 from ccxt.base.errors import InvalidOrder
 from ccxt.base.errors import OrderNotFound
 from ccxt.base.errors import NotSupported
@@ -120,7 +119,7 @@ class huobi(Exchange):
                 'fetchTransactionFees': None,
                 'fetchTransactions': None,
                 'fetchTransfers': None,
-                'fetchWithdrawAddressesByNetwork': True,
+                'fetchWithdrawAddresses': True,
                 'fetchWithdrawal': None,
                 'fetchWithdrawals': True,
                 'fetchWithdrawalWhitelist': None,
@@ -858,6 +857,7 @@ class huobi(Exchange):
                     # err-code
                     '403': AuthenticationError,  # {"status":"error","err_code":403,"err_msg":"Incorrect Access key [Access key错误]","ts":1652774224344}
                     '1010': AccountNotEnabled,  # {"status":"error","err_code":1010,"err_msg":"Account doesnt exist.","ts":1648137970490}
+                    '1003': AuthenticationError,  # {code: '1003', message: 'invalid signature'}
                     '1013': BadSymbol,  # {"status":"error","err_code":1013,"err_msg":"This contract symbol doesnt exist.","ts":1640550459583}
                     '1017': OrderNotFound,  # {"status":"error","err_code":1017,"err_msg":"Order doesnt exist.","ts":1640550859242}
                     '1034': InvalidOrder,  # {"status":"error","err_code":1034,"err_msg":"Incorrect field of order price type.","ts":1643802870182}
@@ -908,6 +908,8 @@ class huobi(Exchange):
                     'invalid-address': BadRequest,  # {"status":"error","err-code":"invalid-address","err-msg":"Invalid address.","data":null},
                     'base-currency-chain-error': BadRequest,  # {"status":"error","err-code":"base-currency-chain-error","err-msg":"The current currency chain does not exist","data":null},
                     'dw-insufficient-balance': InsufficientFunds,  # {"status":"error","err-code":"dw-insufficient-balance","err-msg":"Insufficient balance. You can only transfer `12.3456` at most.","data":null}
+                    'base-withdraw-fee-error': BadRequest,  # {"status":"error","err-code":"base-withdraw-fee-error","err-msg":"withdrawal fee is not within limits","data":null}
+                    'dw-withdraw-min-limit': BadRequest,  # {"status":"error","err-code":"dw-withdraw-min-limit","err-msg":"The withdrawal amount is less than the minimum limit.","data":null}
                 },
             },
             'precisionMode': TICK_SIZE,
@@ -925,17 +927,54 @@ class huobi(Exchange):
                         },
                     },
                 },
+                'withdraw': {
+                    'includeFee': False,
+                },
                 'defaultType': 'spot',  # spot, future, swap
                 'defaultSubType': 'linear',  # inverse, linear
                 'defaultNetwork': 'ERC20',
+                'defaultNetworks': {
+                    'ETH': 'ERC20',
+                    'BTC': 'BTC',
+                    'USDT': 'TRC20',
+                },
                 'networks': {
-                    'ETH': 'erc20',
-                    'TRX': 'trc20',
-                    'HRC20': 'hrc20',
-                    'HECO': 'hrc20',
-                    'HT': 'hrc20',
-                    'ALGO': 'algo',
-                    'OMNI': '',
+                    # by displaynames
+                    'ALGO': 'ALGO',
+                    'ALGORAND': 'ALGO',
+                    'BEP20': 'BEP20',
+                    'BSC': 'BEP20',
+                    'ERC20': 'ERC20',
+                    'ETH': 'ERC20',
+                    'AVALANCHE': 'AVAXCCHAIN',
+                    'AVAX': 'AVAXCCHAIN',
+                    'HRC20': 'HECO',
+                    'HECO': 'HECO',
+                    # 'HT': 'HECO',  # HT is not acceptable networkcode for unification
+                    'TRC20': 'TRC20',
+                    'TRX': 'TRC20',
+                    'BTC': 'BTC',
+                    'BITCOIN': 'BTC',
+                    'ARBITRUM': 'ARB',
+                    'ARB': 'ARB',
+                    'SOLANA': 'SOL',
+                    'SOL': 'SOL',
+                    'SPL': 'SOL',
+                    'PRC20': 'PRC20',
+                    'POLYGON': 'PRC20',
+                    'MATIC': 'PRC20',
+                },
+                'networksById': {
+                    'ALGO': 'ALGO',
+                    'BEP20': 'BEP20',
+                    'ERC20': 'ERC20',
+                    'AVAXCCHAIN': 'AVALANCHE',
+                    'HECO': 'HRC20',
+                    'TRC20': 'TRC20',
+                    'BTC': 'BTC',
+                    'ARB': 'ARBITRUM',
+                    'SOL': 'SOLANA',
+                    'PRC20': 'POLYGON',
                 },
                 # https://github.com/ccxt/ccxt/issues/5376
                 'fetchOrdersByStatesMethod': 'spot_private_get_v1_order_orders',  # 'spot_private_get_v1_order_history'  # https://github.com/ccxt/ccxt/pull/5392
@@ -1704,9 +1743,20 @@ class huobi(Exchange):
         #         askSize:  0.4156
         #     }
         #
+        # watchTikcer - bbo
+        #     {
+        #         seqId: 161499562790,
+        #         ask: 16829.51,
+        #         askSize: 0.707776,
+        #         bid: 16829.5,
+        #         bidSize: 1.685945,
+        #         quoteTime: 1671941599612,
+        #         symbol: 'btcusdt'
+        #     }
+        #
         marketId = self.safe_string_2(ticker, 'symbol', 'contract_code')
         symbol = self.safe_symbol(marketId, market)
-        timestamp = self.safe_integer(ticker, 'ts')
+        timestamp = self.safe_integer_2(ticker, 'ts', 'quoteTime')
         bid = None
         bidVolume = None
         ask = None
@@ -1828,20 +1878,25 @@ class huobi(Exchange):
     async def fetch_tickers(self, symbols=None, params={}):
         """
         fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
+        see https://huobiapi.github.io/docs/spot/v1/en/#get-latest-tickers-for-all-pairs
+        see https://huobiapi.github.io/docs/usdt_swap/v1/en/#general-get-a-batch-of-market-data-overview
+        see https://huobiapi.github.io/docs/dm/v1/en/#get-a-batch-of-market-data-overview
+        see https://huobiapi.github.io/docs/coin_margined_swap/v1/en/#get-a-batch-of-market-data-overview-v2
         :param [str]|None symbols: unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
         :param dict params: extra parameters specific to the huobi api endpoint
         :returns dict: an array of `ticker structures <https://docs.ccxt.com/en/latest/manual.html#ticker-structure>`
         """
         await self.load_markets()
         symbols = self.market_symbols(symbols)
-        options = self.safe_value(self.options, 'fetchTickers', {})
-        defaultType = self.safe_string(self.options, 'defaultType', 'spot')
-        type = self.safe_string(options, 'type', defaultType)
-        type = self.safe_string(params, 'type', type)
+        first = self.safe_string(symbols, 0)
+        market = None
+        if first is not None:
+            market = self.market(first)
+        type = None
+        subType = None
         method = 'spotPublicGetMarketTickers'
-        defaultSubType = self.safe_string(self.options, 'defaultSubType', 'inverse')
-        subType = self.safe_string(options, 'subType', defaultSubType)
-        subType = self.safe_string(params, 'subType', subType)
+        type, params = self.handle_market_type_and_params('fetchTickers', market, params)
+        subType, params = self.handle_sub_type_and_params('fetchTickers', market, params)
         request = {}
         future = (type == 'future')
         swap = (type == 'swap')
@@ -2627,39 +2682,37 @@ class huobi(Exchange):
         #
         data = self.safe_value(response, 'data', [])
         result = {}
+        self.options['networkChainIdsByNames'] = {}
+        self.options['networkNamesByChainIds'] = {}
         for i in range(0, len(data)):
             entry = data[i]
             currencyId = self.safe_string(entry, 'currency')
             code = self.safe_currency_code(currencyId)
+            self.options['networkChainIdsByNames'][code] = {}
             chains = self.safe_value(entry, 'chains', [])
             networks = {}
             instStatus = self.safe_string(entry, 'instStatus')
             currencyActive = instStatus == 'normal'
-            fee = None
             minPrecision = None
             minWithdraw = None
             maxWithdraw = None
             deposit = None
             withdraw = None
             for j in range(0, len(chains)):
-                chain = chains[j]
-                networkId = self.safe_string(chain, 'chain')
-                baseChainProtocol = self.safe_string(chain, 'baseChainProtocol')
-                huobiToken = 'h' + currencyId
-                if baseChainProtocol is None:
-                    if huobiToken == networkId:
-                        baseChainProtocol = 'ERC20'
-                    else:
-                        baseChainProtocol = self.safe_string(chain, 'displayName')
-                network = self.safe_network(baseChainProtocol)
-                minWithdraw = self.safe_number(chain, 'minWithdrawAmt')
-                maxWithdraw = self.safe_number(chain, 'maxWithdrawAmt')
-                withdrawStatus = self.safe_string(chain, 'withdrawStatus')
-                depositStatus = self.safe_string(chain, 'depositStatus')
+                chainEntry = chains[j]
+                uniqueChainId = self.safe_string(chainEntry, 'chain')  # i.e. usdterc20, trc20usdt ...
+                title = self.safe_string(chainEntry, 'displayName')
+                self.options['networkChainIdsByNames'][code][title] = uniqueChainId
+                self.options['networkNamesByChainIds'][uniqueChainId] = title
+                networkCode = self.network_id_to_code(title, code)
+                minWithdraw = self.safe_number(chainEntry, 'minWithdrawAmt')
+                maxWithdraw = self.safe_number(chainEntry, 'maxWithdrawAmt')
+                withdrawStatus = self.safe_string(chainEntry, 'withdrawStatus')
+                depositStatus = self.safe_string(chainEntry, 'depositStatus')
                 withdrawEnabled = (withdrawStatus == 'allowed')
                 depositEnabled = (depositStatus == 'allowed')
                 active = withdrawEnabled and depositEnabled
-                precision = self.parse_precision(self.safe_string(chain, 'withdrawPrecision'))
+                precision = self.parse_precision(self.safe_string(chainEntry, 'withdrawPrecision'))
                 if precision is not None:
                     minPrecision = precision if (minPrecision is None) else Precise.string_min(precision, minPrecision)
                 if withdrawEnabled and not withdraw:
@@ -2670,11 +2723,11 @@ class huobi(Exchange):
                     deposit = True
                 elif not depositEnabled:
                     deposit = False
-                fee = self.safe_number(chain, 'transactFeeWithdraw')
-                networks[network] = {
-                    'info': chain,
-                    'id': networkId,
-                    'network': network,
+                fee = self.safe_number(chainEntry, 'transactFeeWithdraw')
+                networks[networkCode] = {
+                    'info': chainEntry,
+                    'id': uniqueChainId,
+                    'network': networkCode,
                     'limits': {
                         'withdraw': {
                             'min': minWithdraw,
@@ -2687,8 +2740,6 @@ class huobi(Exchange):
                     'fee': fee,
                     'precision': self.parse_number(precision),
                 }
-            networksKeys = list(networks.keys())
-            networkLength = len(networksKeys)
             result[code] = {
                 'info': entry,
                 'code': code,
@@ -2696,7 +2747,7 @@ class huobi(Exchange):
                 'active': currencyActive,
                 'deposit': deposit,
                 'withdraw': withdraw,
-                'fee': fee if (networkLength <= 1) else None,
+                'fee': None,
                 'name': None,
                 'limits': {
                     'amount': {
@@ -2704,14 +2755,34 @@ class huobi(Exchange):
                         'max': None,
                     },
                     'withdraw': {
-                        'min': minWithdraw if (networkLength <= 1) else None,
-                        'max': maxWithdraw if (networkLength <= 1) else None,
+                        'min': minWithdraw,
+                        'max': maxWithdraw,
                     },
                 },
                 'precision': self.parse_number(minPrecision),
                 'networks': networks,
             }
         return result
+
+    def network_id_to_code(self, networkId, currencyCode=None):
+        # here network-id is provided as a pair of currency & chain(i.e. trc20usdt)
+        keys = list(self.options['networkNamesByChainIds'].keys())
+        keysLength = len(keys)
+        if keysLength == 0:
+            raise ExchangeError(self.id + ' networkIdToCode() - markets need to be loaded at first')
+        networkTitle = self.safe_value(self.options['networkNamesByChainIds'], networkId, networkId)
+        return super(huobi, self).network_id_to_code(networkTitle)
+
+    def network_code_to_id(self, networkCode, currencyCode=None):
+        if currencyCode is None:
+            raise ArgumentsRequired(self.id + ' networkCodeToId() requires a currencyCode argument')
+        keys = list(self.options['networkChainIdsByNames'].keys())
+        keysLength = len(keys)
+        if keysLength == 0:
+            raise ExchangeError(self.id + ' networkCodeToId() - markets need to be loaded at first')
+        uniqueNetworkIds = self.safe_value(self.options['networkChainIdsByNames'], currencyCode, {})
+        networkTitle = super(huobi, self).network_code_to_id(networkCode)
+        return self.safe_value(uniqueNetworkIds, networkTitle, networkTitle)
 
     async def fetch_balance(self, params={}):
         """
@@ -3948,7 +4019,7 @@ class huobi(Exchange):
             raise NotSupported(self.id + ' createOrder() supports tp_trigger_price + tp_order_price for take profit orders and/or sl_trigger_price + sl_order price for stop loss orders, stop orders are supported only with open long orders and open short orders')
         market = self.market(symbol)
         request = {
-            # 'symbol': 'BTC',  # optional, case-insenstive, both uppercase and lowercase are supported, "BTC", "ETH", ...
+            # 'symbol': 'BTC',  # optional, case-insensitive, both uppercase and lowercase are supported, "BTC", "ETH", ...
             # 'contract_type': 'this_week',  # optional, self_week, next_week, quarter, next_quarter
             'contract_code': market['id'],  # optional BTC180914
             # 'client_order_id': clientOrderId,  # optional, must be less than 9223372036854775807
@@ -4336,14 +4407,6 @@ class huobi(Exchange):
         #
         return response
 
-    def safe_network(self, networkId):
-        lastCharacterIndex = len(networkId) - 1
-        lastCharacter = networkId[lastCharacterIndex]
-        if lastCharacter == '1':
-            networkId = networkId[0:lastCharacterIndex]
-        networksById = {}
-        return self.safe_string(networksById, networkId, networkId)
-
     def parse_deposit_address(self, depositAddress, currency=None):
         #
         #     {
@@ -4358,18 +4421,14 @@ class huobi(Exchange):
         currencyId = self.safe_string(depositAddress, 'currency')
         currency = self.safe_currency(currencyId, currency)
         code = self.safe_currency_code(currencyId, currency)
-        networkId = self.safe_string(depositAddress, 'chain')
-        networks = self.safe_value(currency, 'networks', {})
-        networksById = self.index_by(networks, 'id')
-        networkValue = self.safe_value(networksById, networkId, networkId)
-        network = self.safe_string_upper(networkValue, 'network')
         note = self.safe_string(depositAddress, 'note')
+        networkId = self.safe_string(depositAddress, 'chain')
         self.check_address(address)
         return {
             'currency': code,
             'address': address,
             'tag': tag,
-            'network': network,
+            'network': self.network_id_to_code(networkId, code),
             'note': note,
             'info': depositAddress,
         }
@@ -4411,32 +4470,13 @@ class huobi(Exchange):
         :param dict params: extra parameters specific to the huobi api endpoint
         :returns dict: an `address structure <https://docs.ccxt.com/en/latest/manual.html#address-structure>`
         """
-        rawNetwork = self.safe_string_upper(params, 'network')
-        networks = self.safe_value(self.options, 'networks', {})
-        network = self.safe_string_upper(networks, rawNetwork, rawNetwork)
-        params = self.omit(params, 'network')
-        response = await self.fetch_deposit_addresses_by_network(code, params)
-        result = None
-        if network is None:
-            result = self.safe_value(response, code)
-            if result is None:
-                alias = self.safe_string(networks, code, code)
-                result = self.safe_value(response, alias)
-                if result is None:
-                    defaultNetwork = self.safe_string(self.options, 'defaultNetwork', 'ERC20')
-                    result = self.safe_value(response, defaultNetwork)
-                    if result is None:
-                        values = list(response.values())
-                        result = self.safe_value(values, 0)
-                        if result is None:
-                            raise InvalidAddress(self.id + ' fetchDepositAddress() cannot find deposit address for ' + code)
-            return result
-        result = self.safe_value(response, network)
-        if result is None:
-            raise InvalidAddress(self.id + ' fetchDepositAddress() cannot find ' + network + ' deposit address for ' + code)
-        return result
+        await self.load_markets()
+        networkCode, paramsOmited = self.handle_network_code_and_params(params)
+        indexedAddresses = await self.fetch_deposit_addresses_by_network(code, paramsOmited)
+        selectedNetworkCode = self.select_network_code_from_unified_networks(code, networkCode, indexedAddresses)
+        return indexedAddresses[selectedNetworkCode]
 
-    async def fetch_withdraw_addresses_by_network(self, code, params={}):
+    async def fetch_withdraw_addresses(self, code, note=None, networkCode=None, params={}):
         await self.load_markets()
         currency = self.currency(code)
         request = {
@@ -4458,34 +4498,15 @@ class huobi(Exchange):
         #     }
         #
         data = self.safe_value(response, 'data', [])
-        parsed = self.parse_deposit_addresses(data, [code], False)
-        return self.index_by(parsed, 'network')
-
-    async def fetch_withdraw_address(self, code, params={}):
-        rawNetwork = self.safe_string_upper(params, 'network')
-        networks = self.safe_value(self.options, 'networks', {})
-        network = self.safe_string_upper(networks, rawNetwork, rawNetwork)
-        params = self.omit(params, 'network')
-        response = await self.fetch_withdraw_addresses_by_network(code, params)
-        result = None
-        if network is None:
-            result = self.safe_value(response, code)
-            if result is None:
-                alias = self.safe_string(networks, code, code)
-                result = self.safe_value(response, alias)
-                if result is None:
-                    defaultNetwork = self.safe_string(self.options, 'defaultNetwork', 'ERC20')
-                    result = self.safe_value(response, defaultNetwork)
-                    if result is None:
-                        values = list(response.values())
-                        result = self.safe_value(values, 0)
-                        if result is None:
-                            raise InvalidAddress(self.id + ' fetchWithdrawAddress() cannot find withdraw address for ' + code)
-            return result
-        result = self.safe_value(response, network)
-        if result is None:
-            raise InvalidAddress(self.id + ' fetchWithdrawAddress() cannot find ' + network + ' withdraw address for ' + code)
-        return result
+        allAddresses = self.parse_deposit_addresses(data, [code], False)
+        addresses = []
+        for i in range(0, len(allAddresses)):
+            address = allAddresses[i]
+            noteMatch = (note is None) or (address['note'] == note)
+            networkMatch = (networkCode is None) or (address['network'] == networkCode)
+            if noteMatch and networkMatch:
+                addresses.append(address)
+        return addresses
 
     async def fetch_deposits(self, code=None, since=None, limit=None, params={}):
         """
@@ -4504,6 +4525,7 @@ class huobi(Exchange):
             currency = self.currency(code)
         request = {
             'type': 'deposit',
+            'direct': 'next',
             'from': 0,  # From 'id' ... if you want to get results after a particular transaction id, pass the id in params.from
         }
         if currency is not None:
@@ -4511,7 +4533,32 @@ class huobi(Exchange):
         if limit is not None:
             request['size'] = limit  # max 100
         response = await self.spotPrivateGetV1QueryDepositWithdraw(self.extend(request, params))
-        # return response
+        #
+        #    {
+        #         "status": "ok",
+        #         "data": [
+        #             {
+        #                 "id": "75115912",
+        #                 "type": "deposit",
+        #                 "sub-type": "NORMAL",
+        #                 "request-id": "trc20usdt-a2e229a44ef2a948c874366230bb56aa73631cc0a03d177bd8b4c9d38262d7ff-200",
+        #                 "currency": "usdt",
+        #                 "chain": "trc20usdt",
+        #                 "tx-hash": "a2e229a44ef2a948c874366230bb56aa73631cc0a03d177bd8b4c9d38262d7ff",
+        #                 "amount": "12.000000000000000000",
+        #                 "from-addr-tag": "",
+        #                 "address-id": "0",
+        #                 "address": "TRFTd1FxepQE6CnpwzUEMEbFaLm5bJK67s",
+        #                 "address-tag": "",
+        #                 "fee": "0",
+        #                 "state": "safe",
+        #                 "wallet-confirm": "2",
+        #                 "created-at": "1621843808662",
+        #                 "updated-at": "1621843857137"
+        #             },
+        #         ]
+        #     }
+        #
         return self.parse_transactions(response['data'], currency, since, limit)
 
     async def fetch_withdrawals(self, code=None, since=None, limit=None, params={}):
@@ -4531,6 +4578,7 @@ class huobi(Exchange):
             currency = self.currency(code)
         request = {
             'type': 'withdraw',
+            'direct': 'next',
             'from': 0,  # From 'id' ... if you want to get results after a particular transaction id, pass the id in params.from
         }
         if currency is not None:
@@ -4538,7 +4586,30 @@ class huobi(Exchange):
         if limit is not None:
             request['size'] = limit  # max 100
         response = await self.spotPrivateGetV1QueryDepositWithdraw(self.extend(request, params))
-        # return response
+        #
+        #    {
+        #         "status": "ok",
+        #         "data": [
+        #             {
+        #                 "id": "61335312",
+        #                 "type": "withdraw",
+        #                 "sub-type": "NORMAL",
+        #                 "currency": "usdt",
+        #                 "chain": "trc20usdt",
+        #                 "tx-hash": "30a3111f2fead74fae45c6218ca3150fc33cab2aa59cfe41526b96aae79ce4ec",
+        #                 "amount": "12.000000000000000000",
+        #                 "from-addr-tag": "",
+        #                 "address-id": "27321591",
+        #                 "address": "TRf5JacJQRsF4Nm2zu11W6maDGeiEWQu9e",
+        #                 "address-tag": "",
+        #                 "fee": "1.000000000000000000",
+        #                 "state": "confirmed",
+        #                 "created-at": "1621852316553",
+        #                 "updated-at": "1621852467041"
+        #             },
+        #         ]
+        #     }
+        #
         return self.parse_transactions(response['data'], currency, since, limit)
 
     def parse_transaction(self, transaction, currency=None):
@@ -4546,35 +4617,43 @@ class huobi(Exchange):
         # fetchDeposits
         #
         #     {
-        #         'id': 8211029,
-        #         'type': 'deposit',
-        #         'currency': 'eth',
-        #         'chain': 'eth',
-        #         'tx-hash': 'bd315....',
-        #         'amount': 0.81162421,
-        #         'address': '4b8b....',
-        #         'address-tag': '',
-        #         'fee': 0,
-        #         'state': 'safe',
-        #         'created-at': 1542180380965,
-        #         'updated-at': 1542180788077
-        #     }
+        #         "id": "75115912",
+        #         "type": "deposit",
+        #         "sub-type": "NORMAL",
+        #         "request-id": "trc20usdt-a2e229a44ef2a948c874366230bb56aa73631cc0a03d177bd8b4c9d38262d7ff-200",
+        #         "currency": "usdt",
+        #         "chain": "trc20usdt",
+        #         "tx-hash": "a2e229a44ef2a948c874366230bb56aa73631cc0a03d177bd8b4c9d38262d7ff",
+        #         "amount": "2849.000000000000000000",
+        #         "from-addr-tag": "",
+        #         "address-id": "0",
+        #         "address": "TRFTd1FxepQE6CnpwzUEMEbFaLm5bJK67s",
+        #         "address-tag": "",
+        #         "fee": "0",
+        #         "state": "safe",
+        #         "wallet-confirm": "2",
+        #         "created-at": "1621843808662",
+        #         "updated-at": "1621843857137"
+        #     },
         #
         # fetchWithdrawals
         #
         #     {
-        #         'id': 6908275,
-        #         'type': 'withdraw',
-        #         'currency': 'btc',
-        #         'chain': 'btc',
-        #         'tx-hash': 'c1a1a....',
-        #         'amount': 0.80257005,
-        #         'address': '1QR....',
-        #         'address-tag': '',
-        #         'fee': 0.0005,
-        #         'state': 'confirmed',
-        #         'created-at': 1552107295685,
-        #         'updated-at': 1552108032859
+        #         "id": "61335312",
+        #         "type": "withdraw",
+        #         "sub-type": "NORMAL",
+        #         "currency": "usdt",
+        #         "chain": "trc20usdt",
+        #         "tx-hash": "30a3111f2fead74fae45c6218ca3150fc33cab2aa59cfe41526b96aae79ce4ec",
+        #         "amount": "12.000000000000000000",
+        #         "from-addr-tag": "",
+        #         "address-id": "27321591",
+        #         "address": "TRf5JacJQRsF4Nm2zu11W6maDGeiEWQu9e",
+        #         "address-tag": "",
+        #         "fee": "1.000000000000000000",
+        #         "state": "confirmed",
+        #         "created-at": "1621852316553",
+        #         "updated-at": "1621852467041"
         #     }
         #
         # withdraw
@@ -4592,13 +4671,14 @@ class huobi(Exchange):
         feeCost = self.safe_string(transaction, 'fee')
         if feeCost is not None:
             feeCost = Precise.string_abs(feeCost)
+        networkId = self.safe_string(transaction, 'chain')
         return {
             'info': transaction,
             'id': self.safe_string_2(transaction, 'id', 'data'),
             'txid': self.safe_string(transaction, 'tx-hash'),
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
-            'network': self.safe_string_upper(transaction, 'chain'),
+            'network': self.network_id_to_code(networkId, code),
             'address': self.safe_string(transaction, 'address'),
             'addressTo': None,
             'addressFrom': None,
@@ -4656,21 +4736,34 @@ class huobi(Exchange):
         currency = self.currency(code)
         request = {
             'address': address,  # only supports existing addresses in your withdraw address list
-            'amount': amount,
             'currency': currency['id'].lower(),
         }
         if tag is not None:
             request['addr-tag'] = tag  # only for XRP?
-        networks = self.safe_value(self.options, 'networks', {})
-        network = self.safe_string_upper(params, 'network')  # self line allows the user to specify either ERC20 or ETH
-        network = self.safe_string_lower(networks, network, network)  # handle ETH>ERC20 alias
-        if network is not None:
-            # possible chains - usdterc20, trc20usdt, hrc20usdt, usdt, algousdt
-            if network == 'erc20':
-                request['chain'] = currency['id'] + network
-            else:
-                request['chain'] = network + currency['id']
-            params = self.omit(params, 'network')
+        networkCode = None
+        networkCode, params = self.handle_network_code_and_params(params)
+        if networkCode is not None:
+            request['chain'] = self.network_code_to_id(networkCode, code)
+        amount = float(self.currency_to_precision(code, amount, networkCode))
+        withdrawOptions = self.safe_value(self.options, 'withdraw', {})
+        if self.safe_value(withdrawOptions, 'includeFee', False):
+            fee = self.safe_number(params, 'fee')
+            if fee is None:
+                currencies = await self.fetch_currencies()
+                self.currencies = self.deep_extend(self.currencies, currencies)
+                targetNetwork = self.safe_value(currency['networks'], networkCode, {})
+                fee = self.safe_number(targetNetwork, 'fee')
+                if fee is None:
+                    raise ArgumentsRequired(self.id + ' withdraw() function can not find withdraw fee for chosen network. You need to re-load markets with "exchange.loadMarkets(True)", or provide the "fee" parameter')
+            # fee needs to be deducted from whole amount
+            feeString = self.currency_to_precision(code, fee, networkCode)
+            params = self.omit(params, 'fee')
+            amountString = self.number_to_string(amount)
+            amountSubtractedString = Precise.string_sub(amountString, feeString)
+            amountSubtracted = float(amountSubtractedString)
+            request['fee'] = float(feeString)
+            amount = float(self.currency_to_precision(code, amountSubtracted, networkCode))
+        request['amount'] = amount
         response = await self.spotPrivatePostV1DwWithdrawApiCreate(self.extend(request, params))
         #
         #     {
@@ -4800,8 +4893,8 @@ class huobi(Exchange):
                     'timestamp': timestamp,
                     'datetime': self.iso8601(timestamp),
                 }
-            market = self.markets_by_id[self.safe_string(rate, 'symbol')]
-            symbol = market['symbol']
+            marketId = self.safe_string(rate, 'symbol')
+            symbol = self.safe_symbol(marketId)
             rates[symbol] = symbolRates
         return rates
 
@@ -5276,6 +5369,11 @@ class huobi(Exchange):
                 message = self.safe_string_2(response, 'err-msg', 'err_msg')
                 self.throw_exactly_matched_exception(self.exceptions['exact'], message, feedback)
                 raise ExchangeError(feedback)
+        if 'code' in response:
+            # {code: '1003', message: 'invalid signature'}
+            feedback = self.id + ' ' + body
+            code = self.safe_string(response, 'code')
+            self.throw_exactly_matched_exception(self.exceptions['exact'], code, feedback)
 
     async def fetch_funding_history(self, symbol=None, since=None, limit=None, params={}):
         """

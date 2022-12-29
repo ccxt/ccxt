@@ -16,9 +16,13 @@ module.exports = async (exchange, symbol) => {
 
     // we have to skip some exchanges here due to the frequency of trading or to other factors
     const skippedExchanges = [
+        'cex', // requires authentication
         'kucoin', // requires authentication for public orderbooks
+        'luno', // requires authentication for public orderbooks
         'ripio',
         'gopax', // requires authentication for public orderbooks
+        'woo',
+        'alpaca', // requires auth
     ]
 
     if (skippedExchanges.includes (exchange.id)) {

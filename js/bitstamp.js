@@ -43,6 +43,8 @@ module.exports = class bitstamp extends Exchange {
                 'fetchBorrowRatesPerSymbol': false,
                 'fetchCurrencies': true,
                 'fetchDepositAddress': true,
+                'fetchDepositWithdrawFee': 'emulated',
+                'fetchDepositWithdrawFees': true,
                 'fetchFundingHistory': false,
                 'fetchFundingRate': false,
                 'fetchFundingRateHistory': false,
@@ -765,11 +767,11 @@ module.exports = class bitstamp extends Exchange {
         if (numCurrencyIds === 2) {
             let marketId = currencyIds[0] + currencyIds[1];
             if (marketId in this.markets_by_id) {
-                return this.markets_by_id[marketId];
+                return this.safeMarket (marketId);
             }
             marketId = currencyIds[1] + currencyIds[0];
             if (marketId in this.markets_by_id) {
-                return this.markets_by_id[marketId];
+                return this.safeMarket (marketId);
             }
         }
         return undefined;
@@ -823,24 +825,14 @@ module.exports = class bitstamp extends Exchange {
         const orderId = this.safeString (trade, 'order_id');
         const type = undefined;
         let costString = this.safeString (trade, 'cost');
-        let rawBaseId = undefined;
-        let rawQuoteId = undefined;
         let rawMarketId = undefined;
         if (market === undefined) {
             const keys = Object.keys (trade);
             for (let i = 0; i < keys.length; i++) {
                 const currentKey = keys[i];
                 if (currentKey !== 'order_id' && currentKey.indexOf ('_') >= 0) {
-                    const marketId = currentKey.replace ('_', '');
-                    if (marketId in this.markets_by_id) {
-                        market = this.markets_by_id[marketId];
-                    } else {
-                        rawMarketId = currentKey;
-                        const parts = currentKey.split ('_');
-                        rawBaseId = this.safeString (parts, 0);
-                        rawQuoteId = this.safeString (parts, 1);
-                        market = this.safeMarket (marketId);
-                    }
+                    rawMarketId = currentKey;
+                    market = this.safeMarket (rawMarketId, market, '_');
                 }
             }
         }
@@ -850,13 +842,10 @@ module.exports = class bitstamp extends Exchange {
             market = this.getMarketFromTrade (trade);
         }
         const feeCostString = this.safeString (trade, 'fee');
-        const feeCurrency = (market['quote'] !== undefined) ? market['quote'] : rawQuoteId;
-        const baseId = (market['baseId'] !== undefined) ? market['baseId'] : rawBaseId;
-        const quoteId = (market['quoteId'] !== undefined) ? market['quoteId'] : rawQuoteId;
-        const priceId = (rawMarketId !== undefined) ? rawMarketId : market['marketId'];
-        priceString = this.safeString (trade, priceId, priceString);
-        amountString = this.safeString (trade, baseId, amountString);
-        costString = this.safeString (trade, quoteId, costString);
+        const feeCurrency = market['quote'];
+        priceString = this.safeString (trade, rawMarketId, priceString);
+        amountString = this.safeString (trade, market['baseId'], amountString);
+        costString = this.safeString (trade, market['quoteId'], costString);
         symbol = market['symbol'];
         const datetimeString = this.safeString2 (trade, 'date', 'datetime');
         let timestamp = undefined;
@@ -1140,36 +1129,142 @@ module.exports = class bitstamp extends Exchange {
         return this.parseTradingFees (response);
     }
 
-    parseTransactionFees (balance) {
-        const withdraw = {};
-        const ids = Object.keys (balance);
-        for (let i = 0; i < ids.length; i++) {
-            const id = ids[i];
-            if (id.indexOf ('_withdrawal_fee') >= 0) {
-                const currencyId = id.split ('_')[0];
-                const code = this.safeCurrencyCode (currencyId);
-                withdraw[code] = this.safeNumber (balance, id);
-            }
-        }
-        return {
-            'info': balance,
-            'withdraw': withdraw,
-            'deposit': {},
-        };
-    }
-
     async fetchTransactionFees (codes = undefined, params = {}) {
         /**
          * @method
          * @name bitstamp#fetchTransactionFees
-         * @description fetch transaction fees
-         * @param {[string]|undefined} codes not used by bitstamp fetchTransactionFees ()
+         * @description *DEPRECATED* please use fetchDepositWithdrawFees instead
+         * @see https://www.bitstamp.net/api/#balance
+         * @param {[string]|undefined} codes list of unified currency codes
          * @param {object} params extra parameters specific to the bitstamp api endpoint
          * @returns {[object]} a list of [fee structures]{@link https://docs.ccxt.com/en/latest/manual.html#fee-structure}
          */
         await this.loadMarkets ();
-        const balance = await this.privatePostBalance (params);
-        return this.parseTransactionFees (balance);
+        const response = await this.privatePostBalance (params);
+        return this.parseTransactionFees (response, codes);
+    }
+
+    parseTransactionFees (response, codes = undefined) {
+        //
+        //  {
+        //     yfi_available: '0.00000000',
+        //     yfi_balance: '0.00000000',
+        //     yfi_reserved: '0.00000000',
+        //     yfi_withdrawal_fee: '0.00070000',
+        //     yfieur_fee: '0.000',
+        //     yfiusd_fee: '0.000',
+        //     zrx_available: '0.00000000',
+        //     zrx_balance: '0.00000000',
+        //     zrx_reserved: '0.00000000',
+        //     zrx_withdrawal_fee: '12.00000000',
+        //     zrxeur_fee: '0.000',
+        //     zrxusd_fee: '0.000',
+        //     ...
+        //  }
+        //
+        if (codes === undefined) {
+            codes = Object.keys (this.currencies);
+        }
+        const result = {};
+        let mainCurrencyId = undefined;
+        const ids = Object.keys (response);
+        for (let i = 0; i < ids.length; i++) {
+            const id = ids[i];
+            const currencyId = id.split ('_')[0];
+            const code = this.safeCurrencyCode (currencyId);
+            if (codes !== undefined && !this.inArray (code, codes)) {
+                continue;
+            }
+            if (id.indexOf ('_available') >= 0) {
+                mainCurrencyId = currencyId;
+                result[code] = {
+                    'deposit': undefined,
+                    'withdraw': undefined,
+                    'info': {},
+                };
+            }
+            if (currencyId === mainCurrencyId) {
+                result[code]['info'][id] = this.safeNumber (response, id);
+            }
+            if (id.indexOf ('_withdrawal_fee') >= 0) {
+                result[code]['withdraw'] = this.safeNumber (response, id);
+            }
+        }
+        return result;
+    }
+
+    async fetchDepositWithdrawFees (codes = undefined, params = {}) {
+        /**
+         * @method
+         * @name bitstamp#fetchDepositWithdrawFees
+         * @description fetch deposit and withdraw fees
+         * @see https://www.bitstamp.net/api/#balance
+         * @param {[string]|undefined} codes list of unified currency codes
+         * @param {object} params extra parameters specific to the bitstamp api endpoint
+         * @returns {[object]} a list of [fee structures]{@link https://docs.ccxt.com/en/latest/manual.html#fee-structure}
+         */
+        await this.loadMarkets ();
+        const response = await this.privatePostBalance (params);
+        //
+        //    {
+        //        yfi_available: '0.00000000',
+        //        yfi_balance: '0.00000000',
+        //        yfi_reserved: '0.00000000',
+        //        yfi_withdrawal_fee: '0.00070000',
+        //        yfieur_fee: '0.000',
+        //        yfiusd_fee: '0.000',
+        //        zrx_available: '0.00000000',
+        //        zrx_balance: '0.00000000',
+        //        zrx_reserved: '0.00000000',
+        //        zrx_withdrawal_fee: '12.00000000',
+        //        zrxeur_fee: '0.000',
+        //        zrxusd_fee: '0.000',
+        //        ...
+        //    }
+        //
+        return this.parseDepositWithdrawFees (response, codes);
+    }
+
+    parseDepositWithdrawFees (response, codes = undefined, currencyIdKey = undefined) {
+        //
+        //    {
+        //        yfi_available: '0.00000000',
+        //        yfi_balance: '0.00000000',
+        //        yfi_reserved: '0.00000000',
+        //        yfi_withdrawal_fee: '0.00070000',
+        //        yfieur_fee: '0.000',
+        //        yfiusd_fee: '0.000',
+        //        zrx_available: '0.00000000',
+        //        zrx_balance: '0.00000000',
+        //        zrx_reserved: '0.00000000',
+        //        zrx_withdrawal_fee: '12.00000000',
+        //        zrxeur_fee: '0.000',
+        //        zrxusd_fee: '0.000',
+        //        ...
+        //    }
+        //
+        const result = {};
+        const ids = Object.keys (response);
+        for (let i = 0; i < ids.length; i++) {
+            const id = ids[i];
+            const currencyId = id.split ('_')[0];
+            const code = this.safeCurrencyCode (currencyId);
+            const dictValue = this.safeNumber (response, id);
+            if (codes !== undefined && !this.inArray (code, codes)) {
+                continue;
+            }
+            if (id.indexOf ('_available') >= 0) {
+                result[code] = this.depositWithdrawFee ({});
+            }
+            if (id.indexOf ('_withdrawal_fee') >= 0) {
+                result[code]['withdraw']['fee'] = dictValue;
+            }
+            const resultValue = this.safeValue (result, code);
+            if (resultValue !== undefined) {
+                result[code]['info'][id] = dictValue;
+            }
+        }
+        return result;
     }
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
@@ -1705,9 +1800,7 @@ module.exports = class bitstamp extends Exchange {
             for (let i = 0; i < keys.length; i++) {
                 if (keys[i].indexOf ('_') >= 0) {
                     const marketId = keys[i].replace ('_', '');
-                    if (marketId in this.markets_by_id) {
-                        market = this.markets_by_id[marketId];
-                    }
+                    market = this.safeMarket (marketId, market);
                 }
             }
             // if the market is still not defined
