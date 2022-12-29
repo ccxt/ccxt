@@ -167,6 +167,14 @@ module.exports = class bithumb extends Exchange {
         });
     }
 
+    safeMarket (marketId = undefined, market = undefined, delimiter = undefined, marketType = undefined) {
+        // bithumb has a different type of conflict in markets, because
+        // their ids are the base currency (BTC for instance), so we can have
+        // multiple "BTC" ids representing the different markets (BTC/ETH, "BTC/DOGE", etc)
+        // since they're the same we just need to return one
+        return super.safeMarket (marketId, market, delimiter, 'spot');
+    }
+
     amountToPrecision (symbol, amount) {
         return this.decimalToPrecision (amount, TRUNCATE, this.markets[symbol]['precision']['amount'], DECIMAL_PLACES);
     }
