@@ -37,9 +37,9 @@ script:
 - npm run test-base
 - npm run test-base-ws
 - pip list
-- node run-tests --js --python-async --php-async 5 2>&1 &
+- node tests-manager run-tests --js --python-async --php-async 5 2>&1 &
 - rest_pid=$!
-- node run-tests-ws --js --python-async --php-async 5 2>&1 &
+- node tests-manager run-tests-ws --js --python-async --php-async 5 2>&1 &
 - ws_pid=$!
 - wait $rest_pid
 - wait $ws_pid
