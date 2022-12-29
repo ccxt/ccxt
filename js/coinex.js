@@ -52,6 +52,8 @@ module.exports = class coinex extends Exchange {
                 'fetchDepositAddressByNetwork': false,
                 'fetchDepositAddresses': false,
                 'fetchDeposits': true,
+                'fetchDepositWithdrawFees': true,
+                'fetchDepsoitWithdrawFee': 'emulated',
                 'fetchFundingHistory': true,
                 'fetchFundingRate': true,
                 'fetchFundingRateHistory': true,
@@ -88,8 +90,6 @@ module.exports = class coinex extends Exchange {
                 'setPositionMode': false,
                 'transfer': true,
                 'withdraw': true,
-                'fetchDepsoitWithdrawFee': 'emulated',
-                'fetchDepositWithdrawFees': true,
             },
             'timeframes': {
                 '1m': '1min',
