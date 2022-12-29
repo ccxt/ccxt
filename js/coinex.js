@@ -77,8 +77,6 @@ module.exports = class coinex extends Exchange {
                 'fetchTrades': true,
                 'fetchTradingFee': true,
                 'fetchTradingFees': true,
-                'fetchTransactionFee:': 'emulated',
-                'fetchTransactionFees': true,
                 'fetchTransfer': false,
                 'fetchTransfers': true,
                 'fetchWithdrawal': false,
@@ -90,6 +88,8 @@ module.exports = class coinex extends Exchange {
                 'setPositionMode': false,
                 'transfer': true,
                 'withdraw': true,
+                'fetchDepsoitWithdrawFee': 'emulated',
+                'fetchDepositWithdrawFees': true,
             },
             'timeframes': {
                 '1m': '1min',
@@ -4394,14 +4394,15 @@ module.exports = class coinex extends Exchange {
         };
     }
 
-    async fetchTransactionFees (codes = undefined, params = {}) {
+    async fetchDepositWithdrawFees (codes = undefined, params = {}) {
         /**
          * @method
-         * @name coinex#fetchTransactionFees
-         * @description fetch transaction fees
+         * @name coinex#fetchDepositWithdrawFees
+         * @description fetch deposit and withdraw fees
+         * @see https://viabtc.github.io/coinex_api_en_doc/spot/#docsspot001_market010_asset_config
          * @param {[string]|undefined} codes list of unified currency codes
          * @param {object} params extra parameters specific to the coinex api endpoint
-         * @returns {[object]} a list of [fee structures]{@link https://docs.ccxt.com/en/latest/manual.html#fee-structure}
+         * @returns {[object]} a list of [fees structures]{@link https://docs.ccxt.com/en/latest/manual.html#fee-structure}
          */
         await this.loadMarkets ();
         const request = {};
@@ -4438,7 +4439,56 @@ module.exports = class coinex extends Exchange {
         //        "message": "Success"
         //    }
         //
-        return this.parseTransactionFees (response, codes);
+        return this.parseDepositWithdrawFees (response, codes);
+    }
+
+    parseDepositWithdrawFees (response, codes = undefined, currencyIdKey = undefined) {
+        const depositWithdrawFees = {};
+        codes = this.marketCodes (codes);
+        const data = this.safeValue (response, 'data');
+        const currencyIds = Object.keys (data);
+        for (let i = 0; i < currencyIds.length; i++) {
+            const entry = currencyIds[i];
+            const splitEntry = entry.split ('-');
+            const feeInfo = data[currencyIds[i]];
+            const currencyId = this.safeString (feeInfo, 'asset');
+            const currency = this.safeCurrency (currencyId);
+            const code = this.safeString (currency, 'code');
+            if ((codes === undefined) || (this.inArray (code, codes))) {
+                const depositWithdrawFee = this.safeValue (depositWithdrawFees, code);
+                if (depositWithdrawFee === undefined) {
+                    depositWithdrawFees[code] = this.depositWithdrawFee ({});
+                }
+                depositWithdrawFees[code]['info'][entry] = feeInfo;
+                const networkId = this.safeString (splitEntry, 1);
+                const withdrawFee = this.safeValue (feeInfo, 'withdraw_tx_fee');
+                const withdrawResult = {
+                    'fee': withdrawFee,
+                    'percentage': (withdrawFee !== undefined) ? false : undefined,
+                };
+                const depositResult = {
+                    'fee': undefined,
+                    'percentage': undefined,
+                };
+                if (networkId !== undefined) {
+                    const networkCode = this.networkIdToCode (networkId);
+                    depositWithdrawFees[code]['networks'][networkCode] = {
+                        'withdraw': withdrawResult,
+                        'deposit': depositResult,
+                    };
+                } else {
+                    depositWithdrawFees[code]['withdraw'] = withdrawResult;
+                    depositWithdrawFees[code]['deposit'] = depositResult;
+                }
+            }
+        }
+        const depositWithdrawCodes = Object.keys (depositWithdrawFees);
+        for (let i = 0; i < depositWithdrawCodes.length; i++) {
+            const code = depositWithdrawCodes[i];
+            const currency = this.currency (code);
+            depositWithdrawFees[code] = this.assignDefaultDepositWithdrawFees (depositWithdrawFees[code], currency);
+        }
+        return depositWithdrawFees;
     }
 
     parseTransactionFees (response, codes = undefined) {
