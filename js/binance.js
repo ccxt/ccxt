@@ -866,6 +866,7 @@ module.exports = class binance extends Exchange {
             'precisionMode': DECIMAL_PLACES,
             // exchange-specific options
             'options': {
+                'fetchMarkets': [ 'spot', 'linear', 'inverse' ],
                 'fetchCurrencies': true, // this is a private call and it requires API keys
                 // 'fetchTradesMethod': 'publicGetAggTrades', // publicGetTrades, publicGetHistoricalTrades
                 'defaultTimeInForce': 'GTC', // 'GTC' = Good To Cancel (default), 'IOC' = Immediate Or Cancel
@@ -1395,14 +1396,18 @@ module.exports = class binance extends Exchange {
         if (this.markets === undefined) {
             throw new ExchangeError (this.id + ' markets not loaded');
         }
-        let defaultType = this.safeString2 (this.options, 'defaultType', 'defaultSubType');
-        const isLegacy = (defaultType === 'future') || (defaultType === 'delivery');
+        // defaultType has legacy support on binance
+        let defaultType = this.safeString2 (this.options, 'defaultSubType', 'defaultType');
+        const isLegacyLinear = defaultType === 'future';
+        const isLegacyInverse = defaultType === 'delivery';
+        const isLegacy = isLegacyLinear || isLegacyInverse;
         if (typeof symbol === 'string') {
             if (symbol in this.markets) {
                 const market = this.markets[symbol];
                 // begin diff
                 if (isLegacy && market['spot']) {
-                    return super.market (symbol + ':' + market['settle']);
+                    const settle = isLegacyLinear ? market['quote'] : market['base'];
+                    return super.market (symbol + ':' + settle);
                 } else {
                     return market;
                 }
@@ -1653,11 +1658,20 @@ module.exports = class binance extends Exchange {
          * @param {object} params extra parameters specific to the exchange api endpoint
          * @returns {[object]} an array of objects representing market data
          */
-        let promises = [
-            this.publicGetExchangeInfo (params),
-            this.fapiPublicGetExchangeInfo (params),
-            this.dapiPublicGetExchangeInfo (params),
-        ];
+        let promises = [];
+        const fetchMarkets = this.safeValue (this.options, 'fetchMarkets', [ 'spot', 'linear', 'inverse' ]);
+        for (let i = 0; i < fetchMarkets.length; i++) {
+            const marketType = fetchMarkets[i];
+            if (marketType === 'spot') {
+                promises.push (this.publicGetExchangeInfo (params));
+            } else if (marketType === 'linear') {
+                promises.push (this.fapiPublicGetExchangeInfo (params));
+            } else if (marketType === 'inverse') {
+                promises.push (this.dapiPublicGetExchangeInfo (params));
+            } else {
+                throw new ExchangeError (this.id + ' fetchMarkets() this.options fetchMarkets "' + marketType + '" is not a supported market type');
+            }
+        }
         promises = await Promise.all (promises);
         const spotMarkets = this.safeValue (promises[0], 'symbols', []);
         const futureMarkets = this.safeValue (promises[1], 'symbols', []);

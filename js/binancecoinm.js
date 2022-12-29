@@ -28,6 +28,7 @@ module.exports = class binancecoinm extends binance {
                 'createStopMarketOrder': true,
             },
             'options': {
+                'fetchMarkets': [ 'inverse' ],
                 'defaultSubType': 'inverse',
                 'leverageBrackets': undefined,
             },
