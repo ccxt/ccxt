@@ -1991,6 +1991,9 @@ module.exports = class binance extends Exchange {
         for (let i = 0; i < values.length; i++) {
             const entry = values[i];
             hasSpot = hasSpot || entry['spot'];
+            if (hasSpot) {
+                break;
+            }
         }
         if (!hasSpot) {
             // we add aliases for swap markets
