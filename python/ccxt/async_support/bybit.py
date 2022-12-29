@@ -834,6 +834,9 @@ class bybit(Exchange):
                     'deposit': {},
                 },
             },
+            'commonCurrencies': {
+                'GAS': 'GASDAO',
+            },
         })
 
     def nonce(self):
@@ -1415,7 +1418,7 @@ class bybit(Exchange):
         #     }
         #
         marketId = self.safe_string(ticker, 's')
-        symbol = self.safe_symbol(marketId, market)
+        symbol = self.safe_symbol(marketId, market, None, 'spot')
         timestamp = self.safe_integer(ticker, 't')
         return self.safe_ticker({
             'symbol': symbol,
@@ -1529,7 +1532,7 @@ class bybit(Exchange):
         #
         timestamp = self.safe_integer(ticker, 'time')
         marketId = self.safe_string(ticker, 'symbol')
-        symbol = self.safe_symbol(marketId, market)
+        symbol = self.safe_symbol(marketId, market, None, 'contract')
         last = self.safe_string_2(ticker, 'last_price', 'lastPrice')
         open = self.safe_string_n(ticker, ['prev_price_24h', 'openPrice', 'prevPrice24h'])
         percentage = self.safe_string_n(ticker, ['price_24h_pcnt', 'change24h', 'price24hPcnt'])
@@ -2156,7 +2159,7 @@ class bybit(Exchange):
             timestamp = self.safe_integer(entry, 'fundingRateTimestamp')
             rates.append({
                 'info': entry,
-                'symbol': self.safe_symbol(self.safe_string(entry, 'symbol')),
+                'symbol': self.safe_symbol(self.safe_string(entry, 'symbol'), None, None, 'swap'),
                 'fundingRate': self.safe_number(entry, 'fundingRate'),
                 'timestamp': timestamp,
                 'datetime': self.iso8601(timestamp),
@@ -6201,7 +6204,7 @@ class bybit(Exchange):
         timestamp = self.safe_integer(interest, 'timestamp')
         value = self.safe_number_2(interest, 'open_interest', 'openInterest')
         return {
-            'symbol': self.safe_symbol(market['id']),
+            'symbol': market['symbol'],
             'openInterestAmount': None,
             'openInterestValue': value,
             'timestamp': timestamp,
@@ -6883,7 +6886,7 @@ class bybit(Exchange):
         #     }
         #
         marketId = self.safe_string(fee, 'symbol')
-        symbol = self.safe_symbol(marketId)
+        symbol = self.safe_symbol(marketId, None, None, 'contract')
         return {
             'info': fee,
             'symbol': symbol,
