@@ -1,3 +1,7 @@
+// ---------------------------------------------------------------------------
+// Usage: node tests-manager.js someNodeFile
+// ---------------------------------------------------------------------------
+
 "use strict";
 const fs = require('fs');
 const { spawn } = require('child_process');
