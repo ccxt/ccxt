@@ -515,7 +515,7 @@ Thank you!
 - [Follow us on Twitter](https://twitter.com/ccxt_official)
 - [Read our blog on Medium](https://medium.com/@ccxt)
 - <sub>[![Discord](https://img.shields.io/discord/690203284119617602?logo=discord&logoColor=white)](https://discord.gg/dhzSKYU)</sub>
-- [CCXT Channel on Telegram](https://t.me/ccxt_official) (important announcements)
+- [CCXT Channel on Telegram](https://t.me/ccxt_announcements) (important announcements)
 - [CCXT Chat on Telegram](https://t.me/ccxt_chat) (technical support)
 
 ## Contact Us
