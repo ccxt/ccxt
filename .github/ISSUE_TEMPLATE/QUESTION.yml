@@ -1,11 +1,11 @@
-name: Bug Report
-description: Report bugs here
-labels: ["bug"]
+name: Question
+description: Ask a question about something CCXT related
+labels: ["question"]
 body:
   - type: markdown
     attributes:
       value: |
-        ## If you want your issue to be resolved quickly, we strongly recommend that you
+        ## If you want your question to be answered quickly, we strongly recommend that you
 
         - Read the [Manual](https://github.com/ccxt/ccxt/wiki/Manual), and give special attention to the following sections:
           - [Exchange Properties](https://github.com/ccxt/ccxt/wiki/Manual#exchange-properties)
@@ -15,10 +15,6 @@ body:
           - [API Keys Setup](https://github.com/ccxt/ccxt/wiki/Manual#api-keys-setup)
         - Read the [API docs](https://github.com/ccxt/ccxt/wiki/Exchange-Markets) for your exchange.
         
-        ### Reporting Vulnerabilities And Critical Issues
-
-        If you found a security issue or a critical vulnerability and reporting it in public would impose risk – please feel free to send us a message to <a href="mailto:info@ccxt.trade">info@ccxt.trade</a>.
-
         ------------------
 
         ## Preliminary Checks
@@ -28,7 +24,7 @@ body:
         - You have already searched for [existing issues](https://github.com/ccxt/ccxt/issues) and confirmed that this issue is not a duplicate
         - This question is directly related to ccxt
         - You have read the [FAQ](https://github.com/ccxt/ccxt/wiki/FAQ) for most frequently asked questions
-        - You have read the [Troubleshooting](https://github.com/ccxt/ccxt/wiki/Manual#troubleshooting) section of the manual and followed troubleshooting steps
+        - This is not a bug report ([please select Bug Report instead of Question to report a bug](https://github.com/samgermain/ccxt-clone/issues/new/choose))
 
   - type: input
     id: operating-system
@@ -67,7 +63,7 @@ body:
   - type: textarea
     attributes:
       label: Description
-      description: Describe the issue that you're having using words. Be precise. Include clear steps for how to reproduce the issue
+      description: Describe the question that you have using words. Be precise. Include clear steps for how to reproduce any issues
       value: |
         1.
         2.
@@ -79,7 +75,7 @@ body:
   - type: textarea
     attributes:
       label: Code
-      description: Post a complete program containing the minimal amount of code required for us to reproduce the error, so that we can copy and paste your code and receive the same error. DON'T POST SCREENSHOTS OF CODE OR ERRORS, POST THE OUTPUT AND CODE IN PLAIN TEXT!
+      description: If your question is about your code, please post a complete program containing the minimal amount of code required, so that we can copy and paste your code and receive the same error. DON'T POST SCREENSHOTS OF CODE OR ERRORS, POST THE OUTPUT AND CODE IN PLAIN TEXT!
       placeholder: |
         paste your code here, between triple backticks(```), in the format of
           ```[your_programming_language]
@@ -91,12 +87,12 @@ body:
           console.log (x);
           ```
     validations:
-      required: true
+      required: false
 
   - type: textarea
     attributes:
       label: Current Result
-      description: Paste the **full verbose output** of the failing method with `exchange.verbose = true` (should include the request and response from the exchange (not just an error callstack)). Remember to remove your apiKey, secret, password, etc.
+      description: If your question is about your code, please paste the **full verbose output** (with `exchange.verbose = true`, should include the request and response from the exchange (not just an error callstack)). Remember to remove your apiKey, secret, password, etc.
       placeholder: |
         paste your code here, between triple backticks(```), in the format of
           ```[your_programming_language]
@@ -108,7 +104,7 @@ body:
           console.log (x);
           ```
     validations:
-      required: true
+      required: false
   - type: markdown
     attributes:
       value: |
@@ -117,7 +113,7 @@ body:
   - type: textarea
     attributes:
       label: Expected Result
-      description: Paste the output that you expect your program should print with the bug removed
+      description: If the output posted above is different than the desired output, please post the desired output here
       placeholder: |
         paste your code here, between triple backticks(```), in the format of
           ```[your_programming_language]
@@ -129,5 +125,5 @@ body:
           console.log (x);
           ```
     validations:
-      required: true
+      required: false
   
