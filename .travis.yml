@@ -38,9 +38,9 @@ script:
 - npm run test-base-ws
 - pip list
 - if [ "$TRAVIS_PULL_REQUEST" != "false" ]; then
-  node tests-manager --js --python-async --php-async 5 2>&1 &
+  node tests-manager run-tests --js --python-async --php-async 5 2>&1 &
   rest_pid=$!;
-  node tests-manager --js --python-async --php-async 5 2>&1 &
+  node tests-manager run-tests-ws --js --python-async --php-async 5 2>&1 &
   ws_pid=$!;
   wait $rest_pid && wait $ws_pid; fi
 - git checkout master composer.json
