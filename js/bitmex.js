@@ -540,8 +540,19 @@ module.exports = class bitmex extends Exchange {
             let free = this.safeString (balance, 'availableMargin');
             let total = this.safeString (balance, 'marginBalance');
             if (code !== 'USDT') {
-                free = Precise.stringDiv (free, '1e8');
-                total = Precise.stringDiv (total, '1e8');
+                // tmp fix until this PR gets merged
+                // https://github.com/ccxt/ccxt/pull/15311
+                const symbol = code + '_USDT';
+                const market = this.safeMarket (symbol);
+                const info = this.safeValue (market, 'info', {});
+                const multiplier = this.safeString (info, 'underlyingToPositionMultiplier');
+                if (multiplier !== undefined) {
+                    free = Precise.stringDiv (free, multiplier);
+                    total = Precise.stringDiv (total, multiplier);
+                } else {
+                    free = Precise.stringDiv (free, '1e8');
+                    total = Precise.stringDiv (total, '1e8');
+                }
             } else {
                 free = Precise.stringDiv (free, '1e6');
                 total = Precise.stringDiv (total, '1e6');
