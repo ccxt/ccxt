@@ -4491,51 +4491,6 @@ module.exports = class coinex extends Exchange {
         return depositWithdrawFees;
     }
 
-    parseTransactionFees (response, codes = undefined) {
-        const data = this.safeValue (response, 'data');
-        const dataKeys = Object.keys (data);
-        const result = {};
-        for (let i = 0; i < dataKeys.length; i++) {
-            const entry = data[dataKeys[i]];
-            const currencyId = this.safeString (entry, 'asset');
-            const currency = this.safeCurrency (currencyId);
-            const code = this.safeString (currency, 'code');
-            if ((codes === undefined) || (this.inArray (code, codes))) {
-                const resultKeys = Object.keys (result);
-                if (!this.inArray (code, resultKeys)) {
-                    result[code] = {
-                        'withdraw': this.parseTransactionFee (entry),
-                        'deposit': {},
-                        'info': [],
-                    };
-                }
-                result[code]['withdraw'] = this.extend (result[code]['withdraw'], this.parseTransactionFee (entry));
-                result[code]['info'].push (entry);
-            }
-        }
-        return result;
-    }
-
-    parseTransactionFee (transaction, currency = undefined) {
-        //
-        //    {
-        //        asset: 'CET',
-        //        chain: 'ERC20',
-        //        withdrawal_precision: 8,
-        //        can_deposit: true,
-        //        can_withdraw: true,
-        //        deposit_least_amount: '45',
-        //        withdraw_least_amount: '45',
-        //        withdraw_tx_fee: '45'
-        //    }
-        //
-        const result = {};
-        const networkId = this.safeString (transaction, 'chain');
-        const network = this.safeNetwork (networkId);
-        result[network['network']] = this.safeNumber (transaction, 'withdraw_tx_fee');
-        return result;
-    }
-
     nonce () {
         return this.milliseconds ();
     }
