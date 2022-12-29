@@ -73,7 +73,8 @@ function runCommand(args, updateTs = true) {
                 saveNewTS ()
             }
         } else {
-            log.bright.red ("Error running tests!")
+            log.bright.red("Error running tests!")
+            exit(1);
         }
     })
 }
