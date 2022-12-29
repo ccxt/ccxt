@@ -354,7 +354,9 @@ class bybit(Exchange, ccxt.async_support.bybit):
         topicLength = len(topicParts)
         timeframeId = self.safe_string(topicParts, 1)
         marketId = self.safe_string(topicParts, topicLength - 1)
-        market = self.safe_market(marketId)
+        isSpot = client.url.find('spot') > -1
+        marketType = 'spot' if isSpot else 'contract'
+        market = self.safe_market(marketId, None, None, marketType)
         symbol = market['symbol']
         ohlcvsByTimeframe = self.safe_value(self.ohlcvs, symbol)
         if ohlcvsByTimeframe is None:
@@ -482,8 +484,9 @@ class bybit(Exchange, ccxt.async_support.bybit):
             isSnapshot = True
         data = self.safe_value(message, 'data', {})
         marketId = self.safe_string(data, 's')
-        market = self.safe_market(marketId)
-        symbol = self.safe_symbol(marketId, market)
+        marketType = 'spot' if isSpot else 'contract'
+        market = self.safe_market(marketId, None, None, marketType)
+        symbol = market['symbol']
         timestamp = self.safe_integer(message, 'ts')
         orderbook = self.safe_value(self.orderbooks, symbol)
         if orderbook is None:
@@ -578,8 +581,10 @@ class bybit(Exchange, ccxt.async_support.bybit):
         topic = self.safe_string(message, 'topic')
         trades = None
         parts = topic.split('.')
+        tradeType = self.safe_string(parts, 0)
+        marketType = 'spot' if (tradeType == 'trade') else 'contract'
         marketId = self.safe_string(parts, 1)
-        market = self.safe_market(marketId)
+        market = self.safe_market(marketId, None, None, marketType)
         if isinstance(data, list):
             # contract markets
             trades = data
@@ -666,8 +671,10 @@ class bybit(Exchange, ccxt.async_support.bybit):
         #     }
         #
         id = self.safe_string_n(trade, ['i', 'T', 'v'])
+        isContract = ('BT' in trade)
+        marketType = 'contract' if isContract else 'spot'
         marketId = self.safe_string(trade, 's')
-        market = self.safe_market(marketId, market)
+        market = self.safe_market(marketId, market, None, marketType)
         symbol = market['symbol']
         timestamp = self.safe_integer_2(trade, 't', 'T')
         side = self.safe_string_lower(trade, 'S')
@@ -1018,7 +1025,7 @@ class bybit(Exchange, ccxt.async_support.bybit):
         #
         id = self.safe_string(order, 'i')
         marketId = self.safe_string(order, 's')
-        symbol = self.safe_symbol(marketId, market)
+        symbol = self.safe_symbol(marketId, market, None, 'spot')
         timestamp = self.safe_integer(order, 'O')
         price = self.safe_string(order, 'p')
         if price == '0':

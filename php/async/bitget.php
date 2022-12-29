@@ -32,7 +32,7 @@ class bitget extends Exchange {
                 'spot' => true,
                 'margin' => false,
                 'swap' => true,
-                'future' => false,
+                'future' => true,
                 'option' => false,
                 'addMargin' => true,
                 'cancelAllOrders' => true,
@@ -799,8 +799,13 @@ class bitget extends Exchange {
                 'withdraw' => array(
                     'fillResponseFromRequest' => true,
                 ),
+                'sandboxMode' => false,
             ),
         ));
+    }
+
+    public function set_sandbox_mode($enabled) {
+        $this->options['sandboxMode'] = $enabled;
     }
 
     public function fetch_time($params = array ()) {
@@ -830,13 +835,22 @@ class bitget extends Exchange {
              * @param {array} $params extra parameters specific to the exchange api endpoint
              * @return {[array]} an array of objects representing market data
              */
+            $sandboxMode = $this->safe_value($this->options, 'sandboxMode', false);
             $types = $this->safe_value($this->options, 'fetchMarkets', array( 'spot', 'swap' ));
+            if ($sandboxMode) {
+                $types = array( 'swap' );
+            }
             $promises = array();
             for ($i = 0; $i < count($types); $i++) {
                 $type = $types[$i];
                 if ($type === 'swap') {
-                    // the following are simulated trading markets array( 'sumcbl', 'sdmcbl', 'scmcbl' );
-                    $subTypes = array( 'umcbl', 'dmcbl', 'cmcbl' );
+                    $subTypes = null;
+                    if ($sandboxMode) {
+                        // the following are simulated trading markets array( 'sumcbl', 'sdmcbl', 'scmcbl' );
+                        $subTypes = array( 'sumcbl', 'sdmcbl', 'scmcbl' );
+                    } else {
+                        $subTypes = array( 'umcbl', 'dmcbl', 'cmcbl' );
+                    }
                     for ($j = 0; $j < count($subTypes); $j++) {
                         $promises[] = $this->fetch_markets_by_type($type, array_merge($params, array(
                             'productType' => $subTypes[$j],
@@ -944,14 +958,8 @@ class bitget extends Exchange {
                 $symbol = $symbol . ':' . $settle;
             }
             $contract = true;
-            $sumcbl = ($typeId === 'SUMCBL');
-            $sdmcbl = ($typeId === 'SDMCBL');
-            $scmcbl = ($typeId === 'SCMCBL');
-            $linear = ($typeId === 'UMCBL') || ($typeId === 'CMCBL') || $sumcbl || $scmcbl;
+            $linear = ($typeId === 'UMCBL') || ($typeId === 'CMCBL') || ($typeId === 'SUMCBL') || ($typeId === 'SCMCBL');
             $inverse = !$linear;
-            if ($sumcbl || $sdmcbl || $scmcbl) {
-                $symbol = $marketId;
-            }
             $priceDecimals = $this->safe_integer($market, 'pricePlace');
             $amountDecimals = $this->safe_integer($market, 'volumePlace');
             $priceStep = $this->safe_string($market, 'priceEndStep');

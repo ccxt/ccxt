@@ -545,8 +545,18 @@ class bitmex(Exchange):
             free = self.safe_string(balance, 'availableMargin')
             total = self.safe_string(balance, 'marginBalance')
             if code != 'USDT':
-                free = Precise.string_div(free, '1e8')
-                total = Precise.string_div(total, '1e8')
+                # tmp fix until self PR gets merged
+                # https://github.com/ccxt/ccxt/pull/15311
+                symbol = code + '_USDT'
+                market = self.safe_market(symbol)
+                info = self.safe_value(market, 'info', {})
+                multiplier = self.safe_string(info, 'underlyingToPositionMultiplier')
+                if multiplier is not None:
+                    free = Precise.string_div(free, multiplier)
+                    total = Precise.string_div(total, multiplier)
+                else:
+                    free = Precise.string_div(free, '1e8')
+                    total = Precise.string_div(total, '1e8')
             else:
                 free = Precise.string_div(free, '1e6')
                 total = Precise.string_div(total, '1e6')
