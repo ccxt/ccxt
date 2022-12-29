@@ -217,9 +217,12 @@ class gate(Exchange, ccxt.async_support.gate):
         #     }
         #
         channel = self.safe_string(message, 'channel')
+        channelParts = channel.split('.')
+        rawMarketType = self.safe_string(channelParts, 0)
+        marketType = 'spot' if (rawMarketType == 'spot') else 'contract'
         result = self.safe_value(message, 'result')
         marketId = self.safe_string(result, 's')
-        symbol = self.safe_symbol(marketId)
+        symbol = self.safe_symbol(marketId, None, '_', marketType)
         orderbook = self.safe_value(self.orderbooks, symbol)
         if orderbook is None:
             orderbook = self.order_book({})
@@ -539,6 +542,9 @@ class gate(Exchange, ccxt.async_support.gate):
         #   }
         #
         channel = self.safe_string(message, 'channel')
+        channelParts = channel.split('.')
+        rawMarketType = self.safe_string(channelParts, 0)
+        marketType = 'spot' if (rawMarketType == 'spot') else 'contract'
         result = self.safe_value(message, 'result')
         isArray = isinstance(result, list)
         if not isArray:
@@ -551,7 +557,7 @@ class gate(Exchange, ccxt.async_support.gate):
             timeframe = self.safe_string(parts, 0)
             prefix = timeframe + '_'
             marketId = subscription.replace(prefix, '')
-            symbol = self.safe_symbol(marketId, None, '_')
+            symbol = self.safe_symbol(marketId, None, '_', marketType)
             parsed = self.parse_ohlcv(ohlcv)
             stored = self.safe_value(self.ohlcvs, symbol)
             if stored is None:
