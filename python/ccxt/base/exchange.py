@@ -1434,9 +1434,9 @@ class Exchange(object):
         if ('e' in str):
             numStr = re.sub(r'\de', '', str)
             return int(numStr) * -1
-        else:
-            parts = re.sub(r'0+$', '', str).split('.')
-            return len(parts[1]) if len(parts) > 1 else 0
+        # default strings like '0.0001'
+        parts = re.sub(r'0+$', '', str).split('.')
+        return len(parts[1]) if len(parts) > 1 else 0
 
     def load_markets(self, reload=False, params={}):
         if not reload:
