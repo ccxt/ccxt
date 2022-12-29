@@ -14,7 +14,7 @@ const TEST_TIMESTAMP = "./testTimestamp.json";
 
 const testFile = require(TEST_TIMESTAMP);
 const lastRun = testFile.lastRun;
-const dayInMs = 60 * 60 * 24 * 1000;
+const threeHours = 60 * 60 * 3 * 1000;
 const currentTs = Date.now();
 
 if (process.argv.length < 3) {
@@ -30,7 +30,7 @@ argv.splice(0,3);
 
 async function main() {
 
-    if (currentTs > dayInMs + lastRun) {
+    if (currentTs > threeHours + lastRun) {
         // run all tests again
         runCommand(argv)
     } else {
@@ -40,21 +40,21 @@ async function main() {
             return;
         }
 
-        const shouldRunEverything = stdout.indexOf("Exchange") > -1 ||
-                                    stdout.indexOf("/test") > -1 ||
-                                    stdout.indexOf("/build") > -1 ||
-                                    stdout.indexOf("/base") > -1 ||
-                                    stdout.indexOf("/static_dependencies") > -1
-                                    stdout.indexOf("run-tests") > -1
+        const shouldRunEverything = stdout.indexOf ("Exchange") > -1 ||
+                                    stdout.indexOf ("/test") > -1 ||
+                                    stdout.indexOf ("/build") > -1 ||
+                                    stdout.indexOf ("/base") > -1 ||
+                                    stdout.indexOf ("/static_dependencies") > -1 ||
+                                    stdout.indexOf ("run-tests") > -1
 
         if (shouldRunEverything) {
             runCommand(argv)
         } else {
-            const exchangeFiles = stdout.split("\n").filter(e => e && e.indexOf('js/') > -1 ).map(e=> e.split("/").pop()).map(e=> e.split(".")[0]);
+            const exchangeFiles = stdout.split ("\n").filter (e => e && e.indexOf('js/') > -1 ).map(e=> e.split("/").pop()).map(e=> e.split(".")[0]);
             // ignore examples and files like that
             if (exchangeFiles.length > 0) {
-                const parsedArgs = exchangeFiles.concat(argv)
-                runCommand(parsedArgs, false) // when running some specific tests we shouldn't update ts
+                const parsedArgs = exchangeFiles.concat (argv)
+                runCommand (parsedArgs, false) // when running some specific tests we shouldn't update ts
             }
         }
     }
@@ -63,24 +63,24 @@ async function main() {
 function runCommand(args, updateTs = true) {
 
     const nodeCommand = "node " + COMMAND;
-    const pro = spawn(nodeCommand, args, { stdio: 'inherit', shell:true })
+    const pro = spawn (nodeCommand, args, { stdio: 'inherit', shell: true })
 
     pro.on('exit', code => {
-        console.log("code", code)
+        console.log ("code", code)
         if (code === 0) {
             if (updateTs) {
-                log.bright.green("All tests ran sucessfully, saving new timestamp!")
-                saveNewTS()
+                log.bright.green ("All tests ran sucessfully, saving new timestamp!")
+                saveNewTS ()
             }
         } else {
-            log.bright.red("Error running tests!")
+            log.bright.red ("Error running tests!")
         }
     })
 }
 
 function saveNewTS() {
-    testFile.lastRun = Date.now();
-    fs.writeFileSync (TEST_TIMESTAMP, JSON.stringify(testFile))
+    testFile.lastRun = Date.now ();
+    fs.writeFileSync (TEST_TIMESTAMP, JSON.stringify (testFile))
 }
 
 main();
