@@ -92,11 +92,10 @@ function precisionFromString (str) {
     if (str.indexOf ('e') > -1) {
         const numStr = str.replace (/\de/, '')
         return parseInt (numStr) * -1
-    } else {
-        // default strings like '0.0001'
-        const split = str.replace (/0+$/g, '').split ('.')
-        return (split.length > 1) ? (split[1].length) : 0
     }
+    // default strings like '0.0001'
+    const split = str.replace (/0+$/g, '').split ('.')
+    return (split.length > 1) ? (split[1].length) : 0
 }
 
 /*  ------------------------------------------------------------------------ */
