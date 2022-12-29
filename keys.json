@@ -8,6 +8,7 @@
     "bitmart":       { "skipWs": true },
     "bitmex":        { "skipWs": true },
     "bitfinex":      { "skipWs": true },
+    "bithumb":       { "skip": true },
     "cdax":          { "skipWs": true },
     "cex":           { "skipWs": true   },
     "currencycom":   { "skipWs": true },
