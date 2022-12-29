@@ -1618,8 +1618,8 @@ module.exports = class whitebit extends Exchange {
          * @see https://github.com/whitebit-exchange/api-docs/blob/main/docs/Private/http-main-v4.md#transfer-between-main-and-trade-balances
          * @param {string} code unified currency code
          * @param {float} amount amount to transfer
-         * @param {string} fromAccount account to transfer from
-         * @param {string} toAccount account to transfer to
+         * @param {string} fromAccount account to transfer from - main, spot, collateral
+         * @param {string} toAccount account to transfer to - main, spot, collateral
          * @param {object} params extra parameters specific to the whitebit api endpoint
          * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/en/latest/manual.html#transfer-structure}
          */
