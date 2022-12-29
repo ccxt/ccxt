@@ -14,7 +14,7 @@ diff=$(git diff HEAD --name-only)
 
 if [ "$delta" -gt $six_hours ] || grep -q -E 'Exchange.php|/test|/base|^build|static_dependencies|^run-tests' <<< "$diff"; then
   command="node $*"
-  echo "tests-managers: running $command in $(pwd)"
+  echo "tests-manager: running $command in $(pwd)"
   if eval "$command"; then
     echo "Saving new timestamp"
     date -u +%s > "$timestamp_file"
@@ -24,7 +24,7 @@ if [ "$delta" -gt $six_hours ] || grep -q -E 'Exchange.php|/test|/base|^build|st
 else
   to_test=$(sed -E -n 's:^js/(.+)\.js$:\1:p' <<< "$diff" | xargs)
   command="node $* $to_test"
-  echo "tests-managers: running $command in $(pwd)"
+  echo "tests-manager: running $command in $(pwd)"
   eval "$command"
   exit $?
 fi
