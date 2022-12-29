@@ -2923,7 +2923,7 @@ module.exports = class binance extends Exchange {
         // - 'tradeId' accepted and returned by this method is "aggregate" trade id
         //   which is different from actual trade id
         // - setting both fromId and time window results in error
-        const response = await this[method] (this.extend (request, query));
+        const response = await this[method] (this.extend (request, params));
         //
         // aggregate trades
         //
@@ -3775,8 +3775,6 @@ module.exports = class binance extends Exchange {
         }
         await this.loadMarkets ();
         const market = this.market (symbol);
-        let subType = undefined;
-        [ subType, params ] = this.handleSubTypeAndParams ('cancelAllOrders', market, params);
         const request = {
             'symbol': market['id'],
         };
@@ -3788,7 +3786,7 @@ module.exports = class binance extends Exchange {
             method = 'fapiPrivateDeleteAllOpenOrders';
         } else if (market['inverse']) {
             method = 'dapiPrivateDeleteAllOpenOrders';
-        } else if (type === 'margin' || marginMode !== undefined) {
+        } else if ((type === 'margin') || (marginMode !== undefined)) {
             method = 'sapiDeleteMarginOpenOrders';
             if (marginMode === 'isolated') {
                 request['isIsolated'] = true;
