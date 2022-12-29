@@ -37,7 +37,7 @@ script:
 - npm run test-base
 - npm run test-base-ws
 - pip list
-- if [ "$TRAVIS_PULL_REQUEST" -ne "true" ]; then
+- if [ "$TRAVIS_PULL_REQUEST" != "false" ]; then
   node run-tests --js --python-async --php-async 5 2>&1 &
   rest_pid=$!;
   node run-tests-ws --js --python-async --php-async 5 2>&1 &
