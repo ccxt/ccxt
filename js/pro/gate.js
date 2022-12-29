@@ -590,7 +590,7 @@ module.exports = class gate extends gateRest {
         const channel = this.safeString (message, 'channel');
         const channelParts = channel.split ('.');
         const rawMarketType = this.safeString (channelParts, 0);
-        const marketType = rawMarketType === 'spot' ? 'spot' : 'contract';
+        const marketType = (rawMarketType === 'spot') ? 'spot' : 'contract';
         let result = this.safeValue (message, 'result');
         const isArray = Array.isArray (result);
         if (!isArray) {
