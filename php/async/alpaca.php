@@ -19,6 +19,7 @@ class alpaca extends Exchange {
             'countries' => array( 'US' ),
             'rateLimit' => 333, // 3 req per second
             'hostname' => 'alpaca.markets',
+            'pro' => true,
             'urls' => array(
                 'logo' => 'https://user-images.githubusercontent.com/1294454/187234005-b864db3d-f1e3-447a-aaf9-a9fc7b955d07.jpg',
                 'www' => 'https://alpaca.markets',
@@ -763,7 +764,8 @@ class alpaca extends Exchange {
         //       "i":"355681339"
         //   }
         //
-        $symbol = $this->safe_symbol(null, $market);
+        $marketId = $this->safe_string($trade, 'S');
+        $symbol = $this->safe_symbol($marketId, $market);
         $datetime = $this->safe_string($trade, 't');
         $timestamp = $this->parse8601($datetime);
         $alpacaSide = $this->safe_string($trade, 'tks');
