@@ -65,12 +65,13 @@ class bitbns extends Exchange {
             ),
             'timeframes' => array(
             ),
+            'hostname' => 'bitbns.com',
             'urls' => array(
                 'logo' => 'https://user-images.githubusercontent.com/1294454/117201933-e7a6e780-adf5-11eb-9d80-98fc2a21c3d6.jpg',
                 'api' => array(
-                    'www' => 'https://bitbns.com',
-                    'v1' => 'https://api.bitbns.com/api/trade/v1',
-                    'v2' => 'https://api.bitbns.com/api/trade/v2',
+                    'www' => 'https://{hostname}',
+                    'v1' => 'https://api.{hostname}/api/trade/v1',
+                    'v2' => 'https://api.{hostname}/api/trade/v2',
                 ),
                 'www' => 'https://bitbns.com',
                 'referral' => 'https://ref.bitbns.com/1090961',
