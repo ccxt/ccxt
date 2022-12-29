@@ -534,16 +534,8 @@ class okcoin extends \ccxt\async\okcoin {
             if ($code !== null) {
                 $currency = $this->currency($code);
             }
-            $marketId = $this->safe_string($params, 'instrument_id');
             $symbol = $this->safe_string($params, 'symbol');
-            $market = null;
-            if ($symbol !== null) {
-                $market = $this->market($symbol);
-            } elseif ($marketId !== null) {
-                if (is_array($this->markets_by_id) && array_key_exists($marketId, $this->markets_by_id)) {
-                    $market = $this->markets_by_id[$marketId];
-                }
-            }
+            $market = $this->market($symbol);
             $marketUndefined = ($market === null);
             $currencyUndefined = ($currency === null);
             if ($type === 'spot') {

@@ -257,6 +257,7 @@ class bkex extends Exchange {
                 ),
             ),
             'commonCurrencies' => array(
+                'SHINJA' => 'SHINJA(1M)',
             ),
             'precisionMode' => TICK_SIZE,
             'exceptions' => array(
@@ -801,8 +802,8 @@ class bkex extends Exchange {
         //     }
         //
         $marketId = $this->safe_string($ticker, 'symbol');
+        $market = $this->safe_market($marketId, $market);
         $symbol = $this->safe_symbol($marketId, $market);
-        $market = $this->market($symbol);
         $timestamp = $this->safe_integer_2($ticker, 'ts', 'lastTime');
         $baseCurrencyVolume = $market['swap'] ? 'amount' : 'volume';
         $quoteCurrencyVolume = $market['swap'] ? 'volume' : 'quoteVolume';

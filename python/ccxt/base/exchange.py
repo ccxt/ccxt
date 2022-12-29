@@ -4,7 +4,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '2.4.32'
+__version__ = '2.4.74'
 
 # -----------------------------------------------------------------------------
 
@@ -1838,15 +1838,22 @@ class Exchange(object):
 
     def set_markets(self, markets, currencies=None):
         values = []
-        marketValues = self.to_array(markets)
+        self.markets_by_id = {}
+        # handle marketId conflicts
+        # we insert spot markets first
+        marketValues = self.sort_by(self.to_array(markets), 'spot', True)
         for i in range(0, len(marketValues)):
+            value = marketValues[i]
+            if value['id'] in self.markets_by_id:
+                self.markets_by_id[value['id']].append(value)
+            else:
+                self.markets_by_id[value['id']] = [value]
             market = self.deep_extend(self.safe_market(), {
                 'precision': self.precision,
                 'limits': self.limits,
-            }, self.fees['trading'], marketValues[i])
+            }, self.fees['trading'], value)
             values.append(market)
         self.markets = self.index_by(values, 'symbol')
-        self.markets_by_id = self.index_by(markets, 'id')
         marketsSortedBySymbol = self.keysort(self.markets)
         marketsSortedById = self.keysort(self.markets_by_id)
         self.symbols = list(marketsSortedBySymbol.keys())
@@ -1948,12 +1955,16 @@ class Exchange(object):
         average = self.omit_zero(self.safe_string(order, 'average'))
         price = self.omit_zero(self.safe_string(order, 'price'))
         lastTradeTimeTimestamp = self.safe_integer(order, 'lastTradeTimestamp')
+        symbol = self.safe_string(order, 'symbol')
+        side = self.safe_string(order, 'side')
         parseFilled = (filled is None)
         parseCost = (cost is None)
         parseLastTradeTimeTimestamp = (lastTradeTimeTimestamp is None)
         fee = self.safe_value(order, 'fee')
         parseFee = (fee is None)
         parseFees = self.safe_value(order, 'fees') is None
+        parseSymbol = symbol is None
+        parseSide = side is None
         shouldParseFees = parseFee or parseFees
         fees = self.safe_value(order, 'fees', [])
         trades = []
@@ -1962,12 +1973,7 @@ class Exchange(object):
             oldNumber = self.number
             # we parse trades as strings here!
             self.number = str
-            trades = self.parse_trades(rawTrades, market, None, None, {
-                'symbol': order['symbol'],
-                'side': order['side'],
-                'type': order['type'],
-                'order': order['id'],
-            })
+            trades = self.parse_trades(rawTrades, market)
             self.number = oldNumber
             tradesLength = 0
             isArray = isinstance(trades, list)
@@ -1995,6 +2001,10 @@ class Exchange(object):
                     tradeCost = self.safe_string(trade, 'cost')
                     if parseCost and (tradeCost is not None):
                         cost = Precise.string_add(cost, tradeCost)
+                    if parseSymbol:
+                        symbol = self.safe_string(trade, 'symbol')
+                    if parseSide:
+                        side = self.safe_string(trade, 'side')
                     tradeTimestamp = self.safe_value(trade, 'timestamp')
                     if parseLastTradeTimeTimestamp and (tradeTimestamp is not None):
                         if lastTradeTimeTimestamp is None:
@@ -2101,6 +2111,8 @@ class Exchange(object):
             # timeInForce is not None here
             postOnly = timeInForce == 'PO'
         return self.extend(order, {
+            'symbol': symbol,
+            'side': side,
             'lastTradeTimestamp': lastTradeTimeTimestamp,
             'price': self.parse_number(price),
             'amount': self.parse_number(amount),
@@ -2214,16 +2226,6 @@ class Exchange(object):
         parseFees = self.safe_value(trade, 'fees') is None
         shouldParseFees = parseFee or parseFees
         fees = []
-        if shouldParseFees:
-            tradeFees = self.safe_value(trade, 'fees')
-            if tradeFees is not None:
-                for j in range(0, len(tradeFees)):
-                    tradeFee = tradeFees[j]
-                    fees.append(self.extend({}, tradeFee))
-            else:
-                tradeFee = self.safe_value(trade, 'fee')
-                if tradeFee is not None:
-                    fees.append(self.extend({}, tradeFee))
         fee = self.safe_value(trade, 'fee')
         if shouldParseFees:
             reducedFees = self.reduce_fees_by_currency(fees) if self.reduceFees else fees
@@ -2431,6 +2433,8 @@ class Exchange(object):
         return result
 
     def market_ids(self, symbols):
+        if symbols is None:
+            return symbols
         result = []
         for i in range(0, len(symbols)):
             result.append(self.market_id(symbols[i]))
@@ -2576,6 +2580,21 @@ class Exchange(object):
                 replacementObject = self.safe_value(defaultNetworkCodeReplacements, currencyCode, {})
                 networkCode = self.safe_string(replacementObject, networkCode, networkCode)
         return networkCode
+
+    def network_codes_to_ids(self, networkCodes=None):
+        """
+         * @ignore
+        tries to convert the provided networkCode(which is expected to be an unified network code) to a network id. In order to achieve self, derived class needs to have 'options->networks' defined.
+        :param [str]|None networkCodes: unified network codes
+        :returns [str|None]: exchange-specific network ids
+        """
+        if networkCodes is None:
+            return None
+        ids = []
+        for i in range(0, len(networkCodes)):
+            networkCode = networkCodes[i]
+            ids.append(self.networkCodeToId(networkCode))
+        return ids
 
     def handle_network_code_and_params(self, params):
         networkCodeInParams = self.safe_string_2(params, 'networkCode', 'network')
@@ -2856,7 +2875,7 @@ class Exchange(object):
             'code': code,
         }
 
-    def safe_market(self, marketId=None, market=None, delimiter=None):
+    def safe_market(self, marketId=None, market=None, delimiter=None, marketType=None):
         result = {
             'id': marketId,
             'symbol': marketId,
@@ -2903,7 +2922,17 @@ class Exchange(object):
         }
         if marketId is not None:
             if (self.markets_by_id is not None) and (marketId in self.markets_by_id):
-                market = self.markets_by_id[marketId]
+                markets = self.markets_by_id[marketId]
+                length = len(markets)
+                if length == 1:
+                    return markets[0]
+                else:
+                    if marketType is None:
+                        raise ArgumentsRequired(self.id + ' safeMarket() requires a fourth argument for ' + marketId + ' to disambiguate between different markets with the same market id')
+                    for i in range(0, len(markets)):
+                        market = markets[i]
+                        if market[marketType]:
+                            return market
             elif delimiter is not None:
                 parts = marketId.split(delimiter)
                 partsLength = len(parts)
@@ -3010,15 +3039,17 @@ class Exchange(object):
         value = self.safe_string_2(params, optionName, defaultOptionName)
         if value is not None:
             params = self.omit(params, [optionName, defaultOptionName])
-        if value is None:
-            # check if exchange-wide method options contain the key
+        else:
+            # check if exchange has properties for self method
             exchangeWideMethodOptions = self.safe_value(self.options, methodName)
             if exchangeWideMethodOptions is not None:
+                # check if the option is defined in self method's props
                 value = self.safe_string_2(exchangeWideMethodOptions, optionName, defaultOptionName)
-        if value is None:
-            # check if exchange-wide options contain the key
-            value = self.safe_string_2(self.options, optionName, defaultOptionName)
-        value = value if (value is not None) else defaultValue
+            if value is None:
+                # if it's still None, check if global exchange-wide option exists
+                value = self.safe_string_2(self.options, optionName, defaultOptionName)
+            # if it's still None, use the default value
+            value = value if (value is not None) else defaultValue
         return [value, params]
 
     def handle_market_type_and_params(self, methodName, market=None, params={}):
@@ -3181,13 +3212,17 @@ class Exchange(object):
     def market(self, symbol):
         if self.markets is None:
             raise ExchangeError(self.id + ' markets not loaded')
-        if self.markets_by_id is None:
-            raise ExchangeError(self.id + ' markets not loaded')
         if isinstance(symbol, str):
             if symbol in self.markets:
                 return self.markets[symbol]
             elif symbol in self.markets_by_id:
-                return self.markets_by_id[symbol]
+                markets = self.markets_by_id[symbol]
+                defaultType = self.safe_string_2(self.options, 'defaultType', 'defaultSubType', 'spot')
+                for i in range(0, len(markets)):
+                    market = markets[i]
+                    if market[defaultType]:
+                        return market
+                return markets[0]
         raise BadSymbol(self.id + ' does not have market symbol ' + symbol)
 
     def handle_withdraw_tag_and_params(self, tag, params):
@@ -3389,8 +3424,8 @@ class Exchange(object):
         symbol = None if (market is None) else market['symbol']
         return self.filter_by_symbol_since_limit(sorted, symbol, since, limit)
 
-    def safe_symbol(self, marketId, market=None, delimiter=None):
-        market = self.safe_market(marketId, market, delimiter)
+    def safe_symbol(self, marketId, market=None, delimiter=None, marketType=None):
+        market = self.safe_market(marketId, market, delimiter, marketType)
         return market['symbol']
 
     def parse_funding_rate(self, contract, market=None):

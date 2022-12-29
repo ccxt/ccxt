@@ -457,20 +457,20 @@ class ascendex extends Exchange {
         $products = $this->v1PublicGetProducts ($params);
         //
         //     {
-        //         "code":0,
-        //         "data":array(
+        //         "code" => 0,
+        //         "data" => array(
         //             array(
-        //                 "symbol":"LBA/BTC",
-        //                 "baseAsset":"LBA",
-        //                 "quoteAsset":"BTC",
-        //                 "status":"Normal",
-        //                 "minNotional":"0.000625",
-        //                 "maxNotional":"6.25",
-        //                 "marginTradable":false,
-        //                 "commissionType":"Quote",
-        //                 "commissionReserveRate":"0.001",
-        //                 "tickSize":"0.000000001",
-        //                 "lotSize":"1"
+        //                 "symbol" => "LBA/BTC",
+        //                 "baseAsset" => "LBA",
+        //                 "quoteAsset" => "BTC",
+        //                 "status" => "Normal",
+        //                 "minNotional" => "0.000625",
+        //                 "maxNotional" => "6.25",
+        //                 "marginTradable" => false,
+        //                 "commissionType" => "Quote",
+        //                 "commissionReserveRate" => "0.001",
+        //                 "tickSize" => "0.000000001",
+        //                 "lotSize" => "1"
         //             ),
         //         )
         //     }
@@ -478,61 +478,70 @@ class ascendex extends Exchange {
         $cash = $this->v1PublicGetCashProducts ($params);
         //
         //     {
-        //         "code":0,
-        //         "data":array(
+        //         "code" => 0,
+        //         "data" => array(
         //             {
-        //                 "symbol":"QTUM/BTC",
-        //                 "displayName":"QTUM/BTC",
-        //                 "domain":"BTC",
-        //                 "tradingStartTime":1569506400000,
-        //                 "collapseDecimals":"0.0001,0.000001,0.00000001",
-        //                 "minQty":"0.000000001",
-        //                 "maxQty":"1000000000",
-        //                 "minNotional":"0.000625",
-        //                 "maxNotional":"12.5",
-        //                 "statusCode":"Normal",
-        //                 "statusMessage":"",
-        //                 "tickSize":"0.00000001",
-        //                 "useTick":false,
-        //                 "lotSize":"0.1",
-        //                 "useLot":false,
-        //                 "commissionType":"Quote",
-        //                 "commissionReserveRate":"0.001",
-        //                 "qtyScale":1,
-        //                 "priceScale":8,
-        //                 "notionalScale":4
+        //                 "symbol" => "QTUM/BTC",
+        //                 "displayName" => "QTUM/BTC",
+        //                 "domain" => "BTC",
+        //                 "tradingStartTime" => 1569506400000,
+        //                 "collapseDecimals" => "0.0001,0.000001,0.00000001",
+        //                 "minQty" => "0.000000001",
+        //                 "maxQty" => "1000000000",
+        //                 "minNotional" => "0.000625",
+        //                 "maxNotional" => "12.5",
+        //                 "statusCode" => "Normal",
+        //                 "statusMessage" => "",
+        //                 "tickSize" => "0.00000001",
+        //                 "useTick" => false,
+        //                 "lotSize" => "0.1",
+        //                 "useLot" => false,
+        //                 "commissionType" => "Quote",
+        //                 "commissionReserveRate" => "0.001",
+        //                 "qtyScale" => 1,
+        //                 "priceScale" => 8,
+        //                 "notionalScale" => 4
         //             }
         //         )
         //     }
         //
         $perpetuals = $this->v2PublicGetFuturesContract ($params);
         //
-        //     {
-        //         "code":0,
-        //         "data":array(
-        //             {
-        //                 "symbol":"BTC-PERP",
-        //                 "status":"Normal",
-        //                 "displayName":"BTCUSDT",
-        //                 "settlementAsset":"USDT",
-        //                 "underlying":"BTC/USDT",
-        //                 "tradingStartTime":1579701600000,
-        //                 "priceFilter":array("minPrice":"1","maxPrice":"1000000","tickSize":"1"),
-        //                 "lotSizeFilter":array("minQty":"0.0001","maxQty":"1000000000","lotSize":"0.0001"),
-        //                 "commissionType":"Quote",
-        //                 "commissionReserveRate":"0.001",
-        //                 "marketOrderPriceMarkup":"0.03",
-        //                 "marginRequirements":array(
-        //                     array("positionNotionalLowerBound":"0","positionNotionalUpperBound":"50000","initialMarginRate":"0.01","maintenanceMarginRate":"0.006"),
-        //                     array("positionNotionalLowerBound":"50000","positionNotionalUpperBound":"200000","initialMarginRate":"0.02","maintenanceMarginRate":"0.012"),
-        //                     array("positionNotionalLowerBound":"200000","positionNotionalUpperBound":"2000000","initialMarginRate":"0.04","maintenanceMarginRate":"0.024"),
-        //                     array("positionNotionalLowerBound":"2000000","positionNotionalUpperBound":"20000000","initialMarginRate":"0.1","maintenanceMarginRate":"0.06"),
-        //                     array("positionNotionalLowerBound":"20000000","positionNotionalUpperBound":"40000000","initialMarginRate":"0.2","maintenanceMarginRate":"0.12"),
-        //                     array("positionNotionalLowerBound":"40000000","positionNotionalUpperBound":"1000000000","initialMarginRate":"0.333333","maintenanceMarginRate":"0.2")
-        //                 )
-        //             }
-        //         )
-        //     }
+        //    {
+        //        "code" => 0,
+        //        "data" => array(
+        //            {
+        //                "symbol" => "BTC-PERP",
+        //                "status" => "Normal",
+        //                "displayName" => "BTCUSDT",
+        //                "settlementAsset" => "USDT",
+        //                "underlying" => "BTC/USDT",
+        //                "tradingStartTime" => 1579701600000,
+        //                "priceFilter" => array(
+        //                    "minPrice" => "1",
+        //                    "maxPrice" => "1000000",
+        //                    "tickSize" => "1"
+        //                ),
+        //                "lotSizeFilter" => array(
+        //                    "minQty" => "0.0001",
+        //                    "maxQty" => "1000000000",
+        //                    "lotSize" => "0.0001"
+        //                ),
+        //                "commissionType" => "Quote",
+        //                "commissionReserveRate" => "0.001",
+        //                "marketOrderPriceMarkup" => "0.03",
+        //                "marginRequirements" => array(
+        //                    array(
+        //                        "positionNotionalLowerBound" => "0",
+        //                        "positionNotionalUpperBound" => "50000",
+        //                        "initialMarginRate" => "0.01",
+        //                        "maintenanceMarginRate" => "0.006"
+        //                    ),
+        //                    ...
+        //                )
+        //            }
+        //        )
+        //    }
         //
         $productsData = $this->safe_value($products, 'data', array());
         $productsById = $this->index_by($productsData, 'symbol');
@@ -546,11 +555,7 @@ class ascendex extends Exchange {
         for ($i = 0; $i < count($ids); $i++) {
             $id = $ids[$i];
             $market = $dataById[$id];
-            $baseId = $this->safe_string($market, 'baseAsset');
-            $quoteId = $this->safe_string($market, 'quoteAsset');
             $settleId = $this->safe_value($market, 'settlementAsset');
-            $base = $this->safe_currency_code($baseId);
-            $quote = $this->safe_currency_code($quoteId);
             $settle = $this->safe_currency_code($settleId);
             $status = $this->safe_string($market, 'status');
             $domain = $this->safe_string($market, 'domain');
@@ -565,6 +570,12 @@ class ascendex extends Exchange {
             $maxQty = $this->safe_number($market, 'maxQty');
             $minPrice = $this->safe_number($market, 'tickSize');
             $maxPrice = null;
+            $underlying = $this->safe_string_2($market, 'underlying', 'symbol');
+            $parts = explode('/', $underlying);
+            $baseId = $this->safe_string($parts, 0);
+            $quoteId = $this->safe_string($parts, 1);
+            $base = $this->safe_currency_code($baseId);
+            $quote = $this->safe_currency_code($quoteId);
             $symbol = $base . '/' . $quote;
             if ($swap) {
                 $lotSizeFilter = $this->safe_value($market, 'lotSizeFilter');
@@ -573,12 +584,6 @@ class ascendex extends Exchange {
                 $priceFilter = $this->safe_value($market, 'priceFilter');
                 $minPrice = $this->safe_number($priceFilter, 'minPrice');
                 $maxPrice = $this->safe_number($priceFilter, 'maxPrice');
-                $underlying = $this->safe_string($market, 'underlying');
-                $parts = explode('/', $underlying);
-                $baseId = $this->safe_string($parts, 0);
-                $quoteId = $this->safe_string($parts, 1);
-                $base = $this->safe_currency_code($baseId);
-                $quote = $this->safe_currency_code($quoteId);
                 $symbol = $base . '/' . $quote . ':' . $settle;
             }
             $fee = $this->safe_number($market, 'commissionReserveRate');
@@ -2367,10 +2372,10 @@ class ascendex extends Exchange {
         //         time => 1591606166000,
         //         asset => "USDT",
         //         transactionType => "deposit",
-        //         $amount => "25",
+        //         amount => "25",
         //         commission => "0",
         //         networkTransactionId => "0xbc4eabdce92f14dbcc01d799a5f8ca1f02f4a3a804b6350ea202be4d3c738fce",
-        //         $status => "pending",
+        //         status => "pending",
         //         numConfirmed => 8,
         //         numConfirmations => 20,
         //         $destAddress => {
@@ -2379,39 +2384,35 @@ class ascendex extends Exchange {
         //         }
         //     }
         //
-        $id = $this->safe_string($transaction, 'requestId');
-        $amount = $this->safe_number($transaction, 'amount');
         $destAddress = $this->safe_value($transaction, 'destAddress', array());
         $address = $this->safe_string($destAddress, 'address');
         $tag = $this->safe_string($destAddress, 'destTag');
-        $txid = $this->safe_string($transaction, 'networkTransactionId');
-        $type = $this->safe_string($transaction, 'transactionType');
         $timestamp = $this->safe_integer($transaction, 'time');
         $currencyId = $this->safe_string($transaction, 'asset');
         $code = $this->safe_currency_code($currencyId, $currency);
-        $status = $this->parse_transaction_status($this->safe_string($transaction, 'status'));
-        $feeCost = $this->safe_number($transaction, 'commission');
         return array(
             'info' => $transaction,
-            'id' => $id,
+            'id' => $this->safe_string($transaction, 'requestId'),
+            'txid' => $this->safe_string($transaction, 'networkTransactionId'),
+            'type' => $this->safe_string($transaction, 'transactionType'),
             'currency' => $code,
-            'amount' => $amount,
             'network' => null,
-            'address' => $address,
-            'addressTo' => $address,
-            'addressFrom' => null,
-            'tag' => $tag,
-            'tagTo' => $tag,
-            'tagFrom' => null,
-            'status' => $status,
-            'type' => $type,
-            'updated' => null,
-            'txid' => $txid,
+            'amount' => $this->safe_number($transaction, 'amount'),
+            'status' => $this->parse_transaction_status($this->safe_string($transaction, 'status')),
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
+            'address' => $address,
+            'addressFrom' => null,
+            'addressTo' => $address,
+            'tag' => $tag,
+            'tagFrom' => null,
+            'tagTo' => $tag,
+            'updated' => null,
+            'comment' => null,
             'fee' => array(
                 'currency' => $code,
-                'cost' => $feeCost,
+                'cost' => $this->safe_number($transaction, 'commission'),
+                'rate' => null,
             ),
         );
     }

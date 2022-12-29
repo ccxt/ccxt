@@ -8,6 +8,7 @@ namespace ccxt\async;
 use Exception; // a common import
 use ccxt\ExchangeError;
 use ccxt\AuthenticationError;
+use ccxt\Precise;
 use React\Async;
 
 class ndax extends Exchange {
@@ -1101,60 +1102,53 @@ class ndax extends Exchange {
     public function parse_ledger_entry($item, $currency = null) {
         //
         //     {
-        //         "TransactionId":2663709493,
-        //         "ReferenceId":68,
-        //         "OMSId":1,
-        //         "AccountId":449,
-        //         "CR":10.000000000000000000000000000,
-        //         "DR":0.0000000000000000000000000000,
-        //         "Counterparty":3,
-        //         "TransactionType":"Other",
-        //         "ReferenceType":"Deposit",
-        //         "ProductId":1,
-        //         "Balance":10.000000000000000000000000000,
-        //         "TimeStamp":1607532331591
+        //         "TransactionId" => 2663709493,
+        //         "ReferenceId" => 68,
+        //         "OMSId" => 1,
+        //         "AccountId" => 449,
+        //         "CR" => 10.000000000000000000000000000,
+        //         "DR" => 0.0000000000000000000000000000,
+        //         "Counterparty" => 3,
+        //         "TransactionType" => "Other",
+        //         "ReferenceType" => "Deposit",
+        //         "ProductId" => 1,
+        //         "Balance" => 10.000000000000000000000000000,
+        //         "TimeStamp" => 1607532331591
         //     }
         //
-        $id = $this->safe_string($item, 'TransactionId');
-        $account = $this->safe_string($item, 'AccountId');
-        $referenceId = $this->safe_string($item, 'ReferenceId');
-        $referenceAccount = $this->safe_string($item, 'Counterparty');
-        $type = $this->parse_ledger_entry_type($this->safe_string($item, 'ReferenceType'));
         $currencyId = $this->safe_string($item, 'ProductId');
-        $code = $this->safe_currency_code($currencyId, $currency);
-        $credit = $this->safe_number($item, 'CR');
-        $debit = $this->safe_number($item, 'DR');
+        $credit = $this->safe_string($item, 'CR');
+        $debit = $this->safe_string($item, 'DR');
         $amount = null;
         $direction = null;
-        if ($credit > 0) {
+        if (Precise::string_lt($credit, '0')) {
             $amount = $credit;
             $direction = 'in';
-        } elseif ($debit > 0) {
+        } elseif (Precise::string_lt($debit, '0')) {
             $amount = $debit;
             $direction = 'out';
         }
-        $timestamp = $this->safe_integer($item, 'TimeStamp');
         $before = null;
-        $after = $this->safe_number($item, 'Balance');
+        $after = $this->safe_string($item, 'Balance');
         if ($direction === 'out') {
-            $before = $this->sum($after, $amount);
+            $before = Precise::string_add($after, $amount);
         } elseif ($direction === 'in') {
-            $before = max (0, $after - $amount);
+            $before = Precise::string_max('0', Precise::string_sub($after, $amount));
         }
-        $status = 'ok';
+        $timestamp = $this->safe_integer($item, 'TimeStamp');
         return array(
             'info' => $item,
-            'id' => $id,
+            'id' => $this->safe_string($item, 'TransactionId'),
             'direction' => $direction,
-            'account' => $account,
-            'referenceId' => $referenceId,
-            'referenceAccount' => $referenceAccount,
-            'type' => $type,
-            'currency' => $code,
-            'amount' => $amount,
-            'before' => $before,
-            'after' => $after,
-            'status' => $status,
+            'account' => $this->safe_string($item, 'AccountId'),
+            'referenceId' => $this->safe_string($item, 'ReferenceId'),
+            'referenceAccount' => $this->safe_string($item, 'Counterparty'),
+            'type' => $this->parse_ledger_entry_type($this->safe_string($item, 'ReferenceType')),
+            'currency' => $this->safe_currency_code($currencyId, $currency),
+            'amount' => $this->parse_number($amount),
+            'before' => $this->parse_number($before),
+            'after' => $this->parse_number($after),
+            'status' => 'ok',
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
             'fee' => null,

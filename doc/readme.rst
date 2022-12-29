@@ -26,7 +26,7 @@ CCXT – CryptoCurrency eXchange Trading Library
      :target: https://discord.gg/ccxt
      :alt: Discord
  
-.. image:: https://img.shields.io/badge/exchanges-111-blue.svg
+.. image:: https://img.shields.io/badge/exchanges-110-blue.svg
      :target: https://github.com/ccxt/ccxt/wiki/Exchange-Markets
      :alt: Supported Exchanges
  
@@ -359,7 +359,7 @@ Certified Cryptocurrency Exchanges
 Supported Cryptocurrency Exchange Markets
 -----------------------------------------
 
-The CCXT library currently supports the following 105 cryptocurrency exchange markets and trading APIs:
+The CCXT library currently supports the following 104 cryptocurrency exchange markets and trading APIs:
 
 .. list-table::
    :header-rows: 1
@@ -381,7 +381,10 @@ The CCXT library currently supports the following 105 cryptocurrency exchange ma
           :alt: API Version *
      
      - 
-     - 
+     - .. image:: https://img.shields.io/badge/CCXT-Pro-black
+          :target: https://ccxt.pro
+          :alt: CCXT Pro
+     
    * - .. image:: https://user-images.githubusercontent.com/1294454/112027508-47984600-8b48-11eb-9e17-d26459cc36c6.jpg
           :target: https://ascendex.com/en-us/register?inviteCode=EL6BXBQM
           :alt: ascendex
@@ -1194,10 +1197,7 @@ The CCXT library currently supports the following 105 cryptocurrency exchange ma
           :alt: API Version 3
      
      - 
-     - .. image:: https://img.shields.io/badge/CCXT-Pro-black
-          :target: https://ccxt.pro
-          :alt: CCXT Pro
-     
+     - 
    * - .. image:: https://user-images.githubusercontent.com/1294454/75841031-ca375180-5ddd-11ea-8417-b975674c23cb.jpg
           :target: https://pro.hollaex.com/signup?affiliation_code=QSWA6G
           :alt: hollaex
@@ -1585,18 +1585,6 @@ The CCXT library currently supports the following 105 cryptocurrency exchange ma
      
      - 
      - 
-   * - .. image:: https://user-images.githubusercontent.com/51840849/80491487-74a99c00-896b-11ea-821e-d307e832f13e.jpg
-          :target: https://qtrade.io/?ref=BKOQWVFGRH2C
-          :alt: qtrade
-     
-     - qtrade
-     - `qTrade <https://qtrade.io/?ref=BKOQWVFGRH2C>`__
-     - .. image:: https://img.shields.io/badge/1-lightgray
-          :target: https://qtrade-exchange.github.io/qtrade-docs
-          :alt: API Version 1
-     
-     - 
-     - 
    * - .. image:: https://user-images.githubusercontent.com/1294454/94507548-a83d6a80-0218-11eb-9998-28b9cec54165.jpg
           :target: https://exchange.ripio.com
           :alt: ripio
@@ -1864,14 +1852,14 @@ JavaScript (for use with the ``<script>`` tag):
 All-in-one browser bundle (dependencies included), served from a CDN of your choice:
 
 
- * jsDelivr: https://cdn.jsdelivr.net/npm/ccxt@2.4.32/dist/ccxt.browser.js
- * unpkg: https://unpkg.com/ccxt@2.4.32/dist/ccxt.browser.js
+ * jsDelivr: https://cdn.jsdelivr.net/npm/ccxt@2.4.74/dist/ccxt.browser.js
+ * unpkg: https://unpkg.com/ccxt@2.4.74/dist/ccxt.browser.js
 
 CDNs are not updated in real-time and may have delays. Defaulting to the most recent version without specifying the version number is not recommended. Please, keep in mind that we are not responsible for the correct operation of those CDN servers.
 
 .. code-block:: HTML
 
-   <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/ccxt@2.4.32/dist/ccxt.browser.js"></script>
+   <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/ccxt@2.4.74/dist/ccxt.browser.js"></script>
 
 Creates a global ``ccxt`` object:
 
@@ -2193,6 +2181,9 @@ Social
  * .. image:: https://img.shields.io/discord/690203284119617602?logo=discord&logoColor=white
        :target: https://discord.gg/dhzSKYU
        :alt: Discord
+
+ * `CCXT Channel on Telegram <https://t.me/ccxt_announcements>`__ (important announcements)
+ * `CCXT Chat on Telegram <https://t.me/ccxt_chat>`__ (technical support)
 
 Contact Us
 ----------

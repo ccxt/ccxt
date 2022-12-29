@@ -907,6 +907,8 @@ class huobi(Exchange):
                     'invalid-address': BadRequest,  # {"status":"error","err-code":"invalid-address","err-msg":"Invalid address.","data":null},
                     'base-currency-chain-error': BadRequest,  # {"status":"error","err-code":"base-currency-chain-error","err-msg":"The current currency chain does not exist","data":null},
                     'dw-insufficient-balance': InsufficientFunds,  # {"status":"error","err-code":"dw-insufficient-balance","err-msg":"Insufficient balance. You can only transfer `12.3456` at most.","data":null}
+                    'base-withdraw-fee-error': BadRequest,  # {"status":"error","err-code":"base-withdraw-fee-error","err-msg":"withdrawal fee is not within limits","data":null}
+                    'dw-withdraw-min-limit': BadRequest,  # {"status":"error","err-code":"dw-withdraw-min-limit","err-msg":"The withdrawal amount is less than the minimum limit.","data":null}
                 },
             },
             'precisionMode': TICK_SIZE,
@@ -923,6 +925,9 @@ class huobi(Exchange):
                             'inverse': True,
                         },
                     },
+                },
+                'withdraw': {
+                    'includeFee': False,
                 },
                 'defaultType': 'spot',  # spot, future, swap
                 'defaultSubType': 'linear',  # inverse, linear
@@ -1736,9 +1741,20 @@ class huobi(Exchange):
         #         askSize:  0.4156
         #     }
         #
+        # watchTikcer - bbo
+        #     {
+        #         seqId: 161499562790,
+        #         ask: 16829.51,
+        #         askSize: 0.707776,
+        #         bid: 16829.5,
+        #         bidSize: 1.685945,
+        #         quoteTime: 1671941599612,
+        #         symbol: 'btcusdt'
+        #     }
+        #
         marketId = self.safe_string_2(ticker, 'symbol', 'contract_code')
         symbol = self.safe_symbol(marketId, market)
-        timestamp = self.safe_integer(ticker, 'ts')
+        timestamp = self.safe_integer_2(ticker, 'ts', 'quoteTime')
         bid = None
         bidVolume = None
         ask = None
@@ -4507,6 +4523,7 @@ class huobi(Exchange):
             currency = self.currency(code)
         request = {
             'type': 'deposit',
+            'direct': 'next',
             'from': 0,  # From 'id' ... if you want to get results after a particular transaction id, pass the id in params.from
         }
         if currency is not None:
@@ -4559,6 +4576,7 @@ class huobi(Exchange):
             currency = self.currency(code)
         request = {
             'type': 'withdraw',
+            'direct': 'next',
             'from': 0,  # From 'id' ... if you want to get results after a particular transaction id, pass the id in params.from
         }
         if currency is not None:
@@ -4716,15 +4734,35 @@ class huobi(Exchange):
         currency = self.currency(code)
         request = {
             'address': address,  # only supports existing addresses in your withdraw address list
-            'amount': amount,
             'currency': currency['id'].lower(),
         }
         if tag is not None:
             request['addr-tag'] = tag  # only for XRP?
-        networkCode, paramsOmited = self.handle_network_code_and_params(params)
+        networkCode = None
+        networkCode, params = self.handle_network_code_and_params(params)
         if networkCode is not None:
             request['chain'] = self.network_code_to_id(networkCode, code)
-        response = self.spotPrivatePostV1DwWithdrawApiCreate(self.extend(request, paramsOmited))
+        amount = float(self.currency_to_precision(code, amount, networkCode))
+        withdrawOptions = self.safe_value(self.options, 'withdraw', {})
+        if self.safe_value(withdrawOptions, 'includeFee', False):
+            fee = self.safe_number(params, 'fee')
+            if fee is None:
+                currencies = self.fetch_currencies()
+                self.currencies = self.deep_extend(self.currencies, currencies)
+                targetNetwork = self.safe_value(currency['networks'], networkCode, {})
+                fee = self.safe_number(targetNetwork, 'fee')
+                if fee is None:
+                    raise ArgumentsRequired(self.id + ' withdraw() function can not find withdraw fee for chosen network. You need to re-load markets with "exchange.loadMarkets(True)", or provide the "fee" parameter')
+            # fee needs to be deducted from whole amount
+            feeString = self.currency_to_precision(code, fee, networkCode)
+            params = self.omit(params, 'fee')
+            amountString = self.number_to_string(amount)
+            amountSubtractedString = Precise.string_sub(amountString, feeString)
+            amountSubtracted = float(amountSubtractedString)
+            request['fee'] = float(feeString)
+            amount = float(self.currency_to_precision(code, amountSubtracted, networkCode))
+        request['amount'] = amount
+        response = self.spotPrivatePostV1DwWithdrawApiCreate(self.extend(request, params))
         #
         #     {
         #         "status": "ok",
@@ -4853,8 +4891,8 @@ class huobi(Exchange):
                     'timestamp': timestamp,
                     'datetime': self.iso8601(timestamp),
                 }
-            market = self.markets_by_id[self.safe_string(rate, 'symbol')]
-            symbol = market['symbol']
+            marketId = self.safe_string(rate, 'symbol')
+            symbol = self.safe_symbol(marketId)
             rates[symbol] = symbolRates
         return rates
 

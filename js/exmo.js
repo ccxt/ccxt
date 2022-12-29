@@ -1490,9 +1490,8 @@ module.exports = class exmo extends Exchange {
         //         ]
         //     }
         //
-        let id = this.safeString (order, 'order_id');
-        let timestamp = this.safeTimestamp (order, 'created');
-        let symbol = undefined;
+        const id = this.safeString (order, 'order_id');
+        const timestamp = this.safeTimestamp (order, 'created');
         const side = this.safeString (order, 'type');
         let marketId = undefined;
         if ('pair' in order) {
@@ -1505,83 +1504,23 @@ module.exports = class exmo extends Exchange {
             }
         }
         market = this.safeMarket (marketId, market);
-        let amount = this.safeNumber (order, 'quantity');
+        const symbol = market['symbol'];
+        let amount = this.safeString (order, 'quantity');
         if (amount === undefined) {
             const amountField = (side === 'buy') ? 'in_amount' : 'out_amount';
-            amount = this.safeNumber (order, amountField);
+            amount = this.safeString (order, amountField);
         }
-        let price = this.safeNumber (order, 'price');
-        let cost = this.safeNumber (order, 'amount');
-        let filled = 0.0;
-        const trades = [];
+        const price = this.safeString (order, 'price');
+        const cost = this.safeString (order, 'amount');
         const transactions = this.safeValue (order, 'trades', []);
-        let feeCost = undefined;
-        let lastTradeTimestamp = undefined;
-        let average = undefined;
-        const numTransactions = transactions.length;
-        if (numTransactions > 0) {
-            feeCost = 0;
-            for (let i = 0; i < numTransactions; i++) {
-                const trade = this.parseTrade (transactions[i], market);
-                if (id === undefined) {
-                    id = trade['order'];
-                }
-                if (timestamp === undefined) {
-                    timestamp = trade['timestamp'];
-                }
-                if (timestamp > trade['timestamp']) {
-                    timestamp = trade['timestamp'];
-                }
-                filled = this.sum (filled, trade['amount']);
-                feeCost = this.sum (feeCost, trade['fee']['cost']);
-                trades.push (trade);
-            }
-            lastTradeTimestamp = trades[numTransactions - 1]['timestamp'];
-        }
-        let status = this.safeString (order, 'status'); // in case we need to redefine it for canceled orders
-        let remaining = undefined;
-        if (amount !== undefined) {
-            remaining = amount - filled;
-            if (filled >= amount) {
-                status = 'closed';
-            } else {
-                status = 'open';
-            }
-        }
-        if (market === undefined) {
-            market = this.getMarketFromTrades (trades);
-        }
-        let feeCurrency = undefined;
-        if (market !== undefined) {
-            symbol = market['symbol'];
-            feeCurrency = market['quote'];
-        }
-        if (cost === undefined) {
-            if (price !== undefined) {
-                cost = price * filled;
-            }
-        } else {
-            if (filled > 0) {
-                if (average === undefined) {
-                    average = cost / filled;
-                }
-                if (price === undefined) {
-                    price = cost / filled;
-                }
-            }
-        }
-        const fee = {
-            'cost': feeCost,
-            'currency': feeCurrency,
-        };
         const clientOrderId = this.safeInteger (order, 'client_id');
-        return {
+        return this.safeOrder ({
             'id': id,
             'clientOrderId': clientOrderId,
             'datetime': this.iso8601 (timestamp),
             'timestamp': timestamp,
-            'lastTradeTimestamp': lastTradeTimestamp,
-            'status': status,
+            'lastTradeTimestamp': undefined,
+            'status': undefined,
             'symbol': symbol,
             'type': 'limit',
             'timeInForce': undefined,
@@ -1591,13 +1530,13 @@ module.exports = class exmo extends Exchange {
             'stopPrice': undefined,
             'cost': cost,
             'amount': amount,
-            'filled': filled,
-            'remaining': remaining,
-            'average': average,
-            'trades': trades,
-            'fee': fee,
+            'filled': undefined,
+            'remaining': undefined,
+            'average': undefined,
+            'trades': transactions,
+            'fee': undefined,
             'info': order,
-        };
+        }, market);
     }
 
     async fetchCanceledOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {

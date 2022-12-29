@@ -600,17 +600,14 @@ module.exports = class phemex extends phemexRest {
         for (let i = 0; i < message.length; i++) {
             const rawTrade = message[i];
             const marketId = this.safeString (rawTrade, 'symbol');
-            // skip delisted  markets
-            if (marketId in this.markets_by_id) {
-                const parsed = this.parseTrade (rawTrade);
-                cachedTrades.append (parsed);
-                const symbol = parsed['symbol'];
-                const market = this.market (symbol);
-                if (type === undefined) {
-                    type = market['type'];
-                }
-                marketIds[symbol] = true;
+            const market = this.safeMarket (marketId);
+            const parsed = this.parseTrade (rawTrade);
+            cachedTrades.append (parsed);
+            const symbol = parsed['symbol'];
+            if (type === undefined) {
+                type = market['type'];
             }
+            marketIds[symbol] = true;
         }
         const keys = Object.keys (marketIds);
         for (let i = 0; i < keys.length; i++) {
@@ -756,31 +753,22 @@ module.exports = class phemex extends phemexRest {
             if (ordersLength === 0) {
                 return;
             }
-            const fills = this.safeValue (message, 'fills', []);
-            trades = fills;
+            trades = this.safeValue (message, 'fills', []);
             for (let i = 0; i < orders.length; i++) {
                 const rawOrder = orders[i];
-                const marketId = this.safeString (rawOrder, 'symbol');
-                // skip delisted spot markets
-                if (marketId in this.markets_by_id) {
-                    const parsedOrder = this.parseOrder (rawOrder);
-                    parsedOrders.push (parsedOrder);
-                }
+                const parsedOrder = this.parseOrder (rawOrder);
+                parsedOrders.push (parsedOrder);
             }
         } else {
             for (let i = 0; i < message.length; i++) {
                 const update = message[i];
-                const marketId = this.safeString (update, 'symbol');
-                if (marketId in this.markets_by_id) {
-                    // skip delisted swap markets
-                    const action = this.safeString (update, 'action');
-                    if ((action !== undefined) && (action !== 'Cancel')) {
-                        // order + trade info together
-                        trades.push (update);
-                    }
-                    const parsedOrder = this.parseWSSwapOrder (update);
-                    parsedOrders.push (parsedOrder);
+                const action = this.safeString (update, 'action');
+                if ((action !== undefined) && (action !== 'Cancel')) {
+                    // order + trade info together
+                    trades.push (update);
                 }
+                const parsedOrder = this.parseWSSwapOrder (update);
+                parsedOrders.push (parsedOrder);
             }
         }
         this.handleMyTrades (client, trades);

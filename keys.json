@@ -1,4 +1,6 @@
 {
+    "ascendex":      { "skipWs": true },
+    "alpaca":        { "skipWs": true },
     "aax":           { "skip": true, "skipWs": true },
     "binance":       { "skipWs": true, "httpProxy": "http://51.83.140.52:11230" },
     "binanceusdm":   { "skipWs": true, "httpProxy": "http://51.83.140.52:11230" },
@@ -6,14 +8,11 @@
     "bitcoincom":    { "skipWs": true },
     "bitmart":       { "skipWs": true },
     "bitmex":        { "skipWs": true },
-    "bkex":          { "skip": true },
     "bitfinex":      { "skipWs": true },
     "cdax":          { "skipWs": true },
-    "currencycom":   { "skip": true, "skipWs": true },
+    "cex":           { "skipWs": true   },
+    "currencycom":   { "skipWs": true },
     "cryptocom":     { "skipWs": true },
-    "dsx":           { "skipWs": true },
-    "ftx":           { "skip": true, "skipWs": true },
-    "ftxus":         { "skip": true, "skipWs": true },
     "huobipro":      { "skipWs": true },
     "okcoin":        { "skipWs": true },
     "poloniex":      { "skipWs": true },
@@ -35,9 +34,8 @@
     "tidebit":       { "skip": true },
     "tokocrypto":    { "skip": true },
     "crex24":        { "skip": true },
-    "cex":           { "skip": true },
-    "ascendex":      { "skip": true },
     "btcex":         { "skip": true },
     "wazirx":        { "skipWs": true },
-    "okx":          { "skipWs": true }
+    "okx":           { "skipWs": true },
+    "deribit":       { "skipWs": true }
 }

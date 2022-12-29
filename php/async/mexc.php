@@ -290,6 +290,7 @@ class mexc extends Exchange {
                 'cancelOrder' => array(
                     'method' => 'spotPrivateDeleteOrderCancel', // contractPrivatePostOrderCancel contractPrivatePostPlanorderCancel
                 ),
+                'broker' => 'CCXT',
             ),
             'commonCurrencies' => array(
                 'BEYONDPROTOCOL' => 'BEYOND',
@@ -303,6 +304,7 @@ class mexc extends Exchange {
                 'FLUX1' => 'FLUX', // switched places
                 'FLUX' => 'FLUX1', // switched places
                 'FREE' => 'FreeRossDAO', // conflict with FREE Coin
+                'GAS' => 'GASDAO',
                 'GMT' => 'GMT Token',
                 'HERO' => 'Step Hero', // conflict with Metahero
                 'MIMO' => 'Mimosa',
@@ -3158,6 +3160,7 @@ class mexc extends Exchange {
                 'ApiKey' => $this->apiKey,
                 'Request-Time' => $timestamp,
                 'Content-Type' => 'application/json',
+                'source' => $this->safe_string($this->options, 'broker', 'CCXT'),
             );
             if ($method === 'POST') {
                 $auth = $this->json($params);

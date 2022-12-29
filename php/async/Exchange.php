@@ -34,11 +34,11 @@ use Exception;
 
 include 'Throttle.php';
 
-$version = '2.4.32';
+$version = '2.4.74';
 
 class Exchange extends \ccxt\Exchange {
 
-    const VERSION = '2.4.32';
+    const VERSION = '2.4.74';
 
     public $browser;
     public $marketsLoading = null;
@@ -300,16 +300,24 @@ class Exchange extends \ccxt\Exchange {
 
     public function set_markets($markets, $currencies = null) {
         $values = array();
-        $marketValues = $this->to_array($markets);
+        $this->markets_by_id = array();
+        // handle marketId conflicts
+        // we insert spot $markets first
+        $marketValues = $this->sort_by($this->to_array($markets), 'spot', true);
         for ($i = 0; $i < count($marketValues); $i++) {
+            $value = $marketValues[$i];
+            if (is_array($this->markets_by_id) && array_key_exists($value['id'], $this->markets_by_id)) {
+                $this->markets_by_id[$value['id']][] = $value;
+            } else {
+                $this->markets_by_id[$value['id']] = array( $value );
+            }
             $market = $this->deep_extend($this->safe_market(), array(
                 'precision' => $this->precision,
                 'limits' => $this->limits,
-            ), $this->fees['trading'], $marketValues[$i]);
+            ), $this->fees['trading'], $value);
             $values[] = $market;
         }
         $this->markets = $this->index_by($values, 'symbol');
-        $this->markets_by_id = $this->index_by($markets, 'id');
         $marketsSortedBySymbol = $this->keysort ($this->markets);
         $marketsSortedById = $this->keysort ($this->markets_by_id);
         $this->symbols = is_array($marketsSortedBySymbol) ? array_keys($marketsSortedBySymbol) : array();
@@ -426,12 +434,16 @@ class Exchange extends \ccxt\Exchange {
         $average = $this->omit_zero($this->safe_string($order, 'average'));
         $price = $this->omit_zero($this->safe_string($order, 'price'));
         $lastTradeTimeTimestamp = $this->safe_integer($order, 'lastTradeTimestamp');
+        $symbol = $this->safe_string($order, 'symbol');
+        $side = $this->safe_string($order, 'side');
         $parseFilled = ($filled === null);
         $parseCost = ($cost === null);
         $parseLastTradeTimeTimestamp = ($lastTradeTimeTimestamp === null);
         $fee = $this->safe_value($order, 'fee');
         $parseFee = ($fee === null);
         $parseFees = $this->safe_value($order, 'fees') === null;
+        $parseSymbol = $symbol === null;
+        $parseSide = $side === null;
         $shouldParseFees = $parseFee || $parseFees;
         $fees = $this->safe_value($order, 'fees', array());
         $trades = array();
@@ -440,12 +452,7 @@ class Exchange extends \ccxt\Exchange {
             $oldNumber = $this->number;
             // we parse $trades as strings here!
             $this->number = 'strval';
-            $trades = $this->parse_trades($rawTrades, $market, null, null, array(
-                'symbol' => $order['symbol'],
-                'side' => $order['side'],
-                'type' => $order['type'],
-                'order' => $order['id'],
-            ));
+            $trades = $this->parse_trades($rawTrades, $market);
             $this->number = $oldNumber;
             $tradesLength = 0;
             $isArray = gettype($trades) === 'array' && array_keys($trades) === array_keys(array_keys($trades));
@@ -481,6 +488,12 @@ class Exchange extends \ccxt\Exchange {
                     $tradeCost = $this->safe_string($trade, 'cost');
                     if ($parseCost && ($tradeCost !== null)) {
                         $cost = Precise::string_add($cost, $tradeCost);
+                    }
+                    if ($parseSymbol) {
+                        $symbol = $this->safe_string($trade, 'symbol');
+                    }
+                    if ($parseSide) {
+                        $side = $this->safe_string($trade, 'side');
                     }
                     $tradeTimestamp = $this->safe_value($trade, 'timestamp');
                     if ($parseLastTradeTimeTimestamp && ($tradeTimestamp !== null)) {
@@ -621,6 +634,8 @@ class Exchange extends \ccxt\Exchange {
             $postOnly = $timeInForce === 'PO';
         }
         return array_merge($order, array(
+            'symbol' => $symbol,
+            'side' => $side,
             'lastTradeTimestamp' => $lastTradeTimeTimestamp,
             'price' => $this->parse_number($price),
             'amount' => $this->parse_number($amount),
@@ -750,20 +765,6 @@ class Exchange extends \ccxt\Exchange {
         $parseFees = $this->safe_value($trade, 'fees') === null;
         $shouldParseFees = $parseFee || $parseFees;
         $fees = array();
-        if ($shouldParseFees) {
-            $tradeFees = $this->safe_value($trade, 'fees');
-            if ($tradeFees !== null) {
-                for ($j = 0; $j < count($tradeFees); $j++) {
-                    $tradeFee = $tradeFees[$j];
-                    $fees[] = array_merge(array(), $tradeFee);
-                }
-            } else {
-                $tradeFee = $this->safe_value($trade, 'fee');
-                if ($tradeFee !== null) {
-                    $fees[] = array_merge(array(), $tradeFee);
-                }
-            }
-        }
         $fee = $this->safe_value($trade, 'fee');
         if ($shouldParseFees) {
             $reducedFees = $this->reduceFees ? $this->reduce_fees_by_currency($fees) : $fees;
@@ -1007,6 +1008,9 @@ class Exchange extends \ccxt\Exchange {
     }
 
     public function market_ids($symbols) {
+        if ($symbols === null) {
+            return $symbols;
+        }
         $result = array();
         for ($i = 0; $i < count($symbols); $i++) {
             $result[] = $this->market_id($symbols[$i]);
@@ -1182,6 +1186,24 @@ class Exchange extends \ccxt\Exchange {
             }
         }
         return $networkCode;
+    }
+
+    public function network_codes_to_ids($networkCodes = null) {
+        /**
+         * @ignore
+         * tries to convert the provided $networkCode (which is expected to be an unified network code) to a network id. In order to achieve this, derived class needs to have 'options->networks' defined.
+         * @param {[string]|null} $networkCodes unified network codes
+         * @return {[string|null]} exchange-specific network $ids
+         */
+        if ($networkCodes === null) {
+            return null;
+        }
+        $ids = array();
+        for ($i = 0; $i < count($networkCodes); $i++) {
+            $networkCode = $networkCodes[$i];
+            $ids[] = $this->networkCodeToId ($networkCode);
+        }
+        return $ids;
     }
 
     public function handle_network_code_and_params($params) {
@@ -1552,7 +1574,7 @@ class Exchange extends \ccxt\Exchange {
         );
     }
 
-    public function safe_market($marketId = null, $market = null, $delimiter = null) {
+    public function safe_market($marketId = null, $market = null, $delimiter = null, $marketType = null) {
         $result = array(
             'id' => $marketId,
             'symbol' => $marketId,
@@ -1599,7 +1621,21 @@ class Exchange extends \ccxt\Exchange {
         );
         if ($marketId !== null) {
             if (($this->markets_by_id !== null) && (is_array($this->markets_by_id) && array_key_exists($marketId, $this->markets_by_id))) {
-                $market = $this->markets_by_id[$marketId];
+                $markets = $this->markets_by_id[$marketId];
+                $length = count($markets);
+                if ($length === 1) {
+                    return $markets[0];
+                } else {
+                    if ($marketType === null) {
+                        throw new ArgumentsRequired($this->id . ' safeMarket() requires a fourth argument for ' . $marketId . ' to disambiguate between different $markets with the same $market id');
+                    }
+                    for ($i = 0; $i < count($markets); $i++) {
+                        $market = $markets[$i];
+                        if ($market[$marketType]) {
+                            return $market;
+                        }
+                    }
+                }
             } elseif ($delimiter !== null) {
                 $parts = explode($delimiter, $marketId);
                 $partsLength = count($parts);
@@ -1758,19 +1794,20 @@ class Exchange extends \ccxt\Exchange {
         $value = $this->safe_string_2($params, $optionName, $defaultOptionName);
         if ($value !== null) {
             $params = $this->omit ($params, array( $optionName, $defaultOptionName ));
-        }
-        if ($value === null) {
-            // check if exchange-wide method options contain the key
+        } else {
+            // check if exchange has properties for this method
             $exchangeWideMethodOptions = $this->safe_value($this->options, $methodName);
             if ($exchangeWideMethodOptions !== null) {
+                // check if the option is defined in this method's props
                 $value = $this->safe_string_2($exchangeWideMethodOptions, $optionName, $defaultOptionName);
             }
+            if ($value === null) {
+                // if it's still null, check if global exchange-wide option exists
+                $value = $this->safe_string_2($this->options, $optionName, $defaultOptionName);
+            }
+            // if it's still null, use the default $value
+            $value = ($value !== null) ? $value : $defaultValue;
         }
-        if ($value === null) {
-            // check if exchange-wide options contain the key
-            $value = $this->safe_string_2($this->options, $optionName, $defaultOptionName);
-        }
-        $value = ($value !== null) ? $value : $defaultValue;
         return array( $value, $params );
     }
 
@@ -1986,19 +2023,24 @@ class Exchange extends \ccxt\Exchange {
 
     public function market($symbol) {
         if ($this->markets === null) {
-            throw new ExchangeError($this->id . ' markets not loaded');
-        }
-        if ($this->markets_by_id === null) {
-            throw new ExchangeError($this->id . ' markets not loaded');
+            throw new ExchangeError($this->id . ' $markets not loaded');
         }
         if (gettype($symbol) === 'string') {
             if (is_array($this->markets) && array_key_exists($symbol, $this->markets)) {
                 return $this->markets[$symbol];
             } elseif (is_array($this->markets_by_id) && array_key_exists($symbol, $this->markets_by_id)) {
-                return $this->markets_by_id[$symbol];
+                $markets = $this->markets_by_id[$symbol];
+                $defaultType = $this->safe_string_2($this->options, 'defaultType', 'defaultSubType', 'spot');
+                for ($i = 0; $i < count($markets); $i++) {
+                    $market = $markets[$i];
+                    if ($market[$defaultType]) {
+                        return $market;
+                    }
+                }
+                return $markets[0];
             }
         }
-        throw new BadSymbol($this->id . ' does not have market $symbol ' . $symbol);
+        throw new BadSymbol($this->id . ' does not have $market $symbol ' . $symbol);
     }
 
     public function handle_withdraw_tag_and_params($tag, $params) {
@@ -2279,8 +2321,8 @@ class Exchange extends \ccxt\Exchange {
         return $this->filter_by_symbol_since_limit($sorted, $symbol, $since, $limit);
     }
 
-    public function safe_symbol($marketId, $market = null, $delimiter = null) {
-        $market = $this->safe_market($marketId, $market, $delimiter);
+    public function safe_symbol($marketId, $market = null, $delimiter = null, $marketType = null) {
+        $market = $this->safe_market($marketId, $market, $delimiter, $marketType);
         return $market['symbol'];
     }
 

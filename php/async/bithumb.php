@@ -171,6 +171,14 @@ class bithumb extends Exchange {
         ));
     }
 
+    public function safe_market($marketId = null, $market = null, $delimiter = null, $marketType = null) {
+        // bithumb has a different type of conflict in markets, because
+        // their ids are the base currency (BTC for instance), so we can have
+        // multiple "BTC" ids representing the different markets (BTC/ETH, "BTC/DOGE", etc)
+        // since they're the same we just need to return one
+        return parent::safe_market($marketId, $market, $delimiter, 'spot');
+    }
+
     public function amount_to_precision($symbol, $amount) {
         return $this->decimal_to_precision($amount, TRUNCATE, $this->markets[$symbol]['precision']['amount'], DECIMAL_PLACES);
     }

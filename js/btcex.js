@@ -91,6 +91,7 @@ module.exports = class btcex extends Exchange {
                 '3m': '3',
                 '5m': '5',
                 '15m': '15',
+                '30m': '30',
                 '1h': '60',
                 '2h': '120',
                 '3h': '180',
@@ -278,6 +279,7 @@ module.exports = class btcex extends Exchange {
                     '8105': BadRequest, // GOOGLE_CODE_CHECK_FAIL 2FA Code error!
                     '8106': DDoSProtection, // SMS_CODE_LIMIT Your message service is over limit today, please try tomorrow
                     '8107': ExchangeError, // REQUEST_FAILED Request failed
+                    '10000': AuthenticationError, // Authentication Failure
                     '11000': BadRequest, // CHANNEL_REGEX_ERROR channel regex not match
                 },
                 'broad': {
@@ -579,7 +581,7 @@ module.exports = class btcex extends Exchange {
         //     }
         //
         return [
-            this.safeInteger (ohlcv, 'tick'),
+            this.safeTimestamp (ohlcv, 'tick'),
             this.safeNumber (ohlcv, 'open'),
             this.safeNumber (ohlcv, 'high'),
             this.safeNumber (ohlcv, 'low'),

@@ -297,6 +297,7 @@ class mexc(Exchange):
                 'cancelOrder': {
                     'method': 'spotPrivateDeleteOrderCancel',  # contractPrivatePostOrderCancel contractPrivatePostPlanorderCancel
                 },
+                'broker': 'CCXT',
             },
             'commonCurrencies': {
                 'BEYONDPROTOCOL': 'BEYOND',
@@ -310,6 +311,7 @@ class mexc(Exchange):
                 'FLUX1': 'FLUX',  # switched places
                 'FLUX': 'FLUX1',  # switched places
                 'FREE': 'FreeRossDAO',  # conflict with FREE Coin
+                'GAS': 'GASDAO',
                 'GMT': 'GMT Token',
                 'HERO': 'Step Hero',  # conflict with Metahero
                 'MIMO': 'Mimosa',
@@ -2922,6 +2924,7 @@ class mexc(Exchange):
                 'ApiKey': self.apiKey,
                 'Request-Time': timestamp,
                 'Content-Type': 'application/json',
+                'source': self.safe_string(self.options, 'broker', 'CCXT'),
             }
             if method == 'POST':
                 auth = self.json(params)

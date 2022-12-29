@@ -375,7 +375,7 @@ class bitvavo extends \ccxt\async\bitvavo {
         //     {
         //         action => 'getBook',
         //         $response => {
-        //             $market => 'BTC-EUR',
+        //             market => 'BTC-EUR',
         //             nonce => 36946120,
         //             bids => array(
         //                 array( '8494.9', '0.24399521' ),
@@ -395,11 +395,7 @@ class bitvavo extends \ccxt\async\bitvavo {
             return $message;
         }
         $marketId = $this->safe_string($response, 'market');
-        $symbol = null;
-        if (is_array($this->markets_by_id) && array_key_exists($marketId, $this->markets_by_id)) {
-            $market = $this->markets_by_id[$marketId];
-            $symbol = $market['symbol'];
-        }
+        $symbol = $this->safe_symbol($marketId, null, '-');
         $name = 'book';
         $messageHash = $name . '@' . $marketId;
         $orderbook = $this->orderbooks[$symbol];
@@ -429,16 +425,13 @@ class bitvavo extends \ccxt\async\bitvavo {
         $name = 'book';
         for ($i = 0; $i < count($marketIds); $i++) {
             $marketId = $this->safe_string($marketIds, $i);
-            if (is_array($this->markets_by_id) && array_key_exists($marketId, $this->markets_by_id)) {
-                $market = $this->markets_by_id[$marketId];
-                $symbol = $market['symbol'];
-                $messageHash = $name . '@' . $marketId;
-                if (!(is_array($this->orderbooks) && array_key_exists($symbol, $this->orderbooks))) {
-                    $subscription = $this->safe_value($client->subscriptions, $messageHash);
-                    $method = $this->safe_value($subscription, 'method');
-                    if ($method !== null) {
-                        $method($client, $message, $subscription);
-                    }
+            $symbol = $this->safe_symbol($marketId, null, '-');
+            $messageHash = $name . '@' . $marketId;
+            if (!(is_array($this->orderbooks) && array_key_exists($symbol, $this->orderbooks))) {
+                $subscription = $this->safe_value($client->subscriptions, $messageHash);
+                $method = $this->safe_value($subscription, 'method');
+                if ($method !== null) {
+                    $method($client, $message, $subscription);
                 }
             }
         }
@@ -546,19 +539,17 @@ class bitvavo extends \ccxt\async\bitvavo {
         //
         $name = 'account';
         $event = $this->safe_string($message, 'event');
-        $marketId = $this->safe_string($message, 'market', '-');
+        $marketId = $this->safe_string($message, 'market');
+        $market = $this->safe_market($marketId, null, '-');
         $messageHash = $name . '@' . $marketId . '_' . $event;
-        if (is_array($this->markets_by_id) && array_key_exists($marketId, $this->markets_by_id)) {
-            $market = $this->markets_by_id[$marketId];
-            $order = $this->parse_order($message, $market);
-            if ($this->orders === null) {
-                $limit = $this->safe_integer($this->options, 'ordersLimit', 1000);
-                $this->orders = new ArrayCacheBySymbolById ($limit);
-            }
-            $orders = $this->orders;
-            $orders->append ($order);
-            $client->resolve ($this->orders, $messageHash);
+        $order = $this->parse_order($message, $market);
+        if ($this->orders === null) {
+            $limit = $this->safe_integer($this->options, 'ordersLimit', 1000);
+            $this->orders = new ArrayCacheBySymbolById ($limit);
         }
+        $orders = $this->orders;
+        $orders->append ($order);
+        $client->resolve ($this->orders, $messageHash);
     }
 
     public function handle_my_trade($client, $message) {

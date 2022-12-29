@@ -82,6 +82,7 @@ class gate(Exchange):
                 'swap': True,
                 'future': True,
                 'option': None,
+                'addMargin': True,
                 'borrowMargin': True,
                 'cancelAllOrders': True,
                 'cancelOrder': True,
@@ -132,6 +133,7 @@ class gate(Exchange):
                 'fetchTradingFees': True,
                 'fetchTransactionFees': True,
                 'fetchWithdrawals': True,
+                'reduceMargin': True,
                 'repayMargin': True,
                 'setLeverage': True,
                 'setMarginMode': False,
@@ -481,7 +483,7 @@ class gate(Exchange):
                 },
                 'future': {
                     'fetchMarkets': {
-                        'settlementCurrencies': ['usdt', 'btc'],
+                        'settlementCurrencies': ['usdt'],
                     },
                 },
             },
@@ -687,18 +689,13 @@ class gate(Exchange):
         :param dict params: extra parameters specific to the exchange api endpoint
         :returns [dict]: an array of objects representing market data
         """
-        result = []
-        type, query = self.handle_market_type_and_params('fetchMarkets', None, params)
-        if type == 'spot' or type == 'margin':
-            result = self.fetch_spot_markets(query)
-        if type == 'swap' or type == 'future':
-            result = self.fetch_contract_markets(query)  # futures and swaps
-        if type == 'option':
-            result = self.fetch_option_markets(query)
-        resultLength = len(result)
-        if resultLength == 0:
-            raise ExchangeError(self.id + " does not support '" + type + "' type, set exchange.options['defaultType'] to " + "'spot', 'margin', 'swap', 'future' or 'option'")  # eslint-disable-line quotes
-        return result
+        promises = [
+            self.fetch_spot_markets(params),
+            self.fetch_contract_markets(params),
+        ]
+        spotMarkets = promises[0]
+        contractMarkets = promises[1]
+        return self.array_concat(spotMarkets, contractMarkets)
 
     def fetch_spot_markets(self, params):
         marginResponse = self.publicMarginGetCurrencyPairs(params)
@@ -1442,7 +1439,7 @@ class gate(Exchange):
         #    }
         #
         marketId = self.safe_string(contract, 'name')
-        symbol = self.safe_symbol(marketId, market)
+        symbol = self.safe_symbol(marketId, market, '_', 'swap')
         markPrice = self.safe_number(contract, 'mark_price')
         indexPrice = self.safe_number(contract, 'index_price')
         interestRate = self.safe_number(contract, 'interest_rate')
@@ -1833,7 +1830,7 @@ class gate(Exchange):
         #
         timestamp = self.safe_timestamp(info, 'time')
         marketId = self.safe_string(info, 'text')
-        market = self.safe_market(marketId, market)
+        market = self.safe_market(marketId, market, '_', 'swap')
         return {
             'info': info,
             'symbol': self.safe_string(market, 'symbol'),
@@ -2016,7 +2013,8 @@ class gate(Exchange):
         #     }
         #
         marketId = self.safe_string_n(ticker, ['currency_pair', 'contract', 's'])
-        symbol = self.safe_symbol(marketId, market)
+        marketType = 'contract' if ('contract' in ticker) else 'spot'
+        symbol = self.safe_symbol(marketId, market, '_', marketType)
         last = self.safe_string(ticker, 'last')
         ask = self.safe_string_2(ticker, 'lowest_ask', 'a')
         bid = self.safe_string_2(ticker, 'highest_bid', 'b')
@@ -2119,7 +2117,7 @@ class gate(Exchange):
             'future': 'privateDeliveryGetSettleAccounts',
         })
         response = getattr(self, method)(self.extend(request, requestQuery))
-        contract = (type == 'swap' or type == 'future')
+        contract = ((type == 'swap') or (type == 'future'))
         if contract:
             response = [response]
         #
@@ -2252,7 +2250,7 @@ class gate(Exchange):
             entry = data[i]
             if isolated:
                 marketId = self.safe_string(entry, 'currency_pair')
-                symbol = self.safe_symbol(marketId, None, '_')
+                symbol = self.safe_symbol(marketId, None, '_', 'margin')
                 base = self.safe_value(entry, 'base', {})
                 quote = self.safe_value(entry, 'quote', {})
                 baseCode = self.safe_currency_code(self.safe_string(base, 'currency'))
@@ -2682,7 +2680,8 @@ class gate(Exchange):
         timestamp = self.safe_timestamp_2(trade, 'time', 'create_time')
         timestamp = self.safe_integer(trade, 'create_time_ms', timestamp)
         marketId = self.safe_string_2(trade, 'currency_pair', 'contract')
-        market = self.safe_market(marketId, market)
+        marketType = 'contract' if ('contract' in trade) else 'spot'
+        market = self.safe_market(marketId, market, '_', marketType)
         amountString = self.safe_string_2(trade, 'amount', 'size')
         priceString = self.safe_string(trade, 'price')
         contractSide = 'sell' if Precise.string_lt(amountString, '0') else 'buy'
@@ -3413,7 +3412,9 @@ class gate(Exchange):
         lastTradeTimestamp = self.safe_integer(order, 'update_time_ms')
         if lastTradeTimestamp is None:
             lastTradeTimestamp = self.safe_timestamp_2(order, 'update_time', 'finish_time')
+        marketType = 'spot' if ('currency_pair' in order) else 'contract'
         exchangeSymbol = self.safe_string_2(order, 'currency_pair', 'market', contract)
+        symbol = self.safe_symbol(exchangeSymbol, market, '_', marketType)
         # Everything below self(above return) is related to fees
         fees = []
         gtFee = self.safe_string(order, 'gt_fee')
@@ -3444,7 +3445,7 @@ class gate(Exchange):
             'datetime': self.iso8601(timestamp),
             'lastTradeTimestamp': lastTradeTimestamp,
             'status': status,
-            'symbol': self.safe_symbol(exchangeSymbol),
+            'symbol': symbol,
             'type': type,
             'timeInForce': timeInForce,
             'postOnly': postOnly,
@@ -4007,7 +4008,7 @@ class gate(Exchange):
         #     }
         #
         contract = self.safe_string(position, 'contract')
-        market = self.safe_market(contract, market)
+        market = self.safe_market(contract, market, '_', 'contract')
         size = self.safe_string(position, 'size')
         side = None
         if Precise.string_gt(size, '0'):
@@ -4545,7 +4546,7 @@ class gate(Exchange):
             'id': self.safe_integer(info, 'id'),
             'currency': self.safe_currency_code(currencyId, currency),
             'amount': self.safe_number(info, 'amount'),
-            'symbol': self.safe_symbol(marketId, None),
+            'symbol': self.safe_symbol(marketId, None, '_', 'margin'),
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
             'info': info,
@@ -4571,7 +4572,7 @@ class gate(Exchange):
             self.check_required_credentials()
             queryString = ''
             requiresURLEncoding = False
-            if type == 'futures' and method == 'POST':
+            if ((type == 'futures') or (type == 'delivery')) and method == 'POST':
                 pathParts = path.split('/')
                 secondPart = self.safe_string(pathParts, 1, '')
                 requiresURLEncoding = (secondPart.find('dual') >= 0) or (secondPart.find('positions') >= 0)
@@ -4604,6 +4605,78 @@ class gate(Exchange):
                 'Content-Type': 'application/json',
             }
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
+
+    def modify_margin_helper(self, symbol, amount, params={}):
+        self.load_markets()
+        market = self.market(symbol)
+        request, query = self.prepare_request(market, None, params)
+        request['change'] = self.number_to_string(amount)
+        method = self.get_supported_mapping(market['type'], {
+            'swap': 'privateFuturesPostSettlePositionsContractMargin',
+            'future': 'privateDeliveryPostSettlePositionsContractMargin',
+        })
+        response = getattr(self, method)(self.extend(request, query))
+        return self.parse_margin_modification(response, market)
+
+    def parse_margin_modification(self, data, market=None):
+        #
+        #     {
+        #         "value": "11.9257",
+        #         "leverage": "5",
+        #         "mode": "single",
+        #         "realised_point": "0",
+        #         "contract": "ETH_USDT",
+        #         "entry_price": "1203.45",
+        #         "mark_price": "1192.57",
+        #         "history_point": "0",
+        #         "realised_pnl": "-0.00577656",
+        #         "close_order": null,
+        #         "size": "1",
+        #         "cross_leverage_limit": "0",
+        #         "pending_orders": "0",
+        #         "adl_ranking": "5",
+        #         "maintenance_rate": "0.005",
+        #         "unrealised_pnl": "-0.1088",
+        #         "user": "1486602",
+        #         "leverage_max": "100",
+        #         "history_pnl": "0",
+        #         "risk_limit": "1000000",
+        #         "margin": "5.415925875",
+        #         "last_close_pnl": "0",
+        #         "liq_price": "665.69"
+        #     }
+        #
+        contract = self.safe_string(data, 'contract')
+        market = self.safe_market(contract, market, '_', 'contract')
+        total = self.safe_number(data, 'margin')
+        return {
+            'info': data,
+            'amount': None,
+            'code': self.safe_value(market, 'quote'),
+            'symbol': market['symbol'],
+            'total': total,
+            'status': 'ok',
+        }
+
+    def reduce_margin(self, symbol, amount, params={}):
+        """
+        remove margin from a position
+        :param str symbol: unified market symbol
+        :param float amount: the amount of margin to remove
+        :param dict params: extra parameters specific to the exmo api endpoint
+        :returns dict: a `margin structure <https://docs.ccxt.com/en/latest/manual.html#reduce-margin-structure>`
+        """
+        return self.modify_margin_helper(symbol, -amount, params)
+
+    def add_margin(self, symbol, amount, params={}):
+        """
+        add margin
+        :param str symbol: unified market symbol
+        :param float amount: amount of margin to add
+        :param dict params: extra parameters specific to the exmo api endpoint
+        :returns dict: a `margin structure <https://docs.ccxt.com/en/latest/manual.html#add-margin-structure>`
+        """
+        return self.modify_margin_helper(symbol, amount, params)
 
     def handle_errors(self, code, reason, url, method, headers, body, response, requestHeaders, requestBody):
         if response is None:

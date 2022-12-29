@@ -626,7 +626,7 @@ class indodax(Exchange):
         for i in range(0, len(marketIds)):
             marketId = marketIds[i]
             marketOrders = rawOrders[marketId]
-            market = self.markets_by_id[marketId]
+            market = self.safe_market(marketId)
             parsedOrders = self.parse_orders(marketOrders, market, since, limit)
             exchangeOrders = self.array_concat(exchangeOrders, parsedOrders)
         return exchangeOrders

@@ -8,6 +8,7 @@ namespace ccxt\pro;
 use Exception; // a common import
 use ccxt\ExchangeError;
 use ccxt\AuthenticationError;
+use ccxt\BadRequest;
 use React\Async;
 
 class bybit extends \ccxt\async\bybit {
@@ -71,6 +72,9 @@ class bybit extends \ccxt\async\bybit {
                 ),
             ),
             'options' => array(
+                'watchTicker' => array(
+                    'name' => 'tickers', // 'tickers' for 24hr statistical ticker or 'bookticker' for Best bid price and best ask price
+                ),
                 'spot' => array(
                     'timeframes' => array(
                         '1m' => '1m',
@@ -87,7 +91,6 @@ class bybit extends \ccxt\async\bybit {
                         '1w' => '1w',
                         '1M' => '1M',
                     ),
-                    'watchTickerTopic' => 'tickers', // 'tickers' for 24hr statistical ticker or 'bookticker' for Best bid price and best ask price
                 ),
                 'contract' => array(
                     'timeframes' => array(
@@ -189,10 +192,10 @@ class bybit extends \ccxt\async\bybit {
             $messageHash = 'ticker:' . $market['symbol'];
             $url = $this->get_url_by_market_type($symbol, false, false, $params);
             $params = $this->clean_params($params);
-            $topic = 'tickers';
-            if ($market['spot']) {
-                $spotOptions = $this->safe_value($this->options, 'spot', array());
-                $topic = $this->safe_string($spotOptions, 'watchTickerTopic', 'tickers');
+            $options = $this->safe_value($this->options, 'watchTicker', array());
+            $topic = $this->safe_string($options, 'name', 'tickers');
+            if (!$market['spot'] && $topic !== 'tickers') {
+                throw new BadRequest($this->id . ' watchTicker() only supports name tickers for contract markets');
             }
             $topic .= '.' . $market['id'];
             $topics = array( $topic );
@@ -370,7 +373,9 @@ class bybit extends \ccxt\async\bybit {
         $topicLength = count($topicParts);
         $timeframeId = $this->safe_string($topicParts, 1);
         $marketId = $this->safe_string($topicParts, $topicLength - 1);
-        $market = $this->safe_market($marketId);
+        $isSpot = mb_strpos($client->url, 'spot') > -1;
+        $marketType = $isSpot ? 'spot' : 'contract';
+        $market = $this->safe_market($marketId, null, null, $marketType);
         $symbol = $market['symbol'];
         $ohlcvsByTimeframe = $this->safe_value($this->ohlcvs, $symbol);
         if ($ohlcvsByTimeframe === null) {
@@ -510,8 +515,9 @@ class bybit extends \ccxt\async\bybit {
         }
         $data = $this->safe_value($message, 'data', array());
         $marketId = $this->safe_string($data, 's');
-        $market = $this->safe_market($marketId);
-        $symbol = $this->safe_symbol($marketId, $market);
+        $marketType = $isSpot ? 'spot' : 'contract';
+        $market = $this->safe_market($marketId, null, null, $marketType);
+        $symbol = $market['symbol'];
         $timestamp = $this->safe_integer($message, 'ts');
         $orderbook = $this->safe_value($this->orderbooks, $symbol);
         if ($orderbook === null) {
@@ -521,8 +527,8 @@ class bybit extends \ccxt\async\bybit {
             $snapshot = $this->parse_order_book($data, $symbol, $timestamp, 'b', 'a');
             $orderbook->reset ($snapshot);
         } else {
-            $asks = $this->safe_value($orderbook, 'a', array());
-            $bids = $this->safe_value($orderbook, 'b', array());
+            $asks = $this->safe_value($data, 'a', array());
+            $bids = $this->safe_value($data, 'b', array());
             $this->handle_deltas($orderbook['asks'], $asks);
             $this->handle_deltas($orderbook['bids'], $bids);
             $orderbook['timestamp'] = $timestamp;
@@ -618,8 +624,10 @@ class bybit extends \ccxt\async\bybit {
         $topic = $this->safe_string($message, 'topic');
         $trades = null;
         $parts = explode('.', $topic);
+        $tradeType = $this->safe_string($parts, 0);
+        $marketType = ($tradeType === 'trade') ? 'spot' : 'contract';
         $marketId = $this->safe_string($parts, 1);
-        $market = $this->safe_market($marketId);
+        $market = $this->safe_market($marketId, null, null, $marketType);
         if (gettype($data) === 'array' && array_keys($data) === array_keys(array_keys($data))) {
             // contract markets
             $trades = $data;
@@ -710,8 +718,10 @@ class bybit extends \ccxt\async\bybit {
         //     }
         //
         $id = $this->safe_string_n($trade, array( 'i', 'T', 'v' ));
+        $isContract = (is_array($trade) && array_key_exists('BT', $trade));
+        $marketType = $isContract ? 'contract' : 'spot';
         $marketId = $this->safe_string($trade, 's');
-        $market = $this->safe_market($marketId, $market);
+        $market = $this->safe_market($marketId, $market, null, $marketType);
         $symbol = $market['symbol'];
         $timestamp = $this->safe_integer_2($trade, 't', 'T');
         $side = $this->safe_string_lower($trade, 'S');
@@ -1085,7 +1095,7 @@ class bybit extends \ccxt\async\bybit {
         //
         $id = $this->safe_string($order, 'i');
         $marketId = $this->safe_string($order, 's');
-        $symbol = $this->safe_symbol($marketId, $market);
+        $symbol = $this->safe_symbol($marketId, $market, null, 'spot');
         $timestamp = $this->safe_integer($order, 'O');
         $price = $this->safe_string($order, 'p');
         if ($price === '0') {

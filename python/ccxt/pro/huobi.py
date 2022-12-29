@@ -23,11 +23,11 @@ class huobi(Exchange, ccxt.async_support.huobi):
                 'ws': True,
                 'watchOrderBook': True,
                 'watchOrders': True,
-                'watchTickers': False,  # for now
+                'watchTickers': False,
                 'watchTicker': True,
                 'watchTrades': True,
                 'watchMyTrades': True,
-                'watchBalance': True,  # for now
+                'watchBalance': True,
                 'watchOHLCV': True,
             },
             'urls': {
@@ -97,6 +97,9 @@ class huobi(Exchange, ccxt.async_support.huobi):
                 'ws': {
                     'gunzip': True,
                 },
+                'watchTicker': {
+                    'name': 'market.{marketId}.detail',  # 'market.{marketId}.bbo' or 'market.{marketId}.ticker'
+                },
             },
             'exceptions': {
                 'ws': {
@@ -127,12 +130,17 @@ class huobi(Exchange, ccxt.async_support.huobi):
         await self.load_markets()
         market = self.market(symbol)
         symbol = market['symbol']
-        messageHash = 'market.' + market['id'] + '.detail'
+        options = self.safe_value(self.options, 'watchTicker', {})
+        topic = self.safe_string(options, 'name', 'market.{marketId}.detail')
+        if topic == 'market.{marketId}.ticker' and market['type'] != 'spot':
+            raise BadRequest(self.id + ' watchTicker() with name market.{marketId}.ticker is only allowed for spot markets, use market.{marketId}.detail instead')
+        messageHash = self.implode_params(topic, {'marketId': market['id']})
         url = self.get_url_by_market_type(market['type'], market['linear'])
         return await self.subscribe_public(url, symbol, messageHash, None, params)
 
     def handle_ticker(self, client, message):
         #
+        # 'market.btcusdt.detail'
         #     {
         #         ch: 'market.btcusdt.detail',
         #         ts: 1583494163784,
@@ -146,6 +154,20 @@ class huobi(Exchange, ccxt.async_support.huobi):
         #             amount: 26184.202558551195,
         #             version: 209988464418,
         #             count: 265673
+        #         }
+        #     }
+        # 'market.btcusdt.bbo'
+        #     {
+        #         ch: 'market.btcusdt.bbo',
+        #         ts: 1671941599613,
+        #         tick: {
+        #             seqId: 161499562790,
+        #             ask: 16829.51,
+        #             askSize: 0.707776,
+        #             bid: 16829.5,
+        #             bidSize: 1.685945,
+        #             quoteTime: 1671941599612,
+        #             symbol: 'btcusdt'
         #         }
         #     }
         #
@@ -1476,6 +1498,8 @@ class huobi(Exchange, ccxt.async_support.huobi):
                 'depth': self.handle_order_book,
                 'mbp': self.handle_order_book,
                 'detail': self.handle_ticker,
+                'bbo': self.handle_ticker,
+                'ticker': self.handle_ticker,
                 'trade': self.handle_trades,
                 'kline': self.handle_ohlcv,
             }

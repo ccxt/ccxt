@@ -820,6 +820,9 @@ module.exports = class bybit extends Exchange {
                     'deposit': {},
                 },
             },
+            'commonCurrencies': {
+                'GAS': 'GASDAO',
+            },
         });
     }
 
@@ -1041,24 +1044,18 @@ module.exports = class bybit extends Exchange {
         if (this.options['adjustForTimeDifference']) {
             await this.loadTimeDifference ();
         }
-        const [ type, query ] = this.handleMarketTypeAndParams ('fetchMarkets', undefined, params);
-        if (type === 'spot') {
-            // spot and swap ids are equal
-            // so they can't be loaded together
-            return await this.fetchSpotMarkets (query);
-        }
         let promises = [
+            this.fetchSpotMarkets (params),
             this.fetchDerivativesMarkets ({ 'category': 'linear' }),
             this.fetchDerivativesMarkets ({ 'category': 'inverse' }),
-            this.fetchDerivativesMarkets ({ 'category': 'option' }),
         ];
         promises = await Promise.all (promises);
-        const linearMarkets = promises[0];
-        const inverseMarkets = promises[1];
-        const optionMarkets = promises[2];
-        let markets = linearMarkets;
-        markets = this.arrayConcat (markets, inverseMarkets);
-        return this.arrayConcat (markets, optionMarkets);
+        const spotMarkets = promises[0];
+        const linearMarkets = promises[1];
+        const inverseMarkets = promises[2];
+        let markets = spotMarkets;
+        markets = this.arrayConcat (markets, linearMarkets);
+        return this.arrayConcat (markets, inverseMarkets);
     }
 
     async fetchSpotMarkets (params) {
@@ -1165,14 +1162,14 @@ module.exports = class bybit extends Exchange {
         params['limit'] = 1000; // minimize number of requests
         const response = await this.publicGetDerivativesV3PublicInstrumentsInfo (params);
         const data = this.safeValue (response, 'result', {});
-        let markets = this.safeValue2 (data, 'list', 'dataList', []);
-        let paginationCursor = this.safeString (data, 'cursor');
+        let markets = this.safeValue (data, 'list', []);
+        let paginationCursor = this.safeString (data, 'nextPageCursor');
         if (paginationCursor !== undefined) {
             while (paginationCursor !== undefined) {
                 params['cursor'] = paginationCursor;
                 const response = await this.publicGetDerivativesV3PublicInstrumentsInfo (params);
                 const data = this.safeValue (response, 'result', {});
-                const rawMarkets = this.safeValue2 (data, 'list', 'dataList', []);
+                const rawMarkets = this.safeValue (data, 'list', []);
                 const rawMarketsLength = rawMarkets.length;
                 if (rawMarketsLength === 0) {
                     break;
@@ -1227,9 +1224,8 @@ module.exports = class bybit extends Exchange {
         //         "retCode": 0,
         //         "retMsg": "success",
         //         "result": {
-        //             "resultTotalSize": 1,
-        //             "cursor": "",
-        //             "dataList": [
+        //             "nextPageCursor": "",
+        //             "list": [
         //                 {
         //                     "category": "option",
         //                     "symbol": "BTC-30SEP22-35000-P",
@@ -1444,7 +1440,7 @@ module.exports = class bybit extends Exchange {
         //     }
         //
         const marketId = this.safeString (ticker, 's');
-        const symbol = this.safeSymbol (marketId, market);
+        const symbol = this.safeSymbol (marketId, market, undefined, 'spot');
         const timestamp = this.safeInteger (ticker, 't');
         return this.safeTicker ({
             'symbol': symbol,
@@ -1559,7 +1555,7 @@ module.exports = class bybit extends Exchange {
         //
         const timestamp = this.safeInteger (ticker, 'time');
         const marketId = this.safeString (ticker, 'symbol');
-        const symbol = this.safeSymbol (marketId, market);
+        const symbol = this.safeSymbol (marketId, market, undefined, 'contract');
         const last = this.safeString2 (ticker, 'last_price', 'lastPrice');
         const open = this.safeStringN (ticker, [ 'prev_price_24h', 'openPrice', 'prevPrice24h' ]);
         let percentage = this.safeStringN (ticker, [ 'price_24h_pcnt', 'change24h', 'price24hPcnt' ]);
@@ -2048,7 +2044,7 @@ module.exports = class bybit extends Exchange {
         //         }
         //     }
         //
-        const result = this.safeValue (response, 'result');
+        const result = this.safeValue (response, 'result', {});
         const ohlcvs = this.safeValue (result, 'list', []);
         return this.parseOHLCVs (ohlcvs, market, timeframe, since, limit);
     }
@@ -2233,7 +2229,7 @@ module.exports = class bybit extends Exchange {
             const timestamp = this.safeInteger (entry, 'fundingRateTimestamp');
             rates.push ({
                 'info': entry,
-                'symbol': this.safeSymbol (this.safeString (entry, 'symbol')),
+                'symbol': this.safeSymbol (this.safeString (entry, 'symbol'), undefined, undefined, 'swap'),
                 'fundingRate': this.safeNumber (entry, 'fundingRate'),
                 'timestamp': timestamp,
                 'datetime': this.iso8601 (timestamp),
@@ -2316,12 +2312,12 @@ module.exports = class bybit extends Exchange {
             side = (isBuyer === 0) ? 'buy' : 'sell';
         }
         const marketId = this.safeString (trade, 'symbol');
-        market = this.safeMarket (marketId, market);
-        let fee = {};
-        const feeToken = this.safeString (trade, 'feeTokenId');
-        if (feeToken !== undefined) {
+        market = this.safeMarket (marketId, market, undefined, 'spot');
+        let fee = undefined;
+        const feeCost = this.safeString (trade, 'execFee');
+        if (feeCost !== undefined) {
+            const feeToken = this.safeString (trade, 'feeTokenId');
             const feeCurrency = this.safeCurrencyCode (feeToken);
-            const feeCost = this.safeString (trade, 'execFee');
             fee = {
                 'cost': feeCost,
                 'currency': feeCurrency,
@@ -2461,7 +2457,7 @@ module.exports = class bybit extends Exchange {
         //
         const id = this.safeStringN (trade, [ 'execId', 'id', 'tradeId' ]);
         const marketId = this.safeString (trade, 'symbol');
-        market = this.safeMarket (marketId, market);
+        market = this.safeMarket (marketId, market, undefined, 'contract');
         const symbol = market['symbol'];
         const amountString = this.safeStringN (trade, [ 'orderQty', 'size', 'execQty' ]);
         const priceString = this.safeStringN (trade, [ 'orderPrice', 'price', 'execPrice' ]);
@@ -3207,7 +3203,7 @@ module.exports = class bybit extends Exchange {
         //     }
         //
         const marketId = this.safeString (order, 'symbol');
-        market = this.safeMarket (marketId, market);
+        market = this.safeMarket (marketId, market, undefined, 'contract');
         const symbol = market['symbol'];
         const timestamp = this.safeInteger (order, 'createdTime');
         const id = this.safeString (order, 'orderId');
@@ -3299,7 +3295,7 @@ module.exports = class bybit extends Exchange {
         //     }
         //
         const marketId = this.safeString (order, 'symbol');
-        market = this.safeMarket (marketId, market);
+        market = this.safeMarket (marketId, market, undefined, 'spot');
         const timestamp = this.safeInteger (order, 'createTime');
         const type = this.safeStringLower (order, 'orderType');
         let price = this.safeString (order, 'orderPrice');
@@ -6063,17 +6059,17 @@ module.exports = class bybit extends Exchange {
 
     async fetchDerivativesPositions (symbols = undefined, params = {}) {
         await this.loadMarkets ();
+        const request = {};
         if (Array.isArray (symbols)) {
             if (symbols.length > 1) {
                 throw new ArgumentsRequired (this.id + ' fetchPositions() does not accept an array with more than one symbol');
             }
+            request['symbol'] = this.marketId (symbols[0]);
         } else if (symbols !== undefined) {
-            symbols = [ symbols ];
+            request['symbol'] = this.marketId (symbols);
+        } else {
+            request['dataFilter'] = 'valid';
         }
-        symbols = this.marketSymbols (symbols);
-        const request = {
-            'dataFilter': 'valid',
-        };
         let settle = undefined;
         [ settle, params ] = this.handleOptionAndParams (params, 'fetchPositions', 'settle', settle);
         if (settle !== undefined) {
@@ -6272,7 +6268,7 @@ module.exports = class bybit extends Exchange {
         //     }
         //
         const contract = this.safeString (position, 'symbol');
-        market = this.safeMarket (contract, market);
+        market = this.safeMarket (contract, market, undefined, 'contract');
         const size = Precise.stringAbs (this.safeString (position, 'size'));
         let side = this.safeString (position, 'side');
         side = (side === 'Buy') ? 'long' : 'short';
@@ -6520,7 +6516,7 @@ module.exports = class bybit extends Exchange {
         //
         const result = this.safeValue (response, 'result', {});
         const id = this.safeString (result, 'symbol');
-        market = this.safeMarket (id, market);
+        market = this.safeMarket (id, market, undefined, 'contract');
         const data = this.safeValue (result, 'list', []);
         return this.parseOpenInterests (data, market, since, limit);
     }
@@ -6575,7 +6571,7 @@ module.exports = class bybit extends Exchange {
         //
         const result = this.safeValue (response, 'result', {});
         const id = this.safeString (result, 'symbol');
-        market = this.safeMarket (id, market);
+        market = this.safeMarket (id, market, undefined, 'contract');
         const data = this.safeValue (result, 'list', []);
         return this.parseOpenInterest (data[0], market);
     }
@@ -6619,7 +6615,7 @@ module.exports = class bybit extends Exchange {
         const timestamp = this.safeInteger (interest, 'timestamp');
         const value = this.safeNumber2 (interest, 'open_interest', 'openInterest');
         return {
-            'symbol': this.safeSymbol (market['id']),
+            'symbol': market['symbol'],
             'openInterestAmount': undefined,
             'openInterestValue': value,
             'timestamp': timestamp,
@@ -7356,7 +7352,7 @@ module.exports = class bybit extends Exchange {
         //     }
         //
         const marketId = this.safeString (fee, 'symbol');
-        const symbol = this.safeSymbol (marketId);
+        const symbol = this.safeSymbol (marketId, undefined, undefined, 'contract');
         return {
             'info': fee,
             'symbol': symbol,

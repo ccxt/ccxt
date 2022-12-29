@@ -257,23 +257,14 @@ module.exports = class bitstamp extends bitstampRest {
         }
         const id = this.safeString (trade, 'id');
         const timestamp = parseInt (microtimestamp / 1000);
-        const price = this.safeFloat (trade, 'price');
-        const amount = this.safeFloat (trade, 'amount');
-        let cost = undefined;
-        if ((price !== undefined) && (amount !== undefined)) {
-            cost = price * amount;
-        }
-        let symbol = undefined;
+        const price = this.safeString (trade, 'price');
+        const amount = this.safeString (trade, 'amount');
         const marketId = this.safeString (trade, 's');
-        if (marketId in this.markets_by_id) {
-            market = this.markets_by_id[marketId];
-        }
-        if ((symbol === undefined) && (market !== undefined)) {
-            symbol = market['symbol'];
-        }
+        market = this.safeMarket (marketId, market);
+        const symbol = market['symbol'];
         let side = this.safeInteger (trade, 'type');
         side = (side === 0) ? 'buy' : 'sell';
-        return {
+        return this.safeTrade ({
             'info': trade,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
@@ -285,9 +276,9 @@ module.exports = class bitstamp extends bitstampRest {
             'side': side,
             'price': price,
             'amount': amount,
-            'cost': cost,
+            'cost': undefined,
             'fee': undefined,
-        };
+        }, market);
     }
 
     handleTrade (client, message) {
