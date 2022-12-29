@@ -14,7 +14,7 @@ const TEST_TIMESTAMP = "./testTimestamp.json";
 
 const testFile = require(TEST_TIMESTAMP);
 const lastRun = testFile.lastRun;
-const dayInMs = 3600000;
+const dayInMs = 60 * 60 * 24 * 1000;
 const currentTs = Date.now();
 
 if (process.argv.length < 3) {
@@ -29,7 +29,7 @@ const argv = process.argv
 argv.splice(0,3);
 
 async function main() {
-    
+
     if (currentTs > dayInMs + lastRun) {
         // run all tests again
         runCommand(argv)
@@ -40,8 +40,8 @@ async function main() {
             return;
         }
 
-        const shouldRunEverything = stdout.indexOf("Exchange") > -1 || 
-                                    stdout.indexOf("/test") > -1 || 
+        const shouldRunEverything = stdout.indexOf("Exchange") > -1 ||
+                                    stdout.indexOf("/test") > -1 ||
                                     stdout.indexOf("/build") > -1 ||
                                     stdout.indexOf("/base") > -1 ||
                                     stdout.indexOf("/static_dependencies") > -1
