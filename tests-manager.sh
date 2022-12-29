@@ -15,7 +15,7 @@ now=$(date -u +%s)
 last_run=$(< $timestamp_file)
 delta=$((now - last_run))
 six_hours=$((60 * 60 * 6))
-diff=$(git diff HEAD --name-only)
+diff=$(git diff master --name-only)
 
 function run_tests {
   local rest_args=
