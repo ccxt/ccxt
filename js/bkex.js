@@ -252,6 +252,7 @@ module.exports = class bkex extends Exchange {
                 },
             },
             'commonCurrencies': {
+                'SHINJA': 'SHINJA(1M)',
             },
             'precisionMode': TICK_SIZE,
             'exceptions': {

@@ -791,8 +791,13 @@ module.exports = class bitget extends Exchange {
                 'withdraw': {
                     'fillResponseFromRequest': true,
                 },
+                'sandboxMode': false,
             },
         });
+    }
+
+    setSandboxMode (enabled) {
+        this.options['sandboxMode'] = enabled;
     }
 
     async fetchTime (params = {}) {
@@ -823,13 +828,22 @@ module.exports = class bitget extends Exchange {
          * @param {object} params extra parameters specific to the exchange api endpoint
          * @returns {[object]} an array of objects representing market data
          */
-        const types = this.safeValue (this.options, 'fetchMarkets', [ 'spot', 'swap' ]);
+        const sandboxMode = this.safeValue (this.options, 'sandboxMode', false);
+        let types = this.safeValue (this.options, 'fetchMarkets', [ 'spot', 'swap' ]);
+        if (sandboxMode) {
+            types = [ 'swap' ];
+        }
         let promises = [];
         for (let i = 0; i < types.length; i++) {
             const type = types[i];
             if (type === 'swap') {
-                // the following are simulated trading markets [ 'sumcbl', 'sdmcbl', 'scmcbl' ];
-                const subTypes = [ 'umcbl', 'dmcbl', 'cmcbl' ];
+                let subTypes = undefined;
+                if (sandboxMode) {
+                    // the following are simulated trading markets [ 'sumcbl', 'sdmcbl', 'scmcbl' ];
+                    subTypes = [ 'sumcbl', 'sdmcbl', 'scmcbl' ];
+                } else {
+                    subTypes = [ 'umcbl', 'dmcbl', 'cmcbl' ];
+                }
                 for (let j = 0; j < subTypes.length; j++) {
                     promises.push (this.fetchMarketsByType (type, this.extend (params, {
                         'productType': subTypes[j],
@@ -936,14 +950,8 @@ module.exports = class bitget extends Exchange {
                 symbol = symbol + ':' + settle;
             }
             contract = true;
-            const sumcbl = (typeId === 'SUMCBL');
-            const sdmcbl = (typeId === 'SDMCBL');
-            const scmcbl = (typeId === 'SCMCBL');
-            linear = (typeId === 'UMCBL') || (typeId === 'CMCBL') || sumcbl || scmcbl;
+            linear = (typeId === 'UMCBL') || (typeId === 'CMCBL') || (typeId === 'SUMCBL') || (typeId === 'SCMCBL');
             inverse = !linear;
-            if (sumcbl || sdmcbl || scmcbl) {
-                symbol = marketId;
-            }
             const priceDecimals = this.safeInteger (market, 'pricePlace');
             const amountDecimals = this.safeInteger (market, 'volumePlace');
             const priceStep = this.safeString (market, 'priceEndStep');
