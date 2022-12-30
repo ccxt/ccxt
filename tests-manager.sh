@@ -5,14 +5,14 @@ if [ $# -gt 0 ]; then
   exit 7
 fi
 
-timestamp_file="./last-run.txt"
+timestamp_file="/$HOME/.cache/last-run.txt"
 if ! [ -f "$timestamp_file" ]; then
-  echo "ENOENT: file $timestamp_file not found"
-  exit 2
+  echo '0' > "$timestamp_file"
 fi
 
 now=$(date -u +%s)
-delta=$((now - LAST_RUN))
+last_run=$(< "$timestamp_file")
+delta=$((now - last_run))
 six_hours=$((60 * 60 * 6))
 diff=$(git diff master --name-only)
 
