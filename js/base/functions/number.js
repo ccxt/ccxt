@@ -93,6 +93,10 @@ function precisionFromString (str) {
         const numStr = str.replace (/\de/, '')
         return parseInt (numStr) * -1
     }
+    // support integer formats (without dot) like '1', '10' etc [Note: bug in decimalToPrecision, so this should not be used atm]
+    // if (str.indexOf ('.') === -1) {
+    //     return str.length * -1
+    // }
     // default strings like '0.0001'
     const split = str.replace (/0+$/g, '').split ('.')
     return (split.length > 1) ? (split[1].length) : 0
