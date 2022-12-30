@@ -7,5 +7,5 @@ contact_links:
     url: https://docs.ccxt.com/en/latest/manual.html#troubleshooting
     about: Read our troubleshooting recommendations in our documentation
   - name: CCXT Discord
-    url: https://gatsby.dev/discord
+    url: https://discord.gg/dhzSKYU
     about: Ask questions, get help and discuss new things you're building with the CCXT community

@@ -14,15 +14,15 @@ body:
     id: exchange-url
     attributes:
       label: URL of the Exchange
-      placeholder: e.g. https://www.binance.com
+      placeholder: https://www.binance.com
     validations:
       required: true
 
   - type: input
     id: api-docs
     attributes:
-      label: URL of the Exchange's api docs
-      placeholder: e.g. https://binance-docs.github.io/apidocs
+      label: URL of the Exchange's API docs
+      placeholder: https://binance-docs.github.io/apidocs
     validations:
       required: true
 
@@ -31,4 +31,4 @@ body:
       label: Why should this exchange be implemented?
       description: We would love to add this exchange to CCXT. There are a lot of other exchanges that we would also love to add to CCXT. Why should resources be devoted to adding this exchange to CCXT before adding other exchanges?
     validations:
-      required: true
+      required: false

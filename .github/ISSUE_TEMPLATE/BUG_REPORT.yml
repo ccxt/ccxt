@@ -1,6 +1,5 @@
-name: Bug Report
+name: New Issue
 description: Report bugs here
-labels: ["bug"]
 body:
   - type: markdown
     attributes:
@@ -34,44 +33,52 @@ body:
     id: operating-system
     attributes:
       label: Operating System
-      placeholder: "e.g. MacOS Monteray v12.5.1 Intel Core i3"
+      placeholder: "MacOS Monteray v12.5.1 Intel Core i3"
       description: |
-        - `uname -mpovr`                                                       (Linux) 
-        - selecting ** -> System Preferences -> Overview** from the menu bar  (MacOs)
-        - #TODO                                                                (Windows)
+        - `uname -or`                                                             (Linux)
+        - selecting ** -> About This Mac -> macOS** from the menu bar            (macOS)
+        - selecting **Start > Settings > System > About** from bottom left menu   (Windows)
     validations:
-      required: true
+      required: false
+  - type: dropdown
+    id: language
+    attributes:
+      label: Language
+      description: What language are you using?
+      options:
+        - JavaScript
+        - python
+        - php
+    validations:
+      required: false
   - type: input
     id: language-version
     attributes:
-      label: Language and Version
-      placeholder: "e.g. Node v18.4.0"
+      label: Version
+      placeholder: "18.4.0"
       description: |
         - `node -v`   (JavaScript)
-        - `python -V` (Python)
+        - `python --version` (Python)
         - `php -v`    (PHP)
     validations:
-      required: true
+      required: false
   - type: input
     id: ccxt-version
     attributes:
       label: CCXT Version
-      placeholder: "e.g. v18.4.0"
+      placeholder: "e.g. 2.4.41"
       description: |
-        - `npm info ccxt version`         (JavaScript)
-        - `pip freeze | grep ccxt`        (Python)
-        - `php --ri ccxt | grep Version`  (PHP)
+        - `npm info ccxt version`                   (JavaScript)
+        - `pip show ccxt | grep Version`            (Python)
+        - `composer show ccxt/ccxt | grep Version`  (PHP)
     validations:
-      required: true
+      required: false
 
   - type: textarea
     attributes:
       label: Description
       description: Describe the issue that you're having using words. Be precise. Include clear steps for how to reproduce the issue
       value: |
-        1.
-        2.
-        3.
         ...
     validations:
       required: true
@@ -82,13 +89,8 @@ body:
       description: Post a complete program containing the minimal amount of code required for us to reproduce the error, so that we can copy and paste your code and receive the same error. DON'T POST SCREENSHOTS OF CODE OR ERRORS, POST THE OUTPUT AND CODE IN PLAIN TEXT!
       placeholder: |
         paste your code here, between triple backticks(```), in the format of
-          ```[your_programming_language]
-          REPLACE_THIS_WITH_YOUR_OUTPUT_IN_TEXT_NO_SCREENSHOTS
           ```
-        e.g. 
-          ```js
-          let x = 0;
-          console.log (x);
+          YOUR_CODE_HERE
           ```
     validations:
       required: true
@@ -98,36 +100,9 @@ body:
       label: Current Result
       description: Paste the **full verbose output** of the failing method with `exchange.verbose = true` (should include the request and response from the exchange (not just an error callstack)). Remember to remove your apiKey, secret, password, etc.
       placeholder: |
-        paste your code here, between triple backticks(```), in the format of
-          ```[your_programming_language]
-          REPLACE_THIS_WITH_YOUR_OUTPUT_IN_TEXT_NO_SCREENSHOTS
-          ```
-        e.g. 
-          ```js
-          let x = 0;
-          console.log (x);
-          ```
     validations:
-      required: true
+      required: false
   - type: markdown
     attributes:
       value: |
         ### Please make sure you have removed you `apiKey` and `secret` from the output posted above under **Current Result** and **Code**
-
-  - type: textarea
-    attributes:
-      label: Expected Result
-      description: Paste the output that you expect your program should print with the bug removed
-      placeholder: |
-        paste your code here, between triple backticks(```), in the format of
-          ```[your_programming_language]
-          REPLACE_THIS_WITH_YOUR_OUTPUT_IN_TEXT_NO_SCREENSHOTS
-          ```
-        e.g. 
-          ```js
-          let x = 0;
-          console.log (x);
-          ```
-    validations:
-      required: true
-  
