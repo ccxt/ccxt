@@ -96,6 +96,7 @@ module.exports = class Exchange {
                 'fetchFundingRates': undefined,
                 'fetchIndexOHLCV': undefined,
                 'fetchL2OrderBook': true,
+                'fetchLastPrices': undefined,
                 'fetchLedger': undefined,
                 'fetchLedgerEntry': undefined,
                 'fetchLeverageTiers': undefined,
@@ -2565,6 +2566,10 @@ module.exports = class Exchange {
         } else {
             return false;
         }
+    }
+
+    async fetchLastPrices (params = {}) {
+        throw new NotSupported (this.id + ' fetchLastPrices() is not supported yet');
     }
 
     async fetchTradingFees (params = {}) {
