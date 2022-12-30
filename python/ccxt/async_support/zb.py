@@ -56,6 +56,7 @@ class zb(Exchange):
                 'future': None,
                 'option': None,
                 'addMargin': True,
+                'borrowMargin': True,
                 'cancelAllOrders': True,
                 'cancelOrder': True,
                 'createMarketOrder': None,
@@ -3918,6 +3919,59 @@ class zb(Exchange):
                 'info': entry,
             })
         return rates
+
+    async def borrow_margin(self, code, amount, symbol=None, params={}):
+        await self.load_markets()
+        market = None
+        if symbol is not None:
+            market = self.market(symbol)
+            symbol = market['symbol']
+        defaultMarginMode = self.safe_string_2(self.options, 'defaultMarginMode', 'marginMode', 'cross')
+        marginMode = self.safe_string(params, 'marginMode', defaultMarginMode)  # cross or isolated
+        password = self.safe_string(params, 'safePwd', self.password)
+        currency = self.currency(code)
+        request = {
+            'coin': currency['id'],
+            'amount': self.currency_to_precision(code, amount),
+        }
+        method = None
+        if marginMode == 'isolated':
+            if symbol is None:
+                raise ArgumentsRequired(self.id + ' borrowMargin() requires a symbol argument for isolated margin')
+            method = 'spotV1PrivateGetBorrow'
+            request['marketName'] = market['id']
+        elif marginMode == 'cross':
+            method = 'spotV1PrivateGetDoCrossLoan'
+            request['safePwd'] = password  # transaction password
+        response = await getattr(self, method)(self.extend(request, params))
+        #
+        #     {
+        #         "code": 1000,
+        #         "message": "操作成功"
+        #     }
+        #
+        transaction = self.parse_margin_loan(response, currency)
+        return self.extend(transaction, {
+            'amount': amount,
+            'symbol': symbol,
+        })
+
+    def parse_margin_loan(self, info, currency=None):
+        #
+        #     {
+        #         "code": 1000,
+        #         "message": "操作成功"
+        #     }
+        #
+        return {
+            'id': None,
+            'currency': self.safe_currency_code(None, currency),
+            'amount': None,
+            'symbol': None,
+            'timestamp': None,
+            'datetime': None,
+            'info': info,
+        }
 
     def nonce(self):
         return self.milliseconds()

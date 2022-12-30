@@ -613,7 +613,7 @@ class buda extends Exchange {
         );
         $response = yield $this->publicGetMarketsMarketOrderBook (array_merge($request, $params));
         $orderbook = $this->safe_value($response, 'order_book');
-        return $this->parse_order_book($orderbook, $symbol);
+        return $this->parse_order_book($orderbook, $market['symbol']);
     }
 
     public function fetch_ohlcv($symbol, $timeframe = '1m', $since = null, $limit = null, $params = array ()) {
@@ -739,18 +739,19 @@ class buda extends Exchange {
     public function create_order($symbol, $type, $side, $amount, $price = null, $params = array ()) {
         /**
          * create a trade $order
-         * @param {str} $symbol unified $symbol of the market to create an $order in
+         * @param {str} $symbol unified $symbol of the $market to create an $order in
          * @param {str} $type 'market' or 'limit'
          * @param {str} $side 'buy' or 'sell'
          * @param {float} $amount how much of currency you want to trade in units of base currency
-         * @param {float|null} $price the $price at which the $order is to be fullfilled, in units of the quote currency, ignored in market orders
+         * @param {float|null} $price the $price at which the $order is to be fullfilled, in units of the quote currency, ignored in $market orders
          * @param {dict} $params extra parameters specific to the buda api endpoint
          * @return {dict} an {@link https://docs.ccxt.com/en/latest/manual.html#$order-structure $order structure}
          */
         yield $this->load_markets();
         $side = ($side === 'buy') ? 'Bid' : 'Ask';
+        $market = $this->market($symbol);
         $request = array(
-            'market' => $this->market_id($symbol),
+            'market' => $market['id'],
             'price_type' => $type,
             'type' => $side,
             'amount' => $this->amount_to_precision($symbol, $amount),

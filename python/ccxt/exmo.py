@@ -799,7 +799,7 @@ class exmo(Exchange):
             request['limit'] = limit
         response = self.publicGetOrderBook(self.extend(request, params))
         result = self.safe_value(response, market['id'])
-        return self.parse_order_book(result, symbol, None, 'bid', 'ask')
+        return self.parse_order_book(result, market['symbol'], None, 'bid', 'ask')
 
     def fetch_order_books(self, symbols=None, limit=None, params={}):
         """
@@ -1114,11 +1114,11 @@ class exmo(Exchange):
         request = {
             'pair': market['id'],
             # 'leverage': 2,
-            'quantity': self.amount_to_precision(symbol, amount),
+            'quantity': self.amount_to_precision(market['symbol'], amount),
             # spot - buy, sell, market_buy, market_sell, market_buy_total, market_sell_total
             # margin - limit_buy, limit_sell, market_buy, market_sell, stop_buy, stop_sell, stop_limit_buy, stop_limit_sell, trailing_stop_buy, trailing_stop_sell
             'type': orderType,
-            'price': self.price_to_precision(symbol, orderPrice),
+            'price': self.price_to_precision(market['symbol'], orderPrice),
             # 'stop_price': self.price_to_precision(symbol, stopPrice),
             # 'distance': 0,  # distance for trailing stop orders
             # 'expire': 0,  # expiration timestamp in UTC timezone for the order, unless expire is 0
@@ -1153,7 +1153,7 @@ class exmo(Exchange):
             'datetime': self.iso8601(timestamp),
             'lastTradeTimestamp': None,
             'status': status,
-            'symbol': symbol,
+            'symbol': market['symbol'],
             'type': type,
             'side': side,
             'price': price,

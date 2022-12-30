@@ -255,7 +255,7 @@ class independentreserve extends Exchange {
         );
         $response = yield $this->publicGetGetOrderBook (array_merge($request, $params));
         $timestamp = $this->parse8601($this->safe_string($response, 'CreatedTimestampUtc'));
-        return $this->parse_order_book($response, $symbol, $timestamp, 'BuyOrders', 'SellOrders', 'Price', 'Volume');
+        return $this->parse_order_book($response, $market['symbol'], $timestamp, 'BuyOrders', 'SellOrders', 'Price', 'Volume');
     }
 
     public function parse_ticker($ticker, $market = null) {

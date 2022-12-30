@@ -248,7 +248,7 @@ class independentreserve(Exchange):
         }
         response = self.publicGetGetOrderBook(self.extend(request, params))
         timestamp = self.parse8601(self.safe_string(response, 'CreatedTimestampUtc'))
-        return self.parse_order_book(response, symbol, timestamp, 'BuyOrders', 'SellOrders', 'Price', 'Volume')
+        return self.parse_order_book(response, market['symbol'], timestamp, 'BuyOrders', 'SellOrders', 'Price', 'Volume')
 
     def parse_ticker(self, ticker, market=None):
         # {

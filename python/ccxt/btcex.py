@@ -558,7 +558,7 @@ class btcex(Exchange):
         #     }
         #
         timestamp = self.safe_integer(result, 'timestamp')
-        return self.parse_order_book(result, symbol, timestamp)
+        return self.parse_order_book(result, market['symbol'], timestamp)
 
     def parse_ohlcv(self, ohlcv, market=None):
         #

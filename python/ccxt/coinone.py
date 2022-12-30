@@ -278,7 +278,7 @@ class coinone(Exchange):
         }
         response = self.publicGetOrderbook(self.extend(request, params))
         timestamp = self.safe_timestamp(response, 'timestamp')
-        return self.parse_order_book(response, symbol, timestamp, 'bid', 'ask', 'price', 'qty')
+        return self.parse_order_book(response, market['symbol'], timestamp, 'bid', 'ask', 'price', 'qty')
 
     def fetch_tickers(self, symbols=None, params={}):
         """
@@ -485,9 +485,10 @@ class coinone(Exchange):
         if type != 'limit':
             raise ExchangeError(self.id + ' createOrder() allows limit orders only')
         self.load_markets()
+        market = self.market(symbol)
         request = {
             'price': price,
-            'currency': self.market_id(symbol),
+            'currency': market['id'],
             'qty': amount,
         }
         method = 'privatePostOrder' + self.capitalize(type) + self.capitalize(side)

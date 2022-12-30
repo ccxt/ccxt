@@ -573,8 +573,9 @@ class tidebit(Exchange):
         :returns dict: an `order structure <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
         """
         await self.load_markets()
+        market = self.market(symbol)
         request = {
-            'market': self.market_id(symbol),
+            'market': market['id'],
             'side': side,
             'volume': str(amount),
             'ord_type': type,

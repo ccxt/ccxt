@@ -553,8 +553,9 @@ class xena(Exchange):
         :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/en/latest/manual.html#order-book-structure>` indexed by market symbols
         """
         self.load_markets()
+        market = self.market(symbol)
         request = {
-            'symbol': self.market_id(symbol),
+            'symbol': market['id'],
         }
         if limit is not None:
             request['depth'] = limit
@@ -589,7 +590,7 @@ class xena(Exchange):
         timestamp = None
         if lastUpdateTime is not None:
             timestamp = int(lastUpdateTime / 1000000)
-        return self.parse_order_book(mdEntriesByType, symbol, timestamp, '0', '1', 'mdEntryPx', 'mdEntrySize')
+        return self.parse_order_book(mdEntriesByType, market['symbol'], timestamp, '0', '1', 'mdEntryPx', 'mdEntrySize')
 
     def fetch_accounts(self, params={}):
         """

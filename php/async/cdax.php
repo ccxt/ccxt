@@ -583,7 +583,7 @@ class cdax extends Exchange {
             }
             $tick = $this->safe_value($response, 'tick');
             $timestamp = $this->safe_integer($tick, 'ts', $this->safe_integer($response, 'ts'));
-            $result = $this->parse_order_book($tick, $symbol, $timestamp);
+            $result = $this->parse_order_book($tick, $market['symbol'], $timestamp);
             $result['nonce'] = $this->safe_integer($tick, 'version');
             return $result;
         }
@@ -1369,7 +1369,7 @@ class cdax extends Exchange {
             'datetime' => $this->iso8601($timestamp),
             'lastTradeTimestamp' => null,
             'status' => null,
-            'symbol' => $symbol,
+            'symbol' => $market['symbol'],
             'type' => $type,
             'side' => $side,
             'price' => $price,

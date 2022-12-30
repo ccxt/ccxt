@@ -164,7 +164,7 @@ module.exports = class btcbox extends Exchange {
             request['coin'] = market['baseId'];
         }
         const response = await this.publicGetDepth (this.extend (request, params));
-        return this.parseOrderBook (response, symbol);
+        return this.parseOrderBook (response, market['symbol']);
     }
 
     parseTicker (ticker, market = undefined) {

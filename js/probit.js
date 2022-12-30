@@ -529,7 +529,7 @@ module.exports = class probit extends Exchange {
         //
         const data = this.safeValue (response, 'data', []);
         const dataBySide = this.groupBy (data, 'side');
-        return this.parseOrderBook (dataBySide, symbol, undefined, 'buy', 'sell', 'price', 'quantity');
+        return this.parseOrderBook (dataBySide, market['symbol'], undefined, 'buy', 'sell', 'price', 'quantity');
     }
 
     async fetchTickers (symbols = undefined, params = {}) {

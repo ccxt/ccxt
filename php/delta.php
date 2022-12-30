@@ -38,6 +38,7 @@ class delta extends Exchange {
                 'fetchDeposits' => null,
                 'fetchLedger' => true,
                 'fetchLeverageTiers' => false, // An infinite number of tiers, see examples/js/delta-maintenance-margin-rate-max-leverage.js
+                'fetchMarginMode' => false,
                 'fetchMarketLeverageTiers' => false,
                 'fetchMarkets' => true,
                 'fetchMyTrades' => true,
@@ -45,6 +46,7 @@ class delta extends Exchange {
                 'fetchOpenOrders' => true,
                 'fetchOrderBook' => true,
                 'fetchPosition' => true,
+                'fetchPositionMode' => false,
                 'fetchPositions' => true,
                 'fetchStatus' => true,
                 'fetchTicker' => true,
@@ -803,14 +805,15 @@ class delta extends Exchange {
     public function fetch_order_book($symbol, $limit = null, $params = array ()) {
         /**
          * fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
-         * @param {str} $symbol unified $symbol of the market to fetch the order book for
+         * @param {str} $symbol unified $symbol of the $market to fetch the order book for
          * @param {int|null} $limit the maximum amount of order book entries to return
          * @param {dict} $params extra parameters specific to the delta api endpoint
-         * @return {dict} A dictionary of {@link https://docs.ccxt.com/en/latest/manual.html#order-book-structure order book structures} indexed by market symbols
+         * @return {dict} A dictionary of {@link https://docs.ccxt.com/en/latest/manual.html#order-book-structure order book structures} indexed by $market symbols
          */
         $this->load_markets();
+        $market = $this->market($symbol);
         $request = array(
-            'symbol' => $this->market_id($symbol),
+            'symbol' => $market['id'],
         );
         if ($limit !== null) {
             $request['depth'] = $limit;
@@ -835,7 +838,7 @@ class delta extends Exchange {
         //     }
         //
         $result = $this->safe_value($response, 'result', array());
-        return $this->parse_order_book($result, $symbol, null, 'buy', 'sell', 'price', 'size');
+        return $this->parse_order_book($result, $market['symbol'], null, 'buy', 'sell', 'price', 'size');
     }
 
     public function parse_trade($trade, $market = null) {
@@ -1254,8 +1257,8 @@ class delta extends Exchange {
         $market = $this->market($symbol);
         $request = array(
             'product_id' => $market['numericId'],
-            // 'limit_price' => $this->price_to_precision($symbol, $price),
-            'size' => $this->amount_to_precision($symbol, $amount),
+            // 'limit_price' => $this->price_to_precision($market['symbol'], $price),
+            'size' => $this->amount_to_precision($market['symbol'], $amount),
             'side' => $side,
             'order_type' => $orderType,
             // 'client_order_id' => 'string',
@@ -1264,7 +1267,7 @@ class delta extends Exchange {
             // 'reduce_only' => 'false', // 'true',
         );
         if ($type === 'limit') {
-            $request['limit_price'] = $this->price_to_precision($symbol, $price);
+            $request['limit_price'] = $this->price_to_precision($market['symbol'], $price);
         }
         $clientOrderId = $this->safe_string_2($params, 'clientOrderId', 'client_order_id');
         $params = $this->omit($params, array( 'clientOrderId', 'client_order_id' ));

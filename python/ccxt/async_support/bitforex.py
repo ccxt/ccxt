@@ -465,16 +465,16 @@ class bitforex(Exchange):
         :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/en/latest/manual.html#order-book-structure>` indexed by market symbols
         """
         await self.load_markets()
-        marketId = self.market_id(symbol)
+        market = self.market(symbol)
         request = {
-            'symbol': marketId,
+            'symbol': market['id'],
         }
         if limit is not None:
             request['size'] = limit
         response = await self.publicGetApiV1MarketDepthAll(self.extend(request, params))
         data = self.safe_value(response, 'data')
         timestamp = self.safe_integer(response, 'time')
-        return self.parse_order_book(data, symbol, timestamp, 'bids', 'asks', 'price', 'amount')
+        return self.parse_order_book(data, market['symbol'], timestamp, 'bids', 'asks', 'price', 'amount')
 
     def parse_order_status(self, status):
         statuses = {
@@ -607,8 +607,9 @@ class bitforex(Exchange):
             sideId = 1
         elif side == 'sell':
             sideId = 2
+        market = self.market(symbol)
         request = {
-            'symbol': self.market_id(symbol),
+            'symbol': market['id'],
             'price': price,
             'amount': amount,
             'tradeType': sideId,

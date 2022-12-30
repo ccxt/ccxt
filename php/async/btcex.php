@@ -562,7 +562,7 @@ class btcex extends Exchange {
         //     }
         //
         $timestamp = $this->safe_integer($result, 'timestamp');
-        return $this->parse_order_book($result, $symbol, $timestamp);
+        return $this->parse_order_book($result, $market['symbol'], $timestamp);
     }
 
     public function parse_ohlcv($ohlcv, $market = null) {

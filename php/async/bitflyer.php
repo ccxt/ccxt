@@ -332,17 +332,18 @@ class bitflyer extends Exchange {
     public function fetch_order_book($symbol, $limit = null, $params = array ()) {
         /**
          * fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
-         * @param {str} $symbol unified $symbol of the market to fetch the order book for
+         * @param {str} $symbol unified $symbol of the $market to fetch the order book for
          * @param {int|null} $limit the maximum amount of order book entries to return
          * @param {dict} $params extra parameters specific to the bitflyer api endpoint
-         * @return {dict} A dictionary of {@link https://docs.ccxt.com/en/latest/manual.html#order-book-structure order book structures} indexed by market symbols
+         * @return {dict} A dictionary of {@link https://docs.ccxt.com/en/latest/manual.html#order-book-structure order book structures} indexed by $market symbols
          */
         yield $this->load_markets();
+        $market = $this->market($symbol);
         $request = array(
-            'product_code' => $this->market_id($symbol),
+            'product_code' => $market['id'],
         );
         $orderbook = yield $this->publicGetGetboard (array_merge($request, $params));
-        return $this->parse_order_book($orderbook, $symbol, null, 'bids', 'asks', 'price', 'size');
+        return $this->parse_order_book($orderbook, $market['symbol'], null, 'bids', 'asks', 'price', 'size');
     }
 
     public function parse_ticker($ticker, $market = null) {
@@ -491,7 +492,7 @@ class bitflyer extends Exchange {
         $fee = $this->safe_number($response, 'commission_rate');
         return array(
             'info' => $response,
-            'symbol' => $symbol,
+            'symbol' => $market['symbol'],
             'maker' => $fee,
             'taker' => $fee,
         );

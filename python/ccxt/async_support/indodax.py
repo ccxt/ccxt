@@ -355,11 +355,12 @@ class indodax(Exchange):
         :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/en/latest/manual.html#order-book-structure>` indexed by market symbols
         """
         await self.load_markets()
+        market = self.market(symbol)
         request = {
-            'pair': self.market_id(symbol),
+            'pair': market['id'],
         }
         orderbook = await self.publicGetPairDepth(self.extend(request, params))
-        return self.parse_order_book(orderbook, symbol, None, 'buy', 'sell')
+        return self.parse_order_book(orderbook, market['symbol'], None, 'buy', 'sell')
 
     def parse_ticker(self, ticker, market=None):
         #

@@ -237,15 +237,16 @@ module.exports = class btcalpha extends Exchange {
          * @returns {dict} A dictionary of [order book structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-book-structure} indexed by market symbols
          */
         await this.loadMarkets ();
+        const market = this.market (symbol);
         const request = {
-            'pair_name': this.marketId (symbol),
+            'pair_name': market['id'],
         };
         if (limit) {
             request['limit_sell'] = limit;
             request['limit_buy'] = limit;
         }
         const response = await this.publicGetOrderbookPairName (this.extend (request, params));
-        return this.parseOrderBook (response, symbol, undefined, 'buy', 'sell', 'price', 'amount');
+        return this.parseOrderBook (response, market['symbol'], undefined, 'buy', 'sell', 'price', 'amount');
     }
 
     parseBidsAsks (bidasks, priceKey = 0, amountKey = 1) {

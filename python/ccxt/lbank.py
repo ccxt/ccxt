@@ -330,12 +330,13 @@ class lbank(Exchange):
         size = 60
         if limit is not None:
             size = min(limit, size)
+        market = self.market(symbol)
         request = {
-            'symbol': self.market_id(symbol),
+            'symbol': market['id'],
             'size': size,
         }
         response = self.publicGetDepth(self.extend(request, params))
-        return self.parse_order_book(response, symbol)
+        return self.parse_order_book(response, market['symbol'])
 
     def parse_trade(self, trade, market=None):
         market = self.safe_market(None, market)

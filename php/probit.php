@@ -526,7 +526,7 @@ class probit extends Exchange {
         //
         $data = $this->safe_value($response, 'data', array());
         $dataBySide = $this->group_by($data, 'side');
-        return $this->parse_order_book($dataBySide, $symbol, null, 'buy', 'sell', 'price', 'quantity');
+        return $this->parse_order_book($dataBySide, $market['symbol'], null, 'buy', 'sell', 'price', 'quantity');
     }
 
     public function fetch_tickers($symbols = null, $params = array ()) {

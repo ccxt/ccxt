@@ -73,6 +73,7 @@ class ascendex extends Exchange {
                 'fetchPremiumIndexOHLCV' => false,
                 'fetchTicker' => true,
                 'fetchTickers' => true,
+                'fetchTime' => true,
                 'fetchTrades' => true,
                 'fetchTradingFee' => false,
                 'fetchTradingFees' => true,
@@ -143,6 +144,7 @@ class ascendex extends Exchange {
                             'futures/market-data' => 1,
                             'futures/funding-rates' => 1,
                             'risk-limit-info' => 1,
+                            'exchange-info' => 1,
                         ),
                     ),
                     'private' => array(
@@ -635,6 +637,30 @@ class ascendex extends Exchange {
             );
         }
         return $result;
+    }
+
+    public function fetch_time($params = array ()) {
+        /**
+         * fetches the current integer timestamp in milliseconds from the ascendex server
+         * @param {dict} $params extra parameters specific to the ascendex api endpoint
+         * @return {int} the current integer timestamp in milliseconds from the ascendex server
+         */
+        $request = array(
+            'requestTime' => $this->milliseconds(),
+        );
+        $response = yield $this->v1PublicGetExchangeInfo (array_merge($request, $params));
+        //
+        //    {
+        //        "code" => 0,
+        //        "data" => {
+        //            "requestTimeEcho" => 1656560463601,
+        //            "requestReceiveAt" => 1656560464331,
+        //            "latency" => 730
+        //        }
+        //    }
+        //
+        $data = $this->safe_value($response, 'data');
+        return $this->safe_integer($data, 'requestReceiveAt');
     }
 
     public function fetch_accounts($params = array ()) {

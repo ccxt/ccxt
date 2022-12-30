@@ -428,8 +428,8 @@ class qtrade(Exchange):
         :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/en/latest/manual.html#order-book-structure>` indexed by market symbols
         """
         await self.load_markets()
-        marketId = self.market_id(symbol)
-        request = {'market_string': marketId}
+        market = self.market(symbol)
+        request = {'market_string': market['id']}
         response = await self.publicGetOrderbookMarketString(self.extend(request, params))
         #
         #     {
@@ -465,7 +465,7 @@ class qtrade(Exchange):
                 result.append([price, amount])
             orderbook[side] = result
         timestamp = self.safe_integer_product(data, 'last_change', 0.001)
-        return self.parse_order_book(orderbook, symbol, timestamp)
+        return self.parse_order_book(orderbook, market['symbol'], timestamp)
 
     def parse_ticker(self, ticker, market=None):
         #
@@ -804,7 +804,7 @@ class qtrade(Exchange):
         marketData = self.safe_value(data, 'market', {})
         return {
             'info': marketData,
-            'symbol': symbol,
+            'symbol': market['symbol'],
             'maker': self.safe_number(marketData, 'maker_fee'),
             'taker': self.safe_number(marketData, 'taker_fee'),
             'percentage': True,
@@ -878,9 +878,9 @@ class qtrade(Exchange):
         await self.load_markets()
         market = self.market(symbol)
         request = {
-            'amount': self.amount_to_precision(symbol, amount),
+            'amount': self.amount_to_precision(market['symbol'], amount),
             'market_id': market['numericId'],
-            'price': self.price_to_precision(symbol, price),
+            'price': self.price_to_precision(market['symbol'], price),
         }
         method = 'privatePostSellLimit' if (side == 'sell') else 'privatePostBuyLimit'
         response = await getattr(self, method)(self.extend(request, params))

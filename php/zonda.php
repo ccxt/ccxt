@@ -527,14 +527,15 @@ class zonda extends Exchange {
     public function fetch_order_book($symbol, $limit = null, $params = array ()) {
         /**
          * fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
-         * @param {str} $symbol unified $symbol of the market to fetch the order book for
+         * @param {str} $symbol unified $symbol of the $market to fetch the order book for
          * @param {int|null} $limit the maximum amount of order book entries to return
          * @param {dict} $params extra parameters specific to the zonda api endpoint
-         * @return {dict} A dictionary of {@link https://docs.ccxt.com/en/latest/manual.html#order-book-structure order book structures} indexed by market symbols
+         * @return {dict} A dictionary of {@link https://docs.ccxt.com/en/latest/manual.html#order-book-structure order book structures} indexed by $market symbols
          */
         $this->load_markets();
+        $market = $this->market($symbol);
         $request = array(
-            'symbol' => $this->market_id($symbol),
+            'symbol' => $market['id'],
         );
         $response = $this->v1_01PublicGetTradingOrderbookSymbol (array_merge($request, $params));
         //
@@ -558,7 +559,7 @@ class zonda extends Exchange {
         $rawAsks = $this->safe_value($response, 'sell', array());
         $timestamp = $this->safe_integer($response, 'timestamp');
         return array(
-            'symbol' => $symbol,
+            'symbol' => $market['symbol'],
             'bids' => $this->parse_bids_asks($rawBids, 'ra', 'ca'),
             'asks' => $this->parse_bids_asks($rawAsks, 'ra', 'ca'),
             'timestamp' => $timestamp,

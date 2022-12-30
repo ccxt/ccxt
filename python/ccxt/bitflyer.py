@@ -327,11 +327,12 @@ class bitflyer(Exchange):
         :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/en/latest/manual.html#order-book-structure>` indexed by market symbols
         """
         self.load_markets()
+        market = self.market(symbol)
         request = {
-            'product_code': self.market_id(symbol),
+            'product_code': market['id'],
         }
         orderbook = self.publicGetGetboard(self.extend(request, params))
-        return self.parse_order_book(orderbook, symbol, None, 'bids', 'asks', 'price', 'size')
+        return self.parse_order_book(orderbook, market['symbol'], None, 'bids', 'asks', 'price', 'size')
 
     def parse_ticker(self, ticker, market=None):
         symbol = self.safe_symbol(None, market)
@@ -470,7 +471,7 @@ class bitflyer(Exchange):
         fee = self.safe_number(response, 'commission_rate')
         return {
             'info': response,
-            'symbol': symbol,
+            'symbol': market['symbol'],
             'maker': fee,
             'taker': fee,
         }

@@ -1386,7 +1386,7 @@ class deribit(Exchange):
         result = self.safe_value(response, 'result', {})
         timestamp = self.safe_integer(result, 'timestamp')
         nonce = self.safe_integer(result, 'change_id')
-        orderbook = self.parse_order_book(result, symbol, timestamp)
+        orderbook = self.parse_order_book(result, market['symbol'], timestamp)
         orderbook['nonce'] = nonce
         return orderbook
 

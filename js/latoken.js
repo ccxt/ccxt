@@ -820,7 +820,7 @@ module.exports = class latoken extends Exchange {
         //
         return {
             'info': response,
-            'symbol': symbol,
+            'symbol': market['symbol'],
             'maker': this.safeNumber (response, 'makerFee'),
             'taker': this.safeNumber (response, 'takerFee'),
         };
@@ -844,7 +844,7 @@ module.exports = class latoken extends Exchange {
         //
         return {
             'info': response,
-            'symbol': symbol,
+            'symbol': market['symbol'],
             'maker': this.safeNumber (response, 'makerFee'),
             'taker': this.safeNumber (response, 'takerFee'),
         };

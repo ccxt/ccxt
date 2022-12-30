@@ -527,7 +527,7 @@ class eqonex(Exchange):
         #         "auctionVolume":0.0
         #     }
         #
-        return self.parse_order_book(response, symbol, None, 'bids', 'asks', 0, 1, market)
+        return self.parse_order_book(response, market['symbol'], None, 'bids', 'asks', 0, 1, market)
 
     def fetch_trades(self, symbol, since=None, limit=None, params={}):
         """

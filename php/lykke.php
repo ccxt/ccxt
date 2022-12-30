@@ -494,14 +494,15 @@ class lykke extends Exchange {
     public function fetch_order_book($symbol, $limit = null, $params = array ()) {
         /**
          * fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
-         * @param {str} $symbol unified $symbol of the market to fetch the order book for
+         * @param {str} $symbol unified $symbol of the $market to fetch the order book for
          * @param {int|null} $limit the maximum amount of order book entries to return
          * @param {dict} $params extra parameters specific to the lykke api endpoint
-         * @return {dict} A dictionary of {@link https://docs.ccxt.com/en/latest/manual.html#order-book-structure order book structures} indexed by market symbols
+         * @return {dict} A dictionary of {@link https://docs.ccxt.com/en/latest/manual.html#order-book-structure order book structures} indexed by $market symbols
          */
         $this->load_markets();
+        $market = $this->market($symbol);
         $request = array(
-            'assetPairId' => $this->market_id($symbol),
+            'assetPairId' => $market['id'],
         );
         if ($limit !== null) {
             $request['depth'] = $limit; // default 0
@@ -533,7 +534,7 @@ class lykke extends Exchange {
         //
         $orderbook = $this->safe_value($payload, 0, array());
         $timestamp = $this->safe_integer($orderbook, 'timestamp');
-        return $this->parse_order_book($orderbook, $symbol, $timestamp, 'bids', 'asks', 'p', 'v');
+        return $this->parse_order_book($orderbook, $market['symbol'], $timestamp, 'bids', 'asks', 'p', 'v');
     }
 
     public function parse_trade($trade, $market) {
@@ -773,10 +774,10 @@ class lykke extends Exchange {
         $query = array(
             'assetPairId' => $market['id'],
             'side' => $this->capitalize($side),
-            'volume' => floatval($this->amount_to_precision($symbol, $amount)),
+            'volume' => floatval($this->amount_to_precision($market['symbol'], $amount)),
         );
         if ($type === 'limit') {
-            $query['price'] = floatval($this->price_to_precision($symbol, $price));
+            $query['price'] = floatval($this->price_to_precision($market['symbol'], $price));
         }
         $method = 'privatePostOrders' . $this->capitalize($type);
         $result = $this->$method (array_merge($query, $params));
@@ -812,7 +813,7 @@ class lykke extends Exchange {
             'timestamp' => null,
             'datetime' => null,
             'lastTradeTimestamp' => null,
-            'symbol' => $symbol,
+            'symbol' => $market['symbol'],
             'type' => $type,
             'side' => $side,
             'price' => $price,

@@ -227,11 +227,12 @@ class bit2c(Exchange):
         :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/en/latest/manual.html#order-book-structure>` indexed by market symbols
         """
         await self.load_markets()
+        market = self.market(symbol)
         request = {
-            'pair': self.market_id(symbol),
+            'pair': market['id'],
         }
         orderbook = await self.publicGetExchangesPairOrderbook(self.extend(request, params))
-        return self.parse_order_book(orderbook, symbol)
+        return self.parse_order_book(orderbook, market['symbol'])
 
     def parse_ticker(self, ticker, market=None):
         symbol = self.safe_symbol(None, market)
@@ -366,9 +367,10 @@ class bit2c(Exchange):
         """
         await self.load_markets()
         method = 'privatePostOrderAddOrder'
+        market = self.market(symbol)
         request = {
             'Amount': amount,
-            'Pair': self.market_id(symbol),
+            'Pair': market['id'],
         }
         if type == 'market':
             method += 'MarketPrice' + self.capitalize(side)

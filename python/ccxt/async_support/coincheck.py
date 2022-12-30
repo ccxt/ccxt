@@ -270,7 +270,7 @@ class coincheck(Exchange):
             'pair': market['id'],
         }
         response = await self.publicGetOrderBooks(self.extend(request, params))
-        return self.parse_order_book(response, symbol)
+        return self.parse_order_book(response, market['symbol'])
 
     def parse_ticker(self, ticker, market=None):
         #
@@ -556,8 +556,9 @@ class coincheck(Exchange):
         :returns dict: an `order structure <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
         """
         await self.load_markets()
+        market = self.market(symbol)
         request = {
-            'pair': self.market_id(symbol),
+            'pair': market['id'],
         }
         if type == 'market':
             order_type = type + '_' + side

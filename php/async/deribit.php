@@ -1410,7 +1410,7 @@ class deribit extends Exchange {
         $result = $this->safe_value($response, 'result', array());
         $timestamp = $this->safe_integer($result, 'timestamp');
         $nonce = $this->safe_integer($result, 'change_id');
-        $orderbook = $this->parse_order_book($result, $symbol, $timestamp);
+        $orderbook = $this->parse_order_book($result, $market['symbol'], $timestamp);
         $orderbook['nonce'] = $nonce;
         return $orderbook;
     }

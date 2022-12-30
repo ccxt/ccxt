@@ -45,6 +45,7 @@ class delta(Exchange):
                 'fetchDeposits': None,
                 'fetchLedger': True,
                 'fetchLeverageTiers': False,  # An infinite number of tiers, see examples/js/delta-maintenance-margin-rate-max-leverage.js
+                'fetchMarginMode': False,
                 'fetchMarketLeverageTiers': False,
                 'fetchMarkets': True,
                 'fetchMyTrades': True,
@@ -52,6 +53,7 @@ class delta(Exchange):
                 'fetchOpenOrders': True,
                 'fetchOrderBook': True,
                 'fetchPosition': True,
+                'fetchPositionMode': False,
                 'fetchPositions': True,
                 'fetchStatus': True,
                 'fetchTicker': True,
@@ -797,8 +799,9 @@ class delta(Exchange):
         :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/en/latest/manual.html#order-book-structure>` indexed by market symbols
         """
         await self.load_markets()
+        market = self.market(symbol)
         request = {
-            'symbol': self.market_id(symbol),
+            'symbol': market['id'],
         }
         if limit is not None:
             request['depth'] = limit
@@ -822,7 +825,7 @@ class delta(Exchange):
         #     }
         #
         result = self.safe_value(response, 'result', {})
-        return self.parse_order_book(result, symbol, None, 'buy', 'sell', 'price', 'size')
+        return self.parse_order_book(result, market['symbol'], None, 'buy', 'sell', 'price', 'size')
 
     def parse_trade(self, trade, market=None):
         #
@@ -1222,8 +1225,8 @@ class delta(Exchange):
         market = self.market(symbol)
         request = {
             'product_id': market['numericId'],
-            # 'limit_price': self.price_to_precision(symbol, price),
-            'size': self.amount_to_precision(symbol, amount),
+            # 'limit_price': self.price_to_precision(market['symbol'], price),
+            'size': self.amount_to_precision(market['symbol'], amount),
             'side': side,
             'order_type': orderType,
             # 'client_order_id': 'string',
@@ -1232,7 +1235,7 @@ class delta(Exchange):
             # 'reduce_only': 'false',  # 'true',
         }
         if type == 'limit':
-            request['limit_price'] = self.price_to_precision(symbol, price)
+            request['limit_price'] = self.price_to_precision(market['symbol'], price)
         clientOrderId = self.safe_string_2(params, 'clientOrderId', 'client_order_id')
         params = self.omit(params, ['clientOrderId', 'client_order_id'])
         if clientOrderId is not None:

@@ -41,6 +41,7 @@ class zb extends Exchange {
                 'future' => null,
                 'option' => null,
                 'addMargin' => true,
+                'borrowMargin' => true,
                 'cancelAllOrders' => true,
                 'cancelOrder' => true,
                 'createMarketOrder' => null,
@@ -4086,6 +4087,64 @@ class zb extends Exchange {
             );
         }
         return $rates;
+    }
+
+    public function borrow_margin($code, $amount, $symbol = null, $params = array ()) {
+        $this->load_markets();
+        $market = null;
+        if ($symbol !== null) {
+            $market = $this->market($symbol);
+            $symbol = $market['symbol'];
+        }
+        $defaultMarginMode = $this->safe_string_2($this->options, 'defaultMarginMode', 'marginMode', 'cross');
+        $marginMode = $this->safe_string($params, 'marginMode', $defaultMarginMode); // cross or isolated
+        $password = $this->safe_string($params, 'safePwd', $this->password);
+        $currency = $this->currency($code);
+        $request = array(
+            'coin' => $currency['id'],
+            'amount' => $this->currency_to_precision($code, $amount),
+        );
+        $method = null;
+        if ($marginMode === 'isolated') {
+            if ($symbol === null) {
+                throw new ArgumentsRequired($this->id . ' borrowMargin() requires a $symbol argument for isolated margin');
+            }
+            $method = 'spotV1PrivateGetBorrow';
+            $request['marketName'] = $market['id'];
+        } elseif ($marginMode === 'cross') {
+            $method = 'spotV1PrivateGetDoCrossLoan';
+            $request['safePwd'] = $password; // $transaction $password
+        }
+        $response = $this->$method (array_merge($request, $params));
+        //
+        //     {
+        //         "code" => 1000,
+        //         "message" => "操作成功"
+        //     }
+        //
+        $transaction = $this->parse_margin_loan($response, $currency);
+        return array_merge($transaction, array(
+            'amount' => $amount,
+            'symbol' => $symbol,
+        ));
+    }
+
+    public function parse_margin_loan($info, $currency = null) {
+        //
+        //     {
+        //         "code" => 1000,
+        //         "message" => "操作成功"
+        //     }
+        //
+        return array(
+            'id' => null,
+            'currency' => $this->safe_currency_code(null, $currency),
+            'amount' => null,
+            'symbol' => null,
+            'timestamp' => null,
+            'datetime' => null,
+            'info' => $info,
+        );
     }
 
     public function nonce() {

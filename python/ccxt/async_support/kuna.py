@@ -416,7 +416,7 @@ class kuna(Exchange):
             request['limit'] = limit  # default = 300
         orderbook = await self.publicGetDepth(self.extend(request, params))
         timestamp = self.safe_timestamp(orderbook, 'timestamp')
-        return self.parse_order_book(orderbook, symbol, timestamp)
+        return self.parse_order_book(orderbook, market['symbol'], timestamp)
 
     def parse_ticker(self, ticker, market=None):
         timestamp = self.safe_timestamp(ticker, 'at')
@@ -653,8 +653,9 @@ class kuna(Exchange):
         :returns dict: an `order structure <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
         """
         await self.load_markets()
+        market = self.market(symbol)
         request = {
-            'market': self.market_id(symbol),
+            'market': market['id'],
             'side': side,
             'volume': str(amount),
             'ord_type': type,
@@ -662,8 +663,6 @@ class kuna(Exchange):
         if type == 'limit':
             request['price'] = str(price)
         response = await self.privatePostOrders(self.extend(request, params))
-        marketId = self.safe_value(response, 'market')
-        market = self.safe_value(self.markets_by_id, marketId)
         return self.parse_order(response, market)
 
     async def cancel_order(self, id, symbol=None, params={}):

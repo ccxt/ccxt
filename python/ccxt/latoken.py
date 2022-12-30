@@ -786,7 +786,7 @@ class latoken(Exchange):
         #
         return {
             'info': response,
-            'symbol': symbol,
+            'symbol': market['symbol'],
             'maker': self.safe_number(response, 'makerFee'),
             'taker': self.safe_number(response, 'takerFee'),
         }
@@ -809,7 +809,7 @@ class latoken(Exchange):
         #
         return {
             'info': response,
-            'symbol': symbol,
+            'symbol': market['symbol'],
             'maker': self.safe_number(response, 'makerFee'),
             'taker': self.safe_number(response, 'takerFee'),
         }

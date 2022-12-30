@@ -837,7 +837,7 @@ class exmo extends Exchange {
         }
         $response = $this->publicGetOrderBook (array_merge($request, $params));
         $result = $this->safe_value($response, $market['id']);
-        return $this->parse_order_book($result, $symbol, null, 'bid', 'ask');
+        return $this->parse_order_book($result, $market['symbol'], null, 'bid', 'ask');
     }
 
     public function fetch_order_books($symbols = null, $limit = null, $params = array ()) {
@@ -1178,11 +1178,11 @@ class exmo extends Exchange {
         $request = array(
             'pair' => $market['id'],
             // 'leverage' => 2,
-            'quantity' => $this->amount_to_precision($symbol, $amount),
+            'quantity' => $this->amount_to_precision($market['symbol'], $amount),
             // spot - buy, sell, market_buy, market_sell, market_buy_total, market_sell_total
             // margin - limit_buy, limit_sell, market_buy, market_sell, stop_buy, stop_sell, stop_limit_buy, stop_limit_sell, trailing_stop_buy, trailing_stop_sell
             'type' => $orderType,
-            'price' => $this->price_to_precision($symbol, $orderPrice),
+            'price' => $this->price_to_precision($market['symbol'], $orderPrice),
             // 'stop_price' => $this->price_to_precision($symbol, $stopPrice),
             // 'distance' => 0, // distance for trailing stop orders
             // 'expire' => 0, // expiration $timestamp in UTC timezone for the order, unless expire is 0
@@ -1221,7 +1221,7 @@ class exmo extends Exchange {
             'datetime' => $this->iso8601($timestamp),
             'lastTradeTimestamp' => null,
             'status' => $status,
-            'symbol' => $symbol,
+            'symbol' => $market['symbol'],
             'type' => $type,
             'side' => $side,
             'price' => $price,

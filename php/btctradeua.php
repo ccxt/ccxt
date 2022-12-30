@@ -191,7 +191,7 @@ class btctradeua extends Exchange {
                 $orderbook['asks'] = $asks['list'];
             }
         }
-        return $this->parse_order_book($orderbook, $symbol, null, 'bids', 'asks', 'price', 'currency_trade');
+        return $this->parse_order_book($orderbook, $market['symbol'], null, 'bids', 'asks', 'price', 'currency_trade');
     }
 
     public function parse_ticker($ticker, $market = null) {

@@ -324,14 +324,15 @@ class coinmate(Exchange):
         :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/en/latest/manual.html#order-book-structure>` indexed by market symbols
         """
         self.load_markets()
+        market = self.market(symbol)
         request = {
-            'currencyPair': self.market_id(symbol),
+            'currencyPair': market['id'],
             'groupByPriceLimit': 'False',
         }
         response = self.publicGetOrderBook(self.extend(request, params))
         orderbook = response['data']
         timestamp = self.safe_timestamp(orderbook, 'timestamp')
-        return self.parse_order_book(orderbook, symbol, timestamp, 'bids', 'asks', 'price', 'amount')
+        return self.parse_order_book(orderbook, market['symbol'], timestamp, 'bids', 'asks', 'price', 'amount')
 
     def fetch_ticker(self, symbol, params={}):
         """
@@ -341,15 +342,16 @@ class coinmate(Exchange):
         :returns dict: a `ticker structure <https://docs.ccxt.com/en/latest/manual.html#ticker-structure>`
         """
         self.load_markets()
+        market = self.market(symbol)
         request = {
-            'currencyPair': self.market_id(symbol),
+            'currencyPair': market['id'],
         }
         response = self.publicGetTicker(self.extend(request, params))
         ticker = self.safe_value(response, 'data')
         timestamp = self.safe_timestamp(ticker, 'timestamp')
         last = self.safe_number(ticker, 'last')
         return {
-            'symbol': symbol,
+            'symbol': market['symbol'],
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
             'high': self.safe_number(ticker, 'high'),
@@ -679,7 +681,7 @@ class coinmate(Exchange):
         taker = self.parse_number(Precise.string_div(takerString, '100'))
         return {
             'info': data,
-            'symbol': symbol,
+            'symbol': market['symbol'],
             'maker': maker,
             'taker': taker,
             'percentage': True,
@@ -830,8 +832,9 @@ class coinmate(Exchange):
         """
         self.load_markets()
         method = 'privatePost' + self.capitalize(side)
+        market = self.market(symbol)
         request = {
-            'currencyPair': self.market_id(symbol),
+            'currencyPair': market['id'],
         }
         if type == 'market':
             if side == 'buy':
