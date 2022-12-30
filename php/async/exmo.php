@@ -1686,62 +1686,59 @@ class exmo extends Exchange {
         //
         // fetchTransactions
         //
-        //          {
-        //            "dt" => 1461841192,
-        //            "type" => "deposit",
-        //            "curr" => "RUB",
-        //            "status" => "processing",
-        //            "provider" => "Qiwi (LA) [12345]",
-        //            "amount" => "1",
-        //            "account" => "",
-        //            "txid" => "ec46f784ad976fd7f7539089d1a129fe46...",
-        //          }
+        //    {
+        //        "dt" => 1461841192,
+        //        "type" => "deposit",
+        //        "curr" => "RUB",
+        //        "status" => "processing",
+        //        "provider" => "Qiwi (LA) [12345]",
+        //        "amount" => "1",
+        //        "account" => "",
+        //        "txid" => "ec46f784ad976fd7f7539089d1a129fe46...",
+        //    }
         //
         // fetchWithdrawals
         //
-        //          array(
-        //             "operation_id" => 47412538520634344,
-        //             "created" => 1573760013,
-        //             "updated" => 1573760013,
-        //             "type" => "withdraw",
-        //             "currency" => "DOGE",
-        //             "status" => "Paid",
-        //             "amount" => "300",
-        //             "provider" => "DOGE",
-        //             "commission" => "0",
-        //             "account" => "DOGE => DBVy8pF1f8yxaCVEHqHeR7kkcHecLQ8nRS",
-        //             "order_id" => 69670170,
-        //             "provider_type" => "crypto",
-        //             "crypto_address" => "DBVy8pF1f8yxaCVEHqHeR7kkcHecLQ8nRS",
-        //             "card_number" => "",
-        //             "wallet_address" => "",
-        //             "email" => "",
-        //             "phone" => "",
-        //             "extra" => array(
-        //                 "txid" => "f2b66259ae1580f371d38dd27e31a23fff8c04122b65ee3ab5a3f612d579c792",
-        //                 "confirmations" => null,
-        //                 "excode" => "",
-        //                 "invoice" => ""
-        //             ),
-        //             "error" => ""
-        //          ),
+        //    {
+        //        "operation_id" => 47412538520634344,
+        //        "created" => 1573760013,
+        //        "updated" => 1573760013,
+        //        "type" => "withdraw",
+        //        "currency" => "DOGE",
+        //        "status" => "Paid",
+        //        "amount" => "300",
+        //        "provider" => "DOGE",
+        //        "commission" => "0",
+        //        "account" => "DOGE => DBVy8pF1f8yxaCVEHqHeR7kkcHecLQ8nRS",
+        //        "order_id" => 69670170,
+        //        "provider_type" => "crypto",
+        //        "crypto_address" => "DBVy8pF1f8yxaCVEHqHeR7kkcHecLQ8nRS",
+        //        "card_number" => "",
+        //        "wallet_address" => "",
+        //        "email" => "",
+        //        "phone" => "",
+        //        "extra" => array(
+        //            "txid" => "f2b66259ae1580f371d38dd27e31a23fff8c04122b65ee3ab5a3f612d579c792",
+        //            "confirmations" => null,
+        //            "excode" => "",
+        //            "invoice" => ""
+        //        ),
+        //        "error" => ""
+        //    }
         //
         // withdraw
         //
-        //          array(
-        //              "result":true,
-        //              "error":"",
-        //              "task_id":11775077
-        //          ),
+        //    {
+        //        "result" => true,
+        //        "error" => "",
+        //        "task_id" => 11775077
+        //    }
         //
-        $id = $this->safe_string_2($transaction, 'order_id', 'task_id');
         $timestamp = $this->safe_timestamp_2($transaction, 'dt', 'created');
-        $updated = $this->safe_timestamp($transaction, 'updated');
         $amount = $this->safe_string($transaction, 'amount');
         if ($amount !== null) {
             $amount = Precise::string_abs($amount);
         }
-        $status = $this->parse_transaction_status($this->safe_string_lower($transaction, 'status'));
         $txid = $this->safe_string($transaction, 'txid');
         if ($txid === null) {
             $extra = $this->safe_value($transaction, 'extra', array());
@@ -1754,7 +1751,6 @@ class exmo extends Exchange {
         $currencyId = $this->safe_string_2($transaction, 'curr', 'currency');
         $code = $this->safe_currency_code($currencyId, $currency);
         $address = null;
-        $tag = null;
         $comment = null;
         $account = $this->safe_string($transaction, 'account');
         if ($type === 'deposit') {
@@ -1770,7 +1766,11 @@ class exmo extends Exchange {
                 }
             }
         }
-        $fee = null;
+        $fee = array(
+            'currency' => null,
+            'cost' => null,
+            'rate' => null,
+        );
         // fixed funding fees only (for now)
         if (!$this->fees['transaction']['percentage']) {
             $key = ($type === 'withdrawal') ? 'withdraw' : 'deposit';
@@ -1790,33 +1790,29 @@ class exmo extends Exchange {
                 if ($type === 'withdrawal') {
                     $amount = Precise::string_sub($amount, $feeCost);
                 }
-                $fee = array(
-                    'cost' => $this->parse_number($feeCost),
-                    'currency' => $code,
-                    'rate' => null,
-                );
+                $fee['cost'] = $this->parse_number($feeCost);
+                $fee['currency'] = $code;
             }
         }
-        $network = $this->safe_string($transaction, 'provider');
         return array(
             'info' => $transaction,
-            'id' => $id,
+            'id' => $this->safe_string_2($transaction, 'order_id', 'task_id'),
+            'txid' => $txid,
+            'type' => $type,
+            'currency' => $code,
+            'network' => $this->safe_string($transaction, 'provider'),
+            'amount' => $amount,
+            'status' => $this->parse_transaction_status($this->safe_string_lower($transaction, 'status')),
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
-            'currency' => $code,
-            'amount' => $amount,
-            'network' => $network,
             'address' => $address,
-            'addressTo' => $address,
             'addressFrom' => null,
-            'tag' => $tag,
-            'tagTo' => $tag,
+            'addressTo' => $address,
+            'tag' => null,
             'tagFrom' => null,
-            'status' => $status,
-            'type' => $type,
-            'updated' => $updated,
+            'tagTo' => null,
+            'updated' => $this->safe_timestamp($transaction, 'updated'),
             'comment' => $comment,
-            'txid' => $txid,
             'fee' => $fee,
         );
     }
