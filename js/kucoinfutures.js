@@ -47,6 +47,8 @@ module.exports = class kucoinfutures extends kucoin {
                 'fetchCurrencies': false,
                 'fetchDepositAddress': true,
                 'fetchDeposits': true,
+                'fetchDepositWithdrawFee': false,
+                'fetchDepositWithdrawFees': false,
                 'fetchFundingHistory': true,
                 'fetchFundingRate': true,
                 'fetchFundingRateHistory': false,
@@ -71,7 +73,7 @@ module.exports = class kucoinfutures extends kucoin {
                 'fetchTickers': false,
                 'fetchTime': true,
                 'fetchTrades': true,
-                'fetchTransactionFee': true,
+                'fetchTransactionFee': false,
                 'fetchWithdrawals': true,
                 'setMarginMode': false,
                 'transfer': true,
@@ -310,8 +312,8 @@ module.exports = class kucoinfutures extends kucoin {
          * @method
          * @name kucoinfutures#fetchAccounts
          * @description fetch all the accounts associated with a profile
-         * @param {dict} params extra parameters specific to the kucoinfutures api endpoint
-         * @returns {dict} a dictionary of [account structures]{@link https://docs.ccxt.com/en/latest/manual.html#account-structure} indexed by the account type
+         * @param {object} params extra parameters specific to the kucoinfutures api endpoint
+         * @returns {object} a dictionary of [account structures]{@link https://docs.ccxt.com/en/latest/manual.html#account-structure} indexed by the account type
          */
         throw new BadRequest (this.id + ' fetchAccounts() is not supported yet');
     }
@@ -321,8 +323,8 @@ module.exports = class kucoinfutures extends kucoin {
          * @method
          * @name kucoinfutures#fetchStatus
          * @description the latest known information on the availability of the exchange API
-         * @param {dict} params extra parameters specific to the kucoinfutures api endpoint
-         * @returns {dict} a [status structure]{@link https://docs.ccxt.com/en/latest/manual.html#exchange-status-structure}
+         * @param {object} params extra parameters specific to the kucoinfutures api endpoint
+         * @returns {object} a [status structure]{@link https://docs.ccxt.com/en/latest/manual.html#exchange-status-structure}
          */
         const response = await this.futuresPublicGetStatus (params);
         //
@@ -350,8 +352,8 @@ module.exports = class kucoinfutures extends kucoin {
          * @method
          * @name kucoinfutures#fetchMarkets
          * @description retrieves data on all markets for kucoinfutures
-         * @param {dict} params extra parameters specific to the exchange api endpoint
-         * @returns {[dict]} an array of objects representing market data
+         * @param {object} params extra parameters specific to the exchange api endpoint
+         * @returns {[object]} an array of objects representing market data
          */
         const response = await this.futuresPublicGetContractsActive (params);
         //
@@ -404,14 +406,7 @@ module.exports = class kucoinfutures extends kucoin {
         //            "lastTradePrice": 4545.4500000000,
         //            "nextFundingRateTime": 25481884,
         //            "maxLeverage": 100,
-        //            "sourceExchanges":  [
-        //                "huobi",
-        //                "Okex",
-        //                "Binance",
-        //                "Kucoin",
-        //                "Poloniex",
-        //                "Hitbtc"
-        //            ],
+        //            "sourceExchanges":  [ "huobi", "Okex", "Binance", "Kucoin", "Poloniex", "Hitbtc" ],
         //            "premiumsSymbol1M": ".ETHUSDTMPI",
         //            "premiumsSymbol8H": ".ETHUSDTMPI8H",
         //            "fundingBaseSymbol1M": ".ETHINT",
@@ -443,11 +438,25 @@ module.exports = class kucoinfutures extends kucoin {
                 symbol = symbol + '-' + this.yymmdd (expiry, '');
                 type = 'future';
             }
-            const baseMinSizeString = this.safeString (market, 'baseMinSize');
-            const quoteMaxSizeString = this.safeString (market, 'quoteMaxSize');
             const inverse = this.safeValue (market, 'isInverse');
             const status = this.safeString (market, 'status');
             const multiplier = this.safeString (market, 'multiplier');
+            const tickSize = this.safeNumber (market, 'tickSize');
+            const lotSize = this.safeNumber (market, 'lotSize');
+            let limitAmountMin = lotSize;
+            if (limitAmountMin === undefined) {
+                limitAmountMin = this.safeNumber (market, 'baseMinSize');
+            }
+            let limitAmountMax = this.safeNumber (market, 'maxOrderQty');
+            if (limitAmountMax === undefined) {
+                limitAmountMax = this.safeNumber (market, 'baseMaxSize');
+            }
+            let limitPriceMax = this.safeNumber (market, 'maxPrice');
+            if (limitPriceMax === undefined) {
+                const baseMinSizeString = this.safeString (market, 'baseMinSize');
+                const quoteMaxSizeString = this.safeString (market, 'quoteMaxSize');
+                limitPriceMax = this.parseNumber (Precise.stringDiv (quoteMaxSizeString, baseMinSizeString));
+            }
             result.push ({
                 'id': id,
                 'symbol': symbol,
@@ -475,8 +484,8 @@ module.exports = class kucoinfutures extends kucoin {
                 'strike': undefined,
                 'optionType': undefined,
                 'precision': {
-                    'amount': this.safeNumber (market, 'lotSize'),
-                    'price': this.safeNumber (market, 'tickSize'),
+                    'amount': lotSize,
+                    'price': tickSize,
                 },
                 'limits': {
                     'leverage': {
@@ -484,16 +493,16 @@ module.exports = class kucoinfutures extends kucoin {
                         'max': this.safeNumber (market, 'maxLeverage'),
                     },
                     'amount': {
-                        'min': this.parseNumber (baseMinSizeString),
-                        'max': this.safeNumber (market, 'baseMaxSize'),
+                        'min': limitAmountMin,
+                        'max': limitAmountMax,
                     },
                     'price': {
-                        'min': undefined,
-                        'max': this.parseNumber (Precise.stringDiv (quoteMaxSizeString, baseMinSizeString)),
+                        'min': tickSize,
+                        'max': limitPriceMax,
                     },
                     'cost': {
                         'min': this.safeNumber (market, 'quoteMinSize'),
-                        'max': this.parseNumber (quoteMaxSizeString),
+                        'max': this.safeNumber (market, 'quoteMaxSize'),
                     },
                 },
                 'info': market,
@@ -507,7 +516,7 @@ module.exports = class kucoinfutures extends kucoin {
          * @method
          * @name kucoinfutures#fetchTime
          * @description fetches the current integer timestamp in milliseconds from the exchange server
-         * @param {dict} params extra parameters specific to the kucoinfutures api endpoint
+         * @param {object} params extra parameters specific to the kucoinfutures api endpoint
          * @returns {int} the current integer timestamp in milliseconds from the exchange server
          */
         const response = await this.futuresPublicGetTimestamp (params);
@@ -520,16 +529,16 @@ module.exports = class kucoinfutures extends kucoin {
         return this.safeNumber (response, 'data');
     }
 
-    async fetchOHLCV (symbol, timeframe = '15m', since = undefined, limit = undefined, params = {}) {
+    async fetchOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
         /**
          * @method
          * @name kucoinfutures#fetchOHLCV
          * @description fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
-         * @param {str} symbol unified symbol of the market to fetch OHLCV data for
-         * @param {str} timeframe the length of time each candle represents
+         * @param {string} symbol unified symbol of the market to fetch OHLCV data for
+         * @param {string} timeframe the length of time each candle represents
          * @param {int|undefined} since timestamp in ms of the earliest candle to fetch
          * @param {int|undefined} limit the maximum amount of candles to fetch
-         * @param {dict} params extra parameters specific to the kucoinfutures api endpoint
+         * @param {object} params extra parameters specific to the kucoinfutures api endpoint
          * @returns {[[int]]} A list of candles ordered as timestamp, open, high, low, close, volume
          */
         await this.loadMarkets ();
@@ -594,9 +603,9 @@ module.exports = class kucoinfutures extends kucoin {
          * @method
          * @name kucoinfutures#createDepositAddress
          * @description create a currency deposit address
-         * @param {str} code unified currency code of the currency for the deposit address
-         * @param {dict} params extra parameters specific to the kucoinfutures api endpoint
-         * @returns {dict} an [address structure]{@link https://docs.ccxt.com/en/latest/manual.html#address-structure}
+         * @param {string} code unified currency code of the currency for the deposit address
+         * @param {object} params extra parameters specific to the kucoinfutures api endpoint
+         * @returns {object} an [address structure]{@link https://docs.ccxt.com/en/latest/manual.html#address-structure}
          */
         throw new BadRequest (this.id + ' createDepositAddress() is not supported yet');
     }
@@ -606,9 +615,9 @@ module.exports = class kucoinfutures extends kucoin {
          * @method
          * @name kucoinfutures#fetchDepositAddress
          * @description fetch the deposit address for a currency associated with this account
-         * @param {str} code unified currency code
-         * @param {dict} params extra parameters specific to the kucoinfutures api endpoint
-         * @returns {dict} an [address structure]{@link https://docs.ccxt.com/en/latest/manual.html#address-structure}
+         * @param {string} code unified currency code
+         * @param {object} params extra parameters specific to the kucoinfutures api endpoint
+         * @returns {object} an [address structure]{@link https://docs.ccxt.com/en/latest/manual.html#address-structure}
          */
         await this.loadMarkets ();
         const currency = this.currency (code);
@@ -646,10 +655,10 @@ module.exports = class kucoinfutures extends kucoin {
          * @method
          * @name kucoinfutures#fetchOrderBook
          * @description fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
-         * @param {str} symbol unified symbol of the market to fetch the order book for
+         * @param {string} symbol unified symbol of the market to fetch the order book for
          * @param {int|undefined} limit the maximum amount of order book entries to return
-         * @param {dict} params extra parameters specific to the kucoinfutures api endpoint
-         * @returns {dict} A dictionary of [order book structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-book-structure} indexed by market symbols
+         * @param {object} params extra parameters specific to the kucoinfutures api endpoint
+         * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-book-structure} indexed by market symbols
          */
         await this.loadMarkets ();
         const level = this.safeNumber (params, 'level');
@@ -704,9 +713,9 @@ module.exports = class kucoinfutures extends kucoin {
          * @method
          * @name kucoinfutures#fetchTicker
          * @description fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
-         * @param {str} symbol unified symbol of the market to fetch the ticker for
-         * @param {dict} params extra parameters specific to the kucoinfutures api endpoint
-         * @returns {dict} a [ticker structure]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
+         * @param {string} symbol unified symbol of the market to fetch the ticker for
+         * @param {object} params extra parameters specific to the kucoinfutures api endpoint
+         * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
@@ -787,11 +796,11 @@ module.exports = class kucoinfutures extends kucoin {
          * @method
          * @name kucoinfutures#fetchFundingHistory
          * @description fetch the history of funding payments paid and received on this account
-         * @param {str} symbol unified market symbol
+         * @param {string} symbol unified market symbol
          * @param {int|undefined} since the earliest time in ms to fetch funding history for
          * @param {int|undefined} limit the maximum number of funding history structures to retrieve
-         * @param {dict} params extra parameters specific to the kucoinfutures api endpoint
-         * @returns {dict} a [funding history structure]{@link https://docs.ccxt.com/en/latest/manual.html#funding-history-structure}
+         * @param {object} params extra parameters specific to the kucoinfutures api endpoint
+         * @returns {object} a [funding history structure]{@link https://docs.ccxt.com/en/latest/manual.html#funding-history-structure}
          */
         //
         if (symbol === undefined) {
@@ -860,9 +869,9 @@ module.exports = class kucoinfutures extends kucoin {
          * @method
          * @name kucoinfutures#fetchPositions
          * @description fetch all open positions
-         * @param {[str]|undefined} symbols list of unified market symbols
-         * @param {dict} params extra parameters specific to the kucoinfutures api endpoint
-         * @returns {[dict]} a list of [position structure]{@link https://docs.ccxt.com/en/latest/manual.html#position-structure}
+         * @param {[string]|undefined} symbols list of unified market symbols
+         * @param {object} params extra parameters specific to the kucoinfutures api endpoint
+         * @returns {[object]} a list of [position structure]{@link https://docs.ccxt.com/en/latest/manual.html#position-structure}
          */
         await this.loadMarkets ();
         const response = await this.futuresPrivateGetPositions (params);
@@ -983,6 +992,7 @@ module.exports = class kucoinfutures extends kucoin {
         const marginMode = crossMode ? 'cross' : 'isolated';
         return {
             'info': position,
+            'id': undefined,
             'symbol': this.safeString (market, 'symbol'),
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
@@ -1012,24 +1022,24 @@ module.exports = class kucoinfutures extends kucoin {
          * @method
          * @name kucoinfutures#createOrder
          * @description Create an order on the exchange
-         * @param {str} symbol Unified CCXT market symbol
-         * @param {str} type 'limit' or 'market'
-         * @param {str} side 'buy' or 'sell'
+         * @param {string} symbol Unified CCXT market symbol
+         * @param {string} type 'limit' or 'market'
+         * @param {string} side 'buy' or 'sell'
          * @param {float} amount the amount of currency to trade
          * @param {float} price *ignored in "market" orders* the price at which the order is to be fullfilled at in units of the quote currency
-         * @param {dict} params  Extra parameters specific to the exchange API endpoint
+         * @param {object} params  Extra parameters specific to the exchange API endpoint
          * @param {float} params.leverage Leverage size of the order
          * @param {float} params.stopPrice The price at which a trigger order is triggered at
          * @param {bool} params.reduceOnly A mark to reduce the position size only. Set to false by default. Need to set the position size when reduceOnly is true.
-         * @param {str} params.timeInForce GTC, GTT, IOC, or FOK, default is GTC, limit orders only
-         * @param {str} params.postOnly Post only flag, invalid when timeInForce is IOC or FOK
-         * @param {str} params.clientOid client order id, defaults to uuid if not passed
-         * @param {str} params.remark remark for the order, length cannot exceed 100 utf8 characters
-         * @param {str} params.stop 'up' or 'down', defaults to 'up' if side is sell and 'down' if side is buy, requires stopPrice
-         * @param {str} params.stopPriceType  TP, IP or MP, defaults to TP
+         * @param {string} params.timeInForce GTC, GTT, IOC, or FOK, default is GTC, limit orders only
+         * @param {string} params.postOnly Post only flag, invalid when timeInForce is IOC or FOK
+         * @param {string} params.clientOid client order id, defaults to uuid if not passed
+         * @param {string} params.remark remark for the order, length cannot exceed 100 utf8 characters
+         * @param {string} params.stop 'up' or 'down', defaults to 'up' if side is sell and 'down' if side is buy, requires stopPrice
+         * @param {string} params.stopPriceType  TP, IP or MP, defaults to TP
          * @param {bool} params.closeOrder set to true to close position
          * @param {bool} params.forceHold A mark to forcely hold the funds for an order, even though it's an order to reduce the position size. This helps the order stay on the order book and not get canceled when the position size changes. Set to false by default.
-         * @returns {dict} an [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
+         * @returns {object} an [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
@@ -1048,14 +1058,15 @@ module.exports = class kucoinfutures extends kucoin {
             'size': preciseAmount,
             'leverage': 1,
         };
-        const stopPrice = this.safeNumber (params, 'stopPrice');
+        const stopPrice = this.safeValue2 (params, 'triggerPrice', 'stopPrice');
         if (stopPrice) {
             request['stop'] = (side === 'buy') ? 'up' : 'down';
             const stopPriceType = this.safeString (params, 'stopPriceType', 'TP');
             request['stopPriceType'] = stopPriceType;
+            request['stopPrice'] = this.priceToPrecision (symbol, stopPrice);
         }
         const uppercaseType = type.toUpperCase ();
-        let timeInForce = this.safeString (params, 'timeInForce');
+        const timeInForce = this.safeStringUpper (params, 'timeInForce');
         if (uppercaseType === 'LIMIT') {
             if (price === undefined) {
                 throw new ArgumentsRequired (this.id + ' createOrder() requires a price argument for limit orders');
@@ -1063,13 +1074,12 @@ module.exports = class kucoinfutures extends kucoin {
                 request['price'] = this.priceToPrecision (symbol, price);
             }
             if (timeInForce !== undefined) {
-                timeInForce = timeInForce.toUpperCase ();
                 request['timeInForce'] = timeInForce;
             }
         }
         const postOnly = this.safeValue (params, 'postOnly', false);
         const hidden = this.safeValue (params, 'hidden');
-        if (postOnly && hidden !== undefined) {
+        if (postOnly && (hidden !== undefined)) {
             throw new BadRequest (this.id + ' createOrder() does not support the postOnly parameter together with a hidden parameter');
         }
         const iceberg = this.safeValue (params, 'iceberg');
@@ -1079,7 +1089,7 @@ module.exports = class kucoinfutures extends kucoin {
                 throw new ArgumentsRequired (this.id + ' createOrder() requires a visibleSize parameter for iceberg orders');
             }
         }
-        params = this.omit (params, 'timeInForce'); // Time in force only valid for limit orders, exchange error when gtc for market orders
+        params = this.omit (params, [ 'timeInForce', 'stopPrice', 'triggerPrice' ]); // Time in force only valid for limit orders, exchange error when gtc for market orders
         const response = await this.futuresPrivatePostOrders (this.extend (request, params));
         //
         //    {
@@ -1120,10 +1130,10 @@ module.exports = class kucoinfutures extends kucoin {
          * @method
          * @name kucoinfutures#cancelOrder
          * @description cancels an open order
-         * @param {str} id order id
-         * @param {str|undefined} symbol unified symbol of the market the order was made in
-         * @param {dict} params extra parameters specific to the kucoinfutures api endpoint
-         * @returns {dict} An [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
+         * @param {string} id order id
+         * @param {string|undefined} symbol unified symbol of the market the order was made in
+         * @param {object} params extra parameters specific to the kucoinfutures api endpoint
+         * @returns {object} An [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
          */
         await this.loadMarkets ();
         const request = {
@@ -1148,9 +1158,9 @@ module.exports = class kucoinfutures extends kucoin {
          * @method
          * @name kucoinfutures#cancelAllOrders
          * @description cancel all open orders
-         * @param {str|undefined} symbol unified market symbol, only orders in the market of this symbol are cancelled when symbol is not undefined
-         * @param {dict} params extra parameters specific to the kucoinfutures api endpoint
-         * @param {dict} params.stop When true, all the trigger orders will be cancelled
+         * @param {string|undefined} symbol unified market symbol, only orders in the market of this symbol are cancelled when symbol is not undefined
+         * @param {object} params extra parameters specific to the kucoinfutures api endpoint
+         * @param {object} params.stop When true, all the trigger orders will be cancelled
          * @returns Response from the exchange
          */
         await this.loadMarkets ();
@@ -1179,10 +1189,10 @@ module.exports = class kucoinfutures extends kucoin {
          * @method
          * @name kucoinfutures#addMargin
          * @description add margin
-         * @param {str} symbol unified market symbol
+         * @param {string} symbol unified market symbol
          * @param {float} amount amount of margin to add
-         * @param {dict} params extra parameters specific to the kucoinfutures api endpoint
-         * @returns {dict} a [margin structure]{@link https://docs.ccxt.com/en/latest/manual.html#add-margin-structure}
+         * @param {object} params extra parameters specific to the kucoinfutures api endpoint
+         * @returns {object} a [margin structure]{@link https://docs.ccxt.com/en/latest/manual.html#add-margin-structure}
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
@@ -1243,7 +1253,7 @@ module.exports = class kucoinfutures extends kucoin {
         //    }
         //
         const data = this.safeValue (response, 'data');
-        return this.extend (this.parseModifyMargin (data, market), {
+        return this.extend (this.parseMarginModification (data, market), {
             'amount': this.amountToPrecision (symbol, amount),
             'direction': 'in',
         });
@@ -1317,15 +1327,15 @@ module.exports = class kucoinfutures extends kucoin {
          * @method
          * @name kucoinfutures#fetchOrdersByStatus
          * @description fetches a list of orders placed on the exchange
-         * @param {str} status 'active' or 'closed', only 'active' is valid for stop orders
-         * @param {str|undefined} symbol unified symbol for the market to retrieve orders from
+         * @param {string} status 'active' or 'closed', only 'active' is valid for stop orders
+         * @param {string|undefined} symbol unified symbol for the market to retrieve orders from
          * @param {int|undefined} since timestamp in ms of the earliest order to retrieve
          * @param {int|undefined} limit The maximum number of orders to retrieve
-         * @param {dict} params exchange specific parameters
+         * @param {object} params exchange specific parameters
          * @param {bool|undefined} params.stop set to true to retrieve untriggered stop orders
          * @param {int|undefined} params.until End time in ms
-         * @param {str|undefined} params.side buy or sell
-         * @param {str|undefined} params.type limit or market
+         * @param {string|undefined} params.side buy or sell
+         * @param {string|undefined} params.type limit or market
          * @returns An [array of order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
          */
         await this.loadMarkets ();
@@ -1366,14 +1376,14 @@ module.exports = class kucoinfutures extends kucoin {
          * @method
          * @name kucoinfutures#fetchClosedOrders
          * @description fetches information on multiple closed orders made by the user
-         * @param {str|undefined} symbol unified market symbol of the market orders were made in
+         * @param {string|undefined} symbol unified market symbol of the market orders were made in
          * @param {int|undefined} since the earliest time in ms to fetch orders for
          * @param {int|undefined} limit the maximum number of  orde structures to retrieve
-         * @param {dict} params extra parameters specific to the kucoinfutures api endpoint
+         * @param {object} params extra parameters specific to the kucoinfutures api endpoint
          * @param {int|undefined} params.till end time in ms
-         * @param {str|undefined} params.side buy or sell
-         * @param {str|undefined} params.type limit, or market
-         * @returns {[dict]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure
+         * @param {string|undefined} params.side buy or sell
+         * @param {string|undefined} params.type limit, or market
+         * @returns {[object]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
          */
         return await this.fetchOrdersByStatus ('done', symbol, since, limit, params);
     }
@@ -1383,9 +1393,9 @@ module.exports = class kucoinfutures extends kucoin {
          * @method
          * @name kucoinfutures#fetchOrder
          * @description fetches information on an order made by the user
-         * @param {str|undefined} symbol unified symbol of the market the order was made in
-         * @param {dict} params extra parameters specific to the kucoinfutures api endpoint
-         * @returns {dict} An [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
+         * @param {string|undefined} symbol unified symbol of the market the order was made in
+         * @param {object} params extra parameters specific to the kucoinfutures api endpoint
+         * @returns {object} An [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
          */
         await this.loadMarkets ();
         const request = {};
@@ -1481,9 +1491,9 @@ module.exports = class kucoinfutures extends kucoin {
          * @method
          * @name kucoinfutures#fetchFundingRate
          * @description fetch the current funding rate
-         * @param {str} symbol unified market symbol
-         * @param {dict} params extra parameters specific to the kucoinfutures api endpoint
-         * @returns {dict} a [funding rate structure]{@link https://docs.ccxt.com/en/latest/manual.html#funding-rate-structure}
+         * @param {string} symbol unified market symbol
+         * @param {object} params extra parameters specific to the kucoinfutures api endpoint
+         * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/en/latest/manual.html#funding-rate-structure}
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
@@ -1505,6 +1515,7 @@ module.exports = class kucoinfutures extends kucoin {
         //
         const data = this.safeValue (response, 'data');
         const fundingTimestamp = this.safeNumber (data, 'timePoint');
+        // the website displayes the previous funding rate as "funding rate"
         return {
             'info': data,
             'symbol': market['symbol'],
@@ -1514,15 +1525,15 @@ module.exports = class kucoinfutures extends kucoin {
             'estimatedSettlePrice': undefined,
             'timestamp': undefined,
             'datetime': undefined,
-            'fundingRate': this.safeNumber (data, 'value'),
-            'fundingTimestamp': fundingTimestamp,
-            'fundingDatetime': this.iso8601 (fundingTimestamp),
-            'nextFundingRate': this.safeNumber (data, 'predictedValue'),
+            'fundingRate': this.safeNumber (data, 'predictedValue'),
+            'fundingTimestamp': undefined,
+            'fundingDatetime': undefined,
+            'nextFundingRate': undefined,
             'nextFundingTimestamp': undefined,
             'nextFundingDatetime': undefined,
-            'previousFundingRate': undefined,
-            'previousFundingTimestamp': undefined,
-            'previousFundingDatetime': undefined,
+            'previousFundingRate': this.safeNumber (data, 'value'),
+            'previousFundingTimestamp': fundingTimestamp,
+            'previousFundingDatetime': this.iso8601 (fundingTimestamp),
         };
     }
 
@@ -1547,8 +1558,8 @@ module.exports = class kucoinfutures extends kucoin {
          * @method
          * @name kucoinfutures#fetchBalance
          * @description query for balance and get the amount of funds available for trading or funds locked in orders
-         * @param {dict} params extra parameters specific to the kucoinfutures api endpoint
-         * @returns {dict} a [balance structure]{@link https://docs.ccxt.com/en/latest/manual.html?#balance-structure}
+         * @param {object} params extra parameters specific to the kucoinfutures api endpoint
+         * @returns {object} a [balance structure]{@link https://docs.ccxt.com/en/latest/manual.html?#balance-structure}
          */
         await this.loadMarkets ();
         // only fetches one balance at a time
@@ -1584,12 +1595,12 @@ module.exports = class kucoinfutures extends kucoin {
          * @method
          * @name kucoinfutures#transfer
          * @description transfer currency internally between wallets on the same account
-         * @param {str} code unified currency code
+         * @param {string} code unified currency code
          * @param {float} amount amount to transfer
-         * @param {str} fromAccount account to transfer from
-         * @param {str} toAccount account to transfer to
-         * @param {dict} params extra parameters specific to the kucoinfutures api endpoint
-         * @returns {dict} a [transfer structure]{@link https://docs.ccxt.com/en/latest/manual.html#transfer-structure}
+         * @param {string} fromAccount account to transfer from
+         * @param {string} toAccount account to transfer to
+         * @param {object} params extra parameters specific to the kucoinfutures api endpoint
+         * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/en/latest/manual.html#transfer-structure}
          */
         if ((toAccount !== 'main' && toAccount !== 'funding') || (fromAccount !== 'futures' && fromAccount !== 'future' && fromAccount !== 'contract')) {
             throw new BadRequest (this.id + ' transfer() only supports transfers from contract(future) account to main(funding) account');
@@ -1653,11 +1664,11 @@ module.exports = class kucoinfutures extends kucoin {
          * @method
          * @name kucoinfutures#fetchMyTrades
          * @description fetch all trades made by the user
-         * @param {str|undefined} symbol unified market symbol
+         * @param {string|undefined} symbol unified market symbol
          * @param {int|undefined} since the earliest time in ms to fetch trades for
          * @param {int|undefined} limit the maximum number of trades structures to retrieve
-         * @param {dict} params extra parameters specific to the kucoinfutures api endpoint
-         * @returns {[dict]} a list of [trade structures]{@link https://docs.ccxt.com/en/latest/manual.html#trade-structure}
+         * @param {object} params extra parameters specific to the kucoinfutures api endpoint
+         * @returns {[object]} a list of [trade structures]{@link https://docs.ccxt.com/en/latest/manual.html#trade-structure}
          */
         await this.loadMarkets ();
         const request = {
@@ -1720,11 +1731,11 @@ module.exports = class kucoinfutures extends kucoin {
          * @method
          * @name kucoinfutures#fetchTrades
          * @description get the list of most recent trades for a particular symbol
-         * @param {str} symbol unified symbol of the market to fetch trades for
+         * @param {string} symbol unified symbol of the market to fetch trades for
          * @param {int|undefined} since timestamp in ms of the earliest trade to fetch
          * @param {int|undefined} limit the maximum amount of trades to fetch
-         * @param {dict} params extra parameters specific to the kucoinfutures api endpoint
-         * @returns {[dict]} a list of [trade structures]{@link https://docs.ccxt.com/en/latest/manual.html?#public-trades}
+         * @param {object} params extra parameters specific to the kucoinfutures api endpoint
+         * @returns {[object]} a list of [trade structures]{@link https://docs.ccxt.com/en/latest/manual.html?#public-trades}
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
@@ -1877,11 +1888,11 @@ module.exports = class kucoinfutures extends kucoin {
          * @method
          * @name kucoinfutures#fetchDeposits
          * @description fetch all deposits made to an account
-         * @param {str|undefined} code unified currency code
+         * @param {string|undefined} code unified currency code
          * @param {int|undefined} since the earliest time in ms to fetch deposits for
          * @param {int|undefined} limit the maximum number of deposits structures to retrieve
-         * @param {dict} params extra parameters specific to the kucoinfutures api endpoint
-         * @returns {[dict]} a list of [transaction structures]{@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure}
+         * @param {object} params extra parameters specific to the kucoinfutures api endpoint
+         * @returns {[object]} a list of [transaction structures]{@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure}
          */
         await this.loadMarkets ();
         const request = {};
@@ -1933,11 +1944,11 @@ module.exports = class kucoinfutures extends kucoin {
          * @method
          * @name kucoinfutures#fetchWithdrawals
          * @description fetch all withdrawals made from an account
-         * @param {str|undefined} code unified currency code
+         * @param {string|undefined} code unified currency code
          * @param {int|undefined} since the earliest time in ms to fetch withdrawals for
          * @param {int|undefined} limit the maximum number of withdrawals structures to retrieve
-         * @param {dict} params extra parameters specific to the kucoinfutures api endpoint
-         * @returns {[dict]} a list of [transaction structures]{@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure}
+         * @param {object} params extra parameters specific to the kucoinfutures api endpoint
+         * @returns {[object]} a list of [transaction structures]{@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure}
          */
         await this.loadMarkets ();
         const request = {};
@@ -1988,12 +1999,24 @@ module.exports = class kucoinfutures extends kucoin {
         /**
          * @method
          * @name kucoinfutures#fetchTransactionFee
-         * @description fetch the fee for a transaction
-         * @param {str} code unified currency code
-         * @param {dict} params extra parameters specific to the kucoinfutures api endpoint
-         * @returns {dict} a [fee structure]{@link https://docs.ccxt.com/en/latest/manual.html#fee-structure}
+         * @description *DEPRECATED* please use fetchDepositWithdrawFee instead
+         * @param {string} code unified currency code
+         * @param {object} params extra parameters specific to the kucoinfutures api endpoint
+         * @returns {object} a [fee structure]{@link https://docs.ccxt.com/en/latest/manual.html#fee-structure}
          */
-        throw new BadRequest (this.id + ' fetchTransactionFee() is not supported yet');
+        throw new BadRequest (this.id + ' fetchTransactionFee() is not supported');
+    }
+
+    async fetchDepositWithdrawFee (code, params = {}) {
+        /**
+         * @method
+         * @name kucoinfutures#fetchDepositWithdrawFee
+         * @description Not supported
+         * @param {string} code unified currency code
+         * @param {object} params extra parameters specific to the kucoinfutures api endpoint
+         * @returns {object} a [fee structure]{@link https://docs.ccxt.com/en/latest/manual.html#fee-structure}
+         */
+        throw new BadRequest (this.id + ' fetchDepositWithdrawFee() is not supported');
     }
 
     async fetchLedger (code = undefined, since = undefined, limit = undefined, params = {}) {
@@ -2005,9 +2028,9 @@ module.exports = class kucoinfutures extends kucoin {
          * @method
          * @name kucoinfutures#fetchMarketLeverageTiers
          * @description retrieve information on the maximum leverage, and maintenance margin for trades of varying trade sizes for a single market
-         * @param {str} symbol unified market symbol
-         * @param {dict} params extra parameters specific to the kucoinfutures api endpoint
-         * @returns {dict} a [leverage tiers structure]{@link https://docs.ccxt.com/en/latest/manual.html#leverage-tiers-structure}
+         * @param {string} symbol unified market symbol
+         * @param {object} params extra parameters specific to the kucoinfutures api endpoint
+         * @returns {object} a [leverage tiers structure]{@link https://docs.ccxt.com/en/latest/manual.html#leverage-tiers-structure}
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
@@ -2043,8 +2066,8 @@ module.exports = class kucoinfutures extends kucoin {
         /**
          * @ignore
          * @method
-         * @param {dict} info Exchange market response for 1 market
-         * @param {dict} market CCXT market
+         * @param {object} info Exchange market response for 1 market
+         * @param {object} market CCXT market
          */
         //
         //    {

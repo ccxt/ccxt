@@ -52,6 +52,8 @@ class bitfinex(Exchange):
                 'fetchClosedOrders': True,
                 'fetchDepositAddress': True,
                 'fetchDeposits': None,
+                'fetchDepositWithdrawFee': 'emulated',
+                'fetchDepositWithdrawFees': True,
                 'fetchIndexOHLCV': False,
                 'fetchLeverageTiers': False,
                 'fetchMarginMode': False,
@@ -406,24 +408,72 @@ class bitfinex(Exchange):
 
     def fetch_transaction_fees(self, codes=None, params={}):
         """
-        fetch transaction fees
-        :param [str]|None codes: not used by bitfinex2 fetchTransactionFees()
+        *DEPRECATED* please use fetchDepositWithdrawFees instead
+        see https://docs.bitfinex.com/v1/reference/rest-auth-fees
+        :param [str]|None codes: list of unified currency codes
+        :param dict params: extra parameters specific to the bitfinex api endpoint
+        :returns [dict]: a list of `fees structures <https://docs.ccxt.com/en/latest/manual.html#fee-structure>`
+        """
+        self.load_markets()
+        result = {}
+        response = self.privatePostAccountFees(params)
+        #
+        # {
+        #     'withdraw': {
+        #         'BTC': '0.0004',
+        #     }
+        # }
+        #
+        fees = self.safe_value(response, 'withdraw')
+        ids = list(fees.keys())
+        for i in range(0, len(ids)):
+            id = ids[i]
+            code = self.safe_currency_code(id)
+            if (codes is not None) and not self.in_array(code, codes):
+                continue
+            result[code] = {
+                'withdraw': self.safe_number(fees, id),
+                'deposit': {},
+                'info': self.safe_number(fees, id),
+            }
+        return result
+
+    def fetch_deposit_withdraw_fees(self, codes=None, params={}):
+        """
+        fetch deposit and withdraw fees
+        see https://docs.bitfinex.com/v1/reference/rest-auth-fees
+        :param [str]|None codes: list of unified currency codes
         :param dict params: extra parameters specific to the bitfinex api endpoint
         :returns [dict]: a list of `fees structures <https://docs.ccxt.com/en/latest/manual.html#fee-structure>`
         """
         self.load_markets()
         response = self.privatePostAccountFees(params)
-        fees = response['withdraw']
-        withdraw = {}
-        ids = list(fees.keys())
-        for i in range(0, len(ids)):
-            id = ids[i]
-            code = self.safe_currency_code(id)
-            withdraw[code] = self.safe_number(fees, id)
+        #
+        #    {
+        #        'withdraw': {
+        #            'BTC': '0.0004',
+        #            ...
+        #        }
+        #    }
+        #
+        withdraw = self.safe_value(response, 'withdraw')
+        return self.parse_deposit_withdraw_fees(withdraw, codes)
+
+    def parse_deposit_withdraw_fee(self, fee, currency=None):
+        #
+        #    '0.0004'
+        #
         return {
-            'info': response,
-            'withdraw': withdraw,
-            'deposit': withdraw,  # only for deposits of less than $1000
+            'withdraw': {
+                'fee': self.parse_number(fee),
+                'percentage': None,
+            },
+            'deposit': {
+                'fee': None,
+                'percentage': None,
+            },
+            'networks': {},
+            'info': fee,
         }
 
     def fetch_trading_fees(self, params={}):
@@ -771,6 +821,7 @@ class bitfinex(Exchange):
         :returns dict: an array of `ticker structures <https://docs.ccxt.com/en/latest/manual.html#ticker-structure>`
         """
         self.load_markets()
+        symbols = self.market_symbols(symbols)
         response = self.publicGetTickers(params)
         result = {}
         for i in range(0, len(response)):
@@ -796,21 +847,9 @@ class bitfinex(Exchange):
 
     def parse_ticker(self, ticker, market=None):
         timestamp = self.safe_timestamp(ticker, 'timestamp')
-        symbol = None
-        if market is not None:
-            symbol = market['symbol']
-        elif 'pair' in ticker:
-            marketId = self.safe_string(ticker, 'pair')
-            if marketId is not None:
-                if marketId in self.markets_by_id:
-                    market = self.markets_by_id[marketId]
-                    symbol = market['symbol']
-                else:
-                    baseId = marketId[0:3]
-                    quoteId = marketId[3:6]
-                    base = self.safe_currency_code(baseId)
-                    quote = self.safe_currency_code(quoteId)
-                    symbol = base + '/' + quote
+        marketId = self.safe_string(market, 'pair')
+        market = self.safe_market(marketId, market)
+        symbol = market['symbol']
         last = self.safe_string(ticker, 'last_price')
         return self.safe_ticker({
             'symbol': symbol,
@@ -1123,9 +1162,10 @@ class bitfinex(Exchange):
         :param int|None since: the earliest time in ms to fetch orders for
         :param int|None limit: the maximum number of  orde structures to retrieve
         :param dict params: extra parameters specific to the bitfinex api endpoint
-        :returns [dict]: a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure
+        :returns [dict]: a list of `order structures <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
         """
         self.load_markets()
+        symbol = self.symbol(symbol)
         request = {}
         if limit is not None:
             request['limit'] = limit
@@ -1278,18 +1318,18 @@ class bitfinex(Exchange):
         #
         #     [
         #         {
-        #             "id":581183,
-        #             "txid": 123456,
-        #             "currency":"BTC",
-        #             "method":"BITCOIN",
-        #             "type":"WITHDRAWAL",
-        #             "amount":".01",
-        #             "description":"3QXYWgRGX2BPYBpUDBssGbeWEa5zq6snBZ, offchain transfer ",
-        #             "address":"3QXYWgRGX2BPYBpUDBssGbeWEa5zq6snBZ",
-        #             "status":"COMPLETED",
-        #             "timestamp":"1443833327.0",
-        #             "timestamp_created": "1443833327.1",
-        #             "fee": 0.1,
+        #             "id": 581183,
+        #             "txid":  123456,
+        #             "currency": "BTC",
+        #             "method": "BITCOIN",
+        #             "type": "WITHDRAWAL",
+        #             "amount": ".01",
+        #             "description": "3QXYWgRGX2BPYBpUDBssGbeWEa5zq6snBZ, offchain transfer ",
+        #             "address": "3QXYWgRGX2BPYBpUDBssGbeWEa5zq6snBZ",
+        #             "status": "COMPLETED",
+        #             "timestamp": "1443833327.0",
+        #             "timestamp_created":  "1443833327.1",
+        #             "fee":  0.1,
         #         }
         #     ]
         #
@@ -1334,42 +1374,39 @@ class bitfinex(Exchange):
         # withdraw
         #
         #     {
-        #         "status":"success",
-        #         "message":"Your withdrawal request has been successfully submitted.",
-        #         "withdrawal_id":586829
+        #         "status": "success",
+        #         "message": "Your withdrawal request has been successfully submitted.",
+        #         "withdrawal_id": 586829
         #     }
         #
         timestamp = self.safe_timestamp(transaction, 'timestamp_created')
-        updated = self.safe_timestamp(transaction, 'timestamp')
         currencyId = self.safe_string(transaction, 'currency')
         code = self.safe_currency_code(currencyId, currency)
-        type = self.safe_string_lower(transaction, 'type')  # DEPOSIT or WITHDRAWAL
-        status = self.parse_transaction_status(self.safe_string(transaction, 'status'))
-        feeCost = self.safe_number(transaction, 'fee')
+        feeCost = self.safe_string(transaction, 'fee')
         if feeCost is not None:
-            feeCost = abs(feeCost)
-        tag = self.safe_string(transaction, 'description')
+            feeCost = Precise.string_abs(feeCost)
         return {
             'info': transaction,
             'id': self.safe_string_2(transaction, 'id', 'withdrawal_id'),
             'txid': self.safe_string(transaction, 'txid'),
+            'type': self.safe_string_lower(transaction, 'type'),  # DEPOSIT or WITHDRAWAL,
+            'currency': code,
+            'network': None,
+            'amount': self.safe_number(transaction, 'amount'),
+            'status': self.parse_transaction_status(self.safe_string(transaction, 'status')),
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
-            'network': None,
             'address': self.safe_string(transaction, 'address'),  # todo: self is actually the tag for XRP transfers(the address is missing)
-            'addressTo': None,
             'addressFrom': None,
-            'tag': tag,
-            'tagTo': None,
+            'addressTo': None,
+            'tag': self.safe_string(transaction, 'description'),
             'tagFrom': None,
-            'type': type,
-            'amount': self.safe_number(transaction, 'amount'),
-            'currency': code,
-            'status': status,
-            'updated': updated,
+            'tagTo': None,
+            'updated': self.safe_timestamp(transaction, 'timestamp'),
+            'comment': None,
             'fee': {
                 'currency': code,
-                'cost': feeCost,
+                'cost': self.parse_number(feeCost),
                 'rate': None,
             },
         }
@@ -1418,7 +1455,7 @@ class bitfinex(Exchange):
         #     ]
         #
         response = self.safe_value(responses, 0, {})
-        id = self.safe_string(response, 'withdrawal_id')
+        id = self.safe_number(response, 'withdrawal_id')
         message = self.safe_string(response, 'message')
         errorMessage = self.find_broadly_matched_key(self.exceptions['broad'], message)
         if id == 0:

@@ -8,6 +8,7 @@ import hashlib
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import PermissionDenied
+from ccxt.base.errors import AccountSuspended
 from ccxt.base.errors import ArgumentsRequired
 from ccxt.base.errors import BadRequest
 from ccxt.base.errors import BadSymbol
@@ -16,6 +17,7 @@ from ccxt.base.errors import InvalidAddress
 from ccxt.base.errors import InvalidOrder
 from ccxt.base.errors import OrderNotFound
 from ccxt.base.errors import CancelPending
+from ccxt.base.errors import NotSupported
 from ccxt.base.errors import DDoSProtection
 from ccxt.base.errors import RateLimitExceeded
 from ccxt.base.errors import ExchangeNotAvailable
@@ -34,7 +36,7 @@ class kraken(Exchange):
             'name': 'Kraken',
             'countries': ['US'],
             'version': '0',
-            'rateLimit': 3000,
+            'rateLimit': 1000,
             'certified': False,
             'pro': True,
             'has': {
@@ -53,6 +55,7 @@ class kraken(Exchange):
                 'createStopLimitOrder': True,
                 'createStopMarketOrder': True,
                 'createStopOrder': True,
+                'editOrder': True,
                 'fetchBalance': True,
                 'fetchBorrowInterest': False,
                 'fetchBorrowRate': False,
@@ -120,30 +123,30 @@ class kraken(Exchange):
                 'trading': {
                     'tierBased': True,
                     'percentage': True,
-                    'taker': 0.26 / 100,
-                    'maker': 0.16 / 100,
+                    'taker': self.parse_number('0.0026'),
+                    'maker': self.parse_number('0.0016'),
                     'tiers': {
                         'taker': [
-                            [0, 0.0026],
-                            [50000, 0.0024],
-                            [100000, 0.0022],
-                            [250000, 0.0020],
-                            [500000, 0.0018],
-                            [1000000, 0.0016],
-                            [2500000, 0.0014],
-                            [5000000, 0.0012],
-                            [10000000, 0.0001],
+                            [self.parse_number('0'), self.parse_number('0.0026')],
+                            [self.parse_number('50000'), self.parse_number('0.0024')],
+                            [self.parse_number('100000'), self.parse_number('0.0022')],
+                            [self.parse_number('250000'), self.parse_number('0.0020')],
+                            [self.parse_number('500000'), self.parse_number('0.0018')],
+                            [self.parse_number('1000000'), self.parse_number('0.0016')],
+                            [self.parse_number('2500000'), self.parse_number('0.0014')],
+                            [self.parse_number('5000000'), self.parse_number('0.0012')],
+                            [self.parse_number('10000000'), self.parse_number('0.0001')],
                         ],
                         'maker': [
-                            [0, 0.0016],
-                            [50000, 0.0014],
-                            [100000, 0.0012],
-                            [250000, 0.0010],
-                            [500000, 0.0008],
-                            [1000000, 0.0006],
-                            [2500000, 0.0004],
-                            [5000000, 0.0002],
-                            [10000000, 0.0],
+                            [self.parse_number('0'), self.parse_number('0.0016')],
+                            [self.parse_number('50000'), self.parse_number('0.0014')],
+                            [self.parse_number('100000'), self.parse_number('0.0012')],
+                            [self.parse_number('250000'), self.parse_number('0.0010')],
+                            [self.parse_number('500000'), self.parse_number('0.0008')],
+                            [self.parse_number('1000000'), self.parse_number('0.0006')],
+                            [self.parse_number('2500000'), self.parse_number('0.0004')],
+                            [self.parse_number('5000000'), self.parse_number('0.0002')],
+                            [self.parse_number('10000000'), self.parse_number('0.0')],
                         ],
                     },
                 },
@@ -159,52 +162,55 @@ class kraken(Exchange):
                     ],
                 },
                 'public': {
-                    'get': [
-                        'Assets',
-                        'AssetPairs',
-                        'Depth',
-                        'OHLC',
-                        'Spread',
-                        'Ticker',
-                        'Time',
-                        'Trades',
-                    ],
+                    'get': {
+                        # public endpoint rate-limits are described in article: https://support.kraken.com/hc/en-us/articles/206548367-What-are-the-API-rate-limits-#1
+                        'Assets': 1,
+                        'AssetPairs': 1,
+                        'Depth': 1,
+                        'OHLC': 1,
+                        'Spread': 1,
+                        'Ticker': 1,
+                        'Time': 1,
+                        'Trades': 1,
+                    },
                 },
                 'private': {
                     'post': {
                         'AddOrder': 0,
-                        'AddExport': 1,
-                        'Balance': 1,
-                        'CancelAll': 1,
+                        'AddOrderBatch': 0,
+                        'AddExport': 3,
+                        'Balance': 3,
+                        'CancelAll': 3,
                         'CancelOrder': 0,
                         'CancelOrderBatch': 0,
-                        'ClosedOrders': 2,
-                        'DepositAddresses': 1,
-                        'DepositMethods': 1,
-                        'DepositStatus': 1,
-                        'ExportStatus': 1,
-                        'GetWebSocketsToken': 1,
-                        'Ledgers': 2,
-                        'OpenOrders': 1,
-                        'OpenPositions': 1,
-                        'QueryLedgers': 1,
-                        'QueryOrders': 1,
-                        'QueryTrades': 1,
-                        'RetrieveExport': 1,
-                        'RemoveExport': 1,
-                        'TradeBalance': 1,
-                        'TradesHistory': 2,
-                        'TradeVolume': 1,
-                        'Withdraw': 1,
-                        'WithdrawCancel': 1,
-                        'WithdrawInfo': 1,
-                        'WithdrawStatus': 1,
+                        'ClosedOrders': 6,
+                        'DepositAddresses': 3,
+                        'DepositMethods': 3,
+                        'DepositStatus': 3,
+                        'EditOrder': 0,
+                        'ExportStatus': 3,
+                        'GetWebSocketsToken': 3,
+                        'Ledgers': 6,
+                        'OpenOrders': 3,
+                        'OpenPositions': 3,
+                        'QueryLedgers': 3,
+                        'QueryOrders': 3,
+                        'QueryTrades': 3,
+                        'RetrieveExport': 3,
+                        'RemoveExport': 3,
+                        'TradeBalance': 3,
+                        'TradesHistory': 6,
+                        'TradeVolume': 3,
+                        'Withdraw': 3,
+                        'WithdrawCancel': 3,
+                        'WithdrawInfo': 3,
+                        'WithdrawStatus': 3,
                         # staking
-                        'Stake': 1,
-                        'Unstake': 1,
-                        'Staking/Assets': 1,
-                        'Staking/Pending': 1,
-                        'Staking/Transactions': 1,
+                        'Stake': 3,
+                        'Unstake': 3,
+                        'Staking/Assets': 3,
+                        'Staking/Pending': 3,
+                        'Staking/Transactions': 3,
                     },
                 },
             },
@@ -346,6 +352,8 @@ class kraken(Exchange):
                 'EFunding:No funding method': BadRequest,  # {"error":"EFunding:No funding method"}
                 'EFunding:Unknown asset': BadSymbol,  # {"error":["EFunding:Unknown asset"]}
                 'EService:Market in post_only mode': OnMaintenance,  # {"error":["EService:Market in post_only mode"]}
+                'EGeneral:Too many requests': DDoSProtection,  # {"error":["EGeneral:Too many requests"]}
+                'ETrade:User Locked': AccountSuspended,  # {"error":["ETrade:User Locked"]}
             },
         })
 
@@ -361,46 +369,46 @@ class kraken(Exchange):
         response = await self.publicGetAssetPairs(params)
         #
         #     {
-        #         "error":[],
-        #         "result":{
-        #             "ADAETH":{
-        #                 "altname":"ADAETH",
-        #                 "wsname":"ADA\/ETH",
-        #                 "aclass_base":"currency",
-        #                 "base":"ADA",
-        #                 "aclass_quote":"currency",
-        #                 "quote":"XETH",
-        #                 "lot":"unit",
-        #                 "pair_decimals":7,
-        #                 "lot_decimals":8,
-        #                 "lot_multiplier":1,
-        #                 "leverage_buy":[],
-        #                 "leverage_sell":[],
-        #                 "fees":[
-        #                     [0,0.26],
-        #                     [50000,0.24],
-        #                     [100000,0.22],
-        #                     [250000,0.2],
-        #                     [500000,0.18],
-        #                     [1000000,0.16],
-        #                     [2500000,0.14],
-        #                     [5000000,0.12],
-        #                     [10000000,0.1]
+        #         "error": [],
+        #         "result": {
+        #             "ADAETH": {
+        #                 "altname": "ADAETH",
+        #                 "wsname": "ADA\/ETH",
+        #                 "aclass_base": "currency",
+        #                 "base": "ADA",
+        #                 "aclass_quote": "currency",
+        #                 "quote": "XETH",
+        #                 "lot": "unit",
+        #                 "pair_decimals": 7,
+        #                 "lot_decimals": 8,
+        #                 "lot_multiplier": 1,
+        #                 "leverage_buy": [],
+        #                 "leverage_sell": [],
+        #                 "fees": [
+        #                     [0, 0.26],
+        #                     [50000, 0.24],
+        #                     [100000, 0.22],
+        #                     [250000, 0.2],
+        #                     [500000, 0.18],
+        #                     [1000000, 0.16],
+        #                     [2500000, 0.14],
+        #                     [5000000, 0.12],
+        #                     [10000000, 0.1]
         #                 ],
-        #                 "fees_maker":[
-        #                     [0,0.16],
-        #                     [50000,0.14],
-        #                     [100000,0.12],
-        #                     [250000,0.1],
-        #                     [500000,0.08],
-        #                     [1000000,0.06],
-        #                     [2500000,0.04],
-        #                     [5000000,0.02],
-        #                     [10000000,0]
+        #                 "fees_maker": [
+        #                     [0, 0.16],
+        #                     [50000, 0.14],
+        #                     [100000, 0.12],
+        #                     [250000, 0.1],
+        #                     [500000, 0.08],
+        #                     [1000000, 0.06],
+        #                     [2500000, 0.04],
+        #                     [5000000, 0.02],
+        #                     [10000000, 0]
         #                 ],
-        #                 "fee_volume_currency":"ZUSD",
-        #                 "margin_call":80,
-        #                 "margin_stop":40,
+        #                 "fee_volume_currency": "ZUSD",
+        #                 "margin_call": 80,
+        #                 "margin_stop": 40,
         #                 "ordermin": "1"
         #             },
         #         }
@@ -420,16 +428,16 @@ class kraken(Exchange):
             altname = self.safe_string(market, 'altname')
             makerFees = self.safe_value(market, 'fees_maker', [])
             firstMakerFee = self.safe_value(makerFees, 0, [])
-            firstMakerFeeRate = self.safe_number(firstMakerFee, 1)
+            firstMakerFeeRate = self.safe_string(firstMakerFee, 1)
             maker = None
             if firstMakerFeeRate is not None:
-                maker = float(firstMakerFeeRate) / 100
+                maker = self.parse_number(Precise.string_div(firstMakerFeeRate, '100'))
             takerFees = self.safe_value(market, 'fees', [])
             firstTakerFee = self.safe_value(takerFees, 0, [])
-            firstTakerFeeRate = self.safe_number(firstTakerFee, 1)
+            firstTakerFeeRate = self.safe_string(firstTakerFee, 1)
             taker = None
             if firstTakerFeeRate is not None:
-                taker = float(firstTakerFeeRate) / 100
+                taker = self.parse_number(Precise.string_div(firstTakerFeeRate, '100'))
             leverageBuy = self.safe_value(market, 'leverage_buy', [])
             leverageBuyLength = len(leverageBuy)
             precisionPrice = self.parse_number(self.parse_precision(self.safe_string(market, 'pair_decimals')))
@@ -502,8 +510,8 @@ class kraken(Exchange):
     def append_inactive_markets(self, result):
         # result should be an array to append to
         precision = {
-            'amount': self.parse_number('0.00000001'),
-            'price': self.parse_number('0.00000001'),
+            'amount': self.parse_number('1e-8'),
+            'price': self.parse_number('1e-8'),
         }
         costLimits = {'min': None, 'max': None}
         priceLimits = {'min': precision['price'], 'max': None}
@@ -749,25 +757,24 @@ class kraken(Exchange):
         :param dict params: extra parameters specific to the kraken api endpoint
         :returns dict: an array of `ticker structures <https://docs.ccxt.com/en/latest/manual.html#ticker-structure>`
         """
-        if symbols is None:
-            raise ArgumentsRequired(self.id + ' fetchTickers() requires a symbols argument, an array of symbols')
         await self.load_markets()
-        marketIds = []
-        for i in range(0, len(symbols)):
-            symbol = symbols[i]
-            market = self.markets[symbol]
-            if market['active'] and not market['darkpool']:
-                marketIds.append(market['id'])
-        request = {
-            'pair': ','.join(marketIds),
-        }
+        request = {}
+        if symbols is not None:
+            symbols = self.market_symbols(symbols)
+            marketIds = []
+            for i in range(0, len(symbols)):
+                symbol = symbols[i]
+                market = self.markets[symbol]
+                if market['active'] and not market['darkpool']:
+                    marketIds.append(market['id'])
+            request['pair'] = ','.join(marketIds)
         response = await self.publicGetTicker(self.extend(request, params))
         tickers = response['result']
         ids = list(tickers.keys())
         result = {}
         for i in range(0, len(ids)):
             id = ids[i]
-            market = self.markets_by_id[id]
+            market = self.safe_market(id)
             symbol = market['symbol']
             ticker = tickers[id]
             result[symbol] = self.parse_ticker(ticker, market)
@@ -883,23 +890,16 @@ class kraken(Exchange):
         referenceAccount = None
         type = self.parse_ledger_entry_type(self.safe_string(item, 'type'))
         code = self.safe_currency_code(self.safe_string(item, 'asset'), currency)
-        amount = self.safe_number(item, 'amount')
-        if amount < 0:
+        amount = self.safe_string(item, 'amount')
+        if Precise.string_lt(amount, '0'):
             direction = 'out'
-            amount = abs(amount)
+            amount = Precise.string_abs(amount)
         else:
             direction = 'in'
         time = self.safe_number(item, 'time')
         timestamp = None
         if time is not None:
             timestamp = int(time * 1000)
-        fee = {
-            'cost': self.safe_number(item, 'fee'),
-            'currency': code,
-        }
-        before = None
-        after = self.safe_number(item, 'balance')
-        status = 'ok'
         return {
             'info': item,
             'id': id,
@@ -909,13 +909,16 @@ class kraken(Exchange):
             'referenceAccount': referenceAccount,
             'type': type,
             'currency': code,
-            'amount': amount,
-            'before': before,
-            'after': after,
-            'status': status,
+            'amount': self.parse_number(amount),
+            'before': None,
+            'after': self.safe_number(item, 'balance'),
+            'status': 'ok',
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
-            'fee': fee,
+            'fee': {
+                'cost': self.safe_number(item, 'fee'),
+                'currency': code,
+            },
         }
 
     async def fetch_ledger(self, code=None, since=None, limit=None, params={}):
@@ -1186,56 +1189,8 @@ class kraken(Exchange):
             'ordertype': type,
             'volume': self.amount_to_precision(symbol, amount),
         }
-        clientOrderId = self.safe_string_2(params, 'userref', 'clientOrderId')
-        params = self.omit(params, ['userref', 'clientOrderId'])
-        if clientOrderId is not None:
-            request['userref'] = clientOrderId
-        #
-        #     market
-        #     limit(price = limit price)
-        #     stop-loss(price = stop loss price)
-        #     take-profit(price = take profit price)
-        #     stop-loss-limit(price = stop loss trigger price, price2 = triggered limit price)
-        #     take-profit-limit(price = take profit trigger price, price2 = triggered limit price)
-        #     settle-position
-        #
-        if type == 'limit':
-            request['price'] = self.price_to_precision(symbol, price)
-        elif (type == 'stop-loss') or (type == 'take-profit'):
-            stopPrice = self.safe_number_2(params, 'price', 'stopPrice', price)
-            if stopPrice is None:
-                raise ArgumentsRequired(self.id + ' createOrder() requires a price argument or a price/stopPrice parameter for a ' + type + ' order')
-            else:
-                request['price'] = self.price_to_precision(symbol, stopPrice)
-        elif (type == 'stop-loss-limit') or (type == 'take-profit-limit'):
-            stopPrice = self.safe_number_2(params, 'price', 'stopPrice')
-            limitPrice = self.safe_number(params, 'price2')
-            stopPriceDefined = (stopPrice is not None)
-            limitPriceDefined = (limitPrice is not None)
-            if stopPriceDefined and limitPriceDefined:
-                request['price'] = self.price_to_precision(symbol, stopPrice)
-                request['price2'] = self.price_to_precision(symbol, limitPrice)
-            elif (price is None) or (not(stopPriceDefined or limitPriceDefined)):
-                raise ArgumentsRequired(self.id + ' createOrder() requires a price argument and/or price/stopPrice/price2 parameters for a ' + type + ' order')
-            else:
-                if stopPriceDefined:
-                    request['price'] = self.price_to_precision(symbol, stopPrice)
-                    request['price2'] = self.price_to_precision(symbol, price)
-                elif limitPriceDefined:
-                    request['price'] = self.price_to_precision(symbol, price)
-                    request['price2'] = self.price_to_precision(symbol, limitPrice)
-        close = self.safe_value(params, 'close')
-        if close is not None:
-            close = self.extend({}, close)
-            closePrice = self.safe_value(close, 'price')
-            if closePrice is not None:
-                close['price'] = self.price_to_precision(symbol, closePrice)
-            closePrice2 = self.safe_value(close, 'price2')  # stopPrice
-            if closePrice2 is not None:
-                close['price2'] = self.price_to_precision(symbol, closePrice2)
-            request['close'] = close
-        params = self.omit(params, ['price', 'stopPrice', 'price2', 'close'])
-        response = await self.privatePostAddOrder(self.extend(request, params))
+        orderRequest = self.order_request('createOrder()', symbol, type, request, price, params)
+        response = await self.privatePostAddOrder(self.extend(orderRequest[0], orderRequest[1]))
         #
         #     {
         #         error: [],
@@ -1251,9 +1206,8 @@ class kraken(Exchange):
     def find_market_by_altname_or_id(self, id):
         if id in self.marketsByAltname:
             return self.marketsByAltname[id]
-        elif id in self.markets_by_id:
-            return self.markets_by_id[id]
-        return None
+        else:
+            return self.safe_market(id)
 
     def get_delisted_market_by_id(self, id):
         if id is None:
@@ -1325,6 +1279,20 @@ class kraken(Exchange):
         #         "descr":{"order":"sell 0.00100000 ETHUSD @ stop loss 2677.00 -> limit 2577.00 with 5:1 leverage"}
         #     }
         #
+        # editOrder
+        #
+        #     {
+        #         "status": "ok",
+        #         "txid": "OAW2BO-7RWEK-PZY5UO",
+        #         "originaltxid": "OXL6SS-UPNMC-26WBE7",
+        #         "volume": "0.00075000",
+        #         "price": "13500.0",
+        #         "orders_cancelled": 1,
+        #         "descr": {
+        #             "order": "buy 0.00075000 XBTUSDT @ limit 13500.0"
+        #         }
+        #     }
+        #
         description = self.safe_value(order, 'descr', {})
         orderDescription = self.safe_string(description, 'order')
         side = None
@@ -1380,7 +1348,7 @@ class kraken(Exchange):
                 elif flags.find('fcib') >= 0:
                     fee['currency'] = market['base']
         status = self.parse_order_status(self.safe_string(order, 'status'))
-        id = self.safe_string(order, 'id')
+        id = self.safe_string_2(order, 'id', 'txid')
         if id is None:
             txid = self.safe_value(order, 'txid')
             id = self.safe_string(txid, 0)
@@ -1410,6 +1378,102 @@ class kraken(Exchange):
             'fee': fee,
             'trades': rawTrades,
         }, market)
+
+    def order_request(self, method, symbol, type, request, price=None, params={}):
+        clientOrderId = self.safe_string_2(params, 'userref', 'clientOrderId')
+        params = self.omit(params, ['userref', 'clientOrderId'])
+        if clientOrderId is not None:
+            request['userref'] = clientOrderId
+        #
+        #     market
+        #     limit(price = limit price)
+        #     stop-loss(price = stop loss price)
+        #     take-profit(price = take profit price)
+        #     stop-loss-limit(price = stop loss trigger price, price2 = triggered limit price)
+        #     take-profit-limit(price = take profit trigger price, price2 = triggered limit price)
+        #     settle-position
+        #
+        if type == 'limit':
+            request['price'] = self.price_to_precision(symbol, price)
+        elif (type == 'stop-loss') or (type == 'take-profit'):
+            stopPrice = self.safe_number_2(params, 'price', 'stopPrice', price)
+            if stopPrice is None:
+                raise ArgumentsRequired(self.id + method + ' requires a price argument or a price/stopPrice parameter for a ' + type + ' order')
+            else:
+                request['price'] = self.price_to_precision(symbol, stopPrice)
+        elif (type == 'stop-loss-limit') or (type == 'take-profit-limit'):
+            stopPrice = self.safe_number_2(params, 'price', 'stopPrice')
+            limitPrice = self.safe_number(params, 'price2')
+            stopPriceDefined = (stopPrice is not None)
+            limitPriceDefined = (limitPrice is not None)
+            if stopPriceDefined and limitPriceDefined:
+                request['price'] = self.price_to_precision(symbol, stopPrice)
+                request['price2'] = self.price_to_precision(symbol, limitPrice)
+            elif (price is None) or (not(stopPriceDefined or limitPriceDefined)):
+                raise ArgumentsRequired(self.id + method + ' requires a price argument and/or price/stopPrice/price2 parameters for a ' + type + ' order')
+            else:
+                if stopPriceDefined:
+                    request['price'] = self.price_to_precision(symbol, stopPrice)
+                    request['price2'] = self.price_to_precision(symbol, price)
+                elif limitPriceDefined:
+                    request['price'] = self.price_to_precision(symbol, price)
+                    request['price2'] = self.price_to_precision(symbol, limitPrice)
+        close = self.safe_value(params, 'close')
+        if close is not None:
+            close = self.extend({}, close)
+            closePrice = self.safe_value(close, 'price')
+            if closePrice is not None:
+                close['price'] = self.price_to_precision(symbol, closePrice)
+            closePrice2 = self.safe_value(close, 'price2')  # stopPrice
+            if closePrice2 is not None:
+                close['price2'] = self.price_to_precision(symbol, closePrice2)
+            request['close'] = close
+        params = self.omit(params, ['price', 'stopPrice', 'price2', 'close'])
+        return [request, params]
+
+    async def edit_order(self, id, symbol, type, side, amount, price=None, params={}):
+        """
+        edit a trade order
+        see https://docs.kraken.com/rest/#tag/User-Trading/operation/editOrder
+        :param str id: order id
+        :param str symbol: unified symbol of the market to create an order in
+        :param str type: 'market' or 'limit'
+        :param str side: 'buy' or 'sell'
+        :param float amount: how much of the currency you want to trade in units of the base currency
+        :param float|None price: the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+        :param dict params: extra parameters specific to the kraken api endpoint
+        :returns dict: an `order structure <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
+        """
+        await self.load_markets()
+        market = self.market(symbol)
+        if not market['spot']:
+            raise NotSupported(self.id + ' editOrder() does not support ' + market['type'] + ' orders, only spot orders are accepted')
+        request = {
+            'txid': id,
+            'pair': market['id'],
+        }
+        if amount is not None:
+            request['volume'] = self.amount_to_precision(symbol, amount)
+        orderRequest = self.order_request('editOrder()', symbol, type, request, price, params)
+        response = await self.privatePostEditOrder(self.extend(orderRequest[0], orderRequest[1]))
+        #
+        #     {
+        #         "error": [],
+        #         "result": {
+        #             "status": "ok",
+        #             "txid": "OAW2BO-7RWEK-PZY5UO",
+        #             "originaltxid": "OXL6SS-UPNMC-26WBE7",
+        #             "volume": "0.00075000",
+        #             "price": "13500.0",
+        #             "orders_cancelled": 1,
+        #             "descr": {
+        #                 "order": "buy 0.00075000 XBTUSDT @ limit 13500.0"
+        #             }
+        #         }
+        #     }
+        #
+        data = self.safe_value(response, 'result', {})
+        return self.parse_order(data, market)
 
     async def fetch_order(self, id, symbol=None, params={}):
         """
@@ -1497,6 +1561,8 @@ class kraken(Exchange):
                 else:
                     tradeIds.append(orderTrade['id'])
         await self.load_markets()
+        if symbol is not None:
+            symbol = self.symbol(symbol)
         options = self.safe_value(self.options, 'fetchOrderTrades', {})
         batchSize = self.safe_integer(options, 'batchSize', 20)
         numTradeIds = len(tradeIds)
@@ -1702,7 +1768,7 @@ class kraken(Exchange):
         :param int|None since: the earliest time in ms to fetch orders for
         :param int|None limit: the maximum number of  orde structures to retrieve
         :param dict params: extra parameters specific to the kraken api endpoint
-        :returns [dict]: a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure
+        :returns [dict]: a list of `order structures <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
         """
         await self.load_markets()
         request = {}

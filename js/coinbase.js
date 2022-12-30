@@ -90,7 +90,9 @@ module.exports = class coinbase extends Exchange {
             },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/40811661-b6eceae2-653a-11e8-829e-10bfadb078cf.jpg',
-                'api': 'https://api.coinbase.com',
+                'api': {
+                    'rest': 'https://api.coinbase.com',
+                },
                 'www': 'https://www.coinbase.com',
                 'doc': 'https://developers.coinbase.com/api/v2',
                 'fees': 'https://support.coinbase.com/customer/portal/articles/2109597-buy-sell-bank-transfer-fees',
@@ -145,8 +147,8 @@ module.exports = class coinbase extends Exchange {
                         'accounts/{account_id}/buys/{buy_id}/commit',
                         'accounts/{account_id}/sells',
                         'accounts/{account_id}/sells/{sell_id}/commit',
-                        'accounts/{account_id}/deposists',
-                        'accounts/{account_id}/deposists/{deposit_id}/commit',
+                        'accounts/{account_id}/deposits',
+                        'accounts/{account_id}/deposits/{deposit_id}/commit',
                         'accounts/{account_id}/withdrawals',
                         'accounts/{account_id}/withdrawals/{withdrawal_id}/commit',
                     ],
@@ -207,7 +209,7 @@ module.exports = class coinbase extends Exchange {
          * @method
          * @name coinbase#fetchTime
          * @description fetches the current integer timestamp in milliseconds from the exchange server
-         * @param {dict} params extra parameters specific to the coinbase api endpoint
+         * @param {object} params extra parameters specific to the coinbase api endpoint
          * @returns {int} the current integer timestamp in milliseconds from the exchange server
          */
         const response = await this.publicGetTime (params);
@@ -228,8 +230,8 @@ module.exports = class coinbase extends Exchange {
          * @method
          * @name coinbase#fetchAccounts
          * @description fetch all the accounts associated with a profile
-         * @param {dict} params extra parameters specific to the coinbase api endpoint
-         * @returns {dict} a dictionary of [account structures]{@link https://docs.ccxt.com/en/latest/manual.html#account-structure} indexed by the account type
+         * @param {object} params extra parameters specific to the coinbase api endpoint
+         * @returns {object} a dictionary of [account structures]{@link https://docs.ccxt.com/en/latest/manual.html#account-structure} indexed by the account type
          */
         await this.loadMarkets ();
         const request = {
@@ -317,9 +319,9 @@ module.exports = class coinbase extends Exchange {
          * @method
          * @name coinbase#createDepositAddress
          * @description create a currency deposit address
-         * @param {str} code unified currency code of the currency for the deposit address
-         * @param {dict} params extra parameters specific to the coinbase api endpoint
-         * @returns {dict} an [address structure]{@link https://docs.ccxt.com/en/latest/manual.html#address-structure}
+         * @param {string} code unified currency code of the currency for the deposit address
+         * @param {object} params extra parameters specific to the coinbase api endpoint
+         * @returns {object} an [address structure]{@link https://docs.ccxt.com/en/latest/manual.html#address-structure}
          */
         let accountId = this.safeString (params, 'account_id');
         params = this.omit (params, 'account_id');
@@ -392,11 +394,11 @@ module.exports = class coinbase extends Exchange {
          * @method
          * @name coinbase#fetchMySells
          * @description fetch sells
-         * @param {str|undefined} symbol not used by coinbase fetchMySells ()
+         * @param {string|undefined} symbol not used by coinbase fetchMySells ()
          * @param {int|undefined} since timestamp in ms of the earliest sell, default is undefined
          * @param {int|undefined} limit max number of sells to return, default is undefined
-         * @param {dict} params extra parameters specific to the coinbase api endpoint
-         * @returns {dict} a [list of order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
+         * @param {object} params extra parameters specific to the coinbase api endpoint
+         * @returns {object} a [list of order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
          */
         // they don't have an endpoint for all historical trades
         const request = this.prepareAccountRequest (limit, params);
@@ -411,11 +413,11 @@ module.exports = class coinbase extends Exchange {
          * @method
          * @name coinbase#fetchMyBuys
          * @description fetch buys
-         * @param {str|undefined} symbol not used by coinbase fetchMyBuys ()
+         * @param {string|undefined} symbol not used by coinbase fetchMyBuys ()
          * @param {int|undefined} since timestamp in ms of the earliest buy, default is undefined
          * @param {int|undefined} limit max number of buys to return, default is undefined
-         * @param {dict} params extra parameters specific to the coinbase api endpoint
-         * @returns {dict} a list of  [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
+         * @param {object} params extra parameters specific to the coinbase api endpoint
+         * @returns {object} a list of  [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
          */
         // they don't have an endpoint for all historical trades
         const request = this.prepareAccountRequest (limit, params);
@@ -438,11 +440,11 @@ module.exports = class coinbase extends Exchange {
          * @method
          * @name coinbase#fetchWithdrawals
          * @description fetch all withdrawals made from an account
-         * @param {str|undefined} code unified currency code
+         * @param {string|undefined} code unified currency code
          * @param {int|undefined} since the earliest time in ms to fetch withdrawals for
          * @param {int|undefined} limit the maximum number of withdrawals structures to retrieve
-         * @param {dict} params extra parameters specific to the coinbase api endpoint
-         * @returns {[dict]} a list of [transaction structures]{@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure}
+         * @param {object} params extra parameters specific to the coinbase api endpoint
+         * @returns {[object]} a list of [transaction structures]{@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure}
          */
         // fiat only, for crypto transactions use fetchLedger
         return await this.fetchTransactionsWithMethod ('privateGetAccountsAccountIdWithdrawals', code, since, limit, params);
@@ -453,11 +455,11 @@ module.exports = class coinbase extends Exchange {
          * @method
          * @name coinbase#fetchDeposits
          * @description fetch all deposits made to an account
-         * @param {str|undefined} code unified currency code
+         * @param {string|undefined} code unified currency code
          * @param {int|undefined} since the earliest time in ms to fetch deposits for
          * @param {int|undefined} limit the maximum number of deposits structures to retrieve
-         * @param {dict} params extra parameters specific to the coinbase api endpoint
-         * @returns {[dict]} a list of [transaction structures]{@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure}
+         * @param {object} params extra parameters specific to the coinbase api endpoint
+         * @returns {[object]} a list of [transaction structures]{@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure}
          */
         // fiat only, for crypto transactions use fetchLedger
         return await this.fetchTransactionsWithMethod ('privateGetAccountsAccountIdDeposits', code, since, limit, params);
@@ -660,8 +662,8 @@ module.exports = class coinbase extends Exchange {
          * @method
          * @name coinbase#fetchMarkets
          * @description retrieves data on all markets for coinbase
-         * @param {dict} params extra parameters specific to the exchange api endpoint
-         * @returns {[dict]} an array of objects representing market data
+         * @param {object} params extra parameters specific to the exchange api endpoint
+         * @returns {[object]} an array of objects representing market data
          */
         const response = await this.fetchCurrenciesFromCache (params);
         const currencies = this.safeValue (response, 'currencies', {});
@@ -757,8 +759,8 @@ module.exports = class coinbase extends Exchange {
          * @method
          * @name coinbase#fetchCurrencies
          * @description fetches all available currencies on an exchange
-         * @param {dict} params extra parameters specific to the coinbase api endpoint
-         * @returns {dict} an associative dictionary of currencies
+         * @param {object} params extra parameters specific to the coinbase api endpoint
+         * @returns {object} an associative dictionary of currencies
          */
         const response = await this.fetchCurrenciesFromCache (params);
         const currencies = this.safeValue (response, 'currencies', {});
@@ -833,11 +835,12 @@ module.exports = class coinbase extends Exchange {
          * @method
          * @name coinbase#fetchTickers
          * @description fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
-         * @param {[str]|undefined} symbols unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
-         * @param {dict} params extra parameters specific to the coinbase api endpoint
-         * @returns {dict} an array of [ticker structures]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
+         * @param {[string]|undefined} symbols unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
+         * @param {object} params extra parameters specific to the coinbase api endpoint
+         * @returns {object} an array of [ticker structures]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
          */
         await this.loadMarkets ();
+        symbols = this.marketSymbols (symbols);
         const request = {
             // 'currency': 'USD',
         };
@@ -875,9 +878,9 @@ module.exports = class coinbase extends Exchange {
          * @method
          * @name coinbase#fetchTicker
          * @description fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
-         * @param {str} symbol unified symbol of the market to fetch the ticker for
-         * @param {dict} params extra parameters specific to the coinbase api endpoint
-         * @returns {dict} a [ticker structure]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
+         * @param {string} symbol unified symbol of the market to fetch the ticker for
+         * @param {object} params extra parameters specific to the coinbase api endpoint
+         * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
@@ -919,7 +922,7 @@ module.exports = class coinbase extends Exchange {
         let last = undefined;
         const timestamp = this.milliseconds ();
         if (typeof ticker !== 'string') {
-            const [ spot, buy, sell ] = ticker;
+            const [ spot, sell, buy ] = ticker;
             const spotData = this.safeValue (spot, 'data', {});
             const buyData = this.safeValue (buy, 'data', {});
             const sellData = this.safeValue (sell, 'data', {});
@@ -986,8 +989,8 @@ module.exports = class coinbase extends Exchange {
          * @method
          * @name coinbase#fetchBalance
          * @description query for balance and get the amount of funds available for trading or funds locked in orders
-         * @param {dict} params extra parameters specific to the coinbase api endpoint
-         * @returns {dict} a [balance structure]{@link https://docs.ccxt.com/en/latest/manual.html?#balance-structure}
+         * @param {object} params extra parameters specific to the coinbase api endpoint
+         * @returns {object} a [balance structure]{@link https://docs.ccxt.com/en/latest/manual.html?#balance-structure}
          */
         await this.loadMarkets ();
         const request = {
@@ -1042,11 +1045,11 @@ module.exports = class coinbase extends Exchange {
          * @method
          * @name coinbase#fetchLedger
          * @description fetch the history of changes, actions done by the user or operations that altered balance of the user
-         * @param {str|undefined} code unified currency code, default is undefined
+         * @param {string|undefined} code unified currency code, default is undefined
          * @param {int|undefined} since timestamp in ms of the earliest ledger entry, default is undefined
          * @param {int|undefined} limit max number of ledger entrys to return, default is undefined
-         * @param {dict} params extra parameters specific to the coinbase api endpoint
-         * @returns {dict} a [ledger structure]{@link https://docs.ccxt.com/en/latest/manual.html#ledger-structure}
+         * @param {object} params extra parameters specific to the coinbase api endpoint
+         * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/en/latest/manual.html#ledger-structure}
          */
         await this.loadMarkets ();
         let currency = undefined;
@@ -1329,11 +1332,11 @@ module.exports = class coinbase extends Exchange {
         //     }
         //
         const amountInfo = this.safeValue (item, 'amount', {});
-        let amount = this.safeNumber (amountInfo, 'amount');
+        let amount = this.safeString (amountInfo, 'amount');
         let direction = undefined;
-        if (amount < 0) {
+        if (Precise.stringLt (amount, '0')) {
             direction = 'out';
-            amount = -amount;
+            amount = Precise.stringNeg (amount);
         } else {
             direction = 'in';
         }
@@ -1385,7 +1388,7 @@ module.exports = class coinbase extends Exchange {
             'referenceAccount': undefined,
             'type': type,
             'currency': code,
-            'amount': amount,
+            'amount': this.parseNumber (amount),
             'before': undefined,
             'after': undefined,
             'status': status,
@@ -1447,7 +1450,7 @@ module.exports = class coinbase extends Exchange {
                 fullPath += '?' + this.urlencode (query);
             }
         }
-        const url = this.urls['api'] + fullPath;
+        const url = this.urls['api']['rest'] + fullPath;
         if (api === 'private') {
             const authorization = this.safeString (this.headers, 'Authorization');
             if (authorization !== undefined) {

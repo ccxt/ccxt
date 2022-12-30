@@ -867,9 +867,8 @@ class probit(Exchange):
         endTime = now
         if since is None:
             if limit is None:
-                raise ArgumentsRequired(self.id + ' fetchOHLCV() requires either a since argument or a limit argument')
-            else:
-                startTime = now - limit * duration * 1000
+                limit = requestLimit
+            startTime = now - limit * duration * 1000
         else:
             if limit is None:
                 endTime = now
@@ -950,7 +949,7 @@ class probit(Exchange):
         :param int|None since: the earliest time in ms to fetch orders for
         :param int|None limit: the maximum number of  orde structures to retrieve
         :param dict params: extra parameters specific to the probit api endpoint
-        :returns [dict]: a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure
+        :returns [dict]: a list of `order structures <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
         """
         self.load_markets()
         request = {
@@ -1171,13 +1170,15 @@ class probit(Exchange):
         address = self.safe_string(depositAddress, 'address')
         tag = self.safe_string(depositAddress, 'destination_tag')
         currencyId = self.safe_string(depositAddress, 'currency_id')
-        code = self.safe_currency_code(currencyId)
+        currency = self.safe_currency(currencyId, currency)
+        code = currency['code']
+        network = self.safe_string(depositAddress, 'platform_id')
         self.check_address(address)
         return {
             'currency': code,
             'address': address,
             'tag': tag,
-            'network': None,
+            'network': network,
             'info': depositAddress,
         }
 
@@ -1192,14 +1193,33 @@ class probit(Exchange):
         currency = self.currency(code)
         request = {
             'currency_id': currency['id'],
+            # 'platform_id': 'TRON',(undocumented)
         }
+        networks = self.safe_value(self.options, 'networks', {})
+        network = self.safe_string_upper(params, 'network')  # self line allows the user to specify either ERC20 or ETH
+        network = self.safe_string(networks, network, network)  # handle ERC20>ETH alias
+        if network is not None:
+            request['platform_id'] = network
+            params = self.omit(params, 'platform_id')
         response = self.privateGetDepositAddress(self.extend(request, params))
         #
+        # without 'platform_id'
         #     {
         #         "data":[
         #             {
         #                 "currency_id":"ETH",
         #                 "address":"0x12e2caf3c4051ba1146e612f532901a423a9898a",
+        #                 "destination_tag":null
+        #             }
+        #         ]
+        #     }
+        #
+        # with 'platform_id'
+        #     {
+        #         "data":[
+        #             {
+        #                 "platform_id":"TRON",
+        #                 "address":"TDQLMxBTa6MzuoZ6deSGZkqET3Ek8v7uC6",
         #                 "destination_tag":null
         #             }
         #         ]

@@ -20,6 +20,7 @@ class luno(Exchange):
             # 300 calls per minute = 5 calls per second = 1000ms / 5 = 200ms between requests
             'rateLimit': 200,
             'version': '1',
+            'pro': True,
             'has': {
                 'CORS': None,
                 'spot': True,
@@ -50,6 +51,7 @@ class luno(Exchange):
                 'fetchMarkets': True,
                 'fetchMarkOHLCV': False,
                 'fetchMyTrades': True,
+                'fetchOHLCV': False,  # overload of base fetchOHLCV, as it doesn't work in self exchange
                 'fetchOpenInterestHistory': False,
                 'fetchOpenOrders': True,
                 'fetchOrder': True,
@@ -63,7 +65,8 @@ class luno(Exchange):
                 'fetchTicker': True,
                 'fetchTickers': True,
                 'fetchTrades': True,
-                'fetchTradingFees': True,
+                'fetchTradingFee': True,
+                'fetchTradingFees': False,
                 'reduceMargin': False,
                 'setLeverage': False,
                 'setMarginMode': False,
@@ -438,7 +441,7 @@ class luno(Exchange):
         :param int|None since: the earliest time in ms to fetch orders for
         :param int|None limit: the maximum number of  orde structures to retrieve
         :param dict params: extra parameters specific to the luno api endpoint
-        :returns [dict]: a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure
+        :returns [dict]: a list of `order structures <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
         """
         return await self.fetch_orders_by_state(None, symbol, since, limit, params)
 
@@ -460,7 +463,7 @@ class luno(Exchange):
         :param int|None since: the earliest time in ms to fetch orders for
         :param int|None limit: the maximum number of  orde structures to retrieve
         :param dict params: extra parameters specific to the luno api endpoint
-        :returns [dict]: a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure
+        :returns [dict]: a list of `order structures <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
         """
         return await self.fetch_orders_by_state('COMPLETE', symbol, since, limit, params)
 
@@ -509,6 +512,7 @@ class luno(Exchange):
         :returns dict: an array of `ticker structures <https://docs.ccxt.com/en/latest/manual.html#ticker-structure>`
         """
         await self.load_markets()
+        symbols = self.market_symbols(symbols)
         response = await self.publicGetTickers(params)
         tickers = self.index_by(response['tickers'], 'pair')
         ids = list(tickers.keys())
@@ -620,7 +624,7 @@ class luno(Exchange):
             'side': side,
             'takerOrMaker': takerOrMaker,
             'price': self.safe_string(trade, 'price'),
-            'amount': self.safe_string(trade, 'volume'),
+            'amount': self.safe_string_2(trade, 'volume', 'base'),
             # Does not include potential fee costs
             'cost': self.safe_string(trade, 'counter'),
             'fee': {
@@ -707,16 +711,29 @@ class luno(Exchange):
         trades = self.safe_value(response, 'trades', [])
         return self.parse_trades(trades, market, since, limit)
 
-    async def fetch_trading_fees(self, params={}):
+    async def fetch_trading_fee(self, symbol, params={}):
         """
-        fetch the trading fees for multiple markets
+        fetch the trading fees for a market
+        :param str symbol: unified market symbol
         :param dict params: extra parameters specific to the luno api endpoint
-        :returns dict: a dictionary of `fee structures <https://docs.ccxt.com/en/latest/manual.html#fee-structure>` indexed by market symbols
+        :returns dict: a `fee structure <https://docs.ccxt.com/en/latest/manual.html#fee-structure>`
         """
         await self.load_markets()
-        response = await self.privateGetFeeInfo(params)
+        market = self.market(symbol)
+        request = {
+            'symbol': market['id'],
+        }
+        response = await self.privateGetFeeInfo(self.extend(request, params))
+        #
+        #     {
+        #          "maker_fee": "0.00250000",
+        #          "taker_fee": "0.00500000",
+        #          "thirty_day_volume": "0"
+        #     }
+        #
         return {
             'info': response,
+            'symbol': symbol,
             'maker': self.safe_number(response, 'maker_fee'),
             'taker': self.safe_number(response, 'taker_fee'),
         }
@@ -743,13 +760,13 @@ class luno(Exchange):
             request['type'] = side.upper()
             # todo add createMarketBuyOrderRequires price logic as it is implemented in the other exchanges
             if side == 'buy':
-                request['counter_volume'] = float(self.amount_to_precision(market['symbol'], amount))
+                request['counter_volume'] = self.amount_to_precision(market['symbol'], amount)
             else:
-                request['base_volume'] = float(self.amount_to_precision(market['symbol'], amount))
+                request['base_volume'] = self.amount_to_precision(market['symbol'], amount)
         else:
             method += 'Postorder'
-            request['volume'] = float(self.amount_to_precision(market['symbol'], amount))
-            request['price'] = float(self.price_to_precision(market['symbol'], price))
+            request['volume'] = self.amount_to_precision(market['symbol'], amount)
+            request['price'] = self.price_to_precision(market['symbol'], price)
             request['type'] = 'BID' if (side == 'buy') else 'ASK'
         response = await getattr(self, method)(self.extend(request, params))
         return {
@@ -861,30 +878,30 @@ class luno(Exchange):
         timestamp = self.safe_value(entry, 'timestamp')
         currencyId = self.safe_string(entry, 'currency')
         code = self.safe_currency_code(currencyId, currency)
-        available_delta = self.safe_number(entry, 'available_delta')
-        balance_delta = self.safe_number(entry, 'balance_delta')
-        after = self.safe_number(entry, 'balance')
+        available_delta = self.safe_string(entry, 'available_delta')
+        balance_delta = self.safe_string(entry, 'balance_delta')
+        after = self.safe_string(entry, 'balance')
         comment = self.safe_string(entry, 'description')
         before = after
-        amount = 0.0
+        amount = '0.0'
         result = self.parse_ledger_comment(comment)
         type = result['type']
         referenceId = result['referenceId']
         direction = None
         status = None
-        if balance_delta != 0.0:
-            before = after - balance_delta  # TODO: float precision
+        if not Precise.string_equals(balance_delta, '0.0'):
+            before = Precise.string_sub(after, balance_delta)
             status = 'ok'
-            amount = abs(balance_delta)
-        elif available_delta < 0.0:
+            amount = Precise.string_abs(balance_delta)
+        elif Precise.string_lt(available_delta, '0.0'):
             status = 'pending'
-            amount = abs(available_delta)
-        elif available_delta > 0.0:
+            amount = Precise.string_abs(available_delta)
+        elif Precise.string_gt(available_delta, '0.0'):
             status = 'canceled'
-            amount = abs(available_delta)
-        if balance_delta > 0 or available_delta > 0:
+            amount = Precise.string_abs(available_delta)
+        if Precise.string_gt(balance_delta, '0') or Precise.string_gt(available_delta, '0'):
             direction = 'in'
-        elif balance_delta < 0 or available_delta < 0:
+        elif Precise.string_lt(balance_delta, '0') or Precise.string_lt(available_delta, '0'):
             direction = 'out'
         return {
             'id': id,
@@ -894,7 +911,7 @@ class luno(Exchange):
             'referenceAccount': None,
             'type': type,
             'currency': code,
-            'amount': amount,
+            'amount': self.parse_number(amount),
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
             'before': before,

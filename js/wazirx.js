@@ -13,6 +13,7 @@ module.exports = class wazirx extends Exchange {
             'countries': [ 'IN' ],
             'version': 'v2',
             'rateLimit': 1000,
+            'pro': true,
             'has': {
                 'CORS': false,
                 'spot': true,
@@ -42,7 +43,7 @@ module.exports = class wazirx extends Exchange {
                 'fetchMarkets': true,
                 'fetchMarkOHLCV': false,
                 'fetchMyTrades': false,
-                'fetchOHLCV': false,
+                'fetchOHLCV': true,
                 'fetchOpenInterestHistory': false,
                 'fetchOpenOrders': true,
                 'fetchOrder': true,
@@ -66,7 +67,9 @@ module.exports = class wazirx extends Exchange {
             },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/148647666-c109c20b-f8ac-472f-91c3-5f658cb90f49.jpeg',
-                'api': 'https://api.wazirx.com/sapi/v1',
+                'api': {
+                    'rest': 'https://api.wazirx.com/sapi/v1',
+                },
                 'www': 'https://wazirx.com',
                 'doc': 'https://docs.wazirx.com/#public-rest-api-for-wazirx',
                 'fees': 'https://wazirx.com/fees',
@@ -83,6 +86,7 @@ module.exports = class wazirx extends Exchange {
                         'ticker/24hr': 1,
                         'time': 1,
                         'trades': 1,
+                        'klines': 1,
                     },
                 },
                 'private': {
@@ -124,6 +128,18 @@ module.exports = class wazirx extends Exchange {
                     '94001': InvalidOrder, // {"code":94001,"message":"Stop price not found."}
                 },
             },
+            'timeframes': {
+                '1m': '1m',
+                '5m': '5m',
+                '30m': '30m',
+                '1h': '1h',
+                '2h': '2h',
+                '4h': '4h',
+                '6h': '6h',
+                '12h': '12h',
+                '1d': '1d',
+                '1w': '1w',
+            },
             'options': {
                 // 'fetchTradesMethod': 'privateGetHistoricalTrades',
                 'recvWindow': 10000,
@@ -136,8 +152,8 @@ module.exports = class wazirx extends Exchange {
          * @method
          * @name wazirx#fetchMarkets
          * @description retrieves data on all markets for wazirx
-         * @param {dict} params extra parameters specific to the exchange api endpoint
-         * @returns {[dict]} an array of objects representing market data
+         * @param {object} params extra parameters specific to the exchange api endpoint
+         * @returns {[object]} an array of objects representing market data
          */
         const response = await this.publicGetExchangeInfo (params);
         //
@@ -245,15 +261,69 @@ module.exports = class wazirx extends Exchange {
         return result;
     }
 
+    async fetchOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
+        /**
+         * @method
+         * @name wazirx#fetchOHLCV
+         * @description fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+         * @param {string} symbol unified symbol of the market to fetch OHLCV data for
+         * @param {string} timeframe the length of time each candle represents. Available values [1m,5m,15m,30m,1h,2h,4h,6h,12h,1d,1w]
+         * @param {int|undefined} since timestamp in ms of the earliest candle to fetch
+         * @param {int|undefined} limit the maximum amount of candles to fetch
+         * @param {object} params extra parameters specific to the wazirx api endpoint
+         * @param {int|undefined} params.until timestamp in s of the latest candle to fetch
+         * @returns {[[int]]} A list of candles ordered as timestamp, open, high, low, close, volume
+         */
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const request = {
+            'symbol': market['id'],
+            'interval': this.timeframes[timeframe],
+        };
+        if (limit !== undefined) {
+            request['limit'] = limit;
+        }
+        const until = this.safeInteger (params, 'until');
+        params = this.omit (params, [ 'until' ]);
+        if (since !== undefined) {
+            request['startTime'] = parseInt (since / 1000);
+        }
+        if (until !== undefined) {
+            request['endTime'] = until;
+        }
+        const response = await this.publicGetKlines (this.extend (request, params));
+        //
+        //    [
+        //        [1669014360,1402001,1402001,1402001,1402001,0],
+        //        ...
+        //    ]
+        //
+        return this.parseOHLCVs (response, market, timeframe, since, limit);
+    }
+
+    parseOHLCV (ohlcv, market = undefined) {
+        //
+        //    [1669014300,1402001,1402001,1402001,1402001,0],
+        //
+        return [
+            this.safeTimestamp (ohlcv, 0),
+            this.safeNumber (ohlcv, 1),
+            this.safeNumber (ohlcv, 2),
+            this.safeNumber (ohlcv, 3),
+            this.safeNumber (ohlcv, 4),
+            this.safeNumber (ohlcv, 5),
+        ];
+    }
+
     async fetchOrderBook (symbol, limit = undefined, params = {}) {
         /**
          * @method
          * @name wazirx#fetchOrderBook
          * @description fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
-         * @param {str} symbol unified symbol of the market to fetch the order book for
+         * @param {string} symbol unified symbol of the market to fetch the order book for
          * @param {int|undefined} limit the maximum amount of order book entries to return
-         * @param {dict} params extra parameters specific to the wazirx api endpoint
-         * @returns {dict} A dictionary of [order book structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-book-structure} indexed by market symbols
+         * @param {object} params extra parameters specific to the wazirx api endpoint
+         * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-book-structure} indexed by market symbols
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
@@ -286,9 +356,9 @@ module.exports = class wazirx extends Exchange {
          * @method
          * @name wazirx#fetchTicker
          * @description fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
-         * @param {str} symbol unified symbol of the market to fetch the ticker for
-         * @param {dict} params extra parameters specific to the wazirx api endpoint
-         * @returns {dict} a [ticker structure]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
+         * @param {string} symbol unified symbol of the market to fetch the ticker for
+         * @param {object} params extra parameters specific to the wazirx api endpoint
+         * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
@@ -319,9 +389,9 @@ module.exports = class wazirx extends Exchange {
          * @method
          * @name wazirx#fetchTickers
          * @description fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
-         * @param {[str]|undefined} symbols unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
-         * @param {dict} params extra parameters specific to the wazirx api endpoint
-         * @returns {dict} an array of [ticker structures]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
+         * @param {[string]|undefined} symbols unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
+         * @param {object} params extra parameters specific to the wazirx api endpoint
+         * @returns {object} an array of [ticker structures]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
          */
         await this.loadMarkets ();
         const tickers = await this.publicGetTickers24hr ();
@@ -357,11 +427,11 @@ module.exports = class wazirx extends Exchange {
          * @method
          * @name wazirx#fetchTrades
          * @description get the list of most recent trades for a particular symbol
-         * @param {str} symbol unified symbol of the market to fetch trades for
+         * @param {string} symbol unified symbol of the market to fetch trades for
          * @param {int|undefined} since timestamp in ms of the earliest trade to fetch
          * @param {int|undefined} limit the maximum amount of trades to fetch
-         * @param {dict} params extra parameters specific to the wazirx api endpoint
-         * @returns {[dict]} a list of [trade structures]{@link https://docs.ccxt.com/en/latest/manual.html?#public-trades}
+         * @param {object} params extra parameters specific to the wazirx api endpoint
+         * @returns {[object]} a list of [trade structures]{@link https://docs.ccxt.com/en/latest/manual.html?#public-trades}
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
@@ -428,8 +498,8 @@ module.exports = class wazirx extends Exchange {
          * @method
          * @name wazirx#fetchStatus
          * @description the latest known information on the availability of the exchange API
-         * @param {dict} params extra parameters specific to the wazirx api endpoint
-         * @returns {dict} a [status structure]{@link https://docs.ccxt.com/en/latest/manual.html#exchange-status-structure}
+         * @param {object} params extra parameters specific to the wazirx api endpoint
+         * @returns {object} a [status structure]{@link https://docs.ccxt.com/en/latest/manual.html#exchange-status-structure}
          */
         const response = await this.publicGetSystemStatus (params);
         //
@@ -453,7 +523,7 @@ module.exports = class wazirx extends Exchange {
          * @method
          * @name wazirx#fetchTime
          * @description fetches the current integer timestamp in milliseconds from the exchange server
-         * @param {dict} params extra parameters specific to the wazirx api endpoint
+         * @param {object} params extra parameters specific to the wazirx api endpoint
          * @returns {int} the current integer timestamp in milliseconds from the exchange server
          */
         const response = await this.publicGetTime (params);
@@ -535,8 +605,8 @@ module.exports = class wazirx extends Exchange {
          * @method
          * @name wazirx#fetchBalance
          * @description query for balance and get the amount of funds available for trading or funds locked in orders
-         * @param {dict} params extra parameters specific to the wazirx api endpoint
-         * @returns {dict} a [balance structure]{@link https://docs.ccxt.com/en/latest/manual.html?#balance-structure}
+         * @param {object} params extra parameters specific to the wazirx api endpoint
+         * @returns {object} a [balance structure]{@link https://docs.ccxt.com/en/latest/manual.html?#balance-structure}
          */
         await this.loadMarkets ();
         const response = await this.privateGetFunds (params);
@@ -557,11 +627,11 @@ module.exports = class wazirx extends Exchange {
          * @method
          * @name wazirx#fetchOrders
          * @description fetches information on multiple orders made by the user
-         * @param {str} symbol unified market symbol of the market orders were made in
+         * @param {string} symbol unified market symbol of the market orders were made in
          * @param {int|undefined} since the earliest time in ms to fetch orders for
          * @param {int|undefined} limit the maximum number of  orde structures to retrieve
-         * @param {dict} params extra parameters specific to the wazirx api endpoint
-         * @returns {[dict]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure
+         * @param {object} params extra parameters specific to the wazirx api endpoint
+         * @returns {[object]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
          */
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' fetchOrders() requires a `symbol` argument');
@@ -578,33 +648,35 @@ module.exports = class wazirx extends Exchange {
             request['limit'] = limit;
         }
         const response = await this.privateGetAllOrders (this.extend (request, params));
-        // [
-        //     {
-        //         "id": 28,
-        //         "symbol": "wrxinr",
-        //         "price": "9293.0",
-        //         "origQty": "10.0",
-        //         "executedQty": "8.2",
-        //         "status": "cancel",
-        //         "type": "limit",
-        //         "side": "sell",
-        //         "createdTime": 1499827319559,
-        //         "updatedTime": 1499827319559
-        //     },
-        //     {
-        //         "id": 30,
-        //         "symbol": "wrxinr",
-        //         "price": "9293.0",
-        //         "stopPrice": "9200.0",
-        //         "origQty": "10.0",
-        //         "executedQty": "0.0",
-        //         "status": "cancel",
-        //         "type": "stop_limit",
-        //         "side": "sell",
-        //         "createdTime": 1499827319559,
-        //         "updatedTime": 1507725176595
-        //     }
-        // ]
+        //
+        //   [
+        //       {
+        //           "id": 28,
+        //           "symbol": "wrxinr",
+        //           "price": "9293.0",
+        //           "origQty": "10.0",
+        //           "executedQty": "8.2",
+        //           "status": "cancel",
+        //           "type": "limit",
+        //           "side": "sell",
+        //           "createdTime": 1499827319559,
+        //           "updatedTime": 1499827319559
+        //       },
+        //       {
+        //           "id": 30,
+        //           "symbol": "wrxinr",
+        //           "price": "9293.0",
+        //           "stopPrice": "9200.0",
+        //           "origQty": "10.0",
+        //           "executedQty": "0.0",
+        //           "status": "cancel",
+        //           "type": "stop_limit",
+        //           "side": "sell",
+        //           "createdTime": 1499827319559,
+        //           "updatedTime": 1507725176595
+        //       }
+        //   ]
+        //
         let orders = this.parseOrders (response, market, since, limit);
         orders = this.filterBy (orders, 'symbol', symbol);
         return orders;
@@ -615,11 +687,11 @@ module.exports = class wazirx extends Exchange {
          * @method
          * @name wazirx#fetchOpenOrders
          * @description fetch all unfilled currently open orders
-         * @param {str|undefined} symbol unified market symbol
+         * @param {string|undefined} symbol unified market symbol
          * @param {int|undefined} since the earliest time in ms to fetch open orders for
          * @param {int|undefined} limit the maximum number of  open orders structures to retrieve
-         * @param {dict} params extra parameters specific to the wazirx api endpoint
-         * @returns {[dict]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
+         * @param {object} params extra parameters specific to the wazirx api endpoint
+         * @returns {[object]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
          */
         await this.loadMarkets ();
         const request = {};
@@ -665,9 +737,9 @@ module.exports = class wazirx extends Exchange {
          * @method
          * @name wazirx#cancelAllOrders
          * @description cancel all open orders in a market
-         * @param {str} symbol unified market symbol of the market to cancel orders in
-         * @param {dict} params extra parameters specific to the wazirx api endpoint
-         * @returns {[dict]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
+         * @param {string} symbol unified market symbol of the market to cancel orders in
+         * @param {object} params extra parameters specific to the wazirx api endpoint
+         * @returns {[object]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
          */
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' cancelAllOrders() requires a `symbol` argument');
@@ -685,10 +757,10 @@ module.exports = class wazirx extends Exchange {
          * @method
          * @name wazirx#cancelOrder
          * @description cancels an open order
-         * @param {str} id order id
-         * @param {str} symbol unified symbol of the market the order was made in
-         * @param {dict} params extra parameters specific to the wazirx api endpoint
-         * @returns {dict} An [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
+         * @param {string} id order id
+         * @param {string} symbol unified symbol of the market the order was made in
+         * @param {object} params extra parameters specific to the wazirx api endpoint
+         * @returns {object} An [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
          */
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' cancelOrder() requires a `symbol` argument');
@@ -708,13 +780,13 @@ module.exports = class wazirx extends Exchange {
          * @method
          * @name wazirx#createOrder
          * @description create a trade order
-         * @param {str} symbol unified symbol of the market to create an order in
-         * @param {str} type 'market' or 'limit'
-         * @param {str} side 'buy' or 'sell'
+         * @param {string} symbol unified symbol of the market to create an order in
+         * @param {string} type 'market' or 'limit'
+         * @param {string} side 'buy' or 'sell'
          * @param {float} amount how much of currency you want to trade in units of base currency
          * @param {float|undefined} price the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
-         * @param {dict} params extra parameters specific to the wazirx api endpoint
-         * @returns {dict} an [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
+         * @param {object} params extra parameters specific to the wazirx api endpoint
+         * @returns {object} an [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
          */
         type = type.toLowerCase ();
         if ((type !== 'limit') && (type !== 'stop_limit')) {
@@ -810,7 +882,7 @@ module.exports = class wazirx extends Exchange {
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
-        let url = this.urls['api'] + '/' + path;
+        let url = this.urls['api']['rest'] + '/' + path;
         if (api === 'public') {
             if (Object.keys (params).length) {
                 url += '?' + this.urlencode (params);

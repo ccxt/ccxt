@@ -6,19 +6,11 @@ namespace ccxt;
 // https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 use Exception; // a common import
-use \ccxt\ExchangeError;
-use \ccxt\ArgumentsRequired;
-use \ccxt\BadRequest;
-use \ccxt\BadSymbol;
-use \ccxt\InvalidOrder;
-use \ccxt\OrderNotFound;
-use \ccxt\NotSupported;
-use \ccxt\ExchangeNotAvailable;
 
 class zb extends Exchange {
 
     public function describe() {
-        return $this->deep_extend(parent::describe (), array(
+        return $this->deep_extend(parent::describe(), array(
             'id' => 'zb',
             'name' => 'ZB',
             'countries' => array( 'CN' ),
@@ -31,7 +23,6 @@ class zb extends Exchange {
             // previous rateLimit was 100 translating to 10 requests per second => weight = 166.666 / 10 = 16.667 (16.666666...)
             'rateLimit' => 6,
             'version' => 'v1',
-            'certified' => true,
             'pro' => true,
             'has' => array(
                 'CORS' => null,
@@ -134,7 +125,7 @@ class zb extends Exchange {
                 'doc' => 'https://www.zb.com/i/developer',
                 'fees' => 'https://www.zb.com/i/rate',
                 'referral' => array(
-                    'url' => 'https://www.zbex.club/en/register?ref=4301lera',
+                    'url' => 'https://www.zb.com/en/register?ref=4301lera',
                     'discount' => 0.16,
                 ),
             ),
@@ -261,6 +252,7 @@ class zb extends Exchange {
                                 'Positions/updateAppendUSDValue' => 3.334,
                                 'Positions/updateMargin' => 3.334,
                                 'setting/setLeverage' => 3.334,
+                                'setting/setPositionsMode' => 3.334,
                                 'trade/batchOrder' => 3.334,
                                 'trade/batchCancelOrder' => 3.334,
                                 'trade/cancelAlgos' => 3.334,
@@ -551,8 +543,8 @@ class zb extends Exchange {
     public function fetch_markets($params = array ()) {
         /**
          * retrieves data on all $markets for zb
-         * @param {dict} $params extra parameters specific to the exchange api endpoint
-         * @return {[dict]} an array of objects representing $market data
+         * @param {array} $params extra parameters specific to the exchange api endpoint
+         * @return {[array]} an array of objects representing $market data
          */
         //
         //     {
@@ -700,8 +692,8 @@ class zb extends Exchange {
     public function fetch_currencies($params = array ()) {
         /**
          * fetches all available $currencies on an exchange
-         * @param {dict} $params extra parameters specific to the zb api endpoint
-         * @return {dict} an associative dictionary of $currencies
+         * @param {array} $params extra parameters specific to the zb api endpoint
+         * @return {array} an associative dictionary of $currencies
          */
         $response = $this->spotV1PublicGetGetFeeInfo ($params);
         //
@@ -941,26 +933,25 @@ class zb extends Exchange {
     public function fetch_balance($params = array ()) {
         /**
          * $query for balance and get the amount of funds available for trading or funds locked in orders
-         * @param {dict} $params extra parameters specific to the zb api endpoint
-         * @return {dict} a ~@link https://docs.ccxt.com/en/latest/manual.html?#balance-structure balance structure~
+         * @param {array} $params extra parameters specific to the zb api endpoint
+         * @param {string} $params->marginMode 'cross' or 'isolated'
+         * @return {array} a ~@link https://docs.ccxt.com/en/latest/manual.html?#balance-structure balance structure~
          */
         $this->load_markets();
-        list($marketType, $query) = $this->handle_market_type_and_params('fetchBalance', null, $params);
-        $margin = ($marketType === 'margin');
+        list($marketType, $marketTypeQuery) = $this->handle_market_type_and_params('fetchBalance', null, $params);
+        list($marginMode, $query) = $this->handle_margin_mode_and_params('fetchBalance', $marketTypeQuery);
         $swap = ($marketType === 'swap');
-        $marginMethod = null;
-        $defaultMargin = $margin ? 'isolated' : 'cross';
-        $marginMode = $this->safe_string_2($this->options, 'defaultMarginMode', 'marginMode', $defaultMargin);
-        if ($marginMode === 'isolated') {
-            $marginMethod = 'spotV1PrivateGetGetLeverAssetsInfo';
-        } elseif ($marginMode === 'cross') {
-            $marginMethod = 'spotV1PrivateGetGetCrossAssets';
-        }
+        $marginMethod = ($marginMode === 'cross') ? 'spotV1PrivateGetGetCrossAssets' : 'spotV1PrivateGetGetLeverAssetsInfo';
         $method = $this->get_supported_mapping($marketType, array(
             'spot' => 'spotV1PrivateGetGetAccountInfo',
             'swap' => 'contractV2PrivateGetFundBalance',
             'margin' => $marginMethod,
         ));
+        if ($marginMode === 'isolated') {
+            $method = 'spotV1PrivateGetGetLeverAssetsInfo';
+        } elseif ($marginMode === 'cross') {
+            $method = 'spotV1PrivateGetGetCrossAssets';
+        }
         $request = array(
             // 'futuresAccountType' => 1, // SWAP
             // 'currencyId' => currency['id'], // SWAP
@@ -1127,7 +1118,7 @@ class zb extends Exchange {
         // $permissions = $response['result']['base'];
         if ($swap) {
             return $this->parse_swap_balance($response);
-        } elseif ($margin) {
+        } elseif ($marginMode !== null) {
             return $this->parse_margin_balance($response, $marginMode);
         } else {
             return $this->parse_balance($response);
@@ -1219,9 +1210,9 @@ class zb extends Exchange {
     public function fetch_deposit_address($code, $params = array ()) {
         /**
          * fetch the deposit address for a $currency associated with this account
-         * @param {str} $code unified $currency $code
-         * @param {dict} $params extra parameters specific to the zb api endpoint
-         * @return {dict} an {@link https://docs.ccxt.com/en/latest/manual.html#address-structure address structure}
+         * @param {string} $code unified $currency $code
+         * @param {array} $params extra parameters specific to the zb api endpoint
+         * @return {array} an {@link https://docs.ccxt.com/en/latest/manual.html#address-structure address structure}
          */
         $this->load_markets();
         $currency = $this->currency($code);
@@ -1249,10 +1240,10 @@ class zb extends Exchange {
     public function fetch_order_book($symbol, $limit = null, $params = array ()) {
         /**
          * fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
-         * @param {str} $symbol unified $symbol of the $market to fetch the order book for
+         * @param {string} $symbol unified $symbol of the $market to fetch the order book for
          * @param {int|null} $limit the maximum amount of order book entries to return
-         * @param {dict} $params extra parameters specific to the zb api endpoint
-         * @return {dict} A dictionary of {@link https://docs.ccxt.com/en/latest/manual.html#order-book-structure order book structures} indexed by $market symbols
+         * @param {array} $params extra parameters specific to the zb api endpoint
+         * @return {array} A dictionary of {@link https://docs.ccxt.com/en/latest/manual.html#order-book-structure order book structures} indexed by $market symbols
          */
         $this->load_markets();
         $market = $this->market($symbol);
@@ -1325,22 +1316,25 @@ class zb extends Exchange {
     public function fetch_tickers($symbols = null, $params = array ()) {
         /**
          * fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each $market
-         * @param {[str]|null} $symbols unified $symbols of the markets to fetch the $ticker for, all $market tickers are returned if not assigned
-         * @param {dict} $params extra parameters specific to the zb api endpoint
-         * @return {dict} an array of {@link https://docs.ccxt.com/en/latest/manual.html#$ticker-structure $ticker structures}
+         * @param {[string]|null} $symbols unified $symbols of the markets to fetch the $ticker for, all $market tickers are returned if not assigned
+         * @param {array} $params extra parameters specific to the zb api endpoint
+         * @return {array} an array of {@link https://docs.ccxt.com/en/latest/manual.html#$ticker-structure $ticker structures}
          */
         $this->load_markets();
+        $symbols = $this->market_symbols($symbols);
         $response = $this->spotV1PublicGetAllTicker ($params);
         $result = array();
         $marketsByIdWithoutUnderscore = array();
-        $marketIds = is_array($this->markets_by_id) ? array_keys($this->markets_by_id) : array();
+        $marketIds = $this->ids;
         for ($i = 0; $i < count($marketIds); $i++) {
-            $tickerId = str_replace('_', '', $marketIds[$i]);
-            $marketsByIdWithoutUnderscore[$tickerId] = $this->markets_by_id[$marketIds[$i]];
+            $marketId = $marketIds[$i];
+            $tickerId = str_replace('_', '', $marketId);
+            $marketsByIdWithoutUnderscore[$tickerId] = $marketId;
         }
         $ids = is_array($response) ? array_keys($response) : array();
         for ($i = 0; $i < count($ids); $i++) {
-            $market = $this->safe_value($marketsByIdWithoutUnderscore, $ids[$i]);
+            $marketId = $this->safe_value($marketsByIdWithoutUnderscore, $ids[$i]);
+            $market = $this->safe_market($marketId, null, '_');
             if ($market !== null) {
                 $symbol = $market['symbol'];
                 $ticker = $this->safe_value($response, $ids[$i]);
@@ -1355,9 +1349,9 @@ class zb extends Exchange {
     public function fetch_ticker($symbol, $params = array ()) {
         /**
          * fetches a price $ticker, a statistical calculation with the information calculated over the past 24 hours for a specific $market
-         * @param {str} $symbol unified $symbol of the $market to fetch the $ticker for
-         * @param {dict} $params extra parameters specific to the zb api endpoint
-         * @return {dict} a {@link https://docs.ccxt.com/en/latest/manual.html#$ticker-structure $ticker structure}
+         * @param {string} $symbol unified $symbol of the $market to fetch the $ticker for
+         * @param {array} $params extra parameters specific to the zb api endpoint
+         * @return {array} a {@link https://docs.ccxt.com/en/latest/manual.html#$ticker-structure $ticker structure}
          */
         $this->load_markets();
         $market = $this->market($symbol);
@@ -1476,7 +1470,7 @@ class zb extends Exchange {
 
     public function parse_ohlcv($ohlcv, $market = null) {
         if ($market['swap']) {
-            $ohlcvLength = is_array($ohlcv) ? count($ohlcv) : 0;
+            $ohlcvLength = count($ohlcv);
             if ($ohlcvLength > 5) {
                 return array(
                     $this->safe_timestamp($ohlcv, 5),
@@ -1511,11 +1505,11 @@ class zb extends Exchange {
     public function fetch_ohlcv($symbol, $timeframe = '1m', $since = null, $limit = null, $params = array ()) {
         /**
          * fetches historical candlestick $data containing the open, high, low, and close $price, and the volume of a $market
-         * @param {str} $symbol unified $symbol of the $market to fetch OHLCV $data for
-         * @param {str} $timeframe the length of time each candle represents
+         * @param {string} $symbol unified $symbol of the $market to fetch OHLCV $data for
+         * @param {string} $timeframe the length of time each candle represents
          * @param {int|null} $since timestamp in ms of the earliest candle to fetch
          * @param {int|null} $limit the maximum amount of candles to fetch
-         * @param {dict} $params extra parameters specific to the zb api endpoint
+         * @param {array} $params extra parameters specific to the zb api endpoint
          * @return {[[int]]} A list of candles ordered as timestamp, open, high, low, close, volume
          */
         $this->load_markets();
@@ -1702,11 +1696,11 @@ class zb extends Exchange {
     public function fetch_trades($symbol, $since = null, $limit = null, $params = array ()) {
         /**
          * get the list of most recent trades for a particular $symbol
-         * @param {str} $symbol unified $symbol of the $market to fetch trades for
+         * @param {string} $symbol unified $symbol of the $market to fetch trades for
          * @param {int|null} $since timestamp in ms of the earliest trade to fetch
          * @param {int|null} $limit the maximum amount of trades to fetch
-         * @param {dict} $params extra parameters specific to the zb api endpoint
-         * @return {[dict]} a list of ~@link https://docs.ccxt.com/en/latest/manual.html?#public-trades trade structures~
+         * @param {array} $params extra parameters specific to the zb api endpoint
+         * @return {[array]} a list of ~@link https://docs.ccxt.com/en/latest/manual.html?#public-trades trade structures~
          */
         if ($symbol === null) {
             throw new ArgumentsRequired($this->id . ' fetchTrades() requires a $symbol argument');
@@ -1785,16 +1779,18 @@ class zb extends Exchange {
     public function create_order($symbol, $type, $side, $amount, $price = null, $params = array ()) {
         /**
          * create a trade order
-         * @param {str} $symbol unified $symbol of the $market to create an order in
-         * @param {str} $type 'market' or 'limit'
-         * @param {str} $side 'buy' or 'sell'
+         * @param {string} $symbol unified $symbol of the $market to create an order in
+         * @param {string} $type 'market' or 'limit'
+         * @param {string} $side 'buy' or 'sell'
          * @param {float} $amount how much of currency you want to trade in units of base currency
          * @param {float|null} $price the $price at which the order is to be fullfilled, in units of the quote currency, ignored in $market orders
-         * @param {dict} $params extra parameters specific to the zb api endpoint
-         * @return {dict} an {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structure}
+         * @param {array} $params extra parameters specific to the zb api endpoint
+         * @param {string} $params->marginMode 'cross' or 'isolated'
+         * @return {array} an {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structure}
          */
         $this->load_markets();
         $market = $this->market($symbol);
+        list($marginMode, $query) = $this->handle_margin_mode_and_params('createOrder', $params);
         $swap = $market['swap'];
         $spot = $market['spot'];
         $timeInForce = $this->safe_string($params, 'timeInForce');
@@ -1817,6 +1813,7 @@ class zb extends Exchange {
         }
         $method = $this->get_supported_mapping($market['type'], array(
             'spot' => 'spotV1PrivateGetOrder',
+            'margin' => 'spotV1PrivateGetOrder',
             'swap' => 'contractV2PrivatePostTradeOrder',
         ));
         $request = array(
@@ -1842,6 +1839,13 @@ class zb extends Exchange {
             }
             if ($price !== null) {
                 $request['price'] = $this->price_to_precision($symbol, $price);
+            }
+            if ($marginMode !== null) {
+                if ($marginMode === 'isolated') {
+                    $request['acctType'] = 1;
+                } elseif ($marginMode === 'cross') {
+                    $request['acctType'] = 2;
+                }
             }
         } elseif ($swap) {
             $exchangeSpecificParam = $this->safe_integer($params, 'action', $type) === 4;
@@ -1899,10 +1903,10 @@ class zb extends Exchange {
                 $request['extend'] = $extendOrderAlgos;
             }
         }
-        $query = $this->omit($params, array( 'takeProfitPrice', 'stopLossPrice', 'stopPrice', 'reduceOnly', 'orderType', 'triggerPrice', 'priceType', 'clientOrderId', 'extend' ));
-        $response = $this->$method (array_merge($request, $query));
+        $params = $this->omit($query, array( 'takeProfitPrice', 'stopLossPrice', 'stopPrice', 'reduceOnly', 'orderType', 'triggerPrice', 'priceType', 'clientOrderId', 'extend' ));
+        $response = $this->$method (array_merge($request, $params));
         //
-        // Spot
+        // Spot and Margin
         //
         //     {
         //         "code" => 1000,
@@ -1939,10 +1943,10 @@ class zb extends Exchange {
     public function cancel_order($id, $symbol = null, $params = array ()) {
         /**
          * cancels an open order
-         * @param {str} $id order $id
-         * @param {str} $symbol unified $symbol of the $market the order was made in
-         * @param {dict} $params extra parameters specific to the zb api endpoint
-         * @return {dict} An {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structure}
+         * @param {string} $id order $id
+         * @param {string} $symbol unified $symbol of the $market the order was made in
+         * @param {array} $params extra parameters specific to the zb api endpoint
+         * @return {array} An {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structure}
          */
         if ($symbol === null) {
             throw new ArgumentsRequired($this->id . ' cancelOrder() requires a $symbol argument');
@@ -1987,9 +1991,9 @@ class zb extends Exchange {
     public function cancel_all_orders($symbol = null, $params = array ()) {
         /**
          * cancel all open orders in a $market
-         * @param {str} $symbol unified $market $symbol of the $market to cancel orders in
-         * @param {dict} $params extra parameters specific to the zb api endpoint
-         * @return {[dict]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structures}
+         * @param {string} $symbol unified $market $symbol of the $market to cancel orders in
+         * @param {array} $params extra parameters specific to the zb api endpoint
+         * @return {[array]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structures}
          */
         if ($symbol === null) {
             throw new ArgumentsRequired($this->id . ' cancelAllOrders() requires a $symbol argument');
@@ -2016,9 +2020,9 @@ class zb extends Exchange {
     public function fetch_order($id, $symbol = null, $params = array ()) {
         /**
          * fetches information on an order made by the user
-         * @param {str} $symbol unified $symbol of the $market the order was made in
-         * @param {dict} $params extra parameters specific to the zb api endpoint
-         * @return {dict} An {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structure}
+         * @param {string} $symbol unified $symbol of the $market the order was made in
+         * @param {array} $params extra parameters specific to the zb api endpoint
+         * @return {array} An {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structure}
          */
         if ($symbol === null) {
             throw new ArgumentsRequired($this->id . ' fetchOrder() requires a $symbol argument');
@@ -2027,7 +2031,7 @@ class zb extends Exchange {
         $market = $this->market($symbol);
         $orderType = $this->safe_integer($params, 'orderType');
         if ($orderType !== null) {
-            throw new ExchangeError($this->id . ' fetchOrder() it is not possible to fetch a single conditional order, use fetchOrders instead');
+            throw new ExchangeError($this->id . ' fetchOrder() it is not possible to fetch a single conditional order, use fetchOrders() instead');
         }
         $swap = $market['swap'];
         $request = array(
@@ -2152,11 +2156,11 @@ class zb extends Exchange {
     public function fetch_orders($symbol = null, $since = null, $limit = null, $params = array ()) {
         /**
          * fetches information on multiple orders made by the user
-         * @param {str} $symbol unified $market $symbol of the $market orders were made in
+         * @param {string} $symbol unified $market $symbol of the $market orders were made in
          * @param {int|null} $since the earliest time in ms to fetch orders for
          * @param {int|null} $limit the maximum number of  orde structures to retrieve
-         * @param {dict} $params extra parameters specific to the zb api endpoint
-         * @return {[dict]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure
+         * @param {array} $params extra parameters specific to the zb api endpoint
+         * @return {[array]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structures}
          */
         if ($symbol === null) {
             throw new ArgumentsRequired($this->id . ' fetchOrders() requires a $symbol argument');
@@ -2311,11 +2315,11 @@ class zb extends Exchange {
     public function fetch_canceled_orders($symbol = null, $since = null, $limit = 10, $params = array ()) {
         /**
          * fetches information on multiple canceled orders made by the user
-         * @param {str} $symbol unified $market $symbol of the $market orders were made in
+         * @param {string} $symbol unified $market $symbol of the $market orders were made in
          * @param {int|null} $since timestamp in ms of the earliest order, default is null
          * @param {int|null} $limit max number of orders to return, default is null
-         * @param {dict} $params extra parameters specific to the zb api endpoint
-         * @return {dict} a list of {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structures}
+         * @param {array} $params extra parameters specific to the zb api endpoint
+         * @return {array} a list of {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structures}
          */
         if ($symbol === null) {
             throw new ArgumentsRequired($this->id . ' fetchCanceledOrders() requires a $symbol argument');
@@ -2348,7 +2352,7 @@ class zb extends Exchange {
             if ($orderType === null) {
                 throw new ArgumentsRequired($this->id . ' fetchCanceledOrders() requires an $orderType parameter for $stop orders');
             }
-            $side = $this->safe_integer($params, 'side');
+            $side = $this->safe_value($params, 'side');
             $bizType = $this->safe_integer($params, 'bizType');
             if ($side === 'sell' && $reduceOnly) {
                 $request['side'] = 3; // close long
@@ -2469,11 +2473,11 @@ class zb extends Exchange {
     public function fetch_closed_orders($symbol = null, $since = null, $limit = 10, $params = array ()) {
         /**
          * fetches information on multiple closed orders made by the user
-         * @param {str} $symbol unified $market $symbol of the $market orders were made in
+         * @param {string} $symbol unified $market $symbol of the $market orders were made in
          * @param {int|null} $since the earliest time in ms to fetch orders for
          * @param {int|null} $limit the maximum number of  orde structures to retrieve
-         * @param {dict} $params extra parameters specific to the zb api endpoint
-         * @return {[dict]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure
+         * @param {array} $params extra parameters specific to the zb api endpoint
+         * @return {[array]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structures}
          */
         if ($symbol === null) {
             throw new ArgumentsRequired($this->id . ' fetchClosedOrders() requires a $symbol argument');
@@ -2506,8 +2510,8 @@ class zb extends Exchange {
             'spot' => 'spotV1PrivateGetGetFinishedAndPartialOrders',
             'swap' => 'contractV2PrivateGetTradeGetOrderAlgos',
         ));
-        if ($orderType === null) {
-            throw new ExchangeError($this->id . ' fetchClosedOrders() it not possible to fetch closed $swap orders, use fetchOrders instead');
+        if ($swap && ($orderType === null)) {
+            throw new ExchangeError($this->id . ' fetchClosedOrders() can not fetch $swap orders, use fetchOrders instead');
         }
         if ($swap) {
             // a status of 2 would mean canceled and could also be valid
@@ -2585,11 +2589,11 @@ class zb extends Exchange {
     public function fetch_open_orders($symbol = null, $since = null, $limit = null, $params = array ()) {
         /**
          * fetch all unfilled currently open orders
-         * @param {str} $symbol unified $market $symbol
+         * @param {string} $symbol unified $market $symbol
          * @param {int|null} $since the earliest time in ms to fetch open orders for
          * @param {int|null} $limit the maximum number of  open orders structures to retrieve
-         * @param {dict} $params extra parameters specific to the zb api endpoint
-         * @return {[dict]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structures}
+         * @param {array} $params extra parameters specific to the zb api endpoint
+         * @return {[array]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structures}
          */
         if ($symbol === null) {
             throw new ArgumentsRequired($this->id . ' fetchOpenOrders() requires a $symbol argument');
@@ -2735,7 +2739,7 @@ class zb extends Exchange {
         //         "desc" => "操作成功"
         //     }
         //
-        $result = null;
+        $result = $response;
         if ($swap) {
             $data = $this->safe_value($response, 'data', array());
             $result = $this->safe_value($data, 'list', array());
@@ -3050,9 +3054,9 @@ class zb extends Exchange {
         /**
          * set the level of $leverage for a $market
          * @param {float} $leverage the rate of $leverage
-         * @param {str} $symbol unified $market $symbol
-         * @param {dict} $params extra parameters specific to the zb api endpoint
-         * @return {dict} response from the exchange
+         * @param {string} $symbol unified $market $symbol
+         * @param {array} $params extra parameters specific to the zb api endpoint
+         * @return {array} response from the exchange
          */
         $this->load_markets();
         if ($symbol === null) {
@@ -3079,12 +3083,12 @@ class zb extends Exchange {
     public function fetch_funding_rate_history($symbol = null, $since = null, $limit = null, $params = array ()) {
         /**
          * fetches historical funding rate prices
-         * @param {str|null} $symbol unified $symbol of the $market to fetch the funding rate history for
+         * @param {string|null} $symbol unified $symbol of the $market to fetch the funding rate history for
          * @param {int|null} $since $timestamp in ms of the earliest funding rate to fetch
          * @param {int|null} $limit the maximum amount of ~@link https://docs.ccxt.com/en/latest/manual.html?#funding-rate-history-structure funding rate structures~ to fetch
-         * @param {dict} $params extra parameters specific to the zb api endpoint
+         * @param {array} $params extra parameters specific to the zb api endpoint
          * @param {int|null} $params->until $timestamp in ms of the latest funding rate to fetch
-         * @return {[dict]} a list of ~@link https://docs.ccxt.com/en/latest/manual.html?#funding-rate-history-structure funding rate structures~
+         * @return {[array]} a list of ~@link https://docs.ccxt.com/en/latest/manual.html?#funding-rate-history-structure funding rate structures~
          */
         $this->load_markets();
         $request = array(
@@ -3145,9 +3149,9 @@ class zb extends Exchange {
     public function fetch_funding_rate($symbol, $params = array ()) {
         /**
          * fetch the current funding rate
-         * @param {str} $symbol unified $market $symbol
-         * @param {dict} $params extra parameters specific to the zb api endpoint
-         * @return {dict} a {@link https://docs.ccxt.com/en/latest/manual.html#funding-rate-structure funding rate structure}
+         * @param {string} $symbol unified $market $symbol
+         * @param {array} $params extra parameters specific to the zb api endpoint
+         * @return {array} a {@link https://docs.ccxt.com/en/latest/manual.html#funding-rate-structure funding rate structure}
          */
         $this->load_markets();
         $market = $this->market($symbol);
@@ -3193,8 +3197,9 @@ class zb extends Exchange {
         //
         $marketId = $this->safe_string($contract, 'symbol');
         $symbol = $this->safe_symbol($marketId, $market);
-        $fundingRate = $this->safe_number($contract, 'fundingRate');
-        $nextFundingDatetime = $this->safe_string($contract, 'nextCalculateTime');
+        $fundingRate = $this->safe_number_2($contract, 'fundingRate', 'lastFundingRate');
+        $nextFundingTimestamp = $this->parse8601($this->safe_string($contract, 'nextCalculateTime'));
+        $fundingTimestamp = $this->safe_integer($contract, 'nextFundingTime');
         return array(
             'info' => $contract,
             'symbol' => $symbol,
@@ -3205,12 +3210,12 @@ class zb extends Exchange {
             'timestamp' => null,
             'datetime' => null,
             'fundingRate' => $fundingRate,
-            'fundingTimestamp' => null,
-            'fundingDatetime' => null,
+            'fundingTimestamp' => $fundingTimestamp,
+            'fundingDatetime' => $this->iso8601($fundingTimestamp),
             'nextFundingRate' => null,
-            'nextFundingTimestamp' => $this->parse8601($nextFundingDatetime),
-            'nextFundingDatetime' => $nextFundingDatetime,
-            'previousFundingRate' => $this->safe_string($contract, 'lastFundingRate'),
+            'nextFundingTimestamp' => $nextFundingTimestamp,
+            'nextFundingDatetime' => $this->iso8601($nextFundingTimestamp),
+            'previousFundingRate' => null,
             'previousFundingTimestamp' => null,
             'previousFundingDatetime' => null,
         );
@@ -3219,11 +3224,12 @@ class zb extends Exchange {
     public function fetch_funding_rates($symbols = null, $params = array ()) {
         /**
          * fetch the funding rate for multiple markets
-         * @param {[str]|null} $symbols list of unified market $symbols
-         * @param {dict} $params extra parameters specific to the zb api endpoint
-         * @return {dict} a dictionary of {@link https://docs.ccxt.com/en/latest/manual.html#funding-rates-structure funding rates structures}, indexe by market $symbols
+         * @param {[string]|null} $symbols list of unified market $symbols
+         * @param {array} $params extra parameters specific to the zb api endpoint
+         * @return {array} a dictionary of {@link https://docs.ccxt.com/en/latest/manual.html#funding-rates-structure funding rates structures}, indexe by market $symbols
          */
         $this->load_markets();
+        $symbols = $this->market_symbols($symbols);
         $response = $this->contractV2PublicGetPremiumIndex ($params);
         //
         //     {
@@ -3248,12 +3254,12 @@ class zb extends Exchange {
     public function withdraw($code, $amount, $address, $tag = null, $params = array ()) {
         /**
          * make a withdrawal
-         * @param {str} $code unified $currency $code
+         * @param {string} $code unified $currency $code
          * @param {float} $amount the $amount to withdraw
-         * @param {str} $address the $address to withdraw to
-         * @param {str|null} $tag
-         * @param {dict} $params extra parameters specific to the zb api endpoint
-         * @return {dict} a {@link https://docs.ccxt.com/en/latest/manual.html#$transaction-structure $transaction structure}
+         * @param {string} $address the $address to withdraw to
+         * @param {string|null} $tag
+         * @param {array} $params extra parameters specific to the zb api endpoint
+         * @return {array} a {@link https://docs.ccxt.com/en/latest/manual.html#$transaction-structure $transaction structure}
          */
         list($tag, $params) = $this->handle_withdraw_tag_and_params($tag, $params);
         $password = $this->safe_string($params, 'safePwd', $this->password);
@@ -3299,11 +3305,11 @@ class zb extends Exchange {
     public function fetch_withdrawals($code = null, $since = null, $limit = null, $params = array ()) {
         /**
          * fetch all $withdrawals made from an account
-         * @param {str|null} $code unified $currency $code
+         * @param {string|null} $code unified $currency $code
          * @param {int|null} $since the earliest time in ms to fetch $withdrawals for
          * @param {int|null} $limit the maximum number of $withdrawals structures to retrieve
-         * @param {dict} $params extra parameters specific to the zb api endpoint
-         * @return {[dict]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure transaction structures}
+         * @param {array} $params extra parameters specific to the zb api endpoint
+         * @return {[array]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure transaction structures}
          */
         $this->load_markets();
         $request = array(
@@ -3355,11 +3361,11 @@ class zb extends Exchange {
     public function fetch_deposits($code = null, $since = null, $limit = null, $params = array ()) {
         /**
          * fetch all $deposits made to an account
-         * @param {str|null} $code unified $currency $code
+         * @param {string|null} $code unified $currency $code
          * @param {int|null} $since the earliest time in ms to fetch $deposits for
          * @param {int|null} $limit the maximum number of $deposits structures to retrieve
-         * @param {dict} $params extra parameters specific to the zb api endpoint
-         * @return {[dict]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure transaction structures}
+         * @param {array} $params extra parameters specific to the zb api endpoint
+         * @return {[array]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure transaction structures}
          */
         $this->load_markets();
         $request = array(
@@ -3413,9 +3419,9 @@ class zb extends Exchange {
     public function fetch_position($symbol, $params = array ()) {
         /**
          * fetch $data on a single open contract trade position
-         * @param {str} $symbol unified $market $symbol of the $market the position is held in, default is null
-         * @param {dict} $params extra parameters specific to the zb api endpoint
-         * @return {dict} a {@link https://docs.ccxt.com/en/latest/manual.html#position-structure position structure}
+         * @param {string} $symbol unified $market $symbol of the $market the position is held in, default is null
+         * @param {array} $params extra parameters specific to the zb api endpoint
+         * @return {array} a {@link https://docs.ccxt.com/en/latest/manual.html#position-structure position structure}
          */
         $this->load_markets();
         $market = null;
@@ -3486,9 +3492,9 @@ class zb extends Exchange {
     public function fetch_positions($symbols = null, $params = array ()) {
         /**
          * fetch all open positions
-         * @param {[str]|null} $symbols list of unified market $symbols
-         * @param {dict} $params extra parameters specific to the zb api endpoint
-         * @return {[dict]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#position-structure position structure}
+         * @param {[string]|null} $symbols list of unified market $symbols
+         * @param {array} $params extra parameters specific to the zb api endpoint
+         * @return {[array]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#position-structure position structure}
          */
         $this->load_markets();
         $request = array(
@@ -3615,6 +3621,7 @@ class zb extends Exchange {
         $timestamp = $this->safe_number($position, 'createTime');
         return array(
             'info' => $position,
+            'id' => null,
             'symbol' => $symbol,
             'contracts' => $this->parse_number($contracts),
             'contractSize' => null,
@@ -3740,11 +3747,11 @@ class zb extends Exchange {
     public function fetch_ledger($code = null, $since = null, $limit = null, $params = array ()) {
         /**
          * fetch the history of changes, actions done by the user or operations that altered balance of the user
-         * @param {str} $code unified $currency $code, default is null
+         * @param {string} $code unified $currency $code, default is null
          * @param {int|null} $since timestamp in ms of the earliest ledger entry, default is null
          * @param {int|null} $limit max number of ledger entrys to return, default is null
-         * @param {dict} $params extra parameters specific to the zb api endpoint
-         * @return {dict} a {@link https://docs.ccxt.com/en/latest/manual.html#ledger-structure ledger structure}
+         * @param {array} $params extra parameters specific to the zb api endpoint
+         * @return {array} a {@link https://docs.ccxt.com/en/latest/manual.html#ledger-structure ledger structure}
          */
         if ($code === null) {
             throw new ArgumentsRequired($this->id . ' fetchLedger() requires a $code argument');
@@ -3799,20 +3806,19 @@ class zb extends Exchange {
     public function transfer($code, $amount, $fromAccount, $toAccount, $params = array ()) {
         /**
          * transfer $currency internally between wallets on the same account
-         * @param {str} $code unified $currency $code
+         * @param {string} $code unified $currency $code
          * @param {float} $amount amount to transfer
-         * @param {str} $fromAccount account to transfer from
-         * @param {str} $toAccount account to transfer to
-         * @param {dict} $params extra parameters specific to the zb api endpoint
-         * @return {dict} a {@link https://docs.ccxt.com/en/latest/manual.html#transfer-structure transfer structure}
+         * @param {string} $fromAccount account to transfer from
+         * @param {string} $toAccount account to transfer to
+         * @param {array} $params extra parameters specific to the zb api endpoint
+         * @param {string} $params->marginMode 'cross' or 'isolated'
+         * @return {array} a {@link https://docs.ccxt.com/en/latest/manual.html#transfer-structure transfer structure}
          */
         $this->load_markets();
-        list($marketType, $query) = $this->handle_market_type_and_params('transfer', null, $params);
+        list($marketType, $marketTypeQuery) = $this->handle_market_type_and_params('transfer', null, $params);
+        list($marginMode, $query) = $this->handle_margin_mode_and_params('transfer', $marketTypeQuery);
         $currency = $this->currency($code);
-        $margin = ($marketType === 'margin');
         $swap = ($marketType === 'swap');
-        $side = null;
-        $marginMethod = null;
         $amountToPrecision = $this->currency_to_precision($code, $amount);
         $request = array(
             'amount' => $amountToPrecision, // Swap, Cross Margin, Isolated Margin
@@ -3822,7 +3828,10 @@ class zb extends Exchange {
             // 'side' => $side, // Swap, 1：Deposit (zb account -> futures account)，0：Withdrawal (futures account -> zb account)
             // 'marketName' => $this->safe_string($params, 'marketName'), // Isolated Margin
         );
+        $method = null;
+        $side = null;
         if ($swap) {
+            $method = 'contractV2PrivatePostFundTransferFund';
             if ($fromAccount === 'spot' || $toAccount === 'future') {
                 $side = 1;
             } else {
@@ -3832,28 +3841,27 @@ class zb extends Exchange {
             $request['clientId'] = $this->safe_string($params, 'clientId');
             $request['side'] = $side;
         } else {
-            $defaultMargin = $margin ? 'isolated' : 'cross';
-            $marginMode = $this->safe_string_2($this->options, 'defaultMarginMode', 'marginMode', $defaultMargin);
-            if ($marginMode === 'isolated') {
+            if (($marginMode === 'isolated') || ($toAccount === 'isolated') || ($fromAccount === 'isolated')) {
                 if ($fromAccount === 'spot' || $toAccount === 'isolated') {
-                    $marginMethod = 'spotV1PrivateGetTransferInLever';
+                    $method = 'spotV1PrivateGetTransferInLever';
                 } else {
-                    $marginMethod = 'spotV1PrivateGetTransferOutLever';
+                    $method = 'spotV1PrivateGetTransferOutLever';
                 }
-                $request['marketName'] = $this->safe_string($params, 'marketName');
-            } elseif ($marginMode === 'cross') {
+                $symbol = $this->safe_string_2($params, 'marketName', 'symbol');
+                if ($symbol === null) {
+                    throw new ArgumentsRequired($this->id . ' transfer() requires a $symbol argument for isolated margin');
+                }
+                $market = $this->market($symbol);
+                $request['marketName'] = $this->safe_symbol($market['id'], $market, '_');
+            } elseif (($marginMode === 'cross') || ($toAccount === 'cross') || ($fromAccount === 'cross')) {
                 if ($fromAccount === 'spot' || $toAccount === 'cross') {
-                    $marginMethod = 'spotV1PrivateGetTransferInCross';
+                    $method = 'spotV1PrivateGetTransferInCross';
                 } else {
-                    $marginMethod = 'spotV1PrivateGetTransferOutCross';
+                    $method = 'spotV1PrivateGetTransferOutCross';
                 }
             }
             $request['coin'] = $currency['id'];
         }
-        $method = $this->get_supported_mapping($marketType, array(
-            'swap' => 'contractV2PrivatePostFundTransferFund',
-            'margin' => $marginMethod,
-        ));
         $response = $this->$method (array_merge($request, $query));
         //
         // Swap
@@ -3972,10 +3980,10 @@ class zb extends Exchange {
     public function add_margin($symbol, $amount, $params = array ()) {
         /**
          * add margin
-         * @param {str} $symbol unified market $symbol
+         * @param {string} $symbol unified market $symbol
          * @param {float} $amount amount of margin to add
-         * @param {dict} $params extra parameters specific to the zb api endpoint
-         * @return {dict} a {@link https://docs.ccxt.com/en/latest/manual.html#add-margin-structure margin structure}
+         * @param {array} $params extra parameters specific to the zb api endpoint
+         * @return {array} a {@link https://docs.ccxt.com/en/latest/manual.html#add-margin-structure margin structure}
          */
         if ($params['positionsId'] === null) {
             throw new ArgumentsRequired($this->id . ' addMargin() requires a positionsId argument in the params');
@@ -3986,10 +3994,10 @@ class zb extends Exchange {
     public function reduce_margin($symbol, $amount, $params = array ()) {
         /**
          * remove margin from a position
-         * @param {str} $symbol unified market $symbol
+         * @param {string} $symbol unified market $symbol
          * @param {float} $amount the $amount of margin to remove
-         * @param {dict} $params extra parameters specific to the zb api endpoint
-         * @return {dict} a {@link https://docs.ccxt.com/en/latest/manual.html#reduce-margin-structure margin structure}
+         * @param {array} $params extra parameters specific to the zb api endpoint
+         * @return {array} a {@link https://docs.ccxt.com/en/latest/manual.html#reduce-margin-structure margin structure}
          */
         if ($params['positionsId'] === null) {
             throw new ArgumentsRequired($this->id . ' reduceMargin() requires a positionsId argument in the params');
@@ -4000,9 +4008,9 @@ class zb extends Exchange {
     public function fetch_borrow_rate($code, $params = array ()) {
         /**
          * fetch the $rate of interest to borrow a $currency for margin trading
-         * @param {str} $code unified $currency $code
-         * @param {dict} $params extra parameters specific to the zb api endpoint
-         * @return {dict} a {@link https://docs.ccxt.com/en/latest/manual.html#borrow-$rate-structure borrow $rate structure}
+         * @param {string} $code unified $currency $code
+         * @param {array} $params extra parameters specific to the zb api endpoint
+         * @return {array} a {@link https://docs.ccxt.com/en/latest/manual.html#borrow-$rate-structure borrow $rate structure}
          */
         $this->load_markets();
         $currency = $this->currency($code);
@@ -4043,8 +4051,8 @@ class zb extends Exchange {
     public function fetch_borrow_rates($params = array ()) {
         /**
          * fetch the borrow interest $rates of all currencies
-         * @param {dict} $params extra parameters specific to the zb api endpoint
-         * @return {dict} a list of {@link https://docs.ccxt.com/en/latest/manual.html#borrow-rate-structure borrow rate structures}
+         * @param {array} $params extra parameters specific to the zb api endpoint
+         * @return {array} a list of {@link https://docs.ccxt.com/en/latest/manual.html#borrow-rate-structure borrow rate structures}
          */
         if ($params['coin'] === null) {
             throw new ArgumentsRequired($this->id . ' fetchBorrowRates() requires a coin argument in the params');
@@ -4089,31 +4097,97 @@ class zb extends Exchange {
         return $rates;
     }
 
+    public function set_position_mode($hedged, $symbol = null, $params = array ()) {
+        /**
+         * set the level of leverage for a $market
+         * @param {float} leverage the rate of leverage
+         * @param {string} $symbol unified $market $symbol
+         * @param {array} $params extra parameters specific to the zb api endpoint
+         * @return {array} $response from the exchange
+         */
+        $this->load_markets();
+        if ($symbol === null) {
+            throw new ArgumentsRequired($this->id . ' setPositionMode() requires a $symbol argument');
+        }
+        $market = $this->market($symbol);
+        $accountType = null;
+        if (!$market['swap']) {
+            throw new BadSymbol($this->id . ' setPositionMode() supports swap contracts only');
+        } else {
+            $accountType = 1;
+        }
+        $request = array(
+            'marketId' => $market['id'],
+            'positionMode' => $hedged ? 2 : 1,
+            'futuresAccountType' => $accountType, // 1 => USDT perpetual swaps, 2 => QC perpetual futures
+        );
+        $response = $this->contractV2PrivatePostSettingSetPositionsMode (array_merge($request, $params));
+        //
+        //     {
+        //         "code" => 10000,
+        //         "desc" => "success",
+        //         "data" => {
+        //             "userId" => 111,
+        //             "marketId" => 100,
+        //             "leverage" => 20,
+        //             "marginMode" => 1,
+        //             "positionsMode" => 2,
+        //             "enableAutoAppend" => 1,
+        //             "maxAppendAmount" => "11212",
+        //             "marginCoins" => "qc,usdt,eth",
+        //             "id" => 6737268451833817088,
+        //             "createTime" => 1606289971312,
+        //             "modifyTime" => 0,
+        //             "extend" => null
+        //         }
+        //     }
+        //
+        return $response;
+    }
+
     public function borrow_margin($code, $amount, $symbol = null, $params = array ()) {
+        /**
+         * create a loan to borrow margin
+         * @param {string} $code unified $currency $code of the $currency to borrow
+         * @param {float} $amount the $amount to borrow
+         * @param {string|null} $symbol unified $market $symbol, required for isolated margin
+         * @param {array} $params extra parameters specific to the zb api endpoint
+         * @param {string} $params->safePwd $transaction $password, extra parameter required for cross margin
+         * @param {string} $params->marginMode 'cross' or 'isolated'
+         * @return {array} a {@link https://docs.ccxt.com/en/latest/manual.html#margin-loan-structure margin loan structure}
+         */
         $this->load_markets();
         $market = null;
         if ($symbol !== null) {
             $market = $this->market($symbol);
             $symbol = $market['symbol'];
         }
-        $defaultMarginMode = $this->safe_string_2($this->options, 'defaultMarginMode', 'marginMode', 'cross');
-        $marginMode = $this->safe_string($params, 'marginMode', $defaultMarginMode); // cross or isolated
+        $marginMode = null;
+        list($marginMode, $params) = $this->handle_margin_mode_and_params('borrowMargin', $params);
+        if ($marginMode === null) {
+            if ($symbol !== null) {
+                $marginMode = 'isolated'; // default to isolated if the $symbol is defined
+            } else {
+                $marginMode = 'cross'; // default to cross
+            }
+        }
         $password = $this->safe_string($params, 'safePwd', $this->password);
         $currency = $this->currency($code);
         $request = array(
             'coin' => $currency['id'],
             'amount' => $this->currency_to_precision($code, $amount),
+            'safePwd' => $password, // $transaction $password
         );
         $method = null;
         if ($marginMode === 'isolated') {
             if ($symbol === null) {
                 throw new ArgumentsRequired($this->id . ' borrowMargin() requires a $symbol argument for isolated margin');
             }
+            $market = $this->market($symbol);
+            $request['marketName'] = $this->safe_symbol($market['id'], $market, '_');
             $method = 'spotV1PrivateGetBorrow';
-            $request['marketName'] = $market['id'];
         } elseif ($marginMode === 'cross') {
             $method = 'spotV1PrivateGetDoCrossLoan';
-            $request['safePwd'] = $password; // $transaction $password
         }
         $response = $this->$method (array_merge($request, $params));
         //

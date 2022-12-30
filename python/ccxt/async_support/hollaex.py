@@ -414,7 +414,7 @@ class hollaex(Exchange):
             orderbook = response[marketId]
             symbol = self.safe_symbol(marketId, None, '-')
             timestamp = self.parse8601(self.safe_string(orderbook, 'timestamp'))
-            result[symbol] = self.parse_order_book(response[marketId], timestamp)
+            result[symbol] = self.parse_order_book(response[marketId], symbol, timestamp)
         return result
 
     async def fetch_order_book(self, symbol, limit=None, params={}):
@@ -488,6 +488,7 @@ class hollaex(Exchange):
         :returns dict: an array of `ticker structures <https://docs.ccxt.com/en/latest/manual.html#ticker-structure>`
         """
         await self.load_markets()
+        symbols = self.market_symbols(symbols)
         response = await self.publicGetTickers(self.extend(params))
         #
         #     {
@@ -714,7 +715,7 @@ class hollaex(Exchange):
             }
         return result
 
-    async def fetch_ohlcv(self, symbol, timeframe='1h', since=None, limit=None, params={}):
+    async def fetch_ohlcv(self, symbol, timeframe='1m', since=None, limit=None, params={}):
         """
         fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
         :param str symbol: unified symbol of the market to fetch OHLCV data for
@@ -733,12 +734,11 @@ class hollaex(Exchange):
         duration = self.parse_timeframe(timeframe)
         if since is None:
             if limit is None:
-                raise ArgumentsRequired(self.id + " fetchOHLCV() requires a 'since' or a 'limit' argument")
-            else:
-                end = self.seconds()
-                start = end - duration * limit
-                request['to'] = end
-                request['from'] = start
+                limit = 1000  # they have no defaults and can actually provide tens of thousands of bars in one request, but we should cap "default" at generous amount
+            end = self.seconds()
+            start = end - duration * limit
+            request['to'] = end
+            request['from'] = start
         else:
             if limit is None:
                 request['from'] = int(since / 1000)
@@ -883,7 +883,7 @@ class hollaex(Exchange):
         :param int|None since: the earliest time in ms to fetch orders for
         :param int|None limit: the maximum number of  orde structures to retrieve
         :param dict params: extra parameters specific to the hollaex api endpoint
-        :returns [dict]: a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure
+        :returns [dict]: a list of `order structures <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
         """
         request = {
             'open': False,
@@ -936,7 +936,7 @@ class hollaex(Exchange):
         :param int|None since: the earliest time in ms to fetch orders for
         :param int|None limit: the maximum number of  orde structures to retrieve
         :param dict params: extra parameters specific to the hollaex api endpoint
-        :returns [dict]: a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure
+        :returns [dict]: a list of `order structures <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
         """
         await self.load_markets()
         market = None
@@ -1080,20 +1080,20 @@ class hollaex(Exchange):
         """
         await self.load_markets()
         market = self.market(symbol)
+        convertedAmount = float(self.amount_to_precision(symbol, amount))
         request = {
             'symbol': market['id'],
             'side': side,
-            'size': self.normalize_number_if_needed(amount),
+            'size': self.normalize_number_if_needed(convertedAmount),
             'type': type,
             # 'stop': float(self.price_to_precision(symbol, stopPrice)),
             # 'meta': {},  # other options such as post_only
         }
-        stopPrice = self.safe_number_2(params, 'stopPrice', 'stop')
+        stopPrice = self.safe_number_n(params, ['triggerPrice', 'stopPrice', 'stop'])
         meta = self.safe_value(params, 'meta', {})
         exchangeSpecificParam = self.safe_value(meta, 'post_only', False)
         isMarketOrder = type == 'market'
         postOnly = self.is_post_only(isMarketOrder, exchangeSpecificParam, params)
-        params = self.omit(params, ['stopPrice', 'stop', 'meta', 'postOnly'])
         if not isMarketOrder:
             convertedPrice = float(self.price_to_precision(symbol, price))
             request['price'] = self.normalize_number_if_needed(convertedPrice)
@@ -1101,6 +1101,7 @@ class hollaex(Exchange):
             request['stop'] = self.normalize_number_if_needed(float(self.price_to_precision(symbol, stopPrice)))
         if postOnly:
             request['meta'] = {'post_only': True}
+        params = self.omit(params, ['postOnly', 'timeInForce', 'stopPrice', 'triggerPrice', 'stop'])
         response = await self.privatePostOrder(self.extend(request, params))
         #
         #     {

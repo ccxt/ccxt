@@ -27,7 +27,7 @@ class currencycom(Exchange):
             'name': 'Currency.com',
             'countries': ['BY'],  # Belarus
             'rateLimit': 100,
-            'certified': True,
+            'certified': False,
             'pro': True,
             'version': 'v2',
             # new metainfo interface
@@ -480,8 +480,8 @@ class currencycom(Exchange):
                 # https://github.com/ccxt/ccxt/issues/4286
                 # therefore limits['price']['max'] doesn't have any meaningful value except None
                 limitPriceMin = self.safe_number(filter, 'minPrice')
-                maxPrice = self.safe_number(filter, 'maxPrice')
-                if (maxPrice is not None) and (maxPrice > 0):
+                maxPrice = self.safe_string(filter, 'maxPrice')
+                if (maxPrice is not None) and (Precise.string_gt(maxPrice, '0')):
                     limitPriceMax = maxPrice
             precisionAmount = self.parse_number(self.parse_precision(self.safe_string(market, 'baseAssetPrecision')))
             limitAmount = {
@@ -549,7 +549,7 @@ class currencycom(Exchange):
                     'market': limitMarket,
                     'price': {
                         'min': limitPriceMin,
-                        'max': limitPriceMax,
+                        'max': self.parse_number(limitPriceMax),
                     },
                     'cost': {
                         'min': costMin,
@@ -1251,8 +1251,8 @@ class currencycom(Exchange):
                 request['type'] = 'STOP'
                 request['price'] = self.price_to_precision(symbol, price)
             elif type == 'market':
-                stopPrice = self.safe_number(params, 'stopPrice')
-                params = self.omit(params, 'stopPrice')
+                stopPrice = self.safe_value_2(params, 'triggerPrice', 'stopPrice')
+                params = self.omit(params, ['triggerPrice', 'stopPrice'])
                 if stopPrice is not None:
                     request['type'] = 'STOP'
                     request['price'] = self.price_to_precision(symbol, stopPrice)
@@ -1781,6 +1781,7 @@ class currencycom(Exchange):
             'maintenanceMarginPercentage': None,
             'marginRatio': None,
             'info': position,
+            'id': None,
         }
 
     def handle_errors(self, httpCode, reason, url, method, headers, body, response, requestHeaders, requestBody):

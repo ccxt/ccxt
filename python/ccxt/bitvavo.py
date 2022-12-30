@@ -22,6 +22,7 @@ from ccxt.base.decimal_to_precision import ROUND
 from ccxt.base.decimal_to_precision import TRUNCATE
 from ccxt.base.decimal_to_precision import DECIMAL_PLACES
 from ccxt.base.decimal_to_precision import SIGNIFICANT_DIGITS
+from ccxt.base.precise import Precise
 
 
 class bitvavo(Exchange):
@@ -902,23 +903,24 @@ class bitvavo(Exchange):
     def create_order(self, symbol, type, side, amount, price=None, params={}):
         """
         create a trade order
+        see https://docs.bitvavo.com/#tag/Orders/paths/~1order/post
         :param str symbol: unified symbol of the market to create an order in
         :param str type: 'market' or 'limit'
         :param str side: 'buy' or 'sell'
         :param float amount: how much of currency you want to trade in units of base currency
         :param float|None price: the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
         :param dict params: extra parameters specific to the bitvavo api endpoint
-        :param str params['timeInForce']: "GTC", "IOC", or "PO"
-        :param float params['stopPrice']: The price at which a trigger order is triggered at
-        :param float params['triggerPrice']: The price at which a trigger order is triggered at
-        :param bool params['postOnly']: If True, the order will only be posted to the order book and not executed immediately
-        :param float params['stopLossPrice']: The price at which a stop loss order is triggered at
-        :param float params['takeProfitPrice']: The price at which a take profit order is triggered at
-        :param str params['triggerType']: "price"
-        :param str params['triggerReference']: "lastTrade", "bestBid", "bestAsk", "midPrice" Only for stop orders: Use self to determine which parameter will trigger the order
-        :param str params['selfTradePrevention']: "decrementAndCancel", "cancelOldest", "cancelNewest", "cancelBoth"
-        :param bool params['disableMarketProtection']: don't cancel if the next fill price is 10% worse than the best fill price
-        :param bool params['responseRequired']: Set self to 'false' when only an acknowledgement of success or failure is required, self is faster.
+        :param str|None params['timeInForce']: "GTC", "IOC", or "PO"
+        :param float|None params['stopPrice']: The price at which a trigger order is triggered at
+        :param float|None params['triggerPrice']: The price at which a trigger order is triggered at
+        :param bool|None params['postOnly']: If True, the order will only be posted to the order book and not executed immediately
+        :param float|None params['stopLossPrice']: The price at which a stop loss order is triggered at
+        :param float|None params['takeProfitPrice']: The price at which a take profit order is triggered at
+        :param str|None params['triggerType']: "price"
+        :param str|None params['triggerReference']: "lastTrade", "bestBid", "bestAsk", "midPrice" Only for stop orders: Use self to determine which parameter will trigger the order
+        :param str|None params['selfTradePrevention']: "decrementAndCancel", "cancelOldest", "cancelNewest", "cancelBoth"
+        :param bool|None params['disableMarketProtection']: don't cancel if the next fill price is 10% worse than the best fill price
+        :param bool|None params['responseRequired']: Set self to 'false' when only an acknowledgement of success or failure is required, self is faster.
         :returns dict: an `order structure <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
         """
         self.load_markets()
@@ -933,21 +935,24 @@ class bitvavo(Exchange):
         timeInForce = self.safe_string(params, 'timeInForce')
         triggerPrice = self.safe_string_n(params, ['triggerPrice', 'stopPrice', 'triggerAmount'])
         postOnly = self.is_post_only(isMarketOrder, False, params)
-        stopLossPrice = self.safe_string(params, 'stopLossPrice')  # trigger when price crosses from above to below self value
-        takeProfitPrice = self.safe_string(params, 'takeProfitPrice')  # trigger when price crosses from below to above self value
+        stopLossPrice = self.safe_value(params, 'stopLossPrice')  # trigger when price crosses from above to below self value
+        takeProfitPrice = self.safe_value(params, 'takeProfitPrice')  # trigger when price crosses from below to above self value
         params = self.omit(params, ['timeInForce', 'triggerPrice', 'stopPrice', 'stopLossPrice', 'takeProfitPrice'])
         if isMarketOrder:
             cost = None
             if price is not None:
-                cost = amount * price
+                priceString = self.number_to_string(price)
+                amountString = self.number_to_string(amount)
+                quoteAmount = Precise.string_mul(amountString, priceString)
+                cost = self.parse_number(quoteAmount)
             else:
-                cost = self.safe_number_2(params, 'cost', 'amountQuote')
+                cost = self.safe_number(params, 'cost')
             if cost is not None:
-                precision = market['precision']['price']
+                precision = self.currency(market['quote'])['precision']
                 request['amountQuote'] = self.decimal_to_precision(cost, TRUNCATE, precision, self.precisionMode)
             else:
                 request['amount'] = self.amount_to_precision(symbol, amount)
-            params = self.omit(params, ['cost', 'amountQuote'])
+            params = self.omit(params, ['cost'])
         elif isLimitOrder:
             request['price'] = self.price_to_precision(symbol, price)
             request['amount'] = self.amount_to_precision(symbol, amount)
@@ -1139,7 +1144,7 @@ class bitvavo(Exchange):
         :param int|None since: the earliest time in ms to fetch orders for
         :param int|None limit: the maximum number of  orde structures to retrieve
         :param dict params: extra parameters specific to the bitvavo api endpoint
-        :returns [dict]: a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure
+        :returns [dict]: a list of `order structures <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
         """
         if symbol is None:
             raise ArgumentsRequired(self.id + ' fetchOrders() requires a symbol argument')

@@ -89,6 +89,7 @@ module.exports = class phemex extends Exchange {
                 },
                 'api': {
                     'v1': 'https://{hostname}/v1',
+                    'v2': 'https://{hostname}',
                     'public': 'https://{hostname}/exchange/public',
                     'private': 'https://{hostname}',
                 },
@@ -124,6 +125,8 @@ module.exports = class phemex extends Exchange {
                         'products', // contracts only
                         'nomics/trades', // ?market=<symbol>&since=<since>
                         'md/kline', // ?from=1589811875&resolution=1800&symbol=sBTCUSDT&to=1592457935
+                        'md/v2/kline/list', // perpetual api ?symbol=<symbol>&to=<to>&from=<from>&resolution=<resolution>
+                        'md/v2/kline/last', // perpetual ?symbol=<symbol>&resolution=<resolution>&limit=<limit>
                     ],
                 },
                 'v1': {
@@ -135,6 +138,14 @@ module.exports = class phemex extends Exchange {
                         'md/spot/ticker/24hr', // ?symbol=<symbol>&id=<id>
                         'md/spot/ticker/24hr/all', // ?symbol=<symbol>&id=<id>
                         'exchange/public/products', // contracts only
+                    ],
+                },
+                'v2': {
+                    'get': [
+                        'md/v2/orderbook', // ?symbol=<symbol>&id=<id>
+                        'md/v2/trade', // ?symbol=<symbol>&id=<id>
+                        'md/v2/ticker/24hr', // ?symbol=<symbol>&id=<id>
+                        'md/v2/ticker/24hr/all', // ?id=<id>
                     ],
                 },
                 'private': {
@@ -401,7 +412,7 @@ module.exports = class phemex extends Exchange {
                 'defaultSubType': 'linear',
                 'accountsByType': {
                     'spot': 'spot',
-                    'future': 'future',
+                    'swap': 'future',
                 },
                 'transfer': {
                     'fillResponseFromRequest': true,
@@ -650,8 +661,8 @@ module.exports = class phemex extends Exchange {
          * @method
          * @name phemex#fetchMarkets
          * @description retrieves data on all markets for phemex
-         * @param {dict} params extra parameters specific to the exchange api endpoint
-         * @returns {[dict]} an array of objects representing market data
+         * @param {object} params extra parameters specific to the exchange api endpoint
+         * @returns {[object]} an array of objects representing market data
          */
         const v2Products = await this.publicGetCfgV2Products (params);
         //
@@ -777,7 +788,7 @@ module.exports = class phemex extends Exchange {
         for (let i = 0; i < products.length; i++) {
             let market = products[i];
             const type = this.safeStringLower (market, 'type');
-            if (type === 'perpetual') {
+            if ((type === 'perpetual') || (type === 'perpetualv2')) {
                 const id = this.safeString (market, 'symbol');
                 const riskLimitValues = this.safeValue (riskLimitsById, id, {});
                 market = this.extend (market, riskLimitValues);
@@ -797,8 +808,8 @@ module.exports = class phemex extends Exchange {
          * @method
          * @name phemex#fetchCurrencies
          * @description fetches all available currencies on an exchange
-         * @param {dict} params extra parameters specific to the phemex api endpoint
-         * @returns {dict} an associative dictionary of currencies
+         * @param {object} params extra parameters specific to the phemex api endpoint
+         * @returns {object} an associative dictionary of currencies
          */
         const response = await this.publicGetCfgV2Products (params);
         //
@@ -903,10 +914,10 @@ module.exports = class phemex extends Exchange {
          * @method
          * @name phemex#fetchOrderBook
          * @description fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
-         * @param {str} symbol unified symbol of the market to fetch the order book for
+         * @param {string} symbol unified symbol of the market to fetch the order book for
          * @param {int|undefined} limit the maximum amount of order book entries to return
-         * @param {dict} params extra parameters specific to the phemex api endpoint
-         * @returns {dict} A dictionary of [order book structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-book-structure} indexed by market symbols
+         * @param {object} params extra parameters specific to the phemex api endpoint
+         * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-book-structure} indexed by market symbols
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
@@ -1037,11 +1048,11 @@ module.exports = class phemex extends Exchange {
          * @method
          * @name phemex#fetchOHLCV
          * @description fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
-         * @param {str} symbol unified symbol of the market to fetch OHLCV data for
-         * @param {str} timeframe the length of time each candle represents
+         * @param {string} symbol unified symbol of the market to fetch OHLCV data for
+         * @param {string} timeframe the length of time each candle represents
          * @param {int|undefined} since timestamp in ms of the earliest candle to fetch
          * @param {int|undefined} limit the maximum amount of candles to fetch
-         * @param {dict} params extra parameters specific to the phemex api endpoint
+         * @param {object} params extra parameters specific to the phemex api endpoint
          * @returns {[[int]]} A list of candles ordered as timestamp, open, high, low, close, volume
          */
         const request = {
@@ -1052,22 +1063,26 @@ module.exports = class phemex extends Exchange {
         };
         const duration = this.parseTimeframe (timeframe);
         const now = this.seconds ();
-        // the exchange does not return the last 1m candle
+        const maxLimit = 2000; // maximum limit, we shouldn't sent request of more than it
+        if (limit === undefined) {
+            limit = 100; // set default, as exchange doesn't have any defaults and needs something to be set
+        } else {
+            limit = Math.min (limit, maxLimit);
+        }
         if (since !== undefined) {
-            if (limit === undefined) {
-                limit = 2000; // max 2000
-            }
+            limit = Math.min (limit, maxLimit);
             since = parseInt (since / 1000);
             request['from'] = since;
             // time ranges ending in the future are not accepted
             // https://github.com/ccxt/ccxt/issues/8050
             request['to'] = Math.min (now, this.sum (since, duration * limit));
-        } else if (limit !== undefined) {
-            limit = Math.min (limit, 2000);
-            request['from'] = now - duration * this.sum (limit, 1);
-            request['to'] = now;
         } else {
-            throw new ArgumentsRequired (this.id + ' fetchOHLCV() requires a since argument, or a limit argument, or both');
+            if (limit < maxLimit) {
+                // whenever making a request with `now`, that expects current latest bar to be included, the exchange does not return the last 1m candle and thus excludes one bar. So, we have to add `1` to user's set `limit` amount to get that amount of bars back
+                limit = limit + 1;
+            }
+            request['from'] = now - duration * limit;
+            request['to'] = now;
         }
         await this.loadMarkets ();
         const market = this.market (symbol);
@@ -1128,24 +1143,41 @@ module.exports = class phemex extends Exchange {
         //         "turnoverEv": 47228362330,
         //         "volume": 4053863
         //     }
+        // linear swap v2
+        //
+        //     {
+        //         "closeRp":"16820.5",
+        //         "fundingRateRr":"0.0001",
+        //         "highRp":"16962.1",
+        //         "indexPriceRp":"16830.15651565",
+        //         "lowRp":"16785",
+        //         "markPriceRp":"16830.97534951",
+        //         "openInterestRv":"1323.596",
+        //         "openRp":"16851.7",
+        //         "predFundingRateRr":"0.0001",
+        //         "symbol":"BTCUSDT",
+        //         "timestamp":"1672142789065593096",
+        //         "turnoverRv":"124835296.0538",
+        //         "volumeRq":"7406.95"
+        //     }
         //
         const marketId = this.safeString (ticker, 'symbol');
         market = this.safeMarket (marketId, market);
         const symbol = market['symbol'];
         const timestamp = this.safeIntegerProduct (ticker, 'timestamp', 0.000001);
-        const last = this.fromEp (this.safeString (ticker, 'lastEp'), market);
-        const quoteVolume = this.fromEv (this.safeString (ticker, 'turnoverEv'), market);
+        const last = this.fromEp (this.safeString2 (ticker, 'lastEp', 'closeRp'), market);
+        const quoteVolume = this.fromEv (this.safeString2 (ticker, 'turnoverEv', 'turnoverRv'), market);
         let baseVolume = this.safeString (ticker, 'volume');
         if (baseVolume === undefined) {
-            baseVolume = this.fromEv (this.safeString (ticker, 'volumeEv'), market);
+            baseVolume = this.fromEv (this.safeString2 (ticker, 'volumeEv', 'volumeRq'), market);
         }
         const open = this.fromEp (this.safeString (ticker, 'openEp'), market);
         return this.safeTicker ({
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'high': this.fromEp (this.safeString (ticker, 'highEp'), market),
-            'low': this.fromEp (this.safeString (ticker, 'lowEp'), market),
+            'high': this.fromEp (this.safeString2 (ticker, 'highEp', 'highRp'), market),
+            'low': this.fromEp (this.safeString2 (ticker, 'lowEp', 'lowRp'), market),
             'bid': this.fromEp (this.safeString (ticker, 'bidEp'), market),
             'bidVolume': undefined,
             'ask': this.fromEp (this.safeString (ticker, 'askEp'), market),
@@ -1169,9 +1201,9 @@ module.exports = class phemex extends Exchange {
          * @method
          * @name phemex#fetchTicker
          * @description fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
-         * @param {str} symbol unified symbol of the market to fetch the ticker for
-         * @param {dict} params extra parameters specific to the phemex api endpoint
-         * @returns {dict} a [ticker structure]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
+         * @param {string} symbol unified symbol of the market to fetch the ticker for
+         * @param {object} params extra parameters specific to the phemex api endpoint
+         * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
@@ -1179,7 +1211,14 @@ module.exports = class phemex extends Exchange {
             'symbol': market['id'],
             // 'id': 123456789, // optional request id
         };
-        const method = market['spot'] ? 'v1GetMdSpotTicker24hr' : 'v1GetMdTicker24hr';
+        let method = 'v1GetMdSpotTicker24hr';
+        if (market['swap']) {
+            if (!market['linear']) {
+                method = 'v1GetMdTicker24hr';
+            } else {
+                method = 'v2GetMdV2Ticker24hr';
+            }
+        }
         const response = await this[method] (this.extend (request, params));
         //
         // spot
@@ -1234,11 +1273,11 @@ module.exports = class phemex extends Exchange {
          * @method
          * @name phemex#fetchTrades
          * @description get the list of most recent trades for a particular symbol
-         * @param {str} symbol unified symbol of the market to fetch trades for
+         * @param {string} symbol unified symbol of the market to fetch trades for
          * @param {int|undefined} since timestamp in ms of the earliest trade to fetch
          * @param {int|undefined} limit the maximum amount of trades to fetch
-         * @param {dict} params extra parameters specific to the phemex api endpoint
-         * @returns {[dict]} a list of [trade structures]{@link https://docs.ccxt.com/en/latest/manual.html?#public-trades}
+         * @param {object} params extra parameters specific to the phemex api endpoint
+         * @returns {[object]} a list of [trade structures]{@link https://docs.ccxt.com/en/latest/manual.html?#public-trades}
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
@@ -1386,8 +1425,8 @@ module.exports = class phemex extends Exchange {
                     }
                 }
                 fee = {
-                    'cost': this.parseNumber (feeCostString),
-                    'rate': this.parseNumber (feeRateString),
+                    'cost': feeCostString,
+                    'rate': feeRateString,
                     'currency': feeCurrencyCode,
                 };
             }
@@ -1558,8 +1597,8 @@ module.exports = class phemex extends Exchange {
          * @method
          * @name phemex#fetchBalance
          * @description query for balance and get the amount of funds available for trading or funds locked in orders
-         * @param {dict} params extra parameters specific to the phemex api endpoint
-         * @returns {dict} a [balance structure]{@link https://docs.ccxt.com/en/latest/manual.html?#balance-structure}
+         * @param {object} params extra parameters specific to the phemex api endpoint
+         * @returns {object} a [balance structure]{@link https://docs.ccxt.com/en/latest/manual.html?#balance-structure}
          */
         await this.loadMarkets ();
         const defaultType = this.safeString2 (this.options, 'defaultType', 'fetchBalance', 'spot');
@@ -1933,13 +1972,13 @@ module.exports = class phemex extends Exchange {
          * @method
          * @name phemex#createOrder
          * @description create a trade order
-         * @param {str} symbol unified symbol of the market to create an order in
-         * @param {str} type 'market' or 'limit'
-         * @param {str} side 'buy' or 'sell'
+         * @param {string} symbol unified symbol of the market to create an order in
+         * @param {string} type 'market' or 'limit'
+         * @param {string} side 'buy' or 'sell'
          * @param {float} amount how much of currency you want to trade in units of base currency
          * @param {float|undefined} price the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
-         * @param {dict} params extra parameters specific to the phemex api endpoint
-         * @returns {dict} an [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
+         * @param {object} params extra parameters specific to the phemex api endpoint
+         * @returns {object} an [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
@@ -1950,7 +1989,7 @@ module.exports = class phemex extends Exchange {
             // common
             'symbol': market['id'],
             'side': side, // Sell, Buy
-            'ordType': type, // Market, Limit, Stop, StopLimit, MarketIfTouched, LimitIfTouched or Pegged for swap orders
+            'ordType': type, // Market, Limit, Stop, StopLimit, MarketIfTouched, LimitIfTouched (additionally for contract-markets: MarketAsLimit, StopAsLimit, MarketIfTouchedAsLimit)
             // 'stopPxEp': this.toEp (stopPx, market), // for conditional orders
             // 'priceEp': this.toEp (price, market), // required for limit orders
             // 'timeInForce': 'GoodTillCancel', // GoodTillCancel, PostOnly, ImmediateOrCancel, FillOrKill
@@ -2001,7 +2040,10 @@ module.exports = class phemex extends Exchange {
                 params = this.omit (params, 'cost');
                 if (this.options['createOrderByQuoteRequiresPrice']) {
                     if (price !== undefined) {
-                        cost = amount * price;
+                        const amountString = this.numberToString (amount);
+                        const priceString = this.numberToString (price);
+                        const quoteAmount = Precise.stringMul (amountString, priceString);
+                        cost = this.parseNumber (quoteAmount);
                     } else if (cost === undefined) {
                         throw new ArgumentsRequired (this.id + ' createOrder() ' + qtyType + ' requires a price argument or a cost parameter');
                     }
@@ -2169,10 +2211,10 @@ module.exports = class phemex extends Exchange {
          * @method
          * @name phemex#cancelOrder
          * @description cancels an open order
-         * @param {str} id order id
-         * @param {str} symbol unified symbol of the market the order was made in
-         * @param {dict} params extra parameters specific to the phemex api endpoint
-         * @returns {dict} An [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
+         * @param {string} id order id
+         * @param {string} symbol unified symbol of the market the order was made in
+         * @param {object} params extra parameters specific to the phemex api endpoint
+         * @returns {object} An [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
          */
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' cancelOrder() requires a symbol argument');
@@ -2200,9 +2242,9 @@ module.exports = class phemex extends Exchange {
          * @method
          * @name phemex#cancelAllOrders
          * @description cancel all open orders in a market
-         * @param {str} symbol unified market symbol of the market to cancel orders in
-         * @param {dict} params extra parameters specific to the phemex api endpoint
-         * @returns {[dict]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
+         * @param {string} symbol unified market symbol of the market to cancel orders in
+         * @param {object} params extra parameters specific to the phemex api endpoint
+         * @returns {[object]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
          */
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' cancelAllOrders() requires a symbol argument');
@@ -2227,9 +2269,9 @@ module.exports = class phemex extends Exchange {
          * @method
          * @name phemex#fetchOrder
          * @description fetches information on an order made by the user
-         * @param {str} symbol unified symbol of the market the order was made in
-         * @param {dict} params extra parameters specific to the phemex api endpoint
-         * @returns {dict} An [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
+         * @param {string} symbol unified symbol of the market the order was made in
+         * @param {object} params extra parameters specific to the phemex api endpoint
+         * @returns {object} An [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
          */
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' fetchOrder() requires a symbol argument');
@@ -2269,11 +2311,11 @@ module.exports = class phemex extends Exchange {
          * @method
          * @name phemex#fetchOrders
          * @description fetches information on multiple orders made by the user
-         * @param {str} symbol unified market symbol of the market orders were made in
+         * @param {string} symbol unified market symbol of the market orders were made in
          * @param {int|undefined} since the earliest time in ms to fetch orders for
          * @param {int|undefined} limit the maximum number of  orde structures to retrieve
-         * @param {dict} params extra parameters specific to the phemex api endpoint
-         * @returns {[dict]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure
+         * @param {object} params extra parameters specific to the phemex api endpoint
+         * @returns {[object]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
          */
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' fetchOrders() requires a symbol argument');
@@ -2301,11 +2343,11 @@ module.exports = class phemex extends Exchange {
          * @method
          * @name phemex#fetchOpenOrders
          * @description fetch all unfilled currently open orders
-         * @param {str} symbol unified market symbol
+         * @param {string} symbol unified market symbol
          * @param {int|undefined} since the earliest time in ms to fetch open orders for
          * @param {int|undefined} limit the maximum number of  open orders structures to retrieve
-         * @param {dict} params extra parameters specific to the phemex api endpoint
-         * @returns {[dict]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
+         * @param {object} params extra parameters specific to the phemex api endpoint
+         * @returns {[object]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
          */
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' fetchOpenOrders() requires a symbol argument');
@@ -2338,11 +2380,11 @@ module.exports = class phemex extends Exchange {
          * @method
          * @name phemex#fetchClosedOrders
          * @description fetches information on multiple closed orders made by the user
-         * @param {str} symbol unified market symbol of the market orders were made in
+         * @param {string} symbol unified market symbol of the market orders were made in
          * @param {int|undefined} since the earliest time in ms to fetch orders for
          * @param {int|undefined} limit the maximum number of  orde structures to retrieve
-         * @param {dict} params extra parameters specific to the phemex api endpoint
-         * @returns {[dict]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure
+         * @param {object} params extra parameters specific to the phemex api endpoint
+         * @returns {[object]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
          */
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' fetchClosedOrders() requires a symbol argument');
@@ -2410,11 +2452,11 @@ module.exports = class phemex extends Exchange {
          * @method
          * @name phemex#fetchMyTrades
          * @description fetch all trades made by the user
-         * @param {str} symbol unified market symbol
+         * @param {string} symbol unified market symbol
          * @param {int|undefined} since the earliest time in ms to fetch trades for
          * @param {int|undefined} limit the maximum number of trades structures to retrieve
-         * @param {dict} params extra parameters specific to the phemex api endpoint
-         * @returns {[dict]} a list of [trade structures]{@link https://docs.ccxt.com/en/latest/manual.html#trade-structure}
+         * @param {object} params extra parameters specific to the phemex api endpoint
+         * @returns {[object]} a list of [trade structures]{@link https://docs.ccxt.com/en/latest/manual.html#trade-structure}
          */
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' fetchMyTrades() requires a symbol argument');
@@ -2516,9 +2558,9 @@ module.exports = class phemex extends Exchange {
          * @method
          * @name phemex#fetchDepositAddress
          * @description fetch the deposit address for a currency associated with this account
-         * @param {str} code unified currency code
-         * @param {dict} params extra parameters specific to the phemex api endpoint
-         * @returns {dict} an [address structure]{@link https://docs.ccxt.com/en/latest/manual.html#address-structure}
+         * @param {string} code unified currency code
+         * @param {object} params extra parameters specific to the phemex api endpoint
+         * @returns {object} an [address structure]{@link https://docs.ccxt.com/en/latest/manual.html#address-structure}
          */
         await this.loadMarkets ();
         const currency = this.currency (code);
@@ -2564,11 +2606,11 @@ module.exports = class phemex extends Exchange {
          * @method
          * @name phemex#fetchDeposits
          * @description fetch all deposits made to an account
-         * @param {str|undefined} code unified currency code
+         * @param {string|undefined} code unified currency code
          * @param {int|undefined} since the earliest time in ms to fetch deposits for
          * @param {int|undefined} limit the maximum number of deposits structures to retrieve
-         * @param {dict} params extra parameters specific to the phemex api endpoint
-         * @returns {[dict]} a list of [transaction structures]{@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure}
+         * @param {object} params extra parameters specific to the phemex api endpoint
+         * @returns {[object]} a list of [transaction structures]{@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure}
          */
         await this.loadMarkets ();
         let currency = undefined;
@@ -2605,11 +2647,11 @@ module.exports = class phemex extends Exchange {
          * @method
          * @name phemex#fetchWithdrawals
          * @description fetch all withdrawals made from an account
-         * @param {str|undefined} code unified currency code
+         * @param {string|undefined} code unified currency code
          * @param {int|undefined} since the earliest time in ms to fetch withdrawals for
          * @param {int|undefined} limit the maximum number of withdrawals structures to retrieve
-         * @param {dict} params extra parameters specific to the phemex api endpoint
-         * @returns {[dict]} a list of [transaction structures]{@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure}
+         * @param {object} params extra parameters specific to the phemex api endpoint
+         * @returns {[object]} a list of [transaction structures]{@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure}
          */
         await this.loadMarkets ();
         let currency = undefined;
@@ -2732,11 +2774,12 @@ module.exports = class phemex extends Exchange {
          * @method
          * @name phemex#fetchPositions
          * @description fetch all open positions
-         * @param {[str]|undefined} symbols list of unified market symbols
-         * @param {dict} params extra parameters specific to the phemex api endpoint
-         * @returns {[dict]} a list of [position structure]{@link https://docs.ccxt.com/en/latest/manual.html#position-structure}
+         * @param {[string]|undefined} symbols list of unified market symbols
+         * @param {object} params extra parameters specific to the phemex api endpoint
+         * @returns {[object]} a list of [position structure]{@link https://docs.ccxt.com/en/latest/manual.html#position-structure}
          */
         await this.loadMarkets ();
+        symbols = this.marketSymbols (symbols);
         const defaultSubType = this.safeString (this.options, 'defaultSubType', 'linear');
         let code = this.safeString (params, 'code');
         if (code === undefined) {
@@ -2924,7 +2967,10 @@ module.exports = class phemex extends Exchange {
         const leverage = this.safeNumber (position, 'leverage');
         const entryPriceString = this.safeString (position, 'avgEntryPrice');
         const rawSide = this.safeString (position, 'side');
-        const side = (rawSide === 'Buy') ? 'long' : 'short';
+        let side = undefined;
+        if (rawSide !== undefined) {
+            side = (rawSide === 'Buy') ? 'long' : 'short';
+        }
         let priceDiff = undefined;
         const currency = this.safeString (position, 'currency');
         if (currency === 'USD') {
@@ -2946,6 +2992,7 @@ module.exports = class phemex extends Exchange {
         const marginRatio = Precise.stringDiv (maintenanceMarginString, collateral);
         return {
             'info': position,
+            'id': undefined,
             'symbol': symbol,
             'contracts': this.parseNumber (contracts),
             'contractSize': contractSize,
@@ -2975,11 +3022,11 @@ module.exports = class phemex extends Exchange {
          * @method
          * @name phemex#fetchFundingHistory
          * @description fetch the history of funding payments paid and received on this account
-         * @param {str} symbol unified market symbol
+         * @param {string} symbol unified market symbol
          * @param {int|undefined} since the earliest time in ms to fetch funding history for
          * @param {int|undefined} limit the maximum number of funding history structures to retrieve
-         * @param {dict} params extra parameters specific to the phemex api endpoint
-         * @returns {dict} a [funding history structure]{@link https://docs.ccxt.com/en/latest/manual.html#funding-history-structure}
+         * @param {object} params extra parameters specific to the phemex api endpoint
+         * @returns {object} a [funding history structure]{@link https://docs.ccxt.com/en/latest/manual.html#funding-history-structure}
          */
         await this.loadMarkets ();
         if (symbol === undefined) {
@@ -3044,9 +3091,9 @@ module.exports = class phemex extends Exchange {
          * @method
          * @name phemex#fetchFundingRate
          * @description fetch the current funding rate
-         * @param {str} symbol unified market symbol
-         * @param {dict} params extra parameters specific to the phemex api endpoint
-         * @returns {dict} a [funding rate structure]{@link https://docs.ccxt.com/en/latest/manual.html#funding-rate-structure}
+         * @param {string} symbol unified market symbol
+         * @param {object} params extra parameters specific to the phemex api endpoint
+         * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/en/latest/manual.html#funding-rate-structure}
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
@@ -3056,7 +3103,12 @@ module.exports = class phemex extends Exchange {
         const request = {
             'symbol': market['id'],
         };
-        const response = await this.v1GetMdTicker24hr (this.extend (request, params));
+        let response = {};
+        if (!market['linear']) {
+            response = await this.v1GetMdTicker24hr (this.extend (request, params));
+        } else {
+            response = await this.v2GetMdV2Ticker24hr (this.extend (request, params));
+        }
         //
         //     {
         //         "error": null,
@@ -3104,14 +3156,32 @@ module.exports = class phemex extends Exchange {
         //         "volume": 4053863
         //     }
         //
+        // linear swap v2
+        //
+        //     {
+        //         "closeRp":"16820.5",
+        //         "fundingRateRr":"0.0001",
+        //         "highRp":"16962.1",
+        //         "indexPriceRp":"16830.15651565",
+        //         "lowRp":"16785",
+        //         "markPriceRp":"16830.97534951",
+        //         "openInterestRv":"1323.596",
+        //         "openRp":"16851.7",
+        //         "predFundingRateRr":"0.0001",
+        //         "symbol":"BTCUSDT",
+        //         "timestamp":"1672142789065593096",
+        //         "turnoverRv":"124835296.0538",
+        //         "volumeRq":"7406.95"
+        //     }
+        //
         const marketId = this.safeString (contract, 'symbol');
         const symbol = this.safeSymbol (marketId, market);
         const timestamp = this.safeIntegerProduct (contract, 'timestamp', 0.000001);
         return {
             'info': contract,
             'symbol': symbol,
-            'markPrice': this.fromEp (this.safeString (contract, 'markEp'), market),
-            'indexPrice': this.fromEp (this.safeString (contract, 'indexEp'), market),
+            'markPrice': this.fromEp (this.safeString2 (contract, 'markEp', 'markPriceRp'), market),
+            'indexPrice': this.fromEp (this.safeString2 (contract, 'indexEp', 'indexPriceRp'), market),
             'interestRate': undefined,
             'estimatedSettlePrice': undefined,
             'timestamp': timestamp,
@@ -3119,7 +3189,7 @@ module.exports = class phemex extends Exchange {
             'fundingRate': this.fromEr (this.safeString (contract, 'fundingRateEr'), market),
             'fundingTimestamp': undefined,
             'fundingDatetime': undefined,
-            'nextFundingRate': this.fromEr (this.safeString (contract, 'predFundingRateEr'), market),
+            'nextFundingRate': this.fromEr (this.safeString2 (contract, 'predFundingRateEr', 'predFundingRateRr'), market),
             'nextFundingTimestamp': undefined,
             'nextFundingDatetime': undefined,
             'previousFundingRate': undefined,
@@ -3134,10 +3204,10 @@ module.exports = class phemex extends Exchange {
          * @name phemex#setMargin
          * @description Either adds or reduces margin in an isolated position in order to set the margin to a specific value
          * @see https://github.com/phemex/phemex-api-docs/blob/master/Public-Contract-API-en.md#assign-position-balance-in-isolated-marign-mode
-         * @param {str} symbol unified market symbol of the market to set margin in
+         * @param {string} symbol unified market symbol of the market to set margin in
          * @param {float} amount the amount to set the margin to
-         * @param {dict} params parameters specific to the phemex api endpoint
-         * @returns {dict} A [margin structure]{@link https://docs.ccxt.com/en/latest/manual.html#add-margin-structure}
+         * @param {object} params parameters specific to the phemex api endpoint
+         * @returns {object} A [margin structure]{@link https://docs.ccxt.com/en/latest/manual.html#add-margin-structure}
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
@@ -3192,10 +3262,10 @@ module.exports = class phemex extends Exchange {
          * @method
          * @name phemex#setMarginMode
          * @description set margin mode to 'cross' or 'isolated'
-         * @param {str} marginMode 'cross' or 'isolated'
-         * @param {str} symbol unified market symbol
-         * @param {dict} params extra parameters specific to the phemex api endpoint
-         * @returns {dict} response from the exchange
+         * @param {string} marginMode 'cross' or 'isolated'
+         * @param {string} symbol unified market symbol
+         * @param {object} params extra parameters specific to the phemex api endpoint
+         * @returns {object} response from the exchange
          */
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' setMarginMode() requires a symbol argument');
@@ -3228,9 +3298,9 @@ module.exports = class phemex extends Exchange {
          * @method
          * @name phemex#fetchLeverageTiers
          * @description retrieve information on the maximum leverage, and maintenance margin for trades of varying trade sizes
-         * @param {[str]|undefined} symbols list of unified market symbols
-         * @param {dict} params extra parameters specific to the phemex api endpoint
-         * @returns {dict} a dictionary of [leverage tiers structures]{@link https://docs.ccxt.com/en/latest/manual.html#leverage-tiers-structure}, indexed by market symbols
+         * @param {[string]|undefined} symbols list of unified market symbols
+         * @param {object} params extra parameters specific to the phemex api endpoint
+         * @returns {object} a dictionary of [leverage tiers structures]{@link https://docs.ccxt.com/en/latest/manual.html#leverage-tiers-structure}, indexed by market symbols
          */
         await this.loadMarkets ();
         const response = await this.publicGetCfgV2Products (params);
@@ -3319,8 +3389,8 @@ module.exports = class phemex extends Exchange {
 
     parseMarketLeverageTiers (info, market = undefined) {
         /**
-         * @param {dict} info Exchange market response for 1 market
-         * @param {dict} market CCXT market
+         * @param {object} info Exchange market response for 1 market
+         * @param {object} market CCXT market
          */
         //
         //     {
@@ -3394,9 +3464,9 @@ module.exports = class phemex extends Exchange {
          * @name phemex#setLeverage
          * @description set the level of leverage for a market
          * @param {float} leverage the rate of leverage
-         * @param {str} symbol unified market symbol
-         * @param {dict} params extra parameters specific to the phemex api endpoint
-         * @returns {dict} response from the exchange
+         * @param {string} symbol unified market symbol
+         * @param {object} params extra parameters specific to the phemex api endpoint
+         * @returns {object} response from the exchange
          */
         // WARNING: THIS WILL INCREASE LIQUIDATION PRICE FOR OPEN ISOLATED LONG POSITIONS
         // AND DECREASE LIQUIDATION PRICE FOR OPEN ISOLATED SHORT POSITIONS
@@ -3420,12 +3490,13 @@ module.exports = class phemex extends Exchange {
          * @method
          * @name phemex#transfer
          * @description transfer currency internally between wallets on the same account
-         * @param {str} code unified currency code
+         * @param {string} code unified currency code
          * @param {float} amount amount to transfer
-         * @param {str} fromAccount account to transfer from
-         * @param {str} toAccount account to transfer to
-         * @param {dict} params extra parameters specific to the phemex api endpoint
-         * @returns {dict} a [transfer structure]{@link https://docs.ccxt.com/en/latest/manual.html#transfer-structure}
+         * @param {string} fromAccount account to transfer from
+         * @param {string} toAccount account to transfer to
+         * @param {object} params extra parameters specific to the phemex api endpoint
+         * @param {string|undefined} params.bizType for transferring between main and sub-acounts either 'SPOT' or 'PERPETUAL' default is 'SPOT'
+         * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/en/latest/manual.html#transfer-structure}
          */
         await this.loadMarkets ();
         const currency = this.currency (code);
@@ -3505,11 +3576,11 @@ module.exports = class phemex extends Exchange {
          * @method
          * @name phemex#fetchTransfers
          * @description fetch a history of internal transfers made on an account
-         * @param {str|undefined} code unified currency code of the currency transferred
+         * @param {string|undefined} code unified currency code of the currency transferred
          * @param {int|undefined} since the earliest time in ms to fetch transfers for
          * @param {int|undefined} limit the maximum number of  transfers structures to retrieve
-         * @param {dict} params extra parameters specific to the phemex api endpoint
-         * @returns {[dict]} a list of [transfer structures]{@link https://docs.ccxt.com/en/latest/manual.html#transfer-structure}
+         * @param {object} params extra parameters specific to the phemex api endpoint
+         * @returns {[object]} a list of [transfer structures]{@link https://docs.ccxt.com/en/latest/manual.html#transfer-structure}
          */
         await this.loadMarkets ();
         if (code === undefined) {

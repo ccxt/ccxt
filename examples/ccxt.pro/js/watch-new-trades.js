@@ -1,6 +1,6 @@
 'use strict';
 
-const ccxtpro = require ('./ccxt.pro');
+const ccxt = require ('../../../ccxt');
 
 (async () => {
 
@@ -13,7 +13,7 @@ const ccxtpro = require ('./ccxt.pro');
 
         (async () => {
 
-            const exchange = new ccxtpro[exchangeId] ({
+             const exchange = new ccxt.pro[exchangeId] ({
                 enableRateLimit: true,
                 options: {
                     tradesLimit: 100, // lower = better, 1000 by default

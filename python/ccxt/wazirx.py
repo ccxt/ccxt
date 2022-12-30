@@ -26,6 +26,7 @@ class wazirx(Exchange):
             'countries': ['IN'],
             'version': 'v2',
             'rateLimit': 1000,
+            'pro': True,
             'has': {
                 'CORS': False,
                 'spot': True,
@@ -55,7 +56,7 @@ class wazirx(Exchange):
                 'fetchMarkets': True,
                 'fetchMarkOHLCV': False,
                 'fetchMyTrades': False,
-                'fetchOHLCV': False,
+                'fetchOHLCV': True,
                 'fetchOpenInterestHistory': False,
                 'fetchOpenOrders': True,
                 'fetchOrder': True,
@@ -79,7 +80,9 @@ class wazirx(Exchange):
             },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/148647666-c109c20b-f8ac-472f-91c3-5f658cb90f49.jpeg',
-                'api': 'https://api.wazirx.com/sapi/v1',
+                'api': {
+                    'rest': 'https://api.wazirx.com/sapi/v1',
+                },
                 'www': 'https://wazirx.com',
                 'doc': 'https://docs.wazirx.com/#public-rest-api-for-wazirx',
                 'fees': 'https://wazirx.com/fees',
@@ -96,6 +99,7 @@ class wazirx(Exchange):
                         'ticker/24hr': 1,
                         'time': 1,
                         'trades': 1,
+                        'klines': 1,
                     },
                 },
                 'private': {
@@ -136,6 +140,18 @@ class wazirx(Exchange):
                     '2136': RateLimitExceeded,  # {"code":2136,"message":"Too many api request"}
                     '94001': InvalidOrder,  # {"code":94001,"message":"Stop price not found."}
                 },
+            },
+            'timeframes': {
+                '1m': '1m',
+                '5m': '5m',
+                '30m': '30m',
+                '1h': '1h',
+                '2h': '2h',
+                '4h': '4h',
+                '6h': '6h',
+                '12h': '12h',
+                '1d': '1d',
+                '1w': '1w',
             },
             'options': {
                 # 'fetchTradesMethod': 'privateGetHistoricalTrades',
@@ -250,6 +266,53 @@ class wazirx(Exchange):
                 'info': market,
             })
         return result
+
+    def fetch_ohlcv(self, symbol, timeframe='1m', since=None, limit=None, params={}):
+        """
+        fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+        :param str symbol: unified symbol of the market to fetch OHLCV data for
+        :param str timeframe: the length of time each candle represents. Available values [1m,5m,15m,30m,1h,2h,4h,6h,12h,1d,1w]
+        :param int|None since: timestamp in ms of the earliest candle to fetch
+        :param int|None limit: the maximum amount of candles to fetch
+        :param dict params: extra parameters specific to the wazirx api endpoint
+        :param int|None params['until']: timestamp in s of the latest candle to fetch
+        :returns [[int]]: A list of candles ordered as timestamp, open, high, low, close, volume
+        """
+        self.load_markets()
+        market = self.market(symbol)
+        request = {
+            'symbol': market['id'],
+            'interval': self.timeframes[timeframe],
+        }
+        if limit is not None:
+            request['limit'] = limit
+        until = self.safe_integer(params, 'until')
+        params = self.omit(params, ['until'])
+        if since is not None:
+            request['startTime'] = int(since / 1000)
+        if until is not None:
+            request['endTime'] = until
+        response = self.publicGetKlines(self.extend(request, params))
+        #
+        #    [
+        #        [1669014360,1402001,1402001,1402001,1402001,0],
+        #        ...
+        #    ]
+        #
+        return self.parse_ohlcvs(response, market, timeframe, since, limit)
+
+    def parse_ohlcv(self, ohlcv, market=None):
+        #
+        #    [1669014300,1402001,1402001,1402001,1402001,0],
+        #
+        return [
+            self.safe_timestamp(ohlcv, 0),
+            self.safe_number(ohlcv, 1),
+            self.safe_number(ohlcv, 2),
+            self.safe_number(ohlcv, 3),
+            self.safe_number(ohlcv, 4),
+            self.safe_number(ohlcv, 5),
+        ]
 
     def fetch_order_book(self, symbol, limit=None, params={}):
         """
@@ -537,7 +600,7 @@ class wazirx(Exchange):
         :param int|None since: the earliest time in ms to fetch orders for
         :param int|None limit: the maximum number of  orde structures to retrieve
         :param dict params: extra parameters specific to the wazirx api endpoint
-        :returns [dict]: a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure
+        :returns [dict]: a list of `order structures <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
         """
         if symbol is None:
             raise ArgumentsRequired(self.id + ' fetchOrders() requires a `symbol` argument')
@@ -551,33 +614,35 @@ class wazirx(Exchange):
         if limit is not None:
             request['limit'] = limit
         response = self.privateGetAllOrders(self.extend(request, params))
-        # [
-        #     {
-        #         "id": 28,
-        #         "symbol": "wrxinr",
-        #         "price": "9293.0",
-        #         "origQty": "10.0",
-        #         "executedQty": "8.2",
-        #         "status": "cancel",
-        #         "type": "limit",
-        #         "side": "sell",
-        #         "createdTime": 1499827319559,
-        #         "updatedTime": 1499827319559
-        #     },
-        #     {
-        #         "id": 30,
-        #         "symbol": "wrxinr",
-        #         "price": "9293.0",
-        #         "stopPrice": "9200.0",
-        #         "origQty": "10.0",
-        #         "executedQty": "0.0",
-        #         "status": "cancel",
-        #         "type": "stop_limit",
-        #         "side": "sell",
-        #         "createdTime": 1499827319559,
-        #         "updatedTime": 1507725176595
-        #     }
-        # ]
+        #
+        #   [
+        #       {
+        #           "id": 28,
+        #           "symbol": "wrxinr",
+        #           "price": "9293.0",
+        #           "origQty": "10.0",
+        #           "executedQty": "8.2",
+        #           "status": "cancel",
+        #           "type": "limit",
+        #           "side": "sell",
+        #           "createdTime": 1499827319559,
+        #           "updatedTime": 1499827319559
+        #       },
+        #       {
+        #           "id": 30,
+        #           "symbol": "wrxinr",
+        #           "price": "9293.0",
+        #           "stopPrice": "9200.0",
+        #           "origQty": "10.0",
+        #           "executedQty": "0.0",
+        #           "status": "cancel",
+        #           "type": "stop_limit",
+        #           "side": "sell",
+        #           "createdTime": 1499827319559,
+        #           "updatedTime": 1507725176595
+        #       }
+        #   ]
+        #
         orders = self.parse_orders(response, market, since, limit)
         orders = self.filter_by(orders, 'symbol', symbol)
         return orders
@@ -762,7 +827,7 @@ class wazirx(Exchange):
         return self.safe_string(statuses, status, status)
 
     def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
-        url = self.urls['api'] + '/' + path
+        url = self.urls['api']['rest'] + '/' + path
         if api == 'public':
             if params:
                 url += '?' + self.urlencode(params)

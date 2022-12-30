@@ -62,7 +62,9 @@ module.exports = class coincheck extends Exchange {
             },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/51840849/87182088-1d6d6380-c2ec-11ea-9c64-8ab9f9b289f5.jpg',
-                'api': 'https://coincheck.com/api',
+                'api': {
+                    'rest': 'https://coincheck.com/api',
+                },
                 'www': 'https://coincheck.com',
                 'doc': 'https://coincheck.com/documents/exchange/api',
                 'fees': [
@@ -182,8 +184,8 @@ module.exports = class coincheck extends Exchange {
          * @method
          * @name coincheck#fetchBalance
          * @description query for balance and get the amount of funds available for trading or funds locked in orders
-         * @param {dict} params extra parameters specific to the coincheck api endpoint
-         * @returns {dict} a [balance structure]{@link https://docs.ccxt.com/en/latest/manual.html?#balance-structure}
+         * @param {object} params extra parameters specific to the coincheck api endpoint
+         * @returns {object} a [balance structure]{@link https://docs.ccxt.com/en/latest/manual.html?#balance-structure}
          */
         await this.loadMarkets ();
         const response = await this.privateGetAccountsBalance (params);
@@ -195,11 +197,11 @@ module.exports = class coincheck extends Exchange {
          * @method
          * @name coincheck#fetchOpenOrders
          * @description fetch all unfilled currently open orders
-         * @param {str|undefined} symbol unified market symbol
+         * @param {string|undefined} symbol unified market symbol
          * @param {int|undefined} since the earliest time in ms to fetch open orders for
          * @param {int|undefined} limit the maximum number of  open orders structures to retrieve
-         * @param {dict} params extra parameters specific to the coincheck api endpoint
-         * @returns {[dict]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
+         * @param {object} params extra parameters specific to the coincheck api endpoint
+         * @returns {[object]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
          */
         await this.loadMarkets ();
         // Only BTC/JPY is meaningful
@@ -271,10 +273,10 @@ module.exports = class coincheck extends Exchange {
          * @method
          * @name coincheck#fetchOrderBook
          * @description fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
-         * @param {str} symbol unified symbol of the market to fetch the order book for
+         * @param {string} symbol unified symbol of the market to fetch the order book for
          * @param {int|undefined} limit the maximum amount of order book entries to return
-         * @param {dict} params extra parameters specific to the coincheck api endpoint
-         * @returns {dict} A dictionary of [order book structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-book-structure} indexed by market symbols
+         * @param {object} params extra parameters specific to the coincheck api endpoint
+         * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-book-structure} indexed by market symbols
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
@@ -329,9 +331,9 @@ module.exports = class coincheck extends Exchange {
          * @method
          * @name coincheck#fetchTicker
          * @description fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
-         * @param {str} symbol unified symbol of the market to fetch the ticker for
-         * @param {dict} params extra parameters specific to the coincheck api endpoint
-         * @returns {dict} a [ticker structure]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
+         * @param {string} symbol unified symbol of the market to fetch the ticker for
+         * @param {object} params extra parameters specific to the coincheck api endpoint
+         * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
          */
         if (symbol !== 'BTC/JPY') {
             throw new BadSymbol (this.id + ' fetchTicker() supports BTC/JPY only');
@@ -391,28 +393,10 @@ module.exports = class coincheck extends Exchange {
         const id = this.safeString (trade, 'id');
         const priceString = this.safeString (trade, 'rate');
         const marketId = this.safeString (trade, 'pair');
-        market = this.safeValue (this.markets_by_id, marketId, market);
-        let symbol = undefined;
-        let baseId = undefined;
-        let quoteId = undefined;
-        if (marketId !== undefined) {
-            if (marketId in this.markets_by_id) {
-                market = this.markets_by_id[marketId];
-                baseId = market['baseId'];
-                quoteId = market['quoteId'];
-                symbol = market['symbol'];
-            } else {
-                const ids = marketId.split ('_');
-                baseId = ids[0];
-                quoteId = ids[1];
-                const base = this.safeCurrencyCode (baseId);
-                const quote = this.safeCurrencyCode (quoteId);
-                symbol = base + '/' + quote;
-            }
-        }
-        if (symbol === undefined) {
-            symbol = this.safeSymbol (undefined, market);
-        }
+        market = this.safeMarket (marketId, market, '_');
+        const baseId = market['baseId'];
+        const quoteId = market['quoteId'];
+        const symbol = market['symbol'];
         let takerOrMaker = undefined;
         let amountString = undefined;
         let costString = undefined;
@@ -460,11 +444,11 @@ module.exports = class coincheck extends Exchange {
          * @method
          * @name coincheck#fetchMyTrades
          * @description fetch all trades made by the user
-         * @param {str|undefined} symbol unified market symbol
+         * @param {string|undefined} symbol unified market symbol
          * @param {int|undefined} since the earliest time in ms to fetch trades for
          * @param {int|undefined} limit the maximum number of trades structures to retrieve
-         * @param {dict} params extra parameters specific to the coincheck api endpoint
-         * @returns {[dict]} a list of [trade structures]{@link https://docs.ccxt.com/en/latest/manual.html#trade-structure}
+         * @param {object} params extra parameters specific to the coincheck api endpoint
+         * @returns {[object]} a list of [trade structures]{@link https://docs.ccxt.com/en/latest/manual.html#trade-structure}
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
@@ -476,26 +460,26 @@ module.exports = class coincheck extends Exchange {
         //
         //      {
         //          "success": true,
-        //          "transactions": [
-        //                              {
-        //                                  "id": 38,
-        //                                  "order_id": 49,
-        //                                  "created_at": "2015-11-18T07:02:21.000Z",
-        //                                  "funds": {
-        //                                      "btc": "0.1",
-        //                                      "jpy": "-4096.135"
-        //                                          },
-        //                                  "pair": "btc_jpy",
-        //                                  "rate": "40900.0",
-        //                                  "fee_currency": "JPY",
-        //                                  "fee": "6.135",
-        //                                  "liquidity": "T",
-        //                                  "side": "buy"
-        //                               },
-        //                          ]
+        //          "data": [
+        //                      {
+        //                          "id": 38,
+        //                          "order_id": 49,
+        //                          "created_at": "2015-11-18T07:02:21.000Z",
+        //                          "funds": {
+        //                              "btc": "0.1",
+        //                              "jpy": "-4096.135"
+        //                                  },
+        //                          "pair": "btc_jpy",
+        //                          "rate": "40900.0",
+        //                          "fee_currency": "JPY",
+        //                          "fee": "6.135",
+        //                          "liquidity": "T",
+        //                          "side": "buy"
+        //                       },
+        //                  ]
         //      }
         //
-        const transactions = this.safeValue (response, 'transactions', []);
+        const transactions = this.safeValue (response, 'data', []);
         return this.parseTrades (transactions, market, since, limit);
     }
 
@@ -504,11 +488,11 @@ module.exports = class coincheck extends Exchange {
          * @method
          * @name coincheck#fetchTrades
          * @description get the list of most recent trades for a particular symbol
-         * @param {str} symbol unified symbol of the market to fetch trades for
+         * @param {string} symbol unified symbol of the market to fetch trades for
          * @param {int|undefined} since timestamp in ms of the earliest trade to fetch
          * @param {int|undefined} limit the maximum amount of trades to fetch
-         * @param {dict} params extra parameters specific to the coincheck api endpoint
-         * @returns {[dict]} a list of [trade structures]{@link https://docs.ccxt.com/en/latest/manual.html?#public-trades}
+         * @param {object} params extra parameters specific to the coincheck api endpoint
+         * @returns {[object]} a list of [trade structures]{@link https://docs.ccxt.com/en/latest/manual.html?#public-trades}
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
@@ -538,8 +522,8 @@ module.exports = class coincheck extends Exchange {
          * @method
          * @name coincheck#fetchTradingFees
          * @description fetch the trading fees for multiple markets
-         * @param {dict} params extra parameters specific to the coincheck api endpoint
-         * @returns {dict} a dictionary of [fee structures]{@link https://docs.ccxt.com/en/latest/manual.html#fee-structure} indexed by market symbols
+         * @param {object} params extra parameters specific to the coincheck api endpoint
+         * @returns {object} a dictionary of [fee structures]{@link https://docs.ccxt.com/en/latest/manual.html#fee-structure} indexed by market symbols
          */
         await this.loadMarkets ();
         const response = await this.privateGetAccounts (params);
@@ -585,13 +569,13 @@ module.exports = class coincheck extends Exchange {
          * @method
          * @name coincheck#createOrder
          * @description create a trade order
-         * @param {str} symbol unified symbol of the market to create an order in
-         * @param {str} type 'market' or 'limit'
-         * @param {str} side 'buy' or 'sell'
+         * @param {string} symbol unified symbol of the market to create an order in
+         * @param {string} type 'market' or 'limit'
+         * @param {string} side 'buy' or 'sell'
          * @param {float} amount how much of currency you want to trade in units of base currency
          * @param {float|undefined} price the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
-         * @param {dict} params extra parameters specific to the coincheck api endpoint
-         * @returns {dict} an [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
+         * @param {object} params extra parameters specific to the coincheck api endpoint
+         * @returns {object} an [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
@@ -621,10 +605,10 @@ module.exports = class coincheck extends Exchange {
          * @method
          * @name coincheck#cancelOrder
          * @description cancels an open order
-         * @param {str} id order id
-         * @param {str|undefined} symbol not used by coincheck cancelOrder ()
-         * @param {dict} params extra parameters specific to the coincheck api endpoint
-         * @returns {dict} An [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
+         * @param {string} id order id
+         * @param {string|undefined} symbol not used by coincheck cancelOrder ()
+         * @param {object} params extra parameters specific to the coincheck api endpoint
+         * @returns {object} An [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
          */
         const request = {
             'id': id,
@@ -637,11 +621,11 @@ module.exports = class coincheck extends Exchange {
          * @method
          * @name coincheck#fetchDeposits
          * @description fetch all deposits made to an account
-         * @param {str|undefined} code unified currency code
+         * @param {string|undefined} code unified currency code
          * @param {int|undefined} since the earliest time in ms to fetch deposits for
          * @param {int|undefined} limit the maximum number of deposits structures to retrieve
-         * @param {dict} params extra parameters specific to the coincheck api endpoint
-         * @returns {[dict]} a list of [transaction structures]{@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure}
+         * @param {object} params extra parameters specific to the coincheck api endpoint
+         * @returns {[object]} a list of [transaction structures]{@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure}
          */
         await this.loadMarkets ();
         let currency = undefined;
@@ -686,11 +670,11 @@ module.exports = class coincheck extends Exchange {
          * @method
          * @name coincheck#fetchWithdrawals
          * @description fetch all withdrawals made from an account
-         * @param {str|undefined} code unified currency code
+         * @param {string|undefined} code unified currency code
          * @param {int|undefined} since the earliest time in ms to fetch withdrawals for
          * @param {int|undefined} limit the maximum number of withdrawals structures to retrieve
-         * @param {dict} params extra parameters specific to the coincheck api endpoint
-         * @returns {[dict]} a list of [transaction structures]{@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure}
+         * @param {object} params extra parameters specific to the coincheck api endpoint
+         * @returns {[object]} a list of [transaction structures]{@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure}
          */
         await this.loadMarkets ();
         let currency = undefined;
@@ -812,7 +796,7 @@ module.exports = class coincheck extends Exchange {
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
-        let url = this.urls['api'] + '/' + this.implodeParams (path, params);
+        let url = this.urls['api']['rest'] + '/' + this.implodeParams (path, params);
         const query = this.omit (params, this.extractParams (path));
         if (api === 'public') {
             if (Object.keys (query).length) {

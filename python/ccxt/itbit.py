@@ -75,7 +75,9 @@ class itbit(Exchange):
             },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/27822159-66153620-60ad-11e7-89e7-005f6d7f3de0.jpg',
-                'api': 'https://api.itbit.com',
+                'api': {
+                    'rest': 'https://api.itbit.com',
+                },
                 'www': 'https://www.itbit.com',
                 'doc': [
                     'https://api.itbit.com/docs',
@@ -126,8 +128,8 @@ class itbit(Exchange):
             },
             'fees': {
                 'trading': {
-                    'maker': -0.03 / 100,
-                    'taker': 0.35 / 100,
+                    'maker': self.parse_number('-0.0003'),
+                    'taker': self.parse_number('0.0035'),
                 },
             },
             'commonCurrencies': {
@@ -292,17 +294,11 @@ class itbit(Exchange):
         symbol = None
         marketId = self.safe_string(trade, 'instrument')
         if marketId is not None:
-            if marketId in self.markets_by_id:
-                market = self.markets_by_id[marketId]
-            else:
-                baseId = self.safe_string(trade, 'currency1')
-                quoteId = self.safe_string(trade, 'currency2')
-                base = self.safe_currency_code(baseId)
-                quote = self.safe_currency_code(quoteId)
-                symbol = base + '/' + quote
-        if symbol is None:
-            if market is not None:
-                symbol = market['symbol']
+            baseId = self.safe_string(trade, 'currency1')
+            quoteId = self.safe_string(trade, 'currency2')
+            base = self.safe_currency_code(baseId)
+            quote = self.safe_currency_code(quoteId)
+            symbol = base + '/' + quote
         result = {
             'info': trade,
             'id': id,
@@ -563,7 +559,7 @@ class itbit(Exchange):
         :param int|None since: the earliest time in ms to fetch orders for
         :param int|None limit: the maximum number of  orde structures to retrieve
         :param dict params: extra parameters specific to the itbit api endpoint
-        :returns [dict]: a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure
+        :returns [dict]: a list of `order structures <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
         """
         request = {
             'status': 'filled',
@@ -577,7 +573,7 @@ class itbit(Exchange):
         :param int|None since: the earliest time in ms to fetch orders for
         :param int|None limit: the maximum number of  orde structures to retrieve
         :param dict params: extra parameters specific to the itbit api endpoint
-        :returns [dict]: a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure
+        :returns [dict]: a list of `order structures <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
         """
         self.load_markets()
         market = None
@@ -627,8 +623,10 @@ class itbit(Exchange):
         #
         side = self.safe_string(order, 'side')
         type = self.safe_string(order, 'type')
-        symbol = self.markets_by_id[order['instrument']]['symbol']
-        timestamp = self.parse8601(order['createdTime'])
+        marketId = self.safe_string(order, 'instrument')
+        symbol = self.safe_symbol(marketId, market)
+        datetime = self.safe_string(order, 'createdTime')
+        timestamp = self.parse8601(datetime)
         amount = self.safe_string(order, 'amount')
         filled = self.safe_string(order, 'amountFilled')
         fee = None
@@ -735,7 +733,7 @@ class itbit(Exchange):
         return self.privateDeleteWalletsWalletIdOrdersId(self.extend(request, params))
 
     def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
-        url = self.urls['api'] + '/' + self.version + '/' + self.implode_params(path, params)
+        url = self.urls['api']['rest'] + '/' + self.version + '/' + self.implode_params(path, params)
         query = self.omit(params, self.extract_params(path))
         if method == 'GET' and query:
             url += '?' + self.urlencode(query)

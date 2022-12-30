@@ -37,7 +37,9 @@ class btcex(Exchange):
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/173489620-d49807a4-55cd-4f4e-aca9-534921298bbf.jpg',
                 'www': 'https://www.btcex.com/',
-                'api': 'https://api.btcex.com',
+                'api': {
+                    'rest': 'https://api.btcex.com',
+                },
                 'doc': 'https://docs.btcex.com/',
                 'fees': 'https://support.btcex.com/hc/en-us/articles/4415995130647',
                 'referral': {
@@ -65,7 +67,6 @@ class btcex(Exchange):
                 'fetchCurrencies': False,
                 'fetchDepositAddress': False,
                 'fetchDeposits': True,
-                'fetchFundingFees': None,
                 'fetchFundingHistory': False,
                 'fetchFundingRate': False,
                 'fetchFundingRateHistory': False,
@@ -91,23 +92,27 @@ class btcex(Exchange):
                 'fetchTrades': True,
                 'fetchTradingFee': False,
                 'fetchTradingFees': False,
+                'fetchTransactionFees': None,
                 'fetchWithdrawal': True,
                 'fetchWithdrawals': True,
                 'signIn': True,
                 'withdraw': False,
             },
             'timeframes': {
-                '15s': '15',
-                '1m': '60',
-                '5m': '300',
-                '15m': '900',
-                '1h': '3600',
-                '4h': '14400',
-                '1d': '86400',
-                '3d': '259200',
-                '1w': '604800',
-                '2w': '1209600',
-                '1M': '2592000',
+                '1m': '1',
+                '3m': '3',
+                '5m': '5',
+                '15m': '15',
+                '30m': '30',
+                '1h': '60',
+                '2h': '120',
+                '3h': '180',
+                '4h': '240',
+                '6h': '360',
+                '12h': '720',
+                '1d': '1D',
+                '3d': '3D',
+                '1M': '30D',
             },
             'api': {
                 'public': {
@@ -286,6 +291,7 @@ class btcex(Exchange):
                     '8105': BadRequest,  # GOOGLE_CODE_CHECK_FAIL 2FA Code error!
                     '8106': DDoSProtection,  # SMS_CODE_LIMIT Your message service is over limit today, please try tomorrow
                     '8107': ExchangeError,  # REQUEST_FAILED Request failed
+                    '10000': AuthenticationError,  # Authentication Failure
                     '11000': BadRequest,  # CHANNEL_REGEX_ERROR channel regex not match
                 },
                 'broad': {
@@ -573,7 +579,7 @@ class btcex(Exchange):
         #     }
         #
         return [
-            self.safe_integer(ohlcv, 'tick'),
+            self.safe_timestamp(ohlcv, 'tick'),
             self.safe_number(ohlcv, 'open'),
             self.safe_number(ohlcv, 'high'),
             self.safe_number(ohlcv, 'low'),
@@ -1119,8 +1125,6 @@ class btcex(Exchange):
         type = self.safe_string(order, 'order_type')
         # injected in createOrder
         trades = self.safe_value(order, 'trades')
-        if trades is not None:
-            trades = self.parse_trades(trades, market)
         timeInForce = self.parse_time_in_force(self.safe_string(order, 'time_in_force'))
         stopPrice = self.safe_value(order, 'trigger_price')
         postOnly = self.safe_value(order, 'post_only')
@@ -1522,6 +1526,7 @@ class btcex(Exchange):
         marginType = self.safe_string(position, 'margin_type')
         return {
             'info': position,
+            'id': None,
             'symbol': self.safe_string(market, 'symbol'),
             'timestamp': None,
             'datetime': None,
@@ -1834,7 +1839,7 @@ class btcex(Exchange):
                         'params': params,
                     }
                     body = self.json(rpcPayload)
-        url = self.urls['api'] + request
+        url = self.urls['api']['rest'] + request
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
     def handle_errors(self, code, reason, url, method, headers, body, response, requestHeaders, requestBody):

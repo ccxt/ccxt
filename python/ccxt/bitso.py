@@ -49,6 +49,8 @@ class bitso(Exchange):
                 'fetchDepositAddress': True,
                 'fetchDepositAddresses': False,
                 'fetchDeposits': True,
+                'fetchDepositWithdrawFee': 'emulated',
+                'fetchDepositWithdrawFees': True,
                 'fetchFundingHistory': False,
                 'fetchFundingRate': False,
                 'fetchFundingRateHistory': False,
@@ -91,7 +93,9 @@ class bitso(Exchange):
             },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/51840849/87295554-11f98280-c50e-11ea-80d6-15b3bafa8cbf.jpg',
-                'api': 'https://api.bitso.com',
+                'api': {
+                    'rest': 'https://api.bitso.com',
+                },
                 'www': 'https://bitso.com',
                 'doc': 'https://bitso.com/api_info',
                 'fees': 'https://bitso.com/fees',
@@ -1161,6 +1165,9 @@ class bitso(Exchange):
         :returns [dict]: a list of `transaction structures <https://docs.ccxt.com/en/latest/manual.html#transaction-structure>`
         """
         self.load_markets()
+        currency = None
+        if code is not None:
+            currency = self.currency(code)
         response = self.privateGetFundings(params)
         #
         #     {
@@ -1186,7 +1193,7 @@ class bitso(Exchange):
         #     }
         #
         transactions = self.safe_value(response, 'payload', [])
-        return self.parse_transactions(transactions, code, since, limit, params)
+        return self.parse_transactions(transactions, currency, since, limit, params)
 
     def fetch_deposit_address(self, code, params={}):
         """
@@ -1218,8 +1225,96 @@ class bitso(Exchange):
 
     def fetch_transaction_fees(self, codes=None, params={}):
         """
-        fetch transaction fees
-        :param [str]|None codes: not used by bitso fetchTransactionFees
+        *DEPRECATED* please use fetchDepositWithdrawFees instead
+        see https://bitso.com/api_info#fees
+        :param [str]|None codes: list of unified currency codes
+        :param dict params: extra parameters specific to the bitso api endpoint
+        :returns [dict]: a list of `fee structures <https://docs.ccxt.com/en/latest/manual.html#fee-structure>`
+        """
+        self.load_markets()
+        response = self.privateGetFees(params)
+        #
+        #    {
+        #        success: True,
+        #        payload: {
+        #            fees: [
+        #                {
+        #                    book: 'btc_mxn',
+        #                    fee_percent: '0.6500',
+        #                    fee_decimal: '0.00650000',
+        #                    taker_fee_percent: '0.6500',
+        #                    taker_fee_decimal: '0.00650000',
+        #                    maker_fee_percent: '0.5000',
+        #                    maker_fee_decimal: '0.00500000',
+        #                    volume_currency: 'mxn',
+        #                    current_volume: '0.00',
+        #                    next_volume: '1500000.00',
+        #                    next_maker_fee_percent: '0.490',
+        #                    next_taker_fee_percent: '0.637',
+        #                    nextVolume: '1500000.00',
+        #                    nextFee: '0.490',
+        #                    nextTakerFee: '0.637'
+        #                },
+        #                ...
+        #            ],
+        #            deposit_fees: [
+        #                {
+        #                    currency: 'btc',
+        #                    method: 'rewards',
+        #                    fee: '0.00',
+        #                    is_fixed: False
+        #                },
+        #                ...
+        #            ],
+        #            withdrawal_fees: {
+        #                ada: '0.20958100',
+        #                bch: '0.00009437',
+        #                ars: '0',
+        #                btc: '0.00001209',
+        #                ...
+        #            }
+        #        }
+        #    }
+        #
+        result = {}
+        payload = self.safe_value(response, 'payload', {})
+        depositFees = self.safe_value(payload, 'deposit_fees', [])
+        for i in range(0, len(depositFees)):
+            depositFee = depositFees[i]
+            currencyId = self.safe_string(depositFee, 'currency')
+            code = self.safe_currency_code(currencyId)
+            if (codes is not None) and not self.in_array(code, codes):
+                continue
+            result[code] = {
+                'deposit': self.safe_number(depositFee, 'fee'),
+                'withdraw': None,
+                'info': {
+                    'deposit': depositFee,
+                    'withdraw': None,
+                },
+            }
+        withdrawalFees = self.safe_value(payload, 'withdrawal_fees', [])
+        currencyIds = list(withdrawalFees.keys())
+        for i in range(0, len(currencyIds)):
+            currencyId = currencyIds[i]
+            code = self.safe_currency_code(currencyId)
+            if (codes is not None) and not self.in_array(code, codes):
+                continue
+            result[code] = {
+                'deposit': self.safe_value(result[code], 'deposit'),
+                'withdraw': self.safe_number(withdrawalFees, currencyId),
+                'info': {
+                    'deposit': self.safe_value(result[code]['info'], 'deposit'),
+                    'withdraw': self.safe_number(withdrawalFees, currencyId),
+                },
+            }
+        return result
+
+    def fetch_deposit_withdraw_fees(self, codes=None, params={}):
+        """
+        fetch deposit and withdraw fees
+        see https://bitso.com/api_info#fees
+        :param [str]|None codes: list of unified currency codes
         :param dict params: extra parameters specific to the bitso api endpoint
         :returns [dict]: a list of `fee structures <https://docs.ccxt.com/en/latest/manual.html#fee-structure>`
         """
@@ -1269,25 +1364,81 @@ class bitso(Exchange):
         #    }
         #
         payload = self.safe_value(response, 'payload', {})
-        depositFees = self.safe_value(payload, 'deposit_fees', [])
-        deposit = {}
-        for i in range(0, len(depositFees)):
-            depositFee = depositFees[i]
-            currencyId = self.safe_string(depositFee, 'currency')
+        return self.parse_deposit_withdraw_fees(payload, codes)
+
+    def parse_deposit_withdraw_fees(self, response, codes=None, currencyIdKey=None):
+        #
+        #    {
+        #        fees: [
+        #            {
+        #                book: 'btc_mxn',
+        #                fee_percent: '0.6500',
+        #                fee_decimal: '0.00650000',
+        #                taker_fee_percent: '0.6500',
+        #                taker_fee_decimal: '0.00650000',
+        #                maker_fee_percent: '0.5000',
+        #                maker_fee_decimal: '0.00500000',
+        #                volume_currency: 'mxn',
+        #                current_volume: '0.00',
+        #                next_volume: '1500000.00',
+        #                next_maker_fee_percent: '0.490',
+        #                next_taker_fee_percent: '0.637',
+        #                nextVolume: '1500000.00',
+        #                nextFee: '0.490',
+        #                nextTakerFee: '0.637'
+        #            },
+        #            ...
+        #        ],
+        #        deposit_fees: [
+        #            {
+        #                currency: 'btc',
+        #                method: 'rewards',
+        #                fee: '0.00',
+        #                is_fixed: False
+        #            },
+        #            ...
+        #        ],
+        #        withdrawal_fees: {
+        #            ada: '0.20958100',
+        #            bch: '0.00009437',
+        #            ars: '0',
+        #            btc: '0.00001209',
+        #            ...
+        #        }
+        #    }
+        #
+        result = {}
+        depositResponse = self.safe_value(response, 'deposit_fees', [])
+        withdrawalResponse = self.safe_value(response, 'withdrawal_fees', [])
+        for i in range(0, len(depositResponse)):
+            entry = depositResponse[i]
+            currencyId = self.safe_string(entry, 'currency')
             code = self.safe_currency_code(currencyId)
-            deposit[code] = self.safe_number(depositFee, 'fee')
-        withdraw = {}
-        withdrawalFees = self.safe_value(payload, 'withdrawal_fees', [])
-        currencyIds = list(withdrawalFees.keys())
-        for i in range(0, len(currencyIds)):
-            currencyId = currencyIds[i]
+            if (codes is None) or (code in codes):
+                result[code] = {
+                    'deposit': {
+                        'fee': self.safe_number(entry, 'fee'),
+                        'percentage': not self.safe_value(entry, 'is_fixed'),
+                    },
+                    'withdraw': {
+                        'fee': None,
+                        'percentage': None,
+                    },
+                    'networks': {},
+                    'info': entry,
+                }
+        withdrawalKeys = list(withdrawalResponse.keys())
+        for i in range(0, len(withdrawalKeys)):
+            currencyId = withdrawalKeys[i]
             code = self.safe_currency_code(currencyId)
-            withdraw[code] = self.safe_number(withdrawalFees, currencyId)
-        return {
-            'info': response,
-            'deposit': deposit,
-            'withdraw': withdraw,
-        }
+            if (codes is None) or (code in codes):
+                withdrawFee = self.parse_number(withdrawalResponse[currencyId])
+                resultValue = self.safe_value(result, code)
+                if resultValue is None:
+                    result[code] = self.deposit_withdraw_fee({})
+                result[code]['withdraw']['fee'] = withdrawFee
+                result[code]['info'][code] = withdrawFee
+        return result
 
     def withdraw(self, code, amount, address, tag=None, params={}):
         """
@@ -1438,7 +1589,7 @@ class bitso(Exchange):
         if method == 'GET' or method == 'DELETE':
             if query:
                 endpoint += '?' + self.urlencode(query)
-        url = self.urls['api'] + endpoint
+        url = self.urls['api']['rest'] + endpoint
         if api == 'private':
             self.check_required_credentials()
             nonce = str(self.nonce())

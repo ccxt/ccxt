@@ -3,7 +3,7 @@
 //  ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
-const { AuthenticationError, ArgumentsRequired, ExchangeError, InsufficientFunds, DDoSProtection, InvalidNonce, PermissionDenied, BadRequest, BadSymbol, NotSupported, AccountNotEnabled } = require ('./base/errors');
+const { AuthenticationError, ArgumentsRequired, ExchangeError, InsufficientFunds, DDoSProtection, InvalidNonce, PermissionDenied, BadRequest, BadSymbol, NotSupported, AccountNotEnabled, OnMaintenance } = require ('./base/errors');
 const { TICK_SIZE } = require ('./base/functions/number');
 const Precise = require ('./base/Precise');
 
@@ -19,15 +19,21 @@ module.exports = class cryptocom extends Exchange {
             'has': {
                 'CORS': false,
                 'spot': true,
-                'margin': undefined, // has but not fully implemented
+                'margin': true,
                 'swap': undefined, // has but not fully implemented
                 'future': undefined, // has but not fully implemented
                 'option': undefined,
+                'borrowMargin': true,
                 'cancelAllOrders': true,
                 'cancelOrder': true,
                 'createOrder': true,
                 'fetchBalance': true,
                 'fetchBidsAsks': false,
+                'fetchBorrowInterest': true,
+                'fetchBorrowRate': false,
+                'fetchBorrowRateHistories': false,
+                'fetchBorrowRateHistory': false,
+                'fetchBorrowRates': true,
                 'fetchClosedOrders': 'emulated',
                 'fetchCurrencies': false,
                 'fetchDepositAddress': true,
@@ -57,6 +63,7 @@ module.exports = class cryptocom extends Exchange {
                 'fetchTransactions': false,
                 'fetchTransfers': true,
                 'fetchWithdrawals': true,
+                'repayMargin': true,
                 'setLeverage': false,
                 'setMarginMode': false,
                 'transfer': true,
@@ -78,14 +85,20 @@ module.exports = class cryptocom extends Exchange {
             },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/147792121-38ed5e36-c229-48d6-b49a-48d05fc19ed4.jpeg',
-                'test': 'https://uat-api.3ona.co/v2',
+                'test': {
+                    'spot': 'https://uat-api.3ona.co/v2',
+                    'derivatives': 'https://uat-api.3ona.co/v2',
+                },
                 'api': {
                     'spot': 'https://api.crypto.com/v2',
                     'derivatives': 'https://deriv-api.crypto.com/v1',
                 },
                 'www': 'https://crypto.com/',
                 'referral': 'https://crypto.com/exch/5835vstech',
-                'doc': 'https://exchange-docs.crypto.com/',
+                'doc': [
+                    'https://exchange-docs.crypto.com/spot/index.html',
+                    'https://exchange-docs.crypto.com/derivatives/index.html',
+                ],
                 'fees': 'https://crypto.com/exchange/document/fees-limits',
             },
             'api': {
@@ -109,12 +122,14 @@ module.exports = class cryptocom extends Exchange {
                             'private/get-cancel-on-disconnect': 10 / 3,
                             'private/create-withdrawal': 10 / 3,
                             'private/get-withdrawal-history': 10 / 3,
+                            'private/get-currency-networks': 10 / 3,
                             'private/get-deposit-history': 10 / 3,
                             'private/get-deposit-address': 10 / 3,
                             'private/get-account-summary': 10 / 3,
                             'private/create-order': 2 / 3,
                             'private/cancel-order': 2 / 3,
                             'private/cancel-all-orders': 2 / 3,
+                            'private/create-order-list': 10 / 3,
                             'private/get-order-history': 10 / 3,
                             'private/get-open-orders': 10 / 3,
                             'private/get-order-detail': 1 / 3,
@@ -139,9 +154,9 @@ module.exports = class cryptocom extends Exchange {
                             'private/margin/get-trades': 100,
                             'private/deriv/transfer': 10 / 3,
                             'private/deriv/get-transfer-history': 10 / 3,
-                            'private/subaccount/get-sub-accounts': 10 / 3,
-                            'private/subaccount/get-transfer-history': 10 / 3,
-                            'private/subaccount/transfer': 10 / 3,
+                            'private/get-accounts': 10 / 3,
+                            'private/get-subaccount-balances': 10 / 3,
+                            'private/create-subaccount-transfer': 10 / 3,
                             'private/otc/get-otc-user': 10 / 3,
                             'private/otc/get-instruments': 10 / 3,
                             'private/otc/request-quote': 100,
@@ -222,6 +237,7 @@ module.exports = class cryptocom extends Exchange {
                 'accountsById': {
                     'funding': 'SPOT',
                     'spot': 'SPOT',
+                    'margin': 'MARGIN',
                     'derivatives': 'DERIVATIVES',
                     'swap': 'DERIVATIVES',
                     'future': 'DERIVATIVES',
@@ -270,6 +286,7 @@ module.exports = class cryptocom extends Exchange {
                     '40007': BadRequest,
                     '40101': AuthenticationError,
                     '50001': BadRequest,
+                    '9010001': OnMaintenance, // {"code":9010001,"message":"SYSTEM_MAINTENANCE","details":"Crypto.com Exchange is currently under maintenance. Please refer to https://status.crypto.com for more details."}
                 },
             },
         });
@@ -279,10 +296,22 @@ module.exports = class cryptocom extends Exchange {
         /**
          * @method
          * @name cryptocom#fetchMarkets
+         * @see https://exchange-docs.crypto.com/spot/index.html#public-get-instruments
+         * @see https://exchange-docs.crypto.com/derivatives/index.html#public-get-instruments
          * @description retrieves data on all markets for cryptocom
-         * @param {dict} params extra parameters specific to the exchange api endpoint
-         * @returns {[dict]} an array of objects representing market data
+         * @param {object} params extra parameters specific to the exchange api endpoint
+         * @returns {[object]} an array of objects representing market data
          */
+        let promises = [ this.fetchSpotMarkets (params), this.fetchDerivativesMarkets (params) ];
+        promises = await Promise.all (promises);
+        const spotMarkets = promises[0];
+        const derivativeMarkets = promises[1];
+        const markets = this.arrayConcat (spotMarkets, derivativeMarkets);
+        return markets;
+    }
+
+    async fetchSpotMarkets (params = {}) {
+        const response = await this.spotPublicGetPublicGetInstruments (params);
         //
         //    {
         //        id: 11,
@@ -300,13 +329,17 @@ module.exports = class cryptocom extends Exchange {
         //                    margin_trading_enabled_5x: true,
         //                    margin_trading_enabled_10x: true,
         //                    max_quantity: '100000000',
-        //                    min_quantity: '0.01'
+        //                    min_quantity: '0.01',
+        //                    max_price:'1',
+        //                    min_price:'0.00000001',
+        //                    last_update_date:1667263094857,
+        //                    quantity_tick_size:'0.1',
+        //                    price_tick_size:'0.00000001'
         //               },
         //            ]
         //        }
         //    }
         //
-        const response = await this.spotPublicGetPublicGetInstruments (params);
         const resultResponse = this.safeValue (response, 'result', {});
         const markets = this.safeValue (resultResponse, 'instruments', []);
         const result = [];
@@ -317,8 +350,7 @@ module.exports = class cryptocom extends Exchange {
             const quoteId = this.safeString (market, 'quote_currency');
             const base = this.safeCurrencyCode (baseId);
             const quote = this.safeCurrencyCode (quoteId);
-            const priceDecimals = this.safeString (market, 'price_decimals');
-            const minPrice = this.parsePrecision (priceDecimals);
+            const minPrice = this.safeString (market, 'min_price');
             const minQuantity = this.safeString (market, 'min_quantity');
             let maxLeverage = this.parseNumber ('1');
             const margin_trading_enabled_5x = this.safeValue (market, 'margin_trading_enabled_5x');
@@ -354,8 +386,8 @@ module.exports = class cryptocom extends Exchange {
                 'strike': undefined,
                 'optionType': undefined,
                 'precision': {
-                    'amount': this.parseNumber (this.parsePrecision (this.safeString (market, 'quantity_decimals'))),
-                    'price': this.parseNumber (this.parsePrecision (priceDecimals)),
+                    'amount': this.safeNumber (market, 'quantity_tick_size'),
+                    'price': this.safeNumber (market, 'price_tick_size'),
                 },
                 'limits': {
                     'leverage': {
@@ -368,7 +400,7 @@ module.exports = class cryptocom extends Exchange {
                     },
                     'price': {
                         'min': this.parseNumber (minPrice),
-                        'max': undefined,
+                        'max': this.safeNumber (market, 'max_price'),
                     },
                     'cost': {
                         'min': this.parseNumber (Precise.stringMul (minQuantity, minPrice)),
@@ -378,6 +410,11 @@ module.exports = class cryptocom extends Exchange {
                 'info': market,
             });
         }
+        return result;
+    }
+
+    async fetchDerivativesMarkets (params = {}) {
+        const result = [];
         const futuresResponse = await this.derivativesPublicGetPublicGetInstruments ();
         //
         //     {
@@ -416,6 +453,9 @@ module.exports = class cryptocom extends Exchange {
             const inst_type = this.safeString (market, 'inst_type');
             const swap = inst_type === 'PERPETUAL_SWAP';
             const future = inst_type === 'FUTURE';
+            if (inst_type === 'CCY_PAIR') {
+                continue; // Found some inconsistencies between spot and derivatives api so use spot api for currency pairs.
+            }
             const baseId = this.safeString (market, 'base_ccy');
             const quoteId = this.safeString (market, 'quote_ccy');
             const base = this.safeCurrencyCode (baseId);
@@ -488,13 +528,20 @@ module.exports = class cryptocom extends Exchange {
          * @method
          * @name cryptocom#fetchTickers
          * @description fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
-         * @param {[str]|undefined} symbols unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
-         * @param {dict} params extra parameters specific to the cryptocom api endpoint
-         * @returns {dict} an array of [ticker structures]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
+         * @see https://exchange-docs.crypto.com/spot/index.html#public-get-ticker
+         * @see https://exchange-docs.crypto.com/derivatives/index.html#public-get-tickers
+         * @param {[string]|undefined} symbols unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
+         * @param {object} params extra parameters specific to the cryptocom api endpoint
+         * @returns {object} an array of [ticker structures]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
          */
         await this.loadMarkets ();
         symbols = this.marketSymbols (symbols);
-        const [ marketType, query ] = this.handleMarketTypeAndParams ('fetchTickers', undefined, params);
+        let market = undefined;
+        if (symbols !== undefined) {
+            const symbol = this.safeValue (symbols, 0);
+            market = this.market (symbol);
+        }
+        const [ marketType, query ] = this.handleMarketTypeAndParams ('fetchTickers', market, params);
         const method = this.getSupportedMapping (marketType, {
             'spot': 'spotPublicGetPublicGetTicker',
             'future': 'derivativesPublicGetPublicGetTickers',
@@ -526,9 +573,9 @@ module.exports = class cryptocom extends Exchange {
          * @method
          * @name cryptocom#fetchTicker
          * @description fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
-         * @param {str} symbol unified symbol of the market to fetch the ticker for
-         * @param {dict} params extra parameters specific to the cryptocom api endpoint
-         * @returns {dict} a [ticker structure]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
+         * @param {string} symbol unified symbol of the market to fetch the ticker for
+         * @param {object} params extra parameters specific to the cryptocom api endpoint
+         * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
@@ -540,16 +587,21 @@ module.exports = class cryptocom extends Exchange {
             throw new NotSupported (this.id + ' fetchTicker() only supports spot markets');
         }
         const response = await this.spotPublicGetPublicGetTicker (this.extend (request, query));
-        // {
-        //     "code":0,
-        //     "method":"public/get-ticker",
-        //     "result":{
-        //       "data": {"i":"CRO_BTC","b":0.00000890,"k":0.00001179,"a":0.00001042,"t":1591770793901,"v":14905879.59,"h":0.00,"l":0.00,"c":0.00}
-        //     }
-        // }
+        //
+        //   {
+        //       "id":"-1",
+        //       "method":"public/get-tickers",
+        //       "code":"0",
+        //       "result":{
+        //          "data":[
+        //             { "i":"BTC_USDT", "h":"20567.16", "l":"20341.39", "a":"20394.23", "v":"2236.3762", "vv":"45739074.30", "c":"-0.0036", "b":"20394.01", "k":"20394.02", "t":"1667406085934" }
+        //          ]
+        //   }
+        //
         const resultResponse = this.safeValue (response, 'result', {});
         const data = this.safeValue (resultResponse, 'data', {});
-        return this.parseTicker (data, market);
+        const first = this.safeValue (data, 0, {});
+        return this.parseTicker (first, market);
     }
 
     async fetchOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
@@ -557,11 +609,11 @@ module.exports = class cryptocom extends Exchange {
          * @method
          * @name cryptocom#fetchOrders
          * @description fetches information on multiple orders made by the user
-         * @param {str} symbol unified market symbol of the market orders were made in
+         * @param {string} symbol unified market symbol of the market orders were made in
          * @param {int|undefined} since the earliest time in ms to fetch orders for
          * @param {int|undefined} limit the maximum number of  orde structures to retrieve
-         * @param {dict} params extra parameters specific to the cryptocom api endpoint
-         * @returns {[dict]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure
+         * @param {object} params extra parameters specific to the cryptocom api endpoint
+         * @returns {[object]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
          */
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' fetchOrders() requires a symbol argument');
@@ -578,15 +630,20 @@ module.exports = class cryptocom extends Exchange {
         if (limit !== undefined) {
             request['page_size'] = limit;
         }
-        const [ marketType, query ] = this.handleMarketTypeAndParams ('fetchOrders', market, params);
-        const method = this.getSupportedMapping (marketType, {
+        const [ marketType, marketTypeQuery ] = this.handleMarketTypeAndParams ('fetchOrders', market, params);
+        let method = this.getSupportedMapping (marketType, {
             'spot': 'spotPrivatePostPrivateGetOrderHistory',
+            'margin': 'spotPrivatePostPrivateMarginGetOrderHistory',
             'future': 'derivativesPrivatePostPrivateGetOrderHistory',
             'swap': 'derivativesPrivatePostPrivateGetOrderHistory',
         });
+        const [ marginMode, query ] = this.customHandleMarginModeAndParams ('fetchOrders', marketTypeQuery);
+        if (marginMode !== undefined) {
+            method = 'spotPrivatePostPrivateMarginGetOrderHistory';
+        }
         const response = await this[method] (this.extend (request, query));
         //
-        // spot
+        // spot and margin
         //     {
         //       id: 1641026542065,
         //       method: 'private/get-order-history',
@@ -664,11 +721,11 @@ module.exports = class cryptocom extends Exchange {
          * @method
          * @name cryptocom#fetchTrades
          * @description get the list of most recent trades for a particular symbol
-         * @param {str} symbol unified symbol of the market to fetch trades for
+         * @param {string} symbol unified symbol of the market to fetch trades for
          * @param {int|undefined} since timestamp in ms of the earliest trade to fetch
          * @param {int|undefined} limit the maximum amount of trades to fetch
-         * @param {dict} params extra parameters specific to the cryptocom api endpoint
-         * @returns {[dict]} a list of [trade structures]{@link https://docs.ccxt.com/en/latest/manual.html?#public-trades}
+         * @param {object} params extra parameters specific to the cryptocom api endpoint
+         * @returns {[object]} a list of [trade structures]{@link https://docs.ccxt.com/en/latest/manual.html?#public-trades}
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
@@ -717,11 +774,11 @@ module.exports = class cryptocom extends Exchange {
          * @method
          * @name cryptocom#fetchOHLCV
          * @description fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
-         * @param {str} symbol unified symbol of the market to fetch OHLCV data for
-         * @param {str} timeframe the length of time each candle represents
+         * @param {string} symbol unified symbol of the market to fetch OHLCV data for
+         * @param {string} timeframe the length of time each candle represents
          * @param {int|undefined} since timestamp in ms of the earliest candle to fetch
          * @param {int|undefined} limit the maximum amount of candles to fetch
-         * @param {dict} params extra parameters specific to the cryptocom api endpoint
+         * @param {object} params extra parameters specific to the cryptocom api endpoint
          * @returns {[[int]]} A list of candles ordered as timestamp, open, high, low, close, volume
          */
         await this.loadMarkets ();
@@ -736,6 +793,13 @@ module.exports = class cryptocom extends Exchange {
             'future': 'derivativesPublicGetPublicGetCandlestick',
             'swap': 'derivativesPublicGetPublicGetCandlestick',
         });
+        if (marketType !== 'spot') {
+            let reqLimit = 100;
+            if (limit !== undefined) {
+                reqLimit = limit;
+            }
+            request['count'] = reqLimit;
+        }
         const response = await this[method] (this.extend (request, query));
         // {
         //     "code":0,
@@ -761,10 +825,10 @@ module.exports = class cryptocom extends Exchange {
          * @method
          * @name cryptocom#fetchOrderBook
          * @description fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
-         * @param {str} symbol unified symbol of the market to fetch the order book for
+         * @param {string} symbol unified symbol of the market to fetch the order book for
          * @param {int|undefined} limit the maximum amount of order book entries to return
-         * @param {dict} params extra parameters specific to the cryptocom api endpoint
-         * @returns {dict} A dictionary of [order book structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-book-structure} indexed by market symbols
+         * @param {object} params extra parameters specific to the cryptocom api endpoint
+         * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-book-structure} indexed by market symbols
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
@@ -835,16 +899,21 @@ module.exports = class cryptocom extends Exchange {
          * @method
          * @name cryptocom#fetchBalance
          * @description query for balance and get the amount of funds available for trading or funds locked in orders
-         * @param {dict} params extra parameters specific to the cryptocom api endpoint
-         * @returns {dict} a [balance structure]{@link https://docs.ccxt.com/en/latest/manual.html?#balance-structure}
+         * @param {object} params extra parameters specific to the cryptocom api endpoint
+         * @returns {object} a [balance structure]{@link https://docs.ccxt.com/en/latest/manual.html?#balance-structure}
          */
         await this.loadMarkets ();
-        const [ marketType, query ] = this.handleMarketTypeAndParams ('fetchBalance', undefined, params);
-        const method = this.getSupportedMapping (marketType, {
+        const [ marketType, marketTypeQuery ] = this.handleMarketTypeAndParams ('fetchBalance', undefined, params);
+        let method = this.getSupportedMapping (marketType, {
             'spot': 'spotPrivatePostPrivateGetAccountSummary',
+            'margin': 'spotPrivatePostPrivateMarginGetAccountSummary',
             'future': 'derivativesPrivatePostPrivateUserBalance',
             'swap': 'derivativesPrivatePostPrivateUserBalance',
         });
+        const [ marginMode, query ] = this.customHandleMarginModeAndParams ('fetchBalance', marketTypeQuery);
+        if (marginMode !== undefined) {
+            method = 'spotPrivatePostPrivateMarginGetAccountSummary';
+        }
         const response = await this[method] (query);
         // spot
         //     {
@@ -861,6 +930,42 @@ module.exports = class cryptocom extends Exchange {
         //                     "currency": "CRO"
         //                 }
         //             ]
+        //         }
+        //     }
+        //
+        // margin
+        //     {
+        //         "id": 1656529728178,
+        //         "method": "private/margin/get-account-summary",
+        //         "code": 0,
+        //         "result": {
+        //             "accounts": [
+        //                 {
+        //                     "balance": 0,
+        //                     "available": 0,
+        //                     "order": 0,
+        //                     "borrowed": 0,
+        //                     "position": 0,
+        //                     "positionHomeCurrency": 0,
+        //                     "positionBtc": 0,
+        //                     "lastPriceHomeCurrency": 20111.38,
+        //                     "lastPriceBtc": 1,
+        //                     "currency": "BTC",
+        //                     "accrued_interest": 0,
+        //                     "liquidation_price": 0
+        //                 },
+        //             ],
+        //             "is_liquidating": false,
+        //             "total_balance": 16,
+        //             "total_balance_btc": 0.00079556,
+        //             "equity_value": 16,
+        //             "equity_value_btc": 0.00079556,
+        //             "total_borrowed": 0,
+        //             "total_borrowed_btc": 0,
+        //             "total_accrued_interest": 0,
+        //             "total_accrued_interest_btc": 0,
+        //             "margin_score": "GOOD",
+        //             "currency": "USDT"
         //         }
         //     }
         //
@@ -899,6 +1004,7 @@ module.exports = class cryptocom extends Exchange {
         //
         const parser = this.getSupportedMapping (marketType, {
             'spot': 'parseSpotBalance',
+            'margin': 'parseSpotBalance',
             'future': 'parseSwapBalance',
             'swap': 'parseSwapBalance',
         });
@@ -910,9 +1016,9 @@ module.exports = class cryptocom extends Exchange {
          * @method
          * @name cryptocom#fetchOrder
          * @description fetches information on an order made by the user
-         * @param {str|undefined} symbol unified symbol of the market the order was made in
-         * @param {dict} params extra parameters specific to the cryptocom api endpoint
-         * @returns {dict} An [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
+         * @param {string|undefined} symbol unified symbol of the market the order was made in
+         * @param {object} params extra parameters specific to the cryptocom api endpoint
+         * @returns {object} An [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
          */
         await this.loadMarkets ();
         let market = undefined;
@@ -920,17 +1026,22 @@ module.exports = class cryptocom extends Exchange {
             market = this.market (symbol);
         }
         const request = {};
-        const [ marketType, query ] = this.handleMarketTypeAndParams ('fetchOrder', market, params);
-        if (marketType === 'spot') {
+        const [ marketType, marketTypeQuery ] = this.handleMarketTypeAndParams ('fetchOrder', market, params);
+        const [ marginMode, query ] = this.customHandleMarginModeAndParams ('fetchOrder', marketTypeQuery);
+        if ((marketType === 'spot') || (marketType === 'margin') || (marginMode !== undefined)) {
             request['order_id'] = id.toString ();
         } else {
             request['order_id'] = parseInt (id);
         }
-        const method = this.getSupportedMapping (marketType, {
+        let method = this.getSupportedMapping (marketType, {
             'spot': 'spotPrivatePostPrivateGetOrderDetail',
+            'margin': 'spotPrivatePostPrivateMarginGetOrderDetail',
             'future': 'derivativesPrivatePostPrivateGetOrderDetail',
             'swap': 'derivativesPrivatePostPrivateGetOrderDetail',
         });
+        if (marginMode !== undefined) {
+            method = 'spotPrivatePostPrivateMarginGetOrderDetail';
+        }
         const response = await this[method] (this.extend (request, query));
         // {
         //     "id": 11,
@@ -978,13 +1089,13 @@ module.exports = class cryptocom extends Exchange {
          * @method
          * @name cryptocom#createOrder
          * @description create a trade order
-         * @param {str} symbol unified symbol of the market to create an order in
-         * @param {str} type 'market' or 'limit'
-         * @param {str} side 'buy' or 'sell'
+         * @param {string} symbol unified symbol of the market to create an order in
+         * @param {string} type 'market' or 'limit'
+         * @param {string} side 'buy' or 'sell'
          * @param {float} amount how much of currency you want to trade in units of base currency
          * @param {float|undefined} price the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
-         * @param {dict} params extra parameters specific to the cryptocom api endpoint
-         * @returns {dict} an [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
+         * @param {object} params extra parameters specific to the cryptocom api endpoint
+         * @returns {object} an [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
@@ -1003,12 +1114,17 @@ module.exports = class cryptocom extends Exchange {
             request['exec_inst'] = 'POST_ONLY';
             params = this.omit (params, [ 'postOnly' ]);
         }
-        const [ marketType, query ] = this.handleMarketTypeAndParams ('createOrder', market, params);
-        const method = this.getSupportedMapping (marketType, {
+        const [ marketType, marketTypeQuery ] = this.handleMarketTypeAndParams ('createOrder', market, params);
+        let method = this.getSupportedMapping (marketType, {
             'spot': 'spotPrivatePostPrivateCreateOrder',
+            'margin': 'spotPrivatePostPrivateMarginCreateOrder',
             'future': 'derivativesPrivatePostPrivateCreateOrder',
             'swap': 'derivativesPrivatePostPrivateCreateOrder',
         });
+        const [ marginMode, query ] = this.customHandleMarginModeAndParams ('createOrder', marketTypeQuery);
+        if (marginMode !== undefined) {
+            method = 'spotPrivatePostPrivateMarginCreateOrder';
+        }
         const response = await this[method] (this.extend (request, query));
         // {
         //     "id": 11,
@@ -1027,9 +1143,9 @@ module.exports = class cryptocom extends Exchange {
          * @method
          * @name cryptocom#cancelAllOrders
          * @description cancel all open orders
-         * @param {str|undefined} symbol unified market symbol, only orders in the market of this symbol are cancelled when symbol is not undefined
-         * @param {dict} params extra parameters specific to the cryptocom api endpoint
-         * @returns {[dict]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
+         * @param {string|undefined} symbol unified market symbol, only orders in the market of this symbol are cancelled when symbol is not undefined
+         * @param {object} params extra parameters specific to the cryptocom api endpoint
+         * @returns {[object]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
          */
         await this.loadMarkets ();
         let market = undefined;
@@ -1037,18 +1153,23 @@ module.exports = class cryptocom extends Exchange {
             market = this.market (symbol);
         }
         const request = {};
-        const [ marketType, query ] = this.handleMarketTypeAndParams ('cancelAllOrders', market, params);
-        if (marketType === 'spot') {
+        const [ marketType, marketTypeQuery ] = this.handleMarketTypeAndParams ('cancelAllOrders', market, params);
+        const [ marginMode, query ] = this.customHandleMarginModeAndParams ('cancelAllOrders', marketTypeQuery);
+        if ((marketType === 'spot') || (marketType === 'margin') || (marginMode !== undefined)) {
             if (symbol === undefined) {
                 throw new ArgumentsRequired (this.id + ' cancelAllOrders() requires a symbol argument for ' + marketType + ' orders');
             }
             request['instrument_name'] = market['id'];
         }
-        const method = this.getSupportedMapping (marketType, {
+        let method = this.getSupportedMapping (marketType, {
             'spot': 'spotPrivatePostPrivateCancelAllOrders',
+            'margin': 'spotPrivatePostPrivateMarginCancelAllOrders',
             'future': 'derivativesPrivatePostPrivateCancelAllOrders',
             'swap': 'derivativesPrivatePostPrivateCancelAllOrders',
         });
+        if (marginMode !== undefined) {
+            method = 'spotPrivatePostPrivateMarginCancelAllOrders';
+        }
         return await this[method] (this.extend (request, query));
     }
 
@@ -1057,10 +1178,10 @@ module.exports = class cryptocom extends Exchange {
          * @method
          * @name cryptocom#cancelOrder
          * @description cancels an open order
-         * @param {str} id order id
-         * @param {str|undefined} symbol unified symbol of the market the order was made in
-         * @param {dict} params extra parameters specific to the cryptocom api endpoint
-         * @returns {dict} An [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
+         * @param {string} id order id
+         * @param {string|undefined} symbol unified symbol of the market the order was made in
+         * @param {object} params extra parameters specific to the cryptocom api endpoint
+         * @returns {object} An [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
          */
         await this.loadMarkets ();
         let market = undefined;
@@ -1068,8 +1189,9 @@ module.exports = class cryptocom extends Exchange {
             market = this.market (symbol);
         }
         const request = {};
-        const [ marketType, query ] = this.handleMarketTypeAndParams ('cancelOrder', market, params);
-        if (marketType === 'spot') {
+        const [ marketType, marketTypeQuery ] = this.handleMarketTypeAndParams ('cancelOrder', market, params);
+        const [ marginMode, query ] = this.customHandleMarginModeAndParams ('cancelOrder', marketTypeQuery);
+        if ((marketType === 'spot') || (marketType === 'margin') || (marginMode !== undefined)) {
             if (symbol === undefined) {
                 throw new ArgumentsRequired (this.id + ' cancelOrder() requires a symbol argument for ' + marketType + ' orders');
             }
@@ -1078,11 +1200,15 @@ module.exports = class cryptocom extends Exchange {
         } else {
             request['order_id'] = parseInt (id);
         }
-        const method = this.getSupportedMapping (marketType, {
+        let method = this.getSupportedMapping (marketType, {
             'spot': 'spotPrivatePostPrivateCancelOrder',
+            'margin': 'spotPrivatePostPrivateMarginCancelOrder',
             'future': 'derivativesPrivatePostPrivateCancelOrder',
             'swap': 'derivativesPrivatePostPrivateCancelOrder',
         });
+        if (marginMode !== undefined) {
+            method = 'spotPrivatePostPrivateMarginCancelOrder';
+        }
         const response = await this[method] (this.extend (request, query));
         const result = this.safeValue (response, 'result', response);
         return this.parseOrder (result);
@@ -1093,11 +1219,11 @@ module.exports = class cryptocom extends Exchange {
          * @method
          * @name cryptocom#fetchOpenOrders
          * @description fetch all unfilled currently open orders
-         * @param {str|undefined} symbol unified market symbol
+         * @param {string|undefined} symbol unified market symbol
          * @param {int|undefined} since the earliest time in ms to fetch open orders for
          * @param {int|undefined} limit the maximum number of  open orders structures to retrieve
-         * @param {dict} params extra parameters specific to the cryptocom api endpoint
-         * @returns {[dict]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
+         * @param {object} params extra parameters specific to the cryptocom api endpoint
+         * @returns {[object]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
          */
         await this.loadMarkets ();
         let market = undefined;
@@ -1109,12 +1235,17 @@ module.exports = class cryptocom extends Exchange {
         if (limit !== undefined) {
             request['page_size'] = limit;
         }
-        const [ marketType, query ] = this.handleMarketTypeAndParams ('fetchOpenOrders', market, params);
-        const method = this.getSupportedMapping (marketType, {
+        const [ marketType, marketTypeQuery ] = this.handleMarketTypeAndParams ('fetchOpenOrders', market, params);
+        let method = this.getSupportedMapping (marketType, {
             'spot': 'spotPrivatePostPrivateGetOpenOrders',
+            'margin': 'spotPrivatePostPrivateMarginGetOpenOrders',
             'future': 'derivativesPrivatePostPrivateGetOpenOrders',
             'swap': 'derivativesPrivatePostPrivateGetOpenOrders',
         });
+        const [ marginMode, query ] = this.customHandleMarginModeAndParams ('fetchOpenOrders', marketTypeQuery);
+        if (marginMode !== undefined) {
+            method = 'spotPrivatePostPrivateMarginGetOpenOrders';
+        }
         const response = await this[method] (this.extend (request, query));
         // {
         //     "id": 11,
@@ -1170,11 +1301,11 @@ module.exports = class cryptocom extends Exchange {
          * @method
          * @name cryptocom#fetchMyTrades
          * @description fetch all trades made by the user
-         * @param {str|undefined} symbol unified market symbol
+         * @param {string|undefined} symbol unified market symbol
          * @param {int|undefined} since the earliest time in ms to fetch trades for
          * @param {int|undefined} limit the maximum number of trades structures to retrieve
-         * @param {dict} params extra parameters specific to the cryptocom api endpoint
-         * @returns {[dict]} a list of [trade structures]{@link https://docs.ccxt.com/en/latest/manual.html#trade-structure}
+         * @param {object} params extra parameters specific to the cryptocom api endpoint
+         * @returns {[object]} a list of [trade structures]{@link https://docs.ccxt.com/en/latest/manual.html#trade-structure}
          */
         await this.loadMarkets ();
         const request = {};
@@ -1192,12 +1323,17 @@ module.exports = class cryptocom extends Exchange {
         if (limit !== undefined) {
             request['page_size'] = limit;
         }
-        const [ marketType, query ] = this.handleMarketTypeAndParams ('fetchMyTrades', market, params);
-        const method = this.getSupportedMapping (marketType, {
+        const [ marketType, marketTypeQuery ] = this.handleMarketTypeAndParams ('fetchMyTrades', market, params);
+        let method = this.getSupportedMapping (marketType, {
             'spot': 'spotPrivatePostPrivateGetTrades',
+            'margin': 'spotPrivatePostPrivateMarginGetTrades',
             'future': 'derivativesPrivatePostPrivateGetTrades',
             'swap': 'derivativesPrivatePostPrivateGetTrades',
         });
+        const [ marginMode, query ] = this.customHandleMarginModeAndParams ('fetchMyTrades', marketTypeQuery);
+        if (marginMode !== undefined) {
+            method = 'spotPrivatePostPrivateMarginGetTrades';
+        }
         const response = await this[method] (this.extend (request, query));
         // {
         //     "id": 11,
@@ -1243,12 +1379,12 @@ module.exports = class cryptocom extends Exchange {
          * @method
          * @name cryptocom#withdraw
          * @description make a withdrawal
-         * @param {str} code unified currency code
+         * @param {string} code unified currency code
          * @param {float} amount the amount to withdraw
-         * @param {str} address the address to withdraw to
-         * @param {str|undefined} tag
-         * @param {dict} params extra parameters specific to the cryptocom api endpoint
-         * @returns {dict} a [transaction structure]{@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure}
+         * @param {string} address the address to withdraw to
+         * @param {string|undefined} tag
+         * @param {object} params extra parameters specific to the cryptocom api endpoint
+         * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure}
          */
         [ tag, params ] = this.handleWithdrawTagAndParams (tag, params);
         await this.loadMarkets ();
@@ -1287,9 +1423,9 @@ module.exports = class cryptocom extends Exchange {
          * @method
          * @name cryptocom#fetchDepositAddressesByNetwork
          * @description fetch a dictionary of addresses for a currency, indexed by network
-         * @param {str} code unified currency code of the currency for the deposit address
-         * @param {dict} params extra parameters specific to the cryptocom api endpoint
-         * @returns {dict} a dictionary of [address structures]{@link https://docs.ccxt.com/en/latest/manual.html#address-structure} indexed by the network
+         * @param {string} code unified currency code of the currency for the deposit address
+         * @param {object} params extra parameters specific to the cryptocom api endpoint
+         * @returns {object} a dictionary of [address structures]{@link https://docs.ccxt.com/en/latest/manual.html#address-structure} indexed by the network
          */
         await this.loadMarkets ();
         const currency = this.currency (code);
@@ -1353,9 +1489,9 @@ module.exports = class cryptocom extends Exchange {
          * @method
          * @name cryptocom#fetchDepositAddress
          * @description fetch the deposit address for a currency associated with this account
-         * @param {str} code unified currency code
-         * @param {dict} params extra parameters specific to the cryptocom api endpoint
-         * @returns {dict} an [address structure]{@link https://docs.ccxt.com/en/latest/manual.html#address-structure}
+         * @param {string} code unified currency code
+         * @param {object} params extra parameters specific to the cryptocom api endpoint
+         * @returns {object} an [address structure]{@link https://docs.ccxt.com/en/latest/manual.html#address-structure}
          */
         const network = this.safeStringUpper (params, 'network');
         params = this.omit (params, [ 'network' ]);
@@ -1369,9 +1505,16 @@ module.exports = class cryptocom extends Exchange {
     }
 
     safeNetwork (networkId) {
-        // stub for now
-        // TODO: figure out which networks are supported on cryptocom
-        return networkId;
+        const networksById = {
+            'BTC': 'BTC',
+            'ETH': 'ETH',
+            'SOL': 'SOL',
+            'BNB': 'BNB',
+            'CRONOS': 'CRONOS',
+            'MATIC': 'MATIC',
+            'OP': 'OP',
+        };
+        return this.safeString (networksById, networkId, networkId);
     }
 
     async fetchDeposits (code = undefined, since = undefined, limit = undefined, params = {}) {
@@ -1379,11 +1522,11 @@ module.exports = class cryptocom extends Exchange {
          * @method
          * @name cryptocom#fetchDeposits
          * @description fetch all deposits made to an account
-         * @param {str|undefined} code unified currency code
+         * @param {string|undefined} code unified currency code
          * @param {int|undefined} since the earliest time in ms to fetch deposits for
          * @param {int|undefined} limit the maximum number of deposits structures to retrieve
-         * @param {dict} params extra parameters specific to the cryptocom api endpoint
-         * @returns {[dict]} a list of [transaction structures]{@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure}
+         * @param {object} params extra parameters specific to the cryptocom api endpoint
+         * @returns {[object]} a list of [transaction structures]{@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure}
          */
         await this.loadMarkets ();
         let currency = undefined;
@@ -1429,11 +1572,11 @@ module.exports = class cryptocom extends Exchange {
          * @method
          * @name cryptocom#fetchWithdrawals
          * @description fetch all withdrawals made from an account
-         * @param {str|undefined} code unified currency code
+         * @param {string|undefined} code unified currency code
          * @param {int|undefined} since the earliest time in ms to fetch withdrawals for
          * @param {int|undefined} limit the maximum number of withdrawals structures to retrieve
-         * @param {dict} params extra parameters specific to the cryptocom api endpoint
-         * @returns {[dict]} a list of [transaction structures]{@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure}
+         * @param {object} params extra parameters specific to the cryptocom api endpoint
+         * @returns {[object]} a list of [transaction structures]{@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure}
          */
         await this.loadMarkets ();
         let currency = undefined;
@@ -1483,12 +1626,12 @@ module.exports = class cryptocom extends Exchange {
          * @method
          * @name cryptocom#transfer
          * @description transfer currency internally between wallets on the same account
-         * @param {str} code unified currency code
+         * @param {string} code unified currency code
          * @param {float} amount amount to transfer
-         * @param {str} fromAccount account to transfer from
-         * @param {str} toAccount account to transfer to
-         * @param {dict} params extra parameters specific to the cryptocom api endpoint
-         * @returns {dict} a [transfer structure]{@link https://docs.ccxt.com/en/latest/manual.html#transfer-structure}
+         * @param {string} fromAccount account to transfer from
+         * @param {string} toAccount account to transfer to
+         * @param {object} params extra parameters specific to the cryptocom api endpoint
+         * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/en/latest/manual.html#transfer-structure}
          */
         await this.loadMarkets ();
         const currency = this.currency (code);
@@ -1503,7 +1646,11 @@ module.exports = class cryptocom extends Exchange {
             'from': fromId,
             'to': toId,
         };
-        const repsonse = await this.spotPrivatePostPrivateDerivTransfer (this.extend (request, params));
+        let method = 'spotPrivatePostPrivateDerivTransfer';
+        if ((fromAccount === 'margin') || (toAccount === 'margin')) {
+            method = 'spotPrivatePostPrivateMarginTransfer';
+        }
+        const response = await this[method] (this.extend (request, params));
         //
         //     {
         //         "id": 11,
@@ -1511,7 +1658,7 @@ module.exports = class cryptocom extends Exchange {
         //         "code": 0
         //     }
         //
-        return this.parseTransfer (repsonse, currency);
+        return this.parseTransfer (response, currency);
     }
 
     async fetchTransfers (code = undefined, since = undefined, limit = undefined, params = {}) {
@@ -1519,11 +1666,11 @@ module.exports = class cryptocom extends Exchange {
          * @method
          * @name cryptocom#fetchTransfers
          * @description fetch a history of internal transfers made on an account
-         * @param {str|undefined} code unified currency code of the currency transferred
+         * @param {string|undefined} code unified currency code of the currency transferred
          * @param {int|undefined} since the earliest time in ms to fetch transfers for
          * @param {int|undefined} limit the maximum number of  transfers structures to retrieve
-         * @param {dict} params extra parameters specific to the cryptocom api endpoint
-         * @returns {[dict]} a list of [transfer structures]{@link https://docs.ccxt.com/en/latest/manual.html#transfer-structure}
+         * @param {object} params extra parameters specific to the cryptocom api endpoint
+         * @returns {[object]} a list of [transfer structures]{@link https://docs.ccxt.com/en/latest/manual.html#transfer-structure}
          */
         if (!('direction' in params)) {
             throw new ArgumentsRequired (this.id + ' fetchTransfers() requires a direction param to be either "IN" or "OUT"');
@@ -1537,7 +1684,18 @@ module.exports = class cryptocom extends Exchange {
             currency = this.currency (code);
             request['currency'] = currency['id'];
         }
-        const response = await this.spotPrivatePostPrivateDerivGetTransferHistory (this.extend (request, params));
+        if (since !== undefined) {
+            request['start_ts'] = since;
+        }
+        if (limit !== undefined) {
+            request['page_size'] = limit;
+        }
+        let method = 'spotPrivatePostPrivateDerivGetTransferHistory';
+        const [ marginMode, query ] = this.customHandleMarginModeAndParams ('fetchTransfers', params);
+        if (marginMode !== undefined) {
+            method = 'spotPrivatePostPrivateMarginGetTransferHistory';
+        }
+        const response = await this[method] (this.extend (request, query));
         //
         //     {
         //       id: '1641032709328',
@@ -1557,9 +1715,11 @@ module.exports = class cryptocom extends Exchange {
         //       }
         //     }
         //
-        const result = this.safeValue (response, 'result', {});
-        const transferList = this.safeValue (result, 'transfer_list', []);
-        return this.parseTransfers (transferList, currency, since, limit, params);
+        const transfer = [];
+        transfer.push ({
+            'response': response,
+        });
+        return this.parseTransfers (transfer, currency, since, limit, params);
     }
 
     parseTransferStatus (status) {
@@ -1572,32 +1732,69 @@ module.exports = class cryptocom extends Exchange {
 
     parseTransfer (transfer, currency = undefined) {
         //
-        //     {
-        //       direction: 'IN',
-        //       time: '1641025185223',
-        //       amount: '109.56',
-        //       status: 'COMPLETED',
-        //       information: 'From Spot Wallet',
-        //       currency: 'USDC'
+        //   {
+        //     response: {
+        //       id: '1641032709328',
+        //       method: 'private/deriv/get-transfer-history',
+        //       code: '0',
+        //       result: {
+        //         transfer_list: [
+        //           {
+        //             direction: 'IN',
+        //             time: '1641025185223',
+        //             amount: '109.56',
+        //             status: 'COMPLETED',
+        //             information: 'From Spot Wallet',
+        //             currency: 'USDC'
+        //           }
+        //         ]
+        //       }
         //     }
+        //   }
         //
-        const timestamp = this.safeInteger (transfer, 'time');
-        const amount = this.safeNumber (transfer, 'amount');
-        const currencyId = this.safeString (transfer, 'currency');
-        const code = this.safeCurrencyCode (currencyId);
-        const information = this.safeString (transfer, 'information');
+        const response = this.safeValue (transfer, 'response', {});
+        const result = this.safeValue (response, 'result', {});
+        const transferList = this.safeValue (result, 'transfer_list', []);
+        let timestamp = undefined;
+        let amount = undefined;
+        let code = undefined;
+        let information = undefined;
+        let status = undefined;
+        for (let i = 0; i < transferList.length; i++) {
+            const entry = transferList[i];
+            timestamp = this.safeInteger (entry, 'time');
+            amount = this.safeNumber (entry, 'amount');
+            const currencyId = this.safeString (entry, 'currency');
+            code = this.safeCurrencyCode (currencyId);
+            information = this.safeString (entry, 'information');
+            const rawStatus = this.safeString (entry, 'status');
+            status = this.parseTransferStatus (rawStatus);
+        }
         let fromAccount = undefined;
         let toAccount = undefined;
         if (information !== undefined) {
             const parts = information.split (' ');
-            fromAccount = this.safeStringLower (parts, 1);
-            toAccount = (fromAccount === 'spot') ? 'derivative' : 'spot';
+            const direction = this.safeStringLower (parts, 0);
+            const method = this.safeString (response, 'method');
+            if (direction === 'from') {
+                fromAccount = this.safeStringLower (parts, 1);
+                if (method === 'private/margin/get-transfer-history') {
+                    toAccount = 'margin';
+                } else {
+                    toAccount = 'derivative';
+                }
+            } else if (direction === 'to') {
+                toAccount = this.safeStringLower (parts, 1);
+                if (method === 'private/margin/get-transfer-history') {
+                    fromAccount = 'margin';
+                } else {
+                    fromAccount = 'derivative';
+                }
+            }
         }
-        const rawStatus = this.safeString (transfer, 'status');
-        const status = this.parseTransferStatus (rawStatus);
         return {
-            'info': transfer,
-            'id': this.safeString (transfer, 'id'),
+            'info': transferList,
+            'id': this.safeString (response, 'id'),
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'currency': code,
@@ -1967,6 +2164,264 @@ module.exports = class cryptocom extends Exchange {
             'internal': undefined,
             'fee': fee,
         };
+    }
+
+    async repayMargin (code, amount, symbol = undefined, params = {}) {
+        /**
+         * @method
+         * @name cryptocom#repayMargin
+         * @description repay borrowed margin and interest
+         * @see https://exchange-docs.crypto.com/spot/index.html#private-margin-repay
+         * @param {string} code unified currency code of the currency to repay
+         * @param {float} amount the amount to repay
+         * @param {string|undefined} symbol unified market symbol, not used by cryptocom.repayMargin ()
+         * @param {object} params extra parameters specific to the cryptocom api endpoint
+         * @returns {object} a [margin loan structure]{@link https://docs.ccxt.com/en/latest/manual.html#margin-loan-structure}
+         */
+        await this.loadMarkets ();
+        const currency = this.currency (code);
+        const request = {
+            'currency': currency['id'],
+            'amount': this.currencyToPrecision (code, amount),
+        };
+        const response = await this.spotPrivatePostPrivateMarginRepay (this.extend (request, params));
+        //
+        //     {
+        //         "id": 1656620104211,
+        //         "method": "private/margin/repay",
+        //         "code": 0,
+        //         "result": {
+        //             "badDebt": 0
+        //         }
+        //     }
+        //
+        const transaction = this.parseMarginLoan (response, currency);
+        return this.extend (transaction, {
+            'amount': amount,
+        });
+    }
+
+    async borrowMargin (code, amount, symbol = undefined, params = {}) {
+        /**
+         * @method
+         * @name cryptocom#borrowMargin
+         * @description create a loan to borrow margin
+         * @see https://exchange-docs.crypto.com/spot/index.html#private-margin-borrow
+         * @param {string} code unified currency code of the currency to borrow
+         * @param {float} amount the amount to borrow
+         * @param {string|undefined} symbol unified market symbol, not used by cryptocom.repayMargin ()
+         * @param {object} params extra parameters specific to the cryptocom api endpoint
+         * @returns {object} a [margin loan structure]{@link https://docs.ccxt.com/en/latest/manual.html#margin-loan-structure}
+         */
+        await this.loadMarkets ();
+        const currency = this.currency (code);
+        const request = {
+            'currency': currency['id'],
+            'amount': this.currencyToPrecision (code, amount),
+        };
+        const response = await this.spotPrivatePostPrivateMarginBorrow (this.extend (request, params));
+        //
+        //     {
+        //         "id": 1656619578559,
+        //         "method": "private/margin/borrow",
+        //         "code": 0
+        //     }
+        //
+        const transaction = this.parseMarginLoan (response, currency);
+        return this.extend (transaction, {
+            'amount': amount,
+        });
+    }
+
+    parseMarginLoan (info, currency = undefined) {
+        //
+        // borrowMargin
+        //
+        //     {
+        //         "id": 1656619578559,
+        //         "method": "private/margin/borrow",
+        //         "code": 0
+        //     }
+        //
+        // repayMargin
+        //
+        //     {
+        //         "id": 1656620104211,
+        //         "method": "private/margin/repay",
+        //         "code": 0,
+        //         "result": {
+        //             "badDebt": 0
+        //         }
+        //     }
+        //
+        return {
+            'id': this.safeInteger (info, 'id'),
+            'currency': this.safeCurrencyCode (undefined, currency),
+            'amount': undefined,
+            'symbol': undefined,
+            'timestamp': undefined,
+            'datetime': undefined,
+            'info': info,
+        };
+    }
+
+    async fetchBorrowInterest (code = undefined, symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        await this.loadMarkets ();
+        const request = {};
+        let market = undefined;
+        let currency = undefined;
+        if (symbol !== undefined) {
+            market = this.market (symbol);
+        }
+        if (code !== undefined) {
+            currency = this.currency (code);
+            request['currency'] = currency['id'];
+        }
+        if (since !== undefined) {
+            request['start_ts'] = since;
+        }
+        if (limit !== undefined) {
+            request['page_size'] = limit;
+        }
+        const response = await this.spotPrivatePostPrivateMarginGetInterestHistory (this.extend (request, params));
+        //
+        //     {
+        //         "id": 1656705829020,
+        //         "method": "private/margin/get-interest-history",
+        //         "code": 0,
+        //         "result": {
+        //             "list": [
+        //                 {
+        //                     "loan_id": "2643528867803765921",
+        //                     "currency": "USDT",
+        //                     "interest": 0.00000004,
+        //                     "time": 1656702899559,
+        //                     "stake_amount": 6,
+        //                     "interest_rate": 0.000025
+        //                 },
+        //             ]
+        //         }
+        //     }
+        //
+        const data = this.safeValue (response, 'result', {});
+        const rows = this.safeValue (data, 'list', []);
+        let interest = undefined;
+        for (let i = 0; i < rows.length; i++) {
+            interest = this.parseBorrowInterests (rows, market);
+        }
+        return this.filterByCurrencySinceLimit (interest, code, since, limit);
+    }
+
+    parseBorrowInterest (info, market = undefined) {
+        //
+        //     {
+        //         "loan_id": "2643528867803765921",
+        //         "currency": "USDT",
+        //         "interest": 0.00000004,
+        //         "time": 1656702899559,
+        //         "stake_amount": 6,
+        //         "interest_rate": 0.000025
+        //     },
+        //
+        const timestamp = this.safeInteger (info, 'time');
+        let symbol = undefined;
+        if (market !== undefined) {
+            symbol = market['symbol'];
+        }
+        return {
+            'symbol': symbol,
+            'marginMode': undefined,
+            'currency': this.safeCurrencyCode (this.safeString (info, 'currency')),
+            'interest': this.safeNumber (info, 'interest'),
+            'interestRate': this.safeNumber (info, 'interest_rate'), // hourly interest rate
+            'amountBorrowed': undefined,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'info': info,
+        };
+    }
+
+    async fetchBorrowRates (params = {}) {
+        /**
+         * @method
+         * @name cryptocom#fetchBorrowRates
+         * @description fetch the borrow interest rates of all currencies
+         * @param {object} params extra parameters specific to the cryptocom api endpoint
+         * @returns {object} a list of [borrow rate structures]{@link https://docs.ccxt.com/en/latest/manual.html#borrow-rate-structure}
+         */
+        await this.loadMarkets ();
+        const response = await this.spotPrivatePostPrivateMarginGetUserConfig (params);
+        //
+        //     {
+        //         "id": 1656707947456,
+        //         "method": "private/margin/get-user-config",
+        //         "code": 0,
+        //         "result": {
+        //             "stake_amount": 6,
+        //             "currency_configs": [
+        //                 {
+        //                     "currency": "AGLD",
+        //                     "hourly_rate": 0.00003334,
+        //                     "max_borrow_limit": 342.4032393,
+        //                     "min_borrow_limit": 30
+        //                 },
+        //             ]
+        //         }
+        //     }
+        //
+        const data = this.safeValue (response, 'result', {});
+        const rates = this.safeValue (data, 'currency_configs', []);
+        return this.parseBorrowRates (rates, 'currency');
+    }
+
+    parseBorrowRates (info, codeKey) {
+        //
+        //     {
+        //         "currency": "AGLD",
+        //         "hourly_rate": 0.00003334,
+        //         "max_borrow_limit": 342.4032393,
+        //         "min_borrow_limit": 30
+        //     },
+        //
+        const timestamp = this.milliseconds ();
+        const rates = [];
+        for (let i = 0; i < info.length; i++) {
+            const entry = info[i];
+            rates.push ({
+                'currency': this.safeCurrencyCode (this.safeString (entry, 'currency')),
+                'rate': this.safeNumber (entry, 'hourly_rate'),
+                'period': 3600000, // 1-Hour
+                'timestamp': timestamp,
+                'datetime': this.iso8601 (timestamp),
+                'info': entry,
+            });
+        }
+        return rates;
+    }
+
+    customHandleMarginModeAndParams (methodName, params = {}) {
+        /**
+         * @ignore
+         * @method
+         * @description marginMode specified by params["marginMode"], this.options["marginMode"], this.options["defaultMarginMode"], params["margin"] = true or this.options["defaultType"] = 'margin'
+         * @param {object} params extra parameters specific to the exchange api endpoint
+         * @returns {[string|undefined, object]} the marginMode in lowercase
+         */
+        const defaultType = this.safeString (this.options, 'defaultType');
+        const isMargin = this.safeValue (params, 'margin', false);
+        params = this.omit (params, 'margin');
+        let marginMode = undefined;
+        [ marginMode, params ] = this.handleMarginModeAndParams (methodName, params);
+        if (marginMode !== undefined) {
+            if (marginMode !== 'cross') {
+                throw new NotSupported (this.id + ' only cross margin is supported');
+            }
+        } else {
+            if ((defaultType === 'margin') || (isMargin === true)) {
+                marginMode = 'cross';
+            }
+        }
+        return [ marginMode, params ];
     }
 
     nonce () {

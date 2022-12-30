@@ -36,6 +36,7 @@ class bitrue(Exchange):
             'rateLimit': 1000,
             'certified': False,
             'version': 'v1',
+            'pro': True,
             # new metainfo interface
             'has': {
                 'CORS': None,
@@ -64,7 +65,7 @@ class bitrue(Exchange):
                 'fetchMarginMode': False,
                 'fetchMarkets': True,
                 'fetchMyTrades': True,
-                'fetchOHLCV': 'emulated',
+                'fetchOHLCV': True,
                 'fetchOpenOrders': True,
                 'fetchOrder': True,
                 'fetchOrderBook': True,
@@ -89,10 +90,11 @@ class bitrue(Exchange):
                 '5m': '5m',
                 '15m': '15m',
                 '30m': '30m',
-                '1h': '1h',
-                '1d': '1d',
-                '1w': '1w',
-                '1M': '1M',
+                '1h': '1H',
+                '2h': '2H',
+                '4h': '4H',
+                '1d': '1D',
+                '1w': '1W',
             },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/139516488-243a830d-05dd-446b-91c6-c1f18fe30c63.jpg',
@@ -130,6 +132,7 @@ class bitrue(Exchange):
                             'ticker/24hr': {'cost': 1, 'noSymbol': 40},
                             'ticker/price': {'cost': 1, 'noSymbol': 2},
                             'ticker/bookTicker': {'cost': 1, 'noSymbol': 2},
+                            'market/kline': 1,
                         },
                     },
                     'private': {
@@ -253,10 +256,9 @@ class bitrue(Exchange):
                     'limit': 'FULL',  # we change it from 'ACK' by default to 'FULL'(returns immediately if limit is not hit)
                 },
                 'networks': {
-                    'SPL': 'SOLANA',
-                    'SOL': 'SOLANA',
-                    'DOGE': 'dogecoin',
-                    'ADA': 'Cardano',
+                    'ERC20': 'ETH',
+                    'TRC20': 'TRX',
+                    'TRON': 'TRX',
                 },
             },
             'commonCurrencies': {
@@ -689,7 +691,7 @@ class bitrue(Exchange):
             'info': response,
         }
         timestamp = self.safe_integer(response, 'updateTime')
-        balances = self.safe_value_2(response, 'balances', [])
+        balances = self.safe_value(response, 'balances', [])
         for i in range(0, len(balances)):
             balance = balances[i]
             currencyId = self.safe_string(balance, 'asset')
@@ -848,6 +850,66 @@ class bitrue(Exchange):
         if ticker is None:
             raise ExchangeError(self.id + ' fetchTicker() could not find the ticker for ' + market['symbol'])
         return self.parse_ticker(ticker, market)
+
+    def fetch_ohlcv(self, symbol, timeframe='1m', since=None, limit=None, params={}):
+        """
+        fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+        :param str symbol: unified symbol of the market to fetch OHLCV data for
+        :param str timeframe: the length of time each candle represents
+        :param int|None since: timestamp in ms of the earliest candle to fetch
+        :param int|None limit: the maximum amount of candles to fetch
+        :param dict params: extra parameters specific to the bitrue api endpoint
+        :returns [[int]]: A list of candles ordered as timestamp, open, high, low, close, volume
+        """
+        self.load_markets()
+        market = self.market(symbol)
+        request = {
+            'symbol': market['id'],
+            'scale': self.timeframes[timeframe],
+        }
+        if limit is not None:
+            request['limit'] = limit
+        response = self.v1PublicGetMarketKline(self.extend(request, params))
+        #
+        #       {
+        #           "symbol":"BTCUSDT",
+        #           "scale":"KLINE_1MIN",
+        #           "data":[
+        #                {
+        #                   "i":"1660825020",
+        #                   "a":"93458.778",
+        #                   "v":"3.9774",
+        #                   "c":"23494.99",
+        #                   "h":"23509.63",
+        #                   "l":"23491.93",
+        #                   "o":"23508.34"
+        #                }
+        #           ]
+        #       }
+        #
+        data = self.safe_value(response, 'data', [])
+        return self.parse_ohlcvs(data, market, timeframe, since, limit)
+
+    def parse_ohlcv(self, ohlcv, market=None):
+        #
+        #      {
+        #         "i":"1660825020",
+        #         "a":"93458.778",
+        #         "v":"3.9774",
+        #         "c":"23494.99",
+        #         "h":"23509.63",
+        #         "l":"23491.93",
+        #         "o":"23508.34"
+        #      }
+        #
+        return [
+            self.safe_timestamp(ohlcv, 'i'),
+            self.safe_number(ohlcv, 'o'),
+            self.safe_number(ohlcv, 'h'),
+            self.safe_number(ohlcv, 'l'),
+            self.safe_number(ohlcv, 'c'),
+            self.safe_number(ohlcv, 'v'),
+        ]
 
     def fetch_bids_asks(self, symbols=None, params={}):
         """
@@ -1198,9 +1260,9 @@ class bitrue(Exchange):
             if price is None:
                 raise InvalidOrder(self.id + ' createOrder() requires a price argument')
             request['price'] = self.price_to_precision(symbol, price)
-        stopPrice = self.safe_number(params, 'stopPrice')
+        stopPrice = self.safe_value_2(params, 'triggerPrice', 'stopPrice')
         if stopPrice is not None:
-            params = self.omit(params, 'stopPrice')
+            params = self.omit(params, ['triggerPrice', 'stopPrice'])
             request['stopPrice'] = self.price_to_precision(symbol, stopPrice)
         response = self.v1PrivatePostOrder(self.extend(request, params))
         #
@@ -1243,7 +1305,7 @@ class bitrue(Exchange):
         :param int|None since: the earliest time in ms to fetch orders for
         :param int|None limit: the maximum number of  orde structures to retrieve
         :param dict params: extra parameters specific to the bitrue api endpoint
-        :returns [dict]: a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure
+        :returns [dict]: a list of `order structures <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
         """
         if symbol is None:
             raise ArgumentsRequired(self.id + ' fetchClosedOrders() requires a symbol argument')
@@ -1592,10 +1654,11 @@ class bitrue(Exchange):
         #         "fee": 1,
         #         "ctime": null,
         #         "coin": "usdt_erc20",
+        #         "withdrawId": 1156423,
         #         "addressTo": "0x2edfae3878d7b6db70ce4abed177ab2636f60c83"
         #     }
         #
-        id = self.safe_string(transaction, 'id')
+        id = self.safe_string_2(transaction, 'id', 'withdrawId')
         tagType = self.safe_string(transaction, 'tagType')
         addressTo = self.safe_string(transaction, 'addressTo')
         addressFrom = self.safe_string(transaction, 'addressFrom')
@@ -1619,7 +1682,7 @@ class bitrue(Exchange):
         status = self.parse_transaction_status_by_type(self.safe_string(transaction, 'status'), type)
         amount = self.safe_number(transaction, 'amount')
         network = None
-        currencyId = self.safe_string(transaction, 'symbol')
+        currencyId = self.safe_string_2(transaction, 'symbol', 'coin')
         if currencyId is not None:
             parts = currencyId.split('_')
             currencyId = self.safe_string(parts, 0)
@@ -1670,7 +1733,9 @@ class bitrue(Exchange):
         chainName = self.safe_string(params, 'chainName')
         if chainName is None:
             networks = self.safe_value(currency, 'networks', {})
+            optionsNetworks = self.safe_value(self.options, 'networks', {})
             network = self.safe_string_upper(params, 'network')  # self line allows the user to specify either ERC20 or ETH
+            network = self.safe_string(optionsNetworks, network, network)
             networkEntry = self.safe_value(networks, network, {})
             chainName = self.safe_string(networkEntry, 'id')  # handle ERC20>ETH alias
             if chainName is None:
@@ -1688,8 +1753,23 @@ class bitrue(Exchange):
         if tag is not None:
             request['tag'] = tag
         response = self.v1PrivatePostWithdrawCommit(self.extend(request, params))
-        #     {id: '9a67628b16ba4988ae20d329333f16bc'}
-        return self.parse_transaction(response, currency)
+        #
+        #     {
+        #         "code": 200,
+        #         "msg": "succ",
+        #         "data": {
+        #             "msg": null,
+        #             "amount": 1000,
+        #             "fee": 1,
+        #             "ctime": null,
+        #             "coin": "usdt_erc20",
+        #             "withdrawId": 1156423,
+        #             "addressTo": "0x2edfae3878d7b6db70ce4abed177ab2636f60c83"
+        #         }
+        #     }
+        #
+        data = self.safe_value(response, 'data')
+        return self.parse_transaction(data, currency)
 
     def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
         version, access = api
@@ -1778,4 +1858,4 @@ class bitrue(Exchange):
                 entry = byLimit[i]
                 if limit <= entry[0]:
                     return entry[1]
-        return self.safe_integer(config, 'cost', 1)
+        return self.safe_value(config, 'cost', 1)

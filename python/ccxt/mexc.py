@@ -241,8 +241,8 @@ class mexc(Exchange):
                 'trading': {
                     'tierBased': False,
                     'percentage': True,
-                    'maker': 0.2 / 100,  # maker / taker
-                    'taker': 0.2 / 100,
+                    'maker': self.parse_number('0.002'),  # maker / taker
+                    'taker': self.parse_number('0.002'),
                 },
             },
             'options': {
@@ -271,11 +271,10 @@ class mexc(Exchange):
                 },
                 'defaultType': 'spot',  # spot, swap
                 'networks': {
-                    'TRX': 'TRC-20',
-                    'TRC20': 'TRC-20',
-                    'ETH': 'ERC-20',
-                    'ERC20': 'ERC-20',
+                    'TRX': 'TRC20',
+                    'ETH': 'ERC20',
                     'BEP20': 'BEP20(BSC)',
+                    'BSC': 'BEP20(BSC)',
                 },
                 'accountsByType': {
                     'spot': 'MAIN',
@@ -298,6 +297,7 @@ class mexc(Exchange):
                 'cancelOrder': {
                     'method': 'spotPrivateDeleteOrderCancel',  # contractPrivatePostOrderCancel contractPrivatePostPlanorderCancel
                 },
+                'broker': 'CCXT',
             },
             'commonCurrencies': {
                 'BEYONDPROTOCOL': 'BEYOND',
@@ -311,11 +311,13 @@ class mexc(Exchange):
                 'FLUX1': 'FLUX',  # switched places
                 'FLUX': 'FLUX1',  # switched places
                 'FREE': 'FreeRossDAO',  # conflict with FREE Coin
+                'GAS': 'GASDAO',
                 'GMT': 'GMT Token',
                 'HERO': 'Step Hero',  # conflict with Metahero
                 'MIMO': 'Mimosa',
                 'PROS': 'Pros.Finance',  # conflict with Prosper
                 'SIN': 'Sin City Token',
+                'SOUL': 'Soul Swap',
                 'STEPN': 'GMT',
             },
             'exceptions': {
@@ -341,6 +343,7 @@ class mexc(Exchange):
                     '30004': InsufficientFunds,  # Insufficient balance
                     '30005': InvalidOrder,  # Oversell error
                     '30010': InvalidOrder,  # Price out of allowed range
+                    '30014': BadSymbol,  # {"msg":"invalid symbol","code":30014}
                     '30016': BadSymbol,  # Market is closed
                     '30019': InvalidOrder,  # Orders count over limit for batch processing
                     '30020': BadSymbol,  # Restricted symbol, API access is not allowed for the time being
@@ -441,7 +444,7 @@ class mexc(Exchange):
             code = self.safe_currency_code(id)
             name = self.safe_string(currency, 'full_name')
             currencyActive = False
-            currencyPrecision = None
+            minPrecision = None
             currencyFee = None
             currencyWithdrawMin = None
             currencyWithdrawMax = None
@@ -469,6 +472,9 @@ class mexc(Exchange):
                     depositEnabled = True
                 if isWithdrawEnabled:
                     withdrawEnabled = True
+                precision = self.parse_precision(self.safe_string(chain, 'precision'))
+                if precision is not None:
+                    minPrecision = precision if (minPrecision is None) else Precise.string_min(precision, minPrecision)
                 networks[network] = {
                     'info': chain,
                     'id': networkId,
@@ -477,7 +483,7 @@ class mexc(Exchange):
                     'deposit': isDepositEnabled,
                     'withdraw': isWithdrawEnabled,
                     'fee': self.safe_number(chain, 'fee'),
-                    'precision': self.parse_number(self.parse_precision(self.safe_string(chain, 'precision'))),
+                    'precision': self.parse_number(minPrecision),
                     'limits': {
                         'withdraw': {
                             'min': withdrawMin,
@@ -491,7 +497,6 @@ class mexc(Exchange):
                 defaultNetwork = self.safe_value_2(networks, 'NONE', networkKeysLength - 1)
                 if defaultNetwork is not None:
                     currencyFee = defaultNetwork['fee']
-                    currencyPrecision = defaultNetwork['precision']
             result[code] = {
                 'id': id,
                 'code': code,
@@ -501,7 +506,7 @@ class mexc(Exchange):
                 'deposit': depositEnabled,
                 'withdraw': withdrawEnabled,
                 'fee': currencyFee,
-                'precision': currencyPrecision,
+                'precision': self.parse_number(minPrecision),
                 'limits': {
                     'amount': {
                         'min': None,
@@ -757,7 +762,12 @@ class mexc(Exchange):
         :returns dict: an array of `ticker structures <https://docs.ccxt.com/en/latest/manual.html#ticker-structure>`
         """
         self.load_markets()
-        marketType, query = self.handle_market_type_and_params('fetchTickers', None, params)
+        symbols = self.market_symbols(symbols)
+        first = self.safe_string(symbols, 0)
+        market = None
+        if first is not None:
+            market = self.market(first)
+        marketType, query = self.handle_market_type_and_params('fetchTickers', market, params)
         method = self.get_supported_mapping(marketType, {
             'spot': 'spotPublicGetMarketTicker',
             'swap': 'contractPublicGetTicker',
@@ -1516,7 +1526,7 @@ class mexc(Exchange):
         #
         data = self.safe_value(response, 'data', {})
         resultList = self.safe_value(data, 'result_list', [])
-        return self.parse_transactions(resultList, code, since, limit)
+        return self.parse_transactions(resultList, currency, since, limit)
 
     def fetch_withdrawals(self, code=None, since=None, limit=None, params={}):
         """
@@ -1571,7 +1581,7 @@ class mexc(Exchange):
         #
         data = self.safe_value(response, 'data', {})
         resultList = self.safe_value(data, 'result_list', [])
-        return self.parse_transactions(resultList, code, since, limit)
+        return self.parse_transactions(resultList, currency, since, limit)
 
     def parse_transaction(self, transaction, currency=None):
         #
@@ -2485,7 +2495,7 @@ class mexc(Exchange):
         :param int|None since: the earliest time in ms to fetch orders for
         :param int|None limit: the maximum number of  orde structures to retrieve
         :param dict params: extra parameters specific to the mexc api endpoint
-        :returns [dict]: a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure
+        :returns [dict]: a list of `order structures <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
         """
         if symbol is None:
             raise ArgumentsRequired(self.id + ' fetchClosedOrders() requires a symbol argument')
@@ -2657,12 +2667,12 @@ class mexc(Exchange):
         #
         type = 'add' if (addOrReduce == 'ADD') else 'reduce'
         return self.extend(self.parse_margin_modification(response, market), {
-            'amount': self.safe_number(amount),
+            'amount': self.parse_number(amount),
             'type': type,
         })
 
     def parse_margin_modification(self, data, market=None):
-        statusRaw = self.safe_string(data, 'success')
+        statusRaw = self.safe_value(data, 'success')
         status = 'ok' if (statusRaw is True) else 'failed'
         return {
             'info': data,
@@ -2869,7 +2879,7 @@ class mexc(Exchange):
         """
         tag, params = self.handle_withdraw_tag_and_params(tag, params)
         networks = self.safe_value(self.options, 'networks', {})
-        network = self.safe_string_2(params, 'network', 'chain')  # self line allows the user to specify either ERC20 or ETH
+        network = self.safe_string_upper_2(params, 'network', 'chain')  # self line allows the user to specify either ERC20 or ETH
         network = self.safe_string(networks, network, network)  # handle ETH > ERC-20 alias
         self.check_address(address)
         self.load_markets()
@@ -2914,6 +2924,7 @@ class mexc(Exchange):
                 'ApiKey': self.apiKey,
                 'Request-Time': timestamp,
                 'Content-Type': 'application/json',
+                'source': self.safe_string(self.options, 'broker', 'CCXT'),
             }
             if method == 'POST':
                 auth = self.json(params)
@@ -3049,12 +3060,12 @@ class mexc(Exchange):
             'estimatedSettlePrice': None,
             'timestamp': timestamp,
             'datetime': datetime,
-            'fundingRate': None,
-            'fundingTimestamp': None,
-            'fundingDatetime': None,
-            'nextFundingRate': nextFundingRate,
-            'nextFundingTimestamp': nextFundingTimestamp,
-            'nextFundingDatetime': self.iso8601(nextFundingTimestamp),
+            'fundingRate': nextFundingRate,
+            'fundingTimestamp': nextFundingTimestamp,
+            'fundingDatetime': self.iso8601(nextFundingTimestamp),
+            'nextFundingRate': None,
+            'nextFundingTimestamp': None,
+            'nextFundingDatetime': None,
             'previousFundingRate': None,
             'previousFundingTimestamp': None,
             'previousFundingDatetime': None,

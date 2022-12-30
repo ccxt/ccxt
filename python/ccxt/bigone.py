@@ -55,6 +55,7 @@ class bigone(Exchange):
                 'fetchTrades': True,
                 'fetchTradingFee': False,
                 'fetchTradingFees': False,
+                'fetchTransactionFees': False,
                 'fetchWithdrawals': True,
                 'transfer': True,
                 'withdraw': True,
@@ -137,6 +138,7 @@ class bigone(Exchange):
                 'transfer': {
                     'fillResponseFromRequest': True,
                 },
+                'exchangeMillisecondsCorrection': -100,
             },
             'precisionMode': TICK_SIZE,
             'exceptions': {
@@ -370,6 +372,7 @@ class bigone(Exchange):
         """
         self.load_markets()
         request = {}
+        symbols = self.market_symbols(symbols)
         if symbols is not None:
             ids = self.market_ids(symbols)
             request['pair_names'] = ','.join(ids)
@@ -921,7 +924,7 @@ class bigone(Exchange):
         :param int|None since: the earliest time in ms to fetch orders for
         :param int|None limit: the maximum number of  orde structures to retrieve
         :param dict params: extra parameters specific to the bigone api endpoint
-        :returns [dict]: a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure
+        :returns [dict]: a list of `order structures <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
         """
         if symbol is None:
             raise ArgumentsRequired(self.id + ' fetchOrders() requires a symbol argument')
@@ -1046,7 +1049,7 @@ class bigone(Exchange):
         :param int|None since: the earliest time in ms to fetch orders for
         :param int|None limit: the maximum number of  orde structures to retrieve
         :param dict params: extra parameters specific to the bigone api endpoint
-        :returns [dict]: a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure
+        :returns [dict]: a list of `order structures <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
         """
         request = {
             'state': 'FILLED',
@@ -1054,12 +1057,14 @@ class bigone(Exchange):
         return self.fetch_orders(symbol, since, limit, self.extend(request, params))
 
     def nonce(self):
-        return self.microseconds() * 1000
+        exchangeTimeCorrection = self.safe_integer(self.options, 'exchangeMillisecondsCorrection', 0) * 1000000
+        return self.microseconds() * 1000 + exchangeTimeCorrection
 
     def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
         query = self.omit(params, self.extract_params(path))
         baseUrl = self.implode_hostname(self.urls['api'][api])
         url = baseUrl + '/' + self.implode_params(path, params)
+        headers = {}
         if api == 'public':
             if query:
                 url += '?' + self.urlencode(query)
@@ -1073,15 +1078,14 @@ class bigone(Exchange):
                 # 'recv_window': '30',  # default 30
             }
             jwt = self.jwt(request, self.encode(self.secret))
-            headers = {
-                'Authorization': 'Bearer ' + jwt,
-            }
+            headers['Authorization'] = 'Bearer ' + jwt
             if method == 'GET':
                 if query:
                     url += '?' + self.urlencode(query)
             elif method == 'POST':
                 headers['Content-Type'] = 'application/json'
                 body = self.json(query)
+        headers['User-Agent'] = 'ccxt/' + self.id + '-' + self.version
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
     def fetch_deposit_address(self, code, params={}):
@@ -1270,7 +1274,7 @@ class bigone(Exchange):
         #     }
         #
         deposits = self.safe_value(response, 'data', [])
-        return self.parse_transactions(deposits, code, since, limit)
+        return self.parse_transactions(deposits, currency, since, limit)
 
     def fetch_withdrawals(self, code=None, since=None, limit=None, params={}):
         """
@@ -1317,7 +1321,7 @@ class bigone(Exchange):
         #     }
         #
         withdrawals = self.safe_value(response, 'data', [])
-        return self.parse_transactions(withdrawals, code, since, limit)
+        return self.parse_transactions(withdrawals, currency, since, limit)
 
     def transfer(self, code, amount, fromAccount, toAccount, params={}):
         """

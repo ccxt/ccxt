@@ -44,6 +44,7 @@ module.exports = class btcalpha extends Exchange {
                 'fetchFundingRateHistory': false,
                 'fetchFundingRates': false,
                 'fetchIndexOHLCV': false,
+                'fetchL2OrderBook': true,
                 'fetchLeverage': false,
                 'fetchMarginMode': false,
                 'fetchMarkets': true,
@@ -76,7 +77,6 @@ module.exports = class btcalpha extends Exchange {
                 'withdraw': false,
             },
             'timeframes': {
-                '1m': '1',
                 '5m': '5',
                 '15m': '15',
                 '30m': '30',
@@ -86,7 +86,9 @@ module.exports = class btcalpha extends Exchange {
             },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/42625213-dabaa5da-85cf-11e8-8f99-aa8f8f7699f0.jpg',
-                'api': 'https://btc-alpha.com/api',
+                'api': {
+                    'rest': 'https://btc-alpha.com/api',
+                },
                 'www': 'https://btc-alpha.com',
                 'doc': 'https://btc-alpha.github.io/api-docs',
                 'fees': 'https://btc-alpha.com/fees/',
@@ -97,7 +99,7 @@ module.exports = class btcalpha extends Exchange {
                     'get': [
                         'currencies/',
                         'pairs/',
-                        'orderbook/{pair_name}/',
+                        'orderbook/{pair_name}',
                         'exchanges/',
                         'charts/{pair}/{type}/chart/',
                     ],
@@ -144,8 +146,8 @@ module.exports = class btcalpha extends Exchange {
          * @method
          * @name btcalpha#fetchMarkets
          * @description retrieves data on all markets for btcalpha
-         * @param {dict} params extra parameters specific to the exchange api endpoint
-         * @returns {[dict]} an array of objects representing market data
+         * @param {object} params extra parameters specific to the exchange api endpoint
+         * @returns {[object]} an array of objects representing market data
          */
         const response = await this.publicGetPairs (params);
         //
@@ -231,10 +233,10 @@ module.exports = class btcalpha extends Exchange {
          * @method
          * @name btcalpha#fetchOrderBook
          * @description fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
-         * @param {str} symbol unified symbol of the market to fetch the order book for
+         * @param {string} symbol unified symbol of the market to fetch the order book for
          * @param {int|undefined} limit the maximum amount of order book entries to return
-         * @param {dict} params extra parameters specific to the btcalpha api endpoint
-         * @returns {dict} A dictionary of [order book structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-book-structure} indexed by market symbols
+         * @param {object} params extra parameters specific to the btcalpha api endpoint
+         * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-book-structure} indexed by market symbols
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
@@ -287,7 +289,8 @@ module.exports = class btcalpha extends Exchange {
         //
         const marketId = this.safeString (trade, 'pair');
         market = this.safeMarket (marketId, market, '_');
-        const timestamp = this.safeTimestamp (trade, 'timestamp');
+        const timestampRaw = this.safeString (trade, 'timestamp');
+        const timestamp = this.parseNumber (Precise.stringMul (timestampRaw, '1000000'));
         const priceString = this.safeString (trade, 'price');
         const amountString = this.safeString (trade, 'amount');
         const id = this.safeString (trade, 'id');
@@ -314,11 +317,11 @@ module.exports = class btcalpha extends Exchange {
          * @method
          * @name btcalpha#fetchTrades
          * @description get the list of most recent trades for a particular symbol
-         * @param {str} symbol unified symbol of the market to fetch trades for
+         * @param {string} symbol unified symbol of the market to fetch trades for
          * @param {int|undefined} since timestamp in ms of the earliest trade to fetch
          * @param {int|undefined} limit the maximum amount of trades to fetch
-         * @param {dict} params extra parameters specific to the btcalpha api endpoint
-         * @returns {[dict]} a list of [trade structures]{@link https://docs.ccxt.com/en/latest/manual.html?#public-trades}
+         * @param {object} params extra parameters specific to the btcalpha api endpoint
+         * @returns {[object]} a list of [trade structures]{@link https://docs.ccxt.com/en/latest/manual.html?#public-trades}
          */
         await this.loadMarkets ();
         let market = undefined;
@@ -339,13 +342,17 @@ module.exports = class btcalpha extends Exchange {
          * @method
          * @name btcalpha#fetchDeposits
          * @description fetch all deposits made to an account
-         * @param {str|undefined} code unified currency code
+         * @param {string|undefined} code unified currency code
          * @param {int|undefined} since the earliest time in ms to fetch deposits for
          * @param {int|undefined} limit the maximum number of deposits structures to retrieve
-         * @param {dict} params extra parameters specific to the btcalpha api endpoint
-         * @returns {[dict]} a list of [transaction structures]{@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure}
+         * @param {object} params extra parameters specific to the btcalpha api endpoint
+         * @returns {[object]} a list of [transaction structures]{@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure}
          */
         await this.loadMarkets ();
+        let currency = undefined;
+        if (code !== undefined) {
+            currency = this.currency (code);
+        }
         const response = await this.privateGetDeposits (params);
         //
         //     [
@@ -357,7 +364,7 @@ module.exports = class btcalpha extends Exchange {
         //         }
         //     ]
         //
-        return this.parseTransactions (response, code, since, limit, { 'type': 'deposit' });
+        return this.parseTransactions (response, currency, since, limit, { 'type': 'deposit' });
     }
 
     async fetchWithdrawals (code = undefined, since = undefined, limit = undefined, params = {}) {
@@ -365,11 +372,11 @@ module.exports = class btcalpha extends Exchange {
          * @method
          * @name btcalpha#fetchWithdrawals
          * @description fetch all withdrawals made from an account
-         * @param {str|undefined} code unified currency code
+         * @param {string|undefined} code unified currency code
          * @param {int|undefined} since the earliest time in ms to fetch withdrawals for
          * @param {int|undefined} limit the maximum number of withdrawals structures to retrieve
-         * @param {dict} params extra parameters specific to the btcalpha api endpoint
-         * @returns {[dict]} a list of [transaction structures]{@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure}
+         * @param {object} params extra parameters specific to the btcalpha api endpoint
+         * @returns {[object]} a list of [transaction structures]{@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure}
          */
         await this.loadMarkets ();
         let currency = undefined;
@@ -390,7 +397,7 @@ module.exports = class btcalpha extends Exchange {
         //         }
         //     ]
         //
-        return this.parseTransactions (response, code, since, limit, { 'type': 'withdrawal' });
+        return this.parseTransactions (response, currency, since, limit, { 'type': 'withdrawal' });
     }
 
     parseTransaction (transaction, currency = undefined) {
@@ -412,8 +419,7 @@ module.exports = class btcalpha extends Exchange {
         //          "status": 20
         //      }
         //
-        let timestamp = this.safeTimestamp (transaction, 'timestamp');
-        timestamp = Precise.stringMul (timestamp, '1000');
+        const timestamp = this.safeTimestamp (transaction, 'timestamp');
         const currencyId = this.safeString (transaction, 'currency');
         const statusId = this.safeString (transaction, 'status');
         return {
@@ -476,11 +482,11 @@ module.exports = class btcalpha extends Exchange {
          * @method
          * @name btcalpha#fetchOHLCV
          * @description fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
-         * @param {str} symbol unified symbol of the market to fetch OHLCV data for
-         * @param {str} timeframe the length of time each candle represents
+         * @param {string} symbol unified symbol of the market to fetch OHLCV data for
+         * @param {string} timeframe the length of time each candle represents
          * @param {int|undefined} since timestamp in ms of the earliest candle to fetch
          * @param {int|undefined} limit the maximum amount of candles to fetch
-         * @param {dict} params extra parameters specific to the btcalpha api endpoint
+         * @param {object} params extra parameters specific to the btcalpha api endpoint
          * @returns {[[int]]} A list of candles ordered as timestamp, open, high, low, close, volume
          */
         await this.loadMarkets ();
@@ -525,8 +531,8 @@ module.exports = class btcalpha extends Exchange {
          * @method
          * @name btcalpha#fetchBalance
          * @description query for balance and get the amount of funds available for trading or funds locked in orders
-         * @param {dict} params extra parameters specific to the btcalpha api endpoint
-         * @returns {dict} a [balance structure]{@link https://docs.ccxt.com/en/latest/manual.html?#balance-structure}
+         * @param {object} params extra parameters specific to the btcalpha api endpoint
+         * @returns {object} a [balance structure]{@link https://docs.ccxt.com/en/latest/manual.html?#balance-structure}
          */
         await this.loadMarkets ();
         const response = await this.privateGetWallets (params);
@@ -619,13 +625,13 @@ module.exports = class btcalpha extends Exchange {
          * @method
          * @name btcalpha#createOrder
          * @description create a trade order
-         * @param {str} symbol unified symbol of the market to create an order in
-         * @param {str} type 'market' or 'limit'
-         * @param {str} side 'buy' or 'sell'
+         * @param {string} symbol unified symbol of the market to create an order in
+         * @param {string} type 'market' or 'limit'
+         * @param {string} side 'buy' or 'sell'
          * @param {float} amount how much of currency you want to trade in units of base currency
          * @param {float|undefined} price the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
-         * @param {dict} params extra parameters specific to the btcalpha api endpoint
-         * @returns {dict} an [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
+         * @param {object} params extra parameters specific to the btcalpha api endpoint
+         * @returns {object} an [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
@@ -640,9 +646,10 @@ module.exports = class btcalpha extends Exchange {
             throw new InvalidOrder (this.id + ' ' + this.json (response));
         }
         const order = this.parseOrder (response, market);
-        amount = (order['amount'] > 0) ? order['amount'] : amount;
+        const orderAmount = order['amount'].toString ();
+        amount = Precise.stringGt (orderAmount, '0') ? order['amount'] : amount;
         return this.extend (order, {
-            'amount': amount,
+            'amount': this.parseNumber (amount),
         });
     }
 
@@ -651,10 +658,10 @@ module.exports = class btcalpha extends Exchange {
          * @method
          * @name btcalpha#cancelOrder
          * @description cancels an open order
-         * @param {str} id order id
-         * @param {str|undefined} symbol unified symbol of the market the order was made in
-         * @param {dict} params extra parameters specific to the btcalpha api endpoint
-         * @returns {dict} An [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
+         * @param {string} id order id
+         * @param {string|undefined} symbol unified symbol of the market the order was made in
+         * @param {object} params extra parameters specific to the btcalpha api endpoint
+         * @returns {object} An [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
          */
         const request = {
             'order': id,
@@ -668,9 +675,9 @@ module.exports = class btcalpha extends Exchange {
          * @method
          * @name btcalpha#fetchOrder
          * @description fetches information on an order made by the user
-         * @param {str|undefined} symbol not used by btcalpha fetchOrder
-         * @param {dict} params extra parameters specific to the btcalpha api endpoint
-         * @returns {dict} An [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
+         * @param {string|undefined} symbol not used by btcalpha fetchOrder
+         * @param {object} params extra parameters specific to the btcalpha api endpoint
+         * @returns {object} An [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
          */
         await this.loadMarkets ();
         const request = {
@@ -685,11 +692,11 @@ module.exports = class btcalpha extends Exchange {
          * @method
          * @name btcalpha#fetchOrders
          * @description fetches information on multiple orders made by the user
-         * @param {str|undefined} symbol unified market symbol of the market orders were made in
+         * @param {string|undefined} symbol unified market symbol of the market orders were made in
          * @param {int|undefined} since the earliest time in ms to fetch orders for
          * @param {int|undefined} limit the maximum number of  orde structures to retrieve
-         * @param {dict} params extra parameters specific to the btcalpha api endpoint
-         * @returns {[dict]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure
+         * @param {object} params extra parameters specific to the btcalpha api endpoint
+         * @returns {[object]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
          */
         await this.loadMarkets ();
         const request = {};
@@ -710,11 +717,11 @@ module.exports = class btcalpha extends Exchange {
          * @method
          * @name btcalpha#fetchOpenOrders
          * @description fetch all unfilled currently open orders
-         * @param {str|undefined} symbol unified market symbol
+         * @param {string|undefined} symbol unified market symbol
          * @param {int|undefined} since the earliest time in ms to fetch open orders for
          * @param {int|undefined} limit the maximum number of  open orders structures to retrieve
-         * @param {dict} params extra parameters specific to the btcalpha api endpoint
-         * @returns {[dict]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
+         * @param {object} params extra parameters specific to the btcalpha api endpoint
+         * @returns {[object]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
          */
         const request = {
             'status': '1',
@@ -727,11 +734,11 @@ module.exports = class btcalpha extends Exchange {
          * @method
          * @name btcalpha#fetchClosedOrders
          * @description fetches information on multiple closed orders made by the user
-         * @param {str|undefined} symbol unified market symbol of the market orders were made in
+         * @param {string|undefined} symbol unified market symbol of the market orders were made in
          * @param {int|undefined} since the earliest time in ms to fetch orders for
          * @param {int|undefined} limit the maximum number of  orde structures to retrieve
-         * @param {dict} params extra parameters specific to the btcalpha api endpoint
-         * @returns {[dict]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure
+         * @param {object} params extra parameters specific to the btcalpha api endpoint
+         * @returns {[object]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
          */
         const request = {
             'status': '3',
@@ -744,11 +751,11 @@ module.exports = class btcalpha extends Exchange {
          * @method
          * @name btcalpha#fetchMyTrades
          * @description fetch all trades made by the user
-         * @param {str|undefined} symbol unified market symbol
+         * @param {string|undefined} symbol unified market symbol
          * @param {int|undefined} since the earliest time in ms to fetch trades for
          * @param {int|undefined} limit the maximum number of trades structures to retrieve
-         * @param {dict} params extra parameters specific to the btcalpha api endpoint
-         * @returns {[dict]} a list of [trade structures]{@link https://docs.ccxt.com/en/latest/manual.html#trade-structure}
+         * @param {object} params extra parameters specific to the btcalpha api endpoint
+         * @returns {[object]} a list of [trade structures]{@link https://docs.ccxt.com/en/latest/manual.html#trade-structure}
          */
         await this.loadMarkets ();
         const request = {};
@@ -769,7 +776,7 @@ module.exports = class btcalpha extends Exchange {
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         const query = this.urlencode (this.keysort (this.omit (params, this.extractParams (path))));
-        let url = this.urls['api'] + '/';
+        let url = this.urls['api']['rest'] + '/';
         if (path !== 'charts/{pair}/{type}/chart/') {
             url += 'v1/';
         }

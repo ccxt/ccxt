@@ -260,7 +260,7 @@ class indodax(Exchange):
                 'optionType': None,
                 'percentage': True,
                 'precision': {
-                    'amount': self.parse_number(self.parse_precision('8')),
+                    'amount': self.parse_number('1e-8'),
                     'price': self.parse_number(self.parse_precision(self.safe_string(market, 'price_round'))),
                     'cost': self.parse_number(self.parse_precision(self.safe_string(market, 'volume_precision'))),
                 },
@@ -433,6 +433,35 @@ class indodax(Exchange):
         ticker = self.safe_value(response, 'ticker', {})
         return self.parse_ticker(ticker, market)
 
+    async def fetch_tickers(self, symbols=None, params={}):
+        """
+        fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
+        see https://github.com/btcid/indodax-official-api-docs/blob/master/Public-RestAPI.md#ticker-all
+        :param [str]|None symbols: unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
+        :param dict params: extra parameters specific to the indodax api endpoint
+        :returns dict: an array of `ticker structures <https://docs.ccxt.com/en/latest/manual.html#ticker-structure>`
+        """
+        await self.load_markets()
+        #
+        # {
+        #     "tickers": {
+        #         "btc_idr": {
+        #             "high": "120009000",
+        #             "low": "116735000",
+        #             "vol_btc": "218.13777777",
+        #             "vol_idr": "25800033297",
+        #             "last": "117088000",
+        #             "buy": "117002000",
+        #             "sell": "117078000",
+        #             "server_time": 1571207881
+        #         }
+        #     }
+        # }
+        #
+        response = await self.publicGetTickerAll(params)
+        tickers = self.safe_value(response, 'tickers')
+        return self.parse_tickers(tickers, symbols)
+
     def parse_trade(self, trade, market=None):
         timestamp = self.safe_timestamp(trade, 'date')
         return self.safe_trade({
@@ -597,7 +626,7 @@ class indodax(Exchange):
         for i in range(0, len(marketIds)):
             marketId = marketIds[i]
             marketOrders = rawOrders[marketId]
-            market = self.markets_by_id[marketId]
+            market = self.safe_market(marketId)
             parsedOrders = self.parse_orders(marketOrders, market, since, limit)
             exchangeOrders = self.array_concat(exchangeOrders, parsedOrders)
         return exchangeOrders
@@ -609,7 +638,7 @@ class indodax(Exchange):
         :param int|None since: the earliest time in ms to fetch orders for
         :param int|None limit: the maximum number of  orde structures to retrieve
         :param dict params: extra parameters specific to the indodax api endpoint
-        :returns [dict]: a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure
+        :returns [dict]: a list of `order structures <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
         """
         if symbol is None:
             raise ArgumentsRequired(self.id + ' fetchClosedOrders() requires a symbol argument')
@@ -903,7 +932,7 @@ class indodax(Exchange):
         if feeCost is not None:
             fee = {
                 'currency': self.safe_currency_code(None, currency),
-                'cost': self.safe_number('fee'),
+                'cost': feeCost,
             }
         return {
             'id': self.safe_string_2(transaction, 'withdraw_id', 'deposit_id'),

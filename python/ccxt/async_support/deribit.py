@@ -34,6 +34,7 @@ class deribit(Exchange):
             # 20 requests per second for non-matching-engine endpoints, 1000ms / 20 = 50ms between requests
             # 5 requests per second for matching-engine endpoints, cost = (1000ms / rateLimit) / 5 = 4
             'rateLimit': 50,
+            'pro': True,
             'has': {
                 'CORS': True,
                 'spot': False,
@@ -139,6 +140,7 @@ class deribit(Exchange):
                         # Supporting
                         'get_time': 1,
                         'hello': 1,
+                        'status': 1,
                         'test': 1,
                         # Subscription management
                         'subscribe': 1,
@@ -382,6 +384,7 @@ class deribit(Exchange):
                 '-32601': BadRequest,  # 'Method not found' see JSON-RPC spec.
                 '-32700': BadRequest,  # 'Parse error' see JSON-RPC spec.
                 '-32000': BadRequest,  # 'Missing params' see JSON-RPC spec.
+                '11054': InvalidOrder,  # 'post_only_reject' post order would be filled immediately
             },
             'precisionMode': TICK_SIZE,
             'options': {
@@ -442,7 +445,7 @@ class deribit(Exchange):
         #         "testnet": False
         #     }
         #
-        result = self.safe_string(response, 'result')
+        result = self.safe_value(response, 'result')
         locked = self.safe_string(result, 'locked')
         updateTime = self.safe_integer_product(response, 'usIn', 0.001, self.milliseconds())
         return {
@@ -645,23 +648,27 @@ class deribit(Exchange):
                 kind = self.safe_string(market, 'kind')
                 settlementPeriod = self.safe_value(market, 'settlement_period')
                 swap = (settlementPeriod == 'perpetual')
-                future = not swap and (kind == 'future')
-                option = (kind == 'option')
-                symbol = base + '/' + quote + ':' + settle
+                future = not swap and (kind.find('future') >= 0)
+                option = (kind.find('option') >= 0)
+                isComboMarket = kind.find('combo') >= 0
                 expiry = self.safe_integer(market, 'expiration_timestamp')
                 strike = None
                 optionType = None
+                symbol = id
                 type = 'swap'
-                if option or future:
-                    symbol = symbol + '-' + self.yymmdd(expiry, '')
-                    if option:
-                        type = 'option'
-                        strike = self.safe_number(market, 'strike')
-                        optionType = self.safe_string(market, 'option_type')
-                        letter = 'C' if (optionType == 'call') else 'P'
-                        symbol = symbol + ':' + self.number_to_string(strike) + ':' + letter
-                    else:
-                        type = 'future'
+                if future:
+                    type = 'future'
+                elif option:
+                    type = 'option'
+                if not isComboMarket:
+                    symbol = base + '/' + quote + ':' + settle
+                    if option or future:
+                        symbol = symbol + '-' + self.yymmdd(expiry, '')
+                        if option:
+                            strike = self.safe_number(market, 'strike')
+                            optionType = self.safe_string(market, 'option_type')
+                            letter = 'C' if (optionType == 'call') else 'P'
+                            symbol = symbol + '-' + self.number_to_string(strike) + '-' + letter
                 minTradeAmount = self.safe_number(market, 'min_trade_amount')
                 tickSize = self.safe_number(market, 'tick_size')
                 result.append({
@@ -681,8 +688,8 @@ class deribit(Exchange):
                     'option': option,
                     'active': self.safe_value(market, 'is_active'),
                     'contract': True,
-                    'linear': False,
-                    'inverse': True,
+                    'linear': (settle == quote),
+                    'inverse': (settle != quote),
                     'taker': self.safe_number(market, 'taker_commission'),
                     'maker': self.safe_number(market, 'maker_commission'),
                     'contractSize': self.safe_number(market, 'contract_size'),
@@ -990,6 +997,7 @@ class deribit(Exchange):
         :returns dict: an array of `ticker structures <https://docs.ccxt.com/en/latest/manual.html#ticker-structure>`
         """
         await self.load_markets()
+        symbols = self.market_symbols(symbols)
         code = self.code_from_options('fetchTickers', params)
         currency = self.currency(code)
         request = {
@@ -1054,10 +1062,9 @@ class deribit(Exchange):
         now = self.milliseconds()
         if since is None:
             if limit is None:
-                raise ArgumentsRequired(self.id + ' fetchOHLCV() requires a since argument or a limit argument')
-            else:
-                request['start_timestamp'] = now - (limit - 1) * duration * 1000
-                request['end_timestamp'] = now
+                limit = 1000  # at max, it provides 5000 bars, but we set generous default here
+            request['start_timestamp'] = now - (limit - 1) * duration * 1000
+            request['end_timestamp'] = now
         else:
             request['start_timestamp'] = since
             if limit is None:
@@ -1137,7 +1144,13 @@ class deribit(Exchange):
         timestamp = self.safe_integer(trade, 'timestamp')
         side = self.safe_string(trade, 'direction')
         priceString = self.safe_string(trade, 'price')
-        amountString = self.safe_string(trade, 'amount')
+        market = self.safe_market(marketId, market)
+        # Amount for inverse perpetual and futures is in USD which in ccxt is the cost
+        # For options amount and linear is in corresponding cryptocurrency contracts, e.g., BTC or ETH
+        amount = self.safe_string(trade, 'amount')
+        cost = Precise.string_mul(amount, priceString)
+        if market['inverse']:
+            cost = Precise.string_div(amount, priceString)
         liquidity = self.safe_string(trade, 'liquidity')
         takerOrMaker = None
         if liquidity is not None:
@@ -1163,14 +1176,15 @@ class deribit(Exchange):
             'side': side,
             'takerOrMaker': takerOrMaker,
             'price': priceString,
-            'amount': amountString,
-            'cost': None,
+            'amount': amount,
+            'cost': cost,
             'fee': fee,
         }, market)
 
     async def fetch_trades(self, symbol, since=None, limit=None, params={}):
         """
-        get the list of most recent trades for a particular symbol
+        see https://docs.deribit.com/#private-get_user_trades_by_currency
+        get the list of most recent trades for a particular symbol.
         :param str symbol: unified symbol of the market to fetch trades for
         :param int|None since: timestamp in ms of the earliest trade to fetch
         :param int|None limit: the maximum amount of trades to fetch
@@ -1408,6 +1422,15 @@ class deribit(Exchange):
         }
         return self.safe_string(timeInForces, timeInForce, timeInForce)
 
+    def parse_order_type(self, orderType):
+        orderTypes = {
+            'stop_limit': 'limit',
+            'take_limit': 'limit',
+            'stop_market': 'market',
+            'take_market': 'market',
+        }
+        return self.safe_string(orderTypes, orderType, orderType)
+
     def parse_order(self, order, market=None):
         #
         # createOrder
@@ -1436,24 +1459,27 @@ class deribit(Exchange):
         #         "trades": [],  # injected by createOrder
         #     }
         #
+        marketId = self.safe_string(order, 'instrument_name')
+        market = self.safe_market(marketId, market)
         timestamp = self.safe_integer(order, 'creation_timestamp')
         lastUpdate = self.safe_integer(order, 'last_update_timestamp')
         id = self.safe_string(order, 'order_id')
         priceString = self.safe_string(order, 'price')
-        if priceString == 'market_price':
-            # for market orders we get a literal 'market_price' string here
-            priceString = None
         averageString = self.safe_string(order, 'average_price')
-        amountString = self.safe_string(order, 'amount')
+        # Inverse contracts amount is in USD which in ccxt is the cost
+        # For options and Linear contracts amount is in corresponding cryptocurrency, e.g., BTC or ETH
         filledString = self.safe_string(order, 'filled_amount')
+        amount = self.safe_string(order, 'amount')
+        cost = Precise.string_mul(filledString, averageString)
+        if market['inverse']:
+            if self.parse_number(averageString) != 0:
+                cost = Precise.string_div(amount, averageString)
         lastTradeTimestamp = None
         if filledString is not None:
             isFilledPositive = Precise.string_gt(filledString, '0')
             if isFilledPositive:
                 lastTradeTimestamp = lastUpdate
         status = self.parse_order_status(self.safe_string(order, 'order_state'))
-        marketId = self.safe_string(order, 'instrument_name')
-        market = self.safe_market(marketId, market)
         side = self.safe_string_lower(order, 'direction')
         feeCostString = self.safe_string(order, 'commission')
         fee = None
@@ -1463,11 +1489,10 @@ class deribit(Exchange):
                 'cost': feeCostString,
                 'currency': market['base'],
             }
-        type = self.safe_string(order, 'order_type')
+        rawType = self.safe_string(order, 'order_type')
+        type = self.parse_order_type(rawType)
         # injected in createOrder
         trades = self.safe_value(order, 'trades')
-        if trades is not None:
-            trades = self.parse_trades(trades, market)
         timeInForce = self.parse_time_in_force(self.safe_string(order, 'time_in_force'))
         stopPrice = self.safe_value(order, 'stop_price')
         postOnly = self.safe_value(order, 'post_only')
@@ -1485,8 +1510,8 @@ class deribit(Exchange):
             'side': side,
             'price': priceString,
             'stopPrice': stopPrice,
-            'amount': amountString,
-            'cost': None,
+            'amount': amount,
+            'cost': cost,
             'average': averageString,
             'filled': filledString,
             'remaining': None,
@@ -1541,21 +1566,28 @@ class deribit(Exchange):
     async def create_order(self, symbol, type, side, amount, price=None, params={}):
         """
         create a trade order
+        see https://docs.deribit.com/#private-buy
         :param str symbol: unified symbol of the market to create an order in
         :param str type: 'market' or 'limit'
         :param str side: 'buy' or 'sell'
-        :param float amount: how much of currency you want to trade in units of base currency
+        :param float amount: how much of currency you want to trade. For perpetual and futures the amount is in USD. For options it is in corresponding cryptocurrency contracts currency.
         :param float|None price: the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
         :param dict params: extra parameters specific to the deribit api endpoint
         :returns dict: an `order structure <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
         """
         await self.load_markets()
         market = self.market(symbol)
+        if market['inverse']:
+            amount = self.amount_to_precision(symbol, amount)
+        elif market['settle'] == 'USDC':
+            amount = self.amount_to_precision(symbol, amount)
+        else:
+            amount = self.currency_to_precision(symbol, amount)
         request = {
             'instrument_name': market['id'],
             # for perpetual and futures the amount is in USD
             # for options it is in corresponding cryptocurrency contracts, e.g., BTC or ETH
-            'amount': self.amount_to_precision(symbol, amount),
+            'amount': amount,
             'type': type,  # limit, stop_limit, market, stop_market, default is limit
             # 'label': 'string',  # user-defined label for the order(maximum 64 characters)
             # 'price': self.price_to_precision(symbol, 123.45),  # only for limit and stop_limit orders
@@ -1568,26 +1600,62 @@ class deribit(Exchange):
             # 'trigger': 'index_price',  # mark_price, last_price, required for stop_limit orders
             # 'advanced': 'usd',  # 'implv', advanced option order type, options only
         }
-        priceIsRequired = False
-        stopPriceIsRequired = False
-        if type == 'limit':
-            priceIsRequired = True
-        elif type == 'stop_limit':
-            priceIsRequired = True
-            stopPriceIsRequired = True
-        if priceIsRequired:
-            if price is not None:
-                request['price'] = self.price_to_precision(symbol, price)
+        timeInForce = self.safe_string_upper(params, 'timeInForce')
+        reduceOnly = self.safe_value_2(params, 'reduceOnly', 'reduce_only')
+        # only stop loss sell orders are allowed when price crossed from above
+        stopLossPrice = self.safe_value(params, 'stopLossPrice')
+        # only take profit buy orders are allowed when price crossed from below
+        takeProfitPrice = self.safe_value(params, 'takeProfitPrice')
+        isStopLimit = type == 'stop_limit'
+        isStopMarket = type == 'stop_market'
+        isTakeLimit = type == 'take_limit'
+        isTakeMarket = type == 'take_market'
+        isStopLossOrder = isStopLimit or isStopMarket or (stopLossPrice is not None)
+        isTakeProfitOrder = isTakeLimit or isTakeMarket or (takeProfitPrice is not None)
+        if isStopLossOrder and isTakeProfitOrder:
+            raise InvalidOrder(self.id + ' createOrder() only allows one of stopLossPrice or takeProfitPrice to be specified')
+        isStopOrder = isStopLossOrder or isTakeProfitOrder
+        isLimitOrder = (type == 'limit') or isStopLimit or isTakeLimit
+        isMarketOrder = (type == 'market') or isStopMarket or isTakeMarket
+        exchangeSpecificPostOnly = self.safe_value(params, 'post_only')
+        postOnly = self.is_post_only(isMarketOrder, exchangeSpecificPostOnly, params)
+        if isLimitOrder:
+            request['type'] = 'limit'
+            request['price'] = self.price_to_precision(symbol, price)
+        else:
+            request['type'] = 'market'
+        if isStopOrder:
+            triggerPrice = stopLossPrice is not stopLossPrice if None else takeProfitPrice
+            request['trigger_price'] = self.price_to_precision(symbol, triggerPrice)
+            request['trigger'] = 'last_price'  # required
+            if isStopLossOrder:
+                if isMarketOrder:
+                    # stop_market(sell only)
+                    request['type'] = 'stop_market'
+                else:
+                    # stop_limit(sell only)
+                    request['type'] = 'stop_limit'
             else:
-                raise ArgumentsRequired(self.id + ' createOrder() requires a price argument for a ' + type + ' order')
-        if stopPriceIsRequired:
-            stopPrice = self.safe_number_2(params, 'stop_price', 'stopPrice')
-            if stopPrice is None:
-                raise ArgumentsRequired(self.id + ' createOrder() requires a stop_price or stopPrice param for a ' + type + ' order')
-            else:
-                request['stop_price'] = self.price_to_precision(symbol, stopPrice)
-            params = self.omit(params, ['stop_price', 'stopPrice'])
+                if isMarketOrder:
+                    # take_market(buy only)
+                    request['type'] = 'take_market'
+                else:
+                    # take_limit(buy only)
+                    request['type'] = 'take_limit'
+        if reduceOnly:
+            request['reduce_only'] = True
+        if postOnly:
+            request['post_only'] = True
+            request['reject_post_only'] = True
+        if timeInForce is not None:
+            if timeInForce == 'GTC':
+                request['time_in_force'] = 'good_til_cancelled'
+            if timeInForce == 'IOC':
+                request['time_in_force'] = 'immediate_or_cancel'
+            if timeInForce == 'FOK':
+                request['time_in_force'] = 'fill_or_kill'
         method = 'privateGet' + self.capitalize(side)
+        params = self.omit(params, ['timeInForce', 'stopLossPrice', 'takeProfitPrice', 'postOnly', 'reduceOnly'])
         response = await getattr(self, method)(self.extend(request, params))
         #
         #     {
@@ -1740,7 +1808,7 @@ class deribit(Exchange):
         :param int|None since: the earliest time in ms to fetch orders for
         :param int|None limit: the maximum number of  orde structures to retrieve
         :param dict params: extra parameters specific to the deribit api endpoint
-        :returns [dict]: a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure
+        :returns [dict]: a list of `order structures <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
         """
         await self.load_markets()
         request = {}
@@ -2083,6 +2151,7 @@ class deribit(Exchange):
         currentTime = self.milliseconds()
         return {
             'info': position,
+            'id': None,
             'symbol': self.safe_string(market, 'symbol'),
             'timestamp': currentTime,
             'datetime': self.iso8601(currentTime),
