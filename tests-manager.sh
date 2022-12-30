@@ -12,8 +12,7 @@ if ! [ -f "$timestamp_file" ]; then
 fi
 
 now=$(date -u +%s)
-last_run=$(< $timestamp_file)
-delta=$((now - last_run))
+delta=$((now - LAST_RUN))
 six_hours=$((60 * 60 * 6))
 diff=$(git diff master --name-only)
 
