@@ -3316,7 +3316,6 @@ module.exports = class binance extends Exchange {
         // - Spot/Margin market: cummulativeQuoteQty
         // - Futures market: cumQuote.
         //   Note this is not the actual cost, since Binance futures uses leverage to calculate margins.
-
         let cost = this.safeString2 (order, 'cummulativeQuoteQty', 'cumQuote');
         cost = this.safeString (order, 'cumBase', cost);
         const id = this.safeString (order, 'orderId');
