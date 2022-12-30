@@ -1462,7 +1462,7 @@ module.exports = class binance extends Exchange {
         const type = this.safeString (params, 'type', defaultType);
         const query = this.omit (params, 'type');
         let subType = undefined;
-        [ subType, params ] = this.handleSubTypeAndParams ('fetchTime', undefined, params);
+        [ subType, params ] = this.handleSubTypeAndParams ('fetchTime', undefined, params, undefined);
         let method = 'publicGetTime';
         if (this.isLinear (type, subType)) {
             method = 'fapiPublicGetTime';
@@ -2046,7 +2046,7 @@ module.exports = class binance extends Exchange {
             for (let i = 0; i < assets.length; i++) {
                 const asset = assets[i];
                 const marketId = this.safeValue (asset, 'symbol');
-                const symbol = this.safeSymbol (marketId);
+                const symbol = this.safeSymbol (marketId, undefined, undefined, 'margin');
                 const base = this.safeValue (asset, 'baseAsset', {});
                 const quote = this.safeValue (asset, 'quoteAsset', {});
                 const baseCode = this.safeCurrencyCode (this.safeString (base, 'asset'));
@@ -2117,7 +2117,7 @@ module.exports = class binance extends Exchange {
         const defaultType = this.safeString2 (this.options, 'fetchBalance', 'defaultType', 'spot');
         const type = this.safeString (params, 'type', defaultType);
         let subType = undefined;
-        [ subType, params ] = this.handleSubTypeAndParams ('fetchBalance', undefined, params);
+        [ subType, params ] = this.handleSubTypeAndParams ('fetchBalance', undefined, params, undefined);
         const [ marginMode, query ] = this.handleMarginModeAndParams ('fetchBalance', params);
         let method = 'privateGetAccount';
         const request = {};
@@ -2481,8 +2481,9 @@ module.exports = class binance extends Exchange {
         //     }
         //
         const timestamp = this.safeInteger (ticker, 'closeTime');
+        const marketType = ('bidQty' in ticker) ? 'spot' : 'contract';
         const marketId = this.safeString (ticker, 'symbol');
-        const symbol = this.safeSymbol (marketId, market);
+        const symbol = this.safeSymbol (marketId, market, undefined, marketType);
         const last = this.safeString (ticker, 'lastPrice');
         const isCoinm = ('baseVolume' in ticker);
         let baseVolume = undefined;
@@ -2584,7 +2585,7 @@ module.exports = class binance extends Exchange {
         const defaultType = this.safeString2 (this.options, 'fetchBidsAsks', 'defaultType', 'spot');
         const type = this.safeString (params, 'type', defaultType);
         let subType = undefined;
-        [ subType, params ] = this.handleSubTypeAndParams ('fetchBidsAsks', undefined, params);
+        [ subType, params ] = this.handleSubTypeAndParams ('fetchBidsAsks', undefined, params, undefined);
         const query = this.omit (params, 'type');
         let method = undefined;
         if (this.isLinear (type, subType)) {
@@ -2611,7 +2612,7 @@ module.exports = class binance extends Exchange {
         const defaultType = this.safeString2 (this.options, 'fetchTickers', 'defaultType', 'spot');
         const type = this.safeString (params, 'type', defaultType);
         let subType = undefined;
-        [ subType, params ] = this.handleSubTypeAndParams ('fetchTickers', undefined, params);
+        [ subType, params ] = this.handleSubTypeAndParams ('fetchTickers', undefined, params, undefined);
         const query = this.omit (params, 'type');
         let defaultMethod = undefined;
         if (this.isLinear (type, subType)) {
@@ -2854,7 +2855,8 @@ module.exports = class binance extends Exchange {
         const amount = this.safeString2 (trade, 'q', 'qty');
         const cost = this.safeString2 (trade, 'quoteQty', 'baseQty');  // inverse futures
         const marketId = this.safeString (trade, 'symbol');
-        const symbol = this.safeSymbol (marketId, market);
+        const marketType = ('M' in trade) || ('orderListId' in trade) ? 'spot' : 'contract';
+        const symbol = this.safeSymbol (marketId, market, undefined, marketType);
         let id = this.safeString2 (trade, 't', 'a');
         id = this.safeString2 (trade, 'id', 'tradeId', id);
         let side = undefined;
@@ -3286,7 +3288,8 @@ module.exports = class binance extends Exchange {
         //
         const status = this.parseOrderStatus (this.safeString (order, 'status'));
         const marketId = this.safeString (order, 'symbol');
-        const symbol = this.safeSymbol (marketId, market);
+        const marketType = ('closePosition' in order) ? 'contract' : 'spot';
+        const symbol = this.safeSymbol (marketId, market, undefined, marketType);
         const filled = this.safeString (order, 'executedQty', '0');
         let timestamp = undefined;
         let lastTradeTimestamp = undefined;
@@ -3313,6 +3316,7 @@ module.exports = class binance extends Exchange {
         // - Spot/Margin market: cummulativeQuoteQty
         // - Futures market: cumQuote.
         //   Note this is not the actual cost, since Binance futures uses leverage to calculate margins.
+
         let cost = this.safeString2 (order, 'cummulativeQuoteQty', 'cumQuote');
         cost = this.safeString (order, 'cumBase', cost);
         const id = this.safeString (order, 'orderId');
@@ -3716,7 +3720,7 @@ module.exports = class binance extends Exchange {
             type = this.safeString (query, 'type', defaultType);
         }
         let subType = undefined;
-        [ subType, query ] = this.handleSubTypeAndParams ('fetchOpenOrders', market, params);
+        [ subType, query ] = this.handleSubTypeAndParams ('fetchOpenOrders', market, params, undefined);
         const requestParams = this.omit (query, 'type');
         let method = 'privateGetOpenOrders';
         if (this.isLinear (type, subType)) {
@@ -4557,7 +4561,7 @@ module.exports = class binance extends Exchange {
         //     }
         //
         const marketId = this.safeString (income, 'symbol');
-        const symbol = this.safeSymbol (marketId, market);
+        const symbol = this.safeSymbol (marketId, market, undefined, 'swap');
         const amount = this.safeNumber (income, 'income');
         const currencyId = this.safeString (income, 'asset');
         const code = this.safeCurrencyCode (currencyId);
@@ -5108,7 +5112,7 @@ module.exports = class binance extends Exchange {
         //     }
         //
         const marketId = this.safeString (fee, 'symbol');
-        const symbol = this.safeSymbol (marketId);
+        const symbol = this.safeSymbol (marketId, market, undefined, 'spot');
         return {
             'info': fee,
             'symbol': symbol,
@@ -5159,7 +5163,7 @@ module.exports = class binance extends Exchange {
         const type = this.safeString (params, 'type', defaultType);
         params = this.omit (params, 'type');
         let subType = undefined;
-        [ subType, params ] = this.handleSubTypeAndParams ('fetchTradingFees', undefined, params);
+        [ subType, params ] = this.handleSubTypeAndParams ('fetchTradingFees', undefined, params, undefined);
         const isSpotOrMargin = (type === 'spot') || (type === 'margin');
         const isLinear = this.isLinear (type, subType);
         const isInverse = this.isInverse (type, subType);
@@ -5408,7 +5412,7 @@ module.exports = class binance extends Exchange {
             request['symbol'] = market['id'];
         }
         let subType = undefined;
-        [ subType, params ] = this.handleSubTypeAndParams ('fetchFundingRateHistory', market, params);
+        [ subType, params ] = this.handleSubTypeAndParams ('fetchFundingRateHistory', market, params, 'linear');
         params = this.omit (params, 'type');
         if (this.isLinear (type, subType)) {
             method = 'fapiPublicGetFundingRate';
@@ -5444,7 +5448,7 @@ module.exports = class binance extends Exchange {
             const timestamp = this.safeInteger (entry, 'fundingTime');
             rates.push ({
                 'info': entry,
-                'symbol': this.safeSymbol (this.safeString (entry, 'symbol')),
+                'symbol': this.safeSymbol (this.safeString (entry, 'symbol'), undefined, 'swap'),
                 'fundingRate': this.safeNumber (entry, 'fundingRate'),
                 'timestamp': timestamp,
                 'datetime': this.iso8601 (timestamp),
@@ -5469,7 +5473,7 @@ module.exports = class binance extends Exchange {
         const defaultType = this.safeString2 (this.options, 'fetchFundingRates', 'defaultType', 'future');
         const type = this.safeString (params, 'type', defaultType);
         let subType = undefined;
-        [ subType, params ] = this.handleSubTypeAndParams ('fetchFundingRates', undefined, params);
+        [ subType, params ] = this.handleSubTypeAndParams ('fetchFundingRates', undefined, params, 'linear');
         const query = this.omit (params, 'type');
         if (this.isLinear (type, subType)) {
             method = 'fapiPublicGetPremiumIndex';
@@ -5504,7 +5508,7 @@ module.exports = class binance extends Exchange {
         //
         const timestamp = this.safeInteger (contract, 'time');
         const marketId = this.safeString (contract, 'symbol');
-        const symbol = this.safeSymbol (marketId, market);
+        const symbol = this.safeSymbol (marketId, market, undefined, 'contract');
         const markPrice = this.safeNumber (contract, 'markPrice');
         const indexPrice = this.safeNumber (contract, 'indexPrice');
         const interestRate = this.safeNumber (contract, 'interestRate');
@@ -5942,7 +5946,7 @@ module.exports = class binance extends Exchange {
             const type = this.safeString (params, 'type', defaultType);
             const query = this.omit (params, 'type');
             let subType = undefined;
-            [ subType, params ] = this.handleSubTypeAndParams ('loadLeverageBrackets', undefined, params);
+            [ subType, params ] = this.handleSubTypeAndParams ('loadLeverageBrackets', undefined, params, 'linear');
             if (this.isLinear (type, subType)) {
                 method = 'fapiPrivateGetLeverageBracket';
             } else if (this.isInverse (type, subType)) {
@@ -5955,7 +5959,7 @@ module.exports = class binance extends Exchange {
             for (let i = 0; i < response.length; i++) {
                 const entry = response[i];
                 const marketId = this.safeString (entry, 'symbol');
-                const symbol = this.safeSymbol (marketId);
+                const symbol = this.safeSymbol (marketId, undefined, undefined, 'contract');
                 const brackets = this.safeValue (entry, 'brackets', []);
                 const result = [];
                 for (let j = 0; j < brackets.length; j++) {
@@ -5982,7 +5986,7 @@ module.exports = class binance extends Exchange {
         await this.loadMarkets ();
         const [ type, query ] = this.handleMarketTypeAndParams ('fetchLeverageTiers', undefined, params);
         let subType = undefined;
-        [ subType, params ] = this.handleSubTypeAndParams ('fetchLeverageTiers', undefined, params);
+        [ subType, params ] = this.handleSubTypeAndParams ('fetchLeverageTiers', undefined, params, 'linear');
         let method = undefined;
         if (this.isLinear (type, subType)) {
             method = 'fapiPrivateGetLeverageBracket';
@@ -6115,7 +6119,7 @@ module.exports = class binance extends Exchange {
         const type = this.safeString (params, 'type', defaultType);
         let query = this.omit (params, 'type');
         let subType = undefined;
-        [ subType, query ] = this.handleSubTypeAndParams ('fetchAccountPositions', undefined, params);
+        [ subType, query ] = this.handleSubTypeAndParams ('fetchAccountPositions', undefined, params, 'linear');
         if (this.isLinear (type, subType)) {
             method = 'fapiPrivateGetAccount';
         } else if (this.isInverse (type, subType)) {
@@ -6151,7 +6155,7 @@ module.exports = class binance extends Exchange {
         defaultType = this.safeString (this.options, 'defaultType', defaultType);
         const type = this.safeString (params, 'type', defaultType);
         let subType = undefined;
-        [ subType, params ] = this.handleSubTypeAndParams ('fetchPositionsRisk', undefined, params);
+        [ subType, params ] = this.handleSubTypeAndParams ('fetchPositionsRisk', undefined, params, 'linear');
         params = this.omit (params, 'type');
         if (this.isLinear (type, subType)) {
             method = 'fapiPrivateGetPositionRisk';
@@ -6249,7 +6253,7 @@ module.exports = class binance extends Exchange {
             }
         }
         let subType = undefined;
-        [ subType, params ] = this.handleSubTypeAndParams ('fetchFundingHistory', market, params);
+        [ subType, params ] = this.handleSubTypeAndParams ('fetchFundingHistory', market, params, 'linear');
         if (since !== undefined) {
             request['startTime'] = since;
         }
@@ -7084,7 +7088,7 @@ module.exports = class binance extends Exchange {
         const amount = this.safeNumber (interest, 'sumOpenInterest');
         const value = this.safeNumber (interest, 'sumOpenInterestValue');
         return {
-            'symbol': this.safeSymbol (id),
+            'symbol': this.safeSymbol (id, undefined, undefined, 'contract'),
             'baseVolume': amount,  // deprecated
             'quoteVolume': value,  // deprecated
             'openInterestAmount': amount,
