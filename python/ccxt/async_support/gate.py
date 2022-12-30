@@ -1441,7 +1441,7 @@ class gate(Exchange):
         #    }
         #
         marketId = self.safe_string(contract, 'name')
-        symbol = self.safe_symbol(marketId, market)
+        symbol = self.safe_symbol(marketId, market, '_', 'swap')
         markPrice = self.safe_number(contract, 'mark_price')
         indexPrice = self.safe_number(contract, 'index_price')
         interestRate = self.safe_number(contract, 'interest_rate')
@@ -2015,7 +2015,8 @@ class gate(Exchange):
         #     }
         #
         marketId = self.safe_string_n(ticker, ['currency_pair', 'contract', 's'])
-        symbol = self.safe_symbol(marketId, market)
+        marketType = 'contract' if ('contract' in ticker) else 'spot'
+        symbol = self.safe_symbol(marketId, market, '_', marketType)
         last = self.safe_string(ticker, 'last')
         ask = self.safe_string_2(ticker, 'lowest_ask', 'a')
         bid = self.safe_string_2(ticker, 'highest_bid', 'b')
@@ -2118,7 +2119,7 @@ class gate(Exchange):
             'future': 'privateDeliveryGetSettleAccounts',
         })
         response = await getattr(self, method)(self.extend(request, requestQuery))
-        contract = (type == 'swap' or type == 'future')
+        contract = ((type == 'swap') or (type == 'future'))
         if contract:
             response = [response]
         #
@@ -2251,7 +2252,7 @@ class gate(Exchange):
             entry = data[i]
             if isolated:
                 marketId = self.safe_string(entry, 'currency_pair')
-                symbol = self.safe_symbol(marketId, None, '_')
+                symbol = self.safe_symbol(marketId, None, '_', 'margin')
                 base = self.safe_value(entry, 'base', {})
                 quote = self.safe_value(entry, 'quote', {})
                 baseCode = self.safe_currency_code(self.safe_string(base, 'currency'))
@@ -3413,7 +3414,9 @@ class gate(Exchange):
         lastTradeTimestamp = self.safe_integer(order, 'update_time_ms')
         if lastTradeTimestamp is None:
             lastTradeTimestamp = self.safe_timestamp_2(order, 'update_time', 'finish_time')
+        marketType = 'spot' if ('currency_pair' in order) else 'contract'
         exchangeSymbol = self.safe_string_2(order, 'currency_pair', 'market', contract)
+        symbol = self.safe_symbol(exchangeSymbol, market, '_', marketType)
         # Everything below self(above return) is related to fees
         fees = []
         gtFee = self.safe_string(order, 'gt_fee')
@@ -3444,7 +3447,7 @@ class gate(Exchange):
             'datetime': self.iso8601(timestamp),
             'lastTradeTimestamp': lastTradeTimestamp,
             'status': status,
-            'symbol': self.safe_symbol(exchangeSymbol),
+            'symbol': symbol,
             'type': type,
             'timeInForce': timeInForce,
             'postOnly': postOnly,
@@ -4545,7 +4548,7 @@ class gate(Exchange):
             'id': self.safe_integer(info, 'id'),
             'currency': self.safe_currency_code(currencyId, currency),
             'amount': self.safe_number(info, 'amount'),
-            'symbol': self.safe_symbol(marketId, None),
+            'symbol': self.safe_symbol(marketId, None, '_', 'margin'),
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
             'info': info,
