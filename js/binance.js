@@ -1848,7 +1848,7 @@ module.exports = class binance extends Exchange {
             const contract = ('contractType' in market);
             const spot = !contract;
             let expiry = this.safeInteger (market, 'deliveryDate');
-            if (contractType === 'PERPETUAL') {
+            if (contractType === 'PERPETUAL' || expiry >= 4133404800000) { // some swap markets do not have contract type, eg: BTCST
                 expiry = undefined;
                 swap = true;
             } else {
