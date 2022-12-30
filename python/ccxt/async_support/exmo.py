@@ -1539,61 +1539,58 @@ class exmo(Exchange):
         #
         # fetchTransactions
         #
-        #          {
-        #            "dt": 1461841192,
-        #            "type": "deposit",
-        #            "curr": "RUB",
-        #            "status": "processing",
-        #            "provider": "Qiwi(LA) [12345]",
-        #            "amount": "1",
-        #            "account": "",
-        #            "txid": "ec46f784ad976fd7f7539089d1a129fe46...",
-        #          }
+        #    {
+        #        "dt": 1461841192,
+        #        "type": "deposit",
+        #        "curr": "RUB",
+        #        "status": "processing",
+        #        "provider": "Qiwi(LA) [12345]",
+        #        "amount": "1",
+        #        "account": "",
+        #        "txid": "ec46f784ad976fd7f7539089d1a129fe46...",
+        #    }
         #
         # fetchWithdrawals
         #
-        #          {
-        #             "operation_id": 47412538520634344,
-        #             "created": 1573760013,
-        #             "updated": 1573760013,
-        #             "type": "withdraw",
-        #             "currency": "DOGE",
-        #             "status": "Paid",
-        #             "amount": "300",
-        #             "provider": "DOGE",
-        #             "commission": "0",
-        #             "account": "DOGE: DBVy8pF1f8yxaCVEHqHeR7kkcHecLQ8nRS",
-        #             "order_id": 69670170,
-        #             "provider_type": "crypto",
-        #             "crypto_address": "DBVy8pF1f8yxaCVEHqHeR7kkcHecLQ8nRS",
-        #             "card_number": "",
-        #             "wallet_address": "",
-        #             "email": "",
-        #             "phone": "",
-        #             "extra": {
-        #                 "txid": "f2b66259ae1580f371d38dd27e31a23fff8c04122b65ee3ab5a3f612d579c792",
-        #                 "confirmations": null,
-        #                 "excode": "",
-        #                 "invoice": ""
-        #             },
-        #             "error": ""
-        #          },
+        #    {
+        #        "operation_id": 47412538520634344,
+        #        "created": 1573760013,
+        #        "updated": 1573760013,
+        #        "type": "withdraw",
+        #        "currency": "DOGE",
+        #        "status": "Paid",
+        #        "amount": "300",
+        #        "provider": "DOGE",
+        #        "commission": "0",
+        #        "account": "DOGE: DBVy8pF1f8yxaCVEHqHeR7kkcHecLQ8nRS",
+        #        "order_id": 69670170,
+        #        "provider_type": "crypto",
+        #        "crypto_address": "DBVy8pF1f8yxaCVEHqHeR7kkcHecLQ8nRS",
+        #        "card_number": "",
+        #        "wallet_address": "",
+        #        "email": "",
+        #        "phone": "",
+        #        "extra": {
+        #            "txid": "f2b66259ae1580f371d38dd27e31a23fff8c04122b65ee3ab5a3f612d579c792",
+        #            "confirmations": null,
+        #            "excode": "",
+        #            "invoice": ""
+        #        },
+        #        "error": ""
+        #    }
         #
         # withdraw
         #
-        #          {
-        #              "result":true,
-        #              "error":"",
-        #              "task_id":11775077
-        #          },
+        #    {
+        #        "result": True,
+        #        "error": "",
+        #        "task_id": 11775077
+        #    }
         #
-        id = self.safe_string_2(transaction, 'order_id', 'task_id')
         timestamp = self.safe_timestamp_2(transaction, 'dt', 'created')
-        updated = self.safe_timestamp(transaction, 'updated')
         amount = self.safe_string(transaction, 'amount')
         if amount is not None:
             amount = Precise.string_abs(amount)
-        status = self.parse_transaction_status(self.safe_string_lower(transaction, 'status'))
         txid = self.safe_string(transaction, 'txid')
         if txid is None:
             extra = self.safe_value(transaction, 'extra', {})
@@ -1604,7 +1601,6 @@ class exmo(Exchange):
         currencyId = self.safe_string_2(transaction, 'curr', 'currency')
         code = self.safe_currency_code(currencyId, currency)
         address = None
-        tag = None
         comment = None
         account = self.safe_string(transaction, 'account')
         if type == 'deposit':
@@ -1617,7 +1613,11 @@ class exmo(Exchange):
                 if numParts == 2:
                     address = self.safe_string(parts, 1)
                     address = address.replace(' ', '')
-        fee = None
+        fee = {
+            'currency': None,
+            'cost': None,
+            'rate': None,
+        }
         # fixed funding fees only(for now)
         if not self.fees['transaction']['percentage']:
             key = 'withdraw' if (type == 'withdrawal') else 'deposit'
@@ -1634,31 +1634,27 @@ class exmo(Exchange):
                 # withdrawal amount includes the fee
                 if type == 'withdrawal':
                     amount = Precise.string_sub(amount, feeCost)
-                fee = {
-                    'cost': self.parse_number(feeCost),
-                    'currency': code,
-                    'rate': None,
-                }
-        network = self.safe_string(transaction, 'provider')
+                fee['cost'] = self.parse_number(feeCost)
+                fee['currency'] = code
         return {
             'info': transaction,
-            'id': id,
+            'id': self.safe_string_2(transaction, 'order_id', 'task_id'),
+            'txid': txid,
+            'type': type,
+            'currency': code,
+            'network': self.safe_string(transaction, 'provider'),
+            'amount': amount,
+            'status': self.parse_transaction_status(self.safe_string_lower(transaction, 'status')),
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
-            'currency': code,
-            'amount': amount,
-            'network': network,
             'address': address,
-            'addressTo': address,
             'addressFrom': None,
-            'tag': tag,
-            'tagTo': tag,
+            'addressTo': address,
+            'tag': None,
             'tagFrom': None,
-            'status': status,
-            'type': type,
-            'updated': updated,
+            'tagTo': None,
+            'updated': self.safe_timestamp(transaction, 'updated'),
             'comment': comment,
-            'txid': txid,
             'fee': fee,
         }
 
