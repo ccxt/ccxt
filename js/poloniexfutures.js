@@ -138,6 +138,11 @@ module.exports = class poloniexfutures extends Exchange {
             },
             'commonCurrencies': {
             },
+            'requiredCredentials': {
+                'apiKey': true,
+                'secret': true,
+                'password': true,
+            },
             'options': {
                 'networks': {
                     'OMNI': 'omni',
@@ -152,11 +157,6 @@ module.exports = class poloniexfutures extends Exchange {
                             'level3/snapshot': 'v2',
                         },
                     },
-                },
-                'requiredCredentials': {
-                    'apiKey': true,
-                    'secret': true,
-                    'password': true,
                 },
             },
             'exceptions': {
@@ -338,8 +338,7 @@ module.exports = class poloniexfutures extends Exchange {
     parseTicker (ticker, market = undefined) {
         const marketId = this.safeString (ticker, 'symbol');
         const symbol = this.safeSymbol (marketId, market);
-        let timestamp = this.safeNumber (ticker, 'ts');
-        timestamp = parseInt (timestamp / 1000000);
+        const timestamp = this.safeIntegerProduct (ticker, 'ts', 0.000001);
         const last = this.safeString (ticker, 'price');
         return this.safeTicker ({
             'symbol': symbol,
@@ -359,7 +358,7 @@ module.exports = class poloniexfutures extends Exchange {
             'change': undefined,
             'percentage': undefined,
             'average': undefined,
-            'baseVolume': undefined,
+            'baseVolume': this.safeString (ticker, 'size'),
             'quoteVolume': undefined,
             'info': ticker,
         }, market);
@@ -440,10 +439,10 @@ module.exports = class poloniexfutures extends Exchange {
             'symbol': market['id'],
         };
         let response = undefined;
-        if (level === 2) {
-            response = await this.publicGetLevel2Snapshot (this.extend (request, params));
-        } else {
+        if (level === 3) {
             response = await this.publicGetLevel3Snapshot (this.extend (request, params));
+        } else {
+            response = await this.publicGetLevel2Snapshot (this.extend (request, params));
         }
         // L2
         //
@@ -492,13 +491,14 @@ module.exports = class poloniexfutures extends Exchange {
         // }
         //
         const data = this.safeValue (response, 'data', {});
-        const timestamp = parseInt (this.safeInteger (data, 'ts') / 1000000);
+        const timestamp = this.safeIntegerProduct (data, 'ts', 0.000001);
         let orderbook = undefined;
-        if (level === 2) {
-            orderbook = this.parseOrderBook (data, market['symbol'], timestamp, 'bids', 'asks', 0, 1);
-        } else {
+        if (level === 3) {
             orderbook = this.parseOrderBook (data, market['symbol'], timestamp, 'bids', 'asks', 1, 2);
+        } else {
+            orderbook = this.parseOrderBook (data, market['symbol'], timestamp, 'bids', 'asks', 0, 1);
         }
+        orderbook['nonce'] = this.safeInteger (data, 'sequence');
         return orderbook;
     }
 
@@ -515,36 +515,7 @@ module.exports = class poloniexfutures extends Exchange {
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const request = {
-            'symbol': market['id'],
-        };
-        const response = await this.publicGetLevel3Snapshot (this.extend (request, params));
-        // {
-        //     "code": "200000",
-        //     "data": {
-        //     "symbol": "BTCUSDTPERP",
-        //     "sequence": 1669149851334,
-        //     "asks": [
-        //         [
-        //             "639c95388cba5100084eabce",
-        //             "16952.0",
-        //             "1",
-        //             1671206200542484700
-        //         ],
-        //     ],
-        //     "bids": [
-        //         [
-        //             "626659d83385c200072e690b",
-        //             "17.0",
-        //             "1000",
-        //             1650874840161291000
-        //         ],
-        //     ],
-        // }
-        //
-        const data = this.safeValue (response, 'data', {});
-        const timestamp = parseInt (this.safeInteger (data, 'ts') / 1000000);
-        return this.parseOrderBook (data, market['symbol'], timestamp, 'bids', 'asks', 1, 2);
+        return this.fetchOrderBook (market['id'], undefined, { 'level': 3 });
     }
 
     parseTrade (trade, market = undefined) {
@@ -725,11 +696,11 @@ module.exports = class poloniexfutures extends Exchange {
                 limit = this.safeInteger (this.options, 'fetchOHLCVLimit', 200);
             }
             endAt = this.sum (since, limit * duration);
+            request['to'] = endAt;
         } else if (limit !== undefined) {
             since = endAt - limit * duration;
             request['from'] = since;
         }
-        request['to'] = endAt;
         const response = await this.publicGetKlineQuery (this.extend (request, params));
         //
         //    {
