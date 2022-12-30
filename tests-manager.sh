@@ -45,14 +45,11 @@ function run_tests {
   wait $rest_pid && wait $ws_pid
 }
 
-if [ "$TRAVIS_PULL_REQUEST" = "false" ] && [ "$TRAVIS_BRANCH" = "master" ]; then
-  # if it is a direct push then the commit would be parent 1 otherwise the commit will be parent 2
-  if git show -s --format=%ce "$TRAVIS_COMMIT^1" | grep -q 'travis@travis-ci.org'; then
-    # we are in a merge commit
-    # the previous commit is a release made by travis
-    # instead of a direct push, so we can skip running the tests
-    exit 0
-  fi
+if [ "$TRAVIS_PULL_REQUEST" = "false" ] && [ "$TRAVIS_BRANCH" = "master" ] && git show -s --format=%ce "$TRAVIS_COMMIT^1" | grep -q 'travis@travis-ci.org'; then
+  # we are in a merge commit
+  # the first parent is a release made by travis
+  # this means the tests are passing and there have been no untested pushes
+  exit 0
 fi
 
 if [ "$delta" -gt $six_hours ] || grep -q -E 'Exchange.php|/test|/base|^build|static_dependencies|^run-tests' <<< "$diff"; then
