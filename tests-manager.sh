@@ -53,7 +53,7 @@ fi
 
 if [ "$delta" -gt $six_hours ] || grep -q -E 'Exchange.php|/test|/base|^build|static_dependencies|^run-tests' <<< "$diff"; then
   # shellcheck disable=SC2155
-  run_tests && export LAST_RUN=$(date -u +%s)
+  run_tests && date -u +%s > "$timestamp_file"
 else
   run_tests "$(sed -E -n 's:^js/([^/]+)\.js$:\1:p' <<< "$diff" | xargs)" "$(sed -E -n 's:^js/pro/([^/]+)\.js$:\1:p' <<< "$diff" | xargs)"
 fi
