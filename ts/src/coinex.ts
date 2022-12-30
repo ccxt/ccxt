@@ -4416,7 +4416,7 @@ export default class coinex extends Exchange {
                 request['coin_type'] = this.safeValue (codes, 0);
             }
         }
-        const response = await this.publicGetCommonAssetConfig (this.extend (request, params));
+        const response = await (this as any).publicGetCommonAssetConfig (this.extend (request, params));
         //
         //    {
         //        "code": 0,
