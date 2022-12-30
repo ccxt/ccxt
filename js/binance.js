@@ -867,6 +867,7 @@ module.exports = class binance extends Exchange {
             // exchange-specific options
             'options': {
                 'fetchMarkets': [ 'spot', 'linear', 'inverse' ],
+                'marketIdConflicts': false,
                 'fetchCurrencies': true, // this is a private call and it requires API keys
                 // 'fetchTradesMethod': 'publicGetAggTrades', // publicGetTrades, publicGetHistoricalTrades
                 'defaultTimeInForce': 'GTC', // 'GTC' = Good To Cancel (default), 'IOC' = Immediate Or Cancel
@@ -1397,7 +1398,8 @@ module.exports = class binance extends Exchange {
             throw new ExchangeError (this.id + ' markets not loaded');
         }
         // defaultType has legacy support on binance
-        let defaultType = this.safeString2 (this.options, 'defaultSubType', 'defaultType');
+        let defaultType = this.safeString (this.options, 'defaultType');
+        const defaultSubType = this.safeString (this.options, 'defaultSubType');
         const isLegacyLinear = defaultType === 'future';
         const isLegacyInverse = defaultType === 'delivery';
         const isLegacy = isLegacyLinear || isLegacyInverse;
@@ -1415,11 +1417,13 @@ module.exports = class binance extends Exchange {
             } else if (symbol in this.markets_by_id) {
                 const markets = this.markets_by_id[symbol];
                 // begin diff
-                const filter = {
-                    'future': 'linear',
-                    'delivery': 'inverse',
-                };
-                defaultType = this.safeString (filter, defaultType, defaultType);
+                if (isLegacyLinear) {
+                    defaultType = 'linear';
+                } else if (isLegacyInverse) {
+                    defaultType = 'inverse';
+                } else if (defaultType === undefined) {
+                    defaultType = defaultSubType;
+                }
                 // end diff
                 for (let i = 0; i < markets.length; i++) {
                     const market = markets[i];
@@ -1660,11 +1664,15 @@ module.exports = class binance extends Exchange {
          */
         let promises = [];
         const fetchMarkets = this.safeValue (this.options, 'fetchMarkets', [ 'spot', 'linear', 'inverse' ]);
+        let hasSpot = false;
+        let hasLinear = false;
         for (let i = 0; i < fetchMarkets.length; i++) {
             const marketType = fetchMarkets[i];
             if (marketType === 'spot') {
+                hasSpot = true;
                 promises.push (this.publicGetExchangeInfo (params));
             } else if (marketType === 'linear') {
+                hasLinear = true;
                 promises.push (this.fapiPublicGetExchangeInfo (params));
             } else if (marketType === 'inverse') {
                 promises.push (this.dapiPublicGetExchangeInfo (params));
@@ -1672,6 +1680,7 @@ module.exports = class binance extends Exchange {
                 throw new ExchangeError (this.id + ' fetchMarkets() this.options fetchMarkets "' + marketType + '" is not a supported market type');
             }
         }
+        this.options['marketIdConflicts'] = hasSpot && hasLinear;
         promises = await Promise.all (promises);
         const spotMarkets = this.safeValue (this.safeValue (promises, 0), 'symbols', []);
         const futureMarkets = this.safeValue (this.safeValue (promises, 1), 'symbols', []);
@@ -1848,7 +1857,7 @@ module.exports = class binance extends Exchange {
             const contract = ('contractType' in market);
             const spot = !contract;
             let expiry = this.safeInteger (market, 'deliveryDate');
-            if (contractType === 'PERPETUAL' || expiry >= 4133404800000) { // some swap markets do not have contract type, eg: BTCST
+            if ((contractType === 'PERPETUAL') || (expiry >= 4133404800000)) { // some swap markets do not have contract type, eg: BTCST
                 expiry = undefined;
                 swap = true;
             } else {
@@ -1982,29 +1991,6 @@ module.exports = class binance extends Exchange {
             result.push (entry);
         }
         return result;
-    }
-
-    setMarkets (markets, currencies = undefined) {
-        super.setMarkets (markets, currencies);
-        const values = Object.values (this.markets);
-        let hasSpot = false;
-        for (let i = 0; i < values.length; i++) {
-            const entry = values[i];
-            hasSpot = hasSpot || entry['spot'];
-            if (hasSpot) {
-                break;
-            }
-        }
-        if (!hasSpot) {
-            // we add aliases for swap markets
-            for (let i = 0; i < values.length; i++) {
-                const entry = values[i];
-                if (entry['swap']) {
-                    const symbolAlias = entry['base'] + '/' + entry['quote'];
-                    this.markets[symbolAlias] = entry;
-                }
-            }
-        }
     }
 
     parseBalanceHelper (entry) {
