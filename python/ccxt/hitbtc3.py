@@ -1076,32 +1076,35 @@ class hitbtc3(Exchange):
         sender = self.safe_value(native, 'senders')
         addressFrom = self.safe_string(sender, 0)
         amount = self.safe_number(native, 'amount')
-        fee = None
+        fee = {
+            'currency': None,
+            'cost': None,
+            'rate': None,
+        }
         feeCost = self.safe_number(native, 'fee')
         if feeCost is not None:
-            fee = {
-                'currency': code,
-                'cost': feeCost,
-            }
+            fee['currency'] = code
+            fee['cost'] = feeCost
         return {
             'info': transaction,
             'id': id,
             'txid': txhash,
+            'type': type,
             'code': code,  # kept here for backward-compatibility, but will be removed soon
             'currency': code,
-            'amount': amount,
             'network': None,
+            'amount': amount,
+            'status': status,
+            'timestamp': timestamp,
+            'datetime': self.iso8601(timestamp),
             'address': address,
             'addressFrom': addressFrom,
             'addressTo': addressTo,
             'tag': tag,
             'tagFrom': None,
             'tagTo': tagTo,
-            'timestamp': timestamp,
-            'datetime': self.iso8601(timestamp),
             'updated': updated,
-            'status': status,
-            'type': type,
+            'comment': None,
             'fee': fee,
         }
 
