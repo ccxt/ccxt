@@ -828,6 +828,9 @@ class bybit extends Exchange {
                     'deposit' => array(),
                 ),
             ),
+            'commonCurrencies' => array(
+                'GAS' => 'GASDAO',
+            ),
         ));
     }
 
@@ -1227,7 +1230,7 @@ class bybit extends Exchange {
             //             "nextPageCursor" => ""
             //         ),
             //         "retExtInfo" => array(),
-            //         "time" => 1667533491917
+            //         "time" => 1667533491916
             //     }
             //
             // $option $response
@@ -1453,7 +1456,7 @@ class bybit extends Exchange {
         //     }
         //
         $marketId = $this->safe_string($ticker, 's');
-        $symbol = $this->safe_symbol($marketId, $market);
+        $symbol = $this->safe_symbol($marketId, $market, null, 'spot');
         $timestamp = $this->safe_integer($ticker, 't');
         return $this->safe_ticker(array(
             'symbol' => $symbol,
@@ -1568,7 +1571,7 @@ class bybit extends Exchange {
         //
         $timestamp = $this->safe_integer($ticker, 'time');
         $marketId = $this->safe_string($ticker, 'symbol');
-        $symbol = $this->safe_symbol($marketId, $market);
+        $symbol = $this->safe_symbol($marketId, $market, null, 'contract');
         $last = $this->safe_string_2($ticker, 'last_price', 'lastPrice');
         $open = $this->safe_string_n($ticker, array( 'prev_price_24h', 'openPrice', 'prevPrice24h' ));
         $percentage = $this->safe_string_n($ticker, array( 'price_24h_pcnt', 'change24h', 'price24hPcnt' ));
@@ -2249,7 +2252,7 @@ class bybit extends Exchange {
                 $timestamp = $this->safe_integer($entry, 'fundingRateTimestamp');
                 $rates[] = array(
                     'info' => $entry,
-                    'symbol' => $this->safe_symbol($this->safe_string($entry, 'symbol')),
+                    'symbol' => $this->safe_symbol($this->safe_string($entry, 'symbol'), null, null, 'swap'),
                     'fundingRate' => $this->safe_number($entry, 'fundingRate'),
                     'timestamp' => $timestamp,
                     'datetime' => $this->iso8601($timestamp),
@@ -6722,7 +6725,7 @@ class bybit extends Exchange {
         $timestamp = $this->safe_integer($interest, 'timestamp');
         $value = $this->safe_number_2($interest, 'open_interest', 'openInterest');
         return array(
-            'symbol' => $this->safe_symbol($market['id']),
+            'symbol' => $market['symbol'],
             'openInterestAmount' => null,
             'openInterestValue' => $value,
             'timestamp' => $timestamp,
@@ -7461,7 +7464,7 @@ class bybit extends Exchange {
         //     }
         //
         $marketId = $this->safe_string($fee, 'symbol');
-        $symbol = $this->safe_symbol($marketId);
+        $symbol = $this->safe_symbol($marketId, null, null, 'contract');
         return array(
             'info' => $fee,
             'symbol' => $symbol,

@@ -58,6 +58,8 @@ class coinex extends Exchange {
                 'fetchDepositAddressByNetwork' => false,
                 'fetchDepositAddresses' => false,
                 'fetchDeposits' => true,
+                'fetchDepositWithdrawFees' => true,
+                'fetchDepsoitWithdrawFee' => 'emulated',
                 'fetchFundingHistory' => true,
                 'fetchFundingRate' => true,
                 'fetchFundingRateHistory' => true,
@@ -83,8 +85,6 @@ class coinex extends Exchange {
                 'fetchTrades' => true,
                 'fetchTradingFee' => true,
                 'fetchTradingFees' => true,
-                'fetchTransactionFee:' => false,
-                'fetchTransactoinFees' => false,
                 'fetchTransfer' => false,
                 'fetchTransfers' => true,
                 'fetchWithdrawal' => false,
@@ -4416,6 +4416,103 @@ class coinex extends Exchange {
             'datetime' => null,
             'info' => $info,
         );
+    }
+
+    public function fetch_deposit_withdraw_fees($codes = null, $params = array ()) {
+        return Async\async(function () use ($codes, $params) {
+            /**
+             * fetch deposit and withdraw fees
+             * @see https://viabtc.github.io/coinex_api_en_doc/spot/#docsspot001_market010_asset_config
+             * @param {[string]|null} $codes list of unified currency $codes
+             * @param {array} $params extra parameters specific to the coinex api endpoint
+             * @return {[array]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#fee-structure fees structures}
+             */
+            Async\await($this->load_markets());
+            $request = array();
+            if ($codes !== null) {
+                $codesLength = count($codes);
+                if ($codesLength === 1) {
+                    $request['coin_type'] = $this->safe_value($codes, 0);
+                }
+            }
+            $response = Async\await($this->publicGetCommonAssetConfig (array_merge($request, $params)));
+            //
+            //    {
+            //        "code" => 0,
+            //        "data" => {
+            //            "CET-CSC" => array(
+            //                "asset" => "CET",
+            //                "chain" => "CSC",
+            //                "can_deposit" => true,
+            //                "can_withdraw " => false,
+            //                "deposit_least_amount" => "1",
+            //                "withdraw_least_amount" => "1",
+            //                "withdraw_tx_fee" => "0.1"
+            //            ),
+            //            "CET-ERC20" => array(
+            //                "asset" => "CET",
+            //                "chain" => "ERC20",
+            //                "can_deposit" => true,
+            //                "can_withdraw" => false,
+            //                "deposit_least_amount" => "14",
+            //                "withdraw_least_amount" => "14",
+            //                "withdraw_tx_fee" => "14"
+            //            }
+            //        ),
+            //        "message" => "Success"
+            //    }
+            //
+            return $this->parse_deposit_withdraw_fees($response, $codes);
+        }) ();
+    }
+
+    public function parse_deposit_withdraw_fees($response, $codes = null, $currencyIdKey = null) {
+        $depositWithdrawFees = array();
+        $codes = $this->market_codes($codes);
+        $data = $this->safe_value($response, 'data');
+        $currencyIds = is_array($data) ? array_keys($data) : array();
+        for ($i = 0; $i < count($currencyIds); $i++) {
+            $entry = $currencyIds[$i];
+            $splitEntry = explode('-', $entry);
+            $feeInfo = $data[$currencyIds[$i]];
+            $currencyId = $this->safe_string($feeInfo, 'asset');
+            $currency = $this->safe_currency($currencyId);
+            $code = $this->safe_string($currency, 'code');
+            if (($codes === null) || ($this->in_array($code, $codes))) {
+                $depositWithdrawFee = $this->safe_value($depositWithdrawFees, $code);
+                if ($depositWithdrawFee === null) {
+                    $depositWithdrawFees[$code] = $this->deposit_withdraw_fee(array());
+                }
+                $depositWithdrawFees[$code]['info'][$entry] = $feeInfo;
+                $networkId = $this->safe_string($splitEntry, 1);
+                $withdrawFee = $this->safe_value($feeInfo, 'withdraw_tx_fee');
+                $withdrawResult = array(
+                    'fee' => $withdrawFee,
+                    'percentage' => ($withdrawFee !== null) ? false : null,
+                );
+                $depositResult = array(
+                    'fee' => null,
+                    'percentage' => null,
+                );
+                if ($networkId !== null) {
+                    $networkCode = $this->network_id_to_code($networkId);
+                    $depositWithdrawFees[$code]['networks'][$networkCode] = array(
+                        'withdraw' => $withdrawResult,
+                        'deposit' => $depositResult,
+                    );
+                } else {
+                    $depositWithdrawFees[$code]['withdraw'] = $withdrawResult;
+                    $depositWithdrawFees[$code]['deposit'] = $depositResult;
+                }
+            }
+        }
+        $depositWithdrawCodes = is_array($depositWithdrawFees) ? array_keys($depositWithdrawFees) : array();
+        for ($i = 0; $i < count($depositWithdrawCodes); $i++) {
+            $code = $depositWithdrawCodes[$i];
+            $currency = $this->currency($code);
+            $depositWithdrawFees[$code] = $this->assign_default_deposit_withdraw_fees($depositWithdrawFees[$code], $currency);
+        }
+        return $depositWithdrawFees;
     }
 
     public function nonce() {

@@ -548,8 +548,19 @@ class bitmex extends Exchange {
             $free = $this->safe_string($balance, 'availableMargin');
             $total = $this->safe_string($balance, 'marginBalance');
             if ($code !== 'USDT') {
-                $free = Precise::string_div($free, '1e8');
-                $total = Precise::string_div($total, '1e8');
+                // tmp fix until this PR gets merged
+                // https://github.com/ccxt/ccxt/pull/15311
+                $symbol = $code . '_USDT';
+                $market = $this->safe_market($symbol);
+                $info = $this->safe_value($market, 'info', array());
+                $multiplier = $this->safe_string($info, 'underlyingToPositionMultiplier');
+                if ($multiplier !== null) {
+                    $free = Precise::string_div($free, $multiplier);
+                    $total = Precise::string_div($total, $multiplier);
+                } else {
+                    $free = Precise::string_div($free, '1e8');
+                    $total = Precise::string_div($total, '1e8');
+                }
             } else {
                 $free = Precise::string_div($free, '1e6');
                 $total = Precise::string_div($total, '1e6');

@@ -337,9 +337,11 @@ export default class btcmarkets extends Exchange {
             'currency': code,
             'status': status,
             'updated': lastUpdate,
+            'comment': undefined,
             'fee': {
                 'currency': code,
                 'cost': fee,
+                'rate': undefined,
             },
             'info': transaction,
         };

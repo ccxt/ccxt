@@ -343,9 +343,11 @@ class btcmarkets extends Exchange {
             'currency' => $code,
             'status' => $status,
             'updated' => $lastUpdate,
+            'comment' => null,
             'fee' => array(
                 'currency' => $code,
                 'cost' => $fee,
+                'rate' => null,
             ),
             'info' => $transaction,
         );

@@ -230,9 +230,12 @@ export default class gate extends gateRest {
         //     }
         //
         const channel = this.safeString (message, 'channel');
+        const channelParts = channel.split ('.');
+        const rawMarketType = this.safeString (channelParts, 0);
+        const marketType = (rawMarketType === 'spot') ? 'spot' : 'contract';
         const result = this.safeValue (message, 'result');
         const marketId = this.safeString (result, 's');
-        const symbol = this.safeSymbol (marketId);
+        const symbol = this.safeSymbol (marketId, undefined, '_', marketType);
         let orderbook = this.safeValue (this.orderbooks, symbol);
         if (orderbook === undefined) {
             orderbook = this.orderBook ({});
@@ -590,6 +593,9 @@ export default class gate extends gateRest {
         //   }
         //
         const channel = this.safeString (message, 'channel');
+        const channelParts = channel.split ('.');
+        const rawMarketType = this.safeString (channelParts, 0);
+        const marketType = (rawMarketType === 'spot') ? 'spot' : 'contract';
         let result = this.safeValue (message, 'result');
         const isArray = Array.isArray (result);
         if (!isArray) {
@@ -603,7 +609,7 @@ export default class gate extends gateRest {
             const timeframe = this.safeString (parts, 0);
             const prefix = timeframe + '_';
             const marketId = subscription.replace (prefix, '');
-            const symbol = this.safeSymbol (marketId, undefined, '_');
+            const symbol = this.safeSymbol (marketId, undefined, '_', marketType);
             const parsed = this.parseOHLCV (ohlcv);
             let stored = this.safeValue (this.ohlcvs, symbol);
             if (stored === undefined) {

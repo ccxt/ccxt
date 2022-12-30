@@ -291,6 +291,7 @@ class btcex(Exchange):
                     '8105': BadRequest,  # GOOGLE_CODE_CHECK_FAIL 2FA Code error!
                     '8106': DDoSProtection,  # SMS_CODE_LIMIT Your message service is over limit today, please try tomorrow
                     '8107': ExchangeError,  # REQUEST_FAILED Request failed
+                    '10000': AuthenticationError,  # Authentication Failure
                     '11000': BadRequest,  # CHANNEL_REGEX_ERROR channel regex not match
                 },
                 'broad': {
