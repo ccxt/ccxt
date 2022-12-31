@@ -41,7 +41,7 @@ cached_url_file="$urls_path/$cache_file_name.txt"
 if ! [ -f "$cached_timestamp_file" ]; then
   # we initialise the cached timestamp to the current time
   # even before running a successful build so that pull requests
-  date -u +%s > "$cached_timestamp_file"
+  date +%s > "$cached_timestamp_file"
 fi
 last_run=$(< "$cached_timestamp_file")
 if [ "$last_run" -ne "$last_run" ] 2> /dev/null; then
@@ -49,7 +49,7 @@ if [ "$last_run" -ne "$last_run" ] 2> /dev/null; then
   last_run=0
 fi
 
-now=$(date -u +%s)
+now=$(date +%s)
 delta=$((now - last_run))
 six_hours=$((60 * 60 * 6))
 diff=$(git diff master --name-only)
@@ -60,7 +60,7 @@ echo "$cached_url_file"
 # end debug
 
 echo "last build url: $(cat "$cached_url_file")" 2> /dev/null
-echo "completed at: $(date -r "$last_run") - $((delta / 3600)) hours ago" 2> /dev/null
+echo "completed at: $(date -d "@$last_run") - $((delta / 3600)) hours ago" 2> /dev/null
 
 function run_tests {
   local rest_args=
@@ -99,7 +99,7 @@ fi
 
 if [ "$delta" -gt $six_hours ] || grep -q -E 'Exchange.php|/test|/base|^build|static_dependencies|^run-tests' <<< "$diff"; then
   # shellcheck disable=SC2155
-  run_tests && date -u +%s > "$cached_timestamp_file"
+  run_tests && date +%s > "$cached_timestamp_file"
 else
   run_tests "$(sed -E -n 's:^js/([^/]+)\.js$:\1:p' <<< "$diff" | xargs)" "$(sed -E -n 's:^js/pro/([^/]+)\.js$:\1:p' <<< "$diff" | xargs)"
 fi
