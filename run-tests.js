@@ -33,7 +33,7 @@ const keys = {
 
 let exchanges = []
 let symbol = 'all'
-let maxConcurrency = 5 // Number.MAX_VALUE // no limit
+let maxConcurrency = 10 // Number.MAX_VALUE // no limit
 
 for (const arg of args) {
     if (arg.startsWith ('--'))               { keys[arg] = true }
