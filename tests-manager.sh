@@ -7,6 +7,7 @@ fi
 
 timestamp_file="$TRAVIS_BUILD_DIR/.cache/last-run.txt"
 if ! [ -f "$timestamp_file" ]; then
+  echo "file not found"
   echo '0' > "$timestamp_file"
 fi
 
@@ -15,6 +16,7 @@ last_run=$(< "$timestamp_file")
 delta=$((now - last_run))
 six_hours=$((60 * 60 * 6))
 diff=$(git diff master --name-only)
+echo "$last_run"
 
 function run_tests {
   local rest_args=

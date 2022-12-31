@@ -128,20 +128,15 @@ async function testPrivate (exchange, symbol, code) {
 
 //-----------------------------------------------------------------------------
 
-function getTestSymbol (exchange, symbols) {
-    let symbol = undefined
-    for (let i = 0; i < symbols.length; i++) {
-        const s = symbols[i]
-        const market = exchange.safeValue (exchange.markets, s)
-        if (market !== undefined) {
-            const active = exchange.safeValue (market, 'active')
-            if (active || (active === undefined)) {
-                symbol = s
-                break;
-            }
-        }
-    }
-    return symbol
+async function getTestSymbol (exchange, symbols) {
+    // some markets don't have many trades
+    // so it is difficult to run ws tests
+    const array = (await Promise.all (symbols.filter ((symbol) => symbol in exchange.markets).map ((symbol) => exchange.fetchTrades (symbol)))).filter ((trades) => trades.length > 10)
+    const averages = array.map ((element) => element.reduce ((a, b) => a + b.timestamp, 0) / element.length)
+    const deltas = array.map ((element, i) => element.reduce ((a, b) => a + b.timestamp - averages[i], 0) / element.length)
+    array.sort ((a, b) => Math.abs (deltas[array.indexOf (a)]) - Math.abs (deltas[array.indexOf[b]]))
+    const ordered = array.map ((trades) => trades[0].symbol)
+    return ordered[0]
 }
 
 async function testExchange (exchange) {
@@ -185,45 +180,23 @@ async function testExchange (exchange) {
             code = codes[i]
         }
     }
-
-    let symbol = getTestSymbol (exchange, [
-        'BTC/USDT',
-        'BTC/USD',
-        'BTC/CNY',
-        'BTC/EUR',
-        'BTC/ETH',
-        'ETH/BTC',
-        'ETH/USD',
-        'ETH/USDT',
-        'BTC/JPY',
-        'LTC/BTC',
-        'ZRX/WETH',
-    ])
-
-    if (symbol === undefined) {
-        for (let i = 0; i < codes.length; i++) {
-            const markets = Object.values (exchange.markets)
-            const activeMarkets = markets.filter ((market) => (market['base'] === codes[i]))
-            if (activeMarkets.length) {
-                const activeSymbols = activeMarkets.map (market => market['symbol'])
-                symbol = getTestSymbol (exchange, activeSymbols)
-                break;
-            }
-        }
-    }
-
-    if (symbol === undefined) {
-        const markets = Object.values (exchange.markets)
-        const activeMarkets = markets.filter ((market) => !exchange.safeValue (market, 'active', false))
-        const activeSymbols = activeMarkets.map (market => market['symbol'])
-        symbol = getTestSymbol (exchange, activeSymbols)
-    }
-
-    if (symbol === undefined) {
-        symbol = getTestSymbol (exchange, exchange.symbols)
-    }
-
-    if (symbol === undefined) {
+    let symbol = undefined
+    try {
+        symbol = await getTestSymbol (exchange, [
+            'BTC/USDT',
+            'BTC/USD',
+            'BTC/CNY',
+            'BTC/EUR',
+            'BTC/ETH',
+            'ETH/BTC',
+            'ETH/USD',
+            'ETH/USDT',
+            'BTC/JPY',
+            'LTC/BTC',
+            'ETH/EUR',
+            'ZRX/WETH',
+        ])
+    } catch (e) {
         symbol = exchange.symbols[0]
     }
 
