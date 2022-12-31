@@ -5,7 +5,7 @@ if [ $# -gt 0 ]; then
   exit 7
 fi
 
-timestamp_file="/$HOME/.cache/last-run.txt"
+timestamp_file="$TRAVIS_BUILD_DIR/.cache/last-run.txt"
 if ! [ -f "$timestamp_file" ]; then
   echo '0' > "$timestamp_file"
 fi
