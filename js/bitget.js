@@ -24,7 +24,7 @@ module.exports = class bitget extends Exchange {
                 'spot': true,
                 'margin': false,
                 'swap': true,
-                'future': false,
+                'future': true,
                 'option': false,
                 'addMargin': true,
                 'cancelAllOrders': true,
@@ -82,7 +82,7 @@ module.exports = class bitget extends Exchange {
                 'reduceMargin': true,
                 'setLeverage': true,
                 'setMarginMode': true,
-                'setPositionMode': false,
+                'setPositionMode': true,
                 'transfer': true,
                 'withdraw': false,
             },
@@ -206,6 +206,7 @@ module.exports = class bitget extends Exchange {
                             'account/setLeverage': 8,
                             'account/setMargin': 8,
                             'account/setMarginMode': 8,
+                            'account/setPositionMode': 8,
                             'order/placeOrder': 2,
                             'order/batch-orders': 2,
                             'order/cancel-order': 2,
@@ -790,8 +791,13 @@ module.exports = class bitget extends Exchange {
                 'withdraw': {
                     'fillResponseFromRequest': true,
                 },
+                'sandboxMode': false,
             },
         });
+    }
+
+    setSandboxMode (enabled) {
+        this.options['sandboxMode'] = enabled;
     }
 
     async fetchTime (params = {}) {
@@ -822,22 +828,35 @@ module.exports = class bitget extends Exchange {
          * @param {object} params extra parameters specific to the exchange api endpoint
          * @returns {[object]} an array of objects representing market data
          */
-        const types = this.safeValue (this.options, 'fetchMarkets', [ 'spot', 'swap' ]);
-        let result = [];
+        const sandboxMode = this.safeValue (this.options, 'sandboxMode', false);
+        let types = this.safeValue (this.options, 'fetchMarkets', [ 'spot', 'swap' ]);
+        if (sandboxMode) {
+            types = [ 'swap' ];
+        }
+        let promises = [];
         for (let i = 0; i < types.length; i++) {
             const type = types[i];
             if (type === 'swap') {
-                const subTypes = [ 'umcbl', 'dmcbl', 'cmcbl', 'sumcbl', 'sdmcbl', 'scmcbl' ];
+                let subTypes = undefined;
+                if (sandboxMode) {
+                    // the following are simulated trading markets [ 'sumcbl', 'sdmcbl', 'scmcbl' ];
+                    subTypes = [ 'sumcbl', 'sdmcbl', 'scmcbl' ];
+                } else {
+                    subTypes = [ 'umcbl', 'dmcbl', 'cmcbl' ];
+                }
                 for (let j = 0; j < subTypes.length; j++) {
-                    const markets = await this.fetchMarketsByType (type, this.extend (params, {
+                    promises.push (this.fetchMarketsByType (type, this.extend (params, {
                         'productType': subTypes[j],
-                    }));
-                    result = this.arrayConcat (result, markets);
+                    })));
                 }
             } else {
-                const markets = await this.fetchMarketsByType (types[i], params);
-                result = this.arrayConcat (result, markets);
+                promises.push (this.fetchMarketsByType (types[i], params));
             }
+        }
+        promises = await Promise.all (promises);
+        let result = promises[0];
+        for (let i = 1; i < promises.length; i++) {
+            result = this.arrayConcat (result, promises[i]);
         }
         return result;
     }
@@ -931,14 +950,8 @@ module.exports = class bitget extends Exchange {
                 symbol = symbol + ':' + settle;
             }
             contract = true;
-            const sumcbl = (typeId === 'SUMCBL');
-            const sdmcbl = (typeId === 'SDMCBL');
-            const scmcbl = (typeId === 'SCMCBL');
-            linear = (typeId === 'UMCBL') || (typeId === 'CMCBL') || sumcbl || scmcbl;
+            linear = (typeId === 'UMCBL') || (typeId === 'CMCBL') || (typeId === 'SUMCBL') || (typeId === 'SCMCBL');
             inverse = !linear;
-            if (sumcbl || sdmcbl || scmcbl) {
-                symbol = marketId;
-            }
             const priceDecimals = this.safeInteger (market, 'pricePlace');
             const amountDecimals = this.safeInteger (market, 'volumePlace');
             const priceStep = this.safeString (market, 'priceEndStep');
@@ -1531,10 +1544,7 @@ module.exports = class bitget extends Exchange {
         //         usdtVolume: '5552388715.9215'
         //     }
         //
-        let marketId = this.safeString (ticker, 'symbol');
-        if (!(marketId in this.markets_by_id)) {
-            marketId += '_SPBL';
-        }
+        const marketId = this.safeString (ticker, 'symbol');
         const symbol = this.safeSymbol (marketId, market);
         const high = this.safeString (ticker, 'high24h');
         const low = this.safeString (ticker, 'low24h');
@@ -3481,6 +3491,42 @@ module.exports = class bitget extends Exchange {
             'marginMode': marginMode,
         };
         return await this.privateMixPostAccountSetMarginMode (this.extend (request, params));
+    }
+
+    async setPositionMode (hedged, symbol = undefined, params = {}) {
+        /**
+         * @method
+         * @name bitget#setPositionMode
+         * @description set hedged to true or false for a market
+         * @param {bool} hedged set to true to use dualSidePosition
+         * @param {string|undefined} symbol not used by binance setPositionMode ()
+         * @param {object} params extra parameters specific to the binance api endpoint
+         * @returns {object} response from the exchange
+         *
+         */
+        const productType = this.safeString (params, 'productType');
+        if ((productType === undefined) && (symbol === undefined)) {
+            throw new ArgumentsRequired (this.id + ' setPositionMode() requires a symbol or the productType parameter');
+        }
+        await this.loadMarkets ();
+        const holdMode = hedged ? 'double_hold' : 'single_hold';
+        const request = {
+            'holdMode': holdMode,
+        };
+        if (symbol !== undefined) {
+            const market = this.market (symbol);
+            request['productType'] = market['linear'] ? 'umcbl' : 'dmcbl';
+        }
+        const response = await this.privateMixPostAccountSetPositionMode (this.extend (request, params));
+        //
+        //    {
+        //         "code": "40919",
+        //         "msg": "This function is not open yet",
+        //         "requestTime": 1672212431093,
+        //         "data": null
+        //     }
+        //
+        return response;
     }
 
     async fetchOpenInterest (symbol, params = {}) {

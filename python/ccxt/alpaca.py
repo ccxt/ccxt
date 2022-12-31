@@ -23,6 +23,7 @@ class alpaca(Exchange):
             'countries': ['US'],
             'rateLimit': 333,  # 3 req per second
             'hostname': 'alpaca.markets',
+            'pro': True,
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/187234005-b864db3d-f1e3-447a-aaf9-a9fc7b955d07.jpg',
                 'www': 'https://alpaca.markets',
@@ -65,7 +66,7 @@ class alpaca(Exchange):
                 'fetchL2OrderBook': False,
                 'fetchMarkets': True,
                 'fetchMyTrades': False,
-                'fetchOHLCV': False,
+                'fetchOHLCV': True,
                 'fetchOpenOrder': False,
                 'fetchOpenOrders': True,
                 'fetchOrder': True,
@@ -424,7 +425,7 @@ class alpaca(Exchange):
         if limit is not None:
             request['limit'] = limit
         if since is not None:
-            request['start'] = int(since / 1000)
+            request['start'] = self.yyyymmdd(since)
         method = self.safe_string(self.options, 'fetchOHLCVMethod', 'cryptoPublicGetCryptoBars')
         response = getattr(self, method)(self.extend(request, params))
         #
@@ -727,7 +728,8 @@ class alpaca(Exchange):
         #       "i":"355681339"
         #   }
         #
-        symbol = self.safe_symbol(None, market)
+        marketId = self.safe_string(trade, 'S')
+        symbol = self.safe_symbol(marketId, market)
         datetime = self.safe_string(trade, 't')
         timestamp = self.parse8601(datetime)
         alpacaSide = self.safe_string(trade, 'tks')

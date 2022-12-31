@@ -235,20 +235,14 @@ class bitstamp(Exchange, ccxt.async_support.bitstamp):
             return super(bitstamp, self).parse_trade(trade, market)
         id = self.safe_string(trade, 'id')
         timestamp = int(microtimestamp / 1000)
-        price = self.safe_float(trade, 'price')
-        amount = self.safe_float(trade, 'amount')
-        cost = None
-        if (price is not None) and (amount is not None):
-            cost = price * amount
-        symbol = None
+        price = self.safe_string(trade, 'price')
+        amount = self.safe_string(trade, 'amount')
         marketId = self.safe_string(trade, 's')
-        if marketId in self.markets_by_id:
-            market = self.markets_by_id[marketId]
-        if (symbol is None) and (market is not None):
-            symbol = market['symbol']
+        market = self.safe_market(marketId, market)
+        symbol = market['symbol']
         side = self.safe_integer(trade, 'type')
         side = 'buy' if (side == 0) else 'sell'
-        return {
+        return self.safe_trade({
             'info': trade,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
@@ -260,9 +254,9 @@ class bitstamp(Exchange, ccxt.async_support.bitstamp):
             'side': side,
             'price': price,
             'amount': amount,
-            'cost': cost,
+            'cost': None,
             'fee': None,
-        }
+        }, market)
 
     def handle_trade(self, client, message):
         #

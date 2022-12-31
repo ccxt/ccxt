@@ -548,8 +548,19 @@ class bitmex extends Exchange {
             $free = $this->safe_string($balance, 'availableMargin');
             $total = $this->safe_string($balance, 'marginBalance');
             if ($code !== 'USDT') {
-                $free = Precise::string_div($free, '1e8');
-                $total = Precise::string_div($total, '1e8');
+                // tmp fix until this PR gets merged
+                // https://github.com/ccxt/ccxt/pull/15311
+                $symbol = $code . '_USDT';
+                $market = $this->safe_market($symbol);
+                $info = $this->safe_value($market, 'info', array());
+                $multiplier = $this->safe_string($info, 'underlyingToPositionMultiplier');
+                if ($multiplier !== null) {
+                    $free = Precise::string_div($free, $multiplier);
+                    $total = Precise::string_div($total, $multiplier);
+                } else {
+                    $free = Precise::string_div($free, '1e8');
+                    $total = Precise::string_div($total, '1e8');
+                }
             } else {
                 $free = Precise::string_div($free, '1e6');
                 $total = Precise::string_div($total, '1e6');
@@ -1055,24 +1066,24 @@ class bitmex extends Exchange {
 
     public function parse_transaction($transaction, $currency = null) {
         //
-        //   {
-        //      'transactID' => 'ffe699c2-95ee-4c13-91f9-0faf41daec25',
-        //      'account' => 123456,
-        //      'currency' => 'XBt',
-        //      'transactType' => 'Withdrawal',
-        //      'amount' => -100100000,
-        //      'fee' => 100000,
-        //      'transactStatus' => 'Completed',
-        //      'address' => '385cR5DM96n1HvBDMzLHPYcw89fZAXULJP',
-        //      'tx' => '3BMEXabcdefghijklmnopqrstuvwxyz123',
-        //      'text' => '',
-        //      'transactTime' => '2019-01-02T01:00:00.000Z',
-        //      'walletBalance' => 99900000,
-        //      'marginBalance' => None,
-        //      'timestamp' => '2019-01-02T13:00:00.000Z'
-        //   }
+        //    {
+        //        'transactID' => 'ffe699c2-95ee-4c13-91f9-0faf41daec25',
+        //        'account' => 123456,
+        //        'currency' => 'XBt',
+        //        'network':'',
+        //        'transactType' => 'Withdrawal',
+        //        'amount' => -100100000,
+        //        'fee' => 100000,
+        //        'transactStatus' => 'Completed',
+        //        'address' => '385cR5DM96n1HvBDMzLHPYcw89fZAXULJP',
+        //        'tx' => '3BMEXabcdefghijklmnopqrstuvwxyz123',
+        //        'text' => '',
+        //        'transactTime' => '2019-01-02T01:00:00.000Z',
+        //        'walletBalance' => 99900000,
+        //        'marginBalance' => None,
+        //        'timestamp' => '2019-01-02T13:00:00.000Z'
+        //    }
         //
-        $id = $this->safe_string($transaction, 'transactID');
         $currencyId = $this->safe_string($transaction, 'currency');
         $currency = $this->safe_currency($currencyId, $currency);
         // For deposits, $transactTime == $timestamp
@@ -1094,34 +1105,34 @@ class bitmex extends Exchange {
         $amountString = Precise::string_div(Precise::string_abs($amountString), $scale);
         $feeCostString = $this->safe_string($transaction, 'fee');
         $feeCostString = Precise::string_div($feeCostString, $scale);
-        $fee = array(
-            'cost' => $this->parse_number($feeCostString),
-            'currency' => $currency['code'],
-        );
         $status = $this->safe_string($transaction, 'transactStatus');
         if ($status !== null) {
             $status = $this->parse_transaction_status($status);
         }
         return array(
             'info' => $transaction,
-            'id' => $id,
-            'txid' => null,
+            'id' => $this->safe_string($transaction, 'transactID'),
+            'txid' => $this->safe_string($transaction, 'tx'),
+            'type' => $type,
+            'currency' => $currency['code'],
+            'network' => $this->safe_string($transaction, 'status'),
+            'amount' => $this->parse_number($amountString),
+            'status' => $status,
             'timestamp' => $transactTime,
             'datetime' => $this->iso8601($transactTime),
-            'network' => null,
-            'addressFrom' => $addressFrom,
             'address' => $address,
+            'addressFrom' => $addressFrom,
             'addressTo' => $addressTo,
-            'tagFrom' => null,
             'tag' => null,
+            'tagFrom' => null,
             'tagTo' => null,
-            'type' => $type,
-            'amount' => $this->parse_number($amountString),
-            'currency' => $currency['code'],
-            'status' => $status,
             'updated' => $timestamp,
             'comment' => null,
-            'fee' => $fee,
+            'fee' => array(
+                'currency' => $currency['code'],
+                'cost' => $this->parse_number($feeCostString),
+                'rate' => null,
+            ),
         );
     }
 

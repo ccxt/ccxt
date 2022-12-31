@@ -470,7 +470,7 @@ class huobijp(Exchange):
             leverageRatio = self.safe_string(market, 'leverage-ratio', '1')
             superLeverageRatio = self.safe_string(market, 'super-margin-leverage-ratio', '1')
             margin = Precise.string_gt(leverageRatio, '1') or Precise.string_gt(superLeverageRatio, '1')
-            fee = 0 if (base == 'OMG') else 0.2 / 100
+            fee = self.parse_number('0') if (base == 'OMG') else self.parse_number('0.002')
             result.append({
                 'id': baseId + quoteId,
                 'symbol': base + '/' + quote,
@@ -1339,7 +1339,10 @@ class huobijp(Exchange):
                     # https://github.com/ccxt/ccxt/pull/4395
                     # https://github.com/ccxt/ccxt/issues/7611
                     # we use amountToPrecision here because the exchange requires cost in base precision
-                    request['amount'] = self.cost_to_precision(symbol, float(amount) * float(price))
+                    amountString = self.number_to_string(amount)
+                    priceString = self.number_to_string(price)
+                    baseAmount = Precise.string_mul(amountString, priceString)
+                    request['amount'] = self.cost_to_precision(symbol, baseAmount)
             else:
                 request['amount'] = self.cost_to_precision(symbol, amount)
         else:
@@ -1611,39 +1614,34 @@ class huobijp(Exchange):
         #     }
         #
         timestamp = self.safe_integer(transaction, 'created-at')
-        updated = self.safe_integer(transaction, 'updated-at')
         code = self.safe_currency_code(self.safe_string(transaction, 'currency'))
         type = self.safe_string(transaction, 'type')
         if type == 'withdraw':
             type = 'withdrawal'
-        status = self.parse_transaction_status(self.safe_string(transaction, 'state'))
-        tag = self.safe_string(transaction, 'address-tag')
-        feeCost = self.safe_number(transaction, 'fee')
+        feeCost = self.safe_string(transaction, 'fee')
         if feeCost is not None:
-            feeCost = abs(feeCost)
-        address = self.safe_string(transaction, 'address')
-        network = self.safe_string_upper(transaction, 'chain')
+            feeCost = Precise.string_abs(feeCost)
         return {
             'info': transaction,
             'id': self.safe_string_2(transaction, 'id', 'data'),
             'txid': self.safe_string(transaction, 'tx-hash'),
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
-            'network': network,
-            'address': address,
+            'network': self.safe_string_upper(transaction, 'chain'),
+            'address': self.safe_string(transaction, 'address'),
             'addressTo': None,
             'addressFrom': None,
-            'tag': tag,
+            'tag': self.safe_string(transaction, 'address-tag'),
             'tagTo': None,
             'tagFrom': None,
             'type': type,
             'amount': self.safe_number(transaction, 'amount'),
             'currency': code,
-            'status': status,
-            'updated': updated,
+            'status': self.parse_transaction_status(self.safe_string(transaction, 'state')),
+            'updated': self.safe_integer(transaction, 'updated-at'),
             'fee': {
                 'currency': code,
-                'cost': feeCost,
+                'cost': self.parse_number(feeCost),
                 'rate': None,
             },
         }

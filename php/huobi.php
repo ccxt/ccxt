@@ -1763,9 +1763,20 @@ class huobi extends Exchange {
         //         askSize =>  0.4156
         //     }
         //
+        // watchTikcer - bbo
+        //     {
+        //         seqId => 161499562790,
+        //         $ask => 16829.51,
+        //         askSize => 0.707776,
+        //         $bid => 16829.5,
+        //         bidSize => 1.685945,
+        //         quoteTime => 1671941599612,
+        //         $symbol => 'btcusdt'
+        //     }
+        //
         $marketId = $this->safe_string_2($ticker, 'symbol', 'contract_code');
         $symbol = $this->safe_symbol($marketId, $market);
-        $timestamp = $this->safe_integer($ticker, 'ts');
+        $timestamp = $this->safe_integer_2($ticker, 'ts', 'quoteTime');
         $bid = null;
         $bidVolume = null;
         $ask = null;
@@ -4756,6 +4767,7 @@ class huobi extends Exchange {
         }
         $request = array(
             'type' => 'deposit',
+            'direct' => 'next',
             'from' => 0, // From 'id' ... if you want to get results after a particular transaction id, pass the id in $params->from
         );
         if ($currency !== null) {
@@ -4813,6 +4825,7 @@ class huobi extends Exchange {
         }
         $request = array(
             'type' => 'withdraw',
+            'direct' => 'next',
             'from' => 0, // From 'id' ... if you want to get results after a particular transaction id, pass the id in $params->from
         );
         if ($currency !== null) {
@@ -5090,7 +5103,7 @@ class huobi extends Exchange {
         /**
          * fetch borrow $rates for $currencies within individual markets
          * @param {array} $params extra parameters specific to the huobi api endpoint
-         * @return {array} a dictionary of {@link https://docs.ccxt.com/en/latest/manual.html#borrow-$rate-structure borrow $rate structures} indexed by $market $symbol
+         * @return {array} a dictionary of {@link https://docs.ccxt.com/en/latest/manual.html#borrow-$rate-structure borrow $rate structures} indexed by market $symbol
          */
         $this->load_markets();
         $response = $this->spotPrivateGetV1MarginLoanInfo ($params);
@@ -5144,8 +5157,8 @@ class huobi extends Exchange {
                     'datetime' => $this->iso8601($timestamp),
                 );
             }
-            $market = $this->markets_by_id[$this->safe_string($rate, 'symbol')];
-            $symbol = $market['symbol'];
+            $marketId = $this->safe_string($rate, 'symbol');
+            $symbol = $this->safe_symbol($marketId);
             $rates[$symbol] = $symbolRates;
         }
         return $rates;

@@ -153,13 +153,13 @@ module.exports = class okx extends Exchange {
                         'market/books-lite': 1.66,
                         'market/candles': 0.5,
                         'market/history-candles': 1,
-                        'market/history-mark-price-candles': 120,
-                        'market/history-index-candles': 120,
+                        'market/history-mark-price-candles': 2,
+                        'market/history-index-candles': 2,
                         'market/index-candles': 1,
                         'market/mark-price-candles': 1,
                         'market/trades': 1,
                         'market/platform-24-volume': 10,
-                        'market/open-oracle': 100,
+                        'market/open-oracle': 40,
                         'market/index-components': 1,
                         'market/option/instrument-family-trades': 1,
                         // 'market/oracle',
@@ -299,6 +299,7 @@ module.exports = class okx extends Exchange {
                         'account/simulated_margin': 10,
                         'account/borrow-repay': 5 / 3,
                         'account/quick-margin-borrow-repay': 4,
+                        'account/activate-option': 4,
                         'asset/transfer': 10,
                         'asset/withdrawal': 5 / 3,
                         'asset/purchase_redempt': 5 / 3,
@@ -4334,18 +4335,20 @@ module.exports = class okx extends Exchange {
         const marketId = this.safeString (position, 'instId');
         market = this.safeMarket (marketId, market);
         const symbol = market['symbol'];
-        const contractsString = this.safeString (position, 'pos');
-        const contractsAbs = Precise.stringAbs (contractsString);
+        const pos = this.safeString (position, 'pos'); // 'pos' field: One way mode: 0 if position is not open, 1 if open | Two way (hedge) mode: -1 if short, 1 if long, 0 if position is not open
+        const contractsAbs = Precise.stringAbs (pos);
         let contracts = undefined;
         let side = this.safeString (position, 'posSide');
         const hedged = side !== 'net';
-        if (contractsString !== undefined) {
+        if (pos !== undefined) {
             contracts = this.parseNumber (contractsAbs);
             if (side === 'net') {
-                if (Precise.stringGt (contractsString, '0')) {
+                if (Precise.stringGt (pos, '0')) {
                     side = 'long';
-                } else {
+                } else if (Precise.stringLt (pos, '0')) {
                     side = 'short';
+                } else {
+                    side = undefined;
                 }
             }
         }

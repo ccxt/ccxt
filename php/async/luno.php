@@ -972,31 +972,31 @@ class luno extends Exchange {
         $timestamp = $this->safe_value($entry, 'timestamp');
         $currencyId = $this->safe_string($entry, 'currency');
         $code = $this->safe_currency_code($currencyId, $currency);
-        $available_delta = $this->safe_number($entry, 'available_delta');
-        $balance_delta = $this->safe_number($entry, 'balance_delta');
-        $after = $this->safe_number($entry, 'balance');
+        $available_delta = $this->safe_string($entry, 'available_delta');
+        $balance_delta = $this->safe_string($entry, 'balance_delta');
+        $after = $this->safe_string($entry, 'balance');
         $comment = $this->safe_string($entry, 'description');
         $before = $after;
-        $amount = 0.0;
+        $amount = '0.0';
         $result = $this->parse_ledger_comment($comment);
         $type = $result['type'];
         $referenceId = $result['referenceId'];
         $direction = null;
         $status = null;
-        if ($balance_delta !== 0.0) {
-            $before = $after - $balance_delta; // TODO => float precision
+        if (!Precise::string_equals($balance_delta, '0.0')) {
+            $before = Precise::string_sub($after, $balance_delta);
             $status = 'ok';
-            $amount = abs($balance_delta);
-        } elseif ($available_delta < 0.0) {
+            $amount = Precise::string_abs($balance_delta);
+        } elseif (Precise::string_lt($available_delta, '0.0')) {
             $status = 'pending';
-            $amount = abs($available_delta);
-        } elseif ($available_delta > 0.0) {
+            $amount = Precise::string_abs($available_delta);
+        } elseif (Precise::string_gt($available_delta, '0.0')) {
             $status = 'canceled';
-            $amount = abs($available_delta);
+            $amount = Precise::string_abs($available_delta);
         }
-        if ($balance_delta > 0 || $available_delta > 0) {
+        if (Precise::string_gt($balance_delta, '0') || Precise::string_gt($available_delta, '0')) {
             $direction = 'in';
-        } elseif ($balance_delta < 0 || $available_delta < 0) {
+        } elseif (Precise::string_lt($balance_delta, '0') || Precise::string_lt($available_delta, '0')) {
             $direction = 'out';
         }
         return array(
@@ -1007,7 +1007,7 @@ class luno extends Exchange {
             'referenceAccount' => null,
             'type' => $type,
             'currency' => $code,
-            'amount' => $amount,
+            'amount' => $this->parse_number($amount),
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
             'before' => $before,

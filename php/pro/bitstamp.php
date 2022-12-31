@@ -263,23 +263,14 @@ class bitstamp extends \ccxt\async\bitstamp {
         }
         $id = $this->safe_string($trade, 'id');
         $timestamp = intval($microtimestamp / 1000);
-        $price = $this->safe_float($trade, 'price');
-        $amount = $this->safe_float($trade, 'amount');
-        $cost = null;
-        if (($price !== null) && ($amount !== null)) {
-            $cost = $price * $amount;
-        }
-        $symbol = null;
+        $price = $this->safe_string($trade, 'price');
+        $amount = $this->safe_string($trade, 'amount');
         $marketId = $this->safe_string($trade, 's');
-        if (is_array($this->markets_by_id) && array_key_exists($marketId, $this->markets_by_id)) {
-            $market = $this->markets_by_id[$marketId];
-        }
-        if (($symbol === null) && ($market !== null)) {
-            $symbol = $market['symbol'];
-        }
+        $market = $this->safe_market($marketId, $market);
+        $symbol = $market['symbol'];
         $side = $this->safe_integer($trade, 'type');
         $side = ($side === 0) ? 'buy' : 'sell';
-        return array(
+        return $this->safe_trade(array(
             'info' => $trade,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
@@ -291,9 +282,9 @@ class bitstamp extends \ccxt\async\bitstamp {
             'side' => $side,
             'price' => $price,
             'amount' => $amount,
-            'cost' => $cost,
+            'cost' => null,
             'fee' => null,
-        );
+        ), $market);
     }
 
     public function handle_trade($client, $message) {

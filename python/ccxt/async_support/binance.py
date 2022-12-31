@@ -3192,7 +3192,6 @@ class binance(Exchange):
                 type = 'LIMIT_MAKER'
         initialUppercaseType = type.upper()
         uppercaseType = initialUppercaseType
-        request['type'] = uppercaseType
         stopPrice = self.safe_number(query, 'stopPrice')
         if stopPrice is not None:
             if uppercaseType == 'MARKET':
@@ -3220,6 +3219,7 @@ class binance(Exchange):
         else:
             # delivery and future
             request['newOrderRespType'] = 'RESULT'  # "ACK", "RESULT", default "ACK"
+        request['type'] = uppercaseType
         # additional required fields depending on the order type
         timeInForceIsRequired = False
         priceIsRequired = False

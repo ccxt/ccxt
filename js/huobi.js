@@ -1771,9 +1771,20 @@ module.exports = class huobi extends Exchange {
         //         askSize:  0.4156
         //     }
         //
+        // watchTikcer - bbo
+        //     {
+        //         seqId: 161499562790,
+        //         ask: 16829.51,
+        //         askSize: 0.707776,
+        //         bid: 16829.5,
+        //         bidSize: 1.685945,
+        //         quoteTime: 1671941599612,
+        //         symbol: 'btcusdt'
+        //     }
+        //
         const marketId = this.safeString2 (ticker, 'symbol', 'contract_code');
         const symbol = this.safeSymbol (marketId, market);
-        const timestamp = this.safeInteger (ticker, 'ts');
+        const timestamp = this.safeInteger2 (ticker, 'ts', 'quoteTime');
         let bid = undefined;
         let bidVolume = undefined;
         let ask = undefined;
@@ -4806,6 +4817,7 @@ module.exports = class huobi extends Exchange {
         }
         const request = {
             'type': 'deposit',
+            'direct': 'next',
             'from': 0, // From 'id' ... if you want to get results after a particular transaction id, pass the id in params.from
         };
         if (currency !== undefined) {
@@ -4865,6 +4877,7 @@ module.exports = class huobi extends Exchange {
         }
         const request = {
             'type': 'withdraw',
+            'direct': 'next',
             'from': 0, // From 'id' ... if you want to get results after a particular transaction id, pass the id in params.from
         };
         if (currency !== undefined) {
@@ -5202,8 +5215,8 @@ module.exports = class huobi extends Exchange {
                     'datetime': this.iso8601 (timestamp),
                 };
             }
-            const market = this.markets_by_id[this.safeString (rate, 'symbol')];
-            const symbol = market['symbol'];
+            const marketId = this.safeString (rate, 'symbol');
+            const symbol = this.safeSymbol (marketId);
             rates[symbol] = symbolRates;
         }
         return rates;

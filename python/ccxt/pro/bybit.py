@@ -9,6 +9,7 @@ from ccxt.pro.base.cache import ArrayCache, ArrayCacheBySymbolById, ArrayCacheBy
 import hashlib
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
+from ccxt.base.errors import BadRequest
 
 
 class bybit(Exchange, ccxt.async_support.bybit):
@@ -70,6 +71,9 @@ class bybit(Exchange, ccxt.async_support.bybit):
                 },
             },
             'options': {
+                'watchTicker': {
+                    'name': 'tickers',  # 'tickers' for 24hr statistical ticker or 'bookticker' for Best bid price and best ask price
+                },
                 'spot': {
                     'timeframes': {
                         '1m': '1m',
@@ -86,7 +90,6 @@ class bybit(Exchange, ccxt.async_support.bybit):
                         '1w': '1w',
                         '1M': '1M',
                     },
-                    'watchTickerTopic': 'tickers',  # 'tickers' for 24hr statistical ticker or 'bookticker' for Best bid price and best ask price
                 },
                 'contract': {
                     'timeframes': {
@@ -179,10 +182,10 @@ class bybit(Exchange, ccxt.async_support.bybit):
         messageHash = 'ticker:' + market['symbol']
         url = self.get_url_by_market_type(symbol, False, False, params)
         params = self.clean_params(params)
-        topic = 'tickers'
-        if market['spot']:
-            spotOptions = self.safe_value(self.options, 'spot', {})
-            topic = self.safe_string(spotOptions, 'watchTickerTopic', 'tickers')
+        options = self.safe_value(self.options, 'watchTicker', {})
+        topic = self.safe_string(options, 'name', 'tickers')
+        if not market['spot'] and topic != 'tickers':
+            raise BadRequest(self.id + ' watchTicker() only supports name tickers for contract markets')
         topic += '.' + market['id']
         topics = [topic]
         return await self.watch_topics(url, messageHash, topics, params)
@@ -351,7 +354,9 @@ class bybit(Exchange, ccxt.async_support.bybit):
         topicLength = len(topicParts)
         timeframeId = self.safe_string(topicParts, 1)
         marketId = self.safe_string(topicParts, topicLength - 1)
-        market = self.safe_market(marketId)
+        isSpot = client.url.find('spot') > -1
+        marketType = 'spot' if isSpot else 'contract'
+        market = self.safe_market(marketId, None, None, marketType)
         symbol = market['symbol']
         ohlcvsByTimeframe = self.safe_value(self.ohlcvs, symbol)
         if ohlcvsByTimeframe is None:
@@ -479,8 +484,9 @@ class bybit(Exchange, ccxt.async_support.bybit):
             isSnapshot = True
         data = self.safe_value(message, 'data', {})
         marketId = self.safe_string(data, 's')
-        market = self.safe_market(marketId)
-        symbol = self.safe_symbol(marketId, market)
+        marketType = 'spot' if isSpot else 'contract'
+        market = self.safe_market(marketId, None, None, marketType)
+        symbol = market['symbol']
         timestamp = self.safe_integer(message, 'ts')
         orderbook = self.safe_value(self.orderbooks, symbol)
         if orderbook is None:
@@ -489,8 +495,8 @@ class bybit(Exchange, ccxt.async_support.bybit):
             snapshot = self.parse_order_book(data, symbol, timestamp, 'b', 'a')
             orderbook.reset(snapshot)
         else:
-            asks = self.safe_value(orderbook, 'a', [])
-            bids = self.safe_value(orderbook, 'b', [])
+            asks = self.safe_value(data, 'a', [])
+            bids = self.safe_value(data, 'b', [])
             self.handle_deltas(orderbook['asks'], asks)
             self.handle_deltas(orderbook['bids'], bids)
             orderbook['timestamp'] = timestamp
@@ -575,8 +581,10 @@ class bybit(Exchange, ccxt.async_support.bybit):
         topic = self.safe_string(message, 'topic')
         trades = None
         parts = topic.split('.')
+        tradeType = self.safe_string(parts, 0)
+        marketType = 'spot' if (tradeType == 'trade') else 'contract'
         marketId = self.safe_string(parts, 1)
-        market = self.safe_market(marketId)
+        market = self.safe_market(marketId, None, None, marketType)
         if isinstance(data, list):
             # contract markets
             trades = data
@@ -663,8 +671,10 @@ class bybit(Exchange, ccxt.async_support.bybit):
         #     }
         #
         id = self.safe_string_n(trade, ['i', 'T', 'v'])
+        isContract = ('BT' in trade)
+        marketType = 'contract' if isContract else 'spot'
         marketId = self.safe_string(trade, 's')
-        market = self.safe_market(marketId, market)
+        market = self.safe_market(marketId, market, None, marketType)
         symbol = market['symbol']
         timestamp = self.safe_integer_2(trade, 't', 'T')
         side = self.safe_string_lower(trade, 'S')
@@ -1015,7 +1025,7 @@ class bybit(Exchange, ccxt.async_support.bybit):
         #
         id = self.safe_string(order, 'i')
         marketId = self.safe_string(order, 's')
-        symbol = self.safe_symbol(marketId, market)
+        symbol = self.safe_symbol(marketId, market, None, 'spot')
         timestamp = self.safe_integer(order, 'O')
         price = self.safe_string(order, 'p')
         if price == '0':

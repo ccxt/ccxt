@@ -234,9 +234,12 @@ class gate extends \ccxt\async\gate {
         //     }
         //
         $channel = $this->safe_string($message, 'channel');
+        $channelParts = explode('.', $channel);
+        $rawMarketType = $this->safe_string($channelParts, 0);
+        $marketType = ($rawMarketType === 'spot') ? 'spot' : 'contract';
         $result = $this->safe_value($message, 'result');
         $marketId = $this->safe_string($result, 's');
-        $symbol = $this->safe_symbol($marketId);
+        $symbol = $this->safe_symbol($marketId, null, '_', $marketType);
         $orderbook = $this->safe_value($this->orderbooks, $symbol);
         if ($orderbook === null) {
             $orderbook = $this->order_book(array());
@@ -379,6 +382,46 @@ class gate extends \ccxt\async\gate {
         }) ();
     }
 
+    public function watch_tickers($symbols = null, $params = array ()) {
+        return Async\async(function () use ($symbols, $params) {
+            /**
+             * watches a price $ticker, a statistical calculation with the information calculated over the past 24 hours for all markets of a specific list
+             * @param {Array} $symbols unified symbol of the $market to fetch the $ticker for
+             * @param {array} $params extra parameters specific to the gate api endpoint
+             * @return {array} a {@link https://docs.ccxt.com/en/latest/manual.html#$ticker-structure $ticker structure}
+             */
+            Async\await($this->load_markets());
+            $symbols = $this->market_symbols($symbols);
+            if ($symbols === null) {
+                throw new ArgumentsRequired($this->id . ' watchTickers requires symbols');
+            }
+            $market = $this->market($symbols[0]);
+            $type = $market['type'];
+            $messageType = $this->get_uniform_type($type);
+            $marketIds = $this->market_ids($symbols);
+            $options = $this->safe_value($this->options, 'watchTickers', array());
+            $topic = $this->safe_string($options, 'name', 'tickers');
+            $channel = $messageType . '.' . $topic;
+            $messageHash = 'tickers';
+            $payload = array();
+            for ($i = 0; $i < count($marketIds); $i++) {
+                $payload[] = $marketIds[$i];
+            }
+            $url = $this->get_url_by_market_type($type, $market['inverse']);
+            $ticker = Async\await($this->subscribe_public($url, $channel, $messageHash, $payload));
+            $tickerSymbol = $ticker['symbol'];
+            if ($symbols !== null && !$this->in_array($tickerSymbol, $symbols)) {
+                return Async\await($this->watch_tickers($symbols, $params));
+            }
+            if ($this->newUpdates) {
+                $result = array();
+                $result[$tickerSymbol] = $ticker;
+                return $result;
+            }
+            return $this->filter_by_array($this->tickers, 'symbol', $symbols, false);
+        }) ();
+    }
+
     public function handle_ticker($client, $message) {
         //
         //    {
@@ -425,6 +468,7 @@ class gate extends \ccxt\async\gate {
             $this->tickers[$symbol] = $parsed;
             $messageHash = $channel . '.' . $symbol;
             $client->resolve ($this->tickers[$symbol], $messageHash);
+            $client->resolve ($parsed, 'tickers');
         }
     }
 
@@ -553,6 +597,9 @@ class gate extends \ccxt\async\gate {
         //   }
         //
         $channel = $this->safe_string($message, 'channel');
+        $channelParts = explode('.', $channel);
+        $rawMarketType = $this->safe_string($channelParts, 0);
+        $marketType = ($rawMarketType === 'spot') ? 'spot' : 'contract';
         $result = $this->safe_value($message, 'result');
         $isArray = gettype($result) === 'array' && array_keys($result) === array_keys(array_keys($result));
         if (!$isArray) {
@@ -566,7 +613,7 @@ class gate extends \ccxt\async\gate {
             $timeframe = $this->safe_string($parts, 0);
             $prefix = $timeframe . '_';
             $marketId = str_replace($prefix, '', $subscription);
-            $symbol = $this->safe_symbol($marketId, null, '_');
+            $symbol = $this->safe_symbol($marketId, null, '_', $marketType);
             $parsed = $this->parse_ohlcv($ohlcv);
             $stored = $this->safe_value($this->ohlcvs, $symbol);
             if ($stored === null) {

@@ -649,14 +649,14 @@ module.exports = class exmo extends exmoRest {
     }
 
     async authenticate (params = {}) {
+        const messageHash = 'authenticated';
         const [ type, query ] = this.handleMarketTypeAndParams ('authenticate', undefined, params);
         const url = this.urls['api']['ws'][type];
         const client = this.client (url);
-        const time = this.milliseconds ();
-        const messageHash = 'authenticated';
         const future = client.future ('authenticated');
         const authenticated = this.safeValue (client.subscriptions, messageHash);
         if (authenticated === undefined) {
+            const time = this.milliseconds ();
             this.checkRequiredCredentials ();
             const requestId = this.requestId ();
             const signData = this.apiKey + time.toString ();

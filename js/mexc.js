@@ -283,6 +283,7 @@ module.exports = class mexc extends Exchange {
                 'cancelOrder': {
                     'method': 'spotPrivateDeleteOrderCancel', // contractPrivatePostOrderCancel contractPrivatePostPlanorderCancel
                 },
+                'broker': 'CCXT',
             },
             'commonCurrencies': {
                 'BEYONDPROTOCOL': 'BEYOND',
@@ -296,6 +297,7 @@ module.exports = class mexc extends Exchange {
                 'FLUX1': 'FLUX', // switched places
                 'FLUX': 'FLUX1', // switched places
                 'FREE': 'FreeRossDAO', // conflict with FREE Coin
+                'GAS': 'GASDAO',
                 'GMT': 'GMT Token',
                 'HERO': 'Step Hero', // conflict with Metahero
                 'MIMO': 'Mimosa',
@@ -3137,6 +3139,7 @@ module.exports = class mexc extends Exchange {
                 'ApiKey': this.apiKey,
                 'Request-Time': timestamp,
                 'Content-Type': 'application/json',
+                'source': this.safeString (this.options, 'broker', 'CCXT'),
             };
             if (method === 'POST') {
                 auth = this.json (params);

@@ -90,6 +90,7 @@ class btcex extends Exchange {
                 '3m' => '3',
                 '5m' => '5',
                 '15m' => '15',
+                '30m' => '30',
                 '1h' => '60',
                 '2h' => '120',
                 '3h' => '180',
@@ -277,6 +278,7 @@ class btcex extends Exchange {
                     '8105' => '\\ccxt\\BadRequest', // GOOGLE_CODE_CHECK_FAIL 2FA Code error!
                     '8106' => '\\ccxt\\DDoSProtection', // SMS_CODE_LIMIT Your message service is over limit today, please try tomorrow
                     '8107' => '\\ccxt\\ExchangeError', // REQUEST_FAILED Request failed
+                    '10000' => '\\ccxt\\AuthenticationError', // Authentication Failure
                     '11000' => '\\ccxt\\BadRequest', // CHANNEL_REGEX_ERROR channel regex not match
                 ),
                 'broad' => array(
@@ -578,7 +580,7 @@ class btcex extends Exchange {
         //     }
         //
         return array(
-            $this->safe_integer($ohlcv, 'tick'),
+            $this->safe_timestamp($ohlcv, 'tick'),
             $this->safe_number($ohlcv, 'open'),
             $this->safe_number($ohlcv, 'high'),
             $this->safe_number($ohlcv, 'low'),

@@ -64,6 +64,8 @@ class coinex(Exchange):
                 'fetchDepositAddressByNetwork': False,
                 'fetchDepositAddresses': False,
                 'fetchDeposits': True,
+                'fetchDepositWithdrawFees': True,
+                'fetchDepsoitWithdrawFee': 'emulated',
                 'fetchFundingHistory': True,
                 'fetchFundingRate': True,
                 'fetchFundingRateHistory': True,
@@ -89,8 +91,6 @@ class coinex(Exchange):
                 'fetchTrades': True,
                 'fetchTradingFee': True,
                 'fetchTradingFees': True,
-                'fetchTransactionFee:': False,
-                'fetchTransactoinFees': False,
                 'fetchTransfer': False,
                 'fetchTransfers': True,
                 'fetchWithdrawal': False,
@@ -4119,6 +4119,92 @@ class coinex(Exchange):
             'datetime': None,
             'info': info,
         }
+
+    async def fetch_deposit_withdraw_fees(self, codes=None, params={}):
+        """
+        fetch deposit and withdraw fees
+        see https://viabtc.github.io/coinex_api_en_doc/spot/#docsspot001_market010_asset_config
+        :param [str]|None codes: list of unified currency codes
+        :param dict params: extra parameters specific to the coinex api endpoint
+        :returns [dict]: a list of `fees structures <https://docs.ccxt.com/en/latest/manual.html#fee-structure>`
+        """
+        await self.load_markets()
+        request = {}
+        if codes is not None:
+            codesLength = len(codes)
+            if codesLength == 1:
+                request['coin_type'] = self.safe_value(codes, 0)
+        response = await self.publicGetCommonAssetConfig(self.extend(request, params))
+        #
+        #    {
+        #        "code": 0,
+        #        "data": {
+        #            "CET-CSC": {
+        #                "asset": "CET",
+        #                "chain": "CSC",
+        #                "can_deposit": True,
+        #                "can_withdraw ": False,
+        #                "deposit_least_amount": "1",
+        #                "withdraw_least_amount": "1",
+        #                "withdraw_tx_fee": "0.1"
+        #            },
+        #            "CET-ERC20": {
+        #                "asset": "CET",
+        #                "chain": "ERC20",
+        #                "can_deposit": True,
+        #                "can_withdraw": False,
+        #                "deposit_least_amount": "14",
+        #                "withdraw_least_amount": "14",
+        #                "withdraw_tx_fee": "14"
+        #            }
+        #        },
+        #        "message": "Success"
+        #    }
+        #
+        return self.parse_deposit_withdraw_fees(response, codes)
+
+    def parse_deposit_withdraw_fees(self, response, codes=None, currencyIdKey=None):
+        depositWithdrawFees = {}
+        codes = self.market_codes(codes)
+        data = self.safe_value(response, 'data')
+        currencyIds = list(data.keys())
+        for i in range(0, len(currencyIds)):
+            entry = currencyIds[i]
+            splitEntry = entry.split('-')
+            feeInfo = data[currencyIds[i]]
+            currencyId = self.safe_string(feeInfo, 'asset')
+            currency = self.safe_currency(currencyId)
+            code = self.safe_string(currency, 'code')
+            if (codes is None) or (self.in_array(code, codes)):
+                depositWithdrawFee = self.safe_value(depositWithdrawFees, code)
+                if depositWithdrawFee is None:
+                    depositWithdrawFees[code] = self.deposit_withdraw_fee({})
+                depositWithdrawFees[code]['info'][entry] = feeInfo
+                networkId = self.safe_string(splitEntry, 1)
+                withdrawFee = self.safe_value(feeInfo, 'withdraw_tx_fee')
+                withdrawResult = {
+                    'fee': withdrawFee,
+                    'percentage': False if (withdrawFee is not None) else None,
+                }
+                depositResult = {
+                    'fee': None,
+                    'percentage': None,
+                }
+                if networkId is not None:
+                    networkCode = self.network_id_to_code(networkId)
+                    depositWithdrawFees[code]['networks'][networkCode] = {
+                        'withdraw': withdrawResult,
+                        'deposit': depositResult,
+                    }
+                else:
+                    depositWithdrawFees[code]['withdraw'] = withdrawResult
+                    depositWithdrawFees[code]['deposit'] = depositResult
+        depositWithdrawCodes = list(depositWithdrawFees.keys())
+        for i in range(0, len(depositWithdrawCodes)):
+            code = depositWithdrawCodes[i]
+            currency = self.currency(code)
+            depositWithdrawFees[code] = self.assign_default_deposit_withdraw_fees(depositWithdrawFees[code], currency)
+        return depositWithdrawFees
 
     def nonce(self):
         return self.milliseconds()

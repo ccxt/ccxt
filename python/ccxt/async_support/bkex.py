@@ -259,6 +259,7 @@ class bkex(Exchange):
                 },
             },
             'commonCurrencies': {
+                'SHINJA': 'SHINJA(1M)',
             },
             'precisionMode': TICK_SIZE,
             'exceptions': {
@@ -766,8 +767,8 @@ class bkex(Exchange):
         #     }
         #
         marketId = self.safe_string(ticker, 'symbol')
+        market = self.safe_market(marketId, market)
         symbol = self.safe_symbol(marketId, market)
-        market = self.market(symbol)
         timestamp = self.safe_integer_2(ticker, 'ts', 'lastTime')
         baseCurrencyVolume = 'amount' if market['swap'] else 'volume'
         quoteCurrencyVolume = 'volume' if market['swap'] else 'quoteVolume'

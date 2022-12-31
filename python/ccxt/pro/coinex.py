@@ -575,9 +575,7 @@ class coinex(Exchange, ccxt.async_support.coinex):
             message['params'] = [market['id']]
             messageHash += ':' + symbol
         else:
-            # deprecated usage of markets_by_id...
-            markets = list(self.markets_by_id.keys())
-            message['params'] = markets
+            message['params'] = self.ids
         url = self.urls['api']['ws'][type]
         request = self.deep_extend(message, query)
         orders = await self.watch(url, messageHash, request, messageHash, request)

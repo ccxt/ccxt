@@ -34,7 +34,7 @@ class kucoin(Exchange, ccxt.async_support.kucoin):
                     'delay': 1000,  # warmup delay in ms before synchronizing
                 },
                 'watchTicker': {
-                    'topic': 'market/snapshot',  # market/ticker
+                    'name': 'market/snapshot',  # market/ticker
                 },
             },
             'streaming': {
@@ -134,7 +134,7 @@ class kucoin(Exchange, ccxt.async_support.kucoin):
         symbol = market['symbol']
         negotiation = await self.negotiate()
         options = self.safe_value(self.options, 'watchTicker', {})
-        channel = self.safe_string(options, 'topic', 'market/snapshot')
+        channel = self.safe_string_2(options, 'name', 'topic', 'market/snapshot')  # topic option is deprecated use name instead
         topic = '/' + channel + ':' + market['id']
         messageHash = topic
         return await self.subscribe(negotiation, topic, messageHash, None, symbol, params)

@@ -195,6 +195,8 @@ class mexc3(Exchange):
                             'rebate/taxQuery': 1,
                             'rebate/detail': 1,
                             'rebate/detail/kickback': 1,
+                            'rebate/referCode': 1,
+                            'mxDeduct/enable': 1,
                         },
                         'post': {
                             'order': 1,
@@ -212,6 +214,7 @@ class mexc3(Exchange):
                             'margin/order': 1,
                             'margin/loan': 1,
                             'margin/repay': 1,
+                            'mxDeduct/enable': 1,
                         },
                         'delete': {
                             'order': 1,
@@ -424,6 +427,7 @@ class mexc3(Exchange):
                 },
                 'recvWindow': 5 * 1000,  # 5 sec, default
                 'maxTimeTillEnd': 90 * 86400 * 1000 - 1,  # 90 days
+                'broker': 'CCXT',
             },
             'commonCurrencies': {
                 'BEYONDPROTOCOL': 'BEYOND',
@@ -4494,6 +4498,7 @@ class mexc3(Exchange):
                 url += '&' + 'signature=' + signature
                 headers = {
                     'X-MEXC-APIKEY': self.apiKey,
+                    'source': self.safe_string(self.options, 'broker', 'CCXT'),
                 }
             if method == 'POST':
                 headers['Content-Type'] = 'application/json'
