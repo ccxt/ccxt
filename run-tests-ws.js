@@ -24,7 +24,7 @@ const keys = {
 
 let exchanges = []
 let symbol = 'all'
-let maxConcurrency = 10 // Number.MAX_VALUE // no limit
+let maxConcurrency = 5 // Number.MAX_VALUE // no limit
 
 for (const arg of args) {
     if (arg.startsWith ('--'))               { keys[arg] = true }
@@ -49,7 +49,7 @@ if (!exchanges.length) {
 // ----------------------------------------------------------------------------
 
 const sleep = s => new Promise (resolve => setTimeout (resolve, s))
-const maxProcessTimeout = 180000 // 3 minutes
+const maxProcessTimeout = 300000 // 5 minutes
 
 // ----------------------------------------------------------------------------
 
