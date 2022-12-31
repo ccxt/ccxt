@@ -49,7 +49,7 @@ if (!exchanges.length) {
 // ----------------------------------------------------------------------------
 
 const sleep = s => new Promise (resolve => setTimeout (resolve, s))
-const maxProcessTimeout = 1200 // 2 minutes
+const maxProcessTimeout = 120000 // 2 minutes
 
 // ----------------------------------------------------------------------------
 
