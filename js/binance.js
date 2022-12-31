@@ -867,7 +867,6 @@ module.exports = class binance extends Exchange {
             // exchange-specific options
             'options': {
                 'fetchMarkets': [ 'spot', 'linear', 'inverse' ],
-                'marketIdConflicts': false,
                 'fetchCurrencies': true, // this is a private call and it requires API keys
                 // 'fetchTradesMethod': 'publicGetAggTrades', // publicGetTrades, publicGetHistoricalTrades
                 'defaultTimeInForce': 'GTC', // 'GTC' = Good To Cancel (default), 'IOC' = Immediate Or Cancel
@@ -1432,6 +1431,12 @@ module.exports = class binance extends Exchange {
                     }
                 }
                 return markets[0];
+            } else if ((symbol.indexOf ('/') > -1) && (symbol.indexOf (':') < 0)) {
+                // support legacy symbols
+                const [ base, quote ] = symbol.split ('/');
+                const settle = (quote === 'USD') ? base : quote;
+                const futuresSymbol = symbol + ':' + settle;
+                return super.market (futuresSymbol);
             }
         }
         throw new BadSymbol (this.id + ' does not have market symbol ' + symbol);
@@ -1664,15 +1669,11 @@ module.exports = class binance extends Exchange {
          */
         let promises = [];
         const fetchMarkets = this.safeValue (this.options, 'fetchMarkets', [ 'spot', 'linear', 'inverse' ]);
-        let hasSpot = false;
-        let hasLinear = false;
         for (let i = 0; i < fetchMarkets.length; i++) {
             const marketType = fetchMarkets[i];
             if (marketType === 'spot') {
-                hasSpot = true;
                 promises.push (this.publicGetExchangeInfo (params));
             } else if (marketType === 'linear') {
-                hasLinear = true;
                 promises.push (this.fapiPublicGetExchangeInfo (params));
             } else if (marketType === 'inverse') {
                 promises.push (this.dapiPublicGetExchangeInfo (params));
@@ -1680,7 +1681,6 @@ module.exports = class binance extends Exchange {
                 throw new ExchangeError (this.id + ' fetchMarkets() this.options fetchMarkets "' + marketType + '" is not a supported market type');
             }
         }
-        this.options['marketIdConflicts'] = hasSpot && hasLinear;
         promises = await Promise.all (promises);
         const spotMarkets = this.safeValue (this.safeValue (promises, 0), 'symbols', []);
         const futureMarkets = this.safeValue (this.safeValue (promises, 1), 'symbols', []);
