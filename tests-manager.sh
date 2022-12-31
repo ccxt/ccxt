@@ -1,7 +1,5 @@
 #!/usr/bin/env bash
 
-set -x
-
 if [ "${BASH_VERSION:0:1}" -lt 4 ]; then
   echo "EPROGMISMATCH: bash version must be at least 4" >&2
   exit 75
@@ -61,7 +59,7 @@ echo "$diff"
 # end debug
 
 echo "last build url: $(cat "$cached_url_file")" 2> /dev/null
-echo "completed at: $(date -d "@$last_run") - $((delta / 3600)) hours ago" 2> /dev/null
+echo "completed at: $(date -d "@$last_run" -u '+%H:%M on %B %d') - $((delta / 3600)) hours ago" 2> /dev/null
 
 function run_tests {
   local rest_args=
