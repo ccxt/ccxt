@@ -1,6 +1,8 @@
-name: Bug Report
+name: New Issue
+title: ISSUE TITLE
 description: Report bugs here
-labels: ["bug"]
+labels: []
+assignees: [ "carlosmiei", "frosty00" ]
 body:
   - type: markdown
     attributes:
@@ -14,7 +16,7 @@ body:
           - [Authentication](https://github.com/ccxt/ccxt/wiki/Manual#authentication)
           - [API Keys Setup](https://github.com/ccxt/ccxt/wiki/Manual#api-keys-setup)
         - Read the [API docs](https://github.com/ccxt/ccxt/wiki/Exchange-Markets) for your exchange.
-        
+
         ### Reporting Vulnerabilities And Critical Issues
 
         If you found a security issue or a critical vulnerability and reporting it in public would impose risk – please feel free to send us a message to <a href="mailto:info@ccxt.trade">info@ccxt.trade</a>.
@@ -34,68 +36,61 @@ body:
     id: operating-system
     attributes:
       label: Operating System
-      placeholder: "MacOS Monteray v12.5.1 Intel Core i3"
       description: |
-        - `uname -or`                                                             (Linux)
-        - selecting ** -> About This Mac -> macOS** from the menu bar            (macOS)
-        - selecting **Start > Settings > System > About** from bottom left menu   (Windows)
+        - `uname -or` (Linux)
+        - selecting ** -> System Preferences -> Overview** from the menu bar (MacOs)
+        - selecting **Start > Settings > System > About** from bottom left menu (Windows)
     validations:
       required: false
-  - type: input
-    id: language-version
+
+  - type: dropdown
+    id: language
     attributes:
-      label: Version
-      placeholder: "18.4.0"
-      description: |
-        - `node -v`   (JavaScript)
-        - `python --version` (Python)
-        - `php -v`    (PHP)
+      multiple: true
+      label: Programming Languages
+      description: Which language are you using?
+      options:
+        - JS
+        - python
+        - php
     validations:
       required: false
+
   - type: input
     id: ccxt-version
     attributes:
       label: CCXT Version
-      placeholder: "e.g. 2.4.41"
+      placeholder: "2.4.71"
       description: |
-        - `npm info ccxt version`                   (JavaScript)
-        - `pip show ccxt | grep Version`            (Python)
-        - `composer show ccxt/ccxt | grep Version`  (PHP)
+        - `npm info ccxt version` (JavaScript)
+        - `pip show ccxt`(Python)
+        - `composer show ccxt` (PHP)
     validations:
-      required: false
+      required: true
 
   - type: textarea
     attributes:
       label: Description
       description: Describe the issue that you're having using words. Be precise. Include clear steps for how to reproduce the issue
-      value: |
-        1.
-        2.
-        3.
-        ...
     validations:
-      required: true
+      required: false
 
   - type: textarea
     attributes:
       label: Code
-      description: Post a complete program containing the minimal amount of code required for us to reproduce the error, so that we can copy and paste your code and receive the same error. DON'T POST SCREENSHOTS OF CODE OR ERRORS, POST THE OUTPUT AND CODE IN PLAIN TEXT!
-      placeholder: |
-        paste your code here, between triple backticks(```), in the format of
-          ```
-          YOUR_CODE_HERE
-          ```
-    validations:
-      required: true
+      description: Post a complete program containing the minimal amount of code required for us to reproduce the error, so that we can copy and paste your code and receive the same error.
+      value: |
+        ```
+          
 
-  - type: textarea
-    attributes:
-      label: Current Result
-      description: Paste the **full verbose output** of the failing method with `exchange.verbose = true` (should include the request and response from the exchange (not just an error callstack)). Remember to remove your apiKey, secret, password, etc.
-      placeholder: |
+        ```
     validations:
       required: false
+
   - type: markdown
     attributes:
       value: |
-        ### Please make sure you have removed you `apiKey` and `secret` from the output posted above under **Current Result** and **Code**
+
+        **DON'T POST SCREENSHOTS OF CODE OR ERRORS!**
+
+        **DON'T POST YOUR APIKEYS OR SECRET KEYS!**
