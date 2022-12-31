@@ -311,7 +311,7 @@ module.exports = class gemini extends geminiRest {
         const subscribeHash = 'l2:' + market['symbol'];
         const url = this.urls['api']['ws'] + '/v2/marketdata';
         const orderbook = await this.watch (url, messageHash, request, subscribeHash);
-        return orderbook.limit (limit);
+        return orderbook.limit ();
     }
 
     handleOrderBook (client, message) {
