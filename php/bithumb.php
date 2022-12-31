@@ -625,7 +625,7 @@ class bithumb extends Exchange {
         $request = array(
             'currency' => $market['base'],
         );
-        if ($limit === null) {
+        if ($limit !== null) {
             $request['count'] = $limit; // default 20, max 100
         }
         $response = $this->publicGetTransactionHistoryCurrency (array_merge($request, $params));
