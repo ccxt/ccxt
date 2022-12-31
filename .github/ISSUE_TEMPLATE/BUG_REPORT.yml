@@ -1,0 +1,108 @@
+name: New Issue
+description: Report bugs here
+body:
+  - type: markdown
+    attributes:
+      value: |
+        ## If you want your issue to be resolved quickly, we strongly recommend that you
+
+        - Read the [Manual](https://github.com/ccxt/ccxt/wiki/Manual), and give special attention to the following sections:
+          - [Exchange Properties](https://github.com/ccxt/ccxt/wiki/Manual#exchange-properties)
+          - [Rate Limit](https://github.com/ccxt/ccxt/wiki/Manual#rate-limit)
+          - [DDoS Protection](https://github.com/ccxt/ccxt/wiki/Manual#ddos-protection-by-cloudflare--incapsula)
+          - [Authentication](https://github.com/ccxt/ccxt/wiki/Manual#authentication)
+          - [API Keys Setup](https://github.com/ccxt/ccxt/wiki/Manual#api-keys-setup)
+        - Read the [API docs](https://github.com/ccxt/ccxt/wiki/Exchange-Markets) for your exchange.
+        
+        ### Reporting Vulnerabilities And Critical Issues
+
+        If you found a security issue or a critical vulnerability and reporting it in public would impose risk – please feel free to send us a message to <a href="mailto:info@ccxt.trade">info@ccxt.trade</a>.
+
+        ------------------
+
+        ## Preliminary Checks
+
+        ### By posting an issue using this template, you agree that
+
+        - You have already searched for [existing issues](https://github.com/ccxt/ccxt/issues) and confirmed that this issue is not a duplicate
+        - This question is directly related to ccxt
+        - You have read the [FAQ](https://github.com/ccxt/ccxt/wiki/FAQ) for most frequently asked questions
+        - You have read the [Troubleshooting](https://github.com/ccxt/ccxt/wiki/Manual#troubleshooting) section of the manual and followed troubleshooting steps
+
+  - type: input
+    id: operating-system
+    attributes:
+      label: Operating System
+      placeholder: "MacOS Monteray v12.5.1 Intel Core i3"
+      description: |
+        - `uname -or`                                                             (Linux)
+        - selecting ** -> About This Mac -> macOS** from the menu bar            (macOS)
+        - selecting **Start > Settings > System > About** from bottom left menu   (Windows)
+    validations:
+      required: false
+  - type: dropdown
+    id: language
+    attributes:
+      label: Language
+      description: What language are you using?
+      options:
+        - JavaScript
+        - python
+        - php
+    validations:
+      required: false
+  - type: input
+    id: language-version
+    attributes:
+      label: Version
+      placeholder: "18.4.0"
+      description: |
+        - `node -v`   (JavaScript)
+        - `python --version` (Python)
+        - `php -v`    (PHP)
+    validations:
+      required: false
+  - type: input
+    id: ccxt-version
+    attributes:
+      label: CCXT Version
+      placeholder: "e.g. 2.4.41"
+      description: |
+        - `npm info ccxt version`                   (JavaScript)
+        - `pip show ccxt | grep Version`            (Python)
+        - `composer show ccxt/ccxt | grep Version`  (PHP)
+    validations:
+      required: false
+
+  - type: textarea
+    attributes:
+      label: Description
+      description: Describe the issue that you're having using words. Be precise. Include clear steps for how to reproduce the issue
+      value: |
+        ...
+    validations:
+      required: true
+
+  - type: textarea
+    attributes:
+      label: Code
+      description: Post a complete program containing the minimal amount of code required for us to reproduce the error, so that we can copy and paste your code and receive the same error. DON'T POST SCREENSHOTS OF CODE OR ERRORS, POST THE OUTPUT AND CODE IN PLAIN TEXT!
+      placeholder: |
+        paste your code here, between triple backticks(```), in the format of
+          ```
+          YOUR_CODE_HERE
+          ```
+    validations:
+      required: true
+
+  - type: textarea
+    attributes:
+      label: Current Result
+      description: Paste the **full verbose output** of the failing method with `exchange.verbose = true` (should include the request and response from the exchange (not just an error callstack)). Remember to remove your apiKey, secret, password, etc.
+      placeholder: |
+    validations:
+      required: false
+  - type: markdown
+    attributes:
+      value: |
+        ### Please make sure you have removed you `apiKey` and `secret` from the output posted above under **Current Result** and **Code**
