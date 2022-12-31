@@ -90,13 +90,6 @@ function run_tests {
   wait $rest_pid && wait $ws_pid && echo "$TRAVIS_BUILD_WEB_URL" > "$cached_url_file"
 }
 
-if [ "$TRAVIS_PULL_REQUEST" = "false" ] && [ "$TRAVIS_BRANCH" = "master" ] && git show -s --format=%ce HEAD~1 | grep -q 'travis@travis-ci.org'; then
-  # we are in a merge commit
-  # the first parent is a release made by travis
-  # this means the tests are passing and there have been no untested pushes
-  exit 0
-fi
-
 if [ "$delta" -gt $six_hours ] || grep -q -E 'Exchange.php|/test|/base|^build|static_dependencies|^run-tests' <<< "$diff"; then
   # shellcheck disable=SC2155
   run_tests && date +%s > "$cached_timestamp_file"
