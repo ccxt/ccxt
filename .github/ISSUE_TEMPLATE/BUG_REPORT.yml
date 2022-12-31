@@ -41,17 +41,6 @@ body:
         - selecting **Start > Settings > System > About** from bottom left menu   (Windows)
     validations:
       required: false
-  - type: dropdown
-    id: language
-    attributes:
-      label: Language
-      description: What language are you using?
-      options:
-        - JavaScript
-        - python
-        - php
-    validations:
-      required: false
   - type: input
     id: language-version
     attributes:
@@ -80,6 +69,9 @@ body:
       label: Description
       description: Describe the issue that you're having using words. Be precise. Include clear steps for how to reproduce the issue
       value: |
+        1.
+        2.
+        3.
         ...
     validations:
       required: true
