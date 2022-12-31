@@ -1230,7 +1230,7 @@ class bybit extends Exchange {
             //             "nextPageCursor" => ""
             //         ),
             //         "retExtInfo" => array(),
-            //         "time" => 1667533491917
+            //         "time" => 1667533491916
             //     }
             //
             // $option $response

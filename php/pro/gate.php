@@ -234,9 +234,12 @@ class gate extends \ccxt\async\gate {
         //     }
         //
         $channel = $this->safe_string($message, 'channel');
+        $channelParts = explode('.', $channel);
+        $rawMarketType = $this->safe_string($channelParts, 0);
+        $marketType = ($rawMarketType === 'spot') ? 'spot' : 'contract';
         $result = $this->safe_value($message, 'result');
         $marketId = $this->safe_string($result, 's');
-        $symbol = $this->safe_symbol($marketId);
+        $symbol = $this->safe_symbol($marketId, null, '_', $marketType);
         $orderbook = $this->safe_value($this->orderbooks, $symbol);
         if ($orderbook === null) {
             $orderbook = $this->order_book(array());
@@ -594,6 +597,9 @@ class gate extends \ccxt\async\gate {
         //   }
         //
         $channel = $this->safe_string($message, 'channel');
+        $channelParts = explode('.', $channel);
+        $rawMarketType = $this->safe_string($channelParts, 0);
+        $marketType = ($rawMarketType === 'spot') ? 'spot' : 'contract';
         $result = $this->safe_value($message, 'result');
         $isArray = gettype($result) === 'array' && array_keys($result) === array_keys(array_keys($result));
         if (!$isArray) {
@@ -607,7 +613,7 @@ class gate extends \ccxt\async\gate {
             $timeframe = $this->safe_string($parts, 0);
             $prefix = $timeframe . '_';
             $marketId = str_replace($prefix, '', $subscription);
-            $symbol = $this->safe_symbol($marketId, null, '_');
+            $symbol = $this->safe_symbol($marketId, null, '_', $marketType);
             $parsed = $this->parse_ohlcv($ohlcv);
             $stored = $this->safe_value($this->ohlcvs, $symbol);
             if ($stored === null) {

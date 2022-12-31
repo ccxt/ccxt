@@ -1215,7 +1215,7 @@ module.exports = class bybit extends Exchange {
         //             "nextPageCursor": ""
         //         },
         //         "retExtInfo": {},
-        //         "time": 1667533491917
+        //         "time": 1667533491916
         //     }
         //
         // option response

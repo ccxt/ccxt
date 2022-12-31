@@ -1107,33 +1107,36 @@ class hitbtc3 extends Exchange {
         $sender = $this->safe_value($native, 'senders');
         $addressFrom = $this->safe_string($sender, 0);
         $amount = $this->safe_number($native, 'amount');
-        $fee = null;
+        $fee = array(
+            'currency' => null,
+            'cost' => null,
+            'rate' => null,
+        );
         $feeCost = $this->safe_number($native, 'fee');
         if ($feeCost !== null) {
-            $fee = array(
-                'currency' => $code,
-                'cost' => $feeCost,
-            );
+            $fee['currency'] = $code;
+            $fee['cost'] = $feeCost;
         }
         return array(
             'info' => $transaction,
             'id' => $id,
             'txid' => $txhash,
+            'type' => $type,
             'code' => $code, // kept here for backward-compatibility, but will be removed soon
             'currency' => $code,
-            'amount' => $amount,
             'network' => null,
+            'amount' => $amount,
+            'status' => $status,
+            'timestamp' => $timestamp,
+            'datetime' => $this->iso8601($timestamp),
             'address' => $address,
             'addressFrom' => $addressFrom,
             'addressTo' => $addressTo,
             'tag' => $tag,
             'tagFrom' => null,
             'tagTo' => $tagTo,
-            'timestamp' => $timestamp,
-            'datetime' => $this->iso8601($timestamp),
             'updated' => $updated,
-            'status' => $status,
-            'type' => $type,
+            'comment' => null,
             'fee' => $fee,
         );
     }
