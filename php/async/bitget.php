@@ -3661,12 +3661,10 @@ class bitget extends Exchange {
         //
         $timestamp = $this->safe_integer($interest, 'timestamp');
         $id = $this->safe_string($interest, 'symbol');
-        $market = $this->safe_market($id, $market);
+        $symbol = $this->safe_symbol($id, $market);
         $amount = $this->safe_number($interest, 'amount');
         return array(
-            'symbol' => $this->safe_symbol($id),
-            'baseVolume' => $amount,  // deprecated
-            'quoteVolume' => null,  // deprecated
+            'symbol' => $symbol,
             'openInterestAmount' => $amount,
             'openInterestValue' => null,
             'timestamp' => $timestamp,
