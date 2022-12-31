@@ -49,7 +49,7 @@ module.exports = class Exchange extends BaseExchange {
             const onConnected = this.onConnected.bind (this);
             // decide client type here: ws / signalr / socketio
             const wsOptions = this.safeValue (this.options, 'ws', {});
-            const options = this.extend (this.streaming, {
+            const options = this.deepExtend (this.streaming, {
                 'log': this.log ? this.log.bind (this) : this.log,
                 'ping': this.ping ? this.ping.bind (this) : this.ping,
                 'verbose': this.verbose,

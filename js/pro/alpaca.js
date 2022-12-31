@@ -593,7 +593,8 @@ module.exports = class alpaca extends alpacaRest {
                 'secret': this.secret,
             };
             if (url === this.urls['api']['ws']['trading']) {
-                request = { // this auth request is being deprecated in test environment
+                // this auth request is being deprecated in test environment
+                request = {
                     'action': 'authenticate',
                     'data': {
                         'key_id': this.apiKey,

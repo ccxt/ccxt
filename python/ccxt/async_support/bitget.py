@@ -3440,12 +3440,10 @@ class bitget(Exchange):
         #
         timestamp = self.safe_integer(interest, 'timestamp')
         id = self.safe_string(interest, 'symbol')
-        market = self.safe_market(id, market)
+        symbol = self.safe_symbol(id, market)
         amount = self.safe_number(interest, 'amount')
         return {
-            'symbol': self.safe_symbol(id),
-            'baseVolume': amount,  # deprecated
-            'quoteVolume': None,  # deprecated
+            'symbol': symbol,
             'openInterestAmount': amount,
             'openInterestValue': None,
             'timestamp': timestamp,
