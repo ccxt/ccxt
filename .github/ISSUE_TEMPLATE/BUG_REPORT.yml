@@ -1,5 +1,6 @@
-name: New Issue
+name: Bug Report
 description: Report bugs here
+labels: ["bug"]
 body:
   - type: markdown
     attributes:
