@@ -1055,7 +1055,7 @@ module.exports = class poloniex extends Exchange {
             // 'accountType': 'SPOT',
             // 'amount': amount,
         };
-        const orderRequest = this.orderRequest ('createOrder()', symbol, type, side, amount, request, price, params);
+        const orderRequest = this.orderRequest (symbol, type, side, amount, request, price, params);
         let response = await this.privatePostOrders (this.extend (orderRequest[0], orderRequest[1]));
         //
         //     {
@@ -1069,7 +1069,7 @@ module.exports = class poloniex extends Exchange {
         return this.parseOrder (response, market);
     }
 
-    orderRequest (method, symbol, type, side, amount, request, price = undefined, params = {}) {
+    orderRequest (symbol, type, side, amount, request, price = undefined, params = {}) {
         const market = this.market (symbol);
         let upperCaseType = type.toUpperCase ();
         const isMarket = upperCaseType === 'MARKET';
@@ -1122,7 +1122,7 @@ module.exports = class poloniex extends Exchange {
             'id': id,
             // 'timeInForce': timeInForce,
         };
-        const orderRequest = this.orderRequest ('editOrder()', symbol, type, side, amount, request, price, params);
+        const orderRequest = this.orderRequest (symbol, type, side, amount, request, price, params);
         let response = await this.privatePutOrdersId (this.extend (orderRequest[0], orderRequest[1]));
         //
         //     {
