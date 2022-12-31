@@ -17,6 +17,9 @@ delta=$((now - last_run))
 six_hours=$((60 * 60 * 6))
 diff=$(git diff master --name-only)
 echo "$last_run"
+git log -2 --format=%H
+git show -s --format=%H HEAD
+git show -s --format=%H ""$TRAVIS_COMMIT"
 
 function run_tests {
   local rest_args=
