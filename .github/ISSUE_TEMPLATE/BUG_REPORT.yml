@@ -1,6 +1,6 @@
 name: New Issue
 description: Report bugs here
-labels: []
+labels: ["bug"]
 assignees: [ "carlosmiei", "frosty00" ]
 body:
   - type: markdown
