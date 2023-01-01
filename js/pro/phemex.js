@@ -895,7 +895,7 @@ module.exports = class phemex extends phemexRest {
             'postOnly': postOnly,
             'side': side,
             'price': price,
-            'triggerPrice': stopPrice,
+            'stopPrice': stopPrice,
             'amount': amount,
             'filled': filled,
             'remaining': remaining,

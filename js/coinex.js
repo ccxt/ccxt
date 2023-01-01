@@ -1705,7 +1705,7 @@ module.exports = class coinex extends Exchange {
             'reduceOnly': undefined,
             'side': side,
             'price': priceString,
-            'triggerPrice': this.safeString (order, 'stop_price'),
+            'stopPrice': this.safeString (order, 'stop_price'),
             'cost': costString,
             'average': averageString,
             'amount': amountString,

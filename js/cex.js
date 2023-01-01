@@ -1084,7 +1084,7 @@ module.exports = class cex extends Exchange {
             'postOnly': undefined,
             'side': side,
             'price': price,
-            'triggerPrice': undefined,
+            'stopPrice': undefined,
             'cost': cost,
             'amount': amount,
             'filled': filled,

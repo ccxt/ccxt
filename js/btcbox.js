@@ -405,7 +405,7 @@ module.exports = class btcbox extends Exchange {
             'status': status,
             'symbol': market['symbol'],
             'price': price,
-            'triggerPrice': undefined,
+            'stopPrice': undefined,
             'cost': undefined,
             'trades': trades,
             'fee': undefined,

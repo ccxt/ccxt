@@ -1022,7 +1022,7 @@ module.exports = class kraken extends krakenRest {
             'postOnly': undefined,
             'side': side,
             'price': price,
-            'triggerPrice': stopPrice,
+            'stopPrice': stopPrice,
             'cost': cost,
             'amount': amount,
             'filled': filled,

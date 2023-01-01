@@ -1864,7 +1864,7 @@ module.exports = class kucoin extends Exchange {
             'side': side,
             'amount': amount,
             'price': price,
-            'triggerPrice': stopPrice,
+            'stopPrice': stopPrice,
             'cost': cost,
             'filled': filled,
             'remaining': undefined,

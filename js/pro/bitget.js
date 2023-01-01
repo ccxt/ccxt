@@ -772,7 +772,7 @@ module.exports = class bitget extends bitgetRest {
             'postOnly': undefined,
             'side': side,
             'price': price,
-            'triggerPrice': undefined,
+            'stopPrice': undefined,
             'amount': amount,
             'cost': cost,
             'average': average,

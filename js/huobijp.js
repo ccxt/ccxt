@@ -1373,7 +1373,7 @@ module.exports = class huobijp extends Exchange {
             'postOnly': undefined,
             'side': side,
             'price': price,
-            'triggerPrice': undefined,
+            'stopPrice': undefined,
             'average': undefined,
             'cost': cost,
             'amount': amount,

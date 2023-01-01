@@ -1167,7 +1167,7 @@ module.exports = class lbank2 extends Exchange {
             'postOnly': postOnly,
             'side': side,
             'price': price,
-            'triggerPrice': undefined,
+            'stopPrice': undefined,
             'cost': costString,
             'amount': amountString,
             'filled': filledString,

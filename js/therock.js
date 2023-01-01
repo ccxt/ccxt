@@ -1174,7 +1174,7 @@ module.exports = class therock extends Exchange {
             'postOnly': undefined,
             'side': side,
             'price': price,
-            'triggerPrice': stopPrice,
+            'stopPrice': stopPrice,
             'cost': cost,
             'amount': amount,
             'filled': filled,

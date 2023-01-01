@@ -1500,7 +1500,7 @@ module.exports = class tokocrypto extends Exchange {
             'reduceOnly': this.safeValue (order, 'reduceOnly'),
             'side': side,
             'price': price,
-            'triggerPrice': stopPrice,
+            'stopPrice': stopPrice,
             'amount': amount,
             'cost': cost,
             'average': average,

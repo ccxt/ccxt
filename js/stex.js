@@ -1135,7 +1135,7 @@ module.exports = class stex extends Exchange {
             'postOnly': undefined,
             'side': side,
             'price': price,
-            'triggerPrice': stopPrice,
+            'stopPrice': stopPrice,
             'amount': amount,
             'cost': cost,
             'average': undefined,

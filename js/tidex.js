@@ -764,7 +764,7 @@ module.exports = class tidex extends Exchange {
             'postOnly': undefined,
             'side': this.safeString (order, 'type'),
             'price': price,
-            'triggerPrice': undefined,
+            'stopPrice': undefined,
             'cost': undefined,
             'amount': amount,
             'remaining': remaining,

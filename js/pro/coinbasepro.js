@@ -536,7 +536,7 @@ module.exports = class coinbasepro extends coinbaseproRest {
             'postOnly': undefined,
             'side': side,
             'price': price,
-            'triggerPrice': undefined,
+            'stopPrice': undefined,
             'amount': amount,
             'cost': cost,
             'average': undefined,

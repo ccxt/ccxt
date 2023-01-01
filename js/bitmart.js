@@ -1765,7 +1765,7 @@ module.exports = class bitmart extends Exchange {
             'postOnly': postOnly,
             'side': side,
             'price': price,
-            'triggerPrice': undefined,
+            'stopPrice': undefined,
             'amount': amount,
             'cost': undefined,
             'average': average,

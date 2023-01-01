@@ -526,7 +526,7 @@ module.exports = class zaif extends Exchange {
             'postOnly': undefined,
             'side': side,
             'price': price,
-            'triggerPrice': undefined,
+            'stopPrice': undefined,
             'cost': undefined,
             'amount': amount,
             'filled': undefined,

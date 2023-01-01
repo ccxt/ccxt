@@ -1041,7 +1041,7 @@ module.exports = class ripio extends Exchange {
             'postOnly': undefined,
             'side': side,
             'price': price,
-            'triggerPrice': this.safeString (order, 'stop_price'),
+            'stopPrice': this.safeString (order, 'stop_price'),
             'amount': amount,
             'cost': cost,
             'average': average,

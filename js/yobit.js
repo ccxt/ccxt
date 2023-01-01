@@ -955,7 +955,7 @@ module.exports = class yobit extends Exchange {
             'postOnly': undefined,
             'side': side,
             'price': price,
-            'triggerPrice': undefined,
+            'stopPrice': undefined,
             'cost': undefined,
             'amount': amount,
             'remaining': remaining,

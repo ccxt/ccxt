@@ -844,7 +844,7 @@ module.exports = class oceanex extends Exchange {
             'postOnly': undefined,
             'side': this.safeValue (order, 'side'),
             'price': price,
-            'triggerPrice': undefined,
+            'stopPrice': undefined,
             'average': average,
             'amount': amount,
             'remaining': remaining,

@@ -417,7 +417,7 @@ module.exports = class luno extends Exchange {
             'postOnly': undefined,
             'side': side,
             'price': price,
-            'triggerPrice': undefined,
+            'stopPrice': undefined,
             'amount': amount,
             'filled': filled,
             'cost': cost,

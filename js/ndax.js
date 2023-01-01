@@ -1298,7 +1298,7 @@ module.exports = class ndax extends Exchange {
             'postOnly': undefined,
             'side': this.safeStringLower (order, 'Side'),
             'price': this.safeString (order, 'Price'),
-            'triggerPrice': this.parseNumber (this.omitZero (this.safeString (order, 'StopPrice'))),
+            'stopPrice': this.parseNumber (this.omitZero (this.safeString (order, 'StopPrice'))),
             'cost': this.safeString (order, 'GrossValueExecuted'),
             'amount': this.safeString (order, 'OrigQuantity'),
             'filled': this.safeString (order, 'QuantityExecuted'),

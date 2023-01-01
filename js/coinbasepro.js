@@ -1014,7 +1014,7 @@ module.exports = class coinbasepro extends Exchange {
             'postOnly': postOnly,
             'side': side,
             'price': price,
-            'triggerPrice': stopPrice,
+            'stopPrice': stopPrice,
             'cost': cost,
             'amount': amount,
             'filled': filled,

@@ -1612,7 +1612,7 @@ module.exports = class bkex extends Exchange {
             'postOnly': postOnly,
             'side': side,
             'price': price,
-            'triggerPrice': stopPrice,
+            'stopPrice': stopPrice,
             'average': average,
             'amount': amount,
             'filled': filled,

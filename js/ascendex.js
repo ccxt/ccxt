@@ -1366,7 +1366,7 @@ module.exports = class ascendex extends Exchange {
             'reduceOnly': reduceOnly,
             'side': side,
             'price': price,
-            'triggerPrice': stopPrice,
+            'stopPrice': stopPrice,
             'amount': amount,
             'cost': undefined,
             'average': average,

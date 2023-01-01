@@ -1259,7 +1259,7 @@ module.exports = class bitrue extends Exchange {
             'postOnly': postOnly,
             'side': side,
             'price': price,
-            'triggerPrice': stopPrice,
+            'stopPrice': stopPrice,
             'amount': amount,
             'cost': cost,
             'average': average,

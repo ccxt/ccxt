@@ -1025,7 +1025,7 @@ module.exports = class latoken extends Exchange {
             'postOnly': undefined,
             'side': side,
             'price': price,
-            'triggerPrice': undefined,
+            'stopPrice': undefined,
             'cost': cost,
             'amount': amount,
             'filled': filled,

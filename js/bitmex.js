@@ -1726,7 +1726,7 @@ module.exports = class bitmex extends Exchange {
             'postOnly': postOnly,
             'side': side,
             'price': price,
-            'triggerPrice': stopPrice,
+            'stopPrice': stopPrice,
             'amount': amount,
             'cost': undefined,
             'average': average,

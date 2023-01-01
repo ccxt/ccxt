@@ -2578,7 +2578,7 @@ module.exports = class okx extends Exchange {
             'postOnly': postOnly,
             'side': side,
             'price': price,
-            'triggerPrice': stopPrice,
+            'stopPrice': stopPrice,
             'average': average,
             'cost': cost,
             'amount': amount,

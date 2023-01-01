@@ -603,7 +603,7 @@ module.exports = class bitbank extends Exchange {
             'postOnly': undefined,
             'side': side,
             'price': price,
-            'triggerPrice': undefined,
+            'stopPrice': undefined,
             'cost': undefined,
             'average': average,
             'amount': amount,

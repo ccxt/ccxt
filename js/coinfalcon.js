@@ -651,7 +651,7 @@ module.exports = class coinfalcon extends Exchange {
             'postOnly': postOnly,
             'side': side,
             'price': priceString,
-            'triggerPrice': undefined,
+            'stopPrice': undefined,
             'cost': undefined,
             'amount': amountString,
             'filled': filledString,

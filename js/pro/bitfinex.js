@@ -602,7 +602,7 @@ module.exports = class bitfinex extends bitfinexRest {
             'type': type,
             'side': side,
             'price': price,
-            'triggerPrice': undefined,
+            'stopPrice': undefined,
             'average': undefined,
             'amount': amount,
             'remaining': remaining,

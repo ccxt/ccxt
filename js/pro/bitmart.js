@@ -239,7 +239,7 @@ module.exports = class bitmart extends bitmartRest {
             'postOnly': undefined,
             'side': side,
             'price': price,
-            'triggerPrice': undefined,
+            'stopPrice': undefined,
             'amount': amount,
             'cost': undefined,
             'average': undefined,

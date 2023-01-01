@@ -949,7 +949,7 @@ module.exports = class mexc extends mexcRest {
             'timeInForce': undefined,
             'side': side,
             'price': price,
-            'triggerPrice': undefined,
+            'stopPrice': undefined,
             'average': avgPrice,
             'amount': amount,
             'cost': cost,

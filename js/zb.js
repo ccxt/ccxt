@@ -2954,7 +2954,7 @@ module.exports = class zb extends Exchange {
             'postOnly': postOnly,
             'side': side,
             'price': price,
-            'triggerPrice': this.safeNumber (order, 'triggerPrice'),
+            'stopPrice': this.safeNumber (order, 'triggerPrice'),
             'average': this.safeString (order, 'avgPrice'),
             'cost': cost,
             'amount': amount,

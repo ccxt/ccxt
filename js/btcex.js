@@ -1166,7 +1166,7 @@ module.exports = class btcex extends Exchange {
             'postOnly': postOnly,
             'side': side,
             'price': priceString,
-            'triggerPrice': stopPrice,
+            'stopPrice': stopPrice,
             'amount': amountString,
             'cost': undefined,
             'average': averageString,

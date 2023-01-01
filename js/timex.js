@@ -1528,7 +1528,7 @@ module.exports = class timex extends Exchange {
             'postOnly': undefined,
             'side': side,
             'price': price,
-            'triggerPrice': undefined,
+            'stopPrice': undefined,
             'amount': amount,
             'cost': undefined,
             'average': undefined,

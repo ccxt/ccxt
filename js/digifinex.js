@@ -1899,7 +1899,7 @@ module.exports = class digifinex extends Exchange {
             'postOnly': undefined,
             'side': side,
             'price': this.safeNumber (order, 'price'),
-            'triggerPrice': undefined,
+            'stopPrice': undefined,
             'amount': this.safeNumber2 (order, 'amount', 'size'),
             'filled': this.safeNumber2 (order, 'executed_amount', 'filled_qty'),
             'remaining': undefined,

@@ -1135,7 +1135,7 @@ module.exports = class bybit extends bybitRest {
             'postOnly': undefined,
             'side': side,
             'price': price,
-            'triggerPrice': undefined,
+            'stopPrice': undefined,
             'amount': amount,
             'cost': cost,
             'average': undefined,

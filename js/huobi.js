@@ -4090,7 +4090,7 @@ module.exports = class huobi extends Exchange {
             'postOnly': undefined,
             'side': side,
             'price': price,
-            'triggerPrice': stopPrice,
+            'stopPrice': stopPrice,
             'average': average,
             'cost': cost,
             'amount': amount,

@@ -2364,7 +2364,7 @@ module.exports = class mexc extends Exchange {
             'postOnly': postOnly,
             'side': side,
             'price': price,
-            'triggerPrice': this.safeString (order, 'triggerPrice'),
+            'stopPrice': this.safeString (order, 'triggerPrice'),
             'average': this.safeString (order, 'dealAvgPrice'),
             'amount': amount,
             'cost': cost,

@@ -1115,7 +1115,7 @@ module.exports = class hollaex extends Exchange {
             'postOnly': postOnly,
             'side': side,
             'price': price,
-            'triggerPrice': stopPrice,
+            'stopPrice': stopPrice,
             'amount': amount,
             'filled': filled,
             'remaining': undefined,

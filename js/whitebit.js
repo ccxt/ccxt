@@ -1466,7 +1466,7 @@ module.exports = class whitebit extends Exchange {
             'side': side,
             'price': price,
             'type': this.parseOrderType (type),
-            'triggerPrice': stopPrice,
+            'stopPrice': stopPrice,
             'amount': amount,
             'filled': filled,
             'remaining': remaining,
