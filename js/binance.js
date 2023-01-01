@@ -3279,7 +3279,7 @@ module.exports = class binance extends Exchange {
         const defaultType = this.safeString2 (this.options, 'createOrder', 'defaultType', 'spot');
         const marketType = this.safeString (params, 'type', defaultType);
         const clientOrderId = this.safeString2 (params, 'newClientOrderId', 'clientOrderId');
-        let initialUppercaseType = type.toUpperCase ();
+        const initialUppercaseType = type.toUpperCase ();
         const isMarketOrder = initialUppercaseType === 'MARKET';
         const isLimitOrder = initialUppercaseType === 'LIMIT';
         const postOnly = this.isPostOnly (isMarketOrder, initialUppercaseType === 'LIMIT_MAKER', params);
