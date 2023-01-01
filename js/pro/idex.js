@@ -631,7 +631,7 @@ module.exports = class idex extends idexRest {
             'type': orderType,
             'side': side,
             'price': price,
-            'stopPrice': undefined,
+            'triggerPrice': undefined,
             'amount': amount,
             'cost': cost,
             'average': average,

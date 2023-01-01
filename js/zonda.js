@@ -443,7 +443,7 @@ module.exports = class zonda extends Exchange {
             'postOnly': postOnly,
             'side': this.safeStringLower (order, 'offerType'),
             'price': this.safeString (order, 'rate'),
-            'stopPrice': undefined,
+            'triggerPrice': undefined,
             'amount': amount,
             'cost': undefined,
             'filled': undefined,

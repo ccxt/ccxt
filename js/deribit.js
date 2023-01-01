@@ -1567,7 +1567,7 @@ module.exports = class deribit extends Exchange {
             'postOnly': postOnly,
             'side': side,
             'price': priceString,
-            'stopPrice': stopPrice,
+            'triggerPrice': stopPrice,
             'amount': amount,
             'cost': cost,
             'average': averageString,

@@ -3249,7 +3249,6 @@ module.exports = class bybit extends Exchange {
             'side': side,
             'price': price,
             'triggerPrice': stopPrice,
-            'stopPrice': stopPrice,
             'amount': amount,
             'cost': cost,
             'average': undefined,
@@ -3326,7 +3325,6 @@ module.exports = class bybit extends Exchange {
             'side': side,
             'price': price,
             'triggerPrice': triggerPrice,
-            'stopPrice': triggerPrice, // deprecated field
             'amount': amount,
             'cost': this.safeString (order, 'cummulativeQuoteQty'),
             'average': this.safeString (order, 'avgPrice'),

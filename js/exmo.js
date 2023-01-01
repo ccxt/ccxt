@@ -1527,7 +1527,7 @@ module.exports = class exmo extends Exchange {
             'postOnly': undefined,
             'side': side,
             'price': price,
-            'stopPrice': undefined,
+            'triggerPrice': undefined,
             'cost': cost,
             'amount': amount,
             'filled': undefined,

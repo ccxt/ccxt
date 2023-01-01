@@ -857,7 +857,7 @@ module.exports = class coinmate extends Exchange {
             'postOnly': undefined,
             'side': side,
             'price': priceString,
-            'stopPrice': stopPrice,
+            'triggerPrice': stopPrice,
             'amount': amountString,
             'cost': undefined,
             'average': averageString,

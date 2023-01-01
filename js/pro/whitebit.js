@@ -620,7 +620,7 @@ module.exports = class whitebit extends whitebitRest {
             'postOnly': undefined,
             'side': side,
             'price': price,
-            'stopPrice': stopPrice,
+            'triggerPrice': stopPrice,
             'amount': amount,
             'cost': cost,
             'average': undefined,

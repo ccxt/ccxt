@@ -1447,7 +1447,7 @@ module.exports = class kraken extends Exchange {
             'postOnly': undefined,
             'side': side,
             'price': price,
-            'stopPrice': stopPrice,
+            'triggerPrice': stopPrice,
             'cost': undefined,
             'amount': amount,
             'filled': filled,

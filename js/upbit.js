@@ -1430,7 +1430,7 @@ module.exports = class upbit extends Exchange {
             'postOnly': undefined,
             'side': side,
             'price': price,
-            'stopPrice': undefined,
+            'triggerPrice': undefined,
             'cost': cost,
             'average': average,
             'amount': amount,

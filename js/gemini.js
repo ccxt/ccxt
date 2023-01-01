@@ -1102,7 +1102,7 @@ module.exports = class gemini extends Exchange {
             'postOnly': postOnly,
             'side': side,
             'price': price,
-            'stopPrice': undefined,
+            'triggerPrice': undefined,
             'average': average,
             'cost': undefined,
             'amount': amount,

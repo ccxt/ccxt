@@ -3658,7 +3658,7 @@ module.exports = class gate extends Exchange {
             'reduceOnly': this.safeValue (order, 'is_reduce_only'),
             'side': side,
             'price': this.parseNumber (price),
-            'stopPrice': this.safeNumber (trigger, 'price'),
+            'triggerPrice': this.safeNumber (trigger, 'price'),
             'average': average,
             'amount': this.parseNumber (Precise.stringAbs (amount)),
             'cost': Precise.stringAbs (cost),

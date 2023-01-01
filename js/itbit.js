@@ -700,7 +700,7 @@ module.exports = class itbit extends Exchange {
             'postOnly': postOnly,
             'side': side,
             'price': price,
-            'stopPrice': undefined,
+            'triggerPrice': undefined,
             'cost': undefined,
             'average': average,
             'amount': amount,
