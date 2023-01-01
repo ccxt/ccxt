@@ -5928,7 +5928,11 @@ class binance(Exchange):
                 query = self.rawencode(extendedParams)
             else:
                 query = self.urlencode(extendedParams)
-            signature = self.hmac(self.encode(query), self.encode(self.secret))
+            signature = None
+            if self.secret.find('-----BEGIN RSA PRIVATE KEY-----') > -1:
+                signature = self.rsa(self.encode(query), self.encode(self.secret))
+            else:
+                signature = self.hmac(self.encode(query), self.encode(self.secret))
             query += '&' + 'signature=' + signature
             headers = {
                 'X-MBX-APIKEY': self.apiKey,

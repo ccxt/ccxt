@@ -58,8 +58,8 @@ echo "$cached_url_file"
 echo "$diff"
 # end debug
 
-echo "last build url: $(cat "$cached_url_file")" 2> /dev/null
-echo "completed at: $(date -d "@$last_run" -u '+%H:%M on %B %d') - $((delta / 3600)) hours ago" 2> /dev/null
+echo "last build url: $(cat "$cached_url_file" 2> /dev/null)"
+echo "completed at: $(date -d "@$last_run" -u '+%H:%M on %B %d') - $((delta / 3600)) hours ago"
 
 function run_tests {
   local rest_args=
