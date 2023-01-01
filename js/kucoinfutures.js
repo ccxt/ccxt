@@ -1121,6 +1121,7 @@ module.exports = class kucoinfutures extends kucoin {
             'timeInForce': undefined,
             'postOnly': undefined,
             'stopPrice': undefined,
+            'triggerPrice': undefined,
             'info': response,
         };
     }
@@ -1472,6 +1473,7 @@ module.exports = class kucoinfutures extends kucoin {
             'amount': amount,
             'price': price,
             'stopPrice': stopPrice,
+            'triggerPrice': stopPrice,
             'cost': cost,
             'filled': filled,
             'remaining': undefined,

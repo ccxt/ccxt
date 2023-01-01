@@ -917,6 +917,7 @@ class poloniex(Exchange):
             'side': side,
             'price': price,
             'stopPrice': None,
+            'triggerPrice': None,
             'cost': None,
             'average': self.safe_string(order, 'avgPrice'),
             'amount': amount,

@@ -448,6 +448,7 @@ class zonda(Exchange):
             'side': self.safe_string_lower(order, 'offerType'),
             'price': self.safe_string(order, 'rate'),
             'stopPrice': None,
+            'triggerPrice': None,
             'amount': amount,
             'cost': None,
             'filled': None,

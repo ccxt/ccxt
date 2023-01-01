@@ -1090,6 +1090,7 @@ class hitbtc(Exchange):
             'side': side,
             'price': price,
             'stopPrice': None,
+            'triggerPrice': None,
             'average': average,
             'amount': amount,
             'cost': None,

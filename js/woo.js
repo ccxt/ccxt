@@ -999,6 +999,7 @@ module.exports = class woo extends Exchange {
             'side': side,
             'price': price,
             'stopPrice': undefined,
+            'triggerPrice': undefined,
             'average': undefined,
             'amount': amount,
             'filled': filled,

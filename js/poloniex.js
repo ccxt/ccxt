@@ -944,6 +944,7 @@ module.exports = class poloniex extends Exchange {
             'side': side,
             'price': price,
             'stopPrice': undefined,
+            'triggerPrice': undefined,
             'cost': undefined,
             'average': this.safeString (order, 'avgPrice'),
             'amount': amount,

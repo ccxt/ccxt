@@ -625,6 +625,7 @@ class coinone(Exchange):
             'side': side,
             'price': priceString,
             'stopPrice': None,
+            'triggerPrice': None,
             'cost': None,
             'average': None,
             'amount': amountString,

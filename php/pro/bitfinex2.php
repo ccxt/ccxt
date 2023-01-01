@@ -1074,6 +1074,7 @@ class bitfinex2 extends \ccxt\async\bitfinex2 {
             'side' => $side,
             'price' => $price,
             'stopPrice' => $stopPrice,
+            'triggerPrice' => $stopPrice,
             'average' => $average,
             'amount' => $amount,
             'remaining' => $remaining,

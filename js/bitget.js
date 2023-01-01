@@ -2226,6 +2226,7 @@ module.exports = class bitget extends Exchange {
             'side': side,
             'price': price,
             'stopPrice': this.safeNumber (order, 'triggerPrice'),
+            'triggerPrice': this.safeNumber (order, 'triggerPrice'),
             'average': average,
             'cost': cost,
             'amount': amount,

@@ -386,6 +386,7 @@ class bitstamp(Exchange, ccxt.async_support.bitstamp):
             'side': side,
             'price': price,
             'stopPrice': None,
+            'triggerPrice': None,
             'amount': amount,
             'cost': None,
             'average': None,

@@ -1069,6 +1069,7 @@ class kucoinfutures(kucoin):
             'timeInForce': None,
             'postOnly': None,
             'stopPrice': None,
+            'triggerPrice': None,
             'info': response,
         }
 
@@ -1390,6 +1391,7 @@ class kucoinfutures(kucoin):
             'amount': amount,
             'price': price,
             'stopPrice': stopPrice,
+            'triggerPrice': stopPrice,
             'cost': cost,
             'filled': filled,
             'remaining': None,
