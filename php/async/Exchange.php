@@ -34,11 +34,11 @@ use Exception;
 
 include 'Throttle.php';
 
-$version = '2.5.3';
+$version = '2.5.4';
 
 class Exchange extends \ccxt\Exchange {
 
-    const VERSION = '2.5.3';
+    const VERSION = '2.5.4';
 
     public $browser;
     public $marketsLoading = null;
@@ -1828,7 +1828,7 @@ class Exchange extends \ccxt\Exchange {
         return array( $type, $params );
     }
 
-    public function handle_sub_type_and_params($methodName, $market = null, $params = array (), $defaultValue = 'linear') {
+    public function handle_sub_type_and_params($methodName, $market = null, $params = array (), $defaultValue = null) {
         $subType = null;
         // if set in $params, it takes precedence
         $subTypeInParams = $this->safe_string_2($params, 'subType', 'defaultSubType');

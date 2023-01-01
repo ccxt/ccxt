@@ -1790,7 +1790,7 @@ class bybit extends Exchange {
         $this->load_markets();
         $symbols = $this->market_symbols($symbols);
         $request = array();
-        list($subType, $query) = $this->handle_sub_type_and_params('fetchTickers', null, $params);
+        list($subType, $query) = $this->handle_sub_type_and_params('fetchTickers', null, $params, 'linear');
         if ($subType === 'option') {
             // bybit requires a $symbol when $query tockers for options markets
             throw new NotSupported($this->id . ' fetchTickers() is not supported for option markets');
@@ -4142,7 +4142,7 @@ class bybit extends Exchange {
             $request['symbol'] = $market['id'];
         }
         $subType = null;
-        list($subType, $params) = $this->handle_sub_type_and_params('cancelAllOrders', $market, $params);
+        list($subType, $params) = $this->handle_sub_type_and_params('cancelAllOrders', $market, $params, 'linear');
         $request['category'] = $subType;
         list($settle, $params) = $this->handle_option_and_params($params, 'cancelAllOrders', 'settle', $settle);
         if ($settle !== null) {
@@ -4332,7 +4332,7 @@ class bybit extends Exchange {
         $market = null;
         if ($symbol === null) {
             $subType = null;
-            list($subType, $params) = $this->handle_sub_type_and_params('fetchUnifiedMarginOrders', $market, $params);
+            list($subType, $params) = $this->handle_sub_type_and_params('fetchUnifiedMarginOrders', $market, $params, 'linear');
             $request['category'] = $subType;
         } else {
             $market = $this->market($symbol);
@@ -4661,7 +4661,7 @@ class bybit extends Exchange {
         $market = null;
         if ($symbol === null) {
             $subType = null;
-            list($subType, $params) = $this->handle_sub_type_and_params('fetchUnifiedMarginOrders', $market, $params);
+            list($subType, $params) = $this->handle_sub_type_and_params('fetchUnifiedMarginOrders', $market, $params, 'linear');
             $request['category'] = $subType;
         } else {
             $market = $this->market($symbol);
@@ -4958,7 +4958,6 @@ class bybit extends Exchange {
 
     public function fetch_my_unified_margin_trades($symbol = null, $since = null, $limit = null, $params = array ()) {
         $this->load_markets();
-        $this->load_markets();
         $market = null;
         $settle = null;
         $request = array(
@@ -4975,7 +4974,7 @@ class bybit extends Exchange {
             $request['symbol'] = $market['id'];
         }
         $subType = null;
-        list($subType, $params) = $this->handle_sub_type_and_params('fetchMyTrades', $market, $params);
+        list($subType, $params) = $this->handle_sub_type_and_params('fetchMyTrades', $market, $params, 'linear');
         $request['category'] = $subType;
         list($settle, $params) = $this->handle_option_and_params($params, 'cancelAllOrders', 'settle', $settle);
         if ($settle !== null) {
@@ -5871,7 +5870,7 @@ class bybit extends Exchange {
         // market null
         list($type, $params) = $this->handle_market_type_and_params('fetchPositions', null, $params);
         $subType = null;
-        list($subType, $params) = $this->handle_sub_type_and_params('fetchPositions', null, $params);
+        list($subType, $params) = $this->handle_sub_type_and_params('fetchPositions', null, $params, 'linear');
         $request['category'] = $subType;
         if ($type === 'option') {
             $request['category'] = 'option';
