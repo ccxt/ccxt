@@ -106,7 +106,7 @@ class Client(object):
                     self.log(iso8601(milliseconds()), 'receive_loop', 'Exception', error)
                 self.reset(error)
 
-    async def open(self, session, backoff_delay=0):
+    async def open(self, session, backoff_delay=0, proxy=None):
         # exponential backoff for consequent connections if necessary
         if backoff_delay:
             await sleep(backoff_delay)
@@ -114,7 +114,7 @@ class Client(object):
             self.log(iso8601(milliseconds()), 'connecting to', self.url, 'with timeout', self.connectionTimeout, 'ms')
         self.connectionStarted = milliseconds()
         try:
-            coroutine = self.create_connection(session)
+            coroutine = self.create_connection(session, proxy=proxy)
             self.connection = await wait_for(coroutine, timeout=int(self.connectionTimeout / 1000))
             self.connecting = False
             self.connectionEstablished = milliseconds()
@@ -139,10 +139,10 @@ class Client(object):
                 self.log(iso8601(milliseconds()), 'NetworkError', error)
             self.on_error(error)
 
-    def connect(self, session, backoff_delay=0):
+    def connect(self, session, backoff_delay=0, proxy=None):
         if not self.connection and not self.connecting:
             self.connecting = True
-            ensure_future(self.open(session, backoff_delay), loop=self.asyncio_loop)
+            ensure_future(self.open(session, backoff_delay, proxy=proxy), loop=self.asyncio_loop)
         return self.connected
 
     def on_error(self, error):
@@ -185,7 +185,7 @@ class Client(object):
     async def close(self, code=1000):
         raise NotSupported('close() not implemented')
 
-    def create_connection(self, session):
+    def create_connection(self, session, proxy=None):
         raise NotSupported('create_connection() not implemented')
 
     def log(self, *args):

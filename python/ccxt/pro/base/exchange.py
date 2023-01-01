@@ -112,7 +112,7 @@ class Exchange(BaseExchange):
         # base exchange self.open starts the aiohttp Session in an async context
         self.open()
         connected = client.connected if client.connected.done() \
-            else asyncio.ensure_future(client.connect(self.session, backoff_delay))
+            else asyncio.ensure_future(client.connect(self.session, backoff_delay, proxy=self.aiohttp_proxy))
 
         def after(fut):
             if subscribe_hash not in client.subscriptions:
