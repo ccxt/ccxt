@@ -3248,7 +3248,6 @@ module.exports = class bybit extends Exchange {
             'postOnly': undefined,
             'side': side,
             'price': price,
-            'triggerPrice': stopPrice,
             'stopPrice': stopPrice,
             'triggerPrice': stopPrice,
             'amount': amount,
