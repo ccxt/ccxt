@@ -639,6 +639,7 @@ class kucoin(Exchange, ccxt.async_support.kucoin):
             'side': side,
             'price': price,
             'stopPrice': None,
+            'triggerPrice': None,
             'amount': amount,
             'cost': None,
             'average': None,

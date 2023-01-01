@@ -1,7 +1,6 @@
 name: New Exchange Request
-title: "[NEW EXCHANGE]: "
 description: Request the implementation of an exchange not yet implemented in the CCXT library
-labels: ["New Exchange"]
+labels: ["new exchange"]
 body:
   - type: input
     id: exchange-name

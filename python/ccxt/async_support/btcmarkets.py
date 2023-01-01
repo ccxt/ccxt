@@ -932,6 +932,7 @@ class btcmarkets(Exchange):
             'side': side,
             'price': price,
             'stopPrice': stopPrice,
+            'triggerPrice': stopPrice,
             'cost': None,
             'amount': amount,
             'filled': None,

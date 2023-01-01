@@ -582,6 +582,7 @@ module.exports = class bitbns extends Exchange {
             'side': side,
             'price': price,
             'stopPrice': undefined,
+            'triggerPrice': undefined,
             'amount': amount,
             'cost': cost,
             'average': average,

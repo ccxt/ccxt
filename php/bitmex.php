@@ -1700,6 +1700,7 @@ class bitmex extends Exchange {
             'side' => $side,
             'price' => $price,
             'stopPrice' => $stopPrice,
+            'triggerPrice' => $stopPrice,
             'amount' => $amount,
             'cost' => null,
             'average' => $average,

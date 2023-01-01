@@ -780,6 +780,7 @@ class bitget extends \ccxt\async\bitget {
             'side' => $side,
             'price' => $price,
             'stopPrice' => null,
+            'triggerPrice' => null,
             'amount' => $amount,
             'cost' => $cost,
             'average' => $average,

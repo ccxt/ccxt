@@ -2226,6 +2226,7 @@ module.exports = class bitget extends Exchange {
             'side': side,
             'price': price,
             'stopPrice': this.safeNumber (order, 'triggerPrice'),
+            'triggerPrice': this.safeNumber (order, 'triggerPrice'),
             'average': average,
             'cost': cost,
             'amount': amount,
@@ -3649,12 +3650,10 @@ module.exports = class bitget extends Exchange {
         //
         const timestamp = this.safeInteger (interest, 'timestamp');
         const id = this.safeString (interest, 'symbol');
-        market = this.safeMarket (id, market);
+        const symbol = this.safeSymbol (id, market);
         const amount = this.safeNumber (interest, 'amount');
         return {
-            'symbol': this.safeSymbol (id),
-            'baseVolume': amount,  // deprecated
-            'quoteVolume': undefined,  // deprecated
+            'symbol': symbol,
             'openInterestAmount': amount,
             'openInterestValue': undefined,
             'timestamp': timestamp,

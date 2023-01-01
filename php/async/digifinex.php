@@ -1912,6 +1912,7 @@ class digifinex extends Exchange {
             'side' => $side,
             'price' => $this->safe_number($order, 'price'),
             'stopPrice' => null,
+            'triggerPrice' => null,
             'amount' => $this->safe_number_2($order, 'amount', 'size'),
             'filled' => $this->safe_number_2($order, 'executed_amount', 'filled_qty'),
             'remaining' => null,

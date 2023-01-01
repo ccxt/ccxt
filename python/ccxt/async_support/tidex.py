@@ -719,6 +719,7 @@ class tidex(Exchange):
             'side': self.safe_string(order, 'type'),
             'price': price,
             'stopPrice': None,
+            'triggerPrice': None,
             'cost': None,
             'amount': amount,
             'remaining': remaining,

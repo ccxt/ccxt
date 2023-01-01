@@ -3119,8 +3119,8 @@ class bybit(Exchange):
             'postOnly': None,
             'side': side,
             'price': price,
-            'triggerPrice': stopPrice,
             'stopPrice': stopPrice,
+            'triggerPrice': stopPrice,
             'amount': amount,
             'cost': cost,
             'average': None,
@@ -5699,7 +5699,8 @@ class bybit(Exchange):
         if isinstance(symbols, list):
             if len(symbols) > 1:
                 raise ArgumentsRequired(self.id + ' fetchPositions() does not accept an array with more than one symbol')
-            request['symbol'] = self.market_id(symbols[0])
+            if len(symbols) == 1:
+                request['symbol'] = self.market_id(symbols[0])
         elif symbols is not None:
             request['symbol'] = self.market_id(symbols)
         else:

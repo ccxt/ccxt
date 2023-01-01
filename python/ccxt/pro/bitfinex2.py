@@ -981,6 +981,7 @@ class bitfinex2(Exchange, ccxt.async_support.bitfinex2):
             'side': side,
             'price': price,
             'stopPrice': stopPrice,
+            'triggerPrice': stopPrice,
             'average': average,
             'amount': amount,
             'remaining': remaining,

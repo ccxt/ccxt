@@ -2919,6 +2919,7 @@ class zb extends Exchange {
             'side' => $side,
             'price' => $price,
             'stopPrice' => $this->safe_number($order, 'triggerPrice'),
+            'triggerPrice' => $this->safe_number($order, 'triggerPrice'),
             'average' => $this->safe_string($order, 'avgPrice'),
             'cost' => $cost,
             'amount' => $amount,

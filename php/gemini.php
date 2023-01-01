@@ -1087,6 +1087,7 @@ class gemini extends Exchange {
             'side' => $side,
             'price' => $price,
             'stopPrice' => null,
+            'triggerPrice' => null,
             'average' => $average,
             'cost' => null,
             'amount' => $amount,

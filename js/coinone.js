@@ -662,6 +662,7 @@ module.exports = class coinone extends Exchange {
             'side': side,
             'price': priceString,
             'stopPrice': undefined,
+            'triggerPrice': undefined,
             'cost': undefined,
             'average': undefined,
             'amount': amountString,

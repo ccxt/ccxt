@@ -429,6 +429,7 @@ class independentreserve extends Exchange {
             'side' => $side,
             'price' => $this->safe_string($order, 'Price'),
             'stopPrice' => null,
+            'triggerPrice' => null,
             'cost' => $this->safe_string($order, 'Value'),
             'average' => $this->safe_string($order, 'AvgPrice'),
             'amount' => $this->safe_string_2($order, 'VolumeOrdered', 'Volume'),

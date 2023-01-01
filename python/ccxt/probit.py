@@ -1055,6 +1055,7 @@ class probit(Exchange):
             'status': status,
             'price': price,
             'stopPrice': None,
+            'triggerPrice': None,
             'amount': amount,
             'filled': filled,
             'remaining': remaining,

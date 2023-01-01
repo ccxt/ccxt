@@ -3294,8 +3294,8 @@ class bybit extends Exchange {
             'postOnly' => null,
             'side' => $side,
             'price' => $price,
-            'triggerPrice' => $stopPrice,
             'stopPrice' => $stopPrice,
+            'triggerPrice' => $stopPrice,
             'amount' => $amount,
             'cost' => $cost,
             'average' => null,
@@ -6167,7 +6167,9 @@ class bybit extends Exchange {
                 if (strlen($symbols) > 1) {
                     throw new ArgumentsRequired($this->id . ' fetchPositions() does not accept an array with more than one symbol');
                 }
-                $request['symbol'] = $this->market_id($symbols[0]);
+                if (strlen($symbols) === 1) {
+                    $request['symbol'] = $this->market_id($symbols[0]);
+                }
             } elseif ($symbols !== null) {
                 $request['symbol'] = $this->market_id($symbols);
             } else {

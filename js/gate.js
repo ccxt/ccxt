@@ -3659,6 +3659,7 @@ module.exports = class gate extends Exchange {
             'side': side,
             'price': this.parseNumber (price),
             'stopPrice': this.safeNumber (trigger, 'price'),
+            'triggerPrice': this.safeNumber (trigger, 'price'),
             'average': average,
             'amount': this.parseNumber (Precise.stringAbs (amount)),
             'cost': Precise.stringAbs (cost),

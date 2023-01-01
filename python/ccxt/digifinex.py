@@ -1811,6 +1811,7 @@ class digifinex(Exchange):
             'side': side,
             'price': self.safe_number(order, 'price'),
             'stopPrice': None,
+            'triggerPrice': None,
             'amount': self.safe_number_2(order, 'amount', 'size'),
             'filled': self.safe_number_2(order, 'executed_amount', 'filled_qty'),
             'remaining': None,

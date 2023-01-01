@@ -1822,6 +1822,7 @@ class kucoin extends Exchange {
             'amount' => $amount,
             'price' => $price,
             'stopPrice' => $stopPrice,
+            'triggerPrice' => $stopPrice,
             'cost' => $cost,
             'filled' => $filled,
             'remaining' => null,

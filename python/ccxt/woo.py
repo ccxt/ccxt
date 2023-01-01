@@ -948,6 +948,7 @@ class woo(Exchange):
             'side': side,
             'price': price,
             'stopPrice': None,
+            'triggerPrice': None,
             'average': None,
             'amount': amount,
             'filled': filled,

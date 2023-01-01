@@ -2817,6 +2817,7 @@ class zb(Exchange):
             'side': side,
             'price': price,
             'stopPrice': self.safe_number(order, 'triggerPrice'),
+            'triggerPrice': self.safe_number(order, 'triggerPrice'),
             'average': self.safe_string(order, 'avgPrice'),
             'cost': cost,
             'amount': amount,

@@ -1,7 +1,6 @@
 name: New Issue
-title: ISSUE TITLE
 description: Report bugs here
-labels: []
+labels: ["bug"]
 assignees: [ "carlosmiei", "frosty00" ]
 body:
   - type: markdown
@@ -17,23 +16,20 @@ body:
           - [API Keys Setup](https://github.com/ccxt/ccxt/wiki/Manual#api-keys-setup)
         - Read the [API docs](https://github.com/ccxt/ccxt/wiki/Exchange-Markets) for your exchange.
 
-        ------------------
+        ---
 
-        ### By posting an issue using this template, you agree that
-
+        ## Ensure
         - You have already searched for [existing issues](https://github.com/ccxt/ccxt/issues) and confirmed that this issue is not a duplicate
         - This question is directly related to ccxt
         - You have read the [FAQ](https://github.com/ccxt/ccxt/wiki/FAQ) for most frequently asked questions
         - You have read the [Troubleshooting](https://github.com/ccxt/ccxt/wiki/Manual#troubleshooting) section of the manual and followed troubleshooting steps
 
+        ---
+
   - type: input
     id: operating-system
     attributes:
       label: Operating System
-      description: |
-        - `uname -or` (Linux)
-        - selecting ** -> System Preferences -> Overview** from the menu bar (MacOs)
-        - selecting **Start > Settings > System > About** from bottom left menu (Windows)
     validations:
       required: false
 
@@ -54,25 +50,20 @@ body:
     id: ccxt-version
     attributes:
       label: CCXT Version
-      placeholder: "2.4.71"
-      description: |
-        - `npm info ccxt version` (JavaScript)
-        - `pip show ccxt`(Python)
-        - `composer show ccxt` (PHP)
     validations:
-      required: true
+      required: false
 
   - type: textarea
     attributes:
       label: Description
-      description: Describe the issue that you're having using words. Be precise. Include clear steps for how to reproduce the issue
+      description: Describe the issue that you're having precisely. Include clear steps for how to reproduce the issue.
     validations:
       required: false
 
   - type: textarea
     attributes:
       label: Code
-      description: Post a complete program containing the minimal amount of code required for us to reproduce the error, so that we can copy and paste your code and receive the same error.
+      description: Don't post your API keys or secret keys!
       value: |
         ```
           
@@ -80,11 +71,3 @@ body:
         ```
     validations:
       required: false
-
-  - type: markdown
-    attributes:
-      value: |
-
-        **DON'T POST SCREENSHOTS OF CODE OR ERRORS!**
-
-        **DON'T POST YOUR APIKEYS OR SECRET KEYS!**
