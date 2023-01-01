@@ -45,6 +45,7 @@ module.exports = class poloniexfutures extends Exchange {
                 'fetchTickers': true,
                 'fetchTime': true,
                 'fetchTrades': true,
+                'setMarginMode': true,
             },
             'timeframes': {
                 '1m': 1,
@@ -107,12 +108,15 @@ module.exports = class poloniexfutures extends Exchange {
                         'position': 6.66,
                         'positions': 6.66,
                         'funding-history': 10,
+                        'marginType/query': 10,
                     },
                     'post': {
                         'orders': 6.66,
+                        'batchOrders': 6.66,
                         'position/margin/auto-deposit-status': 6.66,
                         'position/margin/deposit-margin': 6.66,
                         'bullet-private': 10,
+                        'marginType/change': 10,
                     },
                     'delete': {
                         'orders/{order-id}': 6.66,
@@ -818,9 +822,8 @@ module.exports = class poloniexfutures extends Exchange {
             request['stopPriceType'] = stopPriceType;
             request['stopPrice'] = this.priceToPrecision (symbol, stopPrice);
         }
-        const uppercaseType = type.toUpperCase ();
         const timeInForce = this.safeStringUpper (params, 'timeInForce');
-        if (uppercaseType === 'LIMIT') {
+        if (type === 'limit') {
             if (price === undefined) {
                 throw new ArgumentsRequired (this.id + ' createOrder() requires a price argument for limit orders');
             } else {
@@ -1050,7 +1053,7 @@ module.exports = class poloniexfutures extends Exchange {
         //
         const symbol = this.safeString (position, 'symbol');
         market = this.safeMarket (symbol, market);
-        const timestamp = this.safeNumber (position, 'currentTimestamp');
+        const timestamp = this.safeInteger (position, 'currentTimestamp');
         const size = this.safeString (position, 'currentQty');
         let side = undefined;
         if (Precise.stringGt (size, '0')) {
@@ -1082,7 +1085,6 @@ module.exports = class poloniexfutures extends Exchange {
             'unrealizedPnl': this.parseNumber (unrealisedPnl),
             'contracts': this.parseNumber (Precise.stringAbs (size)),
             'contractSize': this.safeValue (market, 'contractSize'),
-            //     realisedPnl: position['realised_pnl'],
             'marginRatio': undefined,
             'liquidationPrice': this.safeNumber (position, 'liquidationPrice'),
             'markPrice': this.safeNumber (position, 'markPrice'),
@@ -1276,7 +1278,16 @@ module.exports = class poloniexfutures extends Exchange {
         const response = await this[method] (this.extend (request, params));
         const responseData = this.safeValue (response, 'data', {});
         const orders = this.safeValue (responseData, 'items', []);
-        return this.parseOrders (orders, market, since, limit);
+        const ordersLength = orders.length;
+        const result = [];
+        if (status === 'done') {
+            for (let i = 0; i < ordersLength; i++) {
+                if (!orders[i].cancelExist) {
+                    result.push (orders[i]);
+                }
+            }
+        }
+        return this.parseOrders (result, market, since, limit);
     }
 
     async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
@@ -1314,7 +1325,7 @@ module.exports = class poloniexfutures extends Exchange {
          * @param {string|undefined} params.type limit, or market
          * @returns {[object]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
          */
-        return await this.fetchOrdersByStatus ('done', symbol, since, limit, params);
+        return await this.fetchOrdersByStatus ('closed', symbol, since, limit, params);
     }
 
     async fetchOrder (id = undefined, symbol = undefined, params = {}) {
@@ -1443,7 +1454,7 @@ module.exports = class poloniexfutures extends Exchange {
         //    }
         //
         const data = this.safeValue (response, 'data');
-        const fundingTimestamp = this.safeNumber (data, 'timePoint');
+        const fundingTimestamp = this.safeInteger (data, 'timePoint');
         // the website displayes the previous funding rate as "funding rate"
         return {
             'info': data,
@@ -1530,6 +1541,32 @@ module.exports = class poloniexfutures extends Exchange {
         const data = this.safeValue (response, 'data', {});
         const trades = this.safeValue (data, 'items', {});
         return this.parseTrades (trades, market, since, limit);
+    }
+
+    async setMarginMode (marginMode, symbol, params = {}) {
+        /**
+         * @method
+         * @name poloniexfutures#setMarginMode
+         * @description set margin mode to 'cross' or 'isolated'
+         * @see https://futures-docs.poloniex.com/#change-margin-mode
+         * @param {int} marginMode 0 (isolated) or 1 (cross)
+         * @param {string} symbol unified market symbol
+         * @param {object} params extra parameters specific to the poloniexfutures api endpoint
+         * @returns {object} response from the exchange
+         */
+        if (symbol === undefined) {
+            throw new ArgumentsRequired (this.id + ' setMarginMode() requires a symbol argument');
+        }
+        if ((marginMode !== 0) && (marginMode !== 1)) {
+            throw new ArgumentsRequired (this.id + ' setMarginMode() marginMode must be 0 (isolated) or 1 (cross)');
+        }
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const request = {
+            'symbol': market['id'],
+            'marginType': marginMode,
+        };
+        return await this.privatePostMarginTypeChange (request);
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
