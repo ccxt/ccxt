@@ -139,6 +139,26 @@ async function getTestSymbol (exchange, symbols) {
     return ordered[0]
 }
 
+;(async () => {
+    console.log ('running')
+    const symbols = [ 'BTC/USDT', 'BTC/USD', 'BTC/EUR', 'ETH/USDT', 'ETH/USD', 'ETH/EUR', 'ETH/BTC' ]
+    const json = {}
+    for (const id of [ 'ascendex' ]) {
+        console.log (id, json)
+        const exchange = new ccxt.pro[id] ()
+        try {
+            await exchange.loadMarkets ()
+            json[id] = await getTestSymbol (exchange, symbols)
+        } catch (e) {
+            console.log (id, 'failed with', e.name, e.message)
+        }
+    }
+    fs.writeFileSync ('/Users/carlo/code/ccxt/pro-tests.json', JSON.stringify (json, null, 4))
+
+    process.exit (1)
+}) ()
+
+
 async function testExchange (exchange) {
 
     const codes = [
@@ -223,4 +243,4 @@ async function test () {
     process.exit ()
 }
 
-test ()
+// test ()
