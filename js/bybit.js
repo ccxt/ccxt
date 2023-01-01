@@ -6064,7 +6064,9 @@ module.exports = class bybit extends Exchange {
             if (symbols.length > 1) {
                 throw new ArgumentsRequired (this.id + ' fetchPositions() does not accept an array with more than one symbol');
             }
-            request['symbol'] = this.marketId (symbols[0]);
+            if (symbols.length === 1) {
+                request['symbol'] = this.marketId (symbols[0]);
+            }
         } else if (symbols !== undefined) {
             request['symbol'] = this.marketId (symbols);
         } else {

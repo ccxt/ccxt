@@ -15,6 +15,7 @@ from ccxt.base.errors import InsufficientFunds
 from ccxt.base.errors import InvalidOrder
 from ccxt.base.errors import OrderNotFound
 from ccxt.base.errors import CancelPending
+from ccxt.base.errors import NotSupported
 from ccxt.base.errors import RateLimitExceeded
 from ccxt.base.errors import ExchangeNotAvailable
 from ccxt.base.errors import OnMaintenance
@@ -47,7 +48,7 @@ class poloniex(Exchange):
                 'createDepositAddress': True,
                 'createMarketOrder': None,
                 'createOrder': True,
-                'editOrder': False,
+                'editOrder': True,
                 'fetchBalance': True,
                 'fetchClosedOrder': False,
                 'fetchCurrencies': True,
@@ -859,7 +860,7 @@ class poloniex(Exchange):
         #         "updateTime": 1646925216548
         #     }
         #
-        # createOrder
+        # createOrder, editOrder
         #
         #     {
         #         "id": "29772698821328896",
@@ -992,6 +993,7 @@ class poloniex(Exchange):
     def create_order(self, symbol, type, side, amount, price=None, params={}):
         """
         create a trade order
+        see https://docs.poloniex.com/#authenticated-endpoints-orders-create-order
         :param str symbol: unified symbol of the market to create an order in
         :param str type: 'market' or 'limit'
         :param str side: 'buy' or 'sell'
@@ -1005,20 +1007,37 @@ class poloniex(Exchange):
         # }
         self.load_markets()
         market = self.market(symbol)
+        if not market['spot']:
+            raise NotSupported(self.id + ' createOrder() does not support ' + market['type'] + ' orders, only spot orders are accepted')
+        request = {
+            'symbol': market['id'],
+            'side': side,
+            # 'timeInForce': timeInForce,
+            # 'accountType': 'SPOT',
+            # 'amount': amount,
+        }
+        orderRequest = self.order_request(symbol, type, side, amount, request, price, params)
+        response = self.privatePostOrders(self.extend(orderRequest[0], orderRequest[1]))
+        #
+        #     {
+        #         "id" : "78923648051920896",
+        #         "clientOrderId" : ""
+        #     }
+        #
+        response = self.extend(response, {
+            'type': side,
+        })
+        return self.parse_order(response, market)
+
+    def order_request(self, symbol, type, side, amount, request, price=None, params={}):
+        market = self.market(symbol)
         upperCaseType = type.upper()
         isMarket = upperCaseType == 'MARKET'
         isPostOnly = self.is_post_only(isMarket, upperCaseType == 'LIMIT_MAKER', params)
         if isPostOnly:
             upperCaseType = 'LIMIT_MAKER'
             params = self.omit(params, 'postOnly')
-        request = {
-            'symbol': market['id'],
-            'side': side,
-            'type': upperCaseType,
-            # 'timeInForce': timeInForce,
-            # 'accountType': 'SPOT',
-            # 'amount': amount,
-        }
+        request['type'] = upperCaseType
         if isMarket:
             if side == 'buy':
                 request['amount'] = self.currency_to_precision(market['quote'], amount)
@@ -1032,7 +1051,31 @@ class poloniex(Exchange):
             request['clientOrderId'] = clientOrderId
             params = self.omit(params, 'clientOrderId')
         # remember the timestamp before issuing the request
-        response = self.privatePostOrders(self.extend(request, params))
+        return [request, params]
+
+    def edit_order(self, id, symbol, type, side, amount, price=None, params={}):
+        """
+        edit a trade order
+        see https://docs.poloniex.com/#authenticated-endpoints-orders-cancel-replace-order
+        :param str id: order id
+        :param str symbol: unified symbol of the market to create an order in
+        :param str type: 'market' or 'limit'
+        :param str side: 'buy' or 'sell'
+        :param float amount: how much of the currency you want to trade in units of the base currency
+        :param float|None price: the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+        :param dict params: extra parameters specific to the poloniex api endpoint
+        :returns dict: an `order structure <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
+        """
+        self.load_markets()
+        market = self.market(symbol)
+        if not market['spot']:
+            raise NotSupported(self.id + ' editOrder() does not support ' + market['type'] + ' orders, only spot orders are accepted')
+        request = {
+            'id': id,
+            # 'timeInForce': timeInForce,
+        }
+        orderRequest = self.order_request(symbol, type, side, amount, request, price, params)
+        response = self.privatePutOrdersId(self.extend(orderRequest[0], orderRequest[1]))
         #
         #     {
         #         "id" : "78923648051920896",
