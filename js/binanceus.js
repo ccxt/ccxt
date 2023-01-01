@@ -41,6 +41,9 @@ module.exports = class binanceus extends binance {
                 'defaultType': 'spot',
                 'quoteOrderQty': false,
             },
+            'has': {
+                'fetchTickers': false,
+            },
         });
     }
 };
