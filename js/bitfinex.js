@@ -1191,6 +1191,7 @@ module.exports = class bitfinex extends Exchange {
             'side': side,
             'price': this.safeString (order, 'price'),
             'stopPrice': undefined,
+            'triggerPrice': undefined,
             'average': this.safeString (order, 'avg_execution_price'),
             'amount': this.safeString (order, 'original_amount'),
             'remaining': this.safeString (order, 'remaining_amount'),

@@ -593,6 +593,7 @@ module.exports = class indodax extends Exchange {
             'side': side,
             'price': price,
             'stopPrice': undefined,
+            'triggerPrice': undefined,
             'cost': cost,
             'average': undefined,
             'amount': amount,
