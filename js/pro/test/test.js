@@ -15,6 +15,7 @@ if (!exchangeId) {
     process.exit ()
 }
 
+const exchangeSymbols = require ('./pro-tests.json')
 const symbol = exchangeSymbol || 'all'
 log.bright ('\nTESTING', { exchangeId, symbol }, '\n')
 
@@ -128,36 +129,19 @@ async function testPrivate (exchange, symbol, code) {
 
 //-----------------------------------------------------------------------------
 
-async function getTestSymbol (exchange, symbols) {
+function getTestSymbol (exchange, symbols) {
     // some markets don't have many trades
     // so it is difficult to run ws tests
-    const array = (await Promise.all (symbols.filter ((symbol) => symbol in exchange.markets).map ((symbol) => exchange.fetchTrades (symbol)))).filter ((trades) => trades.length > 10)
-    const averages = array.map ((element) => element.reduce ((a, b) => a + b.timestamp, 0) / element.length)
-    const deltas = array.map ((element, i) => element.reduce ((a, b) => a + b.timestamp - averages[i], 0) / element.length)
-    array.sort ((a, b) => Math.abs (deltas[array.indexOf (a)]) - Math.abs (deltas[array.indexOf[b]]))
-    const ordered = array.map ((trades) => trades[0].symbol)
-    return ordered[0]
-}
-
-;(async () => {
-    console.log ('running')
-    const symbols = [ 'BTC/USDT', 'BTC/USD', 'BTC/EUR', 'ETH/USDT', 'ETH/USD', 'ETH/EUR', 'ETH/BTC' ]
-    const json = {}
-    for (const id of [ 'ascendex' ]) {
-        console.log (id, json)
-        const exchange = new ccxt.pro[id] ()
-        try {
-            await exchange.loadMarkets ()
-            json[id] = await getTestSymbol (exchange, symbols)
-        } catch (e) {
-            console.log (id, 'failed with', e.name, e.message)
+    if (exchange.id in exchangeSymbols) {
+        return exchangeSymbol[exchange.id]
+    } else {
+        for (const symbol of symbols) {
+            if (symbol in exchange.markets) {
+                return symbol
+            }
         }
     }
-    fs.writeFileSync ('/Users/carlo/code/ccxt/pro-tests.json', JSON.stringify (json, null, 4))
-
-    process.exit (1)
-}) ()
-
+}
 
 async function testExchange (exchange) {
 
@@ -198,11 +182,12 @@ async function testExchange (exchange) {
     for (let i = 0; i < codes.length; i++) {
         if (codes[i] in exchange.currencies) {
             code = codes[i]
+            break
         }
     }
     let symbol = undefined
     try {
-        symbol = await getTestSymbol (exchange, [
+        symbol = getTestSymbol (exchange, [
             'BTC/USDT',
             'BTC/USD',
             'BTC/CNY',
@@ -243,4 +228,4 @@ async function test () {
     process.exit ()
 }
 
-// test ()
+test ()
