@@ -694,7 +694,7 @@ module.exports = class kucoin extends kucoinRest {
             'postOnly': undefined,
             'side': side,
             'price': price,
-            'stopPrice': undefined,
+            'triggerPrice': undefined,
             'amount': amount,
             'cost': undefined,
             'average': undefined,

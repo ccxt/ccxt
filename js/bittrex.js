@@ -1806,7 +1806,7 @@ module.exports = class bittrex extends Exchange {
             'postOnly': postOnly,
             'side': direction,
             'price': limit,
-            'stopPrice': this.safeString (order, 'triggerPrice'),
+            'triggerPrice': this.safeString (order, 'triggerPrice'),
             'cost': proceeds,
             'average': undefined,
             'amount': quantity,

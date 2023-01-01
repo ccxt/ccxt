@@ -1482,7 +1482,7 @@ module.exports = class bitpanda extends Exchange {
             'postOnly': postOnly,
             'side': side,
             'price': price,
-            'stopPrice': stopPrice,
+            'triggerPrice': stopPrice,
             'amount': amount,
             'cost': undefined,
             'average': undefined,

@@ -1743,7 +1743,7 @@ module.exports = class bitstamp extends Exchange {
             'postOnly': undefined,
             'side': side,
             'price': price,
-            'stopPrice': undefined,
+            'triggerPrice': undefined,
             'cost': undefined,
             'amount': amount,
             'filled': undefined,

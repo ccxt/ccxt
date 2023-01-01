@@ -2266,7 +2266,7 @@ module.exports = class okcoin extends Exchange {
             'postOnly': undefined,
             'side': side,
             'price': price,
-            'stopPrice': stopPrice,
+            'triggerPrice': stopPrice,
             'average': average,
             'cost': cost,
             'amount': amount,

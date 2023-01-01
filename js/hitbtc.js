@@ -1156,7 +1156,7 @@ module.exports = class hitbtc extends Exchange {
             'timeInForce': timeInForce,
             'side': side,
             'price': price,
-            'stopPrice': undefined,
+            'triggerPrice': undefined,
             'average': average,
             'amount': amount,
             'cost': undefined,

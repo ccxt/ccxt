@@ -471,7 +471,7 @@ module.exports = class btctradeua extends Exchange {
             'postOnly': undefined,
             'side': side,
             'price': price,
-            'stopPrice': undefined,
+            'triggerPrice': undefined,
             'amount': amount,
             'filled': undefined,
             'remaining': remaining,

@@ -998,7 +998,7 @@ module.exports = class woo extends Exchange {
             'reduceOnly': this.safeValue (order, 'reduce_only'),
             'side': side,
             'price': price,
-            'stopPrice': undefined,
+            'triggerPrice': undefined,
             'average': undefined,
             'amount': amount,
             'filled': filled,

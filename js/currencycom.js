@@ -1207,7 +1207,7 @@ module.exports = class currencycom extends Exchange {
             'timeInForce': timeInForce,
             'side': side,
             'price': price,
-            'stopPrice': undefined,
+            'triggerPrice': undefined,
             'amount': amount,
             'cost': undefined,
             'average': undefined,
