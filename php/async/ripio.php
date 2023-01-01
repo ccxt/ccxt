@@ -1045,6 +1045,7 @@ class ripio extends Exchange {
             'side' => $side,
             'price' => $price,
             'stopPrice' => $this->safe_string($order, 'stop_price'),
+            'triggerPrice' => $this->safe_string($order, 'stop_price'),
             'amount' => $amount,
             'cost' => $cost,
             'average' => $average,

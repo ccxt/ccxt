@@ -772,6 +772,7 @@ class tidex extends Exchange {
             'side' => $this->safe_string($order, 'type'),
             'price' => $price,
             'stopPrice' => null,
+            'triggerPrice' => null,
             'cost' => null,
             'amount' => $amount,
             'remaining' => $remaining,

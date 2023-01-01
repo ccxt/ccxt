@@ -1142,6 +1142,7 @@ class bybit extends \ccxt\async\bybit {
             'side' => $side,
             'price' => $price,
             'stopPrice' => null,
+            'triggerPrice' => null,
             'amount' => $amount,
             'cost' => $cost,
             'average' => null,

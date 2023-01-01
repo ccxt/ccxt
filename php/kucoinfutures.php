@@ -1096,6 +1096,7 @@ class kucoinfutures extends kucoin {
             'timeInForce' => null,
             'postOnly' => null,
             'stopPrice' => null,
+            'triggerPrice' => null,
             'info' => $response,
         );
     }
@@ -1435,6 +1436,7 @@ class kucoinfutures extends kucoin {
             'amount' => $amount,
             'price' => $price,
             'stopPrice' => $stopPrice,
+            'triggerPrice' => $stopPrice,
             'cost' => $cost,
             'filled' => $filled,
             'remaining' => null,

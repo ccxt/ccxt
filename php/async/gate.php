@@ -3673,6 +3673,7 @@ class gate extends Exchange {
             'side' => $side,
             'price' => $this->parse_number($price),
             'stopPrice' => $this->safe_number($trigger, 'price'),
+            'triggerPrice' => $this->safe_number($trigger, 'price'),
             'average' => $average,
             'amount' => $this->parse_number(Precise::string_abs($amount)),
             'cost' => Precise::string_abs($cost),

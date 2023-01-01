@@ -409,6 +409,7 @@ class luno extends Exchange {
             'side' => $side,
             'price' => $price,
             'stopPrice' => null,
+            'triggerPrice' => null,
             'amount' => $amount,
             'filled' => $filled,
             'cost' => $cost,

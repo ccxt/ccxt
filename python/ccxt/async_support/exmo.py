@@ -1412,6 +1412,7 @@ class exmo(Exchange):
             'side': side,
             'price': price,
             'stopPrice': None,
+            'triggerPrice': None,
             'cost': cost,
             'amount': amount,
             'filled': None,

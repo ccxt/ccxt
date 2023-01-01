@@ -1623,6 +1623,7 @@ class bitstamp(Exchange):
             'side': side,
             'price': price,
             'stopPrice': None,
+            'triggerPrice': None,
             'cost': None,
             'amount': amount,
             'filled': None,

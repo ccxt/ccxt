@@ -1649,6 +1649,7 @@ class bitmex(Exchange):
             'side': side,
             'price': price,
             'stopPrice': stopPrice,
+            'triggerPrice': stopPrice,
             'amount': amount,
             'cost': None,
             'average': average,

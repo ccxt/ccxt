@@ -2194,6 +2194,7 @@ class bitget extends Exchange {
             'side' => $side,
             'price' => $price,
             'stopPrice' => $this->safe_number($order, 'triggerPrice'),
+            'triggerPrice' => $this->safe_number($order, 'triggerPrice'),
             'average' => $average,
             'cost' => $cost,
             'amount' => $amount,

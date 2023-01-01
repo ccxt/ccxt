@@ -2149,6 +2149,7 @@ class bitget(Exchange):
             'side': side,
             'price': price,
             'stopPrice': self.safe_number(order, 'triggerPrice'),
+            'triggerPrice': self.safe_number(order, 'triggerPrice'),
             'average': average,
             'cost': cost,
             'amount': amount,

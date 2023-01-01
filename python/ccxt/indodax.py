@@ -567,6 +567,7 @@ class indodax(Exchange):
             'side': side,
             'price': price,
             'stopPrice': None,
+            'triggerPrice': None,
             'cost': cost,
             'average': None,
             'amount': amount,

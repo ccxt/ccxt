@@ -950,6 +950,7 @@ class poloniex extends Exchange {
             'side' => $side,
             'price' => $price,
             'stopPrice' => null,
+            'triggerPrice' => null,
             'cost' => null,
             'average' => $this->safe_string($order, 'avgPrice'),
             'amount' => $amount,

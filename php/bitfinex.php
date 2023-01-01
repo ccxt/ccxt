@@ -1162,6 +1162,7 @@ class bitfinex extends Exchange {
             'side' => $side,
             'price' => $this->safe_string($order, 'price'),
             'stopPrice' => null,
+            'triggerPrice' => null,
             'average' => $this->safe_string($order, 'avg_execution_price'),
             'amount' => $this->safe_string($order, 'original_amount'),
             'remaining' => $this->safe_string($order, 'remaining_amount'),

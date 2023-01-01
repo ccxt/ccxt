@@ -653,6 +653,7 @@ class wazirx extends \ccxt\async\wazirx {
             'side' => $this->safe_string($order, 'o'),
             'price' => $this->safe_string($order, 'p'),
             'stopPrice' => null,
+            'triggerPrice' => null,
             'amount' => $this->safe_string($order, 'V'),
             'filled' => null,
             'remaining' => $this->safe_string($order, 'q'),

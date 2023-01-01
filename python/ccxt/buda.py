@@ -826,6 +826,7 @@ class buda(Exchange):
             'side': side,
             'price': price,
             'stopPrice': None,
+            'triggerPrice': None,
             'average': None,
             'cost': cost,
             'amount': amount,
