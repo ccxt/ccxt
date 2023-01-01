@@ -1473,7 +1473,7 @@ module.exports = class binance extends Exchange {
         const type = this.safeString (params, 'type', defaultType);
         const query = this.omit (params, 'type');
         let subType = undefined;
-        [ subType, params ] = this.handleSubTypeAndParams ('fetchTime', undefined, params, undefined);
+        [ subType, params ] = this.handleSubTypeAndParams ('fetchTime', undefined, params);
         let method = 'publicGetTime';
         if (this.isLinear (type, subType)) {
             method = 'fapiPublicGetTime';
@@ -2105,7 +2105,7 @@ module.exports = class binance extends Exchange {
         const defaultType = this.safeString2 (this.options, 'fetchBalance', 'defaultType', 'spot');
         const type = this.safeString (params, 'type', defaultType);
         let subType = undefined;
-        [ subType, params ] = this.handleSubTypeAndParams ('fetchBalance', undefined, params, undefined);
+        [ subType, params ] = this.handleSubTypeAndParams ('fetchBalance', undefined, params);
         const [ marginMode, query ] = this.handleMarginModeAndParams ('fetchBalance', params);
         let method = 'privateGetAccount';
         const request = {};
@@ -2573,7 +2573,7 @@ module.exports = class binance extends Exchange {
         const defaultType = this.safeString2 (this.options, 'fetchBidsAsks', 'defaultType', 'spot');
         const type = this.safeString (params, 'type', defaultType);
         let subType = undefined;
-        [ subType, params ] = this.handleSubTypeAndParams ('fetchBidsAsks', undefined, params, undefined);
+        [ subType, params ] = this.handleSubTypeAndParams ('fetchBidsAsks', undefined, params);
         const query = this.omit (params, 'type');
         let method = undefined;
         if (this.isLinear (type, subType)) {
@@ -2600,7 +2600,7 @@ module.exports = class binance extends Exchange {
         const defaultType = this.safeString2 (this.options, 'fetchTickers', 'defaultType', 'spot');
         const type = this.safeString (params, 'type', defaultType);
         let subType = undefined;
-        [ subType, params ] = this.handleSubTypeAndParams ('fetchTickers', undefined, params, undefined);
+        [ subType, params ] = this.handleSubTypeAndParams ('fetchTickers', undefined, params);
         const query = this.omit (params, 'type');
         let defaultMethod = undefined;
         if (this.isLinear (type, subType)) {
@@ -3725,7 +3725,7 @@ module.exports = class binance extends Exchange {
             type = this.safeString (query, 'type', defaultType);
         }
         let subType = undefined;
-        [ subType, query ] = this.handleSubTypeAndParams ('fetchOpenOrders', market, params, undefined);
+        [ subType, query ] = this.handleSubTypeAndParams ('fetchOpenOrders', market, params);
         const requestParams = this.omit (query, 'type');
         let method = 'privateGetOpenOrders';
         if (this.isLinear (type, subType)) {
@@ -5168,7 +5168,7 @@ module.exports = class binance extends Exchange {
         const type = this.safeString (params, 'type', defaultType);
         params = this.omit (params, 'type');
         let subType = undefined;
-        [ subType, params ] = this.handleSubTypeAndParams ('fetchTradingFees', undefined, params, undefined);
+        [ subType, params ] = this.handleSubTypeAndParams ('fetchTradingFees', undefined, params);
         const isSpotOrMargin = (type === 'spot') || (type === 'margin');
         const isLinear = this.isLinear (type, subType);
         const isInverse = this.isInverse (type, subType);
