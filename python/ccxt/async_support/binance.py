@@ -3137,7 +3137,7 @@ class binance(Exchange):
             'reduceOnly': self.safe_value(order, 'reduceOnly'),
             'side': side,
             'price': price,
-            'stopPrice': stopPrice,
+            'triggerPrice': stopPrice,
             'amount': amount,
             'cost': cost,
             'average': average,
@@ -3165,7 +3165,16 @@ class binance(Exchange):
         defaultType = self.safe_string_2(self.options, 'createOrder', 'defaultType', 'spot')
         marketType = self.safe_string(params, 'type', defaultType)
         clientOrderId = self.safe_string_2(params, 'newClientOrderId', 'clientOrderId')
-        postOnly = self.safe_value(params, 'postOnly', False)
+        initialUppercaseType = type.upper()
+        isMarketOrder = initialUppercaseType == 'MARKET'
+        isLimitOrder = initialUppercaseType == 'LIMIT'
+        postOnly = self.is_post_only(isMarketOrder, initialUppercaseType == 'LIMIT_MAKER', params)
+        triggerPrice = self.safe_value_2(params, 'triggerPrice', 'stopPrice')
+        stopLossPrice = self.safe_value(params, 'stopLossPrice', triggerPrice)  # fallback to stopLoss
+        takeProfitPrice = self.safe_value(params, 'takeProfitPrice')
+        isStopLoss = stopLossPrice is not None
+        isTakeProfit = takeProfitPrice is not None
+        params = self.omit(params, ['type', 'newClientOrderId', 'clientOrderId', 'postOnly', 'stopLossPrice', 'takeProfitPrice', 'stopPrice', 'triggerPrice'])
         marginMode, query = self.handle_margin_mode_and_params('createOrder', params)
         request = {
             'symbol': market['id'],
@@ -3190,14 +3199,22 @@ class binance(Exchange):
             # only supported for spot/margin api(all margin markets are spot markets)
             if postOnly:
                 type = 'LIMIT_MAKER'
-        initialUppercaseType = type.upper()
         uppercaseType = initialUppercaseType
-        stopPrice = self.safe_number(query, 'stopPrice')
-        if stopPrice is not None:
-            if uppercaseType == 'MARKET':
+        stopPrice = None
+        if isStopLoss:
+            stopPrice = stopLossPrice
+            if isMarketOrder:
+                # spot STOP_LOSS market orders are not a valid order type
                 uppercaseType = 'STOP_MARKET' if market['contract'] else 'STOP_LOSS'
-            elif uppercaseType == 'LIMIT':
+            elif isLimitOrder:
                 uppercaseType = 'STOP' if market['contract'] else 'STOP_LOSS_LIMIT'
+        elif isTakeProfit:
+            stopPrice = takeProfitPrice
+            if isMarketOrder:
+                # spot TAKE_PROFIT market orders are not a valid order type
+                uppercaseType = 'TAKE_PROFIT_MARKET' if market['contract'] else 'TAKE_PROFIT'
+            elif isLimitOrder:
+                uppercaseType = 'TAKE_PROFIT' if market['contract'] else 'TAKE_PROFIT_LIMIT'
         validOrderTypes = self.safe_value(market['info'], 'orderTypes')
         if not self.in_array(uppercaseType, validOrderTypes):
             if initialUppercaseType != uppercaseType:
