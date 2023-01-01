@@ -1282,7 +1282,7 @@ module.exports = class poloniexfutures extends Exchange {
         const result = [];
         if (status === 'done') {
             for (let i = 0; i < ordersLength; i++) {
-                if (!orders[i].cancelExist) {
+                if (!orders[i]['cancelExist']) {
                     result.push (orders[i]);
                 }
             }
