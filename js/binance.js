@@ -1436,7 +1436,9 @@ module.exports = class binance extends Exchange {
                 const [ base, quote ] = symbol.split ('/');
                 const settle = (quote === 'USD') ? base : quote;
                 const futuresSymbol = symbol + ':' + settle;
-                return super.market (futuresSymbol);
+                if (futuresSymbol in this.markets) {
+                    return this.markets[futuresSymbol];
+                }
             }
         }
         throw new BadSymbol (this.id + ' does not have market symbol ' + symbol);
