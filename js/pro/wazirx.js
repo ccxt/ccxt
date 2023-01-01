@@ -646,6 +646,7 @@ module.exports = class wazirx extends wazirxRest {
             'side': this.safeString (order, 'o'),
             'price': this.safeString (order, 'p'),
             'stopPrice': undefined,
+            'triggerPrice': undefined,
             'amount': this.safeString (order, 'V'),
             'filled': undefined,
             'remaining': this.safeString (order, 'q'),

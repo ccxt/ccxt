@@ -3250,6 +3250,7 @@ module.exports = class bybit extends Exchange {
             'price': price,
             'triggerPrice': stopPrice,
             'stopPrice': stopPrice,
+            'triggerPrice': stopPrice,
             'amount': amount,
             'cost': cost,
             'average': undefined,
