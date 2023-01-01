@@ -16,7 +16,7 @@ if (!exchangeId) {
 }
 
 const exchangeSymbols = require ('./pro-tests.json')
-const symbol = exchangeSymbol || 'all'
+const symbol = exchangeSymbol || exchangeSymbols[exchangeId] || 'BTC/USDT'
 log.bright ('\nTESTING', { exchangeId, symbol }, '\n')
 
 // ----------------------------------------------------------------------------
@@ -129,20 +129,6 @@ async function testPrivate (exchange, symbol, code) {
 
 //-----------------------------------------------------------------------------
 
-function getTestSymbol (exchange, symbols) {
-    // some markets don't have many trades
-    // so it is difficult to run ws tests
-    if (exchange.id in exchangeSymbols) {
-        return exchangeSymbol[exchange.id]
-    } else {
-        for (const symbol of symbols) {
-            if (symbol in exchange.markets) {
-                return symbol
-            }
-        }
-    }
-}
-
 async function testExchange (exchange) {
 
     const codes = [
@@ -184,25 +170,6 @@ async function testExchange (exchange) {
             code = codes[i]
             break
         }
-    }
-    let symbol = undefined
-    try {
-        symbol = getTestSymbol (exchange, [
-            'BTC/USDT',
-            'BTC/USD',
-            'BTC/CNY',
-            'BTC/EUR',
-            'BTC/ETH',
-            'ETH/BTC',
-            'ETH/USD',
-            'ETH/USDT',
-            'BTC/JPY',
-            'LTC/BTC',
-            'ETH/EUR',
-            'ZRX/WETH',
-        ])
-    } catch (e) {
-        symbol = exchange.symbols[0]
     }
 
     log.green ('CODE:', code)
