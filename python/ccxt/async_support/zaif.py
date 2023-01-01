@@ -52,7 +52,9 @@ class zaif(Exchange):
             },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/27766927-39ca2ada-5eeb-11e7-972f-1b4199518ca6.jpg',
-                'api': 'https://api.zaif.jp',
+                'api': {
+                    'rest': 'https://api.zaif.jp',
+                },
                 'www': 'https://zaif.jp',
                 'doc': [
                     'https://techbureau-api-document.readthedocs.io/ja/latest/index.html',
@@ -129,11 +131,11 @@ class zaif(Exchange):
             'options': {
                 # zaif schedule defines several market-specific fees
                 'fees': {
-                    'BTC/JPY': {'maker': 0, 'taker': 0.1 / 100},
-                    'BCH/JPY': {'maker': 0, 'taker': 0.3 / 100},
-                    'BCH/BTC': {'maker': 0, 'taker': 0.3 / 100},
-                    'PEPECASH/JPY': {'maker': 0, 'taker': 0.01 / 100},
-                    'PEPECASH/BT': {'maker': 0, 'taker': 0.01 / 100},
+                    'BTC/JPY': {'maker': self.parse_number('0'), 'taker': self.parse_number('0.001')},
+                    'BCH/JPY': {'maker': self.parse_number('0'), 'taker': self.parse_number('0.003')},
+                    'BCH/BTC': {'maker': self.parse_number('0'), 'taker': self.parse_number('0.003')},
+                    'PEPECASH/JPY': {'maker': self.parse_number('0'), 'taker': self.parse_number('0.0001')},
+                    'PEPECASH/BT': {'maker': self.parse_number('0'), 'taker': self.parse_number('0.0001')},
                 },
             },
             'precisionMode': TICK_SIZE,
@@ -278,11 +280,12 @@ class zaif(Exchange):
         :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/en/latest/manual.html#order-book-structure>` indexed by market symbols
         """
         await self.load_markets()
+        market = self.market(symbol)
         request = {
-            'pair': self.market_id(symbol),
+            'pair': market['id'],
         }
         response = await self.publicGetDepthPair(self.extend(request, params))
-        return self.parse_order_book(response, symbol)
+        return self.parse_order_book(response, market['symbol'])
 
     def parse_ticker(self, ticker, market=None):
         #
@@ -436,8 +439,9 @@ class zaif(Exchange):
         await self.load_markets()
         if type != 'limit':
             raise ExchangeError(self.id + ' createOrder() allows limit orders only')
+        market = self.market(symbol)
         request = {
-            'currency_pair': self.market_id(symbol),
+            'currency_pair': market['id'],
             'action': 'bid' if (side == 'buy') else 'ask',
             'amount': amount,
             'price': price,
@@ -532,7 +536,7 @@ class zaif(Exchange):
         :param int|None since: the earliest time in ms to fetch orders for
         :param int|None limit: the maximum number of  orde structures to retrieve
         :param dict params: extra parameters specific to the zaif api endpoint
-        :returns [dict]: a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure
+        :returns [dict]: a list of `order structures <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
         """
         await self.load_markets()
         market = None
@@ -643,10 +647,10 @@ class zaif(Exchange):
 
     def nonce(self):
         nonce = float(self.milliseconds() / 1000)
-        return '{:.8f}'.format(nonce)
+        return format(nonce, '.8f')
 
     def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
-        url = self.urls['api'] + '/'
+        url = self.urls['api']['rest'] + '/'
         if api == 'public':
             url += 'api/' + self.version + '/' + self.implode_params(path, params)
         elif api == 'fapi':

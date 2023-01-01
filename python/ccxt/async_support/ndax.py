@@ -11,6 +11,7 @@ from ccxt.base.errors import BadSymbol
 from ccxt.base.errors import InsufficientFunds
 from ccxt.base.errors import OrderNotFound
 from ccxt.base.decimal_to_precision import TICK_SIZE
+from ccxt.base.precise import Precise
 
 
 class ndax(Exchange):
@@ -69,6 +70,8 @@ class ndax(Exchange):
                 'fetchPositionsRisk': False,
                 'fetchPremiumIndexOHLCV': False,
                 'fetchTicker': True,
+                'fetchTickers': False,
+                'fetchTime': False,
                 'fetchTrades': True,
                 'fetchTradingFee': False,
                 'fetchTradingFees': False,
@@ -222,8 +225,8 @@ class ndax(Exchange):
                 'trading': {
                     'tierBased': False,
                     'percentage': True,
-                    'maker': 0.2 / 100,
-                    'taker': 0.25 / 100,
+                    'maker': self.parse_number('0.002'),
+                    'taker': self.parse_number('0.0025'),
                 },
             },
             'requiredCredentials': {
@@ -342,7 +345,6 @@ class ndax(Exchange):
             name = self.safe_string(currency, 'ProductFullName')
             type = self.safe_string(currency, 'ProductType')
             code = self.safe_currency_code(self.safe_string(currency, 'Product'))
-            precision = self.safe_number(currency, 'TickSize')
             isDisabled = self.safe_value(currency, 'IsDisabled')
             active = not isDisabled
             result[code] = {
@@ -350,7 +352,7 @@ class ndax(Exchange):
                 'name': name,
                 'code': code,
                 'type': type,
-                'precision': precision,
+                'precision': self.safe_number(currency, 'TickSize'),
                 'info': currency,
                 'active': active,
                 'deposit': None,
@@ -1050,58 +1052,51 @@ class ndax(Exchange):
     def parse_ledger_entry(self, item, currency=None):
         #
         #     {
-        #         "TransactionId":2663709493,
-        #         "ReferenceId":68,
-        #         "OMSId":1,
-        #         "AccountId":449,
-        #         "CR":10.000000000000000000000000000,
-        #         "DR":0.0000000000000000000000000000,
-        #         "Counterparty":3,
-        #         "TransactionType":"Other",
-        #         "ReferenceType":"Deposit",
-        #         "ProductId":1,
-        #         "Balance":10.000000000000000000000000000,
-        #         "TimeStamp":1607532331591
+        #         "TransactionId": 2663709493,
+        #         "ReferenceId": 68,
+        #         "OMSId": 1,
+        #         "AccountId": 449,
+        #         "CR": 10.000000000000000000000000000,
+        #         "DR": 0.0000000000000000000000000000,
+        #         "Counterparty": 3,
+        #         "TransactionType": "Other",
+        #         "ReferenceType": "Deposit",
+        #         "ProductId": 1,
+        #         "Balance": 10.000000000000000000000000000,
+        #         "TimeStamp": 1607532331591
         #     }
         #
-        id = self.safe_string(item, 'TransactionId')
-        account = self.safe_string(item, 'AccountId')
-        referenceId = self.safe_string(item, 'ReferenceId')
-        referenceAccount = self.safe_string(item, 'Counterparty')
-        type = self.parse_ledger_entry_type(self.safe_string(item, 'ReferenceType'))
         currencyId = self.safe_string(item, 'ProductId')
-        code = self.safe_currency_code(currencyId, currency)
-        credit = self.safe_number(item, 'CR')
-        debit = self.safe_number(item, 'DR')
+        credit = self.safe_string(item, 'CR')
+        debit = self.safe_string(item, 'DR')
         amount = None
         direction = None
-        if credit > 0:
+        if Precise.string_lt(credit, '0'):
             amount = credit
             direction = 'in'
-        elif debit > 0:
+        elif Precise.string_lt(debit, '0'):
             amount = debit
             direction = 'out'
-        timestamp = self.safe_integer(item, 'TimeStamp')
         before = None
-        after = self.safe_number(item, 'Balance')
+        after = self.safe_string(item, 'Balance')
         if direction == 'out':
-            before = self.sum(after, amount)
+            before = Precise.string_add(after, amount)
         elif direction == 'in':
-            before = max(0, after - amount)
-        status = 'ok'
+            before = Precise.string_max('0', Precise.string_sub(after, amount))
+        timestamp = self.safe_integer(item, 'TimeStamp')
         return {
             'info': item,
-            'id': id,
+            'id': self.safe_string(item, 'TransactionId'),
             'direction': direction,
-            'account': account,
-            'referenceId': referenceId,
-            'referenceAccount': referenceAccount,
-            'type': type,
-            'currency': code,
-            'amount': amount,
-            'before': before,
-            'after': after,
-            'status': status,
+            'account': self.safe_string(item, 'AccountId'),
+            'referenceId': self.safe_string(item, 'ReferenceId'),
+            'referenceAccount': self.safe_string(item, 'Counterparty'),
+            'type': self.parse_ledger_entry_type(self.safe_string(item, 'ReferenceType')),
+            'currency': self.safe_currency_code(currencyId, currency),
+            'amount': self.parse_number(amount),
+            'before': self.parse_number(before),
+            'after': self.parse_number(after),
+            'status': 'ok',
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
             'fee': None,
@@ -1231,40 +1226,27 @@ class ndax(Exchange):
         #         "OMSId":1
         #     }
         #
-        id = self.safe_string_2(order, 'ReplacementOrderId', 'OrderId')
         timestamp = self.safe_integer(order, 'ReceiveTime')
-        lastTradeTimestamp = self.safe_integer(order, 'LastUpdatedTime')
         marketId = self.safe_string(order, 'Instrument')
-        symbol = self.safe_symbol(marketId, market)
-        side = self.safe_string_lower(order, 'Side')
-        type = self.safe_string_lower(order, 'OrderType')
-        clientOrderId = self.safe_string_2(order, 'ReplacementClOrdId', 'ClientOrderId')
-        price = self.safe_string(order, 'Price')
-        amount = self.safe_string(order, 'OrigQuantity')
-        filled = self.safe_string(order, 'QuantityExecuted')
-        cost = self.safe_string(order, 'GrossValueExecuted')
-        average = self.safe_string(order, 'AvgPrice')
-        stopPrice = self.parse_number(self.omit_zero(self.safe_string(order, 'StopPrice')))
-        status = self.parse_order_status(self.safe_string(order, 'OrderState'))
         return self.safe_order({
-            'id': id,
-            'clientOrderId': clientOrderId,
+            'id': self.safe_string_2(order, 'ReplacementOrderId', 'OrderId'),
+            'clientOrderId': self.safe_string_2(order, 'ReplacementClOrdId', 'ClientOrderId'),
             'info': order,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
-            'lastTradeTimestamp': lastTradeTimestamp,
-            'status': status,
-            'symbol': symbol,
-            'type': type,
+            'lastTradeTimestamp': self.safe_integer(order, 'LastUpdatedTime'),
+            'status': self.parse_order_status(self.safe_string(order, 'OrderState')),
+            'symbol': self.safe_symbol(marketId, market),
+            'type': self.safe_string_lower(order, 'OrderType'),
             'timeInForce': None,
             'postOnly': None,
-            'side': side,
-            'price': price,
-            'stopPrice': stopPrice,
-            'cost': cost,
-            'amount': amount,
-            'filled': filled,
-            'average': average,
+            'side': self.safe_string_lower(order, 'Side'),
+            'price': self.safe_string(order, 'Price'),
+            'stopPrice': self.parse_number(self.omit_zero(self.safe_string(order, 'StopPrice'))),
+            'cost': self.safe_string(order, 'GrossValueExecuted'),
+            'amount': self.safe_string(order, 'OrigQuantity'),
+            'filled': self.safe_string(order, 'QuantityExecuted'),
+            'average': self.safe_string(order, 'AvgPrice'),
             'remaining': None,
             'fee': None,
             'trades': None,
@@ -1597,7 +1579,7 @@ class ndax(Exchange):
         :param int|None since: the earliest time in ms to fetch orders for
         :param int|None limit: the maximum number of  orde structures to retrieve
         :param dict params: extra parameters specific to the ndax api endpoint
-        :returns [dict]: a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure
+        :returns [dict]: a list of `order structures <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
         """
         omsId = self.safe_integer(self.options, 'omsId', 1)
         await self.load_markets()

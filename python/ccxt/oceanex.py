@@ -26,7 +26,9 @@ class oceanex(Exchange):
             'rateLimit': 3000,
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/58385970-794e2d80-8001-11e9-889c-0567cd79b78e.jpg',
-                'api': 'https://api.oceanex.pro',
+                'api': {
+                    'rest': 'https://api.oceanex.pro',
+                },
                 'www': 'https://www.oceanex.pro.com',
                 'doc': 'https://api.oceanex.pro/doc/v1',
                 'referral': 'https://oceanex.pro/signup?referral=VE24QX',
@@ -272,6 +274,7 @@ class oceanex(Exchange):
         :returns dict: an array of `ticker structures <https://docs.ccxt.com/en/latest/manual.html#ticker-structure>`
         """
         self.load_markets()
+        symbols = self.market_symbols(symbols)
         if symbols is None:
             symbols = self.symbols
         marketIds = self.market_ids(symbols)
@@ -651,7 +654,7 @@ class oceanex(Exchange):
         :param int|None since: the earliest time in ms to fetch orders for
         :param int|None limit: the maximum number of  orde structures to retrieve
         :param dict params: extra parameters specific to the oceanex api endpoint
-        :returns [dict]: a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure
+        :returns [dict]: a list of `order structures <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
         """
         request = {
             'states': ['done', 'cancel'],
@@ -665,7 +668,7 @@ class oceanex(Exchange):
         :param int|None since: the earliest time in ms to fetch orders for
         :param int|None limit: the maximum number of  orde structures to retrieve
         :param dict params: extra parameters specific to the oceanex api endpoint
-        :returns [dict]: a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure
+        :returns [dict]: a list of `order structures <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
         """
         if symbol is None:
             raise ArgumentsRequired(self.id + ' fetchOrders() requires a `symbol` argument')
@@ -844,7 +847,7 @@ class oceanex(Exchange):
         return self.parse_orders(data)
 
     def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
-        url = self.urls['api'] + '/' + self.version + '/' + self.implode_params(path, params)
+        url = self.urls['api']['rest'] + '/' + self.version + '/' + self.implode_params(path, params)
         query = self.omit(params, self.extract_params(path))
         if api == 'public':
             if path == 'tickers_multi' or path == 'order_book/multi':

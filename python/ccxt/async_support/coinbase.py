@@ -62,6 +62,7 @@ class coinbase(Exchange):
                 'fetchLedger': True,
                 'fetchLeverage': False,
                 'fetchLeverageTiers': False,
+                'fetchMarginMode': False,
                 'fetchMarkets': True,
                 'fetchMarkOHLCV': False,
                 'fetchMyBuys': True,
@@ -74,6 +75,7 @@ class coinbase(Exchange):
                 'fetchOrderBook': False,
                 'fetchOrders': None,
                 'fetchPosition': False,
+                'fetchPositionMode': False,
                 'fetchPositions': False,
                 'fetchPositionsRisk': False,
                 'fetchPremiumIndexOHLCV': False,
@@ -93,7 +95,9 @@ class coinbase(Exchange):
             },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/40811661-b6eceae2-653a-11e8-829e-10bfadb078cf.jpg',
-                'api': 'https://api.coinbase.com',
+                'api': {
+                    'rest': 'https://api.coinbase.com',
+                },
                 'www': 'https://www.coinbase.com',
                 'doc': 'https://developers.coinbase.com/api/v2',
                 'fees': 'https://support.coinbase.com/customer/portal/articles/2109597-buy-sell-bank-transfer-fees',
@@ -148,8 +152,8 @@ class coinbase(Exchange):
                         'accounts/{account_id}/buys/{buy_id}/commit',
                         'accounts/{account_id}/sells',
                         'accounts/{account_id}/sells/{sell_id}/commit',
-                        'accounts/{account_id}/deposists',
-                        'accounts/{account_id}/deposists/{deposit_id}/commit',
+                        'accounts/{account_id}/deposits',
+                        'accounts/{account_id}/deposits/{deposit_id}/commit',
                         'accounts/{account_id}/withdrawals',
                         'accounts/{account_id}/withdrawals/{withdrawal_id}/commit',
                     ],
@@ -385,7 +389,7 @@ class coinbase(Exchange):
         :returns dict: a `list of order structures <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
         """
         # they don't have an endpoint for all historical trades
-        request = await self.prepare_account_request(limit, params)
+        request = self.prepare_account_request(limit, params)
         await self.load_markets()
         query = self.omit(params, ['account_id', 'accountId'])
         sells = await self.privateGetAccountsAccountIdSells(self.extend(request, query))
@@ -401,7 +405,7 @@ class coinbase(Exchange):
         :returns dict: a list of  `order structures <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
         """
         # they don't have an endpoint for all historical trades
-        request = await self.prepare_account_request(limit, params)
+        request = self.prepare_account_request(limit, params)
         await self.load_markets()
         query = self.omit(params, ['account_id', 'accountId'])
         buys = await self.privateGetAccountsAccountIdBuys(self.extend(request, query))
@@ -793,6 +797,7 @@ class coinbase(Exchange):
         :returns dict: an array of `ticker structures <https://docs.ccxt.com/en/latest/manual.html#ticker-structure>`
         """
         await self.load_markets()
+        symbols = self.market_symbols(symbols)
         request = {
             # 'currency': 'USD',
         }
@@ -869,7 +874,7 @@ class coinbase(Exchange):
         last = None
         timestamp = self.milliseconds()
         if not isinstance(ticker, str):
-            spot, buy, sell = ticker
+            spot, sell, buy = ticker
             spotData = self.safe_value(spot, 'data', {})
             buyData = self.safe_value(buy, 'data', {})
             sellData = self.safe_value(sell, 'data', {})
@@ -1263,11 +1268,11 @@ class coinbase(Exchange):
         #     }
         #
         amountInfo = self.safe_value(item, 'amount', {})
-        amount = self.safe_number(amountInfo, 'amount')
+        amount = self.safe_string(amountInfo, 'amount')
         direction = None
-        if amount < 0:
+        if Precise.string_lt(amount, '0'):
             direction = 'out'
-            amount = -amount
+            amount = Precise.string_neg(amount)
         else:
             direction = 'in'
         currencyId = self.safe_string(amountInfo, 'currency')
@@ -1315,7 +1320,7 @@ class coinbase(Exchange):
             'referenceAccount': None,
             'type': type,
             'currency': code,
-            'amount': amount,
+            'amount': self.parse_number(amount),
             'before': None,
             'after': None,
             'status': status,
@@ -1363,7 +1368,7 @@ class coinbase(Exchange):
         if method == 'GET':
             if query:
                 fullPath += '?' + self.urlencode(query)
-        url = self.urls['api'] + fullPath
+        url = self.urls['api']['rest'] + fullPath
         if api == 'private':
             authorization = self.safe_string(self.headers, 'Authorization')
             if authorization is not None:

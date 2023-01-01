@@ -17,7 +17,15 @@ function testTransaction (exchange, transaction, code, now) {
     assert ('tag' in transaction);
     assert ('txid' in transaction);
     assert (transaction['datetime'] === exchange.iso8601 (transaction['timestamp']));
-    assert ((transaction['status'] === 'ok') || (transaction['status'] === 'pending') || (transaction['status'] === 'canceled'));
+    const statuses = [
+        'ok',
+        'pending',
+        'failed',
+        'rejected',
+        'canceled',
+    ];
+    const transactionStatusIsValid = exchange.inArray (transaction['status'], statuses);
+    assert (transactionStatusIsValid);
     assert (transaction['currency'] === code);
     assert (typeof transaction['type'] === 'string');
     assert (transaction['type'] === 'deposit' || transaction['type'] === 'withdrawal');

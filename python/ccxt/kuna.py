@@ -37,6 +37,7 @@ class kuna(Exchange):
                 'fetchIndexOHLCV': False,
                 'fetchL3OrderBook': True,
                 'fetchLeverage': False,
+                'fetchMarginMode': False,
                 'fetchMarkets': True,
                 'fetchMarkOHLCV': False,
                 'fetchMyTrades': True,
@@ -45,6 +46,7 @@ class kuna(Exchange):
                 'fetchOpenOrders': True,
                 'fetchOrder': True,
                 'fetchOrderBook': True,
+                'fetchPositionMode': False,
                 'fetchPositions': False,
                 'fetchPositionsRisk': False,
                 'fetchPremiumIndexOHLCV': False,
@@ -414,7 +416,7 @@ class kuna(Exchange):
             request['limit'] = limit  # default = 300
         orderbook = self.publicGetDepth(self.extend(request, params))
         timestamp = self.safe_timestamp(orderbook, 'timestamp')
-        return self.parse_order_book(orderbook, symbol, timestamp)
+        return self.parse_order_book(orderbook, market['symbol'], timestamp)
 
     def parse_ticker(self, ticker, market=None):
         timestamp = self.safe_timestamp(ticker, 'at')
@@ -452,24 +454,14 @@ class kuna(Exchange):
         :returns dict: an array of `ticker structures <https://docs.ccxt.com/en/latest/manual.html#ticker-structure>`
         """
         self.load_markets()
+        symbols = self.market_symbols(symbols)
         response = self.publicGetTickers(params)
         ids = list(response.keys())
         result = {}
         for i in range(0, len(ids)):
             id = ids[i]
-            market = None
-            symbol = id
-            if id in self.markets_by_id:
-                market = self.markets_by_id[id]
-                symbol = market['symbol']
-            else:
-                base = id[0:3]
-                quote = id[3:6]
-                base = base.upper()
-                quote = quote.upper()
-                base = self.safe_currency_code(base)
-                quote = self.safe_currency_code(quote)
-                symbol = base + '/' + quote
+            market = self.safe_market(id)
+            symbol = market['symbol']
             result[symbol] = self.parse_ticker(response[id], market)
         return self.filter_by_array(result, 'symbol', symbols)
 
@@ -651,8 +643,9 @@ class kuna(Exchange):
         :returns dict: an `order structure <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
         """
         self.load_markets()
+        market = self.market(symbol)
         request = {
-            'market': self.market_id(symbol),
+            'market': market['id'],
             'side': side,
             'volume': str(amount),
             'ord_type': type,
@@ -660,8 +653,6 @@ class kuna(Exchange):
         if type == 'limit':
             request['price'] = str(price)
         response = self.privatePostOrders(self.extend(request, params))
-        marketId = self.safe_value(response, 'market')
-        market = self.safe_value(self.markets_by_id, marketId)
         return self.parse_order(response, market)
 
     def cancel_order(self, id, symbol=None, params={}):

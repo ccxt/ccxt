@@ -53,7 +53,9 @@ class bitflyer(Exchange):
             },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/28051642-56154182-660e-11e7-9b0d-6042d1e6edd8.jpg',
-                'api': 'https://api.{hostname}',
+                'api': {
+                    'rest': 'https://api.{hostname}',
+                },
                 'www': 'https://bitflyer.com',
                 'doc': 'https://lightning.bitflyer.com/docs?lang=en',
             },
@@ -327,11 +329,12 @@ class bitflyer(Exchange):
         :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/en/latest/manual.html#order-book-structure>` indexed by market symbols
         """
         self.load_markets()
+        market = self.market(symbol)
         request = {
-            'product_code': self.market_id(symbol),
+            'product_code': market['id'],
         }
         orderbook = self.publicGetGetboard(self.extend(request, params))
-        return self.parse_order_book(orderbook, symbol, None, 'bids', 'asks', 'price', 'size')
+        return self.parse_order_book(orderbook, market['symbol'], None, 'bids', 'asks', 'price', 'size')
 
     def parse_ticker(self, ticker, market=None):
         symbol = self.safe_symbol(None, market)
@@ -446,6 +449,8 @@ class bitflyer(Exchange):
         request = {
             'product_code': market['id'],
         }
+        if limit is not None:
+            request['count'] = limit
         response = self.publicGetGetexecutions(self.extend(request, params))
         return self.parse_trades(response, market, since, limit)
 
@@ -470,7 +475,7 @@ class bitflyer(Exchange):
         fee = self.safe_number(response, 'commission_rate')
         return {
             'info': response,
-            'symbol': symbol,
+            'symbol': market['symbol'],
             'maker': fee,
             'taker': fee,
         }
@@ -580,7 +585,7 @@ class bitflyer(Exchange):
         :param int|None since: the earliest time in ms to fetch orders for
         :param int|None limit: the maximum number of  orde structures to retrieve
         :param dict params: extra parameters specific to the bitflyer api endpoint
-        :returns [dict]: a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure
+        :returns [dict]: a list of `order structures <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
         """
         if symbol is None:
             raise ArgumentsRequired(self.id + ' fetchOrders() requires a `symbol` argument')
@@ -617,7 +622,7 @@ class bitflyer(Exchange):
         :param int|None since: the earliest time in ms to fetch orders for
         :param int|None limit: the maximum number of  orde structures to retrieve
         :param dict params: extra parameters specific to the bitflyer api endpoint
-        :returns [dict]: a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure
+        :returns [dict]: a list of `order structures <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
         """
         request = {
             'child_order_state': 'COMPLETED',
@@ -890,7 +895,7 @@ class bitflyer(Exchange):
         if method == 'GET':
             if params:
                 request += '?' + self.urlencode(params)
-        baseUrl = self.implode_hostname(self.urls['api'])
+        baseUrl = self.implode_hostname(self.urls['api']['rest'])
         url = baseUrl + request
         if api == 'private':
             self.check_required_credentials()

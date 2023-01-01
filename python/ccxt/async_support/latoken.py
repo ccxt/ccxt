@@ -46,12 +46,14 @@ class latoken(Exchange):
                 'fetchBorrowRates': False,
                 'fetchBorrowRatesPerSymbol': False,
                 'fetchCurrencies': True,
+                'fetchMarginMode': False,
                 'fetchMarkets': True,
                 'fetchMyTrades': True,
                 'fetchOpenOrders': True,
                 'fetchOrder': True,
                 'fetchOrderBook': True,
                 'fetchOrders': True,
+                'fetchPositionMode': False,
                 'fetchTicker': True,
                 'fetchTickers': True,
                 'fetchTime': True,
@@ -65,7 +67,9 @@ class latoken(Exchange):
             },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/61511972-24c39f00-aa01-11e9-9f7c-471f1d6e5214.jpg',
-                'api': 'https://api.latoken.com',
+                'api': {
+                    'rest': 'https://api.latoken.com',
+                },
                 'www': 'https://latoken.com',
                 'doc': [
                     'https://api.latoken.com',
@@ -188,12 +192,15 @@ class latoken(Exchange):
                     'TOO_MANY_REQUESTS': RateLimitExceeded,  # too many requests at the time. A response header X-Rate-Limit-Remaining indicates the number of allowed request per a period.
                     'INSUFFICIENT_FUNDS': InsufficientFunds,  # {"message":"not enough balance on the spot account for currency(USDT), need(20.000)","error":"INSUFFICIENT_FUNDS","status":"FAILURE"}
                     'ORDER_VALIDATION': InvalidOrder,  # {"message":"Quantity(0) is not positive","error":"ORDER_VALIDATION","status":"FAILURE"}
+                    'BAD_TICKS': InvalidOrder,  # {"status":"FAILURE","message":"Quantity(1.4) does not match quantity tick(10)","error":"BAD_TICKS","errors":null,"result":false}
                 },
                 'broad': {
                     'invalid API key, signature or digest': AuthenticationError,  # {"result":false,"message":"invalid API key, signature or digest","error":"BAD_REQUEST","status":"FAILURE"}
+                    'The API key was revoked': AuthenticationError,  # {"result":false,"message":"The API key was revoked","error":"BAD_REQUEST","status":"FAILURE"}
                     'request expired or bad': InvalidNonce,  # {"result":false,"message":"request expired or bad <timeAlive>/<timestamp> format","error":"BAD_REQUEST","status":"FAILURE"}
                     'For input string': BadRequest,  # {"result":false,"message":"Internal error","error":"For input string: \"NaN\"","status":"FAILURE"}
                     'Unable to resolve currency by tag': BadSymbol,  # {"message":"Unable to resolve currency by tag(None)","error":"NOT_FOUND","status":"FAILURE"}
+                    "Can't find currency with tag": BadSymbol,  # {"status":"FAILURE","message":"Can't find currency with tag = None","error":"NOT_FOUND","errors":null,"result":false}
                     'Unable to place order because pair is in inactive state': BadSymbol,  # {"message":"Unable to place order because pair is in inactive state(PAIR_STATUS_INACTIVE)","error":"ORDER_VALIDATION","status":"FAILURE"}
                     'API keys are not available for FROZEN user': AccountSuspended,  # {"result":false,"message":"API keys are not available for FROZEN user","error":"BAD_REQUEST","status":"FAILURE"}
                 },
@@ -419,7 +426,6 @@ class latoken(Exchange):
             id = self.safe_string(currency, 'id')
             tag = self.safe_string(currency, 'tag')
             code = self.safe_currency_code(tag)
-            precision = self.parse_number(self.parse_precision(self.safe_string(currency, 'decimals')))
             fee = self.safe_number(currency, 'fee')
             currencyType = self.safe_string(currency, 'type')
             parts = currencyType.split('_')
@@ -439,7 +445,7 @@ class latoken(Exchange):
                 'deposit': None,
                 'withdraw': None,
                 'fee': fee,
-                'precision': precision,
+                'precision': self.parse_number(self.parse_precision(self.safe_string(currency, 'decimals'))),
                 'limits': {
                     'amount': {
                         'min': self.safe_number(currency, 'minTransferAmount'),
@@ -784,7 +790,7 @@ class latoken(Exchange):
         #
         return {
             'info': response,
-            'symbol': symbol,
+            'symbol': market['symbol'],
             'maker': self.safe_number(response, 'makerFee'),
             'taker': self.safe_number(response, 'takerFee'),
         }
@@ -807,7 +813,7 @@ class latoken(Exchange):
         #
         return {
             'info': response,
-            'symbol': symbol,
+            'symbol': market['symbol'],
             'maker': self.safe_number(response, 'makerFee'),
             'taker': self.safe_number(response, 'takerFee'),
         }
@@ -1029,7 +1035,7 @@ class latoken(Exchange):
         :param int|None since: the earliest time in ms to fetch orders for
         :param int|None limit: the maximum number of  orde structures to retrieve
         :param dict params: extra parameters specific to the latoken api endpoint
-        :returns [dict]: a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure
+        :returns [dict]: a list of `order structures <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
         """
         await self.load_markets()
         request = {
@@ -1310,6 +1316,7 @@ class latoken(Exchange):
         statuses = {
             'TRANSACTION_STATUS_CONFIRMED': 'ok',
             'TRANSACTION_STATUS_EXECUTED': 'ok',
+            'TRANSACTION_STATUS_CANCELLED': 'canceled',
         }
         return self.safe_string(statuses, status, status)
 
@@ -1379,7 +1386,7 @@ class latoken(Exchange):
         await self.load_markets()
         currency = self.currency(code)
         method = None
-        if toAccount.includes('@'):
+        if toAccount.find('@') >= 0:
             method = 'privatePostAuthTransferEmail'
         elif len(toAccount) == 36:
             method = 'privatePostAuthTransferId'
@@ -1444,7 +1451,7 @@ class latoken(Exchange):
         return {
             'info': transfer,
             'id': self.safe_string(transfer, 'id'),
-            'timestamp': self.safe_number(transfer),
+            'timestamp': self.safe_integer(transfer, 'timestamp'),
             'datetime': self.iso8601(timestamp),
             'currency': self.safe_currency_code(currencyId, currency),
             'amount': self.safe_number(transfer, 'transferringFunds'),
@@ -1483,7 +1490,7 @@ class latoken(Exchange):
             if method == 'POST':
                 headers['Content-Type'] = 'application/json'
                 body = self.json(query)
-        url = self.urls['api'] + requestString
+        url = self.urls['api']['rest'] + requestString
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
     def handle_errors(self, code, reason, url, method, headers, body, response, requestHeaders, requestBody):
@@ -1500,7 +1507,7 @@ class latoken(Exchange):
         if message is not None:
             self.throw_exactly_matched_exception(self.exceptions['exact'], message, feedback)
             self.throw_broadly_matched_exception(self.exceptions['broad'], message, feedback)
-        error = self.safe_string(response, 'error')
+        error = self.safe_value(response, 'error')
         errorMessage = self.safe_string(error, 'message')
         if (error is not None) or (errorMessage is not None):
             self.throw_exactly_matched_exception(self.exceptions['exact'], error, feedback)

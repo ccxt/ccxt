@@ -53,6 +53,7 @@ class bittrex(Exchange):
                 'createStopMarketOrder': True,
                 'createStopOrder': True,
                 'fetchBalance': True,
+                'fetchBidsAsks': True,
                 'fetchBorrowRate': False,
                 'fetchBorrowRateHistories': False,
                 'fetchBorrowRateHistory': False,
@@ -60,6 +61,7 @@ class bittrex(Exchange):
                 'fetchBorrowRatesPerSymbol': False,
                 'fetchClosedOrders': True,
                 'fetchCurrencies': True,
+                'fetchDeposit': True,
                 'fetchDepositAddress': True,
                 'fetchDeposits': True,
                 'fetchFundingHistory': False,
@@ -69,6 +71,7 @@ class bittrex(Exchange):
                 'fetchIndexOHLCV': False,
                 'fetchLeverage': False,
                 'fetchLeverageTiers': False,
+                'fetchMarginMode': False,
                 'fetchMarkets': True,
                 'fetchMarkOHLCV': False,
                 'fetchMyTrades': True,
@@ -79,6 +82,7 @@ class bittrex(Exchange):
                 'fetchOrderBook': True,
                 'fetchOrderTrades': True,
                 'fetchPosition': False,
+                'fetchPositionMode': False,
                 'fetchPositions': False,
                 'fetchPositionsRisk': False,
                 'fetchPremiumIndexOHLCV': False,
@@ -90,6 +94,7 @@ class bittrex(Exchange):
                 'fetchTradingFees': True,
                 'fetchTransactionFees': None,
                 'fetchTransactions': None,
+                'fetchWithdrawal': True,
                 'fetchWithdrawals': True,
                 'reduceMargin': False,
                 'setLeverage': False,
@@ -148,6 +153,10 @@ class bittrex(Exchange):
                         'account/fees/trading',
                         'account/fees/trading/{marketSymbol}',
                         'account/volume',
+                        'account/permissions/markets',
+                        'account/permissions/markets/{marketSymbol}',
+                        'account/permissions/currencies',
+                        'account/permissions/currencies/{currencySymbol}',
                         'addresses',
                         'addresses/{currencySymbol}',
                         'balances',
@@ -157,6 +166,8 @@ class bittrex(Exchange):
                         'deposits/ByTxId/{txId}',
                         'deposits/{depositId}',
                         'executions',
+                        'executions/last-id',
+                        'executions/{executionId}',
                         'orders/closed',
                         'orders/open',
                         'orders/{orderId}',
@@ -164,17 +175,22 @@ class bittrex(Exchange):
                         'ping',
                         'subaccounts/{subaccountId}',
                         'subaccounts',
+                        'subaccounts/withdrawals/open',
+                        'subaccounts/withdrawals/closed',
+                        'subaccounts/deposits/open',
+                        'subaccounts/deposits/closed',
                         'withdrawals/open',
                         'withdrawals/closed',
                         'withdrawals/ByTxId/{txId}',
                         'withdrawals/{withdrawalId}',
-                        'withdrawals/whitelistAddresses',
+                        'withdrawals/allowed-addresses',
                         'conditional-orders/{conditionalOrderId}',
                         'conditional-orders/closed',
                         'conditional-orders/open',
                         'transfers/sent',
                         'transfers/received',
                         'transfers/{transferId}',
+                        'funds-transfer-methods/{fundsTransferMethodId}',
                     ],
                     'post': [
                         'addresses',
@@ -183,6 +199,7 @@ class bittrex(Exchange):
                         'withdrawals',
                         'conditional-orders',
                         'transfers',
+                        'batch',
                     ],
                     'delete': [
                         'orders/open',
@@ -244,6 +261,12 @@ class bittrex(Exchange):
                 },
                 'fetchTickers': {
                     'method': 'publicGetMarketsTickers',  # publicGetMarketsSummaries
+                },
+                'fetchDeposits': {
+                    'status': 'ok',
+                },
+                'fetchWithdrawals': {
+                    'status': 'ok',
                 },
                 'parseOrderStatus': False,
                 'hasAlreadyAuthenticatedSuccessfully': False,  # a workaround for APIKEY_INVALID
@@ -350,8 +373,8 @@ class bittrex(Exchange):
                 'strike': None,
                 'optionType': None,
                 'precision': {
-                    'amount': self.parse_number('0.00000001'),
-                    'price': self.parse_number(self.parse_precision(self.safe_string(market, 'precision', '8'))),
+                    'amount': self.parse_number('1e-8'),  # seems exchange has same amount-precision across all pairs in UI too. This is same as 'minTradeSize' digits after dot
+                    'price': self.parse_number(self.parse_precision(self.safe_string(market, 'precision'))),
                 },
                 'limits': {
                     'leverage': {
@@ -408,8 +431,9 @@ class bittrex(Exchange):
         :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/en/latest/manual.html#order-book-structure>` indexed by market symbols
         """
         self.load_markets()
+        market = self.market(symbol)
         request = {
-            'marketSymbol': self.market_id(symbol),
+            'marketSymbol': market['id'],
         }
         if limit is not None:
             if (limit != 1) and (limit != 25) and (limit != 500):
@@ -431,7 +455,7 @@ class bittrex(Exchange):
         #     }
         #
         sequence = self.safe_integer(self.last_response_headers, 'Sequence')
-        orderbook = self.parse_order_book(response, symbol, None, 'bid', 'ask', 'rate', 'quantity')
+        orderbook = self.parse_order_book(response, market['symbol'], None, 'bid', 'ask', 'rate', 'quantity')
         orderbook['nonce'] = sequence
         return orderbook
 
@@ -464,7 +488,7 @@ class bittrex(Exchange):
             currency = response[i]
             id = self.safe_string(currency, 'symbol')
             code = self.safe_currency_code(id)
-            precision = self.parse_number('0.00000001')  # default precision, todo: fix "magic constants"
+            precision = self.parse_number('1e-8')  # default precision, seems exchange has same amount-precision across all pairs in UI too. todo: fix "magic constants"
             fee = self.safe_number(currency, 'txFee')  # todo: redesign
             isActive = self.safe_string(currency, 'status')
             result[code] = {
@@ -552,6 +576,7 @@ class bittrex(Exchange):
         :returns dict: an array of `ticker structures <https://docs.ccxt.com/en/latest/manual.html#ticker-structure>`
         """
         self.load_markets()
+        symbols = self.market_symbols(symbols)
         options = self.safe_value(self.options, 'fetchTickers', {})
         defaultMethod = self.safe_string(options, 'method', 'publicGetMarketsTickers')
         method = self.safe_string(params, 'method', defaultMethod)
@@ -631,6 +656,27 @@ class bittrex(Exchange):
         #
         return self.parse_ticker(response, market)
 
+    def fetch_bids_asks(self, symbols=None, params={}):
+        """
+        fetches the bid and ask price and volume for multiple markets
+        :param [str]|None symbols: unified symbols of the markets to fetch the bids and asks for, all markets are returned if not assigned
+        :param dict params: extra parameters specific to the binance api endpoint
+        :returns dict: an array of `ticker structures <https://docs.ccxt.com/en/latest/manual.html#ticker-structure>`
+        """
+        self.load_markets()
+        response = self.publicGetMarketsTickers(params)
+        #
+        #     [
+        #       {
+        #         "symbol":"ETH-BTC",
+        #         "lastTradeRate":"0.03284496",
+        #         "bidRate":"0.03284523",
+        #         "askRate":"0.03286857"
+        #       }
+        #     ]
+        #
+        return self.parse_tickers(response, symbols)
+
     def parse_trade(self, trade, market=None):
         #
         # public fetchTrades
@@ -655,6 +701,19 @@ class bittrex(Exchange):
         #          "isTaker":  True
         #      }
         #
+        # private fetchMyTrades
+        #      {
+        #          "id":"7e6488c9-294f-4137-b0f2-9f86578186fe",
+        #          "marketSymbol":"DOGE-USDT",
+        #          "executedAt":"2022-08-12T21:27:37.92Z",
+        #          "quantity":"100.00000000",
+        #          "rate":"0.071584100000",
+        #          "orderId":"2d53f11a-fb22-4820-b04d-80e5f48e6005",
+        #          "commission":"0.05368807",
+        #          "isTaker":true,
+        #          "direction":"BUY"
+        #      }
+        #
         timestamp = self.parse8601(self.safe_string(trade, 'executedAt'))
         id = self.safe_string(trade, 'id')
         order = self.safe_string(trade, 'orderId')
@@ -663,9 +722,15 @@ class bittrex(Exchange):
         priceString = self.safe_string(trade, 'rate')
         amountString = self.safe_string(trade, 'quantity')
         takerOrMaker = None
+        side = self.safe_string_lower_2(trade, 'takerSide', 'direction')
         isTaker = self.safe_value(trade, 'isTaker')
         if isTaker is not None:
             takerOrMaker = 'taker' if isTaker else 'maker'
+            if not isTaker:  # as noted in PR  #15655 self API provides confusing value - when it's 'maker' trade, then side value should reversed
+                if side == 'buy':
+                    side = 'sell'
+                elif side == 'sell':
+                    side = 'buy'
         fee = None
         feeCostString = self.safe_string(trade, 'commission')
         if feeCostString is not None:
@@ -673,7 +738,6 @@ class bittrex(Exchange):
                 'cost': feeCostString,
                 'currency': market['quote'],
             }
-        side = self.safe_string_lower(trade, 'takerSide')
         return self.safe_trade({
             'info': trade,
             'timestamp': timestamp,
@@ -716,7 +780,7 @@ class bittrex(Exchange):
         self.load_markets()
         market = self.market(symbol)
         request = {
-            'marketSymbol': self.market_id(symbol),
+            'marketSymbol': market['id'],
         }
         response = self.publicGetMarketsMarketSymbolTrades(self.extend(request, params))
         #
@@ -1242,6 +1306,25 @@ class bittrex(Exchange):
             orders.append(result)
         return self.parse_orders(orders, market)
 
+    def fetch_deposit(self, id, code=None, params={}):
+        """
+        fetch data on a currency deposit via the deposit id
+        :param str id: deposit id
+        :param str|None code: filter by currency code
+        :param dict params: extra parameters specific to the bittrex api endpoint
+        :returns dict: a `transaction structure <https://docs.ccxt.com/en/latest/manual.html#transaction-structure>`
+        """
+        self.load_markets()
+        request = {
+            'txId': id,
+        }
+        currency = None
+        if code is not None:
+            currency = self.currency(code)
+        response = self.privateGetDepositsByTxIdTxId(self.extend(request, params))
+        transactions = self.parse_transactions(response, currency, None, None)
+        return self.safe_value(transactions, 0)
+
     def fetch_deposits(self, code=None, since=None, limit=None, params={}):
         """
         fetch all deposits made to an account
@@ -1249,6 +1332,9 @@ class bittrex(Exchange):
         :param int|None since: the earliest time in ms to fetch deposits for
         :param int|None limit: the maximum number of deposits structures to retrieve
         :param dict params: extra parameters specific to the bittrex api endpoint
+        :param int|None params['endDate']: Filters out result after self timestamp. Uses ISO-8602 format.
+        :param str|None params['nextPageToken']: The unique identifier of the item that the resulting query result should start after, in the sort order of the given endpoint. Used for traversing a paginated set in the forward direction.
+        :param str|None params['previousPageToken']: The unique identifier of the item that the resulting query result should end before, in the sort order of the given endpoint. Used for traversing a paginated set in the reverse direction.
         :returns [dict]: a list of `transaction structures <https://docs.ccxt.com/en/latest/manual.html#transaction-structure>`
         """
         self.load_markets()
@@ -1258,11 +1344,59 @@ class bittrex(Exchange):
         if code is not None:
             currency = self.currency(code)
             request['currencySymbol'] = currency['id']
-        response = self.privateGetDepositsClosed(self.extend(request, params))
+        if since is not None:
+            startDate = int(since / 1000) * 1000
+            request['startDate'] = self.iso8601(startDate)
+        if limit is not None:
+            request['pageSize'] = limit
+        method = None
+        options = self.safe_value(self.options, 'fetchDeposits', {})
+        defaultStatus = self.safe_string(options, 'status', 'ok')
+        status = self.safe_string(params, 'status', defaultStatus)
+        if status == 'pending':
+            method = 'privateGetDepositsOpen'
+        else:
+            method = 'privateGetDepositsClosed'
+        params = self.omit(params, 'status')
+        response = getattr(self, method)(self.extend(request, params))
         # we cannot filter by `since` timestamp, as it isn't set by Bittrex
         # see https://github.com/ccxt/ccxt/issues/4067
         # return self.parse_transactions(response, currency, since, limit)
         return self.parse_transactions(response, currency, None, limit)
+
+    def fetch_pending_deposits(self, code=None, since=None, limit=None, params={}):
+        """
+        fetch all pending deposits made from an account
+        :param str|None code: unified currency code
+        :param int|None since: the earliest time in ms to fetch withdrawals for
+        :param int|None limit: the maximum number of withdrawals structures to retrieve
+        :param dict params: extra parameters specific to the bittrex api endpoint
+        :param int|None params['endDate']: Filters out result after self timestamp. Uses ISO-8602 format.
+        :param str|None params['nextPageToken']: The unique identifier of the item that the resulting query result should start after, in the sort order of the given endpoint. Used for traversing a paginated set in the forward direction.
+        :param str|None params['previousPageToken']: The unique identifier of the item that the resulting query result should end before, in the sort order of the given endpoint. Used for traversing a paginated set in the reverse direction.
+        :returns [dict]: a list of `transaction structures <https://docs.ccxt.com/en/latest/manual.html#transaction-structure>`
+        """
+        self.load_markets()
+        return self.fetch_deposits(code, since, limit, self.extend(params, {'status': 'pending'}))
+
+    def fetch_withdrawal(self, id, code=None, params={}):
+        """
+        fetch data on a currency withdrawal via the withdrawal id
+        :param str id: withdrawal id
+        :param str|None code: filter by currency code
+        :param dict params: extra parameters specific to the bittrex api endpoint
+        :returns dict: a `transaction structure <https://docs.ccxt.com/en/latest/manual.html#transaction-structure>`
+        """
+        self.load_markets()
+        request = {
+            'txId': id,
+        }
+        currency = None
+        if code is not None:
+            currency = self.currency(code)
+        response = self.privateGetWithdrawalsByTxIdTxId(self.extend(request, params))
+        transactions = self.parse_transactions(response, currency, None, None)
+        return self.safe_value(transactions, 0)
 
     def fetch_withdrawals(self, code=None, since=None, limit=None, params={}):
         """
@@ -1271,6 +1405,9 @@ class bittrex(Exchange):
         :param int|None since: the earliest time in ms to fetch withdrawals for
         :param int|None limit: the maximum number of withdrawals structures to retrieve
         :param dict params: extra parameters specific to the bittrex api endpoint
+        :param int|None params['endDate']: Filters out result after self timestamp. Uses ISO-8602 format.
+        :param str|None params['nextPageToken']: The unique identifier of the item that the resulting query result should start after, in the sort order of the given endpoint. Used for traversing a paginated set in the forward direction.
+        :param str|None params['previousPageToken']: The unique identifier of the item that the resulting query result should end before, in the sort order of the given endpoint. Used for traversing a paginated set in the reverse direction.
         :returns [dict]: a list of `transaction structures <https://docs.ccxt.com/en/latest/manual.html#transaction-structure>`
         """
         self.load_markets()
@@ -1280,41 +1417,70 @@ class bittrex(Exchange):
         if code is not None:
             currency = self.currency(code)
             request['currencySymbol'] = currency['id']
-        response = self.privateGetWithdrawalsClosed(self.extend(request, params))
+        if since is not None:
+            startDate = int(since / 1000) * 1000
+            request['startDate'] = self.iso8601(startDate)
+        if limit is not None:
+            request['pageSize'] = limit
+        method = None
+        options = self.safe_value(self.options, 'fetchWithdrawals', {})
+        defaultStatus = self.safe_string(options, 'status', 'ok')
+        status = self.safe_string(params, 'status', defaultStatus)
+        if status == 'pending':
+            method = 'privateGetWithdrawalsOpen'
+        else:
+            method = 'privateGetWithdrawalsClosed'
+        params = self.omit(params, 'status')
+        response = getattr(self, method)(self.extend(request, params))
         return self.parse_transactions(response, currency, since, limit)
+
+    def fetch_pending_withdrawals(self, code=None, since=None, limit=None, params={}):
+        """
+        fetch all pending withdrawals made from an account
+        :param str|None code: unified currency code
+        :param int|None since: the earliest time in ms to fetch withdrawals for
+        :param int|None limit: the maximum number of withdrawals structures to retrieve
+        :param dict params: extra parameters specific to the bittrex api endpoint
+        :param int|None params['endDate']: Filters out result after self timestamp. Uses ISO-8602 format.
+        :param str|None params['nextPageToken']: The unique identifier of the item that the resulting query result should start after, in the sort order of the given endpoint. Used for traversing a paginated set in the forward direction.
+        :param str|None params['previousPageToken']: The unique identifier of the item that the resulting query result should end before, in the sort order of the given endpoint. Used for traversing a paginated set in the reverse direction.
+        :returns [dict]: a list of `transaction structures <https://docs.ccxt.com/en/latest/manual.html#transaction-structure>`
+        """
+        self.load_markets()
+        return self.fetch_withdrawals(code, since, limit, self.extend(params, {'status': 'pending'}))
 
     def parse_transaction(self, transaction, currency=None):
         #
         # fetchDeposits
         #
-        #     {
-        #         "id": "d00fdf2e-df9e-48f1-....",
-        #         "currencySymbol": "BTC",
-        #         "quantity": "0.00550000",
-        #         "cryptoAddress": "1PhmYjnJPZH5NUwV8AU...",
-        #         "txId": "d1f1afffe1b9b6614eaee7e8133c85d98...",
-        #         "confirmations": 2,
-        #         "updatedAt": "2020-01-12T16:49:30.41Z",
-        #         "completedAt": "2020-01-12T16:49:30.41Z",
-        #         "status": "COMPLETED",
-        #         "source": "BLOCKCHAIN"
-        #     }
+        #      {
+        #          "id": "77f2e4f0-a33d-4285-9140-ed5b20533a17",
+        #          "currencySymbol": "ETH",
+        #          "quantity": "0.36487773",
+        #          "cryptoAddress": "0xeee7cff0f587706acdddfc1ff65968936fcf621e",
+        #          "txId": "0x059fd3279452a245b308a944a0ee341ff9d17652a8a1bc663e6006282128c782",
+        #          "confirmations": 44,
+        #          "updatedAt": "2017-12-28T13:57:42.753Z",
+        #          "completedAt": "2017-12-28T13:57:42.753Z",
+        #          "status": "COMPLETED",
+        #          "source": "BLOCKCHAIN"
+        #      }
         #
         # fetchWithdrawals
         #
-        #     {
-        #         "PaymentUuid" : "e293da98-788c-4188-a8f9-8ec2c33fdfcf",
-        #         "Currency" : "XC",
-        #         "Amount" : 7513.75121715,
-        #         "Address" : "EVnSMgAd7EonF2Dgc4c9K14L12RBaW5S5J",
-        #         "Opened" : "2014-07-08T23:13:31.83",
-        #         "Authorized" : True,
-        #         "PendingPayment" : False,
-        #         "TxCost" : 0.00002000,
-        #         "TxId" : "b4a575c2a71c7e56d02ab8e26bb1ef0a2f6cf2094f6ca2116476a569c1e84f6e",
-        #         "Canceled" : False,
-        #         "InvalidAddress" : False
-        #     }
+        #      {
+        #          "id":"d20d556c-59ac-4480-95d8-268f8d4adedb",
+        #          "currencySymbol":"OMG",
+        #          "quantity":"2.67000000",
+        #          "cryptoAddress":"0xa7daa9acdb41c0c476966ee23d388d6f2a1448cd",
+        #          "cryptoAddressTag":"",
+        #          "txCost":"0.10000000",
+        #          "txId":"0xb54b8c5fb889aa9f9154e013cc5dd67b3048a3e0ae58ba845868225cda154bf5",
+        #          "status":"COMPLETED",
+        #          "createdAt":"2017-12-16T20:46:22.5Z",
+        #          "completedAt":"2017-12-16T20:48:03.887Z",
+        #          "target":"BLOCKCHAIN"
+        #      }
         #
         # withdraw
         #
@@ -1330,6 +1496,13 @@ class bittrex(Exchange):
         id = self.safe_string_2(transaction, 'id', 'clientWithdrawalId')
         amount = self.safe_number(transaction, 'quantity')
         address = self.safe_string(transaction, 'cryptoAddress')
+        addressTo = None
+        addressFrom = None
+        isDeposit = self.safe_string(transaction, 'source') == 'BLOCKCHAIN'
+        if isDeposit:
+            addressFrom = address
+        else:
+            addressTo = address
         txid = self.safe_string(transaction, 'txId')
         updated = self.parse8601(self.safe_string(transaction, 'updatedAt'))
         opened = self.parse8601(self.safe_string(transaction, 'createdAt'))
@@ -1374,8 +1547,8 @@ class bittrex(Exchange):
             'amount': amount,
             'network': None,
             'address': address,
-            'addressTo': None,
-            'addressFrom': None,
+            'addressTo': addressTo,
+            'addressFrom': addressFrom,
             'tag': None,
             'tagTo': None,
             'tagFrom': None,
@@ -1597,7 +1770,7 @@ class bittrex(Exchange):
         :param int|None since: the earliest time in ms to fetch orders for
         :param int|None limit: the maximum number of  orde structures to retrieve
         :param dict params: extra parameters specific to the bittrex api endpoint
-        :returns [dict]: a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure
+        :returns [dict]: a list of `order structures <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
         """
         self.load_markets()
         stop = self.safe_value(params, 'stop')

@@ -42,6 +42,7 @@ class therock(Exchange):
                 'fetchFundingRates': False,
                 'fetchIndexOHLCV': False,
                 'fetchLedger': True,
+                'fetchMarginMode': False,
                 'fetchMarkets': True,
                 'fetchMarkOHLCV': False,
                 'fetchMyTrades': True,
@@ -51,6 +52,7 @@ class therock(Exchange):
                 'fetchOrder': True,
                 'fetchOrderBook': True,
                 'fetchOrders': True,
+                'fetchPositionMode': False,
                 'fetchPremiumIndexOHLCV': False,
                 'fetchTicker': True,
                 'fetchTickers': True,
@@ -66,7 +68,9 @@ class therock(Exchange):
             },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/27766869-75057fa2-5ee9-11e7-9a6f-13e641fa4707.jpg',
-                'api': 'https://api.therocktrading.com',
+                'api': {
+                    'rest': 'https://api.therocktrading.com',
+                },
                 'www': 'https://therocktrading.com',
                 'doc': [
                     'https://api.therocktrading.com/doc/v1/index.html',
@@ -288,12 +292,13 @@ class therock(Exchange):
         :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/en/latest/manual.html#order-book-structure>` indexed by market symbols
         """
         await self.load_markets()
+        market = self.market(symbol)
         request = {
-            'id': self.market_id(symbol),
+            'id': market['id'],
         }
         orderbook = await self.publicGetFundsIdOrderbook(self.extend(request, params))
         timestamp = self.parse8601(self.safe_string(orderbook, 'date'))
-        return self.parse_order_book(orderbook, symbol, timestamp, 'bids', 'asks', 'price', 'amount')
+        return self.parse_order_book(orderbook, market['symbol'], timestamp, 'bids', 'asks', 'price', 'amount')
 
     def parse_ticker(self, ticker, market=None):
         #
@@ -345,6 +350,7 @@ class therock(Exchange):
         :returns dict: an array of `ticker structures <https://docs.ccxt.com/en/latest/manual.html#ticker-structure>`
         """
         await self.load_markets()
+        symbols = self.market_symbols(symbols)
         response = await self.publicGetFundsTickers(params)
         tickers = self.index_by(response['tickers'], 'fund_id')
         ids = list(tickers.keys())
@@ -1138,7 +1144,7 @@ class therock(Exchange):
         :param int|None since: the earliest time in ms to fetch orders for
         :param int|None limit: the maximum number of  orde structures to retrieve
         :param dict params: extra parameters specific to the therock api endpoint
-        :returns [dict]: a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure
+        :returns [dict]: a list of `order structures <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
         """
         request = {
             'status': 'executed',
@@ -1152,7 +1158,7 @@ class therock(Exchange):
         :param int|None since: the earliest time in ms to fetch orders for
         :param int|None limit: the maximum number of  orde structures to retrieve
         :param dict params: extra parameters specific to the therock api endpoint
-        :returns [dict]: a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure
+        :returns [dict]: a list of `order structures <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
         """
         if symbol is None:
             raise ArgumentsRequired(self.id + ' fetchOrders() requires a symbol argument')
@@ -1256,8 +1262,9 @@ class therock(Exchange):
         await self.load_markets()
         if type == 'market':
             price = 0
+        market = self.market(symbol)
         request = {
-            'fund_id': self.market_id(symbol),
+            'fund_id': market['id'],
             'side': side,
             'amount': amount,
             'price': price,
@@ -1575,7 +1582,7 @@ class therock(Exchange):
         }
 
     def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
-        url = self.urls['api'] + '/' + self.version + '/' + self.implode_params(path, params)
+        url = self.urls['api']['rest'] + '/' + self.version + '/' + self.implode_params(path, params)
         query = self.omit(params, self.extract_params(path))
         headers = {} if (headers is None) else headers
         if api == 'private':

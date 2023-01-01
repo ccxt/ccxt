@@ -12,9 +12,10 @@ class huobipro extends huobi {
     public function describe() {
         // this is an alias for backward-compatibility
         // to be removed soon
-        return $this->deep_extend(parent::describe (), array(
+        return $this->deep_extend(parent::describe(), array(
             'id' => 'huobipro',
             'alias' => true,
+            'name' => 'Huobi Pro',
         ));
     }
 }
