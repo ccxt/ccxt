@@ -227,6 +227,7 @@ module.exports = class whitebit extends Exchange {
                 'networksById': {
                     'BEP20': 'BSC',
                 },
+                'defaultType': 'spot',
             },
             'precisionMode': TICK_SIZE,
             'exceptions': {
@@ -1155,6 +1156,7 @@ module.exports = class whitebit extends Exchange {
             'side': side,
             'amount': this.amountToPrecision (symbol, amount),
         };
+        const marketType = this.safeString (market, 'type');
         const isLimitOrder = type === 'limit';
         const isMarketOrder = type === 'market';
         const stopPrice = this.safeNumberN (params, [ 'triggerPrice', 'stopPrice', 'activation_price' ]);
@@ -1179,8 +1181,8 @@ module.exports = class whitebit extends Exchange {
             if (isLimitOrder) {
                 // limit order
                 method = 'v4PrivatePostOrderNew';
-                if (marginMode !== undefined) {
-                    if (marginMode !== 'cross') {
+                if (marginMode !== undefined || marketType === 'swap') {
+                    if (marginMode !== undefined && marginMode !== 'cross') {
                         throw new NotSupported (this.id + ' createOrder() is only available for cross margin');
                     }
                     method = 'v4PrivatePostOrderCollateralLimit';
@@ -1226,15 +1228,21 @@ module.exports = class whitebit extends Exchange {
 
     parseBalance (response) {
         const balanceKeys = Object.keys (response);
-        const result = { };
+        const result = {};
         for (let i = 0; i < balanceKeys.length; i++) {
             const id = balanceKeys[i];
-            const balance = response[id];
             const code = this.safeCurrencyCode (id);
-            const account = this.account ();
-            account['free'] = this.safeString (balance, 'available');
-            account['used'] = this.safeString (balance, 'freeze');
-            result[code] = account;
+            const balance = response[id];
+            if (typeof balance === 'object' && balance !== null) {
+                const account = this.account ();
+                account['free'] = this.safeString (balance, 'available');
+                account['used'] = this.safeString (balance, 'freeze');
+                result[code] = account;
+            } else {
+                const account = this.account ();
+                account['total'] = balance;
+                result[code] = account;
+            }
         }
         return this.safeBalance (result);
     }
@@ -1248,11 +1256,26 @@ module.exports = class whitebit extends Exchange {
          * @returns {object} a [balance structure]{@link https://docs.ccxt.com/en/latest/manual.html?#balance-structure}
          */
         await this.loadMarkets ();
-        const response = await this.v4PrivatePostTradeAccountBalance (params);
+        const [ marketType, query ] = this.handleMarketTypeAndParams ('fetchBalance', undefined, params);
+        let method = undefined;
+        if (marketType === 'swap') {
+            method = 'v4PrivatePostCollateralAccountBalance';
+        } else {
+            method = 'v4PrivatePostTradeAccountBalance';
+        }
+        const response = await this[method] (query);
+        // spot
         //
         //     {
         //         "BTC": { "available": "0.123", "freeze": "1" },
         //         "XMR": { "available": "3013", "freeze": "100" },
+        //     }
+        //
+        // swap
+        //
+        //     {
+        //          "BTC": 1,
+        //          "USDT": 1000
         //     }
         //
         return this.parseBalance (response);
