@@ -4369,7 +4369,6 @@ module.exports = class binance extends Exchange {
         let code = this.safeCurrencyCode (currencyId, currency);
         let timestamp = undefined;
         const insertTime = this.safeInteger2 (transaction, 'insertTime', 'createTime');
-        const applyTime = this.parse8601 (this.safeString (transaction, 'applyTime'));
         const updated = this.safeInteger2 (transaction, 'successTime', 'updateTime');
         let type = this.safeString (transaction, 'type');
         if (type === undefined) {
