@@ -1392,56 +1392,83 @@ module.exports = class binance extends Exchange {
         }
     }
 
+    // market2 (symbol) {
+    //     if (this.markets === undefined) {
+    //         throw new ExchangeError (this.id + ' markets not loaded');
+    //     }
+    //     // defaultType has legacy support on binance
+    //     let defaultType = this.safeString (this.options, 'defaultType');
+    //     const defaultSubType = this.safeString (this.options, 'defaultSubType');
+    //     const isLegacyLinear = defaultType === 'future';
+    //     const isLegacyInverse = defaultType === 'delivery';
+    //     const isLegacy = isLegacyLinear || isLegacyInverse;
+    //     if (typeof symbol === 'string') {
+    //         if (symbol in this.markets) {
+    //             const market = this.markets[symbol];
+    //             // begin diff
+    //             if (isLegacy && market['spot']) {
+    //                 const settle = isLegacyLinear ? market['quote'] : market['base'];
+    //                 return super.market (symbol + ':' + settle);
+    //             } else {
+    //                 return market;
+    //             }
+    //             // end diff
+    //         } else if (symbol in this.markets_by_id) {
+    //             const markets = this.markets_by_id[symbol];
+    //             // begin diff
+    //             if (isLegacyLinear) {
+    //                 defaultType = 'linear';
+    //             } else if (isLegacyInverse) {
+    //                 defaultType = 'inverse';
+    //             } else if (defaultType === undefined) {
+    //                 defaultType = defaultSubType;
+    //             }
+    //             // end diff
+    //             for (let i = 0; i < markets.length; i++) {
+    //                 const market = markets[i];
+    //                 if (market[defaultType]) {
+    //                     return market;
+    //                 }
+    //             }
+    //             return markets[0];
+    //         } else if ((symbol.indexOf ('/') > -1) && (symbol.indexOf (':') < 0)) {
+    //             // support legacy symbols
+    //             const [ base, quote ] = symbol.split ('/');
+    //             const settle = (quote === 'USD') ? base : quote;
+    //             const futuresSymbol = symbol + ':' + settle;
+    //             if (futuresSymbol in this.markets) {
+    //                 return this.markets[futuresSymbol];
+    //             }
+    //         }
+    //     }
+    //     throw new BadSymbol (this.id + ' does not have market symbol ' + symbol);
+    // }
+
     market (symbol) {
         if (this.markets === undefined) {
             throw new ExchangeError (this.id + ' markets not loaded');
         }
+        if (typeof symbol !== 'string') {
+            throw new BadSymbol (this.id + ' does not have market symbol ' + symbol);
+        }
         // defaultType has legacy support on binance
-        let defaultType = this.safeString (this.options, 'defaultType');
+        const defaultType = this.safeString (this.options, 'defaultType');
         const defaultSubType = this.safeString (this.options, 'defaultSubType');
-        const isLegacyLinear = defaultType === 'future';
-        const isLegacyInverse = defaultType === 'delivery';
-        const isLegacy = isLegacyLinear || isLegacyInverse;
-        if (typeof symbol === 'string') {
-            if (symbol in this.markets) {
-                const market = this.markets[symbol];
-                // begin diff
-                if (isLegacy && market['spot']) {
-                    const settle = isLegacyLinear ? market['quote'] : market['base'];
-                    return super.market (symbol + ':' + settle);
+        if (defaultType !== 'spot' && defaultType !== 'margin') {
+            // here we are inside binanceusdm or binancecoim
+            const isLegacySymbol = symbol.indexOf ('/') > -1 && symbol.indexOf (':') === -1;
+            if (isLegacySymbol) {
+                const symbolParts = symbol.split ('/');
+                let unifiedSymbol = undefined;
+                if (this.isLinear (defaultType, defaultSubType)) {
+                    unifiedSymbol = symbol + ':' + symbolParts[1];
                 } else {
-                    return market;
+                    unifiedSymbol = symbol + ':' + symbolParts[0];
                 }
-                // end diff
-            } else if (symbol in this.markets_by_id) {
-                const markets = this.markets_by_id[symbol];
-                // begin diff
-                if (isLegacyLinear) {
-                    defaultType = 'linear';
-                } else if (isLegacyInverse) {
-                    defaultType = 'inverse';
-                } else if (defaultType === undefined) {
-                    defaultType = defaultSubType;
-                }
-                // end diff
-                for (let i = 0; i < markets.length; i++) {
-                    const market = markets[i];
-                    if (market[defaultType]) {
-                        return market;
-                    }
-                }
-                return markets[0];
-            } else if ((symbol.indexOf ('/') > -1) && (symbol.indexOf (':') < 0)) {
-                // support legacy symbols
-                const [ base, quote ] = symbol.split ('/');
-                const settle = (quote === 'USD') ? base : quote;
-                const futuresSymbol = symbol + ':' + settle;
-                if (futuresSymbol in this.markets) {
-                    return this.markets[futuresSymbol];
-                }
+                return super.market (unifiedSymbol);
             }
         }
-        throw new BadSymbol (this.id + ' does not have market symbol ' + symbol);
+        return super.market (symbol);
     }
 
     costToPrecision (symbol, cost) {
