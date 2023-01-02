@@ -712,6 +712,9 @@ module.exports = class okx extends Exchange {
                     'POLYGON': 'Polygon',
                     'OEC': 'OEC',
                     'ALGO': 'ALGO', // temporarily unavailable
+                    'OPTIMISM': 'Optimism',
+                    'ARBITRUM': 'Arbitrum one',
+                    'AVALANCHE': 'Avalanche C-Chain',
                 },
                 'fetchOpenInterestHistory': {
                     'timeframes': {
