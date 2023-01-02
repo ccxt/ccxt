@@ -733,6 +733,9 @@ class okx(Exchange):
                     'POLYGON': 'Polygon',
                     'OEC': 'OEC',
                     'ALGO': 'ALGO',  # temporarily unavailable
+                    'OPTIMISM': 'Optimism',
+                    'ARBITRUM': 'Arbitrum one',
+                    'AVALANCHE': 'Avalanche C-Chain',
                 },
                 'fetchOpenInterestHistory': {
                     'timeframes': {
