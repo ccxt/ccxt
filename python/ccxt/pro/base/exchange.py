@@ -169,6 +169,9 @@ class Exchange(BaseExchange):
     async def watch_ticker(self, symbol, params={}):
         raise NotSupported(self.id + '.watch_ticker() not implemented yet')
 
+    async def watch_tickers(self, symbols=None, params={}):
+        raise NotSupported(self.id + '.watch_tickers() not implemented yet')
+
     async def watch_order_book(self, symbol, limit=None, params={}):
         raise NotSupported(self.id + '.watch_order_book() not implemented yet')
 
