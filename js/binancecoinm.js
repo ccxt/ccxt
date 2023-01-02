@@ -29,7 +29,6 @@ module.exports = class binancecoinm extends binance {
             },
             'options': {
                 'fetchMarkets': [ 'inverse' ],
-                'defaultType': 'swap',
                 'defaultSubType': 'inverse',
                 'leverageBrackets': undefined,
             },
