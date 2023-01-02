@@ -1146,7 +1146,7 @@ module.exports = class binance extends Exchange {
                     'JPY': true,
                     'NZD': true,
                 },
-                'reverseCurrencyToleagalMoney': {
+                'reverseCurrencyToLeagalMoney': {
                     'BUSD': 'USD',
                 },
             },
@@ -4339,6 +4339,7 @@ module.exports = class binance extends Exchange {
         //     {
         //       "orderNo": "25ced37075c1470ba8939d0df2316e23",
         //       "fiatCurrency": "EUR",
+        //       "transactionType": 0,
         //       "indicatedAmount": "15.00",
         //       "amount": "15.00",
         //       "totalFee": "0.00",
@@ -4369,17 +4370,19 @@ module.exports = class binance extends Exchange {
         let timestamp = undefined;
         const insertTime = this.safeInteger2 (transaction, 'insertTime', 'createTime');
         const applyTime = this.parse8601 (this.safeString (transaction, 'applyTime'));
+        const updated = this.safeInteger2 (transaction, 'successTime', 'updateTime');
         let type = this.safeString (transaction, 'type');
         if (type === undefined) {
-            if ((insertTime !== undefined) && (applyTime === undefined)) {
+            const txType = this.safeString (transaction, 'transactionType');
+            if (txType === '0') {
                 type = 'deposit';
                 timestamp = insertTime;
-            } else if ((insertTime === undefined) && (applyTime !== undefined)) {
+            } else {
                 type = 'withdrawal';
-                timestamp = applyTime;
+                timestamp = updated;
             }
-            const reverseCurrencyToleagalMoney = this.safeValue (this.options, 'reverseCurrencyToleagalMoney');
-            code = this.safeString (reverseCurrencyToleagalMoney, code);
+            const reverseCurrencyToLeagalMoney = this.safeValue (this.options, 'reverseCurrencyToLeagalMoney');
+            code = this.safeString (reverseCurrencyToLeagalMoney, code, code);
         }
         const status = this.parseTransactionStatusByType (this.safeString (transaction, 'status'), type);
         const amount = this.safeNumber (transaction, 'amount');
@@ -4388,7 +4391,6 @@ module.exports = class binance extends Exchange {
         if (feeCost !== undefined) {
             fee = { 'currency': code, 'cost': feeCost };
         }
-        const updated = this.safeInteger2 (transaction, 'successTime', 'updateTime');
         let internal = this.safeInteger (transaction, 'transferType');
         if (internal !== undefined) {
             internal = internal ? true : false;
