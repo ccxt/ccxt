@@ -126,8 +126,6 @@ module.exports = class okx extends Exchange {
                 '1w': '1W',
                 '1M': '1M',
                 '3M': '3M',
-                '6M': '6M',
-                '1y': '1Y',
             },
             'hostname': 'www.okx.com', // or aws.okx.com
             'urls': {
