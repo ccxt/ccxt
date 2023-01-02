@@ -175,6 +175,7 @@ module.exports = class okx extends Exchange {
                         'public/time': 2,
                         'public/liquidation-orders': 0.5,
                         'public/mark-price': 2,
+                        'public/option-trades': 1,
                         // 'public/tier',
                         'public/position-tiers': 2,
                         'public/underlying': 1,
