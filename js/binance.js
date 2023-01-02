@@ -1146,6 +1146,9 @@ module.exports = class binance extends Exchange {
                     'JPY': true,
                     'NZD': true,
                 },
+                'reverseCurrencyToleagalMoney': {
+                    'BUSD': 'USD',
+                },
             },
             // https://binance-docs.github.io/apidocs/spot/en/#error-codes-2
             'exceptions': {
@@ -4362,7 +4365,7 @@ module.exports = class binance extends Exchange {
             txid = txid.slice (18);
         }
         const currencyId = this.safeString2 (transaction, 'coin', 'fiatCurrency');
-        const code = this.safeCurrencyCode (currencyId, currency);
+        let code = this.safeCurrencyCode (currencyId, currency);
         let timestamp = undefined;
         const insertTime = this.safeInteger2 (transaction, 'insertTime', 'createTime');
         const applyTime = this.parse8601 (this.safeString (transaction, 'applyTime'));
@@ -4375,6 +4378,8 @@ module.exports = class binance extends Exchange {
                 type = 'withdrawal';
                 timestamp = applyTime;
             }
+            const reverseCurrencyToleagalMoney = this.safeValue (this.options, 'reverseCurrencyToleagalMoney');
+            code = this.safeString (reverseCurrencyToleagalMoney, code);
         }
         const status = this.parseTransactionStatusByType (this.safeString (transaction, 'status'), type);
         const amount = this.safeNumber (transaction, 'amount');
