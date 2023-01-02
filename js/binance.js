@@ -4373,13 +4373,8 @@ module.exports = class binance extends Exchange {
         let type = this.safeString (transaction, 'type');
         if (type === undefined) {
             const txType = this.safeString (transaction, 'transactionType');
-            if (txType === '0') {
-                type = 'deposit';
-                timestamp = insertTime;
-            } else {
-                type = 'withdrawal';
-                timestamp = updated;
-            }
+            type = (txType === '0') ? 'deposit' : 'withdrawal';
+            timestamp = insertTime;
             const reverseCurrencyToLeagalMoney = this.safeValue (this.options, 'reverseCurrencyToLeagalMoney');
             code = this.safeString (reverseCurrencyToLeagalMoney, code, code);
         }
