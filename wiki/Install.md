@@ -175,7 +175,14 @@ const kraken = new ccxt.kraken ({ agent })
 
 The python version of the library uses the [python-requests](python-requests.org) package for underlying HTTP and supports all means of customization available in the `requests` package, including proxies.
 
-You can configure proxies by setting the environment variables HTTP_PROXY and HTTPS_PROXY.
+You can configure proxies by setting `requests_trust_env` to `True`(default to `False`) and setting the environment variables HTTP_PROXY and HTTPS_PROXY.
+
+```python
+import ccxt
+exchange = ccxt.binance({
+    'requests_trust_env': True
+})
+```
 
 ```shell
 $ export HTTP_PROXY="http://10.10.1.10:3128"
