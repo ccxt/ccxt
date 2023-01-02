@@ -20,7 +20,7 @@ module.exports = class tokocrypto extends tokocryptoRest {
                 'watchOrderBook': true,
                 'watchOrders': true,
                 'watchTicker': true,
-                'watchTickers': true,
+                'watchTickers': false, // for now, wating for #16159
                 'watchTrades': true,
             },
             'urls': {
