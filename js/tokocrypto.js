@@ -1725,6 +1725,10 @@ module.exports = class tokocrypto extends Exchange {
         //
         const data = this.safeValue (response, 'data', {});
         const list = this.safeValue (data, 'list', []);
+        const listLength = list.length;
+        if (listLength === 0) {
+            return {};
+        }
         const rawOrder = this.safeValue (list, 0, {});
         return this.parseOrder (rawOrder);
     }
