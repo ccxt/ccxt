@@ -1015,6 +1015,7 @@ module.exports = class coinbasepro extends Exchange {
             'side': side,
             'price': price,
             'stopPrice': stopPrice,
+            'triggerPrice': stopPrice,
             'cost': cost,
             'amount': amount,
             'filled': filled,
@@ -1494,10 +1495,13 @@ module.exports = class coinbasepro extends Exchange {
          * @method
          * @name coinbasepro#fetchTransactions
          * @description fetch history of deposits and withdrawals
+         * @see https://docs.cloud.coinbase.com/exchange/reference/exchangerestapi_gettransfers
+         * @see https://docs.cloud.coinbase.com/exchange/reference/exchangerestapi_getaccounttransfers
          * @param {string|undefined} code unified currency code for the currency of the transactions, default is undefined
          * @param {int|undefined} since timestamp in ms of the earliest transaction, default is undefined
          * @param {int|undefined} limit max number of transactions to return, default is undefined
          * @param {object} params extra parameters specific to the coinbasepro api endpoint
+         * @param {string|undefined} params.id account id, when defined, the endpoint used is '/accounts/{account_id}/transfers/' instead of '/transfers/'
          * @returns {object} a list of [transaction structure]{@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure}
          */
         await this.loadMarkets ();
@@ -1525,6 +1529,34 @@ module.exports = class coinbasepro extends Exchange {
         let response = undefined;
         if (id === undefined) {
             response = await this.privateGetTransfers (this.extend (request, params));
+            //
+            //    [
+            //        {
+            //            "id": "bee6fd7c-afb2-4e47-8298-671d09997d16",
+            //            "type": "deposit",
+            //            "created_at": "2022-12-21 00:48:45.477503+00",
+            //            "completed_at": null,
+            //            "account_id": "sal3802-36bd-46be-a7b8-alsjf383sldak",
+            //            "user_id": "6382048209f92as392039dlks2",
+            //            "amount": "0.01000000",
+            //            "details": {
+            //                "network": "litecoin",
+            //                "crypto_address": "MKemtnCFUYKsNWaf5EMYMpwSszcXWFDtTY",
+            //                "coinbase_account_id": "fl2b6925-f6ba-403n-jj03-40fl435n430f",
+            //                "coinbase_transaction_id": "63a25bb13cb5cf0001d2cf17", // withdrawals only
+            //                "crypto_transaction_hash": "752f35570736341e2a253f7041a34cf1e196fc56128c900fd03d99da899d94c1",
+            //                "tx_service_transaction_id": "1873249104",
+            //                "coinbase_payment_method_id": ""
+            //            },
+            //            "canceled_at": null,
+            //            "processed_at": null,
+            //            "user_nonce": null,
+            //            "idem": "5e3201b0-e390-5k3k-a913-c32932049242",
+            //            "profile_id": "k3k302a8-c4dk-4f49-9d39-3203923wpk39",
+            //            "currency": "LTC"
+            //        }
+            //    ]
+            //
             for (let i = 0; i < response.length; i++) {
                 const account_id = this.safeString (response[i], 'account_id');
                 const account = this.safeValue (this.accountsById, account_id);
@@ -1533,6 +1565,32 @@ module.exports = class coinbasepro extends Exchange {
             }
         } else {
             response = await this.privateGetAccountsIdTransfers (this.extend (request, params));
+            //
+            //    [
+            //        {
+            //            "id": "bee6fd7c-afb2-4e47-8298-671d09997d16",
+            //            "type": "deposit",
+            //            "created_at": "2022-12-21 00:48:45.477503+00",
+            //            "completed_at": null,
+            //            "amount": "0.01000000",
+            //            "details": {
+            //                "network": "litecoin",
+            //                "crypto_address": "MKemtnCFUYKsNWaf5EMYMpwSszcXWFDtTY",
+            //                "coinbase_account_id": "fl2b6925-f6ba-403n-jj03-40fl435n430f",
+            //                "coinbase_transaction_id": "63a25bb13cb5cf0001d2cf17", // withdrawals only
+            //                "crypto_transaction_hash": "752f35570736341e2a253f7041a34cf1e196fc56128c900fd03d99da899d94c1",
+            //                "tx_service_transaction_id": "1873249104",
+            //                "coinbase_payment_method_id": ""
+            //            },
+            //            "canceled_at": null,
+            //            "processed_at": null,
+            //            "user_nonce": null,
+            //            "idem": "5e3201b0-e390-5k3k-a913-c32932049242",
+            //            "profile_id": "k3k302a8-c4dk-4f49-9d39-3203923wpk39",
+            //            "currency": "LTC"
+            //        }
+            //    ]
+            //
             for (let i = 0; i < response.length; i++) {
                 response[i]['currency'] = code;
             }
@@ -1585,20 +1643,49 @@ module.exports = class coinbasepro extends Exchange {
     }
 
     parseTransaction (transaction, currency = undefined) {
+        //
+        // privateGetTransfers
+        //
+        //    [
+        //        {
+        //            "id": "bee6fd7c-afb2-4e47-8298-671d09997d16",
+        //            "type": "deposit",
+        //            "created_at": "2022-12-21 00:48:45.477503+00",
+        //            "completed_at": null,
+        //            "account_id": "sal3802-36bd-46be-a7b8-alsjf383sldak",     // only from privateGetTransfers
+        //            "user_id": "6382048209f92as392039dlks2",                  // only from privateGetTransfers
+        //            "amount": "0.01000000",
+        //            "details": {
+        //                "network": "litecoin",
+        //                "crypto_address": "MKemtnCFUYKsNWaf5EMYMpwSszcXWFDtTY",
+        //                "coinbase_account_id": "fl2b6925-f6ba-403n-jj03-40fl435n430f",
+        //                "coinbase_transaction_id": "63a25bb13cb5cf0001d2cf17", // withdrawals only
+        //                "crypto_transaction_hash": "752f35570736341e2a253f7041a34cf1e196fc56128c900fd03d99da899d94c1",
+        //                "tx_service_transaction_id": "1873249104",
+        //                "coinbase_payment_method_id": ""
+        //            },
+        //            "canceled_at": null,
+        //            "processed_at": null,
+        //            "user_nonce": null,
+        //            "idem": "5e3201b0-e390-5k3k-a913-c32932049242",
+        //            "profile_id": "k3k302a8-c4dk-4f49-9d39-3203923wpk39",
+        //            "currency": "LTC"
+        //        }
+        //    ]
+        //
         const details = this.safeValue (transaction, 'details', {});
-        const id = this.safeString (transaction, 'id');
-        const txid = this.safeString (details, 'crypto_transaction_hash');
         const timestamp = this.parse8601 (this.safeString (transaction, 'created_at'));
-        const updated = this.parse8601 (this.safeString (transaction, 'processed_at'));
         const currencyId = this.safeString (transaction, 'currency');
         const code = this.safeCurrencyCode (currencyId, currency);
-        const status = this.parseTransactionStatus (transaction);
         let amount = this.safeNumber (transaction, 'amount');
         let type = this.safeString (transaction, 'type');
         let address = this.safeString (details, 'crypto_address');
-        const tag = this.safeString (details, 'destination_tag');
         address = this.safeString (transaction, 'crypto_address', address);
-        let fee = undefined;
+        const fee = {
+            'currency': undefined,
+            'cost': undefined,
+            'rate': undefined,
+        };
         if (type === 'withdraw') {
             type = 'withdrawal';
             address = this.safeString (details, 'sent_to_address', address);
@@ -1607,30 +1694,30 @@ module.exports = class coinbasepro extends Exchange {
                 if (amount !== undefined) {
                     amount -= feeCost;
                 }
-                fee = {
-                    'cost': feeCost,
-                    'currency': code,
-                };
+                fee['cost'] = feeCost;
+                fee['currency'] = code;
             }
         }
+        const networkId = this.safeString (details, 'network');
         return {
             'info': transaction,
-            'id': id,
-            'txid': txid,
+            'id': this.safeString (transaction, 'id'),
+            'txid': this.safeString (details, 'crypto_transaction_hash'),
+            'type': type,
+            'currency': code,
+            'network': this.networkIdToCode (networkId),
+            'amount': amount,
+            'status': this.parseTransactionStatus (transaction),
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'network': undefined,
             'address': address,
-            'addressTo': undefined,
             'addressFrom': undefined,
-            'tag': tag,
-            'tagTo': undefined,
+            'addressTo': this.safeString (details, 'crypto_address'),
+            'tag': this.safeString (details, 'destination_tag'),
             'tagFrom': undefined,
-            'type': type,
-            'amount': amount,
-            'currency': code,
-            'status': status,
-            'updated': updated,
+            'tagTo': undefined,
+            'updated': this.parse8601 (this.safeString (transaction, 'processed_at')),
+            'comment': undefined,
             'fee': fee,
         };
     }

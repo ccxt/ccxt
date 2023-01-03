@@ -120,11 +120,6 @@ module.exports = class coinone extends Exchange {
                     'maker': 0.002,
                 },
             },
-            'precision': {
-                'price': this.parseNumber ('0.0001'),
-                'amount': this.parseNumber ('0.0001'),
-                'cost': this.parseNumber ('0.00000001'),
-            },
             'precisionMode': TICK_SIZE,
             'exceptions': {
                 '405': OnMaintenance, // {"errorCode":"405","status":"maintenance","result":"error"}
@@ -208,8 +203,9 @@ module.exports = class coinone extends Exchange {
                 'strike': undefined,
                 'optionType': undefined,
                 'precision': {
-                    'amount': undefined,
-                    'price': undefined,
+                    'amount': this.parseNumber ('1e-4'),
+                    'price': this.parseNumber ('1e-4'),
+                    'cost': this.parseNumber ('1e-8'),
                 },
                 'limits': {
                     'leverage': {
@@ -526,7 +522,7 @@ module.exports = class coinone extends Exchange {
         //         "orderId": "8a82c561-40b4-4cb3-9bc0-9ac9ffc1d63b"
         //     }
         //
-        return this.parseOrder (response);
+        return this.parseOrder (response, market);
     }
 
     async fetchOrder (id, symbol = undefined, params = {}) {
@@ -639,19 +635,9 @@ module.exports = class coinone extends Exchange {
             }
         }
         status = this.parseOrderStatus (status);
-        let symbol = undefined;
-        let base = undefined;
-        let quote = undefined;
-        if (market === undefined) {
-            const currencyId = this.safeStringLower (order, 'currency');
-            base = this.safeCurrencyCode (currencyId);
-            quote = 'KRW';
-            symbol = base + '/' + quote;
-        } else {
-            symbol = market['symbol'];
-            base = market['base'];
-            quote = market['quote'];
-        }
+        const symbol = market['symbol'];
+        const base = market['base'];
+        const quote = market['quote'];
         let fee = undefined;
         const feeCostString = this.safeString (order, 'fee');
         if (feeCostString !== undefined) {
@@ -676,6 +662,7 @@ module.exports = class coinone extends Exchange {
             'side': side,
             'price': priceString,
             'stopPrice': undefined,
+            'triggerPrice': undefined,
             'cost': undefined,
             'average': undefined,
             'amount': amountString,

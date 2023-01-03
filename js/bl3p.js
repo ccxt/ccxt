@@ -100,7 +100,6 @@ module.exports = class bl3p extends Exchange {
             },
             'markets': {
                 'BTC/EUR': { 'id': 'BTCEUR', 'symbol': 'BTC/EUR', 'base': 'BTC', 'quote': 'EUR', 'baseId': 'BTC', 'quoteId': 'EUR', 'maker': 0.0025, 'taker': 0.0025, 'type': 'spot', 'spot': true },
-                'LTC/EUR': { 'id': 'LTCEUR', 'symbol': 'LTC/EUR', 'base': 'LTC', 'quote': 'EUR', 'baseId': 'LTC', 'quoteId': 'EUR', 'maker': 0.0025, 'taker': 0.0025, 'type': 'spot', 'spot': true },
             },
             'precisionMode': TICK_SIZE,
         });
@@ -140,11 +139,11 @@ module.exports = class bl3p extends Exchange {
     }
 
     parseBidAsk (bidask, priceKey = 0, amountKey = 1) {
-        const price = this.safeNumber (bidask, priceKey);
-        const size = this.safeNumber (bidask, amountKey);
+        const price = this.safeString (bidask, priceKey);
+        const size = this.safeString (bidask, amountKey);
         return [
-            price / 100000.0,
-            size / 100000000.0,
+            this.parseNumber (Precise.stringDiv (price, '100000.0')),
+            this.parseNumber (Precise.stringDiv (size, '100000000.0')),
         ];
     }
 
@@ -355,14 +354,16 @@ module.exports = class bl3p extends Exchange {
          * @returns {object} an [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
          */
         const market = this.market (symbol);
+        const amountString = this.numberToString (amount);
+        const priceString = this.numberToString (price);
         const order = {
             'market': market['id'],
-            'amount_int': parseInt (amount * 100000000),
+            'amount_int': parseInt (Precise.stringMul (amountString, '100000000')),
             'fee_currency': market['quote'],
             'type': (side === 'buy') ? 'bid' : 'ask',
         };
         if (type === 'limit') {
-            order['price_int'] = parseInt (price * 100000.0);
+            order['price_int'] = parseInt (Precise.stringMul (priceString, '100000.0'));
         }
         const response = await this.privatePostMarketMoneyOrderAdd (this.extend (order, params));
         const orderId = this.safeString (response['data'], 'order_id');

@@ -47,6 +47,7 @@ module.exports = (exchange, orderbook, method, symbol) => {
         'bitrue',
         'bkex',
         'blockchaincom',
+        'btcalpha',
         'btcbox',
         'ftxus',
         'mexc',

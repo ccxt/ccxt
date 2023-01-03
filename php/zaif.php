@@ -6,7 +6,6 @@ namespace ccxt;
 // https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 use Exception; // a common import
-use \ccxt\ExchangeError;
 
 class zaif extends Exchange {
 
@@ -513,6 +512,7 @@ class zaif extends Exchange {
             'side' => $side,
             'price' => $price,
             'stopPrice' => null,
+            'triggerPrice' => null,
             'cost' => null,
             'amount' => $amount,
             'filled' => null,

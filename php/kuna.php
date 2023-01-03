@@ -6,9 +6,6 @@ namespace ccxt;
 // https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 use Exception; // a common import
-use \ccxt\ArgumentsRequired;
-use \ccxt\OrderNotFound;
-use \ccxt\NotSupported;
 
 class kuna extends Exchange {
 
@@ -730,6 +727,7 @@ class kuna extends Exchange {
             'side' => $side,
             'price' => $this->safe_string($order, 'price'),
             'stopPrice' => null,
+            'triggerPrice' => null,
             'amount' => $this->safe_string($order, 'volume'),
             'filled' => $this->safe_string($order, 'executed_volume'),
             'remaining' => $this->safe_string($order, 'remaining_volume'),

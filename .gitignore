@@ -33,4 +33,5 @@ python/LICENSE.txt
 .env
 *.swp
 .cache
+*.log
 *.un~

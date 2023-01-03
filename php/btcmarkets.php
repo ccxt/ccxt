@@ -6,8 +6,6 @@ namespace ccxt;
 // https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 use Exception; // a common import
-use \ccxt\ExchangeError;
-use \ccxt\ArgumentsRequired;
 
 class btcmarkets extends Exchange {
 
@@ -333,9 +331,11 @@ class btcmarkets extends Exchange {
             'currency' => $code,
             'status' => $status,
             'updated' => $lastUpdate,
+            'comment' => null,
             'fee' => array(
                 'currency' => $code,
                 'cost' => $fee,
+                'rate' => null,
             ),
             'info' => $transaction,
         );
@@ -971,6 +971,7 @@ class btcmarkets extends Exchange {
             'side' => $side,
             'price' => $price,
             'stopPrice' => $stopPrice,
+            'triggerPrice' => $stopPrice,
             'cost' => null,
             'amount' => $amount,
             'filled' => null,

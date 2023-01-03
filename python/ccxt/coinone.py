@@ -127,11 +127,6 @@ class coinone(Exchange):
                     'maker': 0.002,
                 },
             },
-            'precision': {
-                'price': self.parse_number('0.0001'),
-                'amount': self.parse_number('0.0001'),
-                'cost': self.parse_number('0.00000001'),
-            },
             'precisionMode': TICK_SIZE,
             'exceptions': {
                 '405': OnMaintenance,  # {"errorCode":"405","status":"maintenance","result":"error"}
@@ -211,8 +206,9 @@ class coinone(Exchange):
                 'strike': None,
                 'optionType': None,
                 'precision': {
-                    'amount': None,
-                    'price': None,
+                    'amount': self.parse_number('1e-4'),
+                    'price': self.parse_number('1e-4'),
+                    'cost': self.parse_number('1e-8'),
                 },
                 'limits': {
                     'leverage': {
@@ -500,7 +496,7 @@ class coinone(Exchange):
         #         "orderId": "8a82c561-40b4-4cb3-9bc0-9ac9ffc1d63b"
         #     }
         #
-        return self.parse_order(response)
+        return self.parse_order(response, market)
 
     def fetch_order(self, id, symbol=None, params={}):
         """
@@ -603,18 +599,9 @@ class coinone(Exchange):
                 if isLessThan:
                     status = 'canceled'
         status = self.parse_order_status(status)
-        symbol = None
-        base = None
-        quote = None
-        if market is None:
-            currencyId = self.safe_string_lower(order, 'currency')
-            base = self.safe_currency_code(currencyId)
-            quote = 'KRW'
-            symbol = base + '/' + quote
-        else:
-            symbol = market['symbol']
-            base = market['base']
-            quote = market['quote']
+        symbol = market['symbol']
+        base = market['base']
+        quote = market['quote']
         fee = None
         feeCostString = self.safe_string(order, 'fee')
         if feeCostString is not None:
@@ -638,6 +625,7 @@ class coinone(Exchange):
             'side': side,
             'price': priceString,
             'stopPrice': None,
+            'triggerPrice': None,
             'cost': None,
             'average': None,
             'amount': amountString,

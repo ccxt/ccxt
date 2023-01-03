@@ -326,9 +326,11 @@ class btcmarkets(Exchange):
             'currency': code,
             'status': status,
             'updated': lastUpdate,
+            'comment': None,
             'fee': {
                 'currency': code,
                 'cost': fee,
+                'rate': None,
             },
             'info': transaction,
         }
@@ -930,6 +932,7 @@ class btcmarkets(Exchange):
             'side': side,
             'price': price,
             'stopPrice': stopPrice,
+            'triggerPrice': stopPrice,
             'cost': None,
             'amount': amount,
             'filled': None,

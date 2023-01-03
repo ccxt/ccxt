@@ -6,8 +6,6 @@ namespace ccxt;
 // https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 use Exception; // a common import
-use \ccxt\ExchangeError;
-use \ccxt\ArgumentsRequired;
 
 class therock extends Exchange {
 
@@ -1156,6 +1154,7 @@ class therock extends Exchange {
             'side' => $side,
             'price' => $price,
             'stopPrice' => $stopPrice,
+            'triggerPrice' => $stopPrice,
             'cost' => $cost,
             'amount' => $amount,
             'filled' => $filled,

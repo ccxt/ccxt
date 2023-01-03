@@ -6,7 +6,6 @@ namespace ccxt;
 // https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 use Exception; // a common import
-use \ccxt\ExchangeError;
 
 class zonda extends Exchange {
 
@@ -440,6 +439,7 @@ class zonda extends Exchange {
             'side' => $this->safe_string_lower($order, 'offerType'),
             'price' => $this->safe_string($order, 'rate'),
             'stopPrice' => null,
+            'triggerPrice' => null,
             'amount' => $amount,
             'cost' => null,
             'filled' => null,

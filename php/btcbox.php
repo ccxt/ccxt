@@ -6,7 +6,6 @@ namespace ccxt;
 // https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 use Exception; // a common import
-use \ccxt\ExchangeError;
 
 class btcbox extends Exchange {
 
@@ -394,6 +393,7 @@ class btcbox extends Exchange {
             'symbol' => $market['symbol'],
             'price' => $price,
             'stopPrice' => null,
+            'triggerPrice' => null,
             'cost' => null,
             'trades' => $trades,
             'fee' => null,

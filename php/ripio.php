@@ -6,8 +6,6 @@ namespace ccxt;
 // https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 use Exception; // a common import
-use \ccxt\ExchangeError;
-use \ccxt\ArgumentsRequired;
 
 class ripio extends Exchange {
 
@@ -1016,6 +1014,7 @@ class ripio extends Exchange {
             'side' => $side,
             'price' => $price,
             'stopPrice' => $this->safe_string($order, 'stop_price'),
+            'triggerPrice' => $this->safe_string($order, 'stop_price'),
             'amount' => $amount,
             'cost' => $cost,
             'average' => $average,

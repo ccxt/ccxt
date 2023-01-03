@@ -6,8 +6,9 @@ namespace ccxt\async;
 // https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 use Exception; // a common import
-use \ccxt\ExchangeError;
-use \ccxt\ArgumentsRequired;
+use ccxt\ExchangeError;
+use ccxt\ArgumentsRequired;
+use React\Async;
 
 class delta extends Exchange {
 
@@ -196,478 +197,488 @@ class delta extends Exchange {
     }
 
     public function fetch_time($params = array ()) {
-        /**
-         * fetches the current integer timestamp in milliseconds from the exchange server
-         * @param {array} $params extra parameters specific to the delta api endpoint
-         * @return {int} the current integer timestamp in milliseconds from the exchange server
-         */
-        $response = yield $this->publicGetSettings ($params);
-        // full $response sample under `fetchStatus`
-        $result = $this->safe_value($response, 'result', array());
-        return $this->safe_integer_product($result, 'server_time', 0.001);
+        return Async\async(function () use ($params) {
+            /**
+             * fetches the current integer timestamp in milliseconds from the exchange server
+             * @param {array} $params extra parameters specific to the delta api endpoint
+             * @return {int} the current integer timestamp in milliseconds from the exchange server
+             */
+            $response = Async\await($this->publicGetSettings ($params));
+            // full $response sample under `fetchStatus`
+            $result = $this->safe_value($response, 'result', array());
+            return $this->safe_integer_product($result, 'server_time', 0.001);
+        }) ();
     }
 
     public function fetch_status($params = array ()) {
-        /**
-         * the latest known information on the availability of the exchange API
-         * @param {array} $params extra parameters specific to the delta api endpoint
-         * @return {array} a {@link https://docs.ccxt.com/en/latest/manual.html#exchange-$status-structure $status structure}
-         */
-        $response = yield $this->publicGetSettings ($params);
-        //
-        //     {
-        //         "result" => array(
-        //           "deto_liquidity_mining_daily_reward" => "40775",
-        //           "deto_msp" => "1.0",
-        //           "deto_staking_daily_reward" => "23764.08",
-        //           "enabled_wallets" => array(
-        //             "BTC",
-        //             ...
-        //           ),
-        //           "portfolio_margin_params" => array(
-        //             "enabled_portfolios" => array(
-        //               ".DEAVAXUSDT" => array(
-        //                 "asset_id" => 5,
-        //                 "futures_contingency_margin_percent" => "1",
-        //                 "interest_rate" => "0",
-        //                 "maintenance_margin_multiplier" => "0.8",
-        //                 "max_price_shock" => "20",
-        //                 "max_short_notional_limit" => "2000",
-        //                 "options_contingency_margin_percent" => "1",
-        //                 "options_discount_range" => "10",
-        //                 "options_liq_band_range_percentage" => "25",
-        //                 "settling_asset" => "USDT",
-        //                 "sort_priority" => 5,
-        //                 "underlying_asset" => "AVAX",
-        //                 "volatility_down_shock" => "30",
-        //                 "volatility_up_shock" => "45"
-        //               ),
-        //               ...
-        //             ),
-        //             "portfolio_enabled_contracts" => array(
-        //               "futures",
-        //               "perpetual_futures",
-        //               "call_options",
-        //               "put_options"
-        //             )
-        //           ),
-        //           "server_time" => 1650640673500273,
-        //           "trade_farming_daily_reward" => "100000",
-        //           "circulating_supply" => "140000000",
-        //           "circulating_supply_update_time" => "1636752800",
-        //           "deto_referral_mining_daily_reward" => "0",
-        //           "deto_total_reward_pool" => "100000000",
-        //           "deto_trade_mining_daily_reward" => "0",
-        //           "kyc_deposit_limit" => "20",
-        //           "kyc_withdrawal_limit" => "10000",
-        //           "maintenance_start_time" => "1650387600000000",
-        //           "msp_deto_commission_percent" => "25",
-        //           "under_maintenance" => "false"
-        //         ),
-        //         "success" => true
-        //     }
-        //
-        $result = $this->safe_value($response, 'result', array());
-        $underMaintenance = $this->safe_string($result, 'under_maintenance');
-        $status = ($underMaintenance === 'true') ? 'maintenance' : 'ok';
-        $updated = $this->safe_integer_product($result, 'server_time', 0.001, $this->milliseconds());
-        return array(
-            'status' => $status,
-            'updated' => $updated,
-            'eta' => null,
-            'url' => null,
-            'info' => $response,
-        );
+        return Async\async(function () use ($params) {
+            /**
+             * the latest known information on the availability of the exchange API
+             * @param {array} $params extra parameters specific to the delta api endpoint
+             * @return {array} a {@link https://docs.ccxt.com/en/latest/manual.html#exchange-$status-structure $status structure}
+             */
+            $response = Async\await($this->publicGetSettings ($params));
+            //
+            //     {
+            //         "result" => array(
+            //           "deto_liquidity_mining_daily_reward" => "40775",
+            //           "deto_msp" => "1.0",
+            //           "deto_staking_daily_reward" => "23764.08",
+            //           "enabled_wallets" => array(
+            //             "BTC",
+            //             ...
+            //           ),
+            //           "portfolio_margin_params" => array(
+            //             "enabled_portfolios" => array(
+            //               ".DEAVAXUSDT" => array(
+            //                 "asset_id" => 5,
+            //                 "futures_contingency_margin_percent" => "1",
+            //                 "interest_rate" => "0",
+            //                 "maintenance_margin_multiplier" => "0.8",
+            //                 "max_price_shock" => "20",
+            //                 "max_short_notional_limit" => "2000",
+            //                 "options_contingency_margin_percent" => "1",
+            //                 "options_discount_range" => "10",
+            //                 "options_liq_band_range_percentage" => "25",
+            //                 "settling_asset" => "USDT",
+            //                 "sort_priority" => 5,
+            //                 "underlying_asset" => "AVAX",
+            //                 "volatility_down_shock" => "30",
+            //                 "volatility_up_shock" => "45"
+            //               ),
+            //               ...
+            //             ),
+            //             "portfolio_enabled_contracts" => array(
+            //               "futures",
+            //               "perpetual_futures",
+            //               "call_options",
+            //               "put_options"
+            //             )
+            //           ),
+            //           "server_time" => 1650640673500273,
+            //           "trade_farming_daily_reward" => "100000",
+            //           "circulating_supply" => "140000000",
+            //           "circulating_supply_update_time" => "1636752800",
+            //           "deto_referral_mining_daily_reward" => "0",
+            //           "deto_total_reward_pool" => "100000000",
+            //           "deto_trade_mining_daily_reward" => "0",
+            //           "kyc_deposit_limit" => "20",
+            //           "kyc_withdrawal_limit" => "10000",
+            //           "maintenance_start_time" => "1650387600000000",
+            //           "msp_deto_commission_percent" => "25",
+            //           "under_maintenance" => "false"
+            //         ),
+            //         "success" => true
+            //     }
+            //
+            $result = $this->safe_value($response, 'result', array());
+            $underMaintenance = $this->safe_string($result, 'under_maintenance');
+            $status = ($underMaintenance === 'true') ? 'maintenance' : 'ok';
+            $updated = $this->safe_integer_product($result, 'server_time', 0.001, $this->milliseconds());
+            return array(
+                'status' => $status,
+                'updated' => $updated,
+                'eta' => null,
+                'url' => null,
+                'info' => $response,
+            );
+        }) ();
     }
 
     public function fetch_currencies($params = array ()) {
-        /**
-         * fetches all available $currencies on an exchange
-         * @param {array} $params extra parameters specific to the delta api endpoint
-         * @return {array} an associative dictionary of $currencies
-         */
-        $response = yield $this->publicGetAssets ($params);
-        //
-        //     {
-        //         "result":array(
-        //             array(
-        //                 "base_withdrawal_fee":"0.0005",
-        //                 "deposit_status":"enabled",
-        //                 "id":2,
-        //                 "interest_credit":true,
-        //                 "interest_slabs":array(
-        //                     array("limit":"0.1","rate":"0"),
-        //                     array("limit":"1","rate":"0.05"),
-        //                     array("limit":"5","rate":"0.075"),
-        //                     array("limit":"10","rate":"0.1"),
-        //                     array("limit":"9999999999999999","rate":"0")
-        //                 ),
-        //                 "kyc_deposit_limit":"10",
-        //                 "kyc_withdrawal_limit":"2",
-        //                 "min_withdrawal_amount":"0.001",
-        //                 "minimum_precision":4,
-        //                 "name":"Bitcoin",
-        //                 "precision":8,
-        //                 "sort_priority":1,
-        //                 "symbol":"BTC",
-        //                 "variable_withdrawal_fee":"0",
-        //                 "withdrawal_status":"enabled"
-        //             ),
-        //         ),
-        //         "success":true
-        //     }
-        //
-        $currencies = $this->safe_value($response, 'result', array());
-        $result = array();
-        for ($i = 0; $i < count($currencies); $i++) {
-            $currency = $currencies[$i];
-            $id = $this->safe_string($currency, 'symbol');
-            $numericId = $this->safe_integer($currency, 'id');
-            $code = $this->safe_currency_code($id);
-            $depositStatus = $this->safe_string($currency, 'deposit_status');
-            $withdrawalStatus = $this->safe_string($currency, 'withdrawal_status');
-            $depositsEnabled = ($depositStatus === 'enabled');
-            $withdrawalsEnabled = ($withdrawalStatus === 'enabled');
-            $active = $depositsEnabled && $withdrawalsEnabled;
-            $result[$code] = array(
-                'id' => $id,
-                'numericId' => $numericId,
-                'code' => $code,
-                'name' => $this->safe_string($currency, 'name'),
-                'info' => $currency, // the original payload
-                'active' => $active,
-                'deposit' => $depositsEnabled,
-                'withdraw' => $withdrawalsEnabled,
-                'fee' => $this->safe_number($currency, 'base_withdrawal_fee'),
-                'precision' => $this->parse_number($this->parse_precision($this->safe_string($currency, 'precision'))),
-                'limits' => array(
-                    'amount' => array( 'min' => null, 'max' => null ),
-                    'withdraw' => array(
-                        'min' => $this->safe_number($currency, 'min_withdrawal_amount'),
-                        'max' => null,
+        return Async\async(function () use ($params) {
+            /**
+             * fetches all available $currencies on an exchange
+             * @param {array} $params extra parameters specific to the delta api endpoint
+             * @return {array} an associative dictionary of $currencies
+             */
+            $response = Async\await($this->publicGetAssets ($params));
+            //
+            //     {
+            //         "result":array(
+            //             array(
+            //                 "base_withdrawal_fee":"0.0005",
+            //                 "deposit_status":"enabled",
+            //                 "id":2,
+            //                 "interest_credit":true,
+            //                 "interest_slabs":array(
+            //                     array("limit":"0.1","rate":"0"),
+            //                     array("limit":"1","rate":"0.05"),
+            //                     array("limit":"5","rate":"0.075"),
+            //                     array("limit":"10","rate":"0.1"),
+            //                     array("limit":"9999999999999999","rate":"0")
+            //                 ),
+            //                 "kyc_deposit_limit":"10",
+            //                 "kyc_withdrawal_limit":"2",
+            //                 "min_withdrawal_amount":"0.001",
+            //                 "minimum_precision":4,
+            //                 "name":"Bitcoin",
+            //                 "precision":8,
+            //                 "sort_priority":1,
+            //                 "symbol":"BTC",
+            //                 "variable_withdrawal_fee":"0",
+            //                 "withdrawal_status":"enabled"
+            //             ),
+            //         ),
+            //         "success":true
+            //     }
+            //
+            $currencies = $this->safe_value($response, 'result', array());
+            $result = array();
+            for ($i = 0; $i < count($currencies); $i++) {
+                $currency = $currencies[$i];
+                $id = $this->safe_string($currency, 'symbol');
+                $numericId = $this->safe_integer($currency, 'id');
+                $code = $this->safe_currency_code($id);
+                $depositStatus = $this->safe_string($currency, 'deposit_status');
+                $withdrawalStatus = $this->safe_string($currency, 'withdrawal_status');
+                $depositsEnabled = ($depositStatus === 'enabled');
+                $withdrawalsEnabled = ($withdrawalStatus === 'enabled');
+                $active = $depositsEnabled && $withdrawalsEnabled;
+                $result[$code] = array(
+                    'id' => $id,
+                    'numericId' => $numericId,
+                    'code' => $code,
+                    'name' => $this->safe_string($currency, 'name'),
+                    'info' => $currency, // the original payload
+                    'active' => $active,
+                    'deposit' => $depositsEnabled,
+                    'withdraw' => $withdrawalsEnabled,
+                    'fee' => $this->safe_number($currency, 'base_withdrawal_fee'),
+                    'precision' => $this->parse_number($this->parse_precision($this->safe_string($currency, 'precision'))),
+                    'limits' => array(
+                        'amount' => array( 'min' => null, 'max' => null ),
+                        'withdraw' => array(
+                            'min' => $this->safe_number($currency, 'min_withdrawal_amount'),
+                            'max' => null,
+                        ),
                     ),
-                ),
-            );
-        }
-        return $result;
+                );
+            }
+            return $result;
+        }) ();
     }
 
     public function load_markets($reload = false, $params = array ()) {
-        $markets = yield parent::load_markets($reload, $params);
-        $currenciesByNumericId = $this->safe_value($this->options, 'currenciesByNumericId');
-        if (($currenciesByNumericId === null) || $reload) {
-            $this->options['currenciesByNumericId'] = $this->index_by($this->currencies, 'numericId');
-        }
-        $marketsByNumericId = $this->safe_value($this->options, 'marketsByNumericId');
-        if (($marketsByNumericId === null) || $reload) {
-            $this->options['marketsByNumericId'] = $this->index_by($this->markets, 'numericId');
-        }
-        return $markets;
+        return Async\async(function () use ($reload, $params) {
+            $markets = Async\await(parent::load_markets($reload, $params));
+            $currenciesByNumericId = $this->safe_value($this->options, 'currenciesByNumericId');
+            if (($currenciesByNumericId === null) || $reload) {
+                $this->options['currenciesByNumericId'] = $this->index_by($this->currencies, 'numericId');
+            }
+            $marketsByNumericId = $this->safe_value($this->options, 'marketsByNumericId');
+            if (($marketsByNumericId === null) || $reload) {
+                $this->options['marketsByNumericId'] = $this->index_by($this->markets, 'numericId');
+            }
+            return $markets;
+        }) ();
     }
 
     public function fetch_markets($params = array ()) {
-        /**
-         * retrieves data on all $markets for delta
-         * @param {array} $params extra parameters specific to the exchange api endpoint
-         * @return {[array]} an array of objects representing $market data
-         */
-        $response = yield $this->publicGetProducts ($params);
-        //
-        //     {
-        //         "meta":array( "after":null, "before":null, "limit":100, "total_count":81 ),
-        //         "result":[
-        //             // the below $response represents item from perpetual $market
-        //             array(
-        //                 "annualized_funding":"5.475000000000000000",
-        //                 "is_quanto":false,
-        //                 "ui_config":array(
-        //                     "default_trading_view_candle":"15",
-        //                     "leverage_slider_values":[1,3,5,10,25,50],
-        //                     "price_clubbing_values":[0.001,0.005,0.05,0.1,0.5,1,5],
-        //                     "show_bracket_orders":false,
-        //                     "sort_priority":29,
-        //                     "tags":array()
-        //                 ),
-        //                 "basis_factor_max_limit":"0.15",
-        //                 "symbol":"P-LINK-D-151120",
-        //                 "id":1584,
-        //                 "default_leverage":"5.000000000000000000",
-        //                 "maker_commission_rate":"0.0005",
-        //                 "contract_unit_currency":"LINK",
-        //                 "strike_price":"12.507948",
-        //                 "settling_asset":array(
-        //                     // asset structure
-        //                 ),
-        //                 "auction_start_time":null,
-        //                 "auction_finish_time":null,
-        //                 "settlement_time":"2020-11-15T12:00:00Z",
-        //                 "launch_time":"2020-11-14T11:55:05Z",
-        //                 "spot_index":array(
-        //                     // index structure
-        //                 ),
-        //                 "trading_status":"operational",
-        //                 "tick_size":"0.001",
-        //                 "position_size_limit":100000,
-        //                 "notional_type":"vanilla", // vanilla, inverse
-        //                 "price_band":"0.4",
-        //                 "barrier_price":null,
-        //                 "description":"Daily LINK PUT options quoted in USDT and settled in USDT",
-        //                 "insurance_fund_margin_contribution":"1",
-        //                 "quoting_asset":array(
-        //                     // asset structure
-        //                 ),
-        //                 "liquidation_penalty_factor":"0.2",
-        //                 "product_specs":array("max_volatility":3,"min_volatility":0.3,"spot_price_band":"0.40"),
-        //                 "initial_margin_scaling_factor":"0.0001",
-        //                 "underlying_asset":array(
-        //                     // asset structure
-        //                 ),
-        //                 "state":"live",
-        //                 "contract_value":"1",
-        //                 "initial_margin":"2",
-        //                 "impact_size":5000,
-        //                 "settlement_price":null,
-        //                 "contract_type":"put_options", // put_options, call_options, move_options, perpetual_futures, interest_rate_swaps, futures, spreads
-        //                 "taker_commission_rate":"0.0005",
-        //                 "maintenance_margin":"1",
-        //                 "short_description":"LINK Daily PUT Options",
-        //                 "maintenance_margin_scaling_factor":"0.00005",
-        //                 "funding_method":"mark_price",
-        //                 "max_leverage_notional":"20000"
-        //             ),
-        //             // the below $response represents item from $spot $market
-        //             array(
-        //                 "position_size_limit" => 10000000,
-        //                 "settlement_price" => null,
-        //                 "funding_method" => "mark_price",
-        //                 "settling_asset" => null,
-        //                 "impact_size" => 10,
-        //                 "id" => 32258,
-        //                 "auction_finish_time" => null,
-        //                 "description" => "Solana tether $spot $market",
-        //                 "trading_status" => "operational",
-        //                 "tick_size" => "0.01",
-        //                 "liquidation_penalty_factor" => "1",
-        //                 "spot_index" => array(
-        //                     "config" => array( "quoting_asset" => "USDT", "service_id" => 8, "underlying_asset" => "SOL" ),
-        //                     "constituent_exchanges" => array(
-        //                         array( "exchange" => "binance", "health_interval" => 60, "health_priority" => 1, "weight" => 1 ),
-        //                         array( "exchange" => "huobi", "health_interval" => 60, "health_priority" => 2, "weight" => 1 )
-        //                     ),
-        //                     "constituent_indices" => null,
-        //                     "description" => "Solana index from binance and huobi",
-        //                     "health_interval" => 300,
-        //                     "id" => 105,
-        //                     "impact_size" => "40.000000000000000000",
-        //                     "index_type" => "spot_pair",
-        //                     "is_composite" => false,
-        //                     "price_method" => "ltp",
-        //                     "quoting_asset_id" => 5,
-        //                     "symbol" => ".DESOLUSDT",
-        //                     "tick_size" => "0.000100000000000000",
-        //                     "underlying_asset_id" => 66
-        //                 ),
-        //                 "contract_type" => "spot",
-        //                 "launch_time" => "2022-02-03T10:18:11Z",
-        //                 "symbol" => "SOL_USDT",
-        //                 "disruption_reason" => null,
-        //                 "settlement_time" => null,
-        //                 "insurance_fund_margin_contribution" => "1",
-        //                 "is_quanto" => false,
-        //                 "maintenance_margin" => "5",
-        //                 "taker_commission_rate" => "0.0005",
-        //                 "auction_start_time" => null,
-        //                 "max_leverage_notional" => "10000000",
-        //                 "state" => "live",
-        //                 "annualized_funding" => "0",
-        //                 "notional_type" => "vanilla",
-        //                 "price_band" => "100",
-        //                 "product_specs" => array( "kyc_required" => false, "max_order_size" => 2000, "min_order_size" => 0.01, "quoting_precision" => 4, "underlying_precision" => 2 ),
-        //                 "default_leverage" => "1.000000000000000000",
-        //                 "initial_margin" => "10",
-        //                 "maintenance_margin_scaling_factor" => "1",
-        //                 "ui_config" => array(
-        //                     "default_trading_view_candle" => "1d",
-        //                     "leverage_slider_values" => array(),
-        //                     "price_clubbing_values" => array( 0.01, 0.05, 0.1, 0.5, 1, 2.5, 5 ),
-        //                     "show_bracket_orders" => false,
-        //                     "sort_priority" => 2,
-        //                     "tags" => array()
-        //                 ),
-        //                 "basis_factor_max_limit" => "10000",
-        //                 "contract_unit_currency" => "SOL",
-        //                 "strike_price" => null,
-        //                 "quoting_asset" => array(
-        //                     "base_withdrawal_fee" => "10.000000000000000000",
-        //                     "deposit_status" => "enabled",
-        //                     "id" => 5,
-        //                     "interest_credit" => false,
-        //                     "interest_slabs" => null,
-        //                     "kyc_deposit_limit" => "100000.000000000000000000",
-        //                     "kyc_withdrawal_limit" => "10000.000000000000000000",
-        //                     "min_withdrawal_amount" => "30.000000000000000000",
-        //                     "minimum_precision" => 2,
-        //                     "name" => "Tether",
-        //                     "networks" => array(
-        //                         array( "base_withdrawal_fee" => "25", "deposit_status" => "enabled", "memo_required" => false, "network" => "ERC20", "variable_withdrawal_fee" => "0", "withdrawal_status" => "enabled" ),
-        //                         array( "base_withdrawal_fee" => "1", "deposit_status" => "enabled", "memo_required" => false, "network" => "BEP20(BSC)", "variable_withdrawal_fee" => "0", "withdrawal_status" => "enabled" ),
-        //                         array( "base_withdrawal_fee" => "1", "deposit_status" => "disabled", "memo_required" => false, "network" => "TRC20(TRON)", "variable_withdrawal_fee" => "0", "withdrawal_status" => "disabled" )
-        //                     ),
-        //                     "precision" => 8,
-        //                     "sort_priority" => 1,
-        //                     "symbol" => "USDT",
-        //                     "variable_withdrawal_fee" => "0.000000000000000000",
-        //                     "withdrawal_status" => "enabled"
-        //                 ),
-        //                 "maker_commission_rate" => "0.0005",
-        //                 "initial_margin_scaling_factor" => "2",
-        //                 "underlying_asset" => array(
-        //                     "base_withdrawal_fee" => "0.000000000000000000",
-        //                     "deposit_status" => "enabled",
-        //                     "id" => 66,
-        //                     "interest_credit" => false,
-        //                     "interest_slabs" => null,
-        //                     "kyc_deposit_limit" => "0.000000000000000000",
-        //                     "kyc_withdrawal_limit" => "0.000000000000000000",
-        //                     "min_withdrawal_amount" => "0.020000000000000000",
-        //                     "minimum_precision" => 4,
-        //                     "name" => "Solana",
-        //                     "networks" => array(
-        //                         array( "base_withdrawal_fee" => "0.01", "deposit_status" => "enabled", "memo_required" => false, "network" => "SOLANA", "variable_withdrawal_fee" => "0", "withdrawal_status" => "enabled" ),
-        //                         array( "base_withdrawal_fee" => "0.01", "deposit_status" => "enabled", "memo_required" => false, "network" => "BEP20(BSC)", "variable_withdrawal_fee" => "0", "withdrawal_status" => "enabled" )
-        //                     ),
-        //                     "precision" => 8,
-        //                     "sort_priority" => 7,
-        //                     "symbol" => "SOL",
-        //                     "variable_withdrawal_fee" => "0.000000000000000000",
-        //                     "withdrawal_status" => "enabled"
-        //                 ),
-        //                 "barrier_price" => null,
-        //                 "contract_value" => "1",
-        //                 "short_description" => "SOL-USDT $spot $market"
-        //             ),
-        //         ],
-        //         "success":true
-        //     }
-        //
-        $markets = $this->safe_value($response, 'result', array());
-        $result = array();
-        for ($i = 0; $i < count($markets); $i++) {
-            $market = $markets[$i];
-            $type = $this->safe_string($market, 'contract_type');
-            // $settlingAsset = $this->safe_value($market, 'settling_asset', array());
-            $quotingAsset = $this->safe_value($market, 'quoting_asset', array());
-            $underlyingAsset = $this->safe_value($market, 'underlying_asset', array());
-            $settlingAsset = $this->safe_value($market, 'settling_asset');
-            $productSpecs = $this->safe_value($market, 'product_specs', array());
-            $baseId = $this->safe_string($underlyingAsset, 'symbol');
-            $quoteId = $this->safe_string($quotingAsset, 'symbol');
-            $settleId = $this->safe_string($settlingAsset, 'symbol');
-            $id = $this->safe_string($market, 'symbol');
-            $numericId = $this->safe_integer($market, 'id');
-            $base = $this->safe_currency_code($baseId);
-            $quote = $this->safe_currency_code($quoteId);
-            $settle = $this->safe_currency_code($settleId);
-            $callOptions = ($type === 'call_options');
-            $putOptions = ($type === 'put_options');
-            $moveOptions = ($type === 'move_options');
-            $spot = ($type === 'spot');
-            $swap = ($type === 'perpetual_futures');
-            $future = ($type === 'futures');
-            $option = ($callOptions || $putOptions || $moveOptions);
-            $strike = $this->safe_string($market, 'strike_price');
-            $expiryDatetime = $this->safe_string($market, 'settlement_time');
-            $expiry = $this->parse8601($expiryDatetime);
-            $contractSize = $this->safe_number($market, 'contract_value');
-            $amountPrecision = null;
-            if ($spot) {
-                $amountPrecision = $this->parse_number($this->parse_precision($this->safe_string($productSpecs, 'underlying_precision'))); // seems inverse of 'impact_size'
-            } else {
-                // other $markets ($swap, futures, move, spread, irs) seem to use the step of '1' contract
-                $amountPrecision = $this->parse_number('1');
-            }
-            $linear = ($settle === $base);
-            $optionType = null;
-            $symbol = $base . '/' . $quote;
-            if ($swap || $future || $option) {
-                $symbol = $symbol . ':' . $settle;
-                if ($future || $option) {
-                    $symbol = $symbol . '-' . $this->yymmdd($expiry);
-                    if ($option) {
-                        $type = 'option';
-                        $letter = 'C';
-                        $optionType = 'call';
-                        if ($putOptions) {
-                            $letter = 'P';
-                            $optionType = 'put';
-                        } elseif ($moveOptions) {
-                            $letter = 'M';
-                            $optionType = 'move';
+        return Async\async(function () use ($params) {
+            /**
+             * retrieves data on all $markets for delta
+             * @param {array} $params extra parameters specific to the exchange api endpoint
+             * @return {[array]} an array of objects representing $market data
+             */
+            $response = Async\await($this->publicGetProducts ($params));
+            //
+            //     {
+            //         "meta":array( "after":null, "before":null, "limit":100, "total_count":81 ),
+            //         "result":[
+            //             // the below $response represents item from perpetual $market
+            //             array(
+            //                 "annualized_funding":"5.475000000000000000",
+            //                 "is_quanto":false,
+            //                 "ui_config":array(
+            //                     "default_trading_view_candle":"15",
+            //                     "leverage_slider_values":[1,3,5,10,25,50],
+            //                     "price_clubbing_values":[0.001,0.005,0.05,0.1,0.5,1,5],
+            //                     "show_bracket_orders":false,
+            //                     "sort_priority":29,
+            //                     "tags":array()
+            //                 ),
+            //                 "basis_factor_max_limit":"0.15",
+            //                 "symbol":"P-LINK-D-151120",
+            //                 "id":1584,
+            //                 "default_leverage":"5.000000000000000000",
+            //                 "maker_commission_rate":"0.0005",
+            //                 "contract_unit_currency":"LINK",
+            //                 "strike_price":"12.507948",
+            //                 "settling_asset":array(
+            //                     // asset structure
+            //                 ),
+            //                 "auction_start_time":null,
+            //                 "auction_finish_time":null,
+            //                 "settlement_time":"2020-11-15T12:00:00Z",
+            //                 "launch_time":"2020-11-14T11:55:05Z",
+            //                 "spot_index":array(
+            //                     // index structure
+            //                 ),
+            //                 "trading_status":"operational",
+            //                 "tick_size":"0.001",
+            //                 "position_size_limit":100000,
+            //                 "notional_type":"vanilla", // vanilla, inverse
+            //                 "price_band":"0.4",
+            //                 "barrier_price":null,
+            //                 "description":"Daily LINK PUT options quoted in USDT and settled in USDT",
+            //                 "insurance_fund_margin_contribution":"1",
+            //                 "quoting_asset":array(
+            //                     // asset structure
+            //                 ),
+            //                 "liquidation_penalty_factor":"0.2",
+            //                 "product_specs":array("max_volatility":3,"min_volatility":0.3,"spot_price_band":"0.40"),
+            //                 "initial_margin_scaling_factor":"0.0001",
+            //                 "underlying_asset":array(
+            //                     // asset structure
+            //                 ),
+            //                 "state":"live",
+            //                 "contract_value":"1",
+            //                 "initial_margin":"2",
+            //                 "impact_size":5000,
+            //                 "settlement_price":null,
+            //                 "contract_type":"put_options", // put_options, call_options, move_options, perpetual_futures, interest_rate_swaps, futures, spreads
+            //                 "taker_commission_rate":"0.0005",
+            //                 "maintenance_margin":"1",
+            //                 "short_description":"LINK Daily PUT Options",
+            //                 "maintenance_margin_scaling_factor":"0.00005",
+            //                 "funding_method":"mark_price",
+            //                 "max_leverage_notional":"20000"
+            //             ),
+            //             // the below $response represents item from $spot $market
+            //             array(
+            //                 "position_size_limit" => 10000000,
+            //                 "settlement_price" => null,
+            //                 "funding_method" => "mark_price",
+            //                 "settling_asset" => null,
+            //                 "impact_size" => 10,
+            //                 "id" => 32258,
+            //                 "auction_finish_time" => null,
+            //                 "description" => "Solana tether $spot $market",
+            //                 "trading_status" => "operational",
+            //                 "tick_size" => "0.01",
+            //                 "liquidation_penalty_factor" => "1",
+            //                 "spot_index" => array(
+            //                     "config" => array( "quoting_asset" => "USDT", "service_id" => 8, "underlying_asset" => "SOL" ),
+            //                     "constituent_exchanges" => array(
+            //                         array( "exchange" => "binance", "health_interval" => 60, "health_priority" => 1, "weight" => 1 ),
+            //                         array( "exchange" => "huobi", "health_interval" => 60, "health_priority" => 2, "weight" => 1 )
+            //                     ),
+            //                     "constituent_indices" => null,
+            //                     "description" => "Solana index from binance and huobi",
+            //                     "health_interval" => 300,
+            //                     "id" => 105,
+            //                     "impact_size" => "40.000000000000000000",
+            //                     "index_type" => "spot_pair",
+            //                     "is_composite" => false,
+            //                     "price_method" => "ltp",
+            //                     "quoting_asset_id" => 5,
+            //                     "symbol" => ".DESOLUSDT",
+            //                     "tick_size" => "0.000100000000000000",
+            //                     "underlying_asset_id" => 66
+            //                 ),
+            //                 "contract_type" => "spot",
+            //                 "launch_time" => "2022-02-03T10:18:11Z",
+            //                 "symbol" => "SOL_USDT",
+            //                 "disruption_reason" => null,
+            //                 "settlement_time" => null,
+            //                 "insurance_fund_margin_contribution" => "1",
+            //                 "is_quanto" => false,
+            //                 "maintenance_margin" => "5",
+            //                 "taker_commission_rate" => "0.0005",
+            //                 "auction_start_time" => null,
+            //                 "max_leverage_notional" => "10000000",
+            //                 "state" => "live",
+            //                 "annualized_funding" => "0",
+            //                 "notional_type" => "vanilla",
+            //                 "price_band" => "100",
+            //                 "product_specs" => array( "kyc_required" => false, "max_order_size" => 2000, "min_order_size" => 0.01, "quoting_precision" => 4, "underlying_precision" => 2 ),
+            //                 "default_leverage" => "1.000000000000000000",
+            //                 "initial_margin" => "10",
+            //                 "maintenance_margin_scaling_factor" => "1",
+            //                 "ui_config" => array(
+            //                     "default_trading_view_candle" => "1d",
+            //                     "leverage_slider_values" => array(),
+            //                     "price_clubbing_values" => array( 0.01, 0.05, 0.1, 0.5, 1, 2.5, 5 ),
+            //                     "show_bracket_orders" => false,
+            //                     "sort_priority" => 2,
+            //                     "tags" => array()
+            //                 ),
+            //                 "basis_factor_max_limit" => "10000",
+            //                 "contract_unit_currency" => "SOL",
+            //                 "strike_price" => null,
+            //                 "quoting_asset" => array(
+            //                     "base_withdrawal_fee" => "10.000000000000000000",
+            //                     "deposit_status" => "enabled",
+            //                     "id" => 5,
+            //                     "interest_credit" => false,
+            //                     "interest_slabs" => null,
+            //                     "kyc_deposit_limit" => "100000.000000000000000000",
+            //                     "kyc_withdrawal_limit" => "10000.000000000000000000",
+            //                     "min_withdrawal_amount" => "30.000000000000000000",
+            //                     "minimum_precision" => 2,
+            //                     "name" => "Tether",
+            //                     "networks" => array(
+            //                         array( "base_withdrawal_fee" => "25", "deposit_status" => "enabled", "memo_required" => false, "network" => "ERC20", "variable_withdrawal_fee" => "0", "withdrawal_status" => "enabled" ),
+            //                         array( "base_withdrawal_fee" => "1", "deposit_status" => "enabled", "memo_required" => false, "network" => "BEP20(BSC)", "variable_withdrawal_fee" => "0", "withdrawal_status" => "enabled" ),
+            //                         array( "base_withdrawal_fee" => "1", "deposit_status" => "disabled", "memo_required" => false, "network" => "TRC20(TRON)", "variable_withdrawal_fee" => "0", "withdrawal_status" => "disabled" )
+            //                     ),
+            //                     "precision" => 8,
+            //                     "sort_priority" => 1,
+            //                     "symbol" => "USDT",
+            //                     "variable_withdrawal_fee" => "0.000000000000000000",
+            //                     "withdrawal_status" => "enabled"
+            //                 ),
+            //                 "maker_commission_rate" => "0.0005",
+            //                 "initial_margin_scaling_factor" => "2",
+            //                 "underlying_asset" => array(
+            //                     "base_withdrawal_fee" => "0.000000000000000000",
+            //                     "deposit_status" => "enabled",
+            //                     "id" => 66,
+            //                     "interest_credit" => false,
+            //                     "interest_slabs" => null,
+            //                     "kyc_deposit_limit" => "0.000000000000000000",
+            //                     "kyc_withdrawal_limit" => "0.000000000000000000",
+            //                     "min_withdrawal_amount" => "0.020000000000000000",
+            //                     "minimum_precision" => 4,
+            //                     "name" => "Solana",
+            //                     "networks" => array(
+            //                         array( "base_withdrawal_fee" => "0.01", "deposit_status" => "enabled", "memo_required" => false, "network" => "SOLANA", "variable_withdrawal_fee" => "0", "withdrawal_status" => "enabled" ),
+            //                         array( "base_withdrawal_fee" => "0.01", "deposit_status" => "enabled", "memo_required" => false, "network" => "BEP20(BSC)", "variable_withdrawal_fee" => "0", "withdrawal_status" => "enabled" )
+            //                     ),
+            //                     "precision" => 8,
+            //                     "sort_priority" => 7,
+            //                     "symbol" => "SOL",
+            //                     "variable_withdrawal_fee" => "0.000000000000000000",
+            //                     "withdrawal_status" => "enabled"
+            //                 ),
+            //                 "barrier_price" => null,
+            //                 "contract_value" => "1",
+            //                 "short_description" => "SOL-USDT $spot $market"
+            //             ),
+            //         ],
+            //         "success":true
+            //     }
+            //
+            $markets = $this->safe_value($response, 'result', array());
+            $result = array();
+            for ($i = 0; $i < count($markets); $i++) {
+                $market = $markets[$i];
+                $type = $this->safe_string($market, 'contract_type');
+                // $settlingAsset = $this->safe_value($market, 'settling_asset', array());
+                $quotingAsset = $this->safe_value($market, 'quoting_asset', array());
+                $underlyingAsset = $this->safe_value($market, 'underlying_asset', array());
+                $settlingAsset = $this->safe_value($market, 'settling_asset');
+                $productSpecs = $this->safe_value($market, 'product_specs', array());
+                $baseId = $this->safe_string($underlyingAsset, 'symbol');
+                $quoteId = $this->safe_string($quotingAsset, 'symbol');
+                $settleId = $this->safe_string($settlingAsset, 'symbol');
+                $id = $this->safe_string($market, 'symbol');
+                $numericId = $this->safe_integer($market, 'id');
+                $base = $this->safe_currency_code($baseId);
+                $quote = $this->safe_currency_code($quoteId);
+                $settle = $this->safe_currency_code($settleId);
+                $callOptions = ($type === 'call_options');
+                $putOptions = ($type === 'put_options');
+                $moveOptions = ($type === 'move_options');
+                $spot = ($type === 'spot');
+                $swap = ($type === 'perpetual_futures');
+                $future = ($type === 'futures');
+                $option = ($callOptions || $putOptions || $moveOptions);
+                $strike = $this->safe_string($market, 'strike_price');
+                $expiryDatetime = $this->safe_string($market, 'settlement_time');
+                $expiry = $this->parse8601($expiryDatetime);
+                $contractSize = $this->safe_number($market, 'contract_value');
+                $amountPrecision = null;
+                if ($spot) {
+                    $amountPrecision = $this->parse_number($this->parse_precision($this->safe_string($productSpecs, 'underlying_precision'))); // seems inverse of 'impact_size'
+                } else {
+                    // other $markets ($swap, futures, move, spread, irs) seem to use the step of '1' contract
+                    $amountPrecision = $this->parse_number('1');
+                }
+                $linear = ($settle === $base);
+                $optionType = null;
+                $symbol = $base . '/' . $quote;
+                if ($swap || $future || $option) {
+                    $symbol = $symbol . ':' . $settle;
+                    if ($future || $option) {
+                        $symbol = $symbol . '-' . $this->yymmdd($expiry);
+                        if ($option) {
+                            $type = 'option';
+                            $letter = 'C';
+                            $optionType = 'call';
+                            if ($putOptions) {
+                                $letter = 'P';
+                                $optionType = 'put';
+                            } elseif ($moveOptions) {
+                                $letter = 'M';
+                                $optionType = 'move';
+                            }
+                            $symbol = $symbol . ':' . $strike . ':' . $letter;
+                        } else {
+                            $type = 'future';
                         }
-                        $symbol = $symbol . ':' . $strike . ':' . $letter;
                     } else {
-                        $type = 'future';
+                        $type = 'swap';
                     }
                 } else {
-                    $type = 'swap';
+                    $symbol = $id;
                 }
-            } else {
-                $symbol = $id;
+                $state = $this->safe_string($market, 'state');
+                $result[] = array(
+                    'id' => $id,
+                    'numericId' => $numericId,
+                    'symbol' => $symbol,
+                    'base' => $base,
+                    'quote' => $quote,
+                    'settle' => $settle,
+                    'baseId' => $baseId,
+                    'quoteId' => $quoteId,
+                    'settleId' => $settleId,
+                    'type' => $type,
+                    'spot' => $spot,
+                    'margin' => $spot ? null : false,
+                    'swap' => $swap,
+                    'future' => $future,
+                    'option' => $option,
+                    'active' => ($state === 'live'),
+                    'contract' => !$spot,
+                    'linear' => $spot ? null : $linear,
+                    'inverse' => $spot ? null : !$linear,
+                    'taker' => $this->safe_number($market, 'taker_commission_rate'),
+                    'maker' => $this->safe_number($market, 'maker_commission_rate'),
+                    'contractSize' => $contractSize,
+                    'expiry' => $expiry,
+                    'expiryDatetime' => $expiryDatetime,
+                    'strike' => $this->parse_number($strike),
+                    'optionType' => $optionType,
+                    'precision' => array(
+                        'amount' => $amountPrecision,
+                        'price' => $this->safe_number($market, 'tick_size'),
+                    ),
+                    'limits' => array(
+                        'leverage' => array(
+                            'min' => null,
+                            'max' => null,
+                        ),
+                        'amount' => array(
+                            'min' => $this->parse_number('1'),
+                            'max' => $this->safe_number($market, 'position_size_limit'),
+                        ),
+                        'price' => array(
+                            'min' => null,
+                            'max' => null,
+                        ),
+                        'cost' => array(
+                            'min' => $this->safe_number($market, 'min_size'),
+                            'max' => null,
+                        ),
+                    ),
+                    'info' => $market,
+                );
             }
-            $state = $this->safe_string($market, 'state');
-            $result[] = array(
-                'id' => $id,
-                'numericId' => $numericId,
-                'symbol' => $symbol,
-                'base' => $base,
-                'quote' => $quote,
-                'settle' => $settle,
-                'baseId' => $baseId,
-                'quoteId' => $quoteId,
-                'settleId' => $settleId,
-                'type' => $type,
-                'spot' => $spot,
-                'margin' => $spot ? null : false,
-                'swap' => $swap,
-                'future' => $future,
-                'option' => $option,
-                'active' => ($state === 'live'),
-                'contract' => !$spot,
-                'linear' => $spot ? null : $linear,
-                'inverse' => $spot ? null : !$linear,
-                'taker' => $this->safe_number($market, 'taker_commission_rate'),
-                'maker' => $this->safe_number($market, 'maker_commission_rate'),
-                'contractSize' => $contractSize,
-                'expiry' => $expiry,
-                'expiryDatetime' => $expiryDatetime,
-                'strike' => $this->parse_number($strike),
-                'optionType' => $optionType,
-                'precision' => array(
-                    'amount' => $amountPrecision,
-                    'price' => $this->safe_number($market, 'tick_size'),
-                ),
-                'limits' => array(
-                    'leverage' => array(
-                        'min' => null,
-                        'max' => null,
-                    ),
-                    'amount' => array(
-                        'min' => $this->parse_number('1'),
-                        'max' => $this->safe_number($market, 'position_size_limit'),
-                    ),
-                    'price' => array(
-                        'min' => null,
-                        'max' => null,
-                    ),
-                    'cost' => array(
-                        'min' => $this->safe_number($market, 'min_size'),
-                        'max' => null,
-                    ),
-                ),
-                'info' => $market,
-            );
-        }
-        return $result;
+            return $result;
+        }) ();
     }
 
     public function parse_ticker($ticker, $market = null) {
@@ -723,123 +734,129 @@ class delta extends Exchange {
     }
 
     public function fetch_ticker($symbol, $params = array ()) {
-        /**
-         * fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific $market
-         * @param {string} $symbol unified $symbol of the $market to fetch the ticker for
-         * @param {array} $params extra parameters specific to the delta api endpoint
-         * @return {array} a {@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure ticker structure}
-         */
-        yield $this->load_markets();
-        $market = $this->market($symbol);
-        $request = array(
-            'symbol' => $market['id'],
-        );
-        $response = yield $this->publicGetTickersSymbol (array_merge($request, $params));
-        //
-        //     {
-        //         "result":array(
-        //             "close":15837.5,
-        //             "high":16354,
-        //             "low":15751.5,
-        //             "mark_price":"15820.100867",
-        //             "open":16140.5,
-        //             "product_id":139,
-        //             "size":640552,
-        //             "spot_price":"15827.050000000001",
-        //             "symbol":"BTCUSDT",
-        //             "timestamp":1605373550208262,
-        //             "turnover":10298630.3735,
-        //             "turnover_symbol":"USDT",
-        //             "turnover_usd":10298630.3735,
-        //             "volume":640.5520000000001
-        //         ),
-        //         "success":true
-        //     }
-        //
-        $result = $this->safe_value($response, 'result', array());
-        return $this->parse_ticker($result, $market);
+        return Async\async(function () use ($symbol, $params) {
+            /**
+             * fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific $market
+             * @param {string} $symbol unified $symbol of the $market to fetch the ticker for
+             * @param {array} $params extra parameters specific to the delta api endpoint
+             * @return {array} a {@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure ticker structure}
+             */
+            Async\await($this->load_markets());
+            $market = $this->market($symbol);
+            $request = array(
+                'symbol' => $market['id'],
+            );
+            $response = Async\await($this->publicGetTickersSymbol (array_merge($request, $params)));
+            //
+            //     {
+            //         "result":array(
+            //             "close":15837.5,
+            //             "high":16354,
+            //             "low":15751.5,
+            //             "mark_price":"15820.100867",
+            //             "open":16140.5,
+            //             "product_id":139,
+            //             "size":640552,
+            //             "spot_price":"15827.050000000001",
+            //             "symbol":"BTCUSDT",
+            //             "timestamp":1605373550208262,
+            //             "turnover":10298630.3735,
+            //             "turnover_symbol":"USDT",
+            //             "turnover_usd":10298630.3735,
+            //             "volume":640.5520000000001
+            //         ),
+            //         "success":true
+            //     }
+            //
+            $result = $this->safe_value($response, 'result', array());
+            return $this->parse_ticker($result, $market);
+        }) ();
     }
 
     public function fetch_tickers($symbols = null, $params = array ()) {
-        /**
-         * fetches price $tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
-         * @param {[string]|null} $symbols unified $symbols of the markets to fetch the $ticker for, all market $tickers are returned if not assigned
-         * @param {array} $params extra parameters specific to the delta api endpoint
-         * @return {array} an array of {@link https://docs.ccxt.com/en/latest/manual.html#$ticker-structure $ticker structures}
-         */
-        yield $this->load_markets();
-        $symbols = $this->market_symbols($symbols);
-        $response = yield $this->publicGetTickers ($params);
-        //
-        //     {
-        //         "result":array(
-        //             array(
-        //                 "close":0.003966,
-        //                 "high":0.004032,
-        //                 "low":0.003606,
-        //                 "mark_price":"0.00396328",
-        //                 "open":0.003996,
-        //                 "product_id":1327,
-        //                 "size":6242,
-        //                 "spot_price":"0.0039555",
-        //                 "symbol":"AAVEBTC",
-        //                 "timestamp":1605374143864107,
-        //                 "turnover":23.997904999999996,
-        //                 "turnover_symbol":"BTC",
-        //                 "turnover_usd":387957.4544782897,
-        //                 "volume":6242
-        //             ),
-        //         ),
-        //         "success":true
-        //     }
-        //
-        $tickers = $this->safe_value($response, 'result', array());
-        $result = array();
-        for ($i = 0; $i < count($tickers); $i++) {
-            $ticker = $this->parse_ticker($tickers[$i]);
-            $symbol = $ticker['symbol'];
-            $result[$symbol] = $ticker;
-        }
-        return $this->filter_by_array($result, 'symbol', $symbols);
+        return Async\async(function () use ($symbols, $params) {
+            /**
+             * fetches price $tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
+             * @param {[string]|null} $symbols unified $symbols of the markets to fetch the $ticker for, all market $tickers are returned if not assigned
+             * @param {array} $params extra parameters specific to the delta api endpoint
+             * @return {array} an array of {@link https://docs.ccxt.com/en/latest/manual.html#$ticker-structure $ticker structures}
+             */
+            Async\await($this->load_markets());
+            $symbols = $this->market_symbols($symbols);
+            $response = Async\await($this->publicGetTickers ($params));
+            //
+            //     {
+            //         "result":array(
+            //             array(
+            //                 "close":0.003966,
+            //                 "high":0.004032,
+            //                 "low":0.003606,
+            //                 "mark_price":"0.00396328",
+            //                 "open":0.003996,
+            //                 "product_id":1327,
+            //                 "size":6242,
+            //                 "spot_price":"0.0039555",
+            //                 "symbol":"AAVEBTC",
+            //                 "timestamp":1605374143864107,
+            //                 "turnover":23.997904999999996,
+            //                 "turnover_symbol":"BTC",
+            //                 "turnover_usd":387957.4544782897,
+            //                 "volume":6242
+            //             ),
+            //         ),
+            //         "success":true
+            //     }
+            //
+            $tickers = $this->safe_value($response, 'result', array());
+            $result = array();
+            for ($i = 0; $i < count($tickers); $i++) {
+                $ticker = $this->parse_ticker($tickers[$i]);
+                $symbol = $ticker['symbol'];
+                $result[$symbol] = $ticker;
+            }
+            return $this->filter_by_array($result, 'symbol', $symbols);
+        }) ();
     }
 
     public function fetch_order_book($symbol, $limit = null, $params = array ()) {
-        /**
-         * fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
-         * @param {string} $symbol unified $symbol of the $market to fetch the order book for
-         * @param {int|null} $limit the maximum amount of order book entries to return
-         * @param {array} $params extra parameters specific to the delta api endpoint
-         * @return {array} A dictionary of {@link https://docs.ccxt.com/en/latest/manual.html#order-book-structure order book structures} indexed by $market symbols
-         */
-        yield $this->load_markets();
-        $market = $this->market($symbol);
-        $request = array(
-            'symbol' => $market['id'],
-        );
-        if ($limit !== null) {
-            $request['depth'] = $limit;
-        }
-        $response = yield $this->publicGetL2orderbookSymbol (array_merge($request, $params));
-        //
-        //     {
-        //         "result":array(
-        //             "buy":array(
-        //                 array("price":"15814.0","size":912),
-        //                 array("price":"15813.5","size":1279),
-        //                 array("price":"15813.0","size":1634),
-        //             ),
-        //             "sell":array(
-        //                 array("price":"15814.5","size":625),
-        //                 array("price":"15815.0","size":982),
-        //                 array("price":"15815.5","size":1328),
-        //             ),
-        //             "symbol":"BTCUSDT"
-        //         ),
-        //         "success":true
-        //     }
-        //
-        $result = $this->safe_value($response, 'result', array());
-        return $this->parse_order_book($result, $market['symbol'], null, 'buy', 'sell', 'price', 'size');
+        return Async\async(function () use ($symbol, $limit, $params) {
+            /**
+             * fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+             * @param {string} $symbol unified $symbol of the $market to fetch the order book for
+             * @param {int|null} $limit the maximum amount of order book entries to return
+             * @param {array} $params extra parameters specific to the delta api endpoint
+             * @return {array} A dictionary of {@link https://docs.ccxt.com/en/latest/manual.html#order-book-structure order book structures} indexed by $market symbols
+             */
+            Async\await($this->load_markets());
+            $market = $this->market($symbol);
+            $request = array(
+                'symbol' => $market['id'],
+            );
+            if ($limit !== null) {
+                $request['depth'] = $limit;
+            }
+            $response = Async\await($this->publicGetL2orderbookSymbol (array_merge($request, $params)));
+            //
+            //     {
+            //         "result":array(
+            //             "buy":array(
+            //                 array("price":"15814.0","size":912),
+            //                 array("price":"15813.5","size":1279),
+            //                 array("price":"15813.0","size":1634),
+            //             ),
+            //             "sell":array(
+            //                 array("price":"15814.5","size":625),
+            //                 array("price":"15815.0","size":982),
+            //                 array("price":"15815.5","size":1328),
+            //             ),
+            //             "symbol":"BTCUSDT"
+            //         ),
+            //         "success":true
+            //     }
+            //
+            $result = $this->safe_value($response, 'result', array());
+            return $this->parse_order_book($result, $market['symbol'], null, 'buy', 'sell', 'price', 'size');
+        }) ();
     }
 
     public function parse_trade($trade, $market = null) {
@@ -943,37 +960,39 @@ class delta extends Exchange {
     }
 
     public function fetch_trades($symbol, $since = null, $limit = null, $params = array ()) {
-        /**
-         * get the list of most recent trades for a particular $symbol
-         * @param {string} $symbol unified $symbol of the $market to fetch trades for
-         * @param {int|null} $since timestamp in ms of the earliest trade to fetch
-         * @param {int|null} $limit the maximum amount of trades to fetch
-         * @param {array} $params extra parameters specific to the delta api endpoint
-         * @return {[array]} a list of ~@link https://docs.ccxt.com/en/latest/manual.html?#public-trades trade structures~
-         */
-        yield $this->load_markets();
-        $market = $this->market($symbol);
-        $request = array(
-            'symbol' => $market['id'],
-        );
-        $response = yield $this->publicGetTradesSymbol (array_merge($request, $params));
-        //
-        //     {
-        //         "result":array(
-        //             {
-        //                 "buyer_role":"maker",
-        //                 "price":"15896.5",
-        //                 "seller_role":"taker",
-        //                 "size":241,
-        //                 "symbol":"BTCUSDT",
-        //                 "timestamp":1605376684714595
-        //             }
-        //         ),
-        //         "success":true
-        //     }
-        //
-        $result = $this->safe_value($response, 'result', array());
-        return $this->parse_trades($result, $market, $since, $limit);
+        return Async\async(function () use ($symbol, $since, $limit, $params) {
+            /**
+             * get the list of most recent trades for a particular $symbol
+             * @param {string} $symbol unified $symbol of the $market to fetch trades for
+             * @param {int|null} $since timestamp in ms of the earliest trade to fetch
+             * @param {int|null} $limit the maximum amount of trades to fetch
+             * @param {array} $params extra parameters specific to the delta api endpoint
+             * @return {[array]} a list of ~@link https://docs.ccxt.com/en/latest/manual.html?#public-trades trade structures~
+             */
+            Async\await($this->load_markets());
+            $market = $this->market($symbol);
+            $request = array(
+                'symbol' => $market['id'],
+            );
+            $response = Async\await($this->publicGetTradesSymbol (array_merge($request, $params)));
+            //
+            //     {
+            //         "result":array(
+            //             {
+            //                 "buyer_role":"maker",
+            //                 "price":"15896.5",
+            //                 "seller_role":"taker",
+            //                 "size":241,
+            //                 "symbol":"BTCUSDT",
+            //                 "timestamp":1605376684714595
+            //             }
+            //         ),
+            //         "success":true
+            //     }
+            //
+            $result = $this->safe_value($response, 'result', array());
+            return $this->parse_trades($result, $market, $since, $limit);
+        }) ();
     }
 
     public function parse_ohlcv($ohlcv, $market = null) {
@@ -998,45 +1017,47 @@ class delta extends Exchange {
     }
 
     public function fetch_ohlcv($symbol, $timeframe = '1m', $since = null, $limit = null, $params = array ()) {
-        /**
-         * fetches historical candlestick data containing the open, high, low, and close price, and the volume of a $market
-         * @param {string} $symbol unified $symbol of the $market to fetch OHLCV data for
-         * @param {string} $timeframe the length of time each candle represents
-         * @param {int|null} $since timestamp in ms of the earliest candle to fetch
-         * @param {int|null} $limit the maximum amount of candles to fetch
-         * @param {array} $params extra parameters specific to the delta api endpoint
-         * @return {[[int]]} A list of candles ordered as timestamp, open, high, low, close, volume
-         */
-        yield $this->load_markets();
-        $market = $this->market($symbol);
-        $request = array(
-            'symbol' => $market['id'],
-            'resolution' => $this->timeframes[$timeframe],
-        );
-        $duration = $this->parse_timeframe($timeframe);
-        $limit = $limit ? $limit : 2000; // max 2000
-        if ($since === null) {
-            $end = $this->seconds();
-            $request['end'] = $end;
-            $request['start'] = $end - $limit * $duration;
-        } else {
-            $start = intval($since / 1000);
-            $request['start'] = $start;
-            $request['end'] = $this->sum($start, $limit * $duration);
-        }
-        $response = yield $this->publicGetHistoryCandles (array_merge($request, $params));
-        //
-        //     {
-        //         "success":true,
-        //         "result":array(
-        //             array("time":1605393120,"open":15989,"high":15989,"low":15987.5,"close":15987.5,"volume":565),
-        //             array("time":1605393180,"open":15966,"high":15966,"low":15959,"close":15959,"volume":24),
-        //             array("time":1605393300,"open":15973,"high":15973,"low":15973,"close":15973,"volume":1288),
-        //         )
-        //     }
-        //
-        $result = $this->safe_value($response, 'result', array());
-        return $this->parse_ohlcvs($result, $market, $timeframe, $since, $limit);
+        return Async\async(function () use ($symbol, $timeframe, $since, $limit, $params) {
+            /**
+             * fetches historical candlestick data containing the open, high, low, and close price, and the volume of a $market
+             * @param {string} $symbol unified $symbol of the $market to fetch OHLCV data for
+             * @param {string} $timeframe the length of time each candle represents
+             * @param {int|null} $since timestamp in ms of the earliest candle to fetch
+             * @param {int|null} $limit the maximum amount of candles to fetch
+             * @param {array} $params extra parameters specific to the delta api endpoint
+             * @return {[[int]]} A list of candles ordered as timestamp, open, high, low, close, volume
+             */
+            Async\await($this->load_markets());
+            $market = $this->market($symbol);
+            $request = array(
+                'symbol' => $market['id'],
+                'resolution' => $this->timeframes[$timeframe],
+            );
+            $duration = $this->parse_timeframe($timeframe);
+            $limit = $limit ? $limit : 2000; // max 2000
+            if ($since === null) {
+                $end = $this->seconds();
+                $request['end'] = $end;
+                $request['start'] = $end - $limit * $duration;
+            } else {
+                $start = intval($since / 1000);
+                $request['start'] = $start;
+                $request['end'] = $this->sum($start, $limit * $duration);
+            }
+            $response = Async\await($this->publicGetHistoryCandles (array_merge($request, $params)));
+            //
+            //     {
+            //         "success":true,
+            //         "result":array(
+            //             array("time":1605393120,"open":15989,"high":15989,"low":15987.5,"close":15987.5,"volume":565),
+            //             array("time":1605393180,"open":15966,"high":15966,"low":15959,"close":15959,"volume":24),
+            //             array("time":1605393300,"open":15973,"high":15973,"low":15973,"close":15973,"volume":1288),
+            //         )
+            //     }
+            //
+            $result = $this->safe_value($response, 'result', array());
+            return $this->parse_ohlcvs($result, $market, $timeframe, $since, $limit);
+        }) ();
     }
 
     public function parse_balance($response) {
@@ -1057,92 +1078,98 @@ class delta extends Exchange {
     }
 
     public function fetch_balance($params = array ()) {
-        /**
-         * query for balance and get the amount of funds available for trading or funds locked in orders
-         * @param {array} $params extra parameters specific to the delta api endpoint
-         * @return {array} a ~@link https://docs.ccxt.com/en/latest/manual.html?#balance-structure balance structure~
-         */
-        yield $this->load_markets();
-        $response = yield $this->privateGetWalletBalances ($params);
-        //
-        //     {
-        //         "result":array(
-        //             array(
-        //                 "asset_id":1,
-        //                 "available_balance":"0",
-        //                 "balance":"0",
-        //                 "commission":"0",
-        //                 "id":154883,
-        //                 "interest_credit":"0",
-        //                 "order_margin":"0",
-        //                 "pending_referral_bonus":"0",
-        //                 "pending_trading_fee_credit":"0",
-        //                 "position_margin":"0",
-        //                 "trading_fee_credit":"0",
-        //                 "user_id":22142
-        //             ),
-        //         ),
-        //         "success":true
-        //     }
-        //
-        return $this->parse_balance($response);
+        return Async\async(function () use ($params) {
+            /**
+             * query for balance and get the amount of funds available for trading or funds locked in orders
+             * @param {array} $params extra parameters specific to the delta api endpoint
+             * @return {array} a ~@link https://docs.ccxt.com/en/latest/manual.html?#balance-structure balance structure~
+             */
+            Async\await($this->load_markets());
+            $response = Async\await($this->privateGetWalletBalances ($params));
+            //
+            //     {
+            //         "result":array(
+            //             array(
+            //                 "asset_id":1,
+            //                 "available_balance":"0",
+            //                 "balance":"0",
+            //                 "commission":"0",
+            //                 "id":154883,
+            //                 "interest_credit":"0",
+            //                 "order_margin":"0",
+            //                 "pending_referral_bonus":"0",
+            //                 "pending_trading_fee_credit":"0",
+            //                 "position_margin":"0",
+            //                 "trading_fee_credit":"0",
+            //                 "user_id":22142
+            //             ),
+            //         ),
+            //         "success":true
+            //     }
+            //
+            return $this->parse_balance($response);
+        }) ();
     }
 
     public function fetch_position($symbol, $params = array ()) {
-        /**
-         * fetch data on a single open contract trade position
-         * @param {string} $symbol unified $market $symbol of the $market the position is held in, default is null
-         * @param {array} $params extra parameters specific to the delta api endpoint
-         * @return {array} a {@link https://docs.ccxt.com/en/latest/manual.html#position-structure position structure}
-         */
-        yield $this->load_markets();
-        $market = $this->market($symbol);
-        $request = array(
-            'product_id' => $market['numericId'],
-        );
-        $response = yield $this->privateGetPositions (array_merge($request, $params));
-        //
-        //     {
-        //         "result":array(
-        //             "entry_price":null,
-        //             "size":0,
-        //             "timestamp":1605454074268079
-        //         ),
-        //         "success":true
-        //     }
-        //
-        $result = $this->safe_value($response, 'result', array());
-        return $result;
+        return Async\async(function () use ($symbol, $params) {
+            /**
+             * fetch data on a single open contract trade position
+             * @param {string} $symbol unified $market $symbol of the $market the position is held in, default is null
+             * @param {array} $params extra parameters specific to the delta api endpoint
+             * @return {array} a {@link https://docs.ccxt.com/en/latest/manual.html#position-structure position structure}
+             */
+            Async\await($this->load_markets());
+            $market = $this->market($symbol);
+            $request = array(
+                'product_id' => $market['numericId'],
+            );
+            $response = Async\await($this->privateGetPositions (array_merge($request, $params)));
+            //
+            //     {
+            //         "result":array(
+            //             "entry_price":null,
+            //             "size":0,
+            //             "timestamp":1605454074268079
+            //         ),
+            //         "success":true
+            //     }
+            //
+            $result = $this->safe_value($response, 'result', array());
+            return $result;
+        }) ();
     }
 
     public function fetch_positions($symbols = null, $params = array ()) {
-        /**
-         * fetch all open positions
-         * @param {[string]|null} $symbols list of unified market $symbols
-         * @param {array} $params extra parameters specific to the delta api endpoint
-         * @return {[array]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#position-structure position structure}
-         */
-        yield $this->load_markets();
-        $response = yield $this->privateGetPositionsMargined ($params);
-        //
-        //     {
-        //         "success" => true,
-        //         "result" => array(
-        //             {
-        //                 "user_id" => 0,
-        //                 "size" => 0,
-        //                 "entry_price" => "string",
-        //                 "margin" => "string",
-        //                 "liquidation_price" => "string",
-        //                 "bankruptcy_price" => "string",
-        //                 "adl_level" => 0,
-        //                 "product_id" => 0
-        //             }
-        //         )
-        //     }
-        //
-        $result = $this->safe_value($response, 'result', array());
-        return $result;
+        return Async\async(function () use ($symbols, $params) {
+            /**
+             * fetch all open positions
+             * @param {[string]|null} $symbols list of unified market $symbols
+             * @param {array} $params extra parameters specific to the delta api endpoint
+             * @return {[array]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#position-structure position structure}
+             */
+            Async\await($this->load_markets());
+            $response = Async\await($this->privateGetPositionsMargined ($params));
+            //
+            //     {
+            //         "success" => true,
+            //         "result" => array(
+            //             {
+            //                 "user_id" => 0,
+            //                 "size" => 0,
+            //                 "entry_price" => "string",
+            //                 "margin" => "string",
+            //                 "liquidation_price" => "string",
+            //                 "bankruptcy_price" => "string",
+            //                 "adl_level" => 0,
+            //                 "product_id" => 0
+            //             }
+            //         )
+            //     }
+            //
+            $result = $this->safe_value($response, 'result', array());
+            return $result;
+        }) ();
     }
 
     public function parse_order_status($status) {
@@ -1243,405 +1270,423 @@ class delta extends Exchange {
     }
 
     public function create_order($symbol, $type, $side, $amount, $price = null, $params = array ()) {
-        /**
-         * create a trade order
-         * @param {string} $symbol unified $symbol of the $market to create an order in
-         * @param {string} $type 'market' or 'limit'
-         * @param {string} $side 'buy' or 'sell'
-         * @param {float} $amount how much of currency you want to trade in units of base currency
-         * @param {float|null} $price the $price at which the order is to be fullfilled, in units of the quote currency, ignored in $market orders
-         * @param {array} $params extra parameters specific to the delta api endpoint
-         * @return {array} an {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structure}
-         */
-        yield $this->load_markets();
-        $orderType = $type . '_order';
-        $market = $this->market($symbol);
-        $request = array(
-            'product_id' => $market['numericId'],
-            // 'limit_price' => $this->price_to_precision($market['symbol'], $price),
-            'size' => $this->amount_to_precision($market['symbol'], $amount),
-            'side' => $side,
-            'order_type' => $orderType,
-            // 'client_order_id' => 'string',
-            // 'time_in_force' => 'gtc', // gtc, ioc, fok
-            // 'post_only' => 'false', // 'true',
-            // 'reduce_only' => 'false', // 'true',
-        );
-        if ($type === 'limit') {
-            $request['limit_price'] = $this->price_to_precision($market['symbol'], $price);
-        }
-        $clientOrderId = $this->safe_string_2($params, 'clientOrderId', 'client_order_id');
-        $params = $this->omit($params, array( 'clientOrderId', 'client_order_id' ));
-        if ($clientOrderId !== null) {
-            $request['client_order_id'] = $clientOrderId;
-        }
-        $response = yield $this->privatePostOrders (array_merge($request, $params));
-        //
-        //     {
-        //         "result":array(
-        //             "average_fill_price":null,
-        //             "bracket_order":null,
-        //             "bracket_stop_loss_limit_price":null,
-        //             "bracket_stop_loss_price":null,
-        //             "bracket_take_profit_limit_price":null,
-        //             "bracket_take_profit_price":null,
-        //             "bracket_trail_amount":null,
-        //             "cancellation_reason":null,
-        //             "client_order_id":null,
-        //             "close_on_trigger":"false",
-        //             "commission":"0",
-        //             "created_at":"2020-11-16T02:38:26Z",
-        //             "id":152870626,
-        //             "limit_price":"10000",
-        //             "meta_data":array("source":"api"),
-        //             "order_type":"limit_order",
-        //             "paid_commission":"0",
-        //             "product_id":139,
-        //             "reduce_only":false,
-        //             "side":"buy",
-        //             "size":0,
-        //             "state":"open",
-        //             "stop_order_type":null,
-        //             "stop_price":null,
-        //             "stop_trigger_method":"mark_price",
-        //             "time_in_force":"gtc",
-        //             "trail_amount":null,
-        //             "unfilled_size":0,
-        //             "user_id":22142
-        //         ),
-        //         "success":true
-        //     }
-        //
-        $result = $this->safe_value($response, 'result', array());
-        return $this->parse_order($result, $market);
+        return Async\async(function () use ($symbol, $type, $side, $amount, $price, $params) {
+            /**
+             * create a trade order
+             * @param {string} $symbol unified $symbol of the $market to create an order in
+             * @param {string} $type 'market' or 'limit'
+             * @param {string} $side 'buy' or 'sell'
+             * @param {float} $amount how much of currency you want to trade in units of base currency
+             * @param {float|null} $price the $price at which the order is to be fullfilled, in units of the quote currency, ignored in $market orders
+             * @param {array} $params extra parameters specific to the delta api endpoint
+             * @return {array} an {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structure}
+             */
+            Async\await($this->load_markets());
+            $orderType = $type . '_order';
+            $market = $this->market($symbol);
+            $request = array(
+                'product_id' => $market['numericId'],
+                // 'limit_price' => $this->price_to_precision($market['symbol'], $price),
+                'size' => $this->amount_to_precision($market['symbol'], $amount),
+                'side' => $side,
+                'order_type' => $orderType,
+                // 'client_order_id' => 'string',
+                // 'time_in_force' => 'gtc', // gtc, ioc, fok
+                // 'post_only' => 'false', // 'true',
+                // 'reduce_only' => 'false', // 'true',
+            );
+            if ($type === 'limit') {
+                $request['limit_price'] = $this->price_to_precision($market['symbol'], $price);
+            }
+            $clientOrderId = $this->safe_string_2($params, 'clientOrderId', 'client_order_id');
+            $params = $this->omit($params, array( 'clientOrderId', 'client_order_id' ));
+            if ($clientOrderId !== null) {
+                $request['client_order_id'] = $clientOrderId;
+            }
+            $response = Async\await($this->privatePostOrders (array_merge($request, $params)));
+            //
+            //     {
+            //         "result":array(
+            //             "average_fill_price":null,
+            //             "bracket_order":null,
+            //             "bracket_stop_loss_limit_price":null,
+            //             "bracket_stop_loss_price":null,
+            //             "bracket_take_profit_limit_price":null,
+            //             "bracket_take_profit_price":null,
+            //             "bracket_trail_amount":null,
+            //             "cancellation_reason":null,
+            //             "client_order_id":null,
+            //             "close_on_trigger":"false",
+            //             "commission":"0",
+            //             "created_at":"2020-11-16T02:38:26Z",
+            //             "id":152870626,
+            //             "limit_price":"10000",
+            //             "meta_data":array("source":"api"),
+            //             "order_type":"limit_order",
+            //             "paid_commission":"0",
+            //             "product_id":139,
+            //             "reduce_only":false,
+            //             "side":"buy",
+            //             "size":0,
+            //             "state":"open",
+            //             "stop_order_type":null,
+            //             "stop_price":null,
+            //             "stop_trigger_method":"mark_price",
+            //             "time_in_force":"gtc",
+            //             "trail_amount":null,
+            //             "unfilled_size":0,
+            //             "user_id":22142
+            //         ),
+            //         "success":true
+            //     }
+            //
+            $result = $this->safe_value($response, 'result', array());
+            return $this->parse_order($result, $market);
+        }) ();
     }
 
     public function edit_order($id, $symbol, $type, $side, $amount, $price = null, $params = array ()) {
-        yield $this->load_markets();
-        $market = $this->market($symbol);
-        $request = array(
-            'id' => intval($id),
-            'product_id' => $market['numericId'],
-            // 'limit_price' => $this->price_to_precision($symbol, $price),
-            // 'size' => $this->amount_to_precision($symbol, $amount),
-        );
-        if ($amount !== null) {
-            $request['size'] = intval($this->amount_to_precision($symbol, $amount));
-        }
-        if ($price !== null) {
-            $request['limit_price'] = $this->price_to_precision($symbol, $price);
-        }
-        $response = yield $this->privatePutOrders (array_merge($request, $params));
-        //
-        //     {
-        //         "success" => true,
-        //         "result" => {
-        //             "id" => "ashb1212",
-        //             "product_id" => 27,
-        //             "limit_price" => "9200",
-        //             "side" => "buy",
-        //             "size" => 100,
-        //             "unfilled_size" => 50,
-        //             "user_id" => 1,
-        //             "order_type" => "limit_order",
-        //             "state" => "open",
-        //             "created_at" => "..."
-        //         }
-        //     }
-        //
-        $result = $this->safe_value($response, 'result');
-        return $this->parse_order($result, $market);
+        return Async\async(function () use ($id, $symbol, $type, $side, $amount, $price, $params) {
+            Async\await($this->load_markets());
+            $market = $this->market($symbol);
+            $request = array(
+                'id' => intval($id),
+                'product_id' => $market['numericId'],
+                // 'limit_price' => $this->price_to_precision($symbol, $price),
+                // 'size' => $this->amount_to_precision($symbol, $amount),
+            );
+            if ($amount !== null) {
+                $request['size'] = intval($this->amount_to_precision($symbol, $amount));
+            }
+            if ($price !== null) {
+                $request['limit_price'] = $this->price_to_precision($symbol, $price);
+            }
+            $response = Async\await($this->privatePutOrders (array_merge($request, $params)));
+            //
+            //     {
+            //         "success" => true,
+            //         "result" => {
+            //             "id" => "ashb1212",
+            //             "product_id" => 27,
+            //             "limit_price" => "9200",
+            //             "side" => "buy",
+            //             "size" => 100,
+            //             "unfilled_size" => 50,
+            //             "user_id" => 1,
+            //             "order_type" => "limit_order",
+            //             "state" => "open",
+            //             "created_at" => "..."
+            //         }
+            //     }
+            //
+            $result = $this->safe_value($response, 'result');
+            return $this->parse_order($result, $market);
+        }) ();
     }
 
     public function cancel_order($id, $symbol = null, $params = array ()) {
-        /**
-         * cancels an open order
-         * @param {string} $id order $id
-         * @param {string} $symbol unified $symbol of the $market the order was made in
-         * @param {array} $params extra parameters specific to the delta api endpoint
-         * @return {array} An {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structure}
-         */
-        if ($symbol === null) {
-            throw new ArgumentsRequired($this->id . ' cancelOrder() requires a $symbol argument');
-        }
-        yield $this->load_markets();
-        $market = $this->market($symbol);
-        $request = array(
-            'id' => intval($id),
-            'product_id' => $market['numericId'],
-        );
-        $response = yield $this->privateDeleteOrders (array_merge($request, $params));
-        //
-        //     {
-        //         "result":array(
-        //             "average_fill_price":null,
-        //             "bracket_order":null,
-        //             "bracket_stop_loss_limit_price":null,
-        //             "bracket_stop_loss_price":null,
-        //             "bracket_take_profit_limit_price":null,
-        //             "bracket_take_profit_price":null,
-        //             "bracket_trail_amount":null,
-        //             "cancellation_reason":"cancelled_by_user",
-        //             "client_order_id":null,
-        //             "close_on_trigger":"false",
-        //             "commission":"0",
-        //             "created_at":"2020-11-16T02:38:26Z",
-        //             "id":152870626,
-        //             "limit_price":"10000",
-        //             "meta_data":array("source":"api"),
-        //             "order_type":"limit_order",
-        //             "paid_commission":"0",
-        //             "product_id":139,
-        //             "reduce_only":false,
-        //             "side":"buy",
-        //             "size":0,
-        //             "state":"cancelled",
-        //             "stop_order_type":null,
-        //             "stop_price":null,
-        //             "stop_trigger_method":"mark_price",
-        //             "time_in_force":"gtc",
-        //             "trail_amount":null,
-        //             "unfilled_size":0,
-        //             "user_id":22142
-        //         ),
-        //         "success":true
-        //     }
-        //
-        $result = $this->safe_value($response, 'result');
-        return $this->parse_order($result, $market);
+        return Async\async(function () use ($id, $symbol, $params) {
+            /**
+             * cancels an open order
+             * @param {string} $id order $id
+             * @param {string} $symbol unified $symbol of the $market the order was made in
+             * @param {array} $params extra parameters specific to the delta api endpoint
+             * @return {array} An {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structure}
+             */
+            if ($symbol === null) {
+                throw new ArgumentsRequired($this->id . ' cancelOrder() requires a $symbol argument');
+            }
+            Async\await($this->load_markets());
+            $market = $this->market($symbol);
+            $request = array(
+                'id' => intval($id),
+                'product_id' => $market['numericId'],
+            );
+            $response = Async\await($this->privateDeleteOrders (array_merge($request, $params)));
+            //
+            //     {
+            //         "result":array(
+            //             "average_fill_price":null,
+            //             "bracket_order":null,
+            //             "bracket_stop_loss_limit_price":null,
+            //             "bracket_stop_loss_price":null,
+            //             "bracket_take_profit_limit_price":null,
+            //             "bracket_take_profit_price":null,
+            //             "bracket_trail_amount":null,
+            //             "cancellation_reason":"cancelled_by_user",
+            //             "client_order_id":null,
+            //             "close_on_trigger":"false",
+            //             "commission":"0",
+            //             "created_at":"2020-11-16T02:38:26Z",
+            //             "id":152870626,
+            //             "limit_price":"10000",
+            //             "meta_data":array("source":"api"),
+            //             "order_type":"limit_order",
+            //             "paid_commission":"0",
+            //             "product_id":139,
+            //             "reduce_only":false,
+            //             "side":"buy",
+            //             "size":0,
+            //             "state":"cancelled",
+            //             "stop_order_type":null,
+            //             "stop_price":null,
+            //             "stop_trigger_method":"mark_price",
+            //             "time_in_force":"gtc",
+            //             "trail_amount":null,
+            //             "unfilled_size":0,
+            //             "user_id":22142
+            //         ),
+            //         "success":true
+            //     }
+            //
+            $result = $this->safe_value($response, 'result');
+            return $this->parse_order($result, $market);
+        }) ();
     }
 
     public function cancel_all_orders($symbol = null, $params = array ()) {
-        /**
-         * cancel all open orders in a $market
-         * @param {string} $symbol unified $market $symbol of the $market to cancel orders in
-         * @param {array} $params extra parameters specific to the delta api endpoint
-         * @return {[array]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structures}
-         */
-        if ($symbol === null) {
-            throw new ArgumentsRequired($this->id . ' cancelAllOrders() requires a $symbol argument');
-        }
-        yield $this->load_markets();
-        $market = $this->market($symbol);
-        $request = array(
-            'product_id' => $market['numericId'],
-            // 'cancel_limit_orders' => 'true',
-            // 'cancel_stop_orders' => 'true',
-        );
-        $response = $this->privateDeleteOrdersAll (array_merge($request, $params));
-        //
-        //     {
-        //         "result":array(),
-        //         "success":true
-        //     }
-        //
-        return $response;
+        return Async\async(function () use ($symbol, $params) {
+            /**
+             * cancel all open orders in a $market
+             * @param {string} $symbol unified $market $symbol of the $market to cancel orders in
+             * @param {array} $params extra parameters specific to the delta api endpoint
+             * @return {[array]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structures}
+             */
+            if ($symbol === null) {
+                throw new ArgumentsRequired($this->id . ' cancelAllOrders() requires a $symbol argument');
+            }
+            Async\await($this->load_markets());
+            $market = $this->market($symbol);
+            $request = array(
+                'product_id' => $market['numericId'],
+                // 'cancel_limit_orders' => 'true',
+                // 'cancel_stop_orders' => 'true',
+            );
+            $response = $this->privateDeleteOrdersAll (array_merge($request, $params));
+            //
+            //     {
+            //         "result":array(),
+            //         "success":true
+            //     }
+            //
+            return $response;
+        }) ();
     }
 
     public function fetch_open_orders($symbol = null, $since = null, $limit = null, $params = array ()) {
-        /**
-         * fetch all unfilled currently open orders
-         * @param {string|null} $symbol unified market $symbol
-         * @param {int|null} $since the earliest time in ms to fetch open orders for
-         * @param {int|null} $limit the maximum number of  open orders structures to retrieve
-         * @param {array} $params extra parameters specific to the delta api endpoint
-         * @return {[array]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structures}
-         */
-        return yield $this->fetch_orders_with_method('privateGetOrders', $symbol, $since, $limit, $params);
+        return Async\async(function () use ($symbol, $since, $limit, $params) {
+            /**
+             * fetch all unfilled currently open orders
+             * @param {string|null} $symbol unified market $symbol
+             * @param {int|null} $since the earliest time in ms to fetch open orders for
+             * @param {int|null} $limit the maximum number of  open orders structures to retrieve
+             * @param {array} $params extra parameters specific to the delta api endpoint
+             * @return {[array]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structures}
+             */
+            return Async\await($this->fetch_orders_with_method('privateGetOrders', $symbol, $since, $limit, $params));
+        }) ();
     }
 
     public function fetch_closed_orders($symbol = null, $since = null, $limit = null, $params = array ()) {
-        /**
-         * fetches information on multiple closed orders made by the user
-         * @param {string|null} $symbol unified market $symbol of the market orders were made in
-         * @param {int|null} $since the earliest time in ms to fetch orders for
-         * @param {int|null} $limit the maximum number of  orde structures to retrieve
-         * @param {array} $params extra parameters specific to the delta api endpoint
-         * @return {[array]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structures}
-         */
-        return yield $this->fetch_orders_with_method('privateGetOrdersHistory', $symbol, $since, $limit, $params);
+        return Async\async(function () use ($symbol, $since, $limit, $params) {
+            /**
+             * fetches information on multiple closed orders made by the user
+             * @param {string|null} $symbol unified market $symbol of the market orders were made in
+             * @param {int|null} $since the earliest time in ms to fetch orders for
+             * @param {int|null} $limit the maximum number of  orde structures to retrieve
+             * @param {array} $params extra parameters specific to the delta api endpoint
+             * @return {[array]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structures}
+             */
+            return Async\await($this->fetch_orders_with_method('privateGetOrdersHistory', $symbol, $since, $limit, $params));
+        }) ();
     }
 
     public function fetch_orders_with_method($method, $symbol = null, $since = null, $limit = null, $params = array ()) {
-        yield $this->load_markets();
-        $request = array(
-            // 'product_ids' => $market['id'], // comma-separated
-            // 'contract_types' => types, // comma-separated, futures, perpetual_futures, call_options, put_options, interest_rate_swaps, move_options, spreads
-            // 'order_types' => types, // comma-separated, $market, $limit, stop_market, stop_limit, all_stop
-            // 'start_time' => $since * 1000,
-            // 'end_time' => $this->microseconds(),
-            // 'after' => string, // after cursor for pagination
-            // 'before' => string, // before cursor for pagination
-            // 'page_size' => $limit, // number of records per page
-        );
-        $market = null;
-        if ($symbol !== null) {
-            $market = $this->market($symbol);
-            $request['product_ids'] = $market['numericId']; // accepts a comma-separated list of ids
-        }
-        if ($since !== null) {
-            $request['start_time'] = (string) $since . '000';
-        }
-        if ($limit !== null) {
-            $request['page_size'] = $limit;
-        }
-        $response = yield $this->$method (array_merge($request, $params));
-        //
-        //     {
-        //         "success" => true,
-        //         "result" => array(
-        //             {
-        //                 "id" => "ashb1212",
-        //                 "product_id" => 27,
-        //                 "limit_price" => "9200",
-        //                 "side" => "buy",
-        //                 "size" => 100,
-        //                 "unfilled_size" => 50,
-        //                 "user_id" => 1,
-        //                 "order_type" => "limit_order",
-        //                 "state" => "open",
-        //                 "created_at" => "..."
-        //             }
-        //         ),
-        //         "meta" => {
-        //             "after" => "string",
-        //             "before" => "string"
-        //         }
-        //     }
-        //
-        $result = $this->safe_value($response, 'result', array());
-        return $this->parse_orders($result, $market, $since, $limit);
+        return Async\async(function () use ($method, $symbol, $since, $limit, $params) {
+            Async\await($this->load_markets());
+            $request = array(
+                // 'product_ids' => $market['id'], // comma-separated
+                // 'contract_types' => types, // comma-separated, futures, perpetual_futures, call_options, put_options, interest_rate_swaps, move_options, spreads
+                // 'order_types' => types, // comma-separated, $market, $limit, stop_market, stop_limit, all_stop
+                // 'start_time' => $since * 1000,
+                // 'end_time' => $this->microseconds(),
+                // 'after' => string, // after cursor for pagination
+                // 'before' => string, // before cursor for pagination
+                // 'page_size' => $limit, // number of records per page
+            );
+            $market = null;
+            if ($symbol !== null) {
+                $market = $this->market($symbol);
+                $request['product_ids'] = $market['numericId']; // accepts a comma-separated list of ids
+            }
+            if ($since !== null) {
+                $request['start_time'] = (string) $since . '000';
+            }
+            if ($limit !== null) {
+                $request['page_size'] = $limit;
+            }
+            $response = Async\await($this->$method (array_merge($request, $params)));
+            //
+            //     {
+            //         "success" => true,
+            //         "result" => array(
+            //             {
+            //                 "id" => "ashb1212",
+            //                 "product_id" => 27,
+            //                 "limit_price" => "9200",
+            //                 "side" => "buy",
+            //                 "size" => 100,
+            //                 "unfilled_size" => 50,
+            //                 "user_id" => 1,
+            //                 "order_type" => "limit_order",
+            //                 "state" => "open",
+            //                 "created_at" => "..."
+            //             }
+            //         ),
+            //         "meta" => {
+            //             "after" => "string",
+            //             "before" => "string"
+            //         }
+            //     }
+            //
+            $result = $this->safe_value($response, 'result', array());
+            return $this->parse_orders($result, $market, $since, $limit);
+        }) ();
     }
 
     public function fetch_my_trades($symbol = null, $since = null, $limit = null, $params = array ()) {
-        /**
-         * fetch all trades made by the user
-         * @param {string|null} $symbol unified $market $symbol
-         * @param {int|null} $since the earliest time in ms to fetch trades for
-         * @param {int|null} $limit the maximum number of trades structures to retrieve
-         * @param {array} $params extra parameters specific to the delta api endpoint
-         * @return {[array]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#trade-structure trade structures}
-         */
-        yield $this->load_markets();
-        $request = array(
-            // 'product_ids' => $market['id'], // comma-separated
-            // 'contract_types' => types, // comma-separated, futures, perpetual_futures, call_options, put_options, interest_rate_swaps, move_options, spreads
-            // 'start_time' => $since * 1000,
-            // 'end_time' => $this->microseconds(),
-            // 'after' => string, // after cursor for pagination
-            // 'before' => string, // before cursor for pagination
-            // 'page_size' => $limit, // number of records per page
-        );
-        $market = null;
-        if ($symbol !== null) {
-            $market = $this->market($symbol);
-            $request['product_ids'] = $market['numericId']; // accepts a comma-separated list of ids
-        }
-        if ($since !== null) {
-            $request['start_time'] = (string) $since . '000';
-        }
-        if ($limit !== null) {
-            $request['page_size'] = $limit;
-        }
-        $response = yield $this->privateGetFills (array_merge($request, $params));
-        //
-        //     {
-        //         "meta":array(
-        //             "after":null,
-        //             "before":null,
-        //             "limit":10,
-        //             "total_count":2
-        //         ),
-        //         "result":array(
-        //             {
-        //                 "commission":"0.008335000000000000",
-        //                 "created_at":"2020-11-16T19:07:19Z",
-        //                 "fill_type":"normal",
-        //                 "id":"e7ff05c233a74245b72381f8dd91d1ce",
-        //                 "meta_data":array(
-        //                     "effective_commission_rate":"0.0005",
-        //                     "order_price":"16249",
-        //                     "order_size":1,
-        //                     "order_type":"market_order",
-        //                     "order_unfilled_size":0,
-        //                     "trading_fee_credits_used":"0"
-        //                 ),
-        //                 "order_id":"152999629",
-        //                 "price":"16669",
-        //                 "product":array(
-        //                     "contract_type":"perpetual_futures",
-        //                     "contract_unit_currency":"BTC",
-        //                     "contract_value":"0.001",
-        //                     "id":139,
-        //                     "notional_type":"vanilla",
-        //                     "quoting_asset":array("minimum_precision":2,"precision":6,"symbol":"USDT"),
-        //                     "settling_asset":array("minimum_precision":2,"precision":6,"symbol":"USDT"),
-        //                     "symbol":"BTCUSDT",
-        //                     "tick_size":"0.5",
-        //                     "underlying_asset":array("minimum_precision":4,"precision":8,"symbol":"BTC")
-        //                 ),
-        //                 "product_id":139,
-        //                 "role":"taker",
-        //                 "side":"sell",
-        //                 "size":1
-        //             }
-        //         ),
-        //         "success":true
-        //     }
-        //
-        $result = $this->safe_value($response, 'result', array());
-        return $this->parse_trades($result, $market, $since, $limit);
+        return Async\async(function () use ($symbol, $since, $limit, $params) {
+            /**
+             * fetch all trades made by the user
+             * @param {string|null} $symbol unified $market $symbol
+             * @param {int|null} $since the earliest time in ms to fetch trades for
+             * @param {int|null} $limit the maximum number of trades structures to retrieve
+             * @param {array} $params extra parameters specific to the delta api endpoint
+             * @return {[array]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#trade-structure trade structures}
+             */
+            Async\await($this->load_markets());
+            $request = array(
+                // 'product_ids' => $market['id'], // comma-separated
+                // 'contract_types' => types, // comma-separated, futures, perpetual_futures, call_options, put_options, interest_rate_swaps, move_options, spreads
+                // 'start_time' => $since * 1000,
+                // 'end_time' => $this->microseconds(),
+                // 'after' => string, // after cursor for pagination
+                // 'before' => string, // before cursor for pagination
+                // 'page_size' => $limit, // number of records per page
+            );
+            $market = null;
+            if ($symbol !== null) {
+                $market = $this->market($symbol);
+                $request['product_ids'] = $market['numericId']; // accepts a comma-separated list of ids
+            }
+            if ($since !== null) {
+                $request['start_time'] = (string) $since . '000';
+            }
+            if ($limit !== null) {
+                $request['page_size'] = $limit;
+            }
+            $response = Async\await($this->privateGetFills (array_merge($request, $params)));
+            //
+            //     {
+            //         "meta":array(
+            //             "after":null,
+            //             "before":null,
+            //             "limit":10,
+            //             "total_count":2
+            //         ),
+            //         "result":array(
+            //             {
+            //                 "commission":"0.008335000000000000",
+            //                 "created_at":"2020-11-16T19:07:19Z",
+            //                 "fill_type":"normal",
+            //                 "id":"e7ff05c233a74245b72381f8dd91d1ce",
+            //                 "meta_data":array(
+            //                     "effective_commission_rate":"0.0005",
+            //                     "order_price":"16249",
+            //                     "order_size":1,
+            //                     "order_type":"market_order",
+            //                     "order_unfilled_size":0,
+            //                     "trading_fee_credits_used":"0"
+            //                 ),
+            //                 "order_id":"152999629",
+            //                 "price":"16669",
+            //                 "product":array(
+            //                     "contract_type":"perpetual_futures",
+            //                     "contract_unit_currency":"BTC",
+            //                     "contract_value":"0.001",
+            //                     "id":139,
+            //                     "notional_type":"vanilla",
+            //                     "quoting_asset":array("minimum_precision":2,"precision":6,"symbol":"USDT"),
+            //                     "settling_asset":array("minimum_precision":2,"precision":6,"symbol":"USDT"),
+            //                     "symbol":"BTCUSDT",
+            //                     "tick_size":"0.5",
+            //                     "underlying_asset":array("minimum_precision":4,"precision":8,"symbol":"BTC")
+            //                 ),
+            //                 "product_id":139,
+            //                 "role":"taker",
+            //                 "side":"sell",
+            //                 "size":1
+            //             }
+            //         ),
+            //         "success":true
+            //     }
+            //
+            $result = $this->safe_value($response, 'result', array());
+            return $this->parse_trades($result, $market, $since, $limit);
+        }) ();
     }
 
     public function fetch_ledger($code = null, $since = null, $limit = null, $params = array ()) {
-        /**
-         * fetch the history of changes, actions done by the user or operations that altered balance of the user
-         * @param {string|null} $code unified $currency $code, default is null
-         * @param {int|null} $since timestamp in ms of the earliest ledger entry, default is null
-         * @param {int|null} $limit max number of ledger entrys to return, default is null
-         * @param {array} $params extra parameters specific to the delta api endpoint
-         * @return {array} a {@link https://docs.ccxt.com/en/latest/manual.html#ledger-structure ledger structure}
-         */
-        yield $this->load_markets();
-        $request = array(
-            // 'asset_id' => $currency['numericId'],
-            // 'end_time' => $this->seconds(),
-            // 'after' => 'string', // after cursor for pagination
-            // 'before' => 'string', // before cursor for pagination
-            // 'page_size' => $limit,
-        );
-        $currency = null;
-        if ($code !== null) {
-            $currency = $this->currency($code);
-            $request['asset_id'] = $currency['numericId'];
-        }
-        if ($limit !== null) {
-            $request['page_size'] = $limit;
-        }
-        $response = yield $this->privateGetWalletTransactions (array_merge($request, $params));
-        //
-        //     {
-        //         "meta":array("after":null,"before":null,"limit":10,"total_count":1),
-        //         "result":array(
-        //             {
-        //                 "amount":"29.889184",
-        //                 "asset_id":5,
-        //                 "balance":"29.889184",
-        //                 "created_at":"2020-11-15T21:25:01Z",
-        //                 "meta_data":array(
-        //                     "deposit_id":3884,
-        //                     "transaction_id":"0x41a60174849828530abb5008e98fc63c9b598288743ec4ba9620bcce900a3b8d"
-        //                 ),
-        //                 "transaction_type":"deposit",
-        //                 "user_id":22142,
-        //                 "uuid":"70bb5679da3c4637884e2dc63efaa846"
-        //             }
-        //         ),
-        //         "success":true
-        //     }
-        //
-        $result = $this->safe_value($response, 'result', array());
-        return $this->parse_ledger($result, $currency, $since, $limit);
+        return Async\async(function () use ($code, $since, $limit, $params) {
+            /**
+             * fetch the history of changes, actions done by the user or operations that altered balance of the user
+             * @param {string|null} $code unified $currency $code, default is null
+             * @param {int|null} $since timestamp in ms of the earliest ledger entry, default is null
+             * @param {int|null} $limit max number of ledger entrys to return, default is null
+             * @param {array} $params extra parameters specific to the delta api endpoint
+             * @return {array} a {@link https://docs.ccxt.com/en/latest/manual.html#ledger-structure ledger structure}
+             */
+            Async\await($this->load_markets());
+            $request = array(
+                // 'asset_id' => $currency['numericId'],
+                // 'end_time' => $this->seconds(),
+                // 'after' => 'string', // after cursor for pagination
+                // 'before' => 'string', // before cursor for pagination
+                // 'page_size' => $limit,
+            );
+            $currency = null;
+            if ($code !== null) {
+                $currency = $this->currency($code);
+                $request['asset_id'] = $currency['numericId'];
+            }
+            if ($limit !== null) {
+                $request['page_size'] = $limit;
+            }
+            $response = Async\await($this->privateGetWalletTransactions (array_merge($request, $params)));
+            //
+            //     {
+            //         "meta":array("after":null,"before":null,"limit":10,"total_count":1),
+            //         "result":array(
+            //             {
+            //                 "amount":"29.889184",
+            //                 "asset_id":5,
+            //                 "balance":"29.889184",
+            //                 "created_at":"2020-11-15T21:25:01Z",
+            //                 "meta_data":array(
+            //                     "deposit_id":3884,
+            //                     "transaction_id":"0x41a60174849828530abb5008e98fc63c9b598288743ec4ba9620bcce900a3b8d"
+            //                 ),
+            //                 "transaction_type":"deposit",
+            //                 "user_id":22142,
+            //                 "uuid":"70bb5679da3c4637884e2dc63efaa846"
+            //             }
+            //         ),
+            //         "success":true
+            //     }
+            //
+            $result = $this->safe_value($response, 'result', array());
+            return $this->parse_ledger($result, $currency, $since, $limit);
+        }) ();
     }
 
     public function parse_ledger_entry_type($type) {
@@ -1718,43 +1763,45 @@ class delta extends Exchange {
     }
 
     public function fetch_deposit_address($code, $params = array ()) {
-        /**
-         * fetch the deposit $address for a $currency associated with this account
-         * @param {string} $code unified $currency $code
-         * @param {array} $params extra parameters specific to the delta api endpoint
-         * @return {array} an {@link https://docs.ccxt.com/en/latest/manual.html#$address-structure $address structure}
-         */
-        yield $this->load_markets();
-        $currency = $this->currency($code);
-        $request = array(
-            'asset_symbol' => $currency['id'],
-        );
-        $response = yield $this->privateGetDepositsAddress (array_merge($request, $params));
-        //
-        //     {
-        //         "success":true,
-        //         "result":{
-        //             "id":19628,
-        //             "user_id":22142,
-        //             "address":"0x0eda26523397534f814d553a065d8e46b4188e9a",
-        //             "status":"active",
-        //             "updated_at":"2020-11-15T20:25:53.000Z",
-        //             "created_at":"2020-11-15T20:25:53.000Z",
-        //             "asset_symbol":"USDT",
-        //             "custodian":"onc"
-        //         }
-        //     }
-        //
-        $result = $this->safe_value($response, 'result', array());
-        $address = $this->safe_string($result, 'address');
-        $this->check_address($address);
-        return array(
-            'currency' => $code,
-            'address' => $address,
-            'tag' => null,
-            'network' => null,
-            'info' => $response,
-        );
+        return Async\async(function () use ($code, $params) {
+            /**
+             * fetch the deposit $address for a $currency associated with this account
+             * @param {string} $code unified $currency $code
+             * @param {array} $params extra parameters specific to the delta api endpoint
+             * @return {array} an {@link https://docs.ccxt.com/en/latest/manual.html#$address-structure $address structure}
+             */
+            Async\await($this->load_markets());
+            $currency = $this->currency($code);
+            $request = array(
+                'asset_symbol' => $currency['id'],
+            );
+            $response = Async\await($this->privateGetDepositsAddress (array_merge($request, $params)));
+            //
+            //     {
+            //         "success":true,
+            //         "result":{
+            //             "id":19628,
+            //             "user_id":22142,
+            //             "address":"0x0eda26523397534f814d553a065d8e46b4188e9a",
+            //             "status":"active",
+            //             "updated_at":"2020-11-15T20:25:53.000Z",
+            //             "created_at":"2020-11-15T20:25:53.000Z",
+            //             "asset_symbol":"USDT",
+            //             "custodian":"onc"
+            //         }
+            //     }
+            //
+            $result = $this->safe_value($response, 'result', array());
+            $address = $this->safe_string($result, 'address');
+            $this->check_address($address);
+            return array(
+                'currency' => $code,
+                'address' => $address,
+                'tag' => null,
+                'network' => null,
+                'info' => $response,
+            );
+        }) ();
     }
 
     public function sign($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {

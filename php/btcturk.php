@@ -6,7 +6,6 @@ namespace ccxt;
 // https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 use Exception; // a common import
-use \ccxt\ExchangeError;
 
 class btcturk extends Exchange {
 
@@ -62,7 +61,14 @@ class btcturk extends Exchange {
                 'setPositionMode' => false,
             ),
             'timeframes' => array(
-                '1d' => '1d',
+                '1m' => 1,
+                '15m' => 15,
+                '30m' => 30,
+                '1h' => 60,
+                '4h' => 240,
+                '1d' => '1 day',
+                '1w' => '1 week',
+                '1y' => '1 year',
             ),
             'urls' => array(
                 'logo' => 'https://user-images.githubusercontent.com/51840849/87153926-efbef500-c2c0-11ea-9842-05b63612c4b9.jpg',
@@ -101,6 +107,7 @@ class btcturk extends Exchange {
                 'graph' => array(
                     'get' => array(
                         'ohlcs' => 1,
+                        'klines/history' => 1,
                     ),
                 ),
             ),
@@ -129,46 +136,47 @@ class btcturk extends Exchange {
          */
         $response = $this->publicGetServerExchangeinfo ($params);
         //
-        //     {
-        //       "data" => {
-        //         "timeZone" => "UTC",
-        //         "serverTime" => "1618826678404",
-        //         "symbols" => array(
-        //           array(
-        //             "id" => "1",
-        //             "name" => "BTCTRY",
-        //             "nameNormalized" => "BTC_TRY",
-        //             "status" => "TRADING",
-        //             "numerator" => "BTC",
-        //             "denominator" => "TRY",
-        //             "numeratorScale" => "8",
-        //             "denominatorScale" => "2",
-        //             "hasFraction" => false,
-        //             "filters" => array(
-        //               array(
-        //                 "filterType" => "PRICE_FILTER",
-        //                 "minPrice" => "0.0000000000001",
-        //                 "maxPrice" => "10000000",
-        //                 "tickSize" => "10",
-        //                 "minExchangeValue" => "99.91",
-        //                 "minAmount" => null,
-        //                 "maxAmount" => null
-        //               }
-        //             ),
-        //             "orderMethods" => array(
-        //               "MARKET",
-        //               "LIMIT",
-        //               "STOP_MARKET",
-        //               "STOP_LIMIT"
-        //             ),
-        //             "displayFormat" => "#,###",
-        //             "commissionFromNumerator" => false,
-        //             "order" => "1000",
-        //             "priceRounding" => false
-        //           ),
-        //         ),
-        //       ),
-        //     }
+        //    {
+        //        "data" => {
+        //            "timeZone" => "UTC",
+        //            "serverTime" => "1618826678404",
+        //            "symbols" => array(
+        //                array(
+        //                    "id" => "1",
+        //                    "name" => "BTCTRY",
+        //                    "nameNormalized" => "BTC_TRY",
+        //                    "status" => "TRADING",
+        //                    "numerator" => "BTC",
+        //                    "denominator" => "TRY",
+        //                    "numeratorScale" => "8",
+        //                    "denominatorScale" => "2",
+        //                    "hasFraction" => false,
+        //                    "filters" => array(
+        //                        array(
+        //                            "filterType" => "PRICE_FILTER",
+        //                            "minPrice" => "0.0000000000001",
+        //                            "maxPrice" => "10000000",
+        //                            "tickSize" => "10",
+        //                            "minExchangeValue" => "99.91",
+        //                            "minAmount" => null,
+        //                            "maxAmount" => null
+        //                        }
+        //                    ),
+        //                    "orderMethods" => array(
+        //                        "MARKET",
+        //                        "LIMIT",
+        //                        "STOP_MARKET",
+        //                        "STOP_LIMIT"
+        //                    ),
+        //                    "displayFormat" => "#,###",
+        //                    "commissionFromNumerator" => false,
+        //                    "order" => "1000",
+        //                    "priceRounding" => false
+        //                ),
+        //                ...
+        //            ),
+        //        ),
+        //    }
         //
         $data = $this->safe_value($response, 'data');
         $markets = $this->safe_value($data, 'symbols', array());
@@ -506,21 +514,18 @@ class btcturk extends Exchange {
     }
 
     public function parse_ohlcv($ohlcv, $market = null) {
-        //     array(
-        //        "pair" => "BTCTRY",
-        //        "time" => 1508284800,
-        //        "open" => 20873.689453125,
-        //        "high" => 20925.0,
-        //        "low" => 19310.0,
-        //        "close" => 20679.55078125,
-        //        "volume" => 402.216101626982,
-        //        "total" => 8103096.44443274,
-        //        "average" => 20146.13,
-        //        "dailyChangeAmount" => -194.14,
-        //        "dailyChangePercentage" => -0.93
-        //      ),
+        //
+        //    {
+        //        'timestamp' => 1661990400,
+        //        'high' => 368388.0,
+        //        'open' => 368388.0,
+        //        'low' => 368388.0,
+        //        'close' => 368388.0,
+        //        'volume' => 0.00035208,
+        //    }
+        //
         return array(
-            $this->safe_timestamp($ohlcv, 'time'),
+            $this->safe_timestamp($ohlcv, 'timestamp'),
             $this->safe_number($ohlcv, 'open'),
             $this->safe_number($ohlcv, 'high'),
             $this->safe_number($ohlcv, 'low'),
@@ -529,26 +534,105 @@ class btcturk extends Exchange {
         );
     }
 
-    public function fetch_ohlcv($symbol, $timeframe = '1d', $since = null, $limit = null, $params = array ()) {
+    public function fetch_ohlcv($symbol, $timeframe = '1h', $since = null, $limit = null, $params = array ()) {
         /**
          * fetches historical candlestick data containing the open, high, low, and close price, and the volume of a $market
-         * @param {string} $symbol unified $symbol of the $market to fetch OHLCV data for
+         * @see https://docs.btcturk.com/public-endpoints/get-kline-data
+         * @param {string} $symbol unified $symbol of the $market $to fetch OHLCV data for
          * @param {string} $timeframe the length of time each candle represents
-         * @param {int|null} $since timestamp in ms of the earliest candle to fetch
-         * @param {int|null} $limit the maximum amount of candles to fetch
-         * @param {array} $params extra parameters specific to the btcturk api endpoint
+         * @param {int|null} $since timestamp in ms of the earliest candle $to fetch
+         * @param {int|null} $limit the maximum amount of candles $to fetch
+         * @param {array} $params extra parameters specific $to the btcturk api endpoint
+         * @param {int|null} $params->until timestamp in ms of the latest candle $to fetch
          * @return {[[int]]} A list of candles ordered as timestamp, open, high, low, close, volume
          */
         $this->load_markets();
         $market = $this->market($symbol);
         $request = array(
-            'pair' => $market['id'],
+            'symbol' => $market['id'],
+            'resolution' => $this->safe_value($this->timeframes, $timeframe, $timeframe), // allows the user $to pass custom timeframes if needed
         );
-        if ($limit !== null) {
-            $request['last'] = $limit;
+        $until = $this->safe_integer($params, 'until', $this->milliseconds());
+        $request['to'] = intval($until / 1000);
+        if ($since !== null) {
+            $request['from'] = intval($since / 1000);
+        } elseif ($limit === null) { // $since will also be null
+            $limit = 100; // default value
         }
-        $response = $this->graphGetOhlcs (array_merge($request, $params));
+        if ($limit !== null) {
+            if ($timeframe === '1y') { // difficult with leap years
+                throw new BadRequest($this->id . ' fetchOHLCV () does not accept a $limit parameter when $timeframe == "1y"');
+            }
+            $seconds = $this->parse_timeframe($timeframe);
+            $limitSeconds = $seconds * ($limit - 1);
+            if ($since !== null) {
+                $to = intval($since / 1000) . $limitSeconds;
+                $request['to'] = min ($request['to'], $to);
+            } else {
+                $request['from'] = intval($until / 1000) - $limitSeconds;
+            }
+        }
+        $response = $this->graphGetKlinesHistory (array_merge($request, $params));
+        //
+        //    {
+        //        "s" => "ok",
+        //        "t" => array(
+        //          1661990400,
+        //          1661990520,
+        //          ...
+        //        ),
+        //        "h" => array(
+        //          368388.0,
+        //          369090.0,
+        //          ...
+        //        ),
+        //        "o" => array(
+        //          368388.0,
+        //          368467.0,
+        //          ...
+        //        ),
+        //        "l" => array(
+        //          368388.0,
+        //          368467.0,
+        //          ...
+        //        ),
+        //        "c" => array(
+        //          368388.0,
+        //          369090.0,
+        //          ...
+        //        ),
+        //        "v" => array(
+        //          0.00035208,
+        //          0.2972395,
+        //          ...
+        //        )
+        //    }
+        //
         return $this->parse_ohlcvs($response, $market, $timeframe, $since, $limit);
+    }
+
+    public function parse_ohlcvs($ohlcvs, $market = null, $timeframe = '1m', $since = null, $limit = null) {
+        $results = array();
+        $timestamp = $this->safe_value($ohlcvs, 't');
+        $high = $this->safe_value($ohlcvs, 'h');
+        $open = $this->safe_value($ohlcvs, 'o');
+        $low = $this->safe_value($ohlcvs, 'l');
+        $close = $this->safe_value($ohlcvs, 'c');
+        $volume = $this->safe_value($ohlcvs, 'v');
+        for ($i = 0; $i < count($timestamp); $i++) {
+            $ohlcv = array(
+                'timestamp' => $this->safe_value($timestamp, $i),
+                'high' => $this->safe_value($high, $i),
+                'open' => $this->safe_value($open, $i),
+                'low' => $this->safe_value($low, $i),
+                'close' => $this->safe_value($close, $i),
+                'volume' => $this->safe_value($volume, $i),
+            );
+            $results[] = $this->parse_ohlcv($ohlcv, $market);
+        }
+        $sorted = $this->sort_by($results, 0);
+        $tail = ($since === null);
+        return $this->filter_by_since_limit($sorted, $since, $limit, 0, $tail);
     }
 
     public function create_order($symbol, $type, $side, $amount, $price = null, $params = array ()) {

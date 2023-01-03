@@ -1130,6 +1130,7 @@ module.exports = class therock extends Exchange {
         }
         const price = this.safeString (order, 'price');
         let trades = this.safeValue (order, 'trades');
+        const stopPrice = this.safeString (order, 'conditional_price');
         let cost = undefined;
         let average = undefined;
         let lastTradeTimestamp = undefined;
@@ -1169,7 +1170,8 @@ module.exports = class therock extends Exchange {
             'postOnly': undefined,
             'side': this.safeString (order, 'side'),
             'price': price,
-            'stopPrice': this.safeString (order, 'conditional_price'),
+            'stopPrice': stopPrice,
+            'triggerPrice': stopPrice,
             'cost': cost,
             'amount': amount,
             'filled': filled,

@@ -6,8 +6,6 @@ namespace ccxt;
 // https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 use Exception; // a common import
-use \ccxt\ExchangeError;
-use \ccxt\ArgumentsRequired;
 
 class wazirx extends Exchange {
 
@@ -18,6 +16,7 @@ class wazirx extends Exchange {
             'countries' => array( 'IN' ),
             'version' => 'v2',
             'rateLimit' => 1000,
+            'pro' => true,
             'has' => array(
                 'CORS' => false,
                 'spot' => true,
@@ -47,7 +46,7 @@ class wazirx extends Exchange {
                 'fetchMarkets' => true,
                 'fetchMarkOHLCV' => false,
                 'fetchMyTrades' => false,
-                'fetchOHLCV' => false,
+                'fetchOHLCV' => true,
                 'fetchOpenInterestHistory' => false,
                 'fetchOpenOrders' => true,
                 'fetchOrder' => true,
@@ -90,6 +89,7 @@ class wazirx extends Exchange {
                         'ticker/24hr' => 1,
                         'time' => 1,
                         'trades' => 1,
+                        'klines' => 1,
                     ),
                 ),
                 'private' => array(
@@ -130,6 +130,18 @@ class wazirx extends Exchange {
                     '2136' => '\\ccxt\\RateLimitExceeded', // array("code":2136,"message":"Too many api request")
                     '94001' => '\\ccxt\\InvalidOrder', // array("code":94001,"message":"Stop price not found.")
                 ),
+            ),
+            'timeframes' => array(
+                '1m' => '1m',
+                '5m' => '5m',
+                '30m' => '30m',
+                '1h' => '1h',
+                '2h' => '2h',
+                '4h' => '4h',
+                '6h' => '6h',
+                '12h' => '12h',
+                '1d' => '1d',
+                '1w' => '1w',
             ),
             'options' => array(
                 // 'fetchTradesMethod' => 'privateGetHistoricalTrades',
@@ -248,6 +260,58 @@ class wazirx extends Exchange {
             );
         }
         return $result;
+    }
+
+    public function fetch_ohlcv($symbol, $timeframe = '1m', $since = null, $limit = null, $params = array ()) {
+        /**
+         * fetches historical candlestick data containing the open, high, low, and close price, and the volume of a $market
+         * @param {string} $symbol unified $symbol of the $market to fetch OHLCV data for
+         * @param {string} $timeframe the length of time each candle represents. Available values [1m,5m,15m,30m,1h,2h,4h,6h,12h,1d,1w]
+         * @param {int|null} $since timestamp in ms of the earliest candle to fetch
+         * @param {int|null} $limit the maximum amount of candles to fetch
+         * @param {array} $params extra parameters specific to the wazirx api endpoint
+         * @param {int|null} $params->until timestamp in s of the latest candle to fetch
+         * @return {[[int]]} A list of candles ordered as timestamp, open, high, low, close, volume
+         */
+        $this->load_markets();
+        $market = $this->market($symbol);
+        $request = array(
+            'symbol' => $market['id'],
+            'interval' => $this->timeframes[$timeframe],
+        );
+        if ($limit !== null) {
+            $request['limit'] = $limit;
+        }
+        $until = $this->safe_integer($params, 'until');
+        $params = $this->omit($params, array( 'until' ));
+        if ($since !== null) {
+            $request['startTime'] = intval($since / 1000);
+        }
+        if ($until !== null) {
+            $request['endTime'] = $until;
+        }
+        $response = $this->publicGetKlines (array_merge($request, $params));
+        //
+        //    [
+        //        [1669014360,1402001,1402001,1402001,1402001,0],
+        //        ...
+        //    ]
+        //
+        return $this->parse_ohlcvs($response, $market, $timeframe, $since, $limit);
+    }
+
+    public function parse_ohlcv($ohlcv, $market = null) {
+        //
+        //    [1669014300,1402001,1402001,1402001,1402001,0],
+        //
+        return array(
+            $this->safe_timestamp($ohlcv, 0),
+            $this->safe_number($ohlcv, 1),
+            $this->safe_number($ohlcv, 2),
+            $this->safe_number($ohlcv, 3),
+            $this->safe_number($ohlcv, 4),
+            $this->safe_number($ohlcv, 5),
+        );
     }
 
     public function fetch_order_book($symbol, $limit = null, $params = array ()) {
@@ -567,33 +631,35 @@ class wazirx extends Exchange {
             $request['limit'] = $limit;
         }
         $response = $this->privateGetAllOrders (array_merge($request, $params));
-        // array(
-        //     array(
-        //         "id" => 28,
-        //         "symbol" => "wrxinr",
-        //         "price" => "9293.0",
-        //         "origQty" => "10.0",
-        //         "executedQty" => "8.2",
-        //         "status" => "cancel",
-        //         "type" => "limit",
-        //         "side" => "sell",
-        //         "createdTime" => 1499827319559,
-        //         "updatedTime" => 1499827319559
-        //     ),
-        //     {
-        //         "id" => 30,
-        //         "symbol" => "wrxinr",
-        //         "price" => "9293.0",
-        //         "stopPrice" => "9200.0",
-        //         "origQty" => "10.0",
-        //         "executedQty" => "0.0",
-        //         "status" => "cancel",
-        //         "type" => "stop_limit",
-        //         "side" => "sell",
-        //         "createdTime" => 1499827319559,
-        //         "updatedTime" => 1507725176595
-        //     }
-        // )
+        //
+        //   array(
+        //       array(
+        //           "id" => 28,
+        //           "symbol" => "wrxinr",
+        //           "price" => "9293.0",
+        //           "origQty" => "10.0",
+        //           "executedQty" => "8.2",
+        //           "status" => "cancel",
+        //           "type" => "limit",
+        //           "side" => "sell",
+        //           "createdTime" => 1499827319559,
+        //           "updatedTime" => 1499827319559
+        //       ),
+        //       {
+        //           "id" => 30,
+        //           "symbol" => "wrxinr",
+        //           "price" => "9293.0",
+        //           "stopPrice" => "9200.0",
+        //           "origQty" => "10.0",
+        //           "executedQty" => "0.0",
+        //           "status" => "cancel",
+        //           "type" => "stop_limit",
+        //           "side" => "sell",
+        //           "createdTime" => 1499827319559,
+        //           "updatedTime" => 1507725176595
+        //       }
+        //   )
+        //
         $orders = $this->parse_orders($response, $market, $since, $limit);
         $orders = $this->filter_by($orders, 'symbol', $symbol);
         return $orders;
