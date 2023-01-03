@@ -36,11 +36,11 @@ use \ccxt\pro\ClientTrait;
 
 include 'Throttle.php';
 
-$version = '2.5.5';
+$version = '2.5.12';
 
 class Exchange extends \ccxt\Exchange {
 
-    const VERSION = '2.5.5';
+    const VERSION = '2.5.12';
 
     public $streaming = array(
         'keepAlive' => 30000,
@@ -1376,7 +1376,7 @@ class Exchange extends \ccxt\Exchange {
         for ($i = 0; $i < count($response); $i++) {
             $item = $response[$i];
             $id = $this->safe_string($item, $marketIdKey);
-            $market = $this->safe_market($id);
+            $market = $this->safe_market($id, null, null, $this->safe_string($this->options, 'defaultType'));
             $symbol = $market['symbol'];
             $contract = $this->safe_value($market, 'contract', false);
             if ($contract && (($symbols === null) || $this->in_array($symbol, $symbols))) {

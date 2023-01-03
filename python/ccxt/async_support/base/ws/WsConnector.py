@@ -2,7 +2,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '2.5.5'
+__version__ = '2.5.12'
 
 # -----------------------------------------------------------------------------
 
@@ -193,6 +193,9 @@ class WsConnector:
 
     async def watch_ticker(self, symbol, params={}):
         raise NotSupported(self.id + '.watch_ticker() not implemented yet')
+
+    async def watch_tickers(self, symbols=None, params={}):
+        raise NotSupported(self.id + '.watch_tickers() not implemented yet')
 
     async def watch_order_book(self, symbol, limit=None, params={}):
         raise NotSupported(self.id + '.watch_order_book() not implemented yet')
