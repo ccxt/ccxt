@@ -3038,12 +3038,14 @@ class gate extends Exchange {
         $id = $this->safe_string($transaction, 'id');
         $type = null;
         $amount = $this->safe_string($transaction, 'amount');
-        if ($id[0] === 'b') {
-            // GateCode handling
-            $type = Precise::string_gt($amount, '0') ? 'deposit' : 'withdrawal';
-            $amount = Precise::string_abs($amount);
-        } elseif ($id !== null) {
-            $type = $this->parse_transaction_type($id[0]);
+        if ($id !== null) {
+            if ($id[0] === 'b') {
+                // GateCode handling
+                $type = Precise::string_gt($amount, '0') ? 'deposit' : 'withdrawal';
+                $amount = Precise::string_abs($amount);
+            } else {
+                $type = $this->parse_transaction_type($id[0]);
+            }
         }
         $currencyId = $this->safe_string($transaction, 'currency');
         $code = $this->safe_currency_code($currencyId);
