@@ -59,38 +59,30 @@ class Exchange(BaseExchange):
         return CountedOrderBook(snapshot, depth)
 
     def client(self, url):
+        ws_options = self.safe_value(self.options, 'ws', {})
+        # get ws rl config
+        rate_limits = self.safe_value(ws_options, 'rateLimits', {})
+        # get ws rl config, if no rateLimit is defined in the WS implementation, we fallback to the ccxt one
+        default_rate_limit_config = self.safe_value(rate_limits, 'default', self.tokenBucket)
         if not self.clients:
-            # if first client create an rl to throttle all new connections
-            ws_options = self.safe_value(self.options, 'ws', {})
-            # get ws rl config
-            rate_limits = self.safe_value(ws_options, 'rateLimits', {})
-            # we use newConnections rl config to throttle new connections
-            default_rate_limit_config = self.safe_value(rate_limits, 'newConnections')
-            # if we rateLimit is defined in the WS implementation, we fallback to the ccxt one
-            throtler_config = default_rate_limit_config if default_rate_limit_config else self.tokenBucket
+            # get new connections rl config if not fallback to default
+            new_connections_limit_config = self.safe_value(rate_limits, 'newConnections', default_rate_limit_config)
             self.clients = {
-                'throttle': Throttler(throtler_config, self.asyncio_loop),
+                'throttle': Throttler(new_connections_limit_config, self.asyncio_loop),
             }
         if url not in self.clients:
             on_message = self.handle_message
             on_error = self.on_error
             on_close = self.on_close
             on_connected = self.on_connected
-            # get ws rl config
-            ws_options = self.safe_value(self.options, 'ws', {})
-            rate_limits = self.safe_value(ws_options, 'rateLimits', {})
-            default_rate_limit_config = self.safe_value(rate_limits, 'default')
             # allowing specify rate limits per url, if not specified use default
             rate_limit_config = self.safe_value(rate_limits, url, default_rate_limit_config)
-            # if we rateLimit is defined in the WS implementation, we fallback to the ccxt one
-            throtler_config = rate_limit_config if rate_limit_config else self.tokenBucket
             # decide client type here: aiohttp ws / websockets / signalr / socketio
-            ws_options = self.safe_value(self.options, 'ws', {})
             options = self.extend(self.streaming, {
                 'log': getattr(self, 'log'),
                 'ping': getattr(self, 'ping', None),
                 'verbose': self.verbose,
-                'throttle': Throttler(throtler_config, self.asyncio_loop),
+                'throttle': Throttler(rate_limit_config, self.asyncio_loop),
                 'asyncio_loop': self.asyncio_loop,
             }, ws_options)
             self.clients[url] = FastClient(url, on_message, on_error, on_close, on_connected, options)

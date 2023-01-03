@@ -45,16 +45,29 @@ trait ClientTrait {
     }
 
     public function client($url) {
+        $ws_options = $this->safe_value($this->options, 'ws', array());
+        # get ws rl config
+        $rate_limits = $this->safe_value($ws_options, 'rateLimits', array());
+        # if no rateLimit is defined in the WS implementation, we fallback to the ccxt one
+        $default_rate_limit_config = $this->safe_value($rate_limits, 'default', $this->tokenBucket);
+        if (!array_key_exists($this, 'clients')) {
+            # get new connections rl config if not fallback to default
+            $new_connections_limit_config = $this.safe_value($rate_limits, 'newConnections', $default_rate_limit_config);
+            $this->clients = array(
+                'throttle' => new Throttler($new_connections_limit_config, $this->asyncio_loop),
+            );
+        }
         if (!array_key_exists($url, $this->clients)) {
             $on_message = array($this, 'handle_message');
             $on_error = array($this, 'on_error');
             $on_close = array($this, 'on_close');
             $on_connected = array($this, 'on_connected');
-            $ws_options = $this->safe_value($this->options, 'ws', array());
+            # allowing specify rate limits per url, if not specified use default
+            $rate_limit_config = $this->safe_value($rate_limits, $url, $default_rate_limit_config);
             $options = array_replace_recursive(array(
                 'log' => array($this, 'log'),
                 'verbose' => $this->verbose,
-                'throttle' => new Throttle($this->tokenBucket),
+                'throttle' => new Throttle($rate_limit_config),
             ), $this->streaming, $ws_options);
             $this->clients[$url] = new Client($url, $on_message, $on_error, $on_close, $on_connected, $options);
         }
@@ -81,7 +94,7 @@ trait ClientTrait {
         $future = $client->future($message_hash);
         $connected;
         if ($this->enableRateLimit) {
-            $connected = $this->throttle()->then(
+            $connected = $this->clients->throttle()->then(
                 function () use ($client, $backoff_delay) {
                     return $client->connect($backoff_delay);
                 }

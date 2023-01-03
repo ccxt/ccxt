@@ -41,15 +41,15 @@ module.exports = class Exchange extends BaseExchange {
     }
 
     client (url) {
+        const wsOptions = this.safeValue (this.options, 'ws', {});
+        // get ws rl config
+        const rateLimits =  this.safeValue (wsOptions, 'rateLimits', {});
+        // get ws rl config, if no rateLimit is defined in the WS implementation, we fallback to the ccxt one
+        const defaultRateLimitConfig = this.safeValue (rateLimits, 'default', this.tokenBucket);
         if (!this.clients) {
-            // if first client create an rl to throttle all new connections
-            const wsOptions = this.safeValue (this.options, 'ws', {});
-            // get ws rl config
-            const rateLimits =  this.safeValue (wsOptions, 'rateLimits', {})
-            // we use the default rl config to throttle new connections
-            const defaultRateLimitConfig = this.safeValue (rateLimits, 'newConnections')
-            // if no rateLimit is defined in the WS implementation, we fallback to the ccxt one
-            const throttleInstance = defaultRateLimitConfig !== undefined ? throttle (defaultRateLimitConfig) : throttle (this.tokenBucket)
+            // get new connections rl config if not fallback to default
+            const newConnectionsRateLimitConfig = this.safeValue (rateLimits, 'newConnections', defaultRateLimitConfig);
+            const throttleInstance = throttle (newConnectionsRateLimitConfig);
             this.clients = {
                 'throttle': throttleInstance
             };
@@ -60,19 +60,13 @@ module.exports = class Exchange extends BaseExchange {
             const onClose = this.onClose.bind (this);
             const onConnected = this.onConnected.bind (this);
             // decide client type here: ws / signalr / socketio
-            const wsOptions = this.safeValue (this.options, 'ws', {});
-            // get ws rl config
-            const rateLimits =  this.safeValue (wsOptions, 'rateLimits', {})
-            const defaultRateLimitConfig = this.safeValue (rateLimits, 'default')
             // allowing specify rate limits per url, if not specified use default
             const rateLimitConfig = this.safeValue (rateLimits, url, defaultRateLimitConfig)
-            // if no rateLimit is defined in the WS implementation, we fallback to the ccxt one
-            const throttleInstance = rateLimitConfig !== undefined ? throttle (rateLimitConfig) : throttle (this.tokenBucket)
             const options = this.deepExtend (this.streaming, {
                 'log': this.log ? this.log.bind (this) : this.log,
                 'ping': this.ping ? this.ping.bind (this) : this.ping,
                 'verbose': this.verbose,
-                'throttle': throttleInstance,
+                'throttle':  throttle (rateLimitConfig),
                 // add support for proxies
                 'options': {
                     'agent': this.agent || this.httpsAgent || this.httpAgent,
