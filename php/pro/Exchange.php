@@ -37,7 +37,6 @@ Exchange::$exchanges = array(
     'bitstamp',
     'bittrex',
     'bitvavo',
-    'btcex',
     'bybit',
     'cex',
     'coinbaseprime',
