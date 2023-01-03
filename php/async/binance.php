@@ -1157,6 +1157,9 @@ class binance extends Exchange {
                     'JPY' => true,
                     'NZD' => true,
                 ),
+                'legalMoneyCurrenciesById' => array(
+                    'BUSD' => 'USD',
+                ),
             ),
             // https://binance-docs.github.io/apidocs/spot/en/#error-codes-2
             'exceptions' => array(
@@ -4347,6 +4350,7 @@ class binance extends Exchange {
         //     {
         //       "orderNo" => "25ced37075c1470ba8939d0df2316e23",
         //       "fiatCurrency" => "EUR",
+        //       "transactionType" => 0,
         //       "indicatedAmount" => "15.00",
         //       "amount" => "15.00",
         //       "totalFee" => "0.00",
@@ -4376,16 +4380,14 @@ class binance extends Exchange {
         $code = $this->safe_currency_code($currencyId, $currency);
         $timestamp = null;
         $insertTime = $this->safe_integer_2($transaction, 'insertTime', 'createTime');
-        $applyTime = $this->parse8601($this->safe_string($transaction, 'applyTime'));
+        $updated = $this->safe_integer_2($transaction, 'successTime', 'updateTime');
         $type = $this->safe_string($transaction, 'type');
         if ($type === null) {
-            if (($insertTime !== null) && ($applyTime === null)) {
-                $type = 'deposit';
-                $timestamp = $insertTime;
-            } elseif (($insertTime === null) && ($applyTime !== null)) {
-                $type = 'withdrawal';
-                $timestamp = $applyTime;
-            }
+            $txType = $this->safe_string($transaction, 'transactionType');
+            $type = ($txType === '0') ? 'deposit' : 'withdrawal';
+            $timestamp = $insertTime;
+            $legalMoneyCurrenciesById = $this->safe_value($this->options, 'legalMoneyCurrenciesById');
+            $code = $this->safe_string($legalMoneyCurrenciesById, $code, $code);
         }
         $status = $this->parse_transaction_status_by_type($this->safe_string($transaction, 'status'), $type);
         $amount = $this->safe_number($transaction, 'amount');
@@ -4394,7 +4396,6 @@ class binance extends Exchange {
         if ($feeCost !== null) {
             $fee = array( 'currency' => $code, 'cost' => $feeCost );
         }
-        $updated = $this->safe_integer_2($transaction, 'successTime', 'updateTime');
         $internal = $this->safe_integer($transaction, 'transferType');
         if ($internal !== null) {
             $internal = $internal ? true : false;

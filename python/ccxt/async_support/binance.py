@@ -1171,6 +1171,9 @@ class binance(Exchange):
                     'JPY': True,
                     'NZD': True,
                 },
+                'legalMoneyCurrenciesById': {
+                    'BUSD': 'USD',
+                },
             },
             # https://binance-docs.github.io/apidocs/spot/en/#error-codes-2
             'exceptions': {
@@ -4105,6 +4108,7 @@ class binance(Exchange):
         #     {
         #       "orderNo": "25ced37075c1470ba8939d0df2316e23",
         #       "fiatCurrency": "EUR",
+        #       "transactionType": 0,
         #       "indicatedAmount": "15.00",
         #       "amount": "15.00",
         #       "totalFee": "0.00",
@@ -4131,22 +4135,20 @@ class binance(Exchange):
         code = self.safe_currency_code(currencyId, currency)
         timestamp = None
         insertTime = self.safe_integer_2(transaction, 'insertTime', 'createTime')
-        applyTime = self.parse8601(self.safe_string(transaction, 'applyTime'))
+        updated = self.safe_integer_2(transaction, 'successTime', 'updateTime')
         type = self.safe_string(transaction, 'type')
         if type is None:
-            if (insertTime is not None) and (applyTime is None):
-                type = 'deposit'
-                timestamp = insertTime
-            elif (insertTime is None) and (applyTime is not None):
-                type = 'withdrawal'
-                timestamp = applyTime
+            txType = self.safe_string(transaction, 'transactionType')
+            type = 'deposit' if (txType == '0') else 'withdrawal'
+            timestamp = insertTime
+            legalMoneyCurrenciesById = self.safe_value(self.options, 'legalMoneyCurrenciesById')
+            code = self.safe_string(legalMoneyCurrenciesById, code, code)
         status = self.parse_transaction_status_by_type(self.safe_string(transaction, 'status'), type)
         amount = self.safe_number(transaction, 'amount')
         feeCost = self.safe_number_2(transaction, 'transactionFee', 'totalFee')
         fee = None
         if feeCost is not None:
             fee = {'currency': code, 'cost': feeCost}
-        updated = self.safe_integer_2(transaction, 'successTime', 'updateTime')
         internal = self.safe_integer(transaction, 'transferType')
         if internal is not None:
             internal = True if internal else False
