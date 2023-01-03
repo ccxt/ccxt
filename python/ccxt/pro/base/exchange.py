@@ -64,10 +64,10 @@ class Exchange(BaseExchange):
             ws_options = self.safe_value(self.options, 'ws', {})
             # get ws rl config
             rate_limits = self.safe_value(ws_options, 'rateLimits', {})
-            # we use the default rl config to throttle new connections
-            default_rate_limit_config = self.safe_value(rate_limits, 'default')
+            # we use newConnections rl config to throttle new connections
+            default_rate_limit_config = self.safe_value(rate_limits, 'newConnections')
             # if we rateLimit is defined in the WS implementation, we fallback to the ccxt one
-            throtler_config = rate_limit_config if rate_limit_config else self.tokenBucket
+            throtler_config = default_rate_limit_config if default_rate_limit_config else self.tokenBucket
             self.clients = {
                 'throttle': Throttler(throtler_config, self.asyncio_loop),
             }

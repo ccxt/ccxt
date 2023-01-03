@@ -47,7 +47,7 @@ module.exports = class Exchange extends BaseExchange {
             // get ws rl config
             const rateLimits =  this.safeValue (wsOptions, 'rateLimits', {})
             // we use the default rl config to throttle new connections
-            const defaultRateLimitConfig = this.safeValue (rateLimits, 'default')
+            const defaultRateLimitConfig = this.safeValue (rateLimits, 'newConnections')
             // if no rateLimit is defined in the WS implementation, we fallback to the ccxt one
             const throttleInstance = defaultRateLimitConfig !== undefined ? throttle (defaultRateLimitConfig) : throttle (this.tokenBucket)
             this.clients = {
