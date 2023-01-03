@@ -471,6 +471,7 @@ export default class bit2c extends Exchange {
             'side': side,
             'price': price,
             'stopPrice': undefined,
+            'triggerPrice': undefined,
             'amount': amount,
             'filled': undefined,
             'remaining': undefined,

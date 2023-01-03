@@ -21,7 +21,8 @@ if (!exchangeId) {
     process.exit (0);
 }
 
-const symbol = exchangeSymbol || 'all';
+const exchangeSymbols =  JSON.parse (fs.readFileSync ('./pro-tests.json', "utf8"));
+const symbol = exchangeSymbol || exchangeSymbols[exchangeId] || 'BTC/USDT';
 log.bright ('\nTESTING', { exchangeId, symbol }, '\n');
 
 // ----------------------------------------------------------------------------
@@ -136,22 +137,6 @@ async function testPrivate (exchange, symbol, code) {
 
 //-----------------------------------------------------------------------------
 
-function getTestSymbol (exchange, symbols) {
-    let symbol = undefined;
-    for (let i = 0; i < symbols.length; i++) {
-        const s = symbols[i];
-        const market = exchange.safeValue (exchange.markets, s);
-        if (market !== undefined) {
-            const active = exchange.safeValue (market, 'active');
-            if (active || (active === undefined)) {
-                symbol = s;
-                break;
-            }
-        }
-    }
-    return symbol;
-}
-
 async function testExchange (exchange) {
 
     const codes = [
@@ -191,48 +176,8 @@ async function testExchange (exchange) {
     for (let i = 0; i < codes.length; i++) {
         if (codes[i] in exchange.currencies) {
             code = codes[i];
+            break;
         }
-    }
-
-    let symbol = getTestSymbol (exchange, [
-        'BTC/USD',
-        'BTC/USDT',
-        'BTC/CNY',
-        'BTC/EUR',
-        'BTC/ETH',
-        'ETH/BTC',
-        'ETH/USD',
-        'ETH/USDT',
-        'BTC/JPY',
-        'LTC/BTC',
-        'ZRX/WETH',
-    ]);
-
-    if (symbol === undefined) {
-        for (let i = 0; i < codes.length; i++) {
-            const markets = Object.values (exchange.markets);
-            const activeMarkets = markets.filter ((market) => (market['base'] === codes[i]));
-            if (activeMarkets.length) {
-                const activeSymbols = activeMarkets.map ((market) => market['symbol']);
-                symbol = getTestSymbol (exchange, activeSymbols);
-                break;
-            }
-        }
-    }
-
-    if (symbol === undefined) {
-        const markets = Object.values (exchange.markets);
-        const activeMarkets = markets.filter ((market) => !exchange.safeValue (market, 'active', false));
-        const activeSymbols = activeMarkets.map ((market) => market['symbol']);
-        symbol = getTestSymbol (exchange, activeSymbols);
-    }
-
-    if (symbol === undefined) {
-        symbol = getTestSymbol (exchange, exchange.symbols);
-    }
-
-    if (symbol === undefined) {
-        symbol = exchange.symbols[0];
     }
 
     log.green ('CODE:', code);

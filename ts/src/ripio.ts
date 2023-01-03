@@ -1041,6 +1041,7 @@ export default class ripio extends Exchange {
             'side': side,
             'price': price,
             'stopPrice': this.safeString (order, 'stop_price'),
+            'triggerPrice': this.safeString (order, 'stop_price'),
             'amount': amount,
             'cost': cost,
             'average': average,

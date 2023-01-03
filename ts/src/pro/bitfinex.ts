@@ -602,6 +602,7 @@ export default class bitfinex extends bitfinexRest {
             'side': side,
             'price': price,
             'stopPrice': undefined,
+            'triggerPrice': undefined,
             'average': undefined,
             'amount': amount,
             'remaining': remaining,

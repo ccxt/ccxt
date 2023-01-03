@@ -1466,6 +1466,7 @@ export default class whitebit extends Exchange {
             'price': price,
             'type': this.parseOrderType (type),
             'stopPrice': stopPrice,
+            'triggerPrice': stopPrice,
             'amount': amount,
             'filled': filled,
             'remaining': remaining,

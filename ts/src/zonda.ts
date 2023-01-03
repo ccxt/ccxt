@@ -443,6 +443,7 @@ export default class zonda extends Exchange {
             'side': this.safeStringLower (order, 'offerType'),
             'price': this.safeString (order, 'rate'),
             'stopPrice': undefined,
+            'triggerPrice': undefined,
             'amount': amount,
             'cost': undefined,
             'filled': undefined,

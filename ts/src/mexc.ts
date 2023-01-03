@@ -2364,6 +2364,7 @@ export default class mexc extends Exchange {
             'side': side,
             'price': price,
             'stopPrice': this.safeString (order, 'triggerPrice'),
+            'triggerPrice': this.safeString (order, 'triggerPrice'),
             'average': this.safeString (order, 'dealAvgPrice'),
             'amount': amount,
             'cost': cost,

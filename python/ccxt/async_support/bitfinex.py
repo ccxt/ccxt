@@ -1126,6 +1126,7 @@ class bitfinex(Exchange):
             'side': side,
             'price': self.safe_string(order, 'price'),
             'stopPrice': None,
+            'triggerPrice': None,
             'average': self.safe_string(order, 'avg_execution_price'),
             'amount': self.safe_string(order, 'original_amount'),
             'remaining': self.safe_string(order, 'remaining_amount'),

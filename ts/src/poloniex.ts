@@ -2,7 +2,7 @@
 //  ---------------------------------------------------------------------------
 
 import { Exchange } from './base/Exchange.js';
-import { ArgumentsRequired, ExchangeError, ExchangeNotAvailable, RequestTimeout, AuthenticationError, PermissionDenied, RateLimitExceeded, InsufficientFunds, OrderNotFound, InvalidOrder, AccountSuspended, CancelPending, InvalidNonce, OnMaintenance, BadSymbol } from './base/errors.js';
+import { ArgumentsRequired, ExchangeError, ExchangeNotAvailable, NotSupported, RequestTimeout, AuthenticationError, PermissionDenied, RateLimitExceeded, InsufficientFunds, OrderNotFound, InvalidOrder, AccountSuspended, CancelPending, InvalidNonce, OnMaintenance, BadSymbol } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
 
@@ -30,7 +30,7 @@ export default class poloniex extends Exchange {
                 'createDepositAddress': true,
                 'createMarketOrder': undefined,
                 'createOrder': true,
-                'editOrder': false,
+                'editOrder': true,
                 'fetchBalance': true,
                 'fetchClosedOrder': false,
                 'fetchCurrencies': true,
@@ -882,7 +882,7 @@ export default class poloniex extends Exchange {
         //         "updateTime": 1646925216548
         //     }
         //
-        // createOrder
+        // createOrder, editOrder
         //
         //     {
         //         "id": "29772698821328896",
@@ -943,6 +943,7 @@ export default class poloniex extends Exchange {
             'side': side,
             'price': price,
             'stopPrice': undefined,
+            'triggerPrice': undefined,
             'cost': undefined,
             'average': this.safeString (order, 'avgPrice'),
             'amount': amount,
@@ -1030,6 +1031,7 @@ export default class poloniex extends Exchange {
          * @method
          * @name poloniex#createOrder
          * @description create a trade order
+         * @see https://docs.poloniex.com/#authenticated-endpoints-orders-create-order
          * @param {string} symbol unified symbol of the market to create an order in
          * @param {string} type 'market' or 'limit'
          * @param {string} side 'buy' or 'sell'
@@ -1043,6 +1045,32 @@ export default class poloniex extends Exchange {
         // }
         await this.loadMarkets ();
         const market = this.market (symbol);
+        if (!market['spot']) {
+            throw new NotSupported (this.id + ' createOrder() does not support ' + market['type'] + ' orders, only spot orders are accepted');
+        }
+        const request = {
+            'symbol': market['id'],
+            'side': side,
+            // 'timeInForce': timeInForce,
+            // 'accountType': 'SPOT',
+            // 'amount': amount,
+        };
+        const orderRequest = this.orderRequest (symbol, type, side, amount, request, price, params);
+        let response = await (this as any).privatePostOrders (this.extend (orderRequest[0], orderRequest[1]));
+        //
+        //     {
+        //         "id" : "78923648051920896",
+        //         "clientOrderId" : ""
+        //     }
+        //
+        response = this.extend (response, {
+            'type': side,
+        });
+        return this.parseOrder (response, market);
+    }
+
+    orderRequest (symbol, type, side, amount, request, price = undefined, params = {}) {
+        const market = this.market (symbol);
         let upperCaseType = type.toUpperCase ();
         const isMarket = upperCaseType === 'MARKET';
         const isPostOnly = this.isPostOnly (isMarket, upperCaseType === 'LIMIT_MAKER', params);
@@ -1050,14 +1078,7 @@ export default class poloniex extends Exchange {
             upperCaseType = 'LIMIT_MAKER';
             params = this.omit (params, 'postOnly');
         }
-        const request = {
-            'symbol': market['id'],
-            'side': side,
-            'type': upperCaseType,
-            // 'timeInForce': timeInForce,
-            // 'accountType': 'SPOT',
-            // 'amount': amount,
-        };
+        request['type'] = upperCaseType;
         if (isMarket) {
             if (side === 'buy') {
                 request['amount'] = this.currencyToPrecision (market['quote'], amount);
@@ -1074,7 +1095,35 @@ export default class poloniex extends Exchange {
             params = this.omit (params, 'clientOrderId');
         }
         // remember the timestamp before issuing the request
-        let response = await (this as any).privatePostOrders (this.extend (request, params));
+        return [ request, params ];
+    }
+
+    async editOrder (id, symbol, type, side, amount, price = undefined, params = {}) {
+        /**
+         * @method
+         * @name poloniex#editOrder
+         * @description edit a trade order
+         * @see https://docs.poloniex.com/#authenticated-endpoints-orders-cancel-replace-order
+         * @param {string} id order id
+         * @param {string} symbol unified symbol of the market to create an order in
+         * @param {string} type 'market' or 'limit'
+         * @param {string} side 'buy' or 'sell'
+         * @param {float} amount how much of the currency you want to trade in units of the base currency
+         * @param {float|undefined} price the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+         * @param {object} params extra parameters specific to the poloniex api endpoint
+         * @returns {object} an [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
+         */
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        if (!market['spot']) {
+            throw new NotSupported (this.id + ' editOrder() does not support ' + market['type'] + ' orders, only spot orders are accepted');
+        }
+        const request = {
+            'id': id,
+            // 'timeInForce': timeInForce,
+        };
+        const orderRequest = this.orderRequest (symbol, type, side, amount, request, price, params);
+        let response = await (this as any).privatePutOrdersId (this.extend (orderRequest[0], orderRequest[1]));
         //
         //     {
         //         "id" : "78923648051920896",

@@ -654,6 +654,7 @@ class coinfalcon extends Exchange {
             'side' => $side,
             'price' => $priceString,
             'stopPrice' => null,
+            'triggerPrice' => null,
             'cost' => null,
             'amount' => $amountString,
             'filled' => $filledString,

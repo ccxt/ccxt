@@ -955,6 +955,7 @@ export default class yobit extends Exchange {
             'side': side,
             'price': price,
             'stopPrice': undefined,
+            'triggerPrice': undefined,
             'cost': undefined,
             'amount': amount,
             'remaining': remaining,

@@ -1474,6 +1474,7 @@ class whitebit extends Exchange {
             'price' => $price,
             'type' => $this->parse_order_type($type),
             'stopPrice' => $stopPrice,
+            'triggerPrice' => $stopPrice,
             'amount' => $amount,
             'filled' => $filled,
             'remaining' => $remaining,

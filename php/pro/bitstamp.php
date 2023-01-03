@@ -424,6 +424,7 @@ class bitstamp extends \ccxt\async\bitstamp {
             'side' => $side,
             'price' => $price,
             'stopPrice' => null,
+            'triggerPrice' => null,
             'amount' => $amount,
             'cost' => null,
             'average' => null,

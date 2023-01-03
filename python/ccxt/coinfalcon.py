@@ -613,6 +613,7 @@ class coinfalcon(Exchange):
             'side': side,
             'price': priceString,
             'stopPrice': None,
+            'triggerPrice': None,
             'cost': None,
             'amount': amountString,
             'filled': filledString,

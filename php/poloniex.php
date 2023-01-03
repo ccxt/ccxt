@@ -30,7 +30,7 @@ class poloniex extends Exchange {
                 'createDepositAddress' => true,
                 'createMarketOrder' => null,
                 'createOrder' => true,
-                'editOrder' => false,
+                'editOrder' => true,
                 'fetchBalance' => true,
                 'fetchClosedOrder' => false,
                 'fetchCurrencies' => true,
@@ -866,7 +866,7 @@ class poloniex extends Exchange {
         //         "updateTime" => 1646925216548
         //     }
         //
-        // createOrder
+        // createOrder, editOrder
         //
         //     {
         //         "id" => "29772698821328896",
@@ -927,6 +927,7 @@ class poloniex extends Exchange {
             'side' => $side,
             'price' => $price,
             'stopPrice' => null,
+            'triggerPrice' => null,
             'cost' => null,
             'average' => $this->safe_string($order, 'avgPrice'),
             'amount' => $amount,
@@ -1010,6 +1011,7 @@ class poloniex extends Exchange {
     public function create_order($symbol, $type, $side, $amount, $price = null, $params = array ()) {
         /**
          * create a trade order
+         * @see https://docs.poloniex.com/#authenticated-endpoints-orders-create-order
          * @param {string} $symbol unified $symbol of the $market to create an order in
          * @param {string} $type 'market' or 'limit'
          * @param {string} $side 'buy' or 'sell'
@@ -1023,6 +1025,32 @@ class poloniex extends Exchange {
         // }
         $this->load_markets();
         $market = $this->market($symbol);
+        if (!$market['spot']) {
+            throw new NotSupported($this->id . ' createOrder() does not support ' . $market['type'] . ' orders, only spot orders are accepted');
+        }
+        $request = array(
+            'symbol' => $market['id'],
+            'side' => $side,
+            // 'timeInForce' => timeInForce,
+            // 'accountType' => 'SPOT',
+            // 'amount' => $amount,
+        );
+        $orderRequest = $this->order_request($symbol, $type, $side, $amount, $request, $price, $params);
+        $response = $this->privatePostOrders (array_merge($orderRequest[0], $orderRequest[1]));
+        //
+        //     {
+        //         "id" : "78923648051920896",
+        //         "clientOrderId" : ""
+        //     }
+        //
+        $response = array_merge($response, array(
+            'type' => $side,
+        ));
+        return $this->parse_order($response, $market);
+    }
+
+    public function order_request($symbol, $type, $side, $amount, $request, $price = null, $params = array ()) {
+        $market = $this->market($symbol);
         $upperCaseType = strtoupper($type);
         $isMarket = $upperCaseType === 'MARKET';
         $isPostOnly = $this->is_post_only($isMarket, $upperCaseType === 'LIMIT_MAKER', $params);
@@ -1030,14 +1058,7 @@ class poloniex extends Exchange {
             $upperCaseType = 'LIMIT_MAKER';
             $params = $this->omit($params, 'postOnly');
         }
-        $request = array(
-            'symbol' => $market['id'],
-            'side' => $side,
-            'type' => $upperCaseType,
-            // 'timeInForce' => timeInForce,
-            // 'accountType' => 'SPOT',
-            // 'amount' => $amount,
-        );
+        $request['type'] = $upperCaseType;
         if ($isMarket) {
             if ($side === 'buy') {
                 $request['amount'] = $this->currency_to_precision($market['quote'], $amount);
@@ -1054,7 +1075,33 @@ class poloniex extends Exchange {
             $params = $this->omit($params, 'clientOrderId');
         }
         // remember the timestamp before issuing the $request
-        $response = $this->privatePostOrders (array_merge($request, $params));
+        return array( $request, $params );
+    }
+
+    public function edit_order($id, $symbol, $type, $side, $amount, $price = null, $params = array ()) {
+        /**
+         * edit a trade order
+         * @see https://docs.poloniex.com/#authenticated-endpoints-orders-cancel-replace-order
+         * @param {string} $id order $id
+         * @param {string} $symbol unified $symbol of the $market to create an order in
+         * @param {string} $type 'market' or 'limit'
+         * @param {string} $side 'buy' or 'sell'
+         * @param {float} $amount how much of the currency you want to trade in units of the base currency
+         * @param {float|null} $price the $price at which the order is to be fullfilled, in units of the quote currency, ignored in $market orders
+         * @param {array} $params extra parameters specific to the poloniex api endpoint
+         * @return {array} an {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structure}
+         */
+        $this->load_markets();
+        $market = $this->market($symbol);
+        if (!$market['spot']) {
+            throw new NotSupported($this->id . ' editOrder() does not support ' . $market['type'] . ' orders, only spot orders are accepted');
+        }
+        $request = array(
+            'id' => $id,
+            // 'timeInForce' => timeInForce,
+        );
+        $orderRequest = $this->order_request($symbol, $type, $side, $amount, $request, $price, $params);
+        $response = $this->privatePutOrdersId (array_merge($orderRequest[0], $orderRequest[1]));
         //
         //     {
         //         "id" : "78923648051920896",

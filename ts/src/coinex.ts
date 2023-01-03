@@ -1709,6 +1709,7 @@ export default class coinex extends Exchange {
             'side': side,
             'price': priceString,
             'stopPrice': this.safeString (order, 'stop_price'),
+            'triggerPrice': this.safeString (order, 'stop_price'),
             'cost': costString,
             'average': averageString,
             'amount': amountString,

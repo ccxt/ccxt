@@ -468,6 +468,11 @@ export default class bybit extends Exchange {
                         'unified/v3/private/position/set-risk-limit': 2.5,
                         'unified/v3/private/position/trading-stop': 2.5,
                         'unified/v3/private/account/upgrade-unified-account': 2.5,
+                        // tax
+                        'fht/compliance/tax/v3/private/registertime': 50,
+                        'fht/compliance/tax/v3/private/create': 50,
+                        'fht/compliance/tax/v3/private/status': 50,
+                        'fht/compliance/tax/v3/private/url': 50,
                     },
                     'delete': {
                         // spot
@@ -1799,7 +1804,7 @@ export default class bybit extends Exchange {
         await this.loadMarkets ();
         symbols = this.marketSymbols (symbols);
         const request = {};
-        const [ subType, query ] = this.handleSubTypeAndParams ('fetchTickers', undefined, params);
+        const [ subType, query ] = this.handleSubTypeAndParams ('fetchTickers', undefined, params, 'linear');
         if (subType === 'option') {
             // bybit requires a symbol when query tockers for options markets
             throw new NotSupported (this.id + ' fetchTickers() is not supported for option markets');
@@ -3248,8 +3253,8 @@ export default class bybit extends Exchange {
             'postOnly': undefined,
             'side': side,
             'price': price,
-            'triggerPrice': stopPrice,
             'stopPrice': stopPrice,
+            'triggerPrice': stopPrice,
             'amount': amount,
             'cost': cost,
             'average': undefined,
@@ -4171,7 +4176,7 @@ export default class bybit extends Exchange {
             request['symbol'] = market['id'];
         }
         let subType = undefined;
-        [ subType, params ] = this.handleSubTypeAndParams ('cancelAllOrders', market, params);
+        [ subType, params ] = this.handleSubTypeAndParams ('cancelAllOrders', market, params, 'linear');
         request['category'] = subType;
         [ settle, params ] = this.handleOptionAndParams (params, 'cancelAllOrders', 'settle', settle);
         if (settle !== undefined) {
@@ -4363,7 +4368,7 @@ export default class bybit extends Exchange {
         let market = undefined;
         if (symbol === undefined) {
             let subType = undefined;
-            [ subType, params ] = this.handleSubTypeAndParams ('fetchUnifiedMarginOrders', market, params);
+            [ subType, params ] = this.handleSubTypeAndParams ('fetchUnifiedMarginOrders', market, params, 'linear');
             request['category'] = subType;
         } else {
             market = this.market (symbol);
@@ -4696,7 +4701,7 @@ export default class bybit extends Exchange {
         let market = undefined;
         if (symbol === undefined) {
             let subType = undefined;
-            [ subType, params ] = this.handleSubTypeAndParams ('fetchUnifiedMarginOrders', market, params);
+            [ subType, params ] = this.handleSubTypeAndParams ('fetchUnifiedMarginOrders', market, params, 'linear');
             request['category'] = subType;
         } else {
             market = this.market (symbol);
@@ -4997,7 +5002,6 @@ export default class bybit extends Exchange {
 
     async fetchMyUnifiedMarginTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
-        await this.loadMarkets ();
         let market = undefined;
         let settle = undefined;
         const request = {
@@ -5014,7 +5018,7 @@ export default class bybit extends Exchange {
             request['symbol'] = market['id'];
         }
         let subType = undefined;
-        [ subType, params ] = this.handleSubTypeAndParams ('fetchMyTrades', market, params);
+        [ subType, params ] = this.handleSubTypeAndParams ('fetchMyTrades', market, params, 'linear');
         request['category'] = subType;
         [ settle, params ] = this.handleOptionAndParams (params, 'cancelAllOrders', 'settle', settle);
         if (settle !== undefined) {
@@ -5926,7 +5930,7 @@ export default class bybit extends Exchange {
         // market undefined
         [ type, params ] = this.handleMarketTypeAndParams ('fetchPositions', undefined, params);
         let subType = undefined;
-        [ subType, params ] = this.handleSubTypeAndParams ('fetchPositions', undefined, params);
+        [ subType, params ] = this.handleSubTypeAndParams ('fetchPositions', undefined, params, 'linear');
         request['category'] = subType;
         if (type === 'option') {
             request['category'] = 'option';
@@ -6064,7 +6068,9 @@ export default class bybit extends Exchange {
             if (symbols.length > 1) {
                 throw new ArgumentsRequired (this.id + ' fetchPositions() does not accept an array with more than one symbol');
             }
-            request['symbol'] = this.marketId (symbols[0]);
+            if (symbols.length === 1) {
+                request['symbol'] = this.marketId (symbols[0]);
+            }
         } else if (symbols !== undefined) {
             request['symbol'] = this.marketId (symbols);
         } else {

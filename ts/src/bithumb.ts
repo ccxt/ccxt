@@ -639,7 +639,7 @@ export default class bithumb extends Exchange {
         const request = {
             'currency': market['base'],
         };
-        if (limit === undefined) {
+        if (limit !== undefined) {
             request['count'] = limit; // default 20, max 100
         }
         const response = await (this as any).publicGetTransactionHistoryCurrency (this.extend (request, params));
@@ -850,6 +850,7 @@ export default class bithumb extends Exchange {
             'side': side,
             'price': price,
             'stopPrice': undefined,
+            'triggerPrice': undefined,
             'amount': amount,
             'cost': undefined,
             'average': undefined,

@@ -793,6 +793,7 @@ module.exports = class cex extends cexRest {
             'side': this.safeString (order, 'type'),
             'price': this.safeNumber (order, 'price'),
             'stopPrice': undefined,
+            'triggerPrice': undefined,
             'average': undefined,
             'cost': undefined,
             'amount': amount,

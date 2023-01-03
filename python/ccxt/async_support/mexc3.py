@@ -2587,6 +2587,7 @@ class mexc3(Exchange):
             'side': self.parse_order_side(self.safe_string(order, 'side')),
             'price': self.safe_number(order, 'price'),
             'stopPrice': self.safe_number_2(order, 'stopPrice', 'triggerPrice'),
+            'triggerPrice': self.safe_number_2(order, 'stopPrice', 'triggerPrice'),
             'average': self.safe_number(order, 'dealAvgPrice'),
             'amount': self.safe_number_2(order, 'origQty', 'vol'),
             'cost': self.safe_number(order, 'cummulativeQuoteQty'),  # 'cummulativeQuoteQty' vs 'origQuoteOrderQty'

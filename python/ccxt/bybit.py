@@ -1764,7 +1764,7 @@ class bybit(Exchange):
         self.load_markets()
         symbols = self.market_symbols(symbols)
         request = {}
-        subType, query = self.handle_sub_type_and_params('fetchTickers', None, params)
+        subType, query = self.handle_sub_type_and_params('fetchTickers', None, params, 'linear')
         if subType == 'option':
             # bybit requires a symbol when query tockers for options markets
             raise NotSupported(self.id + ' fetchTickers() is not supported for option markets')
@@ -3117,8 +3117,8 @@ class bybit(Exchange):
             'postOnly': None,
             'side': side,
             'price': price,
-            'triggerPrice': stopPrice,
             'stopPrice': stopPrice,
+            'triggerPrice': stopPrice,
             'amount': amount,
             'cost': cost,
             'average': None,
@@ -3952,7 +3952,7 @@ class bybit(Exchange):
             settle = market['settle']
             request['symbol'] = market['id']
         subType = None
-        subType, params = self.handle_sub_type_and_params('cancelAllOrders', market, params)
+        subType, params = self.handle_sub_type_and_params('cancelAllOrders', market, params, 'linear')
         request['category'] = subType
         settle, params = self.handle_option_and_params(params, 'cancelAllOrders', 'settle', settle)
         if settle is not None:
@@ -4125,7 +4125,7 @@ class bybit(Exchange):
         market = None
         if symbol is None:
             subType = None
-            subType, params = self.handle_sub_type_and_params('fetchUnifiedMarginOrders', market, params)
+            subType, params = self.handle_sub_type_and_params('fetchUnifiedMarginOrders', market, params, 'linear')
             request['category'] = subType
         else:
             market = self.market(symbol)
@@ -4428,7 +4428,7 @@ class bybit(Exchange):
         market = None
         if symbol is None:
             subType = None
-            subType, params = self.handle_sub_type_and_params('fetchUnifiedMarginOrders', market, params)
+            subType, params = self.handle_sub_type_and_params('fetchUnifiedMarginOrders', market, params, 'linear')
             request['category'] = subType
         else:
             market = self.market(symbol)
@@ -4704,7 +4704,6 @@ class bybit(Exchange):
 
     def fetch_my_unified_margin_trades(self, symbol=None, since=None, limit=None, params={}):
         self.load_markets()
-        self.load_markets()
         market = None
         settle = None
         request = {
@@ -4720,7 +4719,7 @@ class bybit(Exchange):
             settle = market['settle']
             request['symbol'] = market['id']
         subType = None
-        subType, params = self.handle_sub_type_and_params('fetchMyTrades', market, params)
+        subType, params = self.handle_sub_type_and_params('fetchMyTrades', market, params, 'linear')
         request['category'] = subType
         settle, params = self.handle_option_and_params(params, 'cancelAllOrders', 'settle', settle)
         if settle is not None:
@@ -5569,7 +5568,7 @@ class bybit(Exchange):
         # market None
         type, params = self.handle_market_type_and_params('fetchPositions', None, params)
         subType = None
-        subType, params = self.handle_sub_type_and_params('fetchPositions', None, params)
+        subType, params = self.handle_sub_type_and_params('fetchPositions', None, params, 'linear')
         request['category'] = subType
         if type == 'option':
             request['category'] = 'option'
@@ -5697,7 +5696,8 @@ class bybit(Exchange):
         if isinstance(symbols, list):
             if len(symbols) > 1:
                 raise ArgumentsRequired(self.id + ' fetchPositions() does not accept an array with more than one symbol')
-            request['symbol'] = self.market_id(symbols[0])
+            if len(symbols) == 1:
+                request['symbol'] = self.market_id(symbols[0])
         elif symbols is not None:
             request['symbol'] = self.market_id(symbols)
         else:

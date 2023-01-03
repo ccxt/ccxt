@@ -1167,6 +1167,7 @@ export default class lbank2 extends Exchange {
             'side': side,
             'price': price,
             'stopPrice': undefined,
+            'triggerPrice': undefined,
             'cost': costString,
             'amount': amountString,
             'filled': filledString,

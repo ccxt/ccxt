@@ -1685,6 +1685,7 @@ class coinex extends Exchange {
             'side' => $side,
             'price' => $priceString,
             'stopPrice' => $this->safe_string($order, 'stop_price'),
+            'triggerPrice' => $this->safe_string($order, 'stop_price'),
             'cost' => $costString,
             'average' => $averageString,
             'amount' => $amountString,

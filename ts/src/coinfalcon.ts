@@ -651,6 +651,7 @@ export default class coinfalcon extends Exchange {
             'side': side,
             'price': priceString,
             'stopPrice': undefined,
+            'triggerPrice': undefined,
             'cost': undefined,
             'amount': amountString,
             'filled': filledString,

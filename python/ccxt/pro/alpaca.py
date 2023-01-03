@@ -551,7 +551,8 @@ class alpaca(Exchange, ccxt.async_support.alpaca):
                 'secret': self.secret,
             }
             if url == self.urls['api']['ws']['trading']:
-                request = { # self auth request is being deprecated in test environment
+                # self auth request is being deprecated in test environment
+                request = {
                     'action': 'authenticate',
                     'data': {
                         'key_id': self.apiKey,

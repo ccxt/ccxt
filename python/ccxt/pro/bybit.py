@@ -1068,6 +1068,7 @@ class bybit(Exchange, ccxt.async_support.bybit):
             'side': side,
             'price': price,
             'stopPrice': None,
+            'triggerPrice': None,
             'amount': amount,
             'cost': cost,
             'average': None,

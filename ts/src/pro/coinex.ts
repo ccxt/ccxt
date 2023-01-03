@@ -877,6 +877,7 @@ export default class coinex extends coinexRest {
             'side': side,
             'price': this.safeString (order, 'price'),
             'stopPrice': this.safeString (order, 'stop_price'),
+            'triggerPrice': this.safeString (order, 'stop_price'),
             'amount': amount,
             'filled': filled,
             'remaining': remaining,

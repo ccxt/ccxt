@@ -2,7 +2,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '2.4.79'
+__version__ = '2.5.5'
 
 # -----------------------------------------------------------------------------
 
@@ -1747,7 +1747,7 @@ class Exchange(BaseExchange):
         params = self.omit(params, ['defaultType', 'type'])
         return [type, params]
 
-    def handle_sub_type_and_params(self, methodName, market=None, params={}, defaultValue='linear'):
+    def handle_sub_type_and_params(self, methodName, market=None, params={}, defaultValue=None):
         subType = None
         # if set in params, it takes precedence
         subTypeInParams = self.safe_string_2(params, 'subType', 'defaultSubType')
