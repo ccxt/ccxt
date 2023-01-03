@@ -6,7 +6,7 @@
 import fs from 'fs'
 import ansi from 'ansicolor'
 import log from 'ololog'
-import ps from 'child_process'
+import {spawn} from 'child_process'
 ansi.nice
 
 // ----------------------------------------------------------------------------
