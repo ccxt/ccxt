@@ -14,12 +14,12 @@ require ('ansicolor').nice
     // experimental, not yet implemented for all exchanges
     // your contributions are welcome ;)
 
-    const index = 4 // [ timestamp, open, high, low, close, volume ]
+    const indexOfClose = 4 // [ timestamp, open, high, low, close, volume ]
     const ohlcv = await new ccxt.cex ().fetchOHLCV ('BTC/USD', '1m')
-    const lastPrice = ohlcv[ohlcv.length - 1][index] // closing price
-    const series = ohlcv.slice (-80).map (x => x[index]) // closing price
+    const lastPrice = ohlcv[ohlcv.length - 1][indexOfClose] // closing price
+    const plotSeriesData = ohlcv.slice (-80).map (x => x[indexOfClose]) // closing price
     const bitcoinRate = ('₿ = $' + lastPrice).green
-    const chart = asciichart.plot (series, { height: 15, padding: '            ' })
+    const chart = asciichart.plot (plotSeriesData, { height: 15, padding: '            ' })
     log.yellow ("\n" + chart, bitcoinRate, "\n")
     process.exit ()
 

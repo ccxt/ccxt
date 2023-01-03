@@ -1147,6 +1147,7 @@ class lbank2 extends Exchange {
             'side' => $side,
             'price' => $price,
             'stopPrice' => null,
+            'triggerPrice' => null,
             'cost' => $costString,
             'amount' => $amountString,
             'filled' => $filledString,

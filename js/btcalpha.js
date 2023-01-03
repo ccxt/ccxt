@@ -608,6 +608,7 @@ module.exports = class btcalpha extends Exchange {
             'side': side,
             'price': price,
             'stopPrice': undefined,
+            'triggerPrice': undefined,
             'cost': undefined,
             'amount': amount,
             'filled': filled,

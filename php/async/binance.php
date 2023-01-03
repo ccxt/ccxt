@@ -260,6 +260,7 @@ class binance extends Exchange {
                         'capital/deposit/subAddress' => 0.1,
                         'capital/deposit/subHisrec' => 0.1,
                         'capital/withdraw/history' => 0.1,
+                        'capital/contract/convertible-coins' => 4.0002,
                         'convert/tradeFlow' => 0.6667, // Weight(UID) => 100 => cost = 0.006667 * 100 = 0.6667
                         'convert/exchangeInfo' => 50,
                         'convert/assetInfo' => 10,
@@ -384,6 +385,7 @@ class binance extends Exchange {
                         // 'account/apiRestrictions/ipRestriction' => 1, discontinued
                         // 'account/apiRestrictions/ipRestriction/ipList' => 1, discontinued
                         'capital/withdraw/apply' => 4.0002, // Weight(UID) => 600 => cost = 0.006667 * 600 = 4.0002
+                        'capital/contract/convertible-coins' => 4.0002,
                         'margin/transfer' => 1, // Weight(IP) => 600 => cost = 0.1 * 600 = 60
                         'margin/loan' => 20.001, // Weight(UID) => 3000 => cost = 0.006667 * 3000 = 20.001
                         'margin/repay' => 20.001,
@@ -3257,7 +3259,7 @@ class binance extends Exchange {
             'reduceOnly' => $this->safe_value($order, 'reduceOnly'),
             'side' => $side,
             'price' => $price,
-            'stopPrice' => $stopPrice,
+            'triggerPrice' => $stopPrice,
             'amount' => $amount,
             'cost' => $cost,
             'average' => $average,
@@ -3287,7 +3289,16 @@ class binance extends Exchange {
             $defaultType = $this->safe_string_2($this->options, 'createOrder', 'defaultType', 'spot');
             $marketType = $this->safe_string($params, 'type', $defaultType);
             $clientOrderId = $this->safe_string_2($params, 'newClientOrderId', 'clientOrderId');
-            $postOnly = $this->safe_value($params, 'postOnly', false);
+            $initialUppercaseType = strtoupper($type);
+            $isMarketOrder = $initialUppercaseType === 'MARKET';
+            $isLimitOrder = $initialUppercaseType === 'LIMIT';
+            $postOnly = $this->is_post_only($isMarketOrder, $initialUppercaseType === 'LIMIT_MAKER', $params);
+            $triggerPrice = $this->safe_value_2($params, 'triggerPrice', 'stopPrice');
+            $stopLossPrice = $this->safe_value($params, 'stopLossPrice', $triggerPrice);  // fallback to stopLoss
+            $takeProfitPrice = $this->safe_value($params, 'takeProfitPrice');
+            $isStopLoss = $stopLossPrice !== null;
+            $isTakeProfit = $takeProfitPrice !== null;
+            $params = $this->omit($params, array( 'type', 'newClientOrderId', 'clientOrderId', 'postOnly', 'stopLossPrice', 'takeProfitPrice', 'stopPrice', 'triggerPrice' ));
             list($marginMode, $query) = $this->handle_margin_mode_and_params('createOrder', $params);
             $request = array(
                 'symbol' => $market['id'],
@@ -3317,15 +3328,23 @@ class binance extends Exchange {
                     $type = 'LIMIT_MAKER';
                 }
             }
-            $initialUppercaseType = strtoupper($type);
             $uppercaseType = $initialUppercaseType;
-            $request['type'] = $uppercaseType;
-            $stopPrice = $this->safe_number($query, 'stopPrice');
-            if ($stopPrice !== null) {
-                if ($uppercaseType === 'MARKET') {
+            $stopPrice = null;
+            if ($isStopLoss) {
+                $stopPrice = $stopLossPrice;
+                if ($isMarketOrder) {
+                    // spot STOP_LOSS $market orders are not a valid order $type
                     $uppercaseType = $market['contract'] ? 'STOP_MARKET' : 'STOP_LOSS';
-                } elseif ($uppercaseType === 'LIMIT') {
+                } elseif ($isLimitOrder) {
                     $uppercaseType = $market['contract'] ? 'STOP' : 'STOP_LOSS_LIMIT';
+                }
+            } elseif ($isTakeProfit) {
+                $stopPrice = $takeProfitPrice;
+                if ($isMarketOrder) {
+                    // spot TAKE_PROFIT $market orders are not a valid order $type
+                    $uppercaseType = $market['contract'] ? 'TAKE_PROFIT_MARKET' : 'TAKE_PROFIT';
+                } elseif ($isLimitOrder) {
+                    $uppercaseType = $market['contract'] ? 'TAKE_PROFIT' : 'TAKE_PROFIT_LIMIT';
                 }
             }
             $validOrderTypes = $this->safe_value($market['info'], 'orderTypes');
@@ -3356,6 +3375,7 @@ class binance extends Exchange {
                 // delivery and future
                 $request['newOrderRespType'] = 'RESULT';  // "ACK", "RESULT", default "ACK"
             }
+            $request['type'] = $uppercaseType;
             // additional required fields depending on the order $type
             $timeInForceIsRequired = false;
             $priceIsRequired = false;
@@ -6365,7 +6385,12 @@ class binance extends Exchange {
             } else {
                 $query = $this->urlencode($extendedParams);
             }
-            $signature = $this->hmac($this->encode($query), $this->encode($this->secret));
+            $signature = null;
+            if (mb_strpos($this->secret, '-----BEGIN RSA PRIVATE KEY-----') > -1) {
+                $signature = $this->rsa($this->encode($query), $this->encode($this->secret));
+            } else {
+                $signature = $this->hmac($this->encode($query), $this->encode($this->secret));
+            }
             $query .= '&' . 'signature=' . $signature;
             $headers = array(
                 'X-MBX-APIKEY' => $this->apiKey,

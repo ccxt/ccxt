@@ -1,12 +1,9 @@
 <?php
 
-$root = dirname(dirname(dirname(__FILE__)));
-
-include $root . '/ccxt.php';
-
+include dirname(dirname(dirname(__FILE__))) . '/ccxt.php';
 date_default_timezone_set('UTC');
 
-$exchange = new \ccxt\vaultoro(array(
+$exchange = new \ccxt\okx(array(
     // 'verbose' => true, // for debugging
     // 'timeout' => 30000,
     "apiKey" => "YOUR_API_KEY",
@@ -14,17 +11,12 @@ $exchange = new \ccxt\vaultoro(array(
 ));
 
 try {
-
+	// about balance, read docs at : https://docs.ccxt.com/en/latest/manual.html?#balance-structure
     $result = $exchange->fetch_balance ();
-
     print_r ($result);
 
 } catch (\ccxt\NetworkError $e) {
     echo '[Network Error] ' . $e->getMessage() . "\n";
-} catch (\ccxt\ExchangeError $e) {
-    echo '[Exchange Error] ' . $e->getMessage() . "\n";
 } catch (Exception $e) {
     echo '[Error] ' . $e->getMessage() . "\n";
 }
-
-?>

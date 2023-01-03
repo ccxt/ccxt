@@ -68,7 +68,7 @@ module.exports = class Exchange extends BaseExchange {
             const rateLimitConfig = this.safeValue (rateLimits, url, defaultRateLimitConfig)
             // if no rateLimit is defined in the WS implementation, we fallback to the ccxt one
             const throttleInstance = rateLimitConfig !== undefined ? throttle (rateLimitConfig) : throttle (this.tokenBucket)
-            const options = this.extend (this.streaming, {
+            const options = this.deepExtend (this.streaming, {
                 'log': this.log ? this.log.bind (this) : this.log,
                 'ping': this.ping ? this.ping.bind (this) : this.ping,
                 'verbose': this.verbose,

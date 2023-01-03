@@ -468,6 +468,11 @@ class bybit extends Exchange {
                         'unified/v3/private/position/set-risk-limit' => 2.5,
                         'unified/v3/private/position/trading-stop' => 2.5,
                         'unified/v3/private/account/upgrade-unified-account' => 2.5,
+                        // tax
+                        'fht/compliance/tax/v3/private/registertime' => 50,
+                        'fht/compliance/tax/v3/private/create' => 50,
+                        'fht/compliance/tax/v3/private/status' => 50,
+                        'fht/compliance/tax/v3/private/url' => 50,
                     ),
                     'delete' => array(
                         // spot
@@ -820,6 +825,9 @@ class bybit extends Exchange {
                     'deposit' => array(),
                 ),
             ),
+            'commonCurrencies' => array(
+                'GAS' => 'GASDAO',
+            ),
         ));
     }
 
@@ -1035,23 +1043,17 @@ class bybit extends Exchange {
         if ($this->options['adjustForTimeDifference']) {
             $this->load_time_difference();
         }
-        list($type, $query) = $this->handle_market_type_and_params('fetchMarkets', null, $params);
-        if ($type === 'spot') {
-            // spot and swap ids are equal
-            // so they can't be loaded together
-            return $this->fetch_spot_markets($query);
-        }
         $promises = array(
+            $this->fetch_spot_markets($params),
             $this->fetch_derivatives_markets(array( 'category' => 'linear' )),
             $this->fetch_derivatives_markets(array( 'category' => 'inverse' )),
-            $this->fetch_derivatives_markets(array( 'category' => 'option' )),
         );
-        $linearMarkets = $promises[0];
-        $inverseMarkets = $promises[1];
-        $optionMarkets = $promises[2];
-        $markets = $linearMarkets;
-        $markets = $this->array_concat($markets, $inverseMarkets);
-        return $this->array_concat($markets, $optionMarkets);
+        $spotMarkets = $promises[0];
+        $linearMarkets = $promises[1];
+        $inverseMarkets = $promises[2];
+        $markets = $spotMarkets;
+        $markets = $this->array_concat($markets, $linearMarkets);
+        return $this->array_concat($markets, $inverseMarkets);
     }
 
     public function fetch_spot_markets($params) {
@@ -1158,14 +1160,14 @@ class bybit extends Exchange {
         $params['limit'] = 1000; // minimize number of requests
         $response = $this->publicGetDerivativesV3PublicInstrumentsInfo ($params);
         $data = $this->safe_value($response, 'result', array());
-        $markets = $this->safe_value_2($data, 'list', 'dataList', array());
-        $paginationCursor = $this->safe_string($data, 'cursor');
+        $markets = $this->safe_value($data, 'list', array());
+        $paginationCursor = $this->safe_string($data, 'nextPageCursor');
         if ($paginationCursor !== null) {
             while ($paginationCursor !== null) {
                 $params['cursor'] = $paginationCursor;
                 $response = $this->publicGetDerivativesV3PublicInstrumentsInfo ($params);
                 $data = $this->safe_value($response, 'result', array());
-                $rawMarkets = $this->safe_value_2($data, 'list', 'dataList', array());
+                $rawMarkets = $this->safe_value($data, 'list', array());
                 $rawMarketsLength = count($rawMarkets);
                 if ($rawMarketsLength === 0) {
                     break;
@@ -1211,7 +1213,7 @@ class bybit extends Exchange {
         //             "nextPageCursor" => ""
         //         ),
         //         "retExtInfo" => array(),
-        //         "time" => 1667533491917
+        //         "time" => 1667533491916
         //     }
         //
         // $option $response
@@ -1220,9 +1222,8 @@ class bybit extends Exchange {
         //         "retCode" => 0,
         //         "retMsg" => "success",
         //         "result" => {
-        //             "resultTotalSize" => 1,
-        //             "cursor" => "",
-        //             "dataList" => array(
+        //             "nextPageCursor" => "",
+        //             "list" => array(
         //                 {
         //                     "category" => "option",
         //                     "symbol" => "BTC-30SEP22-35000-P",
@@ -1437,7 +1438,7 @@ class bybit extends Exchange {
         //     }
         //
         $marketId = $this->safe_string($ticker, 's');
-        $symbol = $this->safe_symbol($marketId, $market);
+        $symbol = $this->safe_symbol($marketId, $market, null, 'spot');
         $timestamp = $this->safe_integer($ticker, 't');
         return $this->safe_ticker(array(
             'symbol' => $symbol,
@@ -1552,7 +1553,7 @@ class bybit extends Exchange {
         //
         $timestamp = $this->safe_integer($ticker, 'time');
         $marketId = $this->safe_string($ticker, 'symbol');
-        $symbol = $this->safe_symbol($marketId, $market);
+        $symbol = $this->safe_symbol($marketId, $market, null, 'contract');
         $last = $this->safe_string_2($ticker, 'last_price', 'lastPrice');
         $open = $this->safe_string_n($ticker, array( 'prev_price_24h', 'openPrice', 'prevPrice24h' ));
         $percentage = $this->safe_string_n($ticker, array( 'price_24h_pcnt', 'change24h', 'price24hPcnt' ));
@@ -1794,7 +1795,7 @@ class bybit extends Exchange {
         $this->load_markets();
         $symbols = $this->market_symbols($symbols);
         $request = array();
-        list($subType, $query) = $this->handle_sub_type_and_params('fetchTickers', null, $params);
+        list($subType, $query) = $this->handle_sub_type_and_params('fetchTickers', null, $params, 'linear');
         if ($subType === 'option') {
             // bybit requires a $symbol when $query tockers for options markets
             throw new NotSupported($this->id . ' fetchTickers() is not supported for option markets');
@@ -2037,7 +2038,7 @@ class bybit extends Exchange {
         //         }
         //     }
         //
-        $result = $this->safe_value($response, 'result');
+        $result = $this->safe_value($response, 'result', array());
         $ohlcvs = $this->safe_value($result, 'list', array());
         return $this->parse_ohlcvs($ohlcvs, $market, $timeframe, $since, $limit);
     }
@@ -2216,7 +2217,7 @@ class bybit extends Exchange {
             $timestamp = $this->safe_integer($entry, 'fundingRateTimestamp');
             $rates[] = array(
                 'info' => $entry,
-                'symbol' => $this->safe_symbol($this->safe_string($entry, 'symbol')),
+                'symbol' => $this->safe_symbol($this->safe_string($entry, 'symbol'), null, null, 'swap'),
                 'fundingRate' => $this->safe_number($entry, 'fundingRate'),
                 'timestamp' => $timestamp,
                 'datetime' => $this->iso8601($timestamp),
@@ -2299,12 +2300,12 @@ class bybit extends Exchange {
             $side = ($isBuyer === 0) ? 'buy' : 'sell';
         }
         $marketId = $this->safe_string($trade, 'symbol');
-        $market = $this->safe_market($marketId, $market);
-        $fee = array();
-        $feeToken = $this->safe_string($trade, 'feeTokenId');
-        if ($feeToken !== null) {
+        $market = $this->safe_market($marketId, $market, null, 'spot');
+        $fee = null;
+        $feeCost = $this->safe_string($trade, 'execFee');
+        if ($feeCost !== null) {
+            $feeToken = $this->safe_string($trade, 'feeTokenId');
             $feeCurrency = $this->safe_currency_code($feeToken);
-            $feeCost = $this->safe_string($trade, 'execFee');
             $fee = array(
                 'cost' => $feeCost,
                 'currency' => $feeCurrency,
@@ -2444,7 +2445,7 @@ class bybit extends Exchange {
         //
         $id = $this->safe_string_n($trade, array( 'execId', 'id', 'tradeId' ));
         $marketId = $this->safe_string($trade, 'symbol');
-        $market = $this->safe_market($marketId, $market);
+        $market = $this->safe_market($marketId, $market, null, 'contract');
         $symbol = $market['symbol'];
         $amountString = $this->safe_string_n($trade, array( 'orderQty', 'size', 'execQty' ));
         $priceString = $this->safe_string_n($trade, array( 'orderPrice', 'price', 'execPrice' ));
@@ -3184,7 +3185,7 @@ class bybit extends Exchange {
         //     }
         //
         $marketId = $this->safe_string($order, 'symbol');
-        $market = $this->safe_market($marketId, $market);
+        $market = $this->safe_market($marketId, $market, null, 'contract');
         $symbol = $market['symbol'];
         $timestamp = $this->safe_integer($order, 'createdTime');
         $id = $this->safe_string($order, 'orderId');
@@ -3229,8 +3230,8 @@ class bybit extends Exchange {
             'postOnly' => null,
             'side' => $side,
             'price' => $price,
-            'triggerPrice' => $stopPrice,
             'stopPrice' => $stopPrice,
+            'triggerPrice' => $stopPrice,
             'amount' => $amount,
             'cost' => $cost,
             'average' => null,
@@ -3276,7 +3277,7 @@ class bybit extends Exchange {
         //     }
         //
         $marketId = $this->safe_string($order, 'symbol');
-        $market = $this->safe_market($marketId, $market);
+        $market = $this->safe_market($marketId, $market, null, 'spot');
         $timestamp = $this->safe_integer($order, 'createTime');
         $type = $this->safe_string_lower($order, 'orderType');
         $price = $this->safe_string($order, 'orderPrice');
@@ -4146,7 +4147,7 @@ class bybit extends Exchange {
             $request['symbol'] = $market['id'];
         }
         $subType = null;
-        list($subType, $params) = $this->handle_sub_type_and_params('cancelAllOrders', $market, $params);
+        list($subType, $params) = $this->handle_sub_type_and_params('cancelAllOrders', $market, $params, 'linear');
         $request['category'] = $subType;
         list($settle, $params) = $this->handle_option_and_params($params, 'cancelAllOrders', 'settle', $settle);
         if ($settle !== null) {
@@ -4336,7 +4337,7 @@ class bybit extends Exchange {
         $market = null;
         if ($symbol === null) {
             $subType = null;
-            list($subType, $params) = $this->handle_sub_type_and_params('fetchUnifiedMarginOrders', $market, $params);
+            list($subType, $params) = $this->handle_sub_type_and_params('fetchUnifiedMarginOrders', $market, $params, 'linear');
             $request['category'] = $subType;
         } else {
             $market = $this->market($symbol);
@@ -4665,7 +4666,7 @@ class bybit extends Exchange {
         $market = null;
         if ($symbol === null) {
             $subType = null;
-            list($subType, $params) = $this->handle_sub_type_and_params('fetchUnifiedMarginOrders', $market, $params);
+            list($subType, $params) = $this->handle_sub_type_and_params('fetchUnifiedMarginOrders', $market, $params, 'linear');
             $request['category'] = $subType;
         } else {
             $market = $this->market($symbol);
@@ -4962,7 +4963,6 @@ class bybit extends Exchange {
 
     public function fetch_my_unified_margin_trades($symbol = null, $since = null, $limit = null, $params = array ()) {
         $this->load_markets();
-        $this->load_markets();
         $market = null;
         $settle = null;
         $request = array(
@@ -4979,7 +4979,7 @@ class bybit extends Exchange {
             $request['symbol'] = $market['id'];
         }
         $subType = null;
-        list($subType, $params) = $this->handle_sub_type_and_params('fetchMyTrades', $market, $params);
+        list($subType, $params) = $this->handle_sub_type_and_params('fetchMyTrades', $market, $params, 'linear');
         $request['category'] = $subType;
         list($settle, $params) = $this->handle_option_and_params($params, 'cancelAllOrders', 'settle', $settle);
         if ($settle !== null) {
@@ -5875,7 +5875,7 @@ class bybit extends Exchange {
         // market null
         list($type, $params) = $this->handle_market_type_and_params('fetchPositions', null, $params);
         $subType = null;
-        list($subType, $params) = $this->handle_sub_type_and_params('fetchPositions', null, $params);
+        list($subType, $params) = $this->handle_sub_type_and_params('fetchPositions', null, $params, 'linear');
         $request['category'] = $subType;
         if ($type === 'option') {
             $request['category'] = 'option';
@@ -6008,17 +6008,19 @@ class bybit extends Exchange {
 
     public function fetch_derivatives_positions($symbols = null, $params = array ()) {
         $this->load_markets();
+        $request = array();
         if (gettype($symbols) === 'array' && array_keys($symbols) === array_keys(array_keys($symbols))) {
             if (strlen($symbols) > 1) {
                 throw new ArgumentsRequired($this->id . ' fetchPositions() does not accept an array with more than one symbol');
             }
+            if (strlen($symbols) === 1) {
+                $request['symbol'] = $this->market_id($symbols[0]);
+            }
         } elseif ($symbols !== null) {
-            $symbols = array( $symbols );
+            $request['symbol'] = $this->market_id($symbols);
+        } else {
+            $request['dataFilter'] = 'valid';
         }
-        $symbols = $this->market_symbols($symbols);
-        $request = array(
-            'dataFilter' => 'valid',
-        );
         $settle = null;
         list($settle, $params) = $this->handle_option_and_params($params, 'fetchPositions', 'settle', $settle);
         if ($settle !== null) {
@@ -6215,7 +6217,7 @@ class bybit extends Exchange {
         //     }
         //
         $contract = $this->safe_string($position, 'symbol');
-        $market = $this->safe_market($contract, $market);
+        $market = $this->safe_market($contract, $market, null, 'contract');
         $size = Precise::string_abs($this->safe_string($position, 'size'));
         $side = $this->safe_string($position, 'side');
         $side = ($side === 'Buy') ? 'long' : 'short';
@@ -6461,7 +6463,7 @@ class bybit extends Exchange {
         //
         $result = $this->safe_value($response, 'result', array());
         $id = $this->safe_string($result, 'symbol');
-        $market = $this->safe_market($id, $market);
+        $market = $this->safe_market($id, $market, null, 'contract');
         $data = $this->safe_value($result, 'list', array());
         return $this->parse_open_interests($data, $market, $since, $limit);
     }
@@ -6514,7 +6516,7 @@ class bybit extends Exchange {
         //
         $result = $this->safe_value($response, 'result', array());
         $id = $this->safe_string($result, 'symbol');
-        $market = $this->safe_market($id, $market);
+        $market = $this->safe_market($id, $market, null, 'contract');
         $data = $this->safe_value($result, 'list', array());
         return $this->parse_open_interest($data[0], $market);
     }
@@ -6556,7 +6558,7 @@ class bybit extends Exchange {
         $timestamp = $this->safe_integer($interest, 'timestamp');
         $value = $this->safe_number_2($interest, 'open_interest', 'openInterest');
         return array(
-            'symbol' => $this->safe_symbol($market['id']),
+            'symbol' => $market['symbol'],
             'openInterestAmount' => null,
             'openInterestValue' => $value,
             'timestamp' => $timestamp,
@@ -7279,7 +7281,7 @@ class bybit extends Exchange {
         //     }
         //
         $marketId = $this->safe_string($fee, 'symbol');
-        $symbol = $this->safe_symbol($marketId);
+        $symbol = $this->safe_symbol($marketId, null, null, 'contract');
         return array(
             'info' => $fee,
             'symbol' => $symbol,

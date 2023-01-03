@@ -251,6 +251,7 @@ module.exports = class binance extends Exchange {
                         'capital/deposit/subAddress': 0.1,
                         'capital/deposit/subHisrec': 0.1,
                         'capital/withdraw/history': 0.1,
+                        'capital/contract/convertible-coins': 4.0002,
                         'convert/tradeFlow': 0.6667, // Weight(UID): 100 => cost = 0.006667 * 100 = 0.6667
                         'convert/exchangeInfo': 50,
                         'convert/assetInfo': 10,
@@ -375,6 +376,7 @@ module.exports = class binance extends Exchange {
                         // 'account/apiRestrictions/ipRestriction': 1, discontinued
                         // 'account/apiRestrictions/ipRestriction/ipList': 1, discontinued
                         'capital/withdraw/apply': 4.0002, // Weight(UID): 600 => cost = 0.006667 * 600 = 4.0002
+                        'capital/contract/convertible-coins': 4.0002,
                         'margin/transfer': 1, // Weight(IP): 600 => cost = 0.1 * 600 = 60
                         'margin/loan': 20.001, // Weight(UID): 3000 => cost = 0.006667 * 3000 = 20.001
                         'margin/repay': 20.001,
@@ -3248,7 +3250,7 @@ module.exports = class binance extends Exchange {
             'reduceOnly': this.safeValue (order, 'reduceOnly'),
             'side': side,
             'price': price,
-            'stopPrice': stopPrice,
+            'triggerPrice': stopPrice,
             'amount': amount,
             'cost': cost,
             'average': average,
@@ -3279,7 +3281,16 @@ module.exports = class binance extends Exchange {
         const defaultType = this.safeString2 (this.options, 'createOrder', 'defaultType', 'spot');
         const marketType = this.safeString (params, 'type', defaultType);
         const clientOrderId = this.safeString2 (params, 'newClientOrderId', 'clientOrderId');
-        const postOnly = this.safeValue (params, 'postOnly', false);
+        const initialUppercaseType = type.toUpperCase ();
+        const isMarketOrder = initialUppercaseType === 'MARKET';
+        const isLimitOrder = initialUppercaseType === 'LIMIT';
+        const postOnly = this.isPostOnly (isMarketOrder, initialUppercaseType === 'LIMIT_MAKER', params);
+        const triggerPrice = this.safeValue2 (params, 'triggerPrice', 'stopPrice');
+        const stopLossPrice = this.safeValue (params, 'stopLossPrice', triggerPrice);  // fallback to stopLoss
+        const takeProfitPrice = this.safeValue (params, 'takeProfitPrice');
+        const isStopLoss = stopLossPrice !== undefined;
+        const isTakeProfit = takeProfitPrice !== undefined;
+        params = this.omit (params, [ 'type', 'newClientOrderId', 'clientOrderId', 'postOnly', 'stopLossPrice', 'takeProfitPrice', 'stopPrice', 'triggerPrice' ]);
         const [ marginMode, query ] = this.handleMarginModeAndParams ('createOrder', params);
         const request = {
             'symbol': market['id'],
@@ -3309,15 +3320,23 @@ module.exports = class binance extends Exchange {
                 type = 'LIMIT_MAKER';
             }
         }
-        const initialUppercaseType = type.toUpperCase ();
         let uppercaseType = initialUppercaseType;
-        request['type'] = uppercaseType;
-        const stopPrice = this.safeNumber (query, 'stopPrice');
-        if (stopPrice !== undefined) {
-            if (uppercaseType === 'MARKET') {
+        let stopPrice = undefined;
+        if (isStopLoss) {
+            stopPrice = stopLossPrice;
+            if (isMarketOrder) {
+                // spot STOP_LOSS market orders are not a valid order type
                 uppercaseType = market['contract'] ? 'STOP_MARKET' : 'STOP_LOSS';
-            } else if (uppercaseType === 'LIMIT') {
+            } else if (isLimitOrder) {
                 uppercaseType = market['contract'] ? 'STOP' : 'STOP_LOSS_LIMIT';
+            }
+        } else if (isTakeProfit) {
+            stopPrice = takeProfitPrice;
+            if (isMarketOrder) {
+                // spot TAKE_PROFIT market orders are not a valid order type
+                uppercaseType = market['contract'] ? 'TAKE_PROFIT_MARKET' : 'TAKE_PROFIT';
+            } else if (isLimitOrder) {
+                uppercaseType = market['contract'] ? 'TAKE_PROFIT' : 'TAKE_PROFIT_LIMIT';
             }
         }
         const validOrderTypes = this.safeValue (market['info'], 'orderTypes');
@@ -3348,6 +3367,7 @@ module.exports = class binance extends Exchange {
             // delivery and future
             request['newOrderRespType'] = 'RESULT';  // "ACK", "RESULT", default "ACK"
         }
+        request['type'] = uppercaseType;
         // additional required fields depending on the order type
         let timeInForceIsRequired = false;
         let priceIsRequired = false;
@@ -6355,7 +6375,12 @@ module.exports = class binance extends Exchange {
             } else {
                 query = this.urlencode (extendedParams);
             }
-            const signature = this.hmac (this.encode (query), this.encode (this.secret));
+            let signature = undefined;
+            if (this.secret.indexOf ('-----BEGIN RSA PRIVATE KEY-----') > -1) {
+                signature = this.rsa (this.encode (query), this.encode (this.secret));
+            } else {
+                signature = this.hmac (this.encode (query), this.encode (this.secret));
+            }
             query += '&' + 'signature=' + signature;
             headers = {
                 'X-MBX-APIKEY': this.apiKey,

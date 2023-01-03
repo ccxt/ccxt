@@ -600,6 +600,7 @@ class wazirx(Exchange, ccxt.async_support.wazirx):
             'side': self.safe_string(order, 'o'),
             'price': self.safe_string(order, 'p'),
             'stopPrice': None,
+            'triggerPrice': None,
             'amount': self.safe_string(order, 'V'),
             'filled': None,
             'remaining': self.safe_string(order, 'q'),

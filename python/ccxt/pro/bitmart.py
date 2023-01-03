@@ -223,6 +223,7 @@ class bitmart(Exchange, ccxt.async_support.bitmart):
             'side': side,
             'price': price,
             'stopPrice': None,
+            'triggerPrice': None,
             'amount': amount,
             'cost': None,
             'average': None,

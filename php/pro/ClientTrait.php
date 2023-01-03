@@ -112,7 +112,7 @@ trait ClientTrait {
                 }
             }
         );
-        return $future->promise();
+        return $future;
     }
 
     public function on_connected($client, $message = null) {

@@ -488,6 +488,7 @@ module.exports = class okx extends okxRest {
                 const update = data[i];
                 const orderbook = this.orderBook ({}, limit);
                 this.orderbooks[symbol] = orderbook;
+                orderbook['symbol'] = symbol;
                 this.handleOrderBookMessage (client, update, orderbook, messageHash);
                 client.resolve (orderbook, messageHash);
             }

@@ -1398,17 +1398,6 @@ The ccxt library currently supports the following cryptocurrency exchange market
           :target: https://docs.poloniex.com
           :alt: API Version *
      
-   * - US
-     - .. image:: https://user-images.githubusercontent.com/51840849/80491487-74a99c00-896b-11ea-821e-d307e832f13e.jpg
-          :target: https://qtrade.io/?ref=BKOQWVFGRH2C
-          :alt: qtrade
-     
-     - qtrade
-     - `qTrade <https://qtrade.io/?ref=BKOQWVFGRH2C>`__
-     - .. image:: https://img.shields.io/badge/1-lightgray
-          :target: https://qtrade-exchange.github.io/qtrade-docs
-          :alt: API Version 1
-     
    * - Ukraine
      - .. image:: https://user-images.githubusercontent.com/1294454/27941483-79fc7350-62d9-11e7-9f61-ac47f28fcd96.jpg
           :target: https://btc-trade.com.ua/registration/22689

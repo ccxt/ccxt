@@ -303,7 +303,7 @@ module.exports = class digifinex extends Exchange {
                     'SOLANA': 'SOL', // SOL & SPL
                     'STELLAR': 'Stella', // XLM
                     'TERRACLASSIC': 'TerraClassic',
-                    'TERRANEW': 'Terra',
+                    'TERRA': 'Terra',
                     'TON': 'Ton',
                     'TRC20': 'TRC20',
                     'TRON': 'TRC20',
@@ -333,7 +333,7 @@ module.exports = class digifinex extends Exchange {
                     'XRP': 'RIPPLE',
                     'SOL': 'SOLANA',
                     'Stella': 'STELLAR',
-                    'Terra': 'TERRANEW',
+                    'Terra': 'TERRA',
                     'TerraClassic': 'TERRACLASSIC',
                     'Ton': 'TON',
                     'TRC20': 'TRC20',
@@ -1900,6 +1900,7 @@ module.exports = class digifinex extends Exchange {
             'side': side,
             'price': this.safeNumber (order, 'price'),
             'stopPrice': undefined,
+            'triggerPrice': undefined,
             'amount': this.safeNumber2 (order, 'amount', 'size'),
             'filled': this.safeNumber2 (order, 'executed_amount', 'filled_qty'),
             'remaining': undefined,
