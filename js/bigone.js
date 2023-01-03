@@ -342,12 +342,13 @@ module.exports = class bigone extends Exchange {
             // Else it assumes USD as the base and settle in base currency
             const market = contracts[i];
             const id = this.safeString (market, 'symbol');
-            const lastChar = id[id.length - 1];
+            const idLength = id.length;
+            const lastChar = this.safeString (id, idLength - 1);
             const difference = (lastChar === 'T') ? 4 : 3;
-            const index = id.length - difference;
-            const quoteId = id.slice (index);
-            const settleId = quoteId;
+            const index = idLength - difference;
             const baseId = id.slice (0, index);
+            const quoteId = id.slice (index);
+            const settleId = quoteId === 'USD' ? baseId : quoteId;
             const base = this.safeCurrencyCode (baseId);
             const quote = this.safeCurrencyCode (quoteId);
             const settle = this.safeCurrencyCode (settleId);
@@ -368,8 +369,8 @@ module.exports = class bigone extends Exchange {
                 'option': false,
                 'active': true,
                 'contract': true,
-                'linear': true,
-                'inverse': false,
+                'linear': settleId === baseId,
+                'inverse': settleId !== baseId,
                 'contractSize': undefined, // todo hardcode contract size
                 'expiry': undefined,
                 'expiryDatetime': undefined,
@@ -1098,6 +1099,7 @@ module.exports = class bigone extends Exchange {
             'stopPrice': stopPrice,
             'triggerPrice': undefined,
             'amount': amount,
+            'average': average,
             'cost': this.safeNumber (order, 'filledNotional'),
             'filled': filled,
             'remaining': undefined,
@@ -1145,11 +1147,11 @@ module.exports = class bigone extends Exchange {
                 'asset_pair_name': market['id'], // asset pair name BTC-USDT, required
                 'side': side, // order side one of "ASK"/"BID", required
                 'amount': this.amountToPrecision (symbol, amount), // order amount, string, required
-                // 'price': this.priceToPrecision (symbol, price), // order price, string, required
+                // 'price': this.priceToPrecision (symbol, price), order price, string, required
                 'type': uppercaseType,
-            // 'operator': 'GTE', // stop orders only, GTE greater than and equal, LTE less than and equal
-            // 'immediate_or_cancel': false, // limit orders only, must be false when post_only is true
-            // 'post_only': false, // limit orders only, must be false when immediate_or_cancel is true
+                // 'operator': 'GTE', stop orders only, GTE greater than and equal, LTE less than and equal
+                // 'immediate_or_cancel': false, limit orders only, must be false when post_only is true
+                // 'post_only': false, limit orders only, must be false when immediate_or_cancel is true
             };
             if (uppercaseType === 'LIMIT') {
                 request['price'] = this.priceToPrecision (symbol, price);
