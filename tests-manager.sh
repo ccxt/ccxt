@@ -89,7 +89,7 @@ function run_tests {
   wait $rest_pid && wait $ws_pid && echo "$TRAVIS_BUILD_WEB_URL" > "$cached_url_file"
 }
 
-if [ "$delta" -gt $six_hours ] || grep -q -E 'Exchange.php|/test|/base|^build|static_dependencies|^run-tests' <<< "$diff"; then
+if [ "$delta" -gt $six_hours ] || grep -q -E 'Exchange\.php|/test|/base|^build|static_dependencies|^run-tests|package(-lock)?\.json$' <<< "$diff"; then
   # shellcheck disable=SC2155
   run_tests && date +%s > "$cached_timestamp_file"
 else
