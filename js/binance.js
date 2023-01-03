@@ -1146,7 +1146,7 @@ module.exports = class binance extends Exchange {
                     'JPY': true,
                     'NZD': true,
                 },
-                'reverseCurrencyToLeagalMoney': {
+                'legalMoneyCurrenciesById': {
                     'BUSD': 'USD',
                 },
             },
@@ -4375,8 +4375,8 @@ module.exports = class binance extends Exchange {
             const txType = this.safeString (transaction, 'transactionType');
             type = (txType === '0') ? 'deposit' : 'withdrawal';
             timestamp = insertTime;
-            const reverseCurrencyToLeagalMoney = this.safeValue (this.options, 'reverseCurrencyToLeagalMoney');
-            code = this.safeString (reverseCurrencyToLeagalMoney, code, code);
+            const legalMoneyCurrenciesById = this.safeValue (this.options, 'legalMoneyCurrenciesById');
+            code = this.safeString (legalMoneyCurrenciesById, code, code);
         }
         const status = this.parseTransactionStatusByType (this.safeString (transaction, 'status'), type);
         const amount = this.safeNumber (transaction, 'amount');
