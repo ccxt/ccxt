@@ -422,13 +422,7 @@ class Exchange(object):
                     setattr(cls, camelcase, getattr(cls, name))
                 else:
                     setattr(self, camelcase, attr)
-
-        self.tokenBucket = self.extend({
-            'refillRate': 1.0 / self.rateLimit if self.rateLimit > 0 else float('inf'),
-            'delay': 0.001,
-            'capacity': 1.0,
-            'defaultCost': 1.0,
-        }, getattr(self, 'tokenBucket', {}))
+        self.tokenBucket = self.calculate_rate_limit_config(self)
 
         if not self.session and self.synchronous:
             self.session = Session()
@@ -461,6 +455,18 @@ class Exchange(object):
         elif 'apiBackup' in self.urls:
             self.urls['api'] = self.urls['apiBackup']
             del self.urls['apiBackup']
+
+    def calculate_rate_limit_config(self, rate_limit_config):
+        rate_limit = self.safe_number(rate_limit_config, 'rateLimit')
+        token_bucket = self.safe_value(rate_limit_config, 'tokenBucket', {})
+        config = self.extend({
+            'delay': 0.001,
+            'capacity': 1,
+            'cost': 1,
+            'maxCapacity': 1000,
+            'refillRate': 1 / rate_limit if rate_limit > 0 else float('inf'),
+        }, token_bucket)
+        return config
 
     def define_rest_api_endpoint(self, method_name, uppercase_method, lowercase_method, camelcase_method, path, paths, config={}):
         cls = type(self)

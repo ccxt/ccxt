@@ -40,18 +40,6 @@ module.exports = class Exchange extends BaseExchange {
         return new CountedOrderBook (snapshot, depth);
     }
 
-    calculateRateLimitConfig (rateLimitConfig) {
-        const rateLimit = this.safeNumber (rateLimitConfig, 'rateLimit');
-        const config = this.extend ({
-            'delay': 0.001,
-            'capacity': 1,
-            'cost': 1,
-            'maxCapacity': 1000,
-            'refillRate': (rateLimit !== undefined) ? 1 / rateLimit : Number.MAX_VALUE,
-        }, rateLimitConfig);
-        return config;
-    }
-
     client (url) {
         const wsOptions = this.safeValue (this.options, 'ws', {});
         // get ws rl config

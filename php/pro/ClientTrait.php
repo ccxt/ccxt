@@ -44,18 +44,6 @@ trait ClientTrait {
         return new CountedOrderBook($snapshot, $depth);
     }
 
-    public function calculate_rate_limit_config($rate_limit_config) {
-        $rate_limit = $this->safe_number($rate_limit_config, 'rateLimit');
-        $config = $this->extend(array(
-            'delay' => 0.001,
-            'capacity' => 1,
-            'cost' => 1,
-            'maxCapacity' => 1000,
-            'refillRate' => ($this->rateLimit > 0) ? 1.0 / $this->rateLimit : PHP_INT_MAX,
-        ), $rate_limit_config);
-        return $config;
-    }
-
     public function client($url) {
         $ws_options = $this->safe_value($this->options, 'ws', array());
         # get ws rl config

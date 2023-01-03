@@ -73,18 +73,16 @@ module.exports = class binance extends binanceRest {
                 'ws': {
                     'rateLimits': {
                         'default': {
-                            'delay': 0.001,
-                            'capacity': 1,
-                            'cost': 1,
-                            'maxCapacity': 1000,
-                            'refillRate': 0.003,
+                            'tokenBucket': {
+                                'delay': 0.001,
+                                'capacity': 1,
+                                'cost': 1,
+                                'maxCapacity': 1000,
+                                'refillRate': 0.003,
+                            },
                         },
                         'newConnections': {
-                            'delay': 0.001,
-                            'capacity': 1,
-                            'cost': 1,
-                            'maxCapacity': 1000,
-                            'refillRate': 0.003,
+                            'rateLimit': 50,
                         },
                     },
                 },

@@ -58,17 +58,6 @@ class Exchange(BaseExchange):
     def counted_order_book(self, snapshot={}, depth=None):
         return CountedOrderBook(snapshot, depth)
 
-    def calculate_rate_limit_config(self, rate_limit_config):
-        rate_limit = self.safe_number(rate_limit_config, 'rateLimit')
-        config = self.extend({
-            'delay': 0.001,
-            'capacity': 1,
-            'cost': 1,
-            'maxCapacity': 1000,
-            'refillRate': 1 / rate_limit if rate_limit > 0 else float('inf'),
-        }, rate_limit_config)
-        return config
-
     def client(self, url):
         ws_options = self.safe_value(self.options, 'ws', {})
         # get ws rl config

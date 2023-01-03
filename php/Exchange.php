@@ -256,6 +256,7 @@ class Exchange {
         'encodeURIComponent' => 'encode_uri_component',
         'checkRequiredVersion' => 'check_required_version',
         'checkAddress' => 'check_address',
+        'calculateRateLimitConfig' => 'calculate_rate_limit_config',
         'initRestRateLimiter' => 'init_rest_rate_limiter',
         'setSandboxMode' => 'set_sandbox_mode',
         'defineRestApiEndpoint' => 'define_rest_api_endpoint',
@@ -1423,13 +1424,7 @@ class Exchange {
             }
         }
 
-        $this->tokenBucket = array(
-            'delay' => 0.001,
-            'capacity' => 1.0,
-            'cost' => 1.0,
-            'maxCapacity' => 1000,
-            'refillRate' => ($this->rateLimit > 0) ? 1.0 / $this->rateLimit : PHP_INT_MAX,
-        );
+        $this->tokenBucket = $this->calculate_rate_limit_config($this);
 
         if ($this->urlencode_glue !== '&') {
             if ($this->urlencode_glue_warning) {
@@ -1448,6 +1443,19 @@ class Exchange {
         if ($this->markets) {
             $this->set_markets($this->markets);
         }
+    }
+
+    public function calculate_rate_limit_config($rate_limit_config) {
+        $rate_limit = $this->safe_number($rate_limit_config, 'rateLimit');
+        $token_bucket = $this->safe_value($rate_limit_config, 'tokenBucket', array());
+        $config = $this->extend(array(
+            'delay' => 0.001,
+            'capacity' => 1,
+            'cost' => 1,
+            'maxCapacity' => 1000,
+            'refillRate' => ($this->rateLimit > 0) ? 1.0 / $this->rateLimit : PHP_INT_MAX,
+        ), $token_bucket);
+        return $config;
     }
 
     public function set_sandbox_mode($enabled) {
