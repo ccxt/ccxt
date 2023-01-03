@@ -1233,7 +1233,7 @@ module.exports = class whitebit extends Exchange {
             const id = balanceKeys[i];
             const code = this.safeCurrencyCode (id);
             const balance = response[id];
-            if (typeof balance === 'object' && balance !== null) {
+            if (typeof balance === 'object' && balance !== undefined) {
                 const account = this.account ();
                 account['free'] = this.safeString (balance, 'available');
                 account['used'] = this.safeString (balance, 'freeze');
