@@ -40,15 +40,29 @@ module.exports = class Exchange extends BaseExchange {
         return new CountedOrderBook (snapshot, depth);
     }
 
+    calculateRateLimitConfig (rateLimitConfig) {
+        const rateLimit = this.safeNumber (rateLimitConfig, 'rateLimit');
+        const config = this.extend ({
+            'delay': 0.001,
+            'capacity': 1,
+            'cost': 1,
+            'maxCapacity': 1000,
+            'refillRate': (rateLimit !== undefined) ? 1 / rateLimit : Number.MAX_VALUE,
+        }, rateLimitConfig);
+        return config;
+    }
+
     client (url) {
         const wsOptions = this.safeValue (this.options, 'ws', {});
         // get ws rl config
         const rateLimits =  this.safeValue (wsOptions, 'rateLimits', {});
         // get ws rl config, if no rateLimit is defined in the WS implementation, we fallback to the ccxt one
-        const defaultRateLimitConfig = this.safeValue (rateLimits, 'default', this.tokenBucket);
+        let defaultRateLimitConfig = this.safeValue (rateLimits, 'default', this.tokenBucket);
+        defaultRateLimitConfig = this.calculateRateLimitConfig (defaultRateLimitConfig);
         if (!this.clients) {
             // get new connections rl config if not fallback to default
-            const newConnectionsRateLimitConfig = this.safeValue (rateLimits, 'newConnections', defaultRateLimitConfig);
+            let newConnectionsRateLimitConfig = this.safeValue (rateLimits, 'newConnections', defaultRateLimitConfig);
+            newConnectionsRateLimitConfig = this.calculateRateLimitConfig (newConnectionsRateLimitConfig);
             const throttleInstance = throttle (newConnectionsRateLimitConfig);
             this.clients = {
                 'throttle': throttleInstance
@@ -61,7 +75,8 @@ module.exports = class Exchange extends BaseExchange {
             const onConnected = this.onConnected.bind (this);
             // decide client type here: ws / signalr / socketio
             // allowing specify rate limits per url, if not specified use default
-            const rateLimitConfig = this.safeValue (rateLimits, url, defaultRateLimitConfig)
+            let rateLimitConfig = this.safeValue (rateLimits, url, defaultRateLimitConfig)
+            rateLimitConfig = this.calculateRateLimitConfig (rateLimitConfig);
             const options = this.deepExtend (this.streaming, {
                 'log': this.log ? this.log.bind (this) : this.log,
                 'ping': this.ping ? this.ping.bind (this) : this.ping,

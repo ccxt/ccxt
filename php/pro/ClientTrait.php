@@ -44,15 +44,29 @@ trait ClientTrait {
         return new CountedOrderBook($snapshot, $depth);
     }
 
+    public function calculate_rate_limit_config($rate_limit_config) {
+        $rate_limit = $this->safe_number($rate_limit_config, 'rateLimit');
+        $config = $this->extend(array(
+            'delay' => 0.001,
+            'capacity' => 1,
+            'cost' => 1,
+            'maxCapacity' => 1000,
+            'refillRate' => ($this->rateLimit > 0) ? 1.0 / $this->rateLimit : PHP_INT_MAX,
+        ), $rate_limit_config);
+        return $config;
+    }
+
     public function client($url) {
         $ws_options = $this->safe_value($this->options, 'ws', array());
         # get ws rl config
         $rate_limits = $this->safe_value($ws_options, 'rateLimits', array());
         # if no rateLimit is defined in the WS implementation, we fallback to the ccxt one
         $default_rate_limit_config = $this->safe_value($rate_limits, 'default', $this->tokenBucket);
+        $default_rate_limit_config = $this->calculate_rate_limit_config($default_rate_limit_config);
         if (!array_key_exists($this, 'clients')) {
             # get new connections rl config if not fallback to default
             $new_connections_limit_config = $this.safe_value($rate_limits, 'newConnections', $default_rate_limit_config);
+            $new_connections_limit_config = $this->calculate_rate_limit_config($new_connections_limit_config);
             $this->clients = array(
                 'throttle' => new Throttler($new_connections_limit_config, $this->asyncio_loop),
             );
@@ -64,6 +78,7 @@ trait ClientTrait {
             $on_connected = array($this, 'on_connected');
             # allowing specify rate limits per url, if not specified use default
             $rate_limit_config = $this->safe_value($rate_limits, $url, $default_rate_limit_config);
+            $rate_limit_config = $this->calculate_rate_limit_config($rate_limit_config);
             $options = array_replace_recursive(array(
                 'log' => array($this, 'log'),
                 'verbose' => $this->verbose,

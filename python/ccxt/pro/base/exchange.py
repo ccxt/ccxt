@@ -58,15 +58,28 @@ class Exchange(BaseExchange):
     def counted_order_book(self, snapshot={}, depth=None):
         return CountedOrderBook(snapshot, depth)
 
+    def calculate_rate_limit_config(self, rate_limit_config):
+        rate_limit = self.safe_number(rate_limit_config, 'rateLimit')
+        config = self.extend({
+            'delay': 0.001,
+            'capacity': 1,
+            'cost': 1,
+            'maxCapacity': 1000,
+            'refillRate': 1 / rate_limit if rate_limit > 0 else float('inf'),
+        }, rate_limit_config)
+        return config
+
     def client(self, url):
         ws_options = self.safe_value(self.options, 'ws', {})
         # get ws rl config
         rate_limits = self.safe_value(ws_options, 'rateLimits', {})
         # get ws rl config, if no rateLimit is defined in the WS implementation, we fallback to the ccxt one
         default_rate_limit_config = self.safe_value(rate_limits, 'default', self.tokenBucket)
+        default_rate_limit_config = self.calculate_rate_limit_config(default_rate_limit_config)
         if not self.clients:
             # get new connections rl config if not fallback to default
             new_connections_limit_config = self.safe_value(rate_limits, 'newConnections', default_rate_limit_config)
+            new_connections_limit_config = self.calculate_rate_limit_config(new_connections_limit_config)
             self.clients = {
                 'throttle': Throttler(new_connections_limit_config, self.asyncio_loop),
             }
@@ -77,6 +90,7 @@ class Exchange(BaseExchange):
             on_connected = self.on_connected
             # allowing specify rate limits per url, if not specified use default
             rate_limit_config = self.safe_value(rate_limits, url, default_rate_limit_config)
+            rate_limit_config = self.calculate_rate_limit_config(rate_limit_config)
             # decide client type here: aiohttp ws / websockets / signalr / socketio
             options = self.extend(self.streaming, {
                 'log': getattr(self, 'log'),
