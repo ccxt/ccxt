@@ -6,13 +6,11 @@ namespace ccxt;
 // https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 use Exception; // a common import
-use \ccxt\ExchangeError;
-use \ccxt\ArgumentsRequired;
 
 class yobit extends Exchange {
 
     public function describe() {
-        return $this->deep_extend(parent::describe (), array(
+        return $this->deep_extend(parent::describe(), array(
             'id' => 'yobit',
             'name' => 'YoBit',
             'countries' => array( 'RU' ),
@@ -217,6 +215,7 @@ class yobit extends Exchange {
                 'SBTC' => 'Super Bitcoin',
                 'SMC' => 'SmartCoin',
                 'SOLO' => 'SoloCoin',
+                'SOUL' => 'SoulCoin',
                 'STAR' => 'StarCoin',
                 'SUPER' => 'SuperCoin',
                 'TNS' => 'Transcodium',
@@ -232,6 +231,11 @@ class yobit extends Exchange {
                 // 'fetchTickersMaxLength' => 2048,
                 'fetchOrdersRequiresSymbol' => true,
                 'fetchTickersMaxLength' => 512,
+                'networks' => array(
+                    'ETH' => 'ERC20',
+                    'TRX' => 'TRC20',
+                    'BSC' => 'BEP20',
+                ),
             ),
             'precisionMode' => TICK_SIZE,
             'exceptions' => array(
@@ -461,7 +465,7 @@ class yobit extends Exchange {
             $ids = implode('-', $this->ids);
             // max URL length is 2083 $symbols, including http schema, hostname, tld, etc...
             if (strlen($ids) > 2048) {
-                $numIds = is_array($this->ids) ? count($this->ids) : 0;
+                $numIds = count($this->ids);
                 throw new ExchangeError($this->id . ' fetchOrderBooks() has ' . (string) $numIds . ' $symbols exceeding max URL length, you are required to specify a list of $symbols in the first argument to fetchOrderBooks');
             }
         } else {
@@ -534,9 +538,10 @@ class yobit extends Exchange {
          * @return {array} an array of {@link https://docs.ccxt.com/en/latest/manual.html#$ticker-structure $ticker structures}
          */
         $this->load_markets();
+        $symbols = $this->market_symbols($symbols);
         $ids = $this->ids;
         if ($symbols === null) {
-            $numIds = is_array($ids) ? count($ids) : 0;
+            $numIds = count($ids);
             $ids = implode('-', $ids);
             $maxLength = $this->safe_integer($this->options, 'fetchTickersMaxLength', 2048);
             // max URL length is 2048 $symbols, including http schema, hostname, tld, etc...
@@ -685,7 +690,7 @@ class yobit extends Exchange {
         //      }
         //
         if (gettype($response) === 'array' && array_keys($response) === array_keys(array_keys($response))) {
-            $numElements = is_array($response) ? count($response) : 0;
+            $numElements = count($response);
             if ($numElements === 0) {
                 return array();
             }
@@ -930,6 +935,7 @@ class yobit extends Exchange {
             'side' => $side,
             'price' => $price,
             'stopPrice' => null,
+            'triggerPrice' => null,
             'cost' => null,
             'amount' => $amount,
             'remaining' => $remaining,
@@ -1112,8 +1118,18 @@ class yobit extends Exchange {
          */
         $this->load_markets();
         $currency = $this->currency($code);
+        $currencyId = $currency['id'];
+        $networks = $this->safe_value($this->options, 'networks', array());
+        $network = $this->safe_string_upper($params, 'network'); // this line allows the user to specify either ERC20 or ETH
+        $network = $this->safe_string($networks, $network, $network); // handle ERC20>ETH alias
+        if ($network !== null) {
+            if ($network !== 'ERC20') {
+                $currencyId = $currencyId . strtolower($network);
+            }
+            $params = $this->omit($params, 'network');
+        }
         $request = array(
-            'coinName' => $currency['id'],
+            'coinName' => $currencyId,
             'need_new' => 0,
         );
         $response = $this->privatePostGetDepositAddress (array_merge($request, $params));

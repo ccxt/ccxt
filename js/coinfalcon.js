@@ -125,10 +125,6 @@ module.exports = class coinfalcon extends Exchange {
                     'taker': 0.002, // tiered fee starts at 0.2%
                 },
             },
-            'precision': {
-                'amount': this.parseNumber ('0.00000001'),
-                'price': this.parseNumber ('0.00000001'),
-            },
             'precisionMode': TICK_SIZE,
         });
     }
@@ -289,6 +285,7 @@ module.exports = class coinfalcon extends Exchange {
          * @returns {object} an array of [ticker structures]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
          */
         await this.loadMarkets ();
+        symbols = this.marketSymbols (symbols);
         const response = await this.publicGetMarkets (params);
         //
         //     {
@@ -655,6 +652,7 @@ module.exports = class coinfalcon extends Exchange {
             'side': side,
             'price': priceString,
             'stopPrice': undefined,
+            'triggerPrice': undefined,
             'cost': undefined,
             'amount': amountString,
             'filled': filledString,

@@ -476,6 +476,9 @@ module.exports = class bitflyer extends Exchange {
         const request = {
             'product_code': market['id'],
         };
+        if (limit !== undefined) {
+            request['count'] = limit;
+        }
         const response = await this.publicGetGetexecutions (this.extend (request, params));
         return this.parseTrades (response, market, since, limit);
     }
@@ -607,6 +610,7 @@ module.exports = class bitflyer extends Exchange {
             'side': side,
             'price': price,
             'stopPrice': undefined,
+            'triggerPrice': undefined,
             'cost': undefined,
             'amount': amount,
             'filled': filled,

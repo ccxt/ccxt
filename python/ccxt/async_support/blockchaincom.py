@@ -861,7 +861,7 @@ class blockchaincom(Exchange):
         request = {
             'amount': amount,
             'currency': currency['id'],
-            # 'beneficiary': address/id,
+            'beneficiary': address,
             'sendMax': False,
         }
         response = await self.privatePostWithdrawals(self.extend(request, params))
@@ -894,8 +894,11 @@ class blockchaincom(Exchange):
         }
         if since is not None:
             request['from'] = since
+        currency = None
+        if code is not None:
+            currency = self.currency(code)
         response = await self.privateGetWithdrawals(self.extend(request, params))
-        return self.parse_transactions(response, code, since, limit)
+        return self.parse_transactions(response, currency, since, limit)
 
     async def fetch_withdrawal(self, id, code=None, params={}):
         """
@@ -928,8 +931,11 @@ class blockchaincom(Exchange):
         }
         if since is not None:
             request['from'] = since
+        currency = None
+        if code is not None:
+            currency = self.currency(code)
         response = await self.privateGetDeposits(self.extend(request, params))
-        return self.parse_transactions(response, code, since, limit)
+        return self.parse_transactions(response, currency, since, limit)
 
     async def fetch_deposit(self, id, code=None, params={}):
         """

@@ -199,8 +199,8 @@ module.exports = class hitbtc extends Exchange {
                 'trading': {
                     'tierBased': false,
                     'percentage': true,
-                    'maker': 0.1 / 100,
-                    'taker': 0.2 / 100,
+                    'maker': this.parseNumber ('0.001'),
+                    'taker': this.parseNumber ('0.002'),
                 },
             },
             'options': {
@@ -467,7 +467,6 @@ module.exports = class hitbtc extends Exchange {
             // to add support for multiple withdrawal/deposit methods and
             // differentiated fees for each particular method
             const precision = this.safeString (currency, 'precisionTransfer', '8');
-            const decimals = this.parseNumber (precision);
             const code = this.safeCurrencyCode (id);
             const payin = this.safeValue (currency, 'payinEnabled');
             const payout = this.safeValue (currency, 'payoutEnabled');
@@ -499,7 +498,7 @@ module.exports = class hitbtc extends Exchange {
                 'precision': this.parseNumber (this.parsePrecision (precision)),
                 'limits': {
                     'amount': {
-                        'min': 1 / Math.pow (10, decimals),
+                        'min': undefined,
                         'max': undefined,
                     },
                     'withdraw': {
@@ -720,6 +719,7 @@ module.exports = class hitbtc extends Exchange {
          * @returns {object} an array of [ticker structures]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
          */
         await this.loadMarkets ();
+        symbols = this.marketSymbols (symbols);
         const response = await this.publicGetTicker (params);
         const result = {};
         for (let i = 0; i < response.length; i++) {
@@ -901,33 +901,36 @@ module.exports = class hitbtc extends Exchange {
         const amount = this.safeNumber (transaction, 'amount');
         const address = this.safeString (transaction, 'address');
         const txid = this.safeString (transaction, 'hash');
-        let fee = undefined;
+        const fee = {
+            'currency': undefined,
+            'cost': undefined,
+            'rate': undefined,
+        };
         const feeCost = this.safeNumber (transaction, 'fee');
         if (feeCost !== undefined) {
-            fee = {
-                'cost': feeCost,
-                'currency': code,
-            };
+            fee['cost'] = feeCost;
+            fee['currency'] = code;
         }
         const type = this.parseTransactionType (this.safeString (transaction, 'type'));
         return {
             'info': transaction,
             'id': id,
             'txid': txid,
+            'type': type,
+            'currency': code,
+            'network': undefined,
+            'amount': amount,
+            'status': status,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'network': undefined,
             'address': address,
-            'addressTo': undefined,
             'addressFrom': undefined,
+            'addressTo': undefined,
             'tag': undefined,
-            'tagTo': undefined,
             'tagFrom': undefined,
-            'type': type,
-            'amount': amount,
-            'currency': code,
-            'status': status,
+            'tagTo': undefined,
             'updated': updated,
+            'comment': undefined,
             'fee': fee,
         };
     }
@@ -1154,6 +1157,7 @@ module.exports = class hitbtc extends Exchange {
             'side': side,
             'price': price,
             'stopPrice': undefined,
+            'triggerPrice': undefined,
             'average': average,
             'amount': amount,
             'cost': undefined,

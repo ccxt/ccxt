@@ -25,6 +25,7 @@ class woo(Exchange):
             'rateLimit': 100,
             'version': 'v1',
             'certified': False,
+            'pro': True,
             'hostname': 'woo.org',
             'has': {
                 'CORS': None,
@@ -132,12 +133,14 @@ class woo(Exchange):
                     'pub': {
                         'get': {
                             'hist/kline': 10,
+                            'hist/trades': 1,
                         },
                     },
                     'public': {
                         'get': {
                             'info': 1,
                             'info/{symbol}': 1,
+                            'system_info': 1,
                             'market_trades': 1,
                             'token': 1,
                             'token_network': 1,
@@ -160,7 +163,7 @@ class woo(Exchange):
                             'order/{oid}/trades': 1,
                             'client/trades': 1,
                             'client/info': 60,
-                            'asset/deposit': 120,
+                            'asset/deposit': 10,
                             'asset/history': 60,
                             'sub_account/all': 60,
                             'sub_account/assets': 60,
@@ -169,13 +172,13 @@ class woo(Exchange):
                             'interest/history': 60,
                             'interest/repay': 60,
                             'funding_fee/history': 30,
-                            'positions': 30,
-                            'position/{symbol}': 30,
+                            'positions': 3.33,  # 30 requests per 10 seconds
+                            'position/{symbol}': 3.33,
                         },
                         'post': {
                             'order': 5,  # 2 requests per 1 second per symbol
                             'asset/main_sub_transfer': 30,  # 20 requests per 60 seconds
-                            'asset/withdraw': 120,  # implemented in ccxt, disabled on the exchange side https://kronosresearch.github.io/wootrade-documents/#token-withdraw
+                            'asset/withdraw': 30,  # implemented in ccxt, disabled on the exchange side https://kronosresearch.github.io/wootrade-documents/#token-withdraw
                             'interest/repay': 60,
                             'client/account_mode': 120,
                             'client/leverage': 120,
@@ -192,6 +195,23 @@ class woo(Exchange):
                     'private': {
                         'get': {
                             'client/holding': 1,
+                        },
+                    },
+                },
+                'v3': {
+                    'private': {
+                        'get': {
+                            'algo/order/{oid}': 1,
+                            'algo/orders': 1,
+                        },
+                        'post': {
+                            'algo/order': 5,
+                        },
+                        'delete': {
+                            'algo/order/{oid}': 1,
+                            'algo/orders/pending': 1,
+                            'algo/orders/pending/{symbol}': 1,
+                            'orders/pending': 1,
                         },
                     },
                 },
@@ -600,6 +620,7 @@ class woo(Exchange):
             networks = networksByCurrencyId[currencyId]
             code = self.safe_currency_code(currencyId)
             name = None
+            minPrecision = None
             resultingNetworks = {}
             for j in range(0, len(networks)):
                 network = networks[j]
@@ -607,7 +628,9 @@ class woo(Exchange):
                 networkId = self.safe_string(network, 'token')
                 splitted = networkId.split('_')
                 unifiedNetwork = splitted[0]
-                precision = self.parse_number(self.parse_precision(self.safe_string(network, 'decimals')))
+                precision = self.parse_precision(self.safe_string(network, 'decimals'))
+                if precision is not None:
+                    minPrecision = precision if (minPrecision is None) else Precise.string_min(precision, minPrecision)
                 resultingNetworks[unifiedNetwork] = {
                     'id': networkId,
                     'network': unifiedNetwork,
@@ -625,17 +648,19 @@ class woo(Exchange):
                     'deposit': None,
                     'withdraw': None,
                     'fee': None,
-                    'precision': precision,  # will be filled down below
+                    'precision': self.parse_number(precision),
                     'info': network,
                 }
             result[code] = {
                 'id': currencyId,
                 'name': name,
                 'code': code,
-                'precision': None,
+                'precision': self.parse_number(minPrecision),
                 'active': None,
                 'fee': None,
                 'networks': resultingNetworks,
+                'deposit': None,
+                'withdraw': None,
                 'limits': {
                     'deposit': {
                         'min': None,
@@ -646,7 +671,7 @@ class woo(Exchange):
                         'max': None,
                     },
                 },
-                'info': networks,  # will be filled down below
+                'info': networks,
             }
         return result
 
@@ -687,7 +712,10 @@ class woo(Exchange):
                         if price is None:
                             raise InvalidOrder(self.id + " createOrder() requires the price argument for market buy orders to calculate total order cost. Supply a price argument to createOrder() call if you want the cost to be calculated for you from price and amount, or alternatively, supply the total cost value in the 'order_amount' in  exchange-specific parameters")
                         else:
-                            request['order_amount'] = self.cost_to_precision(symbol, amount * price)
+                            amountString = self.number_to_string(amount)
+                            priceString = self.number_to_string(price)
+                            orderAmount = Precise.string_mul(amountString, priceString)
+                            request['order_amount'] = self.cost_to_precision(symbol, orderAmount)
                     else:
                         request['order_amount'] = self.cost_to_precision(symbol, cost)
             else:
@@ -920,6 +948,7 @@ class woo(Exchange):
             'side': side,
             'price': price,
             'stopPrice': None,
+            'triggerPrice': None,
             'average': None,
             'amount': amount,
             'filled': filled,
@@ -985,7 +1014,7 @@ class woo(Exchange):
         timestamp = self.safe_integer(response, 'timestamp')
         return self.parse_order_book(response, symbol, timestamp, 'bids', 'asks', 'price', 'quantity')
 
-    async def fetch_ohlcv(self, symbol, timeframe='1h', since=None, limit=None, params={}):
+    async def fetch_ohlcv(self, symbol, timeframe='1m', since=None, limit=None, params={}):
         """
         fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
         :param str symbol: unified symbol of the market to fetch OHLCV data for
@@ -1648,11 +1677,15 @@ class woo(Exchange):
             url += path
             ts = str(self.nonce())
             auth = self.urlencode(params)
-            if method == 'POST' or method == 'DELETE':
+            if version == 'v3' and (method == 'POST'):
                 body = auth
+                auth = ts + method + '/' + version + '/' + path + body
             else:
-                url += '?' + auth
-            auth += '|' + ts
+                if method == 'POST' or method == 'DELETE':
+                    body = auth
+                else:
+                    url += '?' + auth
+                auth += '|' + ts
             signature = self.hmac(self.encode(auth), self.encode(self.secret), hashlib.sha256)
             headers = {
                 'x-api-key': self.apiKey,
@@ -1812,6 +1845,7 @@ class woo(Exchange):
 
     async def fetch_funding_rates(self, symbols, params={}):
         await self.load_markets()
+        symbols = self.market_symbols(symbols)
         response = await self.v1PublicGetFundingRates(params)
         #
         #     {
@@ -1831,7 +1865,6 @@ class woo(Exchange):
         #
         rows = self.safe_value(response, 'rows', {})
         result = self.parse_funding_rates(rows)
-        symbols = self.market_symbols(symbols)
         return self.filter_by_array(result, 'symbol', symbols)
 
     async def fetch_funding_rate_history(self, symbol=None, since=None, limit=None, params={}):
@@ -1882,7 +1915,7 @@ class woo(Exchange):
     async def fetch_leverage(self, symbol, params={}):
         await self.load_markets()
         response = await self.v1PrivateGetClientInfo(params)
-        #  #
+        #
         #     {
         #         "success": True,
         #         "application": {
@@ -2003,6 +2036,7 @@ class woo(Exchange):
         notional = Precise.string_mul(size, markPrice)
         return {
             'info': position,
+            'id': None,
             'symbol': self.safe_string(market, 'symbol'),
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),

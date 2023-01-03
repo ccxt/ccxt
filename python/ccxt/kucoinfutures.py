@@ -59,6 +59,8 @@ class kucoinfutures(kucoin):
                 'fetchCurrencies': False,
                 'fetchDepositAddress': True,
                 'fetchDeposits': True,
+                'fetchDepositWithdrawFee': False,
+                'fetchDepositWithdrawFees': False,
                 'fetchFundingHistory': True,
                 'fetchFundingRate': True,
                 'fetchFundingRateHistory': False,
@@ -83,7 +85,7 @@ class kucoinfutures(kucoin):
                 'fetchTickers': False,
                 'fetchTime': True,
                 'fetchTrades': True,
-                'fetchTransactionFee': True,
+                'fetchTransactionFee': False,
                 'fetchWithdrawals': True,
                 'setMarginMode': False,
                 'transfer': True,
@@ -407,14 +409,7 @@ class kucoinfutures(kucoin):
         #            "lastTradePrice": 4545.4500000000,
         #            "nextFundingRateTime": 25481884,
         #            "maxLeverage": 100,
-        #            "sourceExchanges":  [
-        #                "huobi",
-        #                "Okex",
-        #                "Binance",
-        #                "Kucoin",
-        #                "Poloniex",
-        #                "Hitbtc"
-        #            ],
+        #            "sourceExchanges":  ["huobi", "Okex", "Binance", "Kucoin", "Poloniex", "Hitbtc"],
         #            "premiumsSymbol1M": ".ETHUSDTMPI",
         #            "premiumsSymbol8H": ".ETHUSDTMPI8H",
         #            "fundingBaseSymbol1M": ".ETHINT",
@@ -445,11 +440,22 @@ class kucoinfutures(kucoin):
             if future:
                 symbol = symbol + '-' + self.yymmdd(expiry, '')
                 type = 'future'
-            baseMinSizeString = self.safe_string(market, 'baseMinSize')
-            quoteMaxSizeString = self.safe_string(market, 'quoteMaxSize')
             inverse = self.safe_value(market, 'isInverse')
             status = self.safe_string(market, 'status')
             multiplier = self.safe_string(market, 'multiplier')
+            tickSize = self.safe_number(market, 'tickSize')
+            lotSize = self.safe_number(market, 'lotSize')
+            limitAmountMin = lotSize
+            if limitAmountMin is None:
+                limitAmountMin = self.safe_number(market, 'baseMinSize')
+            limitAmountMax = self.safe_number(market, 'maxOrderQty')
+            if limitAmountMax is None:
+                limitAmountMax = self.safe_number(market, 'baseMaxSize')
+            limitPriceMax = self.safe_number(market, 'maxPrice')
+            if limitPriceMax is None:
+                baseMinSizeString = self.safe_string(market, 'baseMinSize')
+                quoteMaxSizeString = self.safe_string(market, 'quoteMaxSize')
+                limitPriceMax = self.parse_number(Precise.string_div(quoteMaxSizeString, baseMinSizeString))
             result.append({
                 'id': id,
                 'symbol': symbol,
@@ -477,8 +483,8 @@ class kucoinfutures(kucoin):
                 'strike': None,
                 'optionType': None,
                 'precision': {
-                    'amount': self.safe_number(market, 'lotSize'),
-                    'price': self.safe_number(market, 'tickSize'),
+                    'amount': lotSize,
+                    'price': tickSize,
                 },
                 'limits': {
                     'leverage': {
@@ -486,16 +492,16 @@ class kucoinfutures(kucoin):
                         'max': self.safe_number(market, 'maxLeverage'),
                     },
                     'amount': {
-                        'min': self.parse_number(baseMinSizeString),
-                        'max': self.safe_number(market, 'baseMaxSize'),
+                        'min': limitAmountMin,
+                        'max': limitAmountMax,
                     },
                     'price': {
-                        'min': None,
-                        'max': self.parse_number(Precise.string_div(quoteMaxSizeString, baseMinSizeString)),
+                        'min': tickSize,
+                        'max': limitPriceMax,
                     },
                     'cost': {
                         'min': self.safe_number(market, 'quoteMinSize'),
-                        'max': self.parse_number(quoteMaxSizeString),
+                        'max': self.safe_number(market, 'quoteMaxSize'),
                     },
                 },
                 'info': market,
@@ -517,7 +523,7 @@ class kucoinfutures(kucoin):
         #
         return self.safe_number(response, 'data')
 
-    def fetch_ohlcv(self, symbol, timeframe='15m', since=None, limit=None, params={}):
+    def fetch_ohlcv(self, symbol, timeframe='1m', since=None, limit=None, params={}):
         """
         fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
         :param str symbol: unified symbol of the market to fetch OHLCV data for
@@ -945,6 +951,7 @@ class kucoinfutures(kucoin):
         marginMode = 'cross' if crossMode else 'isolated'
         return {
             'info': position,
+            'id': None,
             'symbol': self.safe_string(market, 'symbol'),
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
@@ -1006,31 +1013,31 @@ class kucoinfutures(kucoin):
             'size': preciseAmount,
             'leverage': 1,
         }
-        stopPrice = self.safe_number(params, 'stopPrice')
+        stopPrice = self.safe_value_2(params, 'triggerPrice', 'stopPrice')
         if stopPrice:
             request['stop'] = 'up' if (side == 'buy') else 'down'
             stopPriceType = self.safe_string(params, 'stopPriceType', 'TP')
             request['stopPriceType'] = stopPriceType
+            request['stopPrice'] = self.price_to_precision(symbol, stopPrice)
         uppercaseType = type.upper()
-        timeInForce = self.safe_string(params, 'timeInForce')
+        timeInForce = self.safe_string_upper(params, 'timeInForce')
         if uppercaseType == 'LIMIT':
             if price is None:
                 raise ArgumentsRequired(self.id + ' createOrder() requires a price argument for limit orders')
             else:
                 request['price'] = self.price_to_precision(symbol, price)
             if timeInForce is not None:
-                timeInForce = timeInForce.upper()
                 request['timeInForce'] = timeInForce
         postOnly = self.safe_value(params, 'postOnly', False)
         hidden = self.safe_value(params, 'hidden')
-        if postOnly and hidden is not None:
+        if postOnly and (hidden is not None):
             raise BadRequest(self.id + ' createOrder() does not support the postOnly parameter together with a hidden parameter')
         iceberg = self.safe_value(params, 'iceberg')
         if iceberg:
             visibleSize = self.safe_value(params, 'visibleSize')
             if visibleSize is None:
                 raise ArgumentsRequired(self.id + ' createOrder() requires a visibleSize parameter for iceberg orders')
-        params = self.omit(params, 'timeInForce')  # Time in force only valid for limit orders, exchange error when gtc for market orders
+        params = self.omit(params, ['timeInForce', 'stopPrice', 'triggerPrice'])  # Time in force only valid for limit orders, exchange error when gtc for market orders
         response = self.futuresPrivatePostOrders(self.extend(request, params))
         #
         #    {
@@ -1062,6 +1069,7 @@ class kucoinfutures(kucoin):
             'timeInForce': None,
             'postOnly': None,
             'stopPrice': None,
+            'triggerPrice': None,
             'info': response,
         }
 
@@ -1383,6 +1391,7 @@ class kucoinfutures(kucoin):
             'amount': amount,
             'price': price,
             'stopPrice': stopPrice,
+            'triggerPrice': stopPrice,
             'cost': cost,
             'filled': filled,
             'remaining': None,
@@ -1867,12 +1876,21 @@ class kucoinfutures(kucoin):
 
     def fetch_transaction_fee(self, code, params={}):
         """
-        fetch the fee for a transaction
+        *DEPRECATED* please use fetchDepositWithdrawFee instead
         :param str code: unified currency code
         :param dict params: extra parameters specific to the kucoinfutures api endpoint
         :returns dict: a `fee structure <https://docs.ccxt.com/en/latest/manual.html#fee-structure>`
         """
-        raise BadRequest(self.id + ' fetchTransactionFee() is not supported yet')
+        raise BadRequest(self.id + ' fetchTransactionFee() is not supported')
+
+    def fetch_deposit_withdraw_fee(self, code, params={}):
+        """
+        Not supported
+        :param str code: unified currency code
+        :param dict params: extra parameters specific to the kucoinfutures api endpoint
+        :returns dict: a `fee structure <https://docs.ccxt.com/en/latest/manual.html#fee-structure>`
+        """
+        raise BadRequest(self.id + ' fetchDepositWithdrawFee() is not supported')
 
     def fetch_ledger(self, code=None, since=None, limit=None, params={}):
         raise BadRequest(self.id + ' fetchLedger() is not supported yet')

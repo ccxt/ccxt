@@ -1,4 +1,8 @@
 #!/usr/bin/env bash
+#
+# Usage example:
+#     bash multilang.sh -a "binance fetchTicker XRP/USDT"
+#
 
 function usage() {
   echo "usage: $0 [-clsh] exchange method [...args]"

@@ -366,8 +366,8 @@ module.exports = class upbit extends Exchange {
             'strike': undefined,
             'optionType': undefined,
             'precision': {
-                'amount': this.parseNumber ('0.00000001'),
-                'price': this.parseNumber ('0.00000001'),
+                'amount': this.parseNumber ('1e-8'),
+                'price': this.parseNumber ('1e-8'),
             },
             'limits': {
                 'leverage': {
@@ -444,8 +444,8 @@ module.exports = class upbit extends Exchange {
                 'strike': undefined,
                 'optionType': undefined,
                 'precision': {
-                    'price': this.parseNumber ('0.00000001'),
-                    'amount': this.parseNumber ('0.00000001'),
+                    'price': this.parseNumber ('1e-8'),
+                    'amount': this.parseNumber ('1e-8'),
                 },
                 'limits': {
                     'leverage': {
@@ -668,6 +668,7 @@ module.exports = class upbit extends Exchange {
          * @returns {object} an array of [ticker structures]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
          */
         await this.loadMarkets ();
+        symbols = this.marketSymbols (symbols);
         let ids = undefined;
         if (symbols === undefined) {
             ids = this.ids.join (',');
@@ -1430,6 +1431,7 @@ module.exports = class upbit extends Exchange {
             'side': side,
             'price': price,
             'stopPrice': undefined,
+            'triggerPrice': undefined,
             'cost': cost,
             'average': average,
             'amount': amount,

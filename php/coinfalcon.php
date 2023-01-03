@@ -6,12 +6,11 @@ namespace ccxt;
 // https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 use Exception; // a common import
-use \ccxt\ArgumentsRequired;
 
 class coinfalcon extends Exchange {
 
     public function describe() {
-        return $this->deep_extend(parent::describe (), array(
+        return $this->deep_extend(parent::describe(), array(
             'id' => 'coinfalcon',
             'name' => 'CoinFalcon',
             'countries' => array( 'GB' ),
@@ -124,10 +123,6 @@ class coinfalcon extends Exchange {
                     'maker' => 0.0,
                     'taker' => 0.002, // tiered fee starts at 0.2%
                 ),
-            ),
-            'precision' => array(
-                'amount' => $this->parse_number('0.00000001'),
-                'price' => $this->parse_number('0.00000001'),
             ),
             'precisionMode' => TICK_SIZE,
         ));
@@ -283,6 +278,7 @@ class coinfalcon extends Exchange {
          * @return {array} an array of {@link https://docs.ccxt.com/en/latest/manual.html#$ticker-structure $ticker structures}
          */
         $this->load_markets();
+        $symbols = $this->market_symbols($symbols);
         $response = $this->publicGetMarkets ($params);
         //
         //     {
@@ -637,6 +633,7 @@ class coinfalcon extends Exchange {
             'side' => $side,
             'price' => $priceString,
             'stopPrice' => null,
+            'triggerPrice' => null,
             'cost' => null,
             'amount' => $amountString,
             'filled' => $filledString,

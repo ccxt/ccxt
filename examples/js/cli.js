@@ -83,8 +83,11 @@ const httpsAgent = new Agent ({
 })
 
 try {
-
-    exchange = new (ccxt)[exchangeId] ({ timeout, httpsAgent, ... settings })
+    if (ccxt.pro.exchanges.includes(exchangeId)) {
+        exchange = new (ccxt.pro)[exchangeId] ({ timeout, httpsAgent, ... settings })
+    } else {
+        exchange = new (ccxt)[exchangeId] ({ timeout, httpsAgent, ... settings })
+    }
 
     if (isSpot) {
         exchange.options['defaultType'] = 'spot';
@@ -268,13 +271,22 @@ async function run () {
 
                 let i = 0;
 
+                let isWsMethod = false
+                if (methodName.startsWith("watch")) { // handle WS methods
+                    isWsMethod = true;
+                }
+
                 while (true) {
                     try {
                         const result = await exchange[methodName] (... args)
                         end = exchange.milliseconds ()
-                        console.log (exchange.iso8601 (end), 'iteration', i++, 'passed in', end - start, 'ms\n')
+                        if (!isWsMethod) {
+                            console.log (exchange.iso8601 (end), 'iteration', i++, 'passed in', end - start, 'ms\n')
+                        }
                         printHumanReadable (exchange, result)
-                        console.log (exchange.iso8601 (end), 'iteration', i, 'passed in', end - start, 'ms\n')
+                        if (!isWsMethod) {
+                            console.log (exchange.iso8601 (end), 'iteration', i, 'passed in', end - start, 'ms\n')
+                        }
                         start = end
                     } catch (e) {
                         if (e instanceof ExchangeError) {
@@ -296,7 +308,7 @@ async function run () {
                         console.log (firstKey, httpsAgent.freeSockets[firstKey].length)
                     }
 
-                    if (!poll){
+                    if (!poll && !isWsMethod){
                         break
                     }
                 }

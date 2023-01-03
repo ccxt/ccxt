@@ -10,7 +10,7 @@ use Exception; // a common import
 class flowbtc extends ndax {
 
     public function describe() {
-        return $this->deep_extend(parent::describe (), array(
+        return $this->deep_extend(parent::describe(), array(
             'id' => 'flowbtc',
             'name' => 'flowBTC',
             'countries' => array( 'BR' ), // Brazil

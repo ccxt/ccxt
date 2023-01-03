@@ -39,6 +39,9 @@ module.exports = class bitmex extends Exchange {
                 'editOrder': true,
                 'fetchBalance': true,
                 'fetchClosedOrders': true,
+                'fetchDepositAddress': true,
+                'fetchDepositAddresses': false,
+                'fetchDepositAddressesByNetwork': false,
                 'fetchFundingHistory': false,
                 'fetchFundingRate': false,
                 'fetchFundingRateHistory': true,
@@ -124,6 +127,8 @@ module.exports = class bitmex extends Exchange {
                         'stats/history': 5,
                         'trade': 5,
                         'trade/bucketed': 5,
+                        'wallet/assets': 5,
+                        'wallet/networks': 5,
                     },
                 },
                 'private': {
@@ -148,6 +153,9 @@ module.exports = class bitmex extends Exchange {
                         'user/wallet': 5,
                         'user/walletHistory': 5,
                         'user/walletSummary': 5,
+                        'wallet/assets': 5,
+                        'wallet/networks': 5,
+                        'userEvent': 5,
                     },
                     'post': {
                         'apiKey': 5,
@@ -211,11 +219,42 @@ module.exports = class bitmex extends Exchange {
                 // https://github.com/ccxt/ccxt/issues/4789
                 'api-expires': 5, // in seconds
                 'fetchOHLCVOpenTimestamp': true,
+                'networks': {
+                    'BTC': 'btc',
+                    'ETH': 'eth',
+                    'BSC': 'bsc',
+                    'BNB': 'bsc',
+                    'TRON': 'tron',
+                    'ERC20': 'eth',
+                    'BEP20': 'bsc',
+                    'TRC20': 'tron',
+                    'TRX': 'tron',
+                    'AVAX': 'avax',
+                    'NEAR': 'near',
+                    'XTZ': 'xtz',
+                    'DOT': 'dot',
+                    'SOL': 'sol',
+                },
+                'networksById': {
+                    'btc': 'BTC',
+                    'eth': 'ERC20',
+                    'bsc': 'BSC',
+                    'tron': 'TRX',
+                    'avax': 'AVAX',
+                    'near': 'NEAR',
+                    'xtz': 'XTZ',
+                    'dot': 'DOT',
+                    'sol': 'SOL',
+                },
             },
             'commonCurrencies': {
                 'USDt': 'USDT',
                 'XBt': 'BTC',
                 'XBT': 'BTC',
+                'Gwei': 'ETH',
+                'GWEI': 'ETH',
+                'LAMP': 'SOL',
+                'LAMp': 'SOL',
             },
         });
     }
@@ -385,6 +424,7 @@ module.exports = class bitmex extends Exchange {
             const contract = !index;
             const initMargin = this.safeString (market, 'initMargin', '1');
             const maxLeverage = this.parseNumber (Precise.stringDiv ('1', initMargin));
+            const multiplierString = Precise.stringAbs (this.safeString (market, 'multiplier'));
             result.push ({
                 'id': id,
                 'symbol': symbol,
@@ -408,7 +448,7 @@ module.exports = class bitmex extends Exchange {
                 'inverse': contract ? inverse : undefined,
                 'taker': this.safeNumber (market, 'takerFee'),
                 'maker': this.safeNumber (market, 'makerFee'),
-                'contractSize': this.safeNumber (market, 'multiplier'),
+                'contractSize': this.parseNumber (multiplierString),
                 'expiry': expiry,
                 'expiryDatetime': expiryDatetime,
                 'strike': this.safeNumber (market, 'optionStrikePrice'),
@@ -416,6 +456,8 @@ module.exports = class bitmex extends Exchange {
                 'precision': {
                     'amount': this.safeNumber (market, 'lotSize'),
                     'price': this.safeNumber (market, 'tickSize'),
+                    'quote': this.safeNumber (market, 'tickSize'),
+                    'base': this.safeNumber (market, 'tickSize'),
                 },
                 'limits': {
                     'leverage': {
@@ -498,8 +540,19 @@ module.exports = class bitmex extends Exchange {
             let free = this.safeString (balance, 'availableMargin');
             let total = this.safeString (balance, 'marginBalance');
             if (code !== 'USDT') {
-                free = Precise.stringDiv (free, '1e8');
-                total = Precise.stringDiv (total, '1e8');
+                // tmp fix until this PR gets merged
+                // https://github.com/ccxt/ccxt/pull/15311
+                const symbol = code + '_USDT';
+                const market = this.safeMarket (symbol);
+                const info = this.safeValue (market, 'info', {});
+                const multiplier = this.safeString (info, 'underlyingToPositionMultiplier');
+                if (multiplier !== undefined) {
+                    free = Precise.stringDiv (free, multiplier);
+                    total = Precise.stringDiv (total, multiplier);
+                } else {
+                    free = Precise.stringDiv (free, '1e8');
+                    total = Precise.stringDiv (total, '1e8');
+                }
             } else {
                 free = Precise.stringDiv (free, '1e6');
                 total = Precise.stringDiv (total, '1e6');
@@ -974,6 +1027,7 @@ module.exports = class bitmex extends Exchange {
          */
         await this.loadMarkets ();
         const request = {
+            'currency': 'all',
             // 'start': 123,
         };
         //
@@ -1004,24 +1058,26 @@ module.exports = class bitmex extends Exchange {
 
     parseTransaction (transaction, currency = undefined) {
         //
-        //   {
-        //      'transactID': 'ffe699c2-95ee-4c13-91f9-0faf41daec25',
-        //      'account': 123456,
-        //      'currency': 'XBt',
-        //      'transactType': 'Withdrawal',
-        //      'amount': -100100000,
-        //      'fee': 100000,
-        //      'transactStatus': 'Completed',
-        //      'address': '385cR5DM96n1HvBDMzLHPYcw89fZAXULJP',
-        //      'tx': '3BMEXabcdefghijklmnopqrstuvwxyz123',
-        //      'text': '',
-        //      'transactTime': '2019-01-02T01:00:00.000Z',
-        //      'walletBalance': 99900000,
-        //      'marginBalance': None,
-        //      'timestamp': '2019-01-02T13:00:00.000Z'
-        //   }
+        //    {
+        //        'transactID': 'ffe699c2-95ee-4c13-91f9-0faf41daec25',
+        //        'account': 123456,
+        //        'currency': 'XBt',
+        //        'network':'',
+        //        'transactType': 'Withdrawal',
+        //        'amount': -100100000,
+        //        'fee': 100000,
+        //        'transactStatus': 'Completed',
+        //        'address': '385cR5DM96n1HvBDMzLHPYcw89fZAXULJP',
+        //        'tx': '3BMEXabcdefghijklmnopqrstuvwxyz123',
+        //        'text': '',
+        //        'transactTime': '2019-01-02T01:00:00.000Z',
+        //        'walletBalance': 99900000,
+        //        'marginBalance': None,
+        //        'timestamp': '2019-01-02T13:00:00.000Z'
+        //    }
         //
-        const id = this.safeString (transaction, 'transactID');
+        const currencyId = this.safeString (transaction, 'currency');
+        currency = this.safeCurrency (currencyId, currency);
         // For deposits, transactTime == timestamp
         // For withdrawals, transactTime is submission, timestamp is processed
         const transactTime = this.parse8601 (this.safeString (transaction, 'transactTime'));
@@ -1037,38 +1093,38 @@ module.exports = class bitmex extends Exchange {
             addressTo = address;
         }
         let amountString = this.safeString (transaction, 'amount');
-        amountString = Precise.stringDiv (Precise.stringAbs (amountString), '1e8');
+        const scale = (currency['code'] === 'BTC') ? '1e8' : '1e6';
+        amountString = Precise.stringDiv (Precise.stringAbs (amountString), scale);
         let feeCostString = this.safeString (transaction, 'fee');
-        feeCostString = Precise.stringDiv (feeCostString, '1e8');
-        const fee = {
-            'cost': this.parseNumber (feeCostString),
-            'currency': 'BTC',
-        };
+        feeCostString = Precise.stringDiv (feeCostString, scale);
         let status = this.safeString (transaction, 'transactStatus');
         if (status !== undefined) {
             status = this.parseTransactionStatus (status);
         }
         return {
             'info': transaction,
-            'id': id,
-            'txid': undefined,
+            'id': this.safeString (transaction, 'transactID'),
+            'txid': this.safeString (transaction, 'tx'),
+            'type': type,
+            'currency': currency['code'],
+            'network': this.safeString (transaction, 'status'),
+            'amount': this.parseNumber (amountString),
+            'status': status,
             'timestamp': transactTime,
             'datetime': this.iso8601 (transactTime),
-            'network': undefined,
-            'addressFrom': addressFrom,
             'address': address,
+            'addressFrom': addressFrom,
             'addressTo': addressTo,
-            'tagFrom': undefined,
             'tag': undefined,
+            'tagFrom': undefined,
             'tagTo': undefined,
-            'type': type,
-            'amount': this.parseNumber (amountString),
-            // BTC is the only currency on Bitmex
-            'currency': 'BTC',
-            'status': status,
             'updated': timestamp,
             'comment': undefined,
-            'fee': fee,
+            'fee': {
+                'currency': currency['code'],
+                'cost': this.parseNumber (feeCostString),
+                'rate': undefined,
+            },
         };
     }
 
@@ -1101,6 +1157,7 @@ module.exports = class bitmex extends Exchange {
          * @returns {object} an array of [ticker structures]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
          */
         await this.loadMarkets ();
+        symbols = this.marketSymbols (symbols);
         const response = await this.publicGetInstrumentActiveAndIndices (params);
         //
         //     [
@@ -1221,16 +1278,7 @@ module.exports = class bitmex extends Exchange {
                 result[symbol] = ticker;
             }
         }
-        const uniformSymbols = [];
-        if (symbols !== undefined) {
-            for (let i = 0; i < symbols.length; i++) {
-                const symbol = symbols[i];
-                const market = this.market (symbol);
-                uniformSymbols.push (market['symbol']);
-            }
-            return this.filterByArray (result, 'symbol', uniformSymbols);
-        }
-        return result;
+        return this.filterByArray (result, 'symbol', symbols);
     }
 
     parseTicker (ticker, market = undefined) {
@@ -1679,6 +1727,7 @@ module.exports = class bitmex extends Exchange {
             'side': side,
             'price': price,
             'stopPrice': stopPrice,
+            'triggerPrice': stopPrice,
             'amount': amount,
             'cost': undefined,
             'average': average,
@@ -2151,8 +2200,10 @@ module.exports = class bitmex extends Exchange {
         const crossMargin = this.safeValue (position, 'crossMargin');
         const marginMode = (crossMargin === true) ? 'cross' : 'isolated';
         let notional = undefined;
-        if (market['quote'] === 'USDT') {
+        if (market['quote'] === 'USDT' || market['quote'] === 'USD' || market['quote'] === 'EUR') {
             notional = Precise.stringMul (this.safeString (position, 'foreignNotional'), '-1');
+        } else {
+            notional = this.safeString (position, 'homeNotional');
         }
         const maintenanceMargin = this.safeNumber (position, 'maintMargin');
         const unrealisedPnl = this.safeNumber (position, 'unrealisedPnl');
@@ -2172,10 +2223,10 @@ module.exports = class bitmex extends Exchange {
             'notional': notional,
             'leverage': this.safeNumber (position, 'leverage'),
             'collateral': undefined,
-            'initialMargin': undefined,
+            'initialMargin': this.safeNumber (position, 'initMargin'),
             'initialMarginPercentage': this.safeNumber (position, 'initMarginReq'),
             'maintenanceMargin': this.convertValue (maintenanceMargin, market),
-            'maintenanceMarginPercentage': undefined,
+            'maintenanceMarginPercentage': this.safeNumber (position, 'maintMarginReq'),
             'unrealizedPnl': this.convertValue (unrealisedPnl, market),
             'liquidationPrice': this.safeNumber (position, 'liquidationPrice'),
             'marginMode': marginMode,
@@ -2192,11 +2243,20 @@ module.exports = class bitmex extends Exchange {
         value = this.numberToString (value);
         if ((market['quote'] === 'USD') || (market['quote'] === 'EUR')) {
             resultValue = Precise.stringMul (value, '0.00000001');
-        }
-        if (market['quote'] === 'USDT') {
+        } else if (market['quote'] === 'USDT') {
             resultValue = Precise.stringMul (value, '0.000001');
+        } else {
+            let currency = undefined;
+            const quote = market['quote'];
+            if (quote !== undefined) {
+                currency = this.currency (market['quote']);
+            }
+            if (currency !== undefined) {
+                resultValue = Precise.stringMul (value, this.numberToString (currency['precision']));
+            }
         }
-        return parseFloat (resultValue);
+        resultValue = (resultValue !== undefined) ? parseFloat (resultValue) : undefined;
+        return resultValue;
     }
 
     isFiat (currency) {
@@ -2649,9 +2709,48 @@ module.exports = class bitmex extends Exchange {
         return await this.privatePostPositionIsolate (this.extend (request, params));
     }
 
+    async fetchDepositAddress (code, params = {}) {
+        /**
+         * @method
+         * @name bitmex#fetchDepositAddress
+         * @description fetch the deposit address for a currency associated with this account
+         * @see https://www.bitmex.com/api/explorer/#!/User/User_getDepositAddress
+         * @param {string} code unified currency code
+         * @param {object} params extra parameters specific to the bitmex api endpoint
+         * @param {string} params.network deposit chain, can view all chains via this.publicGetWalletAssets, default is eth, unless the currency has a default chain within this.options['networks']
+         * @returns {object} an [address structure]{@link https://docs.ccxt.com/en/latest/manual.html#address-structure}
+         */
+        await this.loadMarkets ();
+        const networkCode = this.safeStringUpper (params, 'network');
+        if (networkCode === undefined) {
+            throw new ArgumentsRequired (this.id + ' fetchDepositAddress requires params["network"]');
+        }
+        const currency = this.currency (code);
+        let currencyId = currency['id'];
+        const networkId = this.networkCodeToId (networkCode, currency['code']);
+        const idLength = currencyId.length;
+        currencyId = currencyId.slice (0, idLength - 1) + currencyId.slice (idLength - 1, idLength).toLowerCase ();  // make the last letter lowercase
+        params = this.omit (params, 'network');
+        const request = {
+            'currency': currencyId,
+            'network': networkId,
+        };
+        const response = await this.privateGetUserDepositAddress (this.extend (request, params));
+        //
+        //    '"bc1qmex3puyrzn2gduqcnlu70c2uscpyaa9nm2l2j9le2lt2wkgmw33sy7ndjg"'
+        //
+        return {
+            'currency': code,
+            'address': response.replace ('"', '').replace ('"', ''),  // Done twice because some languages only replace the first instance
+            'tag': undefined,
+            'network': this.networkIdToCode (networkId).toUpperCase (),
+            'info': response,
+        };
+    }
+
     calculateRateLimiterCost (api, method, path, params, config = {}, context = {}) {
         const isAuthenticated = this.checkRequiredCredentials (false);
-        const cost = this.safeInteger (config, 'cost', 1);
+        const cost = this.safeValue (config, 'cost', 1);
         if (cost !== 1) { // trading endpoints
             if (isAuthenticated) {
                 return cost;

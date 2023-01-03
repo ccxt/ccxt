@@ -39,12 +39,12 @@ echo "Pushing generated files back to GitHub..."
 LAST_COMMIT_MESSAGE="$(git log --no-merges -1 --pretty=%B)"
 git config --global user.email "travis@travis-ci.org"
 git config --global user.name "Travis CI"
-git add php/*.php php/async/*.php php/test/*.php python/ccxt/test/*.py python/ccxt/async_support/*.py python/ccxt/*.py wiki/*
+git add php/*.php php/async/*.php php/pro/*.php php/test/*.php python/ccxt/test/*.py python/ccxt/async_support/*.py python/ccxt/*.py python/ccxt/pro/*.py python/ccxt/pro/test/*.py python/ccxt/pro/test/exchange/*.py wiki/*
 git add -f python/LICENSE.txt python/package.json python/README.md
 git commit -a -m "${COMMIT_MESSAGE}" -m '[ci skip]'
 git tag -a "${COMMIT_MESSAGE}" -m "${LAST_COMMIT_MESSAGE}" -m "" -m "[ci skip]"
 git remote remove origin
 git remote add origin https://${GITHUB_TOKEN}@github.com/ccxt/ccxt.git
-node build/cleanup-old-tags --limit
+# node build/cleanup-old-tags --limit
 git push origin --tags HEAD:master
 

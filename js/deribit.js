@@ -19,6 +19,7 @@ module.exports = class deribit extends Exchange {
             // 20 requests per second for non-matching-engine endpoints, 1000ms / 20 = 50ms between requests
             // 5 requests per second for matching-engine endpoints, cost = (1000ms / rateLimit) / 5 = 4
             'rateLimit': 50,
+            'pro': true,
             'has': {
                 'CORS': true,
                 'spot': false,
@@ -124,6 +125,7 @@ module.exports = class deribit extends Exchange {
                         // Supporting
                         'get_time': 1,
                         'hello': 1,
+                        'status': 1,
                         'test': 1,
                         // Subscription management
                         'subscribe': 1,
@@ -367,6 +369,7 @@ module.exports = class deribit extends Exchange {
                 '-32601': BadRequest, // 'Method not found' see JSON-RPC spec.
                 '-32700': BadRequest, // 'Parse error' see JSON-RPC spec.
                 '-32000': BadRequest, // 'Missing params' see JSON-RPC spec.
+                '11054': InvalidOrder, // 'post_only_reject' post order would be filled immediately
             },
             'precisionMode': TICK_SIZE,
             'options': {
@@ -644,23 +647,29 @@ module.exports = class deribit extends Exchange {
                 const kind = this.safeString (market, 'kind');
                 const settlementPeriod = this.safeValue (market, 'settlement_period');
                 const swap = (settlementPeriod === 'perpetual');
-                const future = !swap && (kind === 'future');
-                const option = (kind === 'option');
-                let symbol = base + '/' + quote + ':' + settle;
+                const future = !swap && (kind.indexOf ('future') >= 0);
+                const option = (kind.indexOf ('option') >= 0);
+                const isComboMarket = kind.indexOf ('combo') >= 0;
                 const expiry = this.safeInteger (market, 'expiration_timestamp');
                 let strike = undefined;
                 let optionType = undefined;
+                let symbol = id;
                 let type = 'swap';
-                if (option || future) {
-                    symbol = symbol + '-' + this.yymmdd (expiry, '');
-                    if (option) {
-                        type = 'option';
-                        strike = this.safeNumber (market, 'strike');
-                        optionType = this.safeString (market, 'option_type');
-                        const letter = (optionType === 'call') ? 'C' : 'P';
-                        symbol = symbol + '-' + this.numberToString (strike) + '-' + letter;
-                    } else {
-                        type = 'future';
+                if (future) {
+                    type = 'future';
+                } else if (option) {
+                    type = 'option';
+                }
+                if (!isComboMarket) {
+                    symbol = base + '/' + quote + ':' + settle;
+                    if (option || future) {
+                        symbol = symbol + '-' + this.yymmdd (expiry, '');
+                        if (option) {
+                            strike = this.safeNumber (market, 'strike');
+                            optionType = this.safeString (market, 'option_type');
+                            const letter = (optionType === 'call') ? 'C' : 'P';
+                            symbol = symbol + '-' + this.numberToString (strike) + '-' + letter;
+                        }
                     }
                 }
                 const minTradeAmount = this.safeNumber (market, 'min_trade_amount');
@@ -682,8 +691,8 @@ module.exports = class deribit extends Exchange {
                     'option': option,
                     'active': this.safeValue (market, 'is_active'),
                     'contract': true,
-                    'linear': false,
-                    'inverse': true,
+                    'linear': (settle === quote),
+                    'inverse': (settle !== quote),
                     'taker': this.safeNumber (market, 'taker_commission'),
                     'maker': this.safeNumber (market, 'maker_commission'),
                     'contractSize': this.safeNumber (market, 'contract_size'),
@@ -1010,6 +1019,7 @@ module.exports = class deribit extends Exchange {
          * @returns {object} an array of [ticker structures]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
          */
         await this.loadMarkets ();
+        symbols = this.marketSymbols (symbols);
         const code = this.codeFromOptions ('fetchTickers', params);
         const currency = this.currency (code);
         const request = {
@@ -1078,11 +1088,10 @@ module.exports = class deribit extends Exchange {
         const now = this.milliseconds ();
         if (since === undefined) {
             if (limit === undefined) {
-                throw new ArgumentsRequired (this.id + ' fetchOHLCV() requires a since argument or a limit argument');
-            } else {
-                request['start_timestamp'] = now - (limit - 1) * duration * 1000;
-                request['end_timestamp'] = now;
+                limit = 1000; // at max, it provides 5000 bars, but we set generous default here
             }
+            request['start_timestamp'] = now - (limit - 1) * duration * 1000;
+            request['end_timestamp'] = now;
         } else {
             request['start_timestamp'] = since;
             if (limit === undefined) {
@@ -1165,7 +1174,14 @@ module.exports = class deribit extends Exchange {
         const timestamp = this.safeInteger (trade, 'timestamp');
         const side = this.safeString (trade, 'direction');
         const priceString = this.safeString (trade, 'price');
-        const amountString = this.safeString (trade, 'amount');
+        market = this.safeMarket (marketId, market);
+        // Amount for inverse perpetual and futures is in USD which in ccxt is the cost
+        // For options amount and linear is in corresponding cryptocurrency contracts, e.g., BTC or ETH
+        const amount = this.safeString (trade, 'amount');
+        let cost = Precise.stringMul (amount, priceString);
+        if (market['inverse']) {
+            cost = Precise.stringDiv (amount, priceString);
+        }
         const liquidity = this.safeString (trade, 'liquidity');
         let takerOrMaker = undefined;
         if (liquidity !== undefined) {
@@ -1193,8 +1209,8 @@ module.exports = class deribit extends Exchange {
             'side': side,
             'takerOrMaker': takerOrMaker,
             'price': priceString,
-            'amount': amountString,
-            'cost': undefined,
+            'amount': amount,
+            'cost': cost,
             'fee': fee,
         }, market);
     }
@@ -1203,7 +1219,8 @@ module.exports = class deribit extends Exchange {
         /**
          * @method
          * @name deribit#fetchTrades
-         * @description get the list of most recent trades for a particular symbol
+         * @see https://docs.deribit.com/#private-get_user_trades_by_currency
+         * @description get the list of most recent trades for a particular symbol.
          * @param {string} symbol unified symbol of the market to fetch trades for
          * @param {int|undefined} since timestamp in ms of the earliest trade to fetch
          * @param {int|undefined} limit the maximum amount of trades to fetch
@@ -1457,6 +1474,16 @@ module.exports = class deribit extends Exchange {
         return this.safeString (timeInForces, timeInForce, timeInForce);
     }
 
+    parseOrderType (orderType) {
+        const orderTypes = {
+            'stop_limit': 'limit',
+            'take_limit': 'limit',
+            'stop_market': 'market',
+            'take_market': 'market',
+        };
+        return this.safeString (orderTypes, orderType, orderType);
+    }
+
     parseOrder (order, market = undefined) {
         //
         // createOrder
@@ -1485,17 +1512,23 @@ module.exports = class deribit extends Exchange {
         //         "trades": [], // injected by createOrder
         //     }
         //
+        const marketId = this.safeString (order, 'instrument_name');
+        market = this.safeMarket (marketId, market);
         const timestamp = this.safeInteger (order, 'creation_timestamp');
         const lastUpdate = this.safeInteger (order, 'last_update_timestamp');
         const id = this.safeString (order, 'order_id');
-        let priceString = this.safeString (order, 'price');
-        if (priceString === 'market_price') {
-            // for market orders we get a literal 'market_price' string here
-            priceString = undefined;
-        }
+        const priceString = this.safeString (order, 'price');
         const averageString = this.safeString (order, 'average_price');
-        const amountString = this.safeString (order, 'amount');
+        // Inverse contracts amount is in USD which in ccxt is the cost
+        // For options and Linear contracts amount is in corresponding cryptocurrency, e.g., BTC or ETH
         const filledString = this.safeString (order, 'filled_amount');
+        const amount = this.safeString (order, 'amount');
+        let cost = Precise.stringMul (filledString, averageString);
+        if (market['inverse']) {
+            if (this.parseNumber (averageString) !== 0) {
+                cost = Precise.stringDiv (amount, averageString);
+            }
+        }
         let lastTradeTimestamp = undefined;
         if (filledString !== undefined) {
             const isFilledPositive = Precise.stringGt (filledString, '0');
@@ -1504,8 +1537,6 @@ module.exports = class deribit extends Exchange {
             }
         }
         const status = this.parseOrderStatus (this.safeString (order, 'order_state'));
-        const marketId = this.safeString (order, 'instrument_name');
-        market = this.safeMarket (marketId, market);
         const side = this.safeStringLower (order, 'direction');
         let feeCostString = this.safeString (order, 'commission');
         let fee = undefined;
@@ -1516,12 +1547,10 @@ module.exports = class deribit extends Exchange {
                 'currency': market['base'],
             };
         }
-        const type = this.safeString (order, 'order_type');
+        const rawType = this.safeString (order, 'order_type');
+        const type = this.parseOrderType (rawType);
         // injected in createOrder
-        let trades = this.safeValue (order, 'trades');
-        if (trades !== undefined) {
-            trades = this.parseTrades (trades, market);
-        }
+        const trades = this.safeValue (order, 'trades');
         const timeInForce = this.parseTimeInForce (this.safeString (order, 'time_in_force'));
         const stopPrice = this.safeValue (order, 'stop_price');
         const postOnly = this.safeValue (order, 'post_only');
@@ -1539,8 +1568,9 @@ module.exports = class deribit extends Exchange {
             'side': side,
             'price': priceString,
             'stopPrice': stopPrice,
-            'amount': amountString,
-            'cost': undefined,
+            'triggerPrice': stopPrice,
+            'amount': amount,
+            'cost': cost,
             'average': averageString,
             'filled': filledString,
             'remaining': undefined,
@@ -1601,21 +1631,29 @@ module.exports = class deribit extends Exchange {
          * @method
          * @name deribit#createOrder
          * @description create a trade order
+         * @see https://docs.deribit.com/#private-buy
          * @param {string} symbol unified symbol of the market to create an order in
          * @param {string} type 'market' or 'limit'
          * @param {string} side 'buy' or 'sell'
-         * @param {float} amount how much of currency you want to trade in units of base currency
+         * @param {float} amount how much of currency you want to trade. For perpetual and futures the amount is in USD. For options it is in corresponding cryptocurrency contracts currency.
          * @param {float|undefined} price the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
          * @param {object} params extra parameters specific to the deribit api endpoint
          * @returns {object} an [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
+        if (market['inverse']) {
+            amount = this.amountToPrecision (symbol, amount);
+        } else if (market['settle'] === 'USDC') {
+            amount = this.amountToPrecision (symbol, amount);
+        } else {
+            amount = this.currencyToPrecision (symbol, amount);
+        }
         const request = {
             'instrument_name': market['id'],
             // for perpetual and futures the amount is in USD
             // for options it is in corresponding cryptocurrency contracts, e.g., BTC or ETH
-            'amount': this.amountToPrecision (symbol, amount),
+            'amount': amount,
             'type': type, // limit, stop_limit, market, stop_market, default is limit
             // 'label': 'string', // user-defined label for the order (maximum 64 characters)
             // 'price': this.priceToPrecision (symbol, 123.45), // only for limit and stop_limit orders
@@ -1628,31 +1666,74 @@ module.exports = class deribit extends Exchange {
             // 'trigger': 'index_price', // mark_price, last_price, required for stop_limit orders
             // 'advanced': 'usd', // 'implv', advanced option order type, options only
         };
-        let priceIsRequired = false;
-        let stopPriceIsRequired = false;
-        if (type === 'limit') {
-            priceIsRequired = true;
-        } else if (type === 'stop_limit') {
-            priceIsRequired = true;
-            stopPriceIsRequired = true;
+        const timeInForce = this.safeStringUpper (params, 'timeInForce');
+        const reduceOnly = this.safeValue2 (params, 'reduceOnly', 'reduce_only');
+        // only stop loss sell orders are allowed when price crossed from above
+        const stopLossPrice = this.safeValue (params, 'stopLossPrice');
+        // only take profit buy orders are allowed when price crossed from below
+        const takeProfitPrice = this.safeValue (params, 'takeProfitPrice');
+        const isStopLimit = type === 'stop_limit';
+        const isStopMarket = type === 'stop_market';
+        const isTakeLimit = type === 'take_limit';
+        const isTakeMarket = type === 'take_market';
+        const isStopLossOrder = isStopLimit || isStopMarket || (stopLossPrice !== undefined);
+        const isTakeProfitOrder = isTakeLimit || isTakeMarket || (takeProfitPrice !== undefined);
+        if (isStopLossOrder && isTakeProfitOrder) {
+            throw new InvalidOrder (this.id + ' createOrder () only allows one of stopLossPrice or takeProfitPrice to be specified');
         }
-        if (priceIsRequired) {
-            if (price !== undefined) {
-                request['price'] = this.priceToPrecision (symbol, price);
+        const isStopOrder = isStopLossOrder || isTakeProfitOrder;
+        const isLimitOrder = (type === 'limit') || isStopLimit || isTakeLimit;
+        const isMarketOrder = (type === 'market') || isStopMarket || isTakeMarket;
+        const exchangeSpecificPostOnly = this.safeValue (params, 'post_only');
+        const postOnly = this.isPostOnly (isMarketOrder, exchangeSpecificPostOnly, params);
+        if (isLimitOrder) {
+            request['type'] = 'limit';
+            request['price'] = this.priceToPrecision (symbol, price);
+        } else {
+            request['type'] = 'market';
+        }
+        if (isStopOrder) {
+            const triggerPrice = stopLossPrice !== undefined ? stopLossPrice : takeProfitPrice;
+            request['trigger_price'] = this.priceToPrecision (symbol, triggerPrice);
+            request['trigger'] = 'last_price'; // required
+            if (isStopLossOrder) {
+                if (isMarketOrder) {
+                    // stop_market (sell only)
+                    request['type'] = 'stop_market';
+                } else {
+                    // stop_limit (sell only)
+                    request['type'] = 'stop_limit';
+                }
             } else {
-                throw new ArgumentsRequired (this.id + ' createOrder() requires a price argument for a ' + type + ' order');
+                if (isMarketOrder) {
+                    // take_market (buy only)
+                    request['type'] = 'take_market';
+                } else {
+                    // take_limit (buy only)
+                    request['type'] = 'take_limit';
+                }
             }
         }
-        if (stopPriceIsRequired) {
-            const stopPrice = this.safeNumber2 (params, 'stop_price', 'stopPrice');
-            if (stopPrice === undefined) {
-                throw new ArgumentsRequired (this.id + ' createOrder() requires a stop_price or stopPrice param for a ' + type + ' order');
-            } else {
-                request['stop_price'] = this.priceToPrecision (symbol, stopPrice);
+        if (reduceOnly) {
+            request['reduce_only'] = true;
+        }
+        if (postOnly) {
+            request['post_only'] = true;
+            request['reject_post_only'] = true;
+        }
+        if (timeInForce !== undefined) {
+            if (timeInForce === 'GTC') {
+                request['time_in_force'] = 'good_til_cancelled';
             }
-            params = this.omit (params, [ 'stop_price', 'stopPrice' ]);
+            if (timeInForce === 'IOC') {
+                request['time_in_force'] = 'immediate_or_cancel';
+            }
+            if (timeInForce === 'FOK') {
+                request['time_in_force'] = 'fill_or_kill';
+            }
         }
         const method = 'privateGet' + this.capitalize (side);
+        params = this.omit (params, [ 'timeInForce', 'stopLossPrice', 'takeProfitPrice', 'postOnly', 'reduceOnly' ]);
         const response = await this[method] (this.extend (request, params));
         //
         //     {
@@ -2190,6 +2271,7 @@ module.exports = class deribit extends Exchange {
         const currentTime = this.milliseconds ();
         return {
             'info': position,
+            'id': undefined,
             'symbol': this.safeString (market, 'symbol'),
             'timestamp': currentTime,
             'datetime': this.iso8601 (currentTime),

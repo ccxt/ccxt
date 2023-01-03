@@ -48,6 +48,7 @@ module.exports = class bigone extends Exchange {
                 'fetchTrades': true,
                 'fetchTradingFee': false,
                 'fetchTradingFees': false,
+                'fetchTransactionFees': false,
                 'fetchWithdrawals': true,
                 'transfer': true,
                 'withdraw': true,
@@ -169,6 +170,7 @@ module.exports = class bigone extends Exchange {
                 },
                 'contractSizes': {
                 },
+                'exchangeMillisecondsCorrection': -100,
             },
             'precisionMode': TICK_SIZE,
             'exceptions': {
@@ -492,6 +494,7 @@ module.exports = class bigone extends Exchange {
          */
         await this.loadMarkets ();
         const request = {};
+        symbols = this.marketSymbols (symbols);
         if (symbols !== undefined) {
             const ids = this.marketIds (symbols);
             request['pair_names'] = ids.join (',');
@@ -1093,9 +1096,9 @@ module.exports = class bigone extends Exchange {
             'side': side,
             'price': price,
             'stopPrice': stopPrice,
+            'triggerPrice': undefined,
             'amount': amount,
             'cost': this.safeNumber (order, 'filledNotional'),
-            'average': average,
             'filled': filled,
             'remaining': undefined,
             'status': status,
@@ -1747,7 +1750,8 @@ module.exports = class bigone extends Exchange {
     }
 
     nonce () {
-        return this.microseconds () * 1000;
+        const exchangeTimeCorrection = this.safeInteger (this.options, 'exchangeMillisecondsCorrection', 0) * 1000000;
+        return this.microseconds () * 1000 + exchangeTimeCorrection;
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
@@ -1756,6 +1760,7 @@ module.exports = class bigone extends Exchange {
         const publicOrPrivate = this.safeString (api, 1);
         const baseUrl = this.implodeHostname (this.urls['api'][type]);
         let url = baseUrl + '/' + this.implodeParams (path, params);
+        headers = (headers === undefined) ? {} : headers;
         if (publicOrPrivate === 'public') {
             if (Object.keys (query).length) {
                 url += '?' + this.urlencode (query);
@@ -1770,9 +1775,7 @@ module.exports = class bigone extends Exchange {
                 // 'recv_window': '30', // default 30
             };
             const jwt = this.jwt (request, this.encode (this.secret));
-            headers = {
-                'Authorization': 'Bearer ' + jwt,
-            };
+            headers['Authorization'] = 'Bearer ' + jwt;
             if (method === 'GET') {
                 if (Object.keys (query).length) {
                     url += '?' + this.urlencode (query);
@@ -1782,6 +1785,7 @@ module.exports = class bigone extends Exchange {
                 body = this.json (query);
             }
         }
+        headers['User-Agent'] = 'ccxt/' + this.id + '-' + this.version;
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
 
@@ -1981,7 +1985,7 @@ module.exports = class bigone extends Exchange {
         //     }
         //
         const deposits = this.safeValue (response, 'data', []);
-        return this.parseTransactions (deposits, code, since, limit);
+        return this.parseTransactions (deposits, currency, since, limit);
     }
 
     async fetchWithdrawals (code = undefined, since = undefined, limit = undefined, params = {}) {
@@ -2033,7 +2037,7 @@ module.exports = class bigone extends Exchange {
         //     }
         //
         const withdrawals = this.safeValue (response, 'data', []);
-        return this.parseTransactions (withdrawals, code, since, limit);
+        return this.parseTransactions (withdrawals, currency, since, limit);
     }
 
     async transfer (code, amount, fromAccount, toAccount, params = {}) {

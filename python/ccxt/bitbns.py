@@ -69,12 +69,13 @@ class bitbns(Exchange):
             },
             'timeframes': {
             },
+            'hostname': 'bitbns.com',
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/117201933-e7a6e780-adf5-11eb-9d80-98fc2a21c3d6.jpg',
                 'api': {
-                    'www': 'https://bitbns.com',
-                    'v1': 'https://api.bitbns.com/api/trade/v1',
-                    'v2': 'https://api.bitbns.com/api/trade/v2',
+                    'www': 'https://{hostname}',
+                    'v1': 'https://api.{hostname}/api/trade/v1',
+                    'v2': 'https://api.{hostname}/api/trade/v2',
                 },
                 'www': 'https://bitbns.com',
                 'referral': 'https://ref.bitbns.com/1090961',
@@ -562,6 +563,7 @@ class bitbns(Exchange):
             'side': side,
             'price': price,
             'stopPrice': None,
+            'triggerPrice': None,
             'amount': amount,
             'cost': cost,
             'average': average,
@@ -1003,14 +1005,15 @@ class bitbns(Exchange):
         #
         currencyId = self.safe_string(transaction, 'unit')
         code = self.safe_currency_code(currencyId, currency)
-        timestamp = self.parse8601(self.safe_string(transaction, 'date'))
+        timestamp = self.parse8601(self.safe_string_2(transaction, 'date', 'timestamp'))
         type = self.safe_string(transaction, 'type')
+        expTime = self.safe_string(transaction, 'expTime', '')
         status = None
         if type is not None:
             if type.find('deposit') >= 0:
                 type = 'deposit'
                 status = 'ok'
-            elif type.find('withdraw') >= 0:
+            elif type.find('withdraw') >= 0 or expTime.find('withdraw') >= 0:
                 type = 'withdrawal'
         # status = self.parse_transaction_status_by_type(self.safe_string(transaction, 'status'), type)
         amount = self.safe_number(transaction, 'amount')

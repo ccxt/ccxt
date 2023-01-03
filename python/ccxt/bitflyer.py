@@ -449,6 +449,8 @@ class bitflyer(Exchange):
         request = {
             'product_code': market['id'],
         }
+        if limit is not None:
+            request['count'] = limit
         response = self.publicGetGetexecutions(self.extend(request, params))
         return self.parse_trades(response, market, since, limit)
 
@@ -567,6 +569,7 @@ class bitflyer(Exchange):
             'side': side,
             'price': price,
             'stopPrice': None,
+            'triggerPrice': None,
             'cost': None,
             'amount': amount,
             'filled': filled,

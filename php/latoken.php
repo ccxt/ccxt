@@ -6,13 +6,11 @@ namespace ccxt;
 // https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 use Exception; // a common import
-use \ccxt\ExchangeError;
-use \ccxt\ArgumentsRequired;
 
 class latoken extends Exchange {
 
     public function describe() {
-        return $this->deep_extend(parent::describe (), array(
+        return $this->deep_extend(parent::describe(), array(
             'id' => 'latoken',
             'name' => 'Latoken',
             'countries' => array( 'KY' ), // Cayman Islands
@@ -185,9 +183,11 @@ class latoken extends Exchange {
                 ),
                 'broad' => array(
                     'invalid API key, signature or digest' => '\\ccxt\\AuthenticationError', // array("result":false,"message":"invalid API key, signature or digest","error":"BAD_REQUEST","status":"FAILURE")
+                    'The API key was revoked' => '\\ccxt\\AuthenticationError', // array("result":false,"message":"The API key was revoked","error":"BAD_REQUEST","status":"FAILURE")
                     'request expired or bad' => '\\ccxt\\InvalidNonce', // array("result":false,"message":"request expired or bad <timeAlive>/<timestamp> format","error":"BAD_REQUEST","status":"FAILURE")
                     'For input string' => '\\ccxt\\BadRequest', // array("result":false,"message":"Internal error","error":"For input string => \"NaN\"","status":"FAILURE")
                     'Unable to resolve currency by tag' => '\\ccxt\\BadSymbol', // array("message":"Unable to resolve currency by tag (null)","error":"NOT_FOUND","status":"FAILURE")
+                    "Can't find currency with tag" => '\\ccxt\\BadSymbol', // array("status":"FAILURE","message":"Can't find currency with tag = null","error":"NOT_FOUND","errors":null,"result":false)
                     'Unable to place order because pair is in inactive state' => '\\ccxt\\BadSymbol', // array("message":"Unable to place order because pair is in inactive state (PAIR_STATUS_INACTIVE)","error":"ORDER_VALIDATION","status":"FAILURE")
                     'API keys are not available for FROZEN user' => '\\ccxt\\AccountSuspended', // array("result":false,"message":"API keys are not available for FROZEN user","error":"BAD_REQUEST","status":"FAILURE")
                 ),
@@ -425,7 +425,7 @@ class latoken extends Exchange {
             $fee = $this->safe_number($currency, 'fee');
             $currencyType = $this->safe_string($currency, 'type');
             $parts = explode('_', $currencyType);
-            $numParts = is_array($parts) ? count($parts) : 0;
+            $numParts = count($parts);
             $lastPart = $this->safe_value($parts, $numParts - 1);
             $type = strtolower($lastPart);
             $status = $this->safe_string($currency, 'status');
@@ -972,7 +972,7 @@ class latoken extends Exchange {
         $side = null;
         if ($orderSide !== null) {
             $parts = explode('_', $orderSide);
-            $partsLength = is_array($parts) ? count($parts) : 0;
+            $partsLength = count($parts);
             $side = $this->safe_string_lower($parts, $partsLength - 1);
         }
         $type = $this->parse_order_type($this->safe_string($order, 'type'));
@@ -1006,6 +1006,7 @@ class latoken extends Exchange {
             'side' => $side,
             'price' => $price,
             'stopPrice' => null,
+            'triggerPrice' => null,
             'cost' => $cost,
             'amount' => $amount,
             'filled' => $filled,
@@ -1361,6 +1362,7 @@ class latoken extends Exchange {
         $statuses = array(
             'TRANSACTION_STATUS_CONFIRMED' => 'ok',
             'TRANSACTION_STATUS_EXECUTED' => 'ok',
+            'TRANSACTION_STATUS_CANCELLED' => 'canceled',
         );
         return $this->safe_string($statuses, $status, $status);
     }
@@ -1433,7 +1435,7 @@ class latoken extends Exchange {
         $this->load_markets();
         $currency = $this->currency($code);
         $method = null;
-        if ($toAccount->includes ('@')) {
+        if (mb_strpos($toAccount, '@') !== false) {
             $method = 'privatePostAuthTransferEmail';
         } elseif (strlen($toAccount) === 36) {
             $method = 'privatePostAuthTransferId';

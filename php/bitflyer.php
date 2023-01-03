@@ -6,14 +6,11 @@ namespace ccxt;
 // https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 use Exception; // a common import
-use \ccxt\ExchangeError;
-use \ccxt\ArgumentsRequired;
-use \ccxt\OrderNotFound;
 
 class bitflyer extends Exchange {
 
     public function describe() {
-        return $this->deep_extend(parent::describe (), array(
+        return $this->deep_extend(parent::describe(), array(
             'id' => 'bitflyer',
             'name' => 'bitFlyer',
             'countries' => array( 'JP' ),
@@ -469,6 +466,9 @@ class bitflyer extends Exchange {
         $request = array(
             'product_code' => $market['id'],
         );
+        if ($limit !== null) {
+            $request['count'] = $limit;
+        }
         $response = $this->publicGetGetexecutions (array_merge($request, $params));
         return $this->parse_trades($response, $market, $since, $limit);
     }
@@ -594,6 +594,7 @@ class bitflyer extends Exchange {
             'side' => $side,
             'price' => $price,
             'stopPrice' => null,
+            'triggerPrice' => null,
             'cost' => null,
             'amount' => $amount,
             'filled' => $filled,

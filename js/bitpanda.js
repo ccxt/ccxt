@@ -339,6 +339,8 @@ module.exports = class bitpanda extends Exchange {
                 'active': undefined,
                 'fee': undefined,
                 'precision': this.parseNumber (this.parsePrecision (this.safeString (currency, 'precision'))),
+                'withdraw': undefined,
+                'deposit': undefined,
                 'limits': {
                     'amount': { 'min': undefined, 'max': undefined },
                     'withdraw': { 'min': undefined, 'max': undefined },
@@ -656,6 +658,7 @@ module.exports = class bitpanda extends Exchange {
          * @returns {object} an array of [ticker structures]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
          */
         await this.loadMarkets ();
+        symbols = this.marketSymbols (symbols);
         const response = await this.publicGetMarketTicker (params);
         //
         //     [
@@ -1480,6 +1483,7 @@ module.exports = class bitpanda extends Exchange {
             'side': side,
             'price': price,
             'stopPrice': stopPrice,
+            'triggerPrice': stopPrice,
             'amount': amount,
             'cost': undefined,
             'average': undefined,

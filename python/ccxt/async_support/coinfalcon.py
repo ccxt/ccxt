@@ -129,10 +129,6 @@ class coinfalcon(Exchange):
                     'taker': 0.002,  # tiered fee starts at 0.2%
                 },
             },
-            'precision': {
-                'amount': self.parse_number('0.00000001'),
-                'price': self.parse_number('0.00000001'),
-            },
             'precisionMode': TICK_SIZE,
         })
 
@@ -282,6 +278,7 @@ class coinfalcon(Exchange):
         :returns dict: an array of `ticker structures <https://docs.ccxt.com/en/latest/manual.html#ticker-structure>`
         """
         await self.load_markets()
+        symbols = self.market_symbols(symbols)
         response = await self.publicGetMarkets(params)
         #
         #     {
@@ -616,6 +613,7 @@ class coinfalcon(Exchange):
             'side': side,
             'price': priceString,
             'stopPrice': None,
+            'triggerPrice': None,
             'cost': None,
             'amount': amountString,
             'filled': filledString,

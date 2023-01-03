@@ -137,6 +137,10 @@ module.exports = class bittrex extends Exchange {
                         'account/fees/trading',
                         'account/fees/trading/{marketSymbol}',
                         'account/volume',
+                        'account/permissions/markets',
+                        'account/permissions/markets/{marketSymbol}',
+                        'account/permissions/currencies',
+                        'account/permissions/currencies/{currencySymbol}',
                         'addresses',
                         'addresses/{currencySymbol}',
                         'balances',
@@ -146,6 +150,8 @@ module.exports = class bittrex extends Exchange {
                         'deposits/ByTxId/{txId}',
                         'deposits/{depositId}',
                         'executions',
+                        'executions/last-id',
+                        'executions/{executionId}',
                         'orders/closed',
                         'orders/open',
                         'orders/{orderId}',
@@ -153,17 +159,22 @@ module.exports = class bittrex extends Exchange {
                         'ping',
                         'subaccounts/{subaccountId}',
                         'subaccounts',
+                        'subaccounts/withdrawals/open',
+                        'subaccounts/withdrawals/closed',
+                        'subaccounts/deposits/open',
+                        'subaccounts/deposits/closed',
                         'withdrawals/open',
                         'withdrawals/closed',
                         'withdrawals/ByTxId/{txId}',
                         'withdrawals/{withdrawalId}',
-                        'withdrawals/whitelistAddresses',
+                        'withdrawals/allowed-addresses',
                         'conditional-orders/{conditionalOrderId}',
                         'conditional-orders/closed',
                         'conditional-orders/open',
                         'transfers/sent',
                         'transfers/received',
                         'transfers/{transferId}',
+                        'funds-transfer-methods/{fundsTransferMethodId}',
                     ],
                     'post': [
                         'addresses',
@@ -172,6 +183,7 @@ module.exports = class bittrex extends Exchange {
                         'withdrawals',
                         'conditional-orders',
                         'transfers',
+                        'batch',
                     ],
                     'delete': [
                         'orders/open',
@@ -349,8 +361,8 @@ module.exports = class bittrex extends Exchange {
                 'strike': undefined,
                 'optionType': undefined,
                 'precision': {
-                    'amount': this.parseNumber ('0.00000001'),
-                    'price': this.parseNumber (this.parsePrecision (this.safeString (market, 'precision', '8'))),
+                    'amount': this.parseNumber ('1e-8'), // seems exchange has same amount-precision across all pairs in UI too. This is same as 'minTradeSize' digits after dot
+                    'price': this.parseNumber (this.parsePrecision (this.safeString (market, 'precision'))),
                 },
                 'limits': {
                     'leverage': {
@@ -478,7 +490,7 @@ module.exports = class bittrex extends Exchange {
             const currency = response[i];
             const id = this.safeString (currency, 'symbol');
             const code = this.safeCurrencyCode (id);
-            const precision = this.parseNumber ('0.00000001'); // default precision, todo: fix "magic constants"
+            const precision = this.parseNumber ('1e-8'); // default precision, seems exchange has same amount-precision across all pairs in UI too. todo: fix "magic constants"
             const fee = this.safeNumber (currency, 'txFee'); // todo: redesign
             const isActive = this.safeString (currency, 'status');
             result[code] = {
@@ -571,6 +583,7 @@ module.exports = class bittrex extends Exchange {
          * @returns {object} an array of [ticker structures]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
          */
         await this.loadMarkets ();
+        symbols = this.marketSymbols (symbols);
         const options = this.safeValue (this.options, 'fetchTickers', {});
         const defaultMethod = this.safeString (options, 'method', 'publicGetMarketsTickers');
         const method = this.safeString (params, 'method', defaultMethod);
@@ -703,6 +716,19 @@ module.exports = class bittrex extends Exchange {
         //          "isTaker":  true
         //      }
         //
+        // private fetchMyTrades
+        //      {
+        //          "id":"7e6488c9-294f-4137-b0f2-9f86578186fe",
+        //          "marketSymbol":"DOGE-USDT",
+        //          "executedAt":"2022-08-12T21:27:37.92Z",
+        //          "quantity":"100.00000000",
+        //          "rate":"0.071584100000",
+        //          "orderId":"2d53f11a-fb22-4820-b04d-80e5f48e6005",
+        //          "commission":"0.05368807",
+        //          "isTaker":true,
+        //          "direction":"BUY"
+        //      }
+        //
         const timestamp = this.parse8601 (this.safeString (trade, 'executedAt'));
         const id = this.safeString (trade, 'id');
         const order = this.safeString (trade, 'orderId');
@@ -711,9 +737,17 @@ module.exports = class bittrex extends Exchange {
         const priceString = this.safeString (trade, 'rate');
         const amountString = this.safeString (trade, 'quantity');
         let takerOrMaker = undefined;
+        let side = this.safeStringLower2 (trade, 'takerSide', 'direction');
         const isTaker = this.safeValue (trade, 'isTaker');
         if (isTaker !== undefined) {
             takerOrMaker = isTaker ? 'taker' : 'maker';
+            if (!isTaker) { // as noted in PR #15655 this API provides confusing value - when it's 'maker' trade, then side value should reversed
+                if (side === 'buy') {
+                    side = 'sell';
+                } else if (side === 'sell') {
+                    side = 'buy';
+                }
+            }
         }
         let fee = undefined;
         const feeCostString = this.safeString (trade, 'commission');
@@ -723,7 +757,6 @@ module.exports = class bittrex extends Exchange {
                 'currency': market['quote'],
             };
         }
-        const side = this.safeStringLower (trade, 'takerSide');
         return this.safeTrade ({
             'info': trade,
             'timestamp': timestamp,
@@ -1370,8 +1403,12 @@ module.exports = class bittrex extends Exchange {
         const request = {
             'txId': id,
         };
+        let currency = undefined;
+        if (code !== undefined) {
+            currency = this.currency (code);
+        }
         const response = await this.privateGetDepositsByTxIdTxId (this.extend (request, params));
-        const transactions = this.parseTransactions (response, code, undefined, undefined);
+        const transactions = this.parseTransactions (response, currency, undefined, undefined);
         return this.safeValue (transactions, 0);
     }
 
@@ -1453,8 +1490,12 @@ module.exports = class bittrex extends Exchange {
         const request = {
             'txId': id,
         };
+        let currency = undefined;
+        if (code !== undefined) {
+            currency = this.currency (code);
+        }
         const response = await this.privateGetWithdrawalsByTxIdTxId (this.extend (request, params));
-        const transactions = this.parseTransactions (response, code, undefined, undefined);
+        const transactions = this.parseTransactions (response, currency, undefined, undefined);
         return this.safeValue (transactions, 0);
     }
 
@@ -1766,6 +1807,7 @@ module.exports = class bittrex extends Exchange {
             'side': direction,
             'price': limit,
             'stopPrice': this.safeString (order, 'triggerPrice'),
+            'triggerPrice': this.safeString (order, 'triggerPrice'),
             'cost': proceeds,
             'average': undefined,
             'amount': quantity,

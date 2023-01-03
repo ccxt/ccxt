@@ -6,15 +6,11 @@ namespace ccxt;
 // https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 use Exception; // a common import
-use \ccxt\ExchangeError;
-use \ccxt\BadRequest;
-use \ccxt\InvalidAddress;
-use \ccxt\NotSupported;
 
 class idex extends Exchange {
 
     public function describe() {
-        return $this->deep_extend(parent::describe (), array(
+        return $this->deep_extend(parent::describe(), array(
             'id' => 'idex',
             'name' => 'IDEX',
             'countries' => array( 'US' ),
@@ -1080,6 +1076,7 @@ class idex extends Exchange {
             'side' => $side,
             'price' => $price,
             'stopPrice' => null,
+            'triggerPrice' => null,
             'amount' => $amount,
             'cost' => null,
             'average' => $average,
@@ -1668,7 +1665,7 @@ class idex extends Exchange {
         $version = $this->safe_string($this->options, 'version', 'v1');
         $url = $this->urls['api'][$network] . '/' . $version . '/' . $path;
         $keys = is_array($params) ? array_keys($params) : array();
-        $length = is_array($keys) ? count($keys) : 0;
+        $length = count($keys);
         $query = null;
         if ($length > 0) {
             if ($method === 'GET') {

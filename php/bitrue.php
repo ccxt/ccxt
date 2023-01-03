@@ -6,21 +6,18 @@ namespace ccxt;
 // https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 use Exception; // a common import
-use \ccxt\ExchangeError;
-use \ccxt\ArgumentsRequired;
-use \ccxt\InvalidOrder;
-use \ccxt\DDoSProtection;
 
 class bitrue extends Exchange {
 
     public function describe() {
-        return $this->deep_extend(parent::describe (), array(
+        return $this->deep_extend(parent::describe(), array(
             'id' => 'bitrue',
             'name' => 'Bitrue',
             'countries' => array( 'SG' ), // Singapore, Malta
             'rateLimit' => 1000,
             'certified' => false,
             'version' => 'v1',
+            'pro' => true,
             // new metainfo interface
             'has' => array(
                 'CORS' => null,
@@ -49,7 +46,7 @@ class bitrue extends Exchange {
                 'fetchMarginMode' => false,
                 'fetchMarkets' => true,
                 'fetchMyTrades' => true,
-                'fetchOHLCV' => 'emulated',
+                'fetchOHLCV' => true,
                 'fetchOpenOrders' => true,
                 'fetchOrder' => true,
                 'fetchOrderBook' => true,
@@ -74,10 +71,11 @@ class bitrue extends Exchange {
                 '5m' => '5m',
                 '15m' => '15m',
                 '30m' => '30m',
-                '1h' => '1h',
-                '1d' => '1d',
-                '1w' => '1w',
-                '1M' => '1M',
+                '1h' => '1H',
+                '2h' => '2H',
+                '4h' => '4H',
+                '1d' => '1D',
+                '1w' => '1W',
             ),
             'urls' => array(
                 'logo' => 'https://user-images.githubusercontent.com/1294454/139516488-243a830d-05dd-446b-91c6-c1f18fe30c63.jpg',
@@ -115,6 +113,7 @@ class bitrue extends Exchange {
                             'ticker/24hr' => array( 'cost' => 1, 'noSymbol' => 40 ),
                             'ticker/price' => array( 'cost' => 1, 'noSymbol' => 2 ),
                             'ticker/bookTicker' => array( 'cost' => 1, 'noSymbol' => 2 ),
+                            'market/kline' => 1,
                         ),
                     ),
                     'private' => array(
@@ -238,10 +237,9 @@ class bitrue extends Exchange {
                     'limit' => 'FULL', // we change it from 'ACK' by default to 'FULL' (returns immediately if limit is not hit)
                 ),
                 'networks' => array(
-                    'SPL' => 'SOLANA',
-                    'SOL' => 'SOLANA',
-                    'DOGE' => 'dogecoin',
-                    'ADA' => 'Cardano',
+                    'ERC20' => 'ETH',
+                    'TRC20' => 'TRX',
+                    'TRON' => 'TRX',
                 ),
             ),
             'commonCurrencies' => array(
@@ -353,7 +351,7 @@ class bitrue extends Exchange {
         //     array()
         //
         $keys = is_array($response) ? array_keys($response) : array();
-        $keysLength = is_array($keys) ? count($keys) : 0;
+        $keysLength = count($keys);
         $formattedStatus = $keysLength ? 'maintenance' : 'ok';
         return array(
             'status' => $formattedStatus,
@@ -856,6 +854,69 @@ class bitrue extends Exchange {
         return $this->parse_ticker($ticker, $market);
     }
 
+    public function fetch_ohlcv($symbol, $timeframe = '1m', $since = null, $limit = null, $params = array ()) {
+        /**
+         * fetches historical candlestick $data containing the open, high, low, and close price, and the volume of a $market
+         * @param {string} $symbol unified $symbol of the $market to fetch OHLCV $data for
+         * @param {string} $timeframe the length of time each candle represents
+         * @param {int|null} $since timestamp in ms of the earliest candle to fetch
+         * @param {int|null} $limit the maximum amount of candles to fetch
+         * @param {array} $params extra parameters specific to the bitrue api endpoint
+         * @return {[[int]]} A list of candles ordered as timestamp, open, high, low, close, volume
+         */
+        $this->load_markets();
+        $market = $this->market($symbol);
+        $request = array(
+            'symbol' => $market['id'],
+            'scale' => $this->timeframes[$timeframe],
+        );
+        if ($limit !== null) {
+            $request['limit'] = $limit;
+        }
+        $response = $this->v1PublicGetMarketKline (array_merge($request, $params));
+        //
+        //       {
+        //           "symbol":"BTCUSDT",
+        //           "scale":"KLINE_1MIN",
+        //           "data":array(
+        //                {
+        //                   "i":"1660825020",
+        //                   "a":"93458.778",
+        //                   "v":"3.9774",
+        //                   "c":"23494.99",
+        //                   "h":"23509.63",
+        //                   "l":"23491.93",
+        //                   "o":"23508.34"
+        //                }
+        //           )
+        //       }
+        //
+        $data = $this->safe_value($response, 'data', array());
+        return $this->parse_ohlcvs($data, $market, $timeframe, $since, $limit);
+    }
+
+    public function parse_ohlcv($ohlcv, $market = null) {
+        //
+        //      {
+        //         "i":"1660825020",
+        //         "a":"93458.778",
+        //         "v":"3.9774",
+        //         "c":"23494.99",
+        //         "h":"23509.63",
+        //         "l":"23491.93",
+        //         "o":"23508.34"
+        //      }
+        //
+        return array(
+            $this->safe_timestamp($ohlcv, 'i'),
+            $this->safe_number($ohlcv, 'o'),
+            $this->safe_number($ohlcv, 'h'),
+            $this->safe_number($ohlcv, 'l'),
+            $this->safe_number($ohlcv, 'c'),
+            $this->safe_number($ohlcv, 'v'),
+        );
+    }
+
     public function fetch_bids_asks($symbols = null, $params = array ()) {
         /**
          * fetches the bid and ask price and volume for multiple markets
@@ -1176,6 +1237,7 @@ class bitrue extends Exchange {
             'side' => $side,
             'price' => $price,
             'stopPrice' => $stopPrice,
+            'triggerPrice' => $stopPrice,
             'amount' => $amount,
             'cost' => $cost,
             'average' => $average,
@@ -1227,9 +1289,9 @@ class bitrue extends Exchange {
             }
             $request['price'] = $this->price_to_precision($symbol, $price);
         }
-        $stopPrice = $this->safe_number($params, 'stopPrice');
+        $stopPrice = $this->safe_value_2($params, 'triggerPrice', 'stopPrice');
         if ($stopPrice !== null) {
-            $params = $this->omit($params, 'stopPrice');
+            $params = $this->omit($params, array( 'triggerPrice', 'stopPrice' ));
             $request['stopPrice'] = $this->price_to_precision($symbol, $stopPrice);
         }
         $response = $this->v1PrivatePostOrder (array_merge($request, $params));
@@ -1649,10 +1711,11 @@ class bitrue extends Exchange {
         //         "fee" => 1,
         //         "ctime" => null,
         //         "coin" => "usdt_erc20",
+        //         "withdrawId" => 1156423,
         //         "addressTo" => "0x2edfae3878d7b6db70ce4abed177ab2636f60c83"
         //     }
         //
-        $id = $this->safe_string($transaction, 'id');
+        $id = $this->safe_string_2($transaction, 'id', 'withdrawId');
         $tagType = $this->safe_string($transaction, 'tagType');
         $addressTo = $this->safe_string($transaction, 'addressTo');
         $addressFrom = $this->safe_string($transaction, 'addressFrom');
@@ -1679,7 +1742,7 @@ class bitrue extends Exchange {
         $status = $this->parse_transaction_status_by_type($this->safe_string($transaction, 'status'), $type);
         $amount = $this->safe_number($transaction, 'amount');
         $network = null;
-        $currencyId = $this->safe_string($transaction, 'symbol');
+        $currencyId = $this->safe_string_2($transaction, 'symbol', 'coin');
         if ($currencyId !== null) {
             $parts = explode('_', $currencyId);
             $currencyId = $this->safe_string($parts, 0);
@@ -1734,7 +1797,9 @@ class bitrue extends Exchange {
         $chainName = $this->safe_string($params, 'chainName');
         if ($chainName === null) {
             $networks = $this->safe_value($currency, 'networks', array());
+            $optionsNetworks = $this->safe_value($this->options, 'networks', array());
             $network = $this->safe_string_upper($params, 'network'); // this line allows the user to specify either ERC20 or ETH
+            $network = $this->safe_string($optionsNetworks, $network, $network);
             $networkEntry = $this->safe_value($networks, $network, array());
             $chainName = $this->safe_string($networkEntry, 'id'); // handle ERC20>ETH alias
             if ($chainName === null) {
@@ -1755,8 +1820,23 @@ class bitrue extends Exchange {
             $request['tag'] = $tag;
         }
         $response = $this->v1PrivatePostWithdrawCommit (array_merge($request, $params));
-        //     array( id => '9a67628b16ba4988ae20d329333f16bc' )
-        return $this->parse_transaction($response, $currency);
+        //
+        //     {
+        //         "code" => 200,
+        //         "msg" => "succ",
+        //         "data" => {
+        //             "msg" => null,
+        //             "amount" => 1000,
+        //             "fee" => 1,
+        //             "ctime" => null,
+        //             "coin" => "usdt_erc20",
+        //             "withdrawId" => 1156423,
+        //             "addressTo" => "0x2edfae3878d7b6db70ce4abed177ab2636f60c83"
+        //         }
+        //     }
+        //
+        $data = $this->safe_value($response, 'data');
+        return $this->parse_transaction($data, $currency);
     }
 
     public function sign($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
@@ -1869,6 +1949,6 @@ class bitrue extends Exchange {
                 }
             }
         }
-        return $this->safe_integer($config, 'cost', 1);
+        return $this->safe_value($config, 'cost', 1);
     }
 }

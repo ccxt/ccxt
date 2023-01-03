@@ -36,6 +36,8 @@ module.exports = class bitfinex extends Exchange {
                 'fetchClosedOrders': true,
                 'fetchDepositAddress': true,
                 'fetchDeposits': undefined,
+                'fetchDepositWithdrawFee': 'emulated',
+                'fetchDepositWithdrawFees': true,
                 'fetchIndexOHLCV': false,
                 'fetchLeverageTiers': false,
                 'fetchMarginMode': false,
@@ -393,25 +395,78 @@ module.exports = class bitfinex extends Exchange {
         /**
          * @method
          * @name bitfinex#fetchTransactionFees
-         * @description fetch transaction fees
-         * @param {[string]|undefined} codes not used by bitfinex2 fetchTransactionFees ()
+         * @description *DEPRECATED* please use fetchDepositWithdrawFees instead
+         * @see https://docs.bitfinex.com/v1/reference/rest-auth-fees
+         * @param {[string]|undefined} codes list of unified currency codes
+         * @param {object} params extra parameters specific to the bitfinex api endpoint
+         * @returns {[object]} a list of [fees structures]{@link https://docs.ccxt.com/en/latest/manual.html#fee-structure}
+         */
+        await this.loadMarkets ();
+        const result = {};
+        const response = await this.privatePostAccountFees (params);
+        //
+        // {
+        //     'withdraw': {
+        //         'BTC': '0.0004',
+        //     }
+        // }
+        //
+        const fees = this.safeValue (response, 'withdraw');
+        const ids = Object.keys (fees);
+        for (let i = 0; i < ids.length; i++) {
+            const id = ids[i];
+            const code = this.safeCurrencyCode (id);
+            if ((codes !== undefined) && !this.inArray (code, codes)) {
+                continue;
+            }
+            result[code] = {
+                'withdraw': this.safeNumber (fees, id),
+                'deposit': {},
+                'info': this.safeNumber (fees, id),
+            };
+        }
+        return result;
+    }
+
+    async fetchDepositWithdrawFees (codes = undefined, params = {}) {
+        /**
+         * @method
+         * @name bitfinex#fetchDepositWithdrawFees
+         * @description fetch deposit and withdraw fees
+         * @see https://docs.bitfinex.com/v1/reference/rest-auth-fees
+         * @param {[string]|undefined} codes list of unified currency codes
          * @param {object} params extra parameters specific to the bitfinex api endpoint
          * @returns {[object]} a list of [fees structures]{@link https://docs.ccxt.com/en/latest/manual.html#fee-structure}
          */
         await this.loadMarkets ();
         const response = await this.privatePostAccountFees (params);
-        const fees = response['withdraw'];
-        const withdraw = {};
-        const ids = Object.keys (fees);
-        for (let i = 0; i < ids.length; i++) {
-            const id = ids[i];
-            const code = this.safeCurrencyCode (id);
-            withdraw[code] = this.safeNumber (fees, id);
-        }
+        //
+        //    {
+        //        'withdraw': {
+        //            'BTC': '0.0004',
+        //            ...
+        //        }
+        //    }
+        //
+        const withdraw = this.safeValue (response, 'withdraw');
+        return this.parseDepositWithdrawFees (withdraw, codes);
+    }
+
+    parseDepositWithdrawFee (fee, currency = undefined) {
+        //
+        //    '0.0004'
+        //
         return {
-            'info': response,
-            'withdraw': withdraw,
-            'deposit': withdraw,  // only for deposits of less than $1000
+            'withdraw': {
+                'fee': this.parseNumber (fee),
+                'percentage': undefined,
+            },
+            'deposit': {
+                'fee': undefined,
+                'percentage': undefined,
+            },
+            'networks': {},
+            'info': fee,
         };
     }
 
@@ -794,6 +849,7 @@ module.exports = class bitfinex extends Exchange {
          * @returns {object} an array of [ticker structures]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
          */
         await this.loadMarkets ();
+        symbols = this.marketSymbols (symbols);
         const response = await this.publicGetTickers (params);
         const result = {};
         for (let i = 0; i < response.length; i++) {
@@ -824,24 +880,9 @@ module.exports = class bitfinex extends Exchange {
 
     parseTicker (ticker, market = undefined) {
         const timestamp = this.safeTimestamp (ticker, 'timestamp');
-        let symbol = undefined;
-        if (market !== undefined) {
-            symbol = market['symbol'];
-        } else if ('pair' in ticker) {
-            const marketId = this.safeString (ticker, 'pair');
-            if (marketId !== undefined) {
-                if (marketId in this.markets_by_id) {
-                    market = this.markets_by_id[marketId];
-                    symbol = market['symbol'];
-                } else {
-                    const baseId = marketId.slice (0, 3);
-                    const quoteId = marketId.slice (3, 6);
-                    const base = this.safeCurrencyCode (baseId);
-                    const quote = this.safeCurrencyCode (quoteId);
-                    symbol = base + '/' + quote;
-                }
-            }
-        }
+        const marketId = this.safeString (market, 'pair');
+        market = this.safeMarket (marketId, market);
+        const symbol = market['symbol'];
         const last = this.safeString (ticker, 'last_price');
         return this.safeTicker ({
             'symbol': symbol,
@@ -1150,6 +1191,7 @@ module.exports = class bitfinex extends Exchange {
             'side': side,
             'price': this.safeString (order, 'price'),
             'stopPrice': undefined,
+            'triggerPrice': undefined,
             'average': this.safeString (order, 'avg_execution_price'),
             'amount': this.safeString (order, 'original_amount'),
             'remaining': this.safeString (order, 'remaining_amount'),
@@ -1198,6 +1240,7 @@ module.exports = class bitfinex extends Exchange {
          * @returns {[object]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
          */
         await this.loadMarkets ();
+        symbol = this.symbol (symbol);
         const request = {};
         if (limit !== undefined) {
             request['limit'] = limit;
@@ -1376,18 +1419,18 @@ module.exports = class bitfinex extends Exchange {
         //
         //     [
         //         {
-        //             "id":581183,
-        //             "txid": 123456,
-        //             "currency":"BTC",
-        //             "method":"BITCOIN",
-        //             "type":"WITHDRAWAL",
-        //             "amount":".01",
-        //             "description":"3QXYWgRGX2BPYBpUDBssGbeWEa5zq6snBZ, offchain transfer ",
-        //             "address":"3QXYWgRGX2BPYBpUDBssGbeWEa5zq6snBZ",
-        //             "status":"COMPLETED",
-        //             "timestamp":"1443833327.0",
-        //             "timestamp_created": "1443833327.1",
-        //             "fee": 0.1,
+        //             "id": 581183,
+        //             "txid":  123456,
+        //             "currency": "BTC",
+        //             "method": "BITCOIN",
+        //             "type": "WITHDRAWAL",
+        //             "amount": ".01",
+        //             "description": "3QXYWgRGX2BPYBpUDBssGbeWEa5zq6snBZ, offchain transfer ",
+        //             "address": "3QXYWgRGX2BPYBpUDBssGbeWEa5zq6snBZ",
+        //             "status": "COMPLETED",
+        //             "timestamp": "1443833327.0",
+        //             "timestamp_created":  "1443833327.1",
+        //             "fee":  0.1,
         //         }
         //     ]
         //
@@ -1433,43 +1476,40 @@ module.exports = class bitfinex extends Exchange {
         // withdraw
         //
         //     {
-        //         "status":"success",
-        //         "message":"Your withdrawal request has been successfully submitted.",
-        //         "withdrawal_id":586829
+        //         "status": "success",
+        //         "message": "Your withdrawal request has been successfully submitted.",
+        //         "withdrawal_id": 586829
         //     }
         //
         const timestamp = this.safeTimestamp (transaction, 'timestamp_created');
-        const updated = this.safeTimestamp (transaction, 'timestamp');
         const currencyId = this.safeString (transaction, 'currency');
         const code = this.safeCurrencyCode (currencyId, currency);
-        const type = this.safeStringLower (transaction, 'type'); // DEPOSIT or WITHDRAWAL
-        const status = this.parseTransactionStatus (this.safeString (transaction, 'status'));
-        let feeCost = this.safeNumber (transaction, 'fee');
+        let feeCost = this.safeString (transaction, 'fee');
         if (feeCost !== undefined) {
-            feeCost = Math.abs (feeCost);
+            feeCost = Precise.stringAbs (feeCost);
         }
-        const tag = this.safeString (transaction, 'description');
         return {
             'info': transaction,
             'id': this.safeString2 (transaction, 'id', 'withdrawal_id'),
             'txid': this.safeString (transaction, 'txid'),
+            'type': this.safeStringLower (transaction, 'type'), // DEPOSIT or WITHDRAWAL,
+            'currency': code,
+            'network': undefined,
+            'amount': this.safeNumber (transaction, 'amount'),
+            'status': this.parseTransactionStatus (this.safeString (transaction, 'status')),
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'network': undefined,
             'address': this.safeString (transaction, 'address'), // todo: this is actually the tag for XRP transfers (the address is missing)
-            'addressTo': undefined,
             'addressFrom': undefined,
-            'tag': tag,
-            'tagTo': undefined,
+            'addressTo': undefined,
+            'tag': this.safeString (transaction, 'description'),
             'tagFrom': undefined,
-            'type': type,
-            'amount': this.safeNumber (transaction, 'amount'),
-            'currency': code,
-            'status': status,
-            'updated': updated,
+            'tagTo': undefined,
+            'updated': this.safeTimestamp (transaction, 'timestamp'),
+            'comment': undefined,
             'fee': {
                 'currency': code,
-                'cost': feeCost,
+                'cost': this.parseNumber (feeCost),
                 'rate': undefined,
             },
         };

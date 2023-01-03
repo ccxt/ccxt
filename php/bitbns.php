@@ -6,13 +6,11 @@ namespace ccxt;
 // https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 use Exception; // a common import
-use \ccxt\ExchangeError;
-use \ccxt\ArgumentsRequired;
 
 class bitbns extends Exchange {
 
     public function describe() {
-        return $this->deep_extend(parent::describe (), array(
+        return $this->deep_extend(parent::describe(), array(
             'id' => 'bitbns',
             'name' => 'Bitbns',
             'countries' => array( 'IN' ), // India
@@ -63,12 +61,13 @@ class bitbns extends Exchange {
             ),
             'timeframes' => array(
             ),
+            'hostname' => 'bitbns.com',
             'urls' => array(
                 'logo' => 'https://user-images.githubusercontent.com/1294454/117201933-e7a6e780-adf5-11eb-9d80-98fc2a21c3d6.jpg',
                 'api' => array(
-                    'www' => 'https://bitbns.com',
-                    'v1' => 'https://api.bitbns.com/api/trade/v1',
-                    'v2' => 'https://api.bitbns.com/api/trade/v2',
+                    'www' => 'https://{hostname}',
+                    'v1' => 'https://api.{hostname}/api/trade/v1',
+                    'v2' => 'https://api.{hostname}/api/trade/v2',
                 ),
                 'www' => 'https://bitbns.com',
                 'referral' => 'https://ref.bitbns.com/1090961',
@@ -433,7 +432,7 @@ class bitbns extends Exchange {
         for ($i = 0; $i < count($keys); $i++) {
             $key = $keys[$i];
             $parts = explode('availableorder', $key);
-            $numParts = is_array($parts) ? count($parts) : 0;
+            $numParts = count($parts);
             if ($numParts > 1) {
                 $currencyId = $this->safe_string($parts, 1);
                 // note that "Money" stands for INR - the only fiat in bitbns
@@ -572,6 +571,7 @@ class bitbns extends Exchange {
             'side' => $side,
             'price' => $price,
             'stopPrice' => null,
+            'triggerPrice' => null,
             'amount' => $amount,
             'cost' => $cost,
             'average' => $average,
@@ -1038,14 +1038,15 @@ class bitbns extends Exchange {
         //
         $currencyId = $this->safe_string($transaction, 'unit');
         $code = $this->safe_currency_code($currencyId, $currency);
-        $timestamp = $this->parse8601($this->safe_string($transaction, 'date'));
+        $timestamp = $this->parse8601($this->safe_string_2($transaction, 'date', 'timestamp'));
         $type = $this->safe_string($transaction, 'type');
+        $expTime = $this->safe_string($transaction, 'expTime', '');
         $status = null;
         if ($type !== null) {
             if (mb_strpos($type, 'deposit') !== false) {
                 $type = 'deposit';
                 $status = 'ok';
-            } elseif (mb_strpos($type, 'withdraw') !== false) {
+            } elseif (mb_strpos($type, 'withdraw') !== false || mb_strpos($expTime, 'withdraw') !== false) {
                 $type = 'withdrawal';
             }
         }
