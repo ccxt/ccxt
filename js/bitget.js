@@ -798,8 +798,8 @@ module.exports = class bitget extends Exchange {
                     'ALEPHZERO': 'AZERO',
                     'ACALA': 'AcalaToken',
                     'APTOS': 'Aptos',
-                    'ARBITRUMONE': 'ArbitrumOne',
-                    'ARBITRUMNOVA': 'ArbitrumNova',
+                    'ARBITRUM_ONE': 'ArbitrumOne',
+                    'ARBITRUM_NOVA': 'ArbitrumNova',
                     'ARWEAVE': 'Arweave',
                     'BITCOINCASH': 'BCH',
                     'BITCOINCASHABC': 'BCHA',
@@ -1338,8 +1338,8 @@ module.exports = class bitget extends Exchange {
          * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure}
          */
         this.checkAddress (address);
-        const chain = this.safeString (params, 'chain');
-        if (chain === undefined) {
+        const networkCodeOrId = this.safeString (params, 'chain');
+        if (networkCodeOrId === undefined) {
             throw new ArgumentsRequired (this.id + ' withdraw() requires a chain parameter');
         }
         await this.loadMarkets ();
@@ -1347,7 +1347,7 @@ module.exports = class bitget extends Exchange {
         const request = {
             'coin': currency['code'],
             'address': address,
-            'chain': chain,
+            'chain': this.networkCodeToId (networkCodeOrId),
             'amount': amount,
         };
         if (tag !== undefined) {
@@ -1361,12 +1361,11 @@ module.exports = class bitget extends Exchange {
         //         "data": "888291686266343424"
         //     }
         //
-        'type': 'withdrawal',
-        const result = this.parseTransaction ;
- 
+        const result = this.parseTransaction (response, currency);
         const withdrawOptions = this.safeValue (this.options, 'withdraw', {});
         const fillResponseFromRequest = this.safeValue (withdrawOptions, 'fillResponseFromRequest', true);
         if (fillResponseFromRequest) {
+            result['type'] = 'withdrawal';
             result['currency'] = code;
             result['timestamp'] = this.milliseconds ();
             result['datetime'] = this.iso8601 (this.milliseconds ());
@@ -1374,7 +1373,7 @@ module.exports = class bitget extends Exchange {
             result['tag'] = tag;
             result['address'] = address;
             result['addressTo'] = address;
-            result['network'] = chain;
+            result['network'] = this.networkIdToCode (networkCodeOrId);
         }
         return result;
     }
@@ -1454,15 +1453,16 @@ module.exports = class bitget extends Exchange {
         //
         const timestamp = this.safeInteger (transaction, 'cTime');
         const networkId = this.safeString (transaction, 'chain');
+        const networkCode = this.networkIdToCode (networkId);
         const currencyId = this.safeString (transaction, 'coin');
         const status = this.safeString (transaction, 'status');
         return {
-            'id': this.safeString (transaction, 'id'),
+            'id': this.safeString2 (transaction, 'id', 'data'),
             'info': transaction,
             'txid': this.safeString (transaction, 'txId'),
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'network': networkId,
+            'network': networkCode,
             'addressFrom': undefined,
             'address': this.safeString (transaction, 'toAddress'),
             'addressTo': this.safeString (transaction, 'toAddress'),
@@ -1538,7 +1538,7 @@ module.exports = class bitget extends Exchange {
             'currency': this.safeCurrencyCode (currencyId, currency),
             'address': this.safeString (depositAddress, 'address'),
             'tag': this.safeString (depositAddress, 'tag'),
-            'network': networkId,
+            'network': this.networkIdToCode (networkId),
             'info': depositAddress,
         };
     }
