@@ -1415,7 +1415,7 @@ module.exports = class binance extends Exchange {
                     } else {
                         unifiedSubType = defaultSubType;
                     }
-                    const isLegacyLinearOrSubTypeLinear = isLegacyLinear || unifiedSubType;
+                    const isLegacyLinearOrSubTypeLinear = isLegacyLinear || (unifiedSubType === 'linear');
                     const settle = isLegacyLinearOrSubTypeLinear ? market['quote'] : market['base'];
                     return super.market (symbol + ':' + settle);
                 } else {
