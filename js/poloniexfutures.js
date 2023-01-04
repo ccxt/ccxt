@@ -15,7 +15,7 @@ module.exports = class poloniexfutures extends Exchange {
             'id': 'poloniexfutures',
             'name': 'Poloniex Futures',
             'countries': [ 'US' ],
-            // 3 requests per second for some unauthenticated market endpoints => 1000ms / 3 = 333ms between requests
+            // 30 requests per second
             'rateLimit': 33.3,
             'certified': false,
             'pro': false,
