@@ -1090,6 +1090,7 @@ class probit extends Exchange {
             'status' => $status,
             'price' => $price,
             'stopPrice' => null,
+            'triggerPrice' => null,
             'amount' => $amount,
             'filled' => $filled,
             'remaining' => $remaining,

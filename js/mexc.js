@@ -297,6 +297,7 @@ module.exports = class mexc extends Exchange {
                 'FLUX1': 'FLUX', // switched places
                 'FLUX': 'FLUX1', // switched places
                 'FREE': 'FreeRossDAO', // conflict with FREE Coin
+                'GAS': 'GASDAO',
                 'GMT': 'GMT Token',
                 'HERO': 'Step Hero', // conflict with Metahero
                 'MIMO': 'Mimosa',
@@ -2364,6 +2365,7 @@ module.exports = class mexc extends Exchange {
             'side': side,
             'price': price,
             'stopPrice': this.safeString (order, 'triggerPrice'),
+            'triggerPrice': this.safeString (order, 'triggerPrice'),
             'average': this.safeString (order, 'dealAvgPrice'),
             'amount': amount,
             'cost': cost,

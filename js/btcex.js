@@ -17,7 +17,7 @@ module.exports = class btcex extends Exchange {
             'countries': [ 'CA' ], // Canada
             'version': 'v1',
             'certified': false,
-            'pro': false,
+            'pro': true,
             'requiredCredentials': {
                 'apiKey': true,
                 'secret': true,
@@ -279,6 +279,7 @@ module.exports = class btcex extends Exchange {
                     '8105': BadRequest, // GOOGLE_CODE_CHECK_FAIL 2FA Code error!
                     '8106': DDoSProtection, // SMS_CODE_LIMIT Your message service is over limit today, please try tomorrow
                     '8107': ExchangeError, // REQUEST_FAILED Request failed
+                    '10000': AuthenticationError, // Authentication Failure
                     '11000': BadRequest, // CHANNEL_REGEX_ERROR channel regex not match
                 },
                 'broad': {
@@ -474,9 +475,12 @@ module.exports = class btcex extends Exchange {
         //         "timestamp":"1647569486224"
         //     }
         //
-        const marketId = this.safeString (ticker, 'instrument_name');
+        let marketId = this.safeString (ticker, 'instrument_name');
+        if (marketId.indexOf ('PERPETUAL') < 0) {
+            marketId = marketId + '-SPOT';
+        }
         market = this.safeMarket (marketId, market);
-        const symbol = this.safeSymbol (marketId, market);
+        const symbol = this.safeSymbol (marketId, market, '-');
         const timestamp = this.safeInteger (ticker, 'timestamp');
         const stats = this.safeValue (ticker, 'stats');
         return this.safeTicker ({
@@ -546,6 +550,9 @@ module.exports = class btcex extends Exchange {
         const request = {
             'instrument_name': market['id'],
         };
+        if (limit !== undefined) {
+            request['depth'] = limit;
+        }
         const response = await this.publicGetGetOrderBook (this.extend (request, params));
         const result = this.safeValue (response, 'result', {});
         //
@@ -564,7 +571,9 @@ module.exports = class btcex extends Exchange {
         //     }
         //
         const timestamp = this.safeInteger (result, 'timestamp');
-        return this.parseOrderBook (result, market['symbol'], timestamp);
+        const orderBook = this.parseOrderBook (result, market['symbol'], timestamp);
+        orderBook['nonce'] = this.safeInteger (result, 'version');
+        return orderBook;
     }
 
     parseOHLCV (ohlcv, market = undefined) {
@@ -1122,7 +1131,10 @@ module.exports = class btcex extends Exchange {
         const timestamp = this.safeInteger (order, 'creation_timestamp');
         const lastUpdate = this.safeInteger (order, 'last_update_timestamp');
         const id = this.safeString (order, 'order_id');
-        const priceString = this.safeString (order, 'price');
+        let priceString = this.safeString (order, 'price');
+        if (priceString === '-1') {
+            priceString = undefined;
+        }
         const averageString = this.safeString (order, 'average_price');
         const amountString = this.safeString (order, 'amount');
         const filledString = this.safeString (order, 'filled_amount');
@@ -1166,6 +1178,7 @@ module.exports = class btcex extends Exchange {
             'side': side,
             'price': priceString,
             'stopPrice': stopPrice,
+            'triggerPrice': stopPrice,
             'amount': amountString,
             'cost': undefined,
             'average': averageString,

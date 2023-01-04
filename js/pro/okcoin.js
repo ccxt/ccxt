@@ -524,16 +524,8 @@ module.exports = class okcoin extends okcoinRest {
         if (code !== undefined) {
             currency = this.currency (code);
         }
-        const marketId = this.safeString (params, 'instrument_id');
         const symbol = this.safeString (params, 'symbol');
-        let market = undefined;
-        if (symbol !== undefined) {
-            market = this.market (symbol);
-        } else if (marketId !== undefined) {
-            if (marketId in this.markets_by_id) {
-                market = this.markets_by_id[marketId];
-            }
-        }
+        const market = this.market (symbol);
         const marketUndefined = (market === undefined);
         const currencyUndefined = (currency === undefined);
         if (type === 'spot') {

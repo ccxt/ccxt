@@ -251,6 +251,7 @@ class coincheck(Exchange):
             'symbol': symbol,
             'price': price,
             'stopPrice': None,
+            'triggerPrice': None,
             'cost': None,
             'fee': None,
             'info': order,

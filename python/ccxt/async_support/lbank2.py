@@ -1104,6 +1104,7 @@ class lbank2(Exchange):
             'side': side,
             'price': price,
             'stopPrice': None,
+            'triggerPrice': None,
             'cost': costString,
             'amount': amountString,
             'filled': filledString,

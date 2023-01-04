@@ -16,7 +16,7 @@ class btcex extends Exchange {
             'countries' => array( 'CA' ), // Canada
             'version' => 'v1',
             'certified' => false,
-            'pro' => false,
+            'pro' => true,
             'requiredCredentials' => array(
                 'apiKey' => true,
                 'secret' => true,
@@ -278,6 +278,7 @@ class btcex extends Exchange {
                     '8105' => '\\ccxt\\BadRequest', // GOOGLE_CODE_CHECK_FAIL 2FA Code error!
                     '8106' => '\\ccxt\\DDoSProtection', // SMS_CODE_LIMIT Your message service is over limit today, please try tomorrow
                     '8107' => '\\ccxt\\ExchangeError', // REQUEST_FAILED Request failed
+                    '10000' => '\\ccxt\\AuthenticationError', // Authentication Failure
                     '11000' => '\\ccxt\\BadRequest', // CHANNEL_REGEX_ERROR channel regex not match
                 ),
                 'broad' => array(
@@ -474,8 +475,11 @@ class btcex extends Exchange {
         //     }
         //
         $marketId = $this->safe_string($ticker, 'instrument_name');
+        if (mb_strpos($marketId, 'PERPETUAL') === false) {
+            $marketId = $marketId . '-SPOT';
+        }
         $market = $this->safe_market($marketId, $market);
-        $symbol = $this->safe_symbol($marketId, $market);
+        $symbol = $this->safe_symbol($marketId, $market, '-');
         $timestamp = $this->safe_integer($ticker, 'timestamp');
         $stats = $this->safe_value($ticker, 'stats');
         return $this->safe_ticker(array(
@@ -545,6 +549,9 @@ class btcex extends Exchange {
         $request = array(
             'instrument_name' => $market['id'],
         );
+        if ($limit !== null) {
+            $request['depth'] = $limit;
+        }
         $response = $this->publicGetGetOrderBook (array_merge($request, $params));
         $result = $this->safe_value($response, 'result', array());
         //
@@ -563,7 +570,9 @@ class btcex extends Exchange {
         //     }
         //
         $timestamp = $this->safe_integer($result, 'timestamp');
-        return $this->parse_order_book($result, $market['symbol'], $timestamp);
+        $orderBook = $this->parse_order_book($result, $market['symbol'], $timestamp);
+        $orderBook['nonce'] = $this->safe_integer($result, 'version');
+        return $orderBook;
     }
 
     public function parse_ohlcv($ohlcv, $market = null) {
@@ -1122,6 +1131,9 @@ class btcex extends Exchange {
         $lastUpdate = $this->safe_integer($order, 'last_update_timestamp');
         $id = $this->safe_string($order, 'order_id');
         $priceString = $this->safe_string($order, 'price');
+        if ($priceString === '-1') {
+            $priceString = null;
+        }
         $averageString = $this->safe_string($order, 'average_price');
         $amountString = $this->safe_string($order, 'amount');
         $filledString = $this->safe_string($order, 'filled_amount');
@@ -1165,6 +1177,7 @@ class btcex extends Exchange {
             'side' => $side,
             'price' => $priceString,
             'stopPrice' => $stopPrice,
+            'triggerPrice' => $stopPrice,
             'amount' => $amountString,
             'cost' => null,
             'average' => $averageString,

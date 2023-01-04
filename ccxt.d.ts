@@ -544,8 +544,8 @@ declare module 'ccxt' {
     export class paymium extends Exchange {}
     export class phemex extends Exchange {}
     export class poloniex extends Exchange {}
+    export class poloniexfutures extends Exchange {}
     export class probit extends Exchange {}
-    export class qtrade extends Exchange {}
     export class ripio extends Exchange {}
     export class stex extends Exchange {}
     export class therock extends Exchange {}
@@ -660,8 +660,8 @@ declare module 'ccxt' {
         | 'paymium'
         | 'phemex'
         | 'poloniex'
+        | 'poloniexfutures'
         | 'probit'
-        | 'qtrade'
         | 'ripio'
         | 'stex'
         | 'therock'
@@ -698,6 +698,7 @@ declare module 'ccxt' {
     export namespace pro {
         export const exchanges: string[]
         class Exchange  extends ExchangePro {}
+        class alpaca extends Exchange {}
         class ascendex extends Exchange {}
         class bequant extends Exchange {}
         class binance extends Exchange {}
@@ -715,6 +716,7 @@ declare module 'ccxt' {
         class bitstamp extends Exchange {}
         class bittrex extends Exchange {}
         class bitvavo extends Exchange {}
+        class btcex extends Exchange {}
         class bybit extends Exchange {}
         class cex extends Exchange {}
         class coinbaseprime extends Exchange {}

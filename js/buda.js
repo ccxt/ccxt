@@ -888,6 +888,7 @@ module.exports = class buda extends Exchange {
             'side': side,
             'price': price,
             'stopPrice': undefined,
+            'triggerPrice': undefined,
             'average': undefined,
             'cost': cost,
             'amount': amount,

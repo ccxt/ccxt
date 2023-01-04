@@ -880,24 +880,9 @@ module.exports = class bitfinex extends Exchange {
 
     parseTicker (ticker, market = undefined) {
         const timestamp = this.safeTimestamp (ticker, 'timestamp');
-        let symbol = undefined;
-        if (market !== undefined) {
-            symbol = market['symbol'];
-        } else if ('pair' in ticker) {
-            const marketId = this.safeString (ticker, 'pair');
-            if (marketId !== undefined) {
-                if (marketId in this.markets_by_id) {
-                    market = this.markets_by_id[marketId];
-                    symbol = market['symbol'];
-                } else {
-                    const baseId = marketId.slice (0, 3);
-                    const quoteId = marketId.slice (3, 6);
-                    const base = this.safeCurrencyCode (baseId);
-                    const quote = this.safeCurrencyCode (quoteId);
-                    symbol = base + '/' + quote;
-                }
-            }
-        }
+        const marketId = this.safeString (market, 'pair');
+        market = this.safeMarket (marketId, market);
+        const symbol = market['symbol'];
         const last = this.safeString (ticker, 'last_price');
         return this.safeTicker ({
             'symbol': symbol,
@@ -1206,6 +1191,7 @@ module.exports = class bitfinex extends Exchange {
             'side': side,
             'price': this.safeString (order, 'price'),
             'stopPrice': undefined,
+            'triggerPrice': undefined,
             'average': this.safeString (order, 'avg_execution_price'),
             'amount': this.safeString (order, 'original_amount'),
             'remaining': this.safeString (order, 'remaining_amount'),

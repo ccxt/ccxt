@@ -4,7 +4,7 @@
 
 # ----------------------------------------------------------------------------
 
-__version__ = '2.4.45'
+__version__ = '2.5.26'
 
 # ----------------------------------------------------------------------------
 
@@ -14,6 +14,7 @@ from ccxt.pro.base.exchange import Exchange  # noqa: F401
 
 # CCXT Pro exchanges (now this is mainly used for importing exchanges in WS tests)
 
+from ccxt.pro.alpaca import alpaca                                        # noqa: F401
 from ccxt.pro.ascendex import ascendex                                    # noqa: F401
 from ccxt.pro.bequant import bequant                                      # noqa: F401
 from ccxt.pro.binance import binance                                      # noqa: F401
@@ -31,6 +32,7 @@ from ccxt.pro.bitrue import bitrue                                        # noqa
 from ccxt.pro.bitstamp import bitstamp                                    # noqa: F401
 from ccxt.pro.bittrex import bittrex                                      # noqa: F401
 from ccxt.pro.bitvavo import bitvavo                                      # noqa: F401
+from ccxt.pro.btcex import btcex                                          # noqa: F401
 from ccxt.pro.bybit import bybit                                          # noqa: F401
 from ccxt.pro.cex import cex                                              # noqa: F401
 from ccxt.pro.coinbaseprime import coinbaseprime                          # noqa: F401
@@ -66,6 +68,7 @@ from ccxt.pro.zb import zb                                                # noqa
 from ccxt.pro.zipmex import zipmex                                        # noqa: F401
 
 exchanges = [
+    'alpaca',
     'ascendex',
     'bequant',
     'binance',
@@ -83,6 +86,7 @@ exchanges = [
     'bitstamp',
     'bittrex',
     'bitvavo',
+    'btcex',
     'bybit',
     'cex',
     'coinbaseprime',
