@@ -922,7 +922,7 @@ module.exports = class huobi extends Exchange {
                     'AETERNITY': 'AE',
                     'ALGORAND': [ 'ALGO', 'ALGOUSDC' ],
                     'AKASH': 'AKT',
-                    'ARBITRUM': 'ARB',
+                    'ARBITRUM_ONE': 'ARB',
                     'ARWEAVE': 'AR',
                     'ASTAR': 'ASTR',
                     'APTOS': 'APT',
