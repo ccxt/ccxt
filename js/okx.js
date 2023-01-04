@@ -724,7 +724,7 @@ module.exports = class okx extends Exchange {
                     'ALGORAND': 'Algorand',
                     'BHP': 'BHP',
                     'APTOS': 'Aptos',
-                    'ARBITRUM': 'Arbitrum one',
+                    'ARBITRUM_ONE': 'Arbitrum one',
                     'ARK': 'ARK',
                     'ARWEAVE': 'Arweave',
                     'ASTAR': 'Astar',
