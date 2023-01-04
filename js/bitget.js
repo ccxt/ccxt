@@ -792,6 +792,97 @@ module.exports = class bitget extends Exchange {
                     'fillResponseFromRequest': true,
                 },
                 'sandboxMode': false,
+                'networks': {
+                    'ABBC': 'ABBCCoin',
+                    'COSMOS': 'ATOM',
+                    'ALEPHZERO': 'AZERO',
+                    'ACALA': 'AcalaToken',
+                    'APTOS': 'Aptos',
+                    'ARBITRUMONE': 'ArbitrumOne',
+                    'ARBITRUMNOVA': 'ArbitrumNova',
+                    'ARWEAVE': 'Arweave',
+                    'BITCOINCASH': 'BCH',
+                    'BITCOINCASHABC': 'BCHA',
+                    'BEP20': 'BEP20',
+                    'BITCI': 'BITCI',
+                    'BTC': 'BTC',
+                    'AVALANCHEC': 'C-Chain',
+                    'CANTO': 'CANTO',
+                    'CELO': 'CELO',
+                    'CERE': 'CERE',
+                    'CONFLUX': 'CFX', // CFXeSpace is different
+                    'CADUCEUS': 'CMP',
+                    'CASPER': 'CSPR',
+                    'CUBENETWORK': 'CUBE',
+                    'CARDANO': 'Cardano',
+                    'CHILIZ': 'ChilizChain',
+                    'CRC20': 'CronosChain',
+                    'DOGECOIN': 'DOGE',
+                    'POLKADOT': 'DOT',
+                    'EOS': 'EOS',
+                    'ETH': 'ETH', // EVMOSETH is different
+                    'ERC20': 'ERC20',
+                    'ETHEREUMFAIR': 'ETHFAIR',
+                    'ETHW': 'ETHW',
+                    'ETC': 'ETC',
+                    'ELROND': 'Elrond',
+                    'FETCH_AI': 'FETCH',
+                    'FILECOIN': 'FIL',
+                    'FIO': 'FIO',
+                    'FANTOM': 'Fantom',
+                    'HRC20': 'HECO',
+                    'HARMONY': 'Harmony',
+                    'HELIUM': 'Helium',
+                    'INTERNETCOMPUTER': 'ICP',
+                    'IOTEX': 'IoTeX',
+                    'JUNO': 'JUNO',
+                    'KARDIACHAIN': 'KAI',
+                    'KAVA': 'KAVA',
+                    'KADENA': 'KDA',
+                    'KLAYTN': 'Klaytn',
+                    'KUSAMA': 'Kusama',
+                    'PLATON': 'LAT',
+                    'LTC': 'LTC',
+                    'MINA': 'MINA',
+                    'MOONRIVER': 'MOVR',
+                    'METIS': 'MetisToken',
+                    'MOONBEAM': 'Moonbeam',
+                    'NEAR': 'NEARProtocol',
+                    'NEM': 'NEM',
+                    'NULS': 'NULS',
+                    'OASYS': 'OASYS',
+                    'OMNI': 'OMNI',
+                    'ONTOLOGY': 'Ontology',
+                    'OPTIMISM': 'Optimism',
+                    'OSMOSIS': 'Osmosis',
+                    'POCKET': 'PocketNetwork',
+                    'POLYGON': 'Polygon',
+                    'QTUM': 'QTUM',
+                    'REEF': 'REEF',
+                    'REI': 'REINetwork',
+                    'OASIS': 'ROSE',
+                    'SOLANA': 'SOL',
+                    'SYSCOIN': 'SYS', // SyscoinNEVM is different
+                    'SOLAR': 'Solar',
+                    'SYMBOL': 'Symbol',
+                    'THEOPENNETWORK': 'TON',
+                    'TRX': 'TRX',
+                    'TRC20': 'TRC20',
+                    'THUNDERCORE': 'TT',
+                    'TELOS': 'Telos',
+                    'TERRACLASSIC': 'Terra', // tbd, that network id is also assigned to TERRANEW network
+                    'THETA': 'ThetaToken',
+                    'VITE': 'VITE',
+                    'WAVES': 'WAVES',
+                    'WAX': 'WAXP',
+                    'WEMIX': 'WEMIXMainnet',
+                    'AVALANCHEX': 'X-Chain',
+                    'XDC': 'XDCNetworkXDC',
+                    'RIPPLE': 'XRP',
+                    'ZILLIQA': 'ZIL',
+                    'RSK': 'RSK',
+                    // undetected: TRC10, USDSP, more info at https://www.bitget.com/v1/spot/public/coinChainList
+                },
             },
         });
     }
@@ -1132,13 +1223,13 @@ module.exports = class bitget extends Exchange {
             for (let j = 0; j < chains.length; j++) {
                 const chain = chains[j];
                 const networkId = this.safeString (chain, 'chain');
-                const network = this.safeCurrencyCode (networkId);
+                const networkCode = this.networkIdToCode (networkId);
                 const withdrawEnabled = this.safeString (chain, 'withdrawable');
                 const depositEnabled = this.safeString (chain, 'rechargeable');
-                networks[network] = {
+                networks[networkCode] = {
                     'info': chain,
                     'id': networkId,
-                    'network': network,
+                    'network': networkCode,
                     'limits': {
                         'withdraw': {
                             'min': this.safeNumber (chain, 'minWithdrawAmount'),
@@ -1270,27 +1361,9 @@ module.exports = class bitget extends Exchange {
         //         "data": "888291686266343424"
         //     }
         //
-        const result = {
-            'id': this.safeString (response, 'data'),
-            'info': response,
-            'txid': undefined,
-            'timestamp': undefined,
-            'datetime': undefined,
-            'network': undefined,
-            'addressFrom': undefined,
-            'address': undefined,
-            'addressTo': undefined,
-            'amount': undefined,
-            'type': 'withdrawal',
-            'currency': undefined,
-            'status': undefined,
-            'updated': undefined,
-            'tagFrom': undefined,
-            'tag': undefined,
-            'tagTo': undefined,
-            'comment': undefined,
-            'fee': undefined,
-        };
+        'type': 'withdrawal',
+        const result = this.parseTransaction ;
+ 
         const withdrawOptions = this.safeValue (this.options, 'withdraw', {});
         const fillResponseFromRequest = this.safeValue (withdrawOptions, 'fillResponseFromRequest', true);
         if (fillResponseFromRequest) {
