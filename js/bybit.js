@@ -3592,7 +3592,7 @@ module.exports = class bybit extends Exchange {
             // logical xor
             const ascending = stopLossPrice ? !isBuy : isBuy;
             const delta = this.numberToString (market['precision']['price']);
-            request['basePrice'] = !ascending ? Precise.stringAdd (preciseTriggerPrice, delta) : Precise.stringSub (preciseTriggerPrice, delta);
+            request['basePrice'] = ascending ? Precise.stringSub (preciseTriggerPrice, delta) : Precise.stringAdd (preciseTriggerPrice, delta);
         }
         const clientOrderId = this.safeString (params, 'clientOrderId');
         if (clientOrderId !== undefined) {
