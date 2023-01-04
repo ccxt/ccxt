@@ -7,6 +7,7 @@ from ccxt.pro.base.exchange import Exchange
 import ccxt.async_support
 from ccxt.pro.base.cache import ArrayCache, ArrayCacheBySymbolById, ArrayCacheByTimestamp
 from ccxt.base.errors import ExchangeError
+from ccxt.base.errors import ArgumentsRequired
 from ccxt.base.precise import Precise
 
 
@@ -22,7 +23,7 @@ class binance(Exchange, ccxt.async_support.binance):
                 'watchOrderBook': True,
                 'watchOrders': True,
                 'watchTicker': True,
-                'watchTickers': False,  # for now
+                'watchTickers': True,
                 'watchTrades': True,
             },
             'urls': {
@@ -65,6 +66,9 @@ class binance(Exchange, ccxt.async_support.binance):
                 },
                 'watchTicker': {
                     'name': 'ticker',  # ticker = 1000ms L1+OHLCV, bookTicker = real-time L1
+                },
+                'watchTickers': {
+                    'name': 'ticker',  # ticker or miniTicker or bookTicker
                 },
                 'watchBalance': {
                     'fetchBalanceSnapshot': False,  # or True
@@ -685,6 +689,142 @@ class binance(Exchange, ccxt.async_support.binance):
         }
         return await self.watch(url, messageHash, self.extend(request, params), messageHash, subscribe)
 
+    async def watch_tickers(self, symbols=None, params={}):
+        """
+        watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for all markets of a specific list
+        :param Array symbols: unified symbol of the market to fetch the ticker for
+        :param dict params: extra parameters specific to the binance api endpoint
+        :returns dict: a `ticker structure <https://docs.ccxt.com/en/latest/manual.html#ticker-structure>`
+        """
+        await self.load_markets()
+        symbols = self.market_symbols(symbols)
+        marketIds = self.market_ids(symbols)
+        market = None
+        if marketIds is not None:
+            market = self.safe_market(marketIds[0])
+        type = None
+        type, params = self.handle_market_type_and_params('watchTickers', market, params)
+        options = self.safe_value(self.options, 'watchTickers', {})
+        name = self.safe_string(options, 'name', 'ticker')
+        name = self.safe_string(params, 'name', name)
+        oriParams = params
+        params = self.omit(params, 'name')
+        wsParams = []
+        messageHash = '!' + name + '@arr'
+        if name == 'bookTicker':
+            if marketIds is None:
+                raise ArgumentsRequired(self.id + ' watchTickers() requires symbols for bookTicker')
+            # simulate watchTickers with subscribe multiple individual bookTicker topic
+            for i in range(0, len(marketIds)):
+                wsParams.append(marketIds[i].lower() + '@bookTicker')
+        else:
+            wsParams = [
+                messageHash,
+            ]
+        url = self.urls['api']['ws'][type] + '/' + self.stream(type, messageHash)
+        requestId = self.request_id(url)
+        request = {
+            'method': 'SUBSCRIBE',
+            'params': wsParams,
+            'id': requestId,
+        }
+        subscribe = {
+            'id': requestId,
+        }
+        tickers = await self.watch(url, messageHash, self.extend(request, params), messageHash, subscribe)
+        result = {}
+        for i in range(0, len(tickers)):
+            ticker = tickers[i]
+            tickerSymbol = ticker['symbol']
+            if symbols is not None and self.in_array(tickerSymbol, symbols):
+                result[tickerSymbol] = ticker
+        resultKeys = list(result.keys())
+        if len(resultKeys) > 0:
+            if self.newUpdates:
+                return result
+            return self.filter_by_array(self.tickers, 'symbol', symbols)
+        return await self.watch_tickers(symbols, oriParams)
+
+    def parse_ws_ticker(self, message):
+        #
+        # ticker
+        #     {
+        #         e: '24hrTicker',      # event type
+        #         E: 1579485598569,     # event time
+        #         s: 'ETHBTC',          # symbol
+        #         p: '-0.00004000',     # price change
+        #         P: '-0.209',          # price change percent
+        #         w: '0.01920495',      # weighted average price
+        #         x: '0.01916500',      # the price of the first trade before the 24hr rolling window
+        #         c: '0.01912500',      # last(closing) price
+        #         Q: '0.10400000',      # last quantity
+        #         b: '0.01912200',      # best bid
+        #         B: '4.10400000',      # best bid quantity
+        #         a: '0.01912500',      # best ask
+        #         A: '0.00100000',      # best ask quantity
+        #         o: '0.01916500',      # open price
+        #         h: '0.01956500',      # high price
+        #         l: '0.01887700',      # low price
+        #         v: '173518.11900000',  # base volume
+        #         q: '3332.40703994',   # quote volume
+        #         O: 1579399197842,     # open time
+        #         C: 1579485597842,     # close time
+        #         F: 158251292,         # first trade id
+        #         L: 158414513,         # last trade id
+        #         n: 163222,            # total number of trades
+        #     }
+        #
+        # miniTicker
+        #     {
+        #         e: '24hrMiniTicker',
+        #         E: 1671617114585,
+        #         s: 'MOBBUSD',
+        #         c: '0.95900000',
+        #         o: '0.91200000',
+        #         h: '1.04000000',
+        #         l: '0.89400000',
+        #         v: '2109995.32000000',
+        #         q: '2019254.05788000'
+        #     }
+        #
+        event = self.safe_string(message, 'e', 'bookTicker')
+        if event == '24hrTicker':
+            event = 'ticker'
+        timestamp = None
+        now = self.milliseconds()
+        if event == 'bookTicker':
+            # take the event timestamp, if available, for spot tickers it is not
+            timestamp = self.safe_integer(message, 'E', now)
+        else:
+            # take the timestamp of the closing price for candlestick streams
+            timestamp = self.safe_integer(message, 'C', now)
+        marketId = self.safe_string(message, 's')
+        symbol = self.safe_symbol(marketId)
+        last = self.safe_float(message, 'c')
+        ticker = {
+            'symbol': symbol,
+            'timestamp': timestamp,
+            'datetime': self.iso8601(timestamp),
+            'high': self.safe_float(message, 'h'),
+            'low': self.safe_float(message, 'l'),
+            'bid': self.safe_float(message, 'b'),
+            'bidVolume': self.safe_float(message, 'B'),
+            'ask': self.safe_float(message, 'a'),
+            'askVolume': self.safe_float(message, 'A'),
+            'vwap': self.safe_float(message, 'w'),
+            'open': self.safe_float(message, 'o'),
+            'close': last,
+            'last': last,
+            'previousClose': self.safe_float(message, 'x'),  # previous day close
+            'change': self.safe_float(message, 'p'),
+            'percentage': self.safe_float(message, 'P'),
+            'average': None,
+            'baseVolume': self.safe_float(message, 'v'),
+            'quoteVolume': self.safe_float(message, 'q'),
+            'info': message,
+        }
+        return ticker
+
     def handle_ticker(self, client, message):
         #
         # 24hr rolling window ticker statistics for a single symbol
@@ -720,43 +860,35 @@ class binance(Exchange, ccxt.async_support.binance):
         event = self.safe_string(message, 'e', 'bookTicker')
         if event == '24hrTicker':
             event = 'ticker'
+        elif event == '24hrMiniTicker':
+            event = 'miniTicker'
         wsMarketId = self.safe_string_lower(message, 's')
         messageHash = wsMarketId + '@' + event
-        timestamp = None
-        now = self.milliseconds()
-        if event == 'bookTicker':
-            # take the event timestamp, if available, for spot tickers it is not
-            timestamp = self.safe_integer(message, 'E', now)
-        else:
-            # take the timestamp of the closing price for candlestick streams
-            timestamp = self.safe_integer(message, 'C', now)
-        marketId = self.safe_string(message, 's')
-        symbol = self.safe_symbol(marketId)
-        last = self.safe_float(message, 'c')
-        result = {
-            'symbol': symbol,
-            'timestamp': timestamp,
-            'datetime': self.iso8601(timestamp),
-            'high': self.safe_float(message, 'h'),
-            'low': self.safe_float(message, 'l'),
-            'bid': self.safe_float(message, 'b'),
-            'bidVolume': self.safe_float(message, 'B'),
-            'ask': self.safe_float(message, 'a'),
-            'askVolume': self.safe_float(message, 'A'),
-            'vwap': self.safe_float(message, 'w'),
-            'open': self.safe_float(message, 'o'),
-            'close': last,
-            'last': last,
-            'previousClose': self.safe_float(message, 'x'),  # previous day close
-            'change': self.safe_float(message, 'p'),
-            'percentage': self.safe_float(message, 'P'),
-            'average': None,
-            'baseVolume': self.safe_float(message, 'v'),
-            'quoteVolume': self.safe_float(message, 'q'),
-            'info': message,
-        }
+        result = self.parse_ws_ticker(message)
+        symbol = result['symbol']
         self.tickers[symbol] = result
         client.resolve(result, messageHash)
+        if event == 'bookTicker':
+            # watch bookTickers
+            client.resolve([result], '!' + 'bookTicker@arr')
+
+    def handle_tickers(self, client, message):
+        event = None
+        for i in range(0, len(message)):
+            ticker = message[i]
+            event = self.safe_string(ticker, 'e')
+            if event == '24hrTicker':
+                event = 'ticker'
+            elif event == '24hrMiniTicker':
+                event = 'miniTicker'
+            wsMarketId = self.safe_string_lower(ticker, 's')
+            messageHash = wsMarketId + '@' + event
+            result = self.parse_ws_ticker(ticker)
+            symbol = result['symbol']
+            self.tickers[symbol] = result
+            client.resolve(result, messageHash)
+        values = list(self.tickers.values())
+        client.resolve(values, '!' + event + '@arr')
 
     async def authenticate(self, params={}):
         time = self.milliseconds()
@@ -1350,7 +1482,10 @@ class binance(Exchange, ccxt.async_support.binance):
             'trade': self.handle_trade,
             'aggTrade': self.handle_trade,
             'kline': self.handle_ohlcv,
+            '24hrTicker@arr': self.handle_tickers,
+            '24hrMiniTicker@arr': self.handle_tickers,
             '24hrTicker': self.handle_ticker,
+            '24hrMiniTicker': self.handle_ticker,
             'bookTicker': self.handle_ticker,
             'outboundAccountPosition': self.handle_balance,
             'balanceUpdate': self.handle_balance,
@@ -1359,6 +1494,9 @@ class binance(Exchange, ccxt.async_support.binance):
             'ORDER_TRADE_UPDATE': self.handle_order_update,
         }
         event = self.safe_string(message, 'e')
+        if isinstance(message, list):
+            data = message[0]
+            event = self.safe_string(data, 'e') + '@arr'
         method = self.safe_value(methods, event)
         if method is None:
             requestId = self.safe_string(message, 'id')
