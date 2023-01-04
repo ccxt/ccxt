@@ -1006,7 +1006,7 @@ module.exports = class huobi extends Exchange {
                     'WAVES': 'WAVES',
                     'ZCASH': 'ZEC',
                     'ZILLIQA': 'ZIL',
-                    'CUBE': [ 'CUBE', 'CUBEDAI', 'CUBECRC20' ], // CUBE is only for mainnet CUBE and others have CUBECRC20 (CUBEDAI is exception)
+                    'CUBENETWORK': [ 'CUBE', 'CUBEDAI', 'CUBECRC20' ], // CUBE is only for mainnet CUBE and others have CUBECRC20 (CUBEDAI is exception)
                     'HORIZEN': 'ZEN',
                     'SYMBOL': 'XYM',
                     'VERGE': 'XVG',
