@@ -888,6 +888,7 @@ class bitget extends Exchange {
         //        quoteCoin => 'USDT',
         //        minTradeAmount => '2',
         //        maxTradeAmount => '0',
+        //        minTradeUSDT" => '5',
         //        takerFeeRate => '0.001',
         //        makerFeeRate => '0.001',
         //        priceScale => '4',
@@ -980,6 +981,10 @@ class bitget extends Exchange {
         if ($status !== null) {
             $active = $status === 'online';
         }
+        $minCost = null;
+        if ($quote === 'USDT') {
+            $minCost = $this->safe_number($market, 'minTradeUSDT');
+        }
         return array(
             'id' => $marketId,
             'symbol' => $symbol,
@@ -1016,15 +1021,15 @@ class bitget extends Exchange {
                     'max' => null,
                 ),
                 'amount' => array(
-                    'min' => $this->safe_number($market, 'minTradeNum'),
-                    'max' => null,
+                    'min' => $this->safe_number_2($market, 'minTradeNum', 'minTradeAmount'),
+                    'max' => $this->safe_number($market, 'maxTradeAmount'),
                 ),
                 'price' => array(
                     'min' => null,
                     'max' => null,
                 ),
                 'cost' => array(
-                    'min' => null,
+                    'min' => $minCost,
                     'max' => null,
                 ),
             ),
@@ -2208,7 +2213,7 @@ class bitget extends Exchange {
         $amount = $this->safe_string_2($order, 'quantity', 'size');
         $filled = $this->safe_string_2($order, 'fillQuantity', 'filledQty');
         $cost = $this->safe_string_2($order, 'fillTotalAmount', 'filledAmount');
-        $average = $this->safe_string($order, 'fillPrice');
+        $average = $this->safe_string_2($order, 'fillPrice', 'priceAvg');
         $type = $this->safe_string($order, 'orderType');
         $timestamp = $this->safe_integer($order, 'cTime');
         $side = $this->safe_string_2($order, 'side', 'posSide');

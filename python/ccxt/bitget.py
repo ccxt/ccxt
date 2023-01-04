@@ -883,6 +883,7 @@ class bitget(Exchange):
         #        quoteCoin: 'USDT',
         #        minTradeAmount: '2',
         #        maxTradeAmount: '0',
+        #        minTradeUSDT": '5',
         #        takerFeeRate: '0.001',
         #        makerFeeRate: '0.001',
         #        priceScale: '4',
@@ -972,6 +973,9 @@ class bitget(Exchange):
         active = None
         if status is not None:
             active = status == 'online'
+        minCost = None
+        if quote == 'USDT':
+            minCost = self.safe_number(market, 'minTradeUSDT')
         return {
             'id': marketId,
             'symbol': symbol,
@@ -1008,15 +1012,15 @@ class bitget(Exchange):
                     'max': None,
                 },
                 'amount': {
-                    'min': self.safe_number(market, 'minTradeNum'),
-                    'max': None,
+                    'min': self.safe_number_2(market, 'minTradeNum', 'minTradeAmount'),
+                    'max': self.safe_number(market, 'maxTradeAmount'),
                 },
                 'price': {
                     'min': None,
                     'max': None,
                 },
                 'cost': {
-                    'min': None,
+                    'min': minCost,
                     'max': None,
                 },
             },
@@ -2122,7 +2126,7 @@ class bitget(Exchange):
         amount = self.safe_string_2(order, 'quantity', 'size')
         filled = self.safe_string_2(order, 'fillQuantity', 'filledQty')
         cost = self.safe_string_2(order, 'fillTotalAmount', 'filledAmount')
-        average = self.safe_string(order, 'fillPrice')
+        average = self.safe_string_2(order, 'fillPrice', 'priceAvg')
         type = self.safe_string(order, 'orderType')
         timestamp = self.safe_integer(order, 'cTime')
         side = self.safe_string_2(order, 'side', 'posSide')
