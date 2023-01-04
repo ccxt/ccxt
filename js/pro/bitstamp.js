@@ -107,7 +107,7 @@ module.exports = class bitstamp extends bitstampRest {
             const cacheLength = storedOrderBook.cache.length;
             // the rest API is very delayed
             // usually it takes at least 4-5 deltas to resolve
-            if (cacheLength === 5) {
+            if (cacheLength === 6) {
                 this.spawn (this.loadOrderBook, client, messageHash, symbol);
             }
             storedOrderBook.cache.push (delta);
