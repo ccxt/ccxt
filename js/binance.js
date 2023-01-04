@@ -1408,7 +1408,10 @@ module.exports = class binance extends Exchange {
                 // begin diff
                 if (isLegacy && market['spot']) {
                     const settle = isLegacyLinear ? market['quote'] : market['base'];
-                    return super.market (symbol + ':' + settle);
+                    const futuresSymbol = symbol + ':' + settle;
+                    if (futuresSymbol in this.markets) {
+                        return futuresSymbol;
+                    }
                 } else {
                     return market;
                 }
