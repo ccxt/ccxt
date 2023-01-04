@@ -3432,7 +3432,7 @@ class bybit(Exchange):
             # logical xor
             ascending = not isBuy if stopLossPrice else isBuy
             delta = self.number_to_string(market['precision']['price'])
-            request['basePrice'] = Precise.string_add(preciseTriggerPrice, delta) if ascending else Precise.string_sub(preciseTriggerPrice, delta)
+            request['basePrice'] = Precise.string_sub(preciseTriggerPrice, delta) if ascending else Precise.string_add(preciseTriggerPrice, delta)
         clientOrderId = self.safe_string(params, 'clientOrderId')
         if clientOrderId is not None:
             request['orderLinkId'] = clientOrderId

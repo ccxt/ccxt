@@ -3565,7 +3565,7 @@ class bybit extends Exchange {
             // logical xor
             $ascending = $stopLossPrice ? !$isBuy : $isBuy;
             $delta = $this->number_to_string($market['precision']['price']);
-            $request['basePrice'] = $ascending ? Precise::string_add($preciseTriggerPrice, $delta) : Precise::string_sub($preciseTriggerPrice, $delta);
+            $request['basePrice'] = $ascending ? Precise::string_sub($preciseTriggerPrice, $delta) : Precise::string_add($preciseTriggerPrice, $delta);
         }
         $clientOrderId = $this->safe_string($params, 'clientOrderId');
         if ($clientOrderId !== null) {
