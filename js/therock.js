@@ -1122,47 +1122,16 @@ module.exports = class therock extends Exchange {
         const timestamp = this.parse8601 (this.safeString (order, 'date'));
         const amount = this.safeString (order, 'amount');
         const remaining = this.safeString (order, 'amount_unfilled');
-        let filled = undefined;
-        if (amount !== undefined) {
-            if (remaining !== undefined) {
-                filled = Precise.stringSub (amount, remaining);
-            }
-        }
         const price = this.safeString (order, 'price');
-        let trades = this.safeValue (order, 'trades');
+        const trades = this.safeValue (order, 'trades');
         const stopPrice = this.safeString (order, 'conditional_price');
-        let cost = undefined;
-        let average = undefined;
-        let lastTradeTimestamp = undefined;
-        if (trades !== undefined) {
-            const numTrades = trades.length;
-            if (numTrades < 0) {
-                trades = this.parseTrades (trades, market, undefined, undefined, {
-                    'orderId': id,
-                });
-                // todo: determine the cost and the average price from trades
-                cost = '0';
-                filled = '0';
-                for (let i = 0; i < numTrades; i++) {
-                    const trade = trades[i];
-                    cost = Precise.stringAdd (cost, trade['cost']);
-                    filled = Precise.stringAdd (filled, trade['amount']);
-                }
-                if (Precise.stringGt (filled, '0')) {
-                    average = Precise.stringDiv (cost, filled);
-                }
-                lastTradeTimestamp = trades[numTrades - 1]['timestamp'];
-            } else {
-                cost = '0';
-            }
-        }
         return this.safeOrder ({
             'id': id,
             'clientOrderId': undefined,
             'info': order,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'lastTradeTimestamp': lastTradeTimestamp,
+            'lastTradeTimestamp': undefined,
             'status': this.parseOrderStatus (this.safeString (order, 'status')),
             'symbol': this.safeSymbol (marketId, market),
             'type': this.safeString (order, 'type'),
@@ -1172,10 +1141,10 @@ module.exports = class therock extends Exchange {
             'price': price,
             'stopPrice': stopPrice,
             'triggerPrice': stopPrice,
-            'cost': cost,
+            'cost': undefined,
             'amount': amount,
-            'filled': filled,
-            'average': average,
+            'filled': undefined,
+            'average': undefined,
             'remaining': remaining,
             'fee': undefined,
             'trades': trades,

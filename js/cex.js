@@ -749,7 +749,6 @@ module.exports = class cex extends Exchange {
          * @method
          * @name cex#createOrder
          * @description create a trade order
-         * @see https://cex.io/rest-api#place-order
          * @param {string} symbol unified symbol of the market to create an order in
          * @param {string} type 'market' or 'limit'
          * @param {string} side 'buy' or 'sell'
