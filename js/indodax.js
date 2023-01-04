@@ -259,7 +259,7 @@ module.exports = class indodax extends Exchange {
                 'optionType': undefined,
                 'percentage': true,
                 'precision': {
-                    'amount': this.parseNumber (this.parsePrecision ('8')),
+                    'amount': this.parseNumber ('1e-8'),
                     'price': this.parseNumber (this.parsePrecision (this.safeString (market, 'price_round'))),
                     'cost': this.parseNumber (this.parsePrecision (this.safeString (market, 'volume_precision'))),
                 },
@@ -593,6 +593,7 @@ module.exports = class indodax extends Exchange {
             'side': side,
             'price': price,
             'stopPrice': undefined,
+            'triggerPrice': undefined,
             'cost': cost,
             'average': undefined,
             'amount': amount,
@@ -662,7 +663,7 @@ module.exports = class indodax extends Exchange {
         for (let i = 0; i < marketIds.length; i++) {
             const marketId = marketIds[i];
             const marketOrders = rawOrders[marketId];
-            market = this.markets_by_id[marketId];
+            market = this.safeMarket (marketId);
             const parsedOrders = this.parseOrders (marketOrders, market, since, limit);
             exchangeOrders = this.arrayConcat (exchangeOrders, parsedOrders);
         }

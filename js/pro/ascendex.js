@@ -672,6 +672,7 @@ module.exports = class ascendex extends ascendexRest {
             'side': side,
             'price': price,
             'stopPrice': stopPrice,
+            'triggerPrice': stopPrice,
             'amount': amount,
             'cost': undefined,
             'average': average,

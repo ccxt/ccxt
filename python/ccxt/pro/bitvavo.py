@@ -355,10 +355,7 @@ class bitvavo(Exchange, ccxt.async_support.bitvavo):
         if response is None:
             return message
         marketId = self.safe_string(response, 'market')
-        symbol = None
-        if marketId in self.markets_by_id:
-            market = self.markets_by_id[marketId]
-            symbol = market['symbol']
+        symbol = self.safe_symbol(marketId, None, '-')
         name = 'book'
         messageHash = name + '@' + marketId
         orderbook = self.orderbooks[symbol]
@@ -384,15 +381,13 @@ class bitvavo(Exchange, ccxt.async_support.bitvavo):
         name = 'book'
         for i in range(0, len(marketIds)):
             marketId = self.safe_string(marketIds, i)
-            if marketId in self.markets_by_id:
-                market = self.markets_by_id[marketId]
-                symbol = market['symbol']
-                messageHash = name + '@' + marketId
-                if not (symbol in self.orderbooks):
-                    subscription = self.safe_value(client.subscriptions, messageHash)
-                    method = self.safe_value(subscription, 'method')
-                    if method is not None:
-                        method(client, message, subscription)
+            symbol = self.safe_symbol(marketId, None, '-')
+            messageHash = name + '@' + marketId
+            if not (symbol in self.orderbooks):
+                subscription = self.safe_value(client.subscriptions, messageHash)
+                method = self.safe_value(subscription, 'method')
+                if method is not None:
+                    method(client, message, subscription)
 
     async def watch_orders(self, symbol=None, since=None, limit=None, params={}):
         """
@@ -486,17 +481,16 @@ class bitvavo(Exchange, ccxt.async_support.bitvavo):
         #
         name = 'account'
         event = self.safe_string(message, 'event')
-        marketId = self.safe_string(message, 'market', '-')
+        marketId = self.safe_string(message, 'market')
+        market = self.safe_market(marketId, None, '-')
         messageHash = name + '@' + marketId + '_' + event
-        if marketId in self.markets_by_id:
-            market = self.markets_by_id[marketId]
-            order = self.parse_order(message, market)
-            if self.orders is None:
-                limit = self.safe_integer(self.options, 'ordersLimit', 1000)
-                self.orders = ArrayCacheBySymbolById(limit)
-            orders = self.orders
-            orders.append(order)
-            client.resolve(self.orders, messageHash)
+        order = self.parse_order(message, market)
+        if self.orders is None:
+            limit = self.safe_integer(self.options, 'ordersLimit', 1000)
+            self.orders = ArrayCacheBySymbolById(limit)
+        orders = self.orders
+        orders.append(order)
+        client.resolve(self.orders, messageHash)
 
     def handle_my_trade(self, client, message):
         #

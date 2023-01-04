@@ -1085,6 +1085,7 @@ module.exports = class cex extends Exchange {
             'side': side,
             'price': price,
             'stopPrice': undefined,
+            'triggerPrice': undefined,
             'cost': cost,
             'amount': amount,
             'filled': filled,
@@ -1548,7 +1549,7 @@ module.exports = class cex extends Exchange {
         const data = this.safeValue (response, 'data', {});
         const addresses = this.safeValue (data, 'addresses', []);
         const chainsIndexedById = this.indexBy (addresses, 'blockchain');
-        const selectedNetworkId = this.selectNetworkIdFromAvailableNetworks (code, networkCode, chainsIndexedById);
+        const selectedNetworkId = this.selectNetworkIdFromRawNetworks (code, networkCode, chainsIndexedById);
         const addressObject = this.safeValue (chainsIndexedById, selectedNetworkId, {});
         const address = this.safeString2 (addressObject, 'address', 'destination');
         this.checkAddress (address);

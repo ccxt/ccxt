@@ -781,6 +781,13 @@ class cryptocom extends Exchange {
             'future' => 'derivativesPublicGetPublicGetCandlestick',
             'swap' => 'derivativesPublicGetPublicGetCandlestick',
         ));
+        if ($marketType !== 'spot') {
+            $reqLimit = 100;
+            if ($limit !== null) {
+                $reqLimit = $limit;
+            }
+            $request['count'] = $reqLimit;
+        }
         $response = $this->$method (array_merge($request, $query));
         // {
         //     "code":0,

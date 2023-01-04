@@ -177,6 +177,13 @@ class bithumb(Exchange):
             },
         })
 
+    def safe_market(self, marketId=None, market=None, delimiter=None, marketType=None):
+        # bithumb has a different type of conflict in markets, because
+        # their ids are the base currency(BTC for instance), so we can have
+        # multiple "BTC" ids representing the different markets(BTC/ETH, "BTC/DOGE", etc)
+        # since they're the same we just need to return one
+        return super(bithumb, self).safe_market(marketId, market, delimiter, 'spot')
+
     def amount_to_precision(self, symbol, amount):
         return self.decimal_to_precision(amount, TRUNCATE, self.markets[symbol]['precision']['amount'], DECIMAL_PLACES)
 
@@ -603,7 +610,7 @@ class bithumb(Exchange):
         request = {
             'currency': market['base'],
         }
-        if limit is None:
+        if limit is not None:
             request['count'] = limit  # default 20, max 100
         response = await self.publicGetTransactionHistoryCurrency(self.extend(request, params))
         #
@@ -797,6 +804,7 @@ class bithumb(Exchange):
             'side': side,
             'price': price,
             'stopPrice': None,
+            'triggerPrice': None,
             'amount': amount,
             'cost': None,
             'average': None,

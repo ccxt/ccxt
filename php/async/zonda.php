@@ -446,6 +446,7 @@ class zonda extends Exchange {
             'side' => $this->safe_string_lower($order, 'offerType'),
             'price' => $this->safe_string($order, 'rate'),
             'stopPrice' => null,
+            'triggerPrice' => null,
             'amount' => $amount,
             'cost' => null,
             'filled' => null,

@@ -104,6 +104,8 @@ module.exports = class Exchange {
                 'fetchMarkOHLCV': undefined,
                 'fetchMyTrades': undefined,
                 'fetchOHLCV': 'emulated',
+                'fetchOpenInterest': undefined,
+                'fetchOpenInterestHistory': undefined,
                 'fetchOpenOrder': undefined,
                 'fetchOpenOrders': undefined,
                 'fetchOrder': undefined,
@@ -126,6 +128,7 @@ module.exports = class Exchange {
                 'fetchTradingLimits': undefined,
                 'fetchTransactions': undefined,
                 'fetchTransfers': undefined,
+                'fetchWithdrawAddresses': undefined,
                 'fetchWithdrawal': undefined,
                 'fetchWithdrawals': undefined,
                 'reduceMargin': undefined,
@@ -187,6 +190,7 @@ module.exports = class Exchange {
                 '404': ExchangeNotAvailable,
                 '409': ExchangeNotAvailable,
                 '410': ExchangeNotAvailable,
+                '451': ExchangeNotAvailable,
                 '500': ExchangeNotAvailable,
                 '501': ExchangeNotAvailable,
                 '502': ExchangeNotAvailable,
@@ -203,6 +207,7 @@ module.exports = class Exchange {
                 '408': RequestTimeout,
                 '504': RequestTimeout,
                 '401': AuthenticationError,
+                '407': AuthenticationError,
                 '511': AuthenticationError,
             },
             'commonCurrencies': { // gets extended/overwritten in subclasses
@@ -234,7 +239,7 @@ module.exports = class Exchange {
         //         }
         //     }
         //
-        this.options = {} // exchange-specific options, if any
+        this.options = this.getDefaultOptions(); // exchange-specific options, if any
         // fetch implementation options (JS only)
         this.fetchOptions = {
             // keepalive: true, // does not work in Chrome, https://github.com/ccxt/ccxt/issues/6368
@@ -797,6 +802,16 @@ module.exports = class Exchange {
     // ------------------------------------------------------------------------
     // METHODS BELOW THIS LINE ARE TRANSPILED FROM JAVASCRIPT TO PYTHON AND PHP
 
+    getDefaultOptions () {
+        return {
+            'defaultNetworkCodeReplacements': {
+                'ETH': { 'ERC20': 'ETH' },
+                'TRX': { 'TRC20': 'TRX' },
+                'CRO': { 'CRC20': 'CRONOS' },
+            },
+        };
+    }
+
     safeLedgerEntry (entry, currency = undefined) {
         currency = this.safeCurrency (undefined, currency);
         let direction = this.safeString (entry, 'direction');
@@ -846,16 +861,24 @@ module.exports = class Exchange {
 
     setMarkets (markets, currencies = undefined) {
         const values = [];
-        const marketValues = this.toArray (markets);
+        this.markets_by_id = {};
+        // handle marketId conflicts
+        // we insert spot markets first
+        const marketValues = this.sortBy (this.toArray (markets), 'spot', true);
         for (let i = 0; i < marketValues.length; i++) {
+            const value = marketValues[i];
+            if (value['id'] in this.markets_by_id) {
+                this.markets_by_id[value['id']].push (value);
+            } else {
+                this.markets_by_id[value['id']] = [ value ];
+            }
             const market = this.deepExtend (this.safeMarket (), {
                 'precision': this.precision,
                 'limits': this.limits,
-            }, this.fees['trading'], marketValues[i]);
+            }, this.fees['trading'], value);
             values.push (market);
         }
         this.markets = this.indexBy (values, 'symbol');
-        this.markets_by_id = this.indexBy (markets, 'id');
         const marketsSortedBySymbol = this.keysort (this.markets);
         const marketsSortedById = this.keysort (this.markets_by_id);
         this.symbols = Object.keys (marketsSortedBySymbol);
@@ -867,7 +890,7 @@ module.exports = class Exchange {
             let quoteCurrencies = [];
             for (let i = 0; i < values.length; i++) {
                 const market = values[i];
-                const defaultCurrencyPrecision = (this.precisionMode === DECIMAL_PLACES) ? 8 : this.parseNumber ('0.00000001');
+                const defaultCurrencyPrecision = (this.precisionMode === DECIMAL_PLACES) ? 8 : this.parseNumber ('1e-8');
                 const marketPrecision = this.safeValue (market, 'precision', {});
                 if ('base' in market) {
                     const currencyPrecision = this.safeValue2 (marketPrecision, 'base', 'amount', defaultCurrencyPrecision);
@@ -972,12 +995,16 @@ module.exports = class Exchange {
         let average = this.omitZero (this.safeString (order, 'average'));
         let price = this.omitZero (this.safeString (order, 'price'));
         let lastTradeTimeTimestamp = this.safeInteger (order, 'lastTradeTimestamp');
+        let symbol = this.safeString (order, 'symbol');
+        let side = this.safeString (order, 'side');
         const parseFilled = (filled === undefined);
         const parseCost = (cost === undefined);
         const parseLastTradeTimeTimestamp = (lastTradeTimeTimestamp === undefined);
         const fee = this.safeValue (order, 'fee');
         const parseFee = (fee === undefined);
         const parseFees = this.safeValue (order, 'fees') === undefined;
+        const parseSymbol = symbol === undefined;
+        const parseSide = side === undefined;
         const shouldParseFees = parseFee || parseFees;
         const fees = this.safeValue (order, 'fees', []);
         let trades = [];
@@ -986,12 +1013,7 @@ module.exports = class Exchange {
             const oldNumber = this.number;
             // we parse trades as strings here!
             this.number = String;
-            trades = this.parseTrades (rawTrades, market, undefined, undefined, {
-                'symbol': order['symbol'],
-                'side': order['side'],
-                'type': order['type'],
-                'order': order['id'],
-            });
+            trades = this.parseTrades (rawTrades, market);
             this.number = oldNumber;
             let tradesLength = 0;
             const isArray = Array.isArray (trades);
@@ -1027,6 +1049,12 @@ module.exports = class Exchange {
                     const tradeCost = this.safeString (trade, 'cost');
                     if (parseCost && (tradeCost !== undefined)) {
                         cost = Precise.stringAdd (cost, tradeCost);
+                    }
+                    if (parseSymbol) {
+                        symbol = this.safeString (trade, 'symbol');
+                    }
+                    if (parseSide) {
+                        side = this.safeString (trade, 'side');
                     }
                     const tradeTimestamp = this.safeValue (trade, 'timestamp');
                     if (parseLastTradeTimeTimestamp && (tradeTimestamp !== undefined)) {
@@ -1093,12 +1121,29 @@ module.exports = class Exchange {
             }
         }
         // ensure that the average field is calculated correctly
+        const inverse = this.safeValue (market, 'inverse', false);
+        const contractSize = this.numberToString (this.safeValue (market, 'contractSize', 1));
+        // inverse
+        // price = filled * contract size / cost
+        //
+        // linear
+        // price = cost / (filled * contract size)
         if (average === undefined) {
             if ((filled !== undefined) && (cost !== undefined) && Precise.stringGt (filled, '0')) {
-                average = Precise.stringDiv (cost, filled);
+                const filledTimesContractSize = Precise.stringMul (filled, contractSize);
+                if (inverse) {
+                    average = Precise.stringDiv (filledTimesContractSize, cost);
+                } else {
+                    average = Precise.stringDiv (cost, filledTimesContractSize);
+                }
             }
         }
-        // also ensure the cost field is calculated correctly
+        // similarly
+        // inverse
+        // cost = filled * contract size / price
+        //
+        // linear
+        // cost = filled * contract size * price
         const costPriceExists = (average !== undefined) || (price !== undefined);
         if (parseCost && (filled !== undefined) && costPriceExists) {
             let multiplyPrice = undefined;
@@ -1108,15 +1153,12 @@ module.exports = class Exchange {
                 multiplyPrice = average;
             }
             // contract trading
-            const contractSize = this.safeString (market, 'contractSize');
-            if (contractSize !== undefined) {
-                const inverse = this.safeValue (market, 'inverse', false);
-                if (inverse) {
-                    multiplyPrice = Precise.stringDiv ('1', multiplyPrice);
-                }
-                multiplyPrice = Precise.stringMul (multiplyPrice, contractSize);
+            const filledTimesContractSize = Precise.stringMul (filled, contractSize);
+            if (inverse) {
+                cost = Precise.stringDiv (filledTimesContractSize, multiplyPrice);
+            } else {
+                cost = Precise.stringMul (filledTimesContractSize, multiplyPrice);
             }
-            cost = Precise.stringMul (multiplyPrice, filled);
         }
         // support for market orders
         const orderType = this.safeValue (order, 'type');
@@ -1137,18 +1179,24 @@ module.exports = class Exchange {
             }
             entry['fee'] = fee;
         }
-        // timeInForceHandling
         let timeInForce = this.safeString (order, 'timeInForce');
+        let postOnly = this.safeValue (order, 'postOnly');
+        // timeInForceHandling
         if (timeInForce === undefined) {
             if (this.safeString (order, 'type') === 'market') {
                 timeInForce = 'IOC';
             }
             // allow postOnly override
-            if (this.safeValue (order, 'postOnly', false)) {
+            if (postOnly) {
                 timeInForce = 'PO';
             }
+        } else if (postOnly === undefined) {
+            // timeInForce is not undefined here
+            postOnly = timeInForce === 'PO';
         }
         return this.extend (order, {
+            'symbol': symbol,
+            'side': side,
             'lastTradeTimestamp': lastTradeTimeTimestamp,
             'price': this.parseNumber (price),
             'amount': this.parseNumber (amount),
@@ -1157,6 +1205,7 @@ module.exports = class Exchange {
             'filled': this.parseNumber (filled),
             'remaining': this.parseNumber (remaining),
             'timeInForce': timeInForce,
+            'postOnly': postOnly,
             'trades': trades,
         });
     }
@@ -1277,20 +1326,6 @@ module.exports = class Exchange {
         const parseFees = this.safeValue (trade, 'fees') === undefined;
         const shouldParseFees = parseFee || parseFees;
         const fees = [];
-        if (shouldParseFees) {
-            const tradeFees = this.safeValue (trade, 'fees');
-            if (tradeFees !== undefined) {
-                for (let j = 0; j < tradeFees.length; j++) {
-                    const tradeFee = tradeFees[j];
-                    fees.push (this.extend ({}, tradeFee));
-                }
-            } else {
-                const tradeFee = this.safeValue (trade, 'fee');
-                if (tradeFee !== undefined) {
-                    fees.push (this.extend ({}, tradeFee));
-                }
-            }
-        }
         const fee = this.safeValue (trade, 'fee');
         if (shouldParseFees) {
             const reducedFees = this.reduceFees ? this.reduceFeesByCurrency (fees) : fees;
@@ -1532,6 +1567,9 @@ module.exports = class Exchange {
     }
 
     marketIds (symbols) {
+        if (symbols === undefined) {
+            return symbols;
+        }
         const result = [];
         for (let i = 0; i < symbols.length; i++) {
             result.push (this.marketId (symbols[i]));
@@ -1656,7 +1694,36 @@ module.exports = class Exchange {
          * @returns {[string|undefined]} exchange-specific network id
          */
         const networkIdsByCodes = this.safeValue (this.options, 'networks', {});
-        return this.safeString (networkIdsByCodes, networkCode, networkCode);
+        let networkId = this.safeString (networkIdsByCodes, networkCode);
+        // for example, if 'ETH' is passed for networkCode, but 'ETH' key not defined in `options->networks` object
+        if (networkId === undefined) {
+            if (currencyCode === undefined) {
+                // if currencyCode was not provided, then we just set passed value to networkId
+                networkId = networkCode;
+            } else {
+                // if currencyCode was provided, then we try to find if that currencyCode has a replacement (i.e. ERC20 for ETH)
+                const defaultNetworkCodeReplacements = this.safeValue (this.options, 'defaultNetworkCodeReplacements', {});
+                if (currencyCode in defaultNetworkCodeReplacements) {
+                    // if there is a replacement for the passed networkCode, then we use it to find network-id in `options->networks` object
+                    const replacementObject = defaultNetworkCodeReplacements[currencyCode]; // i.e. { 'ERC20': 'ETH' }
+                    const keys = Object.keys (replacementObject);
+                    for (let i = 0; i < keys.length; i++) {
+                        const key = keys[i];
+                        const value = replacementObject[key];
+                        // if value matches to provided unified networkCode, then we use it's key to find network-id in `options->networks` object
+                        if (value === networkCode) {
+                            networkId = this.safeString (networkIdsByCodes, key);
+                            break;
+                        }
+                    }
+                }
+                // if it wasn't found, we just set the provided value to network-id
+                if (networkId === undefined) {
+                    networkId = networkCode;
+                }
+            }
+        }
+        return networkId;
     }
 
     networkIdToCode (networkId, currencyCode = undefined) {
@@ -1670,7 +1737,36 @@ module.exports = class Exchange {
          * @returns {[string|undefined]} unified network code
          */
         const networkCodesByIds = this.safeValue (this.options, 'networksById', {});
-        return this.safeString (networkCodesByIds, networkId, networkId);
+        let networkCode = this.safeString (networkCodesByIds, networkId, networkId);
+        // replace mainnet network-codes (i.e. ERC20->ETH)
+        if (currencyCode !== undefined) {
+            const defaultNetworkCodeReplacements = this.safeValue (this.options, 'defaultNetworkCodeReplacements', {});
+            if (currencyCode in defaultNetworkCodeReplacements) {
+                const replacementObject = this.safeValue (defaultNetworkCodeReplacements, currencyCode, {});
+                networkCode = this.safeString (replacementObject, networkCode, networkCode);
+            }
+        }
+        return networkCode;
+    }
+
+    networkCodesToIds (networkCodes = undefined) {
+        /**
+         * @ignore
+         * @method
+         * @name exchange#networkCodesToIds
+         * @description tries to convert the provided networkCode (which is expected to be an unified network code) to a network id. In order to achieve this, derived class needs to have 'options->networks' defined.
+         * @param {[string]|undefined} networkCodes unified network codes
+         * @returns {[string|undefined]} exchange-specific network ids
+         */
+        if (networkCodes === undefined) {
+            return undefined;
+        }
+        const ids = [];
+        for (let i = 0; i < networkCodes.length; i++) {
+            const networkCode = networkCodes[i];
+            ids.push (this.networkCodeToId (networkCode));
+        }
+        return ids;
     }
 
     handleNetworkCodeAndParams (params) {
@@ -1698,18 +1794,26 @@ module.exports = class Exchange {
         return defaultNetworkCode;
     }
 
-    selectNetworkIdFromAvailableNetworks (currencyCode, networkCode, networkEntriesIndexed) {
+    selectNetworkCodeFromUnifiedNetworks (currencyCode, networkCode, indexedNetworkEntries) {
+        return this.selectNetworkKeyFromNetworks (currencyCode, networkCode, indexedNetworkEntries, true);
+    }
+
+    selectNetworkIdFromRawNetworks (currencyCode, networkCode, indexedNetworkEntries) {
+        return this.selectNetworkKeyFromNetworks (currencyCode, networkCode, indexedNetworkEntries, false);
+    }
+
+    selectNetworkKeyFromNetworks (currencyCode, networkCode, indexedNetworkEntries, isIndexedByUnifiedNetworkCode = false) {
         // this method is used against raw & unparse network entries, which are just indexed by network id
         let chosenNetworkId = undefined;
-        const availableNetworkIds = Object.keys (networkEntriesIndexed);
+        const availableNetworkIds = Object.keys (indexedNetworkEntries);
         const responseNetworksLength = availableNetworkIds.length;
         if (networkCode !== undefined) {
-            // if networkCode was provided by user, we should check it after response, as the referenced exchange doesn't support network-code during request
-            const networkId = this.networkCodeToId (networkCode, currencyCode);
             if (responseNetworksLength === 0) {
                 throw new NotSupported (this.id + ' - ' + networkCode + ' network did not return any result for ' + currencyCode);
             } else {
-                if (networkId in networkEntriesIndexed) {
+                // if networkCode was provided by user, we should check it after response, as the referenced exchange doesn't support network-code during request
+                const networkId = isIndexedByUnifiedNetworkCode ? networkCode : this.networkCodeToId (networkCode, currencyCode);
+                if (networkId in indexedNetworkEntries) {
                     chosenNetworkId = networkId;
                 } else {
                     throw new NotSupported (this.id + ' - ' + networkId + ' network was not found for ' + currencyCode + ', use one of ' + availableNetworkIds.join (', '));
@@ -1717,12 +1821,12 @@ module.exports = class Exchange {
             }
         } else {
             if (responseNetworksLength === 0) {
-                throw new NotSupported (this.id + ' - no networks were returned for' + currencyCode);
+                throw new NotSupported (this.id + ' - no networks were returned for ' + currencyCode);
             } else {
                 // if networkCode was not provided by user, then we try to use the default network (if it was defined in "defaultNetworks"), otherwise, we just return the first network entry
                 const defaultNetworkCode = this.defaultNetworkCode (currencyCode);
-                const defaultNetworkId = this.networkCodeToId (defaultNetworkCode, currencyCode);
-                chosenNetworkId = (defaultNetworkId in networkEntriesIndexed) ? defaultNetworkId : availableNetworkIds[0];
+                const defaultNetworkId = isIndexedByUnifiedNetworkCode ? defaultNetworkCode : this.networkCodeToId (defaultNetworkCode, currencyCode);
+                chosenNetworkId = (defaultNetworkId in indexedNetworkEntries) ? defaultNetworkId : availableNetworkIds[0];
             }
         }
         return chosenNetworkId;
@@ -1763,7 +1867,7 @@ module.exports = class Exchange {
         for (let i = 0; i < response.length; i++) {
             const item = response[i];
             const id = this.safeString (item, marketIdKey);
-            const market = this.safeMarket (id);
+            const market = this.safeMarket (id, undefined, undefined, this.safeString (this.options, 'defaultType'));
             const symbol = market['symbol'];
             const contract = this.safeValue (market, 'contract', false);
             if (contract && ((symbols === undefined) || this.inArray (symbol, symbols))) {
@@ -2015,7 +2119,7 @@ module.exports = class Exchange {
         };
     }
 
-    safeMarket (marketId = undefined, market = undefined, delimiter = undefined) {
+    safeMarket (marketId = undefined, market = undefined, delimiter = undefined, marketType = undefined) {
         const result = {
             'id': marketId,
             'symbol': marketId,
@@ -2062,7 +2166,21 @@ module.exports = class Exchange {
         };
         if (marketId !== undefined) {
             if ((this.markets_by_id !== undefined) && (marketId in this.markets_by_id)) {
-                market = this.markets_by_id[marketId];
+                const markets = this.markets_by_id[marketId];
+                const length = markets.length;
+                if (length === 1) {
+                    return markets[0];
+                } else {
+                    if (marketType === undefined) {
+                        throw new ArgumentsRequired (this.id + ' safeMarket() requires a fourth argument for ' + marketId + ' to disambiguate between different markets with the same market id');
+                    }
+                    for (let i = 0; i < markets.length; i++) {
+                        const market = markets[i];
+                        if (market[marketType]) {
+                            return market;
+                        }
+                    }
+                }
             } else if (delimiter !== undefined) {
                 const parts = marketId.split (delimiter);
                 const partsLength = parts.length;
@@ -2201,19 +2319,20 @@ module.exports = class Exchange {
         let value = this.safeString2 (params, optionName, defaultOptionName);
         if (value !== undefined) {
             params = this.omit (params, [ optionName, defaultOptionName ]);
-        }
-        if (value === undefined) {
-            // check if exchange-wide method options contain the key
+        } else {
+            // check if exchange has properties for this method
             const exchangeWideMethodOptions = this.safeValue (this.options, methodName);
             if (exchangeWideMethodOptions !== undefined) {
+                // check if the option is defined in this method's props
                 value = this.safeString2 (exchangeWideMethodOptions, optionName, defaultOptionName);
             }
+            if (value === undefined) {
+                // if it's still undefined, check if global exchange-wide option exists
+                value = this.safeString2 (this.options, optionName, defaultOptionName);
+            }
+            // if it's still undefined, use the default value
+            value = (value !== undefined) ? value : defaultValue;
         }
-        if (value === undefined) {
-            // check if exchange-wide options contain the key
-            value = this.safeString2 (this.options, optionName, defaultOptionName);
-        }
-        value = (value !== undefined) ? value : defaultValue;
         return [ value, params ];
     }
 
@@ -2234,7 +2353,7 @@ module.exports = class Exchange {
         return [ type, params ];
     }
 
-    handleSubTypeAndParams (methodName, market = undefined, params = {}, defaultValue = 'linear') {
+    handleSubTypeAndParams (methodName, market = undefined, params = {}, defaultValue = undefined) {
         let subType = undefined;
         // if set in params, it takes precedence
         const subTypeInParams = this.safeString2 (params, 'subType', 'defaultSubType');
@@ -2424,14 +2543,19 @@ module.exports = class Exchange {
         if (this.markets === undefined) {
             throw new ExchangeError (this.id + ' markets not loaded');
         }
-        if (this.markets_by_id === undefined) {
-            throw new ExchangeError (this.id + ' markets not loaded');
-        }
         if (typeof symbol === 'string') {
             if (symbol in this.markets) {
                 return this.markets[symbol];
             } else if (symbol in this.markets_by_id) {
-                return this.markets_by_id[symbol];
+                const markets = this.markets_by_id[symbol];
+                const defaultType = this.safeString2 (this.options, 'defaultType', 'defaultSubType', 'spot');
+                for (let i = 0; i < markets.length; i++) {
+                    const market = markets[i];
+                    if (market[defaultType]) {
+                        return market;
+                    }
+                }
+                return markets[0];
             }
         }
         throw new BadSymbol (this.id + ' does not have market symbol ' + symbol);
@@ -2482,12 +2606,20 @@ module.exports = class Exchange {
 
     priceToPrecision (symbol, price) {
         const market = this.market (symbol);
-        return this.decimalToPrecision (price, ROUND, market['precision']['price'], this.precisionMode, this.paddingMode);
+        const result = this.decimalToPrecision (price, ROUND, market['precision']['price'], this.precisionMode, this.paddingMode);
+        if (result === '0') {
+            throw new ArgumentsRequired (this.id + ' price of ' + market['symbol'] + ' must be greater than minimum price precision of ' + this.numberToString (market['precision']['price']));
+        }
+        return result;
     }
 
     amountToPrecision (symbol, amount) {
         const market = this.market (symbol);
-        return this.decimalToPrecision (amount, TRUNCATE, market['precision']['amount'], this.precisionMode, this.paddingMode);
+        const result = this.decimalToPrecision (amount, TRUNCATE, market['precision']['amount'], this.precisionMode, this.paddingMode);
+        if (result === '0') {
+            throw new ArgumentsRequired (this.id + ' amount of ' + market['symbol'] + ' must be greater than minimum amount precision of ' + this.numberToString (market['precision']['amount']));
+        }
+        return result;
     }
 
     feeToPrecision (symbol, fee) {
@@ -2681,8 +2813,8 @@ module.exports = class Exchange {
         return this.filterBySymbolSinceLimit (sorted, symbol, since, limit);
     }
 
-    safeSymbol (marketId, market = undefined, delimiter = undefined) {
-        market = this.safeMarket (marketId, market, delimiter);
+    safeSymbol (marketId, market = undefined, delimiter = undefined, marketType = undefined) {
+        market = this.safeMarket (marketId, market, delimiter, marketType);
         return market['symbol'];
     }
 
@@ -2973,5 +3105,32 @@ module.exports = class Exchange {
             },
             'networks': {},
         };
+    }
+
+    assignDefaultDepositWithdrawFees (fee, currency = undefined) {
+        /**
+         * @ignore
+         * @method
+         * @description Takes a depositWithdrawFee structure and assigns the default values for withdraw and deposit
+         * @param {object} fee A deposit withdraw fee structure
+         * @param {object} currency A currency structure, the response from this.currency ()
+         * @returns {object} A deposit withdraw fee structure
+         */
+        const networkKeys = Object.keys (fee['networks']);
+        const numNetworks = networkKeys.length;
+        if (numNetworks === 1) {
+            fee['withdraw'] = fee['networks'][networkKeys[0]]['withdraw'];
+            fee['deposit'] = fee['networks'][networkKeys[0]]['deposit'];
+            return fee;
+        }
+        const currencyCode = this.safeString (currency, 'code');
+        for (let i = 0; i < numNetworks; i++) {
+            const network = networkKeys[i];
+            if (network === currencyCode) {
+                fee['withdraw'] = fee['networks'][networkKeys[i]]['withdraw'];
+                fee['deposit'] = fee['networks'][networkKeys[i]]['deposit'];
+            }
+        }
+        return fee;
     }
 };

@@ -64,6 +64,7 @@ module.exports = class gate extends Exchange {
                 'swap': true,
                 'future': true,
                 'option': undefined,
+                'addMargin': true,
                 'borrowMargin': true,
                 'cancelAllOrders': true,
                 'cancelOrder': true,
@@ -73,6 +74,7 @@ module.exports = class gate extends Exchange {
                 'createStopLimitOrder': true,
                 'createStopMarketOrder': false,
                 'createStopOrder': true,
+                'editOrder': true,
                 'fetchBalance': true,
                 'fetchBorrowRate': false,
                 'fetchBorrowRateHistories': false,
@@ -113,6 +115,7 @@ module.exports = class gate extends Exchange {
                 'fetchTradingFees': true,
                 'fetchTransactionFees': true,
                 'fetchWithdrawals': true,
+                'reduceMargin': true,
                 'repayMargin': true,
                 'setLeverage': true,
                 'setMarginMode': false,
@@ -255,6 +258,9 @@ module.exports = class gate extends Exchange {
                             'orders/{order_id}': 1,
                             'price_orders': 1,
                             'price_orders/{order_id}': 1,
+                        },
+                        'patch': {
+                            'orders/{order_id}': 1,
                         },
                     },
                     'margin': {
@@ -459,7 +465,7 @@ module.exports = class gate extends Exchange {
                 },
                 'future': {
                     'fetchMarkets': {
-                        'settlementCurrencies': [ 'usdt', 'btc' ],
+                        'settlementCurrencies': [ 'usdt' ],
                     },
                 },
             },
@@ -668,22 +674,14 @@ module.exports = class gate extends Exchange {
          * @param {object} params extra parameters specific to the exchange api endpoint
          * @returns {[object]} an array of objects representing market data
          */
-        let result = [];
-        const [ type, query ] = this.handleMarketTypeAndParams ('fetchMarkets', undefined, params);
-        if (type === 'spot' || type === 'margin') {
-            result = await this.fetchSpotMarkets (query);
-        }
-        if (type === 'swap' || type === 'future') {
-            result = await this.fetchContractMarkets (query); // futures and swaps
-        }
-        if (type === 'option') {
-            result = await this.fetchOptionMarkets (query);
-        }
-        const resultLength = result.length;
-        if (resultLength === 0) {
-            throw new ExchangeError (this.id + " does not support '" + type + "' type, set exchange.options['defaultType'] to " + "'spot', 'margin', 'swap', 'future' or 'option'"); // eslint-disable-line quotes
-        }
-        return result;
+        let promises = [
+            this.fetchSpotMarkets (params),
+            this.fetchContractMarkets (params),
+        ];
+        promises = await Promise.all (promises);
+        const spotMarkets = promises[0];
+        const contractMarkets = promises[1];
+        return this.arrayConcat (spotMarkets, contractMarkets);
     }
 
     async fetchSpotMarkets (params) {
@@ -962,7 +960,7 @@ module.exports = class gate extends Exchange {
             'strike': undefined,
             'optionType': undefined,
             'precision': {
-                'amount': this.parseNumber ('1'),
+                'amount': this.parseNumber ('1'), // all contracts have this step size
                 'price': this.safeNumber (market, 'order_price_round'),
             },
             'limits': {
@@ -1083,7 +1081,7 @@ module.exports = class gate extends Exchange {
                     'strike': strike,
                     'optionType': optionType,
                     'precision': {
-                        'amount': this.parseNumber ('1'),
+                        'amount': this.parseNumber ('1'), // all options have this step size
                         'price': this.safeNumber (market, 'order_price_round'),
                     },
                     'limits': {
@@ -1298,7 +1296,7 @@ module.exports = class gate extends Exchange {
                 'lowerCaseId': currencyIdLower,
                 'name': undefined,
                 'code': code,
-                'precision': this.parseNumber ('1e-6'),
+                'precision': this.parseNumber ('1e-4'), // todo: as gateio is done completely in html, in withdrawal page's source it has predefined "num_need_fix(this.value, 4);" function, so users cant set lower precision than 0.0001
                 'info': entry,
                 'active': active,
                 'deposit': depositEnabled,
@@ -1479,7 +1477,7 @@ module.exports = class gate extends Exchange {
         //    }
         //
         const marketId = this.safeString (contract, 'name');
-        const symbol = this.safeSymbol (marketId, market);
+        const symbol = this.safeSymbol (marketId, market, '_', 'swap');
         const markPrice = this.safeNumber (contract, 'mark_price');
         const indexPrice = this.safeNumber (contract, 'index_price');
         const interestRate = this.safeNumber (contract, 'interest_rate');
@@ -1909,7 +1907,7 @@ module.exports = class gate extends Exchange {
         //
         const timestamp = this.safeTimestamp (info, 'time');
         const marketId = this.safeString (info, 'text');
-        market = this.safeMarket (marketId, market);
+        market = this.safeMarket (marketId, market, '_', 'swap');
         return {
             'info': info,
             'symbol': this.safeString (market, 'symbol'),
@@ -2089,13 +2087,28 @@ module.exports = class gate extends Exchange {
         //         "index_price": "6531"
         //     }
         //
-        const marketId = this.safeString2 (ticker, 'currency_pair', 'contract');
-        const symbol = this.safeSymbol (marketId, market);
+        // bookTicker
+        //    {
+        //        t: 1671363004228,
+        //        u: 9793320464,
+        //        s: 'BTC_USDT',
+        //        b: '16716.8', // best bid price
+        //        B: '0.0134', // best bid size
+        //        a: '16716.9', // best ask price
+        //        A: '0.0353' // best ask size
+        //     }
+        //
+        const marketId = this.safeStringN (ticker, [ 'currency_pair', 'contract', 's' ]);
+        const marketType = ('contract' in ticker) ? 'contract' : 'spot';
+        const symbol = this.safeSymbol (marketId, market, '_', marketType);
         const last = this.safeString (ticker, 'last');
-        const ask = this.safeString (ticker, 'lowest_ask');
-        const bid = this.safeString (ticker, 'highest_bid');
+        const ask = this.safeString2 (ticker, 'lowest_ask', 'a');
+        const bid = this.safeString2 (ticker, 'highest_bid', 'b');
         const high = this.safeString (ticker, 'high_24h');
         const low = this.safeString (ticker, 'low_24h');
+        const bidVolume = this.safeString (ticker, 'B');
+        const askVolume = this.safeString (ticker, 'A');
+        const timestamp = this.safeInteger (ticker, 't');
         let baseVolume = this.safeString2 (ticker, 'base_volume', 'volume_24h_base');
         if (baseVolume === 'nan') {
             baseVolume = '0';
@@ -2107,14 +2120,14 @@ module.exports = class gate extends Exchange {
         const percentage = this.safeString (ticker, 'change_percentage');
         return this.safeTicker ({
             'symbol': symbol,
-            'timestamp': undefined,
-            'datetime': undefined,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
             'high': high,
             'low': low,
             'bid': bid,
-            'bidVolume': undefined,
+            'bidVolume': bidVolume,
             'ask': ask,
-            'askVolume': undefined,
+            'askVolume': askVolume,
             'vwap': undefined,
             'open': undefined,
             'close': last,
@@ -2200,7 +2213,7 @@ module.exports = class gate extends Exchange {
             'future': 'privateDeliveryGetSettleAccounts',
         });
         let response = await this[method] (this.extend (request, requestQuery));
-        const contract = (type === 'swap' || type === 'future');
+        const contract = ((type === 'swap') || (type === 'future'));
         if (contract) {
             response = [ response ];
         }
@@ -2336,7 +2349,7 @@ module.exports = class gate extends Exchange {
             const entry = data[i];
             if (isolated) {
                 const marketId = this.safeString (entry, 'currency_pair');
-                const symbol = this.safeSymbol (marketId, undefined, '_');
+                const symbol = this.safeSymbol (marketId, undefined, '_', 'margin');
                 const base = this.safeValue (entry, 'base', {});
                 const quote = this.safeValue (entry, 'quote', {});
                 const baseCode = this.safeCurrencyCode (this.safeString (base, 'currency'));
@@ -2805,7 +2818,8 @@ module.exports = class gate extends Exchange {
         let timestamp = this.safeTimestamp2 (trade, 'time', 'create_time');
         timestamp = this.safeInteger (trade, 'create_time_ms', timestamp);
         const marketId = this.safeString2 (trade, 'currency_pair', 'contract');
-        market = this.safeMarket (marketId, market);
+        const marketType = ('contract' in trade) ? 'contract' : 'spot';
+        market = this.safeMarket (marketId, market, '_', marketType);
         let amountString = this.safeString2 (trade, 'amount', 'size');
         const priceString = this.safeString (trade, 'price');
         const contractSide = Precise.stringLt (amountString, '0') ? 'sell' : 'buy';
@@ -3010,12 +3024,14 @@ module.exports = class gate extends Exchange {
         const id = this.safeString (transaction, 'id');
         let type = undefined;
         let amount = this.safeString (transaction, 'amount');
-        if (id[0] === 'b') {
-            // GateCode handling
-            type = Precise.stringGt (amount, '0') ? 'deposit' : 'withdrawal';
-            amount = Precise.stringAbs (amount);
-        } else if (id !== undefined) {
-            type = this.parseTransactionType (id[0]);
+        if (id !== undefined) {
+            if (id[0] === 'b') {
+                // GateCode handling
+                type = Precise.stringGt (amount, '0') ? 'deposit' : 'withdrawal';
+                amount = Precise.stringAbs (amount);
+            } else {
+                type = this.parseTransactionType (id[0]);
+            }
         }
         const currencyId = this.safeString (transaction, 'currency');
         const code = this.safeCurrencyCode (currencyId);
@@ -3330,8 +3346,84 @@ module.exports = class gate extends Exchange {
         return this.parseOrder (response, market);
     }
 
+    async editOrder (id, symbol, type, side, amount, price = undefined, params = {}) {
+        /**
+         * @method
+         * @name gate#editOrder
+         * @description edit a trade order, gate currently only supports the modification of the price or amount fields
+         * @see https://www.gate.io/docs/developers/apiv4/en/#amend-an-order
+         * @param {string} id order id
+         * @param {string} symbol unified symbol of the market to create an order in
+         * @param {string} type 'market' or 'limit'
+         * @param {string} side 'buy' or 'sell'
+         * @param {float} amount how much of the currency you want to trade in units of the base currency
+         * @param {float|undefined} price the price at which the order is to be fullfilled, in units of the base currency, ignored in market orders
+         * @param {object} params extra parameters specific to the gate api endpoint
+         * @returns {object} an [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
+         */
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        if (!market['spot']) {
+            throw new BadRequest (this.id + ' editOrder() supports only spot markets');
+        }
+        const [ marketType, query ] = this.handleMarketTypeAndParams ('editOrder', market, params);
+        const account = this.convertTypeToAccount (marketType);
+        const isLimitOrder = (type === 'limit');
+        if (account === 'spot') {
+            if (!isLimitOrder) {
+                // exchange doesn't have market orders for spot
+                throw new InvalidOrder (this.id + ' editOrder() does not support ' + type + ' orders for ' + marketType + ' markets');
+            }
+        }
+        const request = {
+            'order_id': id,
+            'currency_pair': market['id'],
+            'account': account,
+        };
+        if (amount !== undefined) {
+            request['amount'] = this.amountToPrecision (symbol, amount);
+        }
+        if (price !== undefined) {
+            request['price'] = this.priceToPrecision (symbol, price);
+        }
+        const response = await this.privateSpotPatchOrdersOrderId (this.extend (request, query));
+        //
+        //     {
+        //         "id": "243233276443",
+        //         "text": "apiv4",
+        //         "create_time": "1670908873",
+        //         "update_time": "1670914102",
+        //         "create_time_ms": 1670908873077,
+        //         "update_time_ms": 1670914102241,
+        //         "status": "open",
+        //         "currency_pair": "ADA_USDT",
+        //         "type": "limit",
+        //         "account": "spot",
+        //         "side": "sell",
+        //         "amount": "10",
+        //         "price": "0.6",
+        //         "time_in_force": "gtc",
+        //         "iceberg": "0",
+        //         "left": "10",
+        //         "fill_price": "0",
+        //         "filled_total": "0",
+        //         "fee": "0",
+        //         "fee_currency": "USDT",
+        //         "point_fee": "0",
+        //         "gt_fee": "0",
+        //         "gt_maker_fee": "0",
+        //         "gt_taker_fee": "0",
+        //         "gt_discount": false,
+        //         "rebated_fee": "0",
+        //         "rebated_fee_currency": "ADA"
+        //     }
+        //
+        return this.parseOrder (response, market);
+    }
+
     parseOrderStatus (status) {
         const statuses = {
+            'open': 'open',
             '_new': 'open',
             'filled': 'closed',
             'cancelled': 'canceled',
@@ -3348,7 +3440,7 @@ module.exports = class gate extends Exchange {
     parseOrder (order, market = undefined) {
         //
         // SPOT
-        // createOrder/cancelOrder/fetchOrder
+        // createOrder/cancelOrder/fetchOrder/editOrder
         //
         //    {
         //        "id": "62364648575",
@@ -3525,7 +3617,9 @@ module.exports = class gate extends Exchange {
         if (lastTradeTimestamp === undefined) {
             lastTradeTimestamp = this.safeTimestamp2 (order, 'update_time', 'finish_time');
         }
+        const marketType = ('currency_pair' in order) ? 'spot' : 'contract';
         const exchangeSymbol = this.safeString2 (order, 'currency_pair', 'market', contract);
+        const symbol = this.safeSymbol (exchangeSymbol, market, '_', marketType);
         // Everything below this(above return) is related to fees
         const fees = [];
         const gtFee = this.safeString (order, 'gt_fee');
@@ -3559,7 +3653,7 @@ module.exports = class gate extends Exchange {
             'datetime': this.iso8601 (timestamp),
             'lastTradeTimestamp': lastTradeTimestamp,
             'status': status,
-            'symbol': this.safeSymbol (exchangeSymbol),
+            'symbol': symbol,
             'type': type,
             'timeInForce': timeInForce,
             'postOnly': postOnly,
@@ -3567,6 +3661,7 @@ module.exports = class gate extends Exchange {
             'side': side,
             'price': this.parseNumber (price),
             'stopPrice': this.safeNumber (trigger, 'price'),
+            'triggerPrice': this.safeNumber (trigger, 'price'),
             'average': average,
             'amount': this.parseNumber (Precise.stringAbs (amount)),
             'cost': Precise.stringAbs (cost),
@@ -4164,7 +4259,7 @@ module.exports = class gate extends Exchange {
         //     }
         //
         const contract = this.safeString (position, 'contract');
-        market = this.safeMarket (contract, market);
+        market = this.safeMarket (contract, market, '_', 'contract');
         const size = this.safeString (position, 'size');
         let side = undefined;
         if (Precise.stringGt (size, '0')) {
@@ -4731,7 +4826,7 @@ module.exports = class gate extends Exchange {
             'id': this.safeInteger (info, 'id'),
             'currency': this.safeCurrencyCode (currencyId, currency),
             'amount': this.safeNumber (info, 'amount'),
-            'symbol': this.safeSymbol (marketId, undefined),
+            'symbol': this.safeSymbol (marketId, undefined, '_', 'margin'),
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'info': info,
@@ -4761,15 +4856,18 @@ module.exports = class gate extends Exchange {
             this.checkRequiredCredentials ();
             let queryString = '';
             let requiresURLEncoding = false;
-            if (type === 'futures' && method === 'POST') {
+            if (((type === 'futures') || (type === 'delivery')) && method === 'POST') {
                 const pathParts = path.split ('/');
                 const secondPart = this.safeString (pathParts, 1, '');
                 requiresURLEncoding = (secondPart.indexOf ('dual') >= 0) || (secondPart.indexOf ('positions') >= 0);
             }
-            if ((method === 'GET') || (method === 'DELETE') || requiresURLEncoding) {
+            if ((method === 'GET') || (method === 'DELETE') || requiresURLEncoding || (method === 'PATCH')) {
                 if (Object.keys (query).length) {
                     queryString = this.urlencode (query);
                     url += '?' + queryString;
+                }
+                if (method === 'PATCH') {
+                    body = this.json (query);
                 }
             } else {
                 const urlQueryParams = this.safeValue (query, 'query', {});
@@ -4797,6 +4895,86 @@ module.exports = class gate extends Exchange {
             };
         }
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
+    }
+
+    async modifyMarginHelper (symbol, amount, params = {}) {
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const [ request, query ] = this.prepareRequest (market, undefined, params);
+        request['change'] = this.numberToString (amount);
+        const method = this.getSupportedMapping (market['type'], {
+            'swap': 'privateFuturesPostSettlePositionsContractMargin',
+            'future': 'privateDeliveryPostSettlePositionsContractMargin',
+        });
+        const response = await this[method] (this.extend (request, query));
+        return this.parseMarginModification (response, market);
+    }
+
+    parseMarginModification (data, market = undefined) {
+        //
+        //     {
+        //         "value": "11.9257",
+        //         "leverage": "5",
+        //         "mode": "single",
+        //         "realised_point": "0",
+        //         "contract": "ETH_USDT",
+        //         "entry_price": "1203.45",
+        //         "mark_price": "1192.57",
+        //         "history_point": "0",
+        //         "realised_pnl": "-0.00577656",
+        //         "close_order": null,
+        //         "size": "1",
+        //         "cross_leverage_limit": "0",
+        //         "pending_orders": "0",
+        //         "adl_ranking": "5",
+        //         "maintenance_rate": "0.005",
+        //         "unrealised_pnl": "-0.1088",
+        //         "user": "1486602",
+        //         "leverage_max": "100",
+        //         "history_pnl": "0",
+        //         "risk_limit": "1000000",
+        //         "margin": "5.415925875",
+        //         "last_close_pnl": "0",
+        //         "liq_price": "665.69"
+        //     }
+        //
+        const contract = this.safeString (data, 'contract');
+        market = this.safeMarket (contract, market, '_', 'contract');
+        const total = this.safeNumber (data, 'margin');
+        return {
+            'info': data,
+            'amount': undefined,
+            'code': this.safeValue (market, 'quote'),
+            'symbol': market['symbol'],
+            'total': total,
+            'status': 'ok',
+        };
+    }
+
+    async reduceMargin (symbol, amount, params = {}) {
+        /**
+         * @method
+         * @name gate#reduceMargin
+         * @description remove margin from a position
+         * @param {string} symbol unified market symbol
+         * @param {float} amount the amount of margin to remove
+         * @param {object} params extra parameters specific to the exmo api endpoint
+         * @returns {object} a [margin structure]{@link https://docs.ccxt.com/en/latest/manual.html#reduce-margin-structure}
+         */
+        return await this.modifyMarginHelper (symbol, -amount, params);
+    }
+
+    async addMargin (symbol, amount, params = {}) {
+        /**
+         * @method
+         * @name gate#addMargin
+         * @description add margin
+         * @param {string} symbol unified market symbol
+         * @param {float} amount amount of margin to add
+         * @param {object} params extra parameters specific to the exmo api endpoint
+         * @returns {object} a [margin structure]{@link https://docs.ccxt.com/en/latest/manual.html#add-margin-structure}
+         */
+        return await this.modifyMarginHelper (symbol, amount, params);
     }
 
     handleErrors (code, reason, url, method, headers, body, response, requestHeaders, requestBody) {

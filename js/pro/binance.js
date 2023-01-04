@@ -4,7 +4,7 @@
 
 const binanceRest = require ('../binance.js');
 const Precise = require ('../base/Precise');
-const { ExchangeError } = require ('../base/errors');
+const { ExchangeError, ArgumentsRequired } = require ('../base/errors');
 const { ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById } = require ('./base/Cache');
 
 // -----------------------------------------------------------------------------
@@ -20,7 +20,7 @@ module.exports = class binance extends binanceRest {
                 'watchOrderBook': true,
                 'watchOrders': true,
                 'watchTicker': true,
-                'watchTickers': false, // for now
+                'watchTickers': true,
                 'watchTrades': true,
             },
             'urls': {
@@ -43,10 +43,10 @@ module.exports = class binance extends binanceRest {
             },
             'options': {
                 'streamLimits': {
-                    'spot': 1024,
-                    'margin': 1024,
-                    'future': 200,
-                    'delivery': 200,
+                    'spot': 50, // max 1024
+                    'margin': 50, // max 1024
+                    'future': 50, // max 200
+                    'delivery': 50, // max 200
                 },
                 'streamBySubscriptionsHash': {},
                 'streamIndex': -1,
@@ -63,6 +63,9 @@ module.exports = class binance extends binanceRest {
                 },
                 'watchTicker': {
                     'name': 'ticker', // ticker = 1000ms L1+OHLCV, bookTicker = real-time L1
+                },
+                'watchTickers': {
+                    'name': 'ticker', // ticker or miniTicker or bookTicker
                 },
                 'watchBalance': {
                     'fetchBalanceSnapshot': false, // or true
@@ -93,12 +96,10 @@ module.exports = class binance extends binanceRest {
             const streamLimits = this.safeValue (this.options, 'streamLimits');
             const streamLimit = this.safeInteger (streamLimits, type);
             streamIndex = streamIndex + 1;
-            if (streamIndex === streamLimit) {
-                streamIndex = 0;
-            }
+            const normalizedIndex = streamIndex % streamLimit;
             this.options['streamIndex'] = streamIndex;
-            stream = this.numberToString (streamIndex);
-            streamBySubscriptionsHash[subscriptionHash] = stream;
+            stream = this.numberToString (normalizedIndex);
+            this.options['streamBySubscriptionsHash'][subscriptionHash] = stream;
         }
         return stream;
     }
@@ -719,18 +720,19 @@ module.exports = class binance extends binanceRest {
          * @description watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
          * @param {string} symbol unified symbol of the market to fetch the ticker for
          * @param {object} params extra parameters specific to the binance api endpoint
+         * @param {string} params.name stream to use can be ticker or bookTicker
          * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
         const marketId = market['lowercaseId'];
+        let type = undefined;
+        [ type, params ] = this.handleMarketTypeAndParams ('watchTicker', market, params);
         const options = this.safeValue (this.options, 'watchTicker', {});
-        const name = this.safeString (options, 'name', 'ticker');
+        let name = this.safeString (options, 'name', 'ticker');
+        name = this.safeString (params, 'name', name);
+        params = this.omit (params, 'name');
         const messageHash = marketId + '@' + name;
-        const defaultType = this.safeString2 (this.options, 'defaultType', 'spot');
-        const watchTickerType = this.safeString2 (options, 'type', 'defaultType', defaultType);
-        const type = this.safeString (params, 'type', watchTickerType);
-        const query = this.omit (params, 'type');
         const url = this.urls['api']['ws'][type] + '/' + this.stream (type, messageHash);
         const requestId = this.requestId (url);
         const request = {
@@ -743,7 +745,157 @@ module.exports = class binance extends binanceRest {
         const subscribe = {
             'id': requestId,
         };
-        return await this.watch (url, messageHash, this.extend (request, query), messageHash, subscribe);
+        return await this.watch (url, messageHash, this.extend (request, params), messageHash, subscribe);
+    }
+
+    async watchTickers (symbols = undefined, params = {}) {
+        /**
+         * @method
+         * @name binance#watchTickers
+         * @description watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for all markets of a specific list
+         * @param {Array} symbols unified symbol of the market to fetch the ticker for
+         * @param {object} params extra parameters specific to the binance api endpoint
+         * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
+         */
+        await this.loadMarkets ();
+        symbols = this.marketSymbols (symbols);
+        const marketIds = this.marketIds (symbols);
+        let market = undefined;
+        if (marketIds !== undefined) {
+            market = this.safeMarket (marketIds[0]);
+        }
+        let type = undefined;
+        [ type, params ] = this.handleMarketTypeAndParams ('watchTickers', market, params);
+        const options = this.safeValue (this.options, 'watchTickers', {});
+        let name = this.safeString (options, 'name', 'ticker');
+        name = this.safeString (params, 'name', name);
+        const oriParams = params;
+        params = this.omit (params, 'name');
+        let wsParams = [];
+        const messageHash = '!' + name + '@arr';
+        if (name === 'bookTicker') {
+            if (marketIds === undefined) {
+                throw new ArgumentsRequired (this.id + ' watchTickers() requires symbols for bookTicker');
+            }
+            // simulate watchTickers with subscribe multiple individual bookTicker topic
+            for (let i = 0; i < marketIds.length; i++) {
+                wsParams.push (marketIds[i].toLowerCase () + '@bookTicker');
+            }
+        } else {
+            wsParams = [
+                messageHash,
+            ];
+        }
+        const url = this.urls['api']['ws'][type] + '/' + this.stream (type, messageHash);
+        const requestId = this.requestId (url);
+        const request = {
+            'method': 'SUBSCRIBE',
+            'params': wsParams,
+            'id': requestId,
+        };
+        const subscribe = {
+            'id': requestId,
+        };
+        const tickers = await this.watch (url, messageHash, this.extend (request, params), messageHash, subscribe);
+        const result = {};
+        for (let i = 0; i < tickers.length; i++) {
+            const ticker = tickers[i];
+            const tickerSymbol = ticker['symbol'];
+            if (symbols !== undefined && this.inArray (tickerSymbol, symbols)) {
+                result[tickerSymbol] = ticker;
+            }
+        }
+        const resultKeys = Object.keys (result);
+        if (resultKeys.length > 0) {
+            if (this.newUpdates) {
+                return result;
+            }
+            return this.filterByArray (this.tickers, 'symbol', symbols);
+        }
+        return await this.watchTickers (symbols, oriParams);
+    }
+
+    parseWsTicker (message) {
+        //
+        // ticker
+        //     {
+        //         e: '24hrTicker',      // event type
+        //         E: 1579485598569,     // event time
+        //         s: 'ETHBTC',          // symbol
+        //         p: '-0.00004000',     // price change
+        //         P: '-0.209',          // price change percent
+        //         w: '0.01920495',      // weighted average price
+        //         x: '0.01916500',      // the price of the first trade before the 24hr rolling window
+        //         c: '0.01912500',      // last (closing) price
+        //         Q: '0.10400000',      // last quantity
+        //         b: '0.01912200',      // best bid
+        //         B: '4.10400000',      // best bid quantity
+        //         a: '0.01912500',      // best ask
+        //         A: '0.00100000',      // best ask quantity
+        //         o: '0.01916500',      // open price
+        //         h: '0.01956500',      // high price
+        //         l: '0.01887700',      // low price
+        //         v: '173518.11900000', // base volume
+        //         q: '3332.40703994',   // quote volume
+        //         O: 1579399197842,     // open time
+        //         C: 1579485597842,     // close time
+        //         F: 158251292,         // first trade id
+        //         L: 158414513,         // last trade id
+        //         n: 163222,            // total number of trades
+        //     }
+        //
+        // miniTicker
+        //     {
+        //         e: '24hrMiniTicker',
+        //         E: 1671617114585,
+        //         s: 'MOBBUSD',
+        //         c: '0.95900000',
+        //         o: '0.91200000',
+        //         h: '1.04000000',
+        //         l: '0.89400000',
+        //         v: '2109995.32000000',
+        //         q: '2019254.05788000'
+        //     }
+        //
+        let event = this.safeString (message, 'e', 'bookTicker');
+        if (event === '24hrTicker') {
+            event = 'ticker';
+        }
+        let timestamp = undefined;
+        const now = this.milliseconds ();
+        if (event === 'bookTicker') {
+            // take the event timestamp, if available, for spot tickers it is not
+            timestamp = this.safeInteger (message, 'E', now);
+        } else {
+            // take the timestamp of the closing price for candlestick streams
+            timestamp = this.safeInteger (message, 'C', now);
+        }
+        const marketId = this.safeString (message, 's');
+        const symbol = this.safeSymbol (marketId);
+        const last = this.safeFloat (message, 'c');
+        const ticker = {
+            'symbol': symbol,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'high': this.safeFloat (message, 'h'),
+            'low': this.safeFloat (message, 'l'),
+            'bid': this.safeFloat (message, 'b'),
+            'bidVolume': this.safeFloat (message, 'B'),
+            'ask': this.safeFloat (message, 'a'),
+            'askVolume': this.safeFloat (message, 'A'),
+            'vwap': this.safeFloat (message, 'w'),
+            'open': this.safeFloat (message, 'o'),
+            'close': last,
+            'last': last,
+            'previousClose': this.safeFloat (message, 'x'), // previous day close
+            'change': this.safeFloat (message, 'p'),
+            'percentage': this.safeFloat (message, 'P'),
+            'average': undefined,
+            'baseVolume': this.safeFloat (message, 'v'),
+            'quoteVolume': this.safeFloat (message, 'q'),
+            'info': message,
+        };
+        return ticker;
     }
 
     handleTicker (client, message) {
@@ -781,45 +933,40 @@ module.exports = class binance extends binanceRest {
         let event = this.safeString (message, 'e', 'bookTicker');
         if (event === '24hrTicker') {
             event = 'ticker';
+        } else if (event === '24hrMiniTicker') {
+            event = 'miniTicker';
         }
         const wsMarketId = this.safeStringLower (message, 's');
         const messageHash = wsMarketId + '@' + event;
-        let timestamp = undefined;
-        const now = this.milliseconds ();
-        if (event === 'bookTicker') {
-            // take the event timestamp, if available, for spot tickers it is not
-            timestamp = this.safeInteger (message, 'E', now);
-        } else {
-            // take the timestamp of the closing price for candlestick streams
-            timestamp = this.safeInteger (message, 'C', now);
-        }
-        const marketId = this.safeString (message, 's');
-        const symbol = this.safeSymbol (marketId);
-        const last = this.safeFloat (message, 'c');
-        const result = {
-            'symbol': symbol,
-            'timestamp': timestamp,
-            'datetime': this.iso8601 (timestamp),
-            'high': this.safeFloat (message, 'h'),
-            'low': this.safeFloat (message, 'l'),
-            'bid': this.safeFloat (message, 'b'),
-            'bidVolume': this.safeFloat (message, 'B'),
-            'ask': this.safeFloat (message, 'a'),
-            'askVolume': this.safeFloat (message, 'A'),
-            'vwap': this.safeFloat (message, 'w'),
-            'open': this.safeFloat (message, 'o'),
-            'close': last,
-            'last': last,
-            'previousClose': this.safeFloat (message, 'x'), // previous day close
-            'change': this.safeFloat (message, 'p'),
-            'percentage': this.safeFloat (message, 'P'),
-            'average': undefined,
-            'baseVolume': this.safeFloat (message, 'v'),
-            'quoteVolume': this.safeFloat (message, 'q'),
-            'info': message,
-        };
+        const result = this.parseWsTicker (message);
+        const symbol = result['symbol'];
         this.tickers[symbol] = result;
         client.resolve (result, messageHash);
+        if (event === 'bookTicker') {
+            // watch bookTickers
+            client.resolve ([ result ], '!' + 'bookTicker@arr');
+        }
+    }
+
+    handleTickers (client, message) {
+        let event = undefined;
+        for (let i = 0; i < message.length; i++) {
+            const ticker = message[i];
+            event = this.safeString (ticker, 'e');
+            if (event === '24hrTicker') {
+                event = 'ticker';
+            } else if (event === '24hrMiniTicker') {
+                event = 'miniTicker';
+            }
+            const wsMarketId = this.safeStringLower (ticker, 's');
+            const messageHash = wsMarketId + '@' + event;
+            const result = this.parseWsTicker (ticker);
+            const symbol = result['symbol'];
+            this.tickers[symbol] = result;
+            client.resolve (result, messageHash);
+        }
+        const values = Object.values (this.tickers);
+        client.resolve (values, '!' + event + '@arr');
     }
 
     async authenticate (params = {}) {
@@ -1243,6 +1390,7 @@ module.exports = class binance extends binanceRest {
             'side': side,
             'price': price,
             'stopPrice': stopPrice,
+            'triggerPrice': stopPrice,
             'amount': amount,
             'cost': cost,
             'average': average,
@@ -1478,7 +1626,10 @@ module.exports = class binance extends binanceRest {
             'trade': this.handleTrade,
             'aggTrade': this.handleTrade,
             'kline': this.handleOHLCV,
+            '24hrTicker@arr': this.handleTickers,
+            '24hrMiniTicker@arr': this.handleTickers,
             '24hrTicker': this.handleTicker,
+            '24hrMiniTicker': this.handleTicker,
             'bookTicker': this.handleTicker,
             'outboundAccountPosition': this.handleBalance,
             'balanceUpdate': this.handleBalance,
@@ -1486,7 +1637,11 @@ module.exports = class binance extends binanceRest {
             'executionReport': this.handleOrderUpdate,
             'ORDER_TRADE_UPDATE': this.handleOrderUpdate,
         };
-        const event = this.safeString (message, 'e');
+        let event = this.safeString (message, 'e');
+        if (Array.isArray (message)) {
+            const data = message[0];
+            event = this.safeString (data, 'e') + '@arr';
+        }
         const method = this.safeValue (methods, event);
         if (method === undefined) {
             const requestId = this.safeString (message, 'id');

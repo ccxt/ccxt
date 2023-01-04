@@ -749,6 +749,7 @@ module.exports = class kuna extends Exchange {
             'side': side,
             'price': this.safeString (order, 'price'),
             'stopPrice': undefined,
+            'triggerPrice': undefined,
             'amount': this.safeString (order, 'volume'),
             'filled': this.safeString (order, 'executed_volume'),
             'remaining': this.safeString (order, 'remaining_volume'),

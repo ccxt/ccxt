@@ -52,6 +52,8 @@ module.exports = class coinex extends Exchange {
                 'fetchDepositAddressByNetwork': false,
                 'fetchDepositAddresses': false,
                 'fetchDeposits': true,
+                'fetchDepositWithdrawFees': true,
+                'fetchDepsoitWithdrawFee': 'emulated',
                 'fetchFundingHistory': true,
                 'fetchFundingRate': true,
                 'fetchFundingRateHistory': true,
@@ -77,8 +79,6 @@ module.exports = class coinex extends Exchange {
                 'fetchTrades': true,
                 'fetchTradingFee': true,
                 'fetchTradingFees': true,
-                'fetchTransactionFee:': false,
-                'fetchTransactoinFees': false,
                 'fetchTransfer': false,
                 'fetchTransfers': true,
                 'fetchWithdrawal': false,
@@ -276,15 +276,10 @@ module.exports = class coinex extends Exchange {
                     'max': undefined,
                 },
             },
-            'precision': {
-                'amount': this.parseNumber ('0.00000001'),
-                'price': this.parseNumber ('0.00000001'),
-            },
             'options': {
                 'createMarketBuyOrderRequiresPrice': true,
                 'defaultType': 'spot', // spot, swap, margin
                 'defaultSubType': 'linear', // linear, inverse
-                'defaultMarginMode': 'isolated', // isolated, cross
                 'fetchDepositAddress': {
                     'fillResponseFromRequest': true,
                 },
@@ -301,22 +296,22 @@ module.exports = class coinex extends Exchange {
 
     async fetchCurrencies (params = {}) {
         const response = await this.publicGetCommonAssetConfig (params);
-        //
         //     {
         //         code: 0,
         //         data: {
-        //           'CET-CSC': {
-        //               asset: 'CET',
-        //               chain: 'CSC',
-        //               withdrawal_precision: 8,
-        //               can_deposit: true,
-        //               can_withdraw: true,
-        //               deposit_least_amount: '0.026',
-        //               withdraw_least_amount: '20',
-        //               withdraw_tx_fee: '0.026'
-        //           },
-        //           ...
-        //           message: 'Success',
+        //             "USDT-ERC20": {
+        //                  "asset": "USDT",
+        //                  "chain": "ERC20",
+        //                  "withdrawal_precision": 6,
+        //                  "can_deposit": true,
+        //                  "can_withdraw": true,
+        //                  "deposit_least_amount": "4.9",
+        //                  "withdraw_least_amount": "4.9",
+        //                  "withdraw_tx_fee": "4.9"
+        //             },
+        //             ...
+        //         },
+        //         message: 'Success',
         //     }
         //
         const data = this.safeValue (response, 'data', []);
@@ -328,6 +323,7 @@ module.exports = class coinex extends Exchange {
             const currencyId = this.safeString (currency, 'asset');
             const networkId = this.safeString (currency, 'chain');
             const code = this.safeCurrencyCode (currencyId);
+            const precision = this.parseNumber (this.parsePrecision (this.safeString (currency, 'withdrawal_precision')));
             if (this.safeValue (result, code) === undefined) {
                 result[code] = {
                     'id': currencyId,
@@ -339,7 +335,7 @@ module.exports = class coinex extends Exchange {
                     'deposit': this.safeValue (currency, 'can_deposit'),
                     'withdraw': this.safeValue (currency, 'can_withdraw'),
                     'fee': this.safeNumber (currency, 'withdraw_tx_fee'),
-                    'precision': this.parseNumber (this.parsePrecision (this.safeString (currency, 'withdrawal_precision'))),
+                    'precision': precision,
                     'limits': {
                         'amount': {
                             'min': undefined,
@@ -380,7 +376,7 @@ module.exports = class coinex extends Exchange {
                 'deposit': this.safeValue (currency, 'can_deposit'),
                 'withdraw': this.safeValue (currency, 'can_withdraw'),
                 'fee': this.safeNumber (currency, 'withdraw_tx_fee'),
-                'precision': this.parseNumber (this.parsePrecision (this.safeString (currency, 'withdrawal_precision'))),
+                'precision': precision,
             };
             networks[networkId] = network;
             result[code]['networks'] = networks;
@@ -1309,12 +1305,17 @@ module.exports = class coinex extends Exchange {
         const data = this.safeValue (response, 'data', {});
         const free = this.safeValue (data, 'can_transfer', {});
         const total = this.safeValue (data, 'balance', {});
+        const loan = this.safeValue (data, 'loan', {});
+        const interest = this.safeValue (data, 'interest', {});
         //
         const sellAccount = this.account ();
         const sellCurrencyId = this.safeString (data, 'sell_asset_type');
         const sellCurrencyCode = this.safeCurrencyCode (sellCurrencyId);
         sellAccount['free'] = this.safeString (free, 'sell_type');
         sellAccount['total'] = this.safeString (total, 'sell_type');
+        const sellDebt = this.safeString (loan, 'sell_type');
+        const sellInterest = this.safeString (interest, 'sell_type');
+        sellAccount['debt'] = Precise.stringAdd (sellDebt, sellInterest);
         result[sellCurrencyCode] = sellAccount;
         //
         const buyAccount = this.account ();
@@ -1322,6 +1323,9 @@ module.exports = class coinex extends Exchange {
         const buyCurrencyCode = this.safeCurrencyCode (buyCurrencyId);
         buyAccount['free'] = this.safeString (free, 'buy_type');
         buyAccount['total'] = this.safeString (total, 'buy_type');
+        const buyDebt = this.safeString (loan, 'buy_type');
+        const buyInterest = this.safeString (interest, 'buy_type');
+        buyAccount['debt'] = Precise.stringAdd (buyDebt, buyInterest);
         result[buyCurrencyCode] = buyAccount;
         //
         return this.safeBalance (result);
@@ -1408,11 +1412,14 @@ module.exports = class coinex extends Exchange {
          * @param {object} params extra parameters specific to the coinex api endpoint
          * @returns {object} a [balance structure]{@link https://docs.ccxt.com/en/latest/manual.html?#balance-structure}
          */
-        const accountType = this.safeString (params, 'type', 'main');
-        params = this.omit (params, 'type');
-        if (accountType === 'margin') {
+        let marketType = undefined;
+        [ marketType, params ] = this.handleMarketTypeAndParams ('fetchBalance', undefined, params);
+        const isMargin = this.safeValue (params, 'margin', false);
+        marketType = isMargin ? 'margin' : marketType;
+        params = this.omit (params, 'margin');
+        if (marketType === 'margin') {
             return await this.fetchMarginBalance (params);
-        } else if (accountType === 'swap') {
+        } else if (marketType === 'swap') {
             return await this.fetchSwapBalance (params);
         } else {
             return await this.fetchSpotBalance (params);
@@ -1699,6 +1706,7 @@ module.exports = class coinex extends Exchange {
             'side': side,
             'price': priceString,
             'stopPrice': this.safeString (order, 'stop_price'),
+            'triggerPrice': this.safeString (order, 'stop_price'),
             'cost': costString,
             'average': averageString,
             'amount': amountString,
@@ -4385,6 +4393,103 @@ module.exports = class coinex extends Exchange {
             'datetime': undefined,
             'info': info,
         };
+    }
+
+    async fetchDepositWithdrawFees (codes = undefined, params = {}) {
+        /**
+         * @method
+         * @name coinex#fetchDepositWithdrawFees
+         * @description fetch deposit and withdraw fees
+         * @see https://viabtc.github.io/coinex_api_en_doc/spot/#docsspot001_market010_asset_config
+         * @param {[string]|undefined} codes list of unified currency codes
+         * @param {object} params extra parameters specific to the coinex api endpoint
+         * @returns {[object]} a list of [fees structures]{@link https://docs.ccxt.com/en/latest/manual.html#fee-structure}
+         */
+        await this.loadMarkets ();
+        const request = {};
+        if (codes !== undefined) {
+            const codesLength = codes.length;
+            if (codesLength === 1) {
+                request['coin_type'] = this.safeValue (codes, 0);
+            }
+        }
+        const response = await this.publicGetCommonAssetConfig (this.extend (request, params));
+        //
+        //    {
+        //        "code": 0,
+        //        "data": {
+        //            "CET-CSC": {
+        //                "asset": "CET",
+        //                "chain": "CSC",
+        //                "can_deposit": true,
+        //                "can_withdraw ": false,
+        //                "deposit_least_amount": "1",
+        //                "withdraw_least_amount": "1",
+        //                "withdraw_tx_fee": "0.1"
+        //            },
+        //            "CET-ERC20": {
+        //                "asset": "CET",
+        //                "chain": "ERC20",
+        //                "can_deposit": true,
+        //                "can_withdraw": false,
+        //                "deposit_least_amount": "14",
+        //                "withdraw_least_amount": "14",
+        //                "withdraw_tx_fee": "14"
+        //            }
+        //        },
+        //        "message": "Success"
+        //    }
+        //
+        return this.parseDepositWithdrawFees (response, codes);
+    }
+
+    parseDepositWithdrawFees (response, codes = undefined, currencyIdKey = undefined) {
+        const depositWithdrawFees = {};
+        codes = this.marketCodes (codes);
+        const data = this.safeValue (response, 'data');
+        const currencyIds = Object.keys (data);
+        for (let i = 0; i < currencyIds.length; i++) {
+            const entry = currencyIds[i];
+            const splitEntry = entry.split ('-');
+            const feeInfo = data[currencyIds[i]];
+            const currencyId = this.safeString (feeInfo, 'asset');
+            const currency = this.safeCurrency (currencyId);
+            const code = this.safeString (currency, 'code');
+            if ((codes === undefined) || (this.inArray (code, codes))) {
+                const depositWithdrawFee = this.safeValue (depositWithdrawFees, code);
+                if (depositWithdrawFee === undefined) {
+                    depositWithdrawFees[code] = this.depositWithdrawFee ({});
+                }
+                depositWithdrawFees[code]['info'][entry] = feeInfo;
+                const networkId = this.safeString (splitEntry, 1);
+                const withdrawFee = this.safeValue (feeInfo, 'withdraw_tx_fee');
+                const withdrawResult = {
+                    'fee': withdrawFee,
+                    'percentage': (withdrawFee !== undefined) ? false : undefined,
+                };
+                const depositResult = {
+                    'fee': undefined,
+                    'percentage': undefined,
+                };
+                if (networkId !== undefined) {
+                    const networkCode = this.networkIdToCode (networkId);
+                    depositWithdrawFees[code]['networks'][networkCode] = {
+                        'withdraw': withdrawResult,
+                        'deposit': depositResult,
+                    };
+                } else {
+                    depositWithdrawFees[code]['withdraw'] = withdrawResult;
+                    depositWithdrawFees[code]['deposit'] = depositResult;
+                }
+            }
+        }
+        const depositWithdrawCodes = Object.keys (depositWithdrawFees);
+        for (let i = 0; i < depositWithdrawCodes.length; i++) {
+            const code = depositWithdrawCodes[i];
+            const currency = this.currency (code);
+            depositWithdrawFees[code] = this.assignDefaultDepositWithdrawFees (depositWithdrawFees[code], currency);
+        }
+        return depositWithdrawFees;
     }
 
     nonce () {

@@ -260,7 +260,7 @@ class indodax(Exchange):
                 'optionType': None,
                 'percentage': True,
                 'precision': {
-                    'amount': self.parse_number(self.parse_precision('8')),
+                    'amount': self.parse_number('1e-8'),
                     'price': self.parse_number(self.parse_precision(self.safe_string(market, 'price_round'))),
                     'cost': self.parse_number(self.parse_precision(self.safe_string(market, 'volume_precision'))),
                 },
@@ -567,6 +567,7 @@ class indodax(Exchange):
             'side': side,
             'price': price,
             'stopPrice': None,
+            'triggerPrice': None,
             'cost': cost,
             'average': None,
             'amount': amount,
@@ -626,7 +627,7 @@ class indodax(Exchange):
         for i in range(0, len(marketIds)):
             marketId = marketIds[i]
             marketOrders = rawOrders[marketId]
-            market = self.markets_by_id[marketId]
+            market = self.safe_market(marketId)
             parsedOrders = self.parse_orders(marketOrders, market, since, limit)
             exchangeOrders = self.array_concat(exchangeOrders, parsedOrders)
         return exchangeOrders

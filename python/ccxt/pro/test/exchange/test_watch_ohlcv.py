@@ -12,6 +12,9 @@ async def test_watch_ohlcv(exchange, symbol):
     skipped_exchanges = [
         'dsx',
         'idex2',  # rinkeby testnet, trades too rare
+        'woo',
+        'bitget',  # timeframes structure differs from rest
+        'zb'
     ]
 
     if exchange.id in skipped_exchanges:

@@ -7,6 +7,7 @@ namespace ccxt\pro;
 
 use Exception; // a common import
 use ccxt\ExchangeError;
+use ccxt\ArgumentsRequired;
 use ccxt\Precise;
 use React\Async;
 
@@ -24,7 +25,7 @@ class binance extends \ccxt\async\binance {
                 'watchOrderBook' => true,
                 'watchOrders' => true,
                 'watchTicker' => true,
-                'watchTickers' => false, // for now
+                'watchTickers' => true,
                 'watchTrades' => true,
             ),
             'urls' => array(
@@ -47,10 +48,10 @@ class binance extends \ccxt\async\binance {
             ),
             'options' => array(
                 'streamLimits' => array(
-                    'spot' => 1024,
-                    'margin' => 1024,
-                    'future' => 200,
-                    'delivery' => 200,
+                    'spot' => 50, // max 1024
+                    'margin' => 50, // max 1024
+                    'future' => 50, // max 200
+                    'delivery' => 50, // max 200
                 ),
                 'streamBySubscriptionsHash' => array(),
                 'streamIndex' => -1,
@@ -67,6 +68,9 @@ class binance extends \ccxt\async\binance {
                 ),
                 'watchTicker' => array(
                     'name' => 'ticker', // ticker = 1000ms L1+OHLCV, bookTicker = real-time L1
+                ),
+                'watchTickers' => array(
+                    'name' => 'ticker', // ticker or miniTicker or bookTicker
                 ),
                 'watchBalance' => array(
                     'fetchBalanceSnapshot' => false, // or true
@@ -97,12 +101,10 @@ class binance extends \ccxt\async\binance {
             $streamLimits = $this->safe_value($this->options, 'streamLimits');
             $streamLimit = $this->safe_integer($streamLimits, $type);
             $streamIndex = $streamIndex + 1;
-            if ($streamIndex === $streamLimit) {
-                $streamIndex = 0;
-            }
+            $normalizedIndex = fmod($streamIndex, $streamLimit);
             $this->options['streamIndex'] = $streamIndex;
-            $stream = $this->number_to_string($streamIndex);
-            $streamBySubscriptionsHash[$subscriptionHash] = $stream;
+            $stream = $this->number_to_string($normalizedIndex);
+            $this->options['streamBySubscriptionsHash'][$subscriptionHash] = $stream;
         }
         return $stream;
     }
@@ -724,18 +726,19 @@ class binance extends \ccxt\async\binance {
              * watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific $market
              * @param {string} $symbol unified $symbol of the $market to fetch the ticker for
              * @param {array} $params extra parameters specific to the binance api endpoint
+             * @param {string} $params->name stream to use can be ticker or bookTicker
              * @return {array} a {@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure ticker structure}
              */
             Async\await($this->load_markets());
             $market = $this->market($symbol);
             $marketId = $market['lowercaseId'];
+            $type = null;
+            list($type, $params) = $this->handle_market_type_and_params('watchTicker', $market, $params);
             $options = $this->safe_value($this->options, 'watchTicker', array());
             $name = $this->safe_string($options, 'name', 'ticker');
+            $name = $this->safe_string($params, 'name', $name);
+            $params = $this->omit($params, 'name');
             $messageHash = $marketId . '@' . $name;
-            $defaultType = $this->safe_string_2($this->options, 'defaultType', 'spot');
-            $watchTickerType = $this->safe_string_2($options, 'type', 'defaultType', $defaultType);
-            $type = $this->safe_string($params, 'type', $watchTickerType);
-            $query = $this->omit($params, 'type');
             $url = $this->urls['api']['ws'][$type] . '/' . $this->stream($type, $messageHash);
             $requestId = $this->request_id($url);
             $request = array(
@@ -748,16 +751,80 @@ class binance extends \ccxt\async\binance {
             $subscribe = array(
                 'id' => $requestId,
             );
-            return Async\await($this->watch($url, $messageHash, array_merge($request, $query), $messageHash, $subscribe));
+            return Async\await($this->watch($url, $messageHash, array_merge($request, $params), $messageHash, $subscribe));
         }) ();
     }
 
-    public function handle_ticker($client, $message) {
+    public function watch_tickers($symbols = null, $params = array ()) {
+        return Async\async(function () use ($symbols, $params) {
+            /**
+             * watches a price $ticker, a statistical calculation with the information calculated over the past 24 hours for all markets of a specific list
+             * @param {Array} $symbols unified symbol of the $market to fetch the $ticker for
+             * @param {array} $params extra parameters specific to the binance api endpoint
+             * @return {array} a {@link https://docs.ccxt.com/en/latest/manual.html#$ticker-structure $ticker structure}
+             */
+            Async\await($this->load_markets());
+            $symbols = $this->market_symbols($symbols);
+            $marketIds = $this->market_ids($symbols);
+            $market = null;
+            if ($marketIds !== null) {
+                $market = $this->safe_market($marketIds[0]);
+            }
+            $type = null;
+            list($type, $params) = $this->handle_market_type_and_params('watchTickers', $market, $params);
+            $options = $this->safe_value($this->options, 'watchTickers', array());
+            $name = $this->safe_string($options, 'name', 'ticker');
+            $name = $this->safe_string($params, 'name', $name);
+            $oriParams = $params;
+            $params = $this->omit($params, 'name');
+            $wsParams = array();
+            $messageHash = '!' . $name . '@arr';
+            if ($name === 'bookTicker') {
+                if ($marketIds === null) {
+                    throw new ArgumentsRequired($this->id . ' watchTickers() requires $symbols for bookTicker');
+                }
+                // simulate watchTickers with $subscribe multiple individual bookTicker topic
+                for ($i = 0; $i < count($marketIds); $i++) {
+                    $wsParams[] = strtolower($marketIds[$i]) . '@bookTicker';
+                }
+            } else {
+                $wsParams = array(
+                    $messageHash,
+                );
+            }
+            $url = $this->urls['api']['ws'][$type] . '/' . $this->stream($type, $messageHash);
+            $requestId = $this->request_id($url);
+            $request = array(
+                'method' => 'SUBSCRIBE',
+                'params' => $wsParams,
+                'id' => $requestId,
+            );
+            $subscribe = array(
+                'id' => $requestId,
+            );
+            $tickers = Async\await($this->watch($url, $messageHash, array_merge($request, $params), $messageHash, $subscribe));
+            $result = array();
+            for ($i = 0; $i < count($tickers); $i++) {
+                $ticker = $tickers[$i];
+                $tickerSymbol = $ticker['symbol'];
+                if ($symbols !== null && $this->in_array($tickerSymbol, $symbols)) {
+                    $result[$tickerSymbol] = $ticker;
+                }
+            }
+            $resultKeys = is_array($result) ? array_keys($result) : array();
+            if (strlen($resultKeys) > 0) {
+                if ($this->newUpdates) {
+                    return $result;
+                }
+                return $this->filter_by_array($this->tickers, 'symbol', $symbols);
+            }
+            return Async\await($this->watch_tickers($symbols, $oriParams));
+        }) ();
+    }
+
+    public function parse_ws_ticker($message) {
         //
-        // 24hr rolling window ticker statistics for a single $symbol
-        // These are NOT the statistics of the UTC day, but a 24hr rolling window for the previous 24hrs
-        // Update Speed 1000ms
-        //
+        // $ticker
         //     {
         //         e => '24hrTicker',      // $event type
         //         E => 1579485598569,     // $event time
@@ -784,12 +851,23 @@ class binance extends \ccxt\async\binance {
         //         n => 163222,            // total number of trades
         //     }
         //
+        // miniTicker
+        //     {
+        //         e => '24hrMiniTicker',
+        //         E => 1671617114585,
+        //         s => 'MOBBUSD',
+        //         c => '0.95900000',
+        //         o => '0.91200000',
+        //         h => '1.04000000',
+        //         l => '0.89400000',
+        //         v => '2109995.32000000',
+        //         q => '2019254.05788000'
+        //     }
+        //
         $event = $this->safe_string($message, 'e', 'bookTicker');
         if ($event === '24hrTicker') {
             $event = 'ticker';
         }
-        $wsMarketId = $this->safe_string_lower($message, 's');
-        $messageHash = $wsMarketId . '@' . $event;
         $timestamp = null;
         $now = $this->milliseconds();
         if ($event === 'bookTicker') {
@@ -802,7 +880,7 @@ class binance extends \ccxt\async\binance {
         $marketId = $this->safe_string($message, 's');
         $symbol = $this->safe_symbol($marketId);
         $last = $this->safe_float($message, 'c');
-        $result = array(
+        $ticker = array(
             'symbol' => $symbol,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
@@ -824,8 +902,78 @@ class binance extends \ccxt\async\binance {
             'quoteVolume' => $this->safe_float($message, 'q'),
             'info' => $message,
         );
+        return $ticker;
+    }
+
+    public function handle_ticker($client, $message) {
+        //
+        // 24hr rolling window ticker statistics for a single $symbol
+        // These are NOT the statistics of the UTC day, but a 24hr rolling window for the previous 24hrs
+        // Update Speed 1000ms
+        //
+        //     {
+        //         e => '24hrTicker',      // $event type
+        //         E => 1579485598569,     // $event time
+        //         s => 'ETHBTC',          // $symbol
+        //         p => '-0.00004000',     // price change
+        //         P => '-0.209',          // price change percent
+        //         w => '0.01920495',      // weighted average price
+        //         x => '0.01916500',      // the price of the first trade before the 24hr rolling window
+        //         c => '0.01912500',      // last (closing) price
+        //         Q => '0.10400000',      // last quantity
+        //         b => '0.01912200',      // best bid
+        //         B => '4.10400000',      // best bid quantity
+        //         a => '0.01912500',      // best ask
+        //         A => '0.00100000',      // best ask quantity
+        //         o => '0.01916500',      // open price
+        //         h => '0.01956500',      // high price
+        //         l => '0.01887700',      // low price
+        //         v => '173518.11900000', // base volume
+        //         q => '3332.40703994',   // quote volume
+        //         O => 1579399197842,     // open time
+        //         C => 1579485597842,     // close time
+        //         F => 158251292,         // first trade id
+        //         L => 158414513,         // last trade id
+        //         n => 163222,            // total number of trades
+        //     }
+        //
+        $event = $this->safe_string($message, 'e', 'bookTicker');
+        if ($event === '24hrTicker') {
+            $event = 'ticker';
+        } elseif ($event === '24hrMiniTicker') {
+            $event = 'miniTicker';
+        }
+        $wsMarketId = $this->safe_string_lower($message, 's');
+        $messageHash = $wsMarketId . '@' . $event;
+        $result = $this->parse_ws_ticker($message);
+        $symbol = $result['symbol'];
         $this->tickers[$symbol] = $result;
         $client->resolve ($result, $messageHash);
+        if ($event === 'bookTicker') {
+            // watch bookTickers
+            $client->resolve (array( $result ), '!' . 'bookTicker@arr');
+        }
+    }
+
+    public function handle_tickers($client, $message) {
+        $event = null;
+        for ($i = 0; $i < count($message); $i++) {
+            $ticker = $message[$i];
+            $event = $this->safe_string($ticker, 'e');
+            if ($event === '24hrTicker') {
+                $event = 'ticker';
+            } elseif ($event === '24hrMiniTicker') {
+                $event = 'miniTicker';
+            }
+            $wsMarketId = $this->safe_string_lower($ticker, 's');
+            $messageHash = $wsMarketId . '@' . $event;
+            $result = $this->parse_ws_ticker($ticker);
+            $symbol = $result['symbol'];
+            $this->tickers[$symbol] = $result;
+            $client->resolve ($result, $messageHash);
+        }
+        $values = is_array($this->tickers) ? array_values($this->tickers) : array();
+        $client->resolve ($values, '!' . $event . '@arr');
     }
 
     public function authenticate($params = array ()) {
@@ -1255,6 +1403,7 @@ class binance extends \ccxt\async\binance {
             'side' => $side,
             'price' => $price,
             'stopPrice' => $stopPrice,
+            'triggerPrice' => $stopPrice,
             'amount' => $amount,
             'cost' => $cost,
             'average' => $average,
@@ -1490,7 +1639,10 @@ class binance extends \ccxt\async\binance {
             'trade' => array($this, 'handle_trade'),
             'aggTrade' => array($this, 'handle_trade'),
             'kline' => array($this, 'handle_ohlcv'),
+            '24hrTicker@arr' => array($this, 'handle_tickers'),
+            '24hrMiniTicker@arr' => array($this, 'handle_tickers'),
             '24hrTicker' => array($this, 'handle_ticker'),
+            '24hrMiniTicker' => array($this, 'handle_ticker'),
             'bookTicker' => array($this, 'handle_ticker'),
             'outboundAccountPosition' => array($this, 'handle_balance'),
             'balanceUpdate' => array($this, 'handle_balance'),
@@ -1499,6 +1651,10 @@ class binance extends \ccxt\async\binance {
             'ORDER_TRADE_UPDATE' => array($this, 'handle_order_update'),
         );
         $event = $this->safe_string($message, 'e');
+        if (gettype($message) === 'array' && array_keys($message) === array_keys(array_keys($message))) {
+            $data = $message[0];
+            $event = $this->safe_string($data, 'e') . '@arr';
+        }
         $method = $this->safe_value($methods, $event);
         if ($method === null) {
             $requestId = $this->safe_string($message, 'id');

@@ -18,6 +18,7 @@ module.exports = class woo extends Exchange {
             'rateLimit': 100,
             'version': 'v1',
             'certified': false,
+            'pro': true,
             'hostname': 'woo.org',
             'has': {
                 'CORS': undefined,
@@ -125,6 +126,7 @@ module.exports = class woo extends Exchange {
                     'pub': {
                         'get': {
                             'hist/kline': 10,
+                            'hist/trades': 1,
                         },
                     },
                     'public': {
@@ -154,7 +156,7 @@ module.exports = class woo extends Exchange {
                             'order/{oid}/trades': 1,
                             'client/trades': 1,
                             'client/info': 60,
-                            'asset/deposit': 120,
+                            'asset/deposit': 10,
                             'asset/history': 60,
                             'sub_account/all': 60,
                             'sub_account/assets': 60,
@@ -169,7 +171,7 @@ module.exports = class woo extends Exchange {
                         'post': {
                             'order': 5, // 2 requests per 1 second per symbol
                             'asset/main_sub_transfer': 30, // 20 requests per 60 seconds
-                            'asset/withdraw': 120,  // implemented in ccxt, disabled on the exchange side https://kronosresearch.github.io/wootrade-documents/#token-withdraw
+                            'asset/withdraw': 30,  // implemented in ccxt, disabled on the exchange side https://kronosresearch.github.io/wootrade-documents/#token-withdraw
                             'interest/repay': 60,
                             'client/account_mode': 120,
                             'client/leverage': 120,
@@ -197,6 +199,12 @@ module.exports = class woo extends Exchange {
                         },
                         'post': {
                             'algo/order': 5,
+                        },
+                        'put': {
+                            'order/{oid}': 2,
+                            'order/client/{oid}': 2,
+                            'algo/order/{oid}': 2,
+                            'algo/order/client/{oid}': 2,
                         },
                         'delete': {
                             'algo/order/{oid}': 1,
@@ -771,6 +779,50 @@ module.exports = class woo extends Exchange {
         );
     }
 
+    async editOrder (id, symbol, type, side, amount, price = undefined, params = {}) {
+        /**
+         * @method
+         * @name woo#editOrder
+         * @description edit a trade order
+         * @param {string} id order id
+         * @param {string} symbol unified symbol of the market to create an order in
+         * @param {string} type 'market' or 'limit'
+         * @param {string} side 'buy' or 'sell'
+         * @param {float} amount how much of currency you want to trade in units of base currency
+         * @param {float|undefined} price the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+         * @param {object} params extra parameters specific to the woo api endpoint
+         * @returns {object} an [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
+         */
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const request = {
+            'oid': id,
+            // 'quantity': this.amountToPrecision (symbol, amount),
+            // 'price': this.priceToPrecision (symbol, price),
+        };
+        if (price !== undefined) {
+            request['price'] = this.priceToPrecision (symbol, price);
+        }
+        if (amount !== undefined) {
+            request['quantity'] = this.amountToPrecision (symbol, amount);
+        }
+        const response = await this.v3PrivatePutOrderOid (this.extend (request, params));
+        //
+        //     {
+        //         "code": 0,
+        //         "data": {
+        //             "status": "string",
+        //             "success": true
+        //         },
+        //         "message": "string",
+        //         "success": true,
+        //         "timestamp": 0
+        //     }
+        //
+        const data = this.safeValue (response, 'data', {});
+        return this.parseOrder (data, market);
+    }
+
     async cancelOrder (id, symbol = undefined, params = {}) {
         /**
          * @method
@@ -997,6 +1049,7 @@ module.exports = class woo extends Exchange {
             'side': side,
             'price': price,
             'stopPrice': undefined,
+            'triggerPrice': undefined,
             'average': undefined,
             'amount': amount,
             'filled': filled,
@@ -1787,39 +1840,41 @@ module.exports = class woo extends Exchange {
     sign (path, section = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         const version = section[0];
         const access = section[1];
+        const pathWithParams = this.implodeParams (path, params);
         let url = this.implodeHostname (this.urls['api'][access]);
         url += '/' + version + '/';
-        path = this.implodeParams (path, params);
         params = this.omit (params, this.extractParams (path));
         params = this.keysort (params);
         if (access === 'public') {
-            url += access + '/' + path;
+            url += access + '/' + pathWithParams;
             if (Object.keys (params).length) {
                 url += '?' + this.urlencode (params);
             }
         } else {
             this.checkRequiredCredentials ();
-            url += path;
+            let auth = '';
             const ts = this.nonce ().toString ();
-            let auth = this.urlencode (params);
-            if (version === 'v3' && (method === 'POST')) {
+            url += pathWithParams;
+            headers = {
+                'x-api-key': this.apiKey,
+                'x-api-timestamp': ts,
+            };
+            if (version === 'v3' && (method === 'POST' || method === 'PUT' || method === 'DELETE')) {
+                auth = this.json (params);
                 body = auth;
-                auth = ts + method + '/' + version + '/' + path + body;
+                auth = ts + method + '/' + version + '/' + pathWithParams + body;
+                headers['content-type'] = 'application/json';
             } else {
-                if (method === 'POST' || method === 'DELETE') {
+                auth = this.urlencode (params);
+                if (method === 'POST' || method === 'PUT' || method === 'DELETE') {
                     body = auth;
                 } else {
                     url += '?' + auth;
                 }
                 auth += '|' + ts;
+                headers['content-type'] = 'application/x-www-form-urlencoded';
             }
-            const signature = this.hmac (this.encode (auth), this.encode (this.secret), 'sha256');
-            headers = {
-                'x-api-key': this.apiKey,
-                'x-api-signature': signature,
-                'x-api-timestamp': ts,
-                'Content-Type': 'application/x-www-form-urlencoded',
-            };
+            headers['x-api-signature'] = this.hmac (this.encode (auth), this.encode (this.secret), 'sha256');
         }
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }

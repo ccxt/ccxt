@@ -14,7 +14,7 @@ module.exports = class hitbtc3 extends Exchange {
             // 20 requests per second => ( 1000ms / rateLimit ) / 20 = cost = 15 (All Other)
             'rateLimit': 3.333, // TODO: optimize https://api.hitbtc.com/#rate-limiting
             'version': '3',
-            'pro': true,
+            'pro': false,
             'has': {
                 'CORS': false,
                 'spot': true,
@@ -81,8 +81,8 @@ module.exports = class hitbtc3 extends Exchange {
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/27766555-8eaec20e-5edc-11e7-9c5b-6dc69fc42f5e.jpg',
                 'test': {
-                    'public': 'https://api.demo.hitbtc.com',
-                    'private': 'https://api.demo.hitbtc.com',
+                    'public': 'https://api.demo.hitbtc.com/api/3',
+                    'private': 'https://api.demo.hitbtc.com/api/3',
                 },
                 'api': {
                     'public': 'https://api.hitbtc.com/api/3',
@@ -989,7 +989,7 @@ module.exports = class hitbtc3 extends Exchange {
         // we use clientOrderId as the order id with this exchange intentionally
         // because most of their endpoints will require clientOrderId
         // explained here: https://github.com/ccxt/ccxt/issues/5674
-        const orderId = this.safeString (trade, 'clientOrderId');
+        const orderId = this.safeString2 (trade, 'clientOrderId', 'client_order_id');
         const priceString = this.safeString (trade, 'price');
         const amountString = this.safeString2 (trade, 'quantity', 'qty');
         const side = this.safeString (trade, 'side');
@@ -1120,33 +1120,36 @@ module.exports = class hitbtc3 extends Exchange {
         const sender = this.safeValue (native, 'senders');
         const addressFrom = this.safeString (sender, 0);
         const amount = this.safeNumber (native, 'amount');
-        let fee = undefined;
+        const fee = {
+            'currency': undefined,
+            'cost': undefined,
+            'rate': undefined,
+        };
         const feeCost = this.safeNumber (native, 'fee');
         if (feeCost !== undefined) {
-            fee = {
-                'currency': code,
-                'cost': feeCost,
-            };
+            fee['currency'] = code;
+            fee['cost'] = feeCost;
         }
         return {
             'info': transaction,
             'id': id,
             'txid': txhash,
+            'type': type,
             'code': code, // kept here for backward-compatibility, but will be removed soon
             'currency': code,
-            'amount': amount,
             'network': undefined,
+            'amount': amount,
+            'status': status,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
             'address': address,
             'addressFrom': addressFrom,
             'addressTo': addressTo,
             'tag': tag,
             'tagFrom': undefined,
             'tagTo': tagTo,
-            'timestamp': timestamp,
-            'datetime': this.iso8601 (timestamp),
             'updated': updated,
-            'status': status,
-            'type': type,
+            'comment': undefined,
             'fee': fee,
         };
     }

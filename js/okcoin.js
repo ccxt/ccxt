@@ -1151,7 +1151,7 @@ module.exports = class okcoin extends Exchange {
                     'deposit': depositEnabled,
                     'withdraw': withdrawEnabled,
                     'fee': undefined, // todo: redesign
-                    'precision': this.parseNumber ('0.00000001'),
+                    'precision': this.parseNumber ('1e-8'), // todo: fix
                     'limits': {
                         'amount': { 'min': undefined, 'max': undefined },
                         'withdraw': {
@@ -2267,6 +2267,7 @@ module.exports = class okcoin extends Exchange {
             'side': side,
             'price': price,
             'stopPrice': stopPrice,
+            'triggerPrice': stopPrice,
             'average': average,
             'cost': cost,
             'amount': amount,

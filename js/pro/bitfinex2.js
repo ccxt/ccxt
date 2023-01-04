@@ -243,7 +243,7 @@ module.exports = class bitfinex2 extends bitfinex2Rest {
         return await this.subscribe ('ticker', symbol, params);
     }
 
-    handleMyTrade (client, message) {
+    handleMyTrade (client, message, subscription = {}) {
         //
         // trade execution
         // [
@@ -1062,6 +1062,7 @@ module.exports = class bitfinex2 extends bitfinex2Rest {
             'side': side,
             'price': price,
             'stopPrice': stopPrice,
+            'triggerPrice': stopPrice,
             'average': average,
             'amount': amount,
             'remaining': remaining,

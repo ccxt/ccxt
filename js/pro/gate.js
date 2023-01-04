@@ -54,6 +54,9 @@ module.exports = class gate extends gateRest {
                 'watchTradesSubscriptions': {},
                 'watchTickerSubscriptions': {},
                 'watchOrderBookSubscriptions': {},
+                'watchTicker': {
+                    'name': 'tickers', // or book_ticker
+                },
                 'watchOrderBook': {
                     'interval': '100ms',
                 },
@@ -222,9 +225,12 @@ module.exports = class gate extends gateRest {
         //     }
         //
         const channel = this.safeString (message, 'channel');
+        const channelParts = channel.split ('.');
+        const rawMarketType = this.safeString (channelParts, 0);
+        const marketType = (rawMarketType === 'spot') ? 'spot' : 'contract';
         const result = this.safeValue (message, 'result');
         const marketId = this.safeString (result, 's');
-        const symbol = this.safeSymbol (marketId);
+        const symbol = this.safeSymbol (marketId, undefined, '_', marketType);
         let orderbook = this.safeValue (this.orderbooks, symbol);
         if (orderbook === undefined) {
             orderbook = this.orderBook ({});
@@ -358,11 +364,53 @@ module.exports = class gate extends gateRest {
         const marketId = market['id'];
         const type = market['type'];
         const messageType = this.getUniformType (type);
-        const channel = messageType + '.' + 'tickers';
+        const options = this.safeValue (this.options, 'watchTicker', {});
+        const topic = this.safeString (options, 'name', 'tickers');
+        const channel = messageType + '.' + topic;
         const messageHash = channel + '.' + market['symbol'];
         const payload = [ marketId ];
         const url = this.getUrlByMarketType (type, market['inverse']);
         return await this.subscribePublic (url, channel, messageHash, payload);
+    }
+
+    async watchTickers (symbols = undefined, params = {}) {
+        /**
+         * @method
+         * @name gate#watchTickers
+         * @description watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for all markets of a specific list
+         * @param {Array} symbols unified symbol of the market to fetch the ticker for
+         * @param {object} params extra parameters specific to the gate api endpoint
+         * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
+         */
+        await this.loadMarkets ();
+        symbols = this.marketSymbols (symbols);
+        if (symbols === undefined) {
+            throw new ArgumentsRequired (this.id + ' watchTickers requires symbols');
+        }
+        const market = this.market (symbols[0]);
+        const type = market['type'];
+        const messageType = this.getUniformType (type);
+        const marketIds = this.marketIds (symbols);
+        const options = this.safeValue (this.options, 'watchTickers', {});
+        const topic = this.safeString (options, 'name', 'tickers');
+        const channel = messageType + '.' + topic;
+        const messageHash = 'tickers';
+        const payload = [];
+        for (let i = 0; i < marketIds.length; i++) {
+            payload.push (marketIds[i]);
+        }
+        const url = this.getUrlByMarketType (type, market['inverse']);
+        const ticker = await this.subscribePublic (url, channel, messageHash, payload);
+        const tickerSymbol = ticker['symbol'];
+        if (symbols !== undefined && !this.inArray (tickerSymbol, symbols)) {
+            return await this.watchTickers (symbols, params);
+        }
+        if (this.newUpdates) {
+            const result = {};
+            result[tickerSymbol] = ticker;
+            return result;
+        }
+        return this.filterByArray (this.tickers, 'symbol', symbols, false);
     }
 
     handleTicker (client, message) {
@@ -383,6 +431,21 @@ module.exports = class gate extends gateRest {
         //          low_24h: '42721.03'
         //        }
         //    }
+        //    {
+        //        time: 1671363004,
+        //        time_ms: 1671363004235,
+        //        channel: 'spot.book_ticker',
+        //        event: 'update',
+        //        result: {
+        //          t: 1671363004228,
+        //          u: 9793320464,
+        //          s: 'BTC_USDT',
+        //          b: '16716.8',
+        //          B: '0.0134',
+        //          a: '16716.9',
+        //          A: '0.0353'
+        //        }
+        //    }
         //
         const channel = this.safeString (message, 'channel');
         let result = this.safeValue (message, 'result');
@@ -396,6 +459,7 @@ module.exports = class gate extends gateRest {
             this.tickers[symbol] = parsed;
             const messageHash = channel + '.' + symbol;
             client.resolve (this.tickers[symbol], messageHash);
+            client.resolve (parsed, 'tickers');
         }
     }
 
@@ -524,6 +588,9 @@ module.exports = class gate extends gateRest {
         //   }
         //
         const channel = this.safeString (message, 'channel');
+        const channelParts = channel.split ('.');
+        const rawMarketType = this.safeString (channelParts, 0);
+        const marketType = (rawMarketType === 'spot') ? 'spot' : 'contract';
         let result = this.safeValue (message, 'result');
         const isArray = Array.isArray (result);
         if (!isArray) {
@@ -537,7 +604,7 @@ module.exports = class gate extends gateRest {
             const timeframe = this.safeString (parts, 0);
             const prefix = timeframe + '_';
             const marketId = subscription.replace (prefix, '');
-            const symbol = this.safeSymbol (marketId, undefined, '_');
+            const symbol = this.safeSymbol (marketId, undefined, '_', marketType);
             const parsed = this.parseOHLCV (ohlcv);
             let stored = this.safeValue (this.ohlcvs, symbol);
             if (stored === undefined) {
@@ -1126,6 +1193,7 @@ module.exports = class gate extends gateRest {
             'candlesticks': this.handleOHLCV,
             'orders': this.handleOrder,
             'tickers': this.handleTicker,
+            'book_ticker': this.handleTicker,
             'trades': this.handleTrades,
             'order_book_update': this.handleOrderBook,
             'balances': this.handleBalanceMessage,

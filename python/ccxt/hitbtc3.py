@@ -35,7 +35,7 @@ class hitbtc3(Exchange):
             # 20 requests per second =>( 1000ms / rateLimit ) / 20 = cost = 15(All Other)
             'rateLimit': 3.333,  # TODO: optimize https://api.hitbtc.com/#rate-limiting
             'version': '3',
-            'pro': True,
+            'pro': False,
             'has': {
                 'CORS': False,
                 'spot': True,
@@ -102,8 +102,8 @@ class hitbtc3(Exchange):
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/27766555-8eaec20e-5edc-11e7-9c5b-6dc69fc42f5e.jpg',
                 'test': {
-                    'public': 'https://api.demo.hitbtc.com',
-                    'private': 'https://api.demo.hitbtc.com',
+                    'public': 'https://api.demo.hitbtc.com/api/3',
+                    'private': 'https://api.demo.hitbtc.com/api/3',
                 },
                 'api': {
                     'public': 'https://api.hitbtc.com/api/3',
@@ -952,7 +952,7 @@ class hitbtc3(Exchange):
         # we use clientOrderId as the order id with self exchange intentionally
         # because most of their endpoints will require clientOrderId
         # explained here: https://github.com/ccxt/ccxt/issues/5674
-        orderId = self.safe_string(trade, 'clientOrderId')
+        orderId = self.safe_string_2(trade, 'clientOrderId', 'client_order_id')
         priceString = self.safe_string(trade, 'price')
         amountString = self.safe_string_2(trade, 'quantity', 'qty')
         side = self.safe_string(trade, 'side')
@@ -1076,32 +1076,35 @@ class hitbtc3(Exchange):
         sender = self.safe_value(native, 'senders')
         addressFrom = self.safe_string(sender, 0)
         amount = self.safe_number(native, 'amount')
-        fee = None
+        fee = {
+            'currency': None,
+            'cost': None,
+            'rate': None,
+        }
         feeCost = self.safe_number(native, 'fee')
         if feeCost is not None:
-            fee = {
-                'currency': code,
-                'cost': feeCost,
-            }
+            fee['currency'] = code
+            fee['cost'] = feeCost
         return {
             'info': transaction,
             'id': id,
             'txid': txhash,
+            'type': type,
             'code': code,  # kept here for backward-compatibility, but will be removed soon
             'currency': code,
-            'amount': amount,
             'network': None,
+            'amount': amount,
+            'status': status,
+            'timestamp': timestamp,
+            'datetime': self.iso8601(timestamp),
             'address': address,
             'addressFrom': addressFrom,
             'addressTo': addressTo,
             'tag': tag,
             'tagFrom': None,
             'tagTo': tagTo,
-            'timestamp': timestamp,
-            'datetime': self.iso8601(timestamp),
             'updated': updated,
-            'status': status,
-            'type': type,
+            'comment': None,
             'fee': fee,
         }
 

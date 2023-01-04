@@ -51,6 +51,8 @@ class coinex extends Exchange {
                 'fetchDepositAddressByNetwork' => false,
                 'fetchDepositAddresses' => false,
                 'fetchDeposits' => true,
+                'fetchDepositWithdrawFees' => true,
+                'fetchDepsoitWithdrawFee' => 'emulated',
                 'fetchFundingHistory' => true,
                 'fetchFundingRate' => true,
                 'fetchFundingRateHistory' => true,
@@ -76,8 +78,6 @@ class coinex extends Exchange {
                 'fetchTrades' => true,
                 'fetchTradingFee' => true,
                 'fetchTradingFees' => true,
-                'fetchTransactionFee:' => false,
-                'fetchTransactoinFees' => false,
                 'fetchTransfer' => false,
                 'fetchTransfers' => true,
                 'fetchWithdrawal' => false,
@@ -275,15 +275,10 @@ class coinex extends Exchange {
                     'max' => null,
                 ),
             ),
-            'precision' => array(
-                'amount' => $this->parse_number('0.00000001'),
-                'price' => $this->parse_number('0.00000001'),
-            ),
             'options' => array(
                 'createMarketBuyOrderRequiresPrice' => true,
                 'defaultType' => 'spot', // spot, swap, margin
                 'defaultSubType' => 'linear', // linear, inverse
-                'defaultMarginMode' => 'isolated', // isolated, cross
                 'fetchDepositAddress' => array(
                     'fillResponseFromRequest' => true,
                 ),
@@ -300,22 +295,22 @@ class coinex extends Exchange {
 
     public function fetch_currencies($params = array ()) {
         $response = $this->publicGetCommonAssetConfig ($params);
-        //
         //     {
         //         $code => 0,
-        //         $data => {
-        //           'CET-CSC' => array(
-        //               asset => 'CET',
-        //               chain => 'CSC',
-        //               withdrawal_precision => 8,
-        //               can_deposit => true,
-        //               can_withdraw => true,
-        //               deposit_least_amount => '0.026',
-        //               withdraw_least_amount => '20',
-        //               withdraw_tx_fee => '0.026'
-        //           ),
-        //           ...
-        //           message => 'Success',
+        //         $data => array(
+        //             "USDT-ERC20" => array(
+        //                  "asset" => "USDT",
+        //                  "chain" => "ERC20",
+        //                  "withdrawal_precision" => 6,
+        //                  "can_deposit" => true,
+        //                  "can_withdraw" => true,
+        //                  "deposit_least_amount" => "4.9",
+        //                  "withdraw_least_amount" => "4.9",
+        //                  "withdraw_tx_fee" => "4.9"
+        //             ),
+        //             ...
+        //         ),
+        //         message => 'Success',
         //     }
         //
         $data = $this->safe_value($response, 'data', array());
@@ -327,6 +322,7 @@ class coinex extends Exchange {
             $currencyId = $this->safe_string($currency, 'asset');
             $networkId = $this->safe_string($currency, 'chain');
             $code = $this->safe_currency_code($currencyId);
+            $precision = $this->parse_number($this->parse_precision($this->safe_string($currency, 'withdrawal_precision')));
             if ($this->safe_value($result, $code) === null) {
                 $result[$code] = array(
                     'id' => $currencyId,
@@ -338,7 +334,7 @@ class coinex extends Exchange {
                     'deposit' => $this->safe_value($currency, 'can_deposit'),
                     'withdraw' => $this->safe_value($currency, 'can_withdraw'),
                     'fee' => $this->safe_number($currency, 'withdraw_tx_fee'),
-                    'precision' => $this->parse_number($this->parse_precision($this->safe_string($currency, 'withdrawal_precision'))),
+                    'precision' => $precision,
                     'limits' => array(
                         'amount' => array(
                             'min' => null,
@@ -379,7 +375,7 @@ class coinex extends Exchange {
                 'deposit' => $this->safe_value($currency, 'can_deposit'),
                 'withdraw' => $this->safe_value($currency, 'can_withdraw'),
                 'fee' => $this->safe_number($currency, 'withdraw_tx_fee'),
-                'precision' => $this->parse_number($this->parse_precision($this->safe_string($currency, 'withdrawal_precision'))),
+                'precision' => $precision,
             );
             $networks[$networkId] = $network;
             $result[$code]['networks'] = $networks;
@@ -1269,7 +1265,7 @@ class coinex extends Exchange {
         //                  "buy_type" => "0"
         //                  ),
         //              "loan" => array(
-        //                  "sell_type" => "0.3", // loan
+        //                  "sell_type" => "0.3", // $loan
         //                  "buy_type" => "0"
         //                  ),
         //              "interest" => array(
@@ -1290,12 +1286,17 @@ class coinex extends Exchange {
         $data = $this->safe_value($response, 'data', array());
         $free = $this->safe_value($data, 'can_transfer', array());
         $total = $this->safe_value($data, 'balance', array());
+        $loan = $this->safe_value($data, 'loan', array());
+        $interest = $this->safe_value($data, 'interest', array());
         //
         $sellAccount = $this->account();
         $sellCurrencyId = $this->safe_string($data, 'sell_asset_type');
         $sellCurrencyCode = $this->safe_currency_code($sellCurrencyId);
         $sellAccount['free'] = $this->safe_string($free, 'sell_type');
         $sellAccount['total'] = $this->safe_string($total, 'sell_type');
+        $sellDebt = $this->safe_string($loan, 'sell_type');
+        $sellInterest = $this->safe_string($interest, 'sell_type');
+        $sellAccount['debt'] = Precise::string_add($sellDebt, $sellInterest);
         $result[$sellCurrencyCode] = $sellAccount;
         //
         $buyAccount = $this->account();
@@ -1303,6 +1304,9 @@ class coinex extends Exchange {
         $buyCurrencyCode = $this->safe_currency_code($buyCurrencyId);
         $buyAccount['free'] = $this->safe_string($free, 'buy_type');
         $buyAccount['total'] = $this->safe_string($total, 'buy_type');
+        $buyDebt = $this->safe_string($loan, 'buy_type');
+        $buyInterest = $this->safe_string($interest, 'buy_type');
+        $buyAccount['debt'] = Precise::string_add($buyDebt, $buyInterest);
         $result[$buyCurrencyCode] = $buyAccount;
         //
         return $this->safe_balance($result);
@@ -1387,11 +1391,14 @@ class coinex extends Exchange {
          * @param {array} $params extra parameters specific to the coinex api endpoint
          * @return {array} a ~@link https://docs.ccxt.com/en/latest/manual.html?#balance-structure balance structure~
          */
-        $accountType = $this->safe_string($params, 'type', 'main');
-        $params = $this->omit($params, 'type');
-        if ($accountType === 'margin') {
+        $marketType = null;
+        list($marketType, $params) = $this->handle_market_type_and_params('fetchBalance', null, $params);
+        $isMargin = $this->safe_value($params, 'margin', false);
+        $marketType = $isMargin ? 'margin' : $marketType;
+        $params = $this->omit($params, 'margin');
+        if ($marketType === 'margin') {
             return $this->fetch_margin_balance($params);
-        } elseif ($accountType === 'swap') {
+        } elseif ($marketType === 'swap') {
             return $this->fetch_swap_balance($params);
         } else {
             return $this->fetch_spot_balance($params);
@@ -1678,6 +1685,7 @@ class coinex extends Exchange {
             'side' => $side,
             'price' => $priceString,
             'stopPrice' => $this->safe_string($order, 'stop_price'),
+            'triggerPrice' => $this->safe_string($order, 'stop_price'),
             'cost' => $costString,
             'average' => $averageString,
             'amount' => $amountString,
@@ -2551,6 +2559,7 @@ class coinex extends Exchange {
         //          $code => 0,
         //          $data => array(
         //            coin_address => '1P1JqozxioQwaqPwgMAQdNDYNyaVSqgARq',
+        //            // coin_address => 'xxxxxxxxxxxxxx:yyyyyyyyy', // with embedded tag/memo
         //            is_bitcoin_cash => false
         //          ),
         //          message => 'Success'
@@ -2590,12 +2599,21 @@ class coinex extends Exchange {
         //         is_bitcoin_cash => false
         //     }
         //
-        $address = $this->safe_string($depositAddress, 'coin_address');
+        $coinAddress = $this->safe_string($depositAddress, 'coin_address');
+        $parts = explode(':', $coinAddress);
+        $address = null;
+        $tag = null;
+        if (strlen($parts) > 1) {
+            $address = $parts[0];
+            $tag = $parts[1];
+        } else {
+            $address = $coinAddress;
+        }
         return array(
             'info' => $depositAddress,
             'currency' => $this->safe_currency_code(null, $currency),
             'address' => $address,
-            'tag' => null,
+            'tag' => $tag,
             'network' => null,
         );
     }
@@ -4298,6 +4316,101 @@ class coinex extends Exchange {
             'datetime' => null,
             'info' => $info,
         );
+    }
+
+    public function fetch_deposit_withdraw_fees($codes = null, $params = array ()) {
+        /**
+         * fetch deposit and withdraw fees
+         * @see https://viabtc.github.io/coinex_api_en_doc/spot/#docsspot001_market010_asset_config
+         * @param {[string]|null} $codes list of unified currency $codes
+         * @param {array} $params extra parameters specific to the coinex api endpoint
+         * @return {[array]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#fee-structure fees structures}
+         */
+        $this->load_markets();
+        $request = array();
+        if ($codes !== null) {
+            $codesLength = count($codes);
+            if ($codesLength === 1) {
+                $request['coin_type'] = $this->safe_value($codes, 0);
+            }
+        }
+        $response = $this->publicGetCommonAssetConfig (array_merge($request, $params));
+        //
+        //    {
+        //        "code" => 0,
+        //        "data" => {
+        //            "CET-CSC" => array(
+        //                "asset" => "CET",
+        //                "chain" => "CSC",
+        //                "can_deposit" => true,
+        //                "can_withdraw " => false,
+        //                "deposit_least_amount" => "1",
+        //                "withdraw_least_amount" => "1",
+        //                "withdraw_tx_fee" => "0.1"
+        //            ),
+        //            "CET-ERC20" => array(
+        //                "asset" => "CET",
+        //                "chain" => "ERC20",
+        //                "can_deposit" => true,
+        //                "can_withdraw" => false,
+        //                "deposit_least_amount" => "14",
+        //                "withdraw_least_amount" => "14",
+        //                "withdraw_tx_fee" => "14"
+        //            }
+        //        ),
+        //        "message" => "Success"
+        //    }
+        //
+        return $this->parse_deposit_withdraw_fees($response, $codes);
+    }
+
+    public function parse_deposit_withdraw_fees($response, $codes = null, $currencyIdKey = null) {
+        $depositWithdrawFees = array();
+        $codes = $this->market_codes($codes);
+        $data = $this->safe_value($response, 'data');
+        $currencyIds = is_array($data) ? array_keys($data) : array();
+        for ($i = 0; $i < count($currencyIds); $i++) {
+            $entry = $currencyIds[$i];
+            $splitEntry = explode('-', $entry);
+            $feeInfo = $data[$currencyIds[$i]];
+            $currencyId = $this->safe_string($feeInfo, 'asset');
+            $currency = $this->safe_currency($currencyId);
+            $code = $this->safe_string($currency, 'code');
+            if (($codes === null) || ($this->in_array($code, $codes))) {
+                $depositWithdrawFee = $this->safe_value($depositWithdrawFees, $code);
+                if ($depositWithdrawFee === null) {
+                    $depositWithdrawFees[$code] = $this->deposit_withdraw_fee(array());
+                }
+                $depositWithdrawFees[$code]['info'][$entry] = $feeInfo;
+                $networkId = $this->safe_string($splitEntry, 1);
+                $withdrawFee = $this->safe_value($feeInfo, 'withdraw_tx_fee');
+                $withdrawResult = array(
+                    'fee' => $withdrawFee,
+                    'percentage' => ($withdrawFee !== null) ? false : null,
+                );
+                $depositResult = array(
+                    'fee' => null,
+                    'percentage' => null,
+                );
+                if ($networkId !== null) {
+                    $networkCode = $this->network_id_to_code($networkId);
+                    $depositWithdrawFees[$code]['networks'][$networkCode] = array(
+                        'withdraw' => $withdrawResult,
+                        'deposit' => $depositResult,
+                    );
+                } else {
+                    $depositWithdrawFees[$code]['withdraw'] = $withdrawResult;
+                    $depositWithdrawFees[$code]['deposit'] = $depositResult;
+                }
+            }
+        }
+        $depositWithdrawCodes = is_array($depositWithdrawFees) ? array_keys($depositWithdrawFees) : array();
+        for ($i = 0; $i < count($depositWithdrawCodes); $i++) {
+            $code = $depositWithdrawCodes[$i];
+            $currency = $this->currency($code);
+            $depositWithdrawFees[$code] = $this->assign_default_deposit_withdraw_fees($depositWithdrawFees[$code], $currency);
+        }
+        return $depositWithdrawFees;
     }
 
     public function nonce() {

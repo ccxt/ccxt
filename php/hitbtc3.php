@@ -19,7 +19,7 @@ class hitbtc3 extends Exchange {
             // 20 requests per second => ( 1000ms / rateLimit ) / 20 = cost = 15 (All Other)
             'rateLimit' => 3.333, // TODO => optimize https://api.hitbtc.com/#rate-limiting
             'version' => '3',
-            'pro' => true,
+            'pro' => false,
             'has' => array(
                 'CORS' => false,
                 'spot' => true,
@@ -86,8 +86,8 @@ class hitbtc3 extends Exchange {
             'urls' => array(
                 'logo' => 'https://user-images.githubusercontent.com/1294454/27766555-8eaec20e-5edc-11e7-9c5b-6dc69fc42f5e.jpg',
                 'test' => array(
-                    'public' => 'https://api.demo.hitbtc.com',
-                    'private' => 'https://api.demo.hitbtc.com',
+                    'public' => 'https://api.demo.hitbtc.com/api/3',
+                    'private' => 'https://api.demo.hitbtc.com/api/3',
                 ),
                 'api' => array(
                     'public' => 'https://api.hitbtc.com/api/3',
@@ -976,7 +976,7 @@ class hitbtc3 extends Exchange {
         // we use clientOrderId as the order $id with this exchange intentionally
         // because most of their endpoints will require clientOrderId
         // explained here => https://github.com/ccxt/ccxt/issues/5674
-        $orderId = $this->safe_string($trade, 'clientOrderId');
+        $orderId = $this->safe_string_2($trade, 'clientOrderId', 'client_order_id');
         $priceString = $this->safe_string($trade, 'price');
         $amountString = $this->safe_string_2($trade, 'quantity', 'qty');
         $side = $this->safe_string($trade, 'side');
@@ -1107,33 +1107,36 @@ class hitbtc3 extends Exchange {
         $sender = $this->safe_value($native, 'senders');
         $addressFrom = $this->safe_string($sender, 0);
         $amount = $this->safe_number($native, 'amount');
-        $fee = null;
+        $fee = array(
+            'currency' => null,
+            'cost' => null,
+            'rate' => null,
+        );
         $feeCost = $this->safe_number($native, 'fee');
         if ($feeCost !== null) {
-            $fee = array(
-                'currency' => $code,
-                'cost' => $feeCost,
-            );
+            $fee['currency'] = $code;
+            $fee['cost'] = $feeCost;
         }
         return array(
             'info' => $transaction,
             'id' => $id,
             'txid' => $txhash,
+            'type' => $type,
             'code' => $code, // kept here for backward-compatibility, but will be removed soon
             'currency' => $code,
-            'amount' => $amount,
             'network' => null,
+            'amount' => $amount,
+            'status' => $status,
+            'timestamp' => $timestamp,
+            'datetime' => $this->iso8601($timestamp),
             'address' => $address,
             'addressFrom' => $addressFrom,
             'addressTo' => $addressTo,
             'tag' => $tag,
             'tagFrom' => null,
             'tagTo' => $tagTo,
-            'timestamp' => $timestamp,
-            'datetime' => $this->iso8601($timestamp),
             'updated' => $updated,
-            'status' => $status,
-            'type' => $type,
+            'comment' => null,
             'fee' => $fee,
         );
     }
