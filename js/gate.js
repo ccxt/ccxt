@@ -559,7 +559,7 @@ module.exports = class gate extends Exchange {
                     'THUNDERCORE': 'TT',
                     'TARAXA': 'TARA',
                     'RAVENCOIN': 'RVC',
-                    'FETCHAIN': 'FET',
+                    'FETCH_AI': 'FET',
                     'OASIS': 'ROSE',
                     'NEAR': 'NEAR',
                     'SIACOIN': 'SC',
