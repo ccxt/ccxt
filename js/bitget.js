@@ -880,6 +880,7 @@ module.exports = class bitget extends Exchange {
         //        quoteCoin: 'USDT',
         //        minTradeAmount: '2',
         //        maxTradeAmount: '0',
+        //        minTradeUSDT": '5',
         //        takerFeeRate: '0.001',
         //        makerFeeRate: '0.001',
         //        priceScale: '4',
@@ -972,6 +973,10 @@ module.exports = class bitget extends Exchange {
         if (status !== undefined) {
             active = status === 'online';
         }
+        let minCost = undefined;
+        if (quote === 'USDT') {
+            minCost = this.safeNumber (market, 'minTradeUSDT');
+        }
         return {
             'id': marketId,
             'symbol': symbol,
@@ -1008,15 +1013,15 @@ module.exports = class bitget extends Exchange {
                     'max': undefined,
                 },
                 'amount': {
-                    'min': this.safeNumber (market, 'minTradeNum'),
-                    'max': undefined,
+                    'min': this.safeNumber2 (market, 'minTradeNum', 'minTradeAmount'),
+                    'max': this.safeNumber (market, 'maxTradeAmount'),
                 },
                 'price': {
                     'min': undefined,
                     'max': undefined,
                 },
                 'cost': {
-                    'min': undefined,
+                    'min': minCost,
                     'max': undefined,
                 },
             },
