@@ -36,7 +36,7 @@ use Elliptic\EdDSA;
 use BN\BN;
 use Exception;
 
-$version = '2.5.23';
+$version = '2.5.24';
 
 // rounding mode
 const TRUNCATE = 0;
@@ -55,7 +55,7 @@ const PAD_WITH_ZERO = 1;
 
 class Exchange {
 
-    const VERSION = '2.5.23';
+    const VERSION = '2.5.24';
 
     private static $base58_alphabet = '123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz';
     private static $base58_encoder = null;
@@ -155,6 +155,7 @@ class Exchange {
         'paymium',
         'phemex',
         'poloniex',
+        'poloniexfutures',
         'probit',
         'ripio',
         'stex',
