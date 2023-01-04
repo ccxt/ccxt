@@ -1148,7 +1148,7 @@ module.exports = class therock extends Exchange {
             'remaining': remaining,
             'fee': undefined,
             'trades': trades,
-        });
+        }, market);
     }
 
     async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
