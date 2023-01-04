@@ -805,7 +805,8 @@ module.exports = class binance extends binanceRest {
                 result[tickerSymbol] = ticker;
             }
         }
-        if (Object.keys (result).length > 0) {
+        const resultKeys = Object.keys (result);
+        if (resultKeys.length > 0) {
             if (this.newUpdates) {
                 return result;
             }
