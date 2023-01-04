@@ -141,71 +141,6 @@ module.exports = class ace extends Exchange {
                     'TRX': 'TRX',
                     'TRC20': 'TRX',
                 },
-                'currencyToId': {
-                    'TWD': 1,
-                    'BTC': 2,
-                    'ETH': 4,
-                    'LTC': 7,
-                    'XRP': 10,
-                    'TRX': 13,
-                    'USDT': 14,
-                    'BNB': 17,
-                    'BTTC': 19,
-                    'USDC': 57,
-                    'MOCT': 66,
-                    'DET': 70,
-                    'QQQ': 72,
-                    'HT': 74,
-                    'UNIC': 75,
-                    'QTC': 76,
-                    'FTT': 81,
-                    'BAAS': 83,
-                    'OKB': 84,
-                    'DAI': 85,
-                    'ACEX': 88,
-                    'LINK': 89,
-                    'DEC': 90,
-                    'HWGC': 93,
-                    'KNC': 94,
-                    'COMP': 95,
-                    'DS': 96,
-                    'CRO': 97,
-                    'CREAM': 101,
-                    'YFI': 102,
-                    'WNXM': 103,
-                    'MITH': 104,
-                    'SGB': 106,
-                    'ENJ': 107,
-                    'ANKR': 108,
-                    'MANA': 109,
-                    'SXP': 110,
-                    'CHZ': 111,
-                    'DOT': 112,
-                    'CAKE': 114,
-                    'SHIB': 115,
-                    'DOGE': 116,
-                    'MATIC': 117,
-                    'WOO': 119,
-                    'SLP': 120,
-                    'AXS': 121,
-                    'ADA': 122,
-                    'QUICK': 123,
-                    'FTM': 124,
-                    'YGG': 126,
-                    'GALA': 127,
-                    'ILV': 128,
-                    'DYDX': 129,
-                    'SOL': 130,
-                    'SAND': 131,
-                    'AVAX': 132,
-                    'LOOKS': 133,
-                    'APE': 135,
-                    'GMT': 136,
-                    'GST': 139,
-                    'TON': 141,
-                    'SSV': 144,
-                    'BUSD': 145,
-                },
             },
             'precisionMode': TICK_SIZE,
             'exceptions': {
@@ -223,6 +158,11 @@ module.exports = class ace extends Exchange {
         });
     }
 
+    currencyId (currencyId, currency = undefined) {
+        currency = this.currency (currencyId, currency);
+        return currency['id'];
+    }
+
     async fetchMarkets (params = {}) {
         /**
          * @method
@@ -237,6 +177,7 @@ module.exports = class ace extends Exchange {
         //         {
         //             "symbol":"BTC/USDT",
         //             "base":"btc",
+        //             "baseCurrencyId": "122"
         //             "quote":"usdt",
         //             "basePrecision":"8",
         //             "quotePrecision":"5",
@@ -250,16 +191,18 @@ module.exports = class ace extends Exchange {
             const market = response[i];
             const id = this.safeString (market, 'symbol');
             const base = this.safeString (market, 'base');
+            const baseId = this.safeNumber (market, 'baseCurrencyId');
             const quote = this.safeString (market, 'quote');
+            const quoteId = this.safeNumber (market, 'quoteCurrencyId');
             const symbol = base + '/' + quote;
             result.push ({
                 'id': id,
                 'uppercaseId': undefined,
                 'symbol': symbol,
                 'base': base,
+                'baseId': baseId,
                 'quote': quote,
-                'baseId': base,
-                'quoteId': quote,
+                'quoteId': quoteId,
                 'settle': undefined,
                 'settleId': undefined,
                 'type': 'spot',
@@ -411,10 +354,9 @@ module.exports = class ace extends Exchange {
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const currencyToId = this.safeValue (this.options, 'currencyToId');
         const request = {
-            'quoteCurrencyId': this.safeNumber (currencyToId, market['quoteId']),
-            'baseCurrencyId': this.safeNumber (currencyToId, market['baseId']),
+            'quoteCurrencyId': this.currencyId (market['quote']),
+            'baseCurrencyId': this.currencyId (market['base']),
         };
         const response = await this.publicGetOpenV2PublicGetOrderBook (this.extend (request, params));
         //
@@ -496,11 +438,10 @@ module.exports = class ace extends Exchange {
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const currencyToId = this.safeValue (this.options, 'currencyToId');
         const request = {
             'duration': this.timeframes[timeframe],
-            'quoteCurrencyId': this.safeNumber (currencyToId, market['quoteId']),
-            'baseCurrencyId': this.safeNumber (currencyToId, market['baseId']),
+            'quoteCurrencyId': this.currencyId (market['quote']),
+            'baseCurrencyId': this.currencyId (market['base']),
         };
         if (limit !== undefined) {
             request['limit'] = limit;
@@ -642,10 +583,9 @@ module.exports = class ace extends Exchange {
         const market = this.market (symbol);
         const orderType = type.toUpperCase ();
         const orderSide = side.toUpperCase ();
-        const currencyToId = this.safeValue (this.options, 'currencyToId');
         const request = {
-            'baseCurrencyId': this.safeNumber (currencyToId, market['baseId']),
-            'quoteCurrencyId': this.safeNumber (currencyToId, market['quoteId']),
+            'baseCurrencyId': this.currencyId (market['base']),
+            'quoteCurrencyId': this.currencyId (market['quote']),
             'type': (orderType === 'LIMIT') ? 1 : 2,
             'buyOrSell': (orderSide === 'BUY') ? 1 : 2,
             'num': this.amountToPrecision (symbol, amount),
@@ -746,10 +686,9 @@ module.exports = class ace extends Exchange {
         }
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const currencyToId = this.safeValue (this.options, 'currencyToId');
         const request = {
-            'quoteCurrencyId': this.safeNumber (currencyToId, market['quote']),
-            'baseCurrencyId': this.safeNumber (currencyToId, market['base']),
+            'quoteCurrencyId': this.currencyId (market['quote']),
+            'baseCurrencyId': this.currencyId (market['base']),
             // 'start': 0,
         };
         if (limit !== undefined) {
@@ -936,14 +875,13 @@ module.exports = class ace extends Exchange {
          */
         await this.loadMarkets ();
         const market = this.safeMarket (symbol);
-        const currencyToId = this.safeValue (this.options, 'currencyToId');
         const request = {
             // 'buyOrSell': 1,
             // 'start': 0,
         };
         if (market['id'] !== undefined) {
-            request['quoteCurrencyId'] = this.safeNumber (currencyToId, market['quote']);
-            request['baseCurrencyId'] = this.safeNumber (currencyToId, market['base']);
+            request['quoteCurrencyId'] = this.currencyId (market['quote']);
+            request['baseCurrencyId'] = this.currencyId (market['base']);
         }
         if (limit !== undefined) {
             request['size'] = limit; // default 10, max 500
