@@ -504,7 +504,7 @@ module.exports = class gate extends Exchange {
                     'BUMO': 'BU',
                     'HARMONY': 'ONE',
                     'ONTOLOGY': 'ONG',
-                    'SOLARSWIPE': 'SXP',
+                    'SOLAR': 'SXP',
                     'NANO': 'NANO',
                     'THETA': 'THETA',
                     'NERVOS': 'CKB',
