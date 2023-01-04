@@ -116,7 +116,7 @@ module.exports = class bitstamp extends bitstampRest {
             return;
         }
         this.handleDelta (storedOrderBook, delta);
-        const timestamp = this.safeInteger (delta, 'timestamp');
+        const timestamp = this.safeTimestamp (delta, 'timestamp');
         storedOrderBook['timestamp'] = timestamp;
         storedOrderBook['datetime'] = this.iso8601 (timestamp);
         storedOrderBook['nonce'] = this.safeInteger (delta, 'microtimestamp');
@@ -350,7 +350,7 @@ module.exports = class bitstamp extends bitstampRest {
         const price = this.safeString (order, 'price_str');
         const amount = this.safeString (order, 'amount_str');
         const side = (orderType === '1') ? 'sell' : 'buy';
-        const timestamp = this.safeIntegerProduct (order, 'datetime', 1000);
+        const timestamp = this.safeTimestamp (order, 'datetime');
         market = this.safeMarket (undefined, market);
         const symbol = market['symbol'];
         return this.safeOrder ({
