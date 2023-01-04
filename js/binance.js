@@ -902,6 +902,7 @@ module.exports = class binance extends Exchange {
                     'funding': 'FUNDING',
                     'margin': 'MARGIN',
                     'cross': 'MARGIN',
+                    'swap': 'UMFUTURE',
                     'future': 'UMFUTURE',
                     'delivery': 'CMFUTURE',
                 },
