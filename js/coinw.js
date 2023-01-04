@@ -14,7 +14,7 @@ module.exports = class coinw extends Exchange {
             'id': 'coinw',
             'name': 'CoinW',
             'countries': [ 'CN' ],
-            'rateLimit': 166.667, // TODO: Check rate limit
+            'rateLimit': 5000, // TODO: Check rate limit
             'version': 'v1',
             'hostname': 'coinw.com',
             'has': {
@@ -226,19 +226,20 @@ module.exports = class coinw extends Exchange {
          * @returns {object} an associative dictionary of currencies
          */
         const response = await this.publicGetReturnCurrencies (params);
-        //
         //  {
-        //      "AGLD":{
-        //         "maxQty":"5714.0",
-        //         "minQty":"3.0",
-        //         "recharge":"1",
-        //         "symbol":"AGLD",
-        //         "symbolId":"569",
-        //         "txFee":"0.0",
-        //         "withDraw":"1"
-        //     },
+        //    "code":"200",
+        //    "data": {
+        //        "AGLD":{
+        //           "maxQty":"5714.0",
+        //           "minQty":"3.0",
+        //           "recharge":"1",
+        //           "symbol":"AGLD",
+        //           "symbolId":"569",
+        //           "txFee":"0.0",
+        //           "withDraw":"1"
+        //        },
+        //     }
         //  }
-        //
         const data = this.safeValue (response, 'data', {});
         const dataKeys = Object.keys (data);
         const dataLength = dataKeys.length;
@@ -553,32 +554,24 @@ module.exports = class coinw extends Exchange {
         return this.parseOHLCVs (data, market, timeframe, since, limit);
     }
 
-    async fetchBalance2 (params = {}) {
-        // Test out `sign()` function
-        const request = {};
-        const response = await this.privatePostReturnCompleteBalances (this.extend (request, params));
-        console.log (response);
-    }
-
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         const access = api;
         const prefix = 'api/v1';
         let url = this.implodeHostname (this.urls['api']['rest']) + '/' + prefix + '/' + access + '?command=' + path;
-        headers = { 'content-type': 'application/json' };
-        if (access === 'public') {
-            url += '&' + this.urlencode (params); // TODO: Post - Transfer??
-        } else {
+        const paramsKeys = Object.keys (params);
+        if (paramsKeys.length > 0) {
+            url += '&' + this.urlencode (params);
+        }
+        if (access === 'private') {
             this.checkRequiredCredentials ();
-            method = 'POST'; // -> Only POST endpoints
-            body = this.json (params);
-            params['api_key'] = this.apiKey;
-            const sortedParams = this.keysort (params);
-            url += '&' + this.urlencode (sortedParams) + '&';
-            url += 'secret_key=' + this.secret; // FIXME: secret can't be directly added to the url? Since verbose outputs the url?
-            const signature = this.hash (url, 'md5', 'hash');
+            method = 'POST';
+            const sortedParams = this.keysort (this.extend (params, { 'api_key': this.apiKey }));
+            const signParams = this.extend (sortedParams, { 'secret_key': this.secret });
+            const signString = this.urlencode (signParams);
+            const signature = this.hash (signString, 'md5', 'hash').toUpperCase ();
+            body = this.urlencode (sortedParams) + '&' + 'sign=' + signature;
             headers = {
-                'api_key': this.encode (this.apiKey),
-                'signature': signature,
+                'Content-Type': 'application/x-www-form-urlencoded',
             };
         }
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
