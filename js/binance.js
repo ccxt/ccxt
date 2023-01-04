@@ -1406,17 +1406,8 @@ module.exports = class binance extends Exchange {
             if (symbol in this.markets) {
                 const market = this.markets[symbol];
                 // begin diff
-                const isLegacyOrSwap = isLegacy || (defaultType === 'swap');
-                if (isLegacyOrSwap && market['spot']) {
-                    let unifiedSubType = undefined;
-                    if (defaultSubType === undefined) {
-                        // we have to infer from the symbol
-                        unifiedSubType = market['quote'] === 'USD' ? 'inverse' : 'linear';
-                    } else {
-                        unifiedSubType = defaultSubType;
-                    }
-                    const isLegacyLinearOrSubTypeLinear = isLegacyLinear || unifiedSubType;
-                    const settle = isLegacyLinearOrSubTypeLinear ? market['quote'] : market['base'];
+                if (isLegacy && market['spot']) {
+                    const settle = isLegacyLinear ? market['quote'] : market['base'];
                     return super.market (symbol + ':' + settle);
                 } else {
                     return market;
