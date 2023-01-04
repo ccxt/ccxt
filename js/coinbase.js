@@ -104,62 +104,84 @@ module.exports = class coinbase extends Exchange {
             },
             'api': {
                 'public': {
-                    'get': [
-                        'currencies',
-                        'time',
-                        'exchange-rates',
-                        'users/{user_id}',
-                        'prices/{symbol}/buy',
-                        'prices/{symbol}/sell',
-                        'prices/{symbol}/spot',
-                    ],
+                    'original': {
+                        'get': [
+                            'currencies',
+                            'time',
+                            'exchange-rates',
+                            'users/{user_id}',
+                            'prices/{symbol}/buy',
+                            'prices/{symbol}/sell',
+                            'prices/{symbol}/spot',
+                        ],
+                    },
                 },
                 'private': {
-                    'get': [
-                        'accounts',
-                        'accounts/{account_id}',
-                        'accounts/{account_id}/addresses',
-                        'accounts/{account_id}/addresses/{address_id}',
-                        'accounts/{account_id}/addresses/{address_id}/transactions',
-                        'accounts/{account_id}/transactions',
-                        'accounts/{account_id}/transactions/{transaction_id}',
-                        'accounts/{account_id}/buys',
-                        'accounts/{account_id}/buys/{buy_id}',
-                        'accounts/{account_id}/sells',
-                        'accounts/{account_id}/sells/{sell_id}',
-                        'accounts/{account_id}/deposits',
-                        'accounts/{account_id}/deposits/{deposit_id}',
-                        'accounts/{account_id}/withdrawals',
-                        'accounts/{account_id}/withdrawals/{withdrawal_id}',
-                        'payment-methods',
-                        'payment-methods/{payment_method_id}',
-                        'user',
-                        'user/auth',
-                    ],
-                    'post': [
-                        'accounts',
-                        'accounts/{account_id}/primary',
-                        'accounts/{account_id}/addresses',
-                        'accounts/{account_id}/transactions',
-                        'accounts/{account_id}/transactions/{transaction_id}/complete',
-                        'accounts/{account_id}/transactions/{transaction_id}/resend',
-                        'accounts/{account_id}/buys',
-                        'accounts/{account_id}/buys/{buy_id}/commit',
-                        'accounts/{account_id}/sells',
-                        'accounts/{account_id}/sells/{sell_id}/commit',
-                        'accounts/{account_id}/deposits',
-                        'accounts/{account_id}/deposits/{deposit_id}/commit',
-                        'accounts/{account_id}/withdrawals',
-                        'accounts/{account_id}/withdrawals/{withdrawal_id}/commit',
-                    ],
-                    'put': [
-                        'accounts/{account_id}',
-                        'user',
-                    ],
-                    'delete': [
-                        'accounts/{id}',
-                        'accounts/{account_id}/transactions/{transaction_id}',
-                    ],
+                    'original': {
+                        'get': [
+                            'accounts',
+                            'accounts/{account_id}',
+                            'accounts/{account_id}/addresses',
+                            'accounts/{account_id}/addresses/{address_id}',
+                            'accounts/{account_id}/addresses/{address_id}/transactions',
+                            'accounts/{account_id}/transactions',
+                            'accounts/{account_id}/transactions/{transaction_id}',
+                            'accounts/{account_id}/buys',
+                            'accounts/{account_id}/buys/{buy_id}',
+                            'accounts/{account_id}/sells',
+                            'accounts/{account_id}/sells/{sell_id}',
+                            'accounts/{account_id}/deposits',
+                            'accounts/{account_id}/deposits/{deposit_id}',
+                            'accounts/{account_id}/withdrawals',
+                            'accounts/{account_id}/withdrawals/{withdrawal_id}',
+                            'payment-methods',
+                            'payment-methods/{payment_method_id}',
+                            'user',
+                            'user/auth',
+                        ],
+                        'post': [
+                            'accounts',
+                            'accounts/{account_id}/primary',
+                            'accounts/{account_id}/addresses',
+                            'accounts/{account_id}/transactions',
+                            'accounts/{account_id}/transactions/{transaction_id}/complete',
+                            'accounts/{account_id}/transactions/{transaction_id}/resend',
+                            'accounts/{account_id}/buys',
+                            'accounts/{account_id}/buys/{buy_id}/commit',
+                            'accounts/{account_id}/sells',
+                            'accounts/{account_id}/sells/{sell_id}/commit',
+                            'accounts/{account_id}/deposits',
+                            'accounts/{account_id}/deposits/{deposit_id}/commit',
+                            'accounts/{account_id}/withdrawals',
+                            'accounts/{account_id}/withdrawals/{withdrawal_id}/commit',
+                        ],
+                        'put': [
+                            'accounts/{account_id}',
+                            'user',
+                        ],
+                        'delete': [
+                            'accounts/{id}',
+                            'accounts/{account_id}/transactions/{transaction_id}',
+                        ],
+                    },
+                    'advanced': {
+                        'get': [
+                            'brokerage/accounts',
+                            'brokerage/accounts/{account_uuid}',
+                            'brokerage/orders/historical/batch',
+                            'brokerage/orders/historical/fills',
+                            'brokerage/orders/historical/{order_id}',
+                            'brokerage/products',
+                            'brokerage/products/{product_id}',
+                            'brokerage/products/{product_id}/candles',
+                            'brokerage/products/{product_id}/ticker',
+                            'brokerage/transaction_summary',
+                        ],
+                        'post': [
+                            'brokerage/orders',
+                            'brokerage/orders/batch_cancel',
+                        ],
+                    },
                 },
             },
             'precisionMode': TICK_SIZE,
@@ -200,6 +222,8 @@ module.exports = class coinbase extends Exchange {
                     'fiat',
                     // 'vault',
                 ],
+                'advanced': true, // set to true if using any v3 endpoints from the advanced trade API
+                'fetchMarkets': 'fetchMarketsV3', // 'fetchMarketsV3' or 'fetchMarketsV2'
             },
         });
     }
@@ -212,7 +236,7 @@ module.exports = class coinbase extends Exchange {
          * @param {object} params extra parameters specific to the coinbase api endpoint
          * @returns {int} the current integer timestamp in milliseconds from the exchange server
          */
-        const response = await this.publicGetTime (params);
+        const response = await this.publicOriginalGetTime (params);
         //
         //     {
         //         "data": {
@@ -237,7 +261,7 @@ module.exports = class coinbase extends Exchange {
         const request = {
             'limit': 100,
         };
-        const response = await this.privateGetAccounts (this.extend (request, params));
+        const response = await this.privateOriginalGetAccounts (this.extend (request, params));
         //
         //     {
         //         "id": "XLM",
@@ -341,7 +365,7 @@ module.exports = class coinbase extends Exchange {
         const request = {
             'account_id': accountId,
         };
-        const response = await this.privatePostAccountsAccountIdAddresses (this.extend (request, params));
+        const response = await this.privateOriginalPostAccountsAccountIdAddresses (this.extend (request, params));
         //
         //     {
         //         "data": {
@@ -404,7 +428,7 @@ module.exports = class coinbase extends Exchange {
         const request = this.prepareAccountRequest (limit, params);
         await this.loadMarkets ();
         const query = this.omit (params, [ 'account_id', 'accountId' ]);
-        const sells = await this.privateGetAccountsAccountIdSells (this.extend (request, query));
+        const sells = await this.privateOriginalGetAccountsAccountIdSells (this.extend (request, query));
         return this.parseTrades (sells['data'], undefined, since, limit);
     }
 
@@ -423,7 +447,7 @@ module.exports = class coinbase extends Exchange {
         const request = this.prepareAccountRequest (limit, params);
         await this.loadMarkets ();
         const query = this.omit (params, [ 'account_id', 'accountId' ]);
-        const buys = await this.privateGetAccountsAccountIdBuys (this.extend (request, query));
+        const buys = await this.privateOriginalGetAccountsAccountIdBuys (this.extend (request, query));
         return this.parseTrades (buys['data'], undefined, since, limit);
     }
 
@@ -447,7 +471,7 @@ module.exports = class coinbase extends Exchange {
          * @returns {[object]} a list of [transaction structures]{@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure}
          */
         // fiat only, for crypto transactions use fetchLedger
-        return await this.fetchTransactionsWithMethod ('privateGetAccountsAccountIdWithdrawals', code, since, limit, params);
+        return await this.fetchTransactionsWithMethod ('privateOriginalGetAccountsAccountIdWithdrawals', code, since, limit, params);
     }
 
     async fetchDeposits (code = undefined, since = undefined, limit = undefined, params = {}) {
@@ -462,7 +486,7 @@ module.exports = class coinbase extends Exchange {
          * @returns {[object]} a list of [transaction structures]{@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure}
          */
         // fiat only, for crypto transactions use fetchLedger
-        return await this.fetchTransactionsWithMethod ('privateGetAccountsAccountIdDeposits', code, since, limit, params);
+        return await this.fetchTransactionsWithMethod ('privateOriginalGetAccountsAccountIdDeposits', code, since, limit, params);
     }
 
     parseTransactionStatus (status) {
@@ -665,6 +689,12 @@ module.exports = class coinbase extends Exchange {
          * @param {object} params extra parameters specific to the exchange api endpoint
          * @returns {[object]} an array of objects representing market data
          */
+        const version = this.safeString (this.options, 'fetchMarkets');
+        const method = (this.safeString (version, 'method', 'fetch_markets_v3'));
+        return await this[method] (params);
+    }
+
+    async fetchMarketsV2 (params = {}) {
         const response = await this.fetchCurrenciesFromCache (params);
         const currencies = this.safeValue (response, 'currencies', {});
         const exchangeRates = this.safeValue (response, 'exchangeRates', {});
@@ -737,14 +767,115 @@ module.exports = class coinbase extends Exchange {
         return result;
     }
 
+    async fetchMarketsV3 (params = {}) {
+        const response = await this.privateAdvancedGetBrokerageProducts (params);
+        //
+        //     [
+        //         {
+        //             "product_id": "TONE-USD",
+        //             "price": "0.01523",
+        //             "price_percentage_change_24h": "1.94109772423025",
+        //             "volume_24h": "19773129",
+        //             "volume_percentage_change_24h": "437.0170530929949",
+        //             "base_increment": "1",
+        //             "quote_increment": "0.00001",
+        //             "quote_min_size": "1",
+        //             "quote_max_size": "10000000",
+        //             "base_min_size": "26.7187147229469674",
+        //             "base_max_size": "267187147.2294696735908216",
+        //             "base_name": "TE-FOOD",
+        //             "quote_name": "US Dollar",
+        //             "watched": false,
+        //             "is_disabled": false,
+        //             "new": false,
+        //             "status": "online",
+        //             "cancel_only": false,
+        //             "limit_only": false,
+        //             "post_only": false,
+        //             "trading_disabled": false,
+        //             "auction_mode": false,
+        //             "product_type": "SPOT",
+        //             "quote_currency_id": "USD",
+        //             "base_currency_id": "TONE",
+        //             "fcm_trading_session_details": null,
+        //             "mid_market_price": ""
+        //         },
+        //         ...
+        //     ]
+        //
+        const data = this.safeValue (response, 'products', []);
+        const result = [];
+        for (let i = 0; i < data.length; i++) {
+            const market = data[i];
+            const id = this.safeString (market, 'product_id');
+            const baseId = this.safeString (market, 'base_currency_id');
+            const quoteId = this.safeString (market, 'quote_currency_id');
+            const base = this.safeCurrencyCode (baseId);
+            const quote = this.safeCurrencyCode (quoteId);
+            const marketType = this.safeStringLower (market, 'product_type');
+            const tradingDisabled = this.safeValue (market, 'trading_disabled');
+            result.push ({
+                'id': id,
+                'symbol': base + '/' + quote,
+                'base': base,
+                'quote': quote,
+                'settle': undefined,
+                'baseId': baseId,
+                'quoteId': quoteId,
+                'settleId': undefined,
+                'type': marketType,
+                'spot': (marketType === 'spot'),
+                'margin': undefined,
+                'swap': false,
+                'future': false,
+                'option': false,
+                'active': !tradingDisabled,
+                'contract': false,
+                'linear': undefined,
+                'inverse': undefined,
+                'taker': undefined,
+                'maker': undefined,
+                'contractSize': undefined,
+                'expiry': undefined,
+                'expiryDatetime': undefined,
+                'strike': undefined,
+                'optionType': undefined,
+                'precision': {
+                    'amount': this.safeNumber (market, 'base_increment'),
+                    'price': this.safeNumber (market, 'quote_increment'),
+                },
+                'limits': {
+                    'leverage': {
+                        'min': undefined,
+                        'max': undefined,
+                    },
+                    'amount': {
+                        'min': this.safeNumber (market, 'base_min_size'),
+                        'max': this.safeNumber (market, 'base_max_size'),
+                    },
+                    'price': {
+                        'min': undefined,
+                        'max': undefined,
+                    },
+                    'cost': {
+                        'min': this.safeNumber (market, 'quote_min_size'),
+                        'max': this.safeNumber (market, 'quote_max_size'),
+                    },
+                },
+                'info': market,
+            });
+        }
+        return result;
+    }
+
     async fetchCurrenciesFromCache (params = {}) {
         const options = this.safeValue (this.options, 'fetchCurrencies', {});
         const timestamp = this.safeInteger (options, 'timestamp');
         const expires = this.safeInteger (options, 'expires', 1000);
         const now = this.milliseconds ();
         if ((timestamp === undefined) || ((now - timestamp) > expires)) {
-            const currencies = await this.publicGetCurrencies (params);
-            const exchangeRates = await this.publicGetExchangeRates (params);
+            const currencies = await this.publicOriginalGetCurrencies (params);
+            const exchangeRates = await this.publicOriginalGetExchangeRates (params);
             this.options['fetchCurrencies'] = this.extend (options, {
                 'currencies': currencies,
                 'exchangeRates': exchangeRates,
@@ -772,7 +903,7 @@ module.exports = class coinbase extends Exchange {
         //             {"id":"ALL","name":"Albanian Lek","min_size":"0.01000000"},
         //             {"id":"AMD","name":"Armenian Dram","min_size":"0.01000000"},
         //             {"id":"ANG","name":"Netherlands Antillean Gulden","min_size":"0.01000000"},
-        //             // ...
+        //             ...
         //         ],
         //     }
         //
@@ -787,7 +918,7 @@ module.exports = class coinbase extends Exchange {
         //                 "ALL":"110.42",
         //                 "AMD":"474.18",
         //                 "ANG":"1.75",
-        //                 // ...
+        //                 ...
         //             },
         //         }
         //     }
@@ -844,7 +975,7 @@ module.exports = class coinbase extends Exchange {
         const request = {
             // 'currency': 'USD',
         };
-        const response = await this.publicGetExchangeRates (this.extend (request, params));
+        const response = await this.publicOriginalGetExchangeRates (this.extend (request, params));
         //
         //     {
         //         "data":{
@@ -887,15 +1018,15 @@ module.exports = class coinbase extends Exchange {
         const request = this.extend ({
             'symbol': market['id'],
         }, params);
-        const spot = await this.publicGetPricesSymbolSpot (request);
+        const spot = await this.publicOriginalGetPricesSymbolSpot (request);
         //
         //     {"data":{"base":"BTC","currency":"USD","amount":"48691.23"}}
         //
-        const buy = await this.publicGetPricesSymbolBuy (request);
+        const buy = await this.publicOriginalGetPricesSymbolBuy (request);
         //
         //     {"data":{"base":"BTC","currency":"USD","amount":"48691.23"}}
         //
-        const sell = await this.publicGetPricesSymbolSell (request);
+        const sell = await this.publicOriginalGetPricesSymbolSell (request);
         //
         //     {"data":{"base":"BTC","currency":"USD","amount":"48691.23"}}
         //
@@ -996,7 +1127,7 @@ module.exports = class coinbase extends Exchange {
         const request = {
             'limit': 100,
         };
-        const response = await this.privateGetAccounts (this.extend (request, params));
+        const response = await this.privateOriginalGetAccounts (this.extend (request, params));
         //
         //     {
         //         "pagination":{
@@ -1061,7 +1192,7 @@ module.exports = class coinbase extends Exchange {
         // for pagination use parameter 'starting_after'
         // the value for the next page can be obtained from the result of the previous call in the 'pagination' field
         // eg: instance.last_json_response.pagination.next_starting_after
-        const response = await this.privateGetAccountsAccountIdTransactions (this.extend (request, query));
+        const response = await this.privateOriginalGetAccountsAccountIdTransactions (this.extend (request, query));
         return this.parseLedger (response['data'], currency, since, limit);
     }
 
@@ -1442,16 +1573,20 @@ module.exports = class coinbase extends Exchange {
         return request;
     }
 
-    sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
-        let fullPath = '/' + this.version + '/' + this.implodeParams (path, params);
+    sign (path, api = [], method = 'GET', params = {}, headers = undefined, body = undefined) {
+        const signed = api[0] === 'private';
+        const endpoint = api[1];
+        const pathPart = (endpoint === 'advanced') ? 'api/v3' : 'v2';
+        let fullPath = '/' + pathPart + '/' + this.implodeParams (path, params);
         const query = this.omit (params, this.extractParams (path));
+        const savedPath = fullPath;
         if (method === 'GET') {
             if (Object.keys (query).length) {
                 fullPath += '?' + this.urlencode (query);
             }
         }
         const url = this.urls['api']['rest'] + fullPath;
-        if (api === 'private') {
+        if (signed) {
             const authorization = this.safeString (this.headers, 'Authorization');
             if (authorization !== undefined) {
                 headers = {
@@ -1473,7 +1608,12 @@ module.exports = class coinbase extends Exchange {
                         payload = body;
                     }
                 }
-                const auth = nonce + method + fullPath + payload;
+                let auth = undefined;
+                if (endpoint === 'advanced') {
+                    auth = nonce + method + savedPath + payload;
+                } else {
+                    auth = nonce + method + fullPath + payload;
+                }
                 const signature = this.hmac (this.encode (auth), this.encode (this.secret));
                 headers = {
                     'CB-ACCESS-KEY': this.apiKey,
@@ -1527,8 +1667,9 @@ module.exports = class coinbase extends Exchange {
                 }
             }
         }
+        const advancedTrade = this.options['advanced'];
         const data = this.safeValue (response, 'data');
-        if (data === undefined) {
+        if ((data === undefined) && (!advancedTrade)) {
             throw new ExchangeError (this.id + ' failed due to a malformed response ' + this.json (response));
         }
     }
