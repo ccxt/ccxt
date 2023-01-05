@@ -98,10 +98,16 @@ module.exports = class gate extends gateRest {
         const channel = messageType + '.order_book_update';
         const messageHash = 'orderbook' + ':' + symbol;
         const url = this.getUrlByMarket (market);
-        const payload = [ marketId, interval, '100' ];
+        const payload = [ marketId, interval ];
+        if (limit === undefined) {
+            limit = 100;
+        }
+        if (market['contract']) {
+            payload.push (limit.toString ());
+        }
         const subscription = {
             'symbol': symbol,
-            'messageHash': messageHash,
+            'limit': limit,
         };
         const orderbook = await this.subscribePublic (url, messageHash, payload, channel, subscription, query);
         return orderbook.limit ();
@@ -109,8 +115,8 @@ module.exports = class gate extends gateRest {
 
     handleOrderBookSubscription (client, message, subscription) {
         const symbol = this.safeString (subscription, 'symbol');
-        const messageHash = this.safeValue (subscription, 'messageHash');
-        this.orderbooks[symbol] = this.orderBook ({});
+        const limit = this.safeInteger (subscription, 'limit');
+        this.orderbooks[symbol] = this.orderBook ({}, limit);
     }
 
     handleOrderBook (client, message) {
@@ -170,7 +176,8 @@ module.exports = class gate extends gateRest {
         const channel = this.safeString (message, 'channel');
         const channelParts = channel.split ('.');
         const rawMarketType = this.safeString (channelParts, 0);
-        const marketType = (rawMarketType === 'spot') ? 'spot' : 'contract';
+        const isSpot = rawMarketType === 'spot';
+        const marketType = isSpot ? 'spot' : 'contract';
         const delta = this.safeValue (message, 'result');
         const deltaStart = this.safeInteger (delta, 'U');
         const deltaEnd = this.safeInteger (delta, 'u');
@@ -181,9 +188,12 @@ module.exports = class gate extends gateRest {
         const nonce = this.safeInteger (storedOrderBook, 'nonce');
         if (nonce === undefined) {
             const cacheLength = storedOrderBook.cache.length;
-            if (cacheLength === 0) {
+            const waitAmount = isSpot ? 10 : 0;
+            if (cacheLength === waitAmount) {
                 // max limit is 100
-                this.spawn (this.loadOrderBook, client, messageHash, symbol, 100);
+                const subscription = client.subscriptions[channel];
+                const limit = this.safeInteger (subscription, 'limit');
+                this.spawn (this.loadOrderBook, client, messageHash, symbol, limit);
             }
             storedOrderBook.cache.push (delta);
             return;
@@ -221,7 +231,7 @@ module.exports = class gate extends gateRest {
         for (let i = 0; i < bidAsks.length; i++) {
             const bidAsk = bidAsks[i];
             if (Array.isArray (bidAsk)) {
-                bookSide.storeArray (bidAsks[i]);
+                bookSide.storeArray (this.parseBidAsk (bidAsk));
             } else {
                 const price = this.safeFloat (bidAsk, 'p');
                 const amount = this.safeFloat (bidAsk, 's');
