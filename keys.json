@@ -4,6 +4,7 @@
     "binance":       { "skipWs": true, "httpProxy": "http://51.83.140.52:11230" },
     "binanceusdm":   { "skipWs": true, "httpProxy": "http://51.83.140.52:11230" },
     "binancecoinm":  { "skipWs": true, "httpProxy": "http://51.83.140.52:11230" },
+    "mexc":          { "httpProxy": "http://51.83.140.52:11230" },
     "bitcoincom":    { "skipWs": true },
     "bitmart":       { "skipWs": true },
     "bitmex":        { "skipWs": true },
