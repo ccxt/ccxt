@@ -1580,7 +1580,7 @@ module.exports = class bybit extends Exchange {
             'bid': bid,
             'bidVolume': this.safeString2 (ticker, 'bidSize', 'bid1Size'),
             'ask': ask,
-            'askVolume': this.safeString (ticker, 'askSize', 'ask1Size'),
+            'askVolume': this.safeString2 (ticker, 'askSize', 'ask1Size'),
             'vwap': undefined,
             'open': open,
             'close': last,
