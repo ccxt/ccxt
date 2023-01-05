@@ -2,9 +2,8 @@
 
 //  ---------------------------------------------------------------------------
 const Exchange = require ('./base/Exchange');
-// const { ExchangeError, AccountSuspended, ArgumentsRequired, AuthenticationError, DDoSProtection, ExchangeNotAvailable, InvalidOrder, OrderNotFound, PermissionDenied, InsufficientFunds, BadSymbol, RateLimitExceeded, BadRequest } = require ('./base/errors');
+const { BadRequest, NetworkError, AuthenticationError, PermissionDenied } = require ('./base/errors');
 const { TICK_SIZE } = require ('./base/functions/number');
-// const Precise = require ('./base/Precise');
 
 //  ---------------------------------------------------------------------------
 
@@ -14,7 +13,7 @@ module.exports = class coinw extends Exchange {
             'id': 'coinw',
             'name': 'CoinW',
             'countries': [ 'CN' ],
-            'rateLimit': 5000, // TODO: Check rate limit
+            'rateLimit': 5000,
             'version': 'v1',
             'hostname': 'coinw.com',
             'has': {
@@ -77,7 +76,7 @@ module.exports = class coinw extends Exchange {
                         'return24hVolume': 1,
                     },
                     'post': {
-                        'spotWealthTransfer': 1, // TODO: public transfer ??? -> https://api.coinw.com/api/v1/public?command=spotWealthTransfer
+                        'spotWealthTransfer': 1,
                     },
                 },
                 'private': {
@@ -100,10 +99,28 @@ module.exports = class coinw extends Exchange {
             },
             'fees': {
                 'trading': {
-                    'tierBased': false, // TODO: Include tiers
+                    'tierBased': true,
                     'percentage': true,
                     'taker': this.parseNumber ('0.002'),
                     'maker': this.parseNumber ('0.002'),
+                    'tiers': {
+                        'taker': [
+                            [ this.parseNumber ('0'), this.parseNumber ('0.002') ],
+                            [ this.parseNumber ('680'), this.parseNumber ('0.0015') ],
+                            [ this.parseNumber ('2680'), this.parseNumber ('0.0012') ],
+                            [ this.parseNumber ('12800'), this.parseNumber ('0.0009') ],
+                            [ this.parseNumber ('38600'), this.parseNumber ('0.0006') ],
+                            [ this.parseNumber ('86800'), this.parseNumber ('0.0001') ],
+                        ],
+                        'maker': [
+                            [ this.parseNumber ('0'), this.parseNumber ('0.002') ],
+                            [ this.parseNumber ('680'), this.parseNumber ('0.0015') ],
+                            [ this.parseNumber ('2680'), this.parseNumber ('0.0012') ],
+                            [ this.parseNumber ('12800'), this.parseNumber ('0.0009') ],
+                            [ this.parseNumber ('38600'), this.parseNumber ('0.0006') ],
+                            [ this.parseNumber ('86800'), this.parseNumber ('0.0001') ],
+                        ],
+                    },
                 },
                 'funding': {
                     'tierBased': false,
@@ -113,7 +130,18 @@ module.exports = class coinw extends Exchange {
                 },
             },
             'precisionMode': TICK_SIZE,
-            'exceptions': { // TODO: Handle exceptions
+            'exceptions': {
+                'exact': {
+                    '500': BadRequest, // Operation failure
+                    '10001': NetworkError, // Internet error
+                    '10002': AuthenticationError, // API not exist
+                    '10003': BadRequest, // Parameter error
+                    '10004': PermissionDenied, // No trading permission
+                    '10005': PermissionDenied, // No withdrawal permission
+                    '10006': AuthenticationError, // api_key error
+                    '10007': AuthenticationError, // Signature error
+                },
+                'broad': {},
             },
             'commonCurrencies': {
             },
@@ -363,13 +391,14 @@ module.exports = class coinw extends Exchange {
         //    }
         //
         const datetime = this.safeString (trade, 'time');
+        const timestamp = this.parse8601 (datetime) - (8 * 3600000); // 8 hours ahead on UTC time
         const orderId = this.safeString (trade, 'id');
         return this.safeTrade ({
             'info': trade,
             'id': orderId,
             'order': orderId,
-            'timestamp': this.parse8601 (datetime),
-            'datetime': datetime,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
             'symbol': market['symbol'],
             'type': undefined,
             'takerOrMaker': undefined,
@@ -577,7 +606,22 @@ module.exports = class coinw extends Exchange {
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
 
-    // handleErrors (code, reason, url, method, headers, body, response, requestHeaders, requestBody) {
-    //     // TODO: handleErrors
-    // }
+    handleErrors (code, reason, url, method, headers, body, response, requestHeaders, requestBody) {
+        if (!response) {
+            this.throwBroadlyMatchedException (this.exceptions['broad'], body, body);
+            return;
+        }
+        //
+        // bad
+        //     { "code": "400100", "msg": "validation.createOrder.clientOidIsRequired" }
+        // good
+        //     { code: '200000', data: { ... }}
+        //
+        const errorCode = this.safeString (response, 'code');
+        const message = this.safeString (response, 'msg', '');
+        const feedback = this.id + ' ' + message;
+        this.throwExactlyMatchedException (this.exceptions['exact'], message, feedback);
+        this.throwExactlyMatchedException (this.exceptions['exact'], errorCode, feedback);
+        this.throwBroadlyMatchedException (this.exceptions['broad'], body, feedback);
+    }
 };
