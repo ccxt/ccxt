@@ -1567,8 +1567,8 @@ module.exports = class bybit extends Exchange {
         percentage = Precise.stringMul (percentage, '100');
         const quoteVolume = this.safeStringN (ticker, [ 'turnover_24h', 'turnover24h', 'quoteVolume' ]);
         const baseVolume = this.safeStringN (ticker, [ 'volume_24h', 'volume24h', 'volume' ]);
-        const bid = this.safeStringN (ticker, [ 'bid_price', 'bid', 'bestBidPrice', 'bidPrice' ]);
-        const ask = this.safeStringN (ticker, [ 'ask_price', 'ask', 'bestAskPrice', 'askPrice' ]);
+        const bid = this.safeStringN (ticker, [ 'bid_price', 'bid', 'bestBidPrice', 'bidPrice', 'bid1Price' ]);
+        const ask = this.safeStringN (ticker, [ 'ask_price', 'ask', 'bestAskPrice', 'askPrice', 'ask1Price' ]);
         const high = this.safeStringN (ticker, [ 'high_price_24h', 'high24h', 'highPrice', 'highPrice24h' ]);
         const low = this.safeStringN (ticker, [ 'low_price_24h', 'low24h', 'lowPrice', 'lowPrice24h' ]);
         return this.safeTicker ({
@@ -1578,9 +1578,9 @@ module.exports = class bybit extends Exchange {
             'high': high,
             'low': low,
             'bid': bid,
-            'bidVolume': this.safeString (ticker, 'bidSize'),
+            'bidVolume': this.safeString2 (ticker, 'bidSize', 'bid1Size'),
             'ask': ask,
-            'askVolume': this.safeString (ticker, 'askSize'),
+            'askVolume': this.safeString2 (ticker, 'askSize', 'ask1Size'),
             'vwap': undefined,
             'open': open,
             'close': last,
