@@ -1176,6 +1176,12 @@ module.exports = class whitebit extends Exchange {
             } else {
                 // stop market order
                 method = 'v4PrivatePostOrderStopMarket';
+                if (marginMode !== undefined || marketType === 'swap') {
+                    if (marginMode !== undefined && marginMode !== 'cross') {
+                        throw new NotSupported (this.id + ' createOrder() is only available for cross margin');
+                    }
+                    method = 'v4PrivatePostOrderCollateralTriggerMarket';
+                }
             }
         } else {
             if (isLimitOrder) {
@@ -1191,8 +1197,8 @@ module.exports = class whitebit extends Exchange {
             } else {
                 // market order
                 method = 'v4PrivatePostOrderStockMarket';
-                if (marginMode !== undefined) {
-                    if (marginMode !== 'cross') {
+                if (marginMode !== undefined || marketType === 'swap') {
+                    if (marginMode !== undefined && marginMode !== 'cross') {
                         throw new NotSupported (this.id + ' createOrder() is only available for cross margin');
                     }
                     method = 'v4PrivatePostOrderCollateralMarket';
