@@ -1148,6 +1148,9 @@ module.exports = class binance extends Exchange {
                     'JPY': true,
                     'NZD': true,
                 },
+                'legalMoneyCurrenciesById': {
+                    'BUSD': 'USD',
+                },
             },
             // https://binance-docs.github.io/apidocs/spot/en/#error-codes-2
             'exceptions': {
@@ -4049,6 +4052,7 @@ module.exports = class binance extends Exchange {
          * @param {int|undefined} since the earliest time in ms to fetch deposits for
          * @param {int|undefined} limit the maximum number of deposits structures to retrieve
          * @param {object} params extra parameters specific to the binance api endpoint
+         * @param {bool} params.fiat if true, only fiat deposits will be returned
          * @param {int|undefined} params.until the latest time in ms to fetch deposits for
          * @returns {[object]} a list of [transaction structures]{@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure}
          */
@@ -4057,8 +4061,10 @@ module.exports = class binance extends Exchange {
         let response = undefined;
         const request = {};
         const legalMoney = this.safeValue (this.options, 'legalMoney', {});
+        const fiatOnly = this.safeValue (params, 'fiat', false);
+        params = this.omit (params, 'fiatOnly');
         const until = this.safeInteger (params, 'until');
-        if (code in legalMoney) {
+        if (fiatOnly || (code in legalMoney)) {
             if (code !== undefined) {
                 currency = this.currency (code);
             }
@@ -4147,14 +4153,17 @@ module.exports = class binance extends Exchange {
          * @param {int|undefined} since the earliest time in ms to fetch withdrawals for
          * @param {int|undefined} limit the maximum number of withdrawals structures to retrieve
          * @param {object} params extra parameters specific to the binance api endpoint
+         * @param {bool} params.fiat if true, only fiat withdrawals will be returned
          * @returns {[object]} a list of [transaction structures]{@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure}
          */
         await this.loadMarkets ();
         const legalMoney = this.safeValue (this.options, 'legalMoney', {});
+        const fiatOnly = this.safeValue (params, 'fiat', false);
+        params = this.omit (params, 'fiatOnly');
         const request = {};
         let response = undefined;
         let currency = undefined;
-        if (code in legalMoney) {
+        if (fiatOnly || (code in legalMoney)) {
             if (code !== undefined) {
                 currency = this.currency (code);
             }
@@ -4338,6 +4347,7 @@ module.exports = class binance extends Exchange {
         //     {
         //       "orderNo": "25ced37075c1470ba8939d0df2316e23",
         //       "fiatCurrency": "EUR",
+        //       "transactionType": 0,
         //       "indicatedAmount": "15.00",
         //       "amount": "15.00",
         //       "totalFee": "0.00",
@@ -4364,19 +4374,17 @@ module.exports = class binance extends Exchange {
             txid = txid.slice (18);
         }
         const currencyId = this.safeString2 (transaction, 'coin', 'fiatCurrency');
-        const code = this.safeCurrencyCode (currencyId, currency);
+        let code = this.safeCurrencyCode (currencyId, currency);
         let timestamp = undefined;
         const insertTime = this.safeInteger2 (transaction, 'insertTime', 'createTime');
-        const applyTime = this.parse8601 (this.safeString (transaction, 'applyTime'));
+        const updated = this.safeInteger2 (transaction, 'successTime', 'updateTime');
         let type = this.safeString (transaction, 'type');
         if (type === undefined) {
-            if ((insertTime !== undefined) && (applyTime === undefined)) {
-                type = 'deposit';
-                timestamp = insertTime;
-            } else if ((insertTime === undefined) && (applyTime !== undefined)) {
-                type = 'withdrawal';
-                timestamp = applyTime;
-            }
+            const txType = this.safeString (transaction, 'transactionType');
+            type = (txType === '0') ? 'deposit' : 'withdrawal';
+            timestamp = insertTime;
+            const legalMoneyCurrenciesById = this.safeValue (this.options, 'legalMoneyCurrenciesById');
+            code = this.safeString (legalMoneyCurrenciesById, code, code);
         }
         const status = this.parseTransactionStatusByType (this.safeString (transaction, 'status'), type);
         const amount = this.safeNumber (transaction, 'amount');
@@ -4385,7 +4393,6 @@ module.exports = class binance extends Exchange {
         if (feeCost !== undefined) {
             fee = { 'currency': code, 'cost': feeCost };
         }
-        const updated = this.safeInteger2 (transaction, 'successTime', 'updateTime');
         let internal = this.safeInteger (transaction, 'transferType');
         if (internal !== undefined) {
             internal = internal ? true : false;

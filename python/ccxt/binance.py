@@ -1171,6 +1171,9 @@ class binance(Exchange):
                     'JPY': True,
                     'NZD': True,
                 },
+                'legalMoneyCurrenciesById': {
+                    'BUSD': 'USD',
+                },
             },
             # https://binance-docs.github.io/apidocs/spot/en/#error-codes-2
             'exceptions': {
@@ -3835,6 +3838,7 @@ class binance(Exchange):
         :param int|None since: the earliest time in ms to fetch deposits for
         :param int|None limit: the maximum number of deposits structures to retrieve
         :param dict params: extra parameters specific to the binance api endpoint
+        :param bool params['fiat']: if True, only fiat deposits will be returned
         :param int|None params['until']: the latest time in ms to fetch deposits for
         :returns [dict]: a list of `transaction structures <https://docs.ccxt.com/en/latest/manual.html#transaction-structure>`
         """
@@ -3843,8 +3847,10 @@ class binance(Exchange):
         response = None
         request = {}
         legalMoney = self.safe_value(self.options, 'legalMoney', {})
+        fiatOnly = self.safe_value(params, 'fiat', False)
+        params = self.omit(params, 'fiatOnly')
         until = self.safe_integer(params, 'until')
-        if code in legalMoney:
+        if fiatOnly or (code in legalMoney):
             if code is not None:
                 currency = self.currency(code)
             request['transactionType'] = 0
@@ -3922,14 +3928,17 @@ class binance(Exchange):
         :param int|None since: the earliest time in ms to fetch withdrawals for
         :param int|None limit: the maximum number of withdrawals structures to retrieve
         :param dict params: extra parameters specific to the binance api endpoint
+        :param bool params['fiat']: if True, only fiat withdrawals will be returned
         :returns [dict]: a list of `transaction structures <https://docs.ccxt.com/en/latest/manual.html#transaction-structure>`
         """
         self.load_markets()
         legalMoney = self.safe_value(self.options, 'legalMoney', {})
+        fiatOnly = self.safe_value(params, 'fiat', False)
+        params = self.omit(params, 'fiatOnly')
         request = {}
         response = None
         currency = None
-        if code in legalMoney:
+        if fiatOnly or (code in legalMoney):
             if code is not None:
                 currency = self.currency(code)
             request['transactionType'] = 1
@@ -4105,6 +4114,7 @@ class binance(Exchange):
         #     {
         #       "orderNo": "25ced37075c1470ba8939d0df2316e23",
         #       "fiatCurrency": "EUR",
+        #       "transactionType": 0,
         #       "indicatedAmount": "15.00",
         #       "amount": "15.00",
         #       "totalFee": "0.00",
@@ -4131,22 +4141,20 @@ class binance(Exchange):
         code = self.safe_currency_code(currencyId, currency)
         timestamp = None
         insertTime = self.safe_integer_2(transaction, 'insertTime', 'createTime')
-        applyTime = self.parse8601(self.safe_string(transaction, 'applyTime'))
+        updated = self.safe_integer_2(transaction, 'successTime', 'updateTime')
         type = self.safe_string(transaction, 'type')
         if type is None:
-            if (insertTime is not None) and (applyTime is None):
-                type = 'deposit'
-                timestamp = insertTime
-            elif (insertTime is None) and (applyTime is not None):
-                type = 'withdrawal'
-                timestamp = applyTime
+            txType = self.safe_string(transaction, 'transactionType')
+            type = 'deposit' if (txType == '0') else 'withdrawal'
+            timestamp = insertTime
+            legalMoneyCurrenciesById = self.safe_value(self.options, 'legalMoneyCurrenciesById')
+            code = self.safe_string(legalMoneyCurrenciesById, code, code)
         status = self.parse_transaction_status_by_type(self.safe_string(transaction, 'status'), type)
         amount = self.safe_number(transaction, 'amount')
         feeCost = self.safe_number_2(transaction, 'transactionFee', 'totalFee')
         fee = None
         if feeCost is not None:
             fee = {'currency': code, 'cost': feeCost}
-        updated = self.safe_integer_2(transaction, 'successTime', 'updateTime')
         internal = self.safe_integer(transaction, 'transferType')
         if internal is not None:
             internal = True if internal else False

@@ -1390,8 +1390,8 @@ class bybit extends Exchange {
                     'contract' => true,
                     'linear' => $linear,
                     'inverse' => $inverse,
-                    'taker' => $this->safe_number($market, 'taker_fee'),
-                    'maker' => $this->safe_number($market, 'maker_fee'),
+                    'taker' => $this->safe_number($market, 'takerFee', $this->parse_number('0.0006')),
+                    'maker' => $this->safe_number($market, 'makerFee', $this->parse_number('0.0001')),
                     'contractSize' => $contractSize,
                     'expiry' => $expiry,
                     'expiryDatetime' => $expiryDatetime,
@@ -1583,8 +1583,8 @@ class bybit extends Exchange {
         $percentage = Precise::string_mul($percentage, '100');
         $quoteVolume = $this->safe_string_n($ticker, array( 'turnover_24h', 'turnover24h', 'quoteVolume' ));
         $baseVolume = $this->safe_string_n($ticker, array( 'volume_24h', 'volume24h', 'volume' ));
-        $bid = $this->safe_string_n($ticker, array( 'bid_price', 'bid', 'bestBidPrice', 'bidPrice' ));
-        $ask = $this->safe_string_n($ticker, array( 'ask_price', 'ask', 'bestAskPrice', 'askPrice' ));
+        $bid = $this->safe_string_n($ticker, array( 'bid_price', 'bid', 'bestBidPrice', 'bidPrice', 'bid1Price' ));
+        $ask = $this->safe_string_n($ticker, array( 'ask_price', 'ask', 'bestAskPrice', 'askPrice', 'ask1Price' ));
         $high = $this->safe_string_n($ticker, array( 'high_price_24h', 'high24h', 'highPrice', 'highPrice24h' ));
         $low = $this->safe_string_n($ticker, array( 'low_price_24h', 'low24h', 'lowPrice', 'lowPrice24h' ));
         return $this->safe_ticker(array(
@@ -1594,9 +1594,9 @@ class bybit extends Exchange {
             'high' => $high,
             'low' => $low,
             'bid' => $bid,
-            'bidVolume' => $this->safe_string($ticker, 'bidSize'),
+            'bidVolume' => $this->safe_string_2($ticker, 'bidSize', 'bid1Size'),
             'ask' => $ask,
-            'askVolume' => $this->safe_string($ticker, 'askSize'),
+            'askVolume' => $this->safe_string_2($ticker, 'askSize', 'ask1Size'),
             'vwap' => null,
             'open' => $open,
             'close' => $last,
@@ -3641,7 +3641,7 @@ class bybit extends Exchange {
                 // logical xor
                 $ascending = $stopLossPrice ? !$isBuy : $isBuy;
                 $delta = $this->number_to_string($market['precision']['price']);
-                $request['basePrice'] = $ascending ? Precise::string_add($preciseTriggerPrice, $delta) : Precise::string_sub($preciseTriggerPrice, $delta);
+                $request['basePrice'] = $ascending ? Precise::string_sub($preciseTriggerPrice, $delta) : Precise::string_add($preciseTriggerPrice, $delta);
             }
             $clientOrderId = $this->safe_string($params, 'clientOrderId');
             if ($clientOrderId !== null) {
