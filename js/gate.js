@@ -487,7 +487,7 @@ module.exports = class gate extends Exchange {
                     'ASTAR': 'ASTR', // ASTREVM is different
                     'INJECTIVE': 'INJ',
                     'ACALA': 'ACA',
-                    'THEOPENNETWORK': 'TONCOIN',
+                    'TON': 'TONCOIN',
                     'FILECOIN': 'FIL',
                     'WAX': 'WAXP',
                     'ZILLIQA': 'ZIL',

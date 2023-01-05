@@ -806,7 +806,7 @@ module.exports = class okx extends Exchange {
                     'TERRA': 'Terra',
                     'TERRACLASSIC': 'Terra Classic',
                     'TEZOS': 'Tezos',
-                    'THEOPENNETWORK': 'TON',
+                    'TON': 'TON',
                     'THETA': 'Theta',
                     'VSYSTEMS': 'VSYSTEMS',
                     'WAVES': 'WAVES',

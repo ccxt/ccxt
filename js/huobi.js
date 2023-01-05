@@ -1000,7 +1000,7 @@ module.exports = class huobi extends Exchange {
                     'TERRA': [ 'LUNA' ], // LUNA is used by huobi only for LUNA coin. New Terra network is only for LUNA
                     'TERRACLASSIC': [ 'USTC', 'LUNC', 'TERRA' ], // Huobi uses 'TERRA' network name for Terra classic
                     'TEZOS': 'XZT',
-                    'THEOPENNETWORK': 'TON',
+                    'TON': 'TON',
                     'TRC20': [ 'TRX', 'TRC20' ], // TRX network-name is only used for TRX coin
                     'WAX': 'WAX1',
                     'WAVES': 'WAVES',
