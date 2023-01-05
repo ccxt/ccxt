@@ -1649,8 +1649,6 @@ module.exports = class Exchange {
                 'POLKADOT': 'DOT',
                 'TON': 'TON',
                 'THORCHAIN': 'RUNE',
-                'BITCOINCASH': 'BCH',
-                'BITCOINCASHSV': 'BSV',
                 'ECASH': 'XEC',
                 'ZCASH': 'ZEC',
                 'RIPPLE': 'XRP',

@@ -538,9 +538,9 @@ module.exports = class gate extends Exchange {
                     'PERSISTENCE': 'XPRT',
                     'HELIUM': 'HNT',
                     'HATHOR': 'HTR',
-                    'BITCOINCASHSV': 'BSV',
-                    'BITCOINCASH': 'BCH', // actually, the real name is BITCOIN-CASH-ABC, but most exchanges just call it mistakenly BCH/BITCOINCASH
-                    // 'BITCOINCASHABC': 'BCHA', // simultaneously, BITCOIN-CASH-ABC is other IOU, which ignored existing BITCOIN-CASH-ABC name presense and named it again, but it is not BCH
+                    'BSV': 'BSV',
+                    'BCH': 'BCH', // actually, the real name is BITCOIN-CASH-ABC, but most exchanges just call it mistakenly BCH/BITCOINCASH
+                    // 'BCHA': 'BCHA', // simultaneously, BITCOIN-CASH-ABC is other IOU, which ignored existing BITCOIN-CASH-ABC name presense and named it again, but it is not BCH
                     'BITCOINFILE': 'BIFI',
                     'METAVERSEPIONEER': 'NEER',
                     'INTERNETCOMPUTER': 'ICP',
@@ -593,7 +593,7 @@ module.exports = class gate extends Exchange {
                     'BITGERT': 'BRISE',
                     'BOTTOS': 'BTO',
                     'SHYFT': 'SHFT',
-                    'ETHEREUMFAIR': 'ETHF',
+                    'ETHF': 'ETHF',
                     'ONELEDGER': 'OLT',
                     'STACKS': 'STX',
                     'BITCOINGOLD': 'BTG',

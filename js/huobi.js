@@ -933,8 +933,8 @@ module.exports = class huobi extends Exchange {
                     'BEP20': [ 'BEP20', 'BEP20BNB' ], // 'BEP20BNB' is exceptionary for BNB
                     'HRC20': 'HECO',
                     'BTC': 'BTC',
-                    'BITCOINCASHSV': 'BSV',
-                    'BITCOINCASH': 'BCC', // exception: 'HBCH' for  huobi bch
+                    'BSV': 'BSV',
+                    'BCH': 'BCC', // exception: 'HBCH' for  huobi bch
                     'BITCOINDIAMOND': 'BCD',
                     'BITCOINHD': 'BHD',
                     'BITCOINGOLD': 'BTG',
@@ -1079,7 +1079,7 @@ module.exports = class huobi extends Exchange {
                     'FIRO': 'XZC',
                     'EVMOS': 'EVMOS',
                     'ELECTRONEUM': 'ETN',
-                    'ETHEREUMFAIR': 'ETHFAIR',
+                    'ETHF': 'ETHFAIR',
                     'ERGO': 'ERG',
                     // dead projects:  "BCV" (BitCapitalVendor ), "PAI" (Project Pai), BIFI (bitcoin file)
                     // excluded: GBP, EUR BRL
