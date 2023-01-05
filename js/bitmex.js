@@ -39,6 +39,7 @@ module.exports = class bitmex extends Exchange {
                 'editOrder': true,
                 'fetchBalance': true,
                 'fetchClosedOrders': true,
+                'fetchCurrencies': true,
                 'fetchDepositAddress': true,
                 'fetchDepositAddresses': false,
                 'fetchDepositAddressesByNetwork': false,
@@ -257,6 +258,130 @@ module.exports = class bitmex extends Exchange {
                 'LAMp': 'SOL',
             },
         });
+    }
+
+    async fetchCurrencies (params = {}) {
+        /**
+         * @method
+         * @name bitmex#fetchCurrencies
+         * @description fetches all available currencies on an exchange
+         * @param {object} params extra parameters specific to the bitmex api endpoint
+         * @returns {object} an associative dictionary of currencies
+         */
+        const assets = await this.publicGetWalletAssets (params);
+        //
+        //    [
+        //        {
+        //            asset: 'XBT',
+        //            currency: 'XBt',
+        //            majorCurrency: 'XBT',
+        //            name: 'Bitcoin',
+        //            currencyType: 'Crypto',
+        //            scale: '8',
+        //            enabled: true,
+        //            isMarginCurrency: true,
+        //            minDepositAmount: '10000',
+        //            minWithdrawalAmount: '1000',
+        //            maxWithdrawalAmount: '100000000000000',
+        //            networks: [
+        //                {
+        //                    asset: 'btc',
+        //                    tokenAddress: '',
+        //                    depositEnabled: true,
+        //                    withdrawalEnabled: true,
+        //                    withdrawalFee: '20000',
+        //                    minFee: '20000',
+        //                    maxFee: '10000000'
+        //                }
+        //            ]
+        //        },
+        //        ...
+        //    ]
+        //
+        const result = {};
+        for (let i = 0; i < assets.length; i++) {
+            const currency = assets[i];
+            const currencyId = this.safeString (currency, 'asset');
+            const code = this.safeCurrencyCode (currencyId);
+            const scale = this.safeString (currency, 'scale');
+            const precision = this.parsePrecision (scale);
+            const minDepositAmount = this.safeString (currency, 'minDepositAmount');
+            const minWithdrawalAmount = this.safeString (currency, 'minWithdrawalAmount');
+            const maxWithdrawalAmount = this.safeString (currency, 'maxWithdrawalAmount');
+            const networks = {};
+            const unparsedNetworks = this.safeValue (currency, 'networks');
+            for (let i = 0; i < unparsedNetworks.length; i++) {
+                const unparsedNetwork = unparsedNetworks[i];
+                const networkId = this.safeString (unparsedNetwork, 'asset');
+                const networkCode = this.networkIdToCode (networkId);
+                const depositEnabled = this.safeValue (unparsedNetwork, 'depositEnabled');
+                const withdrawEnabled = this.safeValue (unparsedNetwork, 'withdrawalEnabled');
+                const withdrawalFee = this.safeString (unparsedNetwork, 'withdrawalFee');
+                networks[networkCode] = {
+                    'info': unparsedNetwork,
+                    'id': networkId,
+                    'network': networkCode,
+                    'address': this.safeString (unparsedNetwork, 'tokenAddress'),
+                    'active': depositEnabled && withdrawEnabled,
+                    'deposit': depositEnabled,
+                    'withdraw': withdrawEnabled,
+                    'fee': this.parseNumber (Precise.stringMul (withdrawalFee, precision)),
+                    'precision': undefined,
+                    'limits': {
+                        'withdraw': {
+                            'min': undefined,
+                            'max': undefined,
+                        },
+                        'deposit': {
+                            'min': undefined,
+                            'max': undefined,
+                        },
+                    },
+                };
+            }
+            result[code] = {
+                'info': currency,
+                'id': currencyId,
+                'lowercaseId': currencyId.toLowerCase (),
+                'uppercaseId': currencyId.toUpperCase (),
+                'numericId': undefined,
+                'code': code,
+                'precision': this.parseNumber (precision),
+                'type': undefined,
+                'margin': this.safeValue (currency, 'isMarginCurrency'),
+                'name': this.safeString (currency, 'name'),
+                'active': this.safeValue (currency, 'enabled'),
+                'deposit': undefined,
+                'withdraw': undefined,
+                'fee': undefined,
+                'fees': undefined,
+                'networks': networks,
+                'address': undefined,
+                'limits': {
+                    'amount': {
+                        'min': undefined,
+                        'max': undefined,
+                    },
+                    'price': {
+                        'min': undefined,
+                        'max': undefined,
+                    },
+                    'cost': {
+                        'min': undefined,
+                        'max': undefined,
+                    },
+                    'deposit': {
+                        'min': this.parseNumber (Precise.stringMul (minDepositAmount, precision)),
+                        'max': undefined,
+                    },
+                    'withdraw': {
+                        'min': this.parseNumber (Precise.stringMul (minWithdrawalAmount, precision)),
+                        'max': this.parseNumber (Precise.stringMul (maxWithdrawalAmount, precision)),
+                    },
+                },
+            };
+        }
+        return result;
     }
 
     async fetchMarkets (params = {}) {
