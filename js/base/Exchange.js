@@ -1629,45 +1629,6 @@ module.exports = class Exchange {
         return ohlcv;
     }
 
-    getNetwork (network, code) {
-        network = network.toUpperCase ();
-        const aliases = {
-            'ETHEREUM': 'ETH',
-            'ETHER': 'ETH',
-            'ERC20': 'ETH',
-            'ETH': 'ETH',
-            'TRC20': 'TRX',
-            'TRON': 'TRX',
-            'TRX': 'TRX',
-            'BEP20': 'BSC',
-            'BSC': 'BSC',
-            'HRC20': 'HT',
-            'HECO': 'HT',
-            'SPL': 'SOL',
-            'SOL': 'SOL',
-            'TERRA': 'LUNA',
-            'LUNA': 'LUNA',
-            'POLYGON': 'MATIC',
-            'MATIC': 'MATIC',
-            'EOS': 'EOS',
-            'WAVES': 'WAVES',
-            'AVALANCHE': 'AVAX',
-            'AVAX': 'AVAX',
-            'QTUM': 'QTUM',
-            'CHZ': 'CHZ',
-            'NEO': 'NEO',
-            'ONT': 'ONT',
-            'RON': 'RON',
-        };
-        if (network === code) {
-            return network;
-        } else if (network in aliases) {
-            return aliases[network];
-        } else {
-            throw new NotSupported (this.id + ' network ' + network + ' is not yet supported');
-        }
-    }
-
     getDefaultOptions () {
         return {
             'defaultNetworkCodeReplacements': {
@@ -1677,26 +1638,17 @@ module.exports = class Exchange {
             },
             // this list is for common reserved CCXT unified network codes (some of them might have multiple aliases)
             'unifiedNetworkCodesAndAliases': {
-                'BTC': [ 'BITCOIN' ],
                 'BEP20': [ 'BSC' ],
-                'ERC20': [ 'ETH' ],
-                'TRC20': [ 'TRX', 'TRON' ],
-                'ALGORAND': [],
-                'AVALANCHEC': [ 'AVAXC' ],
-                'AVALANCHEX': [ 'AVAXX' ],
+                'TRC20': [ 'TRON' ],
                 'CARDANO': [ 'ADA' ],
-                'LTC': [ 'LITECOIN' ],
                 'CRC20': [ 'CRONOS' ],
                 'HRC20': [ 'HECO' ],
                 // 'BNB': 'BEP2', // BNB is risky, as some exchanges are undeliberately calling 'BNB' network for BINANCE smart chain
                 'DOGECOIN': [ 'DOGE' ],
                 'SOLANA': [ 'SOL' ],
                 'POLYGON': [ 'MATIC' ],  // tbd PRC20
-                'OKC': [ 'OKX' ],
                 'COSMOS': [ 'ATOM' ],
                 'POLKADOT': [ 'DOT' ],
-                'TERRA': [ 'TERRA2' ],
-                'TERRACLASSIC': [],
                 'THEOPENNETWORK': [ 'TON' ],
                 'THORCHAIN': [ 'RUNE' ],
                 'BITCOINCASH': [ 'BCH' ],
