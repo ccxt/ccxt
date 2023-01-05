@@ -593,13 +593,18 @@ module.exports = class btcex extends btcexRest {
         const storedOrderBook = this.safeValue (this.orderbooks, symbol);
         const nonce = this.safeInteger (storedOrderBook, 'nonce');
         const deltaNonce = this.safeInteger (data, 'change_id');
+        const messageHash = 'orderbook:' + symbol;
         if (nonce === undefined) {
+            const cacheLength = storedOrderBook.cache.length;
+            if (cacheLength === 0) {
+                const limit = 0;
+                this.spawn (this.loadOrderBook, client, messageHash, symbol, limit);
+            }
             storedOrderBook.cache.push (data);
             return;
         } else if (deltaNonce <= nonce) {
             return;
         }
-        const messageHash = 'orderbook:' + symbol;
         const timestamp = this.safeInteger (data, 'timestamp');
         this.handleDelta (storedOrderBook, data);
         storedOrderBook['timestamp'] = timestamp;
@@ -609,26 +614,22 @@ module.exports = class btcex extends btcexRest {
     }
 
     getCacheIndex (orderBook, cache) {
+        const firstElement = cache[0];
+        let lastChangeId = this.safeInteger (firstElement, 'change_id');
         const nonce = this.safeInteger (orderBook, 'nonce');
-        let lastChangeId = undefined;
+        if (nonce < lastChangeId - 1) {
+            return -1;
+        }
         for (let i = 0; i < cache.length; i++) {
             const delta = cache[i];
             lastChangeId = this.safeInteger (delta, 'change_id');
-            if (lastChangeId === nonce + 1) {
+            if (nonce === lastChangeId - 1) {
                 // nonce is inside the cache
                 // [ d, d, n, d ]
                 return i;
             }
         }
-        if (lastChangeId <= nonce) {
-            // nonce is in front of the cache
-            // [ d, d, d, ---, n ]
-            return cache.length;
-        } else {
-            // nonce is behind the cache
-            // [ n, ---, d, d, d ]
-            return -1;
-        }
+        return cache.length;
     }
 
     handleDelta (orderbook, delta) {
@@ -717,10 +718,7 @@ module.exports = class btcex extends btcexRest {
             if (channel === 'book') {
                 const symbol = this.safeSymbol (marketId, undefined, '-');
                 this.orderbooks[symbol] = this.orderBook ({});
-                const messageHash = 'orderbook:' + symbol;
                 // get full depth book
-                const limit = 0;
-                this.spawn (this.loadOrderBook, client, messageHash, symbol, limit);
             }
         }
     }

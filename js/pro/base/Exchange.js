@@ -184,32 +184,27 @@ module.exports = class Exchange extends BaseExchange {
     }
 
     async loadOrderBook (client, messageHash, symbol, limit = undefined, params = {}) {
-        // todo: remove magic constants
-        const tries = 3;
         if (!(symbol in this.orderbooks)) {
             client.reject (new ExchangeError (this.id + ' loadOrderBook() orderbook is not initiated'), messageHash);
             return;
         }
         const stored = this.orderbooks[symbol];
-        for (let i = 0; i < tries; i++) {
-            try {
-                const orderBook = await this.fetchOrderBook (symbol, limit, params);
-                const cache = stored.cache;
-                const index = this.getCacheIndex (orderBook, cache);
-                if (index > 0) {
-                    stored.reset (orderBook);
-                    this.handleDeltas (stored, cache.slice (index));
-                    cache.length = 0;
-                    client.resolve (stored, messageHash);
-                    return;
-                }
-            } catch (e) {
-                delete this.orderbooks[symbol];
-                client.reject (e, messageHash);
-                return;
+        try {
+            const orderBook = await this.fetchOrderBook (symbol, limit, params);
+            const cache = stored.cache;
+            const index = this.getCacheIndex (orderBook, cache);
+            if (index >= 0) {
+                stored.reset (orderBook);
+                this.handleDeltas (stored, cache.slice (index));
+                cache.length = 0;
+                client.resolve (stored, messageHash);
+            } else {
+                client.reject (new ExchangeError (this.id + ' nonce is behind the cache'));
             }
+        } catch (e) {
+            delete this.orderbooks[symbol];
+            client.reject (e, messageHash);
         }
-        client.reject (new ExchangeError (this.id + ' loadOrderBook max tries exceeded'), messageHash);
     }
 
     handleDeltas (orderbook, deltas) {

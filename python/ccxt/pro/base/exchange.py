@@ -167,27 +167,25 @@ class Exchange(BaseExchange):
         return None
 
     async def load_order_book(self, client, messageHash, symbol, limit=None, params={}):
-        tries = 3
         if symbol not in self.orderbooks:
             client.reject(ExchangeError(self.id + ' loadOrderBook() orderbook is not initiated'), messageHash)
             return
         stored = self.orderbooks[symbol]
-        for i in range(tries):
-            try:
-                order_book = await self.fetch_order_book(symbol, limit, params)
-                cache = stored.cache
-                index = self.get_cache_index(order_book, cache)
-                if index > 0:
-                    stored.reset(order_book)
-                    self.handle_deltas(order_book, cache[index:])
-                    cache.clear()
-                    client.resolve(stored, messageHash)
-                    return
-            except BaseError as e:
-                if symbol in self.orderbooks:
-                    del self.orderbooks[symbol]
-                client.reject(e, messageHash)
-        client.reject(ExchangeError(self.id + ' loadOrderBook() max tries exceeded'), messageHash)
+        try:
+            order_book = await self.fetch_order_book(symbol, limit, params)
+            cache = stored.cache
+            index = self.get_cache_index(order_book, cache)
+            if index >= 0:
+                stored.reset(order_book)
+                self.handle_deltas(order_book, cache[index:])
+                cache.clear()
+                client.resolve(stored, messageHash)
+            else:
+                client.reject(ExchangeError(self.id + ' nonce is behind cache'), messageHash)
+        except BaseError as e:
+            if symbol in self.orderbooks:
+                del self.orderbooks[symbol]
+            client.reject(e, messageHash)
 
     def handle_deltas(self, orderbook, deltas):
         for delta in deltas:
