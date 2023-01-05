@@ -784,7 +784,7 @@ module.exports = class bitget extends Exchange {
                 'defaultType': 'spot', // 'spot', 'swap'
                 'defaultSubType': 'linear', // 'linear', 'inverse'
                 'createMarketBuyOrderRequiresPrice': true,
-                'broker': 'CCXT',
+                'broker': 'p4sve',
                 'withdraw': {
                     'fillResponseFromRequest': true,
                 },
