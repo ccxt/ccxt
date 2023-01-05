@@ -1419,7 +1419,10 @@ module.exports = class gemini extends Exchange {
 
     nonce () {
         const nonceMethod = this.safeString (this.options, 'nonce', 'milliseconds');
-        return this[nonceMethod] ();
+        if (nonceMethod === 'milliseconds') {
+            return this.milliseconds ();
+        }
+        return this.seconds ();
     }
 
     async fetchTransactions (code = undefined, since = undefined, limit = undefined, params = {}) {
