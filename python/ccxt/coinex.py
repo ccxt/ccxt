@@ -1649,6 +1649,7 @@ class coinex(Exchange):
             'side': side,
             'price': priceString,
             'stopPrice': self.safe_string(order, 'stop_price'),
+            'triggerPrice': self.safe_string(order, 'stop_price'),
             'cost': costString,
             'average': averageString,
             'amount': amountString,

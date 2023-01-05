@@ -893,6 +893,7 @@ class mexc(Exchange, ccxt.async_support.mexc):
             'side': side,
             'price': price,
             'stopPrice': None,
+            'triggerPrice': None,
             'average': avgPrice,
             'amount': amount,
             'cost': cost,

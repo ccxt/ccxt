@@ -516,6 +516,7 @@ class woo(Exchange, ccxt.async_support.woo):
             'side': side,
             'price': price,
             'stopPrice': None,
+            'triggerPrice': None,
             'amount': amount,
             'cost': cost,
             'average': None,

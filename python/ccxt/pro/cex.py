@@ -733,6 +733,7 @@ class cex(Exchange, ccxt.async_support.cex):
             'side': self.safe_string(order, 'type'),
             'price': self.safe_number(order, 'price'),
             'stopPrice': None,
+            'triggerPrice': None,
             'average': None,
             'cost': None,
             'amount': amount,

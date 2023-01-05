@@ -798,6 +798,7 @@ class cex extends \ccxt\async\cex {
             'side' => $this->safe_string($order, 'type'),
             'price' => $this->safe_number($order, 'price'),
             'stopPrice' => null,
+            'triggerPrice' => null,
             'average' => null,
             'cost' => null,
             'amount' => $amount,

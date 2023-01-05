@@ -2864,12 +2864,13 @@ class gate(Exchange):
         id = self.safe_string(transaction, 'id')
         type = None
         amount = self.safe_string(transaction, 'amount')
-        if id[0] == 'b':
-            # GateCode handling
-            type = 'deposit' if Precise.string_gt(amount, '0') else 'withdrawal'
-            amount = Precise.string_abs(amount)
-        elif id is not None:
-            type = self.parse_transaction_type(id[0])
+        if id is not None:
+            if id[0] == 'b':
+                # GateCode handling
+                type = 'deposit' if Precise.string_gt(amount, '0') else 'withdrawal'
+                amount = Precise.string_abs(amount)
+            else:
+                type = self.parse_transaction_type(id[0])
         currencyId = self.safe_string(transaction, 'currency')
         code = self.safe_currency_code(currencyId)
         txid = self.safe_string(transaction, 'txid')
@@ -3455,6 +3456,7 @@ class gate(Exchange):
             'side': side,
             'price': self.parse_number(price),
             'stopPrice': self.safe_number(trigger, 'price'),
+            'triggerPrice': self.safe_number(trigger, 'price'),
             'average': average,
             'amount': self.parse_number(Precise.string_abs(amount)),
             'cost': Precise.string_abs(cost),

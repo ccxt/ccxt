@@ -4,7 +4,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '2.4.91'
+__version__ = '2.5.33'
 
 # -----------------------------------------------------------------------------
 
@@ -1433,8 +1433,16 @@ class Exchange(object):
             raise InvalidAddress(self.id + ' address is invalid or has less than ' + str(self.minFundingAddressLength) + ' characters: "' + str(address) + '"')
         return address
 
-    def precision_from_string(self, string):
-        parts = re.sub(r'0+$', '', string).split('.')
+    def precision_from_string(self, str):
+        # support string formats like '1e-4'
+        if 'e' in str:
+            numStr = re.sub(r'\de', '', str)
+            return int(numStr) * -1
+        # support integer formats (without dot) like '1', '10' etc [Note: bug in decimalToPrecision, so this should not be used atm]
+        # if not ('.' in str):
+        #     return len(str) * -1
+        # default strings like '0.0001'
+        parts = re.sub(r'0+$', '', str).split('.')
         return len(parts[1]) if len(parts) > 1 else 0
 
     def load_markets(self, reload=False, params={}):
@@ -2678,7 +2686,7 @@ class Exchange(object):
         for i in range(0, len(response)):
             item = response[i]
             id = self.safe_string(item, marketIdKey)
-            market = self.safe_market(id)
+            market = self.safe_market(id, None, None, self.safe_string(self.options, 'defaultType'))
             symbol = market['symbol']
             contract = self.safe_value(market, 'contract', False)
             if contract and ((symbols is None) or self.in_array(symbol, symbols)):
@@ -3066,7 +3074,7 @@ class Exchange(object):
         params = self.omit(params, ['defaultType', 'type'])
         return [type, params]
 
-    def handle_sub_type_and_params(self, methodName, market=None, params={}, defaultValue='linear'):
+    def handle_sub_type_and_params(self, methodName, market=None, params={}, defaultValue=None):
         subType = None
         # if set in params, it takes precedence
         subTypeInParams = self.safe_string_2(params, 'subType', 'defaultSubType')

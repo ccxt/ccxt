@@ -487,6 +487,7 @@ class coinbasepro(Exchange, ccxt.async_support.coinbasepro):
             'side': side,
             'price': price,
             'stopPrice': None,
+            'triggerPrice': None,
             'amount': amount,
             'cost': cost,
             'average': None,

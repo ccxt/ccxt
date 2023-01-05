@@ -1381,6 +1381,7 @@ class whitebit(Exchange):
             'price': price,
             'type': self.parse_order_type(type),
             'stopPrice': stopPrice,
+            'triggerPrice': stopPrice,
             'amount': amount,
             'filled': filled,
             'remaining': remaining,

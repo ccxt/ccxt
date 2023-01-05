@@ -704,6 +704,7 @@ class kuna(Exchange):
             'side': side,
             'price': self.safe_string(order, 'price'),
             'stopPrice': None,
+            'triggerPrice': None,
             'amount': self.safe_string(order, 'volume'),
             'filled': self.safe_string(order, 'executed_volume'),
             'remaining': self.safe_string(order, 'remaining_volume'),

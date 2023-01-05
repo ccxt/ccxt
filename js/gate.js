@@ -3024,12 +3024,14 @@ module.exports = class gate extends Exchange {
         const id = this.safeString (transaction, 'id');
         let type = undefined;
         let amount = this.safeString (transaction, 'amount');
-        if (id[0] === 'b') {
-            // GateCode handling
-            type = Precise.stringGt (amount, '0') ? 'deposit' : 'withdrawal';
-            amount = Precise.stringAbs (amount);
-        } else if (id !== undefined) {
-            type = this.parseTransactionType (id[0]);
+        if (id !== undefined) {
+            if (id[0] === 'b') {
+                // GateCode handling
+                type = Precise.stringGt (amount, '0') ? 'deposit' : 'withdrawal';
+                amount = Precise.stringAbs (amount);
+            } else {
+                type = this.parseTransactionType (id[0]);
+            }
         }
         const currencyId = this.safeString (transaction, 'currency');
         const code = this.safeCurrencyCode (currencyId);
@@ -3659,6 +3661,7 @@ module.exports = class gate extends Exchange {
             'side': side,
             'price': this.parseNumber (price),
             'stopPrice': this.safeNumber (trigger, 'price'),
+            'triggerPrice': this.safeNumber (trigger, 'price'),
             'average': average,
             'amount': this.parseNumber (Precise.stringAbs (amount)),
             'cost': Precise.stringAbs (cost),

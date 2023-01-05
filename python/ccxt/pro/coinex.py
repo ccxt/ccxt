@@ -826,6 +826,7 @@ class coinex(Exchange, ccxt.async_support.coinex):
             'side': side,
             'price': self.safe_string(order, 'price'),
             'stopPrice': self.safe_string(order, 'stop_price'),
+            'triggerPrice': self.safe_string(order, 'stop_price'),
             'amount': amount,
             'filled': filled,
             'remaining': remaining,

@@ -408,17 +408,14 @@ module.exports = class digifinex extends Exchange {
             const withdraw = withdrawStatus > 0;
             const active = deposit && withdraw;
             const feeString = this.safeString (currency, 'min_withdraw_fee'); // withdraw_fee_rate was zero for all currencies, so this was the worst case scenario
-            const fee = this.parseNumber (feeString);
             const minWithdrawString = this.safeString (currency, 'min_withdraw_amount');
-            const minWithdraw = this.parseNumber (minWithdrawString);
             const minDepositString = this.safeString (currency, 'min_deposit_amount');
-            const minDepositPrecisionLength = this.precisionFromString (minDepositString);
-            // define precision with temporary way
-            const feePrecisionLength = this.precisionFromString (feeString);
-            const minWithdrawPrecisionLength = this.precisionFromString (minWithdrawString);
             const minDeposit = this.parseNumber (minDepositString);
-            const maxFoundPrecision = Math.max (feePrecisionLength, Math.max (minWithdrawPrecisionLength, minDepositPrecisionLength));
-            const precision = this.parseNumber (this.parsePrecision (this.numberToString (maxFoundPrecision)));
+            const minWithdraw = this.parseNumber (minWithdrawString);
+            const fee = this.parseNumber (feeString);
+            // define precision with temporary way
+            const minFoundPrecision = Precise.stringMin (feeString, Precise.stringMin (minDepositString, minWithdrawString));
+            const precision = this.parseNumber (minFoundPrecision);
             const networkId = this.safeString (currency, 'chain');
             const networkCode = this.networkIdToCode (networkId);
             const network = {
@@ -426,7 +423,7 @@ module.exports = class digifinex extends Exchange {
                 'id': networkId,
                 'network': networkCode,
                 'active': active,
-                'fee': this.parseNumber (feeString),
+                'fee': fee,
                 'precision': precision,
                 'deposit': deposit,
                 'withdraw': withdraw,
@@ -472,7 +469,7 @@ module.exports = class digifinex extends Exchange {
                     'active': active,
                     'deposit': deposit,
                     'withdraw': withdraw,
-                    'fee': fee,
+                    'fee': this.parseNumber (feeString),
                     'precision': undefined,
                     'limits': {
                         'amount': {
@@ -1900,6 +1897,7 @@ module.exports = class digifinex extends Exchange {
             'side': side,
             'price': this.safeNumber (order, 'price'),
             'stopPrice': undefined,
+            'triggerPrice': undefined,
             'amount': this.safeNumber2 (order, 'amount', 'size'),
             'filled': this.safeNumber2 (order, 'executed_amount', 'filled_qty'),
             'remaining': undefined,
