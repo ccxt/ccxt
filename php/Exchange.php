@@ -36,7 +36,7 @@ use Elliptic\EdDSA;
 use BN\BN;
 use Exception;
 
-$version = '2.5.13';
+$version = '2.5.35';
 
 // rounding mode
 const TRUNCATE = 0;
@@ -55,7 +55,7 @@ const PAD_WITH_ZERO = 1;
 
 class Exchange {
 
-    const VERSION = '2.5.13';
+    const VERSION = '2.5.35';
 
     private static $base58_alphabet = '123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz';
     private static $base58_encoder = null;
@@ -155,6 +155,7 @@ class Exchange {
         'paymium',
         'phemex',
         'poloniex',
+        'poloniexfutures',
         'probit',
         'ripio',
         'stex',
@@ -1942,8 +1943,18 @@ class Exchange {
         return $this->currencies ? $this->currencies : array();
     }
 
-    public function precision_from_string($string) {
-        $parts = explode('.', preg_replace('/0+$/', '', $string));
+    public function precision_from_string($str) {
+        // support string formats like '1e-4'
+        if (strpos($str, 'e') > -1) {
+            $numStr = preg_replace ('/\de/', '', $str);
+            return ((int)$numStr) * -1;
+        }
+        // support integer formats (without dot) like '1', '10' etc [Note: bug in decimalToPrecision, so this should not be used atm]
+        // if (strpos($str, '.') === -1) {
+        //     return strlen(str) * -1;
+        // }
+        // default strings like '0.0001'
+        $parts = explode('.', preg_replace('/0+$/', '', $str));
         return (count($parts) > 1) ? strlen($parts[1]) : 0;
     }
 

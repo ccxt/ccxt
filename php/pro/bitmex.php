@@ -29,10 +29,10 @@ class bitmex extends \ccxt\async\bitmex {
             ),
             'urls' => array(
                 'test' => array(
-                    'ws' => 'wss://testnet.bitmex.com/realtime',
+                    'ws' => 'wss://ws.testnet.bitmex.com/realtime',
                 ),
                 'api' => array(
-                    'ws' => 'wss://www.bitmex.com/realtime',
+                    'ws' => 'wss://ws.bitmex.com/realtime',
                 ),
             ),
             'versions' => array(

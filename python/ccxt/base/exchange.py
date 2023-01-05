@@ -4,7 +4,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '2.5.13'
+__version__ = '2.5.35'
 
 # -----------------------------------------------------------------------------
 
@@ -1433,8 +1433,16 @@ class Exchange(object):
             raise InvalidAddress(self.id + ' address is invalid or has less than ' + str(self.minFundingAddressLength) + ' characters: "' + str(address) + '"')
         return address
 
-    def precision_from_string(self, string):
-        parts = re.sub(r'0+$', '', string).split('.')
+    def precision_from_string(self, str):
+        # support string formats like '1e-4'
+        if 'e' in str:
+            numStr = re.sub(r'\de', '', str)
+            return int(numStr) * -1
+        # support integer formats (without dot) like '1', '10' etc [Note: bug in decimalToPrecision, so this should not be used atm]
+        # if not ('.' in str):
+        #     return len(str) * -1
+        # default strings like '0.0001'
+        parts = re.sub(r'0+$', '', str).split('.')
         return len(parts[1]) if len(parts) > 1 else 0
 
     def load_markets(self, reload=False, params={}):

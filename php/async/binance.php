@@ -4060,6 +4060,7 @@ class binance extends Exchange {
              * @param {int|null} $since the earliest time in ms to fetch deposits for
              * @param {int|null} $limit the maximum number of deposits structures to retrieve
              * @param {array} $params extra parameters specific to the binance api endpoint
+             * @param {bool} $params->fiat if true, only fiat deposits will be returned
              * @param {int|null} $params->until the latest time in ms to fetch deposits for
              * @return {[array]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure transaction structures}
              */
@@ -4068,8 +4069,10 @@ class binance extends Exchange {
             $response = null;
             $request = array();
             $legalMoney = $this->safe_value($this->options, 'legalMoney', array());
+            $fiatOnly = $this->safe_value($params, 'fiat', false);
+            $params = $this->omit($params, 'fiatOnly');
             $until = $this->safe_integer($params, 'until');
-            if (is_array($legalMoney) && array_key_exists($code, $legalMoney)) {
+            if ($fiatOnly || (is_array($legalMoney) && array_key_exists($code, $legalMoney))) {
                 if ($code !== null) {
                     $currency = $this->currency($code);
                 }
@@ -4158,14 +4161,17 @@ class binance extends Exchange {
              * @param {int|null} $since the earliest time in ms to fetch withdrawals for
              * @param {int|null} $limit the maximum number of withdrawals structures to retrieve
              * @param {array} $params extra parameters specific to the binance api endpoint
+             * @param {bool} $params->fiat if true, only fiat withdrawals will be returned
              * @return {[array]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure transaction structures}
              */
             Async\await($this->load_markets());
             $legalMoney = $this->safe_value($this->options, 'legalMoney', array());
+            $fiatOnly = $this->safe_value($params, 'fiat', false);
+            $params = $this->omit($params, 'fiatOnly');
             $request = array();
             $response = null;
             $currency = null;
-            if (is_array($legalMoney) && array_key_exists($code, $legalMoney)) {
+            if ($fiatOnly || (is_array($legalMoney) && array_key_exists($code, $legalMoney))) {
                 if ($code !== null) {
                     $currency = $this->currency($code);
                 }

@@ -4,7 +4,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '2.5.13'
+__version__ = '2.5.35'
 
 # -----------------------------------------------------------------------------
 
@@ -146,6 +146,7 @@ from ccxt.async_support.okx import okx                                          
 from ccxt.async_support.paymium import paymium                                  # noqa: F401
 from ccxt.async_support.phemex import phemex                                    # noqa: F401
 from ccxt.async_support.poloniex import poloniex                                # noqa: F401
+from ccxt.async_support.poloniexfutures import poloniexfutures                  # noqa: F401
 from ccxt.async_support.probit import probit                                    # noqa: F401
 from ccxt.async_support.ripio import ripio                                      # noqa: F401
 from ccxt.async_support.stex import stex                                        # noqa: F401
@@ -258,6 +259,7 @@ exchanges = [
     'paymium',
     'phemex',
     'poloniex',
+    'poloniexfutures',
     'probit',
     'ripio',
     'stex',

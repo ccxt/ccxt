@@ -2,14 +2,14 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '2.5.13'
+__version__ = '2.5.35'
 
 # -----------------------------------------------------------------------------
 
 from ccxt.pro.base.functions import inflate, inflate64, gunzip
 from ccxt.pro.base.fast_client import FastClient
 from ccxt.async_support.base.exchange import Exchange as BaseExchange
-from ccxt import NotSupported
+from ccxt import NotSupported, ExchangeError, BaseError
 from ccxt.pro.base.order_book import OrderBook, IndexedOrderBook, CountedOrderBook
 from ccxt.async_support.base.throttler import Throttler
 import asyncio
@@ -191,11 +191,36 @@ class WsConnector:
                 return key
         return None
 
+    async def load_order_book(self, client, messageHash, symbol, limit=None, params={}):
+        if symbol not in self.orderbooks:
+            client.reject(ExchangeError(self.id + ' loadOrderBook() orderbook is not initiated'), messageHash)
+            return
+        stored = self.orderbooks[symbol]
+        try:
+            order_book = await self.fetch_order_book(symbol, limit, params)
+            cache = stored.cache
+            index = self.get_cache_index(order_book, cache)
+            if index >= 0:
+                stored.reset(order_book)
+                self.handle_deltas(order_book, cache[index:])
+                cache.clear()
+                client.resolve(stored, messageHash)
+            else:
+                client.reject(ExchangeError(self.id + ' nonce is behind cache'), messageHash)
+        except BaseError as e:
+            if symbol in self.orderbooks:
+                del self.orderbooks[symbol]
+            client.reject(e, messageHash)
+
+    def handle_deltas(self, orderbook, deltas):
+        for delta in deltas:
+            self.handle_delta(orderbook, delta)
+
+    def handle_delta(self, orderbook, delta):
+        raise NotSupported(self.id + ' handleDelta() is not supported')
+
     async def watch_ticker(self, symbol, params={}):
         raise NotSupported(self.id + '.watch_ticker() not implemented yet')
-
-    async def watch_tickers(self, symbols=None, params={}):
-        raise NotSupported(self.id + '.watch_tickers() not implemented yet')
 
     async def watch_order_book(self, symbol, limit=None, params={}):
         raise NotSupported(self.id + '.watch_order_book() not implemented yet')

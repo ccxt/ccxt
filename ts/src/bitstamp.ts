@@ -301,6 +301,8 @@ export default class bitstamp extends Exchange {
                         'dot_address/': 1,
                         'near_withdrawal/': 1,
                         'near_address/': 1,
+                        'doge_withdrawal/': 1,
+                        'doge_address/': 1,
                     },
                 },
             },

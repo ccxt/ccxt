@@ -423,17 +423,14 @@ class digifinex(Exchange):
             withdraw = withdrawStatus > 0
             active = deposit and withdraw
             feeString = self.safe_string(currency, 'min_withdraw_fee')  # withdraw_fee_rate was zero for all currencies, so self was the worst case scenario
-            fee = self.parse_number(feeString)
             minWithdrawString = self.safe_string(currency, 'min_withdraw_amount')
-            minWithdraw = self.parse_number(minWithdrawString)
             minDepositString = self.safe_string(currency, 'min_deposit_amount')
-            minDepositPrecisionLength = self.precision_from_string(minDepositString)
-            # define precision with temporary way
-            feePrecisionLength = self.precision_from_string(feeString)
-            minWithdrawPrecisionLength = self.precision_from_string(minWithdrawString)
             minDeposit = self.parse_number(minDepositString)
-            maxFoundPrecision = max(feePrecisionLength, max(minWithdrawPrecisionLength, minDepositPrecisionLength))
-            precision = self.parse_number(self.parse_precision(self.number_to_string(maxFoundPrecision)))
+            minWithdraw = self.parse_number(minWithdrawString)
+            fee = self.parse_number(feeString)
+            # define precision with temporary way
+            minFoundPrecision = Precise.string_min(feeString, Precise.string_min(minDepositString, minWithdrawString))
+            precision = self.parse_number(minFoundPrecision)
             networkId = self.safe_string(currency, 'chain')
             networkCode = self.network_id_to_code(networkId)
             network = {
@@ -441,7 +438,7 @@ class digifinex(Exchange):
                 'id': networkId,
                 'network': networkCode,
                 'active': active,
-                'fee': self.parse_number(feeString),
+                'fee': fee,
                 'precision': precision,
                 'deposit': deposit,
                 'withdraw': withdraw,
@@ -483,7 +480,7 @@ class digifinex(Exchange):
                     'active': active,
                     'deposit': deposit,
                     'withdraw': withdraw,
-                    'fee': fee,
+                    'fee': self.parse_number(feeString),
                     'precision': None,
                     'limits': {
                         'amount': {

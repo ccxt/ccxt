@@ -3838,6 +3838,7 @@ class binance(Exchange):
         :param int|None since: the earliest time in ms to fetch deposits for
         :param int|None limit: the maximum number of deposits structures to retrieve
         :param dict params: extra parameters specific to the binance api endpoint
+        :param bool params['fiat']: if True, only fiat deposits will be returned
         :param int|None params['until']: the latest time in ms to fetch deposits for
         :returns [dict]: a list of `transaction structures <https://docs.ccxt.com/en/latest/manual.html#transaction-structure>`
         """
@@ -3846,8 +3847,10 @@ class binance(Exchange):
         response = None
         request = {}
         legalMoney = self.safe_value(self.options, 'legalMoney', {})
+        fiatOnly = self.safe_value(params, 'fiat', False)
+        params = self.omit(params, 'fiatOnly')
         until = self.safe_integer(params, 'until')
-        if code in legalMoney:
+        if fiatOnly or (code in legalMoney):
             if code is not None:
                 currency = self.currency(code)
             request['transactionType'] = 0
@@ -3925,14 +3928,17 @@ class binance(Exchange):
         :param int|None since: the earliest time in ms to fetch withdrawals for
         :param int|None limit: the maximum number of withdrawals structures to retrieve
         :param dict params: extra parameters specific to the binance api endpoint
+        :param bool params['fiat']: if True, only fiat withdrawals will be returned
         :returns [dict]: a list of `transaction structures <https://docs.ccxt.com/en/latest/manual.html#transaction-structure>`
         """
         self.load_markets()
         legalMoney = self.safe_value(self.options, 'legalMoney', {})
+        fiatOnly = self.safe_value(params, 'fiat', False)
+        params = self.omit(params, 'fiatOnly')
         request = {}
         response = None
         currency = None
-        if code in legalMoney:
+        if fiatOnly or (code in legalMoney):
             if code is not None:
                 currency = self.currency(code)
             request['transactionType'] = 1
