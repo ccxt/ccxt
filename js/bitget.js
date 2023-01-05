@@ -881,7 +881,8 @@ module.exports = class bitget extends Exchange {
                     'RIPPLE': 'XRP',
                     'ZILLIQA': 'ZIL',
                     'RSK': 'RSK',
-                    // undetected: TRC10, USDSP, more info at https://www.bitget.com/v1/spot/public/coinChainList
+                    'TRC10': 'TRC10',
+                    // undetected: USDSP, more info at https://www.bitget.com/v1/spot/public/coinChainList
                 },
             },
         });
