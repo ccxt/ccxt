@@ -569,7 +569,8 @@ module.exports = class gate extends Exchange {
                     'STARCOIN': 'STC',
                     'SUPERTX': 'SUP',
                     'TIPS': 'TIPS', // FEDORACOIN
-                    'BIFROST': 'BNC', // BNCDOT is different
+                    'BIFROST': 'BNC',
+                    'BIFROSTPOLKADOT': 'BNCDOT',
                     'SHIDEN': 'SDN', // SDNEVM is different
                     'BITCOINDIAMOND': 'BCD',
                     'WEMIX': 'WEMIX',
