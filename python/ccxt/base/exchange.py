@@ -2823,8 +2823,12 @@ class Exchange(object):
 
     def fetch2(self, path, api='public', method='GET', params={}, headers=None, body=None, config={}, context={}):
         if self.enableRateLimit:
+            customExpireInterval = params.customExpireInterval
+            customPriority = params.customPriority
+            del params.customExpireInterval
+            del params.customPriority
             cost = self.calculate_rate_limiter_cost(api, method, path, params, config, context)
-            self.throttle(cost)
+            self.throttle(cost, path, customExpireInterval, customPriority)
         self.lastRestRequestTimestamp = self.milliseconds()
         request = self.sign(path, api, method, params, headers, body)
         return self.fetch(request['url'], request['method'], request['headers'], request['body'])
@@ -3719,3 +3723,21 @@ class Exchange(object):
                 fee['withdraw'] = fee['networks'][networkKeys[i]]['withdraw']
                 fee['deposit'] = fee['networks'][networkKeys[i]]['deposit']
         return fee
+
+    def parse_incomes(self, incomes, market=None, since=None, limit=None):
+        """
+         * @ignore
+        parses funding fee info from exchange response
+        :param [dict] incomes: each item describes once instance of currency being received or paid
+        :param dict|None market: ccxt market
+        :param int|None since: when defined, the response items are filtered to only include items after self timestamp
+        :param int|None limit: limits the number of items in the response
+        :returns [dict]: an array of `funding history structures <https://docs.ccxt.com/en/latest/manual.html#funding-history-structure>`
+        """
+        result = []
+        for i in range(0, len(incomes)):
+            entry = incomes[i]
+            parsed = self.parse_income(entry, market)
+            result.append(parsed)
+        sorted = self.sort_by(result, 'timestamp')
+        return self.filter_by_since_limit(sorted, since, limit)

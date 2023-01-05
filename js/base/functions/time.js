@@ -49,9 +49,9 @@ class TimedOut extends Error {
         const message = 'timed out';
         super (message);
         this.constructor = TimedOut;
-        this.__proto__  = TimedOut.prototype;
+        this.__proto__ = TimedOut.prototype;
         this.message = message;
-    };
+    }
 }
 
 const iso8601 = (timestamp) => {
@@ -71,7 +71,7 @@ const iso8601 = (timestamp) => {
     } catch (e) {
         return undefined;
     }
-}
+};
 
 const parse8601 = (x) => {
     if (typeof x !== 'string' || !x) {
@@ -94,7 +94,7 @@ const parse8601 = (x) => {
     } catch (e) {
         return undefined;
     }
-}
+};
 
 const parseDate = (x) => {
     if (typeof x !== 'string' || !x) {
@@ -108,79 +108,81 @@ const parseDate = (x) => {
         }
     }
     return parse8601 (x);
-}
+};
 
 const rfc2616 = (timestamp = undefined) => new Date (timestamp).toUTCString ();
 
 const mdy = (timestamp, infix = '-') => {
-    infix = infix || ''
-    const date = new Date (timestamp)
-    const Y = date.getUTCFullYear ().toString ()
-    let m = date.getUTCMonth () + 1
-    let d = date.getUTCDate ()
-    m = m < 10 ? ('0' + m) : m.toString ()
-    d = d < 10 ? ('0' + d) : d.toString ()
-    return m + infix + d + infix + Y
-}
+    infix = infix || '';
+    const date = new Date (timestamp);
+    const Y = date.getUTCFullYear ().toString ();
+    let m = date.getUTCMonth () + 1;
+    let d = date.getUTCDate ();
+    m = m < 10 ? ('0' + m) : m.toString ();
+    d = d < 10 ? ('0' + d) : d.toString ();
+    return m + infix + d + infix + Y;
+};
 
 const ymd = (timestamp, infix, fullYear = true) => {
-    infix = infix || ''
-    const date = new Date (timestamp)
-    const intYear = date.getUTCFullYear ()
-    const year = fullYear ? intYear : (intYear - 2000)
-    const Y = year.toString ()
-    let m = date.getUTCMonth () + 1
-    let d = date.getUTCDate ()
-    m = m < 10 ? ('0' + m) : m.toString ()
-    d = d < 10 ? ('0' + d) : d.toString ()
-    return Y + infix + m + infix + d
-}
+    infix = infix || '';
+    const date = new Date (timestamp);
+    const intYear = date.getUTCFullYear ();
+    const year = fullYear ? intYear : (intYear - 2000);
+    const Y = year.toString ();
+    let m = date.getUTCMonth () + 1;
+    let d = date.getUTCDate ();
+    m = m < 10 ? ('0' + m) : m.toString ();
+    d = d < 10 ? ('0' + d) : d.toString ();
+    return Y + infix + m + infix + d;
+};
 
-const yymmdd = (timestamp, infix = '') => ymd (timestamp, infix, false)
-const yyyymmdd = (timestamp, infix = '-') => ymd (timestamp, infix, true)
+const yymmdd = (timestamp, infix = '') => ymd (timestamp, infix, false);
+const yyyymmdd = (timestamp, infix = '-') => ymd (timestamp, infix, true);
 
 const ymdhms = (timestamp, infix = ' ') => {
-    const date = new Date (timestamp)
-    const Y = date.getUTCFullYear ()
-    let m = date.getUTCMonth () + 1
-    let d = date.getUTCDate ()
-    let H = date.getUTCHours ()
-    let M = date.getUTCMinutes ()
-    let S = date.getUTCSeconds ()
-    m = m < 10 ? ('0' + m) : m
-    d = d < 10 ? ('0' + d) : d
-    H = H < 10 ? ('0' + H) : H
-    M = M < 10 ? ('0' + M) : M
-    S = S < 10 ? ('0' + S) : S
-    return Y + '-' + m + '-' + d + infix + H + ':' + M + ':' + S
-}
+    const date = new Date (timestamp);
+    const Y = date.getUTCFullYear ();
+    let m = date.getUTCMonth () + 1;
+    let d = date.getUTCDate ();
+    let H = date.getUTCHours ();
+    let M = date.getUTCMinutes ();
+    let S = date.getUTCSeconds ();
+    m = m < 10 ? ('0' + m) : m;
+    d = d < 10 ? ('0' + d) : d;
+    H = H < 10 ? ('0' + H) : H;
+    M = M < 10 ? ('0' + M) : M;
+    S = S < 10 ? ('0' + S) : S;
+    return Y + '-' + m + '-' + d + infix + H + ':' + M + ':' + S;
+};
 
 module.exports = {
-    now
-    , microseconds
-    , milliseconds
-    , seconds
-    , iso8601
-    , parse8601
-    , rfc2616
-    , uuidv1
-    , parseDate
-    , mdy
-    , ymd
-    , yymmdd
-    , yyyymmdd
-    , ymdhms
-    , setTimeout_safe
-    , sleep: (ms) => new Promise ((resolve) => setTimeout_safe (resolve, ms))
-    , TimedOut
-    , timeout: async (ms, promise) => {
-        let clear = () => {}
-        const expires = new Promise ((resolve) => (clear = setTimeout_safe (resolve, ms)))
+    now,
+    microseconds,
+    milliseconds,
+    seconds,
+    iso8601,
+    parse8601,
+    rfc2616,
+    uuidv1,
+    parseDate,
+    mdy,
+    ymd,
+    yymmdd,
+    yyyymmdd,
+    ymdhms,
+    setTimeout_safe,
+    sleep: (ms) => new Promise ((resolve) => setTimeout_safe (resolve, ms)),
+    TimedOut,
+    timeout: async (ms, promise) => {
+        let clear = () => {};
+        const expires = new Promise ((resolve) => (clear = setTimeout_safe (resolve, ms)));
 
         try {
-            return await Promise.race ([promise, expires.then (() => { throw new TimedOut () })])
+            return await Promise.race ([ promise, expires.then (() => {
+                throw new TimedOut ();
+            }) ]);
         } finally {
-            clear () // fixes https://github.com/ccxt/ccxt/issues/749
+            clear (); // fixes https://github.com/ccxt/ccxt/issues/749
         }
-    }
-}
+    },
+};

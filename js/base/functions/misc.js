@@ -111,16 +111,16 @@ module.exports = {
 
     aggregate (bidasks) {
 
-        const result = {}
+        const result = {};
 
         for (let i = 0; i < bidasks.length; i++) {
             const [ price, volume ] = bidasks[i];
             if (volume > 0) {
-                result[price] = (result[price] || 0) + volume
+                result[price] = (result[price] || 0) + volume;
             }
         }
 
-        return Object.keys (result).map ((price) => [parseFloat (price), parseFloat (result[price])])
+        return Object.keys (result).map ((price) => [ parseFloat (price), parseFloat (result[price]) ]);
     },
 
     parseTimeframe,
@@ -133,6 +133,6 @@ module.exports = {
     extractParams,
 
     vwap,
-}
+};
 
 /*  ------------------------------------------------------------------------ */

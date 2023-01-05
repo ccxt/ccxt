@@ -3,13 +3,13 @@
 // ----------------------------------------------------------------------------
 /* eslint-disable */
 
-const functions = require ('./functions');
+const functions = require('./functions');
 
 const {
     isNode
     , clone
     , unCamelCase
-    , throttle
+    , customThrottle
     , timeout
     , TimedOut
     , defaultFetch
@@ -227,8 +227,8 @@ module.exports = class Exchange {
         } // return
     } // describe ()
 
-    constructor (userConfig = {}) {
-        Object.assign (this, functions)
+    constructor(userConfig = {}) {
+        Object.assign(this, functions)
         //
         //     if (isNode) {
         //         this.nodeVersion = process.version.match (/\d+\.\d+\.\d+/)[0]
@@ -267,30 +267,30 @@ module.exports = class Exchange {
         this.validateServerSsl = true
         this.validateClientSsl = false
         // default property values
-        this.timeout       = 10000 // milliseconds
-        this.verbose       = false
-        this.debug         = false
-        this.userAgent     = undefined
-        this.twofa         = undefined // two-factor authentication (2FA)
+        this.timeout = 10000 // milliseconds
+        this.verbose = false
+        this.debug = false
+        this.userAgent = undefined
+        this.twofa = undefined // two-factor authentication (2FA)
         // default credentials
-        this.apiKey        = undefined
-        this.secret        = undefined
-        this.uid           = undefined
-        this.login         = undefined
-        this.password      = undefined
-        this.privateKey    = undefined // a "0x"-prefixed hexstring private key for a wallet
+        this.apiKey = undefined
+        this.secret = undefined
+        this.uid = undefined
+        this.login = undefined
+        this.password = undefined
+        this.privateKey = undefined // a "0x"-prefixed hexstring private key for a wallet
         this.walletAddress = undefined // a wallet address "0x"-prefixed hexstring
-        this.token         = undefined // reserved for HTTP auth in some cases
+        this.token = undefined // reserved for HTTP auth in some cases
         // placeholders for cached data
-        this.balance      = {}
-        this.orderbooks   = {}
-        this.tickers      = {}
-        this.orders       = undefined
-        this.trades       = {}
+        this.balance = {}
+        this.orderbooks = {}
+        this.tickers = {}
+        this.orders = undefined
+        this.trades = {}
         this.transactions = {}
-        this.ohlcvs       = {}
-        this.myTrades     = undefined
-        this.positions    = {}
+        this.ohlcvs = {}
+        this.myTrades = undefined
+        this.positions = {}
         // web3 and cryptography flags
         this.requiresWeb3 = false
         this.requiresEddsa = false
@@ -300,18 +300,18 @@ module.exports = class Exchange {
         this.enableLastJsonResponse = true
         this.enableLastHttpResponse = true
         this.enableLastResponseHeaders = true
-        this.last_http_response    = undefined
-        this.last_json_response    = undefined
+        this.last_http_response = undefined
+        this.last_json_response = undefined
         this.last_response_headers = undefined
         // camelCase and snake_notation support
         const unCamelCaseProperties = (obj = this) => {
             if (obj !== null) {
-                const ownPropertyNames = Object.getOwnPropertyNames (obj)
+                const ownPropertyNames = Object.getOwnPropertyNames(obj)
                 for (let i = 0; i < ownPropertyNames.length; i++) {
                     const k = ownPropertyNames[i]
-                    this[unCamelCase (k)] = this[k]
+                    this[unCamelCase(k)] = this[k]
                 }
-                unCamelCaseProperties (Object.getPrototypeOf (obj))
+                unCamelCaseProperties(Object.getPrototypeOf(obj))
             }
         }
         unCamelCaseProperties ()
@@ -414,7 +414,7 @@ module.exports = class Exchange {
             maxCapacity: 1000,
             refillRate: (this.rateLimit > 0) ? 1 / this.rateLimit : Number.MAX_VALUE,
         }, this.tokenBucket);
-        this.throttle = throttle (this.tokenBucket);
+        this.throttle = customThrottle(this.tokenBucket);
         this.executeRestRequest = (url, method = 'GET', headers = undefined, body = undefined) => {
             // fetchImplementation cannot be called on this. in browsers:
             // TypeError Failed to execute 'fetch' on 'Window': Illegal invocation
@@ -422,137 +422,137 @@ module.exports = class Exchange {
             const params = { method, headers, body, timeout: this.timeout };
             if (this.agent) {
                 params['agent'] = this.agent;
-            } else if (this.httpAgent && url.indexOf ('http://') === 0) {
+            } else if (this.httpAgent && url.indexOf('http://') === 0) {
                 params['agent'] = this.httpAgent;
-            } else if (this.httpsAgent && url.indexOf ('https://') === 0) {
+            } else if (this.httpsAgent && url.indexOf('https://') === 0) {
                 params['agent'] = this.httpsAgent;
             }
             const promise =
-                fetchImplementation (url, this.extend (params, this.fetchOptions))
-                    .catch ((e) => {
+                fetchImplementation(url, this.extend(params, this.fetchOptions))
+                    .catch((e) => {
                         if (isNode) {
-                            throw new ExchangeNotAvailable ([ this.id, method, url, e.type, e.message ].join (' '));
+                            throw new ExchangeNotAvailable([this.id, method, url, e.type, e.message].join(' '));
                         }
                         throw e; // rethrow all unknown errors
                     })
-                    .then ((response) => this.handleRestResponse (response, url, method, headers, body));
-            return timeout (this.timeout, promise).catch ((e) => {
+                    .then((response) => this.handleRestResponse(response, url, method, headers, body));
+            return timeout(this.timeout, promise).catch((e) => {
                 if (e instanceof TimedOut) {
-                    throw new RequestTimeout (this.id + ' ' + method + ' ' + url + ' request timed out (' + this.timeout + ' ms)');
+                    throw new RequestTimeout(this.id + ' ' + method + ' ' + url + ' request timed out (' + this.timeout + ' ms)');
                 }
                 throw e;
             })
         };
     }
 
-    setSandboxMode (enabled) {
+    setSandboxMode(enabled) {
         if (!!enabled) { // eslint-disable-line no-extra-boolean-cast
             if ('test' in this.urls) {
                 if (typeof this.urls['api'] === 'string') {
                     this.urls['apiBackup'] = this.urls['api']
                     this.urls['api'] = this.urls['test']
                 } else {
-                    this.urls['apiBackup'] = clone (this.urls['api'])
-                    this.urls['api'] = clone (this.urls['test'])
+                    this.urls['apiBackup'] = clone(this.urls['api'])
+                    this.urls['api'] = clone(this.urls['test'])
                 }
             } else {
-                throw new NotSupported (this.id + ' does not have a sandbox URL')
+                throw new NotSupported(this.id + ' does not have a sandbox URL')
             }
         } else if ('apiBackup' in this.urls) {
             if (typeof this.urls['api'] === 'string') {
                 this.urls['api'] = this.urls['apiBackup']
             } else {
-                this.urls['api'] = clone (this.urls['apiBackup'])
+                this.urls['api'] = clone(this.urls['apiBackup'])
             }
         }
     }
 
-    defineRestApiEndpoint (methodName, uppercaseMethod, lowercaseMethod, camelcaseMethod, path, paths, config = {}) {
-        const splitPath = path.split (/[^a-zA-Z0-9]/)
-        const camelcaseSuffix  = splitPath.map (this.capitalize).join ('')
-        const underscoreSuffix = splitPath.map ((x) => x.trim ().toLowerCase ()).filter ((x) => x.length > 0).join ('_')
-        const camelcasePrefix = [ paths[0] ].concat (paths.slice (1).map (this.capitalize)).join ('')
-        const underscorePrefix = [ paths[0] ].concat (paths.slice (1).map ((x) => x.trim ()).filter ((x) => x.length > 0)).join ('_')
-        const camelcase  = camelcasePrefix + camelcaseMethod + this.capitalize (camelcaseSuffix)
+    defineRestApiEndpoint(methodName, uppercaseMethod, lowercaseMethod, camelcaseMethod, path, paths, config = {}) {
+        const splitPath = path.split(/[^a-zA-Z0-9]/)
+        const camelcaseSuffix = splitPath.map(this.capitalize).join('')
+        const underscoreSuffix = splitPath.map((x) => x.trim().toLowerCase()).filter((x) => x.length > 0).join('_')
+        const camelcasePrefix = [paths[0]].concat(paths.slice(1).map(this.capitalize)).join('')
+        const underscorePrefix = [paths[0]].concat(paths.slice(1).map((x) => x.trim()).filter((x) => x.length > 0)).join('_')
+        const camelcase = camelcasePrefix + camelcaseMethod + this.capitalize(camelcaseSuffix)
         const underscore = underscorePrefix + '_' + lowercaseMethod + '_' + underscoreSuffix
         const typeArgument = (paths.length > 1) ? paths : paths[0]
         // handle call costs here
-        const partial = async (params = {}, context = {}) => this[methodName] (path, typeArgument, uppercaseMethod, params, undefined, undefined, config, context)
+        const partial = async (params = {}, context = {}) => this[methodName](path, typeArgument, uppercaseMethod, params, undefined, undefined, config, context)
         // const partial = async (params) => this[methodName] (path, typeArgument, uppercaseMethod, params || {})
-        this[camelcase]  = partial
+        this[camelcase] = partial
         this[underscore] = partial
     }
 
-    defineRestApi (api, methodName, paths = []) {
-        const keys = Object.keys (api)
+    defineRestApi(api, methodName, paths = []) {
+        const keys = Object.keys(api)
         for (let i = 0; i < keys.length; i++) {
             const key = keys[i]
             const value = api[key]
-            const uppercaseMethod = key.toUpperCase ()
-            const lowercaseMethod = key.toLowerCase ()
-            const camelcaseMethod = this.capitalize (lowercaseMethod)
-            if (Array.isArray (value)) {
+            const uppercaseMethod = key.toUpperCase()
+            const lowercaseMethod = key.toLowerCase()
+            const camelcaseMethod = this.capitalize(lowercaseMethod)
+            if (Array.isArray(value)) {
                 for (let k = 0; k < value.length; k++) {
-                    const path = value[k].trim ()
-                    this.defineRestApiEndpoint (methodName, uppercaseMethod, lowercaseMethod, camelcaseMethod, path, paths)
+                    const path = value[k].trim()
+                    this.defineRestApiEndpoint(methodName, uppercaseMethod, lowercaseMethod, camelcaseMethod, path, paths)
                 }
-            // the options HTTP method conflicts with the 'options' API url path
-            // } else if (key.match (/^(?:get|post|put|delete|options|head|patch)$/i)) {
-            } else if (key.match (/^(?:get|post|put|delete|head|patch)$/i)) {
-                const endpoints = Object.keys (value);
+                // the options HTTP method conflicts with the 'options' API url path
+                // } else if (key.match (/^(?:get|post|put|delete|options|head|patch)$/i)) {
+            } else if (key.match(/^(?:get|post|put|delete|head|patch)$/i)) {
+                const endpoints = Object.keys(value);
                 for (let j = 0; j < endpoints.length; j++) {
                     const endpoint = endpoints[j]
-                    const path = endpoint.trim ()
+                    const path = endpoint.trim()
                     const config = value[endpoint]
                     if (typeof config === 'object') {
-                        this.defineRestApiEndpoint (methodName, uppercaseMethod, lowercaseMethod, camelcaseMethod, path, paths, config)
+                        this.defineRestApiEndpoint(methodName, uppercaseMethod, lowercaseMethod, camelcaseMethod, path, paths, config)
                     } else if (typeof config === 'number') {
-                        this.defineRestApiEndpoint (methodName, uppercaseMethod, lowercaseMethod, camelcaseMethod, path, paths, { cost: config })
+                        this.defineRestApiEndpoint(methodName, uppercaseMethod, lowercaseMethod, camelcaseMethod, path, paths, { cost: config })
                     } else {
-                        throw new NotSupported (this.id + ' defineRestApi() API format is not supported, API leafs must strings, objects or numbers');
+                        throw new NotSupported(this.id + ' defineRestApi() API format is not supported, API leafs must strings, objects or numbers');
                     }
                 }
             } else {
-                this.defineRestApi (value, methodName, paths.concat ([ key ]))
+                this.defineRestApi(value, methodName, paths.concat([key]))
             }
         }
     }
 
-    log (... args) {
-        console.log (... args)
+    log(...args) {
+        console.log(...args)
     }
 
-    fetch (url, method = 'GET', headers = undefined, body = undefined) {
+    fetch(url, method = 'GET', headers = undefined, body = undefined) {
         if (isNode && this.userAgent) {
             if (typeof this.userAgent === 'string') {
-                headers = this.extend ({ 'User-Agent': this.userAgent }, headers)
+                headers = this.extend({ 'User-Agent': this.userAgent }, headers)
             } else if ((typeof this.userAgent === 'object') && ('User-Agent' in this.userAgent)) {
-                headers = this.extend (this.userAgent, headers)
+                headers = this.extend(this.userAgent, headers)
             }
         }
         if (typeof this.proxy === 'function') {
-            url = this.proxy (url)
+            url = this.proxy(url)
             if (isNode) {
-                headers = this.extend ({ 'Origin': this.origin }, headers)
+                headers = this.extend({ 'Origin': this.origin }, headers)
             }
         } else if (typeof this.proxy === 'string') {
             if (this.proxy.length && isNode) {
-                headers = this.extend ({ 'Origin': this.origin }, headers)
+                headers = this.extend({ 'Origin': this.origin }, headers)
             }
             url = this.proxy + url
         }
-        headers = this.extend (this.headers, headers)
-        headers = this.setHeaders (headers)
+        headers = this.extend(this.headers, headers)
+        headers = this.setHeaders(headers)
         if (this.verbose) {
-            this.log ("fetch Request:\n", this.id, method, url, "\nRequestHeaders:\n", headers, "\nRequestBody:\n", body, "\n")
+            this.log("fetch Request:\n", this.id, method, url, "\nRequestHeaders:\n", headers, "\nRequestBody:\n", body, "\n")
         }
-        return this.executeRestRequest (url, method, headers, body)
+        return this.executeRestRequest(url, method, headers, body)
     }
 
-    parseJson (jsonString) {
+    parseJson(jsonString) {
         try {
-            if (this.isJsonEncodedObject (jsonString)) {
-                return JSON.parse (this.onJsonResponse (jsonString))
+            if (this.isJsonEncodedObject(jsonString)) {
+                return JSON.parse(this.onJsonResponse(jsonString))
             }
         } catch (e) {
             // SyntaxError
@@ -560,19 +560,19 @@ module.exports = class Exchange {
         }
     }
 
-    getResponseHeaders (response) {
+    getResponseHeaders(response) {
         const result = {}
-        response.headers.forEach ((value, key) => {
-            key = key.split ('-').map ((word) => this.capitalize (word)).join ('-')
+        response.headers.forEach((value, key) => {
+            key = key.split('-').map((word) => this.capitalize(word)).join('-')
             result[key] = value
         })
         return result
     }
 
-    handleRestResponse (response, url, method = 'GET', requestHeaders = undefined, requestBody = undefined) {
-        const responseHeaders = this.getResponseHeaders (response)
+    handleRestResponse(response, url, method = 'GET', requestHeaders = undefined, requestBody = undefined) {
+        const responseHeaders = this.getResponseHeaders(response)
         if (this.handleContentTypeApplicationZip && (responseHeaders['Content-Type'] === 'application/zip')) {
-            const responseBuffer = response.buffer ();
+            const responseBuffer = response.buffer();
             if (this.enableLastResponseHeaders) {
                 this.last_response_headers = responseHeaders
             }
@@ -580,14 +580,14 @@ module.exports = class Exchange {
                 this.last_http_response = responseBuffer
             }
             if (this.verbose) {
-                this.log ("handleRestResponse:\n", this.id, method, url, response.status, response.statusText, "\nResponseHeaders:\n", responseHeaders, "ZIP redacted", "\n")
+                this.log("handleRestResponse:\n", this.id, method, url, response.status, response.statusText, "\nResponseHeaders:\n", responseHeaders, "ZIP redacted", "\n")
             }
             // no error handler needed, because it would not be a zip response in case of an error
             return responseBuffer;
         }
-        return response.text ().then ((responseBody) => {
-            const bodyText = this.onRestResponse (response.status, response.statusText, url, method, responseHeaders, responseBody, requestHeaders, requestBody);
-            const json = this.parseJson (bodyText)
+        return response.text().then((responseBody) => {
+            const bodyText = this.onRestResponse(response.status, response.statusText, url, method, responseHeaders, responseBody, requestHeaders, requestBody);
+            const json = this.parseJson(bodyText)
             if (this.enableLastResponseHeaders) {
                 this.last_response_headers = responseHeaders
             }
@@ -598,45 +598,45 @@ module.exports = class Exchange {
                 this.last_json_response = json
             }
             if (this.verbose) {
-                this.log ("handleRestResponse:\n", this.id, method, url, response.status, response.statusText, "\nResponseHeaders:\n", responseHeaders, "\nResponseBody:\n", responseBody, "\n")
+                this.log("handleRestResponse:\n", this.id, method, url, response.status, response.statusText, "\nResponseHeaders:\n", responseHeaders, "\nResponseBody:\n", responseBody, "\n")
             }
-            const skipFurtherErrorHandling = this.handleErrors (response.status, response.statusText, url, method, responseHeaders, responseBody, json, requestHeaders, requestBody)
+            const skipFurtherErrorHandling = this.handleErrors(response.status, response.statusText, url, method, responseHeaders, responseBody, json, requestHeaders, requestBody)
             if (!skipFurtherErrorHandling) {
-                this.handleHttpStatusCode (response.status, response.statusText, url, method, responseBody)
+                this.handleHttpStatusCode(response.status, response.statusText, url, method, responseBody)
             }
             return json || responseBody
         })
     }
 
-    onRestResponse (statusCode, statusText, url, method, responseHeaders, responseBody, requestHeaders, requestBody) {
-        return responseBody.trim ()
+    onRestResponse(statusCode, statusText, url, method, responseHeaders, responseBody, requestHeaders, requestBody) {
+        return responseBody.trim()
     }
 
-    onJsonResponse (responseBody) {
-        return this.quoteJsonNumbers ? responseBody.replace (/":([+.0-9eE-]+)([,}])/g, '":"$1"$2') : responseBody;
+    onJsonResponse(responseBody) {
+        return this.quoteJsonNumbers ? responseBody.replace(/":([+.0-9eE-]+)([,}])/g, '":"$1"$2') : responseBody;
     }
 
-    async loadMarketsHelper (reload = false, params = {}) {
+    async loadMarketsHelper(reload = false, params = {}) {
         if (!reload && this.markets) {
             if (!this.markets_by_id) {
-                return this.setMarkets (this.markets)
+                return this.setMarkets(this.markets)
             }
             return this.markets
         }
         let currencies = undefined
         // only call if exchange API provides endpoint (true), thus avoid emulated versions ('emulated')
         if (this.has.fetchCurrencies === true) {
-            currencies = await this.fetchCurrencies ()
+            currencies = await this.fetchCurrencies()
         }
-        const markets = await this.fetchMarkets (params)
-        return this.setMarkets (markets, currencies)
+        const markets = await this.fetchMarkets(params)
+        return this.setMarkets(markets, currencies)
     }
 
-    loadMarkets (reload = false, params = {}) {
+    loadMarkets(reload = false, params = {}) {
         // this method is async, it returns a promise
         if ((reload && !this.reloadingMarkets) || !this.marketsLoading) {
             this.reloadingMarkets = true
-            this.marketsLoading = this.loadMarketsHelper (reload, params).then ((resolved) => {
+            this.marketsLoading = this.loadMarketsHelper(reload, params).then((resolved) => {
                 this.reloadingMarkets = false
                 return resolved
             }, (error) => {
@@ -647,69 +647,69 @@ module.exports = class Exchange {
         return this.marketsLoading
     }
 
-    fetchCurrencies (params = {}) {
+    fetchCurrencies(params = {}) {
         // markets are returned as a list
         // currencies are returned as a dict
         // this is for historical reasons
         // and may be changed for consistency later
-        return new Promise ((resolve, reject) => resolve (this.currencies));
+        return new Promise((resolve, reject) => resolve(this.currencies));
     }
 
-    fetchMarkets (params = {}) {
+    fetchMarkets(params = {}) {
         // markets are returned as a list
         // currencies are returned as a dict
         // this is for historical reasons
         // and may be changed for consistency later
-        return new Promise ((resolve, reject) => resolve (Object.values (this.markets)))
+        return new Promise((resolve, reject) => resolve(Object.values(this.markets)))
     }
 
-    filterBySinceLimit (array, since = undefined, limit = undefined, key = 'timestamp', tail = false) {
+    filterBySinceLimit(array, since = undefined, limit = undefined, key = 'timestamp', tail = false) {
         const sinceIsDefined = (since !== undefined && since !== null)
         if (sinceIsDefined) {
-            array = array.filter ((entry) => entry[key] >= since)
+            array = array.filter((entry) => entry[key] >= since)
         }
         if (limit !== undefined && limit !== null) {
-            array = tail ? array.slice (-limit) : array.slice (0, limit)
+            array = tail ? array.slice(-limit) : array.slice(0, limit)
         }
         return array
     }
 
-    filterByValueSinceLimit (array, field, value = undefined, since = undefined, limit = undefined, key = 'timestamp', tail = false) {
+    filterByValueSinceLimit(array, field, value = undefined, since = undefined, limit = undefined, key = 'timestamp', tail = false) {
         const valueIsDefined = value !== undefined && value !== null
         const sinceIsDefined = since !== undefined && since !== null
         // single-pass filter for both symbol and since
         if (valueIsDefined || sinceIsDefined) {
-            array = array.filter ((entry) =>
-                ((valueIsDefined ? (entry[field] === value) : true) &&
-                 (sinceIsDefined ? (entry[key] >= since) : true)))
+            array = array.filter((entry) =>
+            ((valueIsDefined ? (entry[field] === value) : true) &&
+                (sinceIsDefined ? (entry[key] >= since) : true)))
         }
         if (limit !== undefined && limit !== null) {
-            array = tail ? array.slice (-limit) : array.slice (0, limit)
+            array = tail ? array.slice(-limit) : array.slice(0, limit)
         }
         return array
     }
 
-    checkRequiredDependencies () {
+    checkRequiredDependencies() {
         return
     }
 
-    remove0xPrefix (hexData) {
-        if (hexData.slice (0, 2) === '0x') {
-            return hexData.slice (2)
+    remove0xPrefix(hexData) {
+        if (hexData.slice(0, 2) === '0x') {
+            return hexData.slice(2)
         } else {
             return hexData
         }
     }
 
-    hashMessage (message) {
+    hashMessage(message) {
         // takes a hex encoded message
-        const binaryMessage = this.base16ToBinary (this.remove0xPrefix (message))
-        const prefix = this.stringToBinary ('\x19Ethereum Signed Message:\n' + binaryMessage.sigBytes)
-        return '0x' + this.hash (this.binaryConcat (prefix, binaryMessage), 'keccak', 'hex')
+        const binaryMessage = this.base16ToBinary(this.remove0xPrefix(message))
+        const prefix = this.stringToBinary('\x19Ethereum Signed Message:\n' + binaryMessage.sigBytes)
+        return '0x' + this.hash(this.binaryConcat(prefix, binaryMessage), 'keccak', 'hex')
     }
 
-    signHash (hash, privateKey) {
-        const signature = this.ecdsa (hash.slice (-64), privateKey.slice (-64), 'secp256k1', undefined)
+    signHash(hash, privateKey) {
+        const signature = this.ecdsa(hash.slice(-64), privateKey.slice(-64), 'secp256k1', undefined)
         return {
             'r': '0x' + signature['r'],
             's': '0x' + signature['s'],
@@ -717,45 +717,45 @@ module.exports = class Exchange {
         }
     }
 
-    signMessage (message, privateKey) {
-        return this.signHash (this.hashMessage (message), privateKey.slice (-64))
+    signMessage(message, privateKey) {
+        return this.signHash(this.hashMessage(message), privateKey.slice(-64))
     }
 
-    signMessageString (message, privateKey) {
+    signMessageString(message, privateKey) {
         // still takes the input as a hex string
         // same as above but returns a string instead of an object
-        const signature = this.signMessage (message, privateKey)
-        return signature['r'] + this.remove0xPrefix (signature['s']) + this.binaryToBase16 (this.numberToBE (signature['v']))
+        const signature = this.signMessage(message, privateKey)
+        return signature['r'] + this.remove0xPrefix(signature['s']) + this.binaryToBase16(this.numberToBE(signature['v']))
     }
 
-    parseNumber (value, d = undefined) {
+    parseNumber(value, d = undefined) {
         if (value === undefined) {
             return d
         } else {
             try {
-                return this.number (value)
+                return this.number(value)
             } catch (e) {
                 return d
             }
         }
     }
 
-    checkOrderArguments (market, type, side, amount, price, params) {
+    checkOrderArguments(market, type, side, amount, price, params) {
         if (price === undefined) {
             if (type === 'limit') {
-                  throw new ArgumentsRequired (this.id + ' createOrder() requires a price argument for a limit order');
+                throw new ArgumentsRequired(this.id + ' createOrder() requires a price argument for a limit order');
             }
         }
         if (amount <= 0) {
-            throw new ArgumentsRequired (this.id + ' createOrder() amount should be above 0');
+            throw new ArgumentsRequired(this.id + ' createOrder() amount should be above 0');
         }
     }
 
-    handleHttpStatusCode (code, reason, url, method, body) {
-        const codeAsString = code.toString ();
+    handleHttpStatusCode(code, reason, url, method, body) {
+        const codeAsString = code.toString();
         if (codeAsString in this.httpExceptions) {
             const ErrorClass = this.httpExceptions[codeAsString];
-            throw new ErrorClass (this.id + ' ' + method + ' ' + url + ' ' + codeAsString + ' ' + reason + ' ' + body);
+            throw new ErrorClass(this.id + ' ' + method + ' ' + url + ' ' + codeAsString + ' ' + reason + ' ' + body);
         }
     }
 
@@ -2034,8 +2034,12 @@ module.exports = class Exchange {
 
     async fetch2 (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined, config = {}, context = {}) {
         if (this.enableRateLimit) {
+            const customExpireInterval = params.customExpireInterval;
+            const customPriority = params.customPriority;
+            delete params.customExpireInterval;
+            delete params.customPriority;
             const cost = this.calculateRateLimiterCost (api, method, path, params, config, context);
-            await this.throttle (cost);
+            await this.throttle (cost, path, customExpireInterval, customPriority);
         }
         this.lastRestRequestTimestamp = this.milliseconds ();
         const request = this.sign (path, api, method, params, headers, body);

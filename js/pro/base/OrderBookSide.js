@@ -9,7 +9,7 @@
 // Email: carlo.revelli@berkeley.edu
 //
 
-function bisectLeft(array, x) {
+function bisectLeft (array, x) {
     let low = 0
     let high = array.length - 1
     while (low <= high) {
@@ -164,7 +164,7 @@ class IndexedOrderBookSide extends Array  {
     }
 
     store (price, size, id) {
-        this.storeArray([ price, size, id ])
+        this.storeArray ([ price, size, id ])
     }
 
     storeArray (delta) {

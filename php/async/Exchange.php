@@ -1475,8 +1475,12 @@ class Exchange extends \ccxt\Exchange {
     public function fetch2($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null, $config = array (), $context = array ()) {
         return Async\async(function () use ($path, $api, $method, $params, $headers, $body, $config, $context) {
             if ($this->enableRateLimit) {
+                $customExpireInterval = $params->customExpireInterval;
+                $customPriority = $params->customPriority;
+                unset($params->customExpireInterval);
+                unset($params->customPriority);
                 $cost = $this->calculate_rate_limiter_cost($api, $method, $path, $params, $config, $context);
-                Async\await($this->throttle ($cost));
+                Async\await($this->throttle ($cost, $path, $customExpireInterval, $customPriority));
             }
             $this->lastRestRequestTimestamp = $this->milliseconds ();
             $request = $this->sign ($path, $api, $method, $params, $headers, $body);
@@ -2663,5 +2667,25 @@ class Exchange extends \ccxt\Exchange {
             }
         }
         return $fee;
+    }
+
+    public function parse_incomes($incomes, $market = null, $since = null, $limit = null) {
+        /**
+         * @ignore
+         * parses funding fee info from exchange response
+         * @param {[array]} $incomes each item describes once instance of currency being received or paid
+         * @param {array|null} $market ccxt $market
+         * @param {int|null} $since when defined, the response items are filtered to only include items after this timestamp
+         * @param {int|null} $limit limits the number of items in the response
+         * @return {[array]} an array of {@link https://docs.ccxt.com/en/latest/manual.html#funding-history-structure funding history structures}
+         */
+        $result = array();
+        for ($i = 0; $i < count($incomes); $i++) {
+            $entry = $incomes[$i];
+            $parsed = $this->parse_income($entry, $market);
+            $result[] = $parsed;
+        }
+        $sorted = $this->sort_by($result, 'timestamp');
+        return $this->filter_by_since_limit($sorted, $since, $limit);
     }
 }
