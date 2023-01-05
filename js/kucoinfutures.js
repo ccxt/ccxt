@@ -1071,25 +1071,19 @@ module.exports = class kucoinfutures extends kucoin {
         const stop = this.safeString (params, 'stop');
         const stopPriceType = this.safeString (params, 'stopPriceType', 'MP');
         if (stopPrice) {
-            if (stop !== undefined) {
-                request['stop'] = stop;
-            } else {
+            if (stop === undefined) {
                 request['stop'] = (side === 'buy') ? 'down' : 'up';
             }
             request['stopPrice'] = this.priceToPrecision (symbol, stopPrice);
             request['stopPriceType'] = stopPriceType;
         } else if (isStopLoss || isTakeProfit) {
             if (isStopLoss) {
-                if (stop !== undefined) {
-                    request['stop'] = stop;
-                } else {
+                if (stop === undefined) {
                     request['stop'] = (side === 'buy') ? 'up' : 'down';
                 }
                 request['stopPrice'] = this.priceToPrecision (symbol, stopLossPrice);
             } else {
-                if (stop !== undefined) {
-                    request['stop'] = stop;
-                } else {
+                if (stop === undefined) {
                     request['stop'] = (side === 'buy') ? 'down' : 'up';
                 }
                 request['stopPrice'] = this.priceToPrecision (symbol, takeProfitPrice);
