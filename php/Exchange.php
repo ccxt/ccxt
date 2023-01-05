@@ -1446,9 +1446,14 @@ class Exchange {
     }
 
     public function calculate_rate_limit_config($rate_limit_config) {
-        $rate_limit = $this->safe_number($rate_limit_config, 'rateLimit');
+        $rate_limit = null;
+        if ($this === $rate_limit_config) {
+            $rate_limit = $this->rateLimit;
+        } else {
+            $rate_limit = $this->safe_number($rate_limit_config, 'rateLimit');
+        }
         $token_bucket = $this->safe_value($rate_limit_config, 'tokenBucket', array());
-        $config = $this->extend(array(
+        $config = $this->deep_extend(array(
             'delay' => 0.001,
             'capacity' => 1,
             'cost' => 1,
