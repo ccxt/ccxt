@@ -859,6 +859,50 @@ module.exports = class Exchange {
         };
     }
 
+    currencyStructure () {
+        return {
+            'info': undefined,
+            'id': undefined,
+            'lowercaseId': undefined,
+            'uppercaseId': undefined,
+            'numericId': undefined,
+            'code': undefined,
+            'precision': undefined,
+            'type': undefined,
+            'margin': undefined,
+            'name': undefined,
+            'active': undefined,
+            'deposit': undefined,
+            'withdraw': undefined,
+            'fee': undefined,
+            'fees': undefined,
+            'networks': undefined,
+            'address': undefined,
+            'limits': {
+                'amount': {
+                    'min': undefined,
+                    'max': undefined,
+                },
+                'price': {
+                    'min': undefined,
+                    'max': undefined,
+                },
+                'cost': {
+                    'min': undefined,
+                    'max': undefined,
+                },
+                'deposit': {
+                    'min': undefined,
+                    'max': undefined,
+                },
+                'withdraw': {
+                    'min': undefined,
+                    'max': undefined,
+                },
+            },
+        };
+    }
+
     setMarkets (markets, currencies = undefined) {
         const values = [];
         this.markets_by_id = {};
@@ -893,23 +937,19 @@ module.exports = class Exchange {
                 const defaultCurrencyPrecision = (this.precisionMode === DECIMAL_PLACES) ? 8 : this.parseNumber ('1e-8');
                 const marketPrecision = this.safeValue (market, 'precision', {});
                 if ('base' in market) {
-                    const currencyPrecision = this.safeValue2 (marketPrecision, 'base', 'amount', defaultCurrencyPrecision);
-                    const currency = {
-                        'id': this.safeString2 (market, 'baseId', 'base'),
-                        'numericId': this.safeString (market, 'baseNumericId'),
-                        'code': this.safeString (market, 'base'),
-                        'precision': currencyPrecision,
-                    };
+                    const currency = this.currencyStructure ();
+                    currency['id'] = this.safeString2 (market, 'baseId', 'base');
+                    currency['numericId'] = this.safeString (market, 'baseNumericId');
+                    currency['code'] = this.safeString (market, 'base');
+                    currency['precision'] = this.safeValue2 (marketPrecision, 'base', 'amount', defaultCurrencyPrecision);
                     baseCurrencies.push (currency);
                 }
                 if ('quote' in market) {
-                    const currencyPrecision = this.safeValue2 (marketPrecision, 'quote', 'price', defaultCurrencyPrecision);
-                    const currency = {
-                        'id': this.safeString2 (market, 'quoteId', 'quote'),
-                        'numericId': this.safeString (market, 'quoteNumericId'),
-                        'code': this.safeString (market, 'quote'),
-                        'precision': currencyPrecision,
-                    };
+                    const currency = this.currencyStructure ();
+                    currency['id'] = this.safeString2 (market, 'quoteId', 'quote');
+                    currency['numericId'] = this.safeString (market, 'quoteNumericId');
+                    currency['code'] = this.safeString (market, 'quote');
+                    currency['precision'] = this.safeValue2 (marketPrecision, 'quote', 'price', defaultCurrencyPrecision);
                     quoteCurrencies.push (currency);
                 }
             }
