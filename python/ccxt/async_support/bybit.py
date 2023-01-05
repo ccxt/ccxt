@@ -1544,8 +1544,8 @@ class bybit(Exchange):
         percentage = Precise.string_mul(percentage, '100')
         quoteVolume = self.safe_string_n(ticker, ['turnover_24h', 'turnover24h', 'quoteVolume'])
         baseVolume = self.safe_string_n(ticker, ['volume_24h', 'volume24h', 'volume'])
-        bid = self.safe_string_n(ticker, ['bid_price', 'bid', 'bestBidPrice', 'bidPrice'])
-        ask = self.safe_string_n(ticker, ['ask_price', 'ask', 'bestAskPrice', 'askPrice'])
+        bid = self.safe_string_n(ticker, ['bid_price', 'bid', 'bestBidPrice', 'bidPrice', 'bid1Price'])
+        ask = self.safe_string_n(ticker, ['ask_price', 'ask', 'bestAskPrice', 'askPrice', 'ask1Price'])
         high = self.safe_string_n(ticker, ['high_price_24h', 'high24h', 'highPrice', 'highPrice24h'])
         low = self.safe_string_n(ticker, ['low_price_24h', 'low24h', 'lowPrice', 'lowPrice24h'])
         return self.safe_ticker({
@@ -1555,9 +1555,9 @@ class bybit(Exchange):
             'high': high,
             'low': low,
             'bid': bid,
-            'bidVolume': self.safe_string(ticker, 'bidSize'),
+            'bidVolume': self.safe_string_2(ticker, 'bidSize', 'bid1Size'),
             'ask': ask,
-            'askVolume': self.safe_string(ticker, 'askSize'),
+            'askVolume': self.safe_string_2(ticker, 'askSize', 'ask1Size'),
             'vwap': None,
             'open': open,
             'close': last,
