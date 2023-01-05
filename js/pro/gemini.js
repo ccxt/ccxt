@@ -637,10 +637,9 @@ module.exports = class gemini extends geminiRest {
         const urlParamsIndex = url.indexOf ('?');
         const urlLength = url.length;
         const endIndex = (urlParamsIndex >= 0) ? urlParamsIndex : urlLength;
-        const request = url.slice (startIndex, endIndex);
-        const payload = {
+        const request = url.slice (startIndex, endIndex); const payload = {
             'request': request,
-            'nonce': this.seconds (),
+            'nonce': this.nonce (),
         };
         const b64 = this.stringToBase64 (this.encode (this.json (payload)));
         const signature = this.hmac (b64, this.encode (this.secret), 'sha384', 'hex');

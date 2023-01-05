@@ -259,6 +259,7 @@ module.exports = class gemini extends Exchange {
                     'DOGE': 'dogecoin',
                     'XTZ': 'tezos',
                 },
+                'nonce': 'milliseconds', // if getting a Network 400 error change to seconds
             },
         });
     }
@@ -1417,7 +1418,8 @@ module.exports = class gemini extends Exchange {
     }
 
     nonce () {
-        return this.milliseconds ();
+        const nonceMethod = this.safeString (this.options, 'nonce', 'milliseconds');
+        return this[nonceMethod] ();
     }
 
     async fetchTransactions (code = undefined, since = undefined, limit = undefined, params = {}) {
