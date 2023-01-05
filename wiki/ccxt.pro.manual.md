@@ -383,6 +383,47 @@ echo 'Supported exchanges: ', json_encode(\ccxt\pro\Exchange::$exchanges), "\n";
 
 The imported CCXT Pro module wraps the CCXT inside itself – every exchange instantiated via CCXT Pro has all the CCXT methods as well as the additional functionality.
 
+### Rate Limit
+When `enableRateLimit` is true, ccxt.pro implements a rate limit for creating new connections and an individual rate limit for sending messages on each websocket url.
+
+You can set the rate limits in the exchange options as shown below:
+
+```Javascript
+    'options': {
+        'ws': {
+            'rateLimits': {
+                'default': {  // set default rate limit for all rate limits
+                    'rateLimit': 50,
+                },
+                'newConnections': {  // set the rate limit for new websocket connections
+                    'rateLimit': 50,
+                },
+                'wss://stream.binance.com:9443/ws/bnbbtc@depth': {  // set the rate limit for a specific url
+                    'rateLimit': 50,
+                }
+            }
+        }
+    }
+```
+If you want an even more specific control over the rate limt use the `tokenBucket` option instead of `rateLimit` as shown below:
+
+```Javascript
+    'options': {
+        'ws': {
+            'rateLimits': {
+                'default': {
+                    'tokenBucket': {  // use tokenBucket instead of rateLimit to specify rate limit details
+                        'delay': 0.001,
+                        'capacity': 1,
+                        'cost': 1,
+                        'maxCapacity': 1000,
+                        'refillRate': 0.05,
+                    }
+                }
+            }
+        }
+    }
+```
 ## Instantiation
 
 CCXT Pro is designed for async/await style syntax and relies heavily on async primitives such as *promises* and *futures*.
