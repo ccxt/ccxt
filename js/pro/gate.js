@@ -179,8 +179,6 @@ module.exports = class gate extends gateRest {
         const messageHash = 'orderbook:' + symbol;
         const storedOrderBook = this.safeValue (this.orderbooks, symbol);
         const nonce = this.safeInteger (storedOrderBook, 'nonce');
-        //console.log (nonce, deltaStart, deltaEnd)
-        console.log (delta)
         if (nonce === undefined) {
             const cacheLength = storedOrderBook.cache.length;
             if (cacheLength === 0) {
@@ -211,7 +209,7 @@ module.exports = class gate extends gateRest {
             const delta = cache[i];
             const deltaStart = this.safeInteger (delta, 'U');
             const deltaEnd = this.safeInteger (delta, 'u');
-            if ((nonce > deltaStart) && (nonce < deltaEnd)) {
+            if ((nonce >= deltaStart - 1) && (nonce < deltaEnd)) {
                 return i;
             }
         }
