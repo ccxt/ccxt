@@ -1,14 +1,11 @@
-'use strict';
-
 //  ---------------------------------------------------------------------------
 
-const btcexRest = require ('../btcex');
-const { NotSupported, ExchangeError, ArgumentsRequired } = require ('../base/errors');
-const { ArrayCache, ArrayCacheBySymbolById, ArrayCacheByTimestamp } = require ('./base/Cache');
-
+import btcexRest from '../btcex.js';
+import { NotSupported, ExchangeError, ArgumentsRequired } from '../base/errors.js';
+import { ArrayCache, ArrayCacheBySymbolById, ArrayCacheByTimestamp } from '../base/ws/Cache.js';
 //  ---------------------------------------------------------------------------
 
-module.exports = class btcex extends btcexRest {
+export default class btcex extends btcexRest {
     describe () {
         return this.deepExtend (super.describe (), {
             'has': {
@@ -793,4 +790,4 @@ module.exports = class btcex extends btcexRest {
     ping (client) {
         return 'PING';
     }
-};
+}

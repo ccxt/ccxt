@@ -1377,7 +1377,7 @@ export default class Exchange {
         }
     }
 
-    handleDelta(bookside, delta) {
+    handleDelta(bookside, delta, nonce = undefined) {
         //stub
     }
 
@@ -1405,7 +1405,7 @@ export default class Exchange {
         }
     }
 
-    handleDeltas (orderbook, deltas) {
+    handleDeltas (orderbook, deltas, nonce = undefined) {
         for (let i = 0; i < deltas.length; i++) {
             this.handleDelta (orderbook, deltas[i]);
         }

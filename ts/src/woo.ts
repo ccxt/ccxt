@@ -805,7 +805,7 @@ export default class woo extends Exchange {
         if (amount !== undefined) {
             request['quantity'] = this.amountToPrecision (symbol, amount);
         }
-        const response = await this.v3PrivatePutOrderOid (this.extend (request, params));
+        const response = await (this as any).v3PrivatePutOrderOid (this.extend (request, params));
         //
         //     {
         //         "code": 0,
