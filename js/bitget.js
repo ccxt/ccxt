@@ -865,7 +865,7 @@ module.exports = class bitget extends Exchange {
                     'SYSCOIN': 'SYS', // SyscoinNEVM is different
                     'SOLAR': 'Solar',
                     'SYMBOL': 'Symbol',
-                    'THEOPENNETWORK': 'TON',
+                    'TON': 'TON',
                     'TRX': 'TRX',
                     'TRC20': 'TRC20',
                     'THUNDERCORE': 'TT',
