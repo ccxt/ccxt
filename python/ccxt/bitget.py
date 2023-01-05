@@ -804,10 +804,7 @@ class bitget(Exchange):
                 'defaultType': 'spot',  # 'spot', 'swap'
                 'defaultSubType': 'linear',  # 'linear', 'inverse'
                 'createMarketBuyOrderRequiresPrice': True,
-                'broker': {
-                    'spot': 'CCXT#',
-                    'swap': 'CCXT#',
-                },
+                'broker': 'p4sve',
                 'withdraw': {
                     'fillResponseFromRequest': True,
                 },
@@ -2194,13 +2191,7 @@ class bitget(Exchange):
             raise ExchangeError(self.id + ' createOrder() params can only contain one of triggerPrice, stopLossPrice, takeProfitPrice')
         if (type == 'limit') and (triggerPrice is None):
             request['price'] = self.price_to_precision(symbol, price)
-        clientOrderId = self.safe_string_2(params, 'client_oid', 'clientOrderId')
-        if clientOrderId is None:
-            broker = self.safe_value(self.options, 'broker')
-            if broker is not None:
-                brokerId = self.safe_string(broker, market['type'])
-                if brokerId is not None:
-                    clientOrderId = brokerId + self.uuid22()
+        clientOrderId = self.safe_string_2(params, 'clientOid', 'clientOrderId')
         method = self.get_supported_mapping(marketType, {
             'spot': 'privateSpotPostTradeOrders',
             'swap': 'privateMixPostOrderPlaceOrder',
@@ -2221,14 +2212,16 @@ class bitget(Exchange):
                     request['quantity'] = self.price_to_precision(symbol, cost)
             else:
                 request['quantity'] = self.amount_to_precision(symbol, amount)
-            request['clientOrderId'] = clientOrderId
+            if clientOrderId is not None:
+                request['clientOrderId'] = clientOrderId
             request['side'] = side
             if postOnly:
                 request['force'] = 'post_only'
             else:
                 request['force'] = 'gtc'
         else:
-            request['clientOid'] = clientOrderId
+            if clientOrderId is not None:
+                request['clientOid'] = clientOrderId
             request['size'] = self.amount_to_precision(symbol, amount)
             if postOnly:
                 request['timeInForceValue'] = 'post_only'
@@ -3520,11 +3513,13 @@ class bitget(Exchange):
                     url += query
                     auth += query
             signature = self.hmac(self.encode(auth), self.encode(self.secret), hashlib.sha256, 'base64')
+            broker = self.safe_string(self.options, 'broker')
             headers = {
                 'ACCESS-KEY': self.apiKey,
                 'ACCESS-SIGN': signature,
                 'ACCESS-TIMESTAMP': timestamp,
                 'ACCESS-PASSPHRASE': self.password,
+                'X-CHANNEL-API-CODE': broker,
             }
             if method == 'POST':
                 headers['Content-Type'] = 'application/json'

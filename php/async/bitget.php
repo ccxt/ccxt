@@ -792,10 +792,7 @@ class bitget extends Exchange {
                 'defaultType' => 'spot', // 'spot', 'swap'
                 'defaultSubType' => 'linear', // 'linear', 'inverse'
                 'createMarketBuyOrderRequiresPrice' => true,
-                'broker' => array(
-                    'spot' => 'CCXT#',
-                    'swap' => 'CCXT#',
-                ),
+                'broker' => 'p4sve',
                 'withdraw' => array(
                     'fillResponseFromRequest' => true,
                 ),
@@ -2286,16 +2283,7 @@ class bitget extends Exchange {
             if (($type === 'limit') && ($triggerPrice === null)) {
                 $request['price'] = $this->price_to_precision($symbol, $price);
             }
-            $clientOrderId = $this->safe_string_2($params, 'client_oid', 'clientOrderId');
-            if ($clientOrderId === null) {
-                $broker = $this->safe_value($this->options, 'broker');
-                if ($broker !== null) {
-                    $brokerId = $this->safe_string($broker, $market['type']);
-                    if ($brokerId !== null) {
-                        $clientOrderId = $brokerId . $this->uuid22();
-                    }
-                }
-            }
+            $clientOrderId = $this->safe_string_2($params, 'clientOid', 'clientOrderId');
             $method = $this->get_supported_mapping($marketType, array(
                 'spot' => 'privateSpotPostTradeOrders',
                 'swap' => 'privateMixPostOrderPlaceOrder',
@@ -2319,7 +2307,9 @@ class bitget extends Exchange {
                 } else {
                     $request['quantity'] = $this->amount_to_precision($symbol, $amount);
                 }
-                $request['clientOrderId'] = $clientOrderId;
+                if ($clientOrderId !== null) {
+                    $request['clientOrderId'] = $clientOrderId;
+                }
                 $request['side'] = $side;
                 if ($postOnly) {
                     $request['force'] = 'post_only';
@@ -2327,7 +2317,9 @@ class bitget extends Exchange {
                     $request['force'] = 'gtc';
                 }
             } else {
-                $request['clientOid'] = $clientOrderId;
+                if ($clientOrderId !== null) {
+                    $request['clientOid'] = $clientOrderId;
+                }
                 $request['size'] = $this->amount_to_precision($symbol, $amount);
                 if ($postOnly) {
                     $request['timeInForceValue'] = 'post_only';
@@ -3754,11 +3746,13 @@ class bitget extends Exchange {
                 }
             }
             $signature = $this->hmac($this->encode($auth), $this->encode($this->secret), 'sha256', 'base64');
+            $broker = $this->safe_string($this->options, 'broker');
             $headers = array(
                 'ACCESS-KEY' => $this->apiKey,
                 'ACCESS-SIGN' => $signature,
                 'ACCESS-TIMESTAMP' => $timestamp,
                 'ACCESS-PASSPHRASE' => $this->password,
+                'X-CHANNEL-API-CODE' => $broker,
             );
             if ($method === 'POST') {
                 $headers['Content-Type'] = 'application/json';
