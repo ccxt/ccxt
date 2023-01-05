@@ -599,13 +599,18 @@ class btcex extends \ccxt\async\btcex {
         $storedOrderBook = $this->safe_value($this->orderbooks, $symbol);
         $nonce = $this->safe_integer($storedOrderBook, 'nonce');
         $deltaNonce = $this->safe_integer($data, 'change_id');
+        $messageHash = 'orderbook:' . $symbol;
         if ($nonce === null) {
+            $cacheLength = count($storedOrderBook->cache);
+            if ($cacheLength === 0) {
+                $limit = 0;
+                $this->spawn(array($this, 'load_order_book'), $client, $messageHash, $symbol, $limit);
+            }
             $storedOrderBook->cache[] = $data;
             return;
         } elseif ($deltaNonce <= $nonce) {
             return;
         }
-        $messageHash = 'orderbook:' . $symbol;
         $timestamp = $this->safe_integer($data, 'timestamp');
         $this->handle_delta($storedOrderBook, $data);
         $storedOrderBook['timestamp'] = $timestamp;
@@ -615,26 +620,22 @@ class btcex extends \ccxt\async\btcex {
     }
 
     public function get_cache_index($orderBook, $cache) {
+        $firstElement = $cache[0];
+        $lastChangeId = $this->safe_integer($firstElement, 'change_id');
         $nonce = $this->safe_integer($orderBook, 'nonce');
-        $lastChangeId = null;
+        if ($nonce < $lastChangeId - 1) {
+            return -1;
+        }
         for ($i = 0; $i < count($cache); $i++) {
             $delta = $cache[$i];
             $lastChangeId = $this->safe_integer($delta, 'change_id');
-            if ($lastChangeId === $nonce + 1) {
+            if ($nonce === $lastChangeId - 1) {
                 // $nonce is inside the $cache
                 // array( d, d, n, d )
                 return $i;
             }
         }
-        if ($lastChangeId <= $nonce) {
-            // $nonce is in front of the $cache
-            // array( d, d, d, ---, n )
-            return count($cache);
-        } else {
-            // $nonce is behind the $cache
-            // array( n, ---, d, d, d )
-            return -1;
-        }
+        return count($cache);
     }
 
     public function handle_delta($orderbook, $delta) {
@@ -723,10 +724,7 @@ class btcex extends \ccxt\async\btcex {
             if ($channel === 'book') {
                 $symbol = $this->safe_symbol($marketId, null, '-');
                 $this->orderbooks[$symbol] = $this->order_book(array());
-                $messageHash = 'orderbook:' . $symbol;
                 // get full depth book
-                $limit = 0;
-                $this->spawn(array($this, 'load_order_book'), $client, $messageHash, $symbol, $limit);
             }
         }
     }

@@ -553,12 +553,16 @@ class btcex(Exchange, ccxt.async_support.btcex):
         storedOrderBook = self.safe_value(self.orderbooks, symbol)
         nonce = self.safe_integer(storedOrderBook, 'nonce')
         deltaNonce = self.safe_integer(data, 'change_id')
+        messageHash = 'orderbook:' + symbol
         if nonce is None:
+            cacheLength = len(storedOrderBook.cache)
+            if cacheLength == 0:
+                limit = 0
+                self.spawn(self.load_order_book, client, messageHash, symbol, limit)
             storedOrderBook.cache.append(data)
             return
         elif deltaNonce <= nonce:
             return
-        messageHash = 'orderbook:' + symbol
         timestamp = self.safe_integer(data, 'timestamp')
         self.handle_delta(storedOrderBook, data)
         storedOrderBook['timestamp'] = timestamp
@@ -567,23 +571,19 @@ class btcex(Exchange, ccxt.async_support.btcex):
         client.resolve(storedOrderBook, messageHash)
 
     def get_cache_index(self, orderBook, cache):
+        firstElement = cache[0]
+        lastChangeId = self.safe_integer(firstElement, 'change_id')
         nonce = self.safe_integer(orderBook, 'nonce')
-        lastChangeId = None
+        if nonce < lastChangeId - 1:
+            return -1
         for i in range(0, len(cache)):
             delta = cache[i]
             lastChangeId = self.safe_integer(delta, 'change_id')
-            if lastChangeId == nonce + 1:
+            if nonce == lastChangeId - 1:
                 # nonce is inside the cache
                 # [d, d, n, d]
                 return i
-        if lastChangeId <= nonce:
-            # nonce is in front of the cache
-            # [d, d, d, ---, n]
-            return len(cache)
-        else:
-            # nonce is behind the cache
-            # [n, ---, d, d, d]
-            return -1
+        return len(cache)
 
     def handle_delta(self, orderbook, delta):
         bids = self.safe_value(delta, 'bids', [])
@@ -664,10 +664,7 @@ class btcex(Exchange, ccxt.async_support.btcex):
             if channel == 'book':
                 symbol = self.safe_symbol(marketId, None, '-')
                 self.orderbooks[symbol] = self.order_book({})
-                messageHash = 'orderbook:' + symbol
                 # get full depth book
-                limit = 0
-                self.spawn(self.load_order_book, client, messageHash, symbol, limit)
 
     def handle_pong(self, client, message):
         client.lastPong = self.milliseconds()

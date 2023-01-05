@@ -638,7 +638,7 @@ class kucoin(Exchange):
             # quoteIncrement = self.safe_number(market, 'quoteIncrement')
             ticker = self.safe_value(tickersByMarketId, id, {})
             makerFeeRate = self.safe_string(ticker, 'makerFeeRate')
-            takerFeeRate = self.safe_string(ticker, 'makerFeeRate')
+            takerFeeRate = self.safe_string(ticker, 'takerFeeRate')
             makerCoefficient = self.safe_string(ticker, 'makerCoefficient')
             takerCoefficient = self.safe_string(ticker, 'takerCoefficient')
             result.append({
