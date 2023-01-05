@@ -45,6 +45,7 @@ class kucoinfutures(kucoin):
                 'cancelOrder': True,
                 'createDepositAddress': True,
                 'createOrder': True,
+                'createReduceOnlyOrder': True,
                 'createStopLimitOrder': True,
                 'createStopMarketOrder': True,
                 'createStopOrder': True,
@@ -978,6 +979,7 @@ class kucoinfutures(kucoin):
     def create_order(self, symbol, type, side, amount, price=None, params={}):
         """
         Create an order on the exchange
+        see https://docs.kucoin.com/futures/#place-an-order
         :param str symbol: Unified CCXT market symbol
         :param str type: 'limit' or 'market'
         :param str side: 'buy' or 'sell'
@@ -985,14 +987,17 @@ class kucoinfutures(kucoin):
         :param float price: *ignored in "market" orders* the price at which the order is to be fullfilled at in units of the quote currency
         :param dict params:  Extra parameters specific to the exchange API endpoint
         :param float params['leverage']: Leverage size of the order
-        :param float params['stopPrice']: The price at which a trigger order is triggered at
+        :param float params['stopPrice']: The price a stop order is triggered at
+        :param float params['triggerPrice']: price to trigger stop orders
+        :param float params['stopLossPrice']: price to trigger stop-loss orders
+        :param float params['takeProfitPrice']: price to trigger take-profit orders
+        :param str params['stop']: 'up' or 'down', the direction the stopPrice is triggered from, requires stopPrice
+        :param str params['stopPriceType']:  TP, IP or MP, defaults to MP: Mark Price
         :param bool params['reduceOnly']: A mark to reduce the position size only. Set to False by default. Need to set the position size when reduceOnly is True.
         :param str params['timeInForce']: GTC, GTT, IOC, or FOK, default is GTC, limit orders only
         :param str params['postOnly']: Post only flag, invalid when timeInForce is IOC or FOK
         :param str params['clientOid']: client order id, defaults to uuid if not passed
         :param str params['remark']: remark for the order, length cannot exceed 100 utf8 characters
-        :param str params['stop']: 'up' or 'down', defaults to 'up' if side is sell and 'down' if side is buy, requires stopPrice
-        :param str params['stopPriceType']:  TP, IP or MP, defaults to TP
         :param bool params['closeOrder']: set to True to close position
         :param bool params['forceHold']: A mark to forcely hold the funds for an order, even though it's an order to reduce the position size. This helps the order stay on the order book and not get canceled when the position size changes. Set to False by default.
         :returns dict: an `order structure <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
@@ -1014,11 +1019,28 @@ class kucoinfutures(kucoin):
             'leverage': 1,
         }
         stopPrice = self.safe_value_2(params, 'triggerPrice', 'stopPrice')
+        stopLossPrice = self.safe_value(params, 'stopLossPrice')
+        takeProfitPrice = self.safe_value(params, 'takeProfitPrice')
+        isStopLoss = stopLossPrice is not None
+        isTakeProfit = takeProfitPrice is not None
+        stop = self.safe_string(params, 'stop')
+        stopPriceType = self.safe_string(params, 'stopPriceType', 'MP')
         if stopPrice:
-            request['stop'] = 'up' if (side == 'buy') else 'down'
-            stopPriceType = self.safe_string(params, 'stopPriceType', 'TP')
-            request['stopPriceType'] = stopPriceType
+            if stop is None:
+                request['stop'] = 'down' if (side == 'buy') else 'up'
             request['stopPrice'] = self.price_to_precision(symbol, stopPrice)
+            request['stopPriceType'] = stopPriceType
+        elif isStopLoss or isTakeProfit:
+            if isStopLoss:
+                if stop is None:
+                    request['stop'] = 'up' if (side == 'buy') else 'down'
+                request['stopPrice'] = self.price_to_precision(symbol, stopLossPrice)
+            else:
+                if stop is None:
+                    request['stop'] = 'down' if (side == 'buy') else 'up'
+                request['stopPrice'] = self.price_to_precision(symbol, takeProfitPrice)
+            request['reduceOnly'] = True
+            request['stopPriceType'] = stopPriceType
         uppercaseType = type.upper()
         timeInForce = self.safe_string_upper(params, 'timeInForce')
         if uppercaseType == 'LIMIT':
@@ -1037,7 +1059,7 @@ class kucoinfutures(kucoin):
             visibleSize = self.safe_value(params, 'visibleSize')
             if visibleSize is None:
                 raise ArgumentsRequired(self.id + ' createOrder() requires a visibleSize parameter for iceberg orders')
-        params = self.omit(params, ['timeInForce', 'stopPrice', 'triggerPrice'])  # Time in force only valid for limit orders, exchange error when gtc for market orders
+        params = self.omit(params, ['timeInForce', 'stop', 'stopPrice', 'stopPriceType', 'triggerPrice', 'stopLossPrice', 'takeProfitPrice'])  # Time in force only valid for limit orders, exchange error when gtc for market orders
         response = self.futuresPrivatePostOrders(self.extend(request, params))
         #
         #    {
