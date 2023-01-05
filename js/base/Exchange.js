@@ -1647,7 +1647,7 @@ module.exports = class Exchange {
                 'POLYGON': 'MATIC',
                 'COSMOS': 'ATOM',
                 'POLKADOT': 'DOT',
-                'TON': 'TON',
+                'ONTOLOGY': 'ONT',
                 'THORCHAIN': 'RUNE',
                 'ECASH': 'XEC',
                 'ZCASH': 'ZEC',
