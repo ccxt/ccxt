@@ -963,8 +963,8 @@ module.exports = class huobi extends Exchange {
                     'CYBERMILES': 'CMT',
                     'COSMOS': 'ATOM1',
                     'DASH': 'DASH',
-                    'AVALANCHEC': [ 'AVAXCCHAIN', 'C-CHAIN', 'CCHAIN', 'CCHAINERC20' ], // huobi has too many aliases for avax-c
-                    'AVALANCHEX': 'AVAX',
+                    'AVALANCHE_C': [ 'AVAXCCHAIN', 'C-CHAIN', 'CCHAIN', 'CCHAINERC20' ], // huobi has too many aliases for avax-c
+                    'AVALANCHE_X': 'AVAX',
                     'DOGECOIN': 'DOGE',
                     'DECRED': 'DCR',
                     'DIGIBYTE': 'DGB',
