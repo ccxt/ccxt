@@ -92,168 +92,28 @@ module.exports = class gate extends gateRest {
         const market = this.market (symbol);
         symbol = market['symbol'];
         const marketId = market['id'];
-        const options = this.safeValue (this.options, 'watchOrderBook', {});
-        const defaultLimit = this.safeInteger (options, 'limit', 20);
-        if (!limit) {
-            limit = defaultLimit;
-        }
-        const defaultInterval = this.safeString (options, 'interval', '100ms');
-        const interval = this.safeString (params, 'interval', defaultInterval);
+        const [ interval, query ] = this.handleOptionAndParams (params, 'watchOrderBook', 'interval', '100ms');
         const type = market['type'];
         const messageType = this.getUniformType (type);
-        const method = messageType + '.' + 'order_book_update';
-        const messageHash = method + ':' + market['symbol'];
-        const url = this.getUrlByMarketType (type, market['inverse']);
-        const payload = [ marketId, interval ];
-        if (type !== 'spot') {
-            // contract pairs require limit in the payload
-            const stringLimit = limit.toString ();
-            payload.push (stringLimit);
-        }
-        const subscriptionParams = {
-            'method': this.handleOrderBookSubscription,
+        const channel = messageType + '.order_book_update';
+        const messageHash = 'orderbook' + ':' + symbol;
+        const url = this.getUrlByMarket (market);
+        const payload = [ marketId, interval, '100' ];
+        const subscription = {
             'symbol': symbol,
-            'limit': limit,
+            'messageHash': messageHash,
         };
-        const orderbook = await this.subscribePublic (url, method, messageHash, payload, subscriptionParams);
+        const orderbook = await this.subscribePublic (url, messageHash, payload, channel, subscription, query);
         return orderbook.limit ();
     }
 
     handleOrderBookSubscription (client, message, subscription) {
         const symbol = this.safeString (subscription, 'symbol');
-        const limit = this.safeInteger (subscription, 'limit');
-        if (symbol in this.orderbooks) {
-            delete this.orderbooks[symbol];
-        }
-        this.orderbooks[symbol] = this.orderBook ({}, limit);
-        const options = this.safeValue (this.options, 'handleOrderBookSubscription', {});
-        const fetchOrderBookSnapshot = this.safeValue (options, 'fetchOrderBookSnapshot', false);
-        if (fetchOrderBookSnapshot) {
-            const fetchingOrderBookSnapshot = 'fetchingOrderBookSnapshot';
-            subscription[fetchingOrderBookSnapshot] = true;
-            const messageHash = subscription['messageHash'];
-            client.subscriptions[messageHash] = subscription;
-            this.spawn (this.fetchOrderBookSnapshot, client, message, subscription);
-        }
-    }
-
-    async fetchOrderBookSnapshot (client, message, subscription) {
-        const symbol = this.safeString (subscription, 'symbol');
-        const limit = this.safeInteger (subscription, 'limit');
-        const messageHash = this.safeString (subscription, 'messageHash');
-        try {
-            const snapshot = await this.fetchOrderBook (symbol, limit);
-            const orderbook = this.orderbooks[symbol];
-            const messages = orderbook.cache;
-            const firstMessage = this.safeValue (messages, 0, {});
-            const result = this.safeValue (firstMessage, 'result');
-            const seqNum = this.safeInteger (result, 'U');
-            const nonce = this.safeInteger (snapshot, 'nonce');
-            // if the received snapshot is earlier than the first cached delta
-            // then we cannot align it with the cached deltas and we need to
-            // retry synchronizing in maxAttempts
-            if ((seqNum === undefined) || (nonce < seqNum)) {
-                const maxAttempts = this.safeInteger (this.options, 'maxOrderBookSyncAttempts', 3);
-                let numAttempts = this.safeInteger (subscription, 'numAttempts', 0);
-                // retry to synchronize if we haven't reached maxAttempts yet
-                if (numAttempts < maxAttempts) {
-                    // safety guard
-                    if (messageHash in client.subscriptions) {
-                        numAttempts = this.sum (numAttempts, 1);
-                        subscription['numAttempts'] = numAttempts;
-                        client.subscriptions[messageHash] = subscription;
-                        this.spawn (this.fetchOrderBookSnapshot, client, message, subscription);
-                    }
-                } else {
-                    // throw upon failing to synchronize in maxAttempts
-                    delete client.subscriptions[messageHash];
-                    throw new InvalidNonce (this.id + ' failed to synchronize WebSocket feed with the snapshot for symbol ' + symbol + ' in ' + maxAttempts.toString () + ' attempts');
-                }
-            } else {
-                orderbook.reset (snapshot);
-                // unroll the accumulated deltas
-                for (let i = 0; i < messages.length; i++) {
-                    const message = messages[i];
-                    this.handleOrderBookMessage (client, message, orderbook);
-                }
-                this.orderbooks[symbol] = orderbook;
-                client.resolve (orderbook, messageHash);
-            }
-        } catch (e) {
-            client.reject (e, messageHash);
-        }
+        const messageHash = this.safeValue (subscription, 'messageHash');
+        this.orderbooks[symbol] = this.orderBook ({});
     }
 
     handleOrderBook (client, message) {
-        //
-        //     {
-        //         "time":1649770575,
-        //         "channel":"spot.order_book_update",
-        //         "event":"update",
-        //         "result":{
-        //             "t":1649770575537,
-        //             "e":"depthUpdate",
-        //             "E":1649770575,
-        //             "s":"LTC_USDT",
-        //             "U":2622528153,
-        //             "u":2622528265,
-        //             "b":[
-        //                 ["104.18","3.9398"],
-        //                 ["104.56","19.0603"],
-        //                 ["104.94","0"],
-        //                 ["103.72","0"],
-        //                 ["105.01","52.6186"],
-        //                 ["104.76","0"],
-        //                 ["104.97","0"],
-        //                 ["104.71","0"],
-        //                 ["104.84","25.8604"],
-        //                 ["104.51","47.6508"],
-        //             ],
-        //             "a":[
-        //                 ["105.26","40.5519"],
-        //                 ["106.08","35.4396"],
-        //                 ["105.2","0"],
-        //                 ["105.45","8.5834"],
-        //                 ["105.5","20.17"],
-        //                 ["105.11","54.8359"],
-        //                 ["105.52","28.5605"],
-        //                 ["105.27","6.6325"],
-        //                 ["105.3","4.291446"],
-        //                 ["106.03","9.712"],
-        //             ]
-        //         }
-        //     }
-        //
-        const channel = this.safeString (message, 'channel');
-        const channelParts = channel.split ('.');
-        const rawMarketType = this.safeString (channelParts, 0);
-        const marketType = (rawMarketType === 'spot') ? 'spot' : 'contract';
-        const result = this.safeValue (message, 'result');
-        const marketId = this.safeString (result, 's');
-        const symbol = this.safeSymbol (marketId, undefined, '_', marketType);
-        let orderbook = this.safeValue (this.orderbooks, symbol);
-        if (orderbook === undefined) {
-            orderbook = this.orderBook ({});
-            this.orderbooks[symbol] = orderbook;
-        }
-        const messageHash = channel + ':' + symbol;
-        const subscription = this.safeValue (client.subscriptions, messageHash, {});
-        const fetchingOrderBookSnapshot = 'fetchingOrderBookSnapshot';
-        const isFetchingOrderBookSnapshot = this.safeValue (subscription, fetchingOrderBookSnapshot, false);
-        if (!isFetchingOrderBookSnapshot) {
-            subscription[fetchingOrderBookSnapshot] = true;
-            client.subscriptions[messageHash] = subscription;
-            this.spawn (this.fetchOrderBookSnapshot, client, message, subscription);
-        }
-        if (orderbook['nonce'] === undefined) {
-            orderbook.cache.push (message);
-        } else {
-            const messageHash = channel + ':' + symbol;
-            this.handleOrderBookMessage (client, message, orderbook, messageHash);
-        }
-    }
-
-    handleOrderBookMessage (client, message, orderbook, messageHash = undefined) {
         //
         // spot
         //
@@ -307,47 +167,82 @@ module.exports = class gate extends gateRest {
         //         }
         //     }
         //
-        const result = this.safeValue (message, 'result');
-        const seqNum = this.safeInteger (result, 'u');
-        const nonce = orderbook['nonce'];
-        // we can't use the prevSeqNum (U) here because it is not consistent
-        // with the previous message sometimes so if the current seqNum
-        // is 2 in the next message might be 3 or 4... so it is not safe to use
-        if (seqNum >= nonce) {
-            const asks = this.safeValue (result, 'a', []);
-            const bids = this.safeValue (result, 'b', []);
-            this.handleDeltas (orderbook['asks'], asks);
-            this.handleDeltas (orderbook['bids'], bids);
-            orderbook['nonce'] = seqNum;
-            const timestamp = this.safeInteger (result, 't');
-            orderbook['timestamp'] = timestamp;
-            orderbook['datetime'] = this.iso8601 (timestamp);
-            if (messageHash !== undefined) {
-                client.resolve (orderbook, messageHash);
+        const channel = this.safeString (message, 'channel');
+        const channelParts = channel.split ('.');
+        const rawMarketType = this.safeString (channelParts, 0);
+        const marketType = (rawMarketType === 'spot') ? 'spot' : 'contract';
+        const delta = this.safeValue (message, 'result');
+        const deltaStart = this.safeInteger (delta, 'U');
+        const deltaEnd = this.safeInteger (delta, 'u');
+        const marketId = this.safeString (delta, 's');
+        const symbol = this.safeSymbol (marketId, undefined, '_', marketType);
+        const messageHash = 'orderbook:' + symbol;
+        const storedOrderBook = this.safeValue (this.orderbooks, symbol);
+        const nonce = this.safeInteger (storedOrderBook, 'nonce');
+        //console.log (nonce, deltaStart, deltaEnd)
+        console.log (delta)
+        if (nonce === undefined) {
+            const cacheLength = storedOrderBook.cache.length;
+            if (cacheLength === 0) {
+                // max limit is 100
+                this.spawn (this.loadOrderBook, client, messageHash, symbol, 100);
+            }
+            storedOrderBook.cache.push (delta);
+            return;
+        } else if (nonce >= deltaEnd) {
+            console.log ('skipping')
+            return;
+        } else if (nonce >= deltaStart - 1) {
+            this.handleDelta (storedOrderBook, delta);
+        } else {
+            client.reject (new InvalidNonce (this.id + ' orderbook update has a nonce bigger than u'), messageHash);
+        }
+        client.resolve (storedOrderBook, messageHash);
+    }
+
+    getCacheIndex (orderBook, cache) {
+        const nonce = this.safeInteger (orderBook, 'nonce');
+        const firstDelta = cache[0];
+        const firstDeltaStart = this.safeInteger (firstDelta, 'U');
+        if (nonce < firstDeltaStart) {
+            return -1;
+        }
+        for (let i = 0; i < cache.length; i++) {
+            const delta = cache[i];
+            const deltaStart = this.safeInteger (delta, 'U');
+            const deltaEnd = this.safeInteger (delta, 'u');
+            if ((nonce > deltaStart) && (nonce < deltaEnd)) {
+                return i;
             }
         }
-        return orderbook;
+        console.log ('returning length!')
+        return cache.length;
     }
 
-    handleDelta (bookside, delta) {
-        let price = undefined;
-        let amount = undefined;
-        if (Array.isArray (delta)) {
-            // spot
-            price = this.safeFloat (delta, 0);
-            amount = this.safeFloat (delta, 1);
-        } else {
-            // swap
-            price = this.safeFloat (delta, 'p');
-            amount = this.safeFloat (delta, 's');
+    handleBidAsks (bookSide, bidAsks) {
+        for (let i = 0; i < bidAsks.length; i++) {
+            const bidAsk = bidAsks[i];
+            if (Array.isArray (bidAsk)) {
+                bookSide.storeArray (bidAsks[i]);
+            } else {
+                const price = this.safeFloat (bidAsk, 'p');
+                const amount = this.safeFloat (bidAsk, 's');
+                bookSide.store (price, amount);
+            }
         }
-        bookside.store (price, amount);
     }
 
-    handleDeltas (bookside, deltas) {
-        for (let i = 0; i < deltas.length; i++) {
-            this.handleDelta (bookside, deltas[i]);
-        }
+    handleDelta (orderbook, delta) {
+        const timestamp = this.safeInteger (delta, 't');
+        orderbook['timestamp'] = timestamp;
+        orderbook['datetime'] = this.iso8601 (timestamp);
+        orderbook['nonce'] = this.safeInteger (delta, 'u');
+        const bids = this.safeValue (delta, 'b', []);
+        const asks = this.safeValue (delta, 'a', []);
+        const storedBids = orderbook['bids'];
+        const storedAsks = orderbook['asks'];
+        this.handleBidAsks (storedBids, bids);
+        this.handleBidAsks (storedAsks, asks);
     }
 
     async watchTicker (symbol, params = {}) {
@@ -1084,8 +979,18 @@ module.exports = class gate extends gateRest {
 
     handleSubscriptionStatus (client, message) {
         const channel = this.safeString (message, 'channel', '');
-        if (channel.indexOf ('balance') >= 0) {
-            this.handleBalanceSubscription (client, message);
+        const methods = {
+            'balance': this.handleBalanceSubscription,
+            'order_book': this.handleOrderBookSubscription,
+        };
+        const keys = Object.keys (methods);
+        for (let i = 0; i < keys.length; i++) {
+            const key = keys[i];
+            if (channel.indexOf (key) >= 0) {
+                const method = methods[key];
+                const subscription = client.subscriptions[channel];
+                method.call (this, client, message, subscription);
+            }
         }
     }
 
@@ -1206,12 +1111,21 @@ module.exports = class gate extends gateRest {
 
     getUniformType (type) {
         let uniformType = 'spot';
-        if (type === 'future' || type === 'swap') {
+        if ((type === 'future') || (type === 'swap')) {
             uniformType = 'futures';
         } else if (type === 'option') {
             uniformType = 'options';
         }
         return uniformType;
+    }
+
+    getUrlByMarket (market) {
+        const baseUrl = this.urls['api'][market['type']];
+        if (market['contract']) {
+            return market['linear'] ? baseUrl['usdt'] : baseUrl['btc'];
+        } else {
+            return baseUrl;
+        }
     }
 
     getUrlByMarketType (type, isInverse = false) {
@@ -1242,22 +1156,18 @@ module.exports = class gate extends gateRest {
         return reqid;
     }
 
-    async subscribePublic (url, channel, messageHash, payload, subscriptionParams = {}) {
+    async subscribePublic (url, messageHash, payload, subscriptionHash, subscription, params = {}) {
         const requestId = this.requestId ();
         const time = this.seconds ();
         const request = {
             'id': requestId,
             'time': time,
-            'channel': channel,
+            'channel': subscriptionHash,
             'event': 'subscribe',
             'payload': payload,
         };
-        let subscription = {
-            'id': requestId,
-            'messageHash': messageHash,
-        };
-        subscription = this.extend (subscription, subscriptionParams);
-        return await this.watch (url, messageHash, request, messageHash, subscription);
+        const message = this.extend (request, params);
+        return await this.watch (url, messageHash, message, subscriptionHash, subscription);
     }
 
     async subscribePrivate (url, channel, messageHash, payload = undefined, requiresUid = false) {
