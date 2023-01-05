@@ -59,6 +59,7 @@ module.exports = class gate extends gateRest {
                 },
                 'watchOrderBook': {
                     'interval': '100ms',
+                    'snapshotDelay': 10,
                 },
                 'watchBalance': {
                     'settle': 'usdt', // or btc
@@ -188,7 +189,8 @@ module.exports = class gate extends gateRest {
         const nonce = this.safeInteger (storedOrderBook, 'nonce');
         if (nonce === undefined) {
             const cacheLength = storedOrderBook.cache.length;
-            const waitAmount = isSpot ? 10 : 0;
+            const snapshotDelay = this.handleOption ('watchOrderBook', 'snapshotDelay', 10);
+            const waitAmount = isSpot ? snapshotDelay : 0;
             if (cacheLength === waitAmount) {
                 // max limit is 100
                 const subscription = client.subscriptions[channel];
@@ -223,7 +225,6 @@ module.exports = class gate extends gateRest {
                 return i;
             }
         }
-        console.log ('returning length!')
         return cache.length;
     }
 
