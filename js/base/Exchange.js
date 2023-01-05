@@ -928,6 +928,7 @@ module.exports = class Exchange {
         this.symbols = Object.keys (marketsSortedBySymbol);
         this.ids = Object.keys (marketsSortedById);
         if (currencies !== undefined) {
+            // currencies is always undefined when called in constructor but not when called from loadMarkets
             this.currencies = this.deepExtend (this.currencies, currencies);
         } else {
             let baseCurrencies = [];
