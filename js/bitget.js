@@ -784,10 +784,7 @@ module.exports = class bitget extends Exchange {
                 'defaultType': 'spot', // 'spot', 'swap'
                 'defaultSubType': 'linear', // 'linear', 'inverse'
                 'createMarketBuyOrderRequiresPrice': true,
-                'broker': {
-                    'spot': 'CCXT#',
-                    'swap': 'CCXT#',
-                },
+                'broker': 'CCXT',
                 'withdraw': {
                     'fillResponseFromRequest': true,
                 },
@@ -2277,16 +2274,7 @@ module.exports = class bitget extends Exchange {
         if ((type === 'limit') && (triggerPrice === undefined)) {
             request['price'] = this.priceToPrecision (symbol, price);
         }
-        let clientOrderId = this.safeString2 (params, 'client_oid', 'clientOrderId');
-        if (clientOrderId === undefined) {
-            const broker = this.safeValue (this.options, 'broker');
-            if (broker !== undefined) {
-                const brokerId = this.safeString (broker, market['type']);
-                if (brokerId !== undefined) {
-                    clientOrderId = brokerId + this.uuid22 ();
-                }
-            }
-        }
+        const clientOrderId = this.safeString2 (params, 'clientOid', 'clientOrderId');
         let method = this.getSupportedMapping (marketType, {
             'spot': 'privateSpotPostTradeOrders',
             'swap': 'privateMixPostOrderPlaceOrder',
@@ -2310,7 +2298,9 @@ module.exports = class bitget extends Exchange {
             } else {
                 request['quantity'] = this.amountToPrecision (symbol, amount);
             }
-            request['clientOrderId'] = clientOrderId;
+            if (clientOrderId !== undefined) {
+                request['clientOrderId'] = clientOrderId;
+            }
             request['side'] = side;
             if (postOnly) {
                 request['force'] = 'post_only';
@@ -2318,7 +2308,9 @@ module.exports = class bitget extends Exchange {
                 request['force'] = 'gtc';
             }
         } else {
-            request['clientOid'] = clientOrderId;
+            if (clientOrderId !== undefined) {
+                request['clientOid'] = clientOrderId;
+            }
             request['size'] = this.amountToPrecision (symbol, amount);
             if (postOnly) {
                 request['timeInForceValue'] = 'post_only';
@@ -3742,11 +3734,13 @@ module.exports = class bitget extends Exchange {
                 }
             }
             const signature = this.hmac (this.encode (auth), this.encode (this.secret), 'sha256', 'base64');
+            const broker = this.safeString (this.options, 'broker');
             headers = {
                 'ACCESS-KEY': this.apiKey,
                 'ACCESS-SIGN': signature,
                 'ACCESS-TIMESTAMP': timestamp,
                 'ACCESS-PASSPHRASE': this.password,
+                'X-CHANNEL-API-CODE': broker,
             };
             if (method === 'POST') {
                 headers['Content-Type'] = 'application/json';
