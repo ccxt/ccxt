@@ -116,14 +116,14 @@ module.exports = class bitstamp extends bitstampRest {
             return;
         }
         this.handleDelta (storedOrderBook, delta);
-        const timestamp = this.safeTimestamp (delta, 'timestamp');
-        storedOrderBook['timestamp'] = timestamp;
-        storedOrderBook['datetime'] = this.iso8601 (timestamp);
-        storedOrderBook['nonce'] = this.safeInteger (delta, 'microtimestamp');
         client.resolve (storedOrderBook, messageHash);
     }
 
     handleDelta (orderbook, delta) {
+        const timestamp = this.safeTimestamp (delta, 'timestamp');
+        orderbook['timestamp'] = timestamp;
+        orderbook['datetime'] = this.iso8601 (timestamp);
+        orderbook['nonce'] = this.safeInteger (delta, 'microtimestamp');
         const bids = this.safeValue (delta, 'bids', []);
         const asks = this.safeValue (delta, 'asks', []);
         const storedBids = orderbook['bids'];
