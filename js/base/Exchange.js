@@ -351,6 +351,13 @@ module.exports = class Exchange {
         }
         // init the request rate limiter
         this.initRestRateLimiter ()
+
+        // TEALSTREET
+        this._loadMarketsPromise = new Promise((resolve, reject) => {
+            this._loadMarketsResolve = resolve;
+            this._loadMarketsReject = reject;
+        })
+
         // init predefined markets if any
         if (this.markets) {
             this.setMarkets (this.markets)
@@ -615,10 +622,17 @@ module.exports = class Exchange {
         return this.quoteJsonNumbers ? responseBody.replace (/":([+.0-9eE-]+)([,}])/g, '":"$1"$2') : responseBody;
     }
 
+    // TEALSTREET
+    setMarketsAndResolve(markets, currencies = undefined) {
+        this.setMarkets (markets, currencies);
+        this._loadMarketsResolve && this._loadMarketsResolve()
+        return this.markets;
+    }
+
     async loadMarketsHelper (reload = false, params = {}) {
         if (!reload && this.markets) {
             if (!this.markets_by_id) {
-                return this.setMarkets (this.markets)
+                return this.setMarketsAndResolve (this.markets)
             }
             return this.markets
         }
@@ -628,7 +642,7 @@ module.exports = class Exchange {
             currencies = await this.fetchCurrencies ()
         }
         const markets = await this.fetchMarkets (params)
-        return this.setMarkets (markets, currencies)
+        return this.setMarketsAndResolve (markets, currencies)
     }
 
     loadMarkets (reload = false, params = {}) {
@@ -643,7 +657,7 @@ module.exports = class Exchange {
                 throw error
             })
         }
-        return this.marketsLoading
+        return this._loadMarketsPromise
     }
 
     fetchCurrencies (params = {}) {
