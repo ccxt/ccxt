@@ -2124,7 +2124,7 @@ class bitget extends Exchange {
             $code = $this->safe_currency_code($currencyId);
             $account = $this->account();
             $frozen = $this->safe_string($entry, 'frozen');
-            $locked = $this->safe_string($entry, 'lock');
+            $locked = $this->safe_string_2($entry, 'lock', 'locked');
             $account['used'] = Precise::string_add($frozen, $locked);
             $account['free'] = $this->safe_string($entry, 'available');
             $result[$code] = $account;

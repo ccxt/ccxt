@@ -2113,7 +2113,7 @@ export default class bitget extends Exchange {
             const code = this.safeCurrencyCode (currencyId);
             const account = this.account ();
             const frozen = this.safeString (entry, 'frozen');
-            const locked = this.safeString (entry, 'lock');
+            const locked = this.safeString2 (entry, 'lock', 'locked');
             account['used'] = Precise.stringAdd (frozen, locked);
             account['free'] = this.safeString (entry, 'available');
             result[code] = account;
