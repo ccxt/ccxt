@@ -1386,7 +1386,7 @@ module.exports = class binance extends Exchange {
 
     isLinear (type, subType = undefined) {
         if (subType === undefined) {
-            return type === 'future';
+            return (type === 'future') || (type === 'swap');
         } else {
             return subType === 'linear';
         }
