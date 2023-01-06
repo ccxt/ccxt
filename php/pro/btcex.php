@@ -34,6 +34,9 @@ class btcex extends \ccxt\async\btcex {
                 ),
             ),
             'options' => array(
+                'watchOrderBook' => array(
+                    'snapshotDelay' => 0,
+                ),
             ),
             'streaming' => array(
                 'ping' => array($this, 'ping'),
@@ -602,7 +605,8 @@ class btcex extends \ccxt\async\btcex {
         $messageHash = 'orderbook:' . $symbol;
         if ($nonce === null) {
             $cacheLength = count($storedOrderBook->cache);
-            if ($cacheLength === 0) {
+            $snapshotDelay = $this->handle_option('watchOrderBook', 'snapshotDelay', 0);
+            if ($cacheLength === $snapshotDelay) {
                 $limit = 0;
                 $this->spawn(array($this, 'load_order_book'), $client, $messageHash, $symbol, $limit);
             }
@@ -611,11 +615,7 @@ class btcex extends \ccxt\async\btcex {
         } elseif ($deltaNonce <= $nonce) {
             return;
         }
-        $timestamp = $this->safe_integer($data, 'timestamp');
         $this->handle_delta($storedOrderBook, $data);
-        $storedOrderBook['timestamp'] = $timestamp;
-        $storedOrderBook['datetime'] = $this->iso8601($timestamp);
-        $storedOrderBook['nonce'] = $deltaNonce;
         $client->resolve ($storedOrderBook, $messageHash);
     }
 
@@ -639,6 +639,10 @@ class btcex extends \ccxt\async\btcex {
     }
 
     public function handle_delta($orderbook, $delta) {
+        $timestamp = $this->safe_integer($delta, 'timestamp');
+        $orderbook['timestamp'] = $timestamp;
+        $orderbook['datetime'] = $this->iso8601($timestamp);
+        $orderbook['nonce'] = $this->safe_integer($delta, 'change_id');
         $bids = $this->safe_value($delta, 'bids', array());
         $asks = $this->safe_value($delta, 'asks', array());
         $storedBids = $orderbook['bids'];

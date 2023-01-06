@@ -34,7 +34,7 @@ class bitstamp extends \ccxt\async\bitstamp {
                 'userId' => '',
                 'wsSessionToken' => '',
                 'watchOrderBook' => array(
-                    'type' => 'order_book', // detail_order_book, diff_order_book
+                    'snapshotDelay' => 6,
                 ),
                 'tradesLimit' => 1000,
                 'OHLCVLimit' => 1000,
@@ -81,7 +81,7 @@ class bitstamp extends \ccxt\async\bitstamp {
         //
         //     {
         //         data => array(
-        //             $timestamp => '1583656800',
+        //             timestamp => '1583656800',
         //             microtimestamp => '1583656800237527',
         //             bids => [
         //                 ["8732.02", "0.00002478", "1207590500704256"],
@@ -111,7 +111,8 @@ class bitstamp extends \ccxt\async\bitstamp {
             $cacheLength = count($storedOrderBook->cache);
             // the rest API is very delayed
             // usually it takes at least 4-5 deltas to resolve
-            if ($cacheLength === 6) {
+            $snapshotDelay = $this->handle_option('watchOrderBook', 'snapshotDelay', 6);
+            if ($cacheLength === $snapshotDelay) {
                 $this->spawn(array($this, 'load_order_book'), $client, $messageHash, $symbol);
             }
             $storedOrderBook->cache[] = $delta;
@@ -120,14 +121,14 @@ class bitstamp extends \ccxt\async\bitstamp {
             return;
         }
         $this->handle_delta($storedOrderBook, $delta);
-        $timestamp = $this->safe_timestamp($delta, 'timestamp');
-        $storedOrderBook['timestamp'] = $timestamp;
-        $storedOrderBook['datetime'] = $this->iso8601($timestamp);
-        $storedOrderBook['nonce'] = $this->safe_integer($delta, 'microtimestamp');
         $client->resolve ($storedOrderBook, $messageHash);
     }
 
     public function handle_delta($orderbook, $delta) {
+        $timestamp = $this->safe_timestamp($delta, 'timestamp');
+        $orderbook['timestamp'] = $timestamp;
+        $orderbook['datetime'] = $this->iso8601($timestamp);
+        $orderbook['nonce'] = $this->safe_integer($delta, 'microtimestamp');
         $bids = $this->safe_value($delta, 'bids', array());
         $asks = $this->safe_value($delta, 'asks', array());
         $storedBids = $orderbook['bids'];
