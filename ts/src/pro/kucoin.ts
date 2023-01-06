@@ -467,7 +467,7 @@ export default class kucoin extends kucoinRest {
         }
     }
 
-    handleDeltas (bookside, deltas, nonce) {
+    handleDeltas (bookside, deltas, nonce = undefined) {
         for (let i = 0; i < deltas.length; i++) {
             this.handleDelta (bookside, deltas[i], nonce);
         }
