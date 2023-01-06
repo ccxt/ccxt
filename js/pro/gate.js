@@ -103,7 +103,8 @@ module.exports = class gate extends gateRest {
             limit = 100;
         }
         if (market['contract']) {
-            payload.push (limit.toString ());
+            const stringLimit = limit.toString ();
+            payload.push (stringLimit);
         }
         const subscription = {
             'symbol': symbol,
