@@ -19,7 +19,7 @@ module.exports = class gemini extends Exchange {
             // 120 requests a minute = 2 requests per second => ( 1000ms / rateLimit ) / 2 = 5 (public endpoints)
             'rateLimit': 100,
             'version': 'v1',
-            'pro': false,
+            'pro': true,
             'has': {
                 'CORS': undefined,
                 'spot': true,
@@ -259,6 +259,7 @@ module.exports = class gemini extends Exchange {
                     'DOGE': 'dogecoin',
                     'XTZ': 'tezos',
                 },
+                'nonce': 'milliseconds', // if getting a Network 400 error change to seconds
             },
         });
     }
@@ -1418,7 +1419,11 @@ module.exports = class gemini extends Exchange {
     }
 
     nonce () {
-        return this.milliseconds ();
+        const nonceMethod = this.safeString (this.options, 'nonce', 'milliseconds');
+        if (nonceMethod === 'milliseconds') {
+            return this.milliseconds ();
+        }
+        return this.seconds ();
     }
 
     async fetchTransactions (code = undefined, since = undefined, limit = undefined, params = {}) {
@@ -1647,8 +1652,9 @@ module.exports = class gemini extends Exchange {
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
+        const timeframeId = this.safeString (this.timeframes, timeframe, timeframe);
         const request = {
-            'timeframe': this.timeframes[timeframe],
+            'timeframe': timeframeId,
             'symbol': market['id'],
         };
         const response = await this.publicGetV2CandlesSymbolTimeframe (this.extend (request, params));
