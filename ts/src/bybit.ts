@@ -6446,7 +6446,7 @@ export default class bybit extends Exchange {
                 'symbol': market['id'],
                 'leverage': leverage,
             };
-            method = 'privatePostOptionUsdcOpenapiPrivateV1PositionSetLeverage';
+            method = 'privatePostPerpetualUsdcOpenapiPrivateV1PositionLeverageSave';
         }
         return await this[method] (this.extend (request, params));
     }
