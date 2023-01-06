@@ -41,6 +41,8 @@ module.exports = class hitbtc3 extends Exchange {
                 'fetchCurrencies': true,
                 'fetchDepositAddress': true,
                 'fetchDeposits': true,
+                'fetchDepositWithdrawFee': 'emulated',
+                'fetchDepositWithdrawFees': true,
                 'fetchFundingHistory': undefined,
                 'fetchFundingRate': true,
                 'fetchFundingRateHistory': true,
@@ -76,8 +78,6 @@ module.exports = class hitbtc3 extends Exchange {
                 'setPositionMode': false,
                 'transfer': true,
                 'withdraw': true,
-                'fetchDepositWithdrawFees': true,
-                'fetchDepositWithdrawFee': 'emulated',
             },
             'precisionMode': TICK_SIZE,
             'urls': {
