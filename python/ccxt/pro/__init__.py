@@ -4,7 +4,7 @@
 
 # ----------------------------------------------------------------------------
 
-__version__ = '2.5.43'
+__version__ = '2.5.44'
 
 # ----------------------------------------------------------------------------
 
@@ -44,6 +44,7 @@ from ccxt.pro.deribit import deribit                                      # noqa
 from ccxt.pro.exmo import exmo                                            # noqa: F401
 from ccxt.pro.gate import gate                                            # noqa: F401
 from ccxt.pro.gateio import gateio                                        # noqa: F401
+from ccxt.pro.gemini import gemini                                        # noqa: F401
 from ccxt.pro.hitbtc import hitbtc                                        # noqa: F401
 from ccxt.pro.hollaex import hollaex                                      # noqa: F401
 from ccxt.pro.huobi import huobi                                          # noqa: F401
@@ -98,6 +99,7 @@ exchanges = [
     'exmo',
     'gate',
     'gateio',
+    'gemini',
     'hitbtc',
     'hollaex',
     'huobi',
