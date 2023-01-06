@@ -203,7 +203,8 @@ module.exports = class gate extends gateRest {
         } else if (nonce >= deltaStart - 1) {
             this.handleDelta (storedOrderBook, delta);
         } else {
-            client.reject (new InvalidNonce (this.id + ' orderbook update has a nonce bigger than u'), messageHash);
+            const error = new InvalidNonce (this.id + ' orderbook update has a nonce bigger than u');
+            client.reject (error, messageHash);
         }
         client.resolve (storedOrderBook, messageHash);
     }
