@@ -15,7 +15,7 @@ module.exports = class gate extends gateRest {
                 'ws': true,
                 'watchOrderBook': true,
                 'watchTicker': true,
-                'watchTickers': false, // for now
+                'watchTickers': true, // for now
                 'watchTrades': true,
                 'watchMyTrades': true,
                 'watchOHLCV': true,
@@ -59,7 +59,7 @@ module.exports = class gate extends gateRest {
                 },
                 'watchOrderBook': {
                     'interval': '100ms',
-                    'snapshotDelay': 10,
+                    'snapshotDelay': 10, // how many deltas to cache before fetching a snapshot
                 },
                 'watchBalance': {
                     'settle': 'usdt', // or btc
@@ -94,8 +94,7 @@ module.exports = class gate extends gateRest {
         symbol = market['symbol'];
         const marketId = market['id'];
         const [ interval, query ] = this.handleOptionAndParams (params, 'watchOrderBook', 'interval', '100ms');
-        const type = market['type'];
-        const messageType = this.getUniformType (type);
+        const messageType = this.getTypeByMarket (market);
         const channel = messageType + '.order_book_update';
         const messageHash = 'orderbook' + ':' + symbol;
         const url = this.getUrlByMarket (market);
@@ -265,16 +264,15 @@ module.exports = class gate extends gateRest {
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
+        symbol = market['symbol'];
         const marketId = market['id'];
-        const type = market['type'];
-        const messageType = this.getUniformType (type);
-        const options = this.safeValue (this.options, 'watchTicker', {});
-        const topic = this.safeString (options, 'name', 'tickers');
+        const url = this.getUrlByMarket (market);
+        const messageType = this.getTypeByMarket (market);
+        const [ topic, query ] = this.handleOptionAndParams (params, 'watchTicker', 'method', 'tickers');
         const channel = messageType + '.' + topic;
-        const messageHash = channel + '.' + market['symbol'];
+        const messageHash = 'ticker:' + symbol;
         const payload = [ marketId ];
-        const url = this.getUrlByMarketType (type, market['inverse']);
-        return await this.subscribePublic (url, channel, messageHash, payload);
+        return await this.subscribePublic (url, messageHash, payload, channel, undefined, query);
     }
 
     async watchTickers (symbols = undefined, params = {}) {
@@ -351,7 +349,6 @@ module.exports = class gate extends gateRest {
         //        }
         //    }
         //
-        const channel = this.safeString (message, 'channel');
         let result = this.safeValue (message, 'result');
         if (!Array.isArray (result)) {
             result = [ result ];
@@ -361,8 +358,8 @@ module.exports = class gate extends gateRest {
             const parsed = this.parseTicker (ticker);
             const symbol = parsed['symbol'];
             this.tickers[symbol] = parsed;
-            const messageHash = channel + '.' + symbol;
-            client.resolve (this.tickers[symbol], messageHash);
+            const messageHash = 'ticker:' + symbol;
+            client.resolve (parsed, messageHash);
             client.resolve (parsed, 'tickers');
         }
     }
@@ -382,16 +379,12 @@ module.exports = class gate extends gateRest {
         const market = this.market (symbol);
         symbol = market['symbol'];
         const marketId = market['id'];
-        const type = market['type'];
-        const messageType = this.getUniformType (type);
-        const method = messageType + '.trades';
-        let messageHash = method;
-        if (symbol !== undefined) {
-            messageHash += ':' + market['symbol'];
-        }
-        const url = this.getUrlByMarketType (type, market['inverse']);
+        const messageType = this.getTypeByMarket (market);
+        const channel = messageType + '.trades';
+        const messageHash = 'trades:' + symbol;
+        const url = this.getUrlByMarket (market);
         const payload = [ marketId ];
-        const trades = await this.subscribePublic (url, method, messageHash, payload);
+        const trades = await this.subscribePublic (url, messageHash, payload, channel, undefined, params);
         if (this.newUpdates) {
             limit = trades.getLimit (symbol, limit);
         }
@@ -415,7 +408,6 @@ module.exports = class gate extends gateRest {
         //     }]
         // }
         //
-        const channel = this.safeString (message, 'channel');
         let result = this.safeValue (message, 'result');
         if (!Array.isArray (result)) {
             result = [ result ];
@@ -437,11 +429,11 @@ module.exports = class gate extends gateRest {
         const keys = Object.keys (marketIds);
         for (let i = 0; i < keys.length; i++) {
             const symbol = keys[i];
-            const hash = channel + ':' + symbol;
+            const hash = 'trades:' + symbol;
             const stored = this.safeValue (this.trades, symbol);
             client.resolve (stored, hash);
         }
-        client.resolve (this.trades, channel);
+        //client.resolve (this.trades, 'trades');
     }
 
     async watchOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
@@ -460,14 +452,13 @@ module.exports = class gate extends gateRest {
         const market = this.market (symbol);
         symbol = market['symbol'];
         const marketId = market['id'];
-        const type = market['type'];
         const interval = this.timeframes[timeframe];
-        const messageType = this.getUniformType (type);
-        const method = messageType + '.candlesticks';
-        const messageHash = method + ':' + interval + ':' + market['symbol'];
-        const url = this.getUrlByMarketType (type, market['inverse']);
+        const messageType = this.getTypeByMarket (market);
+        const channel = messageType + '.candlesticks';
+        const messageHash = 'candles:' + interval + ':' + market['symbol'];
+        const url = this.getUrlByMarket (market);
         const payload = [ interval, marketId ];
-        const ohlcv = await this.subscribePublic (url, method, messageHash, payload);
+        const ohlcv = await this.subscribePublic (url, messageHash, payload, channel, undefined, params);
         if (this.newUpdates) {
             limit = ohlcv.getLimit (symbol, limit);
         }
@@ -496,8 +487,7 @@ module.exports = class gate extends gateRest {
         const rawMarketType = this.safeString (channelParts, 0);
         const marketType = (rawMarketType === 'spot') ? 'spot' : 'contract';
         let result = this.safeValue (message, 'result');
-        const isArray = Array.isArray (result);
-        if (!isArray) {
+        if (!Array.isArray (result)) {
             result = [ result ];
         }
         const marketIds = {};
@@ -523,8 +513,8 @@ module.exports = class gate extends gateRest {
         for (let i = 0; i < keys.length; i++) {
             const symbol = keys[i];
             const timeframe = marketIds[symbol];
-            const interval = this.timeframes[timeframe];
-            const hash = channel + ':' + interval + ':' + symbol;
+            const interval = this.findTimeframe (timeframe);
+            const hash = 'candles' + ':' + interval + ':' + symbol;
             const stored = this.safeValue (this.ohlcvs, symbol);
             client.resolve (stored, hash);
         }
@@ -1134,6 +1124,16 @@ module.exports = class gate extends gateRest {
             return market['linear'] ? baseUrl['usdt'] : baseUrl['btc'];
         } else {
             return baseUrl;
+        }
+    }
+
+    getTypeByMarket (market) {
+        if (market['spot']) {
+            return 'spot';
+        } else if (market['option']) {
+            return 'options';
+        } else {
+            return 'futures';
         }
     }
 
