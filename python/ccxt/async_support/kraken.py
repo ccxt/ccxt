@@ -1370,6 +1370,7 @@ class kraken(Exchange):
             'side': side,
             'price': price,
             'stopPrice': stopPrice,
+            'triggerPrice': stopPrice,
             'cost': None,
             'amount': amount,
             'filled': filled,

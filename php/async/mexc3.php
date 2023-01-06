@@ -2770,6 +2770,7 @@ class mexc3 extends Exchange {
             'side' => $this->parse_order_side($this->safe_string($order, 'side')),
             'price' => $this->safe_number($order, 'price'),
             'stopPrice' => $this->safe_number_2($order, 'stopPrice', 'triggerPrice'),
+            'triggerPrice' => $this->safe_number_2($order, 'stopPrice', 'triggerPrice'),
             'average' => $this->safe_number($order, 'dealAvgPrice'),
             'amount' => $this->safe_number_2($order, 'origQty', 'vol'),
             'cost' => $this->safe_number($order, 'cummulativeQuoteQty'),  // 'cummulativeQuoteQty' vs 'origQuoteOrderQty'
@@ -4885,6 +4886,7 @@ class mexc3 extends Exchange {
                     'ApiKey' => $this->apiKey,
                     'Request-Time' => $timestamp,
                     'Content-Type' => 'application/json',
+                    'source' => $this->safe_string($this->options, 'broker', 'CCXT'),
                 );
                 if ($method === 'POST') {
                     $auth = $this->json($params);

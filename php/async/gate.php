@@ -1487,7 +1487,7 @@ class gate extends Exchange {
         //    }
         //
         $marketId = $this->safe_string($contract, 'name');
-        $symbol = $this->safe_symbol($marketId, $market);
+        $symbol = $this->safe_symbol($marketId, $market, '_', 'swap');
         $markPrice = $this->safe_number($contract, 'mark_price');
         $indexPrice = $this->safe_number($contract, 'index_price');
         $interestRate = $this->safe_number($contract, 'interest_rate');
@@ -2111,7 +2111,8 @@ class gate extends Exchange {
         //     }
         //
         $marketId = $this->safe_string_n($ticker, array( 'currency_pair', 'contract', 's' ));
-        $symbol = $this->safe_symbol($marketId, $market);
+        $marketType = (is_array($ticker) && array_key_exists('contract', $ticker)) ? 'contract' : 'spot';
+        $symbol = $this->safe_symbol($marketId, $market, '_', $marketType);
         $last = $this->safe_string($ticker, 'last');
         $ask = $this->safe_string_2($ticker, 'lowest_ask', 'a');
         $bid = $this->safe_string_2($ticker, 'highest_bid', 'b');
@@ -2225,7 +2226,7 @@ class gate extends Exchange {
                 'future' => 'privateDeliveryGetSettleAccounts',
             ));
             $response = Async\await($this->$method (array_merge($request, $requestQuery)));
-            $contract = ($type === 'swap' || $type === 'future');
+            $contract = (($type === 'swap') || ($type === 'future'));
             if ($contract) {
                 $response = array( $response );
             }
@@ -2361,7 +2362,7 @@ class gate extends Exchange {
                 $entry = $data[$i];
                 if ($isolated) {
                     $marketId = $this->safe_string($entry, 'currency_pair');
-                    $symbol = $this->safe_symbol($marketId, null, '_');
+                    $symbol = $this->safe_symbol($marketId, null, '_', 'margin');
                     $base = $this->safe_value($entry, 'base', array());
                     $quote = $this->safe_value($entry, 'quote', array());
                     $baseCode = $this->safe_currency_code($this->safe_string($base, 'currency'));
@@ -3037,12 +3038,14 @@ class gate extends Exchange {
         $id = $this->safe_string($transaction, 'id');
         $type = null;
         $amount = $this->safe_string($transaction, 'amount');
-        if ($id[0] === 'b') {
-            // GateCode handling
-            $type = Precise::string_gt($amount, '0') ? 'deposit' : 'withdrawal';
-            $amount = Precise::string_abs($amount);
-        } elseif ($id !== null) {
-            $type = $this->parse_transaction_type($id[0]);
+        if ($id !== null) {
+            if ($id[0] === 'b') {
+                // GateCode handling
+                $type = Precise::string_gt($amount, '0') ? 'deposit' : 'withdrawal';
+                $amount = Precise::string_abs($amount);
+            } else {
+                $type = $this->parse_transaction_type($id[0]);
+            }
         }
         $currencyId = $this->safe_string($transaction, 'currency');
         $code = $this->safe_currency_code($currencyId);
@@ -3628,7 +3631,9 @@ class gate extends Exchange {
         if ($lastTradeTimestamp === null) {
             $lastTradeTimestamp = $this->safe_timestamp_2($order, 'update_time', 'finish_time');
         }
+        $marketType = (is_array($order) && array_key_exists('currency_pair', $order)) ? 'spot' : 'contract';
         $exchangeSymbol = $this->safe_string_2($order, 'currency_pair', 'market', $contract);
+        $symbol = $this->safe_symbol($exchangeSymbol, $market, '_', $marketType);
         // Everything below this(above return) is related to $fees
         $fees = array();
         $gtFee = $this->safe_string($order, 'gt_fee');
@@ -3662,7 +3667,7 @@ class gate extends Exchange {
             'datetime' => $this->iso8601($timestamp),
             'lastTradeTimestamp' => $lastTradeTimestamp,
             'status' => $status,
-            'symbol' => $this->safe_symbol($exchangeSymbol),
+            'symbol' => $symbol,
             'type' => $type,
             'timeInForce' => $timeInForce,
             'postOnly' => $postOnly,
@@ -3670,6 +3675,7 @@ class gate extends Exchange {
             'side' => $side,
             'price' => $this->parse_number($price),
             'stopPrice' => $this->safe_number($trigger, 'price'),
+            'triggerPrice' => $this->safe_number($trigger, 'price'),
             'average' => $average,
             'amount' => $this->parse_number(Precise::string_abs($amount)),
             'cost' => Precise::string_abs($cost),
@@ -4835,7 +4841,7 @@ class gate extends Exchange {
             'id' => $this->safe_integer($info, 'id'),
             'currency' => $this->safe_currency_code($currencyId, $currency),
             'amount' => $this->safe_number($info, 'amount'),
-            'symbol' => $this->safe_symbol($marketId, null),
+            'symbol' => $this->safe_symbol($marketId, null, '_', 'margin'),
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
             'info' => $info,

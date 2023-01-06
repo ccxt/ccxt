@@ -405,17 +405,14 @@ class digifinex extends Exchange {
             $withdraw = $withdrawStatus > 0;
             $active = $deposit && $withdraw;
             $feeString = $this->safe_string($currency, 'min_withdraw_fee'); // withdraw_fee_rate was zero for all currencies, so this was the worst case scenario
-            $fee = $this->parse_number($feeString);
             $minWithdrawString = $this->safe_string($currency, 'min_withdraw_amount');
-            $minWithdraw = $this->parse_number($minWithdrawString);
             $minDepositString = $this->safe_string($currency, 'min_deposit_amount');
-            $minDepositPrecisionLength = $this->precision_from_string($minDepositString);
-            // define $precision with temporary way
-            $feePrecisionLength = $this->precision_from_string($feeString);
-            $minWithdrawPrecisionLength = $this->precision_from_string($minWithdrawString);
             $minDeposit = $this->parse_number($minDepositString);
-            $maxFoundPrecision = max ($feePrecisionLength, max ($minWithdrawPrecisionLength, $minDepositPrecisionLength));
-            $precision = $this->parse_number($this->parse_precision($this->number_to_string($maxFoundPrecision)));
+            $minWithdraw = $this->parse_number($minWithdrawString);
+            $fee = $this->parse_number($feeString);
+            // define $precision with temporary way
+            $minFoundPrecision = Precise::string_min($feeString, Precise::string_min($minDepositString, $minWithdrawString));
+            $precision = $this->parse_number($minFoundPrecision);
             $networkId = $this->safe_string($currency, 'chain');
             $networkCode = $this->network_id_to_code($networkId);
             $network = array(
@@ -423,7 +420,7 @@ class digifinex extends Exchange {
                 'id' => $networkId,
                 'network' => $networkCode,
                 'active' => $active,
-                'fee' => $this->parse_number($feeString),
+                'fee' => $fee,
                 'precision' => $precision,
                 'deposit' => $deposit,
                 'withdraw' => $withdraw,
@@ -469,7 +466,7 @@ class digifinex extends Exchange {
                     'active' => $active,
                     'deposit' => $deposit,
                     'withdraw' => $withdraw,
-                    'fee' => $fee,
+                    'fee' => $this->parse_number($feeString),
                     'precision' => null,
                     'limits' => array(
                         'amount' => array(
@@ -1872,6 +1869,7 @@ class digifinex extends Exchange {
             'side' => $side,
             'price' => $this->safe_number($order, 'price'),
             'stopPrice' => null,
+            'triggerPrice' => null,
             'amount' => $this->safe_number_2($order, 'amount', 'size'),
             'filled' => $this->safe_number_2($order, 'executed_amount', 'filled_qty'),
             'remaining' => null,

@@ -1035,6 +1035,7 @@ class bitso(Exchange):
             'side': side,
             'price': price,
             'stopPrice': None,
+            'triggerPrice': None,
             'amount': amount,
             'cost': None,
             'remaining': remaining,

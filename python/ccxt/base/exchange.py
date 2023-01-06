@@ -4,7 +4,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '2.4.71'
+__version__ = '2.5.40'
 
 # -----------------------------------------------------------------------------
 
@@ -1433,8 +1433,16 @@ class Exchange(object):
             raise InvalidAddress(self.id + ' address is invalid or has less than ' + str(self.minFundingAddressLength) + ' characters: "' + str(address) + '"')
         return address
 
-    def precision_from_string(self, string):
-        parts = re.sub(r'0+$', '', string).split('.')
+    def precision_from_string(self, str):
+        # support string formats like '1e-4'
+        if 'e' in str:
+            numStr = re.sub(r'\de', '', str)
+            return int(numStr) * -1
+        # support integer formats (without dot) like '1', '10' etc [Note: bug in decimalToPrecision, so this should not be used atm]
+        # if not ('.' in str):
+        #     return len(str) * -1
+        # default strings like '0.0001'
+        parts = re.sub(r'0+$', '', str).split('.')
         return len(parts[1]) if len(parts) > 1 else 0
 
     def load_markets(self, reload=False, params={}):
@@ -2678,7 +2686,7 @@ class Exchange(object):
         for i in range(0, len(response)):
             item = response[i]
             id = self.safe_string(item, marketIdKey)
-            market = self.safe_market(id)
+            market = self.safe_market(id, None, None, self.safe_string(self.options, 'defaultType'))
             symbol = market['symbol']
             contract = self.safe_value(market, 'contract', False)
             if contract and ((symbols is None) or self.in_array(symbol, symbols)):
@@ -2875,7 +2883,7 @@ class Exchange(object):
             'code': code,
         }
 
-    def safe_market(self, marketId=None, market=None, delimiter=None, marketType='spot'):
+    def safe_market(self, marketId=None, market=None, delimiter=None, marketType=None):
         result = {
             'id': marketId,
             'symbol': marketId,
@@ -2927,6 +2935,8 @@ class Exchange(object):
                 if length == 1:
                     return markets[0]
                 else:
+                    if marketType is None:
+                        raise ArgumentsRequired(self.id + ' safeMarket() requires a fourth argument for ' + marketId + ' to disambiguate between different markets with the same market id')
                     for i in range(0, len(markets)):
                         market = markets[i]
                         if market[marketType]:
@@ -3037,15 +3047,17 @@ class Exchange(object):
         value = self.safe_string_2(params, optionName, defaultOptionName)
         if value is not None:
             params = self.omit(params, [optionName, defaultOptionName])
-        if value is None:
-            # check if exchange-wide method options contain the key
+        else:
+            # check if exchange has properties for self method
             exchangeWideMethodOptions = self.safe_value(self.options, methodName)
             if exchangeWideMethodOptions is not None:
+                # check if the option is defined in self method's props
                 value = self.safe_string_2(exchangeWideMethodOptions, optionName, defaultOptionName)
-        if value is None:
-            # check if exchange-wide options contain the key
-            value = self.safe_string_2(self.options, optionName, defaultOptionName)
-        value = value if (value is not None) else defaultValue
+            if value is None:
+                # if it's still None, check if global exchange-wide option exists
+                value = self.safe_string_2(self.options, optionName, defaultOptionName)
+            # if it's still None, use the default value
+            value = value if (value is not None) else defaultValue
         return [value, params]
 
     def handle_market_type_and_params(self, methodName, market=None, params={}):
@@ -3062,7 +3074,7 @@ class Exchange(object):
         params = self.omit(params, ['defaultType', 'type'])
         return [type, params]
 
-    def handle_sub_type_and_params(self, methodName, market=None, params={}, defaultValue='linear'):
+    def handle_sub_type_and_params(self, methodName, market=None, params={}, defaultValue=None):
         subType = None
         # if set in params, it takes precedence
         subTypeInParams = self.safe_string_2(params, 'subType', 'defaultSubType')
@@ -3208,14 +3220,12 @@ class Exchange(object):
     def market(self, symbol):
         if self.markets is None:
             raise ExchangeError(self.id + ' markets not loaded')
-        if self.markets_by_id is None:
-            raise ExchangeError(self.id + ' markets not loaded')
         if isinstance(symbol, str):
             if symbol in self.markets:
                 return self.markets[symbol]
             elif symbol in self.markets_by_id:
                 markets = self.markets_by_id[symbol]
-                defaultType = self.safe_string(self.options, 'defaultType', 'spot')
+                defaultType = self.safe_string_2(self.options, 'defaultType', 'defaultSubType', 'spot')
                 for i in range(0, len(markets)):
                     market = markets[i]
                     if market[defaultType]:
@@ -3422,8 +3432,8 @@ class Exchange(object):
         symbol = None if (market is None) else market['symbol']
         return self.filter_by_symbol_since_limit(sorted, symbol, since, limit)
 
-    def safe_symbol(self, marketId, market=None, delimiter=None):
-        market = self.safe_market(marketId, market, delimiter)
+    def safe_symbol(self, marketId, market=None, delimiter=None, marketType=None):
+        market = self.safe_market(marketId, market, delimiter, marketType)
         return market['symbol']
 
     def parse_funding_rate(self, contract, market=None):

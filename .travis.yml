@@ -3,7 +3,7 @@ dist: jammy
 python:
 - 3.8.3
 git:
-  depth: 1
+  depth: 2
 cache:
   directories:
   - ".cache"
@@ -26,29 +26,18 @@ before_install:
 - php --version
 - composer install
 script:
-- if [ "$TRAVIS_PULL_REQUEST" = "false" ] && [ "$TRAVIS_BRANCH" = "master" ]; then
-  npm config set git-tag-version=false && NPM_VERSION=$(npm version patch); fi
-- cp package.json README.md LICENSE.txt keys.json python
 - npm run force-build
-- cd python
-- tox -e doc
-- cd ..
-- ls "$VIRTUAL_ENV/lib/python3.8/site-packages/"
 - npm run test-base
 - npm run test-base-ws
 - pip list
-- node run-tests --js --python-async --php-async 5 2>&1 &
-- rest_pid=$!
-- node run-tests-ws --js --python-async --php-async 5 2>&1 &
-- ws_pid=$!
-- wait $rest_pid
-- wait $ws_pid
+- ./tests-manager.sh 2>&1
 - git checkout master composer.json
 - if [ "$TRAVIS_PULL_REQUEST" = "false" ] && [ "$TRAVIS_BRANCH" = "master" ]; then
-  env COMMIT_MESSAGE=${NPM_VERSION:1} GITHUB_TOKEN=${GITHUB_TOKEN} ./build/push.sh;
+    npm config set git-tag-version=false && NPM_VERSION=$(npm version patch);
+    npm run vss && npm run copy-python-files;
+    env COMMIT_MESSAGE=${NPM_VERSION:1} GITHUB_TOKEN=${GITHUB_TOKEN} ./build/push.sh;
+    cd python && env PYPI_TOKEN=${PYPI_TOKEN} ./deploy.sh && cd ..;
   fi
-- if [ "$TRAVIS_PULL_REQUEST" = "false" ] && [ "$TRAVIS_BRANCH" = "master" ]; then
-  cd python && env PYPI_TOKEN=${PYPI_TOKEN} ./deploy.sh && cd ..; fi
 after_failure:
 - dmesg | grep -i kill
 deploy:

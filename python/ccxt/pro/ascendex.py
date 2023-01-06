@@ -624,6 +624,7 @@ class ascendex(Exchange, ccxt.async_support.ascendex):
             'side': side,
             'price': price,
             'stopPrice': stopPrice,
+            'triggerPrice': stopPrice,
             'amount': amount,
             'cost': None,
             'average': average,

@@ -1867,7 +1867,7 @@ module.exports = class Exchange {
         for (let i = 0; i < response.length; i++) {
             const item = response[i];
             const id = this.safeString (item, marketIdKey);
-            const market = this.safeMarket (id);
+            const market = this.safeMarket (id, undefined, undefined, this.safeString (this.options, 'defaultType'));
             const symbol = market['symbol'];
             const contract = this.safeValue (market, 'contract', false);
             if (contract && ((symbols === undefined) || this.inArray (symbol, symbols))) {
@@ -2119,7 +2119,7 @@ module.exports = class Exchange {
         };
     }
 
-    safeMarket (marketId = undefined, market = undefined, delimiter = undefined, marketType = 'spot') {
+    safeMarket (marketId = undefined, market = undefined, delimiter = undefined, marketType = undefined) {
         const result = {
             'id': marketId,
             'symbol': marketId,
@@ -2171,6 +2171,9 @@ module.exports = class Exchange {
                 if (length === 1) {
                     return markets[0];
                 } else {
+                    if (marketType === undefined) {
+                        throw new ArgumentsRequired (this.id + ' safeMarket() requires a fourth argument for ' + marketId + ' to disambiguate between different markets with the same market id');
+                    }
                     for (let i = 0; i < markets.length; i++) {
                         const market = markets[i];
                         if (market[marketType]) {
@@ -2316,19 +2319,20 @@ module.exports = class Exchange {
         let value = this.safeString2 (params, optionName, defaultOptionName);
         if (value !== undefined) {
             params = this.omit (params, [ optionName, defaultOptionName ]);
-        }
-        if (value === undefined) {
-            // check if exchange-wide method options contain the key
+        } else {
+            // check if exchange has properties for this method
             const exchangeWideMethodOptions = this.safeValue (this.options, methodName);
             if (exchangeWideMethodOptions !== undefined) {
+                // check if the option is defined in this method's props
                 value = this.safeString2 (exchangeWideMethodOptions, optionName, defaultOptionName);
             }
+            if (value === undefined) {
+                // if it's still undefined, check if global exchange-wide option exists
+                value = this.safeString2 (this.options, optionName, defaultOptionName);
+            }
+            // if it's still undefined, use the default value
+            value = (value !== undefined) ? value : defaultValue;
         }
-        if (value === undefined) {
-            // check if exchange-wide options contain the key
-            value = this.safeString2 (this.options, optionName, defaultOptionName);
-        }
-        value = (value !== undefined) ? value : defaultValue;
         return [ value, params ];
     }
 
@@ -2349,7 +2353,7 @@ module.exports = class Exchange {
         return [ type, params ];
     }
 
-    handleSubTypeAndParams (methodName, market = undefined, params = {}, defaultValue = 'linear') {
+    handleSubTypeAndParams (methodName, market = undefined, params = {}, defaultValue = undefined) {
         let subType = undefined;
         // if set in params, it takes precedence
         const subTypeInParams = this.safeString2 (params, 'subType', 'defaultSubType');
@@ -2539,15 +2543,12 @@ module.exports = class Exchange {
         if (this.markets === undefined) {
             throw new ExchangeError (this.id + ' markets not loaded');
         }
-        if (this.markets_by_id === undefined) {
-            throw new ExchangeError (this.id + ' markets not loaded');
-        }
         if (typeof symbol === 'string') {
             if (symbol in this.markets) {
                 return this.markets[symbol];
             } else if (symbol in this.markets_by_id) {
                 const markets = this.markets_by_id[symbol];
-                const defaultType = this.safeString (this.options, 'defaultType', 'spot');
+                const defaultType = this.safeString2 (this.options, 'defaultType', 'defaultSubType', 'spot');
                 for (let i = 0; i < markets.length; i++) {
                     const market = markets[i];
                     if (market[defaultType]) {
@@ -2812,8 +2813,8 @@ module.exports = class Exchange {
         return this.filterBySymbolSinceLimit (sorted, symbol, since, limit);
     }
 
-    safeSymbol (marketId, market = undefined, delimiter = undefined) {
-        market = this.safeMarket (marketId, market, delimiter);
+    safeSymbol (marketId, market = undefined, delimiter = undefined, marketType = undefined) {
+        market = this.safeMarket (marketId, market, delimiter, marketType);
         return market['symbol'];
     }
 

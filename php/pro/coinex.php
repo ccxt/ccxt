@@ -878,6 +878,7 @@ class coinex extends \ccxt\async\coinex {
             'side' => $side,
             'price' => $this->safe_string($order, 'price'),
             'stopPrice' => $this->safe_string($order, 'stop_price'),
+            'triggerPrice' => $this->safe_string($order, 'stop_price'),
             'amount' => $amount,
             'filled' => $filled,
             'remaining' => $remaining,

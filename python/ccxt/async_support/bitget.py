@@ -45,7 +45,7 @@ class bitget(Exchange):
                 'spot': True,
                 'margin': False,
                 'swap': True,
-                'future': False,
+                'future': True,
                 'option': False,
                 'addMargin': True,
                 'cancelAllOrders': True,
@@ -805,15 +805,16 @@ class bitget(Exchange):
                 'defaultType': 'spot',  # 'spot', 'swap'
                 'defaultSubType': 'linear',  # 'linear', 'inverse'
                 'createMarketBuyOrderRequiresPrice': True,
-                'broker': {
-                    'spot': 'CCXT#',
-                    'swap': 'CCXT#',
-                },
+                'broker': 'p4sve',
                 'withdraw': {
                     'fillResponseFromRequest': True,
                 },
+                'sandboxMode': False,
             },
         })
+
+    def set_sandbox_mode(self, enabled):
+        self.options['sandboxMode'] = enabled
 
     async def fetch_time(self, params={}):
         """
@@ -838,13 +839,20 @@ class bitget(Exchange):
         :param dict params: extra parameters specific to the exchange api endpoint
         :returns [dict]: an array of objects representing market data
         """
+        sandboxMode = self.safe_value(self.options, 'sandboxMode', False)
         types = self.safe_value(self.options, 'fetchMarkets', ['spot', 'swap'])
+        if sandboxMode:
+            types = ['swap']
         promises = []
         for i in range(0, len(types)):
             type = types[i]
             if type == 'swap':
-                # the following are simulated trading markets ['sumcbl', 'sdmcbl', 'scmcbl']
-                subTypes = ['umcbl', 'dmcbl', 'cmcbl']
+                subTypes = None
+                if sandboxMode:
+                    # the following are simulated trading markets ['sumcbl', 'sdmcbl', 'scmcbl']
+                    subTypes = ['sumcbl', 'sdmcbl', 'scmcbl']
+                else:
+                    subTypes = ['umcbl', 'dmcbl', 'cmcbl']
                 for j in range(0, len(subTypes)):
                     promises.append(self.fetch_markets_by_type(type, self.extend(params, {
                         'productType': subTypes[j],
@@ -874,6 +882,7 @@ class bitget(Exchange):
         #        quoteCoin: 'USDT',
         #        minTradeAmount: '2',
         #        maxTradeAmount: '0',
+        #        minTradeUSDT": '5',
         #        takerFeeRate: '0.001',
         #        makerFeeRate: '0.001',
         #        priceScale: '4',
@@ -943,13 +952,8 @@ class bitget(Exchange):
                 swap = True
                 symbol = symbol + ':' + settle
             contract = True
-            sumcbl = (typeId == 'SUMCBL')
-            sdmcbl = (typeId == 'SDMCBL')
-            scmcbl = (typeId == 'SCMCBL')
-            linear = (typeId == 'UMCBL') or (typeId == 'CMCBL') or sumcbl or scmcbl
+            linear = (typeId == 'UMCBL') or (typeId == 'CMCBL') or (typeId == 'SUMCBL') or (typeId == 'SCMCBL')
             inverse = not linear
-            if sumcbl or sdmcbl or scmcbl:
-                symbol = marketId
             priceDecimals = self.safe_integer(market, 'pricePlace')
             amountDecimals = self.safe_integer(market, 'volumePlace')
             priceStep = self.safe_string(market, 'priceEndStep')
@@ -968,6 +972,9 @@ class bitget(Exchange):
         active = None
         if status is not None:
             active = status == 'online'
+        minCost = None
+        if quote == 'USDT':
+            minCost = self.safe_number(market, 'minTradeUSDT')
         return {
             'id': marketId,
             'symbol': symbol,
@@ -1004,15 +1011,15 @@ class bitget(Exchange):
                     'max': None,
                 },
                 'amount': {
-                    'min': self.safe_number(market, 'minTradeNum'),
-                    'max': None,
+                    'min': self.safe_number_2(market, 'minTradeNum', 'minTradeAmount'),
+                    'max': self.safe_number(market, 'maxTradeAmount'),
                 },
                 'price': {
                     'min': None,
                     'max': None,
                 },
                 'cost': {
-                    'min': None,
+                    'min': minCost,
                     'max': None,
                 },
             },
@@ -2118,7 +2125,7 @@ class bitget(Exchange):
         amount = self.safe_string_2(order, 'quantity', 'size')
         filled = self.safe_string_2(order, 'fillQuantity', 'filledQty')
         cost = self.safe_string_2(order, 'fillTotalAmount', 'filledAmount')
-        average = self.safe_string(order, 'fillPrice')
+        average = self.safe_string_2(order, 'fillPrice', 'priceAvg')
         type = self.safe_string(order, 'orderType')
         timestamp = self.safe_integer(order, 'cTime')
         side = self.safe_string_2(order, 'side', 'posSide')
@@ -2145,6 +2152,7 @@ class bitget(Exchange):
             'side': side,
             'price': price,
             'stopPrice': self.safe_number(order, 'triggerPrice'),
+            'triggerPrice': self.safe_number(order, 'triggerPrice'),
             'average': average,
             'cost': cost,
             'amount': amount,
@@ -2185,13 +2193,7 @@ class bitget(Exchange):
             raise ExchangeError(self.id + ' createOrder() params can only contain one of triggerPrice, stopLossPrice, takeProfitPrice')
         if (type == 'limit') and (triggerPrice is None):
             request['price'] = self.price_to_precision(symbol, price)
-        clientOrderId = self.safe_string_2(params, 'client_oid', 'clientOrderId')
-        if clientOrderId is None:
-            broker = self.safe_value(self.options, 'broker')
-            if broker is not None:
-                brokerId = self.safe_string(broker, market['type'])
-                if brokerId is not None:
-                    clientOrderId = brokerId + self.uuid22()
+        clientOrderId = self.safe_string_2(params, 'clientOid', 'clientOrderId')
         method = self.get_supported_mapping(marketType, {
             'spot': 'privateSpotPostTradeOrders',
             'swap': 'privateMixPostOrderPlaceOrder',
@@ -2212,14 +2214,16 @@ class bitget(Exchange):
                     request['quantity'] = self.price_to_precision(symbol, cost)
             else:
                 request['quantity'] = self.amount_to_precision(symbol, amount)
-            request['clientOrderId'] = clientOrderId
+            if clientOrderId is not None:
+                request['clientOrderId'] = clientOrderId
             request['side'] = side
             if postOnly:
                 request['force'] = 'post_only'
             else:
                 request['force'] = 'gtc'
         else:
-            request['clientOid'] = clientOrderId
+            if clientOrderId is not None:
+                request['clientOid'] = clientOrderId
             request['size'] = self.amount_to_precision(symbol, amount)
             if postOnly:
                 request['timeInForceValue'] = 'post_only'
@@ -3434,12 +3438,10 @@ class bitget(Exchange):
         #
         timestamp = self.safe_integer(interest, 'timestamp')
         id = self.safe_string(interest, 'symbol')
-        market = self.safe_market(id, market)
+        symbol = self.safe_symbol(id, market)
         amount = self.safe_number(interest, 'amount')
         return {
-            'symbol': self.safe_symbol(id),
-            'baseVolume': amount,  # deprecated
-            'quoteVolume': None,  # deprecated
+            'symbol': symbol,
             'openInterestAmount': amount,
             'openInterestValue': None,
             'timestamp': timestamp,
@@ -3513,11 +3515,13 @@ class bitget(Exchange):
                     url += query
                     auth += query
             signature = self.hmac(self.encode(auth), self.encode(self.secret), hashlib.sha256, 'base64')
+            broker = self.safe_string(self.options, 'broker')
             headers = {
                 'ACCESS-KEY': self.apiKey,
                 'ACCESS-SIGN': signature,
                 'ACCESS-TIMESTAMP': timestamp,
                 'ACCESS-PASSPHRASE': self.password,
+                'X-CHANNEL-API-CODE': broker,
             }
             if method == 'POST':
                 headers['Content-Type'] = 'application/json'

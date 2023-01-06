@@ -968,6 +968,7 @@ class coinbasepro(Exchange):
             'side': side,
             'price': price,
             'stopPrice': stopPrice,
+            'triggerPrice': stopPrice,
             'cost': cost,
             'amount': amount,
             'filled': filled,
@@ -1381,10 +1382,13 @@ class coinbasepro(Exchange):
     def fetch_transactions(self, code=None, since=None, limit=None, params={}):
         """
         fetch history of deposits and withdrawals
+        see https://docs.cloud.coinbase.com/exchange/reference/exchangerestapi_gettransfers
+        see https://docs.cloud.coinbase.com/exchange/reference/exchangerestapi_getaccounttransfers
         :param str|None code: unified currency code for the currency of the transactions, default is None
         :param int|None since: timestamp in ms of the earliest transaction, default is None
         :param int|None limit: max number of transactions to return, default is None
         :param dict params: extra parameters specific to the coinbasepro api endpoint
+        :param str|None params['id']: account id, when defined, the endpoint used is '/accounts/{account_id}/transfers/' instead of '/transfers/'
         :returns dict: a list of `transaction structure <https://docs.ccxt.com/en/latest/manual.html#transaction-structure>`
         """
         self.load_markets()
@@ -1407,6 +1411,34 @@ class coinbasepro(Exchange):
         response = None
         if id is None:
             response = self.privateGetTransfers(self.extend(request, params))
+            #
+            #    [
+            #        {
+            #            "id": "bee6fd7c-afb2-4e47-8298-671d09997d16",
+            #            "type": "deposit",
+            #            "created_at": "2022-12-21 00:48:45.477503+00",
+            #            "completed_at": null,
+            #            "account_id": "sal3802-36bd-46be-a7b8-alsjf383sldak",
+            #            "user_id": "6382048209f92as392039dlks2",
+            #            "amount": "0.01000000",
+            #            "details": {
+            #                "network": "litecoin",
+            #                "crypto_address": "MKemtnCFUYKsNWaf5EMYMpwSszcXWFDtTY",
+            #                "coinbase_account_id": "fl2b6925-f6ba-403n-jj03-40fl435n430f",
+            #                "coinbase_transaction_id": "63a25bb13cb5cf0001d2cf17",  # withdrawals only
+            #                "crypto_transaction_hash": "752f35570736341e2a253f7041a34cf1e196fc56128c900fd03d99da899d94c1",
+            #                "tx_service_transaction_id": "1873249104",
+            #                "coinbase_payment_method_id": ""
+            #            },
+            #            "canceled_at": null,
+            #            "processed_at": null,
+            #            "user_nonce": null,
+            #            "idem": "5e3201b0-e390-5k3k-a913-c32932049242",
+            #            "profile_id": "k3k302a8-c4dk-4f49-9d39-3203923wpk39",
+            #            "currency": "LTC"
+            #        }
+            #    ]
+            #
             for i in range(0, len(response)):
                 account_id = self.safe_string(response[i], 'account_id')
                 account = self.safe_value(self.accountsById, account_id)
@@ -1414,6 +1446,32 @@ class coinbasepro(Exchange):
                 response[i]['currency'] = code
         else:
             response = self.privateGetAccountsIdTransfers(self.extend(request, params))
+            #
+            #    [
+            #        {
+            #            "id": "bee6fd7c-afb2-4e47-8298-671d09997d16",
+            #            "type": "deposit",
+            #            "created_at": "2022-12-21 00:48:45.477503+00",
+            #            "completed_at": null,
+            #            "amount": "0.01000000",
+            #            "details": {
+            #                "network": "litecoin",
+            #                "crypto_address": "MKemtnCFUYKsNWaf5EMYMpwSszcXWFDtTY",
+            #                "coinbase_account_id": "fl2b6925-f6ba-403n-jj03-40fl435n430f",
+            #                "coinbase_transaction_id": "63a25bb13cb5cf0001d2cf17",  # withdrawals only
+            #                "crypto_transaction_hash": "752f35570736341e2a253f7041a34cf1e196fc56128c900fd03d99da899d94c1",
+            #                "tx_service_transaction_id": "1873249104",
+            #                "coinbase_payment_method_id": ""
+            #            },
+            #            "canceled_at": null,
+            #            "processed_at": null,
+            #            "user_nonce": null,
+            #            "idem": "5e3201b0-e390-5k3k-a913-c32932049242",
+            #            "profile_id": "k3k302a8-c4dk-4f49-9d39-3203923wpk39",
+            #            "currency": "LTC"
+            #        }
+            #    ]
+            #
             for i in range(0, len(response)):
                 response[i]['currency'] = code
         return self.parse_transactions(response, currency, since, limit)
@@ -1454,20 +1512,49 @@ class coinbasepro(Exchange):
             return 'pending'
 
     def parse_transaction(self, transaction, currency=None):
+        #
+        # privateGetTransfers
+        #
+        #    [
+        #        {
+        #            "id": "bee6fd7c-afb2-4e47-8298-671d09997d16",
+        #            "type": "deposit",
+        #            "created_at": "2022-12-21 00:48:45.477503+00",
+        #            "completed_at": null,
+        #            "account_id": "sal3802-36bd-46be-a7b8-alsjf383sldak",     # only from privateGetTransfers
+        #            "user_id": "6382048209f92as392039dlks2",                  # only from privateGetTransfers
+        #            "amount": "0.01000000",
+        #            "details": {
+        #                "network": "litecoin",
+        #                "crypto_address": "MKemtnCFUYKsNWaf5EMYMpwSszcXWFDtTY",
+        #                "coinbase_account_id": "fl2b6925-f6ba-403n-jj03-40fl435n430f",
+        #                "coinbase_transaction_id": "63a25bb13cb5cf0001d2cf17",  # withdrawals only
+        #                "crypto_transaction_hash": "752f35570736341e2a253f7041a34cf1e196fc56128c900fd03d99da899d94c1",
+        #                "tx_service_transaction_id": "1873249104",
+        #                "coinbase_payment_method_id": ""
+        #            },
+        #            "canceled_at": null,
+        #            "processed_at": null,
+        #            "user_nonce": null,
+        #            "idem": "5e3201b0-e390-5k3k-a913-c32932049242",
+        #            "profile_id": "k3k302a8-c4dk-4f49-9d39-3203923wpk39",
+        #            "currency": "LTC"
+        #        }
+        #    ]
+        #
         details = self.safe_value(transaction, 'details', {})
-        id = self.safe_string(transaction, 'id')
-        txid = self.safe_string(details, 'crypto_transaction_hash')
         timestamp = self.parse8601(self.safe_string(transaction, 'created_at'))
-        updated = self.parse8601(self.safe_string(transaction, 'processed_at'))
         currencyId = self.safe_string(transaction, 'currency')
         code = self.safe_currency_code(currencyId, currency)
-        status = self.parse_transaction_status(transaction)
         amount = self.safe_number(transaction, 'amount')
         type = self.safe_string(transaction, 'type')
         address = self.safe_string(details, 'crypto_address')
-        tag = self.safe_string(details, 'destination_tag')
         address = self.safe_string(transaction, 'crypto_address', address)
-        fee = None
+        fee = {
+            'currency': None,
+            'cost': None,
+            'rate': None,
+        }
         if type == 'withdraw':
             type = 'withdrawal'
             address = self.safe_string(details, 'sent_to_address', address)
@@ -1475,28 +1562,28 @@ class coinbasepro(Exchange):
             if feeCost is not None:
                 if amount is not None:
                     amount -= feeCost
-                fee = {
-                    'cost': feeCost,
-                    'currency': code,
-                }
+                fee['cost'] = feeCost
+                fee['currency'] = code
+        networkId = self.safe_string(details, 'network')
         return {
             'info': transaction,
-            'id': id,
-            'txid': txid,
+            'id': self.safe_string(transaction, 'id'),
+            'txid': self.safe_string(details, 'crypto_transaction_hash'),
+            'type': type,
+            'currency': code,
+            'network': self.network_id_to_code(networkId),
+            'amount': amount,
+            'status': self.parse_transaction_status(transaction),
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
-            'network': None,
             'address': address,
-            'addressTo': None,
             'addressFrom': None,
-            'tag': tag,
-            'tagTo': None,
+            'addressTo': self.safe_string(details, 'crypto_address'),
+            'tag': self.safe_string(details, 'destination_tag'),
             'tagFrom': None,
-            'type': type,
-            'amount': amount,
-            'currency': code,
-            'status': status,
-            'updated': updated,
+            'tagTo': None,
+            'updated': self.parse8601(self.safe_string(transaction, 'processed_at')),
+            'comment': None,
             'fee': fee,
         }
 

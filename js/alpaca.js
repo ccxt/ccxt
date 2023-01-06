@@ -720,6 +720,7 @@ module.exports = class alpaca extends Exchange {
             'side': this.safeString (order, 'side'),
             'price': this.safeNumber (order, 'limit_price'),
             'stopPrice': this.safeNumber (order, 'stop_price'),
+            'triggerPrice': this.safeNumber (order, 'stop_price'),
             'cost': undefined,
             'average': this.safeNumber (order, 'filled_avg_price'),
             'amount': this.safeNumber (order, 'qty'),

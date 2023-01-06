@@ -24,7 +24,7 @@ module.exports = class bitget extends Exchange {
                 'spot': true,
                 'margin': false,
                 'swap': true,
-                'future': false,
+                'future': true,
                 'option': false,
                 'addMargin': true,
                 'cancelAllOrders': true,
@@ -784,15 +784,17 @@ module.exports = class bitget extends Exchange {
                 'defaultType': 'spot', // 'spot', 'swap'
                 'defaultSubType': 'linear', // 'linear', 'inverse'
                 'createMarketBuyOrderRequiresPrice': true,
-                'broker': {
-                    'spot': 'CCXT#',
-                    'swap': 'CCXT#',
-                },
+                'broker': 'p4sve',
                 'withdraw': {
                     'fillResponseFromRequest': true,
                 },
+                'sandboxMode': false,
             },
         });
+    }
+
+    setSandboxMode (enabled) {
+        this.options['sandboxMode'] = enabled;
     }
 
     async fetchTime (params = {}) {
@@ -823,13 +825,22 @@ module.exports = class bitget extends Exchange {
          * @param {object} params extra parameters specific to the exchange api endpoint
          * @returns {[object]} an array of objects representing market data
          */
-        const types = this.safeValue (this.options, 'fetchMarkets', [ 'spot', 'swap' ]);
+        const sandboxMode = this.safeValue (this.options, 'sandboxMode', false);
+        let types = this.safeValue (this.options, 'fetchMarkets', [ 'spot', 'swap' ]);
+        if (sandboxMode) {
+            types = [ 'swap' ];
+        }
         let promises = [];
         for (let i = 0; i < types.length; i++) {
             const type = types[i];
             if (type === 'swap') {
-                // the following are simulated trading markets [ 'sumcbl', 'sdmcbl', 'scmcbl' ];
-                const subTypes = [ 'umcbl', 'dmcbl', 'cmcbl' ];
+                let subTypes = undefined;
+                if (sandboxMode) {
+                    // the following are simulated trading markets [ 'sumcbl', 'sdmcbl', 'scmcbl' ];
+                    subTypes = [ 'sumcbl', 'sdmcbl', 'scmcbl' ];
+                } else {
+                    subTypes = [ 'umcbl', 'dmcbl', 'cmcbl' ];
+                }
                 for (let j = 0; j < subTypes.length; j++) {
                     promises.push (this.fetchMarketsByType (type, this.extend (params, {
                         'productType': subTypes[j],
@@ -866,6 +877,7 @@ module.exports = class bitget extends Exchange {
         //        quoteCoin: 'USDT',
         //        minTradeAmount: '2',
         //        maxTradeAmount: '0',
+        //        minTradeUSDT": '5',
         //        takerFeeRate: '0.001',
         //        makerFeeRate: '0.001',
         //        priceScale: '4',
@@ -936,14 +948,8 @@ module.exports = class bitget extends Exchange {
                 symbol = symbol + ':' + settle;
             }
             contract = true;
-            const sumcbl = (typeId === 'SUMCBL');
-            const sdmcbl = (typeId === 'SDMCBL');
-            const scmcbl = (typeId === 'SCMCBL');
-            linear = (typeId === 'UMCBL') || (typeId === 'CMCBL') || sumcbl || scmcbl;
+            linear = (typeId === 'UMCBL') || (typeId === 'CMCBL') || (typeId === 'SUMCBL') || (typeId === 'SCMCBL');
             inverse = !linear;
-            if (sumcbl || sdmcbl || scmcbl) {
-                symbol = marketId;
-            }
             const priceDecimals = this.safeInteger (market, 'pricePlace');
             const amountDecimals = this.safeInteger (market, 'volumePlace');
             const priceStep = this.safeString (market, 'priceEndStep');
@@ -963,6 +969,10 @@ module.exports = class bitget extends Exchange {
         let active = undefined;
         if (status !== undefined) {
             active = status === 'online';
+        }
+        let minCost = undefined;
+        if (quote === 'USDT') {
+            minCost = this.safeNumber (market, 'minTradeUSDT');
         }
         return {
             'id': marketId,
@@ -1000,15 +1010,15 @@ module.exports = class bitget extends Exchange {
                     'max': undefined,
                 },
                 'amount': {
-                    'min': this.safeNumber (market, 'minTradeNum'),
-                    'max': undefined,
+                    'min': this.safeNumber2 (market, 'minTradeNum', 'minTradeAmount'),
+                    'max': this.safeNumber (market, 'maxTradeAmount'),
                 },
                 'price': {
                     'min': undefined,
                     'max': undefined,
                 },
                 'cost': {
-                    'min': undefined,
+                    'min': minCost,
                     'max': undefined,
                 },
             },
@@ -2190,7 +2200,7 @@ module.exports = class bitget extends Exchange {
         const amount = this.safeString2 (order, 'quantity', 'size');
         const filled = this.safeString2 (order, 'fillQuantity', 'filledQty');
         const cost = this.safeString2 (order, 'fillTotalAmount', 'filledAmount');
-        const average = this.safeString (order, 'fillPrice');
+        const average = this.safeString2 (order, 'fillPrice', 'priceAvg');
         const type = this.safeString (order, 'orderType');
         const timestamp = this.safeInteger (order, 'cTime');
         let side = this.safeString2 (order, 'side', 'posSide');
@@ -2218,6 +2228,7 @@ module.exports = class bitget extends Exchange {
             'side': side,
             'price': price,
             'stopPrice': this.safeNumber (order, 'triggerPrice'),
+            'triggerPrice': this.safeNumber (order, 'triggerPrice'),
             'average': average,
             'cost': cost,
             'amount': amount,
@@ -2263,16 +2274,7 @@ module.exports = class bitget extends Exchange {
         if ((type === 'limit') && (triggerPrice === undefined)) {
             request['price'] = this.priceToPrecision (symbol, price);
         }
-        let clientOrderId = this.safeString2 (params, 'client_oid', 'clientOrderId');
-        if (clientOrderId === undefined) {
-            const broker = this.safeValue (this.options, 'broker');
-            if (broker !== undefined) {
-                const brokerId = this.safeString (broker, market['type']);
-                if (brokerId !== undefined) {
-                    clientOrderId = brokerId + this.uuid22 ();
-                }
-            }
-        }
+        const clientOrderId = this.safeString2 (params, 'clientOid', 'clientOrderId');
         let method = this.getSupportedMapping (marketType, {
             'spot': 'privateSpotPostTradeOrders',
             'swap': 'privateMixPostOrderPlaceOrder',
@@ -2296,7 +2298,9 @@ module.exports = class bitget extends Exchange {
             } else {
                 request['quantity'] = this.amountToPrecision (symbol, amount);
             }
-            request['clientOrderId'] = clientOrderId;
+            if (clientOrderId !== undefined) {
+                request['clientOrderId'] = clientOrderId;
+            }
             request['side'] = side;
             if (postOnly) {
                 request['force'] = 'post_only';
@@ -2304,7 +2308,9 @@ module.exports = class bitget extends Exchange {
                 request['force'] = 'gtc';
             }
         } else {
-            request['clientOid'] = clientOrderId;
+            if (clientOrderId !== undefined) {
+                request['clientOid'] = clientOrderId;
+            }
             request['size'] = this.amountToPrecision (symbol, amount);
             if (postOnly) {
                 request['timeInForceValue'] = 'post_only';
@@ -3641,12 +3647,10 @@ module.exports = class bitget extends Exchange {
         //
         const timestamp = this.safeInteger (interest, 'timestamp');
         const id = this.safeString (interest, 'symbol');
-        market = this.safeMarket (id, market);
+        const symbol = this.safeSymbol (id, market);
         const amount = this.safeNumber (interest, 'amount');
         return {
-            'symbol': this.safeSymbol (id),
-            'baseVolume': amount,  // deprecated
-            'quoteVolume': undefined,  // deprecated
+            'symbol': symbol,
             'openInterestAmount': amount,
             'openInterestValue': undefined,
             'timestamp': timestamp,
@@ -3730,11 +3734,13 @@ module.exports = class bitget extends Exchange {
                 }
             }
             const signature = this.hmac (this.encode (auth), this.encode (this.secret), 'sha256', 'base64');
+            const broker = this.safeString (this.options, 'broker');
             headers = {
                 'ACCESS-KEY': this.apiKey,
                 'ACCESS-SIGN': signature,
                 'ACCESS-TIMESTAMP': timestamp,
                 'ACCESS-PASSPHRASE': this.password,
+                'X-CHANNEL-API-CODE': broker,
             };
             if (method === 'POST') {
                 headers['Content-Type'] = 'application/json';
