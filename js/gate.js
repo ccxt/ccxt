@@ -2098,7 +2098,7 @@ module.exports = class gate extends Exchange {
         //        A: '0.0353' // best ask size
         //     }
         //
-        const marketId = this.safeStringN (ticker, [ 'currency_pair', 'contract', 's' ]);
+        const marketId = this.safeString2 (ticker, 'currency_pair', 'contract');
         const marketType = ('contract' in ticker) ? 'contract' : 'spot';
         const symbol = this.safeSymbol (marketId, market, '_', marketType);
         const last = this.safeString (ticker, 'last');

@@ -199,7 +199,6 @@ module.exports = class gate extends gateRest {
             storedOrderBook.cache.push (delta);
             return;
         } else if (nonce >= deltaEnd) {
-            console.log ('skipping')
             return;
         } else if (nonce >= deltaStart - 1) {
             this.handleDelta (storedOrderBook, delta);
@@ -290,29 +289,20 @@ module.exports = class gate extends gateRest {
             throw new ArgumentsRequired (this.id + ' watchTickers requires symbols');
         }
         const market = this.market (symbols[0]);
-        const type = market['type'];
-        const messageType = this.getUniformType (type);
+        const messageType = this.getTypeByMarket (market);
         const marketIds = this.marketIds (symbols);
-        const options = this.safeValue (this.options, 'watchTickers', {});
-        const topic = this.safeString (options, 'name', 'tickers');
+        const [ topic, query ] = this.handleOptionAndParams (params, 'watchTicker', 'method', 'tickers');
         const channel = messageType + '.' + topic;
         const messageHash = 'tickers';
-        const payload = [];
-        for (let i = 0; i < marketIds.length; i++) {
-            payload.push (marketIds[i]);
-        }
-        const url = this.getUrlByMarketType (type, market['inverse']);
-        const ticker = await this.subscribePublic (url, channel, messageHash, payload);
-        const tickerSymbol = ticker['symbol'];
-        if (symbols !== undefined && !this.inArray (tickerSymbol, symbols)) {
-            return await this.watchTickers (symbols, params);
-        }
+        const url = this.getUrlByMarket (market);
+        const ticker = await this.subscribePublic (url, messageHash, marketIds, channel, undefined, query);
+        let result = {};
         if (this.newUpdates) {
-            const result = {};
-            result[tickerSymbol] = ticker;
-            return result;
+            result[ticker['symbol']] = ticker;
+        } else {
+            result = this.tickers;
         }
-        return this.filterByArray (this.tickers, 'symbol', symbols, false);
+        return this.filterByArray (result, 'symbol', symbols, true);
     }
 
     handleTicker (client, message) {
@@ -349,13 +339,19 @@ module.exports = class gate extends gateRest {
         //        }
         //    }
         //
+        const channel = this.safeString (message, 'channel');
+        const parts = channel.split ('.');
+        const rawMarketType = this.safeString (parts, 0);
+        const marketType = (rawMarketType === 'futures') ? 'contract' : 'spot';
         let result = this.safeValue (message, 'result');
         if (!Array.isArray (result)) {
             result = [ result ];
         }
         for (let i = 0; i < result.length; i++) {
             const ticker = result[i];
-            const parsed = this.parseTicker (ticker);
+            const marketId = this.safeString (ticker, 's');
+            const market = this.safeMarket (marketId, undefined, '_', marketType);
+            const parsed = this.parseTicker (ticker, market);
             const symbol = parsed['symbol'];
             this.tickers[symbol] = parsed;
             const messageHash = 'ticker:' + symbol;
@@ -558,24 +554,23 @@ module.exports = class gate extends gateRest {
         await this.loadMarkets ();
         let subType = undefined;
         let type = undefined;
-        let marketId = '!' + 'all';
+        let marketId = '!all';
+        let market = undefined;
         if (symbol !== undefined) {
-            const market = this.market (symbol);
-            symbol = market['symbol'];
-            type = market['type'];
+            market = this.market (symbol);
             marketId = market['id'];
-        } else {
-            [ type, params ] = this.handleMarketTypeAndParams ('watchMyTrades', undefined, params);
-            if (type !== 'spot') {
-                const options = this.safeValue (this.options, 'watchMyTrades', {});
-                subType = this.safeValue (options, 'subType', 'linear');
-                subType = this.safeValue (params, 'subType', subType);
-                params = this.omit (params, 'subType');
-            }
         }
-        const messageType = this.getUniformType (type);
-        const method = messageType + '.usertrades';
-        let messageHash = method;
+        [ type, params ] = this.handleMarketTypeAndParams ('watchMyTrades', market, params);
+        [ subType, params ] = this.handleSubTypeAndParams ('watchMyTrades', market, params);
+        const messageType = this.getSupportedMapping (type, {
+            'spot': 'spot',
+            'margin': 'spot',
+            'future': 'futures',
+            'swap': 'futures',
+            'option': 'options',
+        });
+        const channel = messageType + '.usertrades';
+        let messageHash = 'myTrades';
         if (symbol !== undefined) {
             messageHash += ':' + symbol;
         }
@@ -584,7 +579,7 @@ module.exports = class gate extends gateRest {
         const payload = [ marketId ];
         // uid required for non spot markets
         const requiresUid = (type !== 'spot');
-        const trades = await this.subscribePrivate (url, method, messageHash, payload, requiresUid);
+        const trades = await this.subscribePrivate (url, messageHash, payload, channel, params, requiresUid);
         if (this.newUpdates) {
             limit = trades.getLimit (symbol, limit);
         }
@@ -635,10 +630,10 @@ module.exports = class gate extends gateRest {
         const keys = Object.keys (marketIds);
         for (let i = 0; i < keys.length; i++) {
             const market = keys[i];
-            const hash = channel + ':' + market;
+            const hash = 'myTrades:' + market;
             client.resolve (cachedTrades, hash);
         }
-        client.resolve (cachedTrades, channel);
+        client.resolve (cachedTrades, 'myTrades');
     }
 
     async watchBalance (params = {}) {
@@ -651,37 +646,25 @@ module.exports = class gate extends gateRest {
          */
         await this.loadMarkets ();
         let type = undefined;
+        let subType = undefined;
         [ type, params ] = this.handleMarketTypeAndParams ('watchBalance', undefined, params);
-        const options = this.safeValue (this.options, 'watchBalance', {});
-        let subType = this.safeValue (options, 'subType', 'linear');
-        subType = this.safeValue (params, 'subType', subType);
-        params = this.omit (params, 'subType');
+        [ subType, params ] = this.handleSubTypeAndParams ('watchBalance', undefined, params);
         const isInverse = (subType === 'inverse');
         const url = this.getUrlByMarketType (type, isInverse);
         const requiresUid = (type !== 'spot');
-        let channelType = 'spot';
-        if (type === 'future' || type === 'swap') {
-            channelType = 'futures';
-        } else if (type === 'option') {
-            channelType = 'options';
-        }
-        let channel = undefined;
-        if (type === 'spot') {
-            const options = this.safeValue (this.options, 'watchTicker', {});
-            channel = this.safeString (options, 'spot', 'spot.balances');
-        } else {
-            channel = channelType + '.balances';
-        }
-        return await this.subscribePrivate (url, channel, channel, undefined, requiresUid);
+        const channelType = this.getSupportedMapping (type, {
+            'spot': 'spot',
+            'margin': 'spot',
+            'future': 'futures',
+            'swap': 'futures',
+            'option': 'options',
+        });
+        const channel = channelType + '.balances';
+        const messageHash = 'balance';
+        return await this.subscribePrivate (url, messageHash, undefined, channel, params, requiresUid);
     }
 
     handleBalance (client, message) {
-        const messageHash = message['method'];
-        const result = message['params'][0];
-        this.handleBalanceMessage (client, messageHash, result);
-    }
-
-    handleBalanceMessage (client, message) {
         //
         // spot order fill
         //   {
@@ -742,7 +725,6 @@ module.exports = class gate extends gateRest {
         //       ]
         //   }
         //
-        const channel = this.safeString (message, 'channel');
         const result = this.safeValue (message, 'result', []);
         for (let i = 0; i < result.length; i++) {
             const rawBalance = result[i];
@@ -754,7 +736,7 @@ module.exports = class gate extends gateRest {
             this.balance[code] = account;
         }
         this.balance = this.safeBalance (this.balance);
-        client.resolve (this.balance, channel);
+        client.resolve (this.balance, 'balance');
     }
 
     async watchOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
@@ -786,11 +768,11 @@ module.exports = class gate extends gateRest {
             'swap': 'futures',
             'option': 'options',
         });
-        const method = typeId + '.orders';
-        let messageHash = method;
-        let payload = [ '!' + 'all' ];
+        const channel = typeId + '.orders';
+        let messageHash = 'orders';
+        let payload = [ '!all' ];
         if (symbol !== undefined) {
-            messageHash = method + ':' + market['id'];
+            messageHash += ':' + market['id'];
             payload = [ market['id'] ];
         }
         let subType = undefined;
@@ -799,7 +781,7 @@ module.exports = class gate extends gateRest {
         const url = this.getUrlByMarketType (type, isInverse);
         // uid required for non spot markets
         const requiresUid = (type !== 'spot');
-        const orders = await this.subscribePrivate (url, method, messageHash, payload, requiresUid);
+        const orders = await this.subscribePrivate (url, messageHash, payload, channel, query, requiresUid);
         if (this.newUpdates) {
             limit = orders.getLimit (symbol, limit);
         }
@@ -843,38 +825,34 @@ module.exports = class gate extends gateRest {
         // }
         //
         const orders = this.safeValue (message, 'result', []);
-        const channel = this.safeString (message, 'channel');
-        const ordersLength = orders.length;
-        if (ordersLength > 0) {
-            const limit = this.safeInteger (this.options, 'ordersLimit', 1000);
-            if (this.orders === undefined) {
-                this.orders = new ArrayCacheBySymbolById (limit);
-            }
-            const stored = this.orders;
-            const marketIds = {};
-            const parsedOrders = this.parseOrders (orders);
-            for (let i = 0; i < parsedOrders.length; i++) {
-                const parsed = parsedOrders[i];
-                // inject order status
-                const info = this.safeValue (parsed, 'info');
-                const event = this.safeString (info, 'event');
-                if (event === 'put') {
-                    parsed['status'] = 'open';
-                } else if (event === 'finish') {
-                    parsed['status'] = 'closed';
-                }
-                stored.append (parsed);
-                const symbol = parsed['symbol'];
-                const market = this.market (symbol);
-                marketIds[market['id']] = true;
-            }
-            const keys = Object.keys (marketIds);
-            for (let i = 0; i < keys.length; i++) {
-                const messageHash = channel + ':' + keys[i];
-                client.resolve (this.orders, messageHash);
-            }
-            client.resolve (this.orders, channel);
+        const limit = this.safeInteger (this.options, 'ordersLimit', 1000);
+        if (this.orders === undefined) {
+            this.orders = new ArrayCacheBySymbolById (limit);
         }
+        const stored = this.orders;
+        const marketIds = {};
+        const parsedOrders = this.parseOrders (orders);
+        for (let i = 0; i < parsedOrders.length; i++) {
+            const parsed = parsedOrders[i];
+            // inject order status
+            const info = this.safeValue (parsed, 'info');
+            const event = this.safeString (info, 'event');
+            if (event === 'put') {
+                parsed['status'] = 'open';
+            } else if (event === 'finish') {
+                parsed['status'] = 'closed';
+            }
+            stored.append (parsed);
+            const symbol = parsed['symbol'];
+            const market = this.market (symbol);
+            marketIds[market['id']] = true;
+        }
+        const keys = Object.keys (marketIds);
+        for (let i = 0; i < keys.length; i++) {
+            const messageHash = 'orders:' + keys[i];
+            client.resolve (this.orders, messageHash);
+        }
+        client.resolve (this.orders, 'orders');
     }
 
     handleAuthenticationMessage (client, message, subscription) {
@@ -928,7 +906,6 @@ module.exports = class gate extends gateRest {
                 } catch (e) {
                     const messageHash = this.safeString (subscription, 'messageHash');
                     client.reject (e, messageHash);
-                    client.reject (e, id);
                     if (id in client.subscriptions) {
                         delete client.subscriptions[id];
                     }
@@ -938,42 +915,7 @@ module.exports = class gate extends gateRest {
     }
 
     handleBalanceSubscription (client, message) {
-        this.spawn (this.fetchBalanceSnapshot, client, message);
-    }
-
-    async fetchBalanceSnapshot (client, message) {
-        //
-        //  {
-        //     id: 1,
-        //     time: 1653665810,
-        //     channel: 'futures.balances',
-        //     event: 'subscribe',
-        //     auth: {
-        //     },
-        //     payload: [ '10406147' ]
-        //   }
-        //
-        await this.loadMarkets ();
-        const channel = this.safeString (message, 'channel', '');
-        const parts = channel.split ('.');
-        const exchangeType = this.safeString (parts, 0);
-        let type = exchangeType;
-        if (exchangeType === 'futures') {
-            type = 'future';
-        } else if (type === 'options') {
-            type = 'option';
-        }
-        const params = {
-            'type': type,
-        };
-        if (type === 'future' || type === 'swap') {
-            const options = this.safeValue (this.options, 'watchTicker', {});
-            const settle = this.safeString (options, 'settle', 'usdt');
-            params['settle'] = settle;
-        }
-        const snapshot = await this.fetchBalance (params);
-        this.balance = snapshot;
-        client.resolve (this.balance, channel);
+        this.balance = {};
     }
 
     handleSubscriptionStatus (client, message) {
@@ -1100,22 +1042,12 @@ module.exports = class gate extends gateRest {
             'book_ticker': this.handleTicker,
             'trades': this.handleTrades,
             'order_book_update': this.handleOrderBook,
-            'balances': this.handleBalanceMessage,
+            'balances': this.handleBalance,
         };
         const method = this.safeValue (v4Methods, channelType);
         if (method !== undefined) {
             method.call (this, client, message);
         }
-    }
-
-    getUniformType (type) {
-        let uniformType = 'spot';
-        if ((type === 'future') || (type === 'swap')) {
-            uniformType = 'futures';
-        } else if (type === 'option') {
-            uniformType = 'options';
-        }
-        return uniformType;
     }
 
     getUrlByMarket (market) {
@@ -1144,16 +1076,13 @@ module.exports = class gate extends gateRest {
                 throw new NotSupported (this.id + ' does not have a testnet for the ' + type + ' market type.');
             }
             return spotUrl;
-        }
-        if (type === 'swap') {
+        } else if (type === 'swap') {
             const baseUrl = this.urls['api']['swap'];
             return isInverse ? baseUrl['btc'] : baseUrl['usdt'];
-        }
-        if (type === 'future') {
+        } else if (type === 'future') {
             const baseUrl = this.urls['api']['future'];
             return isInverse ? baseUrl['btc'] : baseUrl['usdt'];
-        }
-        if (type === 'option') {
+        } else if (type === 'option') {
             return this.urls['api']['option'];
         }
     }
@@ -1175,11 +1104,18 @@ module.exports = class gate extends gateRest {
             'event': 'subscribe',
             'payload': payload,
         };
+        if (subscription === undefined) {
+            subscription = {};
+        }
+        subscription = this.extend (subscription, {
+            'id': requestId,
+            'messageHash': messageHash,
+        });
         const message = this.extend (request, params);
         return await this.watch (url, messageHash, message, subscriptionHash, subscription);
     }
 
-    async subscribePrivate (url, channel, messageHash, payload = undefined, requiresUid = false) {
+    async subscribePrivate (url, messageHash, payload, subscriptionHash, params, requiresUid = false) {
         this.checkRequiredCredentials ();
         // uid is required for some subscriptions only so it's not a part of required credentials
         if (requiresUid) {
@@ -1195,7 +1131,7 @@ module.exports = class gate extends gateRest {
         }
         const time = this.seconds ();
         const event = 'subscribe';
-        const signaturePayload = 'channel=' + channel + '&' + 'event=' + event + '&' + 'time=' + time.toString ();
+        const signaturePayload = 'channel=' + subscriptionHash + '&' + 'event=' + event + '&' + 'time=' + time.toString ();
         const signature = this.hmac (this.encode (signaturePayload), this.encode (this.secret), 'sha512', 'hex');
         const auth = {
             'method': 'api_key',
@@ -1206,17 +1142,18 @@ module.exports = class gate extends gateRest {
         const request = {
             'id': requestId,
             'time': time,
-            'channel': channel,
+            'channel': subscriptionHash,
             'event': 'subscribe',
             'auth': auth,
         };
         if (payload !== undefined) {
             request['payload'] = payload;
         }
+        const message = this.extend (request, params);
         const subscription = {
             'id': requestId,
             'messageHash': messageHash,
         };
-        return await this.watch (url, messageHash, request, messageHash, subscription);
+        return await this.watch (url, messageHash, message, subscriptionHash, subscription);
     }
 };
