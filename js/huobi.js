@@ -7211,11 +7211,11 @@ module.exports = class huobi extends Exchange {
     async fetchDepositWithdrawFees (codes = undefined, params = {}) {
         /**
          * @method
-         * @name hitbtc3#fetchDepositWithdrawFees
+         * @name huobi#fetchDepositWithdrawFees
          * @description fetch deposit and withdraw fees
          * @see https://api.hitbtc.com/#currencies
          * @param {[string]|undefined} codes list of unified currency codes
-         * @param {object} params extra parameters specific to the hitbtc3 api endpoint
+         * @param {object} params extra parameters specific to the huobi api endpoint
          * @returns {[object]} a list of [fees structures]{@link https://docs.ccxt.com/en/latest/manual.html#fee-structure}
          */
         await this.loadMarkets ();
