@@ -5,6 +5,7 @@
 const wazirxRest = require ('../wazirx');
 const { NotSupported, ExchangeError } = require ('../base/errors');
 const { ArrayCacheBySymbolById, ArrayCacheByTimestamp, ArrayCache } = require ('./base/Cache');
+const Precise = require ('../base/Precise');
 
 //  ---------------------------------------------------------------------------
 
@@ -779,12 +780,13 @@ module.exports = class wazirx extends wazirxRest {
         const url = this.urls['api']['ws'];
         const client = this.client (url);
         const messageHash = 'authenticated';
-        const now = this.milliseconds ();
+        const now = this.milliseconds ().toString ();
         let subscription = this.safeValue (client.subscriptions, messageHash);
-        const expires = this.safeNumber (subscription, 'expires');
-        if (subscription === undefined || now > expires) {
+        const expires = this.safeString (subscription, 'expires');
+        if (subscription === undefined || Precise.stringGt (now, expires)) {
             subscription = await this.privatePostCreateAuthToken ();
-            subscription['expires'] = now + this.safeNumber (subscription, 'timeout_duration') * 1000;
+            const timeoutDuration = this.safeString (subscription, 'timeout_duration');
+            subscription['expires'] = Precise.stringAdd (now, Precise.stringMul (timeoutDuration, '1000'));
             //
             //     {
             //         "auth_key": "Xx***dM",
