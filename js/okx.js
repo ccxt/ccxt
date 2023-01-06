@@ -1364,7 +1364,7 @@ module.exports = class okx extends Exchange {
                 } else if (!canWithdraw) {
                     withdrawEnabled = false;
                 }
-                const title = this.getExchangeSpecificNetworkCommonNameFromId (networkId);
+                const title = this.getCommonNetworkTitleFromId (networkId);
                 const networkCode = this.defineNetworkCodeNameIdMappings (code, title, networkId);
                 const precision = this.parsePrecision (this.safeString (chain, 'wdTickSz'));
                 maxPrecision = (maxPrecision === undefined) ? precision : Precise.stringMin (maxPrecision, precision);
@@ -1408,12 +1408,13 @@ module.exports = class okx extends Exchange {
         return result;
     }
 
-    getExchangeSpecificNetworkCommonNameFromId (networkId, currencyCode = undefined) {
-        const parts = networkId.split ('-'); // might have two hyphens, i.e. USDT-Avalanche C-Chain
-        let title = this.safeString (parts, 1, networkId);
-        const secondPart = this.safeString (parts, 2);
-        if (secondPart !== undefined) {
-            title = title + '-' + secondPart;
+    getCommonNetworkTitleFromId (networkId, currencyCode = undefined) {
+        const parts = networkId.split ('-');
+        const length = parts.length;
+        // okx returns with hyphen i.e. "USDT-Erc20", some of them with two hyphens i.e. "USDT-Avalanche C-Chain"
+        let title = this.safeString (parts, 1);
+        if (length > 2) {
+            title = title + '-' + this.safeString (parts, 2);
         }
         return title;
     }
