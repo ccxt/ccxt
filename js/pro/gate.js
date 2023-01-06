@@ -409,7 +409,6 @@ module.exports = class gate extends gateRest {
             result = [ result ];
         }
         const parsedTrades = this.parseTrades (result);
-        const marketIds = {};
         for (let i = 0; i < parsedTrades.length; i++) {
             const trade = parsedTrades[i];
             const symbol = trade['symbol'];
@@ -420,16 +419,9 @@ module.exports = class gate extends gateRest {
                 this.trades[symbol] = cachedTrades;
             }
             cachedTrades.append (trade);
-            marketIds[symbol] = true;
-        }
-        const keys = Object.keys (marketIds);
-        for (let i = 0; i < keys.length; i++) {
-            const symbol = keys[i];
             const hash = 'trades:' + symbol;
-            const stored = this.safeValue (this.trades, symbol);
-            client.resolve (stored, hash);
+            client.resolve (cachedTrades, hash);
         }
-        //client.resolve (this.trades, 'trades');
     }
 
     async watchOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
@@ -608,7 +600,6 @@ module.exports = class gate extends gateRest {
         // }
         //
         const result = this.safeValue (message, 'result', []);
-        const channel = this.safeString (message, 'channel');
         const tradesLength = result.length;
         if (tradesLength === 0) {
             return;
