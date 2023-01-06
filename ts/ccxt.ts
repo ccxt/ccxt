@@ -136,6 +136,7 @@ import okx from  './src/okx.js'
 import paymium from  './src/paymium.js'
 import phemex from  './src/phemex.js'
 import poloniex from  './src/poloniex.js'
+import poloniexfutures from  './src/poloniexfutures.js'
 import probit from  './src/probit.js'
 import ripio from  './src/ripio.js'
 import stex from  './src/stex.js'
@@ -171,6 +172,7 @@ import bitoproPro from  './src/pro/bitopro.js'
 import bitstampPro from  './src/pro/bitstamp.js'
 import bittrexPro from  './src/pro/bittrex.js'
 import bitvavoPro from  './src/pro/bitvavo.js'
+import btcexPro from  './src/pro/btcex.js'
 import bybitPro from  './src/pro/bybit.js'
 import coinbaseprimePro from  './src/pro/coinbaseprime.js'
 import coinbaseproPro from  './src/pro/coinbasepro.js'
@@ -295,6 +297,7 @@ const exchanges = {
     'paymium':                paymium,
     'phemex':                 phemex,
     'poloniex':               poloniex,
+    'poloniexfutures':        poloniexfutures,
     'probit':                 probit,
     'ripio':                  ripio,
     'stex':                   stex,
@@ -330,6 +333,7 @@ const pro = {
     'bitstamp':               bitstampPro,
     'bittrex':                bittrexPro,
     'bitvavo':                bitvavoPro,
+    'btcex':                  btcexPro,
     'bybit':                  bybitPro,
     'coinbaseprime':          coinbaseprimePro,
     'coinbasepro':            coinbaseproPro,
@@ -476,6 +480,7 @@ export {
     paymium,
     phemex,
     poloniex,
+    poloniexfutures,
     probit,
     ripio,
     stex,
