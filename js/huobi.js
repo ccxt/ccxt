@@ -59,6 +59,8 @@ module.exports = class huobi extends Exchange {
                 'fetchDepositAddresses': undefined,
                 'fetchDepositAddressesByNetwork': true,
                 'fetchDeposits': true,
+                'fetchDepositWithdrawFee': 'emulated',
+                'fetchDepositWithdrawFees': true,
                 'fetchFundingHistory': true,
                 'fetchFundingRate': true,
                 'fetchFundingRateHistory': true,
@@ -7204,6 +7206,123 @@ module.exports = class huobi extends Exchange {
         const settlementRecord = this.safeValue (data, 'settlement_record');
         const settlements = this.parseSettlements (settlementRecord, market);
         return this.sortBy (settlements, 'timestamp');
+    }
+
+    async fetchDepositWithdrawFees (codes = undefined, params = {}) {
+        /**
+         * @method
+         * @name hitbtc3#fetchDepositWithdrawFees
+         * @description fetch deposit and withdraw fees
+         * @see https://api.hitbtc.com/#currencies
+         * @param {[string]|undefined} codes list of unified currency codes
+         * @param {object} params extra parameters specific to the hitbtc3 api endpoint
+         * @returns {[object]} a list of [fees structures]{@link https://docs.ccxt.com/en/latest/manual.html#fee-structure}
+         */
+        await this.loadMarkets ();
+        const response = await this.spotPublicGetV2ReferenceCurrencies (params);
+        //
+        //    {
+        //        "code": 200,
+        //        "data": [
+        //            {
+        //                "currency": "sxp",
+        //                "assetType": "1",
+        //                "chains": [
+        //                    {
+        //                        "chain": "sxp",
+        //                        "displayName": "ERC20",
+        //                        "baseChain": "ETH",
+        //                        "baseChainProtocol": "ERC20",
+        //                        "isDynamic": true,
+        //                        "numOfConfirmations": "12",
+        //                        "numOfFastConfirmations": "12",
+        //                        "depositStatus": "allowed",
+        //                        "minDepositAmt": "0.23",
+        //                        "withdrawStatus": "allowed",
+        //                        "minWithdrawAmt": "0.23",
+        //                        "withdrawPrecision": "8",
+        //                        "maxWithdrawAmt": "227000.000000000000000000",
+        //                        "withdrawQuotaPerDay": "227000.000000000000000000",
+        //                        "withdrawQuotaPerYear": null,
+        //                        "withdrawQuotaTotal": null,
+        //                        "withdrawFeeType": "fixed",
+        //                        "transactFeeWithdraw": "11.1653",
+        //                        "addrWithTag": false,
+        //                        "addrDepositTag": false
+        //                    }
+        //                ],
+        //                "instStatus": "normal"
+        //            }
+        //        ]
+        //    }
+        //
+        const data = this.safeValue (response, 'data');
+        return this.parseDepositWithdrawFees (data, codes, 'currency');
+    }
+
+    parseDepositWithdrawFee (fee, currency = undefined) {
+        //
+        //            {
+        //              "currency": "sxp",
+        //              "assetType": "1",
+        //              "chains": [
+        //                  {
+        //                      "chain": "sxp",
+        //                      "displayName": "ERC20",
+        //                      "baseChain": "ETH",
+        //                      "baseChainProtocol": "ERC20",
+        //                      "isDynamic": true,
+        //                      "numOfConfirmations": "12",
+        //                      "numOfFastConfirmations": "12",
+        //                      "depositStatus": "allowed",
+        //                      "minDepositAmt": "0.23",
+        //                      "withdrawStatus": "allowed",
+        //                      "minWithdrawAmt": "0.23",
+        //                      "withdrawPrecision": "8",
+        //                      "maxWithdrawAmt": "227000.000000000000000000",
+        //                      "withdrawQuotaPerDay": "227000.000000000000000000",
+        //                      "withdrawQuotaPerYear": null,
+        //                      "withdrawQuotaTotal": null,
+        //                      "withdrawFeeType": "fixed",
+        //                      "transactFeeWithdraw": "11.1653",
+        //                      "addrWithTag": false,
+        //                      "addrDepositTag": false
+        //                  }
+        //              ],
+        //              "instStatus": "normal"
+        //          }
+        //
+        const chains = this.safeValue (fee, 'chains', []);
+        const result = this.depositWithdrawFee (fee);
+        for (let j = 0; j < chains.length; j++) {
+            const chainEntry = chains[j];
+            const networkId = this.safeString (chainEntry, 'displayName');
+            const withdrawFeeType = this.safeString (chainEntry, 'withdrawFeeType');
+            const networkCode = this.networkIdToCode (networkId);
+            let withdrawFee = undefined;
+            let withdrawResult = undefined;
+            if (withdrawFeeType === 'fixed') {
+                withdrawFee = this.safeNumber (chainEntry, 'transactFeeWithdraw');
+                withdrawResult = {
+                    'fee': withdrawFee,
+                    'percentage': false,
+                };
+            } else {
+                withdrawFee = this.safeNumber (chainEntry, 'transactFeeRateWithdraw');
+                withdrawResult = {
+                    'fee': withdrawFee,
+                    'percentage': true,
+                };
+            }
+            result['networks'][networkCode] = {
+                'withdraw': withdrawResult,
+                'deposit': {
+                    'fee': undefined,
+                    'percentage': undefined,
+                },
+            };
+        }
+        return result;
     }
 
     parseSettlements (settlements, market) {
