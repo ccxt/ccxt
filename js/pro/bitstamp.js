@@ -30,7 +30,7 @@ module.exports = class bitstamp extends bitstampRest {
                 'userId': '',
                 'wsSessionToken': '',
                 'watchOrderBook': {
-                    'type': 'order_book', // detail_order_book, diff_order_book
+                    'snapshotDelay': 6,
                 },
                 'tradesLimit': 1000,
                 'OHLCVLimit': 1000,
@@ -107,7 +107,8 @@ module.exports = class bitstamp extends bitstampRest {
             const cacheLength = storedOrderBook.cache.length;
             // the rest API is very delayed
             // usually it takes at least 4-5 deltas to resolve
-            if (cacheLength === 6) {
+            const snapshotDelay = this.handleOption ('watchOrderBook', 'snapshotDelay', 6);
+            if (cacheLength === snapshotDelay) {
                 this.spawn (this.loadOrderBook, client, messageHash, symbol);
             }
             storedOrderBook.cache.push (delta);

@@ -28,6 +28,9 @@ module.exports = class btcex extends btcexRest {
                 },
             },
             'options': {
+                'watchOrderBook': {
+                    'snapshotDelay': 0,
+                },
             },
             'streaming': {
                 'ping': this.ping,
@@ -596,7 +599,8 @@ module.exports = class btcex extends btcexRest {
         const messageHash = 'orderbook:' + symbol;
         if (nonce === undefined) {
             const cacheLength = storedOrderBook.cache.length;
-            if (cacheLength === 0) {
+            const snapshotDelay = this.handleOption ('watchOrderBook', 'snapshotDelay', 0);
+            if (cacheLength === snapshotDelay) {
                 const limit = 0;
                 this.spawn (this.loadOrderBook, client, messageHash, symbol, limit);
             }
