@@ -150,7 +150,6 @@ module.exports = class gemini extends Exchange {
                         'v1/clearing/cancel': 1,
                         'v1/clearing/confirm': 1,
                         'v1/balances': 1,
-                        'v1/balances/earn': 1,
                         'v1/balances/staking': 1,
                         'v1/notionalbalances/{currency}': 1,
                         'v1/transfers': 1,
