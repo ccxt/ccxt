@@ -2040,7 +2040,7 @@ class bitget(Exchange):
             code = self.safe_currency_code(currencyId)
             account = self.account()
             frozen = self.safe_string(entry, 'frozen')
-            locked = self.safe_string(entry, 'lock')
+            locked = self.safe_string_2(entry, 'lock', 'locked')
             account['used'] = Precise.string_add(frozen, locked)
             account['free'] = self.safe_string(entry, 'available')
             result[code] = account
