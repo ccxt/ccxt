@@ -918,7 +918,7 @@ export default class bitmex extends Exchange {
         const account = this.safeString (item, 'account');
         const referenceAccount = undefined;
         const currencyId = this.safeString (item, 'currency');
-        const code = this.safeCurrencyCode (currencyId, currency);
+        currency = this.safeCurrency (currencyId, currency);
         let amount = this.safeString (item, 'amount');
         if (amount !== undefined) {
             amount = Precise.stringDiv (amount, '100000000');
@@ -955,14 +955,14 @@ export default class bitmex extends Exchange {
             'referenceId': this.safeString (item, 'tx'),
             'referenceAccount': referenceAccount,
             'type': this.parseLedgerEntryType (this.safeString (item, 'transactType')),
-            'currency': code,
+            'currency': currency['code'],
             'amount': amount,
             'before': this.parseNumber (Precise.stringAdd (after, '-' + amount)),
             'after': after,
             'status': this.parseTransactionStatus (this.safeString (item, 'transactStatus')),
             'fee': {
                 'cost': feeCost,
-                'currency': code,
+                'currency': currency['code'],
             },
         };
     }
