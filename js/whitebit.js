@@ -1167,6 +1167,10 @@ module.exports = class whitebit extends Exchange {
             request['postOnly'] = true;
         }
         let method = undefined;
+        if (marginMode !== undefined && marginMode !== 'cross') {
+            throw new NotSupported (this.id + ' createOrder() is only available for cross margin');
+        }
+        const useCollateralEndpoint = marginMode !== undefined || marketType === 'swap';
         if (isStopOrder) {
             request['activation_price'] = this.priceToPrecision (symbol, stopPrice);
             if (isLimitOrder) {
@@ -1176,10 +1180,7 @@ module.exports = class whitebit extends Exchange {
             } else {
                 // stop market order
                 method = 'v4PrivatePostOrderStopMarket';
-                if (marginMode !== undefined || marketType === 'swap') {
-                    if (marginMode !== undefined && marginMode !== 'cross') {
-                        throw new NotSupported (this.id + ' createOrder() is only available for cross margin');
-                    }
+                if (useCollateralEndpoint) {
                     method = 'v4PrivatePostOrderCollateralTriggerMarket';
                 }
             }
@@ -1187,20 +1188,14 @@ module.exports = class whitebit extends Exchange {
             if (isLimitOrder) {
                 // limit order
                 method = 'v4PrivatePostOrderNew';
-                if (marginMode !== undefined || marketType === 'swap') {
-                    if (marginMode !== undefined && marginMode !== 'cross') {
-                        throw new NotSupported (this.id + ' createOrder() is only available for cross margin');
-                    }
+                if (useCollateralEndpoint) {
                     method = 'v4PrivatePostOrderCollateralLimit';
                 }
                 request['price'] = this.priceToPrecision (symbol, price);
             } else {
                 // market order
                 method = 'v4PrivatePostOrderStockMarket';
-                if (marginMode !== undefined || marketType === 'swap') {
-                    if (marginMode !== undefined && marginMode !== 'cross') {
-                        throw new NotSupported (this.id + ' createOrder() is only available for cross margin');
-                    }
+                if (useCollateralEndpoint) {
                     method = 'v4PrivatePostOrderCollateralMarket';
                 }
             }
