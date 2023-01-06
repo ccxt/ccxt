@@ -521,7 +521,7 @@ export default class kraken extends krakenRest {
         }
     }
 
-    handleDeltas (bookside, deltas, timestamp) {
+    handleDeltas (bookside, deltas, timestamp = undefined) {
         for (let j = 0; j < deltas.length; j++) {
             const delta = deltas[j];
             const price = parseFloat (delta[0]);
