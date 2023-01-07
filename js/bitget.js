@@ -3173,38 +3173,43 @@ module.exports = class bitget extends Exchange {
         } else if (hedged === 'single_hold') {
             hedged = false;
         }
-        let contracts = this.safeInteger (position, 'openDelegateCount');
-        let liquidation = this.safeNumber (position, 'liquidationPrice');
-        if (contracts === 0) {
-            contracts = undefined;
-        }
-        if (liquidation === 0) {
-            liquidation = undefined;
-        }
+        const contractSizeNumber = this.safeValue (market, 'contractSize');
+        const contractSize = this.numberToString (contractSizeNumber);
+        const baseAmount = this.safeString (position, 'total');
+        const contracts = this.parseNumber (Precise.stringDiv (baseAmount, contractSize));
+        const liquidation = this.parseNumber (this.omitZero (this.safeString (position, 'liquidationPrice')));
+        const maintenanceMarginPercentage = this.safeString (position, 'keepMarginRate')
+        const markPrice = this.safeString (position, 'marketPrice');
+        const notional = Precise.stringMul (baseAmount, markPrice);
+        const maintenanceMargin = Precise.stringMul (maintenanceMarginPercentage, notional);
+        const unrealizedPnl = this.safeString (position, 'unrealizedPL');
+        const rawCollateral = this.safeString (position, 'margin');
+        const collateral = Precise.stringAdd (rawCollateral, unrealizedPnl);
+        const marginRatio = Precise.stringDiv (maintenanceMargin, collateral);
         return {
             'info': position,
             'id': undefined,
             'symbol': market['symbol'],
-            'notional': undefined,
+            'notional': this.parseNumber (notional),
             'marginMode': marginMode,
             'liquidationPrice': liquidation,
             'entryPrice': this.safeNumber (position, 'averageOpenPrice'),
-            'unrealizedPnl': this.safeNumber (position, 'unrealizedPL'),
+            'unrealizedPnl': this.parseNumber (unrealizedPnl),
             'percentage': undefined,
             'contracts': contracts,
-            'contractSize': this.safeNumber (position, 'total'),
-            'markPrice': undefined,
+            'contractSize': contractSizeNumber,
+            'markPrice': this.parseNumber (markPrice),
             'side': this.safeString (position, 'holdSide'),
             'hedged': hedged,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'maintenanceMargin': undefined,
-            'maintenanceMarginPercentage': this.safeNumber (position, 'keepMarginRate'),
-            'collateral': this.safeNumber (position, 'margin'),
+            'maintenanceMargin': this.parseNumber (maintenanceMargin),
+            'maintenanceMarginPercentage': this.parseNumber (maintenanceMarginPercentage),
+            'collateral': this.parseNumber (collateral),
             'initialMargin': undefined,
             'initialMarginPercentage': undefined,
             'leverage': this.safeNumber (position, 'leverage'),
-            'marginRatio': undefined,
+            'marginRatio': this.parseNumber (marginRatio),
         };
     }
 
