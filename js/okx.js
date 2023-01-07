@@ -712,7 +712,7 @@ module.exports = class okx extends Exchange {
                 },
                 'hasUniqueNetworkIds': true,
                 'networks': {
-                    // the list consist of "network names", instead of unique currency-specific network-ids
+                    // "network names" instead of unique currency-specific network ids
                     'BTC': 'Bitcoin',
                     'BEP20': 'BSC',
                     'ERC20': 'ERC20',
@@ -1411,7 +1411,7 @@ module.exports = class okx extends Exchange {
     getCommonNetworkTitleFromId (networkId, currencyCode = undefined) {
         const parts = networkId.split ('-');
         const length = parts.length;
-        // okx returns with hyphen i.e. "USDT-Erc20", some of them with two hyphens i.e. "USDT-Avalanche C-Chain"
+        // okx network ids have one or two hyphens, i.e. USDT-ERC20, USDT-Avalanche C-Chain
         let title = this.safeString (parts, 1);
         if (length > 2) {
             title = title + '-' + this.safeString (parts, 2);
@@ -3615,19 +3615,13 @@ module.exports = class okx extends Exchange {
         //
         //     {
         //        "chain": "ETH-OKExChain",
+        //        "addrEx": { "comment": "6040348" }, // some currencies like TON may have this field
         //        "ctAddr": "72315c",
         //        "ccy": "ETH",
         //        "to": "6",
         //        "addr": "0x1c9f2244d1ccaa060bd536827c18925db10db102",
         //        "selected": true
         //     }
-        //
-        // some coins (i.e. TON) might have additional fields:
-        //
-        //        ...
-        //        addrEx: {
-        //           comment: "6038774",
-        //        },
         //
         const address = this.safeString (depositAddress, 'addr');
         let tag = this.safeString2 (depositAddress, 'tag', 'pmtId');
@@ -3637,7 +3631,8 @@ module.exports = class okx extends Exchange {
             tag = this.safeString (addrEx, 'comment');
         }
         const currencyId = this.safeString (depositAddress, 'ccy');
-        // inconsistent naming responses from exchange, the provided network id here, might not be present in data obtained from fetchCurrencies
+        // the exchange replies with inconsistent network naming
+        // a network id may be missing in the currency structure from fetchCurrencies
         const networkId = this.safeString (depositAddress, 'chain');
         this.checkAddress (address);
         const currencyCode = this.safeCurrencyCode (currencyId, currency);
@@ -3729,7 +3724,7 @@ module.exports = class okx extends Exchange {
         }
         const fee = this.safeString (params, 'fee');
         if (fee === undefined) {
-            throw new ArgumentsRequired (this.id + ' withdraw() requires a "fee" string parameter, network transaction fee must be ≥ 0. Withdrawals to OKCoin or OKX are fee-free, please set "0". Withdrawing to external digital asset address requires network transaction fee.');
+            throw new ArgumentsRequired (this.id + ' withdraw() requires a "fee" string parameter, a network transaction fee must be >= 0, withdrawals to OKCoin or OKX are free (specify a zero fee "0")');
         }
         const request = {
             'ccy': currency['id'],
