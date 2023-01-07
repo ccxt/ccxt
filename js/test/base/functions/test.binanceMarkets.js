@@ -111,7 +111,7 @@ const HttpsProxyAgent = require ('https-proxy-agent')
             defaultType: 'swap',
             defaultSubType: 'linear',
             symbol: 'BTC/USDT',
-            marketType: 'swap',
+            marketType: 'spot',
         },
     ]
     if (defaultOptions.httpProxy) {
