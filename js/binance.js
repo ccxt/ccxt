@@ -3709,7 +3709,8 @@ module.exports = class binance extends Exchange {
         let market = undefined;
         let type = undefined;
         const request = {};
-        let [ marginMode, query ] = this.handleMarginModeAndParams ('fetchOpenOrders', params);
+        let marginMode = undefined;
+        [ marginMode, query ] = this.handleMarginModeAndParams ('fetchOpenOrders', params);
         if (symbol !== undefined) {
             market = this.market (symbol);
             request['symbol'] = market['id'];
