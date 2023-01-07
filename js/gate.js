@@ -432,7 +432,7 @@ module.exports = class gate extends Exchange {
                 'createOrder': {
                     'expiration': 86400, // for conditional orders
                 },
-                // gate networks and currencies are hardcoded in withdrawal page HTML (i.e. pastebin(dot)com/Lqxv3DV1 and pastebin(dot)com/mRriY4WG)
+                // gate networks and currencies are hardcoded on their withdrawal page
                 'networks': {
                     'BTC': 'BTC',
                     'TRC20': 'TRX',
@@ -681,8 +681,10 @@ module.exports = class gate extends Exchange {
                     'CRUST': 'CRU',
                     'CUBENETWORK': 'CUBE',
                     'CLASSZZ': 'CZZ',
-                    // dead:   MANTA, CSM (probvably crust shadow),
-                    // undetermined: ASK_OLD, ASTREVM, BTMV1, ETH2, GALA2 (ZPT), GAS_OLD (NKN_N2), GATEIO (POINT), GEMINIS, GTEVM (LION_GTEVM),  CTO, EQ, HKO, KAZE, KPHA (probably phala), KPN (apron?), KSX, LBTC, LUK (MLK), NEO_OLD (NEO_OLD), PHAKSM, PICA, PKS, SUB (subsocial), SUBG (subgame), SUPV1, TIPS0, TUR, UNIQUE, USC, USDTEST,
+                    // dead: MANTA, CSM (probably crust shadow)
+                    // undetermined: ASK_OLD, ASTREVM, BTMV1, ETH2, GALA2 (ZPT), GAS_OLD (NKN_N2), GATEIO (POINT), GEMINIS, GTEVM (LION_GTEVM),
+                    // CTO, EQ, HKO, KAZE, KPHA (probably phala), KPN (apron?), KSX, LBTC, LUK (MLK), NEO_OLD (NEO_OLD), PHAKSM, PICA, PKS,
+                    // SUB (subsocial), SUBG (subgame), SUPV1, TIPS0, TUR, UNIQUE, USC, USDTEST
                 },
                 'timeInForce': {
                     'GTC': 'gtc',
@@ -713,7 +715,10 @@ module.exports = class gate extends Exchange {
                         'settlementCurrencies': [ 'usdt', 'btc' ],
                     },
                 },
-                'currencyPrecision': this.parseNumber ('1e-4'), // todo: as gateio is done completely in html, in withdrawal page's source it has predefined "num_need_fix(this.value, 4);" function, so users cant set lower precision than 0.0001
+                // gateio's withdrawal api doc page source contains a call to num_need_fix(this.value, 4)
+                // so users can't set lower precision than 0.0001
+                // also, all currencies with gate have the same precision up to 4 decimals
+                'currencyPrecision': this.parseNumber ('1e-4'), 
             },
             'precisionMode': TICK_SIZE,
             'fees': {
@@ -1538,7 +1543,7 @@ module.exports = class gate extends Exchange {
             const parts = currencyId.split ('_');
             const partFirst = this.safeString (parts, 0);
             let currencyName = undefined;
-            // if currency contains underscore, then second part is always chain name (except _OLD suffixed coins)
+            // if there's an underscore then the second part is always the chain name except the _OLD suffix
             if (currencyId.indexOf ('_OLD') > -1) {
                 currencyName = currencyId;
             } else {
@@ -1550,9 +1555,11 @@ module.exports = class gate extends Exchange {
                 }
             }
             const code = this.safeCurrencyCode (currencyName);
-            // ach entry from response is actually a dedicated entry to each network, so we have to create a currency-wide object at first whenever we first encounter that currency
-            if (!(code in result)) {
-                result[code] = {
+            // since each entry from the response is actually a network entry
+            // we create the currency structure on first encounter
+            let currency = this.safeValue (result, code);
+            if (currency === undefined) {
+                currency = {
                     'info': undefined,
                     'id': currencyName,
                     'lowerCaseId': currencyName.toLowerCase (),
@@ -1574,20 +1581,21 @@ module.exports = class gate extends Exchange {
             const depositEnabled = !this.safeValue (entry, 'deposit_disabled', false);
             const tradeEnabled = !this.safeValue (entry, 'trade_disabled', false);
             const active = listed && tradeEnabled && withdrawEnabled && depositEnabled;
-            // if any of the property is `true` then set it to global currency's property `true` too
-            if (active && !result[code]['active']) {
-                result[code]['active'] = true;
+            // if a network property is true set the corresponding currency property to true
+            // a currency is withdrawable in general if it is withdrawable through at least one of the networks
+            if (active) {
+                currency['active'] = active;
             }
-            if (depositEnabled && !result[code]['deposit']) {
-                result[code]['deposit'] = true;
+            if (depositEnabled) {
+                currency['deposit'] = depositEnabled;
             }
-            if (withdrawEnabled && !result[code]['withdraw']) {
-                result[code]['withdraw'] = true;
+            if (withdrawEnabled) {
+                currency['withdraw'] = withdrawEnabled;
             }
             const networkId = this.safeString (entry, 'chain'); // some networks are null
             if (networkId !== undefined) {
                 const networkCode = this.networkIdToCode (networkId, code);
-                result[code]['networks'][networkCode] = {
+                currency['networks'][networkCode] = {
                     'info': entry,
                     'id': networkId,
                     'network': networkCode,
@@ -1608,6 +1616,7 @@ module.exports = class gate extends Exchange {
                     'precision': this.options['currencyPrecision'],
                 };
             }
+            result[code] = currency;
         }
         return result;
     }
