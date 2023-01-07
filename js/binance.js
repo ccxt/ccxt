@@ -1410,7 +1410,7 @@ module.exports = class binance extends Exchange {
                     const settle = isLegacyLinear ? market['quote'] : market['base'];
                     const futuresSymbol = symbol + ':' + settle;
                     if (futuresSymbol in this.markets) {
-                        return futuresSymbol;
+                        return this.markets[futuresSymbol];
                     }
                 } else {
                     return market;
