@@ -720,7 +720,7 @@ module.exports = class gate extends Exchange {
                 // gateio's withdrawal api doc page source contains a call to num_need_fix(this.value, 4)
                 // so users can't set lower precision than 0.0001
                 // also, all currencies with gate have the same precision up to 4 decimals
-                'currencyPrecision': this.parseNumber ('1e-4'), 
+                'currencyPrecision': this.parseNumber ('1e-4'),
             },
             'precisionMode': TICK_SIZE,
             'fees': {
