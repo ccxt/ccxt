@@ -44,7 +44,7 @@ class bitget(Exchange):
                 'spot': True,
                 'margin': False,
                 'swap': True,
-                'future': False,
+                'future': True,
                 'option': False,
                 'addMargin': True,
                 'cancelAllOrders': True,
@@ -102,7 +102,7 @@ class bitget(Exchange):
                 'reduceMargin': True,
                 'setLeverage': True,
                 'setMarginMode': True,
-                'setPositionMode': False,
+                'setPositionMode': True,
                 'transfer': True,
                 'withdraw': False,
             },
@@ -226,6 +226,7 @@ class bitget(Exchange):
                             'account/setLeverage': 8,
                             'account/setMargin': 8,
                             'account/setMarginMode': 8,
+                            'account/setPositionMode': 8,
                             'order/placeOrder': 2,
                             'order/batch-orders': 2,
                             'order/cancel-order': 2,
@@ -803,15 +804,16 @@ class bitget(Exchange):
                 'defaultType': 'spot',  # 'spot', 'swap'
                 'defaultSubType': 'linear',  # 'linear', 'inverse'
                 'createMarketBuyOrderRequiresPrice': True,
-                'broker': {
-                    'spot': 'CCXT#',
-                    'swap': 'CCXT#',
-                },
+                'broker': 'p4sve',
                 'withdraw': {
                     'fillResponseFromRequest': True,
                 },
+                'sandboxMode': False,
             },
         })
+
+    def set_sandbox_mode(self, enabled):
+        self.options['sandboxMode'] = enabled
 
     def fetch_time(self, params={}):
         """
@@ -836,20 +838,29 @@ class bitget(Exchange):
         :param dict params: extra parameters specific to the exchange api endpoint
         :returns [dict]: an array of objects representing market data
         """
+        sandboxMode = self.safe_value(self.options, 'sandboxMode', False)
         types = self.safe_value(self.options, 'fetchMarkets', ['spot', 'swap'])
-        result = []
+        if sandboxMode:
+            types = ['swap']
+        promises = []
         for i in range(0, len(types)):
             type = types[i]
             if type == 'swap':
-                subTypes = ['umcbl', 'dmcbl', 'cmcbl', 'sumcbl', 'sdmcbl', 'scmcbl']
+                subTypes = None
+                if sandboxMode:
+                    # the following are simulated trading markets ['sumcbl', 'sdmcbl', 'scmcbl']
+                    subTypes = ['sumcbl', 'sdmcbl', 'scmcbl']
+                else:
+                    subTypes = ['umcbl', 'dmcbl', 'cmcbl']
                 for j in range(0, len(subTypes)):
-                    markets = self.fetch_markets_by_type(type, self.extend(params, {
+                    promises.append(self.fetch_markets_by_type(type, self.extend(params, {
                         'productType': subTypes[j],
-                    }))
-                    result = self.array_concat(result, markets)
+                    })))
             else:
-                markets = self.fetch_markets_by_type(types[i], params)
-                result = self.array_concat(result, markets)
+                promises.append(self.fetch_markets_by_type(types[i], params))
+        result = promises[0]
+        for i in range(1, len(promises)):
+            result = self.array_concat(result, promises[i])
         return result
 
     def parse_markets(self, markets):
@@ -869,6 +880,7 @@ class bitget(Exchange):
         #        quoteCoin: 'USDT',
         #        minTradeAmount: '2',
         #        maxTradeAmount: '0',
+        #        minTradeUSDT": '5',
         #        takerFeeRate: '0.001',
         #        makerFeeRate: '0.001',
         #        priceScale: '4',
@@ -938,13 +950,8 @@ class bitget(Exchange):
                 swap = True
                 symbol = symbol + ':' + settle
             contract = True
-            sumcbl = (typeId == 'SUMCBL')
-            sdmcbl = (typeId == 'SDMCBL')
-            scmcbl = (typeId == 'SCMCBL')
-            linear = (typeId == 'UMCBL') or (typeId == 'CMCBL') or sumcbl or scmcbl
+            linear = (typeId == 'UMCBL') or (typeId == 'CMCBL') or (typeId == 'SUMCBL') or (typeId == 'SCMCBL')
             inverse = not linear
-            if sumcbl or sdmcbl or scmcbl:
-                symbol = marketId
             priceDecimals = self.safe_integer(market, 'pricePlace')
             amountDecimals = self.safe_integer(market, 'volumePlace')
             priceStep = self.safe_string(market, 'priceEndStep')
@@ -963,6 +970,9 @@ class bitget(Exchange):
         active = None
         if status is not None:
             active = status == 'online'
+        minCost = None
+        if quote == 'USDT':
+            minCost = self.safe_number(market, 'minTradeUSDT')
         return {
             'id': marketId,
             'symbol': symbol,
@@ -999,15 +1009,15 @@ class bitget(Exchange):
                     'max': None,
                 },
                 'amount': {
-                    'min': self.safe_number(market, 'minTradeNum'),
-                    'max': None,
+                    'min': self.safe_number_2(market, 'minTradeNum', 'minTradeAmount'),
+                    'max': self.safe_number(market, 'maxTradeAmount'),
                 },
                 'price': {
                     'min': None,
                     'max': None,
                 },
                 'cost': {
-                    'min': None,
+                    'min': minCost,
                     'max': None,
                 },
             },
@@ -1501,8 +1511,6 @@ class bitget(Exchange):
         #     }
         #
         marketId = self.safe_string(ticker, 'symbol')
-        if not (marketId in self.markets_by_id):
-            marketId += '_SPBL'
         symbol = self.safe_symbol(marketId, market)
         high = self.safe_string(ticker, 'high24h')
         low = self.safe_string(ticker, 'low24h')
@@ -2032,7 +2040,7 @@ class bitget(Exchange):
             code = self.safe_currency_code(currencyId)
             account = self.account()
             frozen = self.safe_string(entry, 'frozen')
-            locked = self.safe_string(entry, 'lock')
+            locked = self.safe_string_2(entry, 'lock', 'locked')
             account['used'] = Precise.string_add(frozen, locked)
             account['free'] = self.safe_string(entry, 'available')
             result[code] = account
@@ -2115,7 +2123,7 @@ class bitget(Exchange):
         amount = self.safe_string_2(order, 'quantity', 'size')
         filled = self.safe_string_2(order, 'fillQuantity', 'filledQty')
         cost = self.safe_string_2(order, 'fillTotalAmount', 'filledAmount')
-        average = self.safe_string(order, 'fillPrice')
+        average = self.safe_string_2(order, 'fillPrice', 'priceAvg')
         type = self.safe_string(order, 'orderType')
         timestamp = self.safe_integer(order, 'cTime')
         side = self.safe_string_2(order, 'side', 'posSide')
@@ -2142,6 +2150,7 @@ class bitget(Exchange):
             'side': side,
             'price': price,
             'stopPrice': self.safe_number(order, 'triggerPrice'),
+            'triggerPrice': self.safe_number(order, 'triggerPrice'),
             'average': average,
             'cost': cost,
             'amount': amount,
@@ -2182,13 +2191,7 @@ class bitget(Exchange):
             raise ExchangeError(self.id + ' createOrder() params can only contain one of triggerPrice, stopLossPrice, takeProfitPrice')
         if (type == 'limit') and (triggerPrice is None):
             request['price'] = self.price_to_precision(symbol, price)
-        clientOrderId = self.safe_string_2(params, 'client_oid', 'clientOrderId')
-        if clientOrderId is None:
-            broker = self.safe_value(self.options, 'broker')
-            if broker is not None:
-                brokerId = self.safe_string(broker, market['type'])
-                if brokerId is not None:
-                    clientOrderId = brokerId + self.uuid22()
+        clientOrderId = self.safe_string_2(params, 'clientOid', 'clientOrderId')
         method = self.get_supported_mapping(marketType, {
             'spot': 'privateSpotPostTradeOrders',
             'swap': 'privateMixPostOrderPlaceOrder',
@@ -2209,14 +2212,16 @@ class bitget(Exchange):
                     request['quantity'] = self.price_to_precision(symbol, cost)
             else:
                 request['quantity'] = self.amount_to_precision(symbol, amount)
-            request['clientOrderId'] = clientOrderId
+            if clientOrderId is not None:
+                request['clientOrderId'] = clientOrderId
             request['side'] = side
             if postOnly:
                 request['force'] = 'post_only'
             else:
                 request['force'] = 'gtc'
         else:
-            request['clientOid'] = clientOrderId
+            if clientOrderId is not None:
+                request['clientOid'] = clientOrderId
             request['size'] = self.amount_to_precision(symbol, amount)
             if postOnly:
                 request['timeInForceValue'] = 'post_only'
@@ -3290,6 +3295,37 @@ class bitget(Exchange):
         }
         return self.privateMixPostAccountSetMarginMode(self.extend(request, params))
 
+    def set_position_mode(self, hedged, symbol=None, params={}):
+        """
+        set hedged to True or False for a market
+        :param bool hedged: set to True to use dualSidePosition
+        :param str|None symbol: not used by binance setPositionMode()
+        :param dict params: extra parameters specific to the binance api endpoint
+        :returns dict: response from the exchange
+         *
+        """
+        productType = self.safe_string(params, 'productType')
+        if (productType is None) and (symbol is None):
+            raise ArgumentsRequired(self.id + ' setPositionMode() requires a symbol or the productType parameter')
+        self.load_markets()
+        holdMode = 'double_hold' if hedged else 'single_hold'
+        request = {
+            'holdMode': holdMode,
+        }
+        if symbol is not None:
+            market = self.market(symbol)
+            request['productType'] = 'umcbl' if market['linear'] else 'dmcbl'
+        response = self.privateMixPostAccountSetPositionMode(self.extend(request, params))
+        #
+        #    {
+        #         "code": "40919",
+        #         "msg": "This function is not open yet",
+        #         "requestTime": 1672212431093,
+        #         "data": null
+        #     }
+        #
+        return response
+
     def fetch_open_interest(self, symbol, params={}):
         """
         Retrieves the open interest of a currency
@@ -3400,12 +3436,10 @@ class bitget(Exchange):
         #
         timestamp = self.safe_integer(interest, 'timestamp')
         id = self.safe_string(interest, 'symbol')
-        market = self.safe_market(id, market)
+        symbol = self.safe_symbol(id, market)
         amount = self.safe_number(interest, 'amount')
         return {
-            'symbol': self.safe_symbol(id),
-            'baseVolume': amount,  # deprecated
-            'quoteVolume': None,  # deprecated
+            'symbol': symbol,
             'openInterestAmount': amount,
             'openInterestValue': None,
             'timestamp': timestamp,
@@ -3479,11 +3513,13 @@ class bitget(Exchange):
                     url += query
                     auth += query
             signature = self.hmac(self.encode(auth), self.encode(self.secret), hashlib.sha256, 'base64')
+            broker = self.safe_string(self.options, 'broker')
             headers = {
                 'ACCESS-KEY': self.apiKey,
                 'ACCESS-SIGN': signature,
                 'ACCESS-TIMESTAMP': timestamp,
                 'ACCESS-PASSPHRASE': self.password,
+                'X-CHANNEL-API-CODE': broker,
             }
             if method == 'POST':
                 headers['Content-Type'] = 'application/json'

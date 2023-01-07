@@ -742,6 +742,7 @@ class lykke extends Exchange {
             'side' => $side,
             'price' => $price,
             'stopPrice' => null,
+            'triggerPrice' => null,
             'amount' => $amount,
             'cost' => $cost,
             'average' => null,

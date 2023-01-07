@@ -1464,6 +1464,7 @@ class kraken extends Exchange {
             'side' => $side,
             'price' => $price,
             'stopPrice' => $stopPrice,
+            'triggerPrice' => $stopPrice,
             'cost' => null,
             'amount' => $amount,
             'filled' => $filled,

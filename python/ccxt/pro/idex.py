@@ -579,6 +579,7 @@ class idex(Exchange, ccxt.async_support.idex):
             'side': side,
             'price': price,
             'stopPrice': None,
+            'triggerPrice': None,
             'amount': amount,
             'cost': cost,
             'average': average,

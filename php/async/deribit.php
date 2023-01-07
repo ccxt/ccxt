@@ -1574,6 +1574,7 @@ class deribit extends Exchange {
             'side' => $side,
             'price' => $priceString,
             'stopPrice' => $stopPrice,
+            'triggerPrice' => $stopPrice,
             'amount' => $amount,
             'cost' => $cost,
             'average' => $averageString,
@@ -1647,6 +1648,8 @@ class deribit extends Exchange {
             Async\await($this->load_markets());
             $market = $this->market($symbol);
             if ($market['inverse']) {
+                $amount = $this->amount_to_precision($symbol, $amount);
+            } elseif ($market['settle'] === 'USDC') {
                 $amount = $this->amount_to_precision($symbol, $amount);
             } else {
                 $amount = $this->currency_to_precision($symbol, $amount);

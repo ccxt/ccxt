@@ -1350,6 +1350,7 @@ class upbit(Exchange):
             'side': side,
             'price': price,
             'stopPrice': None,
+            'triggerPrice': None,
             'cost': cost,
             'average': average,
             'amount': amount,
