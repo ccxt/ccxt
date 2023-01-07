@@ -28,7 +28,7 @@ else
   slug="$TRAVIS_PULL_REQUEST_SLUG"
   branch="$TRAVIS_PULL_REQUEST_BRANCH"
 fi
-cache_file_name="$(cut -d '/' -f1 <<< "$slug"):$branch"
+cache_file_name="$(cut -d '/' -f1 <<< "$slug"):$(tr '/' '|' <<< "$branch")"
 
 mkdir "$timestamps_path" 2> /dev/null
 mkdir "$urls_path" 2> /dev/null
