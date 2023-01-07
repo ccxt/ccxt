@@ -158,11 +158,6 @@ module.exports = class ace extends Exchange {
         });
     }
 
-    currencyId (currencyId, currency = undefined) {
-        currency = this.currency (currencyId, currency);
-        return currency['id'];
-    }
-
     async fetchMarkets (params = {}) {
         /**
          * @method
@@ -352,8 +347,8 @@ module.exports = class ace extends Exchange {
         await this.loadMarkets ();
         const market = this.market (symbol);
         const request = {
-            'quoteCurrencyId': this.currencyId (market['quote']),
-            'baseCurrencyId': this.currencyId (market['base']),
+            'quoteCurrencyId': market['quoteId'],
+            'baseCurrencyId': market['baseId'],
         };
         const response = await this.publicGetOpenV2PublicGetOrderBook (this.extend (request, params));
         //
@@ -437,8 +432,8 @@ module.exports = class ace extends Exchange {
         const market = this.market (symbol);
         const request = {
             'duration': this.timeframes[timeframe],
-            'quoteCurrencyId': this.currencyId (market['quote']),
-            'baseCurrencyId': this.currencyId (market['base']),
+            'quoteCurrencyId': market['quoteId'],
+            'baseCurrencyId': market['baseId'],
         };
         if (limit !== undefined) {
             request['limit'] = limit;
@@ -581,8 +576,8 @@ module.exports = class ace extends Exchange {
         const orderType = type.toUpperCase ();
         const orderSide = side.toUpperCase ();
         const request = {
-            'baseCurrencyId': this.currencyId (market['base']),
-            'quoteCurrencyId': this.currencyId (market['quote']),
+            'baseCurrencyId': market['baseId'],
+            'quoteCurrencyId': market['quoteId'],
             'type': (orderType === 'LIMIT') ? 1 : 2,
             'buyOrSell': (orderSide === 'BUY') ? 1 : 2,
             'num': this.amountToPrecision (symbol, amount),
@@ -684,8 +679,8 @@ module.exports = class ace extends Exchange {
         await this.loadMarkets ();
         const market = this.market (symbol);
         const request = {
-            'quoteCurrencyId': this.currencyId (market['quote']),
-            'baseCurrencyId': this.currencyId (market['base']),
+            'quoteCurrencyId': market['quoteId'],
+            'baseCurrencyId': market['baseId'],
             // 'start': 0,
         };
         if (limit !== undefined) {
@@ -877,8 +872,8 @@ module.exports = class ace extends Exchange {
             // 'start': 0,
         };
         if (market['id'] !== undefined) {
-            request['quoteCurrencyId'] = this.currencyId (market['quote']);
-            request['baseCurrencyId'] = this.currencyId (market['base']);
+            request['quoteCurrencyId'] = market['quoteId'];
+            request['baseCurrencyId'] = market['baseId'];
         }
         if (limit !== undefined) {
             request['size'] = limit; // default 10, max 500
