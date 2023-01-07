@@ -694,7 +694,7 @@ class gate extends Exchange {
         }) ();
     }
 
-    public function fetch_spot_markets($params) {
+    public function fetch_spot_markets($params = array ()) {
         return Async\async(function () use ($params) {
             $marginResponse = Async\await($this->publicMarginGetCurrencyPairs ($params));
             $spotMarketsResponse = Async\await($this->publicSpotGetCurrencyPairs ($params));
@@ -803,16 +803,17 @@ class gate extends Exchange {
         }) ();
     }
 
-    public function fetch_contract_markets($params) {
+    public function fetch_contract_markets($params = array ()) {
         return Async\async(function () use ($params) {
             $result = array();
             $swapSettlementCurrencies = $this->get_settlement_currencies('swap', 'fetchMarkets');
             $futureSettlementCurrencies = $this->get_settlement_currencies('future', 'fetchMarkets');
             for ($c = 0; $c < count($swapSettlementCurrencies); $c++) {
                 $settleId = $swapSettlementCurrencies[$c];
-                $query = $params;
-                $query['settle'] = $settleId;
-                $response = Async\await($this->publicFuturesGetSettleContracts ($query));
+                $request = array(
+                    'settle' => $settleId,
+                );
+                $response = Async\await($this->publicFuturesGetSettleContracts (array_merge($request, $params)));
                 for ($i = 0; $i < count($response); $i++) {
                     $parsedMarket = $this->parse_contract_market($response[$i], $settleId);
                     $result[] = $parsedMarket;
@@ -820,9 +821,10 @@ class gate extends Exchange {
             }
             for ($c = 0; $c < count($futureSettlementCurrencies); $c++) {
                 $settleId = $futureSettlementCurrencies[$c];
-                $query = $params;
-                $query['settle'] = $settleId;
-                $response = Async\await($this->publicDeliveryGetSettleContracts ($query));
+                $request = array(
+                    'settle' => $settleId,
+                );
+                $response = Async\await($this->publicDeliveryGetSettleContracts (array_merge($request, $params)));
                 for ($i = 0; $i < count($response); $i++) {
                     $parsedMarket = $this->parse_contract_market($response[$i], $settleId);
                     $result[] = $parsedMarket;
