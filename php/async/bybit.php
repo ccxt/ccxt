@@ -2359,7 +2359,7 @@ class bybit extends Exchange {
             );
         }
         return $this->safe_trade(array(
-            'id' => $this->safe_string($trade, 'id'),
+            'id' => $this->safe_string($trade, 'tradeId'),
             'info' => $trade,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
