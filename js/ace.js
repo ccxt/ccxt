@@ -189,20 +189,17 @@ module.exports = class ace extends Exchange {
         const result = [];
         for (let i = 0; i < response.length; i++) {
             const market = response[i];
-            const id = this.safeString (market, 'symbol');
             const base = this.safeString (market, 'base');
-            const baseId = this.safeNumber (market, 'baseCurrencyId');
             const quote = this.safeString (market, 'quote');
-            const quoteId = this.safeNumber (market, 'quoteCurrencyId');
             const symbol = base + '/' + quote;
             result.push ({
-                'id': id,
+                'id': this.safeString (market, 'symbol'),
                 'uppercaseId': undefined,
                 'symbol': symbol,
                 'base': base,
-                'baseId': baseId,
+                'baseId': this.safeNumber (market, 'baseCurrencyId'),
                 'quote': quote,
-                'quoteId': quoteId,
+                'quoteId': this.safeNumber (market, 'quoteCurrencyId'),
                 'settle': undefined,
                 'settleId': undefined,
                 'type': 'spot',
@@ -243,7 +240,7 @@ module.exports = class ace extends Exchange {
                     'amount': this.safeNumber (market, 'quotePrecision'),
                 },
                 'active': undefined,
-                'info': id,
+                'info': market,
             });
         }
         return result;
