@@ -2329,7 +2329,7 @@ module.exports = class bybit extends Exchange {
             };
         }
         return this.safeTrade ({
-            'id': this.safeString (trade, 'id'),
+            'id': this.safeString (trade, 'tradeId'),
             'info': trade,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
