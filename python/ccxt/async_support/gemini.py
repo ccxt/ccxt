@@ -132,6 +132,7 @@ class gemini(Exchange):
                     'get': {
                         'v1/symbols': 5,
                         'v1/symbols/details/{symbol}': 5,
+                        'v1/staking/rates': 5,
                         'v1/pubticker/{symbol}': 5,
                         'v2/ticker/{symbol}': 5,
                         'v2/candles/{symbol}/{timeframe}': 5,
@@ -145,6 +146,10 @@ class gemini(Exchange):
                 },
                 'private': {
                     'post': {
+                        'v1/staking/unstake': 1,
+                        'v1/staking/stake': 1,
+                        'v1/staking/rewards': 1,
+                        'v1/staking/history': 1,
                         'v1/order/new': 1,
                         'v1/order/cancel': 1,
                         'v1/wrap/{symbol}': 1,
@@ -160,6 +165,7 @@ class gemini(Exchange):
                         'v1/clearing/cancel': 1,
                         'v1/clearing/confirm': 1,
                         'v1/balances': 1,
+                        'v1/balances/staking': 1,
                         'v1/notionalbalances/{currency}': 1,
                         'v1/transfers': 1,
                         'v1/addresses/{network}': 1,
@@ -172,6 +178,7 @@ class gemini(Exchange):
                         'v1/payments/sen/withdraw': 1,
                         'v1/balances/earn': 1,
                         'v1/earn/interest': 1,
+                        'v1/earn/history': 1,
                         'v1/approvedAddresses/{network}/request': 1,
                         'v1/approvedAddresses/account/{network}': 1,
                         'v1/approvedAddresses/{network}/remove': 1,

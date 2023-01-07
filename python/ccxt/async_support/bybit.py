@@ -2250,7 +2250,7 @@ class bybit(Exchange):
                 'currency': feeCurrency,
             }
         return self.safe_trade({
-            'id': self.safe_string(trade, 'id'),
+            'id': self.safe_string(trade, 'tradeId'),
             'info': trade,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
