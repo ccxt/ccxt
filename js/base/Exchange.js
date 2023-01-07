@@ -325,7 +325,7 @@ module.exports = class Exchange {
                 this[property] = value
             }
         }
-        this.defineNetworkOptions ();
+        this.generateNetworkData ();
         // http client options
         const agentOptions = {
             'keepAlive': true,
@@ -1666,7 +1666,7 @@ module.exports = class Exchange {
         };
     }
 
-    defineNetworkOptions () {
+    generateNetworkData () {
         // below field will contain automatically generated network id/code/name mappings (users are not meant to interact with it directly, and it will be moved into a class-wide property later)
         this.generatedNetworkData = {
             // so, in case of unique networks ids per currency, we will have three different entities:

@@ -281,7 +281,6 @@ class Exchange {
         'parseNumber' => 'parse_number',
         'checkOrderArguments' => 'check_order_arguments',
         'handleHttpStatusCode' => 'handle_http_status_code',
-        'getDefaultOptions' => 'get_default_options',
         'safeLedgerEntry' => 'safe_ledger_entry',
         'setMarkets' => 'set_markets',
         'safeBalance' => 'safe_balance',
@@ -301,10 +300,12 @@ class Exchange {
         'fetchL2OrderBook' => 'fetch_l2_order_book',
         'filterBySymbol' => 'filter_by_symbol',
         'parseOHLCV' => 'parse_ohlcv',
-        'getNetwork' => 'get_network',
+        'getDefaultOptions' => 'get_default_options',
+        'generateNetworkData' => 'generate_network_data',
+        'defineNetworkCodeNameIdMappings' => 'define_network_code_name_id_mappings',
         'networkCodeToId' => 'network_code_to_id',
         'networkIdToCode' => 'network_id_to_code',
-        'networkCodesToIds' => 'network_codes_to_ids',
+        'getCommonNetworkTitleFromId' => 'get_common_network_title_from_id',
         'handleNetworkCodeAndParams' => 'handle_network_code_and_params',
         'defaultNetworkCode' => 'default_network_code',
         'selectNetworkCodeFromUnifiedNetworks' => 'select_network_code_from_unified_networks',
@@ -1425,6 +1426,8 @@ class Exchange {
             }
         }
 
+        $this->generate_network_data();
+
         $this->tokenBucket = array(
             'delay' => 0.001,
             'capacity' => 1.0,
@@ -2486,16 +2489,6 @@ class Exchange {
 
     // METHODS BELOW THIS LINE ARE TRANSPILED FROM JAVASCRIPT TO PYTHON AND PHP
 
-    public function get_default_options() {
-        return array(
-            'defaultNetworkCodeReplacements' => array(
-                'ETH' => array( 'ERC20' => 'ETH' ),
-                'TRX' => array( 'TRC20' => 'TRX' ),
-                'CRO' => array( 'CRC20' => 'CRONOS' ),
-            ),
-        );
-    }
-
     public function safe_ledger_entry($entry, $currency = null) {
         $currency = $this->safe_currency(null, $currency);
         $direction = $this->safe_string($entry, 'direction');
@@ -3328,43 +3321,144 @@ class Exchange {
         return $ohlcv;
     }
 
-    public function get_network($network, $code) {
-        $network = strtoupper($network);
-        $aliases = array(
-            'ETHEREUM' => 'ETH',
-            'ETHER' => 'ETH',
-            'ERC20' => 'ETH',
-            'ETH' => 'ETH',
-            'TRC20' => 'TRX',
-            'TRON' => 'TRX',
-            'TRX' => 'TRX',
-            'BEP20' => 'BSC',
-            'BSC' => 'BSC',
-            'HRC20' => 'HT',
-            'HECO' => 'HT',
-            'SPL' => 'SOL',
-            'SOL' => 'SOL',
-            'TERRA' => 'LUNA',
-            'LUNA' => 'LUNA',
-            'POLYGON' => 'MATIC',
-            'MATIC' => 'MATIC',
-            'EOS' => 'EOS',
-            'WAVES' => 'WAVES',
-            'AVALANCHE' => 'AVAX',
-            'AVAX' => 'AVAX',
-            'QTUM' => 'QTUM',
-            'CHZ' => 'CHZ',
-            'NEO' => 'NEO',
-            'ONT' => 'ONT',
-            'RON' => 'RON',
+    public function get_default_options() {
+        return array(
+            'defaultNetworkCodeReplacements' => array(
+                'ETH' => array( 'ERC20' => 'ETH' ),
+                'TRX' => array( 'TRC20' => 'TRX' ),
+                'CRO' => array( 'CRC20' => 'CRONOS' ),
+            ),
+            // this list is for common reserved CCXT unified network codes (some of them might have multiple aliases)
+            'unifiedNetworkCodesAndAliases' => array(
+                'BEP20' => 'BSC',
+                'CARDANO' => 'ADA',
+                'HRC20' => 'HECO',
+                // 'BNB' => 'BEP2', // BNB is risky, as some exchanges are undeliberately calling 'BNB' network for BINANCE smart chain
+                'DOGECOIN' => 'DOGE',
+                'SOLANA' => 'SOL',
+                'POLYGON' => 'MATIC',
+                'COSMOS' => 'ATOM',
+                'POLKADOT' => 'DOT',
+                'ONTOLOGY' => 'ONT',
+                'THORCHAIN' => 'RUNE',
+                'ECASH' => 'XEC',
+                'ZCASH' => 'ZEC',
+                'RIPPLE' => 'XRP',
+                'STELLAR' => 'XLM',
+            ),
+            // below field needs to be s set to `true` for some exceptional exchanges. Setting it to `true` means that network ID-to-CODE relation defined in `networks|netwroksById` was done by common exchange-specific network-name (i.e. Erc-20) instead of the actual network-id (i.e. usdterc20), becuase in such case each currency has unique exchange-specific network-id (which is impossible to be pre-defined in `options`) and within fetchCurrencies() we set them automatically through 'idByTitle' && 'titleById'. To see examples, check OKX/HUOBI implementations
+            'hasUniqueNetworkIds' => false,
+            'networkCodesConflictsApproved' => array(), // this is overrided by user
         );
-        if ($network === $code) {
-            return $network;
-        } elseif (is_array($aliases) && array_key_exists($network, $aliases)) {
-            return $aliases[$network];
-        } else {
-            throw new NotSupported($this->id . ' $network ' . $network . ' is not yet supported');
+    }
+
+    public function generate_network_data() {
+        // below field will contain automatically generated network id/code/name mappings (users are not meant to interact with it directly, and it will be moved into a class-wide property later)
+        $this->generatedNetworkData = array(
+            // so, in case of unique networks ids per currency, we will have three different entities:
+            // 1) unified code ($i->e. 'ERC20')
+            // 2) exchange specific network name ($i->e. 'Erc-20')
+            // 3) currency specific network-id ($i->e. 'usdterc20')
+            'idByTitle' => array(),
+            'titleById' => array(),
+            'titleByCode' => array(),
+            'codeById' => array(),
+            // other data-containers
+            'networkCodesConflicts' => array(),
+        );
+        if (is_array($this->options) && array_key_exists('networks', $this->options)) {
+            // auto define 'networksById' in options, by reverting  key<>value from 'networks' entries
+            $sortedcodeById = array();
+            $networkCodesSupportedList = is_array($this->options['networks']) ? array_keys($this->options['networks']) : array();
+            for ($i = 0; $i < count($networkCodesSupportedList); $i++) {
+                $networkCode = $networkCodesSupportedList[$i];
+                $networkIdValue = $this->options['networks'][$networkCode];
+                // if unified code had single network id assigned ($i->e. 'ERC20':'Erc-20'), instead of multiple ids ($i->e. 'ERC20':['Eth', 'Ethereum'] )
+                if (gettype($networkIdValue) !== 'array' || array_keys($networkIdValue) !== array_keys(array_keys($networkIdValue))) {
+                    $sortedcodeById[$networkIdValue] = $networkCode;
+                } else {
+                    for ($j = 0; $j < count($networkIdValue); $j++) {
+                        $sortedcodeById[$networkIdValue[$j]] = $networkCode;
+                    }
+                }
+            }
+            $networksById = $this->safe_value($this->options, 'networksById', array());
+            //
+            $this->generatedNetworkData['codeById'] = array_merge($sortedcodeById, $networksById);
+            //
+            // for optimization purposes, to make a quick search later, redefine dictionary for $aliases, so the result would look like:
+            //   {
+            //     'BEP20' => 'BEP20',
+            //     'BSC' => 'BEP20',
+            //     ...
+            //   }
+            //
+            $aliases = $this->safe_value($this->options, 'unifiedNetworkCodesAndAliases');
+            $keys = is_array($aliases) ? array_keys($aliases) : array();
+            $this->generatedNetworkData['primaryNetworkCodes'] = array();
+            $this->generatedNetworkData['aliasNetworkCodes'] = array();
+            for ($i = 0; $i < count($keys); $i++) {
+                $primaryUnifiedNetworkCode = $keys[$i];
+                $aliasCode = $aliases[$primaryUnifiedNetworkCode];
+                $this->generatedNetworkData['primaryNetworkCodes'][$primaryUnifiedNetworkCode] = 1;
+                $this->generatedNetworkData['aliasNetworkCodes'][$aliasCode] = $primaryUnifiedNetworkCode;
+            }
+            //
+            // now define conflicts
+            //
+            $unifiedNetworkCodesAndAliases = $this->safe_value($this->options, 'unifiedNetworkCodesAndAliases', array());
+            // unified networkCodes for this exchange
+            $networksIdsByCodes = $this->safe_value($this->options, 'networks', array());
+            // unified networkCodes from base class
+            $aliasCodes = $this->generatedNetworkData['aliasNetworkCodes'];
+            $primaryCodes = $this->generatedNetworkData['primaryNetworkCodes'];
+            // find out network-ids which might conflict with unified networkCodes
+            $networkcodeByIdAuto = $this->safe_value($this->generatedNetworkData, 'codeById', array());
+            $networkIds = is_array($networkcodeByIdAuto) ? array_keys($networkcodeByIdAuto) : array();
+            for ($i = 0; $i < count($networkIds); $i++) {
+                $networkId = $networkIds[$i];
+                // check if that $networkId is also as key in unified networkCodes, and only in such case, we need to check if it's conflicting
+                if ((is_array($networksIdsByCodes) && array_key_exists($networkId, $networksIdsByCodes)) || (is_array($aliasCodes) && array_key_exists($networkId, $aliasCodes)) || (is_array($primaryCodes) && array_key_exists($networkId, $primaryCodes))) {
+                    $primaryNetworkCodeForThisId = null;
+                    if (is_array($aliasCodes) && array_key_exists($networkId, $aliasCodes)) {
+                        $primaryNetworkCodeForThisId = $aliasCodes[$networkId];
+                    } elseif (is_array($primaryCodes) && array_key_exists($networkId, $primaryCodes)) {
+                        $primaryNetworkCodeForThisId = $networkId;
+                    }
+                    $networkCodeForExchange = $networkcodeByIdAuto[$networkId];
+                    $networkIdValue = $this->safe_value_2($networksIdsByCodes, $networkId, $primaryNetworkCodeForThisId);
+                    // Otherwise, it means that $networkId is present in networkCodes. So, we check, if that $networkId is not same as that unified $networkCode, then it means there is a conflict
+                    $isEqualString = (gettype($networkIdValue) === 'string') && ($networkIdValue === $networkId);
+                    $isInArray = gettype($networkIdValue) === 'array' && array_keys($networkIdValue) === array_keys(array_keys($networkIdValue)) && (mb_strpos($networkIdValue, $networkId) !== false);
+                    // if that network id and code are linked to each other, add it into conflicting list
+                    if (!$isEqualString && !$isInArray) {
+                        $this->generatedNetworkData['networkCodesConflicts'][$networkId] = array(
+                            'exchangeSpecificCode' => $networkCodeForExchange,
+                            'aliasCode' => $this->safe_string($unifiedNetworkCodesAndAliases, $primaryNetworkCodeForThisId),
+                        );
+                    }
+                }
+            }
         }
+    }
+
+    public function define_network_code_name_id_mappings($currencyCode, $exchangeSpecificNetworkTitle, $uniqueCurrencySpecificNetworkId) {
+        // [mapping] id to name
+        $this->generatedNetworkData['titleById'][$uniqueCurrencySpecificNetworkId] = $exchangeSpecificNetworkTitle;
+        // [mapping] title to id
+        if (!(is_array($this->generatedNetworkData['idByTitle']) && array_key_exists($currencyCode, $this->generatedNetworkData['idByTitle']))) {
+            $this->generatedNetworkData['idByTitle'][$currencyCode] = array();
+        }
+        $this->generatedNetworkData['idByTitle'][$currencyCode][$exchangeSpecificNetworkTitle] = $uniqueCurrencySpecificNetworkId;
+        // set $networkCode
+        $networkCode = $this->networkIdToCode ($uniqueCurrencySpecificNetworkId, $currencyCode);
+        // [mapping] $networkCode to title
+        if (!(is_array($this->generatedNetworkData['titleByCode']) && array_key_exists($currencyCode, $this->generatedNetworkData['titleByCode']))) {
+            $this->generatedNetworkData['titleByCode'][$currencyCode] = array();
+        }
+        $this->generatedNetworkData['titleByCode'][$currencyCode][$networkCode] = $exchangeSpecificNetworkTitle;
+        //
+        return $networkCode;
     }
 
     public function network_code_to_id($networkCode, $currencyCode = null) {
@@ -3375,9 +3469,61 @@ class Exchange {
          * @param {string|null} $currencyCode unified currency code, but this argument is not required by default, unless there is an exchange (like huobi) that needs an override of the method to be able to pass $currencyCode argument additionally
          * @return {[string|null]} exchange-specific network id
          */
+        // check if conflicting id was provided
+        $conflictingCodes = $this->safe_value($this->generatedNetworkData, 'networkCodesConflicts');
+        $conflictingObject = $this->safe_value($conflictingCodes, $networkCode);
+        if ($conflictingObject !== null) {
+            $userOptions = $this->safe_value($this->options, 'networkCodesConflictsApproved', array());
+            if (!(is_array($userOptions) && array_key_exists($networkCode, $userOptions))) {
+                $exchangeSpecificUnifiedNetworkCode = $conflictingObject['exchangeSpecificCode'];
+                $extraMessage = '';
+                if ($conflictingObject['aliasCode'] !== null) {
+                    $extraMessage = ' (alternatively can be referred as ' . implode('|', ($conflictingObject['aliasCode'])) . ')';
+                }
+                $errorMessage = $this->id . ' networkCodeToId() : you have provided network code (' . $networkCode . '), which is in the list of unified CCXT networkCodes' . $extraMessage . '. However, specifically this exchange has accidentaly chosen this $networkCode to refer to a different network (which should be referred by ' . $exchangeSpecificUnifiedNetworkCode . ' in CCXT). So, if you meant to use that unified network (instead of ' . $exchangeSpecificUnifiedNetworkCode . ' network) then express your approval by setting `exchange.options["networkCodesConflictsApproved"]["' . $networkCode . '"] = true` so this exception will not be thrown for you. Otherwise, if you were not intending to use that CCXT unified network, then please use ' . $exchangeSpecificUnifiedNetworkCode . ' to avoid ambiguity.';
+                throw new ArgumentsRequired($errorMessage);
+            }
+        }
+        // if exchange has flat structure from 'Currencies' endpoint with unique exchange-specific chain-ids ($i->e. trc20usdt, which is combination of chain slug and currency), then at first we should get the values which were set in fetchCurrencies
+        if ($this->options['hasUniqueNetworkIds']) {
+            if ($currencyCode === null) {
+                throw new ArgumentsRequired($this->id . ' networkCodeToId() requires a $currencyCode argument');
+            }
+            $keys = is_array($this->safe_value($this->generatedNetworkData, 'idByTitle', array())) ? array_keys($this->safe_value($this->generatedNetworkData, 'idByTitle', array())) : array();
+            if (strlen(!$keys)) {
+                throw new ExchangeError($this->id . ' networkCodeToId() - markets need to be loaded at first');
+            }
+        }
         $networkIdsByCodes = $this->safe_value($this->options, 'networks', array());
-        $networkId = $this->safe_string($networkIdsByCodes, $networkCode);
-        // for example, if 'ETH' is passed for $networkCode, but 'ETH' $key not defined in `options->networks` object
+        $networkId = $this->safe_value($networkIdsByCodes, $networkCode);
+        // if it was an array, then we need to detect from it
+        if (gettype($networkId) === 'array' && array_keys($networkId) === array_keys(array_keys($networkId))) {
+            $found = false;
+            if ($currencyCode !== null) {
+                $titleByCode = $this->safe_value($this->generatedNetworkData, 'titleByCode', array());
+                $currencyData = $this->safe_value($titleByCode, $currencyCode, array());
+                $networkData = $this->safe_value($currencyData, $networkCode);
+                if ($networkData !== null) {
+                    $networkId = $titleByCode[$currencyCode][$networkCode];
+                    $found = true;
+                }
+            }
+            if (!$found) {
+                $idsList = implode(', ', $networkId);
+                throw new ArgumentsRequired($this->id . ' networkCodeToId() can not autoamtically detect the network-id for given $networkCode ' . $networkCode . '. Please choose one from list => ' . $idsList);
+            }
+        }
+        if ($networkId === null) {
+            // if `$networkCode` argument was $i->e. `SOL`, which was not defined in `options->networks`, but might be predefined alias, then try to locate in "aliases"
+            $networkData = $this->safe_value($this->options, 'generatedNetworkData');
+            $aliases = $this->safe_value($networkData, 'aliasNetworkCodes');
+            $primaryNetworkCode = $this->safe_value($aliases, $networkCode);
+            if ($primaryNetworkCode !== null) {
+                // now find whether the $networkId was defined with $primaryNetworkCode in options['networks']
+                $networkId = $this->safe_string($networkIdsByCodes, $primaryNetworkCode);
+            }
+        }
+        // for example, if 'XYZ' is passed for $networkCode, but 'XYZ' $key not defined in  object
         if ($networkId === null) {
             if ($currencyCode === null) {
                 // if $currencyCode was not provided, then we just set passed $value to $networkId
@@ -3391,19 +3537,26 @@ class Exchange {
                     $keys = is_array($replacementObject) ? array_keys($replacementObject) : array();
                     for ($i = 0; $i < count($keys); $i++) {
                         $key = $keys[$i];
-                        $value = $replacementObject[$key];
                         // if $value matches to provided unified $networkCode, then we use it's $key to find network-id in `options->networks` object
+                        $value = $replacementObject[$key];
                         if ($value === $networkCode) {
                             $networkId = $this->safe_string($networkIdsByCodes, $key);
                             break;
                         }
                     }
                 }
-                // if it wasn't found, we just set the provided $value to network-id
+                // if it wasn't $found, we just set the provided $value to network-id
                 if ($networkId === null) {
                     $networkId = $networkCode;
                 }
             }
+        }
+        if ($this->options['hasUniqueNetworkIds']) {
+            // at this stage, "networkId" will be just an intermediary, exchange-specific common network title $i->e. 'Erc20', so we have to convert to actual $networkId
+            // 1) at first, check if it was present during fetchCurrencies (because there are cases, when API might return data, which contains curerncy & network ids, which were not mentioned in fetchCurrencies)
+            $uniqueNetworkIdsByNames = $this->safe_value($this->generatedNetworkData['idByTitle'], $currencyCode, array());
+            // 2) if currency was present, check if it had (in fetchCurrencies) present the provided $networkId
+            $networkId = $this->safe_value($uniqueNetworkIdsByNames, $networkId, $networkId);
         }
         return $networkId;
     }
@@ -3416,8 +3569,26 @@ class Exchange {
          * @param {string|null} $currencyCode unified currency code, but this argument is not required by default, unless there is an exchange (like huobi) that needs an override of the method to be able to pass $currencyCode argument additionally
          * @return {[string|null]} unified network code
          */
-        $networkCodesByIds = $this->safe_value($this->options, 'networksById', array());
-        $networkCode = $this->safe_string($networkCodesByIds, $networkId, $networkId);
+        if ($this->options['hasUniqueNetworkIds']) {
+            // if exchange has flat structure from 'Currencies' endpoint with unique exchange-specific chain-ids (i.e. trc20usdt, which is combination of chain slug and currency), then at first we should get the values which were set in fetchCurrencies
+            $keys = is_array($this->generatedNetworkData['titleById']) ? array_keys($this->generatedNetworkData['titleById']) : array();
+            if (strlen(!$keys)) {
+                throw new ExchangeError($this->id . ' networkIdToCode() - markets need to be loaded at first');
+            }
+            $networkTitle = $this->safe_value($this->generatedNetworkData['titleById'], $networkId);
+            if ($networkTitle === null) {
+                // Some exchanges (i.e. OKX) might have inconsistent data. For example, fetchDepositAddress('BTC') might return exchange specific network-id (i.e. BTCK-erc20 or usdteth or whatever), which was not present in fetchCurrencies for that currency. So, as it won't be found in our local data, we would try to parse through derived class's `getCommonNetworkTitleFromId()` overriden method, which will be accustomed to that exchange's expected network-id format (be it with hypher or whatever. For example, see the implementation in okx class)
+                $networkTitle = $this->getCommonNetworkTitleFromId ($networkId, $currencyCode);
+            }
+            $networkId = $networkTitle;
+        }
+        $networkcodeById = $this->safe_value($this->options, 'networksById', array());
+        $networkCode = $this->safe_string($networkcodeById, $networkId);
+        if ($networkCode === null) {
+            // if `$networkId` was not found in `networksById` (possibly because it was not defined in options at all) then check in auto-inversed `networks` object. If given `$networkId` will not be present there, then return `$networkId` as-is
+            $networkcodeByIdAuto = $this->safe_value($this->generatedNetworkData, 'codeById', array());
+            $networkCode = $this->safe_string($networkcodeByIdAuto, $networkId, $networkId);
+        }
         // replace mainnet network-codes (i.e. ERC20->ETH)
         if ($currencyCode !== null) {
             $defaultNetworkCodeReplacements = $this->safe_value($this->options, 'defaultNetworkCodeReplacements', array());
@@ -3429,22 +3600,9 @@ class Exchange {
         return $networkCode;
     }
 
-    public function network_codes_to_ids($networkCodes = null) {
-        /**
-         * @ignore
-         * tries to convert the provided $networkCode (which is expected to be an unified network code) to a network id. In order to achieve this, derived class needs to have 'options->networks' defined.
-         * @param {[string]|null} $networkCodes unified network codes
-         * @return {[string|null]} exchange-specific network $ids
-         */
-        if ($networkCodes === null) {
-            return null;
-        }
-        $ids = array();
-        for ($i = 0; $i < count($networkCodes); $i++) {
-            $networkCode = $networkCodes[$i];
-            $ids[] = $this->networkCodeToId ($networkCode);
-        }
-        return $ids;
+    public function get_common_network_title_from_id($networkId, $currencyCode = null) {
+        // this method is here to be overriden in derived class (i.e. OKX, HUOBI)
+        return $networkId;
     }
 
     public function handle_network_code_and_params($params) {
@@ -3484,7 +3642,7 @@ class Exchange {
         // this method is used against raw & unparse network entries, which are just indexed by network id
         $chosenNetworkId = null;
         $availableNetworkIds = is_array($indexedNetworkEntries) ? array_keys($indexedNetworkEntries) : array();
-        $responseNetworksLength = count($availableNetworkIds);
+        $responseNetworksLength = count($availableNetworkIds); // network ids are Available
         if ($networkCode !== null) {
             if ($responseNetworksLength === 0) {
                 throw new NotSupported($this->id . ' - ' . $networkCode . ' network did not return any result for ' . $currencyCode);

@@ -403,6 +403,8 @@ class Exchange(object):
             else:
                 setattr(self, key, settings[key])
 
+        self.generate_network_data()
+
         if self.api:
             self.define_rest_api(self.api, 'request')
 
@@ -1796,15 +1798,6 @@ class Exchange(object):
 
     # METHODS BELOW THIS LINE ARE TRANSPILED FROM JAVASCRIPT TO PYTHON AND PHP
 
-    def get_default_options(self):
-        return {
-            'defaultNetworkCodeReplacements': {
-                'ETH': {'ERC20': 'ETH'},
-                'TRX': {'TRC20': 'TRX'},
-                'CRO': {'CRC20': 'CRONOS'},
-            },
-        }
-
     def safe_ledger_entry(self, entry, currency=None):
         currency = self.safe_currency(None, currency)
         direction = self.safe_string(entry, 'direction')
@@ -2500,42 +2493,131 @@ class Exchange(object):
             ]
         return ohlcv
 
-    def get_network(self, network, code):
-        network = network.upper()
-        aliases = {
-            'ETHEREUM': 'ETH',
-            'ETHER': 'ETH',
-            'ERC20': 'ETH',
-            'ETH': 'ETH',
-            'TRC20': 'TRX',
-            'TRON': 'TRX',
-            'TRX': 'TRX',
-            'BEP20': 'BSC',
-            'BSC': 'BSC',
-            'HRC20': 'HT',
-            'HECO': 'HT',
-            'SPL': 'SOL',
-            'SOL': 'SOL',
-            'TERRA': 'LUNA',
-            'LUNA': 'LUNA',
-            'POLYGON': 'MATIC',
-            'MATIC': 'MATIC',
-            'EOS': 'EOS',
-            'WAVES': 'WAVES',
-            'AVALANCHE': 'AVAX',
-            'AVAX': 'AVAX',
-            'QTUM': 'QTUM',
-            'CHZ': 'CHZ',
-            'NEO': 'NEO',
-            'ONT': 'ONT',
-            'RON': 'RON',
+    def get_default_options(self):
+        return {
+            'defaultNetworkCodeReplacements': {
+                'ETH': {'ERC20': 'ETH'},
+                'TRX': {'TRC20': 'TRX'},
+                'CRO': {'CRC20': 'CRONOS'},
+            },
+            # self list is for common reserved CCXT unified network codes(some of them might have multiple aliases)
+            'unifiedNetworkCodesAndAliases': {
+                'BEP20': 'BSC',
+                'CARDANO': 'ADA',
+                'HRC20': 'HECO',
+                # 'BNB': 'BEP2',  # BNB is risky, as some exchanges are undeliberately calling 'BNB' network for BINANCE smart chain
+                'DOGECOIN': 'DOGE',
+                'SOLANA': 'SOL',
+                'POLYGON': 'MATIC',
+                'COSMOS': 'ATOM',
+                'POLKADOT': 'DOT',
+                'ONTOLOGY': 'ONT',
+                'THORCHAIN': 'RUNE',
+                'ECASH': 'XEC',
+                'ZCASH': 'ZEC',
+                'RIPPLE': 'XRP',
+                'STELLAR': 'XLM',
+            },
+            # below field needs to be s set to `true` for some exceptional exchanges. Setting it to `true` means that network ID-to-CODE relation defined in `networks|netwroksById` was done by common exchange-specific network-name(i.e. Erc-20) instead of the actual network-id(i.e. usdterc20), becuase in such case each currency has unique exchange-specific network-id(which is impossible to be pre-defined in `options`) and within fetchCurrencies() we set them automatically through 'idByTitle' and 'titleById'. To see examples, check OKX/HUOBI implementations
+            'hasUniqueNetworkIds': False,
+            'networkCodesConflictsApproved': {},  # self is overrided by user
         }
-        if network == code:
-            return network
-        elif network in aliases:
-            return aliases[network]
-        else:
-            raise NotSupported(self.id + ' network ' + network + ' is not yet supported')
+
+    def generate_network_data(self):
+        # below field will contain automatically generated network id/code/name mappings(users are not meant to interact with it directly, and it will be moved into a class-wide property later)
+        self.generatedNetworkData = {
+            # so, in case of unique networks ids per currency, we will have three different entities:
+            # 1) unified code(i.e. 'ERC20')
+            # 2) exchange specific network name(i.e. 'Erc-20')
+            # 3) currency specific network-id(i.e. 'usdterc20')
+            'idByTitle': {},
+            'titleById': {},
+            'titleByCode': {},
+            'codeById': {},
+            # other data-containers
+            'networkCodesConflicts': {},
+        }
+        if 'networks' in self.options:
+            # auto define 'networksById' in options, by reverting  key<>value from 'networks' entries
+            sortedcodeById = {}
+            networkCodesSupportedList = list(self.options['networks'].keys())
+            for i in range(0, len(networkCodesSupportedList)):
+                networkCode = networkCodesSupportedList[i]
+                networkIdValue = self.options['networks'][networkCode]
+                # if unified code had single network id assigned(i.e. 'ERC20':'Erc-20'), instead of multiple ids(i.e. 'ERC20':['Eth', 'Ethereum'] )
+                if not isinstance(networkIdValue, list):
+                    sortedcodeById[networkIdValue] = networkCode
+                else:
+                    for j in range(0, len(networkIdValue)):
+                        sortedcodeById[networkIdValue[j]] = networkCode
+            networksById = self.safe_value(self.options, 'networksById', {})
+            #
+            self.generatedNetworkData['codeById'] = self.extend(sortedcodeById, networksById)
+            #
+            # for optimization purposes, to make a quick search later, redefine dictionary for aliases, so the result would look like:
+            #   {
+            #     'BEP20': 'BEP20',
+            #     'BSC': 'BEP20',
+            #     ...
+            #   }
+            #
+            aliases = self.safe_value(self.options, 'unifiedNetworkCodesAndAliases')
+            keys = list(aliases.keys())
+            self.generatedNetworkData['primaryNetworkCodes'] = {}
+            self.generatedNetworkData['aliasNetworkCodes'] = {}
+            for i in range(0, len(keys)):
+                primaryUnifiedNetworkCode = keys[i]
+                aliasCode = aliases[primaryUnifiedNetworkCode]
+                self.generatedNetworkData['primaryNetworkCodes'][primaryUnifiedNetworkCode] = 1
+                self.generatedNetworkData['aliasNetworkCodes'][aliasCode] = primaryUnifiedNetworkCode
+            #
+            # now define conflicts
+            #
+            unifiedNetworkCodesAndAliases = self.safe_value(self.options, 'unifiedNetworkCodesAndAliases', {})
+            # unified networkCodes for self exchange
+            networksIdsByCodes = self.safe_value(self.options, 'networks', {})
+            # unified networkCodes from base class
+            aliasCodes = self.generatedNetworkData['aliasNetworkCodes']
+            primaryCodes = self.generatedNetworkData['primaryNetworkCodes']
+            # find out network-ids which might conflict with unified networkCodes
+            networkcodeByIdAuto = self.safe_value(self.generatedNetworkData, 'codeById', {})
+            networkIds = list(networkcodeByIdAuto.keys())
+            for i in range(0, len(networkIds)):
+                networkId = networkIds[i]
+                # check if that networkId is also as key in unified networkCodes, and only in such case, we need to check if it's conflicting
+                if (networkId in networksIdsByCodes) or (networkId in aliasCodes) or (networkId in primaryCodes):
+                    primaryNetworkCodeForThisId = None
+                    if networkId in aliasCodes:
+                        primaryNetworkCodeForThisId = aliasCodes[networkId]
+                    elif networkId in primaryCodes:
+                        primaryNetworkCodeForThisId = networkId
+                    networkCodeForExchange = networkcodeByIdAuto[networkId]
+                    networkIdValue = self.safe_value_2(networksIdsByCodes, networkId, primaryNetworkCodeForThisId)
+                    # Otherwise, it means that networkId is present in networkCodes. So, we check, if that networkId is not same as that unified networkCode, then it means there is a conflict
+                    isEqualString = (isinstance(networkIdValue, str)) and (networkIdValue == networkId)
+                    isInArray = isinstance(networkIdValue, list) and (networkIdValue.find(networkId) >= 0)
+                    # if that network id and code are linked to each other, add it into conflicting list
+                    if not isEqualString and not isInArray:
+                        self.generatedNetworkData['networkCodesConflicts'][networkId] = {
+                            'exchangeSpecificCode': networkCodeForExchange,
+                            'aliasCode': self.safe_string(unifiedNetworkCodesAndAliases, primaryNetworkCodeForThisId),
+                        }
+
+    def define_network_code_name_id_mappings(self, currencyCode, exchangeSpecificNetworkTitle, uniqueCurrencySpecificNetworkId):
+        # [mapping] id to name
+        self.generatedNetworkData['titleById'][uniqueCurrencySpecificNetworkId] = exchangeSpecificNetworkTitle
+        # [mapping] title to id
+        if not (currencyCode in self.generatedNetworkData['idByTitle']):
+            self.generatedNetworkData['idByTitle'][currencyCode] = {}
+        self.generatedNetworkData['idByTitle'][currencyCode][exchangeSpecificNetworkTitle] = uniqueCurrencySpecificNetworkId
+        # set networkCode
+        networkCode = self.networkIdToCode(uniqueCurrencySpecificNetworkId, currencyCode)
+        # [mapping] networkCode to title
+        if not (currencyCode in self.generatedNetworkData['titleByCode']):
+            self.generatedNetworkData['titleByCode'][currencyCode] = {}
+        self.generatedNetworkData['titleByCode'][currencyCode][networkCode] = exchangeSpecificNetworkTitle
+        #
+        return networkCode
 
     def network_code_to_id(self, networkCode, currencyCode=None):
         """
@@ -2545,9 +2627,49 @@ class Exchange(object):
         :param str|None currencyCode: unified currency code, but self argument is not required by default, unless there is an exchange(like huobi) that needs an override of the method to be able to pass currencyCode argument additionally
         :returns [str|None]: exchange-specific network id
         """
+        # check if conflicting id was provided
+        conflictingCodes = self.safe_value(self.generatedNetworkData, 'networkCodesConflicts')
+        conflictingObject = self.safe_value(conflictingCodes, networkCode)
+        if conflictingObject is not None:
+            userOptions = self.safe_value(self.options, 'networkCodesConflictsApproved', {})
+            if not (networkCode in userOptions):
+                exchangeSpecificUnifiedNetworkCode = conflictingObject['exchangeSpecificCode']
+                extraMessage = ''
+                if conflictingObject['aliasCode'] is not None:
+                    extraMessage = '(alternatively can be referred as ' + '|'.join((conflictingObject['aliasCode'])) + ')'
+                errorMessage = self.id + ' networkCodeToId() : you have provided network code(' + networkCode + '), which is in the list of unified CCXT networkCodes' + extraMessage + '. However, specifically self exchange has accidentaly chosen self networkCode to refer to a different network(which should be referred by ' + exchangeSpecificUnifiedNetworkCode + ' in CCXT). So, if you meant to use that unified network(instead of ' + exchangeSpecificUnifiedNetworkCode + ' network) then express your approval by setting `exchange.options["networkCodesConflictsApproved"]["' + networkCode + '"] = True` so self exception will not be thrown for you. Otherwise, if you were not intending to use that CCXT unified network, then please use ' + exchangeSpecificUnifiedNetworkCode + ' to avoid ambiguity.'
+                raise ArgumentsRequired(errorMessage)
+        # if exchange has flat structure from 'Currencies' endpoint with unique exchange-specific chain-ids(i.e. trc20usdt, which is combination of chain slug and currency), then at first we should get the values which were set in fetchCurrencies
+        if self.options['hasUniqueNetworkIds']:
+            if currencyCode is None:
+                raise ArgumentsRequired(self.id + ' networkCodeToId() requires a currencyCode argument')
+            keys = list(self.safe_value(self.generatedNetworkData, 'idByTitle', {}).keys())
+            if not len(keys):
+                raise ExchangeError(self.id + ' networkCodeToId() - markets need to be loaded at first')
         networkIdsByCodes = self.safe_value(self.options, 'networks', {})
-        networkId = self.safe_string(networkIdsByCodes, networkCode)
-        # for example, if 'ETH' is passed for networkCode, but 'ETH' key not defined in `options->networks` object
+        networkId = self.safe_value(networkIdsByCodes, networkCode)
+        # if it was an array, then we need to detect from it
+        if isinstance(networkId, list):
+            found = False
+            if currencyCode is not None:
+                titleByCode = self.safe_value(self.generatedNetworkData, 'titleByCode', {})
+                currencyData = self.safe_value(titleByCode, currencyCode, {})
+                networkData = self.safe_value(currencyData, networkCode)
+                if networkData is not None:
+                    networkId = titleByCode[currencyCode][networkCode]
+                    found = True
+            if not found:
+                idsList = ', '.join(networkId)
+                raise ArgumentsRequired(self.id + ' networkCodeToId() can not autoamtically detect the network-id for given networkCode ' + networkCode + '. Please choose one from list: ' + idsList)
+        if networkId is None:
+            # if `networkCode` argument was i.e. `SOL`, which was not defined in `options->networks`, but might be predefined alias, then try to locate in "aliases"
+            networkData = self.safe_value(self.options, 'generatedNetworkData')
+            aliases = self.safe_value(networkData, 'aliasNetworkCodes')
+            primaryNetworkCode = self.safe_value(aliases, networkCode)
+            if primaryNetworkCode is not None:
+                # now find whether the networkId was defined with primaryNetworkCode in options['networks']
+                networkId = self.safe_string(networkIdsByCodes, primaryNetworkCode)
+        # for example, if 'XYZ' is passed for networkCode, but 'XYZ' key not defined in  object
         if networkId is None:
             if currencyCode is None:
                 # if currencyCode was not provided, then we just set passed value to networkId
@@ -2561,14 +2683,20 @@ class Exchange(object):
                     keys = list(replacementObject.keys())
                     for i in range(0, len(keys)):
                         key = keys[i]
-                        value = replacementObject[key]
                         # if value matches to provided unified networkCode, then we use it's key to find network-id in `options->networks` object
+                        value = replacementObject[key]
                         if value == networkCode:
                             networkId = self.safe_string(networkIdsByCodes, key)
                             break
                 # if it wasn't found, we just set the provided value to network-id
                 if networkId is None:
                     networkId = networkCode
+        if self.options['hasUniqueNetworkIds']:
+            # at self stage, "networkId" will be just an intermediary, exchange-specific common network title i.e. 'Erc20', so we have to convert to actual networkId
+            # 1) at first, check if it was present during fetchCurrencies(because there are cases, when API might return data, which contains curerncy & network ids, which were not mentioned in fetchCurrencies)
+            uniqueNetworkIdsByNames = self.safe_value(self.generatedNetworkData['idByTitle'], currencyCode, {})
+            # 2) if currency was present, check if it had(in fetchCurrencies) present the provided networkId
+            networkId = self.safe_value(uniqueNetworkIdsByNames, networkId, networkId)
         return networkId
 
     def network_id_to_code(self, networkId, currencyCode=None):
@@ -2579,8 +2707,22 @@ class Exchange(object):
         :param str|None currencyCode: unified currency code, but self argument is not required by default, unless there is an exchange(like huobi) that needs an override of the method to be able to pass currencyCode argument additionally
         :returns [str|None]: unified network code
         """
-        networkCodesByIds = self.safe_value(self.options, 'networksById', {})
-        networkCode = self.safe_string(networkCodesByIds, networkId, networkId)
+        if self.options['hasUniqueNetworkIds']:
+            # if exchange has flat structure from 'Currencies' endpoint with unique exchange-specific chain-ids(i.e. trc20usdt, which is combination of chain slug and currency), then at first we should get the values which were set in fetchCurrencies
+            keys = list(self.generatedNetworkData['titleById'].keys())
+            if not len(keys):
+                raise ExchangeError(self.id + ' networkIdToCode() - markets need to be loaded at first')
+            networkTitle = self.safe_value(self.generatedNetworkData['titleById'], networkId)
+            if networkTitle is None:
+                # Some exchanges(i.e. OKX) might have inconsistent data. For example, fetchDepositAddress('BTC') might return exchange specific network-id(i.e. BTCK-erc20 or usdteth or whatever), which was not present in fetchCurrencies for that currency. So, as it won't be found in our local data, we would try to parse through derived class's `getCommonNetworkTitleFromId()` overriden method, which will be accustomed to that exchange's expected network-id format(be it with hypher or whatever. For example, see the implementation in okx class)
+                networkTitle = self.getCommonNetworkTitleFromId(networkId, currencyCode)
+            networkId = networkTitle
+        networkcodeById = self.safe_value(self.options, 'networksById', {})
+        networkCode = self.safe_string(networkcodeById, networkId)
+        if networkCode is None:
+            # if `networkId` was not found in `networksById`(possibly because it was not defined in options at all) then check in auto-inversed `networks` object. If given `networkId` will not be present there, then return `networkId` as-is
+            networkcodeByIdAuto = self.safe_value(self.generatedNetworkData, 'codeById', {})
+            networkCode = self.safe_string(networkcodeByIdAuto, networkId, networkId)
         # replace mainnet network-codes(i.e. ERC20->ETH)
         if currencyCode is not None:
             defaultNetworkCodeReplacements = self.safe_value(self.options, 'defaultNetworkCodeReplacements', {})
@@ -2589,20 +2731,9 @@ class Exchange(object):
                 networkCode = self.safe_string(replacementObject, networkCode, networkCode)
         return networkCode
 
-    def network_codes_to_ids(self, networkCodes=None):
-        """
-         * @ignore
-        tries to convert the provided networkCode(which is expected to be an unified network code) to a network id. In order to achieve self, derived class needs to have 'options->networks' defined.
-        :param [str]|None networkCodes: unified network codes
-        :returns [str|None]: exchange-specific network ids
-        """
-        if networkCodes is None:
-            return None
-        ids = []
-        for i in range(0, len(networkCodes)):
-            networkCode = networkCodes[i]
-            ids.append(self.networkCodeToId(networkCode))
-        return ids
+    def get_common_network_title_from_id(self, networkId, currencyCode=None):
+        # self method is here to be overriden in derived class(i.e. OKX, HUOBI)
+        return networkId
 
     def handle_network_code_and_params(self, params):
         networkCodeInParams = self.safe_string_2(params, 'networkCode', 'network')
@@ -2634,7 +2765,7 @@ class Exchange(object):
         # self method is used against raw & unparse network entries, which are just indexed by network id
         chosenNetworkId = None
         availableNetworkIds = list(indexedNetworkEntries.keys())
-        responseNetworksLength = len(availableNetworkIds)
+        responseNetworksLength = len(availableNetworkIds)  # network ids are Available
         if networkCode is not None:
             if responseNetworksLength == 0:
                 raise NotSupported(self.id + ' - ' + networkCode + ' network did not return any result for ' + currencyCode)
