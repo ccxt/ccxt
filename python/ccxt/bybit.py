@@ -6051,7 +6051,7 @@ class bybit(Exchange):
                 'symbol': market['id'],
                 'leverage': leverage,
             }
-            method = 'privatePostOptionUsdcOpenapiPrivateV1PositionSetLeverage'
+            method = 'privatePostPerpetualUsdcOpenapiPrivateV1PositionLeverageSave'
         return getattr(self, method)(self.extend(request, params))
 
     def set_position_mode(self, hedged, symbol=None, params={}):

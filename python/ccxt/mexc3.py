@@ -4517,6 +4517,7 @@ class mexc3(Exchange):
                     'ApiKey': self.apiKey,
                     'Request-Time': timestamp,
                     'Content-Type': 'application/json',
+                    'source': self.safe_string(self.options, 'broker', 'CCXT'),
                 }
                 if method == 'POST':
                     auth = self.json(params)

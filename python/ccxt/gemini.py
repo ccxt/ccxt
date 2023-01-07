@@ -33,7 +33,7 @@ class gemini(Exchange):
             # 120 requests a minute = 2 requests per second =>( 1000ms / rateLimit ) / 2 = 5(public endpoints)
             'rateLimit': 100,
             'version': 'v1',
-            'pro': False,
+            'pro': True,
             'has': {
                 'CORS': None,
                 'spot': True,
@@ -273,6 +273,7 @@ class gemini(Exchange):
                     'DOGE': 'dogecoin',
                     'XTZ': 'tezos',
                 },
+                'nonce': 'milliseconds',  # if getting a Network 400 error change to seconds
             },
         })
 
@@ -1343,7 +1344,10 @@ class gemini(Exchange):
         return self.parse_transaction(response, currency)
 
     def nonce(self):
-        return self.milliseconds()
+        nonceMethod = self.safe_string(self.options, 'nonce', 'milliseconds')
+        if nonceMethod == 'milliseconds':
+            return self.milliseconds()
+        return self.seconds()
 
     def fetch_transactions(self, code=None, since=None, limit=None, params={}):
         """
@@ -1546,8 +1550,9 @@ class gemini(Exchange):
         """
         self.load_markets()
         market = self.market(symbol)
+        timeframeId = self.safe_string(self.timeframes, timeframe, timeframe)
         request = {
-            'timeframe': self.timeframes[timeframe],
+            'timeframe': timeframeId,
             'symbol': market['id'],
         }
         response = self.publicGetV2CandlesSymbolTimeframe(self.extend(request, params))

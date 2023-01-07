@@ -6551,7 +6551,7 @@ class bybit extends Exchange {
                     'symbol' => $market['id'],
                     'leverage' => $leverage,
                 );
-                $method = 'privatePostOptionUsdcOpenapiPrivateV1PositionSetLeverage';
+                $method = 'privatePostPerpetualUsdcOpenapiPrivateV1PositionLeverageSave';
             }
             return Async\await($this->$method (array_merge($request, $params)));
         }) ();

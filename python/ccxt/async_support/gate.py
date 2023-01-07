@@ -2014,7 +2014,7 @@ class gate(Exchange):
         #        A: '0.0353'  # best ask size
         #     }
         #
-        marketId = self.safe_string_n(ticker, ['currency_pair', 'contract', 's'])
+        marketId = self.safe_string_2(ticker, 'currency_pair', 'contract')
         marketType = 'contract' if ('contract' in ticker) else 'spot'
         symbol = self.safe_symbol(marketId, market, '_', marketType)
         last = self.safe_string(ticker, 'last')

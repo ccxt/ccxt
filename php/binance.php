@@ -275,6 +275,8 @@ class binance extends Exchange {
                         'sub-account/apiRestrictions/ipRestriction/thirdPartyList' => 1,
                         'managed-subaccount/asset' => 0.1,
                         'managed-subaccount/accountSnapshot' => 240,
+                        'managed-subaccount/queryTransLogForInvestor' => 0.1,
+                        'managed-subaccount/queryTransLogForTradeParent' => 0.1,
                         // lending endpoints
                         'lending/daily/product/list' => 0.1,
                         'lending/daily/userLeftQuota' => 0.1,

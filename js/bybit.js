@@ -2329,7 +2329,7 @@ module.exports = class bybit extends Exchange {
             };
         }
         return this.safeTrade ({
-            'id': this.safeString (trade, 'id'),
+            'id': this.safeString (trade, 'tradeId'),
             'info': trade,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
@@ -6446,7 +6446,7 @@ module.exports = class bybit extends Exchange {
                 'symbol': market['id'],
                 'leverage': leverage,
             };
-            method = 'privatePostOptionUsdcOpenapiPrivateV1PositionSetLeverage';
+            method = 'privatePostPerpetualUsdcOpenapiPrivateV1PositionLeverageSave';
         }
         return await this[method] (this.extend (request, params));
     }

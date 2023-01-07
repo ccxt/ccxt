@@ -33,7 +33,7 @@ class bitstamp(Exchange, ccxt.async_support.bitstamp):
                 'userId': '',
                 'wsSessionToken': '',
                 'watchOrderBook': {
-                    'type': 'order_book',  # detail_order_book, diff_order_book
+                    'snapshotDelay': 6,
                 },
                 'tradesLimit': 1000,
                 'OHLCVLimit': 1000,
@@ -106,20 +106,21 @@ class bitstamp(Exchange, ccxt.async_support.bitstamp):
             cacheLength = len(storedOrderBook.cache)
             # the rest API is very delayed
             # usually it takes at least 4-5 deltas to resolve
-            if cacheLength == 6:
+            snapshotDelay = self.handle_option('watchOrderBook', 'snapshotDelay', 6)
+            if cacheLength == snapshotDelay:
                 self.spawn(self.load_order_book, client, messageHash, symbol)
             storedOrderBook.cache.append(delta)
             return
         elif nonce >= deltaNonce:
             return
         self.handle_delta(storedOrderBook, delta)
-        timestamp = self.safe_timestamp(delta, 'timestamp')
-        storedOrderBook['timestamp'] = timestamp
-        storedOrderBook['datetime'] = self.iso8601(timestamp)
-        storedOrderBook['nonce'] = self.safe_integer(delta, 'microtimestamp')
         client.resolve(storedOrderBook, messageHash)
 
     def handle_delta(self, orderbook, delta):
+        timestamp = self.safe_timestamp(delta, 'timestamp')
+        orderbook['timestamp'] = timestamp
+        orderbook['datetime'] = self.iso8601(timestamp)
+        orderbook['nonce'] = self.safe_integer(delta, 'microtimestamp')
         bids = self.safe_value(delta, 'bids', [])
         asks = self.safe_value(delta, 'asks', [])
         storedBids = orderbook['bids']

@@ -728,6 +728,7 @@ declare module 'ccxt' {
         class exmo extends Exchange {}
         class gate extends Exchange {}
         class gateio extends Exchange {}
+        class gemini extends Exchange {}
         class hitbtc extends Exchange {}
         class hollaex extends Exchange {}
         class huobi extends Exchange {}

@@ -25,7 +25,7 @@ class gemini extends Exchange {
             // 120 requests a minute = 2 requests per second => ( 1000ms / rateLimit ) / 2 = 5 (public endpoints)
             'rateLimit' => 100,
             'version' => 'v1',
-            'pro' => false,
+            'pro' => true,
             'has' => array(
                 'CORS' => null,
                 'spot' => true,
@@ -265,6 +265,7 @@ class gemini extends Exchange {
                     'DOGE' => 'dogecoin',
                     'XTZ' => 'tezos',
                 ),
+                'nonce' => 'milliseconds', // if getting a Network 400 error change to seconds
             ),
         ));
     }
@@ -1434,7 +1435,11 @@ class gemini extends Exchange {
     }
 
     public function nonce() {
-        return $this->milliseconds();
+        $nonceMethod = $this->safe_string($this->options, 'nonce', 'milliseconds');
+        if ($nonceMethod === 'milliseconds') {
+            return $this->milliseconds();
+        }
+        return $this->seconds();
     }
 
     public function fetch_transactions($code = null, $since = null, $limit = null, $params = array ()) {
@@ -1664,8 +1669,9 @@ class gemini extends Exchange {
              */
             Async\await($this->load_markets());
             $market = $this->market($symbol);
+            $timeframeId = $this->safe_string($this->timeframes, $timeframe, $timeframe);
             $request = array(
-                'timeframe' => $this->timeframes[$timeframe],
+                'timeframe' => $timeframeId,
                 'symbol' => $market['id'],
             );
             $response = Async\await($this->publicGetV2CandlesSymbolTimeframe (array_merge($request, $params)));

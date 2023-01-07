@@ -2066,7 +2066,7 @@ class gate extends Exchange {
         //        A => '0.0353' // best $ask size
         //     }
         //
-        $marketId = $this->safe_string_n($ticker, array( 'currency_pair', 'contract', 's' ));
+        $marketId = $this->safe_string_2($ticker, 'currency_pair', 'contract');
         $marketType = (is_array($ticker) && array_key_exists('contract', $ticker)) ? 'contract' : 'spot';
         $symbol = $this->safe_symbol($marketId, $market, '_', $marketType);
         $last = $this->safe_string($ticker, 'last');

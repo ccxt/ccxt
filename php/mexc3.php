@@ -4768,6 +4768,7 @@ class mexc3 extends Exchange {
                     'ApiKey' => $this->apiKey,
                     'Request-Time' => $timestamp,
                     'Content-Type' => 'application/json',
+                    'source' => $this->safe_string($this->options, 'broker', 'CCXT'),
                 );
                 if ($method === 'POST') {
                     $auth = $this->json($params);
