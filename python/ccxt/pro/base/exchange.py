@@ -171,9 +171,9 @@ class Exchange(BaseExchange):
             client.reject(ExchangeError(self.id + ' loadOrderBook() orderbook is not initiated'), messageHash)
             return
         stored = self.orderbooks[symbol]
+        cache = stored.cache
         try:
             order_book = await self.fetch_order_book(symbol, limit, params)
-            cache = stored.cache
             index = self.get_cache_index(order_book, cache)
             if index >= 0:
                 stored.reset(order_book)
@@ -183,8 +183,8 @@ class Exchange(BaseExchange):
             else:
                 client.reject(ExchangeError(self.id + ' nonce is behind cache'), messageHash)
         except BaseError as e:
-            if symbol in self.orderbooks:
-                del self.orderbooks[symbol]
+            self.orderbooks[symbol].reset({})
+            cache.clear()
             client.reject(e, messageHash)
 
     def handle_deltas(self, orderbook, deltas):

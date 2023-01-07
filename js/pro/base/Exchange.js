@@ -189,9 +189,9 @@ module.exports = class Exchange extends BaseExchange {
             return;
         }
         const stored = this.orderbooks[symbol];
+        const cache = stored.cache;
         try {
             const orderBook = await this.fetchOrderBook (symbol, limit, params);
-            const cache = stored.cache;
             const index = this.getCacheIndex (orderBook, cache);
             if (index >= 0) {
                 stored.reset (orderBook);
@@ -202,7 +202,8 @@ module.exports = class Exchange extends BaseExchange {
                 client.reject (new ExchangeError (this.id + ' nonce is behind the cache'));
             }
         } catch (e) {
-            delete this.orderbooks[symbol];
+            this.orderbooks[symbol].reset ({});
+            cache.length = 0;
             client.reject (e, messageHash);
         }
     }

@@ -163,9 +163,9 @@ trait ClientTrait {
                 return;
             }
             $stored = $this->orderbooks[$symbol];
+            $cache =& $stored->cache;
             try {
                 $orderBook = Async\await($this->fetch_order_book($symbol, $limit, $params));
-                $cache =& $stored->cache;
                 $index = $this->get_cache_index($orderBook, $cache);
                 if ($index >= 0) {
                     $stored->reset($orderBook);
@@ -176,7 +176,8 @@ trait ClientTrait {
                     $client->reject (new ExchangeError ($this->id . ' nonce is behind the cache'), $messageHash);
                 }
             } catch (BaseError $e) {
-                unset($this->orderbooks[$symbol]);
+                $this->orderbooks[$symbol]->reset(array());
+                $cache = array();
                 $client->reject($e, $messageHash);
             }
         }) ();
