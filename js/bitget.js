@@ -6,7 +6,6 @@ const Exchange = require ('./base/Exchange');
 const { ExchangeError, ExchangeNotAvailable, NotSupported, OnMaintenance, ArgumentsRequired, BadRequest, AccountSuspended, InvalidAddress, PermissionDenied, DDoSProtection, InsufficientFunds, InvalidNonce, CancelPending, InvalidOrder, OrderNotFound, AuthenticationError, RequestTimeout, BadSymbol, RateLimitExceeded } = require ('./base/errors');
 const { TICK_SIZE } = require ('./base/functions/number');
 const Precise = require ('./base/Precise');
-const { base } = require ('./static_dependencies/elliptic/lib/elliptic/curve');
 
 //  ---------------------------------------------------------------------------
 
@@ -3223,7 +3222,7 @@ module.exports = class bitget extends Exchange {
         return {
             'info': position,
             'id': undefined,
-            'symbol': market['symbol'],
+            'symbol': symbol,
             'notional': this.parseNumber (notional),
             'marginMode': marginMode,
             'liquidationPrice': this.parseNumber (liquidationPrice),
