@@ -354,7 +354,7 @@ module.exports = class bitfinex extends Exchange {
                     'USD': 'wire',
                     'USDC': 'udc', // https://github.com/ccxt/ccxt/issues/5833
                     'UTK': 'utk',
-                    'USDT': 'tetheruso', // Tether on Omni
+                    'USDT': 'ust',
                     // 'USDT': 'tetheruse', // Tether on ERC20
                     // 'USDT': 'tetherusl', // Tether on Liquid
                     // 'USDT': 'tetherusx', // Tether on Tron
@@ -559,10 +559,6 @@ module.exports = class bitfinex extends Exchange {
          * @param {object} params extra parameters specific to the exchange api endpoint
          * @returns {[object]} an array of objects representing market data
          */
-        const ids = await this.publicGetSymbols ();
-        //
-        //     [ "btcusd", "ltcusd", "ltcbtc" ]
-        //
         const details = await this.publicGetSymbolsDetails ();
         //
         //     [
@@ -581,13 +577,19 @@ module.exports = class bitfinex extends Exchange {
         const result = [];
         for (let i = 0; i < details.length; i++) {
             const market = details[i];
-            let id = this.safeString (market, 'pair');
-            if (!this.inArray (id, ids)) {
-                continue;
-            }
-            id = id.toUpperCase ();
+            const id = this.safeString (market, 'pair');
             let baseId = undefined;
             let quoteId = undefined;
+            let spot = true;
+            let type = 'spot';
+            let future = false;
+            let swap = false;
+            if (id.indexOf ('f0') >= 0) {
+                type = 'swap';
+                swap = true;
+                future = false;
+                spot = false;
+            }
             if (id.indexOf (':') >= 0) {
                 const parts = id.split (':');
                 baseId = parts[0];
@@ -596,27 +598,41 @@ module.exports = class bitfinex extends Exchange {
                 baseId = id.slice (0, 3);
                 quoteId = id.slice (3, 6);
             }
-            const base = this.safeCurrencyCode (baseId);
-            const quote = this.safeCurrencyCode (quoteId);
+            const splitBase = baseId.split ('f0');
+            const splitQuote = quoteId.split ('f0');
+            const baseRaw = this.safeString (splitBase, 0);
+            const quoteRaw = this.safeString (splitQuote, 0);
+            const base = this.safeCurrencyCode (baseRaw);
+            const quote = this.safeCurrencyCode (quoteRaw);
+            let symbol = base + '/' + quote;
+            let settle = undefined;
+            let linear = undefined;
+            let inverse = undefined;
+            if (swap) {
+                settle = quote;
+                symbol = symbol + ':' + settle;
+                linear = true;
+                inverse = false;
+            }
             result.push ({
                 'id': id,
-                'symbol': base + '/' + quote,
+                'symbol': symbol,
                 'base': base,
                 'quote': quote,
-                'settle': undefined,
+                'settle': quote,
                 'baseId': baseId,
                 'quoteId': quoteId,
-                'settleId': undefined,
-                'type': 'spot',
-                'spot': true,
+                'settleId': quoteId,
+                'type': type,
+                'spot': spot,
                 'margin': this.safeValue (market, 'margin'),
-                'swap': false,
-                'future': false,
+                'swap': swap,
+                'future': future,
                 'option': false,
                 'active': true,
-                'contract': false,
-                'linear': undefined,
-                'inverse': undefined,
+                'contract': (spot !== true),
+                'linear': linear,
+                'inverse': inverse,
                 'contractSize': undefined,
                 'expiry': undefined,
                 'expiryDatetime': undefined,
