@@ -300,11 +300,22 @@ module.exports = class whitebit extends Exchange {
             const base = this.safeCurrencyCode (baseId);
             const quote = this.safeCurrencyCode (quoteId);
             const active = this.safeValue (market, 'tradesEnabled');
-            const isMargin = this.safeValue (market, 'isCollateral');
+            const isCollateral = this.safeValue (market, 'isCollateral');
             const typeId = this.safeString (market, 'type');
-            const type = (typeId === 'futures') ? 'swap' : 'spot';
-            const settle = (type === 'swap') ? 'USDT' : undefined;
-            const symbol = (type === 'spot') ? base + '/' + quote : base + '/' + settle + ':' + settle;
+            let type = undefined;
+            let settle = undefined;
+            let settleId = undefined;
+            let symbol = base + '/' + quote;
+            const swap = typeId === 'futures';
+            const margin = isCollateral && !swap;
+            if (swap) {
+                settleId = quoteId;
+                settle = this.safeCurrencyCode (settleId);
+                symbol = symbol + ':' + settle;
+                type = 'swap';
+            } else {
+                type = 'spot';
+            }
             const entry = {
                 'id': id,
                 'symbol': symbol,
@@ -313,11 +324,11 @@ module.exports = class whitebit extends Exchange {
                 'settle': settle,
                 'baseId': baseId,
                 'quoteId': quoteId,
-                'settleId': undefined,
+                'settleId': settleId,
                 'type': type,
-                'spot': (type === 'spot'),
-                'margin': isMargin,
-                'swap': (type === 'swap'),
+                'spot': !swap,
+                'margin': margin,
+                'swap': swap,
                 'future': false,
                 'option': false,
                 'active': active,
