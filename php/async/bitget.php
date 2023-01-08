@@ -3090,7 +3090,7 @@ class bitget extends Exchange {
             //     }
             //
             $data = $this->safe_value($response, 'data', array());
-            return $this->parse_position($data[0], $market);
+            return $this->parse_positions($data);
         }) ();
     }
 
@@ -3157,13 +3157,13 @@ class bitget extends Exchange {
         //         available => '0.001',
         //         locked => '0',
         //         total => '0.001',
-        //         leverage => '20',
+        //         $leverage => '20',
         //         achievedProfits => '0',
         //         averageOpenPrice => '38429.5',
         //         $marginMode => 'fixed',
-        //         holdMode => 'double_hold',
+        //         $holdMode => 'double_hold',
         //         unrealizedPL => '0.14869',
-        //         liquidationPrice => '0',
+        //         $liquidationPrice => '0',
         //         keepMarginRate => '0.004',
         //         cTime => '1645922194988'
         //     }
@@ -3172,49 +3172,86 @@ class bitget extends Exchange {
         $market = $this->safe_market($marketId, $market);
         $timestamp = $this->safe_integer($position, 'cTime');
         $marginMode = $this->safe_string($position, 'marginMode');
+        $collateral = null;
+        $initialMargin = null;
+        $unrealizedPnl = $this->safe_string($position, 'unrealizedPL');
+        $rawCollateral = $this->safe_string($position, 'margin');
         if ($marginMode === 'fixed') {
             $marginMode = 'isolated';
+            $collateral = Precise::string_add($rawCollateral, $unrealizedPnl);
         } elseif ($marginMode === 'crossed') {
             $marginMode = 'cross';
+            $initialMargin = $rawCollateral;
         }
-        $hedged = $this->safe_string($position, 'holdMode');
-        if ($hedged === 'double_hold') {
+        $holdMode = $this->safe_string($position, 'holdMode');
+        $hedged = null;
+        if ($holdMode === 'double_hold') {
             $hedged = true;
-        } elseif ($hedged === 'single_hold') {
+        } elseif ($holdMode === 'single_hold') {
             $hedged = false;
         }
-        $contracts = $this->safe_integer($position, 'openDelegateCount');
-        $liquidation = $this->safe_number($position, 'liquidationPrice');
-        if ($contracts === 0) {
-            $contracts = null;
+        $side = $this->safe_string($position, 'holdSide');
+        $leverage = $this->safe_string($position, 'leverage');
+        $contractSizeNumber = $this->safe_value($market, 'contractSize');
+        $contractSize = $this->number_to_string($contractSizeNumber);
+        $baseAmount = $this->safe_string($position, 'total');
+        $entryPrice = $this->safe_string($position, 'averageOpenPrice');
+        $maintenanceMarginPercentage = $this->safe_string($position, 'keepMarginRate');
+        $openNotional = Precise::string_mul($entryPrice, $baseAmount);
+        if ($initialMargin === null) {
+            $initialMargin = Precise::string_div($openNotional, $leverage);
         }
-        if ($liquidation === 0) {
-            $liquidation = null;
+        $contracts = $this->parse_number(Precise::string_div($baseAmount, $contractSize));
+        $markPrice = $this->safe_string($position, 'marketPrice');
+        $notional = Precise::string_mul($baseAmount, $markPrice);
+        $initialMarginPercentage = Precise::string_div($initialMargin, $notional);
+        $liquidationPrice = $this->parse_number($this->omit_zero($this->safe_string($position, 'liquidationPrice')));
+        $calcTakerFeeRate = '0.0006';
+        $calcTakerFeeMult = '0.9994';
+        if (($liquidationPrice === null) && ($marginMode === 'isolated')) {
+            $signedMargin = Precise::string_div($rawCollateral, $baseAmount);
+            $signedMmp = $maintenanceMarginPercentage;
+            if ($side === 'short') {
+                $signedMargin = Precise::string_neg($signedMargin);
+                $signedMmp = Precise::string_neg($signedMmp);
+            }
+            $mmrMinusOne = Precise::string_sub('1', $signedMmp);
+            $numerator = Precise::string_sub($entryPrice, $signedMargin);
+            if ($side === 'long') {
+                $mmrMinusOne = Precise::string_mul($mmrMinusOne, $calcTakerFeeMult);
+            } else {
+                $numerator = Precise::string_mul($numerator, $calcTakerFeeMult);
+            }
+            $liquidationPrice = Precise::string_add(Precise::string_div($numerator, $mmrMinusOne));
         }
+        $feeToClose = Precise::string_mul($notional, $calcTakerFeeRate);
+        $maintenanceMargin = Precise::string_add(Precise::string_mul($maintenanceMarginPercentage, $notional), $feeToClose);
+        $marginRatio = Precise::string_div($maintenanceMargin, $collateral);
+        $percentage = Precise::string_mul(Precise::string_div($unrealizedPnl, $initialMargin, '4'), '100');
         return array(
             'info' => $position,
             'id' => null,
             'symbol' => $market['symbol'],
-            'notional' => null,
+            'notional' => $this->parse_number($notional),
             'marginMode' => $marginMode,
-            'liquidationPrice' => $liquidation,
-            'entryPrice' => $this->safe_number($position, 'averageOpenPrice'),
-            'unrealizedPnl' => $this->safe_number($position, 'unrealizedPL'),
-            'percentage' => null,
+            'liquidationPrice' => $this->parse_number($liquidationPrice),
+            'entryPrice' => $this->parse_number($entryPrice),
+            'unrealizedPnl' => $this->parse_number($unrealizedPnl),
+            'percentage' => $this->parse_number($percentage),
             'contracts' => $contracts,
-            'contractSize' => $this->safe_number($position, 'total'),
-            'markPrice' => null,
-            'side' => $this->safe_string($position, 'holdSide'),
+            'contractSize' => $contractSizeNumber,
+            'markPrice' => $this->parse_number($markPrice),
+            'side' => $side,
             'hedged' => $hedged,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
-            'maintenanceMargin' => null,
-            'maintenanceMarginPercentage' => $this->safe_number($position, 'keepMarginRate'),
-            'collateral' => $this->safe_number($position, 'margin'),
-            'initialMargin' => null,
-            'initialMarginPercentage' => null,
-            'leverage' => $this->safe_number($position, 'leverage'),
-            'marginRatio' => null,
+            'maintenanceMargin' => $this->parse_number($maintenanceMargin),
+            'maintenanceMarginPercentage' => $this->parse_number($maintenanceMarginPercentage),
+            'collateral' => $this->parse_number($collateral),
+            'initialMargin' => $this->parse_number($initialMargin),
+            'initialMarginPercentage' => $this->parse_number($initialMarginPercentage),
+            'leverage' => $this->parse_number($leverage),
+            'marginRatio' => $this->parse_number($marginRatio),
         );
     }
 
