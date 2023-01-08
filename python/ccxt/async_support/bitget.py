@@ -3005,6 +3005,7 @@ class bitget(Exchange):
         #
         marketId = self.safe_string(position, 'symbol')
         market = self.safe_market(marketId, market)
+        symbol = market['symbol']
         timestamp = self.safe_integer(position, 'cTime')
         marginMode = self.safe_string(position, 'marginMode')
         collateral = None
@@ -3040,7 +3041,7 @@ class bitget(Exchange):
         liquidationPrice = self.parse_number(self.omit_zero(self.safe_string(position, 'liquidationPrice')))
         calcTakerFeeRate = '0.0006'
         calcTakerFeeMult = '0.9994'
-        if (liquidationPrice is None) and (marginMode == 'isolated'):
+        if (liquidationPrice is None) and (marginMode == 'isolated') and Precise.string_gt(baseAmount, '0'):
             signedMargin = Precise.string_div(rawCollateral, baseAmount)
             signedMmp = maintenanceMarginPercentage
             if side == 'short':
@@ -3060,7 +3061,7 @@ class bitget(Exchange):
         return {
             'info': position,
             'id': None,
-            'symbol': market['symbol'],
+            'symbol': symbol,
             'notional': self.parse_number(notional),
             'marginMode': marginMode,
             'liquidationPrice': self.parse_number(liquidationPrice),

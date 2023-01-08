@@ -3084,7 +3084,7 @@ class bitget extends Exchange {
         //
         //     {
         //         marginCoin => 'USDT',
-        //         symbol => 'BTCUSDT_UMCBL',
+        //         $symbol => 'BTCUSDT_UMCBL',
         //         holdSide => 'long',
         //         openDelegateCount => '0',
         //         margin => '1.921475',
@@ -3104,6 +3104,7 @@ class bitget extends Exchange {
         //
         $marketId = $this->safe_string($position, 'symbol');
         $market = $this->safe_market($marketId, $market);
+        $symbol = $market['symbol'];
         $timestamp = $this->safe_integer($position, 'cTime');
         $marginMode = $this->safe_string($position, 'marginMode');
         $collateral = null;
@@ -3142,7 +3143,7 @@ class bitget extends Exchange {
         $liquidationPrice = $this->parse_number($this->omit_zero($this->safe_string($position, 'liquidationPrice')));
         $calcTakerFeeRate = '0.0006';
         $calcTakerFeeMult = '0.9994';
-        if (($liquidationPrice === null) && ($marginMode === 'isolated')) {
+        if (($liquidationPrice === null) && ($marginMode === 'isolated') && Precise::string_gt($baseAmount, '0')) {
             $signedMargin = Precise::string_div($rawCollateral, $baseAmount);
             $signedMmp = $maintenanceMarginPercentage;
             if ($side === 'short') {
@@ -3165,7 +3166,7 @@ class bitget extends Exchange {
         return array(
             'info' => $position,
             'id' => null,
-            'symbol' => $market['symbol'],
+            'symbol' => $symbol,
             'notional' => $this->parse_number($notional),
             'marginMode' => $marginMode,
             'liquidationPrice' => $this->parse_number($liquidationPrice),
