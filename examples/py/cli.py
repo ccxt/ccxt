@@ -125,8 +125,6 @@ async def main():
         argv.exchange_id = groups[0]
         argv.method = groups[1]
         argv.args = list(map(lambda x: x.strip().replace("'", "\""), groups[2].split(',')))
-        print(argv.args)
-        print("\n\n\n")
 
     # ------------------------------------------------------------------------------
 
