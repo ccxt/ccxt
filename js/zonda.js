@@ -39,7 +39,7 @@ module.exports = class zonda extends Exchange {
                 'fetchDeposit': false,
                 'fetchDepositAddress': true,
                 'fetchDepositAddresses': true,
-                'fetchDeposits': undefined,
+                'fetchDeposits': false,
                 'fetchFundingHistory': false,
                 'fetchFundingRate': false,
                 'fetchFundingRateHistory': false,
@@ -67,14 +67,14 @@ module.exports = class zonda extends Exchange {
                 'fetchTickers': true,
                 'fetchTime': false,
                 'fetchTrades': true,
-                'fetchTradingFee': false,
+                'fetchTradingFee': true,
                 'fetchTradingFees': false,
                 'fetchTransactionFee': false,
                 'fetchTransactionFees': false,
-                'fetchTransactions': undefined,
+                'fetchTransactions': false,
                 'fetchTransfer': false,
                 'fetchWithdrawal': false,
-                'fetchWithdrawals': undefined,
+                'fetchWithdrawals': false,
                 'reduceMargin': false,
                 'setLeverage': false,
                 'setMargin': false,
@@ -104,10 +104,10 @@ module.exports = class zonda extends Exchange {
                 'logo': 'https://user-images.githubusercontent.com/1294454/159202310-a0e38007-5e7c-4ba9-a32f-c8263a0291fe.jpg',
                 'www': 'https://zondaglobal.com',
                 'api': {
-                    'public': 'https://{hostname}/API/Public',
-                    'private': 'https://{hostname}/API/Trading/tradingApi.php',
-                    'v1_01Public': 'https://api.{hostname}/rest',
-                    'v1_01Private': 'https://api.{hostname}/rest',
+                    // 'public': 'https://{hostname}/API/Public',
+                    // 'private': 'https://{hostname}/API/Trading/tradingApi.php',
+                    'public': 'https://api.{hostname}/rest',
+                    'private': 'https://api.{hostname}/rest',
                 },
                 'doc': [
                     'https://docs.zonda.exchange/',
@@ -119,65 +119,45 @@ module.exports = class zonda extends Exchange {
             'api': {
                 'public': {
                     'get': [
-                        '{id}/all',
-                        '{id}/market',
-                        '{id}/orderbook',
-                        '{id}/ticker',
-                        '{id}/trades',
+                        'trading/ticker',
+                        'trading/ticker/{trading_pair}',
+                        'trading/stats',
+                        'trading/stats/{trading_pair}',
+                        'trading/orderbook/{trading_pair}',
+                        'trading/transactions/{trading_pair}',
+                        'trading/candle/history/{trading_pair}/{resolution}',
                     ],
                 },
                 'private': {
-                    'post': [
-                        'info',
-                        'trade',
-                        'cancel',
-                        'orderbook',
-                        'orders',
-                        'transfer',
-                        'withdraw',
-                        'history',
-                        'transactions',
-                    ],
-                },
-                'v1_01Public': {
                     'get': [
-                        'trading/ticker',
-                        'trading/ticker/{symbol}',
-                        'trading/stats',
-                        'trading/stats/{symbol}',
-                        'trading/orderbook/{symbol}',
-                        'trading/transactions/{symbol}',
-                        'trading/candle/history/{symbol}/{resolution}',
-                    ],
-                },
-                'v1_01Private': {
-                    'get': [
+                        'trading/config/{trading_pair}',
                         'api_payments/deposits/crypto/addresses',
-                        'payments/withdrawal/{detailId}',
+                        'balances/BITBAY/history',
+                        'balances/BITBAY/balance',
                         'payments/deposit/{detailId}',
                         'trading/offer',
                         'trading/stop/offer',
-                        'trading/config/{symbol}',
+                        'trading/config/{trading_pair}',
                         'trading/history/transactions',
-                        'balances/BITBAY/history',
-                        'balances/BITBAY/balance',
-                        'fiat_cantor/rate/{baseId}/{quoteId}',
-                        'fiat_cantor/history',
+                        'fiat_cantor/rate/{baseId}/{quoteId}', // unknown
+                        'fiat_cantor/history', // unknown
                     ],
                     'post': [
-                        'trading/offer/{symbol}',
-                        'trading/stop/offer/{symbol}',
-                        'trading/config/{symbol}',
+                        'trading/offer/{trading_pair}',
+                        'trading/stop/offer/{trading_pair}',
+                        'trading/config/{trading_pair}',
                         'balances/BITBAY/balance',
                         'balances/BITBAY/balance/transfer/{source}/{destination}',
-                        'fiat_cantor/exchange',
+                        'api_payments/withdrawals/crypto',
+                        'api_payments/withdrawals/fiat',
+                        'fiat_cantor/exchange', // unknown
                     ],
                     'delete': [
-                        'trading/offer/{symbol}/{id}/{side}/{price}',
-                        'trading/stop/offer/{symbol}/{id}/{side}/{price}',
+                        'trading/offer/{trading_pair}/{id}/{side}/{price}',
+                        'trading/stop/offer/{trading_pair}/{id}/{side}/{price}',
                     ],
                     'put': [
-                        'balances/BITBAY/balance/{id}',
+                        'balances/BITBAY/balance/{id}', // unknown
                     ],
                 },
             },
@@ -243,40 +223,45 @@ module.exports = class zonda extends Exchange {
                 },
             },
             'options': {
-                'fiatCurrencies': [ 'EUR', 'USD', 'GBP', 'PLN' ],
+                'fiatCurrencies': { 'EUR': 1, 'PLN': 1, 'USD': 1, 'GBP': 1 },
                 'transfer': {
                     'fillResponseFromRequest': true,
                 },
             },
             'precisionMode': TICK_SIZE,
             'exceptions': {
-                '400': ExchangeError, // At least one parameter wasn't set
-                '401': InvalidOrder, // Invalid order type
-                '402': InvalidOrder, // No orders with specified currencies
-                '403': InvalidOrder, // Invalid payment currency name
-                '404': InvalidOrder, // Error. Wrong transaction type
-                '405': InvalidOrder, // Order with this id doesn't exist
-                '406': InsufficientFunds, // No enough money or crypto
-                // code 407 not specified are not specified in their docs
-                '408': InvalidOrder, // Invalid currency name
-                '501': AuthenticationError, // Invalid public key
-                '502': AuthenticationError, // Invalid sign
-                '503': InvalidNonce, // Invalid moment parameter. Request time doesn't match current server time
-                '504': ExchangeError, // Invalid method
-                '505': AuthenticationError, // Key has no permission for this action
-                '506': AccountSuspended, // Account locked. Please contact with customer service
-                // codes 507 and 508 are not specified in their docs
-                '509': ExchangeError, // The BIC/SWIFT is required for this currency
-                '510': BadSymbol, // Invalid market name
-                'FUNDS_NOT_SUFFICIENT': InsufficientFunds,
-                'OFFER_FUNDS_NOT_EXCEEDING_MINIMUMS': InvalidOrder,
-                'OFFER_NOT_FOUND': OrderNotFound,
-                'OFFER_WOULD_HAVE_BEEN_PARTIALLY_FILLED': OrderImmediatelyFillable,
-                'ACTION_LIMIT_EXCEEDED': RateLimitExceeded,
-                'UNDER_MAINTENANCE': OnMaintenance,
-                'REQUEST_TIMESTAMP_TOO_OLD': InvalidNonce,
-                'PERMISSIONS_NOT_SUFFICIENT': PermissionDenied,
-                'INVALID_STOP_RATE': InvalidOrder,
+                'exact': {
+                    '400': ExchangeError, // At least one parameter wasn't set
+                    '401': InvalidOrder, // Invalid order type
+                    '402': InvalidOrder, // No orders with specified currencies
+                    '403': InvalidOrder, // Invalid payment currency name
+                    '404': InvalidOrder, // Error. Wrong transaction type
+                    '405': InvalidOrder, // Order with this id doesn't exist
+                    '406': InsufficientFunds, // No enough money or crypto
+                    // code 407 not specified are not specified in their docs
+                    '408': InvalidOrder, // Invalid currency name
+                    '501': AuthenticationError, // Invalid public key
+                    '502': AuthenticationError, // Invalid sign
+                    '503': InvalidNonce, // Invalid moment parameter. Request time doesn't match current server time
+                    '504': ExchangeError, // Invalid method
+                    '505': AuthenticationError, // Key has no permission for this action
+                    '506': AccountSuspended, // Account locked. Please contact with customer service
+                    // codes 507 and 508 are not specified in their docs
+                    '509': ExchangeError, // The BIC/SWIFT is required for this currency
+                    '510': BadSymbol, // Invalid market name
+                    'FUNDS_NOT_SUFFICIENT': InsufficientFunds,
+                    'BALANCE_FOUNDS_NOT_SUFFICIENT': InsufficientFunds, // {"status":"Fail","from":null,"to":null,"errors":["BALANCE_FOUNDS_NOT_SUFFICIENT"]}
+                    'OFFER_FUNDS_NOT_EXCEEDING_MINIMUMS': InvalidOrder,
+                    'OFFER_NOT_FOUND': OrderNotFound,
+                    'OFFER_WOULD_HAVE_BEEN_PARTIALLY_FILLED': OrderImmediatelyFillable,
+                    'ACTION_LIMIT_EXCEEDED': RateLimitExceeded,
+                    'UNDER_MAINTENANCE': OnMaintenance,
+                    'REQUEST_TIMESTAMP_TOO_OLD': InvalidNonce,
+                    'PERMISSIONS_NOT_SUFFICIENT': PermissionDenied,
+                    'INVALID_STOP_RATE': InvalidOrder,
+                },
+                'broad': {
+                },
             },
             'commonCurrencies': {
                 'GGC': 'Global Game Coin',
@@ -292,33 +277,35 @@ module.exports = class zonda extends Exchange {
          * @param {object} params extra parameters specific to the exchange api endpoint
          * @returns {[object]} an array of objects representing market data
          */
-        const response = await this.v1_01PublicGetTradingTicker (params);
-        const fiatCurrencies = this.safeValue (this.options, 'fiatCurrencies', []);
+        const response = await this.publicGetTradingTicker (params);
         //
-        //     {
-        //         status: 'Ok',
-        //         items: {
-        //             'BSV-USD': {
-        //                 market: {
-        //                     code: 'BSV-USD',
-        //                     first: { currency: 'BSV', minOffer: '0.00035', scale: 8 },
-        //                     second: { currency: 'USD', minOffer: '5', scale: 2 }
-        //                 },
-        //                 time: '1557569762154',
-        //                 highestBid: '52.31',
-        //                 lowestAsk: '62.99',
-        //                 rate: '63',
-        //                 previousRate: '51.21',
-        //             },
-        //         },
+        //    {
+        //        "status": "Ok",
+        //        "items": {
+        //            "DAI-PLN": {
+        //                "market": {
+        //                    "code": "DAI-PLN",
+        //                    "first": { "currency": "DAI", "minOffer": "0.9", "scale": "8" },
+        //                    "second": { "currency": "PLN", "minOffer": "5", "scale": "2" },
+        //                    "amountPrecision": "8",
+        //                    "pricePrecision": "2",
+        //                    "ratePrecision": "2"
+        //                },
+        //                "time": "1659961090939",
+        //                "highestBid": "4.6",
+        //                "lowestAsk": "4.63",
+        //                "rate": "4.63",
+        //                "previousRate": "4.6"
+        //            },
+        //         }
         //     }
         //
         const result = [];
         const items = this.safeValue (response, 'items', {});
         const keys = Object.keys (items);
         for (let i = 0; i < keys.length; i++) {
-            const id = keys[i];
-            const item = items[id];
+            const marketId = keys[i];
+            const item = items[marketId];
             const market = this.safeValue (item, 'market', {});
             const first = this.safeValue (market, 'first', {});
             const second = this.safeValue (market, 'second', {});
@@ -327,13 +314,13 @@ module.exports = class zonda extends Exchange {
             const base = this.safeCurrencyCode (baseId);
             const quote = this.safeCurrencyCode (quoteId);
             let fees = this.safeValue (this.fees, 'trading', {});
-            if (this.inArray (base, fiatCurrencies) || this.inArray (quote, fiatCurrencies)) {
+            if (this.isFiat (base) || this.isFiat (quote)) {
                 fees = this.safeValue (this.fees, 'fiat', {});
             }
             // todo: check that the limits have ben interpreted correctly
             // todo: parse the fees page
             result.push ({
-                'id': id,
+                'id': marketId,
                 'symbol': base + '/' + quote,
                 'base': base,
                 'quote': quote,
@@ -359,8 +346,11 @@ module.exports = class zonda extends Exchange {
                 'optionType': undefined,
                 'strike': undefined,
                 'precision': {
-                    'amount': this.parseNumber (this.parsePrecision (this.safeString (first, 'scale'))),
-                    'price': this.parseNumber (this.parsePrecision (this.safeString (second, 'scale'))),
+                    'amount': this.parseNumber (this.parsePrecision (this.safeString (market, 'amountPrecision'))),
+                    'price': this.parseNumber (this.parsePrecision (this.safeString (market, 'pricePrecision'))),
+                    'cost': this.parseNumber (this.parsePrecision (this.safeString (market, 'ratePrecision'))),
+                    'base': this.parseNumber (this.parsePrecision (this.safeString (first, 'scale'))),
+                    'quote': this.parseNumber (this.parsePrecision (this.safeString (second, 'scale'))),
                 },
                 'limits': {
                     'leverage': {
@@ -386,6 +376,578 @@ module.exports = class zonda extends Exchange {
         return result;
     }
 
+    async fetchL1OrderBooks (symbols = undefined, params = {}) {
+        await this.loadMarkets ();
+        const response = await this.publicGetTradingTicker (params);
+        // same response as in fetchMarkets
+        const items = this.safeValue (response, 'items', {});
+        return this.parseL1OrderBooks (items, symbols);
+    }
+
+    parseL1OrderBooks (l1OrderBooks, symbols = undefined) {
+        // this method will be soon merged in base
+        l1OrderBooks = this.toArray (l1OrderBooks);
+        const result = {};
+        for (let i = 0; i < l1OrderBooks.length; i++) {
+            const orderBook = this.parseL1OrderBook (l1OrderBooks[i], undefined);
+            result[orderBook['symbol']] = orderBook;
+        }
+        return result;
+    }
+
+    parseL1OrderBook (l1OrderBook, market = undefined) {
+        //
+        //     {
+        //         "market": {
+        //             "code": "DAI-PLN",
+        //             "first": { "currency": "DAI", "minOffer": "0.9", "scale": "8" },
+        //             "second": { "currency": "PLN", "minOffer": "5", "scale": "2" },
+        //             "amountPrecision": "8",
+        //             "pricePrecision": "2",
+        //             "ratePrecision": "2"
+        //         },
+        //         "time": "1659961090939",
+        //         "highestBid": "4.6",
+        //         "lowestAsk": "4.63",
+        //         "rate": "4.63",
+        //         "previousRate": "4.6"
+        //     }
+        //
+        const marketObj = this.safeValue (l1OrderBook, 'market');
+        const marketId = this.safeString (marketObj, 'code');
+        const timestamp = this.safeInteger (l1OrderBook, 'time');
+        return {
+            'symbol': this.safeSymbol (marketId, market),
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'bidPrice': this.safeNumber (l1OrderBook, 'highestBid'),
+            'bidVolume': undefined,
+            'askPrice': this.safeNumber (l1OrderBook, 'lowestAsk'),
+            'askVolume': undefined,
+        };
+    }
+
+    async fetchTicker (symbol, params = {}) {
+        /**
+         * @method
+         * @name zonda#fetchTicker
+         * @description fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+         * @param {string} symbol unified symbol of the market to fetch the ticker for
+         * @param {object} params extra parameters specific to the zonda api endpoint
+         * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
+         */
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const request = {
+            'trading_pair': market['id'],
+        };
+        const response = await this.publicGetTradingStatsTradingPair (this.extend (request, params));
+        //
+        //     {
+        //       status: 'Ok',
+        //       stats: {
+        //         m: 'ETH-PLN',
+        //         h: '13485.13',
+        //         l: '13100.01',
+        //         v: '126.10710939',
+        //         r24h: '13332.72'
+        //       }
+        //     }
+        //
+        const stats = this.safeValue (response, 'stats');
+        return this.parseTicker (stats, market);
+    }
+
+    async fetchTickers (symbols = undefined, params = {}) {
+        /**
+         * @method
+         * @name zonda#fetchTickers
+         * @description fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
+         * @param {[string]|undefined} symbols unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
+         * @param {object} params extra parameters specific to the zonda api endpoint
+         * @returns {object} an array of [ticker structures]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
+         */
+        await this.loadMarkets ();
+        const response = await this.publicGetTradingStats (params);
+        //
+        //     {
+        //         status: 'Ok',
+        //         items: {
+        //             'DAI-PLN': {
+        //                 m: 'DAI-PLN',
+        //                 h: '4.41',
+        //                 l: '4.37',
+        //                 v: '8.71068087',
+        //                 r24h: '4.36'
+        //             }
+        //         }
+        //     }
+        //
+        const items = this.safeValue (response, 'items');
+        return this.parseTickers (items, symbols);
+    }
+
+    parseTicker (ticker, market = undefined) {
+        //
+        //     {
+        //         m: 'ETH-PLN',
+        //         h: '13485.13',
+        //         l: '13100.01',
+        //         v: '126.10710939',
+        //         r24h: '13332.72'
+        //       }
+        //
+        const open = this.safeString (ticker, 'r24h');
+        const high = this.safeString (ticker, 'h');
+        const low = this.safeString (ticker, 'l');
+        const volume = this.safeString (ticker, 'v');
+        const marketId = this.safeString (ticker, 'm');
+        market = this.safeMarket (marketId, market, '-');
+        const symbol = market['symbol'];
+        return this.safeTicker ({
+            'symbol': symbol,
+            'timestamp': undefined,
+            'datetime': undefined,
+            'high': high,
+            'low': low,
+            'bid': undefined,
+            'bidVolume': undefined,
+            'ask': undefined,
+            'askVolume': undefined,
+            'vwap': undefined,
+            'open': open,
+            'close': undefined,
+            'last': undefined,
+            'previousClose': undefined,
+            'change': undefined,
+            'percentage': undefined,
+            'average': undefined,
+            'baseVolume': volume,
+            'quoteVolume': undefined,
+            'info': ticker,
+        }, market);
+    }
+
+    async fetchOrderBook (symbol, limit = undefined, params = {}) {
+        /**
+         * @method
+         * @name zonda#fetchOrderBook
+         * @description fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+         * @param {string} symbol unified symbol of the market to fetch the order book for
+         * @param {int|undefined} limit the maximum amount of order book entries to return
+         * @param {object} params extra parameters specific to the zonda api endpoint
+         * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-book-structure} indexed by market symbols
+         */
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const request = {
+            'trading_pair': market['id'],
+        };
+        if (limit !== undefined) {
+            request['limit'] = limit;
+        }
+        const response = await this.publicGetTradingOrderbookTradingPair (this.extend (request, params));
+        //
+        //     {
+        //         "status":"Ok",
+        //         "sell":[
+        //             {"ra":"43988.93","ca":"0.00100525","sa":"0.00100525","pa":"0.00100525","co":1},
+        //             {"ra":"43988.94","ca":"0.00114136","sa":"0.00114136","pa":"0.00114136","co":1},
+        //             {"ra":"43989","ca":"0.010578","sa":"0.010578","pa":"0.010578","co":1},
+        //         ],
+        //         "buy":[
+        //             {"ra":"42157.33","ca":"2.83147881","sa":"2.83147881","pa":"2.83147881","co":2},
+        //             {"ra":"42096.0","ca":"0.00011878","sa":"0.00011878","pa":"0.00011878","co":1},
+        //             {"ra":"42022.0","ca":"0.00011899","sa":"0.00011899","pa":"0.00011899","co":1},
+        //         ],
+        //         "timestamp":"1642299886122",
+        //         "seqNo":"27641254"
+        //     }
+        //
+        const rawBids = this.safeValue (response, 'buy', []);
+        const rawAsks = this.safeValue (response, 'sell', []);
+        const timestamp = this.safeInteger (response, 'timestamp');
+        return {
+            'symbol': market['symbol'],
+            'bids': this.parseBidsAsks (rawBids, 'ra', 'ca'),
+            'asks': this.parseBidsAsks (rawAsks, 'ra', 'ca'),
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'nonce': this.safeInteger (response, 'seqNo'),
+        };
+    }
+
+    async fetchTrades (symbol, since = undefined, limit = undefined, params = {}) {
+        /**
+         * @method
+         * @name zonda#fetchTrades
+         * @description get the list of most recent trades for a particular symbol
+         * @param {string} symbol unified symbol of the market to fetch trades for
+         * @param {int|undefined} since timestamp in ms of the earliest trade to fetch
+         * @param {int|undefined} limit the maximum amount of trades to fetch
+         * @param {object} params extra parameters specific to the zonda api endpoint
+         * @returns {[object]} a list of [trade structures]{@link https://docs.ccxt.com/en/latest/manual.html?#public-trades}
+         */
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const request = {
+            'trading_pair': market['id'],
+        };
+        if (since !== undefined) {
+            request['fromTime'] = since - 1; // result does not include exactly `since` time therefore decrease by 1
+        }
+        if (limit !== undefined) {
+            request['limit'] = limit; // default - 10, max - 300
+        }
+        const response = await this.publicGetTradingTransactionsTradingPair (this.extend (request, params));
+        const items = this.safeValue (response, 'items');
+        return this.parseTrades (items, market, since, limit);
+    }
+
+    parseTrade (trade, market = undefined) {
+        //
+        // createOrder trades
+        //
+        //     {
+        //         "rate": "0.02195928",
+        //         "amount": "0.00167952"
+        //     }
+        //
+        // fetchMyTrades (private)
+        //
+        //     {
+        //         amount: "0.29285199",
+        //         commissionValue: "0.00125927",
+        //         id: "11c8203a-a267-11e9-b698-0242ac110007",
+        //         initializedBy: "Buy",
+        //         market: "ETH-EUR",
+        //         offerId: "11c82038-a267-11e9-b698-0242ac110007",
+        //         rate: "277",
+        //         time: "1562689917517",
+        //         userAction: "Buy",
+        //         wasTaker: true,
+        //     }
+        //
+        // fetchTrades (public)
+        //
+        //     {
+        //          id: 'df00b0da-e5e0-11e9-8c19-0242ac11000a',
+        //          t: '1570108958831',
+        //          a: '0.04776653',
+        //          r: '0.02145854',
+        //          ty: 'Sell'
+        //     }
+        //
+        const isFetchTrades = ('ty' in trade);
+        const timestamp = this.safeInteger2 (trade, 'time', 't');
+        const side = this.safeStringLower2 (trade, 'userAction', 'ty');
+        const wasTaker = this.safeValue (trade, 'wasTaker');
+        let takerOrMaker = undefined;
+        if (wasTaker !== undefined) {
+            takerOrMaker = wasTaker ? 'taker' : 'maker';
+        } else if (isFetchTrades) {
+            takerOrMaker = 'taker';
+        }
+        const priceString = this.safeString2 (trade, 'rate', 'r');
+        const amountString = this.safeString2 (trade, 'amount', 'a');
+        const feeCostString = this.safeString (trade, 'commissionValue');
+        const marketId = this.safeString (trade, 'market');
+        market = this.safeMarket (marketId, market, '-');
+        const symbol = market['symbol'];
+        let fee = undefined;
+        if (feeCostString !== undefined) {
+            const feeCurrency = (side === 'buy') ? market['base'] : market['quote'];
+            fee = {
+                'currency': feeCurrency,
+                'cost': feeCostString,
+            };
+        }
+        const order = this.safeString (trade, 'offerId');
+        // todo: check this logic
+        let type = undefined;
+        if (order !== undefined) {
+            type = order ? 'limit' : 'market';
+        }
+        return this.safeTrade ({
+            'id': this.safeString (trade, 'id'),
+            'order': order,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'symbol': symbol,
+            'type': type,
+            'side': side,
+            'price': priceString,
+            'amount': amountString,
+            'cost': undefined,
+            'takerOrMaker': takerOrMaker,
+            'fee': fee,
+            'info': trade,
+        }, market);
+    }
+
+    async fetchOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
+        /**
+         * @method
+         * @name zonda#fetchOHLCV
+         * @description fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+         * @param {string} symbol unified symbol of the market to fetch OHLCV data for
+         * @param {string} timeframe the length of time each candle represents
+         * @param {int|undefined} since timestamp in ms of the earliest candle to fetch
+         * @param {int|undefined} limit the maximum amount of candles to fetch
+         * @param {object} params extra parameters specific to the zonda api endpoint
+         * @returns {[[number]]} A list of candles ordered as timestamp, open, high, low, close, volume
+         */
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const request = {
+            'trading_pair': market['id'],
+            'resolution': this.timeframes[timeframe],
+            // 'from': 1574709092000, // unix timestamp in milliseconds, required
+            // 'to': 1574709092000, // unix timestamp in milliseconds, required
+        };
+        if (limit === undefined) {
+            limit = 100;
+        }
+        const duration = this.parseTimeframe (timeframe);
+        const timerange = limit * duration * 1000;
+        if (since === undefined) {
+            request['to'] = this.milliseconds ();
+            request['from'] = request['to'] - timerange;
+        } else {
+            request['from'] = parseInt (since);
+            request['to'] = this.sum (request['from'], timerange);
+        }
+        const response = await this.publicGetTradingCandleHistoryTradingPairResolution (this.extend (request, params));
+        //
+        //     {
+        //         "status":"Ok",
+        //         "items":[
+        //             ["1591503060000",{"o":"0.02509572","c":"0.02509438","h":"0.02509664","l":"0.02509438","v":"0.02082165","co":"17"}],
+        //             ["1591503120000",{"o":"0.02509606","c":"0.02509515","h":"0.02509606","l":"0.02509487","v":"0.04971703","co":"13"}],
+        //             ["1591503180000",{"o":"0.02509532","c":"0.02509589","h":"0.02509589","l":"0.02509454","v":"0.01332236","co":"7"}],
+        //         ]
+        //     }
+        //
+        const items = this.safeValue (response, 'items', []);
+        return this.parseOHLCVs (items, market, timeframe, since, limit);
+    }
+
+    parseOHLCV (ohlcv, market = undefined) {
+        //
+        //     [
+        //         '1582399800000',
+        //         {
+        //             o: '0.0001428',
+        //             c: '0.0001428',
+        //             h: '0.0001428',
+        //             l: '0.0001428',
+        //             v: '4',
+        //             co: '1'
+        //         }
+        //     ]
+        //
+        const first = this.safeValue (ohlcv, 1, {});
+        return [
+            this.safeInteger (ohlcv, 0),
+            this.safeNumber (first, 'o'),
+            this.safeNumber (first, 'h'),
+            this.safeNumber (first, 'l'),
+            this.safeNumber (first, 'c'),
+            this.safeNumber (first, 'v'),
+        ];
+    }
+
+    async fetchTradingFee (symbol, params = {}) {
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const request = {
+            'trading_pair': market['id'],
+        };
+        const response = await this.privateGetTradingConfigTradingPair (this.extend (request, params));
+        //
+        //    {
+        //        "status": "Ok",
+        //        "config": {
+        //            "buy": { "commissions": { "maker": "0.003", "taker": "0.0043" } },
+        //            "sell": { "commissions": { "maker": "0.003", "taker": "0.0043" } },
+        //            "first": {
+        //                "balanceId": "ef56fb42-5d4b-4fa5-bb35-55d36ea22872",
+        //                "minValue": "0.0000039"
+        //            },
+        //            "second": {
+        //                "balanceId": "e8745d71-6c4e-4923-ae1f-e1e930270b86",
+        //                "minValue": "0.09"
+        //            }
+        //        }
+        //    }
+        //
+        const config = this.safeValue (response, 'config', {});
+        return this.parseTradingFee (config, market);
+    }
+
+    parseTradingFee (fee, market = undefined) {
+        //
+        //     {
+        //         "buy": { "commissions": { "maker": "0.003", "taker": "0.0043" } },
+        //         "sell": {  "commissions": { "maker": "0.003",  "taker": "0.0043" } },
+        //         "first": {
+        //             "balanceId": "ef56fb42-5d4b-4fa5-bb35-55d36ea22872",
+        //             "minValue": "0.0000039"
+        //         },
+        //         "second": {
+        //             "balanceId": "e8745d71-6c4e-4923-ae1f-e1e930270b86",
+        //             "minValue": "0.09"
+        //         }
+        //     }
+        //
+        const buyConfig = this.safeValue (fee, 'buy', []);
+        const buyCommissions = this.safeValue (buyConfig, 'commissions', []);
+        const buyMaker = this.safeNumber (buyCommissions, 'maker');
+        const buyTaker = this.safeNumber (buyCommissions, 'taker');
+        const sellConfig = this.safeValue (fee, 'sell', []);
+        const sellCommissions = this.safeValue (sellConfig, 'commissions', []);
+        const sellMaker = this.safeNumber (sellCommissions, 'maker');
+        const sellTaker = this.safeNumber (sellCommissions, 'taker');
+        const maxMaker = Math.max (buyMaker, sellMaker);
+        const maxTaker = Math.max (buyTaker, sellTaker);
+        return {
+            'symbol': this.safeString (market, 'symbol'),
+            'maker': maxMaker,
+            'taker': maxTaker,
+            'info': fee,
+        };
+    }
+
+    async fetchDepositAddress (code, params = {}) {
+        const addresses = await this.fetchDepositAddresses ([ code ], params);
+        return this.safeValue (addresses, code);
+    }
+
+    async fetchDepositAddresses (codes = undefined, params = {}) {
+        /**
+         * @method
+         * @name zonda#fetchDepositAddresses
+         * @description fetch deposit addresses for multiple currencies and chain types
+         * @param {[string]|undefined} codes zonda does not support filtering filtering by multiple codes and will ignore this parameter.
+         * @param {object} params extra parameters specific to the zonda api endpoint
+         * @returns {object} a list of [address structures]{@link https://docs.ccxt.com/en/latest/manual.html#address-structure}
+         */
+        await this.loadMarkets ();
+        const response = await this.privateGetApiPaymentsDepositsCryptoAddresses (params);
+        //
+        //     {
+        //         "status": "Ok",
+        //         "data": [{
+        //                 "address": "33u5YAEhQbYfjHHPsfMfCoSdEjfwYjVcBE",
+        //                 "currency": "BTC",
+        //                 "balanceId": "5d5d19e7-2265-49c7-af9a-047bcf384f21",
+        //                 "balanceEngine": "BITBAY",
+        //                 "tag": null
+        //             }
+        //         ]
+        //     }
+        //
+        const data = this.safeValue (response, 'data');
+        return this.parseDepositAddresses (data, codes);
+    }
+
+    parseDepositAddress (depositAddress, currency = undefined) {
+        //
+        //     {
+        //         "address": "33u5YAEhQbYfjHHPsfMfCoSdEjfwYjVcBE",
+        //         "currency": "BTC",
+        //         "balanceId": "5d5d19e7-2265-49c7-af9a-047bcf384f21",
+        //         "balanceEngine": "BITBAY",
+        //         "tag": null
+        //     }
+        //
+        const currencyId = this.safeString (depositAddress, 'currency');
+        const address = this.safeString (depositAddress, 'address');
+        this.checkAddress (address);
+        return {
+            'currency': this.safeCurrencyCode (currencyId, currency),
+            'address': address,
+            'tag': this.safeString (depositAddress, 'tag'),
+            'network': undefined,
+            'info': depositAddress,
+        };
+    }
+
+    async withdraw (code, amount, address, tag = undefined, params = {}) {
+        /**
+         * @method
+         * @name zonda#withdraw
+         * @description make a withdrawal
+         * @param {string} code unified currency code
+         * @param {float} amount the amount to withdraw
+         * @param {string} address the address to withdraw to
+         * @param {string|undefined} tag
+         * @param {object} params extra parameters specific to the zonda api endpoint
+         * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure}
+         */
+        [ tag, params ] = this.handleWithdrawTagAndParams (tag, params);
+        this.checkAddress (address);
+        await this.loadMarkets ();
+        let method = undefined;
+        const currency = this.currency (code);
+        const request = {
+            'currency': currency['id'],
+            'amount': amount,
+        };
+        if (this.isFiat (code)) {
+            method = 'privatePostApiPaymentsWithdrawalsFiat';
+        } else {
+            method = 'privatePostApiPaymentsWithdrawalsCrypto';
+            if (tag !== undefined) {
+                request['tag'] = tag;
+            }
+            request['address'] = address;
+        }
+        const response = await this[method] (this.extend (request, params));
+        //
+        //     {
+        //         "status": "Ok",
+        //         "data": {
+        //           "id": "65e01087-afb0-4ab2-afdb-cc925e360296"
+        //         }
+        //     }
+        //
+        const data = this.safeValue (response, 'data');
+        return this.parseTransaction (data, currency);
+    }
+
+    parseTransaction (transaction, currency = undefined) {
+        //
+        // withdraw
+        //
+        //     {
+        //         "id": "65e01087-afb0-4ab2-afdb-cc925e360296"
+        //     }
+        //
+        currency = this.safeCurrency (undefined, currency);
+        return {
+            'id': this.safeString (transaction, 'id'),
+            'txid': undefined,
+            'timestamp': undefined,
+            'datetime': undefined,
+            'network': undefined,
+            'addressFrom': undefined,
+            'address': undefined,
+            'addressTo': undefined,
+            'amount': undefined,
+            'type': undefined,
+            'currency': currency['code'],
+            'status': undefined,
+            'updated': undefined,
+            'tagFrom': undefined,
+            'tag': undefined,
+            'tagTo': undefined,
+            'comment': undefined,
+            'fee': undefined,
+            'info': transaction,
+        };
+    }
+
     async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         /**
          * @method
@@ -399,7 +961,7 @@ module.exports = class zonda extends Exchange {
          */
         await this.loadMarkets ();
         const request = {};
-        const response = await this.v1_01PrivateGetTradingOffer (this.extend (request, params));
+        const response = await this.privateGetTradingOffer (this.extend (request, params));
         const items = this.safeValue (response, 'items', []);
         return this.parseOrders (items, undefined, since, limit, { 'status': 'open' });
     }
@@ -470,11 +1032,10 @@ module.exports = class zonda extends Exchange {
         const request = {};
         if (symbol) {
             const markets = [ this.marketId (symbol) ];
-            symbol = this.symbol (symbol);
             request['markets'] = markets;
         }
         const query = { 'query': this.json (this.extend (request, params)) };
-        const response = await this.v1_01PrivateGetTradingHistoryTransactions (query);
+        const response = await this.privateGetTradingHistoryTransactions (query);
         //
         //     {
         //         status: 'Ok',
@@ -503,6 +1064,19 @@ module.exports = class zonda extends Exchange {
         return this.filterBySymbol (result, symbol);
     }
 
+    async fetchBalance (params = {}) {
+        /**
+         * @method
+         * @name zonda#fetchBalance
+         * @description query for balance and get the amount of funds available for trading or funds locked in orders
+         * @param {object} params extra parameters specific to the zonda api endpoint
+         * @returns {object} a [balance structure]{@link https://docs.ccxt.com/en/latest/manual.html?#balance-structure}
+         */
+        await this.loadMarkets ();
+        const response = await this.privateGetBalancesBITBAYBalance (params);
+        return this.parseBalance (response);
+    }
+
     parseBalance (response) {
         const balances = this.safeValue (response, 'balances');
         if (balances === undefined) {
@@ -519,166 +1093,6 @@ module.exports = class zonda extends Exchange {
             result[code] = account;
         }
         return this.safeBalance (result);
-    }
-
-    async fetchBalance (params = {}) {
-        /**
-         * @method
-         * @name zonda#fetchBalance
-         * @description query for balance and get the amount of funds available for trading or funds locked in orders
-         * @param {object} params extra parameters specific to the zonda api endpoint
-         * @returns {object} a [balance structure]{@link https://docs.ccxt.com/en/latest/manual.html?#balance-structure}
-         */
-        await this.loadMarkets ();
-        const response = await this.v1_01PrivateGetBalancesBITBAYBalance (params);
-        return this.parseBalance (response);
-    }
-
-    async fetchOrderBook (symbol, limit = undefined, params = {}) {
-        /**
-         * @method
-         * @name zonda#fetchOrderBook
-         * @description fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
-         * @param {string} symbol unified symbol of the market to fetch the order book for
-         * @param {int|undefined} limit the maximum amount of order book entries to return
-         * @param {object} params extra parameters specific to the zonda api endpoint
-         * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-book-structure} indexed by market symbols
-         */
-        await this.loadMarkets ();
-        const market = this.market (symbol);
-        const request = {
-            'symbol': market['id'],
-        };
-        const response = await this.v1_01PublicGetTradingOrderbookSymbol (this.extend (request, params));
-        //
-        //     {
-        //         "status":"Ok",
-        //         "sell":[
-        //             {"ra":"43988.93","ca":"0.00100525","sa":"0.00100525","pa":"0.00100525","co":1},
-        //             {"ra":"43988.94","ca":"0.00114136","sa":"0.00114136","pa":"0.00114136","co":1},
-        //             {"ra":"43989","ca":"0.010578","sa":"0.010578","pa":"0.010578","co":1},
-        //         ],
-        //         "buy":[
-        //             {"ra":"42157.33","ca":"2.83147881","sa":"2.83147881","pa":"2.83147881","co":2},
-        //             {"ra":"42096.0","ca":"0.00011878","sa":"0.00011878","pa":"0.00011878","co":1},
-        //             {"ra":"42022.0","ca":"0.00011899","sa":"0.00011899","pa":"0.00011899","co":1},
-        //         ],
-        //         "timestamp":"1642299886122",
-        //         "seqNo":"27641254"
-        //     }
-        //
-        const rawBids = this.safeValue (response, 'buy', []);
-        const rawAsks = this.safeValue (response, 'sell', []);
-        const timestamp = this.safeInteger (response, 'timestamp');
-        return {
-            'symbol': market['symbol'],
-            'bids': this.parseBidsAsks (rawBids, 'ra', 'ca'),
-            'asks': this.parseBidsAsks (rawAsks, 'ra', 'ca'),
-            'timestamp': timestamp,
-            'datetime': this.iso8601 (timestamp),
-            'nonce': this.safeInteger (response, 'seqNo'),
-        };
-    }
-
-    parseTicker (ticker, market = undefined) {
-        //
-        //     {
-        //         m: 'ETH-PLN',
-        //         h: '13485.13',
-        //         l: '13100.01',
-        //         v: '126.10710939',
-        //         r24h: '13332.72'
-        //       }
-        //
-        const open = this.safeString (ticker, 'r24h');
-        const high = this.safeString (ticker, 'h');
-        const low = this.safeString (ticker, 'l');
-        const volume = this.safeString (ticker, 'v');
-        const marketId = this.safeString (ticker, 'm');
-        market = this.safeMarket (marketId, market, '-');
-        const symbol = market['symbol'];
-        return this.safeTicker ({
-            'symbol': symbol,
-            'timestamp': undefined,
-            'datetime': undefined,
-            'high': high,
-            'low': low,
-            'bid': undefined,
-            'bidVolume': undefined,
-            'ask': undefined,
-            'askVolume': undefined,
-            'vwap': undefined,
-            'open': open,
-            'close': undefined,
-            'last': undefined,
-            'previousClose': undefined,
-            'change': undefined,
-            'percentage': undefined,
-            'average': undefined,
-            'baseVolume': volume,
-            'quoteVolume': undefined,
-            'info': ticker,
-        }, market);
-    }
-
-    async fetchTicker (symbol, params = {}) {
-        /**
-         * @method
-         * @name zonda#fetchTicker
-         * @description fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
-         * @param {string} symbol unified symbol of the market to fetch the ticker for
-         * @param {object} params extra parameters specific to the zonda api endpoint
-         * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
-         */
-        await this.loadMarkets ();
-        const market = this.market (symbol);
-        const request = {
-            'symbol': market['id'],
-        };
-        const response = await this.v1_01PublicGetTradingStatsSymbol (this.extend (request, params));
-        //
-        //     {
-        //       status: 'Ok',
-        //       stats: {
-        //         m: 'ETH-PLN',
-        //         h: '13485.13',
-        //         l: '13100.01',
-        //         v: '126.10710939',
-        //         r24h: '13332.72'
-        //       }
-        //     }
-        //
-        const stats = this.safeValue (response, 'stats');
-        return this.parseTicker (stats, market);
-    }
-
-    async fetchTickers (symbols = undefined, params = {}) {
-        /**
-         * @method
-         * @name zonda#fetchTickers
-         * @description fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
-         * @param {[string]|undefined} symbols unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
-         * @param {object} params extra parameters specific to the zonda api endpoint
-         * @returns {object} an array of [ticker structures]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
-         */
-        await this.loadMarkets ();
-        const response = await this.v1_01PublicGetTradingStats (params);
-        //
-        //     {
-        //         status: 'Ok',
-        //         items: {
-        //             'DAI-PLN': {
-        //                 m: 'DAI-PLN',
-        //                 h: '4.41',
-        //                 l: '4.37',
-        //                 v: '8.71068087',
-        //                 r24h: '4.36'
-        //             }
-        //         }
-        //     }
-        //
-        const items = this.safeValue (response, 'items');
-        return this.parseTickers (items, symbols);
     }
 
     async fetchLedger (code = undefined, since = undefined, limit = undefined, params = {}) {
@@ -707,277 +1121,29 @@ module.exports = class zonda extends Exchange {
             request['limit'] = limit;
         }
         request = this.extend (request, params);
-        const response = await this.v1_01PrivateGetBalancesBITBAYHistory ({ 'query': this.json (request) });
+        const response = await this.privateGetBalancesBITBAYHistory ({ 'query': this.json (request) });
         const items = response['items'];
         return this.parseLedger (items, undefined, since, limit);
     }
 
     parseLedgerEntry (item, currency = undefined) {
         //
-        //    FUNDS_MIGRATION
         //    {
         //      "historyId": "84ea7a29-7da5-4de5-b0c0-871e83cad765",
         //      "balance": {
         //        "id": "821ec166-cb88-4521-916c-f4eb44db98df",
         //        "currency": "LTC",
-        //        "type": "CRYPTO",
+        //        "type": "CRYPTO", // CRYPTO, FIAT
         //        "userId": "a34d361d-7bad-49c1-888e-62473b75d877",
         //        "name": "LTC"
         //      },
         //      "detailId": null,
         //      "time": 1506128252968,
         //      "type": "FUNDS_MIGRATION",
-        //      "value": 0.0009957,
-        //      "fundsBefore": { "total": 0, "available": 0, "locked": 0 },
+        //      "value": 0.0009957, // can be negative in some types, like TRANSACTION_POST_OUTCOME, WITHDRAWAL_LOCK_FUNDS, WITHDRAWAL_SUBTRACT_FUNDS ...
+        //      "fundsBefore": { "total": 0, "available": 0, "locked": 0 }, // in case of `CREATE_BALANCE` type, the inner items values are `null` instead of numeric value
         //      "fundsAfter": { "total": 0.0009957, "available": 0.0009957, "locked": 0 },
         //      "change": { "total": 0.0009957, "available": 0.0009957, "locked": 0 }
-        //    }
-        //
-        //    CREATE_BALANCE
-        //    {
-        //      "historyId": "d0fabd8d-9107-4b5e-b9a6-3cab8af70d49",
-        //      "balance": {
-        //        "id": "653ffcf2-3037-4ebe-8e13-d5ea1a01d60d",
-        //        "currency": "BTG",
-        //        "type": "CRYPTO",
-        //        "userId": "a34d361d-7bad-49c1-888e-62473b75d877",
-        //        "name": "BTG"
-        //      },
-        //      "detailId": null,
-        //      "time": 1508895244751,
-        //      "type": "CREATE_BALANCE",
-        //      "value": 0,
-        //      "fundsBefore": { "total": null, "available": null, "locked": null },
-        //      "fundsAfter": { "total": 0, "available": 0, "locked": 0 },
-        //      "change": { "total": 0, "available": 0, "locked": 0 }
-        //    }
-        //
-        //    BITCOIN_GOLD_FORK
-        //    {
-        //      "historyId": "2b4d52d3-611c-473d-b92c-8a8d87a24e41",
-        //      "balance": {
-        //        "id": "653ffcf2-3037-4ebe-8e13-d5ea1a01d60d",
-        //        "currency": "BTG",
-        //        "type": "CRYPTO",
-        //        "userId": "a34d361d-7bad-49c1-888e-62473b75d877",
-        //        "name": "BTG"
-        //      },
-        //      "detailId": null,
-        //      "time": 1508895244778,
-        //      "type": "BITCOIN_GOLD_FORK",
-        //      "value": 0.00453512,
-        //      "fundsBefore": { "total": 0, "available": 0, "locked": 0 },
-        //      "fundsAfter": { "total": 0.00453512, "available": 0.00453512, "locked": 0 },
-        //      "change": { "total": 0.00453512, "available": 0.00453512, "locked": 0 }
-        //    }
-        //
-        //    ADD_FUNDS
-        //    {
-        //      "historyId": "3158236d-dae5-4a5d-81af-c1fa4af340fb",
-        //      "balance": {
-        //        "id": "3a7e7a1e-0324-49d5-8f59-298505ebd6c7",
-        //        "currency": "BTC",
-        //        "type": "CRYPTO",
-        //        "userId": "a34d361d-7bad-49c1-888e-62473b75d877",
-        //        "name": "BTC"
-        //      },
-        //      "detailId": "8e83a960-e737-4380-b8bb-259d6e236faa",
-        //      "time": 1520631178816,
-        //      "type": "ADD_FUNDS",
-        //      "value": 0.628405,
-        //      "fundsBefore": { "total": 0.00453512, "available": 0.00453512, "locked": 0 },
-        //      "fundsAfter": { "total": 0.63294012, "available": 0.63294012, "locked": 0 },
-        //      "change": { "total": 0.628405, "available": 0.628405, "locked": 0 }
-        //    }
-        //
-        //    TRANSACTION_PRE_LOCKING
-        //    {
-        //      "historyId": "e7d19e0f-03b3-46a8-bc72-dde72cc24ead",
-        //      "balance": {
-        //        "id": "3a7e7a1e-0324-49d5-8f59-298505ebd6c7",
-        //        "currency": "BTC",
-        //        "type": "CRYPTO",
-        //        "userId": "a34d361d-7bad-49c1-888e-62473b75d877",
-        //        "name": "BTC"
-        //      },
-        //      "detailId": null,
-        //      "time": 1520706403868,
-        //      "type": "TRANSACTION_PRE_LOCKING",
-        //      "value": -0.1,
-        //      "fundsBefore": { "total": 0.63294012, "available": 0.63294012, "locked": 0 },
-        //      "fundsAfter": { "total": 0.63294012, "available": 0.53294012, "locked": 0.1 },
-        //      "change": { "total": 0, "available": -0.1, "locked": 0.1 }
-        //    }
-        //
-        //    TRANSACTION_POST_OUTCOME
-        //    {
-        //      "historyId": "c4010825-231d-4a9c-8e46-37cde1f7b63c",
-        //      "balance": {
-        //        "id": "3a7e7a1e-0324-49d5-8f59-298505ebd6c7",
-        //        "currency": "BTC",
-        //        "type": "CRYPTO",
-        //        "userId": "a34d361d-7bad-49c1-888e-62473b75d877",
-        //        "name": "BTC"
-        //      },
-        //      "detailId": "bf2876bc-b545-4503-96c8-ef4de8233876",
-        //      "time": 1520706404032,
-        //      "type": "TRANSACTION_POST_OUTCOME",
-        //      "value": -0.01771415,
-        //      "fundsBefore": { "total": 0.63294012, "available": 0.53294012, "locked": 0.1 },
-        //      "fundsAfter": { "total": 0.61522597, "available": 0.53294012, "locked": 0.08228585 },
-        //      "change": { "total": -0.01771415, "available": 0, "locked": -0.01771415 }
-        //    }
-        //
-        //    TRANSACTION_POST_INCOME
-        //    {
-        //      "historyId": "7f18b7af-b676-4125-84fd-042e683046f6",
-        //      "balance": {
-        //        "id": "ab43023b-4079-414c-b340-056e3430a3af",
-        //        "currency": "EUR",
-        //        "type": "FIAT",
-        //        "userId": "a34d361d-7bad-49c1-888e-62473b75d877",
-        //        "name": "EUR"
-        //      },
-        //      "detailId": "f5fcb274-0cc7-4385-b2d3-bae2756e701f",
-        //      "time": 1520706404035,
-        //      "type": "TRANSACTION_POST_INCOME",
-        //      "value": 628.78,
-        //      "fundsBefore": { "total": 0, "available": 0, "locked": 0 },
-        //      "fundsAfter": { "total": 628.78, "available": 628.78, "locked": 0 },
-        //      "change": { "total": 628.78, "available": 628.78, "locked": 0 }
-        //    }
-        //
-        //    TRANSACTION_COMMISSION_OUTCOME
-        //    {
-        //      "historyId": "843177fa-61bc-4cbf-8be5-b029d856c93b",
-        //      "balance": {
-        //        "id": "ab43023b-4079-414c-b340-056e3430a3af",
-        //        "currency": "EUR",
-        //        "type": "FIAT",
-        //        "userId": "a34d361d-7bad-49c1-888e-62473b75d877",
-        //        "name": "EUR"
-        //      },
-        //      "detailId": "f5fcb274-0cc7-4385-b2d3-bae2756e701f",
-        //      "time": 1520706404050,
-        //      "type": "TRANSACTION_COMMISSION_OUTCOME",
-        //      "value": -2.71,
-        //      "fundsBefore": { "total": 766.06, "available": 766.06, "locked": 0 },
-        //      "fundsAfter": { "total": 763.35,"available": 763.35, "locked": 0 },
-        //      "change": { "total": -2.71, "available": -2.71, "locked": 0 }
-        //    }
-        //
-        //    TRANSACTION_OFFER_COMPLETED_RETURN
-        //    {
-        //      "historyId": "cac69b04-c518-4dc5-9d86-e76e91f2e1d2",
-        //      "balance": {
-        //        "id": "3a7e7a1e-0324-49d5-8f59-298505ebd6c7",
-        //        "currency": "BTC",
-        //        "type": "CRYPTO",
-        //        "userId": "a34d361d-7bad-49c1-888e-62473b75d877",
-        //        "name": "BTC"
-        //      },
-        //      "detailId": null,
-        //      "time": 1520714886425,
-        //      "type": "TRANSACTION_OFFER_COMPLETED_RETURN",
-        //      "value": 0.00000196,
-        //      "fundsBefore": { "total": 0.00941208, "available": 0.00941012, "locked": 0.00000196 },
-        //      "fundsAfter": { "total": 0.00941208, "available": 0.00941208, "locked": 0 },
-        //      "change": { "total": 0, "available": 0.00000196, "locked": -0.00000196 }
-        //    }
-        //
-        //    WITHDRAWAL_LOCK_FUNDS
-        //    {
-        //      "historyId": "03de2271-66ab-4960-a786-87ab9551fc14",
-        //      "balance": {
-        //        "id": "3a7e7a1e-0324-49d5-8f59-298505ebd6c7",
-        //        "currency": "BTC",
-        //        "type": "CRYPTO",
-        //        "userId": "a34d361d-7bad-49c1-888e-62473b75d877",
-        //        "name": "BTC"
-        //      },
-        //      "detailId": "6ad3dc72-1d6d-4ec2-8436-ca43f85a38a6",
-        //      "time": 1522245654481,
-        //      "type": "WITHDRAWAL_LOCK_FUNDS",
-        //      "value": -0.8,
-        //      "fundsBefore": { "total": 0.8, "available": 0.8, "locked": 0 },
-        //      "fundsAfter": { "total": 0.8, "available": 0, "locked": 0.8 },
-        //      "change": { "total": 0, "available": -0.8, "locked": 0.8 }
-        //    }
-        //
-        //    WITHDRAWAL_SUBTRACT_FUNDS
-        //    {
-        //      "historyId": "b0308c89-5288-438d-a306-c6448b1a266d",
-        //      "balance": {
-        //        "id": "3a7e7a1e-0324-49d5-8f59-298505ebd6c7",
-        //        "currency": "BTC",
-        //        "type": "CRYPTO",
-        //        "userId": "a34d361d-7bad-49c1-888e-62473b75d877",
-        //        "name": "BTC"
-        //      },
-        //      "detailId": "6ad3dc72-1d6d-4ec2-8436-ca43f85a38a6",
-        //      "time": 1522246526186,
-        //      "type": "WITHDRAWAL_SUBTRACT_FUNDS",
-        //      "value": -0.8,
-        //      "fundsBefore": { "total": 0.8, "available": 0, "locked": 0.8 },
-        //      "fundsAfter": { "total": 0, "available": 0, "locked": 0 },
-        //      "change": { "total": -0.8, "available": 0, "locked": -0.8 }
-        //    }
-        //
-        //    TRANSACTION_OFFER_ABORTED_RETURN
-        //    {
-        //      "historyId": "b1a3c075-d403-4e05-8f32-40512cdd88c0",
-        //      "balance": {
-        //        "id": "3a7e7a1e-0324-49d5-8f59-298505ebd6c7",
-        //        "currency": "BTC",
-        //        "type": "CRYPTO",
-        //        "userId": "a34d361d-7bad-49c1-888e-62473b75d877",
-        //        "name": "BTC"
-        //      },
-        //      "detailId": null,
-        //      "time": 1522512298662,
-        //      "type": "TRANSACTION_OFFER_ABORTED_RETURN",
-        //      "value": 0.0564931,
-        //      "fundsBefore": { "total": 0.44951311, "available": 0.39302001, "locked": 0.0564931 },
-        //      "fundsAfter": { "total": 0.44951311, "available": 0.44951311, "locked": 0 },
-        //      "change": { "total": 0, "available": 0.0564931, "locked": -0.0564931 }
-        //    }
-        //
-        //    WITHDRAWAL_UNLOCK_FUNDS
-        //    {
-        //      "historyId": "0ed569a2-c330-482e-bb89-4cb553fb5b11",
-        //      "balance": {
-        //        "id": "3a7e7a1e-0324-49d5-8f59-298505ebd6c7",
-        //        "currency": "BTC",
-        //        "type": "CRYPTO",
-        //        "userId": "a34d361d-7bad-49c1-888e-62473b75d877",
-        //        "name": "BTC"
-        //      },
-        //      "detailId": "0c7be256-c336-4111-bee7-4eb22e339700",
-        //      "time": 1527866360785,
-        //      "type": "WITHDRAWAL_UNLOCK_FUNDS",
-        //      "value": 0.05045,
-        //      "fundsBefore": { "total": 0.86001578, "available": 0.80956578, "locked": 0.05045 },
-        //      "fundsAfter": { "total": 0.86001578, "available": 0.86001578, "locked": 0 },
-        //      "change": { "total": 0, "available": 0.05045, "locked": -0.05045 }
-        //    }
-        //
-        //    TRANSACTION_COMMISSION_RETURN
-        //    {
-        //      "historyId": "07c89c27-46f1-4d7a-8518-b73798bf168a",
-        //      "balance": {
-        //        "id": "ab43023b-4079-414c-b340-056e3430a3af",
-        //        "currency": "EUR",
-        //        "type": "FIAT",
-        //        "userId": "a34d361d-7bad-49c1-888e-62473b75d877",
-        //        "name": "EUR"
-        //      },
-        //      "detailId": null,
-        //      "time": 1528304043063,
-        //      "type": "TRANSACTION_COMMISSION_RETURN",
-        //      "value": 0.6,
-        //      "fundsBefore": { "total": 0, "available": 0, "locked": 0 },
-        //      "fundsAfter": { "total": 0.6, "available": 0.6, "locked": 0 },
-        //      "change": { "total": 0.6, "available": 0.6, "locked": 0 }
         //    }
         //
         const timestamp = this.safeInteger (item, 'time');
@@ -1033,185 +1199,6 @@ module.exports = class zonda extends Exchange {
         return this.safeString (types, type, type);
     }
 
-    parseOHLCV (ohlcv, market = undefined) {
-        //
-        //     [
-        //         '1582399800000',
-        //         {
-        //             o: '0.0001428',
-        //             c: '0.0001428',
-        //             h: '0.0001428',
-        //             l: '0.0001428',
-        //             v: '4',
-        //             co: '1'
-        //         }
-        //     ]
-        //
-        const first = this.safeValue (ohlcv, 1, {});
-        return [
-            this.safeInteger (ohlcv, 0),
-            this.safeNumber (first, 'o'),
-            this.safeNumber (first, 'h'),
-            this.safeNumber (first, 'l'),
-            this.safeNumber (first, 'c'),
-            this.safeNumber (first, 'v'),
-        ];
-    }
-
-    async fetchOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
-        /**
-         * @method
-         * @name zonda#fetchOHLCV
-         * @description fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
-         * @param {string} symbol unified symbol of the market to fetch OHLCV data for
-         * @param {string} timeframe the length of time each candle represents
-         * @param {int|undefined} since timestamp in ms of the earliest candle to fetch
-         * @param {int|undefined} limit the maximum amount of candles to fetch
-         * @param {object} params extra parameters specific to the zonda api endpoint
-         * @returns {[[int]]} A list of candles ordered as timestamp, open, high, low, close, volume
-         */
-        await this.loadMarkets ();
-        const market = this.market (symbol);
-        const tradingSymbol = market['baseId'] + '-' + market['quoteId'];
-        const request = {
-            'symbol': tradingSymbol,
-            'resolution': this.timeframes[timeframe],
-            // 'from': 1574709092000, // unix timestamp in milliseconds, required
-            // 'to': 1574709092000, // unix timestamp in milliseconds, required
-        };
-        if (limit === undefined) {
-            limit = 100;
-        }
-        const duration = this.parseTimeframe (timeframe);
-        const timerange = limit * duration * 1000;
-        if (since === undefined) {
-            request['to'] = this.milliseconds ();
-            request['from'] = request['to'] - timerange;
-        } else {
-            request['from'] = parseInt (since);
-            request['to'] = this.sum (request['from'], timerange);
-        }
-        const response = await this.v1_01PublicGetTradingCandleHistorySymbolResolution (this.extend (request, params));
-        //
-        //     {
-        //         "status":"Ok",
-        //         "items":[
-        //             ["1591503060000",{"o":"0.02509572","c":"0.02509438","h":"0.02509664","l":"0.02509438","v":"0.02082165","co":"17"}],
-        //             ["1591503120000",{"o":"0.02509606","c":"0.02509515","h":"0.02509606","l":"0.02509487","v":"0.04971703","co":"13"}],
-        //             ["1591503180000",{"o":"0.02509532","c":"0.02509589","h":"0.02509589","l":"0.02509454","v":"0.01332236","co":"7"}],
-        //         ]
-        //     }
-        //
-        const items = this.safeValue (response, 'items', []);
-        return this.parseOHLCVs (items, market, timeframe, since, limit);
-    }
-
-    parseTrade (trade, market = undefined) {
-        //
-        // createOrder trades
-        //
-        //     {
-        //         "rate": "0.02195928",
-        //         "amount": "0.00167952"
-        //     }
-        //
-        // fetchMyTrades (private)
-        //
-        //     {
-        //         amount: "0.29285199",
-        //         commissionValue: "0.00125927",
-        //         id: "11c8203a-a267-11e9-b698-0242ac110007",
-        //         initializedBy: "Buy",
-        //         market: "ETH-EUR",
-        //         offerId: "11c82038-a267-11e9-b698-0242ac110007",
-        //         rate: "277",
-        //         time: "1562689917517",
-        //         userAction: "Buy",
-        //         wasTaker: true,
-        //     }
-        //
-        // fetchTrades (public)
-        //
-        //     {
-        //          id: 'df00b0da-e5e0-11e9-8c19-0242ac11000a',
-        //          t: '1570108958831',
-        //          a: '0.04776653',
-        //          r: '0.02145854',
-        //          ty: 'Sell'
-        //     }
-        //
-        const timestamp = this.safeInteger2 (trade, 'time', 't');
-        const side = this.safeStringLower2 (trade, 'userAction', 'ty');
-        const wasTaker = this.safeValue (trade, 'wasTaker');
-        let takerOrMaker = undefined;
-        if (wasTaker !== undefined) {
-            takerOrMaker = wasTaker ? 'taker' : 'maker';
-        }
-        const priceString = this.safeString2 (trade, 'rate', 'r');
-        const amountString = this.safeString2 (trade, 'amount', 'a');
-        const feeCostString = this.safeString (trade, 'commissionValue');
-        const marketId = this.safeString (trade, 'market');
-        market = this.safeMarket (marketId, market, '-');
-        const symbol = market['symbol'];
-        let fee = undefined;
-        if (feeCostString !== undefined) {
-            const feeCurrency = (side === 'buy') ? market['base'] : market['quote'];
-            fee = {
-                'currency': feeCurrency,
-                'cost': feeCostString,
-            };
-        }
-        const order = this.safeString (trade, 'offerId');
-        // todo: check this logic
-        let type = undefined;
-        if (order !== undefined) {
-            type = order ? 'limit' : 'market';
-        }
-        return this.safeTrade ({
-            'id': this.safeString (trade, 'id'),
-            'order': order,
-            'timestamp': timestamp,
-            'datetime': this.iso8601 (timestamp),
-            'symbol': symbol,
-            'type': type,
-            'side': side,
-            'price': priceString,
-            'amount': amountString,
-            'cost': undefined,
-            'takerOrMaker': takerOrMaker,
-            'fee': fee,
-            'info': trade,
-        }, market);
-    }
-
-    async fetchTrades (symbol, since = undefined, limit = undefined, params = {}) {
-        /**
-         * @method
-         * @name zonda#fetchTrades
-         * @description get the list of most recent trades for a particular symbol
-         * @param {string} symbol unified symbol of the market to fetch trades for
-         * @param {int|undefined} since timestamp in ms of the earliest trade to fetch
-         * @param {int|undefined} limit the maximum amount of trades to fetch
-         * @param {object} params extra parameters specific to the zonda api endpoint
-         * @returns {[object]} a list of [trade structures]{@link https://docs.ccxt.com/en/latest/manual.html?#public-trades}
-         */
-        await this.loadMarkets ();
-        const market = this.market (symbol);
-        const tradingSymbol = market['baseId'] + '-' + market['quoteId'];
-        const request = {
-            'symbol': tradingSymbol,
-        };
-        if (since !== undefined) {
-            request['fromTime'] = since - 1; // result does not include exactly `since` time therefore decrease by 1
-        }
-        if (limit !== undefined) {
-            request['limit'] = limit; // default - 10, max - 300
-        }
-        const response = await this.v1_01PublicGetTradingTransactionsSymbol (this.extend (request, params));
-        const items = this.safeValue (response, 'items');
-        return this.parseTrades (items, market, since, limit);
-    }
-
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
         /**
          * @method
@@ -1227,10 +1214,9 @@ module.exports = class zonda extends Exchange {
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const tradingSymbol = market['baseId'] + '-' + market['quoteId'];
         amount = parseFloat (this.amountToPrecision (symbol, amount));
         const request = {
-            'symbol': tradingSymbol,
+            'trading_pair': market['id'],
             'offerType': side.toUpperCase (),
             'amount': amount,
         };
@@ -1241,7 +1227,7 @@ module.exports = class zonda extends Exchange {
         const isStopLimit = (type === 'stop-limit') || (isLimitOrder && isStopLossPrice);
         const isStopMarket = type === 'stop-market' || (isMarketOrder && isStopLossPrice);
         const isStopOrder = isStopLimit || isStopMarket;
-        const method = isStopOrder ? 'v1_01PrivatePostTradingStopOfferSymbol' : 'v1_01PrivatePostTradingOfferSymbol';
+        const method = isStopOrder ? 'privatePostTradingStopOfferTradingPair' : 'privatePostTradingOfferTradingPair';
         if (isLimitOrder || isStopLimit) {
             request['rate'] = this.priceToPrecision (symbol, price);
             request['mode'] = isStopLimit ? 'stop-limit' : 'limit';
@@ -1358,109 +1344,20 @@ module.exports = class zonda extends Exchange {
         }
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const tradingSymbol = market['baseId'] + '-' + market['quoteId'];
         const request = {
-            'symbol': tradingSymbol,
+            'trading_pair': market['id'],
             'id': id,
             'side': side,
             'price': price,
         };
         // { status: 'Fail', errors: [ 'NOT_RECOGNIZED_OFFER_TYPE' ] }  -- if required params are missing
         // { status: 'Ok', errors: [] }
-        return await this.v1_01PrivateDeleteTradingOfferSymbolIdSidePrice (this.extend (request, params));
+        return await this.privateDeleteTradingOfferTradingPairIdSidePrice (this.extend (request, params));
     }
 
     isFiat (currency) {
-        const fiatCurrencies = {
-            'USD': true,
-            'EUR': true,
-            'PLN': true,
-        };
-        return this.safeValue (fiatCurrencies, currency, false);
-    }
-
-    parseDepositAddress (depositAddress, currency = undefined) {
-        //
-        //     {
-        //         "address": "33u5YAEhQbYfjHHPsfMfCoSdEjfwYjVcBE",
-        //         "currency": "BTC",
-        //         "balanceId": "5d5d19e7-2265-49c7-af9a-047bcf384f21",
-        //         "balanceEngine": "BITBAY",
-        //         "tag": null
-        //     }
-        //
-        const currencyId = this.safeString (depositAddress, 'currency');
-        const address = this.safeString (depositAddress, 'address');
-        this.checkAddress (address);
-        return {
-            'currency': this.safeCurrencyCode (currencyId, currency),
-            'address': address,
-            'tag': this.safeString (depositAddress, 'tag'),
-            'network': undefined,
-            'info': depositAddress,
-        };
-    }
-
-    async fetchDepositAddress (code, params = {}) {
-        /**
-         * @method
-         * @name zonda#fetchDepositAddress
-         * @description fetch the deposit address for a currency associated with this account
-         * @param {string} code unified currency code
-         * @param {object} params extra parameters specific to the zonda api endpoint
-         * @param {string|undefined} params.walletId Wallet id to filter deposit adresses.
-         * @returns {object} an [address structure]{@link https://docs.ccxt.com/en/latest/manual.html#address-structure}
-         */
-        await this.loadMarkets ();
-        const currency = this.currency (code);
-        const request = {
-            'currency': currency['id'],
-        };
-        const response = await this.v1_01PrivateGetApiPaymentsDepositsCryptoAddresses (this.extend (request, params));
-        //
-        //     {
-        //         "status": "Ok",
-        //         "data": [{
-        //                 "address": "33u5YAEhQbYfjHHPsfMfCoSdEjfwYjVcBE",
-        //                 "currency": "BTC",
-        //                 "balanceId": "5d5d19e7-2265-49c7-af9a-047bcf384f21",
-        //                 "balanceEngine": "BITBAY",
-        //                 "tag": null
-        //             }
-        //         ]
-        //     }
-        //
-        const data = this.safeValue (response, 'data');
-        const first = this.safeValue (data, 0);
-        return this.parseDepositAddress (first, currency);
-    }
-
-    async fetchDepositAddresses (codes = undefined, params = {}) {
-        /**
-         * @method
-         * @name zonda#fetchDepositAddresses
-         * @description fetch deposit addresses for multiple currencies and chain types
-         * @param {[string]|undefined} codes zonda does not support filtering filtering by multiple codes and will ignore this parameter.
-         * @param {object} params extra parameters specific to the zonda api endpoint
-         * @returns {object} a list of [address structures]{@link https://docs.ccxt.com/en/latest/manual.html#address-structure}
-         */
-        await this.loadMarkets ();
-        const response = await this.v1_01PrivateGetApiPaymentsDepositsCryptoAddresses (params);
-        //
-        //     {
-        //         "status": "Ok",
-        //         "data": [{
-        //                 "address": "33u5YAEhQbYfjHHPsfMfCoSdEjfwYjVcBE",
-        //                 "currency": "BTC",
-        //                 "balanceId": "5d5d19e7-2265-49c7-af9a-047bcf384f21",
-        //                 "balanceEngine": "BITBAY",
-        //                 "tag": null
-        //             }
-        //         ]
-        //     }
-        //
-        const data = this.safeValue (response, 'data');
-        return this.parseDepositAddresses (data, codes);
+        const fiatCurrencies = this.safeValue (this.options, 'fiatCurrencies', {});
+        return (currency in fiatCurrencies);
     }
 
     async transfer (code, amount, fromAccount, toAccount, params = {}) {
@@ -1483,7 +1380,7 @@ module.exports = class zonda extends Exchange {
             'currency': code,
             'funds': this.currencyToPrecision (code, amount),
         };
-        const response = await this.v1_01PrivatePostBalancesBITBAYBalanceTransferSourceDestination (this.extend (request, params));
+        const response = await this.privatePostBalancesBITBAYBalanceTransferSourceDestination (this.extend (request, params));
         //
         //     {
         //         "status": "Ok",
@@ -1577,99 +1474,15 @@ module.exports = class zonda extends Exchange {
         return this.safeString (statuses, status, status);
     }
 
-    async withdraw (code, amount, address, tag = undefined, params = {}) {
-        /**
-         * @method
-         * @name zonda#withdraw
-         * @description make a withdrawal
-         * @param {string} code unified currency code
-         * @param {float} amount the amount to withdraw
-         * @param {string} address the address to withdraw to
-         * @param {string|undefined} tag
-         * @param {object} params extra parameters specific to the zonda api endpoint
-         * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure}
-         */
-        [ tag, params ] = this.handleWithdrawTagAndParams (tag, params);
-        this.checkAddress (address);
-        await this.loadMarkets ();
-        let method = undefined;
-        const currency = this.currency (code);
-        const request = {
-            'currency': currency['id'],
-            'quantity': amount,
-        };
-        if (this.isFiat (code)) {
-            method = 'privatePostWithdraw';
-            // request['account'] = params['account']; // they demand an account number
-            // request['express'] = params['express']; // whatever it means, they don't explain
-            // request['bic'] = '';
-        } else {
-            method = 'privatePostTransfer';
-            if (tag !== undefined) {
-                address += '?dt=' + tag.toString ();
-            }
-            request['address'] = address;
-        }
-        const response = await this[method] (this.extend (request, params));
-        //
-        //     {
-        //         "status": "Ok",
-        //         "data": {
-        //           "id": "65e01087-afb0-4ab2-afdb-cc925e360296"
-        //         }
-        //     }
-        //
-        const data = this.safeValue (response, 'data');
-        return this.parseTransaction (data, currency);
-    }
-
-    parseTransaction (transaction, currency = undefined) {
-        //
-        // withdraw
-        //
-        //     {
-        //         "id": "65e01087-afb0-4ab2-afdb-cc925e360296"
-        //     }
-        //
-        currency = this.safeCurrency (undefined, currency);
-        return {
-            'id': this.safeString (transaction, 'id'),
-            'txid': undefined,
-            'timestamp': undefined,
-            'datetime': undefined,
-            'network': undefined,
-            'addressFrom': undefined,
-            'address': undefined,
-            'addressTo': undefined,
-            'amount': undefined,
-            'type': undefined,
-            'currency': currency['code'],
-            'status': undefined,
-            'updated': undefined,
-            'tagFrom': undefined,
-            'tag': undefined,
-            'tagTo': undefined,
-            'comment': undefined,
-            'fee': undefined,
-            'info': transaction,
-        };
-    }
-
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let url = this.implodeHostname (this.urls['api'][api]);
         if (api === 'public') {
-            const query = this.omit (params, this.extractParams (path));
-            url += '/' + this.implodeParams (path, params) + '.json';
-            if (Object.keys (query).length) {
-                url += '?' + this.urlencode (query);
-            }
-        } else if (api === 'v1_01Public') {
             const query = this.omit (params, this.extractParams (path));
             url += '/' + this.implodeParams (path, params);
             if (Object.keys (query).length) {
                 url += '?' + this.urlencode (query);
             }
-        } else if (api === 'v1_01Private') {
+        } else if (api === 'private') {
             this.checkRequiredCredentials ();
             const query = this.omit (params, this.extractParams (path));
             url += '/' + this.implodeParams (path, params);
@@ -1750,7 +1563,8 @@ module.exports = class zonda extends Exchange {
                 const feedback = this.id + ' ' + body;
                 for (let i = 0; i < errors.length; i++) {
                     const error = errors[i];
-                    this.throwExactlyMatchedException (this.exceptions, error, feedback);
+                    this.throwExactlyMatchedException (this.exceptions['exact'], error, feedback);
+                    this.throwBroadlyMatchedException (this.exceptions['broad'], error, feedback);
                 }
                 throw new ExchangeError (feedback);
             }
