@@ -82,6 +82,16 @@ const httpsAgent = new Agent ({
     keepAlive: true,
 })
 
+
+// check here if we have a arg like this: binance.fetchOrders()
+const callRegex = /(\w+)\.(\w+)\(([^()]*)\)/
+if (callRegex.test (exchangeId)) {
+    const res = callRegex.exec (exchangeId);
+    exchangeId = res[1];
+    methodName = res[2];
+    params = res[3].split(",").map(x => x.trim());
+}
+
 try {
     if (ccxt.pro.exchanges.includes(exchangeId)) {
         exchange = new (ccxt.pro)[exchangeId] ({ timeout, httpsAgent, ... settings })
@@ -200,6 +210,8 @@ const printHumanReadable = (exchange, result) => {
 //-----------------------------------------------------------------------------
 
 async function run () {
+
+
 
     if (!exchangeId) {
 
