@@ -12,7 +12,8 @@ RUN sed -i 's/archive\.ubuntu\.com/us\.archive\.ubuntu\.com/' /etc/apt/sources.l
 # Miscellaneous deps
 RUN apt-get update && apt-get install -y --no-install-recommends curl gnupg git ca-certificates
 # PHP
-RUN apt-get update && apt-get install -y --no-install-recommends php php-curl php-iconv php-mbstring php-bcmath php-gmp
+RUN apt-get install -y software-properties-common && add-apt-repository -y ppa:ondrej/php
+RUN apt-get update && apt-get install -y --no-install-recommends php8.1 php8.1-curl php8.1-iconv php8.1-mbstring php8.1-bcmath php8.1-gmp
 # Node
 RUN curl -sL https://deb.nodesource.com/setup_14.x | bash -
 RUN apt-get update && apt-get install -y nodejs
