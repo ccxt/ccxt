@@ -4,7 +4,9 @@
 
 const Exchange = require ('./base/Exchange');
 const { ExchangeError, ExchangeNotAvailable, NotSupported, OnMaintenance, ArgumentsRequired, BadRequest, AccountSuspended, InvalidAddress, PermissionDenied, DDoSProtection, InsufficientFunds, InvalidNonce, CancelPending, InvalidOrder, OrderNotFound, AuthenticationError, RequestTimeout, BadSymbol, RateLimitExceeded } = require ('./base/errors');
-const { TICK_SIZE } = require ('./base/functions/number');
+const { TICK_SIZE, DECIMAL_PLACES, ROUND_UP, ROUND_DOWN,
+    ROUND
+} = require ('./base/functions/number');
 const Precise = require ('./base/Precise');
 
 //  ---------------------------------------------------------------------------
@@ -3081,7 +3083,7 @@ module.exports = class bitget extends Exchange {
         //     }
         //
         const data = this.safeValue (response, 'data', []);
-        return this.parsePosition (data[0], market);
+        return this.parsePositions (data);
     }
 
     async fetchPositions (symbols = undefined, params = {}) {
@@ -3162,53 +3164,85 @@ module.exports = class bitget extends Exchange {
         market = this.safeMarket (marketId, market);
         const timestamp = this.safeInteger (position, 'cTime');
         let marginMode = this.safeString (position, 'marginMode');
+        let collateral = undefined;
+        let initialMargin = undefined;
+        const unrealizedPnl = this.safeString (position, 'unrealizedPL');
+        const rawCollateral = this.safeString (position, 'margin');
         if (marginMode === 'fixed') {
             marginMode = 'isolated';
+            collateral = Precise.stringAdd (rawCollateral, unrealizedPnl);
         } else if (marginMode === 'crossed') {
             marginMode = 'cross';
+            initialMargin = rawCollateral;
         }
-        let hedged = this.safeString (position, 'holdMode');
-        if (hedged === 'double_hold') {
+        const holdMode = this.safeString (position, 'holdMode');
+        let hedged = undefined;
+        if (holdMode === 'double_hold') {
             hedged = true;
-        } else if (hedged === 'single_hold') {
+        } else if (holdMode === 'single_hold') {
             hedged = false;
         }
+        const side = this.safeString (position, 'holdSide');
+        const leverage = this.safeString (position, 'leverage');
         const contractSizeNumber = this.safeValue (market, 'contractSize');
         const contractSize = this.numberToString (contractSizeNumber);
         const baseAmount = this.safeString (position, 'total');
+        const entryPrice = this.safeString (position, 'averageOpenPrice');
+        const maintenanceMarginPercentage = this.safeString (position, 'keepMarginRate');
+        const openNotional = Precise.stringMul (entryPrice, baseAmount);
+        if (initialMargin === undefined) {
+            initialMargin = Precise.stringDiv (openNotional, leverage);
+        }
         const contracts = this.parseNumber (Precise.stringDiv (baseAmount, contractSize));
-        const liquidation = this.parseNumber (this.omitZero (this.safeString (position, 'liquidationPrice')));
-        const maintenanceMarginPercentage = this.safeString (position, 'keepMarginRate')
         const markPrice = this.safeString (position, 'marketPrice');
         const notional = Precise.stringMul (baseAmount, markPrice);
-        const maintenanceMargin = Precise.stringMul (maintenanceMarginPercentage, notional);
-        const unrealizedPnl = this.safeString (position, 'unrealizedPL');
-        const rawCollateral = this.safeString (position, 'margin');
-        const collateral = Precise.stringAdd (rawCollateral, unrealizedPnl);
+        const initialMarginPercentage = Precise.stringDiv (initialMargin, notional);
+        let liquidationPrice = this.parseNumber (this.omitZero (this.safeString (position, 'liquidationPrice')));
+        const calcTakerFeeRate = '0.0006';
+        const calcTakerFeeMult = '0.9994';
+        if ((liquidationPrice === undefined) && (marginMode === 'isolated')) {
+            let signedMargin = Precise.stringDiv (rawCollateral, baseAmount);
+            let signedMmp = maintenanceMarginPercentage;
+            if (side === 'short') {
+                signedMargin = Precise.stringNeg (signedMargin);
+                signedMmp = Precise.stringNeg (signedMmp);
+            }
+            let mmrMinusOne = Precise.stringSub ('1', signedMmp);
+            let numerator = Precise.stringSub (entryPrice, signedMargin);
+            if (side === 'long') {
+                mmrMinusOne = Precise.stringMul (mmrMinusOne, calcTakerFeeMult);
+            } else {
+                numerator = Precise.stringMul (numerator, calcTakerFeeMult);
+            }
+            liquidationPrice = Precise.stringAdd (Precise.stringDiv (numerator, mmrMinusOne));
+        }
+        const feeToClose = Precise.stringMul (notional, calcTakerFeeRate);
+        const maintenanceMargin = Precise.stringAdd (Precise.stringMul (maintenanceMarginPercentage, notional), feeToClose);
         const marginRatio = Precise.stringDiv (maintenanceMargin, collateral);
+        const percentage = Precise.stringMul (Precise.stringDiv (unrealizedPnl, initialMargin, '4'), '100');
         return {
             'info': position,
             'id': undefined,
             'symbol': market['symbol'],
             'notional': this.parseNumber (notional),
             'marginMode': marginMode,
-            'liquidationPrice': liquidation,
-            'entryPrice': this.safeNumber (position, 'averageOpenPrice'),
+            'liquidationPrice': this.parseNumber (liquidationPrice),
+            'entryPrice': this.parseNumber (entryPrice),
             'unrealizedPnl': this.parseNumber (unrealizedPnl),
-            'percentage': undefined,
+            'percentage': this.parseNumber (percentage),
             'contracts': contracts,
             'contractSize': contractSizeNumber,
             'markPrice': this.parseNumber (markPrice),
-            'side': this.safeString (position, 'holdSide'),
+            'side': side,
             'hedged': hedged,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'maintenanceMargin': this.parseNumber (maintenanceMargin),
             'maintenanceMarginPercentage': this.parseNumber (maintenanceMarginPercentage),
             'collateral': this.parseNumber (collateral),
-            'initialMargin': undefined,
-            'initialMarginPercentage': undefined,
-            'leverage': this.safeNumber (position, 'leverage'),
+            'initialMargin': this.parseNumber (initialMargin),
+            'initialMarginPercentage': this.parseNumber (initialMarginPercentage),
+            'leverage': this.parseNumber (leverage),
             'marginRatio': this.parseNumber (marginRatio),
         };
     }
