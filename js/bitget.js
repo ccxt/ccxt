@@ -6,6 +6,7 @@ const Exchange = require ('./base/Exchange');
 const { ExchangeError, ExchangeNotAvailable, NotSupported, OnMaintenance, ArgumentsRequired, BadRequest, AccountSuspended, InvalidAddress, PermissionDenied, DDoSProtection, InsufficientFunds, InvalidNonce, CancelPending, InvalidOrder, OrderNotFound, AuthenticationError, RequestTimeout, BadSymbol, RateLimitExceeded } = require ('./base/errors');
 const { TICK_SIZE } = require ('./base/functions/number');
 const Precise = require ('./base/Precise');
+const { base } = require ('./static_dependencies/elliptic/lib/elliptic/curve');
 
 //  ---------------------------------------------------------------------------
 
@@ -3160,6 +3161,7 @@ module.exports = class bitget extends Exchange {
         //
         const marketId = this.safeString (position, 'symbol');
         market = this.safeMarket (marketId, market);
+        const symbol = market['symbol'];
         const timestamp = this.safeInteger (position, 'cTime');
         let marginMode = this.safeString (position, 'marginMode');
         let collateral = undefined;
@@ -3198,7 +3200,7 @@ module.exports = class bitget extends Exchange {
         let liquidationPrice = this.parseNumber (this.omitZero (this.safeString (position, 'liquidationPrice')));
         const calcTakerFeeRate = '0.0006';
         const calcTakerFeeMult = '0.9994';
-        if ((liquidationPrice === undefined) && (marginMode === 'isolated')) {
+        if ((liquidationPrice === undefined) && (marginMode === 'isolated') && Precise.stringGt (baseAmount, '0')) {
             let signedMargin = Precise.stringDiv (rawCollateral, baseAmount);
             let signedMmp = maintenanceMarginPercentage;
             if (side === 'short') {
