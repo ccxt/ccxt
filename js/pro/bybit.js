@@ -1485,7 +1485,7 @@ module.exports = class bybit extends bybitRest {
         }
     }
 
-    ping () {
+    ping (client) {
         return {
             'req_id': this.requestId (),
             'op': 'ping',
