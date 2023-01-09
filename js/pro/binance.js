@@ -655,7 +655,7 @@ module.exports = class binance extends binanceRest {
         const subscribe = {
             'id': requestId,
         };
-        const ohlcv = await this.watch (url, messageHash, this.extend (request, query), messageHash, subscribe);
+        const ohlcv = await this.watch (url, messageHash, this.extend (request, params), messageHash, subscribe);
         if (this.newUpdates) {
             limit = ohlcv.getLimit (symbol, limit);
         }
