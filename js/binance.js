@@ -2115,7 +2115,7 @@ module.exports = class binance extends Exchange {
          */
         await this.loadMarkets ();
         const defaultType = this.safeString2 (this.options, 'fetchBalance', 'defaultType', 'spot');
-        const type = this.safeString (params, 'type', defaultType);
+        let type = this.safeString (params, 'type', defaultType);
         let subType = undefined;
         [ subType, params ] = this.handleSubTypeAndParams ('fetchBalance', undefined, params);
         const [ marginMode, query ] = this.handleMarginModeAndParams ('fetchBalance', params);
@@ -2125,6 +2125,7 @@ module.exports = class binance extends Exchange {
             const options = this.safeValue (this.options, type, {});
             const fetchBalanceOptions = this.safeValue (options, 'fetchBalance', {});
             method = this.safeString (fetchBalanceOptions, 'method', 'fapiPrivateV2GetAccount');
+            type = 'swap';
         } else if (this.isInverse (type, subType)) {
             const options = this.safeValue (this.options, type, {});
             const fetchBalanceOptions = this.safeValue (options, 'fetchBalance', {});
