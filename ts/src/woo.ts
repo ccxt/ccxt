@@ -1817,7 +1817,7 @@ export default class woo extends Exchange {
             throw new BadRequest (this.id + ' withdraw() require network parameter');
         }
         request['token'] = coinNetworkId;
-        const response = await this.v1PrivatePostAssetWithdraw (this.extend (request, params));
+        const response = await (this as any).v1PrivatePostAssetWithdraw (this.extend (request, params));
         //
         //     {
         //         "success": true,
