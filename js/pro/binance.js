@@ -733,7 +733,7 @@ module.exports = class binance extends binanceRest {
         const marketId = market['lowercaseId'];
         let type = market['type'];
         if (market['contract']) {
-            type = market['linear'] ? 'future' : 'inverse';
+            type = market['linear'] ? 'future' : 'delivery';
         }
         const options = this.safeValue (this.options, 'watchTicker', {});
         let name = this.safeString (options, 'name', 'ticker');
