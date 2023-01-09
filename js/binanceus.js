@@ -42,6 +42,12 @@ module.exports = class binanceus extends binance {
                 'quoteOrderQty': false,
             },
             'has': {
+                'CORS': undefined,
+                'spot': true,
+                'margin': undefined,
+                'swap': undefined,
+                'future': undefined,
+                'option': undefined,
                 'fetchTickers': false,
             },
         });
