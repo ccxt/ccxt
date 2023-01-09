@@ -223,6 +223,7 @@ for (const exchange in pro) {
 }
 
 pro.exchanges = Object.keys (pro)
+pro['Exchange'] = wsExchange
 
 //-----------------------------------------------------------------------------
 
