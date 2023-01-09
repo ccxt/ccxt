@@ -93,7 +93,7 @@ class Exchange(BaseExchange):
             pass
 
     def spawn(self, method, *args):
-        asyncio.ensure_future(self.spawn_async(method, *args))
+        asyncio.ensure_future(method(*args))
 
     def delay(self, timeout, method, *args):
         asyncio.ensure_future(self.delay_async(timeout, method, *args))
@@ -177,7 +177,7 @@ class Exchange(BaseExchange):
             index = self.get_cache_index(order_book, cache)
             if index >= 0:
                 stored.reset(order_book)
-                self.handle_deltas(order_book, cache[index:])
+                self.handle_deltas(stored, cache[index:])
                 cache.clear()
                 client.resolve(stored, messageHash)
             else:
