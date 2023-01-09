@@ -650,11 +650,12 @@ export default class gemini extends geminiRest {
         };
         this.options = this.extend (defaultOptions, this.options);
         const originalHeaders = this.options['ws']['options']['headers'];
-        this.options['ws']['options']['headers'] = {
+        const headers = {
             'X-GEMINI-APIKEY': this.apiKey,
             'X-GEMINI-PAYLOAD': this.decode (b64),
             'X-GEMINI-SIGNATURE': signature,
         };
+        this.options['ws']['options']['headers'] = headers;
         this.client (url);
         this.options['ws']['options']['headers'] = originalHeaders;
     }
