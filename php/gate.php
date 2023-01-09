@@ -682,7 +682,7 @@ class gate extends Exchange {
         return $this->array_concat($spotMarkets, $contractMarkets);
     }
 
-    public function fetch_spot_markets($params) {
+    public function fetch_spot_markets($params = array ()) {
         $marginResponse = $this->publicMarginGetCurrencyPairs ($params);
         $spotMarketsResponse = $this->publicSpotGetCurrencyPairs ($params);
         $marginMarkets = $this->index_by($marginResponse, 'id');
@@ -789,15 +789,16 @@ class gate extends Exchange {
         return $result;
     }
 
-    public function fetch_contract_markets($params) {
+    public function fetch_contract_markets($params = array ()) {
         $result = array();
         $swapSettlementCurrencies = $this->get_settlement_currencies('swap', 'fetchMarkets');
         $futureSettlementCurrencies = $this->get_settlement_currencies('future', 'fetchMarkets');
         for ($c = 0; $c < count($swapSettlementCurrencies); $c++) {
             $settleId = $swapSettlementCurrencies[$c];
-            $query = $params;
-            $query['settle'] = $settleId;
-            $response = $this->publicFuturesGetSettleContracts ($query);
+            $request = array(
+                'settle' => $settleId,
+            );
+            $response = $this->publicFuturesGetSettleContracts (array_merge($request, $params));
             for ($i = 0; $i < count($response); $i++) {
                 $parsedMarket = $this->parse_contract_market($response[$i], $settleId);
                 $result[] = $parsedMarket;
@@ -805,9 +806,10 @@ class gate extends Exchange {
         }
         for ($c = 0; $c < count($futureSettlementCurrencies); $c++) {
             $settleId = $futureSettlementCurrencies[$c];
-            $query = $params;
-            $query['settle'] = $settleId;
-            $response = $this->publicDeliveryGetSettleContracts ($query);
+            $request = array(
+                'settle' => $settleId,
+            );
+            $response = $this->publicDeliveryGetSettleContracts (array_merge($request, $params));
             for ($i = 0; $i < count($response); $i++) {
                 $parsedMarket = $this->parse_contract_market($response[$i], $settleId);
                 $result[] = $parsedMarket;

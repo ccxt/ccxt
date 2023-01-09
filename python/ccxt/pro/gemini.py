@@ -592,7 +592,8 @@ class gemini(Exchange, ccxt.async_support.gemini):
         urlParamsIndex = url.find('?')
         urlLength = len(url)
         endIndex = urlParamsIndex if (urlParamsIndex >= 0) else urlLength
-        request = url[startIndex:endIndex]; payload = {
+        request = url[startIndex:endIndex]
+        payload = {
             'request': request,
             'nonce': self.nonce(),
         }

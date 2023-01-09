@@ -1832,7 +1832,11 @@ class bybit(Exchange):
         :returns dict: an array of `ticker structures <https://docs.ccxt.com/en/latest/manual.html#ticker-structure>`
         """
         self.load_markets()
-        type, query = self.handle_market_type_and_params('fetchTickers', None, params)
+        market = None
+        if symbols is not None:
+            symbols = self.market_symbols(symbols)
+            market = self.market(symbols[0])
+        type, query = self.handle_market_type_and_params('fetchTickers', market, params)
         if type == 'spot':
             return self.fetch_spot_tickers(symbols, query)
         else:
@@ -2248,7 +2252,7 @@ class bybit(Exchange):
                 'currency': feeCurrency,
             }
         return self.safe_trade({
-            'id': self.safe_string(trade, 'id'),
+            'id': self.safe_string(trade, 'tradeId'),
             'info': trade,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),

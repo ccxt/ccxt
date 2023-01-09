@@ -287,7 +287,7 @@ class whitebit extends Exchange {
             //          "minAmount" => "0.001",      // Minimal amount of stock to trade
             //          "minTotal" => "0.001",       // Minimal amount of money to trade
             //          "tradesEnabled" => true,     // Is trading enabled
-            //          "isCollateral" => true,      // Is margin trading enabled
+            //          "isCollateral" => true,      // Is $margin trading enabled
             //          "type" => "spot"             // Market $type-> Possible values => "spot", "futures"
             //        ),
             //        {
@@ -305,11 +305,22 @@ class whitebit extends Exchange {
                 $base = $this->safe_currency_code($baseId);
                 $quote = $this->safe_currency_code($quoteId);
                 $active = $this->safe_value($market, 'tradesEnabled');
-                $isMargin = $this->safe_value($market, 'isCollateral');
+                $isCollateral = $this->safe_value($market, 'isCollateral');
                 $typeId = $this->safe_string($market, 'type');
-                $type = ($typeId === 'futures') ? 'swap' : 'spot';
-                $settle = ($type === 'swap') ? 'USDT' : null;
-                $symbol = ($type === 'spot') ? $base . '/' . $quote : $base . '/' . $settle . ':' . $settle;
+                $type = null;
+                $settle = null;
+                $settleId = null;
+                $symbol = $base . '/' . $quote;
+                $swap = $typeId === 'futures';
+                $margin = $isCollateral && !$swap;
+                if ($swap) {
+                    $settleId = $quoteId;
+                    $settle = $this->safe_currency_code($settleId);
+                    $symbol = $symbol . ':' . $settle;
+                    $type = 'swap';
+                } else {
+                    $type = 'spot';
+                }
                 $entry = array(
                     'id' => $id,
                     'symbol' => $symbol,
@@ -318,11 +329,11 @@ class whitebit extends Exchange {
                     'settle' => $settle,
                     'baseId' => $baseId,
                     'quoteId' => $quoteId,
-                    'settleId' => null,
+                    'settleId' => $settleId,
                     'type' => $type,
-                    'spot' => ($type === 'spot'),
-                    'margin' => $isMargin,
-                    'swap' => ($type === 'swap'),
+                    'spot' => !$swap,
+                    'margin' => $margin,
+                    'swap' => $swap,
                     'future' => false,
                     'option' => false,
                     'active' => $active,

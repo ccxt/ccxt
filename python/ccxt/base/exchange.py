@@ -4,7 +4,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '2.5.46'
+__version__ = '2.5.64'
 
 # -----------------------------------------------------------------------------
 
@@ -106,6 +106,7 @@ class Exchange(object):
     timeout = 10000   # milliseconds = seconds * 1000
     asyncio_loop = None
     aiohttp_proxy = None
+    trust_env = False
     aiohttp_trust_env = False
     requests_trust_env = False
     session = None  # Session () by default
@@ -370,7 +371,10 @@ class Exchange(object):
     synchronous = True
 
     def __init__(self, config={}):
-
+        
+        self.aiohttp_trust_env = self.aiohttp_trust_env or self.trust_env
+        self.requests_trust_env = self.requests_trust_env or self.trust_env
+        
         self.precision = dict() if self.precision is None else self.precision
         self.limits = dict() if self.limits is None else self.limits
         self.exceptions = dict() if self.exceptions is None else self.exceptions

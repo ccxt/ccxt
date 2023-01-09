@@ -641,7 +641,8 @@ class gemini extends \ccxt\async\gemini {
         $urlParamsIndex = mb_strpos($url, '?');
         $urlLength = count($url);
         $endIndex = ($urlParamsIndex >= 0) ? $urlParamsIndex : $urlLength;
-        $request = mb_substr($url, $startIndex, $endIndex - $startIndex); $payload = array(
+        $request = mb_substr($url, $startIndex, $endIndex - $startIndex);
+        $payload = array(
             'request' => $request,
             'nonce' => $this->nonce(),
         );

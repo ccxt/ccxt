@@ -637,7 +637,8 @@ module.exports = class gemini extends geminiRest {
         const urlParamsIndex = url.indexOf ('?');
         const urlLength = url.length;
         const endIndex = (urlParamsIndex >= 0) ? urlParamsIndex : urlLength;
-        const request = url.slice (startIndex, endIndex); const payload = {
+        const request = url.slice (startIndex, endIndex);
+        const payload = {
             'request': request,
             'nonce': this.nonce (),
         };
