@@ -1743,7 +1743,7 @@ module.exports = class Exchange {
                     const networkIdValue = this.safeValue2 (networksIdsByCodes, networkId, primaryNetworkCodeForThisId);
                     // Otherwise, it means that networkId is present in networkCodes. So, we check, if that networkId is not same as that unified networkCode, then it means there is a conflict
                     const isEqualString = (typeof networkIdValue === 'string') && (networkIdValue === networkId);
-                    const isInArray = Array.isArray (networkIdValue) && (networkIdValue.indexOf (networkId) >= 0);
+                    const isInArray = Array.isArray (networkIdValue) && this.inArray (networkId, networkIdValue);
                     // if that network id and code are linked to each other, add it into conflicting list
                     if (!isEqualString && !isInArray) {
                         this.generatedNetworkData['networkCodesConflicts'][networkId] = {
