@@ -730,24 +730,20 @@ module.exports = class kucoinfutures extends kucoinfuturesRest {
 
     handleSubject (client, message) {
         //
-        //     {
-        //         "type":"message",
-        //         "topic":"/market/level2:BTC-USDT",
-        //         "subject":"trade.l2update",
-        //         "data":{
-        //             "sequenceStart":1545896669105,
-        //             "sequenceEnd":1545896669106,
-        //             "symbol":"BTC-USDT",
-        //             "changes": {
-        //                 "asks": [["6","1","1545896669105"]], // price, size, sequence
-        //                 "bids": [["4","1","1545896669106"]]
-        //             }
-        //         }
-        //     }
+        //    {
+        //        type: 'message',
+        //        topic: '/contractMarket/level2:ADAUSDTM',
+        //        subject: 'level2',
+        //        data: {
+        //            sequence: 1668059586457,
+        //            change: '0.34172,sell,456', // type, side, quantity
+        //            timestamp: 1668573023223
+        //        }
+        //    }
         //
         const subject = this.safeString (message, 'subject');
         const methods = {
-            'trade.l2update': this.handleOrderBook,
+            'level2': this.handleOrderBook,
             'tickerV2': this.handleTicker,
             'availableBalance.change': this.handleBalance,
             'match': this.handleTrade,
