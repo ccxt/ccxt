@@ -697,7 +697,7 @@ declare module 'ccxt' {
 
     export namespace pro {
         export const exchanges: string[]
-        class Exchange  extends ExchangePro {}
+        class Exchange extends ExchangePro {}
         class alpaca extends Exchange {}
         class ascendex extends Exchange {}
         class bequant extends Exchange {}
