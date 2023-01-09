@@ -84,7 +84,7 @@ const httpsAgent = new Agent ({
 
 
 // check here if we have a arg like this: binance.fetchOrders()
-const callRegex = /(\w+)\.(\w+)\(([^()]*)\)/
+const callRegex = /\s*(\w+)\s*\.\s*(\w+)\s*\(([^()]*)\)/
 if (callRegex.test (exchangeId)) {
     const res = callRegex.exec (exchangeId);
     exchangeId = res[1];
