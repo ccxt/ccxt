@@ -84,7 +84,7 @@ export default class woo extends Exchange {
                 'setLeverage': true,
                 'setMargin': false,
                 'transfer': true,
-                'withdraw': false, // exchange have that endpoint disabled atm, but was once implemented in ccxt per old docs: https://kronosresearch.github.io/wootrade-documents/#token-withdraw
+                'withdraw': true, // exchange have that endpoint disabled atm, but was once implemented in ccxt per old docs: https://kronosresearch.github.io/wootrade-documents/#token-withdraw
             },
             'timeframes': {
                 '1m': '1m',
@@ -230,6 +230,12 @@ export default class woo extends Exchange {
                     'OMG': 'ERC20',
                     'UATOM': 'ATOM',
                     'ZRX': 'ZRX',
+                },
+                'networks': {
+                    'TRX': 'TRON',
+                    'TRC20': 'TRON',
+                    'ERC20': 'ETH',
+                    'BEP20': 'BSC',
                 },
                 // override defaultNetworkCodePriorities for a specific currency
                 'defaultNetworkCodeForCurrencies': {
@@ -1615,12 +1621,11 @@ export default class woo extends Exchange {
             movementDirection = 'withdrawal';
         }
         const fee = this.parseTokenAndFeeTemp (transaction, 'fee_token', 'fee_amount');
-        fee['rate'] = undefined;
         const addressTo = this.safeString (transaction, 'target_address');
         const addressFrom = this.safeString (transaction, 'source_address');
         const timestamp = this.safeTimestamp (transaction, 'created_time');
         return {
-            'id': this.safeString (transaction, 'id'),
+            'id': this.safeString2 (transaction, 'id', 'withdraw_id'),
             'txid': this.safeString (transaction, 'tx_id'),
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
@@ -1777,6 +1782,49 @@ export default class woo extends Exchange {
             'CANCELED': 'canceled',
         };
         return this.safeString (statuses, status, status);
+    }
+
+    async withdraw (code, amount, address, tag = undefined, params = {}) {
+        /**
+         * @method
+         * @name woo#withdraw
+         * @description make a withdrawal
+         * @param {string} code unified currency code
+         * @param {float} amount the amount to withdraw
+         * @param {string} address the address to withdraw to
+         * @param {string|undefined} tag
+         * @param {object} params extra parameters specific to the woo api endpoint
+         * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure}
+         */
+        [ tag, params ] = this.handleWithdrawTagAndParams (tag, params);
+        await this.loadMarkets ();
+        this.checkAddress (address);
+        const currency = this.currency (code);
+        const request = {
+            'amount': amount,
+            'address': address,
+        };
+        if (tag !== undefined) {
+            request['extra'] = tag;
+        }
+        const networks = this.safeValue (this.options, 'networks', {});
+        const currencyNetworks = this.safeValue (currency, 'networks', {});
+        const network = this.safeStringUpper (params, 'network');
+        const networkId = this.safeString (networks, network, network);
+        const coinNetwork = this.safeValue (currencyNetworks, networkId, {});
+        const coinNetworkId = this.safeString (coinNetwork, 'id');
+        if (coinNetworkId === undefined) {
+            throw new BadRequest (this.id + ' withdraw() require network parameter');
+        }
+        request['token'] = coinNetworkId;
+        const response = await this.v1PrivatePostAssetWithdraw (this.extend (request, params));
+        //
+        //     {
+        //         "success": true,
+        //         "withdraw_id": "20200119145703654"
+        //     }
+        //
+        return this.parseTransaction (response, currency);
     }
 
     async repayMargin (code, amount, symbol = undefined, params = {}) {
