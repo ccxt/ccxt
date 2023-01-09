@@ -513,8 +513,12 @@ module.exports = class bitmart extends Exchange {
                     'VERITISE': 'VTS',
                     'XIDEN': 'XDEN',
                     'CHEQD': 'CHEQ',
+                    'ULTRONGLOW': 'UTG',
+                    'PHAETON': 'PHAE',
+                    'ZENITH': 'ZENITH',
+                    'VERIBLOCK': 'VBK',
                     // undetermined chains:
-                    // LEX (for LexThum), TAYCAN (for TRICE), SFL (probably TAYCAN), OMNIA (for APEX), NAC (for NAC), KAG (Kinesis), CEM (crypto emergency), XVM (for Venidium), NEVM (for NEVM), IGT20 (for IGNITE), FILM (FILMCredits), CC (CloudCoin),
+                    // LEX (for LexThum), TAYCAN (for TRICE), SFL (probably TAYCAN), OMNIA (for APEX), NAC (for NAC), KAG (Kinesis), CEM (crypto emergency), XVM (for Venidium), NEVM (for NEVM), IGT20 (for IGNITE), FILM (FILMCredits), CC (CloudCoin), MERGE (MERGE), LTNM (Bitcoin latinum), PLUGCN ( PlugChain), DINGO (dingo), LED (LEDGIS), AVAT (AVAT), VSOL (Vsolidus), EPIC (EPIC cash), NFC (netflowcoin), mrx (Metrix Coin), Idena (idena network), PKT (PKT Cash), BondDex (BondDex), XBN (XBN), KALAM (Kalamint), REV (RChain), KRC20 (MyDeFiPet), ARC20 (Hurricane Token), GMD (Coop network), BERS (Berith), ZEBI (Zebi), BRC (Baer Chain), DAPS (DAPS Coin), APL (Gold Secured Currency), NDAU (NDAU), WICC (WICC), UPG (Unipay God), TSL (TreasureSL), MXW (Maxonrow), CLC (Cifculation), SMH (SMH Coin), XIN (CPCoin), RDD (ReddCoin), OK (Okcash), KAR (KAR), CCX (ConcealNetwork),
 
                 },
                 'defaultType': 'spot', // 'spot', 'swap'
@@ -830,44 +834,106 @@ module.exports = class bitmart extends Exchange {
         const response = await this.publicGetAccountV1Currencies (params);
         //
         //     {
-        //         "message":"OK",
-        //         "code":1000,
-        //         "trace":"8c768b3c-025f-413f-bec5-6d6411d46883",
-        //         "data":{
-        //             "currencies":[
-        //                 {"currency":"MATIC","name":"Matic Network","withdraw_enabled":true,"deposit_enabled":true},
-        //                 {"currency":"KTN","name":"Kasoutuuka News","withdraw_enabled":true,"deposit_enabled":false},
-        //                 {"currency":"BRT","name":"Berith","withdraw_enabled":true,"deposit_enabled":true},
+        //         "message": "OK",
+        //         "code": 1000,
+        //         "trace": "c25d91c7-359a-47e4-80c4-4a6a2c19be2f",
+        //         "data": {
+        //             "currencies": [
+        //                  {
+        //                     "currency": "USDT",
+        //                     "name": "Tether USD",
+        //                     "contract_address": null,
+        //                     "network": "OMNI",
+        //                     "withdraw_enabled": false,
+        //                     "deposit_enabled": false,
+        //                     "withdraw_minsize": "10",
+        //                     "withdraw_minfee": null
+        //                  },
+        //                  {
+        //                     "currency": "USDT-SPL",
+        //                     "name": "USDT-SPL",
+        //                     "contract_address": "Es9vMFrzaCERmJfrF4H2FYD4KCoNkY11McCe8BenwNYB",
+        //                     "network": "SOL",
+        //                     "withdraw_enabled": true,
+        //                     "deposit_enabled": true,
+        //                     "withdraw_minsize": "20",
+        //                     "withdraw_minfee": null
+        //                  },
         //             ]
         //         }
-        //     }
+        //    }
         //
         const data = this.safeValue (response, 'data', {});
         const currencies = this.safeValue (data, 'currencies', []);
         const result = {};
         for (let i = 0; i < currencies.length; i++) {
             const currency = currencies[i];
-            const id = this.safeString (currency, 'id');
-            const code = this.safeCurrencyCode (id);
-            const name = this.safeString (currency, 'name');
-            const withdrawEnabled = this.safeValue (currency, 'withdraw_enabled');
-            const depositEnabled = this.safeValue (currency, 'deposit_enabled');
-            const active = withdrawEnabled && depositEnabled;
-            result[code] = {
-                'id': id,
-                'code': code,
-                'name': name,
-                'info': currency, // the original payload
-                'active': active,
-                'deposit': depositEnabled,
-                'withdraw': withdrawEnabled,
-                'fee': undefined,
+            const id = this.safeString (currency, 'currency');
+            const parts = id.split ('-');
+            const currencyPart = parts[0];
+            const code = this.safeCurrencyCode (currencyPart);
+            if (!(code in result)) {
+                result[code] = {
+                    'id': currencyPart, // not 'id', because of `USDT-BEP20, USDT,` etc..
+                    'uppercaseId': id,
+                    'code': code,
+                    'name': this.safeString (currency, 'name'),
+                    'info': undefined,
+                    'type': undefined,
+                    'margin': undefined,
+                    'active': undefined,
+                    'deposit': undefined,
+                    'withdraw': undefined,
+                    'fee': undefined,
+                    'precision': undefined,
+                    'limits': {
+                        'amount': {
+                            'min': undefined,
+                            'max': undefined,
+                        },
+                        'withdraw': {
+                            'min': undefined,
+                            'max': undefined,
+                        },
+                    },
+                };
+            }
+            const networkId = this.safeString (currency, 'network');
+            const networkCode = this.networkIdToCode (networkId); // todo - huobi/okx like needed
+            const withdraw_enabled = this.safeValue (currency, 'withdraw_enabled');
+            const deposit_enabled = this.safeValue (currency, 'deposit_enabled');
+            const withdraw_minsize = this.safeNumber (currency, 'withdraw_minsize');
+            const withdraw_minfee = this.safeNumber (currency, 'withdraw_minfee'); // can be null
+            result[networkCode] = {
+                'info': currency,
+                'id': networkId,
+                'network': networkCode,
+                'active': (deposit_enabled || withdraw_enabled),
+                'deposit': deposit_enabled,
+                'withdraw': withdraw_enabled,
+                'fee': withdraw_minfee,
                 'precision': undefined,
                 'limits': {
-                    'amount': { 'min': undefined, 'max': undefined },
-                    'withdraw': { 'min': undefined, 'max': undefined },
+                    'withdraw': {
+                        'min': withdraw_minsize,
+                        'max': undefined,
+                    },
+                    'deposit': {
+                        'min': undefined,
+                        'max': undefined,
+                    },
                 },
             };
+            // currency wide values
+            if (withdraw_enabled) {
+                result[code]['withdraw'] = true;
+            }
+            if (deposit_enabled) {
+                result[code]['deposit'] = true;
+            }
+            if (result[code]['withdraw'] && result[code]['deposit']) {
+                result[code]['active'] = true;
+            }
         }
         return result;
     }
