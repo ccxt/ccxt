@@ -38,24 +38,4 @@ module.exports = (exchange, balance, method) => {
             assert (total === free + used, 'free and used do not sum to total ' + exchange.id)
         }
     }
-
-    let result = currencies
-        .filter ((currency) => (currency in balance) &&
-            (balance[currency]['total'] !== undefined))
-
-    if (result.length > 0) {
-        result = result.map ((currency) => currency + ': ' + balance[currency]['total'])
-        if (exchange.currencies.length > result.length) {
-            result = result.join (', ') + ' + more...'
-        } else {
-            result = result.join (', ')
-        }
-
-    } else {
-
-        result = 'zero balance'
-    }
-
-    console.log (result)
-
 }

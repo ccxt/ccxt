@@ -3,8 +3,8 @@
 //  ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
-const { ExchangeError, ExchangeNotAvailable, RequestTimeout, AuthenticationError, PermissionDenied, RateLimitExceeded, InsufficientFunds, OrderNotFound, InvalidOrder, AccountSuspended, CancelPending, InvalidNonce, OnMaintenance, BadSymbol } = require ('./base/errors');
-const { DECIMAL_PLACES } = require ('./base/functions/number');
+const { ArgumentsRequired, ExchangeError, ExchangeNotAvailable, NotSupported, RequestTimeout, AuthenticationError, PermissionDenied, RateLimitExceeded, InsufficientFunds, OrderNotFound, InvalidOrder, AccountSuspended, CancelPending, InvalidNonce, OnMaintenance, BadSymbol } = require ('./base/errors');
+const { TICK_SIZE } = require ('./base/functions/number');
 const Precise = require ('./base/Precise');
 
 //  ---------------------------------------------------------------------------
@@ -31,7 +31,7 @@ module.exports = class poloniex extends Exchange {
                 'createDepositAddress': true,
                 'createMarketOrder': undefined,
                 'createOrder': true,
-                'editOrder': false,
+                'editOrder': true,
                 'fetchBalance': true,
                 'fetchClosedOrder': false,
                 'fetchCurrencies': true,
@@ -108,10 +108,16 @@ module.exports = class poloniex extends Exchange {
                 'private': {
                     'get': {
                         'accounts': 4,
+                        'accounts/activity': 4,
                         'accounts/balances': 4,
                         'accounts/{id}/balances': 4,
                         'accounts/transfer': 20,
                         'accounts/transfer/{id}': 4,
+                        'subaccounts': 4,
+                        'subaccounts/balances': 20,
+                        'subaccounts/{id}/balances': 4,
+                        'subaccounts/transfer': 20,
+                        'subaccounts/transfer/{id}': 4,
                         'feeinfo': 20,
                         'wallets/addresses': 20,
                         'wallets/activity': 20,
@@ -119,6 +125,7 @@ module.exports = class poloniex extends Exchange {
                         'orders': 20,
                         'orders/{id}': 4,
                         'orders/history': 20,
+                        'orders/killSwitchStatus': 4,
                         'smartorders': 20,
                         'smartorders/{id}': 4,
                         'smartorders/history': 20,
@@ -127,9 +134,12 @@ module.exports = class poloniex extends Exchange {
                     },
                     'post': {
                         'accounts/transfer': 4,
+                        'subaccounts/transfer': 20,
                         'wallets/address': 20,
                         'wallets/withdraw': 20,
                         'orders': 4,
+                        'orders/killSwitch': 4,
+                        'orders/batch': 20,
                         'smartorders': 4,
                     },
                     'delete': {
@@ -139,6 +149,10 @@ module.exports = class poloniex extends Exchange {
                         'smartorders/{id}': 4,
                         'smartorders/cancelByIds': 20,
                         'smartorders': 20,
+                    },
+                    'put': {
+                        'orders/{id}': 4,
+                        'smartorders/{id}': 4,
                     },
                 },
             },
@@ -187,6 +201,7 @@ module.exports = class poloniex extends Exchange {
             },
             'options': {
                 'networks': {
+                    'BEP20': 'BSC',
                     'ERC20': 'ETH',
                     'TRX': 'TRON',
                     'TRC20': 'TRON',
@@ -217,7 +232,7 @@ module.exports = class poloniex extends Exchange {
                     'futures': 'future',
                 },
             },
-            'precisionMode': DECIMAL_PLACES,
+            'precisionMode': TICK_SIZE,
             'exceptions': {
                 'exact': {
                     'You may only place orders that reduce your position.': InvalidOrder,
@@ -285,7 +300,7 @@ module.exports = class poloniex extends Exchange {
         ];
     }
 
-    async fetchOHLCV (symbol, timeframe = '5m', since = undefined, limit = undefined, params = {}) {
+    async fetchOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
         /**
          * @method
          * @name poloniex#fetchOHLCV
@@ -412,8 +427,8 @@ module.exports = class poloniex extends Exchange {
                 'strike': undefined,
                 'optionType': undefined,
                 'precision': {
-                    'amount': this.safeInteger (symbolTradeLimit, 'quantityScale'),
-                    'price': this.safeInteger (symbolTradeLimit, 'priceScale'),
+                    'amount': this.parseNumber (this.parsePrecision (this.safeString (symbolTradeLimit, 'quantityScale'))),
+                    'price': this.parseNumber (this.parsePrecision (this.safeString (symbolTradeLimit, 'priceScale'))),
                 },
                 'limits': {
                     'amount': {
@@ -467,7 +482,7 @@ module.exports = class poloniex extends Exchange {
         //
         const timestamp = this.safeInteger (ticker, 'ts');
         const marketId = this.safeString (ticker, 'symbol');
-        market = this.market (marketId);
+        market = this.safeMarket (marketId);
         const close = this.safeString (ticker, 'close');
         const relativeChange = this.safeString (ticker, 'percentChange');
         const percentage = Precise.stringMul (relativeChange, '100');
@@ -786,10 +801,8 @@ module.exports = class poloniex extends Exchange {
             // 'direction': 'PRE', // PRE, NEXT The direction before or after ‘from'.
         };
         if (since !== undefined) {
-            request['startTime'] = parseInt (since / 1000);
-            request['endtime'] = this.sum (this.seconds (), 1); // adding 1 is a fix for #3411
+            request['startTime'] = since;
         }
-        // limit is disabled (does not really work as expected)
         if (limit !== undefined) {
             request['limit'] = parseInt (limit);
         }
@@ -876,7 +889,7 @@ module.exports = class poloniex extends Exchange {
         //         "updateTime": 1646925216548
         //     }
         //
-        // createOrder
+        // createOrder, editOrder
         //
         //     {
         //         "id": "29772698821328896",
@@ -937,6 +950,7 @@ module.exports = class poloniex extends Exchange {
             'side': side,
             'price': price,
             'stopPrice': undefined,
+            'triggerPrice': undefined,
             'cost': undefined,
             'average': this.safeString (order, 'avgPrice'),
             'amount': amount,
@@ -1024,6 +1038,7 @@ module.exports = class poloniex extends Exchange {
          * @method
          * @name poloniex#createOrder
          * @description create a trade order
+         * @see https://docs.poloniex.com/#authenticated-endpoints-orders-create-order
          * @param {string} symbol unified symbol of the market to create an order in
          * @param {string} type 'market' or 'limit'
          * @param {string} side 'buy' or 'sell'
@@ -1037,6 +1052,32 @@ module.exports = class poloniex extends Exchange {
         // }
         await this.loadMarkets ();
         const market = this.market (symbol);
+        if (!market['spot']) {
+            throw new NotSupported (this.id + ' createOrder() does not support ' + market['type'] + ' orders, only spot orders are accepted');
+        }
+        const request = {
+            'symbol': market['id'],
+            'side': side,
+            // 'timeInForce': timeInForce,
+            // 'accountType': 'SPOT',
+            // 'amount': amount,
+        };
+        const orderRequest = this.orderRequest (symbol, type, side, amount, request, price, params);
+        let response = await this.privatePostOrders (this.extend (orderRequest[0], orderRequest[1]));
+        //
+        //     {
+        //         "id" : "78923648051920896",
+        //         "clientOrderId" : ""
+        //     }
+        //
+        response = this.extend (response, {
+            'type': side,
+        });
+        return this.parseOrder (response, market);
+    }
+
+    orderRequest (symbol, type, side, amount, request, price = undefined, params = {}) {
+        const market = this.market (symbol);
         let upperCaseType = type.toUpperCase ();
         const isMarket = upperCaseType === 'MARKET';
         const isPostOnly = this.isPostOnly (isMarket, upperCaseType === 'LIMIT_MAKER', params);
@@ -1044,14 +1085,7 @@ module.exports = class poloniex extends Exchange {
             upperCaseType = 'LIMIT_MAKER';
             params = this.omit (params, 'postOnly');
         }
-        const request = {
-            'symbol': market['id'],
-            'side': side,
-            'type': upperCaseType,
-            // 'timeInForce': timeInForce,
-            // 'accountType': 'SPOT',
-            // 'amount': amount,
-        };
+        request['type'] = upperCaseType;
         if (isMarket) {
             if (side === 'buy') {
                 request['amount'] = this.currencyToPrecision (market['quote'], amount);
@@ -1068,7 +1102,35 @@ module.exports = class poloniex extends Exchange {
             params = this.omit (params, 'clientOrderId');
         }
         // remember the timestamp before issuing the request
-        let response = await this.privatePostOrders (this.extend (request, params));
+        return [ request, params ];
+    }
+
+    async editOrder (id, symbol, type, side, amount, price = undefined, params = {}) {
+        /**
+         * @method
+         * @name poloniex#editOrder
+         * @description edit a trade order
+         * @see https://docs.poloniex.com/#authenticated-endpoints-orders-cancel-replace-order
+         * @param {string} id order id
+         * @param {string} symbol unified symbol of the market to create an order in
+         * @param {string} type 'market' or 'limit'
+         * @param {string} side 'buy' or 'sell'
+         * @param {float} amount how much of the currency you want to trade in units of the base currency
+         * @param {float|undefined} price the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+         * @param {object} params extra parameters specific to the poloniex api endpoint
+         * @returns {object} an [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
+         */
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        if (!market['spot']) {
+            throw new NotSupported (this.id + ' editOrder() does not support ' + market['type'] + ' orders, only spot orders are accepted');
+        }
+        const request = {
+            'id': id,
+            // 'timeInForce': timeInForce,
+        };
+        const orderRequest = this.orderRequest (symbol, type, side, amount, request, price, params);
+        let response = await this.privatePutOrdersId (this.extend (orderRequest[0], orderRequest[1]));
         //
         //     {
         //         "id" : "78923648051920896",
@@ -1386,18 +1448,21 @@ module.exports = class poloniex extends Exchange {
          * @returns {object} an [address structure]{@link https://docs.ccxt.com/en/latest/manual.html#address-structure}
          */
         await this.loadMarkets ();
-        // USDT, USDTETH, USDTTRON
-        let currencyId = undefined;
-        let currency = undefined;
-        if (code in this.currencies) {
-            currency = this.currency (code);
-            currencyId = currency['id'];
-        } else {
-            currencyId = code;
-        }
+        const currency = this.currency (code);
         const request = {
-            'currency': currencyId,
+            'currency': currency['id'],
         };
+        const networks = this.safeValue (this.options, 'networks', {});
+        let network = this.safeStringUpper (params, 'network'); // this line allows the user to specify either ERC20 or ETH
+        network = this.safeString (networks, network, network); // handle ERC20>ETH alias
+        if (network !== undefined) {
+            request['currency'] += network; // when network the currency need to be changed to currency+network https://docs.poloniex.com/#withdraw on MultiChain Currencies section
+            params = this.omit (params, 'network');
+        } else {
+            if (currency['id'] === 'USDT') {
+                throw new ArgumentsRequired (this.id + ' createDepositAddress requires a network parameter for ' + code + '.');
+            }
+        }
         const response = await this.privatePostWalletsAddress (this.extend (request, params));
         //
         //     {
@@ -1418,6 +1483,7 @@ module.exports = class poloniex extends Exchange {
             'currency': code,
             'address': address,
             'tag': tag,
+            'network': network,
             'info': response,
         };
     }
@@ -1432,25 +1498,28 @@ module.exports = class poloniex extends Exchange {
          * @returns {object} an [address structure]{@link https://docs.ccxt.com/en/latest/manual.html#address-structure}
          */
         await this.loadMarkets ();
-        // USDT, USDTETH, USDTTRON
-        let currencyId = undefined;
-        let currency = undefined;
-        if (code in this.currencies) {
-            currency = this.currency (code);
-            currencyId = currency['id'];
-        } else {
-            currencyId = code;
-        }
+        const currency = this.currency (code);
         const request = {
-            'currency': currencyId,
+            'currency': currency['id'],
         };
+        const networks = this.safeValue (this.options, 'networks', {});
+        let network = this.safeStringUpper (params, 'network'); // this line allows the user to specify either ERC20 or ETH
+        network = this.safeString (networks, network, network); // handle ERC20>ETH alias
+        if (network !== undefined) {
+            request['currency'] += network; // when network the currency need to be changed to currency+network https://docs.poloniex.com/#withdraw on MultiChain Currencies section
+            params = this.omit (params, 'network');
+        } else {
+            if (currency['id'] === 'USDT') {
+                throw new ArgumentsRequired (this.id + ' fetchDepositAddress requires a network parameter for ' + code + '.');
+            }
+        }
         const response = await this.privateGetWalletsAddresses (this.extend (request, params));
         //
         //     {
         //         "USDTTRON" : "Txxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxp"
         //     }
         //
-        let address = this.safeString (response, currencyId);
+        let address = this.safeString (response, request['currency']);
         let tag = undefined;
         this.checkAddress (address);
         if (currency !== undefined) {
@@ -1464,7 +1533,7 @@ module.exports = class poloniex extends Exchange {
             'currency': code,
             'address': address,
             'tag': tag,
-            'network': undefined,
+            'network': network,
             'info': response,
         };
     }
@@ -1588,9 +1657,6 @@ module.exports = class poloniex extends Exchange {
             'start': start, // UNIX timestamp, required
             'end': now, // UNIX timestamp, required
         };
-        if (limit !== undefined) {
-            request['limit'] = limit;
-        }
         const response = await this.privateGetWalletsActivity (this.extend (request, params));
         //
         //     {
@@ -1753,7 +1819,6 @@ module.exports = class poloniex extends Exchange {
         //
         //     {
         //         "txid": "f49d489616911db44b740612d19464521179c76ebe9021af85b6de1e2f8d68cd",
-        //         "type": "deposit",
         //         "amount": "49798.01987021",
         //         "status": "COMPLETE",
         //         "address": "DJVJZ58tJC8UeUv9Tqcdtn6uhWobouxFLT",
@@ -1766,26 +1831,22 @@ module.exports = class poloniex extends Exchange {
         // withdrawals
         //
         //     {
-        //         "fee": "0.00050000",
-        //         "type": "withdrawal",
-        //         "amount": "0.40234387",
-        //         "status": "COMPLETE: fbabb2bf7d81c076f396f3441166d5f60f6cea5fdfe69e02adcc3b27af8c2746",
-        //         "address": "1EdAqY4cqHoJGAgNfUFER7yZpg1Jc9DUa3",
-        //         "currency": "BTC",
-        //         "canCancel": 0,
-        //         "ipAddress": "x.x.x.x",
-        //         "paymentID": null,
-        //         "timestamp": 1523834337,
-        //         "canResendEmail": 0,
-        //         "withdrawalNumber": 11162900
+        //         "withdrawalRequestsId": 7397527,
+        //         "currency": "ETC",
+        //         "address": "0x26419a62055af459d2cd69bb7392f5100b75e304",
+        //         "amount": "13.19951600",
+        //         "fee": "0.01000000",
+        //         "timestamp": 1506010932,
+        //         "status": "COMPLETED",
+        //         "txid": "343346392f82ac16e8c2604f2a604b7b2382d0e9d8030f673821f8de4b5f5bk",
+        //         "ipAddress": "1.2.3.4",
+        //         "paymentID": null
         //     }
         //
         // withdraw
         //
         //     {
-        //         response: 'Withdrew 1.00000000 USDT.',
-        //         email2FA: false,
-        //         withdrawalNumber: 13449869
+        //         "withdrawalRequestsId": 33485231
         //     }
         //
         const timestamp = this.safeTimestamp (transaction, 'timestamp');
@@ -1796,16 +1857,18 @@ module.exports = class poloniex extends Exchange {
         const txid = this.safeString (transaction, 'txid');
         const type = ('withdrawalRequestsId' in transaction) ? 'withdrawal' : 'deposit';
         const id = this.safeString2 (transaction, 'withdrawalRequestsId', 'depositNumber');
-        const amount = this.safeNumber (transaction, 'amount');
         const address = this.safeString (transaction, 'address');
         const tag = this.safeString (transaction, 'paymentID');
-        // according to https://poloniex.com/fees/
-        const feeCost = this.safeNumber (transaction, 'fee');
+        let amountString = this.safeString (transaction, 'amount');
+        const feeCostString = this.safeString (transaction, 'fee');
+        if (type === 'withdrawal') {
+            amountString = Precise.stringSub (amountString, feeCostString);
+        }
         return {
             'info': transaction,
             'id': id,
             'currency': code,
-            'amount': amount,
+            'amount': this.parseNumber (amountString),
             'network': undefined,
             'address': address,
             'addressTo': undefined,
@@ -1821,7 +1884,7 @@ module.exports = class poloniex extends Exchange {
             'datetime': this.iso8601 (timestamp),
             'fee': {
                 'currency': code,
-                'cost': feeCost,
+                'cost': this.parseNumber (feeCostString),
             },
         };
     }

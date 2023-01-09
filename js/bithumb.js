@@ -167,6 +167,14 @@ module.exports = class bithumb extends Exchange {
         });
     }
 
+    safeMarket (marketId = undefined, market = undefined, delimiter = undefined, marketType = undefined) {
+        // bithumb has a different type of conflict in markets, because
+        // their ids are the base currency (BTC for instance), so we can have
+        // multiple "BTC" ids representing the different markets (BTC/ETH, "BTC/DOGE", etc)
+        // since they're the same we just need to return one
+        return super.safeMarket (marketId, market, delimiter, 'spot');
+    }
+
     amountToPrecision (symbol, amount) {
         return this.decimalToPrecision (amount, TRUNCATE, this.markets[symbol]['precision']['amount'], DECIMAL_PLACES);
     }
@@ -421,12 +429,8 @@ module.exports = class bithumb extends Exchange {
         const ids = Object.keys (tickers);
         for (let i = 0; i < ids.length; i++) {
             const id = ids[i];
-            let symbol = id;
-            let market = undefined;
-            if (id in this.markets_by_id) {
-                market = this.markets_by_id[id];
-                symbol = market['symbol'];
-            }
+            const market = this.safeMarket (id);
+            const symbol = market['symbol'];
             const ticker = tickers[id];
             const isArray = Array.isArray (ticker);
             if (!isArray) {
@@ -636,7 +640,7 @@ module.exports = class bithumb extends Exchange {
         const request = {
             'currency': market['base'],
         };
-        if (limit === undefined) {
+        if (limit !== undefined) {
             request['count'] = limit; // default 20, max 100
         }
         const response = await this.publicGetTransactionHistoryCurrency (this.extend (request, params));
@@ -847,6 +851,7 @@ module.exports = class bithumb extends Exchange {
             'side': side,
             'price': price,
             'stopPrice': undefined,
+            'triggerPrice': undefined,
             'amount': amount,
             'cost': undefined,
             'average': undefined,

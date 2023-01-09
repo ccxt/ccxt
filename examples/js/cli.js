@@ -66,9 +66,9 @@ process.on ('unhandledRejection', e => { log.bright.red.error (e); log.red.error
 const keysGlobal = path.resolve ('keys.json')
 const keysLocal = path.resolve ('keys.local.json')
 
-let globalKeysFile = fs.existsSync (keysGlobal) ? keysGlobal : false
-let localKeysFile = fs.existsSync (keysLocal) ? keysLocal : globalKeysFile
-let settings = localKeysFile ? (require (localKeysFile)[exchangeId] || {}) : {}
+const globalKeysFile = fs.existsSync (keysGlobal) ? keysGlobal : false
+const localKeysFile = fs.existsSync (keysLocal) ? keysLocal : globalKeysFile
+const settings = localKeysFile ? (require (localKeysFile)[exchangeId] || {}) : {}
 
 //-----------------------------------------------------------------------------
 
@@ -82,9 +82,22 @@ const httpsAgent = new Agent ({
     keepAlive: true,
 })
 
-try {
 
-    exchange = new (ccxt)[exchangeId] ({ timeout, httpsAgent, ... settings })
+// check here if we have a arg like this: binance.fetchOrders()
+const callRegex = /\s*(\w+)\s*\.\s*(\w+)\s*\(([^()]*)\)/
+if (callRegex.test (exchangeId)) {
+    const res = callRegex.exec (exchangeId);
+    exchangeId = res[1];
+    methodName = res[2];
+    params = res[3].split(",").map(x => x.trim());
+}
+
+try {
+    if (ccxt.pro.exchanges.includes(exchangeId)) {
+        exchange = new (ccxt.pro)[exchangeId] ({ timeout, httpsAgent, ... settings })
+    } else {
+        exchange = new (ccxt)[exchangeId] ({ timeout, httpsAgent, ... settings })
+    }
 
     if (isSpot) {
         exchange.options['defaultType'] = 'spot';
@@ -198,6 +211,8 @@ const printHumanReadable = (exchange, result) => {
 
 async function run () {
 
+
+
     if (!exchangeId) {
 
         printUsage ()
@@ -268,13 +283,22 @@ async function run () {
 
                 let i = 0;
 
+                let isWsMethod = false
+                if (methodName.startsWith("watch")) { // handle WS methods
+                    isWsMethod = true;
+                }
+
                 while (true) {
                     try {
                         const result = await exchange[methodName] (... args)
                         end = exchange.milliseconds ()
-                        console.log (exchange.iso8601 (end), 'iteration', i++, 'passed in', end - start, 'ms\n')
+                        if (!isWsMethod) {
+                            console.log (exchange.iso8601 (end), 'iteration', i++, 'passed in', end - start, 'ms\n')
+                        }
                         printHumanReadable (exchange, result)
-                        console.log (exchange.iso8601 (end), 'iteration', i, 'passed in', end - start, 'ms\n')
+                        if (!isWsMethod) {
+                            console.log (exchange.iso8601 (end), 'iteration', i, 'passed in', end - start, 'ms\n')
+                        }
                         start = end
                     } catch (e) {
                         if (e instanceof ExchangeError) {
@@ -296,7 +320,7 @@ async function run () {
                         console.log (firstKey, httpsAgent.freeSockets[firstKey].length)
                     }
 
-                    if (!poll){
+                    if (!poll && !isWsMethod){
                         break
                     }
                 }

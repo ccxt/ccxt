@@ -869,7 +869,8 @@ module.exports = class buda extends Exchange {
             const feeCurrencyCode = this.safeCurrencyCode (feeCurrencyId);
             fee = {
                 'cost': feeCost,
-                'code': feeCurrencyCode,
+                'code': feeCurrencyCode, // kept here for backward-compatibility, but will be removed soon
+                'currency': feeCurrencyCode,
             };
         }
         return this.safeOrder ({
@@ -887,6 +888,7 @@ module.exports = class buda extends Exchange {
             'side': side,
             'price': price,
             'stopPrice': undefined,
+            'triggerPrice': undefined,
             'average': undefined,
             'cost': cost,
             'amount': amount,

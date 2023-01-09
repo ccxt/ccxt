@@ -480,8 +480,8 @@ class currencycom(Exchange):
                 # https://github.com/ccxt/ccxt/issues/4286
                 # therefore limits['price']['max'] doesn't have any meaningful value except None
                 limitPriceMin = self.safe_number(filter, 'minPrice')
-                maxPrice = self.safe_number(filter, 'maxPrice')
-                if (maxPrice is not None) and (maxPrice > 0):
+                maxPrice = self.safe_string(filter, 'maxPrice')
+                if (maxPrice is not None) and (Precise.string_gt(maxPrice, '0')):
                     limitPriceMax = maxPrice
             precisionAmount = self.parse_number(self.parse_precision(self.safe_string(market, 'baseAssetPrecision')))
             limitAmount = {
@@ -549,7 +549,7 @@ class currencycom(Exchange):
                     'market': limitMarket,
                     'price': {
                         'min': limitPriceMin,
-                        'max': limitPriceMax,
+                        'max': self.parse_number(limitPriceMax),
                     },
                     'cost': {
                         'min': costMin,
@@ -1160,6 +1160,7 @@ class currencycom(Exchange):
             'side': side,
             'price': price,
             'stopPrice': None,
+            'triggerPrice': None,
             'amount': amount,
             'cost': None,
             'average': None,
@@ -1462,56 +1463,70 @@ class currencycom(Exchange):
             request['limit'] = limit
         response = await getattr(self, method)(self.extend(request, params))
         #
-        #     [
-        #       {
-        #         "id": "616769213",
-        #         "balance": "2.088",
-        #         "amount": "1.304",   # negative for 'withdrawal'
-        #         "currency": "CAKE",
-        #         "type": "deposit",
-        #         "timestamp": "1645282121023",
-        #         "paymentMethod": "BLOCKCHAIN",
-        #         "blockchainTransactionHash": "0x57c68c1f2ae74d5eda5a2a00516361d241a5c9e1ee95bf32573523857c38c112",
-        #         "status": "PROCESSED",
-        #         "commission": "0.14",  # self property only exists in withdrawal
-        #       },
-        #     ]
+        #    [
+        #        {
+        #            "id": "616769213",
+        #            "balance": "2.088",
+        #            "amount": "1.304",   # negative for 'withdrawal'
+        #            "currency": "CAKE",
+        #            "type": "deposit",
+        #            "timestamp": "1645282121023",
+        #            "paymentMethod": "BLOCKCHAIN",
+        #            "blockchainTransactionHash": "0x57c68c1f2ae74d5eda5a2a00516361d241a5c9e1ee95bf32573523857c38c112",
+        #            "status": "PROCESSED",
+        #            "commission": "0.14",  # self property only exists in withdrawal
+        #        },
+        #    ]
         #
         return self.parse_transactions(response, currency, since, limit, params)
 
     def parse_transaction(self, transaction, currency=None):
-        id = self.safe_string(transaction, 'id')
-        txHash = self.safe_string(transaction, 'blockchainTransactionHash')
-        amount = self.safe_number(transaction, 'amount')
+        #
+        #    {
+        #        "id": "616769213",
+        #        "balance": "2.088",
+        #        "amount": "1.304",   # negative for 'withdrawal'
+        #        "currency": "CAKE",
+        #        "type": "deposit",
+        #        "timestamp": "1645282121023",
+        #        "paymentMethod": "BLOCKCHAIN",
+        #        "blockchainTransactionHash": "0x57c68c1f2ae74d5eda5a2a00516361d241a5c9e1ee95bf32573523857c38c112",
+        #        "status": "PROCESSED",
+        #        "commission": "0.14",  # self property only exists in withdrawal
+        #    }
+        #
         timestamp = self.safe_integer(transaction, 'timestamp')
         currencyId = self.safe_string(transaction, 'currency')
         code = self.safe_currency_code(currencyId, currency)
-        state = self.parse_transaction_status(self.safe_string(transaction, 'state'))
-        type = self.parse_transaction_type(self.safe_string(transaction, 'type'))
         feeCost = self.safe_string(transaction, 'commission')
-        fee = None
+        fee = {
+            'currency': None,
+            'cost': None,
+            'rate': None,
+        }
         if feeCost is not None:
-            fee = {'currency': code, 'cost': feeCost}
+            fee['currency'] = code
+            fee['cost'] = feeCost
         result = {
-            'id': id,
-            'txid': txHash,
+            'info': transaction,
+            'id': self.safe_string(transaction, 'id'),
+            'txid': self.safe_string(transaction, 'blockchainTransactionHash'),
+            'type': self.parse_transaction_type(self.safe_string(transaction, 'type')),
+            'currency': code,
+            'network': None,
+            'amount': self.safe_number(transaction, 'amount'),
+            'status': self.parse_transaction_status(self.safe_string(transaction, 'state')),
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
-            'network': None,
-            'addressFrom': None,
             'address': None,
+            'addressFrom': None,
             'addressTo': None,
-            'tagFrom': None,
             'tag': None,
+            'tagFrom': None,
             'tagTo': None,
-            'type': type,
-            'amount': amount,
-            'currency': code,
-            'status': state,
             'updated': None,
             'comment': None,
             'fee': fee,
-            'info': transaction,
         }
         return result
 
@@ -1781,6 +1796,7 @@ class currencycom(Exchange):
             'maintenanceMarginPercentage': None,
             'marginRatio': None,
             'info': position,
+            'id': None,
         }
 
     def handle_errors(self, httpCode, reason, url, method, headers, body, response, requestHeaders, requestBody):

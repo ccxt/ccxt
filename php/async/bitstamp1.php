@@ -6,9 +6,10 @@ namespace ccxt\async;
 // https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 use Exception; // a common import
-use \ccxt\ExchangeError;
-use \ccxt\BadSymbol;
-use \ccxt\Precise;
+use ccxt\ExchangeError;
+use ccxt\BadSymbol;
+use ccxt\Precise;
+use React\Async;
 
 class bitstamp1 extends Exchange {
 
@@ -124,20 +125,22 @@ class bitstamp1 extends Exchange {
     }
 
     public function fetch_order_book($symbol, $limit = null, $params = array ()) {
-        /**
-         * fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
-         * @param {string} $symbol unified $symbol of the market to fetch the order book for
-         * @param {int|null} $limit the maximum amount of order book entries to return
-         * @param {array} $params extra parameters specific to the bitstamp1 api endpoint
-         * @return {array} A dictionary of {@link https://docs.ccxt.com/en/latest/manual.html#order-book-structure order book structures} indexed by market symbols
-         */
-        if ($symbol !== 'BTC/USD') {
-            throw new ExchangeError($this->id . ' ' . $this->version . " fetchOrderBook doesn't support " . $symbol . ', use it for BTC/USD only');
-        }
-        yield $this->load_markets();
-        $orderbook = yield $this->publicGetOrderBook ($params);
-        $timestamp = $this->safe_timestamp($orderbook, 'timestamp');
-        return $this->parse_order_book($orderbook, $symbol, $timestamp);
+        return Async\async(function () use ($symbol, $limit, $params) {
+            /**
+             * fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+             * @param {string} $symbol unified $symbol of the market to fetch the order book for
+             * @param {int|null} $limit the maximum amount of order book entries to return
+             * @param {array} $params extra parameters specific to the bitstamp1 api endpoint
+             * @return {array} A dictionary of {@link https://docs.ccxt.com/en/latest/manual.html#order-book-structure order book structures} indexed by market symbols
+             */
+            if ($symbol !== 'BTC/USD') {
+                throw new ExchangeError($this->id . ' ' . $this->version . " fetchOrderBook doesn't support " . $symbol . ', use it for BTC/USD only');
+            }
+            Async\await($this->load_markets());
+            $orderbook = Async\await($this->publicGetOrderBook ($params));
+            $timestamp = $this->safe_timestamp($orderbook, 'timestamp');
+            return $this->parse_order_book($orderbook, $symbol, $timestamp);
+        }) ();
     }
 
     public function parse_ticker($ticker, $market = null) {
@@ -185,32 +188,34 @@ class bitstamp1 extends Exchange {
     }
 
     public function fetch_ticker($symbol, $params = array ()) {
-        /**
-         * fetches a price $ticker, a statistical calculation with the information calculated over the past 24 hours for a specific $market
-         * @param {string} $symbol unified $symbol of the $market to fetch the $ticker for
-         * @param {array} $params extra parameters specific to the bitstamp1 api endpoint
-         * @return {array} a {@link https://docs.ccxt.com/en/latest/manual.html#$ticker-structure $ticker structure}
-         */
-        if ($symbol !== 'BTC/USD') {
-            throw new ExchangeError($this->id . ' ' . $this->version . " fetchTicker doesn't support " . $symbol . ', use it for BTC/USD only');
-        }
-        yield $this->load_markets();
-        $market = $this->market($symbol);
-        $ticker = yield $this->publicGetTicker ($params);
-        //
-        // {
-        //     "volume" => "2836.47827985",
-        //     "last" => "36544.93",
-        //     "timestamp" => "1643372072",
-        //     "bid" => "36535.79",
-        //     "vwap":"36594.20",
-        //     "high" => "37534.15",
-        //     "low" => "35511.32",
-        //     "ask" => "36548.47",
-        //     "open" => 37179.62
-        // }
-        //
-        return $this->parse_ticker($ticker, $market);
+        return Async\async(function () use ($symbol, $params) {
+            /**
+             * fetches a price $ticker, a statistical calculation with the information calculated over the past 24 hours for a specific $market
+             * @param {string} $symbol unified $symbol of the $market to fetch the $ticker for
+             * @param {array} $params extra parameters specific to the bitstamp1 api endpoint
+             * @return {array} a {@link https://docs.ccxt.com/en/latest/manual.html#$ticker-structure $ticker structure}
+             */
+            if ($symbol !== 'BTC/USD') {
+                throw new ExchangeError($this->id . ' ' . $this->version . " fetchTicker doesn't support " . $symbol . ', use it for BTC/USD only');
+            }
+            Async\await($this->load_markets());
+            $market = $this->market($symbol);
+            $ticker = Async\await($this->publicGetTicker ($params));
+            //
+            // {
+            //     "volume" => "2836.47827985",
+            //     "last" => "36544.93",
+            //     "timestamp" => "1643372072",
+            //     "bid" => "36535.79",
+            //     "vwap":"36594.20",
+            //     "high" => "37534.15",
+            //     "low" => "35511.32",
+            //     "ask" => "36548.47",
+            //     "open" => 37179.62
+            // }
+            //
+            return $this->parse_ticker($ticker, $market);
+        }) ();
     }
 
     public function parse_trade($trade, $market = null) {
@@ -240,24 +245,26 @@ class bitstamp1 extends Exchange {
     }
 
     public function fetch_trades($symbol, $since = null, $limit = null, $params = array ()) {
-        /**
-         * get the list of most recent trades for a particular $symbol
-         * @param {string} $symbol unified $symbol of the $market to fetch trades for
-         * @param {int|null} $since timestamp in ms of the earliest trade to fetch
-         * @param {int|null} $limit the maximum amount of trades to fetch
-         * @param {array} $params extra parameters specific to the bitstamp1 api endpoint
-         * @return {[array]} a list of ~@link https://docs.ccxt.com/en/latest/manual.html?#public-trades trade structures~
-         */
-        if ($symbol !== 'BTC/USD') {
-            throw new BadSymbol($this->id . ' ' . $this->version . " fetchTrades doesn't support " . $symbol . ', use it for BTC/USD only');
-        }
-        yield $this->load_markets();
-        $market = $this->market($symbol);
-        $request = array(
-            'time' => 'minute',
-        );
-        $response = yield $this->publicGetTransactions (array_merge($request, $params));
-        return $this->parse_trades($response, $market, $since, $limit);
+        return Async\async(function () use ($symbol, $since, $limit, $params) {
+            /**
+             * get the list of most recent trades for a particular $symbol
+             * @param {string} $symbol unified $symbol of the $market to fetch trades for
+             * @param {int|null} $since timestamp in ms of the earliest trade to fetch
+             * @param {int|null} $limit the maximum amount of trades to fetch
+             * @param {array} $params extra parameters specific to the bitstamp1 api endpoint
+             * @return {[array]} a list of ~@link https://docs.ccxt.com/en/latest/manual.html?#public-trades trade structures~
+             */
+            if ($symbol !== 'BTC/USD') {
+                throw new BadSymbol($this->id . ' ' . $this->version . " fetchTrades doesn't support " . $symbol . ', use it for BTC/USD only');
+            }
+            Async\await($this->load_markets());
+            $market = $this->market($symbol);
+            $request = array(
+                'time' => 'minute',
+            );
+            $response = Async\await($this->publicGetTransactions (array_merge($request, $params)));
+            return $this->parse_trades($response, $market, $since, $limit);
+        }) ();
     }
 
     public function parse_balance($response) {
@@ -277,55 +284,61 @@ class bitstamp1 extends Exchange {
     }
 
     public function fetch_balance($params = array ()) {
-        /**
-         * query for balance and get the amount of funds available for trading or funds locked in orders
-         * @param {array} $params extra parameters specific to the bitstamp1 api endpoint
-         * @return {array} a ~@link https://docs.ccxt.com/en/latest/manual.html?#balance-structure balance structure~
-         */
-        $response = yield $this->privatePostBalance ($params);
-        return $this->parse_balance($response);
+        return Async\async(function () use ($params) {
+            /**
+             * query for balance and get the amount of funds available for trading or funds locked in orders
+             * @param {array} $params extra parameters specific to the bitstamp1 api endpoint
+             * @return {array} a ~@link https://docs.ccxt.com/en/latest/manual.html?#balance-structure balance structure~
+             */
+            $response = Async\await($this->privatePostBalance ($params));
+            return $this->parse_balance($response);
+        }) ();
     }
 
     public function create_order($symbol, $type, $side, $amount, $price = null, $params = array ()) {
-        /**
-         * create a trade order
-         * @param {string} $symbol unified $symbol of the market to create an order in
-         * @param {string} $type 'market' or 'limit'
-         * @param {string} $side 'buy' or 'sell'
-         * @param {float} $amount how much of currency you want to trade in units of base currency
-         * @param {float|null} $price the $price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
-         * @param {array} $params extra parameters specific to the bitstamp1 api endpoint
-         * @return {array} an {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structure}
-         */
-        if ($type !== 'limit') {
-            throw new ExchangeError($this->id . ' ' . $this->version . ' accepts limit orders only');
-        }
-        if ($symbol !== 'BTC/USD') {
-            throw new ExchangeError($this->id . ' v1 supports BTC/USD orders only');
-        }
-        yield $this->load_markets();
-        $method = 'privatePost' . $this->capitalize($side);
-        $request = array(
-            'amount' => $amount,
-            'price' => $price,
-        );
-        $response = yield $this->$method (array_merge($request, $params));
-        $id = $this->safe_string($response, 'id');
-        return array(
-            'info' => $response,
-            'id' => $id,
-        );
+        return Async\async(function () use ($symbol, $type, $side, $amount, $price, $params) {
+            /**
+             * create a trade order
+             * @param {string} $symbol unified $symbol of the market to create an order in
+             * @param {string} $type 'market' or 'limit'
+             * @param {string} $side 'buy' or 'sell'
+             * @param {float} $amount how much of currency you want to trade in units of base currency
+             * @param {float|null} $price the $price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+             * @param {array} $params extra parameters specific to the bitstamp1 api endpoint
+             * @return {array} an {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structure}
+             */
+            if ($type !== 'limit') {
+                throw new ExchangeError($this->id . ' ' . $this->version . ' accepts limit orders only');
+            }
+            if ($symbol !== 'BTC/USD') {
+                throw new ExchangeError($this->id . ' v1 supports BTC/USD orders only');
+            }
+            Async\await($this->load_markets());
+            $method = 'privatePost' . $this->capitalize($side);
+            $request = array(
+                'amount' => $amount,
+                'price' => $price,
+            );
+            $response = Async\await($this->$method (array_merge($request, $params)));
+            $id = $this->safe_string($response, 'id');
+            return array(
+                'info' => $response,
+                'id' => $id,
+            );
+        }) ();
     }
 
     public function cancel_order($id, $symbol = null, $params = array ()) {
-        /**
-         * cancels an open order
-         * @param {string} $id order $id
-         * @param {string|null} $symbol unified $symbol of the market the order was made in
-         * @param {array} $params extra parameters specific to the bitstamp1 api endpoint
-         * @return {array} An {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structure}
-         */
-        return yield $this->privatePostCancelOrder (array( 'id' => $id ));
+        return Async\async(function () use ($id, $symbol, $params) {
+            /**
+             * cancels an open order
+             * @param {string} $id order $id
+             * @param {string|null} $symbol unified $symbol of the market the order was made in
+             * @param {array} $params extra parameters specific to the bitstamp1 api endpoint
+             * @return {array} An {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structure}
+             */
+            return Async\await($this->privatePostCancelOrder (array( 'id' => $id )));
+        }) ();
     }
 
     public function parse_order_status($status) {
@@ -339,34 +352,38 @@ class bitstamp1 extends Exchange {
     }
 
     public function fetch_order_status($id, $symbol = null, $params = array ()) {
-        yield $this->load_markets();
-        $request = array(
-            'id' => $id,
-        );
-        $response = yield $this->privatePostOrderStatus (array_merge($request, $params));
-        return $this->parse_order_status($response);
+        return Async\async(function () use ($id, $symbol, $params) {
+            Async\await($this->load_markets());
+            $request = array(
+                'id' => $id,
+            );
+            $response = Async\await($this->privatePostOrderStatus (array_merge($request, $params)));
+            return $this->parse_order_status($response);
+        }) ();
     }
 
     public function fetch_my_trades($symbol = null, $since = null, $limit = null, $params = array ()) {
-        /**
-         * fetch all trades made by the user
-         * @param {string|null} $symbol unified $market $symbol
-         * @param {int|null} $since the earliest time in ms to fetch trades for
-         * @param {int|null} $limit the maximum number of trades structures to retrieve
-         * @param {array} $params extra parameters specific to the bitstamp1 api endpoint
-         * @return {[array]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#trade-structure trade structures}
-         */
-        yield $this->load_markets();
-        $market = null;
-        if ($symbol !== null) {
-            $market = $this->market($symbol);
-        }
-        $pair = $market ? $market['id'] : 'all';
-        $request = array(
-            'id' => $pair,
-        );
-        $response = yield $this->privatePostOpenOrdersId (array_merge($request, $params));
-        return $this->parse_trades($response, $market, $since, $limit);
+        return Async\async(function () use ($symbol, $since, $limit, $params) {
+            /**
+             * fetch all trades made by the user
+             * @param {string|null} $symbol unified $market $symbol
+             * @param {int|null} $since the earliest time in ms to fetch trades for
+             * @param {int|null} $limit the maximum number of trades structures to retrieve
+             * @param {array} $params extra parameters specific to the bitstamp1 api endpoint
+             * @return {[array]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#trade-structure trade structures}
+             */
+            Async\await($this->load_markets());
+            $market = null;
+            if ($symbol !== null) {
+                $market = $this->market($symbol);
+            }
+            $pair = $market ? $market['id'] : 'all';
+            $request = array(
+                'id' => $pair,
+            );
+            $response = Async\await($this->privatePostOpenOrdersId (array_merge($request, $params)));
+            return $this->parse_trades($response, $market, $since, $limit);
+        }) ();
     }
 
     public function sign($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {

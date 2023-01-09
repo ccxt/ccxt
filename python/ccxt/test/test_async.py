@@ -7,7 +7,6 @@ import json
 import os
 import sys
 import time  # noqa: F401
-from os import _exit
 from traceback import format_tb
 
 # ------------------------------------------------------------------------------
@@ -54,6 +53,8 @@ exchanges = {}
 # ------------------------------------------------------------------------------
 
 path = os.path.dirname(ccxt.__file__)
+print(os.getcwd(), path)
+print(sys.argv)
 if 'site-packages' in os.path.dirname(ccxt.__file__):
     raise Exception("You are running test_async.py/test.py against a globally-installed version of the library! It was previously installed into your site-packages folder by pip or pip3. To ensure testing against the local folder uninstall it first with pip uninstall ccxt or pip3 uninstall ccxt")
 
@@ -111,7 +112,7 @@ def dump_error(*args):
 
 def handle_all_unhandled_exceptions(type, value, traceback):
     dump_error(yellow(type), yellow(value), '\n\n' + yellow('\n'.join(format_tb(traceback))))
-    _exit(1)  # unrecoverable crash
+    exit(1)  # unrecoverable crash
 
 
 sys.excepthook = handle_all_unhandled_exceptions
@@ -154,7 +155,8 @@ async def test_ohlcvs(exchange, symbol):
         delay = int(exchange.rateLimit / 1000)
         await asyncio.sleep(delay)
         timeframes = exchange.timeframes if exchange.timeframes else {'1d': '1d'}
-        timeframe = list(timeframes.keys())[0]
+        exchange_has_one_minute_timeframe = '1m' in timeframes
+        timeframe = '1m' if exchange_has_one_minute_timeframe else list(timeframes.keys())[0]
         limit = 10
         duration = exchange.parse_timeframe(timeframe)
         since = exchange.milliseconds() - duration * limit * 1000 - 1000
@@ -576,9 +578,11 @@ async def try_all_proxies(exchange, proxies=['']):
         current_proxy = proxies.index(exchange.proxy)
     for num_retries in range(0, max_retries):
         try:
-            exchange.proxy = proxies[current_proxy]
-            dump(green(exchange.id), 'using proxy', '`' + exchange.proxy + '`')
-            current_proxy = (current_proxy + 1) % len(proxies)
+            # do not use cors proxy when using a http proxy
+            if not hasattr(exchange, "httpProxy"):
+                exchange.proxy = proxies[current_proxy]
+                dump(green(exchange.id), 'using proxy', '`' + exchange.proxy + '`')
+                current_proxy = (current_proxy + 1) % len(proxies)
             await load_exchange(exchange)
             await test_exchange(exchange)
         except (ccxt.RequestTimeout, ccxt.AuthenticationError, ccxt.NotSupported, ccxt.DDoSProtection, ccxt.ExchangeNotAvailable, ccxt.ExchangeError) as e:
@@ -635,7 +639,14 @@ async def main():
 
             if hasattr(exchange, 'skip') and exchange.skip:
                 dump(green(exchange.id), 'skipped')
+            elif hasattr(exchange, 'alias') and exchange.alias:
+                dump(green(exchange.id), 'Skipped alias')
             else:
+
+                # add http proxy if any
+                if hasattr(exchange, 'httpProxy'):
+                    exchange.aiohttp_proxy = exchange.httpProxy
+
                 if symbol:
                     await load_exchange(exchange)
                     await test_symbol(exchange, symbol)

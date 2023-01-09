@@ -460,19 +460,8 @@ class kuna(Exchange):
         result = {}
         for i in range(0, len(ids)):
             id = ids[i]
-            market = None
-            symbol = id
-            if id in self.markets_by_id:
-                market = self.markets_by_id[id]
-                symbol = market['symbol']
-            else:
-                base = id[0:3]
-                quote = id[3:6]
-                base = base.upper()
-                quote = quote.upper()
-                base = self.safe_currency_code(base)
-                quote = self.safe_currency_code(quote)
-                symbol = base + '/' + quote
+            market = self.safe_market(id)
+            symbol = market['symbol']
             result[symbol] = self.parse_ticker(response[id], market)
         return self.filter_by_array(result, 'symbol', symbols)
 
@@ -715,6 +704,7 @@ class kuna(Exchange):
             'side': side,
             'price': self.safe_string(order, 'price'),
             'stopPrice': None,
+            'triggerPrice': None,
             'amount': self.safe_string(order, 'volume'),
             'filled': self.safe_string(order, 'executed_volume'),
             'remaining': self.safe_string(order, 'remaining_volume'),

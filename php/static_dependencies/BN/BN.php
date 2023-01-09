@@ -92,6 +92,7 @@ class BN implements JsonSerializable
         return $this->bi->toNumber();
     }
 
+    #[\ReturnTypeWillChange]
     public function jsonSerialize() {
         return $this->toString(16);
     }

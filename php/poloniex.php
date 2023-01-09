@@ -6,7 +6,6 @@ namespace ccxt;
 // https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 use Exception; // a common import
-use \ccxt\ExchangeError;
 
 class poloniex extends Exchange {
 
@@ -31,7 +30,7 @@ class poloniex extends Exchange {
                 'createDepositAddress' => true,
                 'createMarketOrder' => null,
                 'createOrder' => true,
-                'editOrder' => false,
+                'editOrder' => true,
                 'fetchBalance' => true,
                 'fetchClosedOrder' => false,
                 'fetchCurrencies' => true,
@@ -108,10 +107,16 @@ class poloniex extends Exchange {
                 'private' => array(
                     'get' => array(
                         'accounts' => 4,
+                        'accounts/activity' => 4,
                         'accounts/balances' => 4,
                         'accounts/{id}/balances' => 4,
                         'accounts/transfer' => 20,
                         'accounts/transfer/{id}' => 4,
+                        'subaccounts' => 4,
+                        'subaccounts/balances' => 20,
+                        'subaccounts/{id}/balances' => 4,
+                        'subaccounts/transfer' => 20,
+                        'subaccounts/transfer/{id}' => 4,
                         'feeinfo' => 20,
                         'wallets/addresses' => 20,
                         'wallets/activity' => 20,
@@ -119,6 +124,7 @@ class poloniex extends Exchange {
                         'orders' => 20,
                         'orders/{id}' => 4,
                         'orders/history' => 20,
+                        'orders/killSwitchStatus' => 4,
                         'smartorders' => 20,
                         'smartorders/{id}' => 4,
                         'smartorders/history' => 20,
@@ -127,9 +133,12 @@ class poloniex extends Exchange {
                     ),
                     'post' => array(
                         'accounts/transfer' => 4,
+                        'subaccounts/transfer' => 20,
                         'wallets/address' => 20,
                         'wallets/withdraw' => 20,
                         'orders' => 4,
+                        'orders/killSwitch' => 4,
+                        'orders/batch' => 20,
                         'smartorders' => 4,
                     ),
                     'delete' => array(
@@ -139,6 +148,10 @@ class poloniex extends Exchange {
                         'smartorders/{id}' => 4,
                         'smartorders/cancelByIds' => 20,
                         'smartorders' => 20,
+                    ),
+                    'put' => array(
+                        'orders/{id}' => 4,
+                        'smartorders/{id}' => 4,
                     ),
                 ),
             ),
@@ -187,6 +200,7 @@ class poloniex extends Exchange {
             ),
             'options' => array(
                 'networks' => array(
+                    'BEP20' => 'BSC',
                     'ERC20' => 'ETH',
                     'TRX' => 'TRON',
                     'TRC20' => 'TRON',
@@ -217,7 +231,7 @@ class poloniex extends Exchange {
                     'futures' => 'future',
                 ),
             ),
-            'precisionMode' => DECIMAL_PLACES,
+            'precisionMode' => TICK_SIZE,
             'exceptions' => array(
                 'exact' => array(
                     'You may only place orders that reduce your position.' => '\\ccxt\\InvalidOrder',
@@ -285,7 +299,7 @@ class poloniex extends Exchange {
         );
     }
 
-    public function fetch_ohlcv($symbol, $timeframe = '5m', $since = null, $limit = null, $params = array ()) {
+    public function fetch_ohlcv($symbol, $timeframe = '1m', $since = null, $limit = null, $params = array ()) {
         /**
          * fetches historical candlestick data containing the open, high, low, and close price, and the volume of a $market
          * @param {string} $symbol unified $symbol of the $market to fetch OHLCV data for
@@ -408,8 +422,8 @@ class poloniex extends Exchange {
                 'strike' => null,
                 'optionType' => null,
                 'precision' => array(
-                    'amount' => $this->safe_integer($symbolTradeLimit, 'quantityScale'),
-                    'price' => $this->safe_integer($symbolTradeLimit, 'priceScale'),
+                    'amount' => $this->parse_number($this->parse_precision($this->safe_string($symbolTradeLimit, 'quantityScale'))),
+                    'price' => $this->parse_number($this->parse_precision($this->safe_string($symbolTradeLimit, 'priceScale'))),
                 ),
                 'limits' => array(
                     'amount' => array(
@@ -461,7 +475,7 @@ class poloniex extends Exchange {
         //
         $timestamp = $this->safe_integer($ticker, 'ts');
         $marketId = $this->safe_string($ticker, 'symbol');
-        $market = $this->market($marketId);
+        $market = $this->safe_market($marketId);
         $close = $this->safe_string($ticker, 'close');
         $relativeChange = $this->safe_string($ticker, 'percentChange');
         $percentage = Precise::string_mul($relativeChange, '100');
@@ -770,10 +784,8 @@ class poloniex extends Exchange {
             // 'direction' => 'PRE', // PRE, NEXT The direction before or after ‘from'.
         );
         if ($since !== null) {
-            $request['startTime'] = intval($since / 1000);
-            $request['endtime'] = $this->sum($this->seconds(), 1); // adding 1 is a fix for #3411
+            $request['startTime'] = $since;
         }
-        // $limit is disabled (does not really work as expected)
         if ($limit !== null) {
             $request['limit'] = intval($limit);
         }
@@ -860,7 +872,7 @@ class poloniex extends Exchange {
         //         "updateTime" => 1646925216548
         //     }
         //
-        // createOrder
+        // createOrder, editOrder
         //
         //     {
         //         "id" => "29772698821328896",
@@ -921,6 +933,7 @@ class poloniex extends Exchange {
             'side' => $side,
             'price' => $price,
             'stopPrice' => null,
+            'triggerPrice' => null,
             'cost' => null,
             'average' => $this->safe_string($order, 'avgPrice'),
             'amount' => $amount,
@@ -1004,6 +1017,7 @@ class poloniex extends Exchange {
     public function create_order($symbol, $type, $side, $amount, $price = null, $params = array ()) {
         /**
          * create a trade order
+         * @see https://docs.poloniex.com/#authenticated-endpoints-orders-create-order
          * @param {string} $symbol unified $symbol of the $market to create an order in
          * @param {string} $type 'market' or 'limit'
          * @param {string} $side 'buy' or 'sell'
@@ -1017,6 +1031,32 @@ class poloniex extends Exchange {
         // }
         $this->load_markets();
         $market = $this->market($symbol);
+        if (!$market['spot']) {
+            throw new NotSupported($this->id . ' createOrder() does not support ' . $market['type'] . ' orders, only spot orders are accepted');
+        }
+        $request = array(
+            'symbol' => $market['id'],
+            'side' => $side,
+            // 'timeInForce' => timeInForce,
+            // 'accountType' => 'SPOT',
+            // 'amount' => $amount,
+        );
+        $orderRequest = $this->order_request($symbol, $type, $side, $amount, $request, $price, $params);
+        $response = $this->privatePostOrders (array_merge($orderRequest[0], $orderRequest[1]));
+        //
+        //     {
+        //         "id" : "78923648051920896",
+        //         "clientOrderId" : ""
+        //     }
+        //
+        $response = array_merge($response, array(
+            'type' => $side,
+        ));
+        return $this->parse_order($response, $market);
+    }
+
+    public function order_request($symbol, $type, $side, $amount, $request, $price = null, $params = array ()) {
+        $market = $this->market($symbol);
         $upperCaseType = strtoupper($type);
         $isMarket = $upperCaseType === 'MARKET';
         $isPostOnly = $this->is_post_only($isMarket, $upperCaseType === 'LIMIT_MAKER', $params);
@@ -1024,14 +1064,7 @@ class poloniex extends Exchange {
             $upperCaseType = 'LIMIT_MAKER';
             $params = $this->omit($params, 'postOnly');
         }
-        $request = array(
-            'symbol' => $market['id'],
-            'side' => $side,
-            'type' => $upperCaseType,
-            // 'timeInForce' => timeInForce,
-            // 'accountType' => 'SPOT',
-            // 'amount' => $amount,
-        );
+        $request['type'] = $upperCaseType;
         if ($isMarket) {
             if ($side === 'buy') {
                 $request['amount'] = $this->currency_to_precision($market['quote'], $amount);
@@ -1048,7 +1081,33 @@ class poloniex extends Exchange {
             $params = $this->omit($params, 'clientOrderId');
         }
         // remember the timestamp before issuing the $request
-        $response = $this->privatePostOrders (array_merge($request, $params));
+        return array( $request, $params );
+    }
+
+    public function edit_order($id, $symbol, $type, $side, $amount, $price = null, $params = array ()) {
+        /**
+         * edit a trade order
+         * @see https://docs.poloniex.com/#authenticated-endpoints-orders-cancel-replace-order
+         * @param {string} $id order $id
+         * @param {string} $symbol unified $symbol of the $market to create an order in
+         * @param {string} $type 'market' or 'limit'
+         * @param {string} $side 'buy' or 'sell'
+         * @param {float} $amount how much of the currency you want to trade in units of the base currency
+         * @param {float|null} $price the $price at which the order is to be fullfilled, in units of the quote currency, ignored in $market orders
+         * @param {array} $params extra parameters specific to the poloniex api endpoint
+         * @return {array} an {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structure}
+         */
+        $this->load_markets();
+        $market = $this->market($symbol);
+        if (!$market['spot']) {
+            throw new NotSupported($this->id . ' editOrder() does not support ' . $market['type'] . ' orders, only spot orders are accepted');
+        }
+        $request = array(
+            'id' => $id,
+            // 'timeInForce' => timeInForce,
+        );
+        $orderRequest = $this->order_request($symbol, $type, $side, $amount, $request, $price, $params);
+        $response = $this->privatePutOrdersId (array_merge($orderRequest[0], $orderRequest[1]));
         //
         //     {
         //         "id" : "78923648051920896",
@@ -1350,18 +1409,21 @@ class poloniex extends Exchange {
          * @return {array} an {@link https://docs.ccxt.com/en/latest/manual.html#$address-structure $address structure}
          */
         $this->load_markets();
-        // USDT, USDTETH, USDTTRON
-        $currencyId = null;
-        $currency = null;
-        if (is_array($this->currencies) && array_key_exists($code, $this->currencies)) {
-            $currency = $this->currency($code);
-            $currencyId = $currency['id'];
-        } else {
-            $currencyId = $code;
-        }
+        $currency = $this->currency($code);
         $request = array(
-            'currency' => $currencyId,
+            'currency' => $currency['id'],
         );
+        $networks = $this->safe_value($this->options, 'networks', array());
+        $network = $this->safe_string_upper($params, 'network'); // this line allows the user to specify either ERC20 or ETH
+        $network = $this->safe_string($networks, $network, $network); // handle ERC20>ETH alias
+        if ($network !== null) {
+            $request['currency'] .= $network; // when $network the $currency need to be changed to $currency+$network https://docs.poloniex.com/#withdraw on MultiChain Currencies section
+            $params = $this->omit($params, 'network');
+        } else {
+            if ($currency['id'] === 'USDT') {
+                throw new ArgumentsRequired($this->id . ' createDepositAddress requires a $network parameter for ' . $code . '.');
+            }
+        }
         $response = $this->privatePostWalletsAddress (array_merge($request, $params));
         //
         //     {
@@ -1382,6 +1444,7 @@ class poloniex extends Exchange {
             'currency' => $code,
             'address' => $address,
             'tag' => $tag,
+            'network' => $network,
             'info' => $response,
         );
     }
@@ -1394,25 +1457,28 @@ class poloniex extends Exchange {
          * @return {array} an {@link https://docs.ccxt.com/en/latest/manual.html#$address-structure $address structure}
          */
         $this->load_markets();
-        // USDT, USDTETH, USDTTRON
-        $currencyId = null;
-        $currency = null;
-        if (is_array($this->currencies) && array_key_exists($code, $this->currencies)) {
-            $currency = $this->currency($code);
-            $currencyId = $currency['id'];
-        } else {
-            $currencyId = $code;
-        }
+        $currency = $this->currency($code);
         $request = array(
-            'currency' => $currencyId,
+            'currency' => $currency['id'],
         );
+        $networks = $this->safe_value($this->options, 'networks', array());
+        $network = $this->safe_string_upper($params, 'network'); // this line allows the user to specify either ERC20 or ETH
+        $network = $this->safe_string($networks, $network, $network); // handle ERC20>ETH alias
+        if ($network !== null) {
+            $request['currency'] .= $network; // when $network the $currency need to be changed to $currency+$network https://docs.poloniex.com/#withdraw on MultiChain Currencies section
+            $params = $this->omit($params, 'network');
+        } else {
+            if ($currency['id'] === 'USDT') {
+                throw new ArgumentsRequired($this->id . ' fetchDepositAddress requires a $network parameter for ' . $code . '.');
+            }
+        }
         $response = $this->privateGetWalletsAddresses (array_merge($request, $params));
         //
         //     {
         //         "USDTTRON" : "Txxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxp"
         //     }
         //
-        $address = $this->safe_string($response, $currencyId);
+        $address = $this->safe_string($response, $request['currency']);
         $tag = null;
         $this->check_address($address);
         if ($currency !== null) {
@@ -1426,7 +1492,7 @@ class poloniex extends Exchange {
             'currency' => $code,
             'address' => $address,
             'tag' => $tag,
-            'network' => null,
+            'network' => $network,
             'info' => $response,
         );
     }
@@ -1546,9 +1612,6 @@ class poloniex extends Exchange {
             'start' => $start, // UNIX timestamp, required
             'end' => $now, // UNIX timestamp, required
         );
-        if ($limit !== null) {
-            $request['limit'] = $limit;
-        }
         $response = $this->privateGetWalletsActivity (array_merge($request, $params));
         //
         //     {
@@ -1705,7 +1768,6 @@ class poloniex extends Exchange {
         //
         //     {
         //         "txid" => "f49d489616911db44b740612d19464521179c76ebe9021af85b6de1e2f8d68cd",
-        //         "type" => "deposit",
         //         "amount" => "49798.01987021",
         //         "status" => "COMPLETE",
         //         "address" => "DJVJZ58tJC8UeUv9Tqcdtn6uhWobouxFLT",
@@ -1718,26 +1780,22 @@ class poloniex extends Exchange {
         // withdrawals
         //
         //     {
-        //         "fee" => "0.00050000",
-        //         "type" => "withdrawal",
-        //         "amount" => "0.40234387",
-        //         "status" => "COMPLETE => fbabb2bf7d81c076f396f3441166d5f60f6cea5fdfe69e02adcc3b27af8c2746",
-        //         "address" => "1EdAqY4cqHoJGAgNfUFER7yZpg1Jc9DUa3",
-        //         "currency" => "BTC",
-        //         "canCancel" => 0,
-        //         "ipAddress" => "x.x.x.x",
-        //         "paymentID" => null,
-        //         "timestamp" => 1523834337,
-        //         "canResendEmail" => 0,
-        //         "withdrawalNumber" => 11162900
+        //         "withdrawalRequestsId" => 7397527,
+        //         "currency" => "ETC",
+        //         "address" => "0x26419a62055af459d2cd69bb7392f5100b75e304",
+        //         "amount" => "13.19951600",
+        //         "fee" => "0.01000000",
+        //         "timestamp" => 1506010932,
+        //         "status" => "COMPLETED",
+        //         "txid" => "343346392f82ac16e8c2604f2a604b7b2382d0e9d8030f673821f8de4b5f5bk",
+        //         "ipAddress" => "1.2.3.4",
+        //         "paymentID" => null
         //     }
         //
         // withdraw
         //
         //     {
-        //         response => 'Withdrew 1.00000000 USDT.',
-        //         email2FA => false,
-        //         withdrawalNumber => 13449869
+        //         "withdrawalRequestsId" => 33485231
         //     }
         //
         $timestamp = $this->safe_timestamp($transaction, 'timestamp');
@@ -1748,16 +1806,18 @@ class poloniex extends Exchange {
         $txid = $this->safe_string($transaction, 'txid');
         $type = (is_array($transaction) && array_key_exists('withdrawalRequestsId', $transaction)) ? 'withdrawal' : 'deposit';
         $id = $this->safe_string_2($transaction, 'withdrawalRequestsId', 'depositNumber');
-        $amount = $this->safe_number($transaction, 'amount');
         $address = $this->safe_string($transaction, 'address');
         $tag = $this->safe_string($transaction, 'paymentID');
-        // according to https://poloniex.com/fees/
-        $feeCost = $this->safe_number($transaction, 'fee');
+        $amountString = $this->safe_string($transaction, 'amount');
+        $feeCostString = $this->safe_string($transaction, 'fee');
+        if ($type === 'withdrawal') {
+            $amountString = Precise::string_sub($amountString, $feeCostString);
+        }
         return array(
             'info' => $transaction,
             'id' => $id,
             'currency' => $code,
-            'amount' => $amount,
+            'amount' => $this->parse_number($amountString),
             'network' => null,
             'address' => $address,
             'addressTo' => null,
@@ -1773,7 +1833,7 @@ class poloniex extends Exchange {
             'datetime' => $this->iso8601($timestamp),
             'fee' => array(
                 'currency' => $code,
-                'cost' => $feeCost,
+                'cost' => $this->parse_number($feeCostString),
             ),
         );
     }
