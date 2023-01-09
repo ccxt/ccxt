@@ -3164,12 +3164,12 @@ class bitget extends Exchange {
             } else {
                 $numerator = Precise::string_mul($numerator, $calcTakerFeeMult);
             }
-            $liquidationPrice = Precise::string_add(Precise::string_div($numerator, $mmrMinusOne));
+            $liquidationPrice = Precise::string_div($numerator, $mmrMinusOne);
         }
         $feeToClose = Precise::string_mul($notional, $calcTakerFeeRate);
         $maintenanceMargin = Precise::string_add(Precise::string_mul($maintenanceMarginPercentage, $notional), $feeToClose);
         $marginRatio = Precise::string_div($maintenanceMargin, $collateral);
-        $percentage = Precise::string_mul(Precise::string_div($unrealizedPnl, $initialMargin, '4'), '100');
+        $percentage = Precise::string_mul(Precise::string_div($unrealizedPnl, $initialMargin, 4), '100');
         return array(
             'info' => $position,
             'id' => null,
