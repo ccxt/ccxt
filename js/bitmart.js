@@ -126,6 +126,7 @@ module.exports = class bitmart extends Exchange {
                         'contract/public/open-interest': 30,
                         'contract/public/funding-rate': 30,
                         'contract/public/kline': 5,
+                        'account/v1/currencies': 30,
                     },
                 },
                 'private': {
@@ -886,6 +887,7 @@ module.exports = class bitmart extends Exchange {
                     'withdraw': undefined,
                     'fee': undefined,
                     'precision': undefined,
+                    'networks': {},
                     'limits': {
                         'amount': {
                             'min': undefined,
@@ -902,20 +904,36 @@ module.exports = class bitmart extends Exchange {
             const networkCode = this.networkIdToCode (networkId); // todo - huobi/okx like needed
             const withdraw_enabled = this.safeValue (currency, 'withdraw_enabled');
             const deposit_enabled = this.safeValue (currency, 'deposit_enabled');
-            const withdraw_minsize = this.safeNumber (currency, 'withdraw_minsize');
-            const withdraw_minfee = this.safeNumber (currency, 'withdraw_minfee'); // can be null
-            result[networkCode] = {
+            const withdraw_minsize = this.safeString (currency, 'withdraw_minsize');
+            const withdraw_minfee = this.safeString (currency, 'withdraw_minfee');
+            let minPrecisionSize = undefined;
+            let minPrecisionFee = undefined;
+            if (withdraw_minsize !== undefined) {
+                minPrecisionSize = this.numberToString (this.precisionFromString (withdraw_minsize));
+            }
+            if (withdraw_minfee !== undefined) {
+                minPrecisionFee = this.numberToString (this.precisionFromString (withdraw_minfee));
+            }
+            let maxScale = undefined;
+            if (minPrecisionSize !== undefined && minPrecisionFee !== undefined) {
+                maxScale = Precise.stringMax (minPrecisionSize, minPrecisionFee);
+            } else if (minPrecisionSize !== undefined) {
+                maxScale = minPrecisionSize;
+            } else if (minPrecisionFee !== undefined) {
+                maxScale = minPrecisionFee;
+            }
+            result[code]['networks'][networkCode] = {
                 'info': currency,
                 'id': networkId,
                 'network': networkCode,
                 'active': (deposit_enabled || withdraw_enabled),
                 'deposit': deposit_enabled,
                 'withdraw': withdraw_enabled,
-                'fee': withdraw_minfee,
-                'precision': undefined,
+                'fee': this.parseNumber (withdraw_minfee),
+                'precision': this.parseNumber (this.parsePrecision (maxScale)),
                 'limits': {
                     'withdraw': {
-                        'min': withdraw_minsize,
+                        'min': this.parseNumber (withdraw_minsize),
                         'max': undefined,
                     },
                     'deposit': {
