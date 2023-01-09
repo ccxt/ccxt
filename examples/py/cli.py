@@ -118,7 +118,7 @@ async def main():
         sys.exit()
     
     # check here if we have a arg like this: binance.fetchOrders()
-    call_reg = "(\w+)\.(\w+)\(([^()]*)\)"
+    call_reg = "\s*(\w+)\s*\.\s*(\w+)\s*\(([^()]*)\)"
     match = re.match(call_reg, argv.exchange_id)
     if match is not None:
         groups = match.groups()
