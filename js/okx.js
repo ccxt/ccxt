@@ -56,6 +56,8 @@ module.exports = class okx extends Exchange {
                 'fetchDepositAddresses': false,
                 'fetchDepositAddressesByNetwork': true,
                 'fetchDeposits': true,
+                'fetchDepositWithdrawFee': 'emulated',
+                'fetchDepositWithdrawFees': true,
                 'fetchFundingHistory': true,
                 'fetchFundingRate': true,
                 'fetchFundingRateHistory': true,
@@ -5782,7 +5784,7 @@ module.exports = class okx extends Exchange {
         //    }
         //
         const data = this.safeValue (response, 'data');
-        return this.parseDepositWithdrawFees (data, codes, 'ccy');
+        return this.parseDepositWithdrawFees (data, codes);
     }
 
     parseDepositWithdrawFees (response, codes = undefined, currencyIdKey = undefined) {
@@ -5807,6 +5809,44 @@ module.exports = class okx extends Exchange {
         //   }
         // ]
         //
+        const depositWithdrawFees = {};
+        codes = this.marketCodes (codes);
+        for (let i = 0; i < response.length; i++) {
+            const feeInfo = response[i];
+            const currencyId = this.safeString (feeInfo, 'ccy');
+            const code = this.safeCurrencyCode (currencyId);
+            if ((codes === undefined) || (this.inArray (code, codes))) {
+                const depositWithdrawFee = this.safeValue (depositWithdrawFees, code);
+                if (depositWithdrawFee === undefined) {
+                    depositWithdrawFees[code] = this.depositWithdrawFee ({});
+                }
+                depositWithdrawFees[code]['info'][currencyId] = feeInfo;
+                const chain = this.safeString (feeInfo, 'chain');
+                const chainSplit = chain.split ('-');
+                const networkId = this.safeValue (chainSplit, 1);
+                const withdrawFee = this.safeNumber (feeInfo, 'minFee');
+                const withdrawResult = {
+                    'fee': withdrawFee,
+                    'percentage': (withdrawFee !== undefined) ? false : undefined,
+                };
+                const depositResult = {
+                    'fee': undefined,
+                    'percentage': undefined,
+                };
+                const networkCode = this.networkIdToCode (networkId);
+                depositWithdrawFees[code]['networks'][networkCode] = {
+                    'withdraw': withdrawResult,
+                    'deposit': depositResult,
+                };
+            }
+        }
+        const depositWithdrawCodes = Object.keys (depositWithdrawFees);
+        for (let i = 0; i < depositWithdrawCodes.length; i++) {
+            const code = depositWithdrawCodes[i];
+            const currency = this.currency (code);
+            depositWithdrawFees[code] = this.assignDefaultDepositWithdrawFees (depositWithdrawFees[code], currency);
+        }
+        return depositWithdrawFees;
     }
 
     handleErrors (httpCode, reason, url, method, headers, body, response, requestHeaders, requestBody) {
