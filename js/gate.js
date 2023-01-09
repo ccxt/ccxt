@@ -684,7 +684,7 @@ module.exports = class gate extends Exchange {
         return this.arrayConcat (spotMarkets, contractMarkets);
     }
 
-    async fetchSpotMarkets (params) {
+    async fetchSpotMarkets (params = {}) {
         const marginResponse = await this.publicMarginGetCurrencyPairs (params);
         const spotMarketsResponse = await this.publicSpotGetCurrencyPairs (params);
         const marginMarkets = this.indexBy (marginResponse, 'id');
@@ -791,15 +791,16 @@ module.exports = class gate extends Exchange {
         return result;
     }
 
-    async fetchContractMarkets (params) {
+    async fetchContractMarkets (params = {}) {
         const result = [];
         const swapSettlementCurrencies = this.getSettlementCurrencies ('swap', 'fetchMarkets');
         const futureSettlementCurrencies = this.getSettlementCurrencies ('future', 'fetchMarkets');
         for (let c = 0; c < swapSettlementCurrencies.length; c++) {
             const settleId = swapSettlementCurrencies[c];
-            const query = params;
-            query['settle'] = settleId;
-            const response = await this.publicFuturesGetSettleContracts (query);
+            const request = {
+                'settle': settleId,
+            };
+            const response = await this.publicFuturesGetSettleContracts (this.extend (request, params));
             for (let i = 0; i < response.length; i++) {
                 const parsedMarket = this.parseContractMarket (response[i], settleId);
                 result.push (parsedMarket);
@@ -807,9 +808,10 @@ module.exports = class gate extends Exchange {
         }
         for (let c = 0; c < futureSettlementCurrencies.length; c++) {
             const settleId = futureSettlementCurrencies[c];
-            const query = params;
-            query['settle'] = settleId;
-            const response = await this.publicDeliveryGetSettleContracts (query);
+            const request = {
+                'settle': settleId,
+            };
+            const response = await this.publicDeliveryGetSettleContracts (this.extend (request, params));
             for (let i = 0; i < response.length; i++) {
                 const parsedMarket = this.parseContractMarket (response[i], settleId);
                 result.push (parsedMarket);
@@ -2098,7 +2100,7 @@ module.exports = class gate extends Exchange {
         //        A: '0.0353' // best ask size
         //     }
         //
-        const marketId = this.safeStringN (ticker, [ 'currency_pair', 'contract', 's' ]);
+        const marketId = this.safeString2 (ticker, 'currency_pair', 'contract');
         const marketType = ('contract' in ticker) ? 'contract' : 'spot';
         const symbol = this.safeSymbol (marketId, market, '_', marketType);
         const last = this.safeString (ticker, 'last');
@@ -3024,12 +3026,14 @@ module.exports = class gate extends Exchange {
         const id = this.safeString (transaction, 'id');
         let type = undefined;
         let amount = this.safeString (transaction, 'amount');
-        if (id[0] === 'b') {
-            // GateCode handling
-            type = Precise.stringGt (amount, '0') ? 'deposit' : 'withdrawal';
-            amount = Precise.stringAbs (amount);
-        } else if (id !== undefined) {
-            type = this.parseTransactionType (id[0]);
+        if (id !== undefined) {
+            if (id[0] === 'b') {
+                // GateCode handling
+                type = Precise.stringGt (amount, '0') ? 'deposit' : 'withdrawal';
+                amount = Precise.stringAbs (amount);
+            } else {
+                type = this.parseTransactionType (id[0]);
+            }
         }
         const currencyId = this.safeString (transaction, 'currency');
         const code = this.safeCurrencyCode (currencyId);

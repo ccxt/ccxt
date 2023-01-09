@@ -274,6 +274,7 @@ class binance(Exchange):
                         'capital/deposit/subAddress': 0.1,
                         'capital/deposit/subHisrec': 0.1,
                         'capital/withdraw/history': 0.1,
+                        'capital/contract/convertible-coins': 4.0002,
                         'convert/tradeFlow': 0.6667,  # Weight(UID): 100 => cost = 0.006667 * 100 = 0.6667
                         'convert/exchangeInfo': 50,
                         'convert/assetInfo': 10,
@@ -298,6 +299,8 @@ class binance(Exchange):
                         'sub-account/apiRestrictions/ipRestriction/thirdPartyList': 1,
                         'managed-subaccount/asset': 0.1,
                         'managed-subaccount/accountSnapshot': 240,
+                        'managed-subaccount/queryTransLogForInvestor': 0.1,
+                        'managed-subaccount/queryTransLogForTradeParent': 0.1,
                         # lending endpoints
                         'lending/daily/product/list': 0.1,
                         'lending/daily/userLeftQuota': 0.1,
@@ -398,6 +401,7 @@ class binance(Exchange):
                         # 'account/apiRestrictions/ipRestriction': 1, discontinued
                         # 'account/apiRestrictions/ipRestriction/ipList': 1, discontinued
                         'capital/withdraw/apply': 4.0002,  # Weight(UID): 600 => cost = 0.006667 * 600 = 4.0002
+                        'capital/contract/convertible-coins': 4.0002,
                         'margin/transfer': 1,  # Weight(IP): 600 => cost = 0.1 * 600 = 60
                         'margin/loan': 20.001,  # Weight(UID): 3000 => cost = 0.006667 * 3000 = 20.001
                         'margin/repay': 20.001,
@@ -1169,6 +1173,9 @@ class binance(Exchange):
                     'JPY': True,
                     'NZD': True,
                 },
+                'legalMoneyCurrenciesById': {
+                    'BUSD': 'USD',
+                },
             },
             # https://binance-docs.github.io/apidocs/spot/en/#error-codes-2
             'exceptions': {
@@ -1386,7 +1393,8 @@ class binance(Exchange):
                     '-21001': BadRequest,  # {"code":-21001,"msg":"USER_IS_NOT_UNIACCOUNT"}
                     '-21002': BadRequest,  # {"code":-21002,"msg":"UNI_ACCOUNT_CANT_TRANSFER_FUTURE"}
                     '-21003': BadRequest,  # {"code":-21003,"msg":"NET_ASSET_MUST_LTE_RATIO"}
-                    '100001003': BadRequest,  # {"code":100001003,"msg":"Verification failed"}  # undocumented
+                    '100001003': AuthenticationError,  # {"code":100001003,"msg":"Verification failed"}  # undocumented
+                    '200003903': AuthenticationError,  # {"code":200003903,"msg":"Your identity verification has been rejected. Please complete identity verification again."}
                 },
                 'broad': {
                     'has no operation privilege': PermissionDenied,
@@ -3833,6 +3841,7 @@ class binance(Exchange):
         :param int|None since: the earliest time in ms to fetch deposits for
         :param int|None limit: the maximum number of deposits structures to retrieve
         :param dict params: extra parameters specific to the binance api endpoint
+        :param bool params['fiat']: if True, only fiat deposits will be returned
         :param int|None params['until']: the latest time in ms to fetch deposits for
         :returns [dict]: a list of `transaction structures <https://docs.ccxt.com/en/latest/manual.html#transaction-structure>`
         """
@@ -3841,8 +3850,10 @@ class binance(Exchange):
         response = None
         request = {}
         legalMoney = self.safe_value(self.options, 'legalMoney', {})
+        fiatOnly = self.safe_value(params, 'fiat', False)
+        params = self.omit(params, 'fiatOnly')
         until = self.safe_integer(params, 'until')
-        if code in legalMoney:
+        if fiatOnly or (code in legalMoney):
             if code is not None:
                 currency = self.currency(code)
             request['transactionType'] = 0
@@ -3920,14 +3931,17 @@ class binance(Exchange):
         :param int|None since: the earliest time in ms to fetch withdrawals for
         :param int|None limit: the maximum number of withdrawals structures to retrieve
         :param dict params: extra parameters specific to the binance api endpoint
+        :param bool params['fiat']: if True, only fiat withdrawals will be returned
         :returns [dict]: a list of `transaction structures <https://docs.ccxt.com/en/latest/manual.html#transaction-structure>`
         """
         self.load_markets()
         legalMoney = self.safe_value(self.options, 'legalMoney', {})
+        fiatOnly = self.safe_value(params, 'fiat', False)
+        params = self.omit(params, 'fiatOnly')
         request = {}
         response = None
         currency = None
-        if code in legalMoney:
+        if fiatOnly or (code in legalMoney):
             if code is not None:
                 currency = self.currency(code)
             request['transactionType'] = 1
@@ -4103,6 +4117,7 @@ class binance(Exchange):
         #     {
         #       "orderNo": "25ced37075c1470ba8939d0df2316e23",
         #       "fiatCurrency": "EUR",
+        #       "transactionType": 0,
         #       "indicatedAmount": "15.00",
         #       "amount": "15.00",
         #       "totalFee": "0.00",
@@ -4129,22 +4144,20 @@ class binance(Exchange):
         code = self.safe_currency_code(currencyId, currency)
         timestamp = None
         insertTime = self.safe_integer_2(transaction, 'insertTime', 'createTime')
-        applyTime = self.parse8601(self.safe_string(transaction, 'applyTime'))
+        updated = self.safe_integer_2(transaction, 'successTime', 'updateTime')
         type = self.safe_string(transaction, 'type')
         if type is None:
-            if (insertTime is not None) and (applyTime is None):
-                type = 'deposit'
-                timestamp = insertTime
-            elif (insertTime is None) and (applyTime is not None):
-                type = 'withdrawal'
-                timestamp = applyTime
+            txType = self.safe_string(transaction, 'transactionType')
+            type = 'deposit' if (txType == '0') else 'withdrawal'
+            timestamp = insertTime
+            legalMoneyCurrenciesById = self.safe_value(self.options, 'legalMoneyCurrenciesById')
+            code = self.safe_string(legalMoneyCurrenciesById, code, code)
         status = self.parse_transaction_status_by_type(self.safe_string(transaction, 'status'), type)
         amount = self.safe_number(transaction, 'amount')
         feeCost = self.safe_number_2(transaction, 'transactionFee', 'totalFee')
         fee = None
         if feeCost is not None:
             fee = {'currency': code, 'cost': feeCost}
-        updated = self.safe_integer_2(transaction, 'successTime', 'updateTime')
         internal = self.safe_integer(transaction, 'transferType')
         if internal is not None:
             internal = True if internal else False

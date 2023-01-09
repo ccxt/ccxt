@@ -177,6 +177,8 @@ module.exports = class bitopro extends Exchange {
                     'ETH': 'ERC20',
                     'TRX': 'TRX',
                     'TRC20': 'TRX',
+                    'BEP20': 'BSC',
+                    'BSC': 'BSC',
                 },
             },
             'precisionMode': TICK_SIZE,

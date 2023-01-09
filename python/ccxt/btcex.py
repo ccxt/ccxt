@@ -29,7 +29,7 @@ class btcex(Exchange):
             'countries': ['CA'],  # Canada
             'version': 'v1',
             'certified': False,
-            'pro': False,
+            'pro': True,
             'requiredCredentials': {
                 'apiKey': True,
                 'secret': True,
@@ -477,8 +477,10 @@ class btcex(Exchange):
         #     }
         #
         marketId = self.safe_string(ticker, 'instrument_name')
+        if marketId.find('PERPETUAL') < 0:
+            marketId = marketId + '-SPOT'
         market = self.safe_market(marketId, market)
-        symbol = self.safe_symbol(marketId, market)
+        symbol = self.safe_symbol(marketId, market, '-')
         timestamp = self.safe_integer(ticker, 'timestamp')
         stats = self.safe_value(ticker, 'stats')
         return self.safe_ticker({
@@ -546,6 +548,8 @@ class btcex(Exchange):
         request = {
             'instrument_name': market['id'],
         }
+        if limit is not None:
+            request['depth'] = limit
         response = self.publicGetGetOrderBook(self.extend(request, params))
         result = self.safe_value(response, 'result', {})
         #
@@ -564,7 +568,9 @@ class btcex(Exchange):
         #     }
         #
         timestamp = self.safe_integer(result, 'timestamp')
-        return self.parse_order_book(result, market['symbol'], timestamp)
+        orderBook = self.parse_order_book(result, market['symbol'], timestamp)
+        orderBook['nonce'] = self.safe_integer(result, 'version')
+        return orderBook
 
     def parse_ohlcv(self, ohlcv, market=None):
         #
@@ -1102,6 +1108,8 @@ class btcex(Exchange):
         lastUpdate = self.safe_integer(order, 'last_update_timestamp')
         id = self.safe_string(order, 'order_id')
         priceString = self.safe_string(order, 'price')
+        if priceString == '-1':
+            priceString = None
         averageString = self.safe_string(order, 'average_price')
         amountString = self.safe_string(order, 'amount')
         filledString = self.safe_string(order, 'filled_amount')

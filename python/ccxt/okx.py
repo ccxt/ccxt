@@ -147,8 +147,6 @@ class okx(Exchange):
                 '1w': '1W',
                 '1M': '1M',
                 '3M': '3M',
-                '6M': '6M',
-                '1y': '1Y',
             },
             'hostname': 'www.okx.com',  # or aws.okx.com
             'urls': {
@@ -196,6 +194,7 @@ class okx(Exchange):
                         'public/time': 2,
                         'public/liquidation-orders': 0.5,
                         'public/mark-price': 2,
+                        'public/option-trades': 1,
                         # 'public/tier',
                         'public/position-tiers': 2,
                         'public/underlying': 1,
@@ -734,6 +733,9 @@ class okx(Exchange):
                     'POLYGON': 'Polygon',
                     'OEC': 'OEC',
                     'ALGO': 'ALGO',  # temporarily unavailable
+                    'OPTIMISM': 'Optimism',
+                    'ARBITRUM': 'Arbitrum one',
+                    'AVALANCHE': 'Avalanche C-Chain',
                 },
                 'fetchOpenInterestHistory': {
                     'timeframes': {
@@ -3495,7 +3497,7 @@ class okx(Exchange):
         self.check_address(address)
         self.load_markets()
         currency = self.currency(code)
-        if tag is not None:
+        if (tag is not None) and (len(tag) > 0):
             address = address + ':' + tag
         fee = self.safe_string(params, 'fee')
         if fee is None:

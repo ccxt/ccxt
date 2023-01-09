@@ -207,6 +207,12 @@ class woo(Exchange):
                         'post': {
                             'algo/order': 5,
                         },
+                        'put': {
+                            'order/{oid}': 2,
+                            'order/client/{oid}': 2,
+                            'algo/order/{oid}': 2,
+                            'algo/order/client/{oid}': 2,
+                        },
                         'delete': {
                             'algo/order/{oid}': 1,
                             'algo/orders/pending': 1,
@@ -741,6 +747,45 @@ class woo(Exchange):
             self.parse_order(response, market),
             {'type': type}
         )
+
+    async def edit_order(self, id, symbol, type, side, amount, price=None, params={}):
+        """
+        edit a trade order
+        :param str id: order id
+        :param str symbol: unified symbol of the market to create an order in
+        :param str type: 'market' or 'limit'
+        :param str side: 'buy' or 'sell'
+        :param float amount: how much of currency you want to trade in units of base currency
+        :param float|None price: the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+        :param dict params: extra parameters specific to the woo api endpoint
+        :returns dict: an `order structure <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
+        """
+        await self.load_markets()
+        market = self.market(symbol)
+        request = {
+            'oid': id,
+            # 'quantity': self.amount_to_precision(symbol, amount),
+            # 'price': self.price_to_precision(symbol, price),
+        }
+        if price is not None:
+            request['price'] = self.price_to_precision(symbol, price)
+        if amount is not None:
+            request['quantity'] = self.amount_to_precision(symbol, amount)
+        response = await self.v3PrivatePutOrderOid(self.extend(request, params))
+        #
+        #     {
+        #         "code": 0,
+        #         "data": {
+        #             "status": "string",
+        #             "success": True
+        #         },
+        #         "message": "string",
+        #         "success": True,
+        #         "timestamp": 0
+        #     }
+        #
+        data = self.safe_value(response, 'data', {})
+        return self.parse_order(data, market)
 
     async def cancel_order(self, id, symbol=None, params={}):
         """
@@ -1663,36 +1708,38 @@ class woo(Exchange):
     def sign(self, path, section='public', method='GET', params={}, headers=None, body=None):
         version = section[0]
         access = section[1]
+        pathWithParams = self.implode_params(path, params)
         url = self.implode_hostname(self.urls['api'][access])
         url += '/' + version + '/'
-        path = self.implode_params(path, params)
         params = self.omit(params, self.extract_params(path))
         params = self.keysort(params)
         if access == 'public':
-            url += access + '/' + path
+            url += access + '/' + pathWithParams
             if params:
                 url += '?' + self.urlencode(params)
         else:
             self.check_required_credentials()
-            url += path
+            auth = ''
             ts = str(self.nonce())
-            auth = self.urlencode(params)
-            if version == 'v3' and (method == 'POST'):
+            url += pathWithParams
+            headers = {
+                'x-api-key': self.apiKey,
+                'x-api-timestamp': ts,
+            }
+            if version == 'v3' and (method == 'POST' or method == 'PUT' or method == 'DELETE'):
+                auth = self.json(params)
                 body = auth
-                auth = ts + method + '/' + version + '/' + path + body
+                auth = ts + method + '/' + version + '/' + pathWithParams + body
+                headers['content-type'] = 'application/json'
             else:
-                if method == 'POST' or method == 'DELETE':
+                auth = self.urlencode(params)
+                if method == 'POST' or method == 'PUT' or method == 'DELETE':
                     body = auth
                 else:
                     url += '?' + auth
                 auth += '|' + ts
-            signature = self.hmac(self.encode(auth), self.encode(self.secret), hashlib.sha256)
-            headers = {
-                'x-api-key': self.apiKey,
-                'x-api-signature': signature,
-                'x-api-timestamp': ts,
-                'Content-Type': 'application/x-www-form-urlencoded',
-            }
+                headers['content-type'] = 'application/x-www-form-urlencoded'
+            headers['x-api-signature'] = self.hmac(self.encode(auth), self.encode(self.secret), hashlib.sha256)
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
     def handle_errors(self, httpCode, reason, url, method, headers, body, response, requestHeaders, requestBody):

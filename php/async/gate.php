@@ -694,7 +694,7 @@ class gate extends Exchange {
         }) ();
     }
 
-    public function fetch_spot_markets($params) {
+    public function fetch_spot_markets($params = array ()) {
         return Async\async(function () use ($params) {
             $marginResponse = Async\await($this->publicMarginGetCurrencyPairs ($params));
             $spotMarketsResponse = Async\await($this->publicSpotGetCurrencyPairs ($params));
@@ -803,16 +803,17 @@ class gate extends Exchange {
         }) ();
     }
 
-    public function fetch_contract_markets($params) {
+    public function fetch_contract_markets($params = array ()) {
         return Async\async(function () use ($params) {
             $result = array();
             $swapSettlementCurrencies = $this->get_settlement_currencies('swap', 'fetchMarkets');
             $futureSettlementCurrencies = $this->get_settlement_currencies('future', 'fetchMarkets');
             for ($c = 0; $c < count($swapSettlementCurrencies); $c++) {
                 $settleId = $swapSettlementCurrencies[$c];
-                $query = $params;
-                $query['settle'] = $settleId;
-                $response = Async\await($this->publicFuturesGetSettleContracts ($query));
+                $request = array(
+                    'settle' => $settleId,
+                );
+                $response = Async\await($this->publicFuturesGetSettleContracts (array_merge($request, $params)));
                 for ($i = 0; $i < count($response); $i++) {
                     $parsedMarket = $this->parse_contract_market($response[$i], $settleId);
                     $result[] = $parsedMarket;
@@ -820,9 +821,10 @@ class gate extends Exchange {
             }
             for ($c = 0; $c < count($futureSettlementCurrencies); $c++) {
                 $settleId = $futureSettlementCurrencies[$c];
-                $query = $params;
-                $query['settle'] = $settleId;
-                $response = Async\await($this->publicDeliveryGetSettleContracts ($query));
+                $request = array(
+                    'settle' => $settleId,
+                );
+                $response = Async\await($this->publicDeliveryGetSettleContracts (array_merge($request, $params)));
                 for ($i = 0; $i < count($response); $i++) {
                     $parsedMarket = $this->parse_contract_market($response[$i], $settleId);
                     $result[] = $parsedMarket;
@@ -2110,7 +2112,7 @@ class gate extends Exchange {
         //        A => '0.0353' // best $ask size
         //     }
         //
-        $marketId = $this->safe_string_n($ticker, array( 'currency_pair', 'contract', 's' ));
+        $marketId = $this->safe_string_2($ticker, 'currency_pair', 'contract');
         $marketType = (is_array($ticker) && array_key_exists('contract', $ticker)) ? 'contract' : 'spot';
         $symbol = $this->safe_symbol($marketId, $market, '_', $marketType);
         $last = $this->safe_string($ticker, 'last');
@@ -3038,12 +3040,14 @@ class gate extends Exchange {
         $id = $this->safe_string($transaction, 'id');
         $type = null;
         $amount = $this->safe_string($transaction, 'amount');
-        if ($id[0] === 'b') {
-            // GateCode handling
-            $type = Precise::string_gt($amount, '0') ? 'deposit' : 'withdrawal';
-            $amount = Precise::string_abs($amount);
-        } elseif ($id !== null) {
-            $type = $this->parse_transaction_type($id[0]);
+        if ($id !== null) {
+            if ($id[0] === 'b') {
+                // GateCode handling
+                $type = Precise::string_gt($amount, '0') ? 'deposit' : 'withdrawal';
+                $amount = Precise::string_abs($amount);
+            } else {
+                $type = $this->parse_transaction_type($id[0]);
+            }
         }
         $currencyId = $this->safe_string($transaction, 'currency');
         $code = $this->safe_currency_code($currencyId);

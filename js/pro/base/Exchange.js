@@ -8,7 +8,8 @@ const BaseExchange = require ("../../base/Exchange")
         IndexedOrderBook,
         CountedOrderBook,
     } = require ('./OrderBook')
-    , functions = require ('./functions');
+    , functions = require ('./functions')
+    ,  { ExchangeError, NotSupported } = require ('../../base/errors');
 
 module.exports = class Exchange extends BaseExchange {
     constructor (options = {}) {
@@ -180,5 +181,41 @@ module.exports = class Exchange extends BaseExchange {
             }
         }
         return undefined;
+    }
+
+    async loadOrderBook (client, messageHash, symbol, limit = undefined, params = {}) {
+        if (!(symbol in this.orderbooks)) {
+            client.reject (new ExchangeError (this.id + ' loadOrderBook() orderbook is not initiated'), messageHash);
+            return;
+        }
+        const stored = this.orderbooks[symbol];
+        try {
+            const orderBook = await this.fetchOrderBook (symbol, limit, params);
+            const cache = stored.cache;
+            const index = this.getCacheIndex (orderBook, cache);
+            if (index >= 0) {
+                stored.reset (orderBook);
+                this.handleDeltas (stored, cache.slice (index));
+                cache.length = 0;
+                client.resolve (stored, messageHash);
+            } else {
+                client.reject (new ExchangeError (this.id + ' nonce is behind the cache'));
+            }
+        } catch (e) {
+            delete this.orderbooks[symbol];
+            client.reject (e, messageHash);
+        }
+    }
+
+    handleDeltas (orderbook, deltas) {
+        for (let i = 0; i < deltas.length; i++) {
+            this.handleDelta (orderbook, deltas[i]);
+        }
+    }
+
+    // eslint-disable-next-line no-unused-vars
+    getCacheIndex (orderbook, deltas) {
+        // return the first index of the cache that can be applied to the orderbook or -1 if not possible
+        return -1;
     }
 };
