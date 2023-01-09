@@ -2,7 +2,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '2.5.42'
+__version__ = '2.5.65'
 
 # -----------------------------------------------------------------------------
 
@@ -124,6 +124,27 @@ class WsConnector:
             self.clients[url] = FastClient(url, on_message, on_error, on_close, on_connected, options)
         return self.clients[url]
 
+    async def spawn_async(self, method, *args):
+        try:
+            await method(*args)
+        except Exception:
+            # todo: handle spawned errors
+            pass
+
+    async def delay_async(self, timeout, method, *args):
+        await self.sleep(timeout)
+        try:
+            await method(*args)
+        except Exception:
+            # todo: handle spawned errors
+            pass
+
+    def spawn(self, method, *args):
+        asyncio.ensure_future(method(*args))
+
+    def delay(self, timeout, method, *args):
+        asyncio.ensure_future(self.delay_async(timeout, method, *args))
+
     def handle_message(self, client, message):
         always = True
         if always:
@@ -202,7 +223,7 @@ class WsConnector:
             index = self.get_cache_index(order_book, cache)
             if index >= 0:
                 stored.reset(order_book)
-                self.handle_deltas(order_book, cache[index:])
+                self.handle_deltas(stored, cache[index:])
                 cache.clear()
                 client.resolve(stored, messageHash)
             else:

@@ -682,7 +682,7 @@ export default class gate extends Exchange {
         return this.arrayConcat (spotMarkets, contractMarkets);
     }
 
-    async fetchSpotMarkets (params) {
+    async fetchSpotMarkets (params = {}) {
         const marginResponse = await (this as any).publicMarginGetCurrencyPairs (params);
         const spotMarketsResponse = await (this as any).publicSpotGetCurrencyPairs (params);
         const marginMarkets = this.indexBy (marginResponse, 'id');
@@ -789,15 +789,16 @@ export default class gate extends Exchange {
         return result;
     }
 
-    async fetchContractMarkets (params) {
+    async fetchContractMarkets (params = {}) {
         const result = [];
         const swapSettlementCurrencies = this.getSettlementCurrencies ('swap', 'fetchMarkets');
         const futureSettlementCurrencies = this.getSettlementCurrencies ('future', 'fetchMarkets');
         for (let c = 0; c < swapSettlementCurrencies.length; c++) {
             const settleId = swapSettlementCurrencies[c];
-            const query = params;
-            query['settle'] = settleId;
-            const response = await (this as any).publicFuturesGetSettleContracts (query);
+            const request = {
+                'settle': settleId,
+            };
+            const response = await (this as any).publicFuturesGetSettleContracts (this.extend (request, params));
             for (let i = 0; i < response.length; i++) {
                 const parsedMarket = this.parseContractMarket (response[i], settleId);
                 result.push (parsedMarket);
@@ -805,9 +806,10 @@ export default class gate extends Exchange {
         }
         for (let c = 0; c < futureSettlementCurrencies.length; c++) {
             const settleId = futureSettlementCurrencies[c];
-            const query = params;
-            query['settle'] = settleId;
-            const response = await (this as any).publicDeliveryGetSettleContracts (query);
+            const request = {
+                'settle': settleId,
+            };
+            const response = await (this as any).publicDeliveryGetSettleContracts (this.extend (request, params));
             for (let i = 0; i < response.length; i++) {
                 const parsedMarket = this.parseContractMarket (response[i], settleId);
                 result.push (parsedMarket);
@@ -2096,7 +2098,7 @@ export default class gate extends Exchange {
         //        A: '0.0353' // best ask size
         //     }
         //
-        const marketId = this.safeStringN (ticker, [ 'currency_pair', 'contract', 's' ]);
+        const marketId = this.safeString2 (ticker, 'currency_pair', 'contract');
         const marketType = ('contract' in ticker) ? 'contract' : 'spot';
         const symbol = this.safeSymbol (marketId, market, '_', marketType);
         const last = this.safeString (ticker, 'last');

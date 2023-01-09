@@ -1393,7 +1393,8 @@ class binance(Exchange):
                     '-21001': BadRequest,  # {"code":-21001,"msg":"USER_IS_NOT_UNIACCOUNT"}
                     '-21002': BadRequest,  # {"code":-21002,"msg":"UNI_ACCOUNT_CANT_TRANSFER_FUTURE"}
                     '-21003': BadRequest,  # {"code":-21003,"msg":"NET_ASSET_MUST_LTE_RATIO"}
-                    '100001003': BadRequest,  # {"code":100001003,"msg":"Verification failed"}  # undocumented
+                    '100001003': AuthenticationError,  # {"code":100001003,"msg":"Verification failed"}  # undocumented
+                    '200003903': AuthenticationError,  # {"code":200003903,"msg":"Your identity verification has been rejected. Please complete identity verification again."}
                 },
                 'broad': {
                     'has no operation privilege': PermissionDenied,

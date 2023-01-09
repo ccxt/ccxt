@@ -3705,7 +3705,7 @@ class okx extends Exchange {
             $this->check_address($address);
             Async\await($this->load_markets());
             $currency = $this->currency($code);
-            if ($tag !== null) {
+            if (($tag !== null) && (strlen($tag) > 0)) {
                 $address = $address . ':' . $tag;
             }
             $fee = $this->safe_string($params, 'fee');

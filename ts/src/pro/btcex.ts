@@ -25,6 +25,9 @@ export default class btcex extends btcexRest {
                 },
             },
             'options': {
+                'watchOrderBook': {
+                    'snapshotDelay': 0,
+                },
             },
             'streaming': {
                 'ping': this.ping,
@@ -593,7 +596,8 @@ export default class btcex extends btcexRest {
         const messageHash = 'orderbook:' + symbol;
         if (nonce === undefined) {
             const cacheLength = storedOrderBook.cache.length;
-            if (cacheLength === 0) {
+            const snapshotDelay = this.handleOption ('watchOrderBook', 'snapshotDelay', 0);
+            if (cacheLength === snapshotDelay) {
                 const limit = 0;
                 this.spawn (this.loadOrderBook, client, messageHash, symbol, limit);
             }
@@ -602,11 +606,7 @@ export default class btcex extends btcexRest {
         } else if (deltaNonce <= nonce) {
             return;
         }
-        const timestamp = this.safeInteger (data, 'timestamp');
         this.handleDelta (storedOrderBook, data);
-        storedOrderBook['timestamp'] = timestamp;
-        storedOrderBook['datetime'] = this.iso8601 (timestamp);
-        storedOrderBook['nonce'] = deltaNonce;
         client.resolve (storedOrderBook, messageHash);
     }
 
@@ -630,6 +630,10 @@ export default class btcex extends btcexRest {
     }
 
     handleDelta (orderbook, delta) {
+        const timestamp = this.safeInteger (delta, 'timestamp');
+        orderbook['timestamp'] = timestamp;
+        orderbook['datetime'] = this.iso8601 (timestamp);
+        orderbook['nonce'] = this.safeInteger (delta, 'change_id');
         const bids = this.safeValue (delta, 'bids', []);
         const asks = this.safeValue (delta, 'asks', []);
         const storedBids = orderbook['bids'];

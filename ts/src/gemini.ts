@@ -18,7 +18,7 @@ export default class gemini extends Exchange {
             // 120 requests a minute = 2 requests per second => ( 1000ms / rateLimit ) / 2 = 5 (public endpoints)
             'rateLimit': 100,
             'version': 'v1',
-            'pro': false,
+            'pro': true,
             'has': {
                 'CORS': undefined,
                 'spot': true,
@@ -116,6 +116,7 @@ export default class gemini extends Exchange {
                     'get': {
                         'v1/symbols': 5,
                         'v1/symbols/details/{symbol}': 5,
+                        'v1/staking/rates': 5,
                         'v1/pubticker/{symbol}': 5,
                         'v2/ticker/{symbol}': 5,
                         'v2/candles/{symbol}/{timeframe}': 5,
@@ -129,6 +130,10 @@ export default class gemini extends Exchange {
                 },
                 'private': {
                     'post': {
+                        'v1/staking/unstake': 1,
+                        'v1/staking/stake': 1,
+                        'v1/staking/rewards': 1,
+                        'v1/staking/history': 1,
                         'v1/order/new': 1,
                         'v1/order/cancel': 1,
                         'v1/wrap/{symbol}': 1,
@@ -144,6 +149,7 @@ export default class gemini extends Exchange {
                         'v1/clearing/cancel': 1,
                         'v1/clearing/confirm': 1,
                         'v1/balances': 1,
+                        'v1/balances/staking': 1,
                         'v1/notionalbalances/{currency}': 1,
                         'v1/transfers': 1,
                         'v1/addresses/{network}': 1,
@@ -156,6 +162,7 @@ export default class gemini extends Exchange {
                         'v1/payments/sen/withdraw': 1,
                         'v1/balances/earn': 1,
                         'v1/earn/interest': 1,
+                        'v1/earn/history': 1,
                         'v1/approvedAddresses/{network}/request': 1,
                         'v1/approvedAddresses/account/{network}': 1,
                         'v1/approvedAddresses/{network}/remove': 1,
@@ -258,6 +265,7 @@ export default class gemini extends Exchange {
                     'DOGE': 'dogecoin',
                     'XTZ': 'tezos',
                 },
+                'nonce': 'milliseconds', // if getting a Network 400 error change to seconds
             },
         });
     }
@@ -1417,7 +1425,11 @@ export default class gemini extends Exchange {
     }
 
     nonce () {
-        return this.milliseconds ();
+        const nonceMethod = this.safeString (this.options, 'nonce', 'milliseconds');
+        if (nonceMethod === 'milliseconds') {
+            return this.milliseconds ();
+        }
+        return this.seconds ();
     }
 
     async fetchTransactions (code = undefined, since = undefined, limit = undefined, params = {}) {
@@ -1646,8 +1658,9 @@ export default class gemini extends Exchange {
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
+        const timeframeId = this.safeString (this.timeframes, timeframe, timeframe);
         const request = {
-            'timeframe': this.timeframes[timeframe],
+            'timeframe': timeframeId,
             'symbol': market['id'],
         };
         const response = await (this as any).publicGetV2CandlesSymbolTimeframe (this.extend (request, params));

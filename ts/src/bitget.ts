@@ -87,10 +87,12 @@ export default class bitget extends Exchange {
             },
             'timeframes': {
                 '1m': '1m',
+                '3m': '3m',
                 '5m': '5m',
                 '15m': '15m',
                 '30m': '30m',
                 '1h': '1h',
+                '2h': '2h',
                 '4h': '4h',
                 '6h': '6h',
                 '12h': '12h',
@@ -751,29 +753,34 @@ export default class bitget extends Exchange {
             'options': {
                 'timeframes': {
                     'spot': {
-                        '1m': '1min',
-                        '5m': '5min',
-                        '15m': '15min',
-                        '30m': '30min',
+                        '1m': '1m',
+                        '5m': '5m',
+                        '15m': '15m',
+                        '30m': '30m',
                         '1h': '1h',
                         '4h': '4h',
-                        '6h': '6h',
-                        '12h': '12h',
-                        '1d': '1day',
-                        '3d': '3day',
-                        '1w': '1week',
-                        '1M': '1M',
+                        '6h': '6Hutc',
+                        '12h': '12Hutc',
+                        '1d': '1Dutc',
+                        '3d': '3Dutc',
+                        '1w': '1Wutc',
+                        '1M': '1Mutc',
                     },
                     'swap': {
-                        '1m': '60',
-                        '5m': '300',
-                        '15m': '900',
-                        '30m': '1800',
-                        '1h': '3600',
-                        '4h': '14400',
-                        '12h': '43200',
-                        '1d': '86400',
-                        '1w': '604800',
+                        '1m': '1m',
+                        '3m': '3m',
+                        '5m': '5m',
+                        '15m': '15m',
+                        '30m': '30m',
+                        '1h': '1H',
+                        '2h': '2H',
+                        '4h': '4H',
+                        '6h': '6Hutc',
+                        '12h': '12Hutc',
+                        '1d': '1Dutc',
+                        '3d': '3Dutc',
+                        '1w': '1Wutc',
+                        '1M': '1Mutc',
                     },
                 },
                 'fetchMarkets': [
@@ -3080,7 +3087,7 @@ export default class bitget extends Exchange {
         //     }
         //
         const data = this.safeValue (response, 'data', []);
-        return this.parsePosition (data[0], market);
+        return this.parsePositions (data);
     }
 
     async fetchPositions (symbols = undefined, params = {}) {
@@ -3159,52 +3166,89 @@ export default class bitget extends Exchange {
         //
         const marketId = this.safeString (position, 'symbol');
         market = this.safeMarket (marketId, market);
+        const symbol = market['symbol'];
         const timestamp = this.safeInteger (position, 'cTime');
         let marginMode = this.safeString (position, 'marginMode');
+        let collateral = undefined;
+        let initialMargin = undefined;
+        const unrealizedPnl = this.safeString (position, 'unrealizedPL');
+        const rawCollateral = this.safeString (position, 'margin');
         if (marginMode === 'fixed') {
             marginMode = 'isolated';
+            collateral = Precise.stringAdd (rawCollateral, unrealizedPnl);
         } else if (marginMode === 'crossed') {
             marginMode = 'cross';
+            initialMargin = rawCollateral;
         }
-        const hedgedRaw = this.safeString (position, 'holdMode');
+        const holdMode = this.safeString (position, 'holdMode');
         let hedged = undefined;
-        if (hedgedRaw === 'double_hold') {
+        if (holdMode === 'double_hold') {
             hedged = true;
-        } else if (hedgedRaw === 'single_hold') {
+        } else if (holdMode === 'single_hold') {
             hedged = false;
         }
-        let contracts = this.safeInteger (position, 'openDelegateCount');
-        let liquidation = this.safeNumber (position, 'liquidationPrice');
-        if (contracts === 0) {
-            contracts = undefined;
+        const side = this.safeString (position, 'holdSide');
+        const leverage = this.safeString (position, 'leverage');
+        const contractSizeNumber = this.safeValue (market, 'contractSize');
+        const contractSize = this.numberToString (contractSizeNumber);
+        const baseAmount = this.safeString (position, 'total');
+        const entryPrice = this.safeString (position, 'averageOpenPrice');
+        const maintenanceMarginPercentage = this.safeString (position, 'keepMarginRate');
+        const openNotional = Precise.stringMul (entryPrice, baseAmount);
+        if (initialMargin === undefined) {
+            initialMargin = Precise.stringDiv (openNotional, leverage);
         }
-        if (liquidation === 0) {
-            liquidation = undefined;
+        const contracts = this.parseNumber (Precise.stringDiv (baseAmount, contractSize));
+        const markPrice = this.safeString (position, 'marketPrice');
+        const notional = Precise.stringMul (baseAmount, markPrice);
+        const initialMarginPercentage = Precise.stringDiv (initialMargin, notional);
+        let liquidationPrice = this.parseNumber (this.omitZero (this.safeString (position, 'liquidationPrice')));
+        const calcTakerFeeRate = '0.0006';
+        const calcTakerFeeMult = '0.9994';
+        if ((liquidationPrice === undefined) && (marginMode === 'isolated') && Precise.stringGt (baseAmount, '0')) {
+            let signedMargin = Precise.stringDiv (rawCollateral, baseAmount);
+            let signedMmp = maintenanceMarginPercentage;
+            if (side === 'short') {
+                signedMargin = Precise.stringNeg (signedMargin);
+                signedMmp = Precise.stringNeg (signedMmp);
+            }
+            let mmrMinusOne = Precise.stringSub ('1', signedMmp);
+            let numerator = Precise.stringSub (entryPrice, signedMargin);
+            if (side === 'long') {
+                mmrMinusOne = Precise.stringMul (mmrMinusOne, calcTakerFeeMult);
+            } else {
+                numerator = Precise.stringMul (numerator, calcTakerFeeMult);
+            }
+            liquidationPrice = this.parseNumber (Precise.stringDiv (numerator, mmrMinusOne));
         }
+        const feeToClose = Precise.stringMul (notional, calcTakerFeeRate);
+        const maintenanceMargin = Precise.stringAdd (Precise.stringMul (maintenanceMarginPercentage, notional), feeToClose);
+        const marginRatio = Precise.stringDiv (maintenanceMargin, collateral);
+        const percentage = Precise.stringMul (Precise.stringDiv (unrealizedPnl, initialMargin, 4), '100');
         return {
             'info': position,
             'id': undefined,
-            'symbol': market['symbol'],
-            'notional': undefined,
+            'symbol': symbol,
+            'notional': this.parseNumber (notional),
             'marginMode': marginMode,
-            'liquidationPrice': liquidation,
-            'entryPrice': this.safeNumber (position, 'averageOpenPrice'),
-            'unrealizedPnl': this.safeNumber (position, 'unrealizedPL'),
-            'percentage': undefined,
+            'liquidationPrice': liquidationPrice,
+            'entryPrice': this.parseNumber (entryPrice),
+            'unrealizedPnl': this.parseNumber (unrealizedPnl),
+            'percentage': this.parseNumber (percentage),
             'contracts': contracts,
-            'contractSize': this.safeNumber (position, 'total'),
-            'markPrice': undefined,
-            'side': this.safeString (position, 'holdSide'),
+            'contractSize': contractSizeNumber,
+            'markPrice': this.parseNumber (markPrice),
+            'side': side,
             'hedged': hedged,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'maintenanceMargin': undefined,
-            'maintenanceMarginPercentage': this.safeNumber (position, 'keepMarginRate'),
-            'collateral': this.safeNumber (position, 'margin'),
-            'initialMargin': undefined,
-            'initialMarginPercentage': undefined,
-            'leverage': this.safeNumber (position, 'leverage'),
-            'marginRatio': undefined,
+            'maintenanceMargin': this.parseNumber (maintenanceMargin),
+            'maintenanceMarginPercentage': this.parseNumber (maintenanceMarginPercentage),
+            'collateral': this.parseNumber (collateral),
+            'initialMargin': this.parseNumber (initialMargin),
+            'initialMarginPercentage': this.parseNumber (initialMarginPercentage),
+            'leverage': this.parseNumber (leverage),
+            'marginRatio': this.parseNumber (marginRatio),
         };
     }
 

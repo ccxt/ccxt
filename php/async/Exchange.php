@@ -36,11 +36,11 @@ use \ccxt\pro\ClientTrait;
 
 include 'Throttle.php';
 
-$version = '2.5.42';
+$version = '2.5.65';
 
 class Exchange extends \ccxt\Exchange {
 
-    const VERSION = '2.5.42';
+    const VERSION = '2.5.65';
 
     public $streaming = array(
         'keepAlive' => 30000,
@@ -1861,7 +1861,7 @@ class Exchange extends \ccxt\Exchange {
         // This method can be used to obtain method specific properties, i.e => $this->handleOptionAndParams ($params, 'fetchPosition', 'marginMode', 'isolated')
         $defaultOptionName = 'default' . $this->capitalize ($optionName); // we also need to check the 'defaultXyzWhatever'
         // check if $params contain the key
-        $value = $this->safe_string_2($params, $optionName, $defaultOptionName);
+        $value = $this->safe_value_2($params, $optionName, $defaultOptionName);
         if ($value !== null) {
             $params = $this->omit ($params, array( $optionName, $defaultOptionName ));
         } else {
@@ -1869,16 +1869,22 @@ class Exchange extends \ccxt\Exchange {
             $exchangeWideMethodOptions = $this->safe_value($this->options, $methodName);
             if ($exchangeWideMethodOptions !== null) {
                 // check if the option is defined in this method's props
-                $value = $this->safe_string_2($exchangeWideMethodOptions, $optionName, $defaultOptionName);
+                $value = $this->safe_value_2($exchangeWideMethodOptions, $optionName, $defaultOptionName);
             }
             if ($value === null) {
                 // if it's still null, check if global exchange-wide option exists
-                $value = $this->safe_string_2($this->options, $optionName, $defaultOptionName);
+                $value = $this->safe_value_2($this->options, $optionName, $defaultOptionName);
             }
             // if it's still null, use the default $value
             $value = ($value !== null) ? $value : $defaultValue;
         }
         return array( $value, $params );
+    }
+
+    public function handle_option($methodName, $optionName, $defaultValue = null) {
+        // eslint-disable-next-line no-unused-vars
+        list($result, $empty) = $this->handleOptionAndParams (array(), $methodName, $optionName, $defaultValue);
+        return $result;
     }
 
     public function handle_market_type_and_params($methodName, $market = null, $params = array ()) {

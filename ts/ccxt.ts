@@ -374,7 +374,7 @@ for (const exchange in pro) {
 }
 
 (pro as any).exchanges = Object.keys (pro)
-
+pro['Exchange'] = Exchange // now the same for rest and ts
 //-----------------------------------------------------------------------------
 
 const ccxt = Object.assign ({ version, Exchange, Precise, 'exchanges': Object.keys (exchanges), 'pro': pro}, exchanges, functions, errors)

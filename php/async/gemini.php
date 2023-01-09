@@ -25,7 +25,7 @@ class gemini extends Exchange {
             // 120 requests a minute = 2 requests per second => ( 1000ms / rateLimit ) / 2 = 5 (public endpoints)
             'rateLimit' => 100,
             'version' => 'v1',
-            'pro' => false,
+            'pro' => true,
             'has' => array(
                 'CORS' => null,
                 'spot' => true,
@@ -123,6 +123,7 @@ class gemini extends Exchange {
                     'get' => array(
                         'v1/symbols' => 5,
                         'v1/symbols/details/{symbol}' => 5,
+                        'v1/staking/rates' => 5,
                         'v1/pubticker/{symbol}' => 5,
                         'v2/ticker/{symbol}' => 5,
                         'v2/candles/{symbol}/{timeframe}' => 5,
@@ -136,6 +137,10 @@ class gemini extends Exchange {
                 ),
                 'private' => array(
                     'post' => array(
+                        'v1/staking/unstake' => 1,
+                        'v1/staking/stake' => 1,
+                        'v1/staking/rewards' => 1,
+                        'v1/staking/history' => 1,
                         'v1/order/new' => 1,
                         'v1/order/cancel' => 1,
                         'v1/wrap/{symbol}' => 1,
@@ -151,6 +156,7 @@ class gemini extends Exchange {
                         'v1/clearing/cancel' => 1,
                         'v1/clearing/confirm' => 1,
                         'v1/balances' => 1,
+                        'v1/balances/staking' => 1,
                         'v1/notionalbalances/{currency}' => 1,
                         'v1/transfers' => 1,
                         'v1/addresses/{network}' => 1,
@@ -163,6 +169,7 @@ class gemini extends Exchange {
                         'v1/payments/sen/withdraw' => 1,
                         'v1/balances/earn' => 1,
                         'v1/earn/interest' => 1,
+                        'v1/earn/history' => 1,
                         'v1/approvedAddresses/{network}/request' => 1,
                         'v1/approvedAddresses/account/{network}' => 1,
                         'v1/approvedAddresses/{network}/remove' => 1,
@@ -265,6 +272,7 @@ class gemini extends Exchange {
                     'DOGE' => 'dogecoin',
                     'XTZ' => 'tezos',
                 ),
+                'nonce' => 'milliseconds', // if getting a Network 400 error change to seconds
             ),
         ));
     }
@@ -1434,7 +1442,11 @@ class gemini extends Exchange {
     }
 
     public function nonce() {
-        return $this->milliseconds();
+        $nonceMethod = $this->safe_string($this->options, 'nonce', 'milliseconds');
+        if ($nonceMethod === 'milliseconds') {
+            return $this->milliseconds();
+        }
+        return $this->seconds();
     }
 
     public function fetch_transactions($code = null, $since = null, $limit = null, $params = array ()) {
@@ -1664,8 +1676,9 @@ class gemini extends Exchange {
              */
             Async\await($this->load_markets());
             $market = $this->market($symbol);
+            $timeframeId = $this->safe_string($this->timeframes, $timeframe, $timeframe);
             $request = array(
-                'timeframe' => $this->timeframes[$timeframe],
+                'timeframe' => $timeframeId,
                 'symbol' => $market['id'],
             );
             $response = Async\await($this->publicGetV2CandlesSymbolTimeframe (array_merge($request, $params)));

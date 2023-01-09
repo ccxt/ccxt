@@ -420,9 +420,11 @@ class bitfinex2(Exchange):
         # https://docs.bitfinex.com/docs/introduction#amount-precision
         # The amount field allows up to 8 decimals.
         # Anything exceeding self will be rounded to the 8th decimal.
+        symbol = self.safe_symbol(symbol)
         return self.decimal_to_precision(amount, TRUNCATE, self.markets[symbol]['precision']['amount'], DECIMAL_PLACES)
 
     def price_to_precision(self, symbol, price):
+        symbol = self.safe_symbol(symbol)
         price = self.decimal_to_precision(price, ROUND, self.markets[symbol]['precision']['price'], self.precisionMode)
         # https://docs.bitfinex.com/docs/introduction#price-precision
         # The precision level of all trading prices is based on significant figures.
@@ -1448,7 +1450,11 @@ class bitfinex2(Exchange):
         # order types "limit" and "market" immediatley parsed "EXCHANGE LIMIT" and "EXCHANGE MARKET"
         # note: same order types exist for margin orders without the EXCHANGE prefix
         orderTypes = self.safe_value(self.options, 'orderTypes', {})
-        orderType = self.safe_string_upper(orderTypes, type, type)
+        orderType = type.upper()
+        if market['spot']:
+            # although they claim that type needs to be 'exchange limit' or 'exchange market'
+            # in fact that's not the case for swap markets
+            orderType = self.safe_string_upper(orderTypes, type, type)
         stopPrice = self.safe_string_2(params, 'stopPrice', 'triggerPrice')
         timeInForce = self.safe_string(params, 'timeInForce')
         postOnlyParam = self.safe_value(params, 'postOnly', False)

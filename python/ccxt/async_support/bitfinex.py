@@ -595,23 +595,27 @@ class bitfinex(Exchange):
                 quoteId = id[3:6]
             base = self.safe_currency_code(baseId)
             quote = self.safe_currency_code(quoteId)
+            symbol = base + '/' + quote
+            type = 'spot'
+            if id.find('F0') > -1:
+                type = 'swap'
             result.append({
                 'id': id,
-                'symbol': base + '/' + quote,
+                'symbol': symbol,
                 'base': base,
                 'quote': quote,
                 'settle': None,
                 'baseId': baseId,
                 'quoteId': quoteId,
                 'settleId': None,
-                'type': 'spot',
-                'spot': True,
+                'type': type,
+                'spot': (type == 'spot'),
                 'margin': self.safe_value(market, 'margin'),
-                'swap': False,
+                'swap': (type == 'swap'),
                 'future': False,
                 'option': False,
                 'active': True,
-                'contract': False,
+                'contract': (type == 'swap'),
                 'linear': None,
                 'inverse': None,
                 'contractSize': None,
@@ -652,9 +656,11 @@ class bitfinex(Exchange):
         # https://docs.bitfinex.com/docs/introduction#amount-precision
         # The amount field allows up to 8 decimals.
         # Anything exceeding self will be rounded to the 8th decimal.
+        symbol = self.safe_symbol(symbol)
         return self.decimal_to_precision(amount, TRUNCATE, self.markets[symbol]['precision']['amount'], DECIMAL_PLACES)
 
     def price_to_precision(self, symbol, price):
+        symbol = self.safe_symbol(symbol)
         price = self.decimal_to_precision(price, ROUND, self.markets[symbol]['precision']['price'], self.precisionMode)
         # https://docs.bitfinex.com/docs/introduction#price-precision
         # The precision level of all trading prices is based on significant figures.
@@ -1009,11 +1015,15 @@ class bitfinex(Exchange):
         market = self.market(symbol)
         postOnly = self.safe_value(params, 'postOnly', False)
         params = self.omit(params, ['postOnly'])
+        if market['spot']:
+            # although they claim that type needs to be 'exchange limit' or 'exchange market'
+            # in fact that's not the case for swap markets
+            type = self.safe_string(self.options['orderTypes'], type, type)
         request = {
             'symbol': market['id'],
             'side': side,
             'amount': self.amount_to_precision(symbol, amount),
-            'type': self.safe_string(self.options['orderTypes'], type, type),
+            'type': type.lower(),
             'ocoorder': False,
             'buy_price_oco': 0,
             'sell_price_oco': 0,

@@ -109,10 +109,12 @@ class bitget(Exchange):
             },
             'timeframes': {
                 '1m': '1m',
+                '3m': '3m',
                 '5m': '5m',
                 '15m': '15m',
                 '30m': '30m',
                 '1h': '1h',
+                '2h': '2h',
                 '4h': '4h',
                 '6h': '6h',
                 '12h': '12h',
@@ -773,29 +775,34 @@ class bitget(Exchange):
             'options': {
                 'timeframes': {
                     'spot': {
-                        '1m': '1min',
-                        '5m': '5min',
-                        '15m': '15min',
-                        '30m': '30min',
+                        '1m': '1m',
+                        '5m': '5m',
+                        '15m': '15m',
+                        '30m': '30m',
                         '1h': '1h',
                         '4h': '4h',
-                        '6h': '6h',
-                        '12h': '12h',
-                        '1d': '1day',
-                        '3d': '3day',
-                        '1w': '1week',
-                        '1M': '1M',
+                        '6h': '6Hutc',
+                        '12h': '12Hutc',
+                        '1d': '1Dutc',
+                        '3d': '3Dutc',
+                        '1w': '1Wutc',
+                        '1M': '1Mutc',
                     },
                     'swap': {
-                        '1m': '60',
-                        '5m': '300',
-                        '15m': '900',
-                        '30m': '1800',
-                        '1h': '3600',
-                        '4h': '14400',
-                        '12h': '43200',
-                        '1d': '86400',
-                        '1w': '604800',
+                        '1m': '1m',
+                        '3m': '3m',
+                        '5m': '5m',
+                        '15m': '15m',
+                        '30m': '30m',
+                        '1h': '1H',
+                        '2h': '2H',
+                        '4h': '4H',
+                        '6h': '6Hutc',
+                        '12h': '12Hutc',
+                        '1d': '1Dutc',
+                        '3d': '3Dutc',
+                        '1w': '1Wutc',
+                        '1M': '1Mutc',
                     },
                 },
                 'fetchMarkets': [
@@ -2931,7 +2938,7 @@ class bitget(Exchange):
         #     }
         #
         data = self.safe_value(response, 'data', [])
-        return self.parse_position(data[0], market)
+        return self.parse_positions(data)
 
     async def fetch_positions(self, symbols=None, params={}):
         """
@@ -3005,47 +3012,83 @@ class bitget(Exchange):
         #
         marketId = self.safe_string(position, 'symbol')
         market = self.safe_market(marketId, market)
+        symbol = market['symbol']
         timestamp = self.safe_integer(position, 'cTime')
         marginMode = self.safe_string(position, 'marginMode')
+        collateral = None
+        initialMargin = None
+        unrealizedPnl = self.safe_string(position, 'unrealizedPL')
+        rawCollateral = self.safe_string(position, 'margin')
         if marginMode == 'fixed':
             marginMode = 'isolated'
+            collateral = Precise.string_add(rawCollateral, unrealizedPnl)
         elif marginMode == 'crossed':
             marginMode = 'cross'
-        hedged = self.safe_string(position, 'holdMode')
-        if hedged == 'double_hold':
+            initialMargin = rawCollateral
+        holdMode = self.safe_string(position, 'holdMode')
+        hedged = None
+        if holdMode == 'double_hold':
             hedged = True
-        elif hedged == 'single_hold':
+        elif holdMode == 'single_hold':
             hedged = False
-        contracts = self.safe_integer(position, 'openDelegateCount')
-        liquidation = self.safe_number(position, 'liquidationPrice')
-        if contracts == 0:
-            contracts = None
-        if liquidation == 0:
-            liquidation = None
+        side = self.safe_string(position, 'holdSide')
+        leverage = self.safe_string(position, 'leverage')
+        contractSizeNumber = self.safe_value(market, 'contractSize')
+        contractSize = self.number_to_string(contractSizeNumber)
+        baseAmount = self.safe_string(position, 'total')
+        entryPrice = self.safe_string(position, 'averageOpenPrice')
+        maintenanceMarginPercentage = self.safe_string(position, 'keepMarginRate')
+        openNotional = Precise.string_mul(entryPrice, baseAmount)
+        if initialMargin is None:
+            initialMargin = Precise.string_div(openNotional, leverage)
+        contracts = self.parse_number(Precise.string_div(baseAmount, contractSize))
+        markPrice = self.safe_string(position, 'marketPrice')
+        notional = Precise.string_mul(baseAmount, markPrice)
+        initialMarginPercentage = Precise.string_div(initialMargin, notional)
+        liquidationPrice = self.parse_number(self.omit_zero(self.safe_string(position, 'liquidationPrice')))
+        calcTakerFeeRate = '0.0006'
+        calcTakerFeeMult = '0.9994'
+        if (liquidationPrice is None) and (marginMode == 'isolated') and Precise.string_gt(baseAmount, '0'):
+            signedMargin = Precise.string_div(rawCollateral, baseAmount)
+            signedMmp = maintenanceMarginPercentage
+            if side == 'short':
+                signedMargin = Precise.string_neg(signedMargin)
+                signedMmp = Precise.string_neg(signedMmp)
+            mmrMinusOne = Precise.string_sub('1', signedMmp)
+            numerator = Precise.string_sub(entryPrice, signedMargin)
+            if side == 'long':
+                mmrMinusOne = Precise.string_mul(mmrMinusOne, calcTakerFeeMult)
+            else:
+                numerator = Precise.string_mul(numerator, calcTakerFeeMult)
+            liquidationPrice = Precise.string_add(Precise.string_div(numerator, mmrMinusOne))
+        feeToClose = Precise.string_mul(notional, calcTakerFeeRate)
+        maintenanceMargin = Precise.string_add(Precise.string_mul(maintenanceMarginPercentage, notional), feeToClose)
+        marginRatio = Precise.string_div(maintenanceMargin, collateral)
+        percentage = Precise.string_mul(Precise.string_div(unrealizedPnl, initialMargin, '4'), '100')
         return {
             'info': position,
             'id': None,
-            'symbol': market['symbol'],
-            'notional': None,
+            'symbol': symbol,
+            'notional': self.parse_number(notional),
             'marginMode': marginMode,
-            'liquidationPrice': liquidation,
-            'entryPrice': self.safe_number(position, 'averageOpenPrice'),
-            'unrealizedPnl': self.safe_number(position, 'unrealizedPL'),
-            'percentage': None,
+            'liquidationPrice': self.parse_number(liquidationPrice),
+            'entryPrice': self.parse_number(entryPrice),
+            'unrealizedPnl': self.parse_number(unrealizedPnl),
+            'percentage': self.parse_number(percentage),
             'contracts': contracts,
-            'contractSize': self.safe_number(position, 'total'),
-            'markPrice': None,
-            'side': self.safe_string(position, 'holdSide'),
+            'contractSize': contractSizeNumber,
+            'markPrice': self.parse_number(markPrice),
+            'side': side,
             'hedged': hedged,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
-            'maintenanceMargin': None,
-            'maintenanceMarginPercentage': self.safe_number(position, 'keepMarginRate'),
-            'collateral': self.safe_number(position, 'margin'),
-            'initialMargin': None,
-            'initialMarginPercentage': None,
-            'leverage': self.safe_number(position, 'leverage'),
-            'marginRatio': None,
+            'maintenanceMargin': self.parse_number(maintenanceMargin),
+            'maintenanceMarginPercentage': self.parse_number(maintenanceMarginPercentage),
+            'collateral': self.parse_number(collateral),
+            'initialMargin': self.parse_number(initialMargin),
+            'initialMarginPercentage': self.parse_number(initialMarginPercentage),
+            'leverage': self.parse_number(leverage),
+            'marginRatio': self.parse_number(marginRatio),
         }
 
     async def fetch_funding_rate_history(self, symbol=None, since=None, limit=None, params={}):

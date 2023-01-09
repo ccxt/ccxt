@@ -41,6 +41,8 @@ class digifinex extends Exchange {
                 'fetchCurrencies' => true,
                 'fetchDepositAddress' => true,
                 'fetchDeposits' => true,
+                'fetchDepositWithdrawFee' => 'emulated',
+                'fetchDepositWithdrawFees' => true,
                 'fetchFundingHistory' => false,
                 'fetchFundingRate' => true,
                 'fetchFundingRateHistory' => true,
@@ -3658,6 +3660,120 @@ class digifinex extends Exchange {
             }
         }
         return array( $marginMode, $params );
+    }
+
+    public function fetch_deposit_withdraw_fees($codes = null, $params = array ()) {
+        /**
+         * fetch deposit and withdraw fees
+         * @see https://docs.digifinex.com/en-ww/spot/v3/rest.html#get-currency-deposit-and-withdrawal-information
+         * @param {[string]|null} $codes not used by fetchDepositWithdrawFees ()
+         * @param {array} $params extra parameters specific to the digifinex api endpoint
+         * @return {array} a list of {@link https://docs.ccxt.com/en/latest/manual.html#fee-structure fee structures}
+         */
+        $this->load_markets();
+        $response = $this->publicSpotGetCurrencies ($params);
+        //
+        //   {
+        //       "data" => array(
+        //           array(
+        //               "deposit_status" => 0,
+        //               "min_withdraw_fee" => 5,
+        //               "withdraw_fee_currency" => "USDT",
+        //               "chain" => "OMNI",
+        //               "withdraw_fee_rate" => 0,
+        //               "min_withdraw_amount" => 10,
+        //               "currency" => "USDT",
+        //               "withdraw_status" => 0,
+        //               "min_deposit_amount" => 10
+        //           ),
+        //           array(
+        //               "deposit_status" => 1,
+        //               "min_withdraw_fee" => 5,
+        //               "withdraw_fee_currency" => "USDT",
+        //               "chain" => "ERC20",
+        //               "withdraw_fee_rate" => 0,
+        //               "min_withdraw_amount" => 10,
+        //               "currency" => "USDT",
+        //               "withdraw_status" => 1,
+        //               "min_deposit_amount" => 10
+        //           ),
+        //       ),
+        //       "code" => 200,
+        //   }
+        //
+        $data = $this->safe_value($response, 'data');
+        return $this->parse_deposit_withdraw_fees($data, $codes);
+    }
+
+    public function parse_deposit_withdraw_fees($response, $codes = null, $currencyIdKey = null) {
+        //
+        //     array(
+        //         array(
+        //             "deposit_status" => 0,
+        //             "min_withdraw_fee" => 5,
+        //             "withdraw_fee_currency" => "USDT",
+        //             "chain" => "OMNI",
+        //             "withdraw_fee_rate" => 0,
+        //             "min_withdraw_amount" => 10,
+        //             "currency" => "USDT",
+        //             "withdraw_status" => 0,
+        //             "min_deposit_amount" => 10
+        //         ),
+        //         array(
+        //             "deposit_status" => 1,
+        //             "min_withdraw_fee" => 5,
+        //             "withdraw_fee_currency" => "USDT",
+        //             "chain" => "ERC20",
+        //             "withdraw_fee_rate" => 0,
+        //             "min_withdraw_amount" => 10,
+        //             "currency" => "USDT",
+        //             "withdraw_status" => 1,
+        //             "min_deposit_amount" => 10
+        //         ),
+        //     )
+        //
+        $depositWithdrawFees = array();
+        $codes = $this->market_codes($codes);
+        for ($i = 0; $i < count($response); $i++) {
+            $entry = $response[$i];
+            $currencyId = $this->safe_string($entry, 'currency');
+            $code = $this->safe_currency_code($currencyId);
+            if (($codes === null) || ($this->in_array($code, $codes))) {
+                $depositWithdrawFee = $this->safe_value($depositWithdrawFees, $code);
+                if ($depositWithdrawFee === null) {
+                    $depositWithdrawFees[$code] = $this->deposit_withdraw_fee(array());
+                    $depositWithdrawFees[$code]['info'] = array();
+                }
+                $depositWithdrawFees[$code]['info'][] = $entry;
+                $networkId = $this->safe_string($entry, 'chain');
+                $withdrawFee = $this->safe_value($entry, 'min_withdraw_fee');
+                $withdrawResult = array(
+                    'fee' => $withdrawFee,
+                    'percentage' => ($withdrawFee !== null) ? false : null,
+                );
+                $depositResult = array(
+                    'fee' => null,
+                    'percentage' => null,
+                );
+                if ($networkId !== null) {
+                    $networkCode = $this->network_id_to_code($networkId);
+                    $depositWithdrawFees[$code]['networks'][$networkCode] = array(
+                        'withdraw' => $withdrawResult,
+                        'deposit' => $depositResult,
+                    );
+                } else {
+                    $depositWithdrawFees[$code]['withdraw'] = $withdrawResult;
+                    $depositWithdrawFees[$code]['deposit'] = $depositResult;
+                }
+            }
+        }
+        $depositWithdrawCodes = is_array($depositWithdrawFees) ? array_keys($depositWithdrawFees) : array();
+        for ($i = 0; $i < count($depositWithdrawCodes); $i++) {
+            $code = $depositWithdrawCodes[$i];
+            $currency = $this->currency($code);
+            $depositWithdrawFees[$code] = $this->assign_default_deposit_withdraw_fees($depositWithdrawFees[$code], $currency);
+        }
+        return $depositWithdrawFees;
     }
 
     public function sign($path, $api = [], $method = 'GET', $params = array (), $headers = null, $body = null) {

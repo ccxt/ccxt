@@ -32,6 +32,9 @@ class btcex(Exchange, ccxt.async_support.btcex):
                 },
             },
             'options': {
+                'watchOrderBook': {
+                    'snapshotDelay': 0,
+                },
             },
             'streaming': {
                 'ping': self.ping,
@@ -556,18 +559,15 @@ class btcex(Exchange, ccxt.async_support.btcex):
         messageHash = 'orderbook:' + symbol
         if nonce is None:
             cacheLength = len(storedOrderBook.cache)
-            if cacheLength == 0:
+            snapshotDelay = self.handle_option('watchOrderBook', 'snapshotDelay', 0)
+            if cacheLength == snapshotDelay:
                 limit = 0
                 self.spawn(self.load_order_book, client, messageHash, symbol, limit)
             storedOrderBook.cache.append(data)
             return
         elif deltaNonce <= nonce:
             return
-        timestamp = self.safe_integer(data, 'timestamp')
         self.handle_delta(storedOrderBook, data)
-        storedOrderBook['timestamp'] = timestamp
-        storedOrderBook['datetime'] = self.iso8601(timestamp)
-        storedOrderBook['nonce'] = deltaNonce
         client.resolve(storedOrderBook, messageHash)
 
     def get_cache_index(self, orderBook, cache):
@@ -586,6 +586,10 @@ class btcex(Exchange, ccxt.async_support.btcex):
         return len(cache)
 
     def handle_delta(self, orderbook, delta):
+        timestamp = self.safe_integer(delta, 'timestamp')
+        orderbook['timestamp'] = timestamp
+        orderbook['datetime'] = self.iso8601(timestamp)
+        orderbook['nonce'] = self.safe_integer(delta, 'change_id')
         bids = self.safe_value(delta, 'bids', [])
         asks = self.safe_value(delta, 'asks', [])
         storedBids = orderbook['bids']

@@ -3499,7 +3499,7 @@ class okx(Exchange):
         self.check_address(address)
         await self.load_markets()
         currency = self.currency(code)
-        if tag is not None:
+        if (tag is not None) and (len(tag) > 0):
             address = address + ':' + tag
         fee = self.safe_string(params, 'fee')
         if fee is None:

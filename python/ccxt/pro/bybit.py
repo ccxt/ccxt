@@ -420,6 +420,11 @@ class bybit(Exchange, ccxt.async_support.bybit):
                 limit = 40
             else:
                 limit = 200
+        else:
+            if not market['spot']:
+                # bybit only support limit 1, 50 , 200 for contract
+                if (limit != 1) and (limit != 50) and (limit != 200):
+                    raise BadRequest(self.id + ' watchOrderBook() can only use limit 1, 50 and 200.')
         topics = ['orderbook.' + str(limit) + '.' + market['id']]
         orderbook = await self.watch_topics(url, messageHash, topics, params)
         return orderbook.limit()
@@ -1379,7 +1384,7 @@ class bybit(Exchange, ccxt.async_support.bybit):
         if (op == 'auth') or (type == 'AUTH_RESP'):
             self.handle_authenticate(client, message)
 
-    def ping(self):
+    def ping(self, client):
         return {
             'req_id': self.request_id(),
             'op': 'ping',
