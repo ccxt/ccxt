@@ -153,21 +153,13 @@ async function testSymbol (exchange, symbol) {
 
 async function loadExchange (exchange) {
 
-    const exchangesWithAlias = [
-        'binancecoinm',
-        'binanceusdm'
-    ]
-
     const markets = await exchange.loadMarkets ();
 
     assert (typeof exchange.markets === 'object', '.markets is not an object');
     assert (Array.isArray (exchange.symbols), '.symbols is not an array');
     assert (exchange.symbols.length > 0, '.symbols.length <= 0 (less than or equal to zero)');
     assert (Object.keys (exchange.markets).length > 0, 'Object.keys (.markets).length <= 0 (less than or equal to zero)');
-
-    if (!exchangesWithAlias.includes(exchange.id)) {
-        assert (exchange.symbols.length === Object.keys (exchange.markets).length, 'number of .symbols is not equal to the number of .markets');
-    }
+    assert (exchange.symbols.length === Object.keys (exchange.markets).length, 'number of .symbols is not equal to the number of .markets');
 
     const symbols = [
         'BTC/CNY',
