@@ -3220,12 +3220,12 @@ module.exports = class bitget extends Exchange {
             } else {
                 numerator = Precise.stringMul (numerator, calcTakerFeeMult);
             }
-            liquidationPrice = Precise.stringAdd (Precise.stringDiv (numerator, mmrMinusOne));
+            liquidationPrice = Precise.stringDiv (numerator, mmrMinusOne);
         }
         const feeToClose = Precise.stringMul (notional, calcTakerFeeRate);
         const maintenanceMargin = Precise.stringAdd (Precise.stringMul (maintenanceMarginPercentage, notional), feeToClose);
         const marginRatio = Precise.stringDiv (maintenanceMargin, collateral);
-        const percentage = Precise.stringMul (Precise.stringDiv (unrealizedPnl, initialMargin, '4'), '100');
+        const percentage = Precise.stringMul (Precise.stringDiv (unrealizedPnl, initialMargin, 4), '100');
         return {
             'info': position,
             'id': undefined,
