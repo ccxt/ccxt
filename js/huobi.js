@@ -7213,7 +7213,7 @@ module.exports = class huobi extends Exchange {
          * @method
          * @name huobi#fetchDepositWithdrawFees
          * @description fetch deposit and withdraw fees
-         * @see https://api.hitbtc.com/#currencies
+         * @see https://huobiapi.github.io/docs/spot/v1/en/#get-all-supported-currencies-v2
          * @param {[string]|undefined} codes list of unified currency codes
          * @param {object} params extra parameters specific to the huobi api endpoint
          * @returns {[object]} a list of [fees structures]{@link https://docs.ccxt.com/en/latest/manual.html#fee-structure}
@@ -7296,7 +7296,7 @@ module.exports = class huobi extends Exchange {
         const result = this.depositWithdrawFee (fee);
         for (let j = 0; j < chains.length; j++) {
             const chainEntry = chains[j];
-            const networkId = this.safeString (chainEntry, 'displayName');
+            const networkId = this.safeString (chainEntry, 'chain');
             const withdrawFeeType = this.safeString (chainEntry, 'withdrawFeeType');
             const networkCode = this.networkIdToCode (networkId);
             let withdrawFee = undefined;
