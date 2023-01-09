@@ -447,6 +447,13 @@ class bybit extends \ccxt\async\bybit {
                 } else {
                     $limit = 200;
                 }
+            } else {
+                if (!$market['spot']) {
+                    // bybit only support $limit 1, 50 , 200 for contract
+                    if (($limit !== 1) && ($limit !== 50) && ($limit !== 200)) {
+                        throw new BadRequest($this->id . ' watchOrderBook() can only use $limit 1, 50 and 200.');
+                    }
+                }
             }
             $topics = [ 'orderbook.' . (string) $limit . '.' . $market['id'] ];
             $orderbook = Async\await($this->watch_topics($url, $messageHash, $topics, $params));
