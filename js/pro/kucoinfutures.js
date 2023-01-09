@@ -322,9 +322,9 @@ module.exports = class kucoinfutures extends kucoinfuturesRest {
             // https://github.com/ccxt/ccxt/issues/6762
             const firstMessage = this.safeValue (messages, 0, {});
             const data = this.safeValue (firstMessage, 'data', {});
-            const sequenceStart = this.safeInteger (data, 'sequenceStart');
+            const sequence = this.safeInteger (data, 'sequence');
             const nonce = this.safeInteger (snapshot, 'nonce');
-            const previousSequence = sequenceStart - 1;
+            const previousSequence = sequence - 1;
             // if the received snapshot is earlier than the first cached delta
             // then we cannot align it with the cached deltas and we need to
             // retry synchronizing in maxAttempts
