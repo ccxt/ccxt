@@ -140,7 +140,14 @@ module.exports = class binance extends binanceRest {
         //
         await this.loadMarkets ();
         const defaultType = this.safeString2 (this.options, 'watchOrderBook', 'defaultType', 'spot');
-        const type = this.safeString (params, 'type', defaultType);
+        let type = this.safeString (params, 'type', defaultType);
+        let subType = undefined;
+        [ subType, params ] = this.handleSubTypeAndParams ('watchOrderBook', undefined, params);
+        if (this.isLinear (type, subType)) {
+            type = 'future';
+        } else if (this.isInverse (type, subType)) {
+            type = 'delivery';
+        }
         const query = this.omit (params, 'type');
         const market = this.market (symbol);
         //
@@ -413,7 +420,14 @@ module.exports = class binance extends binanceRest {
         const messageHash = market['lowercaseId'] + '@' + name;
         const defaultType = this.safeString (this.options, 'defaultType', 'spot');
         const watchTradesType = this.safeString2 (options, 'type', 'defaultType', defaultType);
-        const type = this.safeString (params, 'type', watchTradesType);
+        let type = this.safeString (params, 'type', watchTradesType);
+        let subType = undefined;
+        [ subType, params ] = this.handleSubTypeAndParams ('watchTrades', market, params);
+        if (this.isLinear (type, subType)) {
+            type = 'future';
+        } else if (this.isInverse (type, subType)) {
+            type = 'delivery';
+        }
         const query = this.omit (params, 'type');
         const url = this.urls['api']['ws'][type] + '/' + this.stream (type, messageHash);
         const requestId = this.requestId (url);
@@ -637,7 +651,14 @@ module.exports = class binance extends binanceRest {
         const options = this.safeValue (this.options, 'watchOHLCV', {});
         const defaultType = this.safeString (this.options, 'defaultType', 'spot');
         const watchOHLCVType = this.safeString2 (options, 'type', 'defaultType', defaultType);
-        const type = this.safeString (params, 'type', watchOHLCVType);
+        let type = this.safeString (params, 'type', watchOHLCVType);
+        let subType = undefined;
+        [ subType, params ] = this.handleSubTypeAndParams ('watchOHLCV', market, params);
+        if (this.isLinear (type, subType)) {
+            type = 'future';
+        } else if (this.isInverse (type, subType)) {
+            type = 'delivery';
+        }
         const query = this.omit (params, 'type');
         const url = this.urls['api']['ws'][type] + '/' + this.stream (type, messageHash);
         const requestId = this.requestId (url);
@@ -973,6 +994,13 @@ module.exports = class binance extends binanceRest {
         const time = this.milliseconds ();
         let type = this.safeString2 (this.options, 'defaultType', 'authenticate', 'spot');
         type = this.safeString (params, 'type', type);
+        let subType = undefined;
+        [ subType, params ] = this.handleSubTypeAndParams ('authenticate', undefined, params);
+        if (this.isLinear (type, subType)) {
+            type = 'future';
+        } else if (this.isInverse (type, subType)) {
+            type = 'delivery';
+        }
         const options = this.safeValue (this.options, type, {});
         const lastAuthenticatedTime = this.safeInteger (options, 'lastAuthenticatedTime', 0);
         const listenKeyRefreshRate = this.safeInteger (this.options, 'listenKeyRefreshRate', 1200000);
@@ -999,6 +1027,13 @@ module.exports = class binance extends binanceRest {
         // https://binance-docs.github.io/apidocs/spot/en/#listen-key-spot
         let type = this.safeString2 (this.options, 'defaultType', 'authenticate', 'spot');
         type = this.safeString (params, 'type', type);
+        let subType = undefined;
+        [ subType, params ] = this.handleSubTypeAndParams ('keepAliveListenKey', undefined, params);
+        if (this.isLinear (type, subType)) {
+            type = 'future';
+        } else if (this.isInverse (type, subType)) {
+            type = 'delivery';
+        }
         const options = this.safeValue (this.options, type, {});
         const listenKey = this.safeString (options, 'listenKey');
         if (listenKey === undefined) {
@@ -1090,7 +1125,14 @@ module.exports = class binance extends binanceRest {
         await this.loadMarkets ();
         await this.authenticate (params);
         const defaultType = this.safeString (this.options, 'defaultType', 'spot');
-        const type = this.safeString (params, 'type', defaultType);
+        let type = this.safeString (params, 'type', defaultType);
+        let subType = undefined;
+        [ subType, params ] = this.handleSubTypeAndParams ('watchBalance', undefined, params);
+        if (this.isLinear (type, subType)) {
+            type = 'future';
+        } else if (this.isInverse (type, subType)) {
+            type = 'delivery';
+        }
         const url = this.urls['api']['ws'][type] + '/' + this.options[type]['listenKey'];
         const client = this.client (url);
         this.setBalanceCache (client, type);
@@ -1506,7 +1548,14 @@ module.exports = class binance extends binanceRest {
         await this.loadMarkets ();
         await this.authenticate (params);
         const defaultType = this.safeString2 (this.options, 'watchMyTrades', 'defaultType', 'spot');
-        const type = this.safeString (params, 'type', defaultType);
+        let type = this.safeString (params, 'type', defaultType);
+        let subType = undefined;
+        [ subType, params ] = this.handleSubTypeAndParams ('watchMyTrades', undefined, params);
+        if (this.isLinear (type, subType)) {
+            type = 'future';
+        } else if (this.isInverse (type, subType)) {
+            type = 'delivery';
+        }
         const url = this.urls['api']['ws'][type] + '/' + this.options[type]['listenKey'];
         let messageHash = 'myTrades';
         if (symbol !== undefined) {
