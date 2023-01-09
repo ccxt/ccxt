@@ -598,23 +598,28 @@ module.exports = class bitfinex extends Exchange {
             }
             const base = this.safeCurrencyCode (baseId);
             const quote = this.safeCurrencyCode (quoteId);
+            const symbol = base + '/' + quote;
+            let type = 'spot';
+            if (id.indexOf ('F0') > -1) {
+                type = 'swap';
+            }
             result.push ({
                 'id': id,
-                'symbol': base + '/' + quote,
+                'symbol': symbol,
                 'base': base,
                 'quote': quote,
                 'settle': undefined,
                 'baseId': baseId,
                 'quoteId': quoteId,
                 'settleId': undefined,
-                'type': 'spot',
-                'spot': true,
+                'type': type,
+                'spot': (type === 'spot'),
                 'margin': this.safeValue (market, 'margin'),
-                'swap': false,
+                'swap': (type === 'swap'),
                 'future': false,
                 'option': false,
                 'active': true,
-                'contract': false,
+                'contract': (type === 'swap'),
                 'linear': undefined,
                 'inverse': undefined,
                 'contractSize': undefined,
@@ -1057,11 +1062,16 @@ module.exports = class bitfinex extends Exchange {
         const market = this.market (symbol);
         const postOnly = this.safeValue (params, 'postOnly', false);
         params = this.omit (params, [ 'postOnly' ]);
+        if (market['spot']) {
+            // although they claim that type needs to be 'exchange limit' or 'exchange market'
+            // in fact that's not the case for swap markets
+            type = this.safeString (this.options['orderTypes'], type, type);
+        }
         const request = {
             'symbol': market['id'],
             'side': side,
             'amount': this.amountToPrecision (symbol, amount),
-            'type': this.safeString (this.options['orderTypes'], type, type),
+            'type': type.toLowerCase (),
             'ocoorder': false,
             'buy_price_oco': 0,
             'sell_price_oco': 0,
