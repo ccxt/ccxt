@@ -232,6 +232,12 @@ module.exports = class woo extends Exchange {
                     'UATOM': 'ATOM',
                     'ZRX': 'ZRX',
                 },
+                'networks': {
+                    'TRX': 'TRON',
+                    'TRC20': 'TRON',
+                    'ERC20': 'ETH',
+                    'BEP20': 'BSC',
+                },
                 // override defaultNetworkCodePriorities for a specific currency
                 'defaultNetworkCodeForCurrencies': {
                     // 'USDT': 'TRC20',
@@ -1616,7 +1622,6 @@ module.exports = class woo extends Exchange {
             movementDirection = 'withdrawal';
         }
         const fee = this.parseTokenAndFeeTemp (transaction, 'fee_token', 'fee_amount');
-        fee['rate'] = undefined;
         const addressTo = this.safeString (transaction, 'target_address');
         const addressFrom = this.safeString (transaction, 'source_address');
         const timestamp = this.safeTimestamp (transaction, 'created_time');
@@ -1803,9 +1808,11 @@ module.exports = class woo extends Exchange {
         if (tag !== undefined) {
             request['extra'] = tag;
         }
-        const networks = this.safeValue (currency, 'networks', {});
+        const networks = this.safeValue (this.options, 'networks', {});
+        const currencyNetworks = this.safeValue (currency, 'networks', {});
         const network = this.safeStringUpper (params, 'network');
-        const coinNetwork = this.safeValue (networks, network, {});
+        const networkId = this.safeString (networks, network, network);
+        const coinNetwork = this.safeValue (currencyNetworks, networkId, {});
         if (coinNetwork['id'] === undefined) {
             throw new BadRequest (this.id + ' withdraw() require network parameter');
         }
