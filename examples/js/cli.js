@@ -66,9 +66,9 @@ process.on ('unhandledRejection', e => { log.bright.red.error (e); log.red.error
 const keysGlobal = path.resolve ('keys.json')
 const keysLocal = path.resolve ('keys.local.json')
 
-let globalKeysFile = fs.existsSync (keysGlobal) ? keysGlobal : false
-let localKeysFile = fs.existsSync (keysLocal) ? keysLocal : globalKeysFile
-let settings = localKeysFile ? (require (localKeysFile)[exchangeId] || {}) : {}
+const globalKeysFile = fs.existsSync (keysGlobal) ? keysGlobal : false
+const localKeysFile = fs.existsSync (keysLocal) ? keysLocal : globalKeysFile
+const settings = localKeysFile ? (require (localKeysFile)[exchangeId] || {}) : {}
 
 //-----------------------------------------------------------------------------
 
