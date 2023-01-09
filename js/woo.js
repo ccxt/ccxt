@@ -1813,10 +1813,11 @@ module.exports = class woo extends Exchange {
         const network = this.safeStringUpper (params, 'network');
         const networkId = this.safeString (networks, network, network);
         const coinNetwork = this.safeValue (currencyNetworks, networkId, {});
-        if (coinNetwork['id'] === undefined) {
+        const coinNetworkId = this.safeString (coinNetwork, 'id');
+        if (coinNetworkId === undefined) {
             throw new BadRequest (this.id + ' withdraw() require network parameter');
         }
-        request['token'] = coinNetwork['id'];
+        request['token'] = coinNetworkId;
         const response = await this.v1PrivatePostAssetWithdraw (this.extend (request, params));
         //
         //     {
