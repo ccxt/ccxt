@@ -69,7 +69,7 @@ class Client {
             $future->reject($this->rejections[$message_hash]);
             unset($this->rejections[$message_hash]);
         }
-        return $future;
+        return $future->promise();
     }
 
     public function resolve($result, $message_hash) {
@@ -254,7 +254,7 @@ class Client {
             if ($this->verbose) {
                 echo date('c'), ' on_message json_decode ', $e->getMessage(), "\n";
             }
-            // reset with a json encoding error ?
+            // reset with a json encoding error?
         }
         $on_message_callback = $this->on_message_callback;
         $on_message_callback($this, $message);

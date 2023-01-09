@@ -199,6 +199,12 @@ class woo extends Exchange {
                         'post' => array(
                             'algo/order' => 5,
                         ),
+                        'put' => array(
+                            'order/{oid}' => 2,
+                            'order/client/{oid}' => 2,
+                            'algo/order/{oid}' => 2,
+                            'algo/order/client/{oid}' => 2,
+                        ),
                         'delete' => array(
                             'algo/order/{oid}' => 1,
                             'algo/orders/pending' => 1,
@@ -762,6 +768,48 @@ class woo extends Exchange {
         );
     }
 
+    public function edit_order($id, $symbol, $type, $side, $amount, $price = null, $params = array ()) {
+        /**
+         * edit a trade order
+         * @param {string} $id order $id
+         * @param {string} $symbol unified $symbol of the $market to create an order in
+         * @param {string} $type 'market' or 'limit'
+         * @param {string} $side 'buy' or 'sell'
+         * @param {float} $amount how much of currency you want to trade in units of base currency
+         * @param {float|null} $price the $price at which the order is to be fullfilled, in units of the quote currency, ignored in $market orders
+         * @param {array} $params extra parameters specific to the woo api endpoint
+         * @return {array} an {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structure}
+         */
+        $this->load_markets();
+        $market = $this->market($symbol);
+        $request = array(
+            'oid' => $id,
+            // 'quantity' => $this->amount_to_precision($symbol, $amount),
+            // 'price' => $this->price_to_precision($symbol, $price),
+        );
+        if ($price !== null) {
+            $request['price'] = $this->price_to_precision($symbol, $price);
+        }
+        if ($amount !== null) {
+            $request['quantity'] = $this->amount_to_precision($symbol, $amount);
+        }
+        $response = $this->v3PrivatePutOrderOid (array_merge($request, $params));
+        //
+        //     {
+        //         "code" => 0,
+        //         "data" => array(
+        //             "status" => "string",
+        //             "success" => true
+        //         ),
+        //         "message" => "string",
+        //         "success" => true,
+        //         "timestamp" => 0
+        //     }
+        //
+        $data = $this->safe_value($response, 'data', array());
+        return $this->parse_order($data, $market);
+    }
+
     public function cancel_order($id, $symbol = null, $params = array ()) {
         /**
          * cancels an open order
@@ -980,6 +1028,7 @@ class woo extends Exchange {
             'side' => $side,
             'price' => $price,
             'stopPrice' => null,
+            'triggerPrice' => null,
             'average' => null,
             'amount' => $amount,
             'filled' => $filled,
@@ -1742,39 +1791,41 @@ class woo extends Exchange {
     public function sign($path, $section = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
         $version = $section[0];
         $access = $section[1];
+        $pathWithParams = $this->implode_params($path, $params);
         $url = $this->implode_hostname($this->urls['api'][$access]);
         $url .= '/' . $version . '/';
-        $path = $this->implode_params($path, $params);
         $params = $this->omit($params, $this->extract_params($path));
         $params = $this->keysort($params);
         if ($access === 'public') {
-            $url .= $access . '/' . $path;
+            $url .= $access . '/' . $pathWithParams;
             if ($params) {
                 $url .= '?' . $this->urlencode($params);
             }
         } else {
             $this->check_required_credentials();
-            $url .= $path;
+            $auth = '';
             $ts = (string) $this->nonce();
-            $auth = $this->urlencode($params);
-            if ($version === 'v3' && ($method === 'POST')) {
+            $url .= $pathWithParams;
+            $headers = array(
+                'x-api-key' => $this->apiKey,
+                'x-api-timestamp' => $ts,
+            );
+            if ($version === 'v3' && ($method === 'POST' || $method === 'PUT' || $method === 'DELETE')) {
+                $auth = $this->json($params);
                 $body = $auth;
-                $auth = $ts . $method . '/' . $version . '/' . $path . $body;
+                $auth = $ts . $method . '/' . $version . '/' . $pathWithParams . $body;
+                $headers['content-type'] = 'application/json';
             } else {
-                if ($method === 'POST' || $method === 'DELETE') {
+                $auth = $this->urlencode($params);
+                if ($method === 'POST' || $method === 'PUT' || $method === 'DELETE') {
                     $body = $auth;
                 } else {
                     $url .= '?' . $auth;
                 }
                 $auth .= '|' . $ts;
+                $headers['content-type'] = 'application/x-www-form-urlencoded';
             }
-            $signature = $this->hmac($this->encode($auth), $this->encode($this->secret), 'sha256');
-            $headers = array(
-                'x-api-key' => $this->apiKey,
-                'x-api-signature' => $signature,
-                'x-api-timestamp' => $ts,
-                'Content-Type' => 'application/x-www-form-urlencoded',
-            );
+            $headers['x-api-signature'] = $this->hmac($this->encode($auth), $this->encode($this->secret), 'sha256');
         }
         return array( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
     }

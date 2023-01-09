@@ -711,8 +711,19 @@ module.exports = class bitmex extends Exchange {
             let free = this.safeString (balance, 'availableMargin');
             let total = this.safeString (balance, 'marginBalance');
             if (code !== 'USDT') {
-                free = Precise.stringDiv (free, '1e8');
-                total = Precise.stringDiv (total, '1e8');
+                // tmp fix until this PR gets merged
+                // https://github.com/ccxt/ccxt/pull/15311
+                const symbol = code + '_USDT';
+                const market = this.safeMarket (symbol);
+                const info = this.safeValue (market, 'info', {});
+                const multiplier = this.safeString (info, 'underlyingToPositionMultiplier');
+                if (multiplier !== undefined) {
+                    free = Precise.stringDiv (free, multiplier);
+                    total = Precise.stringDiv (total, multiplier);
+                } else {
+                    free = Precise.stringDiv (free, '1e8');
+                    total = Precise.stringDiv (total, '1e8');
+                }
             } else {
                 free = Precise.stringDiv (free, '1e6');
                 total = Precise.stringDiv (total, '1e6');
@@ -1248,7 +1259,6 @@ module.exports = class bitmex extends Exchange {
         //         "timestamp": "2022-12-16T07:37:06.500Z",
         //     }
         //
-        const id = this.safeString (transaction, 'transactID');
         const currencyId = this.safeString (transaction, 'currency');
         currency = this.safeCurrency (currencyId, currency);
         // For deposits, transactTime == timestamp
@@ -1279,24 +1289,29 @@ module.exports = class bitmex extends Exchange {
         const networkId = this.safeString (transaction, 'network');
         return {
             'info': transaction,
-            'id': id,
-            'txid': undefined,
+            'id': this.safeString (transaction, 'transactID'),
+            'txid': this.safeString (transaction, 'tx'),
+            'type': type,
+            'currency': currency['code'],
+            'network': this.safeString (transaction, 'status'),
+            'amount': this.parseNumber (amountString),
+            'status': status,
             'timestamp': transactTime,
             'datetime': this.iso8601 (transactTime),
             'network': this.networkIdToCode (networkId),
             'addressFrom': addressFrom,
             'address': undefined,
             'addressTo': addressTo,
-            'tagFrom': undefined,
             'tag': undefined,
+            'tagFrom': undefined,
             'tagTo': undefined,
-            'type': type,
-            'amount': this.parseNumber (amountString),
-            'currency': currency['code'],
-            'status': status,
             'updated': timestamp,
             'comment': undefined,
-            'fee': fee,
+            'fee': {
+                'currency': currency['code'],
+                'cost': this.parseNumber (feeCostString),
+                'rate': undefined,
+            },
         };
     }
 
@@ -1802,6 +1817,7 @@ module.exports = class bitmex extends Exchange {
             'side': side,
             'price': price,
             'stopPrice': stopPrice,
+            'triggerPrice': stopPrice,
             'amount': amount,
             'cost': undefined,
             'average': average,

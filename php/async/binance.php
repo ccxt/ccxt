@@ -260,6 +260,7 @@ class binance extends Exchange {
                         'capital/deposit/subAddress' => 0.1,
                         'capital/deposit/subHisrec' => 0.1,
                         'capital/withdraw/history' => 0.1,
+                        'capital/contract/convertible-coins' => 4.0002,
                         'convert/tradeFlow' => 0.6667, // Weight(UID) => 100 => cost = 0.006667 * 100 = 0.6667
                         'convert/exchangeInfo' => 50,
                         'convert/assetInfo' => 10,
@@ -284,6 +285,8 @@ class binance extends Exchange {
                         'sub-account/apiRestrictions/ipRestriction/thirdPartyList' => 1,
                         'managed-subaccount/asset' => 0.1,
                         'managed-subaccount/accountSnapshot' => 240,
+                        'managed-subaccount/queryTransLogForInvestor' => 0.1,
+                        'managed-subaccount/queryTransLogForTradeParent' => 0.1,
                         // lending endpoints
                         'lending/daily/product/list' => 0.1,
                         'lending/daily/userLeftQuota' => 0.1,
@@ -384,6 +387,7 @@ class binance extends Exchange {
                         // 'account/apiRestrictions/ipRestriction' => 1, discontinued
                         // 'account/apiRestrictions/ipRestriction/ipList' => 1, discontinued
                         'capital/withdraw/apply' => 4.0002, // Weight(UID) => 600 => cost = 0.006667 * 600 = 4.0002
+                        'capital/contract/convertible-coins' => 4.0002,
                         'margin/transfer' => 1, // Weight(IP) => 600 => cost = 0.1 * 600 = 60
                         'margin/loan' => 20.001, // Weight(UID) => 3000 => cost = 0.006667 * 3000 = 20.001
                         'margin/repay' => 20.001,
@@ -1155,6 +1159,9 @@ class binance extends Exchange {
                     'JPY' => true,
                     'NZD' => true,
                 ),
+                'legalMoneyCurrenciesById' => array(
+                    'BUSD' => 'USD',
+                ),
             ),
             // https://binance-docs.github.io/apidocs/spot/en/#error-codes-2
             'exceptions' => array(
@@ -1372,7 +1379,8 @@ class binance extends Exchange {
                     '-21001' => '\\ccxt\\BadRequest', // array("code":-21001,"msg":"USER_IS_NOT_UNIACCOUNT")
                     '-21002' => '\\ccxt\\BadRequest', // array("code":-21002,"msg":"UNI_ACCOUNT_CANT_TRANSFER_FUTURE")
                     '-21003' => '\\ccxt\\BadRequest', // array("code":-21003,"msg":"NET_ASSET_MUST_LTE_RATIO")
-                    '100001003' => '\\ccxt\\BadRequest', // array("code":100001003,"msg":"Verification failed") // undocumented
+                    '100001003' => '\\ccxt\\AuthenticationError', // array("code":100001003,"msg":"Verification failed") // undocumented
+                    '200003903' => '\\ccxt\\AuthenticationError', // array("code":200003903,"msg":"Your identity verification has been rejected. Please complete identity verification again.")
                 ),
                 'broad' => array(
                     'has no operation privilege' => '\\ccxt\\PermissionDenied',
@@ -3257,7 +3265,7 @@ class binance extends Exchange {
             'reduceOnly' => $this->safe_value($order, 'reduceOnly'),
             'side' => $side,
             'price' => $price,
-            'stopPrice' => $stopPrice,
+            'triggerPrice' => $stopPrice,
             'amount' => $amount,
             'cost' => $cost,
             'average' => $average,
@@ -3287,7 +3295,16 @@ class binance extends Exchange {
             $defaultType = $this->safe_string_2($this->options, 'createOrder', 'defaultType', 'spot');
             $marketType = $this->safe_string($params, 'type', $defaultType);
             $clientOrderId = $this->safe_string_2($params, 'newClientOrderId', 'clientOrderId');
-            $postOnly = $this->safe_value($params, 'postOnly', false);
+            $initialUppercaseType = strtoupper($type);
+            $isMarketOrder = $initialUppercaseType === 'MARKET';
+            $isLimitOrder = $initialUppercaseType === 'LIMIT';
+            $postOnly = $this->is_post_only($isMarketOrder, $initialUppercaseType === 'LIMIT_MAKER', $params);
+            $triggerPrice = $this->safe_value_2($params, 'triggerPrice', 'stopPrice');
+            $stopLossPrice = $this->safe_value($params, 'stopLossPrice', $triggerPrice);  // fallback to stopLoss
+            $takeProfitPrice = $this->safe_value($params, 'takeProfitPrice');
+            $isStopLoss = $stopLossPrice !== null;
+            $isTakeProfit = $takeProfitPrice !== null;
+            $params = $this->omit($params, array( 'type', 'newClientOrderId', 'clientOrderId', 'postOnly', 'stopLossPrice', 'takeProfitPrice', 'stopPrice', 'triggerPrice' ));
             list($marginMode, $query) = $this->handle_margin_mode_and_params('createOrder', $params);
             $request = array(
                 'symbol' => $market['id'],
@@ -3317,15 +3334,23 @@ class binance extends Exchange {
                     $type = 'LIMIT_MAKER';
                 }
             }
-            $initialUppercaseType = strtoupper($type);
             $uppercaseType = $initialUppercaseType;
-            $request['type'] = $uppercaseType;
-            $stopPrice = $this->safe_number($query, 'stopPrice');
-            if ($stopPrice !== null) {
-                if ($uppercaseType === 'MARKET') {
+            $stopPrice = null;
+            if ($isStopLoss) {
+                $stopPrice = $stopLossPrice;
+                if ($isMarketOrder) {
+                    // spot STOP_LOSS $market orders are not a valid order $type
                     $uppercaseType = $market['contract'] ? 'STOP_MARKET' : 'STOP_LOSS';
-                } elseif ($uppercaseType === 'LIMIT') {
+                } elseif ($isLimitOrder) {
                     $uppercaseType = $market['contract'] ? 'STOP' : 'STOP_LOSS_LIMIT';
+                }
+            } elseif ($isTakeProfit) {
+                $stopPrice = $takeProfitPrice;
+                if ($isMarketOrder) {
+                    // spot TAKE_PROFIT $market orders are not a valid order $type
+                    $uppercaseType = $market['contract'] ? 'TAKE_PROFIT_MARKET' : 'TAKE_PROFIT';
+                } elseif ($isLimitOrder) {
+                    $uppercaseType = $market['contract'] ? 'TAKE_PROFIT' : 'TAKE_PROFIT_LIMIT';
                 }
             }
             $validOrderTypes = $this->safe_value($market['info'], 'orderTypes');
@@ -3356,6 +3381,7 @@ class binance extends Exchange {
                 // delivery and future
                 $request['newOrderRespType'] = 'RESULT';  // "ACK", "RESULT", default "ACK"
             }
+            $request['type'] = $uppercaseType;
             // additional required fields depending on the order $type
             $timeInForceIsRequired = false;
             $priceIsRequired = false;
@@ -4037,6 +4063,7 @@ class binance extends Exchange {
              * @param {int|null} $since the earliest time in ms to fetch deposits for
              * @param {int|null} $limit the maximum number of deposits structures to retrieve
              * @param {array} $params extra parameters specific to the binance api endpoint
+             * @param {bool} $params->fiat if true, only fiat deposits will be returned
              * @param {int|null} $params->until the latest time in ms to fetch deposits for
              * @return {[array]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure transaction structures}
              */
@@ -4045,8 +4072,10 @@ class binance extends Exchange {
             $response = null;
             $request = array();
             $legalMoney = $this->safe_value($this->options, 'legalMoney', array());
+            $fiatOnly = $this->safe_value($params, 'fiat', false);
+            $params = $this->omit($params, 'fiatOnly');
             $until = $this->safe_integer($params, 'until');
-            if (is_array($legalMoney) && array_key_exists($code, $legalMoney)) {
+            if ($fiatOnly || (is_array($legalMoney) && array_key_exists($code, $legalMoney))) {
                 if ($code !== null) {
                     $currency = $this->currency($code);
                 }
@@ -4135,14 +4164,17 @@ class binance extends Exchange {
              * @param {int|null} $since the earliest time in ms to fetch withdrawals for
              * @param {int|null} $limit the maximum number of withdrawals structures to retrieve
              * @param {array} $params extra parameters specific to the binance api endpoint
+             * @param {bool} $params->fiat if true, only fiat withdrawals will be returned
              * @return {[array]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure transaction structures}
              */
             Async\await($this->load_markets());
             $legalMoney = $this->safe_value($this->options, 'legalMoney', array());
+            $fiatOnly = $this->safe_value($params, 'fiat', false);
+            $params = $this->omit($params, 'fiatOnly');
             $request = array();
             $response = null;
             $currency = null;
-            if (is_array($legalMoney) && array_key_exists($code, $legalMoney)) {
+            if ($fiatOnly || (is_array($legalMoney) && array_key_exists($code, $legalMoney))) {
                 if ($code !== null) {
                     $currency = $this->currency($code);
                 }
@@ -4327,6 +4359,7 @@ class binance extends Exchange {
         //     {
         //       "orderNo" => "25ced37075c1470ba8939d0df2316e23",
         //       "fiatCurrency" => "EUR",
+        //       "transactionType" => 0,
         //       "indicatedAmount" => "15.00",
         //       "amount" => "15.00",
         //       "totalFee" => "0.00",
@@ -4356,16 +4389,14 @@ class binance extends Exchange {
         $code = $this->safe_currency_code($currencyId, $currency);
         $timestamp = null;
         $insertTime = $this->safe_integer_2($transaction, 'insertTime', 'createTime');
-        $applyTime = $this->parse8601($this->safe_string($transaction, 'applyTime'));
+        $updated = $this->safe_integer_2($transaction, 'successTime', 'updateTime');
         $type = $this->safe_string($transaction, 'type');
         if ($type === null) {
-            if (($insertTime !== null) && ($applyTime === null)) {
-                $type = 'deposit';
-                $timestamp = $insertTime;
-            } elseif (($insertTime === null) && ($applyTime !== null)) {
-                $type = 'withdrawal';
-                $timestamp = $applyTime;
-            }
+            $txType = $this->safe_string($transaction, 'transactionType');
+            $type = ($txType === '0') ? 'deposit' : 'withdrawal';
+            $timestamp = $insertTime;
+            $legalMoneyCurrenciesById = $this->safe_value($this->options, 'legalMoneyCurrenciesById');
+            $code = $this->safe_string($legalMoneyCurrenciesById, $code, $code);
         }
         $status = $this->parse_transaction_status_by_type($this->safe_string($transaction, 'status'), $type);
         $amount = $this->safe_number($transaction, 'amount');
@@ -4374,7 +4405,6 @@ class binance extends Exchange {
         if ($feeCost !== null) {
             $fee = array( 'currency' => $code, 'cost' => $feeCost );
         }
-        $updated = $this->safe_integer_2($transaction, 'successTime', 'updateTime');
         $internal = $this->safe_integer($transaction, 'transferType');
         if ($internal !== null) {
             $internal = $internal ? true : false;
@@ -6365,7 +6395,12 @@ class binance extends Exchange {
             } else {
                 $query = $this->urlencode($extendedParams);
             }
-            $signature = $this->hmac($this->encode($query), $this->encode($this->secret));
+            $signature = null;
+            if (mb_strpos($this->secret, '-----BEGIN RSA PRIVATE KEY-----') > -1) {
+                $signature = $this->rsa($this->encode($query), $this->encode($this->secret));
+            } else {
+                $signature = $this->hmac($this->encode($query), $this->encode($this->secret));
+            }
             $query .= '&' . 'signature=' . $signature;
             $headers = array(
                 'X-MBX-APIKEY' => $this->apiKey,

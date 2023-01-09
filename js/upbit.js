@@ -1431,6 +1431,7 @@ module.exports = class upbit extends Exchange {
             'side': side,
             'price': price,
             'stopPrice': undefined,
+            'triggerPrice': undefined,
             'cost': cost,
             'average': average,
             'amount': amount,

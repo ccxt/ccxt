@@ -291,7 +291,7 @@ class cex extends \ccxt\async\cex {
             $request = $this->deep_extend($message, $params);
             $ticker = Async\await($this->watch($url, $messageHash, $request, $messageHash));
             $tickerSymbol = $ticker['symbol'];
-            if ($symbols !== null && !$this->in_array($symbols, $tickerSymbol)) {
+            if ($symbols !== null && !$this->in_array($tickerSymbol, $symbols)) {
                 return Async\await($this->watch_tickers($symbols, $params));
             }
             if ($this->newUpdates) {
@@ -798,6 +798,7 @@ class cex extends \ccxt\async\cex {
             'side' => $this->safe_string($order, 'type'),
             'price' => $this->safe_number($order, 'price'),
             'stopPrice' => null,
+            'triggerPrice' => null,
             'average' => null,
             'cost' => null,
             'amount' => $amount,

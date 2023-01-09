@@ -1510,6 +1510,7 @@ class deribit(Exchange):
             'side': side,
             'price': priceString,
             'stopPrice': stopPrice,
+            'triggerPrice': stopPrice,
             'amount': amount,
             'cost': cost,
             'average': averageString,
@@ -1578,6 +1579,8 @@ class deribit(Exchange):
         self.load_markets()
         market = self.market(symbol)
         if market['inverse']:
+            amount = self.amount_to_precision(symbol, amount)
+        elif market['settle'] == 'USDC':
             amount = self.amount_to_precision(symbol, amount)
         else:
             amount = self.currency_to_precision(symbol, amount)

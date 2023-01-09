@@ -325,6 +325,7 @@ class kucoin extends Exchange {
                     '210014' => '\\ccxt\\InvalidOrder', // array("code":"210014","msg":"Exceeds the max. borrowing amount, the remaining amount you can borrow => 0USDT")
                     '210021' => '\\ccxt\\InsufficientFunds', // array("code":"210021","msg":"Balance not enough")
                     '230003' => '\\ccxt\\InsufficientFunds', // array("code":"230003","msg":"Balance insufficient!")
+                    '260000' => '\\ccxt\\InvalidAddress', // array("code":"260000","msg":"Deposit address already exists.")
                     '260100' => '\\ccxt\\InsufficientFunds', // array("code":"260100","msg":"account.noBalance")
                     '300000' => '\\ccxt\\InvalidOrder',
                     '400000' => '\\ccxt\\BadSymbol',
@@ -625,7 +626,7 @@ class kucoin extends Exchange {
             // $quoteIncrement = $this->safe_number($market, 'quoteIncrement');
             $ticker = $this->safe_value($tickersByMarketId, $id, array());
             $makerFeeRate = $this->safe_string($ticker, 'makerFeeRate');
-            $takerFeeRate = $this->safe_string($ticker, 'makerFeeRate');
+            $takerFeeRate = $this->safe_string($ticker, 'takerFeeRate');
             $makerCoefficient = $this->safe_string($ticker, 'makerCoefficient');
             $takerCoefficient = $this->safe_string($ticker, 'takerCoefficient');
             $result[] = array(
@@ -1186,6 +1187,7 @@ class kucoin extends Exchange {
             $params = $this->omit($params, array( 'chain', 'network' ));
         }
         $response = $this->privatePostDepositAddresses (array_merge($request, $params));
+        // array("code":"260000","msg":"Deposit $address already exists.")
         // BCH array("code":"200000","data":array("address":"bitcoincash:qza3m4nj9rx7l9r0cdadfqxts6f92shvhvr5ls4q7z","memo":""))
         // BTC array("code":"200000","data":array("address":"36SjucKqQpQSvsak9A7h6qzFjrVXpRNZhE","memo":""))
         $data = $this->safe_value($response, 'data', array());
@@ -1822,6 +1824,7 @@ class kucoin extends Exchange {
             'amount' => $amount,
             'price' => $price,
             'stopPrice' => $stopPrice,
+            'triggerPrice' => $stopPrice,
             'cost' => $cost,
             'filled' => $filled,
             'remaining' => null,

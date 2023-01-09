@@ -1568,6 +1568,7 @@ module.exports = class deribit extends Exchange {
             'side': side,
             'price': priceString,
             'stopPrice': stopPrice,
+            'triggerPrice': stopPrice,
             'amount': amount,
             'cost': cost,
             'average': averageString,
@@ -1642,6 +1643,8 @@ module.exports = class deribit extends Exchange {
         await this.loadMarkets ();
         const market = this.market (symbol);
         if (market['inverse']) {
+            amount = this.amountToPrecision (symbol, amount);
+        } else if (market['settle'] === 'USDC') {
             amount = this.amountToPrecision (symbol, amount);
         } else {
             amount = this.currencyToPrecision (symbol, amount);

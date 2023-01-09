@@ -386,11 +386,7 @@ module.exports = class bitvavo extends bitvavoRest {
             return message;
         }
         const marketId = this.safeString (response, 'market');
-        let symbol = undefined;
-        if (marketId in this.markets_by_id) {
-            const market = this.markets_by_id[marketId];
-            symbol = market['symbol'];
-        }
+        const symbol = this.safeSymbol (marketId, undefined, '-');
         const name = 'book';
         const messageHash = name + '@' + marketId;
         const orderbook = this.orderbooks[symbol];
@@ -420,16 +416,13 @@ module.exports = class bitvavo extends bitvavoRest {
         const name = 'book';
         for (let i = 0; i < marketIds.length; i++) {
             const marketId = this.safeString (marketIds, i);
-            if (marketId in this.markets_by_id) {
-                const market = this.markets_by_id[marketId];
-                const symbol = market['symbol'];
-                const messageHash = name + '@' + marketId;
-                if (!(symbol in this.orderbooks)) {
-                    const subscription = this.safeValue (client.subscriptions, messageHash);
-                    const method = this.safeValue (subscription, 'method');
-                    if (method !== undefined) {
-                        method.call (this, client, message, subscription);
-                    }
+            const symbol = this.safeSymbol (marketId, undefined, '-');
+            const messageHash = name + '@' + marketId;
+            if (!(symbol in this.orderbooks)) {
+                const subscription = this.safeValue (client.subscriptions, messageHash);
+                const method = this.safeValue (subscription, 'method');
+                if (method !== undefined) {
+                    method.call (this, client, message, subscription);
                 }
             }
         }
@@ -537,19 +530,17 @@ module.exports = class bitvavo extends bitvavoRest {
         //
         const name = 'account';
         const event = this.safeString (message, 'event');
-        const marketId = this.safeString (message, 'market', '-');
+        const marketId = this.safeString (message, 'market');
+        const market = this.safeMarket (marketId, undefined, '-');
         const messageHash = name + '@' + marketId + '_' + event;
-        if (marketId in this.markets_by_id) {
-            const market = this.markets_by_id[marketId];
-            const order = this.parseOrder (message, market);
-            if (this.orders === undefined) {
-                const limit = this.safeInteger (this.options, 'ordersLimit', 1000);
-                this.orders = new ArrayCacheBySymbolById (limit);
-            }
-            const orders = this.orders;
-            orders.append (order);
-            client.resolve (this.orders, messageHash);
+        const order = this.parseOrder (message, market);
+        if (this.orders === undefined) {
+            const limit = this.safeInteger (this.options, 'ordersLimit', 1000);
+            this.orders = new ArrayCacheBySymbolById (limit);
         }
+        const orders = this.orders;
+        orders.append (order);
+        client.resolve (this.orders, messageHash);
     }
 
     handleMyTrade (client, message) {

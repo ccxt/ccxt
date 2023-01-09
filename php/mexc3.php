@@ -183,6 +183,8 @@ class mexc3 extends Exchange {
                             'rebate/taxQuery' => 1,
                             'rebate/detail' => 1,
                             'rebate/detail/kickback' => 1,
+                            'rebate/referCode' => 1,
+                            'mxDeduct/enable' => 1,
                         ),
                         'post' => array(
                             'order' => 1,
@@ -200,6 +202,7 @@ class mexc3 extends Exchange {
                             'margin/order' => 1,
                             'margin/loan' => 1,
                             'margin/repay' => 1,
+                            'mxDeduct/enable' => 1,
                         ),
                         'delete' => array(
                             'order' => 1,
@@ -412,6 +415,7 @@ class mexc3 extends Exchange {
                 ),
                 'recvWindow' => 5 * 1000, // 5 sec, default
                 'maxTimeTillEnd' => 90 * 86400 * 1000 - 1, // 90 days
+                'broker' => 'CCXT',
             ),
             'commonCurrencies' => array(
                 'BEYONDPROTOCOL' => 'BEYOND',
@@ -2708,6 +2712,7 @@ class mexc3 extends Exchange {
             'side' => $this->parse_order_side($this->safe_string($order, 'side')),
             'price' => $this->safe_number($order, 'price'),
             'stopPrice' => $this->safe_number_2($order, 'stopPrice', 'triggerPrice'),
+            'triggerPrice' => $this->safe_number_2($order, 'stopPrice', 'triggerPrice'),
             'average' => $this->safe_number($order, 'dealAvgPrice'),
             'amount' => $this->safe_number_2($order, 'origQty', 'vol'),
             'cost' => $this->safe_number($order, 'cummulativeQuoteQty'),  // 'cummulativeQuoteQty' vs 'origQuoteOrderQty'
@@ -4742,6 +4747,7 @@ class mexc3 extends Exchange {
                 $url .= '&' . 'signature=' . $signature;
                 $headers = array(
                     'X-MEXC-APIKEY' => $this->apiKey,
+                    'source' => $this->safe_string($this->options, 'broker', 'CCXT'),
                 );
             }
             if ($method === 'POST') {
@@ -4762,6 +4768,7 @@ class mexc3 extends Exchange {
                     'ApiKey' => $this->apiKey,
                     'Request-Time' => $timestamp,
                     'Content-Type' => 'application/json',
+                    'source' => $this->safe_string($this->options, 'broker', 'CCXT'),
                 );
                 if ($method === 'POST') {
                     $auth = $this->json($params);
