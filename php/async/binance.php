@@ -3476,6 +3476,9 @@ class binance extends Exchange {
             if ($timeInForceIsRequired) {
                 $request['timeInForce'] = $this->options['defaultTimeInForce']; // 'GTC' = Good To Cancel (default), 'IOC' = Immediate Or Cancel
             }
+            if ($market['contract'] && $postOnly) {
+                $request['timeInForce'] = 'GTX';
+            }
             if ($stopPriceIsRequired) {
                 if ($stopPrice === null) {
                     throw new InvalidOrder($this->id . ' createOrder() requires a $stopPrice extra param for a ' . $type . ' order');

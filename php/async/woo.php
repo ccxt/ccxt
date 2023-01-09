@@ -89,7 +89,7 @@ class woo extends Exchange {
                 'setLeverage' => true,
                 'setMargin' => false,
                 'transfer' => true,
-                'withdraw' => false, // exchange have that endpoint disabled atm, but was once implemented in ccxt per old docs => https://kronosresearch.github.io/wootrade-documents/#token-withdraw
+                'withdraw' => true, // exchange have that endpoint disabled atm, but was once implemented in ccxt per old docs => https://kronosresearch.github.io/wootrade-documents/#token-withdraw
             ),
             'timeframes' => array(
                 '1m' => '1m',
@@ -235,6 +235,12 @@ class woo extends Exchange {
                     'OMG' => 'ERC20',
                     'UATOM' => 'ATOM',
                     'ZRX' => 'ZRX',
+                ),
+                'networks' => array(
+                    'TRX' => 'TRON',
+                    'TRC20' => 'TRON',
+                    'ERC20' => 'ETH',
+                    'BEP20' => 'BSC',
                 ),
                 // override defaultNetworkCodePriorities for a specific currency
                 'defaultNetworkCodeForCurrencies' => array(
@@ -1622,12 +1628,11 @@ class woo extends Exchange {
             $movementDirection = 'withdrawal';
         }
         $fee = $this->parse_token_and_fee_temp($transaction, 'fee_token', 'fee_amount');
-        $fee['rate'] = null;
         $addressTo = $this->safe_string($transaction, 'target_address');
         $addressFrom = $this->safe_string($transaction, 'source_address');
         $timestamp = $this->safe_timestamp($transaction, 'created_time');
         return array(
-            'id' => $this->safe_string($transaction, 'id'),
+            'id' => $this->safe_string_2($transaction, 'id', 'withdraw_id'),
             'txid' => $this->safe_string($transaction, 'tx_id'),
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
@@ -1784,6 +1789,49 @@ class woo extends Exchange {
             'CANCELED' => 'canceled',
         );
         return $this->safe_string($statuses, $status, $status);
+    }
+
+    public function withdraw($code, $amount, $address, $tag = null, $params = array ()) {
+        return Async\async(function () use ($code, $amount, $address, $tag, $params) {
+            /**
+             * make a withdrawal
+             * @param {string} $code unified $currency $code
+             * @param {float} $amount the $amount to withdraw
+             * @param {string} $address the $address to withdraw to
+             * @param {string|null} $tag
+             * @param {array} $params extra parameters specific to the woo api endpoint
+             * @return {array} a {@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure transaction structure}
+             */
+            list($tag, $params) = $this->handle_withdraw_tag_and_params($tag, $params);
+            Async\await($this->load_markets());
+            $this->check_address($address);
+            $currency = $this->currency($code);
+            $request = array(
+                'amount' => $amount,
+                'address' => $address,
+            );
+            if ($tag !== null) {
+                $request['extra'] = $tag;
+            }
+            $networks = $this->safe_value($this->options, 'networks', array());
+            $currencyNetworks = $this->safe_value($currency, 'networks', array());
+            $network = $this->safe_string_upper($params, 'network');
+            $networkId = $this->safe_string($networks, $network, $network);
+            $coinNetwork = $this->safe_value($currencyNetworks, $networkId, array());
+            $coinNetworkId = $this->safe_string($coinNetwork, 'id');
+            if ($coinNetworkId === null) {
+                throw new BadRequest($this->id . ' withdraw() require $network parameter');
+            }
+            $request['token'] = $coinNetworkId;
+            $response = Async\await($this->v1PrivatePostAssetWithdraw (array_merge($request, $params)));
+            //
+            //     {
+            //         "success" => true,
+            //         "withdraw_id" => "20200119145703654"
+            //     }
+            //
+            return $this->parse_transaction($response, $currency);
+        }) ();
     }
 
     public function repay_margin($code, $amount, $symbol = null, $params = array ()) {
