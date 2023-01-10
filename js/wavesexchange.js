@@ -746,40 +746,41 @@ module.exports = class wavesexchange extends Exchange {
 
     parseTicker (ticker, market = undefined) {
         //
-        //     {
-        //         "__type":"pair",
-        //         "data":{
-        //             "firstPrice":0.00012512,
-        //             "lastPrice":0.00012441,
-        //             "low":0.00012167,
-        //             "high":0.00012768,
-        //             "weightedAveragePrice":0.000124710697407246,
-        //             "volume":209554.26356614,
-        //             "quoteVolume":26.1336583539951,
-        //             "volumeWaves":209554.26356614,
-        //             "txsCount":6655
-        //         },
-        //         "amountAsset":"WAVES",
-        //         "priceAsset":"8LQW8f7P5d5PZM7GtZEBgaqRPGSzS3DfPuiXrURJ4AJS"
-        //     }
+        //       {
+        //           "symbol": "WAVES/BTC",
+        //           "amountAssetID": "WAVES",
+        //           "amountAssetName": "Waves",
+        //           "amountAssetDecimals": 8,
+        //           "amountAssetTotalSupply": "106908766.00000000",
+        //           "amountAssetMaxSupply": "106908766.00000000",
+        //           "amountAssetCirculatingSupply": "106908766.00000000",
+        //           "priceAssetID": "8LQW8f7P5d5PZM7GtZEBgaqRPGSzS3DfPuiXrURJ4AJS",
+        //           "priceAssetName": "WBTC",
+        //           "priceAssetDecimals": 8,
+        //           "priceAssetTotalSupply": "20999999.96007507",
+        //           "priceAssetMaxSupply": "20999999.96007507",
+        //           "priceAssetCirculatingSupply": "20999999.66019601",
+        //           "24h_open": "0.00032688",
+        //           "24h_high": "0.00033508",
+        //           "24h_low": "0.00032443",
+        //           "24h_close": "0.00032806",
+        //           "24h_vwap": "0.00032988",
+        //           "24h_volume": "42349.69440104",
+        //           "24h_priceVolume": "13.97037207",
+        //           "timestamp":1640232379124
+        //       }
         //
-        const timestamp = undefined;
-        const baseId = this.safeString (ticker, 'amountAsset');
-        const quoteId = this.safeString (ticker, 'priceAsset');
-        let symbol = undefined;
-        if ((baseId !== undefined) && (quoteId !== undefined)) {
-            const marketId = baseId + '/' + quoteId;
-            market = this.safeMarket (marketId, market, '/');
-            symbol = market['symbol'];
-        }
-        const data = this.safeValue (ticker, 'data', {});
-        const last = this.safeString (data, 'lastPrice');
-        const low = this.safeString (data, 'low');
-        const high = this.safeString (data, 'high');
-        const vwap = this.safeString (data, 'weightedAveragePrice');
-        const baseVolume = this.safeString (data, 'volume');
-        const quoteVolume = this.safeString (data, 'quoteVolume');
-        const open = this.safeString (data, 'firstPrice');
+        const timestamp = this.safeInteger (ticker, 'timestamp');
+        const marketId = this.safeString (ticker, 'symbol');
+        market = this.safeMarket (marketId, market, '/');
+        const symbol = market['symbol'];
+        const last = this.safeString (ticker, '24h_close');
+        const low = this.safeString (ticker, '24h_low');
+        const high = this.safeString (ticker, '24h_high');
+        const vwap = this.safeString (ticker, '24h_vwap');
+        const baseVolume = this.safeString (ticker, '24h_volume');
+        const quoteVolume = this.safeString (ticker, '24h_priceVolume');
+        const open = this.safeString (ticker, '24h_open');
         return this.safeTicker ({
             'symbol': symbol,
             'timestamp': timestamp,
@@ -857,32 +858,36 @@ module.exports = class wavesexchange extends Exchange {
          * @returns {object} an array of [ticker structures]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
          */
         await this.loadMarkets ();
-        const response = await this.publicGetPairs (params);
+        const response = await this.marketGetTickers (params);
         //
-        //     {
-        //         "__type":"list",
-        //         "data":[
-        //             {
-        //                 "__type":"pair",
-        //                 "data":{
-        //                     "firstPrice":0.00012512,
-        //                     "lastPrice":0.00012441,
-        //                     "low":0.00012167,
-        //                     "high":0.00012768,
-        //                     "weightedAveragePrice":0.000124710697407246,
-        //                     "volume":209554.26356614,
-        //                     "quoteVolume":26.1336583539951,
-        //                     "volumeWaves":209554.26356614,
-        //                     "txsCount":6655
-        //                 },
-        //                 "amountAsset":"WAVES",
-        //                 "priceAsset":"8LQW8f7P5d5PZM7GtZEBgaqRPGSzS3DfPuiXrURJ4AJS"
-        //             }
-        //         ]
-        //     }
+        //   [
+        //       {
+        //           "symbol": "WAVES/BTC",
+        //           "amountAssetID": "WAVES",
+        //           "amountAssetName": "Waves",
+        //           "amountAssetDecimals": 8,
+        //           "amountAssetTotalSupply": "106908766.00000000",
+        //           "amountAssetMaxSupply": "106908766.00000000",
+        //           "amountAssetCirculatingSupply": "106908766.00000000",
+        //           "priceAssetID": "8LQW8f7P5d5PZM7GtZEBgaqRPGSzS3DfPuiXrURJ4AJS",
+        //           "priceAssetName": "WBTC",
+        //           "priceAssetDecimals": 8,
+        //           "priceAssetTotalSupply": "20999999.96007507",
+        //           "priceAssetMaxSupply": "20999999.96007507",
+        //           "priceAssetCirculatingSupply": "20999999.66019601",
+        //           "24h_open": "0.00032688",
+        //           "24h_high": "0.00033508",
+        //           "24h_low": "0.00032443",
+        //           "24h_close": "0.00032806",
+        //           "24h_vwap": "0.00032988",
+        //           "24h_volume": "42349.69440104",
+        //           "24h_priceVolume": "13.97037207",
+        //           "timestamp":1640232379124
+        //       }
+        //       ...
+        //   ]
         //
-        const data = this.safeValue (response, 'data', []);
-        return this.parseTickers (data, symbols);
+        return this.parseTickers (response, symbols);
     }
 
     async fetchOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {

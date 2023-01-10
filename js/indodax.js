@@ -1001,6 +1001,7 @@ module.exports = class indodax extends Exchange {
             fee = {
                 'currency': this.safeCurrencyCode (undefined, currency),
                 'cost': feeCost,
+                'rate': undefined,
             };
         }
         return {

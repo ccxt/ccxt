@@ -3722,7 +3722,7 @@ module.exports = class okx extends Exchange {
         this.checkAddress (address);
         await this.loadMarkets ();
         const currency = this.currency (code);
-        if (tag !== undefined) {
+        if ((tag !== undefined) && (tag.length > 0)) {
             address = address + ':' + tag;
         }
         const fee = this.safeString (params, 'fee');

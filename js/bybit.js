@@ -1873,7 +1873,12 @@ module.exports = class bybit extends Exchange {
          * @returns {object} an array of [ticker structures]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
          */
         await this.loadMarkets ();
-        const [ type, query ] = this.handleMarketTypeAndParams ('fetchTickers', undefined, params);
+        let market = undefined;
+        if (symbols !== undefined) {
+            symbols = this.marketSymbols (symbols);
+            market = this.market (symbols[0]);
+        }
+        const [ type, query ] = this.handleMarketTypeAndParams ('fetchTickers', market, params);
         if (type === 'spot') {
             return await this.fetchSpotTickers (symbols, query);
         } else {
@@ -2329,7 +2334,7 @@ module.exports = class bybit extends Exchange {
             };
         }
         return this.safeTrade ({
-            'id': this.safeString (trade, 'id'),
+            'id': this.safeString (trade, 'tradeId'),
             'info': trade,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
@@ -6287,8 +6292,8 @@ module.exports = class bybit extends Exchange {
             timestamp = this.safeInteger (position, 'updatedAt');
         }
         // default to cross of USDC margined positions
-        const autoAddMargin = this.safeInteger (position, 'autoAddMargin', 1);
-        const marginMode = autoAddMargin ? 'cross' : 'isolated';
+        const tradeMode = this.safeInteger (position, 'tradeMode', 0);
+        const marginMode = tradeMode ? 'isolated' : 'cross';
         let collateralString = this.safeString (position, 'positionBalance');
         const entryPrice = this.omitZero (this.safeString (position, 'entryPrice'));
         const liquidationPrice = this.omitZero (this.safeString (position, 'liqPrice'));

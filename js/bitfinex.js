@@ -598,23 +598,28 @@ module.exports = class bitfinex extends Exchange {
             }
             const base = this.safeCurrencyCode (baseId);
             const quote = this.safeCurrencyCode (quoteId);
+            const symbol = base + '/' + quote;
+            let type = 'spot';
+            if (id.indexOf ('F0') > -1) {
+                type = 'swap';
+            }
             result.push ({
                 'id': id,
-                'symbol': base + '/' + quote,
+                'symbol': symbol,
                 'base': base,
                 'quote': quote,
                 'settle': undefined,
                 'baseId': baseId,
                 'quoteId': quoteId,
                 'settleId': undefined,
-                'type': 'spot',
-                'spot': true,
+                'type': type,
+                'spot': (type === 'spot'),
                 'margin': this.safeValue (market, 'margin'),
-                'swap': false,
+                'swap': (type === 'swap'),
                 'future': false,
                 'option': false,
                 'active': true,
-                'contract': false,
+                'contract': (type === 'swap'),
                 'linear': undefined,
                 'inverse': undefined,
                 'contractSize': undefined,
@@ -657,10 +662,12 @@ module.exports = class bitfinex extends Exchange {
         // https://docs.bitfinex.com/docs/introduction#amount-precision
         // The amount field allows up to 8 decimals.
         // Anything exceeding this will be rounded to the 8th decimal.
+        symbol = this.safeSymbol (symbol);
         return this.decimalToPrecision (amount, TRUNCATE, this.markets[symbol]['precision']['amount'], DECIMAL_PLACES);
     }
 
     priceToPrecision (symbol, price) {
+        symbol = this.safeSymbol (symbol);
         price = this.decimalToPrecision (price, ROUND, this.markets[symbol]['precision']['price'], this.precisionMode);
         // https://docs.bitfinex.com/docs/introduction#price-precision
         // The precision level of all trading prices is based on significant figures.
@@ -1057,11 +1064,16 @@ module.exports = class bitfinex extends Exchange {
         const market = this.market (symbol);
         const postOnly = this.safeValue (params, 'postOnly', false);
         params = this.omit (params, [ 'postOnly' ]);
+        if (market['spot']) {
+            // although they claim that type needs to be 'exchange limit' or 'exchange market'
+            // in fact that's not the case for swap markets
+            type = this.safeString (this.options['orderTypes'], type, type);
+        }
         const request = {
             'symbol': market['id'],
             'side': side,
             'amount': this.amountToPrecision (symbol, amount),
-            'type': this.safeString (this.options['orderTypes'], type, type),
+            'type': type.toLowerCase (),
             'ocoorder': false,
             'buy_price_oco': 0,
             'sell_price_oco': 0,

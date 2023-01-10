@@ -169,7 +169,7 @@ trait ClientTrait {
                 $index = $this->get_cache_index($orderBook, $cache);
                 if ($index >= 0) {
                     $stored->reset($orderBook);
-                    $this->handle_deltas($orderBook, array_slice($cache, $index));
+                    $this->handle_deltas($stored, array_slice($cache, $index));
                     $cache = array();
                     $client->resolve($stored, $messageHash);
                 } else {

@@ -37,7 +37,7 @@ const Exchange  = require ('./js/base/Exchange')
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
 
-const version = '2.5.46'
+const version = '2.5.72'
 
 Exchange.ccxtVersion = version
 
@@ -223,6 +223,7 @@ for (const exchange in pro) {
 }
 
 pro.exchanges = Object.keys (pro)
+pro['Exchange'] = wsExchange
 
 //-----------------------------------------------------------------------------
 

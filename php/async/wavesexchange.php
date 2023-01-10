@@ -760,40 +760,41 @@ class wavesexchange extends Exchange {
 
     public function parse_ticker($ticker, $market = null) {
         //
-        //     {
-        //         "__type":"pair",
-        //         "data":array(
-        //             "firstPrice":0.00012512,
-        //             "lastPrice":0.00012441,
-        //             "low":0.00012167,
-        //             "high":0.00012768,
-        //             "weightedAveragePrice":0.000124710697407246,
-        //             "volume":209554.26356614,
-        //             "quoteVolume":26.1336583539951,
-        //             "volumeWaves":209554.26356614,
-        //             "txsCount":6655
-        //         ),
-        //         "amountAsset":"WAVES",
-        //         "priceAsset":"8LQW8f7P5d5PZM7GtZEBgaqRPGSzS3DfPuiXrURJ4AJS"
-        //     }
+        //       {
+        //           "symbol" => "WAVES/BTC",
+        //           "amountAssetID" => "WAVES",
+        //           "amountAssetName" => "Waves",
+        //           "amountAssetDecimals" => 8,
+        //           "amountAssetTotalSupply" => "106908766.00000000",
+        //           "amountAssetMaxSupply" => "106908766.00000000",
+        //           "amountAssetCirculatingSupply" => "106908766.00000000",
+        //           "priceAssetID" => "8LQW8f7P5d5PZM7GtZEBgaqRPGSzS3DfPuiXrURJ4AJS",
+        //           "priceAssetName" => "WBTC",
+        //           "priceAssetDecimals" => 8,
+        //           "priceAssetTotalSupply" => "20999999.96007507",
+        //           "priceAssetMaxSupply" => "20999999.96007507",
+        //           "priceAssetCirculatingSupply" => "20999999.66019601",
+        //           "24h_open" => "0.00032688",
+        //           "24h_high" => "0.00033508",
+        //           "24h_low" => "0.00032443",
+        //           "24h_close" => "0.00032806",
+        //           "24h_vwap" => "0.00032988",
+        //           "24h_volume" => "42349.69440104",
+        //           "24h_priceVolume" => "13.97037207",
+        //           "timestamp":1640232379124
+        //       }
         //
-        $timestamp = null;
-        $baseId = $this->safe_string($ticker, 'amountAsset');
-        $quoteId = $this->safe_string($ticker, 'priceAsset');
-        $symbol = null;
-        if (($baseId !== null) && ($quoteId !== null)) {
-            $marketId = $baseId . '/' . $quoteId;
-            $market = $this->safe_market($marketId, $market, '/');
-            $symbol = $market['symbol'];
-        }
-        $data = $this->safe_value($ticker, 'data', array());
-        $last = $this->safe_string($data, 'lastPrice');
-        $low = $this->safe_string($data, 'low');
-        $high = $this->safe_string($data, 'high');
-        $vwap = $this->safe_string($data, 'weightedAveragePrice');
-        $baseVolume = $this->safe_string($data, 'volume');
-        $quoteVolume = $this->safe_string($data, 'quoteVolume');
-        $open = $this->safe_string($data, 'firstPrice');
+        $timestamp = $this->safe_integer($ticker, 'timestamp');
+        $marketId = $this->safe_string($ticker, 'symbol');
+        $market = $this->safe_market($marketId, $market, '/');
+        $symbol = $market['symbol'];
+        $last = $this->safe_string($ticker, '24h_close');
+        $low = $this->safe_string($ticker, '24h_low');
+        $high = $this->safe_string($ticker, '24h_high');
+        $vwap = $this->safe_string($ticker, '24h_vwap');
+        $baseVolume = $this->safe_string($ticker, '24h_volume');
+        $quoteVolume = $this->safe_string($ticker, '24h_priceVolume');
+        $open = $this->safe_string($ticker, '24h_open');
         return $this->safe_ticker(array(
             'symbol' => $symbol,
             'timestamp' => $timestamp,
@@ -870,32 +871,36 @@ class wavesexchange extends Exchange {
              * @return {array} an array of {@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure ticker structures}
              */
             Async\await($this->load_markets());
-            $response = Async\await($this->publicGetPairs ($params));
+            $response = Async\await($this->marketGetTickers ($params));
             //
-            //     {
-            //         "__type":"list",
-            //         "data":array(
-            //             {
-            //                 "__type":"pair",
-            //                 "data":array(
-            //                     "firstPrice":0.00012512,
-            //                     "lastPrice":0.00012441,
-            //                     "low":0.00012167,
-            //                     "high":0.00012768,
-            //                     "weightedAveragePrice":0.000124710697407246,
-            //                     "volume":209554.26356614,
-            //                     "quoteVolume":26.1336583539951,
-            //                     "volumeWaves":209554.26356614,
-            //                     "txsCount":6655
-            //                 ),
-            //                 "amountAsset":"WAVES",
-            //                 "priceAsset":"8LQW8f7P5d5PZM7GtZEBgaqRPGSzS3DfPuiXrURJ4AJS"
-            //             }
-            //         )
-            //     }
+            //   array(
+            //       {
+            //           "symbol" => "WAVES/BTC",
+            //           "amountAssetID" => "WAVES",
+            //           "amountAssetName" => "Waves",
+            //           "amountAssetDecimals" => 8,
+            //           "amountAssetTotalSupply" => "106908766.00000000",
+            //           "amountAssetMaxSupply" => "106908766.00000000",
+            //           "amountAssetCirculatingSupply" => "106908766.00000000",
+            //           "priceAssetID" => "8LQW8f7P5d5PZM7GtZEBgaqRPGSzS3DfPuiXrURJ4AJS",
+            //           "priceAssetName" => "WBTC",
+            //           "priceAssetDecimals" => 8,
+            //           "priceAssetTotalSupply" => "20999999.96007507",
+            //           "priceAssetMaxSupply" => "20999999.96007507",
+            //           "priceAssetCirculatingSupply" => "20999999.66019601",
+            //           "24h_open" => "0.00032688",
+            //           "24h_high" => "0.00033508",
+            //           "24h_low" => "0.00032443",
+            //           "24h_close" => "0.00032806",
+            //           "24h_vwap" => "0.00032988",
+            //           "24h_volume" => "42349.69440104",
+            //           "24h_priceVolume" => "13.97037207",
+            //           "timestamp":1640232379124
+            //       }
+            //       ...
+            //   )
             //
-            $data = $this->safe_value($response, 'data', array());
-            return $this->parse_tickers($data, $symbols);
+            return $this->parse_tickers($response, $symbols);
         }) ();
     }
 

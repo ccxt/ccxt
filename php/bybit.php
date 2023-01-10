@@ -1854,15 +1854,20 @@ class bybit extends Exchange {
 
     public function fetch_tickers($symbols = null, $params = array ()) {
         /**
-         * fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
+         * fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each $market
          * @see https://bybit-exchange.github.io/docs/futuresV2/linear/#t-latestsymbolinfo
          * @see https://bybit-exchange.github.io/docs/spot/v3/#t-spot_latestsymbolinfo
-         * @param {[string]|null} $symbols unified $symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
+         * @param {[string]|null} $symbols unified $symbols of the markets to fetch the ticker for, all $market tickers are returned if not assigned
          * @param {array} $params extra parameters specific to the bybit api endpoint
          * @return {array} an array of {@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure ticker structures}
          */
         $this->load_markets();
-        list($type, $query) = $this->handle_market_type_and_params('fetchTickers', null, $params);
+        $market = null;
+        if ($symbols !== null) {
+            $symbols = $this->market_symbols($symbols);
+            $market = $this->market($symbols[0]);
+        }
+        list($type, $query) = $this->handle_market_type_and_params('fetchTickers', $market, $params);
         if ($type === 'spot') {
             return $this->fetch_spot_tickers($symbols, $query);
         } else {
@@ -2312,7 +2317,7 @@ class bybit extends Exchange {
             );
         }
         return $this->safe_trade(array(
-            'id' => $this->safe_string($trade, 'id'),
+            'id' => $this->safe_string($trade, 'tradeId'),
             'info' => $trade,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
@@ -6230,8 +6235,8 @@ class bybit extends Exchange {
             $timestamp = $this->safe_integer($position, 'updatedAt');
         }
         // default to cross of USDC margined positions
-        $autoAddMargin = $this->safe_integer($position, 'autoAddMargin', 1);
-        $marginMode = $autoAddMargin ? 'cross' : 'isolated';
+        $tradeMode = $this->safe_integer($position, 'tradeMode', 0);
+        $marginMode = $tradeMode ? 'isolated' : 'cross';
         $collateralString = $this->safe_string($position, 'positionBalance');
         $entryPrice = $this->omit_zero($this->safe_string($position, 'entryPrice'));
         $liquidationPrice = $this->omit_zero($this->safe_string($position, 'liqPrice'));

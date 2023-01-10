@@ -66,9 +66,9 @@ process.on ('unhandledRejection', e => { log.bright.red.error (e); log.red.error
 const keysGlobal = path.resolve ('keys.json')
 const keysLocal = path.resolve ('keys.local.json')
 
-let globalKeysFile = fs.existsSync (keysGlobal) ? keysGlobal : false
-let localKeysFile = fs.existsSync (keysLocal) ? keysLocal : globalKeysFile
-let settings = localKeysFile ? (require (localKeysFile)[exchangeId] || {}) : {}
+const globalKeysFile = fs.existsSync (keysGlobal) ? keysGlobal : false
+const localKeysFile = fs.existsSync (keysLocal) ? keysLocal : globalKeysFile
+const settings = localKeysFile ? (require (localKeysFile)[exchangeId] || {}) : {}
 
 //-----------------------------------------------------------------------------
 
@@ -81,6 +81,16 @@ const httpsAgent = new Agent ({
     ecdhCurve: 'auto',
     keepAlive: true,
 })
+
+
+// check here if we have a arg like this: binance.fetchOrders()
+const callRegex = /\s*(\w+)\s*\.\s*(\w+)\s*\(([^()]*)\)/
+if (callRegex.test (exchangeId)) {
+    const res = callRegex.exec (exchangeId);
+    exchangeId = res[1];
+    methodName = res[2];
+    params = res[3].split(",").map(x => x.trim());
+}
 
 try {
     if (ccxt.pro.exchanges.includes(exchangeId)) {
@@ -200,6 +210,8 @@ const printHumanReadable = (exchange, result) => {
 //-----------------------------------------------------------------------------
 
 async function run () {
+
+
 
     if (!exchangeId) {
 

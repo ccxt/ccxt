@@ -937,7 +937,7 @@ module.exports = class gate extends Exchange {
         return this.arrayConcat (spotMarkets, contractMarkets);
     }
 
-    async fetchSpotMarkets (params) {
+    async fetchSpotMarkets (params = {}) {
         const marginResponse = await this.publicMarginGetCurrencyPairs (params);
         const spotMarketsResponse = await this.publicSpotGetCurrencyPairs (params);
         const marginMarkets = this.indexBy (marginResponse, 'id');
@@ -1044,15 +1044,16 @@ module.exports = class gate extends Exchange {
         return result;
     }
 
-    async fetchContractMarkets (params) {
+    async fetchContractMarkets (params = {}) {
         const result = [];
         const swapSettlementCurrencies = this.getSettlementCurrencies ('swap', 'fetchMarkets');
         const futureSettlementCurrencies = this.getSettlementCurrencies ('future', 'fetchMarkets');
         for (let c = 0; c < swapSettlementCurrencies.length; c++) {
             const settleId = swapSettlementCurrencies[c];
-            const query = params;
-            query['settle'] = settleId;
-            const response = await this.publicFuturesGetSettleContracts (query);
+            const request = {
+                'settle': settleId,
+            };
+            const response = await this.publicFuturesGetSettleContracts (this.extend (request, params));
             for (let i = 0; i < response.length; i++) {
                 const parsedMarket = this.parseContractMarket (response[i], settleId);
                 result.push (parsedMarket);
@@ -1060,9 +1061,10 @@ module.exports = class gate extends Exchange {
         }
         for (let c = 0; c < futureSettlementCurrencies.length; c++) {
             const settleId = futureSettlementCurrencies[c];
-            const query = params;
-            query['settle'] = settleId;
-            const response = await this.publicDeliveryGetSettleContracts (query);
+            const request = {
+                'settle': settleId,
+            };
+            const response = await this.publicDeliveryGetSettleContracts (this.extend (request, params));
             for (let i = 0; i < response.length; i++) {
                 const parsedMarket = this.parseContractMarket (response[i], settleId);
                 result.push (parsedMarket);

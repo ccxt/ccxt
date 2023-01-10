@@ -699,7 +699,7 @@ class gate(Exchange):
         contractMarkets = promises[1]
         return self.array_concat(spotMarkets, contractMarkets)
 
-    async def fetch_spot_markets(self, params):
+    async def fetch_spot_markets(self, params={}):
         marginResponse = await self.publicMarginGetCurrencyPairs(params)
         spotMarketsResponse = await self.publicSpotGetCurrencyPairs(params)
         marginMarkets = self.index_by(marginResponse, 'id')
@@ -804,23 +804,25 @@ class gate(Exchange):
             })
         return result
 
-    async def fetch_contract_markets(self, params):
+    async def fetch_contract_markets(self, params={}):
         result = []
         swapSettlementCurrencies = self.get_settlement_currencies('swap', 'fetchMarkets')
         futureSettlementCurrencies = self.get_settlement_currencies('future', 'fetchMarkets')
         for c in range(0, len(swapSettlementCurrencies)):
             settleId = swapSettlementCurrencies[c]
-            query = params
-            query['settle'] = settleId
-            response = await self.publicFuturesGetSettleContracts(query)
+            request = {
+                'settle': settleId,
+            }
+            response = await self.publicFuturesGetSettleContracts(self.extend(request, params))
             for i in range(0, len(response)):
                 parsedMarket = self.parse_contract_market(response[i], settleId)
                 result.append(parsedMarket)
         for c in range(0, len(futureSettlementCurrencies)):
             settleId = futureSettlementCurrencies[c]
-            query = params
-            query['settle'] = settleId
-            response = await self.publicDeliveryGetSettleContracts(query)
+            request = {
+                'settle': settleId,
+            }
+            response = await self.publicDeliveryGetSettleContracts(self.extend(request, params))
             for i in range(0, len(response)):
                 parsedMarket = self.parse_contract_market(response[i], settleId)
                 result.append(parsedMarket)

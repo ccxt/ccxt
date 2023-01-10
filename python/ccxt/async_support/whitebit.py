@@ -310,11 +310,21 @@ class whitebit(Exchange):
             base = self.safe_currency_code(baseId)
             quote = self.safe_currency_code(quoteId)
             active = self.safe_value(market, 'tradesEnabled')
-            isMargin = self.safe_value(market, 'isCollateral')
+            isCollateral = self.safe_value(market, 'isCollateral')
             typeId = self.safe_string(market, 'type')
-            type = 'swap' if (typeId == 'futures') else 'spot'
-            settle = 'USDT' if (type == 'swap') else None
-            symbol = base + '/' + quote if (type == 'spot') else base + '/' + settle + ':' + settle
+            type = None
+            settle = None
+            settleId = None
+            symbol = base + '/' + quote
+            swap = typeId == 'futures'
+            margin = isCollateral and not swap
+            if swap:
+                settleId = quoteId
+                settle = self.safe_currency_code(settleId)
+                symbol = symbol + ':' + settle
+                type = 'swap'
+            else:
+                type = 'spot'
             entry = {
                 'id': id,
                 'symbol': symbol,
@@ -323,11 +333,11 @@ class whitebit(Exchange):
                 'settle': settle,
                 'baseId': baseId,
                 'quoteId': quoteId,
-                'settleId': None,
+                'settleId': settleId,
                 'type': type,
-                'spot': (type == 'spot'),
-                'margin': isMargin,
-                'swap': (type == 'swap'),
+                'spot': not swap,
+                'margin': margin,
+                'swap': swap,
                 'future': False,
                 'option': False,
                 'active': active,
