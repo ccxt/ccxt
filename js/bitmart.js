@@ -126,6 +126,7 @@ module.exports = class bitmart extends Exchange {
                         'contract/public/open-interest': 30,
                         'contract/public/funding-rate': 30,
                         'contract/public/kline': 5,
+                        'account/v1/currencies': 30,
                     },
                 },
                 'private': {
@@ -368,12 +369,158 @@ module.exports = class bitmart extends Exchange {
                 'TRU': 'Truebit', // conflict with TrueFi
             },
             'options': {
-                'networks': {
-                    'TRX': 'TRC20',
-                    'ETH': 'ERC20',
-                },
+                'defaultNetwork': 'ERC20',
                 'defaultNetworks': {
                     'USDT': 'ERC20',
+                },
+                'networks': {
+                    'BTC': 'BTC',
+                    'ERC20': [ 'ERC20', 'ERC-20', 'ERC20 ' ],
+                    'OMNI': 'OMNI',
+                    'STELLAR': 'XLM',
+                    'EOS': 'EOS',
+                    'NEO': 'NEO',
+                    'BYTOM': 'BTM',
+                    'BCH': 'BCH',
+                    'RIPPLE': 'XRP',
+                    'VECHAIN': [ 'VET', 'Vechain' ],
+                    'BITCOINHD': 'BHD',
+                    'PLEX': 'PLEX',
+                    'CHIA': 'XCH',
+                    'AVALANCHE_C': [ 'AVAX', 'AVAX-C' ],
+                    'NEAR': 'NEAR',
+                    'FIO': 'FIO',
+                    'SECRET': 'SCRT',
+                    'IOTEX': 'IOTX',
+                    'POLYGON': [ 'MATIC', 'Polygon', 'POLYGON' ],
+                    'HRC20': 'HECO',
+                    'XDC': 'XDC',
+                    'HARMONY': 'ONE',
+                    'SOLANA': 'SOL',
+                    'PLATON': 'LAT',
+                    'CSPR': 'Casper',
+                    'INTERNETCOMPUTER': 'Computer',
+                    'LBRY': 'LBC',
+                    'TEZOS': 'XTZ',
+                    'MINA': 'MINA',
+                    'CREDITS': 'CS',
+                    'CARDANO': 'ADA',
+                    'BEP20': [ 'BEP20', 'BSC_BNB', 'bep20' ],
+                    'ERGO': 'ERG',
+                    'DOGECOIN': 'DOGE',
+                    'THETA': 'THETA',
+                    'SYMBOL': 'XYM',
+                    'CYPHERIUM': 'CPH',
+                    'AKASH': 'AKT',
+                    'NEM': 'XEM',
+                    'ARWEAVE': 'AR',
+                    'CELO': 'CELO',
+                    'BITCOINVAULT': 'BTCV',
+                    'FILECOIN': 'FIL',
+                    'NULS': 'NULS',
+                    'ENERGYWEB': 'EWT',
+                    'ETHERCOIN': 'ETE',
+                    'VEIL': 'VEIL',
+                    'ETC': 'ETC',
+                    'POLKADOT': 'DOT',
+                    'DASH': 'DASH',
+                    'DIGIBYTE': 'DGB',
+                    'KUSAMA': 'KSM',
+                    'BEP2': 'BEP2',
+                    'GRIN': 'GRIN',
+                    'WAVES': 'WAVES',
+                    'ALGORAND': 'ALGO',
+                    'COSMOS': 'ATOM',
+                    'ABBC': 'ABBC',
+                    'ACALA': 'ACA',
+                    'LTC': 'LTC',
+                    'BSV': 'BSV',
+                    'TRX': 'TRX',
+                    'QTUM': 'QTUM',
+                    'ZCASH': 'ZEC',
+                    'NEBULAS': 'NAS',
+                    'TRC20': [ 'TRC20', 'trc20' ],
+                    'MOBILECOIN': 'MBX',
+                    'PAC': 'PAC',
+                    // 'TERRACLASSIC': 'LUNC', //TBD
+                    // 'TERRA': 'Terra', //TBD
+                    'HEDERA': [ 'HBAR', 'Hedera', 'Hedera Mainnet' ],
+                    'TELOS': 'TLOS',
+                    'KARDIA': 'KardiaChain',
+                    'FUSE': 'FUSE',
+                    'TRC10': 'TRC10',
+                    'FIRO': 'FIRO',
+                    'FANTOM': 'Fantom',
+                    'KLAYTN': [ 'klaytn', 'KLAY', 'Klaytn' ],
+                    'ELROND': [ 'EGLD', 'Elrond eGold', 'MultiversX' ],
+                    'EVERSCALE': 'EVER',
+                    'KAVA': 'KAVA',
+                    'MOONBEAM': 'GLMR',
+                    'MOONRIVER': 'MOVR',
+                    'HYDRA': 'HYDRA',
+                    'PLCULTIMA': 'PLCU',
+                    'BITGERT': 'BRISE',
+                    'CRC20': [ 'CRO', 'CRO_Chain' ],
+                    'CONFLUX': [ 'CFX eSpace', 'CFX' ],
+                    'OPTIMISM': 'OPTIMISM',
+                    'REEF': 'REEF',
+                    'SYSCOIN': 'SYS', // NEVM is different
+                    'CADUCEUS': 'CMP',
+                    'ZILLIQA': 'ZIL',
+                    'VITE': 'VITE',
+                    'STACKS': 'STX',
+                    'SOLAR': 'SXP',
+                    'CRUST': 'CRU',
+                    'BITCI': 'BITCI',
+                    'ARBITRUM': [ 'ARBI', 'Arbitrum' ],
+                    'RADIX': 'XRD',
+                    'ASTAR': 'ASTAR',
+                    'HORIZEN': 'HORIZEN',
+                    'LTO': 'LTO',
+                    'ETHW': 'ETHW',
+                    'NODLE': 'NODL',
+                    'ETHF': 'ETHF',
+                    'IOST': 'IOST',
+                    'INJECTIVE': 'INJ',
+                    'CUBE': 'CUBE',
+                    'CHILIZ': [ 'CHZ', 'CHILIZ' ],
+                    'APTOS': 'APT',
+                    'FLOW': [ 'FLOW', 'Flow' ],
+                    'ONTOLOGY': 'ONT',
+                    'REBUS': 'REBUS',
+                    'FINDORA': 'FRA',
+                    'EVMOS': 'EVMOS',
+                    'MONERO': 'XMR',
+                    'OASYS': 'OAS',
+                    'PI': 'PI',
+                    'OSMOSIS': 'OSMO',
+                    'PROOFOFMEMES': 'POM',
+                    'ZENIQ': 'ZENIQ', // "ZEN-20" is different
+                    'OMAX': 'OMAX Chain',
+                    'PINETWORK': 'PI',
+                    'DESO': 'DESO',
+                    'XODEX': 'XODEX',
+                    'DRAC': 'DRC20',
+                    'BFIC': 'BFIC',
+                    'QCHAIN': 'QDT',
+                    'KINGARU': 'KRU',
+                    'QIBLOCKCHAIN': 'QIE',
+                    'OHO': 'OHO',
+                    'MINTME': 'MINTME',
+                    'RAMESTTA': 'RAMA',
+                    'BITICA': 'BDCC',
+                    'CROWNSOVEREIGN': 'CSOV',
+                    'REDLIGHT': 'REDLC',
+                    'VERITISE': 'VTS',
+                    'XIDEN': 'XDEN',
+                    'CHEQD': 'CHEQ',
+                    'ULTRONGLOW': 'UTG',
+                    'PHAETON': 'PHAE',
+                    'ZENITH': 'ZENITH',
+                    'VERIBLOCK': 'VBK',
+                    // undetermined chains:
+                    // LEX (for LexThum), TAYCAN (for TRICE), SFL (probably TAYCAN), OMNIA (for APEX), NAC (for NAC), KAG (Kinesis), CEM (crypto emergency), XVM (for Venidium), NEVM (for NEVM), IGT20 (for IGNITE), FILM (FILMCredits), CC (CloudCoin), MERGE (MERGE), LTNM (Bitcoin latinum), PLUGCN ( PlugChain), DINGO (dingo), LED (LEDGIS), AVAT (AVAT), VSOL (Vsolidus), EPIC (EPIC cash), NFC (netflowcoin), mrx (Metrix Coin), Idena (idena network), PKT (PKT Cash), BondDex (BondDex), XBN (XBN), KALAM (Kalamint), REV (RChain), KRC20 (MyDeFiPet), ARC20 (Hurricane Token), GMD (Coop network), BERS (Berith), ZEBI (Zebi), BRC (Baer Chain), DAPS (DAPS Coin), APL (Gold Secured Currency), NDAU (NDAU), WICC (WICC), UPG (Unipay God), TSL (TreasureSL), MXW (Maxonrow), CLC (Cifculation), SMH (SMH Coin), XIN (CPCoin), RDD (ReddCoin), OK (Okcash), KAR (KAR), CCX (ConcealNetwork),
+
                 },
                 'defaultType': 'spot', // 'spot', 'swap'
                 'fetchBalance': {
@@ -685,47 +832,125 @@ module.exports = class bitmart extends Exchange {
          * @param {object} params extra parameters specific to the bitmart api endpoint
          * @returns {object} an associative dictionary of currencies
          */
-        const response = await this.publicGetSpotV1Currencies (params);
+        const response = await this.publicGetAccountV1Currencies (params);
         //
         //     {
-        //         "message":"OK",
-        //         "code":1000,
-        //         "trace":"8c768b3c-025f-413f-bec5-6d6411d46883",
-        //         "data":{
-        //             "currencies":[
-        //                 {"currency":"MATIC","name":"Matic Network","withdraw_enabled":true,"deposit_enabled":true},
-        //                 {"currency":"KTN","name":"Kasoutuuka News","withdraw_enabled":true,"deposit_enabled":false},
-        //                 {"currency":"BRT","name":"Berith","withdraw_enabled":true,"deposit_enabled":true},
+        //         "message": "OK",
+        //         "code": 1000,
+        //         "trace": "c25d91c7-359a-47e4-80c4-4a6a2c19be2f",
+        //         "data": {
+        //             "currencies": [
+        //                  {
+        //                     "currency": "USDT",
+        //                     "name": "Tether USD",
+        //                     "contract_address": null,
+        //                     "network": "OMNI",
+        //                     "withdraw_enabled": false,
+        //                     "deposit_enabled": false,
+        //                     "withdraw_minsize": "10",
+        //                     "withdraw_minfee": null
+        //                  },
+        //                  {
+        //                     "currency": "USDT-SPL",
+        //                     "name": "USDT-SPL",
+        //                     "contract_address": "Es9vMFrzaCERmJfrF4H2FYD4KCoNkY11McCe8BenwNYB",
+        //                     "network": "SOL",
+        //                     "withdraw_enabled": true,
+        //                     "deposit_enabled": true,
+        //                     "withdraw_minsize": "20",
+        //                     "withdraw_minfee": null
+        //                  },
         //             ]
         //         }
-        //     }
+        //    }
         //
         const data = this.safeValue (response, 'data', {});
         const currencies = this.safeValue (data, 'currencies', []);
         const result = {};
         for (let i = 0; i < currencies.length; i++) {
             const currency = currencies[i];
-            const id = this.safeString (currency, 'id');
-            const code = this.safeCurrencyCode (id);
-            const name = this.safeString (currency, 'name');
-            const withdrawEnabled = this.safeValue (currency, 'withdraw_enabled');
-            const depositEnabled = this.safeValue (currency, 'deposit_enabled');
-            const active = withdrawEnabled && depositEnabled;
-            result[code] = {
-                'id': id,
-                'code': code,
-                'name': name,
-                'info': currency, // the original payload
-                'active': active,
-                'deposit': depositEnabled,
-                'withdraw': withdrawEnabled,
-                'fee': undefined,
-                'precision': undefined,
+            const currencyId = this.safeString (currency, 'currency');
+            const parts = currencyId.split ('-');
+            const currencyPart = parts[0];
+            const code = this.safeCurrencyCode (currencyPart);
+            if (!(code in result)) {
+                result[code] = {
+                    'id': currencyPart, // not 'currencyId', because it holds `USDT-BEP20, USDT,` etc..
+                    'code': code,
+                    'name': this.safeString (currency, 'name'),
+                    'info': undefined,
+                    'type': undefined,
+                    'margin': undefined,
+                    'active': undefined,
+                    'deposit': undefined,
+                    'withdraw': undefined,
+                    'fee': undefined,
+                    'precision': undefined,
+                    'networks': {},
+                    'limits': {
+                        'amount': {
+                            'min': undefined,
+                            'max': undefined,
+                        },
+                        'withdraw': {
+                            'min': undefined,
+                            'max': undefined,
+                        },
+                    },
+                };
+            }
+            const networkId = this.safeString (currency, 'network');
+            const networkCode = this.defineNetworkCodeNameIdMappings (code, currencyId, networkId);
+            const withdraw_enabled = this.safeValue (currency, 'withdraw_enabled');
+            const deposit_enabled = this.safeValue (currency, 'deposit_enabled');
+            const withdraw_minsize = this.safeString (currency, 'withdraw_minsize');
+            const withdraw_minfee = this.safeString (currency, 'withdraw_minfee');
+            let minPrecisionSize = undefined;
+            let minPrecisionFee = undefined;
+            if (withdraw_minsize !== undefined) {
+                minPrecisionSize = this.numberToString (this.precisionFromString (withdraw_minsize));
+            }
+            if (withdraw_minfee !== undefined) {
+                minPrecisionFee = this.numberToString (this.precisionFromString (withdraw_minfee));
+            }
+            let maxScale = undefined;
+            if (minPrecisionSize !== undefined && minPrecisionFee !== undefined) {
+                maxScale = Precise.stringMax (minPrecisionSize, minPrecisionFee);
+            } else if (minPrecisionSize !== undefined) {
+                maxScale = minPrecisionSize;
+            } else if (minPrecisionFee !== undefined) {
+                maxScale = minPrecisionFee;
+            }
+            result[code]['networks'][networkCode] = {
+                'info': currency,
+                'id': networkId,
+                'network': networkCode,
+                'active': (deposit_enabled || withdraw_enabled),
+                'deposit': deposit_enabled,
+                'withdraw': withdraw_enabled,
+                'fee': this.parseNumber (withdraw_minfee),
+                'precision': this.parseNumber (this.parsePrecision (maxScale)),
                 'limits': {
-                    'amount': { 'min': undefined, 'max': undefined },
-                    'withdraw': { 'min': undefined, 'max': undefined },
+                    'withdraw': {
+                        'min': this.parseNumber (withdraw_minsize),
+                        'max': undefined,
+                    },
+                    'deposit': {
+                        'min': undefined,
+                        'max': undefined,
+                    },
                 },
             };
+            // currency wide values
+            if (withdraw_enabled) {
+                result[code]['withdraw'] = true;
+            }
+            if (deposit_enabled) {
+                result[code]['deposit'] = true;
+            }
+            if (result[code]['withdraw'] && result[code]['deposit']) {
+                result[code]['active'] = true;
+            }
         }
         return result;
     }
@@ -802,10 +1027,15 @@ module.exports = class bitmart extends Exchange {
          */
         await this.loadMarkets ();
         const currency = this.currency (code);
+        const [ networkCode, query ] = this.handleNetworkCodeAndParams (params);
+        if (networkCode === undefined) {
+            throw new ArgumentsRequired (this.id + ' fetchDepositWithdrawFee() requires a "network" parameter');
+        }
+        const currencyIdWithNetwork = this.getCurrencyIdByNetworkCode (currency['code'], networkCode);
         const request = {
-            'currency': currency['id'],
+            'currency': currencyIdWithNetwork,
         };
-        const response = await this.privateGetAccountV1WithdrawCharge (this.extend (request, params));
+        const response = await this.privateGetAccountV1WithdrawCharge (this.extend (request, query));
         //
         //     {
         //         message: 'OK',
@@ -2162,17 +2392,6 @@ module.exports = class bitmart extends Exchange {
         const request = {
             'currency': currency['id'],
         };
-        if (code === 'USDT') {
-            const defaultNetworks = this.safeValue (this.options, 'defaultNetworks');
-            const defaultNetwork = this.safeStringUpper (defaultNetworks, code);
-            const networks = this.safeValue (this.options, 'networks', {});
-            let network = this.safeStringUpper (params, 'network', defaultNetwork); // this line allows the user to specify either ERC20 or ETH
-            network = this.safeString (networks, network, network); // handle ERC20>ETH alias
-            if (network !== undefined) {
-                request['currency'] += '-' + network; // when network the currency need to be changed to currency + '-' + network https://developer-pro.bitmart.com/en/account/withdraw_apply.html on the end of page
-                params = this.omit (params, 'network');
-            }
-        }
         const response = await this.privateGetAccountV1DepositAddress (this.extend (request, params));
         //
         //     {

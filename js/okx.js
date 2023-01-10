@@ -1355,7 +1355,7 @@ module.exports = class okx extends Exchange {
                 const canInternal = this.safeValue (chain, 'canInternal');
                 const active = (canDeposit && canWithdraw && canInternal) ? true : false;
                 currencyActive = (currencyActive === undefined) ? active : currencyActive;
-                const networkId = this.safeString (chain, 'chain');
+                const networkId = this.safeString (chain, 'chain'); // is unique per entry i.e. USDT-ERC20, USDT-TRC20
                 if (canDeposit && !depositEnabled) {
                     depositEnabled = true;
                 } else if (!canDeposit) {
@@ -1366,8 +1366,9 @@ module.exports = class okx extends Exchange {
                 } else if (!canWithdraw) {
                     withdrawEnabled = false;
                 }
-                const title = this.getNetworkTitleFromId (networkId);
-                const networkCode = this.defineNetworkCodeNameIdMappings (code, title, networkId);
+                const networkTitle = this.getNetworkTitleFromId (networkId);
+                this.defineNetworkCodeNameIdMappings (code, networkTitle, networkId);
+                const networkCode = this.networkIdToCode (networkId, code);
                 const precision = this.parsePrecision (this.safeString (chain, 'wdTickSz'));
                 maxPrecision = (maxPrecision === undefined) ? precision : Precise.stringMin (maxPrecision, precision);
                 networks[networkCode] = {

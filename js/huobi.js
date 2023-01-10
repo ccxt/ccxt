@@ -2951,9 +2951,10 @@ module.exports = class huobi extends Exchange {
             let withdraw = undefined;
             for (let j = 0; j < chains.length; j++) {
                 const chainEntry = chains[j];
-                const uniqueChainId = this.safeString (chainEntry, 'chain'); // i.e. usdterc20, trc20usdt ...
-                const title = this.safeString (chainEntry, 'displayName');
-                const networkCode = this.defineNetworkCodeNameIdMappings (code, title, uniqueChainId);
+                const networkId = this.safeString (chainEntry, 'chain'); // is unique per entry i.e. usdterc20, trc20usdt ...
+                const networkTitle = this.safeString (chainEntry, 'displayName');
+                this.defineNetworkCodeNameIdMappings (code, networkTitle, networkId);
+                const networkCode = this.networkIdToCode (networkId, code);
                 minWithdraw = this.safeNumber (chainEntry, 'minWithdrawAmt');
                 maxWithdraw = this.safeNumber (chainEntry, 'maxWithdrawAmt');
                 const withdrawStatus = this.safeString (chainEntry, 'withdrawStatus');
@@ -2978,7 +2979,7 @@ module.exports = class huobi extends Exchange {
                 const fee = this.safeNumber (chainEntry, 'transactFeeWithdraw');
                 networks[networkCode] = {
                     'info': chainEntry,
-                    'id': uniqueChainId,
+                    'id': networkId,
                     'network': networkCode,
                     'limits': {
                         'withdraw': {
