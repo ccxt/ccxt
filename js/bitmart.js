@@ -2388,17 +2388,6 @@ module.exports = class bitmart extends Exchange {
         const request = {
             'currency': currency['id'],
         };
-        if (code === 'USDT') {
-            const defaultNetworks = this.safeValue (this.options, 'defaultNetworks');
-            const defaultNetwork = this.safeStringUpper (defaultNetworks, code);
-            const networks = this.safeValue (this.options, 'networks', {});
-            let network = this.safeStringUpper (params, 'network', defaultNetwork); // this line allows the user to specify either ERC20 or ETH
-            network = this.safeString (networks, network, network); // handle ERC20>ETH alias
-            if (network !== undefined) {
-                request['currency'] += '-' + network; // when network the currency need to be changed to currency + '-' + network https://developer-pro.bitmart.com/en/account/withdraw_apply.html on the end of page
-                params = this.omit (params, 'network');
-            }
-        }
         const response = await this.privateGetAccountV1DepositAddress (this.extend (request, params));
         //
         //     {
