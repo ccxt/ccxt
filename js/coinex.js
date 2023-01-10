@@ -286,6 +286,11 @@ module.exports = class coinex extends Exchange {
                 'accountsById': {
                     'spot': '0',
                 },
+                'networks': {
+                    'BEP20': 'BSC',
+                    'TRX': 'TRC20',
+                    'ETH': 'ERC20',
+                },
             },
             'commonCurrencies': {
                 'ACM': 'Actinium',
@@ -3532,17 +3537,21 @@ module.exports = class coinex extends Exchange {
          * @method
          * @name coinex#withdraw
          * @description make a withdrawal
+         * @see https://viabtc.github.io/coinex_api_en_doc/spot/#docsspot002_account015_submit_withdraw
          * @param {string} code unified currency code
          * @param {float} amount the amount to withdraw
          * @param {string} address the address to withdraw to
          * @param {string|undefined} tag
          * @param {object} params extra parameters specific to the coinex api endpoint
+         * @param {string} network unified network code
          * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure}
          */
         [ tag, params ] = this.handleWithdrawTagAndParams (tag, params);
         this.checkAddress (address);
         await this.loadMarkets ();
         const currency = this.currency (code);
+        const networkCode = this.safeStringUpper (params, 'network');
+        params = this.omit (params, 'network');
         if (tag) {
             address = address + ':' + tag;
         }
@@ -3552,6 +3561,9 @@ module.exports = class coinex extends Exchange {
             'actual_amount': parseFloat (amount), // the actual amount without fees, https://www.coinex.com/fees
             'transfer_method': 'onchain', // onchain, local
         };
+        if (networkCode !== undefined) {
+            request['smart_contract_name'] = this.networkCodeToId (networkCode);
+        }
         const response = await this.privatePostBalanceCoinWithdraw (this.extend (request, params));
         //
         //     {
