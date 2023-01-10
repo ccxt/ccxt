@@ -406,6 +406,8 @@ class Exchange(object):
             else:
                 setattr(self, key, settings[key])
 
+        self.generate_network_data()
+
         if self.api:
             self.define_rest_api(self.api, 'request')
 

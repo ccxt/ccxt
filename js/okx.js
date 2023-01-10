@@ -622,7 +622,7 @@ module.exports = class okx extends Exchange {
                     '58203': InvalidAddress, // Please add a withdrawal address
                     '58204': AccountSuspended, // Withdrawal suspended
                     '58205': ExchangeError, // Withdrawal amount exceeds the upper limit
-                    '58206': ExchangeError, // Withdrawal amount is lower than the lower limit
+                    '58206': BadRequest, // Withdrawal amount is lower than the lower limit
                     '58207': InvalidAddress, // Withdrawal failed due to address error
                     '58208': ExchangeError, // Withdrawal failed. Please link your email
                     '58209': ExchangeError, // Withdrawal failed. Withdraw feature is not available for sub-accounts
@@ -696,6 +696,7 @@ module.exports = class okx extends Exchange {
                 'broad': {
                     'Internal Server Error': ExchangeNotAvailable, // {"code":500,"data":{},"detailMsg":"","error_code":"500","error_message":"Internal Server Error","msg":"Internal Server Error"}
                     'server error': ExchangeNotAvailable, // {"code":500,"data":{},"detailMsg":"","error_code":"500","error_message":"server error 1236805249","msg":"server error 1236805249"}
+                    'failure to get a peer': ExchangeNotAvailable, // {"message":"failure to get a peer from the ring-balancer"}
                 },
             },
             'httpExceptions': {
@@ -704,17 +705,120 @@ module.exports = class okx extends Exchange {
             'precisionMode': TICK_SIZE,
             'options': {
                 'defaultNetwork': 'ERC20',
-                'networks': {
+                'defaultNetworks': {
                     'ETH': 'ERC20',
-                    'TRX': 'TRC20',
-                    'OMNI': 'Omni',
-                    'SOLANA': 'Solana',
+                    'BTC': 'BTC',
+                    'USDT': 'TRC20',
+                },
+                'hasUniqueNetworkIds': true,
+                'networks': {
+                    // "network names" instead of unique currency-specific network ids
+                    'BTC': 'Bitcoin',
+                    'BEP20': 'BSC',
+                    'ERC20': 'ERC20',
+                    'TRC20': 'TRC20',
+                    'CRC20': 'Crypto',
+                    // sorted
+                    'ACALA': 'Acala',
+                    'AELF': 'AELF',
+                    'ALGORAND': 'Algorand',
+                    'BHP': 'BHP',
+                    'APTOS': 'Aptos',
+                    'ARBITRUM_ONE': 'Arbitrum one',
+                    'ARK': 'ARK',
+                    'ARWEAVE': 'Arweave',
+                    'ASTAR': 'Astar',
+                    'AVALANCHE_C': 'Avalanche C-Chain',
+                    'AVALANCHE_X': 'Avalanche X-Chain',
+                    'BITCOINLIGHTNING': 'Lightning',
+                    'BCH': 'BitcoinCash',
+                    'BSV': 'Bitcoin SV',
+                    'BITCOINDIAMOND': 'Bitcoin Diamond',
+                    'BITCOINGOLD': 'BitcoinGold',
+                    'BYTOM': 'Bytom',
+                    'CARDANO': 'Cardano',
+                    'CASPER': 'Casper',
+                    'CELO': 'CELO',
+                    'CHIA': 'Chia',
+                    'CHILIZ': 'Chiliz',
+                    'CONFLUX': 'Conflux',
+                    'CORTEX': 'Cortex',
+                    'COSMOS': 'Cosmos',
+                    'MDNA': 'DNA',
+                    'STEP': 'Step Network',
+                    'EMINER': 'Eminer',
+                    'CYBERMILES': 'CyberMiles',
+                    'TRUECHAIN': 'TrueChain',
+                    'QTUM': 'Quantum',
+                    'INTCHAIN': 'INTCHAIN',
+                    'YOUCHAIN': 'YOUCHAIN',
+                    'DECRED': 'Decred',
+                    'DIGIBYTE': 'Digibyte',
+                    'DOGECOIN': 'Dogecoin',
+                    'ECASH': 'XEC',
+                    'ELROND': 'Elrond',
+                    'EOS': 'EOS',
+                    'ETC': 'Ethereum Classic',
+                    'ETHW': 'EthereumPow',
+                    'FANTOM': 'Fantom',
+                    'FILECOIN': 'Filecoin',
+                    'FLOW': 'FLOW',
+                    'FUSION': 'Fusion',
+                    'HARMONY': 'Harmony',
+                    'HEDERA': 'Hedera',
+                    'HELIUM': 'Helium',
+                    'HORIZEN': 'Horizen',
+                    'HYPERCASH': 'HyperCash',
+                    'ICON': 'ICON',
+                    'INTERNETCOMPUTER': 'Dfinity',
+                    'IOST': 'IOST',
+                    'IOTA': 'MIOTA',
+                    'KADENA': 'Kadena',
+                    'KARURA': 'KAR',
+                    'KLAYTN': 'Klaytn',
+                    'KUSAMA': 'Kusama',
+                    'LISK': 'Lisk',
+                    'LTC': 'Litecoin',
+                    'METIS': 'Metis',
+                    'MINA': 'Mina',
+                    'MONERO': 'Monero',
+                    'MOONBEAM': 'Moonbeam',
+                    'MOONRIVER': 'Moonriver',
+                    'NANO': 'Nano',
+                    'NEAR': 'NEAR',
+                    'NEBULAS': 'Nebulas',
+                    'NEM': 'New Economy Movement',
+                    'NULS': 'NULS',
+                    'OASYS': 'OASYS',
+                    'OKC': 'OKC',
+                    'ONTOLOGY': 'Ontology',
+                    'OPTIMISM': 'Optimism',
+                    'PLATON': 'PlatON',
+                    'POLKADOT': 'Polkadot',
                     'POLYGON': 'Polygon',
+                    'RAVENCOIN': 'Ravencoin',
+                    'RIPPLE': 'Ripple',
+                    'RONIN': 'Ronin',
+                    'SIACOIN': 'Siacoin',
+                    'SOLANA': 'Solana',
+                    'STACKS': 'l-Stacks',
+                    'STELLAR': 'Stellar Lumens',
+                    'TERRA': 'Terra',
+                    'TERRACLASSIC': 'Terra Classic',
+                    'TEZOS': 'Tezos',
+                    'TON': 'TON',
+                    'THETA': 'Theta',
+                    'VSYSTEMS': 'VSYSTEMS',
+                    'WAVES': 'WAVES',
+                    'WAX': 'Wax',
+                    'WAYIKICHAIN': 'WGRT',
+                    'ZCASH': 'Zcash',
+                    'ZILLIQA': 'Zilliqa',
+                    'ZKSYNC': 'ZKSYNC',
+                    'YOYOW': 'YOYOW',
                     'OEC': 'OEC',
                     'ALGO': 'ALGO', // temporarily unavailable
-                    'OPTIMISM': 'Optimism',
-                    'ARBITRUM': 'Arbitrum one',
-                    'AVALANCHE': 'Avalanche C-Chain',
+                    // undetermined : "CELO-TOKEN", "Digital Cash", "N3", Khala
                 },
                 'fetchOpenInterestHistory': {
                     'timeframes': {
@@ -799,13 +903,7 @@ module.exports = class okx extends Exchange {
                 'brokerId': 'e847386590ce4dBC',
             },
             'commonCurrencies': {
-                // the exchange refers to ERC20 version of Aeternity (AEToken)
-                'AE': 'AET', // https://github.com/ccxt/ccxt/issues/4981
-                'BOX': 'DefiBox',
-                'HOT': 'Hydro Protocol',
                 'HSR': 'HC',
-                'MAG': 'Maggie',
-                'SBTC': 'Super Bitcoin',
                 'TRADE': 'Unitrade',
                 'YOYO': 'YOYOW',
                 'WIN': 'WinToken', // https://github.com/ccxt/ccxt/issues/5701
@@ -1172,15 +1270,6 @@ module.exports = class okx extends Exchange {
         return this.parseMarkets (data);
     }
 
-    safeNetwork (networkId) {
-        const networksById = {
-            'Bitcoin': 'BTC',
-            'Omni': 'OMNI',
-            'TRON': 'TRC20',
-        };
-        return this.safeString (networksById, networkId, networkId);
-    }
-
     async fetchCurrencies (params = {}) {
         /**
          * @method
@@ -1277,33 +1366,26 @@ module.exports = class okx extends Exchange {
                 } else if (!canWithdraw) {
                     withdrawEnabled = false;
                 }
-                if ((networkId !== undefined) && (networkId.indexOf ('-') >= 0)) {
-                    const parts = networkId.split ('-');
-                    const chainPart = this.safeString (parts, 1, networkId);
-                    const networkCode = this.safeNetwork (chainPart);
-                    const precision = this.parsePrecision (this.safeString (chain, 'wdTickSz'));
-                    if (maxPrecision === undefined) {
-                        maxPrecision = precision;
-                    } else {
-                        maxPrecision = Precise.stringMin (maxPrecision, precision);
-                    }
-                    networks[networkCode] = {
-                        'id': networkId,
-                        'network': networkCode,
-                        'active': active,
-                        'deposit': canDeposit,
-                        'withdraw': canWithdraw,
-                        'fee': this.safeNumber (chain, 'minFee'),
-                        'precision': this.parseNumber (precision),
-                        'limits': {
-                            'withdraw': {
-                                'min': this.safeNumber (chain, 'minWd'),
-                                'max': this.safeNumber (chain, 'maxWd'),
-                            },
+                const title = this.getNetworkTitleFromId (networkId);
+                const networkCode = this.defineNetworkCodeNameIdMappings (code, title, networkId);
+                const precision = this.parsePrecision (this.safeString (chain, 'wdTickSz'));
+                maxPrecision = (maxPrecision === undefined) ? precision : Precise.stringMin (maxPrecision, precision);
+                networks[networkCode] = {
+                    'id': networkId,
+                    'network': networkCode,
+                    'active': active,
+                    'deposit': canDeposit,
+                    'withdraw': canWithdraw,
+                    'fee': this.safeNumber (chain, 'minFee'),
+                    'precision': this.parseNumber (precision),
+                    'limits': {
+                        'withdraw': {
+                            'min': this.safeNumber (chain, 'minWd'),
+                            'max': this.safeNumber (chain, 'maxWd'),
                         },
-                        'info': chain,
-                    };
-                }
+                    },
+                    'info': chain,
+                };
             }
             const firstChain = this.safeValue (chains, 0);
             result[code] = {
@@ -1326,6 +1408,17 @@ module.exports = class okx extends Exchange {
             };
         }
         return result;
+    }
+
+    getNetworkTitleFromId (networkId, currencyCode = undefined) {
+        const parts = networkId.split ('-');
+        const length = parts.length;
+        // okx network ids have one or two hyphens, i.e. USDT-ERC20, USDT-Avalanche C-Chain
+        let title = this.safeString (parts, 1);
+        if (length > 2) {
+            title = title + '-' + this.safeString (parts, 2);
+        }
+        return title;
     }
 
     async fetchOrderBook (symbol, limit = undefined, params = {}) {
@@ -3525,6 +3618,7 @@ module.exports = class okx extends Exchange {
         //
         //     {
         //        "chain": "ETH-OKExChain",
+        //        "addrEx": { "comment": "6040348" }, // some currencies like TON may have this field
         //        "ctAddr": "72315c",
         //        "ccy": "ETH",
         //        "to": "6",
@@ -3535,64 +3629,21 @@ module.exports = class okx extends Exchange {
         const address = this.safeString (depositAddress, 'addr');
         let tag = this.safeString2 (depositAddress, 'tag', 'pmtId');
         tag = this.safeString (depositAddress, 'memo', tag);
-        const currencyId = this.safeString (depositAddress, 'ccy');
-        currency = this.safeCurrency (currencyId, currency);
-        const code = currency['code'];
-        const chain = this.safeString (depositAddress, 'chain');
-        const networks = this.safeValue (currency, 'networks', {});
-        const networksById = this.indexBy (networks, 'id');
-        let networkData = this.safeValue (networksById, chain);
-        // inconsistent naming responses from exchange
-        // with respect to network naming provided in currency info vs address chain-names and ids
-        //
-        // response from address endpoint:
-        //      {
-        //          "chain": "USDT-Polygon",
-        //          "ctAddr": "",
-        //          "ccy": "USDT",
-        //          "to":"6" ,
-        //          "addr": "0x1903441e386cc49d937f6302955b5feb4286dcfa",
-        //          "selected": true
-        //      }
-        // network information from currency['networks'] field:
-        // Polygon: {
-        //        info: {
-        //            canDep: false,
-        //            canInternal: false,
-        //            canWd: false,
-        //            ccy: 'USDT',
-        //            chain: 'USDT-Polygon-Bridge',
-        //            mainNet: false,
-        //            maxFee: '26.879528',
-        //            minFee: '13.439764',
-        //            minWd: '0.001',
-        //            name: ''
-        //        },
-        //        id: 'USDT-Polygon-Bridge',
-        //        network: 'Polygon',
-        //        active: false,
-        //        deposit: false,
-        //        withdraw: false,
-        //        fee: 13.439764,
-        //        precision: undefined,
-        //        limits: {
-        //            withdraw: {
-        //                min: 0.001,
-        //                max: undefined
-        //            }
-        //        }
-        //     },
-        //
-        if (chain === 'USDT-Polygon') {
-            networkData = this.safeValue (networksById, 'USDT-Polygon-Bridge');
+        if (tag === undefined) {
+            const addrEx = this.safeValue (depositAddress, 'addrEx', {});
+            tag = this.safeString (addrEx, 'comment');
         }
-        const network = this.safeString (networkData, 'network');
+        const currencyId = this.safeString (depositAddress, 'ccy');
+        // the exchange replies with inconsistent network naming
+        // a network id may be missing in the currency structure from fetchCurrencies
+        const networkId = this.safeString (depositAddress, 'chain');
         this.checkAddress (address);
+        const currencyCode = this.safeCurrencyCode (currencyId, currency);
         return {
-            'currency': code,
+            'currency': currencyCode,
             'address': address,
             'tag': tag,
-            'network': network,
+            'network': this.networkIdToCode (networkId, currencyCode),
             'info': depositAddress,
         };
     }
@@ -3648,36 +3699,11 @@ module.exports = class okx extends Exchange {
          * @param {object} params extra parameters specific to the okx api endpoint
          * @returns {object} an [address structure]{@link https://docs.ccxt.com/en/latest/manual.html#address-structure}
          */
-        const rawNetwork = this.safeStringUpper (params, 'network');
-        const networks = this.safeValue (this.options, 'networks', {});
-        const network = this.safeString (networks, rawNetwork, rawNetwork);
-        params = this.omit (params, 'network');
-        const response = await this.fetchDepositAddressesByNetwork (code, params);
-        let result = undefined;
-        if (network === undefined) {
-            result = this.safeValue (response, code);
-            if (result === undefined) {
-                const alias = this.safeString (networks, code, code);
-                result = this.safeValue (response, alias);
-                if (result === undefined) {
-                    const defaultNetwork = this.safeString (this.options, 'defaultNetwork', 'ERC20');
-                    result = this.safeValue (response, defaultNetwork);
-                    if (result === undefined) {
-                        const values = Object.values (response);
-                        result = this.safeValue (values, 0);
-                        if (result === undefined) {
-                            throw new InvalidAddress (this.id + ' fetchDepositAddress() cannot find deposit address for ' + code);
-                        }
-                    }
-                }
-            }
-            return result;
-        }
-        result = this.safeValue (response, network);
-        if (result === undefined) {
-            throw new InvalidAddress (this.id + ' fetchDepositAddress() cannot find ' + network + ' deposit address for ' + code);
-        }
-        return result;
+        await this.loadMarkets ();
+        const [ networkCode, paramsOmited ] = this.handleNetworkCodeAndParams (params);
+        const indexedAddresses = await this.fetchDepositAddressesByNetwork (code, paramsOmited);
+        const selectedNetworkCode = this.selectNetworkCodeFromUnifiedNetworks (code, networkCode, indexedAddresses);
+        return indexedAddresses[selectedNetworkCode];
     }
 
     async withdraw (code, amount, address, tag = undefined, params = {}) {
@@ -3701,7 +3727,7 @@ module.exports = class okx extends Exchange {
         }
         const fee = this.safeString (params, 'fee');
         if (fee === undefined) {
-            throw new ArgumentsRequired (this.id + " withdraw() requires a 'fee' string parameter, network transaction fee must be ≥ 0. Withdrawals to OKCoin or OKX are fee-free, please set '0'. Withdrawing to external digital asset address requires network transaction fee.");
+            throw new ArgumentsRequired (this.id + ' withdraw() requires a "fee" string parameter, a network transaction fee must be >= 0, withdrawals to OKCoin or OKX are free (specify a zero fee "0")');
         }
         const request = {
             'ccy': currency['id'],
@@ -3715,14 +3741,11 @@ module.exports = class okx extends Exchange {
         } else if ('pwd' in params) {
             request['pwd'] = params['pwd'];
         }
-        const networks = this.safeValue (this.options, 'networks', {});
-        let network = this.safeStringUpper (params, 'network'); // this line allows the user to specify either ERC20 or ETH
-        network = this.safeString (networks, network, network); // handle ETH>ERC20 alias
-        if (network !== undefined) {
-            request['chain'] = currency['id'] + '-' + network;
-            params = this.omit (params, 'network');
+        const [ networkCode, paramsOmited ] = this.handleNetworkCodeAndParams (params);
+        if (networkCode !== undefined) {
+            request['chain'] = this.networkCodeToId (networkCode, code);
         }
-        const query = this.omit (params, [ 'fee', 'password', 'pwd' ]);
+        const query = this.omit (paramsOmited, [ 'fee', 'password', 'pwd' ]);
         if (!('pwd' in request)) {
             throw new ExchangeError (this.id + ' withdraw() requires a password parameter or a pwd parameter, it must be the funding password, not the API passphrase');
         }
