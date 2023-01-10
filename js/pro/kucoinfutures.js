@@ -94,7 +94,6 @@ module.exports = class kucoinfutures extends kucoinfuturesRest {
     }
 
     requestId () {
-        // TODO
         const requestId = this.sum (this.safeInteger (this.options, 'requestId', 0), 1);
         this.options['requestId'] = requestId;
         return requestId;
@@ -490,7 +489,6 @@ module.exports = class kucoinfutures extends kucoinfuturesRest {
         //         type: 'welcome',
         //     }
         //
-        // TODO
         return message;
     }
 
@@ -762,7 +760,6 @@ module.exports = class kucoinfutures extends kucoinfuturesRest {
         // kucoin does not support built-in ws protocol-level ping-pong
         // instead it requires a custom json-based text ping-pong
         // https://docs.kucoin.com/#ping
-        // TODO
         const id = this.requestId ().toString ();
         return {
             'id': id,
