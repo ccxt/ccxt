@@ -1822,8 +1822,14 @@ module.exports = class Exchange {
     }
 
     getCurrencyCodeByCurrencyId (currencyId) {
-        // this is used in exchanges where currency-ids are unique junctions with networks, like bitmart
-        return this.safeString (this.generatedNetworkData['currencyCodesByCurrencyId'], currencyId, currencyId);
+        // this is used in exchanges where currency-ids are unique junctions with networks, like bitmart i.e. USDT-ERC20, USDT-TRC20, etc.
+        let currencyCode = this.safeString (this.generatedNetworkData['currencyCodesByCurrencyId'], currencyId);
+        if (currencyCode === undefined) {
+            // check whether exchange has override for junction
+            const currencyPart = this.getCurrencyPartFromCurrencyJunction (currencyId);
+            currencyCode = this.safeString (this.generatedNetworkData['currencyCodesByCurrencyId'], currencyPart, currencyId);
+        }
+        return currencyCode;
     }
 
     networkCodeToId (networkCode, currencyCode = undefined) {
@@ -1946,8 +1952,8 @@ module.exports = class Exchange {
             }
             let networkTitle = this.safeValue (this.generatedNetworkData['idToTitleUnique'], networkId);
             if (networkTitle === undefined) {
-                // Some exchanges (i.e. OKX) might have inconsistent data. For example, fetchDepositAddress('BTC') might return exchange specific network-id (i.e. BTCK-erc20 or usdteth or whatever), which was not present in fetchCurrencies for that currency. So, as it won't be found in our local data, we would try to parse through derived class's `getNetworkTitleFromId()` overriden method, which will be accustomed to that exchange's expected network-id format (be it with hypher or whatever. For example, see the implementation in okx class)
-                networkTitle = this.getNetworkTitleFromId (networkId, currencyCode);
+                // Some exchanges (i.e. OKX) might have inconsistent data. For example, fetchDepositAddress('BTC') might return exchange specific network-id (i.e. BTCK-erc20 or usdteth or whatever), which was not present in fetchCurrencies for that currency. So, as it won't be found in our local data, we would try to parse through derived class's `getNetworkPartFromCurrencyJunction()` overriden method, which will be accustomed to that exchange's expected network-id format (be it with hypher or whatever. For example, see the implementation in okx class)
+                networkTitle = this.getNetworkPartFromCurrencyJunction (networkId, currencyCode);
             }
             networkId = networkTitle;
         }
@@ -1970,9 +1976,14 @@ module.exports = class Exchange {
         return networkCode;
     }
 
-    getNetworkTitleFromId (networkId, currencyCode = undefined) {
-        // this method is here to be overriden in derived class (i.e. OKX, HUOBI)
-        return networkId;
+    getCurrencyPartFromCurrencyJunction (currencyIdWithNetworkId, currencyCode = undefined) {
+        // this method is here to be overriden in derived class (i.e. OKX, HUOBI, BITMART), where custom implementation will "try" to obtain the currency-id from junctions like USDT-trc20, btc_ERC20 or whatever format
+        return currencyIdWithNetworkId;
+    }
+
+    getNetworkPartFromCurrencyJunction (currencyIdWithNetworkId, currencyCode = undefined) {
+        // this method is here to be overriden in derived class (i.e. OKX, HUOBI, BITMART), where custom implementation will "try" to obtain the network-id from junctions like USDT-trc20, btc_ERC20 or whatever format
+        return currencyIdWithNetworkId;
     }
 
     networkIdIsDefined (networkId) {

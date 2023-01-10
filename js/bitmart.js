@@ -2379,14 +2379,7 @@ module.exports = class bitmart extends Exchange {
         return this.parseOrder (data, market);
     }
 
-    getFirstPartOfCurrencyId (currencyId) {
-        // this method just "tries" to obtain the first part from the currencyId junctions (i.e. XYZ-TRC20)
-        const parts = currencyId.split ('-');
-        return this.safeString (parts, 0, currencyId);
-    }
-
-    getLastPartOfCurrencyId (currencyId) {
-        // this method just "tries" to obtain the last part from the currencyId junctions (i.e. XYZ-TRC20)
+    getCurrencyPartFromCurrencyJunction (currencyId) {
         const parts = currencyId.split ('-');
         let lastPart = undefined;
         const length = parts.length;
@@ -2396,18 +2389,9 @@ module.exports = class bitmart extends Exchange {
         return lastPart;
     }
 
-    getCurrencyFromCurrencyId (currencyId, currency) {
-        // bitmart needs a bit complex approach for this
-        if (currency === undefined) {
-            const currencyCode = this.getCurrencyCodeByCurrencyId (currencyId);
-            currency = this.currency (currencyCode);
-            if (currency === undefined) {
-                const firstPart = this.getFirstPartOfCurrencyId (currencyId);
-                const firstPartCurrencyCode = this.getCurrencyCodeByCurrencyId (firstPart);
-                currency = this.currency (firstPartCurrencyCode);
-            }
-        }
-        return currency;
+    getNetworkPartFromCurrencyJunction (currencyId) {
+        const parts = currencyId.split ('-');
+        return this.safeString (parts, 0, currencyId);
     }
 
     async fetchDepositAddress (code, params = {}) {
@@ -2453,14 +2437,18 @@ module.exports = class bitmart extends Exchange {
         const address = this.safeString (depositAddress, 'address');
         const tag = this.safeString (depositAddress, 'address_memo');
         const networkId = this.safeString (depositAddress, 'chain');
-        let networkCode = networkId;
+        // bitmart has a messy namings/ids from this endpoint, which doesn't match the data from fetchCurrencies, so we need few checks to determine networkCode
+        let networkCode = undefined;
         if (this.networkIdIsDefined (networkId)) {
             networkCode = this.networkIdToCode (networkId);
         } else {
-            const lastPart = this.getLastPartOfCurrencyId (currencyId);
+            const lastPart = this.getNetworkPartFromCurrencyJunction (currencyId);
             if (this.networkIdIsDefined (lastPart)) {
                 networkCode = this.networkIdToCode (lastPart);
             }
+        }
+        if (networkCode === undefined) {
+            networkCode = networkId;
         }
         this.checkAddress (address);
         return {
@@ -2736,15 +2724,14 @@ module.exports = class bitmart extends Exchange {
         const status = this.parseTransactionStatus (this.safeString (transaction, 'status'));
         const feeCost = this.safeNumber (transaction, 'fee');
         const currencyId = this.safeString (transaction, 'currency');
-        currency = this.getCurrencyFromCurrencyId (currencyId, currency);
-        const code = currency['code'];
-        const lastPart = this.getLastPartOfCurrencyId (currencyId);
+        const currencyCode = this.getCurrencyCodeByCurrencyId (currencyId);
+        const lastPart = this.getNetworkPartFromCurrencyJunction (currencyId);
         const networkCode = this.networkIdToCode (lastPart);
         let fee = undefined;
         if (feeCost !== undefined) {
             fee = {
                 'cost': feeCost,
-                'currency': code,
+                'currency': currencyCode,
             };
         }
         const txid = this.safeString (transaction, 'tx_id');
@@ -2753,7 +2740,7 @@ module.exports = class bitmart extends Exchange {
         return {
             'info': transaction,
             'id': id,
-            'currency': code,
+            'currency': currencyCode,
             'amount': amount,
             'network': networkCode,
             'address': address,

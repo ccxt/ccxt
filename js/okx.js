@@ -1366,7 +1366,7 @@ module.exports = class okx extends Exchange {
                 } else if (!canWithdraw) {
                     withdrawEnabled = false;
                 }
-                const networkTitle = this.getNetworkTitleFromId (networkId);
+                const networkTitle = this.getNetworkPartFromCurrencyJunction (networkId);
                 this.defineNetworkCodeNameIdMappings (code, networkTitle, networkId);
                 const networkCode = this.networkIdToCode (networkId, code);
                 const precision = this.parsePrecision (this.safeString (chain, 'wdTickSz'));
@@ -1411,8 +1411,8 @@ module.exports = class okx extends Exchange {
         return result;
     }
 
-    getNetworkTitleFromId (networkId, currencyCode = undefined) {
-        const parts = networkId.split ('-');
+    getNetworkPartFromCurrencyJunction (currencyIdWithNetworkId, currencyCode = undefined) {
+        const parts = currencyIdWithNetworkId.split ('-');
         const length = parts.length;
         // okx network ids have one or two hyphens, i.e. USDT-ERC20, USDT-Avalanche C-Chain
         let title = this.safeString (parts, 1);
