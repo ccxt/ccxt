@@ -6292,8 +6292,8 @@ export default class bybit extends Exchange {
             timestamp = this.safeInteger (position, 'updatedAt');
         }
         // default to cross of USDC margined positions
-        const autoAddMargin = this.safeInteger (position, 'autoAddMargin', 1);
-        const marginMode = autoAddMargin ? 'cross' : 'isolated';
+        const tradeMode = this.safeInteger (position, 'tradeMode', 0);
+        const marginMode = tradeMode ? 'isolated' : 'cross';
         let collateralString = this.safeString (position, 'positionBalance');
         const entryPrice = this.omitZero (this.safeString (position, 'entryPrice'));
         const liquidationPrice = this.omitZero (this.safeString (position, 'liqPrice'));
