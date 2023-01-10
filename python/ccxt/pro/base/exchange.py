@@ -170,9 +170,9 @@ class Exchange(BaseExchange):
         if symbol not in self.orderbooks:
             client.reject(ExchangeError(self.id + ' loadOrderBook() orderbook is not initiated'), messageHash)
             return
-        stored = self.orderbooks[symbol]
-        cache = stored.cache
         try:
+            stored = self.orderbooks[symbol]
+            cache = stored.cache
             order_book = await self.fetch_order_book(symbol, limit, params)
             index = self.get_cache_index(order_book, cache)
             if index >= 0:
@@ -180,12 +180,12 @@ class Exchange(BaseExchange):
                 self.handle_deltas(stored, cache[index:])
                 cache.clear()
                 client.resolve(stored, messageHash)
+                return
             else:
                 client.reject(ExchangeError(self.id + ' nonce is behind cache'), messageHash)
         except BaseError as e:
-            self.orderbooks[symbol].reset({})
-            cache.clear()
             client.reject(e, messageHash)
+        await self.load_order_book(client, messageHash, symbol, limit, params)
 
     def handle_deltas(self, orderbook, deltas):
         for delta in deltas:
