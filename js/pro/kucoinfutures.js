@@ -392,7 +392,7 @@ module.exports = class kucoinfutures extends kucoinfuturesRest {
             const change = this.safeValue (data, 'change', {});
             const splitChange = this.split (change, ',');
             const price = this.safeNumber (splitChange, 0);
-            const side = this.safeNumber (splitChange, 1);
+            const side = this.safeString (splitChange, 1);
             const quantity = this.safeNumber (splitChange, 2);
             const type = (side === 'buy') ? 'bids' : 'asks';
             this.handleDeltas (orderbook[type], [ [ price, quantity, sequence ] ], orderbook['nonce']);
