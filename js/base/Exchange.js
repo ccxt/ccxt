@@ -1681,6 +1681,8 @@ module.exports = class Exchange {
             // for unique currency-id exchanges
             'currencyIdsByNetworkCode': {},
             'currencyIdsByNetworkId': {},
+            'currencyCodesByCurrencyId': {},
+            'networkIdsByCurrencyId': {},
             // other data-containers
             'networkCodesConflicts': {},
         };
@@ -1792,20 +1794,23 @@ module.exports = class Exchange {
          * @name exchange#defineNetworkCodeNameIdMappings
          * @description Opposed to `defineNetworkCodeNameIdMappings` method, this method is needed for those exchanges (i.e. bitmart), where instead of having one currency entry with multiple different networks, each currency endtry is referred by unique currency-id which is combination of code & network (i.e. `USDT-TRC20`, 'USDT', 'USDT-TRC20') so to send request to exchange api, we will need to retrive the unique currency-id for the user-provided currencyCode & networkCode arguments, and then without any `network` request param, we are sending just unique `currency-id` to exchange.
          * @param {string} currencyCode currency code
-         * @param {string|undefined} currencyId exchange specific currency id (will be unique id), only needs to be provided for exchanges i.e. Bitmary, where each currency (i.e. USDT) has multiple entries where currency-ids are different with network junctions (i.e. USDT-erc20, USDT-trc20)
-         * @param {string|undefined} networkId exchange specific network id, which might be or not an unique string
+         * @param {string} currencyId exchange specific currency id (will be unique id), only needs to be provided for exchanges i.e. Bitmary, where each currency (i.e. USDT) has multiple entries where currency-ids are different with network junctions (i.e. USDT-erc20, USDT-trc20)
+         * @param {string} networkId exchange specific network id, which might be or not an unique string
          */
-        if (currencyId !== undefined) {
-            if (!(currencyCode in this.generatedNetworkData['currencyIdsByNetworkCode'])) {
-                this.generatedNetworkData['currencyIdsByNetworkCode'][currencyCode] = {};
-                this.generatedNetworkData['currencyIdsByNetworkId'][currencyCode] = {};
-            }
-            // set both unified and network id
-            this.generatedNetworkData['currencyIdsByNetworkId'][currencyCode][networkId] = currencyId;
-            const networkCode = this.networkIdToCode (networkId);
-            this.generatedNetworkData['currencyIdsByNetworkCode'][currencyCode][networkCode] = currencyId;
+        if (!(currencyCode in this.generatedNetworkData['currencyIdsByNetworkCode'])) {
+            this.generatedNetworkData['currencyIdsByNetworkCode'][currencyCode] = {};
+            this.generatedNetworkData['currencyIdsByNetworkId'][currencyCode] = {};
+            this.generatedNetworkData['networkIdsByCurrencyId'][currencyCode] = {};
         }
+        // currency-id is unique - can be several of same currency, i.e. USDT-ERC20, USDT-TRC20, etc.
+        this.generatedNetworkData['currencyCodesByCurrencyId'][currencyId] = currencyCode;
+        // set both unified network-code and network-id
+        this.generatedNetworkData['currencyIdsByNetworkId'][currencyCode][networkId] = currencyId;
+        const networkCode = this.networkIdToCode (networkId);
+        this.generatedNetworkData['currencyIdsByNetworkCode'][currencyCode][networkCode] = currencyId;
+        this.generatedNetworkData['networkIdsByCurrencyId'][currencyCode][currencyId] = networkId;
     }
+
     getCurrencyIdByNetworkCode (currencyCode, networkCode) {
         const currencyNetworkCodes = this.safeValue (this.generatedNetworkData['currencyIdsByNetworkCode'], currencyCode, {});
         let currencyId = this.safeString (currencyNetworkCodes, networkCode);
@@ -1814,6 +1819,11 @@ module.exports = class Exchange {
             currencyId = this.safeString (currencyNetworkIds, networkCode);
         }
         return currencyId;
+    }
+
+    getCurrencyCodeByCurrencyId (currencyId) {
+        // this is used in exchanges where currency-ids are unique junctions with networks, like bitmart
+        return this.safeString (this.generatedNetworkData['currencyCodesByCurrencyId'], currencyId, currencyId);
     }
 
     networkCodeToId (networkCode, currencyCode = undefined) {
@@ -1963,6 +1973,13 @@ module.exports = class Exchange {
     getNetworkTitleFromId (networkId, currencyCode = undefined) {
         // this method is here to be overriden in derived class (i.e. OKX, HUOBI)
         return networkId;
+    }
+
+    networkIdIsDefined (networkId) {
+        const networkcodeByIdAuto = this.safeValue (this.generatedNetworkData, 'codeById', {});
+        const networkCode = this.safeString (networkcodeByIdAuto, networkId);
+        const wasDefined = (networkCode !== undefined);
+        return wasDefined;
     }
 
     handleNetworkCodeAndParams (params) {
