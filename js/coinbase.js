@@ -104,7 +104,7 @@ module.exports = class coinbase extends Exchange {
             },
             'api': {
                 'public': {
-                    'original': {
+                    'v2': {
                         'get': [
                             'currencies',
                             'time',
@@ -117,7 +117,7 @@ module.exports = class coinbase extends Exchange {
                     },
                 },
                 'private': {
-                    'original': {
+                    'v2': {
                         'get': [
                             'accounts',
                             'accounts/{account_id}',
@@ -164,7 +164,7 @@ module.exports = class coinbase extends Exchange {
                             'accounts/{account_id}/transactions/{transaction_id}',
                         ],
                     },
-                    'advanced': {
+                    'v3': {
                         'get': [
                             'brokerage/accounts',
                             'brokerage/accounts/{account_uuid}',
@@ -236,7 +236,7 @@ module.exports = class coinbase extends Exchange {
          * @param {object} params extra parameters specific to the coinbase api endpoint
          * @returns {int} the current integer timestamp in milliseconds from the exchange server
          */
-        const response = await this.publicOriginalGetTime (params);
+        const response = await this.publicV2GetTime (params);
         //
         //     {
         //         "data": {
@@ -261,7 +261,7 @@ module.exports = class coinbase extends Exchange {
         const request = {
             'limit': 100,
         };
-        const response = await this.privateOriginalGetAccounts (this.extend (request, params));
+        const response = await this.privateV2GetAccounts (this.extend (request, params));
         //
         //     {
         //         "id": "XLM",
@@ -365,7 +365,7 @@ module.exports = class coinbase extends Exchange {
         const request = {
             'account_id': accountId,
         };
-        const response = await this.privateOriginalPostAccountsAccountIdAddresses (this.extend (request, params));
+        const response = await this.privateV2PostAccountsAccountIdAddresses (this.extend (request, params));
         //
         //     {
         //         "data": {
@@ -428,7 +428,7 @@ module.exports = class coinbase extends Exchange {
         const request = this.prepareAccountRequest (limit, params);
         await this.loadMarkets ();
         const query = this.omit (params, [ 'account_id', 'accountId' ]);
-        const sells = await this.privateOriginalGetAccountsAccountIdSells (this.extend (request, query));
+        const sells = await this.privateV2GetAccountsAccountIdSells (this.extend (request, query));
         return this.parseTrades (sells['data'], undefined, since, limit);
     }
 
@@ -447,7 +447,7 @@ module.exports = class coinbase extends Exchange {
         const request = this.prepareAccountRequest (limit, params);
         await this.loadMarkets ();
         const query = this.omit (params, [ 'account_id', 'accountId' ]);
-        const buys = await this.privateOriginalGetAccountsAccountIdBuys (this.extend (request, query));
+        const buys = await this.privateV2GetAccountsAccountIdBuys (this.extend (request, query));
         return this.parseTrades (buys['data'], undefined, since, limit);
     }
 
@@ -471,7 +471,7 @@ module.exports = class coinbase extends Exchange {
          * @returns {[object]} a list of [transaction structures]{@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure}
          */
         // fiat only, for crypto transactions use fetchLedger
-        return await this.fetchTransactionsWithMethod ('privateOriginalGetAccountsAccountIdWithdrawals', code, since, limit, params);
+        return await this.fetchTransactionsWithMethod ('privateV2GetAccountsAccountIdWithdrawals', code, since, limit, params);
     }
 
     async fetchDeposits (code = undefined, since = undefined, limit = undefined, params = {}) {
@@ -486,7 +486,7 @@ module.exports = class coinbase extends Exchange {
          * @returns {[object]} a list of [transaction structures]{@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure}
          */
         // fiat only, for crypto transactions use fetchLedger
-        return await this.fetchTransactionsWithMethod ('privateOriginalGetAccountsAccountIdDeposits', code, since, limit, params);
+        return await this.fetchTransactionsWithMethod ('privateV2GetAccountsAccountIdDeposits', code, since, limit, params);
     }
 
     parseTransactionStatus (status) {
@@ -768,7 +768,7 @@ module.exports = class coinbase extends Exchange {
     }
 
     async fetchMarketsV3 (params = {}) {
-        const response = await this.privateAdvancedGetBrokerageProducts (params);
+        const response = await this.privateV3GetBrokerageProducts (params);
         //
         //     [
         //         {
@@ -874,8 +874,8 @@ module.exports = class coinbase extends Exchange {
         const expires = this.safeInteger (options, 'expires', 1000);
         const now = this.milliseconds ();
         if ((timestamp === undefined) || ((now - timestamp) > expires)) {
-            const currencies = await this.publicOriginalGetCurrencies (params);
-            const exchangeRates = await this.publicOriginalGetExchangeRates (params);
+            const currencies = await this.publicV2GetCurrencies (params);
+            const exchangeRates = await this.publicV2GetExchangeRates (params);
             this.options['fetchCurrencies'] = this.extend (options, {
                 'currencies': currencies,
                 'exchangeRates': exchangeRates,
@@ -975,7 +975,7 @@ module.exports = class coinbase extends Exchange {
         const request = {
             // 'currency': 'USD',
         };
-        const response = await this.publicOriginalGetExchangeRates (this.extend (request, params));
+        const response = await this.publicV2GetExchangeRates (this.extend (request, params));
         //
         //     {
         //         "data":{
@@ -1018,15 +1018,15 @@ module.exports = class coinbase extends Exchange {
         const request = this.extend ({
             'symbol': market['id'],
         }, params);
-        const spot = await this.publicOriginalGetPricesSymbolSpot (request);
+        const spot = await this.publicV2GetPricesSymbolSpot (request);
         //
         //     {"data":{"base":"BTC","currency":"USD","amount":"48691.23"}}
         //
-        const buy = await this.publicOriginalGetPricesSymbolBuy (request);
+        const buy = await this.publicV2GetPricesSymbolBuy (request);
         //
         //     {"data":{"base":"BTC","currency":"USD","amount":"48691.23"}}
         //
-        const sell = await this.publicOriginalGetPricesSymbolSell (request);
+        const sell = await this.publicV2GetPricesSymbolSell (request);
         //
         //     {"data":{"base":"BTC","currency":"USD","amount":"48691.23"}}
         //
@@ -1127,7 +1127,7 @@ module.exports = class coinbase extends Exchange {
         const request = {
             'limit': 100,
         };
-        const response = await this.privateOriginalGetAccounts (this.extend (request, params));
+        const response = await this.privateV2GetAccounts (this.extend (request, params));
         //
         //     {
         //         "pagination":{
@@ -1192,7 +1192,7 @@ module.exports = class coinbase extends Exchange {
         // for pagination use parameter 'starting_after'
         // the value for the next page can be obtained from the result of the previous call in the 'pagination' field
         // eg: instance.last_json_response.pagination.next_starting_after
-        const response = await this.privateOriginalGetAccountsAccountIdTransactions (this.extend (request, query));
+        const response = await this.privateV2GetAccountsAccountIdTransactions (this.extend (request, query));
         return this.parseLedger (response['data'], currency, since, limit);
     }
 
@@ -1575,8 +1575,8 @@ module.exports = class coinbase extends Exchange {
 
     sign (path, api = [], method = 'GET', params = {}, headers = undefined, body = undefined) {
         const signed = api[0] === 'private';
-        const endpoint = api[1];
-        const pathPart = (endpoint === 'advanced') ? 'api/v3' : 'v2';
+        const version = api[1];
+        const pathPart = (version === 'v3') ? 'api/v3' : 'v2';
         let fullPath = '/' + pathPart + '/' + this.implodeParams (path, params);
         const query = this.omit (params, this.extractParams (path));
         const savedPath = fullPath;
@@ -1609,7 +1609,7 @@ module.exports = class coinbase extends Exchange {
                     }
                 }
                 let auth = undefined;
-                if (endpoint === 'advanced') {
+                if (version === 'v3') {
                     auth = nonce + method + savedPath + payload;
                 } else {
                     auth = nonce + method + fullPath + payload;
