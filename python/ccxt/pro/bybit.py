@@ -1384,7 +1384,7 @@ class bybit(Exchange, ccxt.async_support.bybit):
         if (op == 'auth') or (type == 'AUTH_RESP'):
             self.handle_authenticate(client, message)
 
-    def ping(self):
+    def ping(self, client):
         return {
             'req_id': self.request_id(),
             'op': 'ping',

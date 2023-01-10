@@ -1495,7 +1495,7 @@ class bybit extends \ccxt\async\bybit {
         }
     }
 
-    public function ping() {
+    public function ping($client) {
         return array(
             'req_id' => $this->request_id(),
             'op' => 'ping',

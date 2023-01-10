@@ -4,7 +4,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '2.5.64'
+__version__ = '2.5.80'
 
 # -----------------------------------------------------------------------------
 
@@ -371,10 +371,9 @@ class Exchange(object):
     synchronous = True
 
     def __init__(self, config={}):
-        
         self.aiohttp_trust_env = self.aiohttp_trust_env or self.trust_env
         self.requests_trust_env = self.requests_trust_env or self.trust_env
-        
+
         self.precision = dict() if self.precision is None else self.precision
         self.limits = dict() if self.limits is None else self.limits
         self.exceptions = dict() if self.exceptions is None else self.exceptions

@@ -304,6 +304,8 @@ module.exports = class bitstamp extends Exchange {
                         'near_address/': 1,
                         'doge_withdrawal/': 1,
                         'doge_address/': 1,
+                        'flr_withdrawal/': 1,
+                        'flr_address/': 1,
                     },
                 },
             },

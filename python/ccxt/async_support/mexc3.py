@@ -1441,7 +1441,7 @@ class mexc3(Exchange):
             #
             ticker = self.safe_value(response, 'data', {})
         # when it's single symbol request, the returned structure is different(singular object) for both spot & swap, thus we need to wrap inside array
-        return self.parse_ticker(ticker, symbol)
+        return self.parse_ticker(ticker, market)
 
     def parse_ticker(self, ticker, market=None):
         marketId = self.safe_string(ticker, 'symbol')
