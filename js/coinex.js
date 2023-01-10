@@ -3713,18 +3713,18 @@ module.exports = class coinex extends Exchange {
         const timestamp = this.safeTimestamp (transaction, 'create_time');
         const type = ('coin_withdraw_id' in transaction) ? 'withdraw' : 'deposit';
         const status = this.parseTransactionStatus (this.safeString (transaction, 'status'));
-        let amount = this.safeNumber (transaction, 'amount');
-        let feeCost = this.safeNumber (transaction, 'tx_fee');
+        let amount = this.safeString (transaction, 'amount');
+        let feeCost = this.safeString (transaction, 'tx_fee');
         if (type === 'deposit') {
-            feeCost = 0;
+            feeCost = '0';
         }
         const fee = {
-            'cost': feeCost,
+            'cost': this.parseNumber (feeCost),
             'currency': code,
         };
         // https://github.com/ccxt/ccxt/issues/8321
         if (amount !== undefined) {
-            amount = amount - feeCost;
+            amount = Precise.stringSub (amount, feeCost);
         }
         return {
             'info': transaction,
@@ -3740,7 +3740,7 @@ module.exports = class coinex extends Exchange {
             'tagTo': undefined,
             'tagFrom': undefined,
             'type': type,
-            'amount': amount,
+            'amount': this.parseNumber (amount),
             'currency': code,
             'status': status,
             'updated': undefined,
