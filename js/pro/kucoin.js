@@ -24,11 +24,6 @@ module.exports = class kucoin extends kucoinRest {
             },
             'options': {
                 'tradesLimit': 1000,
-                'watchOrderBookRate': 100, // get updates every 100ms or 1000ms
-                'fetchOrderBookSnapshot': {
-                    'maxAttempts': 3, // default number of sync attempts
-                    'delay': 1000, // warmup delay in ms before synchronizing
-                },
                 'watchTicker': {
                     'name': 'market/snapshot', // market/ticker
                 },
@@ -222,13 +217,13 @@ module.exports = class kucoin extends kucoinRest {
          * @returns {[[int]]} A list of candles ordered as timestamp, open, high, low, close, volume
          */
         await this.loadMarkets ();
-        const negotiation = await this.negotiate ();
+        const url = await this.negotiate (false);
         const market = this.market (symbol);
         symbol = market['symbol'];
         const period = this.timeframes[timeframe];
         const topic = '/market/candles:' + market['id'] + '_' + period;
-        const messageHash = topic;
-        const ohlcv = await this.subscribe (negotiation, topic, messageHash, undefined, symbol, params);
+        const messageHash = 'candles:' + symbol + ':' + timeframe;
+        const ohlcv = await this.watchPublic (url, messageHash, topic, undefined, params);
         if (this.newUpdates) {
             limit = ohlcv.getLimit (symbol, limit);
         }
@@ -264,8 +259,9 @@ module.exports = class kucoin extends kucoinRest {
         const interval = this.safeString (parts, 1);
         // use a reverse lookup in a static map instead
         const timeframe = this.findTimeframe (interval);
-        const symbol = this.safeSymbol (marketId);
-        const market = this.market (symbol);
+        const market = this.safeMarket (marketId);
+        const symbol = market['symbol'];
+        const messageHash = 'candles:' + symbol + ':' + timeframe;
         this.ohlcvs[symbol] = this.safeValue (this.ohlcvs, symbol, {});
         let stored = this.safeValue (this.ohlcvs[symbol], timeframe);
         if (stored === undefined) {
@@ -275,7 +271,7 @@ module.exports = class kucoin extends kucoinRest {
         }
         const ohlcv = this.parseOHLCV (candles, market);
         stored.append (ohlcv);
-        client.resolve (stored, topic);
+        client.resolve (stored, messageHash);
     }
 
     async watchTrades (symbol, since = undefined, limit = undefined, params = {}) {
@@ -290,12 +286,12 @@ module.exports = class kucoin extends kucoinRest {
          * @returns {[object]} a list of [trade structures]{@link https://docs.ccxt.com/en/latest/manual.html?#public-trades}
          */
         await this.loadMarkets ();
-        const negotiation = await this.negotiate ();
+        const url = await this.negotiate (false);
         const market = this.market (symbol);
         symbol = market['symbol'];
         const topic = '/market/match:' + market['id'];
-        const messageHash = topic;
-        const trades = await this.subscribe (negotiation, topic, messageHash, undefined, symbol, params);
+        const messageHash = 'trades:' + symbol;
+        const trades = await this.watchPublic (url, messageHash, topic, undefined, params);
         if (this.newUpdates) {
             limit = trades.getLimit (symbol, limit);
         }
@@ -324,8 +320,8 @@ module.exports = class kucoin extends kucoinRest {
         //
         const data = this.safeValue (message, 'data', {});
         const trade = this.parseTrade (data);
-        const messageHash = this.safeString (message, 'topic');
         const symbol = trade['symbol'];
+        const messageHash = 'trades:' + symbol;
         let trades = this.safeValue (this.trades, symbol);
         if (trades === undefined) {
             const limit = this.safeInteger (this.options, 'tradesLimit', 1000);
@@ -334,7 +330,6 @@ module.exports = class kucoin extends kucoinRest {
         }
         trades.append (trade);
         client.resolve (trades, messageHash);
-        return message;
     }
 
     async watchOrderBook (symbol, limit = undefined, params = {}) {
@@ -362,7 +357,10 @@ module.exports = class kucoin extends kucoinRest {
         // If the size=0, update the sequence and remove the price of which the
         // size is 0 out of level 2. Fr other cases, please update the price.
         //
-        if (limit !== undefined) {
+        if (limit === undefined) {
+            // default to 100 to synchronise the orderbook in reasonable time
+            //limit = 100;
+        } else {
             if ((limit !== 20) && (limit !== 100)) {
                 throw new ExchangeError (this.id + " watchOrderBook 'limit' argument must be undefined, 20 or 100");
             }
@@ -415,7 +413,7 @@ module.exports = class kucoin extends kucoinRest {
             const subscription = client.subscriptions[topic];
             const limit = this.safeInteger (subscription, 'limit');
             const snapshotDelay = this.handleOption ('watchOrderBook', 'snapshotDelay', 5);
-            if (cacheLength === snapshotDelay) {
+            if (cacheLength === 0) {
                 this.spawn (this.loadOrderBook, client, messageHash, symbol, limit);
             }
             storedOrderBook.cache.push (data);
@@ -519,18 +517,18 @@ module.exports = class kucoin extends kucoinRest {
          * @returns {[object]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
          */
         await this.loadMarkets ();
-        const negotiation = await this.negotiate ();
+        const url = await this.negotiate (true);
         const topic = '/spotMarket/tradeOrders';
         const request = {
             'privateChannel': true,
         };
-        let messageHash = topic;
+        let messageHash = 'myTrades';
         if (symbol !== undefined) {
             const market = this.market (symbol);
             symbol = market['symbol'];
             messageHash = messageHash + ':' + market['symbol'];
         }
-        const orders = await this.subscribe (negotiation, topic, messageHash, undefined, undefined, this.extend (request, params));
+        const orders = await this.watchPublic (url, messageHash, topic, undefined, this.extend (request, params));
         if (this.newUpdates) {
             limit = orders.getLimit (symbol, limit);
         }
@@ -648,7 +646,7 @@ module.exports = class kucoin extends kucoinRest {
          * @returns {[object]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure
          */
         await this.loadMarkets ();
-        const negotiation = await this.negotiate ();
+        const url = await this.negotiate (true);
         const topic = '/spot/tradeFills';
         const request = {
             'privateChannel': true,
