@@ -869,14 +869,13 @@ module.exports = class bitmart extends Exchange {
         const result = {};
         for (let i = 0; i < currencies.length; i++) {
             const currency = currencies[i];
-            const id = this.safeString (currency, 'currency');
-            const parts = id.split ('-');
+            const currencyId = this.safeString (currency, 'currency');
+            const parts = currencyId.split ('-');
             const currencyPart = parts[0];
             const code = this.safeCurrencyCode (currencyPart);
             if (!(code in result)) {
                 result[code] = {
-                    'id': currencyPart, // not 'id', because of `USDT-BEP20, USDT,` etc..
-                    'uppercaseId': id,
+                    'id': currencyPart, // not 'currencyId', because it holds `USDT-BEP20, USDT,` etc..
                     'code': code,
                     'name': this.safeString (currency, 'name'),
                     'info': undefined,
@@ -902,6 +901,7 @@ module.exports = class bitmart extends Exchange {
             }
             const networkId = this.safeString (currency, 'network');
             const networkCode = this.networkIdToCode (networkId); // todo - huobi/okx like needed
+            this.defineNetworkCurrencyMappings (code, currencyId, networkId);
             const withdraw_enabled = this.safeValue (currency, 'withdraw_enabled');
             const deposit_enabled = this.safeValue (currency, 'deposit_enabled');
             const withdraw_minsize = this.safeString (currency, 'withdraw_minsize');
@@ -954,6 +954,32 @@ module.exports = class bitmart extends Exchange {
             }
         }
         return result;
+    }
+
+    defineNetworkCurrencyMappings (currencyCode, currencyId, networkId) {
+        // [mapping] id to code
+        if (!('currencyIdsByNetworkCode' in this.generatedNetworkData)) {
+            this.generatedNetworkData['currencyIdsByNetworkCode'] = {};
+            this.generatedNetworkData['currencyIdsByNetworkId'] = {};
+        }
+        if (!(currencyCode in this.generatedNetworkData['currencyIdsByNetworkCode'])) {
+            this.generatedNetworkData['currencyIdsByNetworkCode'][currencyCode] = {};
+            this.generatedNetworkData['currencyIdsByNetworkId'][currencyCode] = {};
+        }
+        // set both unified and network id
+        this.generatedNetworkData['currencyIdsByNetworkId'][currencyCode][networkId] = currencyId;
+        const networkCode = this.networkIdToCode (networkId);
+        this.generatedNetworkData['currencyIdsByNetworkCode'][currencyCode][networkCode] = currencyId;
+    }
+
+    getCurrencyIdByNetworkCode (currencyCode, networkCode) {
+        const currencyNetworkCodes = this.safeValue (this.generatedNetworkData['currencyIdsByNetworkCode'], currencyCode, {});
+        let currencyId = this.safeString (currencyNetworkCodes, networkCode);
+        if (currencyId === undefined) {
+            const currencyNetworkIds = this.safeValue (this.generatedNetworkData['currencyIdsByNetworkId'], currencyCode, {});
+            currencyId = this.safeString (currencyNetworkIds, networkCode);
+        }
+        return currencyId;
     }
 
     async fetchTransactionFee (code, params = {}) {
@@ -1028,10 +1054,15 @@ module.exports = class bitmart extends Exchange {
          */
         await this.loadMarkets ();
         const currency = this.currency (code);
+        const [ networkCode, query ] = this.handleNetworkCodeAndParams (params);
+        if (networkCode === undefined) {
+            throw new ArgumentsRequired (this.id + ' fetchDepositWithdrawFee() requires a "network" parameter');
+        }
+        const currencyIdWithNetwork = this.getCurrencyIdByNetworkCode (currency['code'], networkCode);
         const request = {
-            'currency': currency['id'],
+            'currency': currencyIdWithNetwork,
         };
-        const response = await this.privateGetAccountV1WithdrawCharge (this.extend (request, params));
+        const response = await this.privateGetAccountV1WithdrawCharge (this.extend (request, query));
         //
         //     {
         //         message: 'OK',
