@@ -2407,7 +2407,7 @@ module.exports = class bitmart extends Exchange {
         const currency = this.currency (code);
         const [ networkCode, query ] = this.handleNetworkCodeAndParams (params);
         if (networkCode === undefined) {
-            throw new ArgumentsRequired (this.id + ' fetchDepositWithdrawFee() requires a "network" parameter');
+            throw new ArgumentsRequired (this.id + ' fetchDepositAddress() requires a "network" parameter');
         }
         const currencyIdWithNetwork = this.getCurrencyIdByNetworkCode (currency['code'], networkCode);
         const request = {
@@ -2486,7 +2486,7 @@ module.exports = class bitmart extends Exchange {
         }
         const [ networkCode, query ] = this.handleNetworkCodeAndParams (params);
         if (networkCode === undefined) {
-            throw new ArgumentsRequired (this.id + ' fetchDepositWithdrawFee() requires a "network" parameter');
+            throw new ArgumentsRequired (this.id + ' withdraw() requires a "network" parameter');
         }
         const currencyIdWithNetwork = this.getCurrencyIdByNetworkCode (currency['code'], networkCode);
         request['currency'] = currencyIdWithNetwork;
