@@ -66,7 +66,7 @@ module.exports = class Exchange extends BaseExchange {
     }
 
     spawn (method, ... args) {
-        (method.apply (this, args)).catch ((e) => {
+        return (method.apply (this, args)).catch ((e) => {
             // todo: handle spawned errors
         })
     }

@@ -77,26 +77,11 @@ class Exchange(BaseExchange):
             self.clients[url] = FastClient(url, on_message, on_error, on_close, on_connected, options)
         return self.clients[url]
 
-    async def spawn_async(self, method, *args):
-        try:
-            await method(*args)
-        except Exception:
-            # todo: handle spawned errors
-            pass
-
-    async def delay_async(self, timeout, method, *args):
-        await self.sleep(timeout)
-        try:
-            await method(*args)
-        except Exception:
-            # todo: handle spawned errors
-            pass
-
     def spawn(self, method, *args):
-        asyncio.ensure_future(method(*args))
+        return self.asyncio_loop.create_task(method(*args))
 
     def delay(self, timeout, method, *args):
-        asyncio.ensure_future(self.delay_async(timeout, method, *args))
+        return self.asyncio_loop.call_later(timeout, self.spawn, method, *args)
 
     def handle_message(self, client, message):
         always = True

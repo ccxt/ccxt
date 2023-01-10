@@ -40,14 +40,23 @@ module.exports = class kucoin extends kucoinRest {
         });
     }
 
-    async negotiate (privateChannel, params = {}) {
-        let response = undefined;
-        const urls = this.safeValue (this.options, 'urls', {});
+    negotiate (privateChannel, params = {}) {
         const connectId = privateChannel ? 'private' : 'public';
-        const url = this.safeString (urls, connectId);
-        if (url !== undefined) {
-            return url;
+        const urls = this.safeValue (this.options, 'urls', {});
+        if (connectId in urls) {
+            return urls[connectId];
         }
+        // we store an awaitable to the url
+        // so that multiple calls don't asynchronously
+        // fetch different urls and overwrite each other
+        urls[connectId] = this.spawn (this.negotiateHelper, privateChannel, params);
+        this.options['urls'] = urls;
+        return urls[connectId];
+    }
+
+    async negotiateHelper (privateChannel, params = {}) {
+        let response = undefined;
+        const connectId = privateChannel ? 'private' : 'public';
         if (privateChannel) {
             response = await this.privatePostBulletPrivate (params);
             //
@@ -83,8 +92,6 @@ module.exports = class kucoin extends kucoinRest {
         });
         const client = this.client (result);
         client.keepAlive = pingInterval;
-        urls[connectId] = result;
-        this.options['urls'] = urls;
         return result;
     }
 
