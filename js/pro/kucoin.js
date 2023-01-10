@@ -3,7 +3,7 @@
 //  ---------------------------------------------------------------------------
 
 const kucoinRest = require ('../kucoin.js');
-const { ExchangeError, InvalidNonce, NetworkError } = require ('../base/errors');
+const { ExchangeError } = require ('../base/errors');
 const { ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById } = require ('./base/Cache');
 
 //  ---------------------------------------------------------------------------
