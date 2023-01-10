@@ -28,7 +28,7 @@ module.exports = class kucoin extends kucoinRest {
                     'name': 'market/snapshot', // market/ticker
                 },
                 'watchOrderBook': {
-                    'snapshotDelay': 20,
+                    'snapshotDelay': 5,
                 },
             },
             'streaming': {
@@ -409,7 +409,7 @@ module.exports = class kucoin extends kucoinRest {
         const symbol = this.safeSymbol (marketId, undefined, '-');
         const messageHash = 'orderbook:' + symbol;
         const storedOrderBook = this.orderbooks[symbol];
-        const nonce = this.safeValue (storedOrderBook, 'nonce');
+        const nonce = this.safeInteger (storedOrderBook, 'nonce');
         const deltaEnd = this.safeInteger (data, 'sequenceEnd');
         if (nonce === undefined) {
             const cacheLength = storedOrderBook.cache.length;
