@@ -6396,8 +6396,8 @@ class bybit extends Exchange {
             $timestamp = $this->safe_integer($position, 'updatedAt');
         }
         // default to cross of USDC margined positions
-        $autoAddMargin = $this->safe_integer($position, 'autoAddMargin', 1);
-        $marginMode = $autoAddMargin ? 'cross' : 'isolated';
+        $tradeMode = $this->safe_integer($position, 'tradeMode', 0);
+        $marginMode = $tradeMode ? 'isolated' : 'cross';
         $collateralString = $this->safe_string($position, 'positionBalance');
         $entryPrice = $this->omit_zero($this->safe_string($position, 'entryPrice'));
         $liquidationPrice = $this->omit_zero($this->safe_string($position, 'liqPrice'));

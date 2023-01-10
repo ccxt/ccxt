@@ -5913,8 +5913,8 @@ class bybit(Exchange):
         if timestamp is None:
             timestamp = self.safe_integer(position, 'updatedAt')
         # default to cross of USDC margined positions
-        autoAddMargin = self.safe_integer(position, 'autoAddMargin', 1)
-        marginMode = 'cross' if autoAddMargin else 'isolated'
+        tradeMode = self.safe_integer(position, 'tradeMode', 0)
+        marginMode = 'isolated' if tradeMode else 'cross'
         collateralString = self.safe_string(position, 'positionBalance')
         entryPrice = self.omit_zero(self.safe_string(position, 'entryPrice'))
         liquidationPrice = self.omit_zero(self.safe_string(position, 'liqPrice'))
