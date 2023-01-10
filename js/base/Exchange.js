@@ -1895,8 +1895,8 @@ module.exports = class Exchange {
             }
             let networkTitle = this.safeValue (this.generatedNetworkData['titleById'], networkId);
             if (networkTitle === undefined) {
-                // Some exchanges (i.e. OKX) might have inconsistent data. For example, fetchDepositAddress('BTC') might return exchange specific network-id (i.e. BTCK-erc20 or usdteth or whatever), which was not present in fetchCurrencies for that currency. So, as it won't be found in our local data, we would try to parse through derived class's `getCommonNetworkTitleFromId()` overriden method, which will be accustomed to that exchange's expected network-id format (be it with hypher or whatever. For example, see the implementation in okx class)
-                networkTitle = this.getCommonNetworkTitleFromId (networkId, currencyCode);
+                // Some exchanges (i.e. OKX) might have inconsistent data. For example, fetchDepositAddress('BTC') might return exchange specific network-id (i.e. BTCK-erc20 or usdteth or whatever), which was not present in fetchCurrencies for that currency. So, as it won't be found in our local data, we would try to parse through derived class's `getNetworkTitleFromId()` overriden method, which will be accustomed to that exchange's expected network-id format (be it with hypher or whatever. For example, see the implementation in okx class)
+                networkTitle = this.getNetworkTitleFromId (networkId, currencyCode);
             }
             networkId = networkTitle;
         }
@@ -1918,7 +1918,7 @@ module.exports = class Exchange {
         return networkCode;
     }
 
-    getCommonNetworkTitleFromId (networkId, currencyCode = undefined) {
+    getNetworkTitleFromId (networkId, currencyCode = undefined) {
         // this method is here to be overriden in derived class (i.e. OKX, HUOBI)
         return networkId;
     }
