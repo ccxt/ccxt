@@ -1518,6 +1518,12 @@ class bitget(Exchange):
         #     }
         #
         marketId = self.safe_string(ticker, 'symbol')
+        if (market is None) and (marketId is not None) and (marketId.find('_') == -1):
+            # fetchTickers fix:
+            # spot symbol are different from the "request id"
+            # so we need to convert it to the exchange-specific id
+            # otherwise we will not be able to find the market
+            marketId = marketId + '_SPBL'
         symbol = self.safe_symbol(marketId, market)
         high = self.safe_string(ticker, 'high24h')
         low = self.safe_string(ticker, 'low24h')

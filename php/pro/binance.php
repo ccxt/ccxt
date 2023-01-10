@@ -777,11 +777,11 @@ class binance extends \ccxt\async\binance {
             $symbols = $this->market_symbols($symbols);
             $marketIds = $this->market_ids($symbols);
             $market = null;
-            if ($marketIds !== null) {
-                $market = $this->safe_market($marketIds[0]);
-            }
             $type = null;
             list($type, $params) = $this->handle_market_type_and_params('watchTickers', $market, $params);
+            if ($marketIds !== null) {
+                $market = $this->safe_market($marketIds[0], null, null, $type);
+            }
             $subType = null;
             list($subType, $params) = $this->handle_sub_type_and_params('watchTickers', $market, $params);
             if ($this->isLinear ($type, $subType)) {
@@ -824,7 +824,7 @@ class binance extends \ccxt\async\binance {
             for ($i = 0; $i < count($tickers); $i++) {
                 $ticker = $tickers[$i];
                 $tickerSymbol = $ticker['symbol'];
-                if ($symbols !== null && $this->in_array($tickerSymbol, $symbols)) {
+                if ($symbols === null || $this->in_array($tickerSymbol, $symbols)) {
                     $result[$tickerSymbol] = $ticker;
                 }
             }

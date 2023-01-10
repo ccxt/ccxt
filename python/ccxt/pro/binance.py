@@ -706,10 +706,10 @@ class binance(Exchange, ccxt.async_support.binance):
         symbols = self.market_symbols(symbols)
         marketIds = self.market_ids(symbols)
         market = None
-        if marketIds is not None:
-            market = self.safe_market(marketIds[0])
         type = None
         type, params = self.handle_market_type_and_params('watchTickers', market, params)
+        if marketIds is not None:
+            market = self.safe_market(marketIds[0], None, None, type)
         subType = None
         subType, params = self.handle_sub_type_and_params('watchTickers', market, params)
         if self.isLinear(type, subType):
@@ -748,7 +748,7 @@ class binance(Exchange, ccxt.async_support.binance):
         for i in range(0, len(tickers)):
             ticker = tickers[i]
             tickerSymbol = ticker['symbol']
-            if symbols is not None and self.in_array(tickerSymbol, symbols):
+            if symbols is None or self.in_array(tickerSymbol, symbols):
                 result[tickerSymbol] = ticker
         resultKeys = list(result.keys())
         if len(resultKeys) > 0:

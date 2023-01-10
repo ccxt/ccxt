@@ -720,39 +720,41 @@ class wavesexchange(Exchange):
 
     def parse_ticker(self, ticker, market=None):
         #
-        #     {
-        #         "__type":"pair",
-        #         "data":{
-        #             "firstPrice":0.00012512,
-        #             "lastPrice":0.00012441,
-        #             "low":0.00012167,
-        #             "high":0.00012768,
-        #             "weightedAveragePrice":0.000124710697407246,
-        #             "volume":209554.26356614,
-        #             "quoteVolume":26.1336583539951,
-        #             "volumeWaves":209554.26356614,
-        #             "txsCount":6655
-        #         },
-        #         "amountAsset":"WAVES",
-        #         "priceAsset":"8LQW8f7P5d5PZM7GtZEBgaqRPGSzS3DfPuiXrURJ4AJS"
-        #     }
+        #       {
+        #           "symbol": "WAVES/BTC",
+        #           "amountAssetID": "WAVES",
+        #           "amountAssetName": "Waves",
+        #           "amountAssetDecimals": 8,
+        #           "amountAssetTotalSupply": "106908766.00000000",
+        #           "amountAssetMaxSupply": "106908766.00000000",
+        #           "amountAssetCirculatingSupply": "106908766.00000000",
+        #           "priceAssetID": "8LQW8f7P5d5PZM7GtZEBgaqRPGSzS3DfPuiXrURJ4AJS",
+        #           "priceAssetName": "WBTC",
+        #           "priceAssetDecimals": 8,
+        #           "priceAssetTotalSupply": "20999999.96007507",
+        #           "priceAssetMaxSupply": "20999999.96007507",
+        #           "priceAssetCirculatingSupply": "20999999.66019601",
+        #           "24h_open": "0.00032688",
+        #           "24h_high": "0.00033508",
+        #           "24h_low": "0.00032443",
+        #           "24h_close": "0.00032806",
+        #           "24h_vwap": "0.00032988",
+        #           "24h_volume": "42349.69440104",
+        #           "24h_priceVolume": "13.97037207",
+        #           "timestamp":1640232379124
+        #       }
         #
-        timestamp = None
-        baseId = self.safe_string(ticker, 'amountAsset')
-        quoteId = self.safe_string(ticker, 'priceAsset')
-        symbol = None
-        if (baseId is not None) and (quoteId is not None):
-            marketId = baseId + '/' + quoteId
-            market = self.safe_market(marketId, market, '/')
-            symbol = market['symbol']
-        data = self.safe_value(ticker, 'data', {})
-        last = self.safe_string(data, 'lastPrice')
-        low = self.safe_string(data, 'low')
-        high = self.safe_string(data, 'high')
-        vwap = self.safe_string(data, 'weightedAveragePrice')
-        baseVolume = self.safe_string(data, 'volume')
-        quoteVolume = self.safe_string(data, 'quoteVolume')
-        open = self.safe_string(data, 'firstPrice')
+        timestamp = self.safe_integer(ticker, 'timestamp')
+        marketId = self.safe_string(ticker, 'symbol')
+        market = self.safe_market(marketId, market, '/')
+        symbol = market['symbol']
+        last = self.safe_string(ticker, '24h_close')
+        low = self.safe_string(ticker, '24h_low')
+        high = self.safe_string(ticker, '24h_high')
+        vwap = self.safe_string(ticker, '24h_vwap')
+        baseVolume = self.safe_string(ticker, '24h_volume')
+        quoteVolume = self.safe_string(ticker, '24h_priceVolume')
+        open = self.safe_string(ticker, '24h_open')
         return self.safe_ticker({
             'symbol': symbol,
             'timestamp': timestamp,
@@ -824,32 +826,36 @@ class wavesexchange(Exchange):
         :returns dict: an array of `ticker structures <https://docs.ccxt.com/en/latest/manual.html#ticker-structure>`
         """
         await self.load_markets()
-        response = await self.publicGetPairs(params)
+        response = await self.marketGetTickers(params)
         #
-        #     {
-        #         "__type":"list",
-        #         "data":[
-        #             {
-        #                 "__type":"pair",
-        #                 "data":{
-        #                     "firstPrice":0.00012512,
-        #                     "lastPrice":0.00012441,
-        #                     "low":0.00012167,
-        #                     "high":0.00012768,
-        #                     "weightedAveragePrice":0.000124710697407246,
-        #                     "volume":209554.26356614,
-        #                     "quoteVolume":26.1336583539951,
-        #                     "volumeWaves":209554.26356614,
-        #                     "txsCount":6655
-        #                 },
-        #                 "amountAsset":"WAVES",
-        #                 "priceAsset":"8LQW8f7P5d5PZM7GtZEBgaqRPGSzS3DfPuiXrURJ4AJS"
-        #             }
-        #         ]
-        #     }
+        #   [
+        #       {
+        #           "symbol": "WAVES/BTC",
+        #           "amountAssetID": "WAVES",
+        #           "amountAssetName": "Waves",
+        #           "amountAssetDecimals": 8,
+        #           "amountAssetTotalSupply": "106908766.00000000",
+        #           "amountAssetMaxSupply": "106908766.00000000",
+        #           "amountAssetCirculatingSupply": "106908766.00000000",
+        #           "priceAssetID": "8LQW8f7P5d5PZM7GtZEBgaqRPGSzS3DfPuiXrURJ4AJS",
+        #           "priceAssetName": "WBTC",
+        #           "priceAssetDecimals": 8,
+        #           "priceAssetTotalSupply": "20999999.96007507",
+        #           "priceAssetMaxSupply": "20999999.96007507",
+        #           "priceAssetCirculatingSupply": "20999999.66019601",
+        #           "24h_open": "0.00032688",
+        #           "24h_high": "0.00033508",
+        #           "24h_low": "0.00032443",
+        #           "24h_close": "0.00032806",
+        #           "24h_vwap": "0.00032988",
+        #           "24h_volume": "42349.69440104",
+        #           "24h_priceVolume": "13.97037207",
+        #           "timestamp":1640232379124
+        #       }
+        #       ...
+        #   ]
         #
-        data = self.safe_value(response, 'data', [])
-        return self.parse_tickers(data, symbols)
+        return self.parse_tickers(response, symbols)
 
     async def fetch_ohlcv(self, symbol, timeframe='1m', since=None, limit=None, params={}):
         """

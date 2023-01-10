@@ -771,11 +771,11 @@ module.exports = class binance extends binanceRest {
         symbols = this.marketSymbols (symbols);
         const marketIds = this.marketIds (symbols);
         let market = undefined;
-        if (marketIds !== undefined) {
-            market = this.safeMarket (marketIds[0]);
-        }
         let type = undefined;
         [ type, params ] = this.handleMarketTypeAndParams ('watchTickers', market, params);
+        if (marketIds !== undefined) {
+            market = this.safeMarket (marketIds[0], undefined, undefined, type);
+        }
         let subType = undefined;
         [ subType, params ] = this.handleSubTypeAndParams ('watchTickers', market, params);
         if (this.isLinear (type, subType)) {
@@ -818,7 +818,7 @@ module.exports = class binance extends binanceRest {
         for (let i = 0; i < tickers.length; i++) {
             const ticker = tickers[i];
             const tickerSymbol = ticker['symbol'];
-            if (symbols !== undefined && this.inArray (tickerSymbol, symbols)) {
+            if (symbols === undefined || this.inArray (tickerSymbol, symbols)) {
                 result[tickerSymbol] = ticker;
             }
         }
