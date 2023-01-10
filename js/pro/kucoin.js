@@ -370,7 +370,7 @@ module.exports = class kucoin extends kucoinRest {
             }
         }
         await this.loadMarkets ();
-        const url = await this.negotiate ();
+        const url = await this.negotiate (false);
         const market = this.market (symbol);
         symbol = market['symbol'];
         const topic = '/market/level2:' + market['id'];
