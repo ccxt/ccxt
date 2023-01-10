@@ -66,7 +66,7 @@ module.exports = class Exchange extends BaseExchange {
     }
 
     spawn (method, ... args) {
-        (method.apply (this, args)).catch ((e) => {
+        return (method.apply (this, args)).catch ((e) => {
             // todo: handle spawned errors
         })
     }
@@ -188,23 +188,24 @@ module.exports = class Exchange extends BaseExchange {
             client.reject (new ExchangeError (this.id + ' loadOrderBook() orderbook is not initiated'), messageHash);
             return;
         }
-        const stored = this.orderbooks[symbol];
         try {
-            const orderBook = await this.fetchOrderBook (symbol, limit, params);
+            const stored = this.orderbooks[symbol];
             const cache = stored.cache;
+            const orderBook = await this.fetchOrderBook (symbol, limit, params);
             const index = this.getCacheIndex (orderBook, cache);
             if (index >= 0) {
                 stored.reset (orderBook);
                 this.handleDeltas (stored, cache.slice (index));
-                cache.length = 0;
+                stored.cache.length = 0;
                 client.resolve (stored, messageHash);
+                return;
             } else {
-                client.reject (new ExchangeError (this.id + ' nonce is behind the cache'));
+                client.reject (new ExchangeError (this.id + ' nonce is behind the cache'), messageHash);
             }
         } catch (e) {
-            delete this.orderbooks[symbol];
             client.reject (e, messageHash);
         }
+        await this.loadOrderBook (client, messageHash, symbol, limit, params);
     }
 
     handleDeltas (orderbook, deltas) {
