@@ -37,7 +37,7 @@ import * as errors   from './src/base/errors.js'
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
 
-const version = '2.5.12';
+const version = '2.5.66';
 
 (Exchange as any).ccxtVersion = version
 
@@ -182,6 +182,7 @@ import currencycomPro from  './src/pro/currencycom.js'
 import exmoPro from  './src/pro/exmo.js'
 import gatePro from  './src/pro/gate.js'
 import gateioPro from  './src/pro/gateio.js'
+import geminiPro from  './src/pro/gemini.js'
 import hitbtcPro from  './src/pro/hitbtc.js'
 import hollaexPro from  './src/pro/hollaex.js'
 import huobiPro from  './src/pro/huobi.js'
@@ -343,6 +344,7 @@ const pro = {
     'exmo':                   exmoPro,
     'gate':                   gatePro,
     'gateio':                 gateioPro,
+    'gemini':                 geminiPro,
     'hitbtc':                 hitbtcPro,
     'hollaex':                hollaexPro,
     'huobi':                  huobiPro,
