@@ -3727,32 +3727,34 @@ module.exports = class coinex extends Exchange {
         const timestamp = this.safeTimestamp (transaction, 'create_time');
         const type = ('coin_withdraw_id' in transaction) ? 'withdraw' : 'deposit';
         const status = this.parseTransactionStatus (this.safeString (transaction, 'status'));
-        let amount = this.safeString (transaction, 'amount');
+        const networkId = this.safeString (transaction, 'smart_contract_name');
+        const amount = this.safeNumber (transaction, 'actual_amount');
         let feeCost = this.safeString (transaction, 'tx_fee');
+        let addressTo = undefined;
+        let addressFrom = undefined;
         if (type === 'deposit') {
             feeCost = '0';
+            addressTo = address;
+        } else {
+            addressFrom = address;
         }
         const fee = {
             'cost': this.parseNumber (feeCost),
             'currency': code,
         };
-        // https://github.com/ccxt/ccxt/issues/8321
-        if (amount !== undefined) {
-            amount = Precise.stringSub (amount, feeCost);
-        }
         return {
             'info': transaction,
             'id': id,
             'txid': txid,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'network': undefined,
+            'network': this.networkIdToCode (networkId),
             'address': address,
             'addressTo': undefined,
             'addressFrom': undefined,
             'tag': tag,
-            'tagTo': undefined,
-            'tagFrom': undefined,
+            'tagTo': addressTo,
+            'tagFrom': addressFrom,
             'type': type,
             'amount': this.parseNumber (amount),
             'currency': code,
