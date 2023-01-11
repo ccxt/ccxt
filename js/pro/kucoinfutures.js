@@ -52,45 +52,59 @@ module.exports = class kucoinfutures extends kucoinfuturesRest {
         });
     }
 
-    async negotiate (params = {}) {
-        const client = this.client ('ws');
-        const messageHash = 'negotiate';
-        let future = this.safeValue (client.subscriptions, messageHash);
-        if (future === undefined) {
-            future = client.future (messageHash);
-            client.subscriptions[messageHash] = future;
-            let response = undefined;
-            const throwException = false;
-            if (this.checkRequiredCredentials (throwException)) {
-                response = await this.futuresPrivatePostBulletPrivate ();
-                //
-                //     {
-                //         code: "200000",
-                //         data: {
-                //             instanceServers: [
-                //                 {
-                //                     pingInterval:  50000,
-                //                     endpoint: "wss://push-private.kucoin.com/endpoint",
-                //                     protocol: "websocket",
-                //                     encrypt: true,
-                //                     pingTimeout: 10000
-                //                 }
-                //             ],
-                //             token: "2neAiuYvAU61ZDXANAGAsiL4-iAExhsBXZxftpOeh_55i3Ysy2q2LEsEWU64mdzUOPusi34M_wGoSf7iNyEWJ1UQy47YbpY4zVdzilNP-Bj3iXzrjjGlWtiYB9J6i9GjsxUuhPw3BlrzazF6ghq4Lzf7scStOz3KkxjwpsOBCH4=.WNQmhZQeUKIkh97KYgU0Lg=="
-                //         }
-                //     }
-                //
-            } else {
-                response = await this.futuresPublicPostBulletPublic ();
-            }
-            client.resolve (response, messageHash);
-            // const data = this.safeValue (response, 'data', {});
-            // const instanceServers = this.safeValue (data, 'instanceServers', []);
-            // const firstServer = this.safeValue (instanceServers, 0, {});
-            // const endpoint = this.safeString (firstServer, 'endpoint');
-            // const token = this.safeString (data, 'token');
+    negotiate (privateChannel, params = {}) {
+        const connectId = privateChannel ? 'private' : 'public';
+        const urls = this.safeValue (this.options, 'urls', {});
+        if (connectId in urls) {
+            return urls[connectId];
         }
-        return await future;
+        // we store an awaitable to the url
+        // so that multiple calls don't asynchronously
+        // fetch different urls and overwrite each other
+        urls[connectId] = this.spawn (this.negotiateHelper, privateChannel, params);
+        this.options['urls'] = urls;
+        return urls[connectId];
+    }
+
+    async negotiateHelper (privateChannel, params = {}) {
+        let response = undefined;
+        const connectId = privateChannel ? 'private' : 'public';
+        if (privateChannel) {
+            response = await this.privatePostBulletPrivate (params);
+            //
+            //     {
+            //         code: "200000",
+            //         data: {
+            //             instanceServers: [
+            //                 {
+            //                     pingInterval:  50000,
+            //                     endpoint: "wss://push-private.kucoin.com/endpoint",
+            //                     protocol: "websocket",
+            //                     encrypt: true,
+            //                     pingTimeout: 10000
+            //                 }
+            //             ],
+            //             token: "2neAiuYvAU61ZDXANAGAsiL4-iAExhsBXZxftpOeh_55i3Ysy2q2LEsEWU64mdzUOPusi34M_wGoSf7iNyEWJ1UQy47YbpY4zVdzilNP-Bj3iXzrjjGlWtiYB9J6i9GjsxUuhPw3BlrzazF6ghq4Lzf7scStOz3KkxjwpsOBCH4=.WNQmhZQeUKIkh97KYgU0Lg=="
+            //         }
+            //     }
+            //
+        } else {
+            response = await this.publicPostBulletPublic (params);
+        }
+        const data = this.safeValue (response, 'data', {});
+        const instanceServers = this.safeValue (data, 'instanceServers', []);
+        const firstInstanceServer = this.safeValue (instanceServers, 0);
+        const pingInterval = this.safeInteger (firstInstanceServer, 'pingInterval');
+        const endpoint = this.safeString (firstInstanceServer, 'endpoint');
+        const token = this.safeString (data, 'token');
+        const result = endpoint + '?' + this.urlencode ({
+            'token': token,
+            'privateChannel': privateChannel,
+            'connectId': connectId,
+        });
+        const client = this.client (result);
+        client.keepAlive = pingInterval;
+        return result;
     }
 
     requestId () {
@@ -99,37 +113,24 @@ module.exports = class kucoinfutures extends kucoinfuturesRest {
         return requestId;
     }
 
-    async subscribe (negotiation, topic, messageHash, method, symbol, params = {}) {
-        await this.loadMarkets ();
-        // const market = this.market (symbol);
-        const data = this.safeValue (negotiation, 'data', {});
-        const instanceServers = this.safeValue (data, 'instanceServers', []);
-        const firstServer = this.safeValue (instanceServers, 0, {});
-        const endpoint = this.safeString (firstServer, 'endpoint');
-        const token = this.safeString (data, 'token');
-        const nonce = this.requestId ();
-        const query = {
-            'token': token,
-            'acceptUserMessage': 'true',
-            // 'connectId': nonce, // user-defined id is supported, received by handleSystemStatus
-        };
-        const url = endpoint + '?' + this.urlencode (query);
-        const subscribe = {
-            'id': nonce,
+    async subscribe (url, messageHash, subscriptionHash, subscription, params = {}) {
+        const requestId = this.requestId ().toString ();
+        const request = {
+            'id': requestId,
             'type': 'subscribe',
-            'topic': topic,
+            'topic': subscriptionHash,
             'response': true,
         };
-        const subscription = {
-            'id': nonce.toString (),
-            'symbol': symbol,
-            'topic': topic,
-            'messageHash': messageHash,
-            'method': method,
+        const message = this.extend (request, params);
+        const subscriptionRequest = {
+            'id': requestId,
         };
-        const request = this.extend (subscribe, params);
-        const subscriptionHash = topic;
-        return await this.watch (url, messageHash, request, subscriptionHash, subscription);
+        if (subscription === undefined) {
+            subscription = subscriptionRequest;
+        } else {
+            subscription = this.extend (subscriptionRequest, subscription);
+        }
+        return await this.watch (url, messageHash, message, subscriptionHash, subscription);
     }
 
     async watchTicker (symbol, params = {}) {
@@ -149,7 +150,7 @@ module.exports = class kucoinfutures extends kucoinfuturesRest {
         const options = this.safeValue (this.options, 'watchTicker', {});
         const channel = this.safeString (options, 'name', 'contractMarket/tickerV2');
         const topic = '/' + channel + ':' + market['id'];
-        const messageHash = topic;
+        const messageHash = 'ticker:' + symbol;
         return await this.subscribe (negotiation, topic, messageHash, undefined, symbol, params);
     }
 
@@ -177,10 +178,8 @@ module.exports = class kucoinfutures extends kucoinfuturesRest {
         const market = this.safeMarket (marketId, undefined, '-');
         const ticker = this.parseTicker (data, market);
         this.tickers[market['symbol']] = ticker;
-        const messageHash = this.safeString (message, 'topic');
-        if (messageHash !== undefined) {
-            client.resolve (ticker, messageHash);
-        }
+        const messageHash = 'ticker:' + market['symbol'];
+        client.resolve (ticker, messageHash);
         return message;
     }
 
@@ -197,12 +196,12 @@ module.exports = class kucoinfutures extends kucoinfuturesRest {
          * @returns {[object]} a list of [trade structures]{@link https://docs.ccxt.com/en/latest/manual.html?#public-trades}
          */
         await this.loadMarkets ();
-        const negotiation = await this.negotiate ();
+        const url = await this.negotiate (false);
         const market = this.market (symbol);
         symbol = market['symbol'];
         const topic = '/contractMarket/execution:' + market['id'];
-        const messageHash = topic;
-        const trades = await this.subscribe (negotiation, topic, messageHash, undefined, symbol, params);
+        const messageHash = 'trades:' + symbol;
+        const trades = await this.subscribe (url, topic, messageHash, undefined, symbol, params);
         if (this.newUpdates) {
             limit = trades.getLimit (symbol, limit);
         }
@@ -232,7 +231,6 @@ module.exports = class kucoinfutures extends kucoinfuturesRest {
         //
         const data = this.safeValue (message, 'data', {});
         const trade = this.parseTrade (data);
-        const messageHash = this.safeString (message, 'topic');
         const symbol = trade['symbol'];
         let trades = this.safeValue (this.trades, symbol);
         if (trades === undefined) {
@@ -241,6 +239,7 @@ module.exports = class kucoinfutures extends kucoinfuturesRest {
             this.trades[symbol] = trades;
         }
         trades.append (trade);
+        const messageHash = 'trades:' + symbol;
         client.resolve (trades, messageHash);
         return message;
     }
