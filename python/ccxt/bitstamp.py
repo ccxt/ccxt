@@ -1473,7 +1473,6 @@ class bitstamp(Exchange):
         #     }
         #
         timestamp = self.parse8601(self.safe_string(transaction, 'datetime'))
-        id = self.safe_string(transaction, 'id')
         currencyId = self.get_currency_id_from_transaction(transaction)
         code = self.safe_currency_code(currencyId, currency)
         feeCost = self.safe_string(transaction, 'fee')
@@ -1504,7 +1503,6 @@ class bitstamp(Exchange):
         else:
             # from fetchWithdrawals
             type = 'withdrawal'
-        txid = self.safe_string(transaction, 'transaction_id')
         tag = None
         address = self.safe_string(transaction, 'address')
         if address is not None:
@@ -1514,11 +1512,11 @@ class bitstamp(Exchange):
             if numParts > 1:
                 address = addressParts[0]
                 tag = addressParts[1]
-        addressFrom = None
-        addressTo = address
-        tagFrom = None
-        tagTo = tag
-        fee = None
+        fee = {
+            'currency': None,
+            'cost': None,
+            'rate': None,
+        }
         if feeCost is not None:
             fee = {
                 'currency': feeCurrency,
@@ -1527,22 +1525,23 @@ class bitstamp(Exchange):
             }
         return {
             'info': transaction,
-            'id': id,
-            'txid': txid,
+            'id': self.safe_string(transaction, 'id'),
+            'txid': self.safe_string(transaction, 'transaction_id'),
+            'type': type,
+            'currency': code,
+            'network': None,
+            'amount': self.parse_number(amount),
+            'status': status,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
-            'network': None,
-            'addressFrom': addressFrom,
-            'addressTo': addressTo,
             'address': address,
-            'tagFrom': tagFrom,
-            'tagTo': tagTo,
+            'addressFrom': None,
+            'addressTo': address,
             'tag': tag,
-            'type': type,
-            'amount': self.parse_number(amount),
-            'currency': code,
-            'status': status,
+            'tagFrom': None,
+            'tagTo': tag,
             'updated': None,
+            'comment': None,
             'fee': fee,
         }
 
