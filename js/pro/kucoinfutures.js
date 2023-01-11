@@ -40,7 +40,7 @@ module.exports = class kucoinfutures extends kucoinfuturesRest {
                     'delay': 1000, // warmup delay in ms before synchronizing
                 },
                 'watchTicker': {
-                    'topic': 'contractMarket/tickerV2', // market/ticker
+                    'name': 'contractMarket/tickerV2', // market/ticker
                 },
             },
             'streaming': {
@@ -147,7 +147,7 @@ module.exports = class kucoinfutures extends kucoinfuturesRest {
         symbol = market['symbol'];
         const negotiation = await this.negotiate ();
         const options = this.safeValue (this.options, 'watchTicker', {});
-        const channel = this.safeString (options, 'topic', 'contractMarket/tickerV2');
+        const channel = this.safeString (options, 'name', 'contractMarket/tickerV2');
         const topic = '/' + channel + ':' + market['id'];
         const messageHash = topic;
         return await this.subscribe (negotiation, topic, messageHash, undefined, symbol, params);
