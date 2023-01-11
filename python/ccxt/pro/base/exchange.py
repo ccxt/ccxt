@@ -129,6 +129,11 @@ class Exchange(BaseExchange):
 
         return future
 
+    def subscribe(self, url, message_hash, message):
+        future = self.watch(url, message_hash, message)
+        self.clients[url].subscriptions[message_hash] = future
+        return future
+
     def on_connected(self, client, message=None):
         # for user hooks
         # print('Connected to', client.url)
