@@ -3,7 +3,7 @@
 //  ---------------------------------------------------------------------------
 
 const kucoinfuturesRest = require ('../kucoinfutures.js');
-const { ExchangeError, InvalidNonce, NetworkError } = require ('../base/errors');
+const { ExchangeError } = require ('../base/errors');
 const { ArrayCache, ArrayCacheBySymbolById } = require ('./base/Cache');
 
 //  ---------------------------------------------------------------------------
@@ -70,7 +70,7 @@ module.exports = class kucoinfutures extends kucoinfuturesRest {
         let response = undefined;
         const connectId = privateChannel ? 'private' : 'public';
         if (privateChannel) {
-            response = await this.privatePostBulletPrivate (params);
+            response = await this.futuresPrivatePostBulletPrivate (params);
             //
             //     {
             //         code: "200000",
@@ -89,7 +89,7 @@ module.exports = class kucoinfutures extends kucoinfuturesRest {
             //     }
             //
         } else {
-            response = await this.publicPostBulletPublic (params);
+            response = await this.futuresPublicPostBulletPublic (params);
         }
         const data = this.safeValue (response, 'data', {});
         const instanceServers = this.safeValue (data, 'instanceServers', []);
@@ -423,18 +423,18 @@ module.exports = class kucoinfutures extends kucoinfuturesRest {
          * @returns {[object]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
          */
         await this.loadMarkets ();
-        const negotiation = await this.negotiate ();
+        const url = await this.negotiate (true);
         const topic = '/contractMarket/tradeOrders';
         const request = {
             'privateChannel': true,
         };
-        let messageHash = topic;
+        let messageHash = 'orders';
         if (symbol !== undefined) {
             const market = this.market (symbol);
             symbol = market['symbol'];
-            messageHash = messageHash + ':' + market['symbol'];
+            messageHash = messageHash + ':' + symbol;
         }
-        const orders = await this.subscribe (negotiation, topic, messageHash, undefined, undefined, this.extend (request, params));
+        const orders = await this.subscribe (url, messageHash, topic, undefined, this.extend (request, params));
         if (this.newUpdates) {
             limit = orders.getLimit (symbol, limit);
         }
@@ -470,7 +470,6 @@ module.exports = class kucoinfutures extends kucoinfuturesRest {
         //         'ts': 1648957054031001037
         //     }
         //
-        // TODO
         const id = this.safeString (order, 'orderId');
         const clientOrderId = this.safeString (order, 'clientOid');
         const orderType = this.safeStringLower (order, 'orderType');
@@ -510,7 +509,7 @@ module.exports = class kucoinfutures extends kucoinfuturesRest {
     }
 
     handleOrder (client, message) {
-        const messageHash = '/contractMarket/tradeOrders';
+        const messageHash = 'orders';
         const data = this.safeValue (message, 'data');
         const parsed = this.parseWsOrder (data);
         const symbol = this.safeString (parsed, 'symbol');
