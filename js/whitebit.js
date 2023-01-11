@@ -47,6 +47,8 @@ module.exports = class whitebit extends Exchange {
                 'fetchDeposit': true,
                 'fetchDepositAddress': true,
                 'fetchDeposits': true,
+                'fetchDepositWithdrawFee': 'emulated',
+                'fetchDepositWithdrawFees': true,
                 'fetchFundingHistory': false,
                 'fetchFundingRate': false,
                 'fetchFundingRateHistory': false,
@@ -165,6 +167,7 @@ module.exports = class whitebit extends Exchange {
                             'trades/{market}',
                             'time',
                             'ping',
+                            'markets',
                         ],
                     },
                     'private': {
@@ -221,6 +224,10 @@ module.exports = class whitebit extends Exchange {
                     'margin': 'collateral',
                     'trade': 'spot',
                 },
+                'networksById': {
+                    'BEP20': 'BSC',
+                },
+                'defaultType': 'spot',
             },
             'precisionMode': TICK_SIZE,
             'exceptions': {
@@ -256,75 +263,72 @@ module.exports = class whitebit extends Exchange {
          * @method
          * @name whitebit#fetchMarkets
          * @description retrieves data on all markets for whitebit
-         * @see https://github.com/whitebit-exchange/api-docs/blob/main/docs/Public/http-v2.md#market-info
-         * @see https://github.com/whitebit-exchange/api-docs/blob/main/docs/Public/http-v4.md#collateral-markets-list
+         * @see https://whitebit-exchange.github.io/api-docs/docs/Public/http-v4#market-info
          * @param {object} params extra parameters specific to the exchange api endpoint
          * @returns {[object]} an array of objects representing market data
          */
-        let promises = [ this.v4PublicGetCollateralMarkets (params), this.v2PublicGetMarkets (params) ];
+        const markets = await this.v4PublicGetMarkets ();
         //
-        // Spot
+        //    [
+        //        {
+        //          "name": "SON_USD",         // Market pair name
+        //          "stock": "SON",            // Ticker of stock currency
+        //          "money": "USD",            // Ticker of money currency
+        //          "stockPrec": "3",          // Stock currency precision
+        //          "moneyPrec": "2",          // Precision of money currency
+        //          "feePrec": "4",            // Fee precision
+        //          "makerFee": "0.001",       // Default maker fee ratio
+        //          "takerFee": "0.001",       // Default taker fee ratio
+        //          "minAmount": "0.001",      // Minimal amount of stock to trade
+        //          "minTotal": "0.001",       // Minimal amount of money to trade
+        //          "tradesEnabled": true,     // Is trading enabled
+        //          "isCollateral": true,      // Is margin trading enabled
+        //          "type": "spot"             // Market type. Possible values: "spot", "futures"
+        //        },
+        //        {
+        //          ...
+        //        }
+        //    ]
         //
-        //    {
-        //        "success": true,
-        //        "message": "",
-        //        "result": [
-        //            {
-        //                "name": "C98_USDT",
-        //                "stock": "C98",
-        //                "money": "USDT",
-        //                "stockPrec": "3",
-        //                "moneyPrec": "5",
-        //                "feePrec": "6",
-        //                "makerFee": "0.001",
-        //                "takerFee": "0.001",
-        //                "minAmount": "2.5",
-        //                "minTotal": "5.05",
-        //                "tradesEnabled": true
-        //            },
-        //            ...
-        //        ]
-        //    }
-        //
-        //
-        // Margin
-        //
-        //     [
-        //         "ADA_BTC",
-        //         "ADA_USDT",
-        //         "APE_USDT",
-        //         ...
-        //     ]
-        //
-        promises = await Promise.all (promises);
-        const marginMarketsResponse = promises[0];
-        const response = promises[1];
-        const markets = this.safeValue (response, 'result', []);
-        const marginMarkets = this.safeValue (marginMarketsResponse, 'result', []);
         const result = [];
         for (let i = 0; i < markets.length; i++) {
             const market = markets[i];
             const id = this.safeString (market, 'name');
             const baseId = this.safeString (market, 'stock');
-            const quoteId = this.safeString (market, 'money');
+            let quoteId = this.safeString (market, 'money');
+            quoteId = (quoteId === 'PERP') ? 'USDT' : quoteId;
             const base = this.safeCurrencyCode (baseId);
             const quote = this.safeCurrencyCode (quoteId);
-            const symbol = base + '/' + quote;
             const active = this.safeValue (market, 'tradesEnabled');
-            const isMargin = this.inArray (id, marginMarkets);
+            const isCollateral = this.safeValue (market, 'isCollateral');
+            const typeId = this.safeString (market, 'type');
+            let type = undefined;
+            let settle = undefined;
+            let settleId = undefined;
+            let symbol = base + '/' + quote;
+            const swap = typeId === 'futures';
+            const margin = isCollateral && !swap;
+            if (swap) {
+                settleId = quoteId;
+                settle = this.safeCurrencyCode (settleId);
+                symbol = symbol + ':' + settle;
+                type = 'swap';
+            } else {
+                type = 'spot';
+            }
             const entry = {
                 'id': id,
                 'symbol': symbol,
                 'base': base,
                 'quote': quote,
-                'settle': undefined,
+                'settle': settle,
                 'baseId': baseId,
                 'quoteId': quoteId,
-                'settleId': undefined,
-                'type': 'spot',
-                'spot': true,
-                'margin': isMargin,
-                'swap': false,
+                'settleId': settleId,
+                'type': type,
+                'spot': !swap,
+                'margin': margin,
+                'swap': swap,
                 'future': false,
                 'option': false,
                 'active': active,
@@ -430,7 +434,7 @@ module.exports = class whitebit extends Exchange {
         /**
          * @method
          * @name whitebit#fetchTransactionFees
-         * @description fetch transaction fees
+         * @description *DEPRECATED* please use fetchDepositWithdrawFees instead
          * @param {[string]|undefined} codes not used by fetchTransactionFees ()
          * @param {object} params extra parameters specific to the whitebit api endpoint
          * @returns {object} a list of [fee structures]{@link https://docs.ccxt.com/en/latest/manual.html#fee-structure}
@@ -479,6 +483,156 @@ module.exports = class whitebit extends Exchange {
             'deposit': depositFees,
             'info': response,
         };
+    }
+
+    async fetchDepositWithdrawFees (codes = undefined, params = {}) {
+        /**
+         * @method
+         * @name whitebit#fetchDepositWithdrawFees
+         * @description fetch deposit and withdraw fees
+         * @param {[string]|undefined} codes not used by fetchDepositWithdrawFees ()
+         * @param {object} params extra parameters specific to the whitebit api endpoint
+         * @returns {object} a list of [fee structures]{@link https://docs.ccxt.com/en/latest/manual.html#fee-structure}
+         */
+        await this.loadMarkets ();
+        const response = await this.v4PublicGetFee (params);
+        //
+        //    {
+        //        "1INCH": {
+        //            "is_depositable": true,
+        //            "is_withdrawal": true,
+        //            "ticker": "1INCH",
+        //            "name": "1inch",
+        //            "providers": [],
+        //            "withdraw": {
+        //                "max_amount": "0",
+        //                "min_amount": "21.5",
+        //                "fixed": "17.5",
+        //                "flex": null
+        //            },
+        //            "deposit": {
+        //                "max_amount": "0",
+        //                "min_amount": "19.5",
+        //                "fixed": null,
+        //                "flex": null
+        //            }
+        //        },
+        //        'WBT (ERC20)': {
+        //            is_depositable: true,
+        //            is_withdrawal: true,
+        //            ticker: 'WBT',
+        //            name: 'WhiteBIT Token',
+        //            providers: [],
+        //            withdraw: { max_amount: '0', min_amount: '0.7', fixed: '0.253', flex: null },
+        //            deposit: { max_amount: '0', min_amount: '0.35', fixed: null, flex: null }
+        //        },
+        //        'WBT (TRC20)': {
+        //            is_depositable: true,
+        //            is_withdrawal: true,
+        //            ticker: 'WBT',
+        //            name: 'WhiteBIT Token',
+        //            providers: [],
+        //            withdraw: { max_amount: '0', min_amount: '1.5', fixed: '0.075', flex: null },
+        //            deposit: { max_amount: '0', min_amount: '0.75', fixed: null, flex: null }
+        //        },
+        //        ...
+        //    }
+        //
+        return this.parseDepositWithdrawFees (response, codes);
+    }
+
+    parseDepositWithdrawFees (response, codes = undefined, currencyIdKey = undefined) {
+        //
+        //    {
+        //        "1INCH": {
+        //            "is_depositable": true,
+        //            "is_withdrawal": true,
+        //            "ticker": "1INCH",
+        //            "name": "1inch",
+        //            "providers": [],
+        //            "withdraw": {
+        //                "max_amount": "0",
+        //                "min_amount": "21.5",
+        //                "fixed": "17.5",
+        //                "flex": null
+        //            },
+        //            "deposit": {
+        //                "max_amount": "0",
+        //                "min_amount": "19.5",
+        //                "fixed": null,
+        //                "flex": null
+        //            }
+        //        },
+        //        'WBT (ERC20)': {
+        //            is_depositable: true,
+        //            is_withdrawal: true,
+        //            ticker: 'WBT',
+        //            name: 'WhiteBIT Token',
+        //            providers: [],
+        //            withdraw: { max_amount: '0', min_amount: '0.7', fixed: '0.253', flex: null },
+        //            deposit: { max_amount: '0', min_amount: '0.35', fixed: null, flex: null }
+        //        },
+        //        'WBT (TRC20)': {
+        //            is_depositable: true,
+        //            is_withdrawal: true,
+        //            ticker: 'WBT',
+        //            name: 'WhiteBIT Token',
+        //            providers: [],
+        //            withdraw: { max_amount: '0', min_amount: '1.5', fixed: '0.075', flex: null },
+        //            deposit: { max_amount: '0', min_amount: '0.75', fixed: null, flex: null }
+        //        },
+        //        ...
+        //    }
+        //
+        const depositWithdrawFees = {};
+        codes = this.marketCodes (codes);
+        const currencyIds = Object.keys (response);
+        for (let i = 0; i < currencyIds.length; i++) {
+            const entry = currencyIds[i];
+            const splitEntry = entry.split (' ');
+            const currencyId = splitEntry[0];
+            const feeInfo = response[entry];
+            const code = this.safeCurrencyCode (currencyId);
+            if ((codes === undefined) || (this.inArray (code, codes))) {
+                const depositWithdrawFee = this.safeValue (depositWithdrawFees, code);
+                if (depositWithdrawFee === undefined) {
+                    depositWithdrawFees[code] = this.depositWithdrawFee ({});
+                }
+                depositWithdrawFees[code]['info'][entry] = feeInfo;
+                let networkId = this.safeString (splitEntry, 1);
+                const withdraw = this.safeValue (feeInfo, 'withdraw');
+                const deposit = this.safeValue (feeInfo, 'deposit');
+                const withdrawFee = this.safeNumber (withdraw, 'fixed');
+                const depositFee = this.safeNumber (deposit, 'fixed');
+                const withdrawResult = {
+                    'fee': withdrawFee,
+                    'percentage': (withdrawFee !== undefined) ? false : undefined,
+                };
+                const depositResult = {
+                    'fee': depositFee,
+                    'percentage': (depositFee !== undefined) ? false : undefined,
+                };
+                if (networkId !== undefined) {
+                    const networkLength = networkId.length;
+                    networkId = networkId.slice (1, networkLength - 1);
+                    const networkCode = this.networkIdToCode (networkId);
+                    depositWithdrawFees[code]['networks'][networkCode] = {
+                        'withdraw': withdrawResult,
+                        'deposit': depositResult,
+                    };
+                } else {
+                    depositWithdrawFees[code]['withdraw'] = withdrawResult;
+                    depositWithdrawFees[code]['deposit'] = depositResult;
+                }
+            }
+        }
+        const depositWithdrawCodes = Object.keys (depositWithdrawFees);
+        for (let i = 0; i < depositWithdrawCodes.length; i++) {
+            const code = depositWithdrawCodes[i];
+            const currency = this.currency (code);
+            depositWithdrawFees[code] = this.assignDefaultDepositWithdrawFees (depositWithdrawFees[code], currency);
+        }
+        return depositWithdrawFees;
     }
 
     async fetchTradingFees (params = {}) {
@@ -848,7 +1002,7 @@ module.exports = class whitebit extends Exchange {
         const orderId = this.safeString2 (trade, 'dealOrderId', 'orderId');
         const cost = this.safeString (trade, 'deal');
         const price = this.safeString (trade, 'price');
-        const amount = this.safeString2 (trade, 'amount', 'base_volume');
+        const amount = this.safeString2 (trade, 'amount', 'quote_volume');
         const id = this.safeString2 (trade, 'id', 'tradeID');
         const side = this.safeString2 (trade, 'type', 'side');
         const symbol = market['symbol'];
@@ -913,7 +1067,7 @@ module.exports = class whitebit extends Exchange {
             request['end'] = end;
         }
         if (limit !== undefined) {
-            request['limit'] = limit; // max 1440
+            request['limit'] = Math.min (limit, 1440);
         }
         const response = await this.v1PublicGetKline (this.extend (request, params));
         //
@@ -1014,6 +1168,7 @@ module.exports = class whitebit extends Exchange {
             'side': side,
             'amount': this.amountToPrecision (symbol, amount),
         };
+        const marketType = this.safeString (market, 'type');
         const isLimitOrder = type === 'limit';
         const isMarketOrder = type === 'market';
         const stopPrice = this.safeNumberN (params, [ 'triggerPrice', 'stopPrice', 'activation_price' ]);
@@ -1021,9 +1176,13 @@ module.exports = class whitebit extends Exchange {
         const postOnly = this.isPostOnly (isMarketOrder, false, params);
         const [ marginMode, query ] = this.handleMarginModeAndParams ('createOrder', params);
         if (postOnly) {
-            throw new NotSupported (this.id + ' createOrder() does not support postOnly orders.');
+            request['postOnly'] = true;
         }
         let method = undefined;
+        if (marginMode !== undefined && marginMode !== 'cross') {
+            throw new NotSupported (this.id + ' createOrder() is only available for cross margin');
+        }
+        const useCollateralEndpoint = marginMode !== undefined || marketType === 'swap';
         if (isStopOrder) {
             request['activation_price'] = this.priceToPrecision (symbol, stopPrice);
             if (isLimitOrder) {
@@ -1033,25 +1192,22 @@ module.exports = class whitebit extends Exchange {
             } else {
                 // stop market order
                 method = 'v4PrivatePostOrderStopMarket';
+                if (useCollateralEndpoint) {
+                    method = 'v4PrivatePostOrderCollateralTriggerMarket';
+                }
             }
         } else {
             if (isLimitOrder) {
                 // limit order
                 method = 'v4PrivatePostOrderNew';
-                if (marginMode !== undefined) {
-                    if (marginMode !== 'cross') {
-                        throw new NotSupported (this.id + ' createOrder() is only available for cross margin');
-                    }
+                if (useCollateralEndpoint) {
                     method = 'v4PrivatePostOrderCollateralLimit';
                 }
                 request['price'] = this.priceToPrecision (symbol, price);
             } else {
                 // market order
                 method = 'v4PrivatePostOrderStockMarket';
-                if (marginMode !== undefined) {
-                    if (marginMode !== 'cross') {
-                        throw new NotSupported (this.id + ' createOrder() is only available for cross margin');
-                    }
+                if (useCollateralEndpoint) {
                     method = 'v4PrivatePostOrderCollateralMarket';
                 }
             }
@@ -1085,15 +1241,21 @@ module.exports = class whitebit extends Exchange {
 
     parseBalance (response) {
         const balanceKeys = Object.keys (response);
-        const result = { };
+        const result = {};
         for (let i = 0; i < balanceKeys.length; i++) {
             const id = balanceKeys[i];
-            const balance = response[id];
             const code = this.safeCurrencyCode (id);
-            const account = this.account ();
-            account['free'] = this.safeString (balance, 'available');
-            account['used'] = this.safeString (balance, 'freeze');
-            result[code] = account;
+            const balance = response[id];
+            if (typeof balance === 'object' && balance !== undefined) {
+                const account = this.account ();
+                account['free'] = this.safeString (balance, 'available');
+                account['used'] = this.safeString (balance, 'freeze');
+                result[code] = account;
+            } else {
+                const account = this.account ();
+                account['total'] = balance;
+                result[code] = account;
+            }
         }
         return this.safeBalance (result);
     }
@@ -1107,11 +1269,26 @@ module.exports = class whitebit extends Exchange {
          * @returns {object} a [balance structure]{@link https://docs.ccxt.com/en/latest/manual.html?#balance-structure}
          */
         await this.loadMarkets ();
-        const response = await this.v4PrivatePostTradeAccountBalance (params);
+        const [ marketType, query ] = this.handleMarketTypeAndParams ('fetchBalance', undefined, params);
+        let method = undefined;
+        if (marketType === 'swap') {
+            method = 'v4PrivatePostCollateralAccountBalance';
+        } else {
+            method = 'v4PrivatePostTradeAccountBalance';
+        }
+        const response = await this[method] (query);
+        // spot
         //
         //     {
         //         "BTC": { "available": "0.123", "freeze": "1" },
         //         "XMR": { "available": "3013", "freeze": "100" },
+        //     }
+        //
+        // swap
+        //
+        //     {
+        //          "BTC": 1,
+        //          "USDT": 1000
         //     }
         //
         return this.parseBalance (response);
@@ -1137,7 +1314,7 @@ module.exports = class whitebit extends Exchange {
             'market': market['id'],
         };
         if (limit !== undefined) {
-            request['limit'] = limit; // default 50 max 100
+            request['limit'] = Math.min (limit, 100);
         }
         const response = await this.v4PrivatePostOrders (this.extend (request, params));
         //
@@ -1183,7 +1360,7 @@ module.exports = class whitebit extends Exchange {
             request['market'] = market['id'];
         }
         if (limit !== undefined) {
-            request['limit'] = limit; // default 50 max 100
+            request['limit'] = Math.min (limit, 100); // default 50 max 100
         }
         const response = await this.v4PrivatePostTradeAccountOrderHistory (this.extend (request, params));
         //
@@ -1312,6 +1489,7 @@ module.exports = class whitebit extends Exchange {
             'price': price,
             'type': this.parseOrderType (type),
             'stopPrice': stopPrice,
+            'triggerPrice': stopPrice,
             'amount': amount,
             'filled': filled,
             'remaining': remaining,
@@ -1344,7 +1522,7 @@ module.exports = class whitebit extends Exchange {
             request['market'] = market['id'];
         }
         if (limit !== undefined) {
-            request['limit'] = limit; // default 50, max 100
+            request['limit'] = Math.min (limit, 100);
         }
         const response = await this.v4PrivatePostTradeAccountOrder (this.extend (request, params));
         //
@@ -1477,8 +1655,8 @@ module.exports = class whitebit extends Exchange {
          * @see https://github.com/whitebit-exchange/api-docs/blob/main/docs/Private/http-main-v4.md#transfer-between-main-and-trade-balances
          * @param {string} code unified currency code
          * @param {float} amount amount to transfer
-         * @param {string} fromAccount account to transfer from
-         * @param {string} toAccount account to transfer to
+         * @param {string} fromAccount account to transfer from - main, spot, collateral
+         * @param {string} toAccount account to transfer to - main, spot, collateral
          * @param {object} params extra parameters specific to the whitebit api endpoint
          * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/en/latest/manual.html#transfer-structure}
          */
@@ -1739,7 +1917,7 @@ module.exports = class whitebit extends Exchange {
             request['ticker'] = currency['id'];
         }
         if (limit !== undefined) {
-            request['limit'] = limit;
+            request['limit'] = Math.min (limit, 100);
         }
         const response = await this.v4PrivatePostMainAccountHistory (this.extend (request, params));
         //

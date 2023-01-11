@@ -427,6 +427,7 @@ module.exports = class independentreserve extends Exchange {
             'side': side,
             'price': this.safeString (order, 'Price'),
             'stopPrice': undefined,
+            'triggerPrice': undefined,
             'cost': this.safeString (order, 'Value'),
             'average': this.safeString (order, 'AvgPrice'),
             'amount': this.safeString2 (order, 'VolumeOrdered', 'Volume'),

@@ -124,10 +124,6 @@ class coinfalcon extends Exchange {
                     'taker' => 0.002, // tiered fee starts at 0.2%
                 ),
             ),
-            'precision' => array(
-                'amount' => $this->parse_number('0.00000001'),
-                'price' => $this->parse_number('0.00000001'),
-            ),
             'precisionMode' => TICK_SIZE,
         ));
     }
@@ -637,6 +633,7 @@ class coinfalcon extends Exchange {
             'side' => $side,
             'price' => $priceString,
             'stopPrice' => null,
+            'triggerPrice' => null,
             'cost' => null,
             'amount' => $amountString,
             'filled' => $filledString,

@@ -22,6 +22,7 @@ class woo extends Exchange {
             'rateLimit' => 100,
             'version' => 'v1',
             'certified' => false,
+            'pro' => true,
             'hostname' => 'woo.org',
             'has' => array(
                 'CORS' => null,
@@ -88,7 +89,7 @@ class woo extends Exchange {
                 'setLeverage' => true,
                 'setMargin' => false,
                 'transfer' => true,
-                'withdraw' => false, // exchange have that endpoint disabled atm, but was once implemented in ccxt per old docs => https://kronosresearch.github.io/wootrade-documents/#token-withdraw
+                'withdraw' => true, // exchange have that endpoint disabled atm, but was once implemented in ccxt per old docs => https://kronosresearch.github.io/wootrade-documents/#token-withdraw
             ),
             'timeframes' => array(
                 '1m' => '1m',
@@ -129,6 +130,7 @@ class woo extends Exchange {
                     'pub' => array(
                         'get' => array(
                             'hist/kline' => 10,
+                            'hist/trades' => 1,
                         ),
                     ),
                     'public' => array(
@@ -158,7 +160,7 @@ class woo extends Exchange {
                             'order/{oid}/trades' => 1,
                             'client/trades' => 1,
                             'client/info' => 60,
-                            'asset/deposit' => 120,
+                            'asset/deposit' => 10,
                             'asset/history' => 60,
                             'sub_account/all' => 60,
                             'sub_account/assets' => 60,
@@ -173,7 +175,7 @@ class woo extends Exchange {
                         'post' => array(
                             'order' => 5, // 2 requests per 1 second per symbol
                             'asset/main_sub_transfer' => 30, // 20 requests per 60 seconds
-                            'asset/withdraw' => 120,  // implemented in ccxt, disabled on the exchange side https://kronosresearch.github.io/wootrade-documents/#token-withdraw
+                            'asset/withdraw' => 30,  // implemented in ccxt, disabled on the exchange side https://kronosresearch.github.io/wootrade-documents/#token-withdraw
                             'interest/repay' => 60,
                             'client/account_mode' => 120,
                             'client/leverage' => 120,
@@ -202,6 +204,12 @@ class woo extends Exchange {
                         'post' => array(
                             'algo/order' => 5,
                         ),
+                        'put' => array(
+                            'order/{oid}' => 2,
+                            'order/client/{oid}' => 2,
+                            'algo/order/{oid}' => 2,
+                            'algo/order/client/{oid}' => 2,
+                        ),
                         'delete' => array(
                             'algo/order/{oid}' => 1,
                             'algo/orders/pending' => 1,
@@ -227,6 +235,12 @@ class woo extends Exchange {
                     'OMG' => 'ERC20',
                     'UATOM' => 'ATOM',
                     'ZRX' => 'ZRX',
+                ),
+                'networks' => array(
+                    'TRX' => 'TRON',
+                    'TRC20' => 'TRON',
+                    'ERC20' => 'ETH',
+                    'BEP20' => 'BSC',
                 ),
                 // override defaultNetworkCodePriorities for a specific currency
                 'defaultNetworkCodeForCurrencies' => array(
@@ -676,6 +690,8 @@ class woo extends Exchange {
                     'active' => null,
                     'fee' => null,
                     'networks' => $resultingNetworks,
+                    'deposit' => null,
+                    'withdraw' => null,
                     'limits' => array(
                         'deposit' => array(
                             'min' => null,
@@ -770,6 +786,50 @@ class woo extends Exchange {
                 $this->parse_order($response, $market),
                 array( 'type' => $type )
             );
+        }) ();
+    }
+
+    public function edit_order($id, $symbol, $type, $side, $amount, $price = null, $params = array ()) {
+        return Async\async(function () use ($id, $symbol, $type, $side, $amount, $price, $params) {
+            /**
+             * edit a trade order
+             * @param {string} $id order $id
+             * @param {string} $symbol unified $symbol of the $market to create an order in
+             * @param {string} $type 'market' or 'limit'
+             * @param {string} $side 'buy' or 'sell'
+             * @param {float} $amount how much of currency you want to trade in units of base currency
+             * @param {float|null} $price the $price at which the order is to be fullfilled, in units of the quote currency, ignored in $market orders
+             * @param {array} $params extra parameters specific to the woo api endpoint
+             * @return {array} an {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structure}
+             */
+            Async\await($this->load_markets());
+            $market = $this->market($symbol);
+            $request = array(
+                'oid' => $id,
+                // 'quantity' => $this->amount_to_precision($symbol, $amount),
+                // 'price' => $this->price_to_precision($symbol, $price),
+            );
+            if ($price !== null) {
+                $request['price'] = $this->price_to_precision($symbol, $price);
+            }
+            if ($amount !== null) {
+                $request['quantity'] = $this->amount_to_precision($symbol, $amount);
+            }
+            $response = Async\await($this->v3PrivatePutOrderOid (array_merge($request, $params)));
+            //
+            //     {
+            //         "code" => 0,
+            //         "data" => array(
+            //             "status" => "string",
+            //             "success" => true
+            //         ),
+            //         "message" => "string",
+            //         "success" => true,
+            //         "timestamp" => 0
+            //     }
+            //
+            $data = $this->safe_value($response, 'data', array());
+            return $this->parse_order($data, $market);
         }) ();
     }
 
@@ -999,6 +1059,7 @@ class woo extends Exchange {
             'side' => $side,
             'price' => $price,
             'stopPrice' => null,
+            'triggerPrice' => null,
             'average' => null,
             'amount' => $amount,
             'filled' => $filled,
@@ -1567,12 +1628,11 @@ class woo extends Exchange {
             $movementDirection = 'withdrawal';
         }
         $fee = $this->parse_token_and_fee_temp($transaction, 'fee_token', 'fee_amount');
-        $fee['rate'] = null;
         $addressTo = $this->safe_string($transaction, 'target_address');
         $addressFrom = $this->safe_string($transaction, 'source_address');
         $timestamp = $this->safe_timestamp($transaction, 'created_time');
         return array(
-            'id' => $this->safe_string($transaction, 'id'),
+            'id' => $this->safe_string_2($transaction, 'id', 'withdraw_id'),
             'txid' => $this->safe_string($transaction, 'tx_id'),
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
@@ -1731,6 +1791,49 @@ class woo extends Exchange {
         return $this->safe_string($statuses, $status, $status);
     }
 
+    public function withdraw($code, $amount, $address, $tag = null, $params = array ()) {
+        return Async\async(function () use ($code, $amount, $address, $tag, $params) {
+            /**
+             * make a withdrawal
+             * @param {string} $code unified $currency $code
+             * @param {float} $amount the $amount to withdraw
+             * @param {string} $address the $address to withdraw to
+             * @param {string|null} $tag
+             * @param {array} $params extra parameters specific to the woo api endpoint
+             * @return {array} a {@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure transaction structure}
+             */
+            list($tag, $params) = $this->handle_withdraw_tag_and_params($tag, $params);
+            Async\await($this->load_markets());
+            $this->check_address($address);
+            $currency = $this->currency($code);
+            $request = array(
+                'amount' => $amount,
+                'address' => $address,
+            );
+            if ($tag !== null) {
+                $request['extra'] = $tag;
+            }
+            $networks = $this->safe_value($this->options, 'networks', array());
+            $currencyNetworks = $this->safe_value($currency, 'networks', array());
+            $network = $this->safe_string_upper($params, 'network');
+            $networkId = $this->safe_string($networks, $network, $network);
+            $coinNetwork = $this->safe_value($currencyNetworks, $networkId, array());
+            $coinNetworkId = $this->safe_string($coinNetwork, 'id');
+            if ($coinNetworkId === null) {
+                throw new BadRequest($this->id . ' withdraw() require $network parameter');
+            }
+            $request['token'] = $coinNetworkId;
+            $response = Async\await($this->v1PrivatePostAssetWithdraw (array_merge($request, $params)));
+            //
+            //     {
+            //         "success" => true,
+            //         "withdraw_id" => "20200119145703654"
+            //     }
+            //
+            return $this->parse_transaction($response, $currency);
+        }) ();
+    }
+
     public function repay_margin($code, $amount, $symbol = null, $params = array ()) {
         return Async\async(function () use ($code, $amount, $symbol, $params) {
             /**
@@ -1791,39 +1894,41 @@ class woo extends Exchange {
     public function sign($path, $section = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
         $version = $section[0];
         $access = $section[1];
+        $pathWithParams = $this->implode_params($path, $params);
         $url = $this->implode_hostname($this->urls['api'][$access]);
         $url .= '/' . $version . '/';
-        $path = $this->implode_params($path, $params);
         $params = $this->omit($params, $this->extract_params($path));
         $params = $this->keysort($params);
         if ($access === 'public') {
-            $url .= $access . '/' . $path;
+            $url .= $access . '/' . $pathWithParams;
             if ($params) {
                 $url .= '?' . $this->urlencode($params);
             }
         } else {
             $this->check_required_credentials();
-            $url .= $path;
+            $auth = '';
             $ts = (string) $this->nonce();
-            $auth = $this->urlencode($params);
-            if ($version === 'v3' && ($method === 'POST')) {
+            $url .= $pathWithParams;
+            $headers = array(
+                'x-api-key' => $this->apiKey,
+                'x-api-timestamp' => $ts,
+            );
+            if ($version === 'v3' && ($method === 'POST' || $method === 'PUT' || $method === 'DELETE')) {
+                $auth = $this->json($params);
                 $body = $auth;
-                $auth = $ts . $method . '/' . $version . '/' . $path . $body;
+                $auth = $ts . $method . '/' . $version . '/' . $pathWithParams . $body;
+                $headers['content-type'] = 'application/json';
             } else {
-                if ($method === 'POST' || $method === 'DELETE') {
+                $auth = $this->urlencode($params);
+                if ($method === 'POST' || $method === 'PUT' || $method === 'DELETE') {
                     $body = $auth;
                 } else {
                     $url .= '?' . $auth;
                 }
                 $auth .= '|' . $ts;
+                $headers['content-type'] = 'application/x-www-form-urlencoded';
             }
-            $signature = $this->hmac($this->encode($auth), $this->encode($this->secret), 'sha256');
-            $headers = array(
-                'x-api-key' => $this->apiKey,
-                'x-api-signature' => $signature,
-                'x-api-timestamp' => $ts,
-                'Content-Type' => 'application/x-www-form-urlencoded',
-            );
+            $headers['x-api-signature'] = $this->hmac($this->encode($auth), $this->encode($this->secret), 'sha256');
         }
         return array( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
     }

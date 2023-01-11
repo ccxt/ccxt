@@ -495,6 +495,7 @@ class okx extends \ccxt\async\okx {
                 $update = $data[$i];
                 $orderbook = $this->order_book(array(), $limit);
                 $this->orderbooks[$symbol] = $orderbook;
+                $orderbook['symbol'] = $symbol;
                 $this->handle_order_book_message($client, $update, $orderbook, $messageHash);
                 $client->resolve ($orderbook, $messageHash);
             }
@@ -630,6 +631,7 @@ class okx extends \ccxt\async\okx {
              * @param {int|null} $since the earliest time in ms to fetch $orders for
              * @param {int|null} $limit the maximum number of  orde structures to retrieve
              * @param {array} $params extra parameters specific to the okx api endpoint
+             * @param {bool} $params->stop true if fetching trigger or conditional $orders
              * @return {[array]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structures}
              */
             Async\await($this->load_markets());
@@ -651,7 +653,8 @@ class okx extends \ccxt\async\okx {
             // By default, receive order updates from any instrument $type
             $type = $this->safe_string($options, 'type', 'ANY');
             $type = $this->safe_string($params, 'type', $type);
-            $params = $this->omit($params, 'type');
+            $isStop = $this->safe_value($params, 'stop', false);
+            $params = $this->omit($params, array( 'type', 'stop' ));
             $market = null;
             if ($symbol !== null) {
                 $market = $this->market($symbol);
@@ -665,7 +668,8 @@ class okx extends \ccxt\async\okx {
             $request = array(
                 'instType' => $uppercaseType,
             );
-            $orders = Async\await($this->subscribe('private', 'orders', $symbol, array_merge($request, $params)));
+            $channel = $isStop ? 'orders-algo' : 'orders';
+            $orders = Async\await($this->subscribe('private', $channel, $symbol, array_merge($request, $params)));
             if ($this->newUpdates) {
                 $limit = $orders->getLimit ($symbol, $limit);
             }
@@ -887,6 +891,7 @@ class okx extends \ccxt\async\okx {
                 'account' => array($this, 'handle_balance'),
                 // 'margin_account' => array($this, 'handle_balance'),
                 'orders' => array($this, 'handle_orders'),
+                'orders-algo' => array($this, 'handle_orders'),
             );
             $method = $this->safe_value($methods, $channel);
             if ($method === null) {

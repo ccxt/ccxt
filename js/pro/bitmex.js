@@ -24,10 +24,10 @@ module.exports = class bitmex extends bitmexRest {
             },
             'urls': {
                 'test': {
-                    'ws': 'wss://testnet.bitmex.com/realtime',
+                    'ws': 'wss://ws.testnet.bitmex.com/realtime',
                 },
                 'api': {
-                    'ws': 'wss://www.bitmex.com/realtime',
+                    'ws': 'wss://ws.bitmex.com/realtime',
                 },
             },
             'versions': {

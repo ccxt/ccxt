@@ -17,7 +17,7 @@ module.exports = class btcex extends Exchange {
             'countries': [ 'CA' ], // Canada
             'version': 'v1',
             'certified': false,
-            'pro': false,
+            'pro': true,
             'requiredCredentials': {
                 'apiKey': true,
                 'secret': true,
@@ -87,17 +87,20 @@ module.exports = class btcex extends Exchange {
                 'withdraw': false,
             },
             'timeframes': {
-                '15s': '15',
-                '1m': '60',
-                '5m': '300',
-                '15m': '900',
-                '1h': '3600',
-                '4h': '14400',
-                '1d': '86400',
-                '3d': '259200',
-                '1w': '604800',
-                '2w': '1209600',
-                '1M': '2592000',
+                '1m': '1',
+                '3m': '3',
+                '5m': '5',
+                '15m': '15',
+                '30m': '30',
+                '1h': '60',
+                '2h': '120',
+                '3h': '180',
+                '4h': '240',
+                '6h': '360',
+                '12h': '720',
+                '1d': '1D',
+                '3d': '3D',
+                '1M': '30D',
             },
             'api': {
                 'public': {
@@ -276,6 +279,7 @@ module.exports = class btcex extends Exchange {
                     '8105': BadRequest, // GOOGLE_CODE_CHECK_FAIL 2FA Code error!
                     '8106': DDoSProtection, // SMS_CODE_LIMIT Your message service is over limit today, please try tomorrow
                     '8107': ExchangeError, // REQUEST_FAILED Request failed
+                    '10000': AuthenticationError, // Authentication Failure
                     '11000': BadRequest, // CHANNEL_REGEX_ERROR channel regex not match
                 },
                 'broad': {
@@ -471,9 +475,12 @@ module.exports = class btcex extends Exchange {
         //         "timestamp":"1647569486224"
         //     }
         //
-        const marketId = this.safeString (ticker, 'instrument_name');
+        let marketId = this.safeString (ticker, 'instrument_name');
+        if (marketId.indexOf ('PERPETUAL') < 0) {
+            marketId = marketId + '-SPOT';
+        }
         market = this.safeMarket (marketId, market);
-        const symbol = this.safeSymbol (marketId, market);
+        const symbol = this.safeSymbol (marketId, market, '-');
         const timestamp = this.safeInteger (ticker, 'timestamp');
         const stats = this.safeValue (ticker, 'stats');
         return this.safeTicker ({
@@ -543,6 +550,9 @@ module.exports = class btcex extends Exchange {
         const request = {
             'instrument_name': market['id'],
         };
+        if (limit !== undefined) {
+            request['depth'] = limit;
+        }
         const response = await this.publicGetGetOrderBook (this.extend (request, params));
         const result = this.safeValue (response, 'result', {});
         //
@@ -561,7 +571,9 @@ module.exports = class btcex extends Exchange {
         //     }
         //
         const timestamp = this.safeInteger (result, 'timestamp');
-        return this.parseOrderBook (result, market['symbol'], timestamp);
+        const orderBook = this.parseOrderBook (result, market['symbol'], timestamp);
+        orderBook['nonce'] = this.safeInteger (result, 'version');
+        return orderBook;
     }
 
     parseOHLCV (ohlcv, market = undefined) {
@@ -577,7 +589,7 @@ module.exports = class btcex extends Exchange {
         //     }
         //
         return [
-            this.safeInteger (ohlcv, 'tick'),
+            this.safeTimestamp (ohlcv, 'tick'),
             this.safeNumber (ohlcv, 'open'),
             this.safeNumber (ohlcv, 'high'),
             this.safeNumber (ohlcv, 'low'),
@@ -1119,7 +1131,10 @@ module.exports = class btcex extends Exchange {
         const timestamp = this.safeInteger (order, 'creation_timestamp');
         const lastUpdate = this.safeInteger (order, 'last_update_timestamp');
         const id = this.safeString (order, 'order_id');
-        const priceString = this.safeString (order, 'price');
+        let priceString = this.safeString (order, 'price');
+        if (priceString === '-1') {
+            priceString = undefined;
+        }
         const averageString = this.safeString (order, 'average_price');
         const amountString = this.safeString (order, 'amount');
         const filledString = this.safeString (order, 'filled_amount');
@@ -1145,10 +1160,7 @@ module.exports = class btcex extends Exchange {
         }
         const type = this.safeString (order, 'order_type');
         // injected in createOrder
-        let trades = this.safeValue (order, 'trades');
-        if (trades !== undefined) {
-            trades = this.parseTrades (trades, market);
-        }
+        const trades = this.safeValue (order, 'trades');
         const timeInForce = this.parseTimeInForce (this.safeString (order, 'time_in_force'));
         const stopPrice = this.safeValue (order, 'trigger_price');
         const postOnly = this.safeValue (order, 'post_only');
@@ -1166,6 +1178,7 @@ module.exports = class btcex extends Exchange {
             'side': side,
             'price': priceString,
             'stopPrice': stopPrice,
+            'triggerPrice': stopPrice,
             'amount': amountString,
             'cost': undefined,
             'average': averageString,

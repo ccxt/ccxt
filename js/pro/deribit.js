@@ -597,7 +597,7 @@ module.exports = class deribit extends deribitRest {
         const channel = this.safeString (params, 'channel', '');
         const data = this.safeValue (params, 'data', {});
         let orders = [];
-        if (this.isArray (data)) {
+        if (Array.isArray (data)) {
             orders = this.parseOrders (data);
         } else {
             const order = this.parseOrder (data);

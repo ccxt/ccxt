@@ -253,7 +253,7 @@ class bitfinex2 extends \ccxt\async\bitfinex2 {
         }) ();
     }
 
-    public function handle_my_trade($client, $message) {
+    public function handle_my_trade($client, $message, $subscription = array ()) {
         //
         // $trade execution
         // $array(
@@ -288,9 +288,9 @@ class bitfinex2 extends \ccxt\async\bitfinex2 {
         $array = $this->myTrades;
         $array->append ($trade);
         $this->myTrades = $array;
-        // generic subscription
+        // generic $subscription
         $client->resolve ($array, $name);
-        // specific subscription
+        // specific $subscription
         $client->resolve ($array, $messageHash);
     }
 
@@ -1074,6 +1074,7 @@ class bitfinex2 extends \ccxt\async\bitfinex2 {
             'side' => $side,
             'price' => $price,
             'stopPrice' => $stopPrice,
+            'triggerPrice' => $stopPrice,
             'average' => $average,
             'amount' => $amount,
             'remaining' => $remaining,

@@ -3,8 +3,11 @@
 namespace ccxt\pro;
 
 use ccxt\async\Throttle;
+use ccxt\BaseError;
+use ccxt\ExchangeError;
 use React\Async;
 use React\EventLoop\Loop;
+use function React\Promise\resolve;
 
 trait ClientTrait {
 
@@ -103,7 +106,7 @@ trait ClientTrait {
                 }
             }
         );
-        return $future->promise();
+        return $future;
     }
 
     public function on_connected($client, $message = null) {
@@ -153,10 +156,35 @@ trait ClientTrait {
         return null;
     }
 
-    function formatScientificNotationFTX($n) {
-        if ($n === 0) {
-            return '0e-00';
+    public function load_order_book($client, $messageHash, $symbol, $limit = null, $params = array()) {
+        return Async\async(function () use ($client, $messageHash, $symbol, $limit, $params) {
+            if (!array_key_exists($symbol, $this->orderbooks)) {
+                $client->reject(new ExchangeError($this->id . ' loadOrderBook() orderbook is not initiated'), $messageHash);
+                return;
+            }
+            try {
+                $stored = $this->orderbooks[$symbol];
+                $orderBook = Async\await($this->fetch_order_book($symbol, $limit, $params));
+                $index = $this->get_cache_index($orderBook, $stored->cache);
+                if ($index >= 0) {
+                    $stored->reset($orderBook);
+                    $this->handle_deltas($stored, array_slice($stored->cache, $index));
+                    $stored->cache = array();
+                    $client->resolve($stored, $messageHash);
+                    return;
+                } else {
+                    $client->reject (new ExchangeError ($this->id . ' nonce is behind the cache'), $messageHash);
+                }
+            } catch (BaseError $e) {
+                $client->reject($e, $messageHash);
+            }
+            Async\await($this->load_order_book($client, $messageHash, $symbol, $limit, $params));
+        }) ();
+    }
+
+    public function handle_deltas($orderbook, $deltas) {
+        foreach ($deltas as $delta) {
+            $this->handle_delta($orderbook, $delta);
         }
-        return str_replace('E-', 'e-0', sprintf('g', $n));
     }
 }

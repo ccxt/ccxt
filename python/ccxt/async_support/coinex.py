@@ -64,6 +64,8 @@ class coinex(Exchange):
                 'fetchDepositAddressByNetwork': False,
                 'fetchDepositAddresses': False,
                 'fetchDeposits': True,
+                'fetchDepositWithdrawFees': True,
+                'fetchDepsoitWithdrawFee': 'emulated',
                 'fetchFundingHistory': True,
                 'fetchFundingRate': True,
                 'fetchFundingRateHistory': True,
@@ -89,8 +91,6 @@ class coinex(Exchange):
                 'fetchTrades': True,
                 'fetchTradingFee': True,
                 'fetchTradingFees': True,
-                'fetchTransactionFee:': False,
-                'fetchTransactoinFees': False,
                 'fetchTransfer': False,
                 'fetchTransfers': True,
                 'fetchWithdrawal': False,
@@ -288,15 +288,10 @@ class coinex(Exchange):
                     'max': None,
                 },
             },
-            'precision': {
-                'amount': self.parse_number('0.00000001'),
-                'price': self.parse_number('0.00000001'),
-            },
             'options': {
                 'createMarketBuyOrderRequiresPrice': True,
                 'defaultType': 'spot',  # spot, swap, margin
                 'defaultSubType': 'linear',  # linear, inverse
-                'defaultMarginMode': 'isolated',  # isolated, cross
                 'fetchDepositAddress': {
                     'fillResponseFromRequest': True,
                 },
@@ -312,22 +307,22 @@ class coinex(Exchange):
 
     async def fetch_currencies(self, params={}):
         response = await self.publicGetCommonAssetConfig(params)
-        #
         #     {
         #         code: 0,
         #         data: {
-        #           'CET-CSC': {
-        #               asset: 'CET',
-        #               chain: 'CSC',
-        #               withdrawal_precision: 8,
-        #               can_deposit: True,
-        #               can_withdraw: True,
-        #               deposit_least_amount: '0.026',
-        #               withdraw_least_amount: '20',
-        #               withdraw_tx_fee: '0.026'
-        #           },
-        #           ...
-        #           message: 'Success',
+        #             "USDT-ERC20": {
+        #                  "asset": "USDT",
+        #                  "chain": "ERC20",
+        #                  "withdrawal_precision": 6,
+        #                  "can_deposit": True,
+        #                  "can_withdraw": True,
+        #                  "deposit_least_amount": "4.9",
+        #                  "withdraw_least_amount": "4.9",
+        #                  "withdraw_tx_fee": "4.9"
+        #             },
+        #             ...
+        #         },
+        #         message: 'Success',
         #     }
         #
         data = self.safe_value(response, 'data', [])
@@ -339,6 +334,7 @@ class coinex(Exchange):
             currencyId = self.safe_string(currency, 'asset')
             networkId = self.safe_string(currency, 'chain')
             code = self.safe_currency_code(currencyId)
+            precision = self.parse_number(self.parse_precision(self.safe_string(currency, 'withdrawal_precision')))
             if self.safe_value(result, code) is None:
                 result[code] = {
                     'id': currencyId,
@@ -350,7 +346,7 @@ class coinex(Exchange):
                     'deposit': self.safe_value(currency, 'can_deposit'),
                     'withdraw': self.safe_value(currency, 'can_withdraw'),
                     'fee': self.safe_number(currency, 'withdraw_tx_fee'),
-                    'precision': self.parse_number(self.parse_precision(self.safe_string(currency, 'withdrawal_precision'))),
+                    'precision': precision,
                     'limits': {
                         'amount': {
                             'min': None,
@@ -390,7 +386,7 @@ class coinex(Exchange):
                 'deposit': self.safe_value(currency, 'can_deposit'),
                 'withdraw': self.safe_value(currency, 'can_withdraw'),
                 'fee': self.safe_number(currency, 'withdraw_tx_fee'),
-                'precision': self.parse_number(self.parse_precision(self.safe_string(currency, 'withdrawal_precision'))),
+                'precision': precision,
             }
             networks[networkId] = network
             result[code]['networks'] = networks
@@ -733,13 +729,19 @@ class coinex(Exchange):
     async def fetch_tickers(self, symbols=None, params={}):
         """
         fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
+        see https://viabtc.github.io/coinex_api_en_doc/spot/#docsspot001_market008_all_market_ticker
+        see https://viabtc.github.io/coinex_api_en_doc/futures/#docsfutures001_http009_market_ticker_all
         :param [str]|None symbols: unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
         :param dict params: extra parameters specific to the coinex api endpoint
         :returns dict: an array of `ticker structures <https://docs.ccxt.com/en/latest/manual.html#ticker-structure>`
         """
         await self.load_markets()
         symbols = self.market_symbols(symbols)
-        marketType, query = self.handle_market_type_and_params('fetchTickers', None, params)
+        market = None
+        if symbols is not None:
+            symbol = self.safe_value(symbols, 0)
+            market = self.market(symbol)
+        marketType, query = self.handle_market_type_and_params('fetchTickers', market, params)
         method = 'perpetualPublicGetMarketTickerAll' if (marketType == 'swap') else 'publicGetMarketTickerAll'
         response = await getattr(self, method)(query)
         #
@@ -1260,12 +1262,17 @@ class coinex(Exchange):
         data = self.safe_value(response, 'data', {})
         free = self.safe_value(data, 'can_transfer', {})
         total = self.safe_value(data, 'balance', {})
+        loan = self.safe_value(data, 'loan', {})
+        interest = self.safe_value(data, 'interest', {})
         #
         sellAccount = self.account()
         sellCurrencyId = self.safe_string(data, 'sell_asset_type')
         sellCurrencyCode = self.safe_currency_code(sellCurrencyId)
         sellAccount['free'] = self.safe_string(free, 'sell_type')
         sellAccount['total'] = self.safe_string(total, 'sell_type')
+        sellDebt = self.safe_string(loan, 'sell_type')
+        sellInterest = self.safe_string(interest, 'sell_type')
+        sellAccount['debt'] = Precise.string_add(sellDebt, sellInterest)
         result[sellCurrencyCode] = sellAccount
         #
         buyAccount = self.account()
@@ -1273,6 +1280,9 @@ class coinex(Exchange):
         buyCurrencyCode = self.safe_currency_code(buyCurrencyId)
         buyAccount['free'] = self.safe_string(free, 'buy_type')
         buyAccount['total'] = self.safe_string(total, 'buy_type')
+        buyDebt = self.safe_string(loan, 'buy_type')
+        buyInterest = self.safe_string(interest, 'buy_type')
+        buyAccount['debt'] = Precise.string_add(buyDebt, buyInterest)
         result[buyCurrencyCode] = buyAccount
         #
         return self.safe_balance(result)
@@ -1352,11 +1362,14 @@ class coinex(Exchange):
         :param dict params: extra parameters specific to the coinex api endpoint
         :returns dict: a `balance structure <https://docs.ccxt.com/en/latest/manual.html?#balance-structure>`
         """
-        accountType = self.safe_string(params, 'type', 'main')
-        params = self.omit(params, 'type')
-        if accountType == 'margin':
+        marketType = None
+        marketType, params = self.handle_market_type_and_params('fetchBalance', None, params)
+        isMargin = self.safe_value(params, 'margin', False)
+        marketType = 'margin' if isMargin else marketType
+        params = self.omit(params, 'margin')
+        if marketType == 'margin':
             return await self.fetch_margin_balance(params)
-        elif accountType == 'swap':
+        elif marketType == 'swap':
             return await self.fetch_swap_balance(params)
         else:
             return await self.fetch_spot_balance(params)
@@ -1636,6 +1649,7 @@ class coinex(Exchange):
             'side': side,
             'price': priceString,
             'stopPrice': self.safe_string(order, 'stop_price'),
+            'triggerPrice': self.safe_string(order, 'stop_price'),
             'cost': costString,
             'average': averageString,
             'amount': amountString,
@@ -2450,6 +2464,7 @@ class coinex(Exchange):
         #          code: 0,
         #          data: {
         #            coin_address: '1P1JqozxioQwaqPwgMAQdNDYNyaVSqgARq',
+        #            # coin_address: 'xxxxxxxxxxxxxx:yyyyyyyyy',  # with embedded tag/memo
         #            is_bitcoin_cash: False
         #          },
         #          message: 'Success'
@@ -2484,12 +2499,20 @@ class coinex(Exchange):
         #         is_bitcoin_cash: False
         #     }
         #
-        address = self.safe_string(depositAddress, 'coin_address')
+        coinAddress = self.safe_string(depositAddress, 'coin_address')
+        parts = coinAddress.split(':')
+        address = None
+        tag = None
+        if len(parts) > 1:
+            address = parts[0]
+            tag = parts[1]
+        else:
+            address = coinAddress
         return {
             'info': depositAddress,
             'currency': self.safe_currency_code(None, currency),
             'address': address,
-            'tag': None,
+            'tag': tag,
             'network': None,
         }
 
@@ -3417,41 +3440,55 @@ class coinex(Exchange):
         #
         # fetchDeposits
         #
-        #     {
-        #         "actual_amount": "120.00000000",
-        #         "actual_amount_display": "120",
-        #         "add_explorer": "XXX",
-        #         "amount": "120.00000000",
-        #         "amount_display": "120",
-        #         "coin_address": "XXXXXXXX",
-        #         "coin_address_display": "XXXXXXXX",
-        #         "coin_deposit_id": 1866,
-        #         "coin_type": "USDT",
-        #         "confirmations": 0,
-        #         "create_time": 1539595701,
-        #         "explorer": "",
-        #         "remark": "",
-        #         "status": "finish",
-        #         "status_display": "finish",
-        #         "transfer_method": "local",
-        #         "tx_id": "",
-        #         "tx_id_display": "XXXXXXXXXX"
-        #     }
+        #    {
+        #        "coin_deposit_id": 32555985,
+        #        "create_time": 1673325495,
+        #        "amount": "12.71",
+        #        "amount_display": "12.71",
+        #        "diff_amount": "0",
+        #        "min_amount": "0",
+        #        "actual_amount": "12.71",
+        #        "actual_amount_display": "12.71",
+        #        "confirmations": 35,
+        #        "tx_id": "0x57f1c92cc10b48316e2bf5faf230694fec2174e7744c1562a9a88b9c1e585f56",
+        #        "tx_id_display": "0x57f1c92cc10b48316e2bf5faf230694fec2174e7744c1562a9a88b9c1e585f56",
+        #        "coin_address": "0xe7a3831c56836f466b6a6268cff4fc852cf4b738",
+        #        "coin_address_display": "0xe7a3****f4b738",
+        #        "add_explorer": "https://bscscan.com/address/0xe7a3831c56836f466b6a6268cff4fc852cf4b738",
+        #        "coin_type": "USDT",
+        #        "smart_contract_name": "BSC",
+        #        "transfer_method": "onchain",
+        #        "status": "finish",
+        #        "status_display": "finish",
+        #        "remark": "",
+        #        "explorer": "https://bscscan.com/tx/0x57f1c92cc10b48316e2bf5faf230694fec2174e7744c1562a9a88b9c1e585f56"
+        #    }
         #
         # fetchWithdrawals
         #
-        #     {
-        #         "actual_amount": "0.10000000",
-        #         "amount": "0.10000000",
-        #         "coin_address": "15sr1VdyXQ6sVLqeJUJ1uPzLpmQtgUeBSB",
-        #         "coin_type": "BCH",
-        #         "coin_withdraw_id": 203,
-        #         "confirmations": 11,
-        #         "create_time": 1515806440,
-        #         "status": "finish",
-        #         "tx_fee": "0",
-        #         "tx_id": "896371d0e23d64d1cac65a0b7c9e9093d835affb572fec89dd4547277fbdd2f6"
-        #     }
+        #    {
+        #        "coin_withdraw_id": 20076836,
+        #        "create_time": 1673325776,
+        #        "actual_amount": "0.029",
+        #        "actual_amount_display": "0.029",
+        #        "amount": "0.03",
+        #        "amount_display": "0.03",
+        #        "coin_address": "MBhJcc3r5b3insc7QxyvEPtf31NqUdJpAb",
+        #        "app_coin_address_display": "MBh****pAb",
+        #        "coin_address_display": "MBhJcc****UdJpAb",
+        #        "add_explorer": "https://explorer.viawallet.com/ltc/address/MBhJcc3r5b3insc7QxyvEPtf31NqUdJpAb",
+        #        "coin_type": "LTC",
+        #        "confirmations": 7,
+        #        "explorer": "https://explorer.viawallet.com/ltc/tx/a0aa082132619b8a499b87e7d5bc3c508e0227104f5202ae26b695bb4cb7fbf9",
+        #        "fee": "0",
+        #        "remark": "",
+        #        "smart_contract_name": "",
+        #        "status": "finish",
+        #        "status_display": "finish",
+        #        "transfer_method": "onchain",
+        #        "tx_fee": "0.001",
+        #        "tx_id": "a0aa082132619b8a499b87e7d5bc3c508e0227104f5202ae26b695bb4cb7fbf9"
+        #    }
         #
         id = self.safe_string_2(transaction, 'coin_withdraw_id', 'coin_deposit_id')
         address = self.safe_string(transaction, 'coin_address')
@@ -3468,32 +3505,35 @@ class coinex(Exchange):
         timestamp = self.safe_timestamp(transaction, 'create_time')
         type = 'withdraw' if ('coin_withdraw_id' in transaction) else 'deposit'
         status = self.parse_transaction_status(self.safe_string(transaction, 'status'))
-        amount = self.safe_number(transaction, 'amount')
-        feeCost = self.safe_number(transaction, 'tx_fee')
+        networkId = self.safe_string(transaction, 'smart_contract_name')
+        amount = self.safe_number(transaction, 'actual_amount')
+        feeCost = self.safe_string(transaction, 'tx_fee')
+        addressTo = None
+        addressFrom = None
         if type == 'deposit':
-            feeCost = 0
+            feeCost = '0'
+            addressTo = address
+        else:
+            addressFrom = address
         fee = {
-            'cost': feeCost,
+            'cost': self.parse_number(feeCost),
             'currency': code,
         }
-        # https://github.com/ccxt/ccxt/issues/8321
-        if amount is not None:
-            amount = amount - feeCost
         return {
             'info': transaction,
             'id': id,
             'txid': txid,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
-            'network': None,
+            'network': self.network_id_to_code(networkId),
             'address': address,
             'addressTo': None,
             'addressFrom': None,
             'tag': tag,
-            'tagTo': None,
-            'tagFrom': None,
+            'tagTo': addressTo,
+            'tagFrom': addressFrom,
             'type': type,
-            'amount': amount,
+            'amount': self.parse_number(amount),
             'currency': code,
             'status': status,
             'updated': None,
@@ -3703,42 +3743,42 @@ class coinex(Exchange):
             request['Limit'] = limit
         response = await self.privateGetBalanceCoinWithdraw(self.extend(request, params))
         #
-        #     {
-        #         "code": 0,
-        #         "data": {
-        #             "has_next": True,
-        #             "curr_page": 1,
-        #             "count": 10,
-        #             "data": [
-        #                 {
-        #                     "coin_withdraw_id": 203,
-        #                     "create_time": 1513933541,
-        #                     "actual_amount": "0.00100000",
-        #                     "actual_amount_display": "***",
-        #                     "amount": "0.00100000",
-        #                     "amount_display": "******",
-        #                     "coin_address": "1GVVx5UBddLKrckTprNi4VhHSymeQ8tsLF",
-        #                     "app_coin_address_display": "**********",
-        #                     "coin_address_display": "****************",
-        #                     "add_explorer": "https://explorer.viawallet.com/btc/address/1GVVx5UBddLKrckTprNi4VhHSymeQ8tsLF",
-        #                     "coin_type": "BTC",
-        #                     "confirmations": 6,
-        #                     "explorer": "https://explorer.viawallet.com/btc/tx/1GVVx5UBddLKrckTprNi4VhHSymeQ8tsLF",
-        #                     "fee": "0",
-        #                     "remark": "",
-        #                     "smart_contract_name": "BTC",
-        #                     "status": "finish",
-        #                     "status_display": "finish",
-        #                     "transfer_method": "onchain",
-        #                     "tx_fee": "0",
-        #                     "tx_id": "896371d0e23d64d1cac65a0b7c9e9093d835affb572fec89dd4547277fbdd2f6"
-        #                 }, /* many more data points */
-        #             ],
-        #             "total": ***,
-        #             "total_page":***
-        #         },
-        #         "message": "Success"
-        #     }
+        #    {
+        #        "code": 0,
+        #        "data": {
+        #            "has_next": False,
+        #            "curr_page": 1,
+        #            "count": 1,
+        #            "data": [
+        #                {
+        #                    "coin_withdraw_id": 20076836,
+        #                    "create_time": 1673325776,
+        #                    "actual_amount": "0.029",
+        #                    "actual_amount_display": "0.029",
+        #                    "amount": "0.03",
+        #                    "amount_display": "0.03",
+        #                    "coin_address": "MBhJcc3r5b3insc7QxyvEPtf31NqUdJpAb",
+        #                    "app_coin_address_display": "MBh****pAb",
+        #                    "coin_address_display": "MBhJcc****UdJpAb",
+        #                    "add_explorer": "https://explorer.viawallet.com/ltc/address/MBhJcc3r5b3insc7QxyvEPtf31NqUdJpAb",
+        #                    "coin_type": "LTC",
+        #                    "confirmations": 7,
+        #                    "explorer": "https://explorer.viawallet.com/ltc/tx/a0aa082132619b8a499b87e7d5bc3c508e0227104f5202ae26b695bb4cb7fbf9",
+        #                    "fee": "0",
+        #                    "remark": "",
+        #                    "smart_contract_name": "",
+        #                    "status": "finish",
+        #                    "status_display": "finish",
+        #                    "transfer_method": "onchain",
+        #                    "tx_fee": "0.001",
+        #                    "tx_id": "a0aa082132619b8a499b87e7d5bc3c508e0227104f5202ae26b695bb4cb7fbf9"
+        #                }
+        #            ],
+        #            "total": 1,
+        #            "total_page": 1
+        #        },
+        #        "message": "Success"
+        #    }
         #
         data = self.safe_value(response, 'data')
         if not isinstance(data, list):
@@ -3764,32 +3804,43 @@ class coinex(Exchange):
         if limit is not None:
             request['Limit'] = limit
         response = await self.privateGetBalanceCoinDeposit(self.extend(request, params))
-        #     {
-        #         "code": 0,
-        #         "data": [
-        #             {
-        #                 "actual_amount": "4.65397682",
-        #                 "actual_amount_display": "4.65397682",
-        #                 "add_explorer": "https://etherscan.io/address/0x361XXXXXX",
-        #                 "amount": "4.65397682",
-        #                 "amount_display": "4.65397682",
-        #                 "coin_address": "0x36dabcdXXXXXX",
-        #                 "coin_address_display": "0x361X*****XXXXX",
-        #                 "coin_deposit_id": 966191,
-        #                 "coin_type": "ETH",
-        #                 "confirmations": 30,
-        #                 "create_time": 1531661445,
-        #                 "explorer": "https://etherscan.io/tx/0x361XXXXXX",
-        #                 "remark": "",
-        #                 "status": "finish",
-        #                 "status_display": "finish",
-        #                 "transfer_method": "onchain",
-        #                 "tx_id": "0x361XXXXXX",
-        #                 "tx_id_display": "0x361XXXXXX"
-        #             }
-        #         ],
-        #         "message": "Ok"
-        #     }
+        #
+        #    {
+        #        "code": 0,
+        #        "data": {
+        #            "has_next": False,
+        #            "curr_page": 1,
+        #            "count": 1,
+        #            "data": [
+        #                {
+        #                    "coin_deposit_id": 32555985,
+        #                    "create_time": 1673325495,
+        #                    "amount": "12.71",
+        #                    "amount_display": "12.71",
+        #                    "diff_amount": "0",
+        #                    "min_amount": "0",
+        #                    "actual_amount": "12.71",
+        #                    "actual_amount_display": "12.71",
+        #                    "confirmations": 35,
+        #                    "tx_id": "0x57f1c92cc10b48316e2bf5faf230694fec2174e7744c1562a9a88b9c1e585f56",
+        #                    "tx_id_display": "0x57f1c92cc10b48316e2bf5faf230694fec2174e7744c1562a9a88b9c1e585f56",
+        #                    "coin_address": "0xe7a3831c56836f466b6a6268cff4fc852cf4b738",
+        #                    "coin_address_display": "0xe7a3****f4b738",
+        #                    "add_explorer": "https://bscscan.com/address/0xe7a3831c56836f466b6a6268cff4fc852cf4b738",
+        #                    "coin_type": "USDT",
+        #                    "smart_contract_name": "BSC",
+        #                    "transfer_method": "onchain",
+        #                    "status": "finish",
+        #                    "status_display": "finish",
+        #                    "remark": "",
+        #                    "explorer": "https://bscscan.com/tx/0x57f1c92cc10b48316e2bf5faf230694fec2174e7744c1562a9a88b9c1e585f56"
+        #                }
+        #            ],
+        #            "total": 1,
+        #            "total_page": 1
+        #        },
+        #        "message": "Success"
+        #    }
         #
         data = self.safe_value(response, 'data')
         if not isinstance(data, list):
@@ -4097,6 +4148,92 @@ class coinex(Exchange):
             'datetime': None,
             'info': info,
         }
+
+    async def fetch_deposit_withdraw_fees(self, codes=None, params={}):
+        """
+        fetch deposit and withdraw fees
+        see https://viabtc.github.io/coinex_api_en_doc/spot/#docsspot001_market010_asset_config
+        :param [str]|None codes: list of unified currency codes
+        :param dict params: extra parameters specific to the coinex api endpoint
+        :returns [dict]: a list of `fees structures <https://docs.ccxt.com/en/latest/manual.html#fee-structure>`
+        """
+        await self.load_markets()
+        request = {}
+        if codes is not None:
+            codesLength = len(codes)
+            if codesLength == 1:
+                request['coin_type'] = self.safe_value(codes, 0)
+        response = await self.publicGetCommonAssetConfig(self.extend(request, params))
+        #
+        #    {
+        #        "code": 0,
+        #        "data": {
+        #            "CET-CSC": {
+        #                "asset": "CET",
+        #                "chain": "CSC",
+        #                "can_deposit": True,
+        #                "can_withdraw ": False,
+        #                "deposit_least_amount": "1",
+        #                "withdraw_least_amount": "1",
+        #                "withdraw_tx_fee": "0.1"
+        #            },
+        #            "CET-ERC20": {
+        #                "asset": "CET",
+        #                "chain": "ERC20",
+        #                "can_deposit": True,
+        #                "can_withdraw": False,
+        #                "deposit_least_amount": "14",
+        #                "withdraw_least_amount": "14",
+        #                "withdraw_tx_fee": "14"
+        #            }
+        #        },
+        #        "message": "Success"
+        #    }
+        #
+        return self.parse_deposit_withdraw_fees(response, codes)
+
+    def parse_deposit_withdraw_fees(self, response, codes=None, currencyIdKey=None):
+        depositWithdrawFees = {}
+        codes = self.market_codes(codes)
+        data = self.safe_value(response, 'data')
+        currencyIds = list(data.keys())
+        for i in range(0, len(currencyIds)):
+            entry = currencyIds[i]
+            splitEntry = entry.split('-')
+            feeInfo = data[currencyIds[i]]
+            currencyId = self.safe_string(feeInfo, 'asset')
+            currency = self.safe_currency(currencyId)
+            code = self.safe_string(currency, 'code')
+            if (codes is None) or (self.in_array(code, codes)):
+                depositWithdrawFee = self.safe_value(depositWithdrawFees, code)
+                if depositWithdrawFee is None:
+                    depositWithdrawFees[code] = self.deposit_withdraw_fee({})
+                depositWithdrawFees[code]['info'][entry] = feeInfo
+                networkId = self.safe_string(splitEntry, 1)
+                withdrawFee = self.safe_value(feeInfo, 'withdraw_tx_fee')
+                withdrawResult = {
+                    'fee': withdrawFee,
+                    'percentage': False if (withdrawFee is not None) else None,
+                }
+                depositResult = {
+                    'fee': None,
+                    'percentage': None,
+                }
+                if networkId is not None:
+                    networkCode = self.network_id_to_code(networkId)
+                    depositWithdrawFees[code]['networks'][networkCode] = {
+                        'withdraw': withdrawResult,
+                        'deposit': depositResult,
+                    }
+                else:
+                    depositWithdrawFees[code]['withdraw'] = withdrawResult
+                    depositWithdrawFees[code]['deposit'] = depositResult
+        depositWithdrawCodes = list(depositWithdrawFees.keys())
+        for i in range(0, len(depositWithdrawCodes)):
+            code = depositWithdrawCodes[i]
+            currency = self.currency(code)
+            depositWithdrawFees[code] = self.assign_default_deposit_withdraw_fees(depositWithdrawFees[code], currency)
+        return depositWithdrawFees
 
     def nonce(self):
         return self.milliseconds()

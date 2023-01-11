@@ -18,12 +18,13 @@ module.exports = class bitget extends Exchange {
             'version': 'v1',
             'rateLimit': 50, // up to 3000 requests per 5 minutes ≈ 600 requests per minute ≈ 10 requests per second ≈ 100 ms
             'certified': true,
+            'pro': true,
             'has': {
                 'CORS': undefined,
                 'spot': true,
                 'margin': false,
                 'swap': true,
-                'future': false,
+                'future': true,
                 'option': false,
                 'addMargin': true,
                 'cancelAllOrders': true,
@@ -81,16 +82,18 @@ module.exports = class bitget extends Exchange {
                 'reduceMargin': true,
                 'setLeverage': true,
                 'setMarginMode': true,
-                'setPositionMode': false,
-                'transfer': false,
+                'setPositionMode': true,
+                'transfer': true,
                 'withdraw': false,
             },
             'timeframes': {
                 '1m': '1m',
+                '3m': '3m',
                 '5m': '5m',
                 '15m': '15m',
                 '30m': '30m',
                 '1h': '1h',
+                '2h': '2h',
                 '4h': '4h',
                 '6h': '6h',
                 '12h': '12h',
@@ -161,6 +164,7 @@ module.exports = class bitget extends Exchange {
                         },
                         'post': {
                             'account/bills': 2,
+                            'account/sub-account-spot-assets': 200,
                             'trade/orders': 2,
                             'trade/batch-orders': 4,
                             'trade/cancel-order': 2,
@@ -204,6 +208,7 @@ module.exports = class bitget extends Exchange {
                             'account/setLeverage': 8,
                             'account/setMargin': 8,
                             'account/setMarginMode': 8,
+                            'account/setPositionMode': 8,
                             'order/placeOrder': 2,
                             'order/batch-orders': 2,
                             'order/cancel-order': 2,
@@ -216,6 +221,7 @@ module.exports = class bitget extends Exchange {
                             'plan/placePositionsTPSL': 2,
                             'plan/modifyTPSLPlan': 2,
                             'plan/cancelPlan': 2,
+                            'plan/cancelAllPlan': 2,
                             'trace/closeTrackOrder': 2,
                             'trace/setUpCopySymbols': 2,
                         },
@@ -672,6 +678,7 @@ module.exports = class bitget extends Exchange {
                     '40712': InsufficientFunds, // Insufficient margin
                     '40713': ExchangeError, // Cannot exceed the maximum transferable margin amount
                     '40714': ExchangeError, // No direct margin call is allowed
+                    '45110': InvalidOrder, // {"code":"45110","msg":"less than the minimum amount 5 USDT","requestTime":1669911118932,"data":null}
                     // spot
                     'invalid sign': AuthenticationError,
                     'invalid currency': BadSymbol, // invalid trading pair
@@ -747,29 +754,34 @@ module.exports = class bitget extends Exchange {
             'options': {
                 'timeframes': {
                     'spot': {
-                        '1m': '1min',
-                        '5m': '5min',
-                        '15m': '15min',
-                        '30m': '30min',
+                        '1m': '1m',
+                        '5m': '5m',
+                        '15m': '15m',
+                        '30m': '30m',
                         '1h': '1h',
                         '4h': '4h',
-                        '6h': '6h',
-                        '12h': '12h',
-                        '1d': '1day',
-                        '3d': '3day',
-                        '1w': '1week',
-                        '1M': '1M',
+                        '6h': '6Hutc',
+                        '12h': '12Hutc',
+                        '1d': '1Dutc',
+                        '3d': '3Dutc',
+                        '1w': '1Wutc',
+                        '1M': '1Mutc',
                     },
                     'swap': {
-                        '1m': '60',
-                        '5m': '300',
-                        '15m': '900',
-                        '30m': '1800',
-                        '1h': '3600',
-                        '4h': '14400',
-                        '12h': '43200',
-                        '1d': '86400',
-                        '1w': '604800',
+                        '1m': '1m',
+                        '3m': '3m',
+                        '5m': '5m',
+                        '15m': '15m',
+                        '30m': '30m',
+                        '1h': '1H',
+                        '2h': '2H',
+                        '4h': '4H',
+                        '6h': '6Hutc',
+                        '12h': '12Hutc',
+                        '1d': '1Dutc',
+                        '3d': '3Dutc',
+                        '1w': '1Wutc',
+                        '1M': '1Mutc',
                     },
                 },
                 'fetchMarkets': [
@@ -779,15 +791,17 @@ module.exports = class bitget extends Exchange {
                 'defaultType': 'spot', // 'spot', 'swap'
                 'defaultSubType': 'linear', // 'linear', 'inverse'
                 'createMarketBuyOrderRequiresPrice': true,
-                'broker': {
-                    'spot': 'CCXT#',
-                    'swap': 'CCXT#',
-                },
+                'broker': 'p4sve',
                 'withdraw': {
                     'fillResponseFromRequest': true,
                 },
+                'sandboxMode': false,
             },
         });
+    }
+
+    setSandboxMode (enabled) {
+        this.options['sandboxMode'] = enabled;
     }
 
     async fetchTime (params = {}) {
@@ -818,22 +832,35 @@ module.exports = class bitget extends Exchange {
          * @param {object} params extra parameters specific to the exchange api endpoint
          * @returns {[object]} an array of objects representing market data
          */
-        const types = this.safeValue (this.options, 'fetchMarkets', [ 'spot', 'swap' ]);
-        let result = [];
+        const sandboxMode = this.safeValue (this.options, 'sandboxMode', false);
+        let types = this.safeValue (this.options, 'fetchMarkets', [ 'spot', 'swap' ]);
+        if (sandboxMode) {
+            types = [ 'swap' ];
+        }
+        let promises = [];
         for (let i = 0; i < types.length; i++) {
             const type = types[i];
             if (type === 'swap') {
-                const subTypes = [ 'umcbl', 'dmcbl', 'cmcbl', 'sumcbl', 'sdmcbl', 'scmcbl' ];
+                let subTypes = undefined;
+                if (sandboxMode) {
+                    // the following are simulated trading markets [ 'sumcbl', 'sdmcbl', 'scmcbl' ];
+                    subTypes = [ 'sumcbl', 'sdmcbl', 'scmcbl' ];
+                } else {
+                    subTypes = [ 'umcbl', 'dmcbl', 'cmcbl' ];
+                }
                 for (let j = 0; j < subTypes.length; j++) {
-                    const markets = await this.fetchMarketsByType (type, this.extend (params, {
+                    promises.push (this.fetchMarketsByType (type, this.extend (params, {
                         'productType': subTypes[j],
-                    }));
-                    result = this.arrayConcat (result, markets);
+                    })));
                 }
             } else {
-                const markets = await this.fetchMarketsByType (types[i], params);
-                result = this.arrayConcat (result, markets);
+                promises.push (this.fetchMarketsByType (types[i], params));
             }
+        }
+        promises = await Promise.all (promises);
+        let result = promises[0];
+        for (let i = 1; i < promises.length; i++) {
+            result = this.arrayConcat (result, promises[i]);
         }
         return result;
     }
@@ -857,6 +884,7 @@ module.exports = class bitget extends Exchange {
         //        quoteCoin: 'USDT',
         //        minTradeAmount: '2',
         //        maxTradeAmount: '0',
+        //        minTradeUSDT": '5',
         //        takerFeeRate: '0.001',
         //        makerFeeRate: '0.001',
         //        priceScale: '4',
@@ -927,14 +955,8 @@ module.exports = class bitget extends Exchange {
                 symbol = symbol + ':' + settle;
             }
             contract = true;
-            const sumcbl = (typeId === 'SUMCBL');
-            const sdmcbl = (typeId === 'SDMCBL');
-            const scmcbl = (typeId === 'SCMCBL');
-            linear = (typeId === 'UMCBL') || (typeId === 'CMCBL') || sumcbl || scmcbl;
+            linear = (typeId === 'UMCBL') || (typeId === 'CMCBL') || (typeId === 'SUMCBL') || (typeId === 'SCMCBL');
             inverse = !linear;
-            if (sumcbl || sdmcbl || scmcbl) {
-                symbol = marketId;
-            }
             const priceDecimals = this.safeInteger (market, 'pricePlace');
             const amountDecimals = this.safeInteger (market, 'volumePlace');
             const priceStep = this.safeString (market, 'priceEndStep');
@@ -954,6 +976,10 @@ module.exports = class bitget extends Exchange {
         let active = undefined;
         if (status !== undefined) {
             active = status === 'online';
+        }
+        let minCost = undefined;
+        if (quote === 'USDT') {
+            minCost = this.safeNumber (market, 'minTradeUSDT');
         }
         return {
             'id': marketId,
@@ -991,15 +1017,15 @@ module.exports = class bitget extends Exchange {
                     'max': undefined,
                 },
                 'amount': {
-                    'min': this.safeNumber (market, 'minTradeNum'),
-                    'max': undefined,
+                    'min': this.safeNumber2 (market, 'minTradeNum', 'minTradeAmount'),
+                    'max': this.safeNumber (market, 'maxTradeAmount'),
                 },
                 'price': {
                     'min': undefined,
                     'max': undefined,
                 },
                 'cost': {
-                    'min': undefined,
+                    'min': minCost,
                     'max': undefined,
                 },
             },
@@ -1528,8 +1554,12 @@ module.exports = class bitget extends Exchange {
         //     }
         //
         let marketId = this.safeString (ticker, 'symbol');
-        if (!(marketId in this.markets_by_id)) {
-            marketId += '_SPBL';
+        if ((market === undefined) && (marketId !== undefined) && (marketId.indexOf ('_') === -1)) {
+            // fetchTickers fix:
+            // spot symbol are different from the "request id"
+            // so we need to convert it to the exchange-specific id
+            // otherwise we will not be able to find the market
+            marketId = marketId + '_SPBL';
         }
         const symbol = this.safeSymbol (marketId, market);
         const high = this.safeString (ticker, 'high24h');
@@ -2082,12 +2112,24 @@ module.exports = class bitget extends Exchange {
 
     parseBalance (balance) {
         const result = { 'info': balance };
+        //
+        //     {
+        //       coinId: '1',
+        //       coinName: 'BTC',
+        //       available: '0.00099900',
+        //       frozen: '0.00000000',
+        //       lock: '0.00000000',
+        //       uTime: '1661595535000'
+        //     }
+        //
         for (let i = 0; i < balance.length; i++) {
             const entry = balance[i];
             const currencyId = this.safeString2 (entry, 'coinId', 'marginCoin');
             const code = this.safeCurrencyCode (currencyId);
             const account = this.account ();
-            account['used'] = this.safeString2 (entry, 'lock', 'locked');
+            const frozen = this.safeString (entry, 'frozen');
+            const locked = this.safeString2 (entry, 'lock', 'locked');
+            account['used'] = Precise.stringAdd (frozen, locked);
             account['free'] = this.safeString (entry, 'available');
             result[code] = account;
         }
@@ -2097,6 +2139,7 @@ module.exports = class bitget extends Exchange {
     parseOrderStatus (status) {
         const statuses = {
             'new': 'open',
+            'init': 'open',
             'full_fill': 'closed',
             'filled': 'closed',
         };
@@ -2171,7 +2214,7 @@ module.exports = class bitget extends Exchange {
         const amount = this.safeString2 (order, 'quantity', 'size');
         const filled = this.safeString2 (order, 'fillQuantity', 'filledQty');
         const cost = this.safeString2 (order, 'fillTotalAmount', 'filledAmount');
-        const average = this.safeString (order, 'fillPrice');
+        const average = this.safeString2 (order, 'fillPrice', 'priceAvg');
         const type = this.safeString (order, 'orderType');
         const timestamp = this.safeInteger (order, 'cTime');
         let side = this.safeString2 (order, 'side', 'posSide');
@@ -2199,6 +2242,7 @@ module.exports = class bitget extends Exchange {
             'side': side,
             'price': price,
             'stopPrice': this.safeNumber (order, 'triggerPrice'),
+            'triggerPrice': this.safeNumber (order, 'triggerPrice'),
             'average': average,
             'cost': cost,
             'amount': amount,
@@ -2244,16 +2288,7 @@ module.exports = class bitget extends Exchange {
         if ((type === 'limit') && (triggerPrice === undefined)) {
             request['price'] = this.priceToPrecision (symbol, price);
         }
-        let clientOrderId = this.safeString2 (params, 'client_oid', 'clientOrderId');
-        if (clientOrderId === undefined) {
-            const broker = this.safeValue (this.options, 'broker');
-            if (broker !== undefined) {
-                const brokerId = this.safeString (broker, market['type']);
-                if (brokerId !== undefined) {
-                    clientOrderId = brokerId + this.uuid22 ();
-                }
-            }
-        }
+        const clientOrderId = this.safeString2 (params, 'clientOid', 'clientOrderId');
         let method = this.getSupportedMapping (marketType, {
             'spot': 'privateSpotPostTradeOrders',
             'swap': 'privateMixPostOrderPlaceOrder',
@@ -2277,7 +2312,9 @@ module.exports = class bitget extends Exchange {
             } else {
                 request['quantity'] = this.amountToPrecision (symbol, amount);
             }
-            request['clientOrderId'] = clientOrderId;
+            if (clientOrderId !== undefined) {
+                request['clientOrderId'] = clientOrderId;
+            }
             request['side'] = side;
             if (postOnly) {
                 request['force'] = 'post_only';
@@ -2285,7 +2322,9 @@ module.exports = class bitget extends Exchange {
                 request['force'] = 'gtc';
             }
         } else {
-            request['clientOid'] = clientOrderId;
+            if (clientOrderId !== undefined) {
+                request['clientOid'] = clientOrderId;
+            }
             request['size'] = this.amountToPrecision (symbol, amount);
             if (postOnly) {
                 request['timeInForceValue'] = 'post_only';
@@ -2460,16 +2499,13 @@ module.exports = class bitget extends Exchange {
          * @name bitget#cancelAllOrders
          * @description cancel all open orders
          * @see https://bitgetlimited.github.io/apidoc/en/mix/#cancel-all-order
+         * @see https://bitgetlimited.github.io/apidoc/en/mix/#cancel-all-trigger-order-tpsl
          * @param {string|undefined} symbol unified market symbol
          * @param {object} params extra parameters specific to the bitget api endpoint
          * @param {string} params.code marginCoin unified currency code
          * @returns {[object]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
          */
         await this.loadMarkets ();
-        const code = this.safeString2 (params, 'code', 'marginCoin');
-        if (code === undefined) {
-            throw new ArgumentsRequired (this.id + ' cancelAllOrders () requires a code argument in the params');
-        }
         let market = undefined;
         let defaultSubType = this.safeString (this.options, 'defaultSubType');
         if (symbol !== undefined) {
@@ -2481,13 +2517,29 @@ module.exports = class bitget extends Exchange {
         if (marketType === 'spot') {
             throw new NotSupported (this.id + ' cancelAllOrders () does not support spot markets');
         }
-        const currency = this.currency (code);
         const request = {
-            'marginCoin': this.safeCurrencyCode (code, currency),
             'productType': productType,
         };
+        let method = undefined;
+        const stop = this.safeValue (params, 'stop');
+        const planType = this.safeString (params, 'planType');
+        if (stop !== undefined || planType !== undefined) {
+            if (planType === undefined) {
+                throw new ArgumentsRequired (this.id + ' cancelOrder() requires a planType parameter for stop orders, either normal_plan, profit_plan, loss_plan, pos_profit, pos_loss, moving_plan or track_plan');
+            }
+            method = 'privateMixPostPlanCancelAllPlan';
+            params = this.omit (params, [ 'stop' ]);
+        } else {
+            const code = this.safeString2 (params, 'code', 'marginCoin');
+            if (code === undefined) {
+                throw new ArgumentsRequired (this.id + ' cancelAllOrders () requires a code argument [marginCoin] in the params');
+            }
+            const currency = this.currency (code);
+            request['marginCoin'] = this.safeCurrencyCode (code, currency);
+            method = 'privateMixPostOrderCancelAllOrders';
+        }
         params = this.omit (query, [ 'code', 'marginCoin' ]);
-        const response = await this.privateMixPostOrderCancelAllOrders (this.extend (request, params));
+        const response = await this[method] (this.extend (request, params));
         //
         //     {
         //         "code": "00000",
@@ -3043,7 +3095,7 @@ module.exports = class bitget extends Exchange {
         //     }
         //
         const data = this.safeValue (response, 'data', []);
-        return this.parsePosition (data[0], market);
+        return this.parsePositions (data);
     }
 
     async fetchPositions (symbols = undefined, params = {}) {
@@ -3122,51 +3174,89 @@ module.exports = class bitget extends Exchange {
         //
         const marketId = this.safeString (position, 'symbol');
         market = this.safeMarket (marketId, market);
+        const symbol = market['symbol'];
         const timestamp = this.safeInteger (position, 'cTime');
         let marginMode = this.safeString (position, 'marginMode');
+        let collateral = undefined;
+        let initialMargin = undefined;
+        const unrealizedPnl = this.safeString (position, 'unrealizedPL');
+        const rawCollateral = this.safeString (position, 'margin');
         if (marginMode === 'fixed') {
             marginMode = 'isolated';
+            collateral = Precise.stringAdd (rawCollateral, unrealizedPnl);
         } else if (marginMode === 'crossed') {
             marginMode = 'cross';
+            initialMargin = rawCollateral;
         }
-        let hedged = this.safeString (position, 'holdMode');
-        if (hedged === 'double_hold') {
+        const holdMode = this.safeString (position, 'holdMode');
+        let hedged = undefined;
+        if (holdMode === 'double_hold') {
             hedged = true;
-        } else if (hedged === 'single_hold') {
+        } else if (holdMode === 'single_hold') {
             hedged = false;
         }
-        let contracts = this.safeInteger (position, 'openDelegateCount');
-        let liquidation = this.safeNumber (position, 'liquidationPrice');
-        if (contracts === 0) {
-            contracts = undefined;
+        const side = this.safeString (position, 'holdSide');
+        const leverage = this.safeString (position, 'leverage');
+        const contractSizeNumber = this.safeValue (market, 'contractSize');
+        const contractSize = this.numberToString (contractSizeNumber);
+        const baseAmount = this.safeString (position, 'total');
+        const entryPrice = this.safeString (position, 'averageOpenPrice');
+        const maintenanceMarginPercentage = this.safeString (position, 'keepMarginRate');
+        const openNotional = Precise.stringMul (entryPrice, baseAmount);
+        if (initialMargin === undefined) {
+            initialMargin = Precise.stringDiv (openNotional, leverage);
         }
-        if (liquidation === 0) {
-            liquidation = undefined;
+        const contracts = this.parseNumber (Precise.stringDiv (baseAmount, contractSize));
+        const markPrice = this.safeString (position, 'marketPrice');
+        const notional = Precise.stringMul (baseAmount, markPrice);
+        const initialMarginPercentage = Precise.stringDiv (initialMargin, notional);
+        let liquidationPrice = this.parseNumber (this.omitZero (this.safeString (position, 'liquidationPrice')));
+        const calcTakerFeeRate = '0.0006';
+        const calcTakerFeeMult = '0.9994';
+        if ((liquidationPrice === undefined) && (marginMode === 'isolated') && Precise.stringGt (baseAmount, '0')) {
+            let signedMargin = Precise.stringDiv (rawCollateral, baseAmount);
+            let signedMmp = maintenanceMarginPercentage;
+            if (side === 'short') {
+                signedMargin = Precise.stringNeg (signedMargin);
+                signedMmp = Precise.stringNeg (signedMmp);
+            }
+            let mmrMinusOne = Precise.stringSub ('1', signedMmp);
+            let numerator = Precise.stringSub (entryPrice, signedMargin);
+            if (side === 'long') {
+                mmrMinusOne = Precise.stringMul (mmrMinusOne, calcTakerFeeMult);
+            } else {
+                numerator = Precise.stringMul (numerator, calcTakerFeeMult);
+            }
+            liquidationPrice = Precise.stringDiv (numerator, mmrMinusOne);
         }
+        const feeToClose = Precise.stringMul (notional, calcTakerFeeRate);
+        const maintenanceMargin = Precise.stringAdd (Precise.stringMul (maintenanceMarginPercentage, notional), feeToClose);
+        const marginRatio = Precise.stringDiv (maintenanceMargin, collateral);
+        const percentage = Precise.stringMul (Precise.stringDiv (unrealizedPnl, initialMargin, 4), '100');
         return {
             'info': position,
             'id': undefined,
-            'symbol': market['symbol'],
-            'notional': undefined,
+            'symbol': symbol,
+            'notional': this.parseNumber (notional),
             'marginMode': marginMode,
-            'liquidationPrice': liquidation,
-            'entryPrice': this.safeNumber (position, 'averageOpenPrice'),
-            'unrealizedPnl': this.safeNumber (position, 'unrealizedPL'),
-            'percentage': undefined,
+            'liquidationPrice': this.parseNumber (liquidationPrice),
+            'entryPrice': this.parseNumber (entryPrice),
+            'unrealizedPnl': this.parseNumber (unrealizedPnl),
+            'percentage': this.parseNumber (percentage),
             'contracts': contracts,
-            'contractSize': this.safeNumber (position, 'total'),
-            'markPrice': undefined,
-            'side': this.safeString (position, 'holdSide'),
+            'contractSize': contractSizeNumber,
+            'markPrice': this.parseNumber (markPrice),
+            'side': side,
             'hedged': hedged,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'maintenanceMargin': undefined,
-            'maintenanceMarginPercentage': this.safeNumber (position, 'keepMarginRate'),
-            'collateral': this.safeNumber (position, 'margin'),
-            'initialMargin': undefined,
-            'initialMarginPercentage': undefined,
-            'leverage': this.safeNumber (position, 'leverage'),
-            'marginRatio': undefined,
+            'maintenanceMargin': this.parseNumber (maintenanceMargin),
+            'maintenanceMarginPercentage': this.parseNumber (maintenanceMarginPercentage),
+            'collateral': this.parseNumber (collateral),
+            'initialMargin': this.parseNumber (initialMargin),
+            'initialMarginPercentage': this.parseNumber (initialMarginPercentage),
+            'leverage': this.parseNumber (leverage),
+            'marginRatio': this.parseNumber (marginRatio),
         };
     }
 
@@ -3453,6 +3543,42 @@ module.exports = class bitget extends Exchange {
         return await this.privateMixPostAccountSetMarginMode (this.extend (request, params));
     }
 
+    async setPositionMode (hedged, symbol = undefined, params = {}) {
+        /**
+         * @method
+         * @name bitget#setPositionMode
+         * @description set hedged to true or false for a market
+         * @param {bool} hedged set to true to use dualSidePosition
+         * @param {string|undefined} symbol not used by binance setPositionMode ()
+         * @param {object} params extra parameters specific to the binance api endpoint
+         * @returns {object} response from the exchange
+         *
+         */
+        const productType = this.safeString (params, 'productType');
+        if ((productType === undefined) && (symbol === undefined)) {
+            throw new ArgumentsRequired (this.id + ' setPositionMode() requires a symbol or the productType parameter');
+        }
+        await this.loadMarkets ();
+        const holdMode = hedged ? 'double_hold' : 'single_hold';
+        const request = {
+            'holdMode': holdMode,
+        };
+        if (symbol !== undefined) {
+            const market = this.market (symbol);
+            request['productType'] = market['linear'] ? 'umcbl' : 'dmcbl';
+        }
+        const response = await this.privateMixPostAccountSetPositionMode (this.extend (request, params));
+        //
+        //    {
+        //         "code": "40919",
+        //         "msg": "This function is not open yet",
+        //         "requestTime": 1672212431093,
+        //         "data": null
+        //     }
+        //
+        return response;
+    }
+
     async fetchOpenInterest (symbol, params = {}) {
         /**
          * @method
@@ -3488,6 +3614,81 @@ module.exports = class bitget extends Exchange {
         return this.parseOpenInterest (data, market);
     }
 
+    async transfer (code, amount, fromAccount, toAccount, params = {}) {
+        /**
+         * @method
+         * @name bitget#transfer
+         * @see https://bitgetlimited.github.io/apidoc/en/spot/#transfer
+         * @description transfer currency internally between wallets on the same account
+         * @param {string} code unified currency code
+         * @param {float} amount amount to transfer
+         * @param {string} fromAccount account to transfer from
+         * @param {string} toAccount account to transfer to
+         * @param {object} params extra parameters specific to the bitget api endpoint
+         *
+         * EXCHANGE SPECIFIC PARAMS
+         * @param {string} params.clientOid custom id
+         * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/en/latest/manual.html#transfer-structure}
+         */
+        await this.loadMarkets ();
+        const currency = this.currency (code);
+        const fromSwap = fromAccount === 'swap';
+        const toSwap = toAccount === 'swap';
+        const usdt = currency['code'] === 'USDT';
+        if (fromSwap) {
+            fromAccount = usdt ? 'mix_usdt' : 'mix_usd';
+        } else if (toSwap) {
+            toAccount = usdt ? 'mix_usdt' : 'mix_usd';
+        }
+        const request = {
+            'fromType': fromAccount,
+            'toType': toAccount,
+            'amount': amount,
+            'coin': currency['info']['coinName'],
+        };
+        const response = await this.privateSpotPostWalletTransfer (this.extend (request, params));
+        //
+        //    {
+        //        "code": "00000",
+        //        "msg": "success",
+        //        "requestTime": 1668119107154,
+        //        "data": "SUCCESS"
+        //    }
+        //
+        return this.parseTransfer (response, currency);
+    }
+
+    parseTransfer (transfer, currency = undefined) {
+        //
+        //    {
+        //        "code": "00000",
+        //        "msg": "success",
+        //        "requestTime": 1668119107154,
+        //        "data": "SUCCESS"
+        //    }
+        //
+        const timestamp = this.safeInteger (transfer, 'requestTime');
+        const msg = this.safeString (transfer, 'msg');
+        return {
+            'info': transfer,
+            'id': this.safeString (transfer, 'id'),
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'currency': this.safeString (currency, 'code'),
+            'amount': this.safeNumber (transfer, 'size'),
+            'fromAccount': undefined,
+            'toAccount': undefined,
+            'status': (msg === 'success') ? 'ok' : msg,
+        };
+    }
+
+    parseTransferStatus (status) {
+        const statuses = {
+            'success': 'ok',
+        };
+        return this.safeString (statuses, status, status);
+    }
+
     parseOpenInterest (interest, market = undefined) {
         //
         //     {
@@ -3498,12 +3699,10 @@ module.exports = class bitget extends Exchange {
         //
         const timestamp = this.safeInteger (interest, 'timestamp');
         const id = this.safeString (interest, 'symbol');
-        market = this.safeMarket (id, market);
+        const symbol = this.safeSymbol (id, market);
         const amount = this.safeNumber (interest, 'amount');
         return {
-            'symbol': this.safeSymbol (id),
-            'baseVolume': amount,  // deprecated
-            'quoteVolume': undefined,  // deprecated
+            'symbol': symbol,
             'openInterestAmount': amount,
             'openInterestValue': undefined,
             'timestamp': timestamp,
@@ -3587,11 +3786,13 @@ module.exports = class bitget extends Exchange {
                 }
             }
             const signature = this.hmac (this.encode (auth), this.encode (this.secret), 'sha256', 'base64');
+            const broker = this.safeString (this.options, 'broker');
             headers = {
                 'ACCESS-KEY': this.apiKey,
                 'ACCESS-SIGN': signature,
                 'ACCESS-TIMESTAMP': timestamp,
                 'ACCESS-PASSPHRASE': this.password,
+                'X-CHANNEL-API-CODE': broker,
             };
             if (method === 'POST') {
                 headers['Content-Type'] = 'application/json';
