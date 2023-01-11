@@ -1787,7 +1787,7 @@ module.exports = class Exchange {
         this.generatedNetworkData['codeToTitle'][currencyCode][networkCode] = networkTitle;
     }
 
-    defineNetowrkCurrencyIdMappings (currencyCode, currencyId, networkId) {
+    defineNetworkCurrencyIdMappings (currencyCode, currencyId, networkId) {
         /**
          * @ignore
          * @method

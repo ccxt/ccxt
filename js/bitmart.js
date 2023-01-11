@@ -901,7 +901,7 @@ module.exports = class bitmart extends Exchange {
             }
             const networkId = this.safeString (currency, 'network');
             const networkCode = this.networkIdToCode (networkId);
-            this.defineNetowrkCurrencyIdMappings (code, currencyId, networkId);
+            this.defineNetworkCodeNameIdMappings (code, networkCode, networkId);
             const withdraw_enabled = this.safeValue (currency, 'withdraw_enabled');
             const deposit_enabled = this.safeValue (currency, 'deposit_enabled');
             const withdraw_minsize = this.safeString (currency, 'withdraw_minsize');
