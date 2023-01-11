@@ -919,7 +919,7 @@ module.exports = class huobi extends Exchange {
                     'BTC': 'BTC',
                     'USDT': 'TRC20',
                 },
-                'hasUniqueNetworkIds': true,
+                'networksAreTitlesInsteadOfId': true,
                 'networks': {
                     // The below list is made up by huobi's common network names, instead of currency-specific chain ids
                     'ACALA': 'ACA',
@@ -2953,7 +2953,7 @@ module.exports = class huobi extends Exchange {
                 const chainEntry = chains[j];
                 const networkId = this.safeString (chainEntry, 'chain'); // is unique per entry i.e. usdterc20, trc20usdt ...
                 const networkTitle = this.safeString (chainEntry, 'displayName');
-                this.defineNetworkCodeNameIdMappings (code, networkTitle, networkId);
+                this.defineNetworkCodeNameIdMappings (code, undefined, networkTitle, networkId);
                 const networkCode = this.networkIdToCode (networkId, code);
                 minWithdraw = this.safeNumber (chainEntry, 'minWithdrawAmt');
                 maxWithdraw = this.safeNumber (chainEntry, 'maxWithdrawAmt');

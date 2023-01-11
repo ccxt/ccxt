@@ -373,7 +373,8 @@ module.exports = class bitmart extends Exchange {
                 'defaultNetworks': {
                     'USDT': 'ERC20',
                 },
-                'networks': {
+                'networksAreTitlesInsteadOfId': true,
+                'networksTitles': {
                     'BTC': 'BTC',
                     'ERC20': [ 'ERC20', 'ERC-20', 'ERC20 ' ],
                     'OMNI': 'OMNI',
@@ -902,6 +903,7 @@ module.exports = class bitmart extends Exchange {
             const networkId = this.safeString (currency, 'network');
             const networkCode = this.networkIdToCode (networkId);
             this.defineNetworkCodeNameIdMappings (code, networkCode, networkId);
+            this.defineNetworkCurrencyIdMappings (code, currencyId, networkId);
             const withdraw_enabled = this.safeValue (currency, 'withdraw_enabled');
             const deposit_enabled = this.safeValue (currency, 'deposit_enabled');
             const withdraw_minsize = this.safeString (currency, 'withdraw_minsize');
