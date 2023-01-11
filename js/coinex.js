@@ -3581,7 +3581,6 @@ module.exports = class coinex extends Exchange {
         //         },
         //         "message": "OK"
         //     }
-        
         const data = this.safeValue (response, 'data', {});
         const tickers = this.safeValue (data, 'ticker', {});
         const result = [];
