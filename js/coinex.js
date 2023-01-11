@@ -57,7 +57,7 @@ module.exports = class coinex extends Exchange {
                 'fetchFundingHistory': true,
                 'fetchFundingRate': true,
                 'fetchFundingRateHistory': true,
-                'fetchFundingRates': false,
+                'fetchFundingRates': true,
                 'fetchIndexOHLCV': false,
                 'fetchLeverage': false,
                 'fetchLeverageTiers': true,
@@ -3525,6 +3525,74 @@ module.exports = class coinex extends Exchange {
             'previousFundingTimestamp': undefined,
             'previousFundingDatetime': undefined,
         };
+    }
+
+    async fetchFundingRates (symbols = undefined, params = {}) {
+        /**
+         *  @method
+         * @name coinex#fetchFundingRates
+         * @description fetch the current funding rates
+         * @param {array} symbols unified market symbols
+         * @param {object} params extra parameters specific to the coinex api endpoint
+         * @returns {array} an array of [funding rate structures]{@link https://docs.ccxt.com/en/latest/manual.html#funding-rate-structure}
+         */
+
+        await this.loadMarkets ();
+        symbols = this.marketSymbols (symbols);
+        let market = undefined;
+        if (symbols !== undefined) {
+            const symbol = this.safeValue (symbols, 0);
+            market = this.market (symbol);
+        }
+        if (!market['swap']) {
+            throw new BadSymbol (this.id + ' fetchFundingRates() supports swap contracts only');
+        }
+        const response = await this.perpetualPublicGetMarketTickerAll (params);
+        //
+        //     {
+        //         "code": 0,
+        //         "data":
+        //         {
+        //             "date": 1650678472474,
+        //             "ticker": {
+        //                 "BTCUSDT": {
+        //                     "vol": "6090.9430",
+        //                     "low": "39180.30",
+        //                     "open": "40474.97",
+        //                     "high": "40798.01",
+        //                     "last": "39659.30",
+        //                     "buy": "39663.79",
+        //                     "period": 86400,
+        //                     "funding_time": 372,
+        //                     "position_amount": "270.1956",
+        //                     "funding_rate_last": "0.00022913",
+        //                     "funding_rate_next": "0.00013158",
+        //                     "funding_rate_predict": "0.00016552",
+        //                     "insurance": "16045554.83969682659674035672",
+        //                     "sign_price": "39652.48",
+        //                     "index_price": "39648.44250000",
+        //                     "sell_total": "22.3913",
+        //                     "buy_total": "19.4498",
+        //                     "buy_amount": "12.8942",
+        //                     "sell": "39663.80",
+        //                     "sell_amount": "0.9388"
+        //                 }
+        //             }
+        //         },
+        //         "message": "OK"
+        //     }
+        
+        const data = this.safeValue (response, 'data', {});
+        const tickers = this.safeValue (data, 'ticker', {});
+        const result = [];
+        const marketIds = Object.keys (tickers);
+        for (let i = 0; i < marketIds.length; i++) {
+            const marketId = marketIds[i];
+            const market = this.safeMarket (marketId);
+            const ticker = tickers[marketId];
+            result.push (this.parseFundingRate (ticker, market));
+        }
+        return this.filterByArray (result, 'symbol', symbols);
     }
 
     async withdraw (code, amount, address, tag = undefined, params = {}) {
