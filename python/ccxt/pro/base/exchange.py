@@ -8,6 +8,7 @@ __version__ = '2.5.80'
 
 from ccxt.pro.base.functions import inflate, inflate64, gunzip
 from ccxt.pro.base.fast_client import FastClient
+from ccxt.pro.base.future import Future
 from ccxt.async_support.base.exchange import Exchange as BaseExchange
 from ccxt import NotSupported, ExchangeError, BaseError
 from ccxt.pro.base.order_book import OrderBook, IndexedOrderBook, CountedOrderBook
@@ -78,7 +79,16 @@ class Exchange(BaseExchange):
         return self.clients[url]
 
     def spawn(self, method, *args):
-        return self.asyncio_loop.create_task(method(*args))
+        def callback(asyncio_future):
+            exception = asyncio_future.exception()
+            if exception is None:
+                future.resolve(asyncio_future.result())
+            else:
+                future.reject(exception)
+        future = Future()
+        task = self.asyncio_loop.create_task(method(*args))
+        task.add_done_callback(callback)
+        return future
 
     def delay(self, timeout, method, *args):
         return self.asyncio_loop.call_later(timeout, self.spawn, method, *args)
