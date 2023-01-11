@@ -354,15 +354,14 @@ module.exports = class kucoinfutures extends kucoinfuturesRest {
     getCacheIndex (orderbook, cache) {
         const firstDelta = this.safeValue (cache, 0);
         const nonce = this.safeInteger (orderbook, 'nonce');
-        const firstDeltaStart = this.safeInteger (firstDelta, 'sequenceStart');
+        const firstDeltaStart = this.safeInteger (firstDelta, 'sequence');
         if (nonce < firstDeltaStart - 1) {
             return -1;
         }
         for (let i = 0; i < cache.length; i++) {
             const delta = cache[i];
-            const deltaStart = this.safeInteger (delta, 'sequenceStart');
-            const deltaEnd = this.safeInteger (delta, 'sequenceEnd');
-            if ((nonce >= deltaStart - 1) && (nonce < deltaEnd)) {
+            const deltaStart = this.safeInteger (delta, 'sequence');
+            if (nonce < deltaStart - 1) {
                 return i;
             }
         }
