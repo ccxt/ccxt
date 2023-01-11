@@ -2679,7 +2679,9 @@ module.exports = class bitget extends Exchange {
         }
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const [ marketType, query ] = this.handleMarketTypeAndParams ('fetchOpenOrders', market, params);
+        let marketType = undefined;
+        let query = undefined;
+        [ marketType, query ] = this.handleMarketTypeAndParams ('fetchOpenOrders', market, params);
         const request = {
             'symbol': market['id'],
         };
@@ -2687,10 +2689,17 @@ module.exports = class bitget extends Exchange {
             'spot': 'privateSpotPostTradeOpenOrders',
             'swap': 'privateMixGetOrderCurrent',
         });
-        const stop = this.safeValue (params, 'stop');
+        const stop = this.safeValue (query, 'stop');
         if (stop) {
-            method = 'privateMixGetPlanCurrentPlan';
-            params = this.omit (params, 'stop');
+            if (marketType === 'spot') {
+                method = 'privateSpotPostPlanCurrentPlan';
+                if (limit !== undefined) {
+                    request['pageSize'] = limit;
+                }
+            } else {
+                method = 'privateMixGetPlanCurrentPlan';
+            }
+            query = this.omit (query, 'stop');
         }
         const response = await this[method] (this.extend (request, query));
         //
@@ -2772,7 +2781,34 @@ module.exports = class bitget extends Exchange {
         //         ]
         //     }
         //
-        const data = this.safeValue (response, 'data', []);
+        // spot plan order
+        //
+        //     {
+        //         "code": "00000",
+        //         "msg": "success",
+        //         "requestTime": 1668134581005,
+        //         "data": {
+        //             "nextFlag": false,
+        //             "endId": 974792555020390400,
+        //             "orderList": [{
+        //                 "orderId": "974792555020390400",
+        //                 "symbol": "TRXUSDT_SPBL",
+        //                 "size": "151",
+        //                 "executePrice": "0.041572",
+        //                 "triggerPrice": "0.041572",
+        //                 "status": "not_trigger",
+        //                 "orderType": "limit",
+        //                 "side": "buy",
+        //                 "triggerType": "fill_price",
+        //                 "cTime": "1668134576563"
+        //             }]
+        //         }
+        //     }
+        //
+        let data = this.safeValue (response, 'data', []);
+        if (!Array.isArray (data)) {
+            data = this.safeValue (data, 'orderList', []);
+        }
         return this.parseOrders (data, market, since, limit);
     }
 
