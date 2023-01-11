@@ -68,11 +68,7 @@ module.exports = class Exchange extends BaseExchange {
 
     spawn (method, ... args) {
         const future = Future ()
-        method.apply (this, args).then ((result) => {
-            future.resolve (result)
-        }).catch ((error) => {
-            future.reject (error)
-        })
+        method.apply (this, args).then (future.resolve).catch (future.reject)
         return future
     }
 
