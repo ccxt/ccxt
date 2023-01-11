@@ -392,16 +392,14 @@ module.exports = class coinex extends Exchange {
          * @param {object} params extra parameters specific to the exchange api endpoint
          * @returns {[object]} an array of objects representing market data
          */
-        let result = [];
-        const [ type, query ] = this.handleMarketTypeAndParams ('fetchMarkets', undefined, params);
-        if (type === 'spot' || type === 'margin') {
-            result = await this.fetchSpotMarkets (query);
-        } else if (type === 'swap') {
-            result = await this.fetchContractMarkets (query);
-        } else {
-            throw new ExchangeError (this.id + " does not support the '" + type + "' market type, set exchange.options['defaultType'] to 'spot', 'margin' or 'swap'");
-        }
-        return result;
+        let promises = [
+            this.fetchSpotMarkets (params),
+            this.fetchContractMarkets (params),
+        ];
+        promises = await Promise.all (promises);
+        const spotMarkets = promises[0];
+        const swapMarkets = promises[1];
+        return this.arrayConcat (spotMarkets, swapMarkets);
     }
 
     async fetchSpotMarkets (params) {
@@ -817,7 +815,7 @@ module.exports = class coinex extends Exchange {
         const result = {};
         for (let i = 0; i < marketIds.length; i++) {
             const marketId = marketIds[i];
-            const market = this.safeMarket (marketId);
+            const market = this.safeMarket (marketId, undefined, undefined, marketType);
             const symbol = market['symbol'];
             const ticker = this.parseTicker ({
                 'date': timestamp,
@@ -995,7 +993,8 @@ module.exports = class coinex extends Exchange {
         const priceString = this.safeString (trade, 'price');
         const amountString = this.safeString (trade, 'amount');
         const marketId = this.safeString (trade, 'market');
-        market = this.safeMarket (marketId, market);
+        const defaultType = this.safeString (this.options, 'defaultType');
+        market = this.safeMarket (marketId, market, undefined, defaultType);
         const symbol = this.safeSymbol (marketId, market);
         const costString = this.safeString (trade, 'deal_money');
         let fee = undefined;
@@ -1667,7 +1666,8 @@ module.exports = class coinex extends Exchange {
         const averageString = this.safeString (order, 'avg_price');
         const remainingString = this.safeString (order, 'left');
         const marketId = this.safeString (order, 'market');
-        market = this.safeMarket (marketId, market);
+        const defaultType = this.safeString (this.options, 'defaultType');
+        market = this.safeMarket (marketId, market, undefined, defaultType);
         const feeCurrencyId = this.safeString (order, 'fee_asset');
         let feeCurrency = this.safeCurrencyCode (feeCurrencyId);
         if (feeCurrency === undefined) {
@@ -3021,7 +3021,8 @@ module.exports = class coinex extends Exchange {
         //     }
         //
         const marketId = this.safeString (position, 'market');
-        market = this.safeMarket (marketId, market);
+        const defaultType = this.safeString (this.options, 'defaultType');
+        market = this.safeMarket (marketId, market, undefined, defaultType);
         const symbol = market['symbol'];
         const positionId = this.safeInteger (position, 'position_id');
         const marginModeInteger = this.safeInteger (position, 'type');
@@ -3203,7 +3204,7 @@ module.exports = class coinex extends Exchange {
         const marketIds = Object.keys (response);
         for (let i = 0; i < marketIds.length; i++) {
             const marketId = marketIds[i];
-            const market = this.safeMarket (marketId);
+            const market = this.safeMarket (marketId, undefined, undefined, 'spot');
             const symbol = this.safeString (market, 'symbol');
             let symbolsLength = 0;
             if (symbols !== undefined) {
@@ -3586,7 +3587,7 @@ module.exports = class coinex extends Exchange {
         const marketIds = Object.keys (tickers);
         for (let i = 0; i < marketIds.length; i++) {
             const marketId = marketIds[i];
-            const market = this.safeMarket (marketId);
+            const market = this.safeMarket (marketId, undefined, undefined, 'swap');
             const ticker = tickers[marketId];
             result.push (this.parseFundingRate (ticker, market));
         }
@@ -4274,7 +4275,7 @@ module.exports = class coinex extends Exchange {
         for (let i = 0; i < data.length; i++) {
             const entry = data[i];
             const symbol = this.safeString (entry, 'market');
-            const market = this.safeMarket (symbol);
+            const market = this.safeMarket (symbol, undefined, undefined, 'spot');
             const currencyData = this.safeValue (entry, market['base']);
             rates.push ({
                 'currency': market['base'],
@@ -4353,7 +4354,7 @@ module.exports = class coinex extends Exchange {
         //     }
         //
         const marketId = this.safeString (info, 'market_type');
-        market = this.safeMarket (marketId, market);
+        market = this.safeMarket (marketId, market, undefined, 'spot');
         const symbol = this.safeString (market, 'symbol');
         const timestamp = this.safeTimestamp (info, 'expire_time');
         const unflatAmount = this.safeString (info, 'unflat_amount');
