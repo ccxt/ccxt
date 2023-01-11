@@ -32,6 +32,7 @@ module.exports = class bitget extends Exchange {
                 'cancelOrders': true,
                 'createOrder': true,
                 'createReduceOnlyOrder': false,
+                'editOrder': true,
                 'fetchAccounts': false,
                 'fetchBalance': true,
                 'fetchBorrowRate': false,
@@ -684,6 +685,7 @@ module.exports = class bitget extends Exchange {
                     '40713': ExchangeError, // Cannot exceed the maximum transferable margin amount
                     '40714': ExchangeError, // No direct margin call is allowed
                     '43011': InvalidOrder, // The parameter does not meet the specification executePrice <= 0
+                    '43025': InvalidOrder, // Plan order does not exist
                     '45110': InvalidOrder, // {"code":"45110","msg":"less than the minimum amount 5 USDT","requestTime":1669911118932,"data":null}
                     // spot
                     'invalid sign': AuthenticationError,
@@ -2392,6 +2394,105 @@ module.exports = class bitget extends Exchange {
         //         "data": {
         //             "orderId": "881669078313766912",
         //             "clientOrderId": "iauIBf#a45b595f96474d888d0ada"
+        //         }
+        //     }
+        //
+        const data = this.safeValue (response, 'data');
+        return this.parseOrder (data, market);
+    }
+
+    async editOrder (id, symbol, type, side, amount, price = undefined, params = {}) {
+        /**
+         * @method
+         * @name bitget#editOrder
+         * @description edit a trade order
+         * @param {string} id cancel order id
+         * @param {string} symbol unified symbol of the market to create an order in
+         * @param {string} type 'market' or 'limit'
+         * @param {string} side 'buy' or 'sell'
+         * @param {float} amount how much of currency you want to trade in units of base currency
+         * @param {float|undefined} price the price at which the order is to be fullfilled, in units of the base currency, ignored in market orders
+         * @param {object} params extra parameters specific to the bitget api endpoint
+         * @returns {object} an [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
+         */
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const [ marketType, query ] = this.handleMarketTypeAndParams ('editOrder', market, params);
+        const request = {
+            'orderId': id,
+            'orderType': type,
+        };
+        const isMarketOrder = type === 'market';
+        const triggerPrice = this.safeValue2 (params, 'stopPrice', 'triggerPrice');
+        const isTriggerOrder = triggerPrice !== undefined;
+        const stopLossPrice = this.safeValue (params, 'stopLossPrice');
+        const isStopLossOrder = stopLossPrice !== undefined;
+        const takeProfitPrice = this.safeValue (params, 'takeProfitPrice');
+        const isTakeProfitOrder = takeProfitPrice !== undefined;
+        const isStopOrder = isStopLossOrder || isTakeProfitOrder;
+        if (this.sum (isTriggerOrder, isStopLossOrder, isTakeProfitOrder) > 1) {
+            throw new ExchangeError (this.id + ' editOrder() params can only contain one of triggerPrice, stopLossPrice, takeProfitPrice');
+        }
+        if (!isStopOrder && !isTriggerOrder) {
+            throw new InvalidOrder (this.id + ' editOrder() only support plan orders');
+        }
+        let method = this.getSupportedMapping (marketType, {
+            'spot': 'privateSpotPostPlanModifyPlan',
+            'swap': 'privateMixPostPlanModifyPlan',
+        });
+        if (triggerPrice !== undefined) {
+            // default triggerType to market price for unification
+            const triggerType = this.safeString (params, 'triggerType', 'market_price');
+            request['triggerType'] = triggerType;
+            request['triggerPrice'] = this.priceToPrecision (symbol, triggerPrice);
+            request['executePrice'] = this.priceToPrecision (symbol, price);
+        }
+        if (marketType === 'spot') {
+            if (isStopOrder) {
+                throw new InvalidOrder (this.id + ' editOrder() does not support stop orders on spot markets, only swap markets');
+            }
+            const editMarketBuyOrderRequiresPrice = this.safeValue (this.options, 'editMarketBuyOrderRequiresPrice', true);
+            if (editMarketBuyOrderRequiresPrice && isMarketOrder && (side === 'buy')) {
+                if (price === undefined) {
+                    throw new InvalidOrder (this.id + ' editOrder() requires price argument for market buy orders on spot markets to calculate the total amount to spend (amount * price), alternatively set the editMarketBuyOrderRequiresPrice option to false and pass in the cost to spend into the amount parameter');
+                } else {
+                    const amountString = this.numberToString (amount);
+                    const priceString = this.numberToString (price);
+                    const cost = this.parseNumber (Precise.stringMul (amountString, priceString));
+                    request['size'] = this.priceToPrecision (symbol, cost);
+                }
+            } else {
+                request['size'] = this.amountToPrecision (symbol, amount);
+            }
+        } else {
+            request['symbol'] = market['id'];
+            request['size'] = this.amountToPrecision (symbol, amount);
+            if (isStopOrder) {
+                if (!isMarketOrder) {
+                    throw new ExchangeError (this.id + ' editOrder() bitget stopLoss or takeProfit orders must be market orders');
+                }
+                if (isStopLossOrder) {
+                    request['triggerPrice'] = this.priceToPrecision (symbol, stopLossPrice);
+                    request['planType'] = 'loss_plan';
+                } else if (isTakeProfitOrder) {
+                    request['triggerPrice'] = this.priceToPrecision (symbol, takeProfitPrice);
+                    request['planType'] = 'profit_plan';
+                }
+                method = 'privateMixPostPlanModifyTPSLPlan';
+            }
+            request['marginCoin'] = market['settleId'];
+        }
+        const omitted = this.omit (query, [ 'stopPrice', 'triggerType', 'stopLossPrice', 'takeProfitPrice' ]);
+        const response = await this[method] (this.extend (request, omitted));
+        //
+        // spot
+        //     {
+        //         "code": "00000",
+        //         "msg": "success",
+        //         "requestTime": 1668136575920,
+        //         "data": {
+        //         "orderId": "974792060738441216",
+        //         "clientOrderId": "974792554995224576"
         //         }
         //     }
         //
