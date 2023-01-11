@@ -176,6 +176,11 @@ module.exports = class bitget extends Exchange {
                             'wallet/transfer': 4,
                             'wallet/withdrawal': 4,
                             'wallet/subTransfer': 10,
+                            'plan/placePlan': 1,
+                            'plan/modifyPlan': 1,
+                            'plan/cancelPlan': 1,
+                            'plan/currentPlan': 1,
+                            'plan/historyPlan': 1,
                         },
                     },
                     'mix': {
@@ -1432,7 +1437,7 @@ module.exports = class bitget extends Exchange {
          * @name bitget#fetchDepositAddress
          * @description fetch the deposit address for a currency associated with this account
          * @param {string} code unified currency code
-         * @param {object} params extra parameters specific to the binance api endpoint
+         * @param {object} params extra parameters specific to the bitget api endpoint
          * @returns {object} an [address structure]{@link https://docs.ccxt.com/en/latest/manual.html#address-structure}
          */
         await this.loadMarkets ();
@@ -3549,8 +3554,8 @@ module.exports = class bitget extends Exchange {
          * @name bitget#setPositionMode
          * @description set hedged to true or false for a market
          * @param {bool} hedged set to true to use dualSidePosition
-         * @param {string|undefined} symbol not used by binance setPositionMode ()
-         * @param {object} params extra parameters specific to the binance api endpoint
+         * @param {string|undefined} symbol not used by bitget setPositionMode ()
+         * @param {object} params extra parameters specific to the bitget api endpoint
          * @returns {object} response from the exchange
          *
          */
