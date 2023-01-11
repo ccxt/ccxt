@@ -548,14 +548,16 @@ module.exports = class kucoinfutures extends kucoinfuturesRest {
          * @param {object} params extra parameters specific to the kucoinfutures api endpoint
          * @returns {object} a [balance structure]{@link https://docs.ccxt.com/en/latest/manual.html?#balance-structure}
          */
-        await this.loadMarkets ();
-        const negotiation = await this.negotiate ();
+        const url = await this.negotiate (true);
         const topic = '/contractAccount/wallet';
         const request = {
             'privateChannel': true,
         };
-        const messageHash = topic;
-        return await this.subscribe (negotiation, topic, messageHash, this.handleBalanceSubscription, undefined, this.extend (request, params));
+        const subscription = {
+            'method': this.handleBalanceSubscription,
+        };
+        const messageHash = 'balance';
+        return await this.subscribe (url, messageHash, topic, subscription, this.extend (request, params));
     }
 
     handleBalance (client, message) {
@@ -576,7 +578,6 @@ module.exports = class kucoinfutures extends kucoinfuturesRest {
         //    }
         //
         const data = this.safeValue (message, 'data', {});
-        const messageHash = this.safeString (message, 'topic');
         const currencyId = this.safeString (data, 'currency');
         const code = this.safeCurrencyCode (currencyId);
         const account = this.account ();
@@ -584,7 +585,7 @@ module.exports = class kucoinfutures extends kucoinfuturesRest {
         account['used'] = this.safeString (data, 'holdBalance');
         this.balance[code] = account;
         this.balance = this.safeBalance (this.balance);
-        client.resolve (this.balance, messageHash);
+        client.resolve (this.balance, 'balance');
     }
 
     handleBalanceSubscription (client, message, subscription) {
@@ -594,7 +595,7 @@ module.exports = class kucoinfutures extends kucoinfuturesRest {
     async fetchBalanceSnapshot (client, message) {
         await this.loadMarkets ();
         this.checkRequiredCredentials ();
-        const messageHash = '/contractAccount/wallet';
+        const messageHash = 'balance';
         const selectedType = this.safeString2 (this.options, 'watchBalance', 'defaultType', 'swap'); // spot, margin, main, funding, future, mining, trade, contract, pool
         const params = {
             'type': selectedType,
