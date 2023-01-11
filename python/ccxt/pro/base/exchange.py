@@ -130,6 +130,7 @@ class Exchange(BaseExchange):
         return future
 
     def subscribe(self, url, message_hash, message):
+        # this function should be used inside of authenticate instead of watch
         future = self.watch(url, message_hash, message)
         self.clients[url].subscriptions[message_hash] = future
         return future
