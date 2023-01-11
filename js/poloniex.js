@@ -37,6 +37,8 @@ module.exports = class poloniex extends Exchange {
                 'fetchCurrencies': true,
                 'fetchDepositAddress': true,
                 'fetchDeposits': true,
+                'fetchDepositWithdrawFee': 'emulated',
+                'fetchDepositWithdrawFees': true,
                 'fetchMarginMode': false,
                 'fetchMarkets': true,
                 'fetchMyTrades': true,
@@ -1776,6 +1778,114 @@ module.exports = class poloniex extends Exchange {
         const withdrawals = this.safeValue (response, 'withdrawals', []);
         const transactions = this.parseTransactions (withdrawals, currency, since, limit);
         return this.filterByCurrencySinceLimit (transactions, code, since, limit);
+    }
+
+    async fetchDepositWithdrawFees (codes = undefined, params = {}) {
+        /**
+         * @method
+         * @name poloniex#fetchDepositWithdrawFees
+         * @description fetch deposit and withdraw fees
+         * @see https://docs.poloniex.com/#public-endpoints-reference-data-currency-information
+         * @param {[string]|undefined} codes list of unified currency codes
+         * @param {object} params extra parameters specific to the poloniex api endpoint
+         * @returns {[object]} a list of [fees structures]{@link https://docs.ccxt.com/en/latest/manual.html#fee-structure}
+         */
+        await this.loadMarkets ();
+        const response = await this.publicGetCurrencies (this.extend (params, { 'includeMultiChainCurrencies': true }));
+        //
+        //     [
+        //         {
+        //             "1CR": {
+        //                 "id": 1,
+        //                 "name": "1CRedit",
+        //                 "description": "BTC Clone",
+        //                 "type": "address",
+        //                 "withdrawalFee": "0.01000000",
+        //                 "minConf": 10000,
+        //                 "depositAddress": null,
+        //                 "blockchain": "1CR",
+        //                 "delisted": false,
+        //                 "tradingState": "NORMAL",
+        //                 "walletState": "DISABLED",
+        //                 "parentChain": null,
+        //                 "isMultiChain": false,
+        //                 "isChildChain": false,
+        //                 "childChains": []
+        //             }
+        //         }
+        //     ]
+        //
+        // console.log (response);
+        return this.parseDepositWithdrawFees (response, codes);
+    }
+
+    parseDepositWithdrawFees (response, codes = undefined, currencyIdKey = undefined) {
+        //
+        //     [
+        //         {
+        //             "1CR": {
+        //                 "id": 1,
+        //                 "name": "1CRedit",
+        //                 "description": "BTC Clone",
+        //                 "type": "address",
+        //                 "withdrawalFee": "0.01000000",
+        //                 "minConf": 10000,
+        //                 "depositAddress": null,
+        //                 "blockchain": "1CR",
+        //                 "delisted": false,
+        //                 "tradingState": "NORMAL",
+        //                 "walletState": "DISABLED",
+        //                 "parentChain": null,
+        //                 "isMultiChain": false,
+        //                 "isChildChain": false,
+        //                 "childChains": []
+        //             }
+        //         }
+        //     ]
+        //
+        const depositWithdrawFees = {};
+        const childChainValues = {};
+        codes = this.marketCodes (codes);
+        for (let i = 0; i < response.length; i++) {
+            const entry = response[i];
+            const currencyId = this.safeString (Object.keys (entry), 0);
+            const code = this.safeCurrencyCode (currencyId);
+            const feeInfo = entry[currencyId];
+            if ((codes === undefined) || (this.inArray (code, codes))) {
+                depositWithdrawFees[code] = this.depositWithdrawFee ({});
+                depositWithdrawFees[code]['info'][currencyId] = feeInfo;
+                const networkId = this.safeString (feeInfo, 'blockchain');
+                const withdrawFee = this.safeNumber (feeInfo, 'withdrawalFee:');
+                const withdrawResult = {
+                    'fee': withdrawFee,
+                    'percentage': (withdrawFee !== undefined) ? false : undefined,
+                };
+                const depositResult = {
+                    'fee': undefined,
+                    'percentage': undefined,
+                };
+                const networkCode = this.networkIdToCode (networkId);
+                depositWithdrawFees[code]['networks'][networkCode] = {
+                    'withdraw': withdrawResult,
+                    'deposit': depositResult,
+                };
+                const childChains = this.safeValue (feeInfo, 'childChains');
+                if (childChains.length > 0) {
+                    for (let j = 0; j < childChains.length; j++) {
+                        childChainValues[childChains[j]] = code;
+                    }
+                }
+            }
+        }
+        // TODO: Include sideChains
+        // const depositWithdrawCodes = Object.keys (depositWithdrawFees);
+        // for (let i = 0; i < depositWithdrawCodes.length; i++) {
+        //     const code = depositWithdrawCodes[i];
+        //     const currency = this.currency (code);
+        //     depositWithdrawFees[code] = this.assignDefaultDepositWithdrawFees (depositWithdrawFees[code], currency);
+        // }
+        console.log (childChainValues);
+        // return depositWithdrawFees;
     }
 
     async fetchDeposits (code = undefined, since = undefined, limit = undefined, params = {}) {
