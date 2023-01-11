@@ -3587,9 +3587,11 @@ module.exports = class coinex extends Exchange {
         const marketIds = Object.keys (tickers);
         for (let i = 0; i < marketIds.length; i++) {
             const marketId = marketIds[i];
-            const market = this.safeMarket (marketId, undefined, undefined, 'swap');
-            const ticker = tickers[marketId];
-            result.push (this.parseFundingRate (ticker, market));
+            if (marketId.indexOf ('_') === -1) { // skip _signprice and _indexprice
+                const market = this.safeMarket (marketId, undefined, undefined, 'swap');
+                const ticker = tickers[marketId];
+                result.push (this.parseFundingRate (ticker, market));
+            }
         }
         return this.filterByArray (result, 'symbol', symbols);
     }
