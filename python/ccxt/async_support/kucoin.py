@@ -1411,6 +1411,8 @@ class kucoin(Exchange):
         quoteAmount = self.safe_number_2(params, 'cost', 'funds')
         amountString = None
         costString = None
+        marginMode = None
+        marginMode, params = self.handle_margin_mode_and_params('createOrder', params)
         if type == 'market':
             if quoteAmount is not None:
                 params = self.omit(params, ['cost', 'funds'])
@@ -1431,16 +1433,18 @@ class kucoin(Exchange):
         isTakeProfit = takeProfitPrice is not None
         if isStopLoss and isTakeProfit:
             raise ExchangeError(self.id + ' createOrder() stopLossPrice and takeProfitPrice cannot both be defined')
-        tradeType = self.safe_string(params, 'tradeType')
         params = self.omit(params, ['stopLossPrice', 'takeProfitPrice', 'stopPrice'])
+        tradeType = self.safe_string(params, 'tradeType')  # keep it for backward compatibility
         method = 'privatePostOrders'
         if isStopLoss or isTakeProfit:
             request['stop'] = 'entry' if isStopLoss else 'loss'
             triggerPrice = stopLossPrice if isStopLoss else takeProfitPrice
             request['stopPrice'] = self.price_to_precision(symbol, triggerPrice)
             method = 'privatePostStopOrder'
-        elif tradeType == 'MARGIN_TRADE':
+        elif tradeType == 'MARGIN_TRADE' or marginMode is not None:
             method = 'privatePostMarginOrder'
+            if marginMode == 'isolated':
+                request['marginModel'] = 'isolated'
         response = await getattr(self, method)(self.extend(request, params))
         #
         #     {
@@ -2599,21 +2603,20 @@ class kucoin(Exchange):
             #     }
             #
             data = self.safe_value(response, 'data')
-            transfer = self.parse_transfer(data, currency)
-            return self.extend(transfer, {
-                'amount': requestedAmount,
-                'fromAccount': fromId,
-                'toAccount': toId,
-            })
+            return self.parse_transfer(data, currency)
 
     def parse_transfer(self, transfer, currency=None):
         #
         # transfer(spot)
         #
-        #     {
-        #         'orderId': '605a6211e657f00006ad0ad6'
-        #     }
+        #    {
+        #        'orderId': '605a6211e657f00006ad0ad6'
+        #    }
         #
+        #    {
+        #        "code": "200000",
+        #        "msg": "Failed to transfer out. The amount exceeds the upper limit"
+        #    }
         #
         # transfer(futures)
         #
