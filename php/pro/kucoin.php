@@ -478,7 +478,7 @@ class kucoin extends \ccxt\async\kucoin {
 
     public function handle_order_book_subscription($client, $message, $subscription) {
         $symbol = $this->safe_string($subscription, 'symbol');
-        $limit = $this->safe_string($subscription, 'limit');
+        $limit = $this->safe_integer($subscription, 'limit');
         $this->orderbooks[$symbol] = $this->order_book(array(), $limit);
         // moved snapshot initialization to handleOrderBook to fix
         // https://github.com/ccxt/ccxt/issues/6820

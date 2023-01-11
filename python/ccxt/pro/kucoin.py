@@ -432,7 +432,7 @@ class kucoin(Exchange, ccxt.async_support.kucoin):
 
     def handle_order_book_subscription(self, client, message, subscription):
         symbol = self.safe_string(subscription, 'symbol')
-        limit = self.safe_string(subscription, 'limit')
+        limit = self.safe_integer(subscription, 'limit')
         self.orderbooks[symbol] = self.order_book({}, limit)
         # moved snapshot initialization to handleOrderBook to fix
         # https://github.com/ccxt/ccxt/issues/6820
