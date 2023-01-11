@@ -533,6 +533,7 @@ module.exports = class coinex extends Exchange {
             const settleId = (subType === 1) ? 'USDT' : baseId;
             const settle = this.safeCurrencyCode (settleId);
             const symbol = base + '/' + quote + ':' + settle;
+            const leveragesLength = leverages.length;
             result.push ({
                 'id': id,
                 'symbol': symbol,
@@ -566,7 +567,7 @@ module.exports = class coinex extends Exchange {
                 'limits': {
                     'leverage': {
                         'min': this.safeString (leverages, 0),
-                        'max': this.safeString (leverages, leverages.length - 1),
+                        'max': this.safeString (leverages, leveragesLength - 1),
                     },
                     'amount': {
                         'min': this.safeString (entry, 'amount_min'),
