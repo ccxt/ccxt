@@ -886,6 +886,7 @@ class huobi(Exchange):
                     'order-marketorder-amount-min-error': InvalidOrder,  # market order amount error, min: `0.01`
                     'order-limitorder-price-min-error': InvalidOrder,  # limit order price error
                     'order-limitorder-price-max-error': InvalidOrder,  # limit order price error
+                    'order-stop-order-hit-trigger': InvalidOrder,  # {"status":"error","err-code":"order-stop-order-hit-trigger","err-msg":"Orders that are triggered immediately are not supported.","data":null}
                     'order-value-min-error': InvalidOrder,  # {"status":"error","err-code":"order-value-min-error","err-msg":"Order total cannot be lower than: 1 USDT","data":null}
                     'order-invalid-price': InvalidOrder,  # {"status":"error","err-code":"order-invalid-price","err-msg":"invalid price","data":null}
                     'order-holding-limit-failed': InvalidOrder,  # {"status":"error","err-code":"order-holding-limit-failed","err-msg":"Order failed, exceeded the holding limit of self currency","data":null}

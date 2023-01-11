@@ -2,7 +2,7 @@
 //  ---------------------------------------------------------------------------
 
 import { Exchange } from './base/Exchange.js';
-import { AuthenticationError, ArgumentsRequired, ExchangeError, InsufficientFunds, DDoSProtection, InvalidNonce, PermissionDenied, BadRequest, BadSymbol, NotSupported, AccountNotEnabled, OnMaintenance } from './base/errors.js';
+import { AuthenticationError, ArgumentsRequired, ExchangeError, InsufficientFunds, DDoSProtection, InvalidNonce, PermissionDenied, BadRequest, BadSymbol, NotSupported, AccountNotEnabled, OnMaintenance, InvalidOrder } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
 
@@ -264,18 +264,18 @@ export default class cryptocom extends Exchange {
                     '30003': BadSymbol,
                     '30004': BadRequest,
                     '30005': BadRequest,
-                    '30006': BadRequest,
-                    '30007': BadRequest,
-                    '30008': BadRequest,
-                    '30009': BadRequest,
+                    '30006': InvalidOrder,
+                    '30007': InvalidOrder,
+                    '30008': InvalidOrder,
+                    '30009': InvalidOrder,
                     '30010': BadRequest,
-                    '30013': BadRequest,
-                    '30014': BadRequest,
-                    '30016': BadRequest,
-                    '30017': BadRequest,
-                    '30023': BadRequest,
-                    '30024': BadRequest,
-                    '30025': BadRequest,
+                    '30013': InvalidOrder,
+                    '30014': InvalidOrder,
+                    '30016': InvalidOrder,
+                    '30017': InvalidOrder,
+                    '30023': InvalidOrder,
+                    '30024': InvalidOrder,
+                    '30025': InvalidOrder,
                     '40001': BadRequest,
                     '40002': BadRequest,
                     '40003': BadRequest,

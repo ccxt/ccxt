@@ -162,23 +162,23 @@ trait ClientTrait {
                 $client->reject(new ExchangeError($this->id . ' loadOrderBook() orderbook is not initiated'), $messageHash);
                 return;
             }
-            $stored = $this->orderbooks[$symbol];
             try {
+                $stored = $this->orderbooks[$symbol];
                 $orderBook = Async\await($this->fetch_order_book($symbol, $limit, $params));
-                $cache =& $stored->cache;
-                $index = $this->get_cache_index($orderBook, $cache);
+                $index = $this->get_cache_index($orderBook, $stored->cache);
                 if ($index >= 0) {
                     $stored->reset($orderBook);
-                    $this->handle_deltas($stored, array_slice($cache, $index));
-                    $cache = array();
+                    $this->handle_deltas($stored, array_slice($stored->cache, $index));
+                    $stored->cache = array();
                     $client->resolve($stored, $messageHash);
+                    return;
                 } else {
                     $client->reject (new ExchangeError ($this->id . ' nonce is behind the cache'), $messageHash);
                 }
             } catch (BaseError $e) {
-                unset($this->orderbooks[$symbol]);
                 $client->reject($e, $messageHash);
             }
+            Async\await($this->load_order_book($client, $messageHash, $symbol, $limit, $params));
         }) ();
     }
 

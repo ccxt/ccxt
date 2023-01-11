@@ -2,7 +2,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '2.5.73'
+__version__ = '2.5.82'
 
 # -----------------------------------------------------------------------------
 
@@ -124,26 +124,11 @@ class WsConnector:
             self.clients[url] = FastClient(url, on_message, on_error, on_close, on_connected, options)
         return self.clients[url]
 
-    async def spawn_async(self, method, *args):
-        try:
-            await method(*args)
-        except Exception:
-            # todo: handle spawned errors
-            pass
-
-    async def delay_async(self, timeout, method, *args):
-        await self.sleep(timeout)
-        try:
-            await method(*args)
-        except Exception:
-            # todo: handle spawned errors
-            pass
-
     def spawn(self, method, *args):
-        asyncio.ensure_future(method(*args))
+        return self.asyncio_loop.create_task(method(*args))
 
     def delay(self, timeout, method, *args):
-        asyncio.ensure_future(self.delay_async(timeout, method, *args))
+        return self.asyncio_loop.call_later(timeout, self.spawn, method, *args)
 
     def handle_message(self, client, message):
         always = True
@@ -216,22 +201,22 @@ class WsConnector:
         if symbol not in self.orderbooks:
             client.reject(ExchangeError(self.id + ' loadOrderBook() orderbook is not initiated'), messageHash)
             return
-        stored = self.orderbooks[symbol]
         try:
-            order_book = await self.fetch_order_book(symbol, limit, params)
+            stored = self.orderbooks[symbol]
             cache = stored.cache
+            order_book = await self.fetch_order_book(symbol, limit, params)
             index = self.get_cache_index(order_book, cache)
             if index >= 0:
                 stored.reset(order_book)
                 self.handle_deltas(stored, cache[index:])
                 cache.clear()
                 client.resolve(stored, messageHash)
+                return
             else:
                 client.reject(ExchangeError(self.id + ' nonce is behind cache'), messageHash)
         except BaseError as e:
-            if symbol in self.orderbooks:
-                del self.orderbooks[symbol]
             client.reject(e, messageHash)
+        await self.load_order_book(client, messageHash, symbol, limit, params)
 
     def handle_deltas(self, orderbook, deltas):
         for delta in deltas:

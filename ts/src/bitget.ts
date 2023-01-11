@@ -1552,7 +1552,14 @@ export default class bitget extends Exchange {
         //         usdtVolume: '5552388715.9215'
         //     }
         //
-        const marketId = this.safeString (ticker, 'symbol');
+        let marketId = this.safeString (ticker, 'symbol');
+        if ((market === undefined) && (marketId !== undefined) && (marketId.indexOf ('_') === -1)) {
+            // fetchTickers fix:
+            // spot symbol are different from the "request id"
+            // so we need to convert it to the exchange-specific id
+            // otherwise we will not be able to find the market
+            marketId = marketId + '_SPBL';
+        }
         const symbol = this.safeSymbol (marketId, market);
         const high = this.safeString (ticker, 'high24h');
         const low = this.safeString (ticker, 'low24h');

@@ -421,11 +421,12 @@ class kucoin(Exchange):
                 },
             },
             'commonCurrencies': {
-                'HOT': 'HOTNOW',
+                'BIFI': 'BIFIF',
                 'EDGE': 'DADI',  # https://github.com/ccxt/ccxt/issues/5756
-                'WAX': 'WAXP',
+                'HOT': 'HOTNOW',
                 'TRY': 'Trias',
                 'VAI': 'VAIOT',
+                'WAX': 'WAXP',
             },
             'options': {
                 'version': 'v1',
@@ -2598,21 +2599,20 @@ class kucoin(Exchange):
             #     }
             #
             data = self.safe_value(response, 'data')
-            transfer = self.parse_transfer(data, currency)
-            return self.extend(transfer, {
-                'amount': requestedAmount,
-                'fromAccount': fromId,
-                'toAccount': toId,
-            })
+            return self.parse_transfer(data, currency)
 
     def parse_transfer(self, transfer, currency=None):
         #
         # transfer(spot)
         #
-        #     {
-        #         'orderId': '605a6211e657f00006ad0ad6'
-        #     }
+        #    {
+        #        'orderId': '605a6211e657f00006ad0ad6'
+        #    }
         #
+        #    {
+        #        "code": "200000",
+        #        "msg": "Failed to transfer out. The amount exceeds the upper limit"
+        #    }
         #
         # transfer(futures)
         #

@@ -5902,7 +5902,8 @@ class bybit(Exchange):
         market = self.safe_market(contract, market, None, 'contract')
         size = Precise.string_abs(self.safe_string(position, 'size'))
         side = self.safe_string(position, 'side')
-        side = 'long' if (side == 'Buy') else 'short'
+        if side is not None:
+            side = 'long' if (side == 'Buy') else 'short'
         notional = self.safe_string(position, 'positionValue')
         unrealisedPnl = self.omit_zero(self.safe_string(position, 'unrealisedPnl'))
         initialMarginString = self.safe_string(position, 'positionIM')

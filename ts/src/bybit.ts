@@ -6282,7 +6282,9 @@ export default class bybit extends Exchange {
         market = this.safeMarket (contract, market, undefined, 'contract');
         const size = Precise.stringAbs (this.safeString (position, 'size'));
         let side = this.safeString (position, 'side');
-        side = (side === 'Buy') ? 'long' : 'short';
+        if (side !== undefined) {
+            side = (side === 'Buy') ? 'long' : 'short';
+        }
         const notional = this.safeString (position, 'positionValue');
         const unrealisedPnl = this.omitZero (this.safeString (position, 'unrealisedPnl'));
         let initialMarginString = this.safeString (position, 'positionIM');

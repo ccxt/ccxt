@@ -403,11 +403,12 @@ export default class kucoin extends Exchange {
                 },
             },
             'commonCurrencies': {
-                'HOT': 'HOTNOW',
+                'BIFI': 'BIFIF',
                 'EDGE': 'DADI', // https://github.com/ccxt/ccxt/issues/5756
-                'WAX': 'WAXP',
+                'HOT': 'HOTNOW',
                 'TRY': 'Trias',
                 'VAI': 'VAIOT',
+                'WAX': 'WAXP',
             },
             'options': {
                 'version': 'v1',
@@ -2772,12 +2773,7 @@ export default class kucoin extends Exchange {
             //     }
             //
             const data = this.safeValue (response, 'data');
-            const transfer = this.parseTransfer (data, currency);
-            return this.extend (transfer, {
-                'amount': requestedAmount,
-                'fromAccount': fromId,
-                'toAccount': toId,
-            });
+            return this.parseTransfer (data, currency);
         }
     }
 
@@ -2785,10 +2781,14 @@ export default class kucoin extends Exchange {
         //
         // transfer (spot)
         //
-        //     {
-        //         'orderId': '605a6211e657f00006ad0ad6'
-        //     }
+        //    {
+        //        'orderId': '605a6211e657f00006ad0ad6'
+        //    }
         //
+        //    {
+        //        "code": "200000",
+        //        "msg": "Failed to transfer out. The amount exceeds the upper limit"
+        //    }
         //
         // transfer (futures)
         //

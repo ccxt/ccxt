@@ -20,15 +20,12 @@ The CCXT Pro heavily relies on the transpiler of CCXT for [multilanguage support
     │                  The Unified CCXT Pro API                   |
     |                              .                              |
     |       loadMarkets            .           watchBalance       |
-    |       watchTicker            .       watchCreateOrder       |
-    |       watchTickers           .       watchCancelOrder       |
-    |       watchOrderBook         .             watchOrder       |
-    |       watchOHLCV             .            watchOrders       |
-    |       watchStatus            .        watchOpenOrders       |
-    |       watchTrades            .      watchClosedOrders       |
-    |                              .          watchMyTrades       |
-    |                              .           watchDeposit       |
-    |                              .          watchWithdraw       |
+    |       watchTicker            .           watchOrders        |
+    |       watchTickers           .           watchMyTrades      |
+    |       watchOrderBook         .           watchOrders        |
+    |       watchOHLCV             .           watchPositions     |
+    |       watchStatus            .                              |
+    |       watchTrades            .                              |
     │                              .                              |
     +=============================================================+
     │                              .                              |
@@ -162,12 +159,9 @@ In CCXT Pro each public and private unified RESTful method having a `fetch*` pre
   - `fetchTrades` → `watchTrades`
 - Private API
   - `fetchBalance` → `watchBalance`
-  - `fetchOrders` → `watchOrders`
+  - `fetchOrders` → `watchOrders` <sup>*(notice the `watch` prefix)*</sup>
   - `fetchMyTrades` → `watchMyTrades`
-  - `fetchTransactions` → `watchTransactions`
-  - `fetchLedger` → `watchLedger`
-  - `createOrder` → `watchCreateOrder` <sup>*(notice the `watch` prefix)*</sup>
-  - `cancelOrder` → `watchCancelOrder` <sup>*(notice the `watch` prefix)*</sup>
+  - `fetchPositions` → `watchPositions` <sup>*soon*</sup>
 
 The Unified CCXT Pro Streaming API inherits CCXT usage patterns to make migration easier.
 
@@ -877,27 +871,22 @@ if ($exchange->has['watchBalance']) {
 
 ##### watchOrders
 
-```diff
-- this method is a work in progress now (may be unavailable)
+```JavaScript
+// JavaScript
+watchOrders (symbol = undefined, since = undefined, limit = undefined, params = {})
 ```
 
-##### watchCreateOrder
-
-```diff
-- this method is a work in progress now (may be unavailable)
+```Python
+# Python
+watch_orders(symbol=None, since=None, limit=None, params={})
 ```
 
-##### watchCancelOrder
-
-```diff
-- this method is a work in progress now (may be unavailable)
+```PHP
+// PHP
+watch_orders($symbol = null, $since = null, $lmit = null, $params = array());
 ```
 
 ##### watchMyTrades
-
-```diff
-- this method is a work in progress now (may be unavailable)
-```
 
 ```JavaScript
 // JavaScript

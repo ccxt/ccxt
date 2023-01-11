@@ -1536,6 +1536,13 @@ class bitget extends Exchange {
         //     }
         //
         $marketId = $this->safe_string($ticker, 'symbol');
+        if (($market === null) && ($marketId !== null) && (mb_strpos($marketId, '_') === -1)) {
+            // fetchTickers fix:
+            // spot $symbol are different from the "request id"
+            // so we need to convert it to the exchange-specific id
+            // otherwise we will not be able to find the $market
+            $marketId = $marketId . '_SPBL';
+        }
         $symbol = $this->safe_symbol($marketId, $market);
         $high = $this->safe_string($ticker, 'high24h');
         $low = $this->safe_string($ticker, 'low24h');
