@@ -3542,9 +3542,9 @@ module.exports = class coinex extends Exchange {
         if (symbols !== undefined) {
             const symbol = this.safeValue (symbols, 0);
             market = this.market (symbol);
-        }
-        if (!market['swap']) {
-            throw new BadSymbol (this.id + ' fetchFundingRates() supports swap contracts only');
+            if (!market['swap']) {
+                throw new BadSymbol (this.id + ' fetchFundingRates() supports swap contracts only');
+            }
         }
         const response = await this.perpetualPublicGetMarketTickerAll (params);
         //
