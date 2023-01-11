@@ -668,7 +668,13 @@ export default class zonda extends Exchange {
          */
         const defaultMethod = this.safeString (this.options, 'fetchTickerMethod', 'fetchTickerV2');
         const fetchTickerMethod = this.safeString (params, 'fetchTickerMethod', defaultMethod);
-        return await this[fetchTickerMethod] (symbol, params);
+        if (fetchTickerMethod === 'fetchTickerV1') {
+            return await this.fetchTickerV1 (symbol, params);
+        } else if (fetchTickerMethod === 'fetchTickerV2') {
+            return await this.fetchTickerV2 (symbol, params);
+        } else {
+            return await this.fetchTickerV1AndV2 (symbol, params);
+        }
     }
 
     async fetchTickerV2 (symbol, params = {}) {
@@ -763,7 +769,13 @@ export default class zonda extends Exchange {
          */
         const defaultMethod = this.safeString (this.options, 'fetchTickersMethod', 'fetchTickersV2');
         const fetchTickersMethod = this.safeString (params, 'fetchTickersMethod', defaultMethod);
-        return await this[fetchTickersMethod] (symbols, params);
+        if (fetchTickersMethod === 'fetchTickersV1AndV2') {
+            return await this.fetchTickersV1AndV2 (symbols, params);
+        } else if (fetchTickersMethod === 'fetchTickersV1') {
+            return await this.fetchTickersV1 (symbols, params);
+        } else {
+            return await this.fetchTickersV2 (symbols, params);
+        }
     }
 
     async fetchTickerV1AndV2 (symbol, params = {}) {
