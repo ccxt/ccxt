@@ -683,6 +683,7 @@ module.exports = class bitget extends Exchange {
                     '40712': InsufficientFunds, // Insufficient margin
                     '40713': ExchangeError, // Cannot exceed the maximum transferable margin amount
                     '40714': ExchangeError, // No direct margin call is allowed
+                    '43011': InvalidOrder, // The parameter does not meet the specification executePrice <= 0
                     '45110': InvalidOrder, // {"code":"45110","msg":"less than the minimum amount 5 USDT","requestTime":1669911118932,"data":null}
                     // spot
                     'invalid sign': AuthenticationError,
@@ -2304,6 +2305,9 @@ module.exports = class bitget extends Exchange {
             if (isStopOrder) {
                 throw new InvalidOrder (this.id + ' createOrder() does not support stop orders on spot markets, only swap markets');
             }
+            let timeInForceKey = 'force';
+            let quantityKey = 'quantity';
+            let quantity = undefined;
             const createMarketBuyOrderRequiresPrice = this.safeValue (this.options, 'createMarketBuyOrderRequiresPrice', true);
             if (createMarketBuyOrderRequiresPrice && isMarketOrder && (side === 'buy')) {
                 if (price === undefined) {
@@ -2312,19 +2316,32 @@ module.exports = class bitget extends Exchange {
                     const amountString = this.numberToString (amount);
                     const priceString = this.numberToString (price);
                     const cost = this.parseNumber (Precise.stringMul (amountString, priceString));
-                    request['quantity'] = this.priceToPrecision (symbol, cost);
+                    quantity = this.priceToPrecision (symbol, cost);
                 }
             } else {
-                request['quantity'] = this.amountToPrecision (symbol, amount);
+                quantity = this.amountToPrecision (symbol, amount);
             }
             if (clientOrderId !== undefined) {
                 request['clientOrderId'] = clientOrderId;
             }
             request['side'] = side;
+            if (triggerPrice !== undefined) {
+                quantityKey = 'size';
+                timeInForceKey = 'timeInForceValue';
+                // default triggerType to market price for unification
+                const triggerType = this.safeString (params, 'triggerType', 'market_price');
+                request['triggerType'] = triggerType;
+                request['triggerPrice'] = this.priceToPrecision (symbol, triggerPrice);
+                request['executePrice'] = this.priceToPrecision (symbol, price);
+                method = 'privateSpotPostPlanPlacePlan';
+            }
+            if (quantity !== undefined) {
+                request[quantityKey] = quantity;
+            }
             if (postOnly) {
-                request['force'] = 'post_only';
+                request[timeInForceKey] = 'post_only';
             } else {
-                request['force'] = 'gtc';
+                request[timeInForceKey] = 'normal';
             }
         } else {
             if (clientOrderId !== undefined) {
