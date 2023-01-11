@@ -146,12 +146,12 @@ module.exports = class kucoinfutures extends kucoinfuturesRest {
         await this.loadMarkets ();
         const market = this.market (symbol);
         symbol = market['symbol'];
-        const negotiation = await this.negotiate ();
+        const url = await this.negotiate (false);
         const options = this.safeValue (this.options, 'watchTicker', {});
         const channel = this.safeString (options, 'name', 'contractMarket/tickerV2');
         const topic = '/' + channel + ':' + market['id'];
         const messageHash = 'ticker:' + symbol;
-        return await this.subscribe (negotiation, topic, messageHash, undefined, symbol, params);
+        return await this.subscribe (url, messageHash, topic, undefined, params);
     }
 
     handleTicker (client, message) {
@@ -201,7 +201,7 @@ module.exports = class kucoinfutures extends kucoinfuturesRest {
         symbol = market['symbol'];
         const topic = '/contractMarket/execution:' + market['id'];
         const messageHash = 'trades:' + symbol;
-        const trades = await this.subscribe (url, topic, messageHash, undefined, symbol, params);
+        const trades = await this.subscribe (url, messageHash, topic, undefined, params);
         if (this.newUpdates) {
             limit = trades.getLimit (symbol, limit);
         }
@@ -267,143 +267,45 @@ module.exports = class kucoinfutures extends kucoinfuturesRest {
             }
         }
         await this.loadMarkets ();
-        const negotiation = await this.negotiate ();
+        const url = await this.negotiate (false);
         const market = this.market (symbol);
         symbol = market['symbol'];
         const topic = '/contractMarket/level2:' + market['id'];
-        const messageHash = topic;
-        const orderbook = await this.subscribe (negotiation, topic, messageHash, this.handleOrderBookSubscription, symbol, params);
+        const messageHash = 'orderbook:' + symbol;
+        const subscription = {
+            'method': this.handleOrderBookSubscription,
+            'symbol': symbol,
+            'limit': limit,
+        };
+        const orderbook = await this.subscribe (url, messageHash, topic, subscription, params);
         return orderbook.limit ();
     }
 
-    retryFetchOrderBookSnapshot (client, message, subscription) {
-        // TODO
-        const symbol = this.safeString (subscription, 'symbol');
-        const messageHash = this.safeString (subscription, 'messageHash');
-        // console.log ('fetchOrderBookSnapshot', nonce, previousSequence, nonce >= previousSequence);
-        const options = this.safeValue (this.options, 'fetchOrderBookSnapshot', {});
-        const maxAttempts = this.safeInteger (options, 'maxAttempts', 3);
-        let numAttempts = this.safeInteger (subscription, 'numAttempts', 0);
-        // retry to syncrhonize if we haven't reached maxAttempts yet
-        if (numAttempts < maxAttempts) {
-            // safety guard
-            if (messageHash in client.subscriptions) {
-                numAttempts = this.sum (numAttempts, 1);
-                subscription['numAttempts'] = numAttempts;
-                client.subscriptions[messageHash] = subscription;
-                this.spawn (this.fetchOrderBookSnapshot, client, message, subscription);
-            }
+    handleDelta (orderbook, delta) {
+        orderbook['nonce'] = this.safeInteger (delta, 'sequence');
+        const timestamp = this.safeInteger (delta, 'timestamp');
+        orderbook['timestamp'] = timestamp;
+        orderbook['datetime'] = this.iso8601 (timestamp);
+        const change = this.safeValue (delta, 'change', {});
+        const splitChange = change.split (',');
+        const price = this.safeNumber (splitChange, 0);
+        const side = this.safeString (splitChange, 1);
+        const quantity = this.safeNumber (splitChange, 2);
+        const type = (side === 'buy') ? 'bids' : 'asks';
+        const value = [ price, quantity ];
+        if (type === 'bids') {
+            const storedBids = orderbook['bids'];
+            storedBids.storeArray (value);
         } else {
-            if (messageHash in client.subscriptions) {
-                subscription['fetchingOrderBookSnapshot'] = false;
-                subscription['numAttempts'] = 0;
-                client.subscriptions[messageHash] = subscription;
-            }
-            const e = new InvalidNonce (this.id + ' failed to synchronize WebSocket feed with the snapshot for symbol ' + symbol + ' in ' + maxAttempts.toString () + ' attempts');
-            client.reject (e, messageHash);
-        }
-    }
-
-    async fetchOrderBookSnapshot (client, message, subscription) {
-        const symbol = this.safeString (subscription, 'symbol');
-        const limit = this.safeInteger (subscription, 'limit');
-        const messageHash = this.safeString (subscription, 'messageHash');
-        try {
-            // 2. Initiate a REST request to get the snapshot data of Level 2 order book.
-            // todo: this is a synch blocking call in ccxt.php - make it async
-            const snapshot = await this.fetchOrderBook (symbol, limit);
-            const orderbook = this.orderbooks[symbol];
-            const messages = orderbook.cache;
-            // make sure we have at least one delta before fetching the snapshot
-            // otherwise we cannot synchronize the feed with the snapshot
-            // and that will lead to a bidask cross as reported here
-            // https://github.com/ccxt/ccxt/issues/6762
-            const firstMessage = this.safeValue (messages, 0, {});
-            const data = this.safeValue (firstMessage, 'data', {});
-            const sequence = this.safeInteger (data, 'sequence');
-            const nonce = this.safeInteger (snapshot, 'nonce');
-            const previousSequence = sequence - 1;
-            // if the received snapshot is earlier than the first cached delta
-            // then we cannot align it with the cached deltas and we need to
-            // retry synchronizing in maxAttempts
-            if (nonce < previousSequence) {
-                this.retryFetchOrderBookSnapshot (client, message, subscription);
-            } else {
-                orderbook.reset (snapshot);
-                // unroll the accumulated deltas
-                // 3. Playback the cached Level 2 data flow.
-                for (let i = 0; i < messages.length; i++) {
-                    const message = messages[i];
-                    this.handleOrderBookMessage (client, message, orderbook);
-                }
-                this.orderbooks[symbol] = orderbook;
-                client.resolve (orderbook, messageHash);
-            }
-        } catch (e) {
-            if (e instanceof NetworkError) {
-                this.retryFetchOrderBookSnapshot (client, message, subscription);
-            } else {
-                client.reject (e, messageHash);
-            }
-        }
-    }
-
-    handleDelta (bookside, delta, nonce) {
-        // TODO
-        const price = this.safeFloat (delta, 0);
-        if (price > 0) {
-            const sequence = this.safeInteger (delta, 2);
-            if (sequence > nonce) {
-                const amount = this.safeFloat (delta, 1);
-                bookside.store (price, amount);
-            }
+            const storedAsks = orderbook['asks'];
+            storedAsks.storeArray (value);
         }
     }
 
     handleDeltas (bookside, deltas, nonce) {
-        // TODO
         for (let i = 0; i < deltas.length; i++) {
             this.handleDelta (bookside, deltas[i], nonce);
         }
-    }
-
-    handleOrderBookMessage (client, message, orderbook) {
-        //
-        //    {
-        //        type: 'message',
-        //        topic: '/contractMarket/level2:ADAUSDTM',
-        //        subject: 'level2',
-        //        data: {
-        //            sequence: 1668059586457,
-        //            change: '0.34172,sell,456', // price, side, quantity
-        //            timestamp: 1668573023223
-        //        }
-        //    }
-        //
-        const data = this.safeValue (message, 'data', {});
-        const sequence = this.safeInteger (data, 'sequence');
-        // 4. Apply the new Level 2 data flow to the local snapshot to ensure that
-        // the sequence of the new Level 2 update lines up with the sequence of
-        // the previous Level 2 data. Discard all the message prior to that
-        // sequence, and then playback the change to snapshot.
-        if (sequence > orderbook['nonce']) {
-            const change = this.safeValue (data, 'change', {});
-            const splitChange = this.split (change, ',');
-            const price = this.safeNumber (splitChange, 0);
-            const side = this.safeString (splitChange, 1);
-            const quantity = this.safeNumber (splitChange, 2);
-            const type = (side === 'buy') ? 'bids' : 'asks';
-            this.handleDeltas (orderbook[type], [ [ price, quantity, sequence ] ], orderbook['nonce']);
-            // 5. Update the level2 full data based on sequence according to the
-            // size. If the price is 0, ignore the messages and update the sequence.
-            // If the size=0, update the sequence and remove the price of which the
-            // size is 0 out of level 2. For other cases, please update the price.
-            const timestamp = this.safeInteger (data, 'timestamp');
-            orderbook['nonce'] = sequence;
-            orderbook['timestamp'] = timestamp;
-            orderbook['datetime'] = this.iso8601 (timestamp);
-        }
-        return orderbook;
     }
 
     handleOrderBook (client, message) {
@@ -422,36 +324,54 @@ module.exports = class kucoinfutures extends kucoinfuturesRest {
         //        }
         //    }
         //
-        const messageHash = this.safeString (message, 'topic');
-        const marketId = this.safeString (this.split (messageHash, ':'), 1);
+        const data = this.safeValue (message, 'data');
+        const topic = this.safeString (message, 'topic');
+        const topicParts = topic.split (':');
+        const marketId = this.safeString (topicParts, 1);
         const symbol = this.safeSymbol (marketId, undefined, '-');
-        const orderbook = this.orderbooks[symbol];
-        if (orderbook['nonce'] === undefined) {
-            const subscription = this.safeValue (client.subscriptions, messageHash);
-            const fetchingOrderBookSnapshot = this.safeValue (subscription, 'fetchingOrderBookSnapshot');
-            if (fetchingOrderBookSnapshot === undefined) {
-                subscription['fetchingOrderBookSnapshot'] = true;
-                client.subscriptions[messageHash] = subscription;
-                const options = this.safeValue (this.options, 'fetchOrderBookSnapshot', {});
-                const delay = this.safeInteger (options, 'delay', this.rateLimit);
-                // fetch the snapshot in a separate async call after a warmup delay
-                this.delay (delay, this.fetchOrderBookSnapshot, client, message, subscription);
+        const messageHash = 'orderbook:' + symbol;
+        const storedOrderBook = this.orderbooks[symbol];
+        const nonce = this.safeInteger (storedOrderBook, 'nonce');
+        const deltaEnd = this.safeInteger (data, 'sequence');
+        if (nonce === undefined) {
+            const cacheLength = storedOrderBook.cache.length;
+            const topic = this.safeString (message, 'topic');
+            const subscription = client.subscriptions[topic];
+            const limit = this.safeInteger (subscription, 'limit');
+            const snapshotDelay = this.handleOption ('watchOrderBook', 'snapshotDelay', 5);
+            if (cacheLength === snapshotDelay) {
+                this.spawn (this.loadOrderBook, client, messageHash, symbol, limit);
             }
-            // 1. After receiving the websocket Level 2 data flow, cache the data.
-            orderbook.cache.push (message);
-        } else {
-            this.handleOrderBookMessage (client, message, orderbook);
-            client.resolve (orderbook, messageHash);
+            storedOrderBook.cache.push (data);
+            return;
+        } else if (nonce >= deltaEnd) {
+            return;
         }
+        this.handleDelta (storedOrderBook, data);
+        client.resolve (storedOrderBook, messageHash);
+    }
+
+    getCacheIndex (orderbook, cache) {
+        const firstDelta = this.safeValue (cache, 0);
+        const nonce = this.safeInteger (orderbook, 'nonce');
+        const firstDeltaStart = this.safeInteger (firstDelta, 'sequenceStart');
+        if (nonce < firstDeltaStart - 1) {
+            return -1;
+        }
+        for (let i = 0; i < cache.length; i++) {
+            const delta = cache[i];
+            const deltaStart = this.safeInteger (delta, 'sequenceStart');
+            const deltaEnd = this.safeInteger (delta, 'sequenceEnd');
+            if ((nonce >= deltaStart - 1) && (nonce < deltaEnd)) {
+                return i;
+            }
+        }
+        return cache.length;
     }
 
     handleOrderBookSubscription (client, message, subscription) {
-        // TODO
         const symbol = this.safeString (subscription, 'symbol');
-        const limit = this.safeString (subscription, 'limit');
-        if (symbol in this.orderbooks) {
-            delete this.orderbooks[symbol];
-        }
+        const limit = this.safeInteger (subscription, 'limit');
         this.orderbooks[symbol] = this.orderBook ({}, limit);
         // moved snapshot initialization to handleOrderBook to fix
         // https://github.com/ccxt/ccxt/issues/6820
@@ -466,7 +386,6 @@ module.exports = class kucoinfutures extends kucoinfuturesRest {
         //         type: 'ack'
         //     }
         //
-        // TODO
         const id = this.safeString (message, 'id');
         const subscriptionsById = this.indexBy (client.subscriptions, 'id');
         const subscription = this.safeValue (subscriptionsById, id, {});
