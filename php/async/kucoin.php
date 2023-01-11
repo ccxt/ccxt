@@ -2690,15 +2690,15 @@ class kucoin extends Exchange {
     public function transfer($code, $amount, $fromAccount, $toAccount, $params = array ()) {
         return Async\async(function () use ($code, $amount, $fromAccount, $toAccount, $params) {
             /**
-             * $transfer $currency internally between wallets on the same account
-             * @see https://docs.kucoin.com/#inner-$transfer
-             * @see https://docs.kucoin.com/futures/#$transfer-funds-to-kucoin-main-account-2
+             * transfer $currency internally between wallets on the same account
+             * @see https://docs.kucoin.com/#inner-transfer
+             * @see https://docs.kucoin.com/futures/#transfer-funds-to-kucoin-main-account-2
              * @param {string} $code unified $currency $code
-             * @param {float} $amount amount to $transfer
-             * @param {string} $fromAccount account to $transfer from
-             * @param {string} $toAccount account to $transfer to
+             * @param {float} $amount amount to transfer
+             * @param {string} $fromAccount account to transfer from
+             * @param {string} $toAccount account to transfer to
              * @param {array} $params extra parameters specific to the kucoin api endpoint
-             * @return {array} a {@link https://docs.ccxt.com/en/latest/manual.html#$transfer-structure $transfer structure}
+             * @return {array} a {@link https://docs.ccxt.com/en/latest/manual.html#transfer-structure transfer structure}
              */
             Async\await($this->load_markets());
             $currency = $this->currency($code);
@@ -2709,7 +2709,7 @@ class kucoin extends Exchange {
             $toIsolated = $this->in_array($toId, $this->ids);
             if ($fromId === 'contract') {
                 if ($toId !== 'main') {
-                    throw new ExchangeError($this->id . ' $transfer() only supports transferring from futures account to main account');
+                    throw new ExchangeError($this->id . ' transfer() only supports transferring from futures account to main account');
                 }
                 $request = array(
                     'currency' => $currency['id'],
@@ -2776,12 +2776,7 @@ class kucoin extends Exchange {
                 //     }
                 //
                 $data = $this->safe_value($response, 'data');
-                $transfer = $this->parse_transfer($data, $currency);
-                return array_merge($transfer, array(
-                    'amount' => $requestedAmount,
-                    'fromAccount' => $fromId,
-                    'toAccount' => $toId,
-                ));
+                return $this->parse_transfer($data, $currency);
             }
         }) ();
     }
@@ -2790,10 +2785,14 @@ class kucoin extends Exchange {
         //
         // $transfer (spot)
         //
-        //     {
-        //         'orderId' => '605a6211e657f00006ad0ad6'
-        //     }
+        //    {
+        //        'orderId' => '605a6211e657f00006ad0ad6'
+        //    }
         //
+        //    {
+        //        "code" => "200000",
+        //        "msg" => "Failed to $transfer out. The amount exceeds the upper limit"
+        //    }
         //
         // $transfer (futures)
         //
