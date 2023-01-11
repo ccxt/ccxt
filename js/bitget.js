@@ -2425,13 +2425,17 @@ module.exports = class bitget extends Exchange {
         };
         const stop = this.safeValue (params, 'stop');
         if (stop) {
-            const planType = this.safeString (params, 'planType');
-            if (planType === undefined) {
-                throw new ArgumentsRequired (this.id + ' cancelOrder() requires a planType parameter for stop orders, either normal_plan, profit_plan or loss_plan');
+            if (marketType === 'spot') {
+                method = 'privateSpotPostPlanCancelPlan';
+            } else {
+                const planType = this.safeString (params, 'planType');
+                if (planType === undefined) {
+                    throw new ArgumentsRequired (this.id + ' cancelOrder() requires a planType parameter for stop orders, either normal_plan, profit_plan or loss_plan');
+                }
+                request['planType'] = planType;
+                method = 'privateMixPostPlanCancelPlan';
+                params = this.omit (params, [ 'stop', 'planType' ]);
             }
-            request['planType'] = planType;
-            method = 'privateMixPostPlanCancelPlan';
-            params = this.omit (params, [ 'stop', 'planType' ]);
         }
         if (marketType === 'swap') {
             request['marginCoin'] = market['settleId'];
