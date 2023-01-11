@@ -707,16 +707,24 @@ module.exports = class okx extends Exchange {
             'options': {
                 'defaultNetwork': 'ERC20',
                 'networks': {
-                    'ETH': 'ERC20',
-                    'TRX': 'TRC20',
+                    'BTC': 'Bitcoin',
                     'OMNI': 'Omni',
-                    'SOLANA': 'Solana',
-                    'POLYGON': 'Polygon',
-                    'OEC': 'OEC',
-                    'ALGO': 'ALGO', // temporarily unavailable
-                    'OPTIMISM': 'Optimism',
-                    'ARBITRUM': 'Arbitrum one',
-                    'AVALANCHE': 'Avalanche C-Chain',
+                    'SOL': 'Solana',
+                    'LTC': 'Litecoin',
+                    'MATIC': 'Polygon',
+                    'OP': 'Optimism',
+                    'ARB': 'Arbitrum one',
+                    'AVAX': 'Avalanche C-Chain',
+                },
+                'networksById': {
+                    'Bitcoin': 'BTC',
+                    'Omni': 'OMNI',
+                    'Solana': 'SOL',
+                    'Litecoin': 'LTC',
+                    'Polygon': 'MATIC',
+                    'Optimism': 'OP',
+                    'Arbitrum one': 'ARB',
+                    'Avalanche C-Chain': 'AVAX',
                 },
                 'fetchOpenInterestHistory': {
                     'timeframes': {
