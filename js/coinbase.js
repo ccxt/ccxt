@@ -184,6 +184,37 @@ module.exports = class coinbase extends Exchange {
                     },
                 },
             },
+            'fees': {
+                'trading': {
+                    'tierBased': true,
+                    'percentage': true,
+                    'tiers': {
+                        'taker': [
+                            [ this.parseNumber ('0'), this.parseNumber ('0.006') ],
+                            [ this.parseNumber ('10000'), this.parseNumber ('0.004') ],
+                            [ this.parseNumber ('50000'), this.parseNumber ('0.0025') ],
+                            [ this.parseNumber ('100000'), this.parseNumber ('0.002') ],
+                            [ this.parseNumber ('1000000'), this.parseNumber ('0.0018') ],
+                            [ this.parseNumber ('15000000'), this.parseNumber ('0.0016') ],
+                            [ this.parseNumber ('75000000'), this.parseNumber ('0.0012') ],
+                            [ this.parseNumber ('250000000'), this.parseNumber ('0.0008') ],
+                            [ this.parseNumber ('400000000'), this.parseNumber ('0.0005') ],
+                        ],
+                        'maker': [
+                            [ this.parseNumber ('0'), this.parseNumber ('0.004') ],
+                            [ this.parseNumber ('10000'), this.parseNumber ('0.0025') ],
+                            [ this.parseNumber ('50000'), this.parseNumber ('0.0015') ],
+                            [ this.parseNumber ('100000'), this.parseNumber ('0.001') ],
+                            [ this.parseNumber ('1000000'), this.parseNumber ('0.0008') ],
+                            [ this.parseNumber ('15000000'), this.parseNumber ('0.0006') ],
+                            [ this.parseNumber ('75000000'), this.parseNumber ('0.0003') ],
+                            [ this.parseNumber ('250000000'), this.parseNumber ('0.0') ],
+                            [ this.parseNumber ('400000000'), this.parseNumber ('0.0') ],
+                        ],
+                    },
+                },
+            },
+            'stablePairs': [ 'BUSD-USD', 'CBETH-ETH', 'DAI-USD', 'GUSD-USD', 'GYEN-USD', 'PAX-USD', 'PAX-USDT', 'USDC-EUR', 'USDC-GBP', 'USDT-EUR', 'USDT-GBP', 'USDT-USD', 'USDT-USDC', 'WBTC-BTC' ],
             'precisionMode': TICK_SIZE,
             'exceptions': {
                 'exact': {
@@ -803,6 +834,27 @@ module.exports = class coinbase extends Exchange {
         //         ...
         //     ]
         //
+        const fees = await this.privateV3GetBrokerageTransactionSummary (params);
+        //
+        //     {
+        //         "total_volume": 0,
+        //         "total_fees": 0,
+        //         "fee_tier": {
+        //             "pricing_tier": "",
+        //             "usd_from": "0",
+        //             "usd_to": "10000",
+        //             "taker_fee_rate": "0.006",
+        //             "maker_fee_rate": "0.004"
+        //         },
+        //         "margin_rate": null,
+        //         "goods_and_services_tax": null,
+        //         "advanced_trade_only_volume": 0,
+        //         "advanced_trade_only_fees": 0,
+        //         "coinbase_pro_volume": 0,
+        //         "coinbase_pro_fees": 0
+        //     }
+        //
+        const feeTier = this.safeValue (fees, 'fee_tier', {});
         const data = this.safeValue (response, 'products', []);
         const result = [];
         for (let i = 0; i < data.length; i++) {
@@ -833,8 +885,8 @@ module.exports = class coinbase extends Exchange {
                 'contract': false,
                 'linear': undefined,
                 'inverse': undefined,
-                'taker': undefined,
-                'maker': undefined,
+                'taker': this.inArray (id, this.stablePairs) ? 0.00001 : this.safeNumber (feeTier, 'taker_fee_rate'),
+                'maker': this.inArray (id, this.stablePairs) ? 0.0 : this.safeNumber (feeTier, 'maker_fee_rate'),
                 'contractSize': undefined,
                 'expiry': undefined,
                 'expiryDatetime': undefined,
