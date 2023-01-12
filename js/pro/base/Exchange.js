@@ -141,13 +141,6 @@ module.exports = class Exchange extends BaseExchange {
         return future;
     }
 
-    subscribe (url, messageHash, message) {
-        // this function should be used inside of authenticate instead of watch
-        const future = this.watch (url, messageHash, message)
-        this.clients[url].subscriptions[messageHash] = future
-        return future
-    }
-
     onConnected (client, message = undefined) {
         // for user hooks
         // console.log ('Connected to', client.url)
