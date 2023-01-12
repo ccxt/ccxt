@@ -338,7 +338,7 @@ module.exports = class kucoinfutures extends kucoinfuturesRest {
             const topic = this.safeString (message, 'topic');
             const subscription = client.subscriptions[topic];
             const limit = this.safeInteger (subscription, 'limit');
-            const snapshotDelay = this.handleOption ('watchOrderBook', 'snapshotDelay', 10);
+            const snapshotDelay = this.handleOption ('watchOrderBook', 'snapshotDelay', 20);
             if (cacheLength === snapshotDelay) {
                 this.spawn (this.loadOrderBook, client, messageHash, symbol, limit);
             }
