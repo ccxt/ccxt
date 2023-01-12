@@ -5,6 +5,7 @@
 const Exchange = require ('./base/Exchange');
 const { ExchangeError, InsufficientFunds, BadRequest, BadSymbol, InvalidOrder, AuthenticationError, ArgumentsRequired, OrderNotFound, ExchangeNotAvailable } = require ('./base/errors');
 const { TICK_SIZE } = require ('./base/functions/number');
+const Precise = require ('./base/Precise');
 
 //  ---------------------------------------------------------------------------
 
@@ -1741,10 +1742,10 @@ module.exports = class delta extends Exchange {
         const currenciesByNumericId = this.safeValue (this.options, 'currenciesByNumericId');
         currency = this.safeValue (currenciesByNumericId, currencyId, currency);
         const code = (currency === undefined) ? undefined : currency['code'];
-        const amount = this.safeNumber (item, 'amount');
+        const amount = this.safeString (item, 'amount');
         const timestamp = this.parse8601 (this.safeString (item, 'created_at'));
-        const after = this.safeNumber (item, 'balance');
-        const before = Math.max (0, after - amount);
+        const after = this.safeString (item, 'balance');
+        const before = Precise.stringMax ('0', Precise.stringSub (after, amount));
         const status = 'ok';
         return {
             'info': item,
@@ -1755,9 +1756,9 @@ module.exports = class delta extends Exchange {
             'referenceAccount': referenceAccount,
             'type': type,
             'currency': code,
-            'amount': amount,
-            'before': before,
-            'after': after,
+            'amount': this.parseNumber (amount),
+            'before': this.parseNumber (before),
+            'after': this.parseNumber (after),
             'status': status,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
