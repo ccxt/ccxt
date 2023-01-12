@@ -15,6 +15,7 @@ async def test_watch_ticker(exchange, symbol):
         'mexc',
         'woo',
         'alpaca',
+        'bithumb',
     ]
     if exchange.id in skipped_exchanges:
         print(exchange.id, method, 'test skipped')

@@ -58,7 +58,7 @@ module.exports = class bithumb extends bithumbRest {
         const request = {
             'type': 'ticker',
             'symbols': [ market['base'] + '_' + market['quote'] ],
-            'tickTypes': this.safeString (params, 'tickTypes', '30M'),
+            'tickTypes': this.safeString (params, 'tickTypes', '24H'),
         };
         return await this.watch (url, messageHash, this.extend (request, params), messageHash);
     }
