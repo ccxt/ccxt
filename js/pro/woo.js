@@ -431,9 +431,9 @@ module.exports = class woo extends wooRest {
         let future = this.safeValue (client.subscriptions, messageHash);
         if (future === undefined) {
             const ts = this.nonce ().toString ();
-            let auth = this.urlencode (params);
-            auth += '|' + ts;
+            const auth = '|' + ts;
             const signature = this.hmac (this.encode (auth), this.encode (this.secret), 'sha256');
+
             const request = {
                 'event': event,
                 'params': {
@@ -692,14 +692,6 @@ module.exports = class woo extends wooRest {
         //         ts: 1657117712212
         //     }
         //
-        const id = this.safeString (message, 'id');
-        const subscriptionsById = this.indexBy (client.subscriptions, 'id');
-        const subscription = this.safeValue (subscriptionsById, id, {});
-        const method = this.safeValue (subscription, 'method');
-        if (method !== undefined) {
-            method.call (this, client, message, subscription);
-        }
-        return message;
     }
 
     handleAuth (client, message) {

@@ -484,7 +484,7 @@ module.exports = class cryptocom extends cryptocomRest {
         // }
         const errorCode = this.safeInteger (message, 'code');
         try {
-            if (errorCode !== undefined && errorCode !== 0) {
+            if (errorCode) {
                 const feedback = this.id + ' ' + this.json (message);
                 this.throwExactlyMatchedException (this.exceptions['exact'], errorCode, feedback);
                 const messageString = this.safeValue (message, 'message');
@@ -495,7 +495,11 @@ module.exports = class cryptocom extends cryptocomRest {
             return false;
         } catch (e) {
             if (e instanceof AuthenticationError) {
-                client.reject (e, 'authenticated');
+                const messageHash = 'authenticated';
+                client.reject (e, messageHash);
+                if (messageHash in client.subscriptions) {
+                    delete client.subscriptions[messageHash];
+                }
             } else {
                 client.reject (e);
             }
