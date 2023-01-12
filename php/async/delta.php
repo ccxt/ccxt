@@ -168,6 +168,18 @@ class delta extends Exchange {
                     ),
                 ),
             ),
+            'options' => array(
+                'networks' => array(
+                    'TRC20' => 'TRC20(TRON)',
+                    'TRX' => 'TRC20(TRON)',
+                    'BEP20' => 'BEP20(BSC)',
+                    'BSC' => 'BEP20(BSC)',
+                ),
+                'networksById' => array(
+                    'BEP20(BSC)' => 'BSC',
+                    'TRC20(TRON)' => 'TRC20',
+                ),
+            ),
             'precisionMode' => TICK_SIZE,
             'requiredCredentials' => array(
                 'apiKey' => true,
@@ -1765,43 +1777,71 @@ class delta extends Exchange {
     public function fetch_deposit_address($code, $params = array ()) {
         return Async\async(function () use ($code, $params) {
             /**
-             * fetch the deposit $address for a $currency associated with this account
+             * fetch the deposit address for a $currency associated with this account
              * @param {string} $code unified $currency $code
              * @param {array} $params extra parameters specific to the delta api endpoint
-             * @return {array} an {@link https://docs.ccxt.com/en/latest/manual.html#$address-structure $address structure}
+             * @param {string} $params->network unified network $code
+             * @return {array} an {@link https://docs.ccxt.com/en/latest/manual.html#address-structure address structure}
              */
             Async\await($this->load_markets());
             $currency = $this->currency($code);
             $request = array(
                 'asset_symbol' => $currency['id'],
             );
+            $networkCode = $this->safe_string_upper($params, 'network');
+            if ($networkCode !== null) {
+                $request['network'] = $this->network_code_to_id($networkCode, $code);
+                $params = $this->omit($params, 'network');
+            }
             $response = Async\await($this->privateGetDepositsAddress (array_merge($request, $params)));
             //
-            //     {
-            //         "success":true,
-            //         "result":{
-            //             "id":19628,
-            //             "user_id":22142,
-            //             "address":"0x0eda26523397534f814d553a065d8e46b4188e9a",
-            //             "status":"active",
-            //             "updated_at":"2020-11-15T20:25:53.000Z",
-            //             "created_at":"2020-11-15T20:25:53.000Z",
-            //             "asset_symbol":"USDT",
-            //             "custodian":"onc"
-            //         }
-            //     }
+            //    {
+            //        "success" => true,
+            //        "result" => {
+            //            "id" => 1915615,
+            //            "user_id" => 27854758,
+            //            "address" => "TXYB4GdKsXKEWbeSNPsmGZu4ZVCkhVh1Zz",
+            //            "memo" => "",
+            //            "status" => "active",
+            //            "updated_at" => "2023-01-12T06:03:46.000Z",
+            //            "created_at" => "2023-01-12T06:03:46.000Z",
+            //            "asset_symbol" => "USDT",
+            //            "network" => "TRC20(TRON)",
+            //            "custodian" => "fireblocks"
+            //        }
+            //    }
             //
             $result = $this->safe_value($response, 'result', array());
-            $address = $this->safe_string($result, 'address');
-            $this->check_address($address);
-            return array(
-                'currency' => $code,
-                'address' => $address,
-                'tag' => null,
-                'network' => null,
-                'info' => $response,
-            );
+            return $this->parse_deposit_address($result, $currency);
         }) ();
+    }
+
+    public function parse_deposit_address($depositAddress, $currency = null) {
+        //
+        //    {
+        //        "id" => 1915615,
+        //        "user_id" => 27854758,
+        //        "address" => "TXYB4GdKsXKEWbeSNPsmGZu4ZVCkhVh1Zz",
+        //        "memo" => "",
+        //        "status" => "active",
+        //        "updated_at" => "2023-01-12T06:03:46.000Z",
+        //        "created_at" => "2023-01-12T06:03:46.000Z",
+        //        "asset_symbol" => "USDT",
+        //        "network" => "TRC20(TRON)",
+        //        "custodian" => "fireblocks"
+        //    }
+        //
+        $address = $this->safe_string($depositAddress, 'address');
+        $marketId = $this->safe_string($depositAddress, 'asset_symbol');
+        $networkId = $this->safe_string($depositAddress, 'network');
+        $this->check_address($address);
+        return array(
+            'currency' => $this->safe_currency_code($marketId, $currency),
+            'address' => $address,
+            'tag' => $this->safe_string($depositAddress, 'memo'),
+            'network' => $this->network_id_to_code($networkId),
+            'info' => $depositAddress,
+        );
     }
 
     public function sign($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
