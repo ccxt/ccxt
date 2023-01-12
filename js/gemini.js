@@ -422,7 +422,8 @@ module.exports = class gemini extends Exchange {
         for (let i = 0; i < response.length; i++) {
             const marketId = response[i];
             const idLength = marketId.length - 0;
-            const quoteSize = (marketId.indexOf ('usdt') === -1) ? 3 : 4;
+            const isUSDT = marketId.indexOf ('usdt') !== -1;
+            const quoteSize = isUSDT ? 4 : 3;
             const baseId = marketId.slice (0, idLength - quoteSize); // Not true for all markets
             const quoteId = marketId.slice (idLength - quoteSize, idLength);
             const base = this.safeCurrencyCode (baseId);
