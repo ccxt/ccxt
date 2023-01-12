@@ -37,7 +37,7 @@ import * as errors   from './src/base/errors.js'
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
 
-const version = '2.5.66';
+const version = '2.5.97';
 
 (Exchange as any).ccxtVersion = version
 
@@ -205,6 +205,7 @@ import okxPro from  './src/pro/okx.js'
 import phemexPro from  './src/pro/phemex.js'
 import ripioPro from  './src/pro/ripio.js'
 import upbitPro from  './src/pro/upbit.js'
+import wazirxPro from  './src/pro/wazirx.js'
 import whitebitPro from  './src/pro/whitebit.js'
 import wooPro from  './src/pro/woo.js'
 import zbPro from  './src/pro/zb.js'
@@ -373,6 +374,7 @@ const pro = {
     'phemex':                 phemexPro,
     'ripio':                  ripioPro,
     'upbit':                  upbitPro,
+    'wazirx':                 wazirxPro,
     'whitebit':               whitebitPro,
     'woo':                    wooPro,
     'zb':                     zbPro,
