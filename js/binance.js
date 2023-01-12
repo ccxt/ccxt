@@ -4473,12 +4473,13 @@ module.exports = class binance extends Exchange {
         let code = this.safeCurrencyCode (currencyId, currency);
         let timestamp = undefined;
         const insertTime = this.safeInteger2 (transaction, 'insertTime', 'createTime');
+        const applyTime = this.parse8601 (this.safeString (transaction, 'applyTime'));
         const updated = this.safeInteger2 (transaction, 'successTime', 'updateTime');
         let type = this.safeString (transaction, 'type');
         if (type === undefined) {
             const txType = this.safeString (transaction, 'transactionType');
             type = (txType === '0') ? 'deposit' : 'withdrawal';
-            timestamp = insertTime;
+            timestamp = insertTime || applyTime;
             const legalMoneyCurrenciesById = this.safeValue (this.options, 'legalMoneyCurrenciesById');
             code = this.safeString (legalMoneyCurrenciesById, code, code);
         }
