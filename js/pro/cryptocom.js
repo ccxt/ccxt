@@ -570,8 +570,8 @@ module.exports = class cryptocom extends cryptocomRest {
         const url = this.urls['api']['ws']['private'];
         const client = this.client (url);
         const messageHash = 'authenticated';
-        const authenticated = this.safeValue (client.subscriptions, messageHash);
-        if (authenticated === undefined) {
+        let future = this.safeValue (client.subscriptions, messageHash);
+        if (future === undefined) {
             const method = 'public/auth';
             const nonce = this.nonce ().toString ();
             const auth = method + nonce + this.apiKey + nonce;
@@ -584,9 +584,10 @@ module.exports = class cryptocom extends cryptocomRest {
                 'sig': signature,
             };
             const message = this.extend (request, params);
-            return this.subscribe (url, messageHash, message);
+            future = this.watch (url, messageHash, message);
+            client.subscriptions[messageHash] = future;
         }
-        return authenticated;
+        return future;
     }
 
     handlePing (client, message) {
