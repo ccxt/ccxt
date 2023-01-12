@@ -14,6 +14,7 @@ from ccxt.base.errors import InvalidOrder
 from ccxt.base.errors import OrderNotFound
 from ccxt.base.errors import ExchangeNotAvailable
 from ccxt.base.decimal_to_precision import TICK_SIZE
+from ccxt.base.precise import Precise
 
 
 class delta(Exchange):
@@ -1648,10 +1649,10 @@ class delta(Exchange):
         currenciesByNumericId = self.safe_value(self.options, 'currenciesByNumericId')
         currency = self.safe_value(currenciesByNumericId, currencyId, currency)
         code = None if (currency is None) else currency['code']
-        amount = self.safe_number(item, 'amount')
+        amount = self.safe_string(item, 'amount')
         timestamp = self.parse8601(self.safe_string(item, 'created_at'))
-        after = self.safe_number(item, 'balance')
-        before = max(0, after - amount)
+        after = self.safe_string(item, 'balance')
+        before = Precise.string_max('0', Precise.string_sub(after, amount))
         status = 'ok'
         return {
             'info': item,
@@ -1662,9 +1663,9 @@ class delta(Exchange):
             'referenceAccount': referenceAccount,
             'type': type,
             'currency': code,
-            'amount': amount,
-            'before': before,
-            'after': after,
+            'amount': self.parse_number(amount),
+            'before': self.parse_number(before),
+            'after': self.parse_number(after),
             'status': status,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),

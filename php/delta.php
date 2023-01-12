@@ -1703,10 +1703,10 @@ class delta extends Exchange {
         $currenciesByNumericId = $this->safe_value($this->options, 'currenciesByNumericId');
         $currency = $this->safe_value($currenciesByNumericId, $currencyId, $currency);
         $code = ($currency === null) ? null : $currency['code'];
-        $amount = $this->safe_number($item, 'amount');
+        $amount = $this->safe_string($item, 'amount');
         $timestamp = $this->parse8601($this->safe_string($item, 'created_at'));
-        $after = $this->safe_number($item, 'balance');
-        $before = max (0, $after - $amount);
+        $after = $this->safe_string($item, 'balance');
+        $before = Precise::string_max('0', Precise::string_sub($after, $amount));
         $status = 'ok';
         return array(
             'info' => $item,
@@ -1717,9 +1717,9 @@ class delta extends Exchange {
             'referenceAccount' => $referenceAccount,
             'type' => $type,
             'currency' => $code,
-            'amount' => $amount,
-            'before' => $before,
-            'after' => $after,
+            'amount' => $this->parse_number($amount),
+            'before' => $this->parse_number($before),
+            'after' => $this->parse_number($after),
             'status' => $status,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
