@@ -518,7 +518,7 @@ module.exports = class okx extends okxRest {
         return message;
     }
 
-    async authenticate (params = {}) {
+    authenticate (params = {}) {
         this.checkRequiredCredentials ();
         const url = this.urls['api']['ws']['private'];
         const messageHash = 'authenticated';
