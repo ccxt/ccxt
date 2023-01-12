@@ -42,6 +42,12 @@ class Exchange extends \ccxt\Exchange {
 
     const VERSION = '2.5.96';
 
+    public $browser;
+    public $marketsLoading = null;
+    public $reloadingMarkets = null;
+    public $tokenBucket;
+    public $throttle;
+
     public $streaming = array(
         'keepAlive' => 30000,
         'heartbeat' => true,
@@ -50,12 +56,6 @@ class Exchange extends \ccxt\Exchange {
     );
     
     use \ccxt\pro\ClientTrait;
-
-    public $browser;
-    public $marketsLoading = null;
-    public $reloadingMarkets = null;
-    public $tokenBucket;
-    public $throttle;
 
     public function __construct($options = array()) {
         parent::__construct($options);
