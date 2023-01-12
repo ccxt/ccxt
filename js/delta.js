@@ -165,6 +165,18 @@ module.exports = class delta extends Exchange {
                     },
                 },
             },
+            'options': {
+                'networks': {
+                    'TRC20': 'TRC20(TRON)',
+                    'TRX': 'TRC20(TRON)',
+                    'BEP20': 'BEP20(BSC)',
+                    'BSC': 'BEP20(BSC)',
+                },
+                'networksById': {
+                    'BEP20(BSC)': 'BSC',
+                    'TRC20(TRON)': 'TRC20',
+                },
+            },
             'precisionMode': TICK_SIZE,
             'requiredCredentials': {
                 'apiKey': true,
@@ -1760,6 +1772,7 @@ module.exports = class delta extends Exchange {
          * @description fetch the deposit address for a currency associated with this account
          * @param {string} code unified currency code
          * @param {object} params extra parameters specific to the delta api endpoint
+         * @param {string} params.network unified network code
          * @returns {object} an [address structure]{@link https://docs.ccxt.com/en/latest/manual.html#address-structure}
          */
         await this.loadMarkets ();
@@ -1767,31 +1780,58 @@ module.exports = class delta extends Exchange {
         const request = {
             'asset_symbol': currency['id'],
         };
+        const networkCode = this.safeStringUpper (params, 'network');
+        if (networkCode !== undefined) {
+            request['network'] = this.networkCodeToId (networkCode, code);
+            params = this.omit (params, 'network');
+        }
         const response = await this.privateGetDepositsAddress (this.extend (request, params));
         //
-        //     {
-        //         "success":true,
-        //         "result":{
-        //             "id":19628,
-        //             "user_id":22142,
-        //             "address":"0x0eda26523397534f814d553a065d8e46b4188e9a",
-        //             "status":"active",
-        //             "updated_at":"2020-11-15T20:25:53.000Z",
-        //             "created_at":"2020-11-15T20:25:53.000Z",
-        //             "asset_symbol":"USDT",
-        //             "custodian":"onc"
-        //         }
-        //     }
+        //    {
+        //        "success": true,
+        //        "result": {
+        //            "id": 1915615,
+        //            "user_id": 27854758,
+        //            "address": "TXYB4GdKsXKEWbeSNPsmGZu4ZVCkhVh1Zz",
+        //            "memo": "",
+        //            "status": "active",
+        //            "updated_at": "2023-01-12T06:03:46.000Z",
+        //            "created_at": "2023-01-12T06:03:46.000Z",
+        //            "asset_symbol": "USDT",
+        //            "network": "TRC20(TRON)",
+        //            "custodian": "fireblocks"
+        //        }
+        //    }
         //
         const result = this.safeValue (response, 'result', {});
-        const address = this.safeString (result, 'address');
+        return this.parseDepositAddress (result, currency);
+    }
+
+    parseDepositAddress (depositAddress, currency = undefined) {
+        //
+        //    {
+        //        "id": 1915615,
+        //        "user_id": 27854758,
+        //        "address": "TXYB4GdKsXKEWbeSNPsmGZu4ZVCkhVh1Zz",
+        //        "memo": "",
+        //        "status": "active",
+        //        "updated_at": "2023-01-12T06:03:46.000Z",
+        //        "created_at": "2023-01-12T06:03:46.000Z",
+        //        "asset_symbol": "USDT",
+        //        "network": "TRC20(TRON)",
+        //        "custodian": "fireblocks"
+        //    }
+        //
+        const address = this.safeString (depositAddress, 'address');
+        const marketId = this.safeString (depositAddress, 'asset_symbol');
+        const networkId = this.safeString (depositAddress, 'network');
         this.checkAddress (address);
         return {
-            'currency': code,
+            'currency': this.safeCurrencyCode (marketId, currency),
             'address': address,
-            'tag': undefined,
-            'network': undefined,
-            'info': response,
+            'tag': this.safeString (depositAddress, 'memo'),
+            'network': this.networkIdToCode (networkId),
+            'info': depositAddress,
         };
     }
 
