@@ -419,19 +419,15 @@ module.exports = class gemini extends Exchange {
         // these markets can't be scrapped and fetchMarketsFrom api does an extra call
         // to load market ids which we don't need here
         const fetchUsdtMarkets = this.safeValue (this.options, 'fetchUsdtMarkets', []);
-        let promises = [];
         const result = [];
         for (let i = 0; i < fetchUsdtMarkets.length; i++) {
             const marketId = fetchUsdtMarkets[i];
             const request = {
                 'symbol': marketId,
             };
-            promises.push (this.publicGetV1SymbolsDetailsSymbol (this.extend (request, params)));
-        }
-        promises = await Promise.all (promises);
-        for (let i = 0; i < promises.length; i++) {
-            const response = promises[i];
-            result.push (this.parseMarket (response));
+            // don't use Promise.all here, for some reason the exchange can't handle it and crashes
+            const rawResponse = await this.publicGetV1SymbolsDetailsSymbol (this.extend (request, params));
+            result.push (this.parseMarket (rawResponse));
         }
         return result;
     }
