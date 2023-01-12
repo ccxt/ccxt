@@ -1781,29 +1781,51 @@ module.exports = class delta extends Exchange {
         };
         const response = await this.privateGetDepositsAddress (this.extend (request, params));
         //
-        //     {
-        //         "success":true,
-        //         "result":{
-        //             "id":19628,
-        //             "user_id":22142,
-        //             "address":"0x0eda26523397534f814d553a065d8e46b4188e9a",
-        //             "status":"active",
-        //             "updated_at":"2020-11-15T20:25:53.000Z",
-        //             "created_at":"2020-11-15T20:25:53.000Z",
-        //             "asset_symbol":"USDT",
-        //             "custodian":"onc"
-        //         }
-        //     }
+        //    {
+        //        "success": true,
+        //        "result": {
+        //            "id": 1915615,
+        //            "user_id": 27854758,
+        //            "address": "TXYB4GdKsXKEWbeSNPsmGZu4ZVCkhVh1Zz",
+        //            "memo": "",
+        //            "status": "active",
+        //            "updated_at": "2023-01-12T06:03:46.000Z",
+        //            "created_at": "2023-01-12T06:03:46.000Z",
+        //            "asset_symbol": "USDT",
+        //            "network": "TRC20(TRON)",
+        //            "custodian": "fireblocks"
+        //        }
+        //    }
         //
         const result = this.safeValue (response, 'result', {});
-        const address = this.safeString (result, 'address');
+        return this.parseDepositAddress (result, currency);
+    }
+
+    parseDepositAddress (depositAddress, currency = undefined) {
+        //
+        //    {
+        //        "id": 1915615,
+        //        "user_id": 27854758,
+        //        "address": "TXYB4GdKsXKEWbeSNPsmGZu4ZVCkhVh1Zz",
+        //        "memo": "",
+        //        "status": "active",
+        //        "updated_at": "2023-01-12T06:03:46.000Z",
+        //        "created_at": "2023-01-12T06:03:46.000Z",
+        //        "asset_symbol": "USDT",
+        //        "network": "TRC20(TRON)",
+        //        "custodian": "fireblocks"
+        //    }
+        //
+        const address = this.safeString (depositAddress, 'address');
+        const marketId = this.safeString (depositAddress, 'asset_symbol');
+        const networkId = this.safeString (depositAddress, 'network');
         this.checkAddress (address);
         return {
-            'currency': code,
+            'currency': this.safeCurrencyCode (marketId, currency),
             'address': address,
-            'tag': undefined,
-            'network': undefined,
-            'info': response,
+            'tag': this.safeString (depositAddress, 'memo'),
+            'network': this.networkIdToCode (networkId),
+            'info': depositAddress,
         };
     }
 
