@@ -691,6 +691,7 @@ module.exports = class woo extends wooRest {
         //         ts: 1657117712212
         //     }
         //
+        return message;
     }
 
     handleAuth (client, message) {
