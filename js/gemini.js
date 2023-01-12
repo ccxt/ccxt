@@ -487,11 +487,12 @@ module.exports = class gemini extends Exchange {
         const fetchDetailsForAllSymbols = this.safeValue (options, 'fetchDetailsForAllSymbols', false);
         const fetchDetailsForMarketIds = this.safeValue (options, 'fetchDetailsForMarketIds', []);
         const fetchUsdtMarkets = this.safeValue (options, 'fetchUsdtMarkets', []);
+        const fetchUsdtMarketsLength = fetchUsdtMarkets.length;
         let promises = [];
         let marketIds = [];
         if (fetchDetailsForAllSymbols) {
             marketIds = response;
-        } else if (fetchUsdtMarkets.length > 0) {
+        } else if (fetchUsdtMarketsLength > 0) {
             marketIds = fetchUsdtMarkets;
         } else {
             marketIds = fetchDetailsForMarketIds;
