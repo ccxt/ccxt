@@ -1,14 +1,12 @@
-'use strict';
+//  ---------------------------------------------------------------------------
+
+import wazirxRest from '../wazirx.js';
+import { NotSupported, ExchangeError } from '../base/errors.js';
+import { ArrayCacheBySymbolById, ArrayCacheByTimestamp, ArrayCache } from '../base/ws/Cache.js';
 
 //  ---------------------------------------------------------------------------
 
-const wazirxRest = require ('../wazirx');
-const { NotSupported, ExchangeError } = require ('../base/errors');
-const { ArrayCacheBySymbolById, ArrayCacheByTimestamp, ArrayCache } = require ('./base/Cache');
-
-//  ---------------------------------------------------------------------------
-
-module.exports = class wazirx extends wazirxRest {
+export default class wazirx extends wazirxRest {
     describe () {
         return this.deepExtend (super.describe (), {
             'has': {
@@ -783,7 +781,7 @@ module.exports = class wazirx extends wazirxRest {
         let subscription = this.safeValue (client.subscriptions, messageHash);
         const expires = this.safeInteger (subscription, 'expires');
         if (subscription === undefined || now > expires) {
-            subscription = await this.privatePostCreateAuthToken ();
+            subscription = await (this as any).privatePostCreateAuthToken ();
             subscription['expires'] = now + this.safeInteger (subscription, 'timeout_duration') * 1000;
             //
             //     {
@@ -795,4 +793,4 @@ module.exports = class wazirx extends wazirxRest {
         }
         return this.safeString (subscription, 'auth_key');
     }
-};
+}
