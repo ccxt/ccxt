@@ -94,8 +94,14 @@ module.exports = class coinbase extends Exchange {
                     'rest': 'https://api.coinbase.com',
                 },
                 'www': 'https://www.coinbase.com',
-                'doc': 'https://developers.coinbase.com/api/v2',
-                'fees': 'https://support.coinbase.com/customer/portal/articles/2109597-buy-sell-bank-transfer-fees',
+                'doc': [
+                    'https://developers.coinbase.com/api/v2',
+                    'https://docs.cloud.coinbase.com/advanced-trade-api/docs/welcome',
+                ],
+                'fees': [
+                    'https://support.coinbase.com/customer/portal/articles/2109597-buy-sell-bank-transfer-fees',
+                    'https://www.coinbase.com/advanced-fees',
+                ],
                 'referral': 'https://www.coinbase.com/join/58cbe25a355148797479dbd2',
             },
             'requiredCredentials': {
@@ -186,6 +192,8 @@ module.exports = class coinbase extends Exchange {
             },
             'fees': {
                 'trading': {
+                    'taker': this.parseNumber ('0.006'),
+                    'maker': this.parseNumber ('0.004'),
                     'tierBased': true,
                     'percentage': true,
                     'tiers': {
