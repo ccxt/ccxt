@@ -1,14 +1,12 @@
-'use strict';
+//  ---------------------------------------------------------------------------
+
+import deribitRest from '../deribit.js';
+import { NotSupported, ExchangeError } from '../base/errors.js';
+import { ArrayCache, ArrayCacheBySymbolById, ArrayCacheByTimestamp } from '../base/ws/Cache.js';
 
 //  ---------------------------------------------------------------------------
 
-const deribitRest = require ('../deribit');
-const { NotSupported, ExchangeError } = require ('../base/errors');
-const { ArrayCache, ArrayCacheBySymbolById, ArrayCacheByTimestamp } = require ('./base/Cache');
-
-//  ---------------------------------------------------------------------------
-
-module.exports = class deribit extends deribitRest {
+export default class deribit extends deribitRest {
     describe () {
         return this.deepExtend (super.describe (), {
             'has': {
@@ -840,4 +838,4 @@ module.exports = class deribit extends deribitRest {
         }
         return await future;
     }
-};
+}

@@ -1,15 +1,13 @@
-'use strict';
+//  ---------------------------------------------------------------------------
+
+import cexRest from '../cex.js';
+import { ExchangeError, ArgumentsRequired } from '../base/errors.js';
+import { Precise } from '../base/Precise.js';
+import { ArrayCacheBySymbolById, ArrayCacheByTimestamp, ArrayCache } from '../base/ws/Cache.js';
 
 //  ---------------------------------------------------------------------------
 
-const { ExchangeError, ArgumentsRequired } = require ('../base/errors');
-const Precise = require ('../base/Precise');
-const cexRest = require ('../cex');
-const { ArrayCacheBySymbolById, ArrayCacheByTimestamp, ArrayCache } = require ('./base/Cache');
-
-//  ---------------------------------------------------------------------------
-
-module.exports = class cex extends cexRest {
+export default class cex extends cexRest {
     describe () {
         return this.deepExtend (super.describe (), {
             'has': {
@@ -247,7 +245,7 @@ module.exports = class cex extends cexRest {
             'rooms': [
                 'tickers',
             ],
-        };
+        } as any;
         let subscriptionHash = 'tickers';
         if (method === 'private') {
             await this.authenticate ();
@@ -1232,5 +1230,5 @@ module.exports = class cex extends cexRest {
         }
         return await future;
     }
-};
+}
 

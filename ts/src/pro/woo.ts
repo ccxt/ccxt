@@ -1,15 +1,13 @@
-'use strict';
+// ----------------------------------------------------------------------------
+
+import wooRest from '../woo.js';
+import { ExchangeError, AuthenticationError } from '../base/errors.js';
+import { ArrayCacheByTimestamp, ArrayCacheBySymbolById, ArrayCache } from '../base/ws/Cache.js';
+import { Precise } from '../base/Precise.js';
 
 // ----------------------------------------------------------------------------
 
-const wooRest = require ('../woo');
-const { ExchangeError, AuthenticationError } = require ('../base/errors');
-const { ArrayCacheByTimestamp, ArrayCacheBySymbolById, ArrayCache } = require ('./base/Cache');
-const Precise = require ('../base/Precise');
-
-// ----------------------------------------------------------------------------
-
-module.exports = class woo extends wooRest {
+export default class woo extends wooRest {
     describe () {
         return this.deepExtend (super.describe (), {
             'has': {
@@ -720,4 +718,4 @@ module.exports = class woo extends wooRest {
             delete client.subscriptions['authenticated'];
         }
     }
-};
+}

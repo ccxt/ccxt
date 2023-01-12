@@ -1,13 +1,11 @@
-'use strict';
+//  ---------------------------------------------------------------------------
+
+import lunoRest from '../luno.js';
+import { ArrayCache } from '../base/ws/Cache.js';
 
 //  ---------------------------------------------------------------------------
 
-const lunoRest = require ('../luno');
-const { ArrayCache } = require ('./base/Cache');
-
-//  ---------------------------------------------------------------------------
-
-module.exports = class luno extends lunoRest {
+export default class luno extends lunoRest {
     describe () {
         return this.deepExtend (super.describe (), {
             'has': {
@@ -207,7 +205,7 @@ module.exports = class luno extends lunoRest {
         }
         const asks = this.safeValue (message, 'asks');
         if (asks !== undefined) {
-            const snapshot = this.parseOrderBook (message, symbol, timestamp, 'bids', 'asks', 'price', 'volume', 'id');
+            const snapshot = this.customParseOrderBook (message, symbol, timestamp, 'bids', 'asks', 'price', 'volume', 'id');
             storedOrderBook.reset (snapshot);
         } else {
             this.handleDelta (storedOrderBook, message);
@@ -219,7 +217,7 @@ module.exports = class luno extends lunoRest {
         client.resolve (storedOrderBook, messageHash);
     }
 
-    parseOrderBook (orderbook, symbol, timestamp = undefined, bidsKey = 'bids', asksKey = 'asks', priceKey = 0, amountKey = 1, thirdKey = undefined) {
+    customParseOrderBook (orderbook, symbol, timestamp = undefined, bidsKey = 'bids', asksKey = 'asks', priceKey = 'price', amountKey = 'volume', thirdKey = undefined) {
         const bids = this.parseBidsAsks (this.safeValue (orderbook, bidsKey, []), priceKey, amountKey, thirdKey);
         const asks = this.parseBidsAsks (this.safeValue (orderbook, asksKey, []), priceKey, amountKey, thirdKey);
         return {
@@ -232,21 +230,21 @@ module.exports = class luno extends lunoRest {
         };
     }
 
-    parseBidsAsks (bidasks, priceKey = 0, amountKey = 1, thirdKey = undefined) {
+    parseBidsAsks (bidasks, priceKey = 'price', amountKey = 'volume', thirdKey = undefined) {
         bidasks = this.toArray (bidasks);
         const result = [];
         for (let i = 0; i < bidasks.length; i++) {
-            result.push (this.parseBidAsk (bidasks[i], priceKey, amountKey, thirdKey));
+            result.push (this.customParseBidAsk (bidasks[i], priceKey, amountKey, thirdKey));
         }
         return result;
     }
 
-    parseBidAsk (bidask, priceKey = 0, amountKey = 1, thirdKey = undefined) {
+    customParseBidAsk (bidask, priceKey = 'price', amountKey = 'volume', thirdKey = undefined) {
         const price = this.safeNumber (bidask, priceKey);
         const amount = this.safeNumber (bidask, amountKey);
         const result = [ price, amount ];
         if (thirdKey !== undefined) {
-            const thirdValue = this.safeString (bidask, thirdKey);
+            const thirdValue = this.safeString (bidask, thirdKey) as any;
             result.push (thirdValue);
         }
         return result;
@@ -300,7 +298,7 @@ module.exports = class luno extends lunoRest {
         const asksOrderSide = orderbook['asks'];
         const bidsOrderSide = orderbook['bids'];
         if (createUpdate !== undefined) {
-            const array = this.parseBidAsk (createUpdate, 'price', 'volume', 'order_id');
+            const array = this.customParseBidAsk (createUpdate, 'price', 'volume', 'order_id');
             const type = this.safeString (createUpdate, 'type');
             if (type === 'ASK') {
                 asksOrderSide.storeArray (array);
@@ -329,4 +327,4 @@ module.exports = class luno extends lunoRest {
         }
         return message;
     }
-};
+}

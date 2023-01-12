@@ -1,15 +1,13 @@
-'use strict';
+//  ---------------------------------------------------------------------------
+
+import bitgetRest from '../bitget.js';
+import { AuthenticationError, BadRequest, ArgumentsRequired, NotSupported, InvalidNonce } from '../base/errors.js';
+import { Precise } from '../base/Precise.js';
+import { ArrayCache, ArrayCacheBySymbolById, ArrayCacheByTimestamp } from '../base/ws/Cache.js';
 
 //  ---------------------------------------------------------------------------
 
-const bitgetRest = require ('../bitget.js');
-const { AuthenticationError, BadRequest, ArgumentsRequired, NotSupported, InvalidNonce } = require ('../base/errors');
-const Precise = require ('../base/Precise');
-const { ArrayCache, ArrayCacheBySymbolById, ArrayCacheByTimestamp } = require ('./base/Cache');
-
-//  ---------------------------------------------------------------------------
-
-module.exports = class bitget extends bitgetRest {
+export default class bitget extends bitgetRest {
     describe () {
         return this.deepExtend (super.describe (), {
             'has': {
@@ -934,7 +932,7 @@ module.exports = class bitget extends bitgetRest {
         const fee = {
             'code': this.safeCurrencyCode (feeCurrency),
             'cost': feeAmount,
-        };
+        } as any;
         return this.safeTrade ({
             'info': trade,
             'id': id,
@@ -1062,7 +1060,7 @@ module.exports = class bitget extends bitgetRest {
         //
         //    { event: 'error', code: 30015, msg: 'Invalid sign' }
         //
-        const event = this.safeInteger (message, 'event');
+        const event = this.safeString (message, 'event');
         try {
             if (event === 'error') {
                 const code = this.safeString (message, 'code');
@@ -1171,4 +1169,4 @@ module.exports = class bitget extends bitgetRest {
         //
         return message;
     }
-};
+}

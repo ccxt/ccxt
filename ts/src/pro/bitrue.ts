@@ -1,14 +1,12 @@
-'use strict';
+//  ---------------------------------------------------------------------------
+
+import bitrueRest from '../bitrue.js';
+import { ArrayCacheBySymbolById } from '../base/ws/Cache.js';
+import { ArgumentsRequired } from '../base/errors.js';
 
 //  ---------------------------------------------------------------------------
 
-const bitrueRest = require ('../bitrue');
-const { ArrayCacheBySymbolById } = require ('./base/Cache');
-const { ArgumentsRequired } = require ('../base/errors');
-
-//  ---------------------------------------------------------------------------
-
-module.exports = class bitrue extends bitrueRest {
+export default class bitrue extends bitrueRest {
     describe () {
         return this.deepExtend (super.describe (), {
             'has': {
@@ -426,7 +424,7 @@ module.exports = class bitrue extends bitrueRest {
         if (listenKey === undefined) {
             let response = undefined;
             try {
-                response = await this.openPrivatePostPoseidonApiV1ListenKey (params);
+                response = await (this as any).openPrivatePostPoseidonApiV1ListenKey (params);
             } catch (error) {
                 this.options['listenKey'] = undefined;
                 this.options['listenKeyUrl'] = undefined;
@@ -457,7 +455,7 @@ module.exports = class bitrue extends bitrueRest {
             'listenKey': listenKey,
         };
         try {
-            await this.openPrivatePutPoseidonApiV1ListenKeyListenKey (this.extend (request, params));
+            await (this as any).openPrivatePutPoseidonApiV1ListenKeyListenKey (this.extend (request, params));
             //
             // ಠ_ಠ
             //     {
@@ -473,4 +471,4 @@ module.exports = class bitrue extends bitrueRest {
         const refreshTimeout = this.safeInteger (this.options, 'listenKeyRefreshRate', 1800000);
         this.delay (refreshTimeout, this.keepAliveListenKey);
     }
-};
+}
