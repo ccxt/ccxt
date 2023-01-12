@@ -4483,13 +4483,15 @@ class binance extends Exchange {
         $currencyId = $this->safe_string_2($transaction, 'coin', 'fiatCurrency');
         $code = $this->safe_currency_code($currencyId, $currency);
         $timestamp = null;
-        $insertTime = $this->safe_integer_2($transaction, 'insertTime', 'createTime');
+        $timestamp = $this->safe_integer_2($transaction, 'insertTime', 'createTime');
+        if ($timestamp === null) {
+            $timestamp = $this->parse8601($this->safe_string($transaction, 'applyTime'));
+        }
         $updated = $this->safe_integer_2($transaction, 'successTime', 'updateTime');
         $type = $this->safe_string($transaction, 'type');
         if ($type === null) {
             $txType = $this->safe_string($transaction, 'transactionType');
             $type = ($txType === '0') ? 'deposit' : 'withdrawal';
-            $timestamp = $insertTime;
             $legalMoneyCurrenciesById = $this->safe_value($this->options, 'legalMoneyCurrenciesById');
             $code = $this->safe_string($legalMoneyCurrenciesById, $code, $code);
         }
