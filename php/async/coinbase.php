@@ -97,8 +97,14 @@ class coinbase extends Exchange {
                     'rest' => 'https://api.coinbase.com',
                 ),
                 'www' => 'https://www.coinbase.com',
-                'doc' => 'https://developers.coinbase.com/api/v2',
-                'fees' => 'https://support.coinbase.com/customer/portal/articles/2109597-buy-sell-bank-transfer-fees',
+                'doc' => array(
+                    'https://developers.coinbase.com/api/v2',
+                    'https://docs.cloud.coinbase.com/advanced-trade-api/docs/welcome',
+                ),
+                'fees' => array(
+                    'https://support.coinbase.com/customer/portal/articles/2109597-buy-sell-bank-transfer-fees',
+                    'https://www.coinbase.com/advanced-fees',
+                ),
                 'referral' => 'https://www.coinbase.com/join/58cbe25a355148797479dbd2',
             ),
             'requiredCredentials' => array(
@@ -106,65 +112,120 @@ class coinbase extends Exchange {
                 'secret' => true,
             ),
             'api' => array(
-                'public' => array(
-                    'get' => array(
-                        'currencies',
-                        'time',
-                        'exchange-rates',
-                        'users/{user_id}',
-                        'prices/{symbol}/buy',
-                        'prices/{symbol}/sell',
-                        'prices/{symbol}/spot',
+                'v2' => array(
+                    'public' => array(
+                        'get' => array(
+                            'currencies',
+                            'time',
+                            'exchange-rates',
+                            'users/{user_id}',
+                            'prices/{symbol}/buy',
+                            'prices/{symbol}/sell',
+                            'prices/{symbol}/spot',
+                        ),
+                    ),
+                    'private' => array(
+                        'get' => array(
+                            'accounts',
+                            'accounts/{account_id}',
+                            'accounts/{account_id}/addresses',
+                            'accounts/{account_id}/addresses/{address_id}',
+                            'accounts/{account_id}/addresses/{address_id}/transactions',
+                            'accounts/{account_id}/transactions',
+                            'accounts/{account_id}/transactions/{transaction_id}',
+                            'accounts/{account_id}/buys',
+                            'accounts/{account_id}/buys/{buy_id}',
+                            'accounts/{account_id}/sells',
+                            'accounts/{account_id}/sells/{sell_id}',
+                            'accounts/{account_id}/deposits',
+                            'accounts/{account_id}/deposits/{deposit_id}',
+                            'accounts/{account_id}/withdrawals',
+                            'accounts/{account_id}/withdrawals/{withdrawal_id}',
+                            'payment-methods',
+                            'payment-methods/{payment_method_id}',
+                            'user',
+                            'user/auth',
+                        ),
+                        'post' => array(
+                            'accounts',
+                            'accounts/{account_id}/primary',
+                            'accounts/{account_id}/addresses',
+                            'accounts/{account_id}/transactions',
+                            'accounts/{account_id}/transactions/{transaction_id}/complete',
+                            'accounts/{account_id}/transactions/{transaction_id}/resend',
+                            'accounts/{account_id}/buys',
+                            'accounts/{account_id}/buys/{buy_id}/commit',
+                            'accounts/{account_id}/sells',
+                            'accounts/{account_id}/sells/{sell_id}/commit',
+                            'accounts/{account_id}/deposits',
+                            'accounts/{account_id}/deposits/{deposit_id}/commit',
+                            'accounts/{account_id}/withdrawals',
+                            'accounts/{account_id}/withdrawals/{withdrawal_id}/commit',
+                        ),
+                        'put' => array(
+                            'accounts/{account_id}',
+                            'user',
+                        ),
+                        'delete' => array(
+                            'accounts/{id}',
+                            'accounts/{account_id}/transactions/{transaction_id}',
+                        ),
                     ),
                 ),
-                'private' => array(
-                    'get' => array(
-                        'accounts',
-                        'accounts/{account_id}',
-                        'accounts/{account_id}/addresses',
-                        'accounts/{account_id}/addresses/{address_id}',
-                        'accounts/{account_id}/addresses/{address_id}/transactions',
-                        'accounts/{account_id}/transactions',
-                        'accounts/{account_id}/transactions/{transaction_id}',
-                        'accounts/{account_id}/buys',
-                        'accounts/{account_id}/buys/{buy_id}',
-                        'accounts/{account_id}/sells',
-                        'accounts/{account_id}/sells/{sell_id}',
-                        'accounts/{account_id}/deposits',
-                        'accounts/{account_id}/deposits/{deposit_id}',
-                        'accounts/{account_id}/withdrawals',
-                        'accounts/{account_id}/withdrawals/{withdrawal_id}',
-                        'payment-methods',
-                        'payment-methods/{payment_method_id}',
-                        'user',
-                        'user/auth',
-                    ),
-                    'post' => array(
-                        'accounts',
-                        'accounts/{account_id}/primary',
-                        'accounts/{account_id}/addresses',
-                        'accounts/{account_id}/transactions',
-                        'accounts/{account_id}/transactions/{transaction_id}/complete',
-                        'accounts/{account_id}/transactions/{transaction_id}/resend',
-                        'accounts/{account_id}/buys',
-                        'accounts/{account_id}/buys/{buy_id}/commit',
-                        'accounts/{account_id}/sells',
-                        'accounts/{account_id}/sells/{sell_id}/commit',
-                        'accounts/{account_id}/deposits',
-                        'accounts/{account_id}/deposits/{deposit_id}/commit',
-                        'accounts/{account_id}/withdrawals',
-                        'accounts/{account_id}/withdrawals/{withdrawal_id}/commit',
-                    ),
-                    'put' => array(
-                        'accounts/{account_id}',
-                        'user',
-                    ),
-                    'delete' => array(
-                        'accounts/{id}',
-                        'accounts/{account_id}/transactions/{transaction_id}',
+                'v3' => array(
+                    'private' => array(
+                        'get' => array(
+                            'brokerage/accounts',
+                            'brokerage/accounts/{account_uuid}',
+                            'brokerage/orders/historical/batch',
+                            'brokerage/orders/historical/fills',
+                            'brokerage/orders/historical/{order_id}',
+                            'brokerage/products',
+                            'brokerage/products/{product_id}',
+                            'brokerage/products/{product_id}/candles',
+                            'brokerage/products/{product_id}/ticker',
+                            'brokerage/transaction_summary',
+                        ),
+                        'post' => array(
+                            'brokerage/orders',
+                            'brokerage/orders/batch_cancel',
+                        ),
                     ),
                 ),
             ),
+            'fees' => array(
+                'trading' => array(
+                    'taker' => $this->parse_number('0.006'),
+                    'maker' => $this->parse_number('0.004'),
+                    'tierBased' => true,
+                    'percentage' => true,
+                    'tiers' => array(
+                        'taker' => array(
+                            array( $this->parse_number('0'), $this->parse_number('0.006') ),
+                            array( $this->parse_number('10000'), $this->parse_number('0.004') ),
+                            array( $this->parse_number('50000'), $this->parse_number('0.0025') ),
+                            array( $this->parse_number('100000'), $this->parse_number('0.002') ),
+                            array( $this->parse_number('1000000'), $this->parse_number('0.0018') ),
+                            array( $this->parse_number('15000000'), $this->parse_number('0.0016') ),
+                            array( $this->parse_number('75000000'), $this->parse_number('0.0012') ),
+                            array( $this->parse_number('250000000'), $this->parse_number('0.0008') ),
+                            array( $this->parse_number('400000000'), $this->parse_number('0.0005') ),
+                        ),
+                        'maker' => array(
+                            array( $this->parse_number('0'), $this->parse_number('0.004') ),
+                            array( $this->parse_number('10000'), $this->parse_number('0.0025') ),
+                            array( $this->parse_number('50000'), $this->parse_number('0.0015') ),
+                            array( $this->parse_number('100000'), $this->parse_number('0.001') ),
+                            array( $this->parse_number('1000000'), $this->parse_number('0.0008') ),
+                            array( $this->parse_number('15000000'), $this->parse_number('0.0006') ),
+                            array( $this->parse_number('75000000'), $this->parse_number('0.0003') ),
+                            array( $this->parse_number('250000000'), $this->parse_number('0.0') ),
+                            array( $this->parse_number('400000000'), $this->parse_number('0.0') ),
+                        ),
+                    ),
+                ),
+            ),
+            'stablePairs' => array( 'BUSD-USD', 'CBETH-ETH', 'DAI-USD', 'GUSD-USD', 'GYEN-USD', 'PAX-USD', 'PAX-USDT', 'USDC-EUR', 'USDC-GBP', 'USDT-EUR', 'USDT-GBP', 'USDT-USD', 'USDT-USDC', 'WBTC-BTC' ),
             'precisionMode' => TICK_SIZE,
             'exceptions' => array(
                 'exact' => array(
@@ -203,6 +264,8 @@ class coinbase extends Exchange {
                     'fiat',
                     // 'vault',
                 ),
+                'advanced' => true, // set to true if using any v3 endpoints from the advanced trade API
+                'fetchMarkets' => 'fetchMarketsV3', // 'fetchMarketsV3' or 'fetchMarketsV2'
             ),
         ));
     }
@@ -214,7 +277,7 @@ class coinbase extends Exchange {
              * @param {array} $params extra parameters specific to the coinbase api endpoint
              * @return {int} the current integer timestamp in milliseconds from the exchange server
              */
-            $response = Async\await($this->publicGetTime ($params));
+            $response = Async\await($this->v2PublicGetTime ($params));
             //
             //     {
             //         "data" => {
@@ -239,7 +302,7 @@ class coinbase extends Exchange {
             $request = array(
                 'limit' => 100,
             );
-            $response = Async\await($this->privateGetAccounts (array_merge($request, $params)));
+            $response = Async\await($this->v2PrivateGetAccounts (array_merge($request, $params)));
             //
             //     {
             //         "id" => "XLM",
@@ -343,7 +406,7 @@ class coinbase extends Exchange {
             $request = array(
                 'account_id' => $accountId,
             );
-            $response = Async\await($this->privatePostAccountsAccountIdAddresses (array_merge($request, $params)));
+            $response = Async\await($this->v2PrivatePostAccountsAccountIdAddresses (array_merge($request, $params)));
             //
             //     {
             //         "data" => {
@@ -406,7 +469,7 @@ class coinbase extends Exchange {
             $request = $this->prepare_account_request($limit, $params);
             Async\await($this->load_markets());
             $query = $this->omit($params, array( 'account_id', 'accountId' ));
-            $sells = Async\await($this->privateGetAccountsAccountIdSells (array_merge($request, $query)));
+            $sells = Async\await($this->v2PrivateGetAccountsAccountIdSells (array_merge($request, $query)));
             return $this->parse_trades($sells['data'], null, $since, $limit);
         }) ();
     }
@@ -425,7 +488,7 @@ class coinbase extends Exchange {
             $request = $this->prepare_account_request($limit, $params);
             Async\await($this->load_markets());
             $query = $this->omit($params, array( 'account_id', 'accountId' ));
-            $buys = Async\await($this->privateGetAccountsAccountIdBuys (array_merge($request, $query)));
+            $buys = Async\await($this->v2PrivateGetAccountsAccountIdBuys (array_merge($request, $query)));
             return $this->parse_trades($buys['data'], null, $since, $limit);
         }) ();
     }
@@ -451,7 +514,7 @@ class coinbase extends Exchange {
              * @return {[array]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure transaction structures}
              */
             // fiat only, for crypto transactions use fetchLedger
-            return Async\await($this->fetch_transactions_with_method('privateGetAccountsAccountIdWithdrawals', $code, $since, $limit, $params));
+            return Async\await($this->fetch_transactions_with_method('v2PrivateGetAccountsAccountIdWithdrawals', $code, $since, $limit, $params));
         }) ();
     }
 
@@ -466,7 +529,7 @@ class coinbase extends Exchange {
              * @return {[array]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure transaction structures}
              */
             // fiat only, for crypto transactions use fetchLedger
-            return Async\await($this->fetch_transactions_with_method('privateGetAccountsAccountIdDeposits', $code, $since, $limit, $params));
+            return Async\await($this->fetch_transactions_with_method('v2PrivateGetAccountsAccountIdDeposits', $code, $since, $limit, $params));
         }) ();
     }
 
@@ -665,10 +728,18 @@ class coinbase extends Exchange {
     public function fetch_markets($params = array ()) {
         return Async\async(function () use ($params) {
             /**
-             * retrieves $data on all markets for coinbase
+             * retrieves data on all markets for coinbase
              * @param {array} $params extra parameters specific to the exchange api endpoint
-             * @return {[array]} an array of objects representing market $data
+             * @return {[array]} an array of objects representing market data
              */
+            $version = $this->safe_string($this->options, 'fetchMarkets');
+            $method = ($this->safe_string($version, 'method', 'fetch_markets_v3'));
+            return Async\await($this->$method ($params));
+        }) ();
+    }
+
+    public function fetch_markets_v2($params = array ()) {
+        return Async\async(function () use ($params) {
             $response = Async\await($this->fetch_currencies_from_cache($params));
             $currencies = $this->safe_value($response, 'currencies', array());
             $exchangeRates = $this->safe_value($response, 'exchangeRates', array());
@@ -742,6 +813,130 @@ class coinbase extends Exchange {
         }) ();
     }
 
+    public function fetch_markets_v3($params = array ()) {
+        return Async\async(function () use ($params) {
+            $response = Async\await($this->v3PrivateGetBrokerageProducts ($params));
+            //
+            //     array(
+            //         array(
+            //             "product_id" => "TONE-USD",
+            //             "price" => "0.01523",
+            //             "price_percentage_change_24h" => "1.94109772423025",
+            //             "volume_24h" => "19773129",
+            //             "volume_percentage_change_24h" => "437.0170530929949",
+            //             "base_increment" => "1",
+            //             "quote_increment" => "0.00001",
+            //             "quote_min_size" => "1",
+            //             "quote_max_size" => "10000000",
+            //             "base_min_size" => "26.7187147229469674",
+            //             "base_max_size" => "267187147.2294696735908216",
+            //             "base_name" => "TE-FOOD",
+            //             "quote_name" => "US Dollar",
+            //             "watched" => false,
+            //             "is_disabled" => false,
+            //             "new" => false,
+            //             "status" => "online",
+            //             "cancel_only" => false,
+            //             "limit_only" => false,
+            //             "post_only" => false,
+            //             "trading_disabled" => false,
+            //             "auction_mode" => false,
+            //             "product_type" => "SPOT",
+            //             "quote_currency_id" => "USD",
+            //             "base_currency_id" => "TONE",
+            //             "fcm_trading_session_details" => null,
+            //             "mid_market_price" => ""
+            //         ),
+            //         ...
+            //     )
+            //
+            $fees = Async\await($this->v3PrivateGetBrokerageTransactionSummary ($params));
+            //
+            //     {
+            //         "total_volume" => 0,
+            //         "total_fees" => 0,
+            //         "fee_tier" => array(
+            //             "pricing_tier" => "",
+            //             "usd_from" => "0",
+            //             "usd_to" => "10000",
+            //             "taker_fee_rate" => "0.006",
+            //             "maker_fee_rate" => "0.004"
+            //         ),
+            //         "margin_rate" => null,
+            //         "goods_and_services_tax" => null,
+            //         "advanced_trade_only_volume" => 0,
+            //         "advanced_trade_only_fees" => 0,
+            //         "coinbase_pro_volume" => 0,
+            //         "coinbase_pro_fees" => 0
+            //     }
+            //
+            $feeTier = $this->safe_value($fees, 'fee_tier', array());
+            $data = $this->safe_value($response, 'products', array());
+            $result = array();
+            for ($i = 0; $i < count($data); $i++) {
+                $market = $data[$i];
+                $id = $this->safe_string($market, 'product_id');
+                $baseId = $this->safe_string($market, 'base_currency_id');
+                $quoteId = $this->safe_string($market, 'quote_currency_id');
+                $base = $this->safe_currency_code($baseId);
+                $quote = $this->safe_currency_code($quoteId);
+                $marketType = $this->safe_string_lower($market, 'product_type');
+                $tradingDisabled = $this->safe_value($market, 'trading_disabled');
+                $result[] = array(
+                    'id' => $id,
+                    'symbol' => $base . '/' . $quote,
+                    'base' => $base,
+                    'quote' => $quote,
+                    'settle' => null,
+                    'baseId' => $baseId,
+                    'quoteId' => $quoteId,
+                    'settleId' => null,
+                    'type' => $marketType,
+                    'spot' => ($marketType === 'spot'),
+                    'margin' => null,
+                    'swap' => false,
+                    'future' => false,
+                    'option' => false,
+                    'active' => !$tradingDisabled,
+                    'contract' => false,
+                    'linear' => null,
+                    'inverse' => null,
+                    'taker' => $this->in_array($id, $this->stablePairs) ? 0.00001 : $this->safe_number($feeTier, 'taker_fee_rate'),
+                    'maker' => $this->in_array($id, $this->stablePairs) ? 0.0 : $this->safe_number($feeTier, 'maker_fee_rate'),
+                    'contractSize' => null,
+                    'expiry' => null,
+                    'expiryDatetime' => null,
+                    'strike' => null,
+                    'optionType' => null,
+                    'precision' => array(
+                        'amount' => $this->safe_number($market, 'base_increment'),
+                        'price' => $this->safe_number($market, 'quote_increment'),
+                    ),
+                    'limits' => array(
+                        'leverage' => array(
+                            'min' => null,
+                            'max' => null,
+                        ),
+                        'amount' => array(
+                            'min' => $this->safe_number($market, 'base_min_size'),
+                            'max' => $this->safe_number($market, 'base_max_size'),
+                        ),
+                        'price' => array(
+                            'min' => null,
+                            'max' => null,
+                        ),
+                        'cost' => array(
+                            'min' => $this->safe_number($market, 'quote_min_size'),
+                            'max' => $this->safe_number($market, 'quote_max_size'),
+                        ),
+                    ),
+                    'info' => $market,
+                );
+            }
+            return $result;
+        }) ();
+    }
+
     public function fetch_currencies_from_cache($params = array ()) {
         return Async\async(function () use ($params) {
             $options = $this->safe_value($this->options, 'fetchCurrencies', array());
@@ -749,8 +944,8 @@ class coinbase extends Exchange {
             $expires = $this->safe_integer($options, 'expires', 1000);
             $now = $this->milliseconds();
             if (($timestamp === null) || (($now - $timestamp) > $expires)) {
-                $currencies = Async\await($this->publicGetCurrencies ($params));
-                $exchangeRates = Async\await($this->publicGetExchangeRates ($params));
+                $currencies = Async\await($this->v2PublicGetCurrencies ($params));
+                $exchangeRates = Async\await($this->v2PublicGetExchangeRates ($params));
                 $this->options['fetchCurrencies'] = array_merge($options, array(
                     'currencies' => $currencies,
                     'exchangeRates' => $exchangeRates,
@@ -778,7 +973,7 @@ class coinbase extends Exchange {
             //             array("id":"ALL","name":"Albanian Lek","min_size":"0.01000000"),
             //             array("id":"AMD","name":"Armenian Dram","min_size":"0.01000000"),
             //             array("id":"ANG","name":"Netherlands Antillean Gulden","min_size":"0.01000000"),
-            //             // ...
+            //             ...
             //         ),
             //     }
             //
@@ -793,7 +988,7 @@ class coinbase extends Exchange {
             //                 "ALL":"110.42",
             //                 "AMD":"474.18",
             //                 "ANG":"1.75",
-            //                 // ...
+            //                 ...
             //             ),
             //         }
             //     }
@@ -850,7 +1045,7 @@ class coinbase extends Exchange {
             $request = array(
                 // 'currency' => 'USD',
             );
-            $response = Async\await($this->publicGetExchangeRates (array_merge($request, $params)));
+            $response = Async\await($this->v2PublicGetExchangeRates (array_merge($request, $params)));
             //
             //     {
             //         "data":{
@@ -893,15 +1088,15 @@ class coinbase extends Exchange {
             $request = array_merge(array(
                 'symbol' => $market['id'],
             ), $params);
-            $spot = Async\await($this->publicGetPricesSymbolSpot ($request));
+            $spot = Async\await($this->v2PublicGetPricesSymbolSpot ($request));
             //
             //     array("data":array("base":"BTC","currency":"USD","amount":"48691.23"))
             //
-            $buy = Async\await($this->publicGetPricesSymbolBuy ($request));
+            $buy = Async\await($this->v2PublicGetPricesSymbolBuy ($request));
             //
             //     array("data":array("base":"BTC","currency":"USD","amount":"48691.23"))
             //
-            $sell = Async\await($this->publicGetPricesSymbolSell ($request));
+            $sell = Async\await($this->v2PublicGetPricesSymbolSell ($request));
             //
             //     array("data":array("base":"BTC","currency":"USD","amount":"48691.23"))
             //
@@ -1002,7 +1197,7 @@ class coinbase extends Exchange {
             $request = array(
                 'limit' => 100,
             );
-            $response = Async\await($this->privateGetAccounts (array_merge($request, $params)));
+            $response = Async\await($this->v2PrivateGetAccounts (array_merge($request, $params)));
             //
             //     {
             //         "pagination":array(
@@ -1067,7 +1262,7 @@ class coinbase extends Exchange {
             // for pagination use parameter 'starting_after'
             // the value for the next page can be obtained from the result of the previous call in the 'pagination' field
             // eg => instance.last_json_response.pagination.next_starting_after
-            $response = Async\await($this->privateGetAccountsAccountIdTransactions (array_merge($request, $query)));
+            $response = Async\await($this->v2PrivateGetAccountsAccountIdTransactions (array_merge($request, $query)));
             return $this->parse_ledger($response['data'], $currency, $since, $limit);
         }) ();
     }
@@ -1453,16 +1648,20 @@ class coinbase extends Exchange {
         }) ();
     }
 
-    public function sign($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
-        $fullPath = '/' . $this->version . '/' . $this->implode_params($path, $params);
+    public function sign($path, $api = [], $method = 'GET', $params = array (), $headers = null, $body = null) {
+        $version = $api[0];
+        $signed = $api[1] === 'private';
+        $pathPart = ($version === 'v3') ? 'api/v3' : 'v2';
+        $fullPath = '/' . $pathPart . '/' . $this->implode_params($path, $params);
         $query = $this->omit($params, $this->extract_params($path));
+        $savedPath = $fullPath;
         if ($method === 'GET') {
             if ($query) {
                 $fullPath .= '?' . $this->urlencode($query);
             }
         }
         $url = $this->urls['api']['rest'] . $fullPath;
-        if ($api === 'private') {
+        if ($signed) {
             $authorization = $this->safe_string($this->headers, 'Authorization');
             if ($authorization !== null) {
                 $headers = array(
@@ -1484,7 +1683,12 @@ class coinbase extends Exchange {
                         $payload = $body;
                     }
                 }
-                $auth = $nonce . $method . $fullPath . $payload;
+                $auth = null;
+                if ($version === 'v3') {
+                    $auth = $nonce . $method . $savedPath . $payload;
+                } else {
+                    $auth = $nonce . $method . $fullPath . $payload;
+                }
                 $signature = $this->hmac($this->encode($auth), $this->encode($this->secret));
                 $headers = array(
                     'CB-ACCESS-KEY' => $this->apiKey,
@@ -1538,8 +1742,9 @@ class coinbase extends Exchange {
                 }
             }
         }
+        $advancedTrade = $this->options['advanced'];
         $data = $this->safe_value($response, 'data');
-        if ($data === null) {
+        if (($data === null) && (!$advancedTrade)) {
             throw new ExchangeError($this->id . ' failed due to a malformed $response ' . $this->json($response));
         }
     }

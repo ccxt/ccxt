@@ -1468,6 +1468,8 @@ export default class kucoin extends Exchange {
         const quoteAmount = this.safeNumber2 (params, 'cost', 'funds');
         let amountString = undefined;
         let costString = undefined;
+        let marginMode = undefined;
+        [ marginMode, params ] = this.handleMarginModeAndParams ('createOrder', params);
         if (type === 'market') {
             if (quoteAmount !== undefined) {
                 params = this.omit (params, [ 'cost', 'funds' ]);
@@ -1491,16 +1493,19 @@ export default class kucoin extends Exchange {
         if (isStopLoss && isTakeProfit) {
             throw new ExchangeError (this.id + ' createOrder() stopLossPrice and takeProfitPrice cannot both be defined');
         }
-        const tradeType = this.safeString (params, 'tradeType');
         params = this.omit (params, [ 'stopLossPrice', 'takeProfitPrice', 'stopPrice' ]);
+        const tradeType = this.safeString (params, 'tradeType'); // keep it for backward compatibility
         let method = 'privatePostOrders';
         if (isStopLoss || isTakeProfit) {
             request['stop'] = isStopLoss ? 'entry' : 'loss';
             const triggerPrice = isStopLoss ? stopLossPrice : takeProfitPrice;
             request['stopPrice'] = this.priceToPrecision (symbol, triggerPrice);
             method = 'privatePostStopOrder';
-        } else if (tradeType === 'MARGIN_TRADE') {
+        } else if (tradeType === 'MARGIN_TRADE' || marginMode !== undefined) {
             method = 'privatePostMarginOrder';
+            if (marginMode === 'isolated') {
+                request['marginModel'] = 'isolated';
+            }
         }
         const response = await this[method] (this.extend (request, params));
         //

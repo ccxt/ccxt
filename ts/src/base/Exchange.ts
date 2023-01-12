@@ -140,6 +140,7 @@ import { Precise } from './Precise.js'
 
 //-----------------------------------------------------------------------------
 import WsClient from './ws/WsClient.js';
+import Future from './ws/Future.js';
 import { OrderBook, IndexedOrderBook, CountedOrderBook } from './ws/OrderBook.js';
 
 // ----------------------------------------------------------------------------
@@ -276,6 +277,8 @@ export default class Exchange {
     lastRestRequestTimestamp = undefined
 
     targetAccount = undefined
+    
+    stablePairs = {}
     
     // WS/PRO options
     clients = {}
@@ -1228,9 +1231,9 @@ export default class Exchange {
         }
 
         spawn (method, ... args) {
-            return (method.apply (this, args)).catch ((e) => {
-                // todo: handle spawned errors
-            })
+            const future = Future ()
+            method.apply (this, args).then ((future as any).resolve).catch ((future as any).reject)
+            return future
         }
     
         delay (timeout, method, ... args) {
@@ -1344,6 +1347,13 @@ export default class Exchange {
             }
         })
         return future;
+    }
+
+    subscribeBase (url, messageHash, message) {
+        // this function should be used inside of authenticate instead of watch
+        const future = this.watch (url, messageHash, message)
+        this.clients[url].subscriptions[messageHash] = future
+        return future
     }
 
     onConnected (client, message = undefined) {

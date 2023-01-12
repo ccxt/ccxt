@@ -131,13 +131,14 @@ class coinex extends \ccxt\async\coinex {
         //         )]
         //     }
         //
+        $defaultType = $this->safe_string($this->options, 'defaultType');
         $params = $this->safe_value($message, 'params', array());
         $first = $this->safe_value($params, 0, array());
         $keys = is_array($first) ? array_keys($first) : array();
         $marketId = $this->safe_string($keys, 0);
-        $symbol = $this->safe_symbol($marketId);
+        $symbol = $this->safe_symbol($marketId, null, null, $defaultType);
         $ticker = $this->safe_value($first, $marketId, array());
-        $market = $this->safe_market($marketId);
+        $market = $this->safe_market($marketId, null, null, $defaultType);
         $parsedTicker = $this->parse_ws_ticker($ticker, $market);
         $messageHash = 'ticker:' . $symbol;
         $this->tickers[$symbol] = $parsedTicker;
@@ -184,8 +185,9 @@ class coinex extends \ccxt\async\coinex {
         //         buy_total => '25.7814'
         //     }
         //
+        $defaultType = $this->safe_string($this->options, 'defaultType');
         return $this->safe_ticker(array(
-            'symbol' => $this->safe_symbol(null, $market),
+            'symbol' => $this->safe_symbol(null, $market, null, $defaultType),
             'timestamp' => null,
             'datetime' => null,
             'high' => $this->safe_string($ticker, 'high'),
@@ -287,8 +289,9 @@ class coinex extends \ccxt\async\coinex {
         $params = $this->safe_value($message, 'params', array());
         $marketId = $this->safe_string($params, 0);
         $trades = $this->safe_value($params, 1, array());
-        $market = $this->safe_market($marketId);
-        $symbol = $this->safe_symbol($marketId);
+        $defaultType = $this->safe_string($this->options, 'defaultType');
+        $market = $this->safe_market($marketId, null, null, $defaultType);
+        $symbol = $market['symbol'];
         $messageHash = 'trades:' . $symbol;
         $stored = $this->safe_value($this->trades, $symbol);
         if ($stored === null) {
@@ -316,12 +319,13 @@ class coinex extends \ccxt\async\coinex {
         //     }
         //
         $timestamp = $this->safe_timestamp($trade, 'time');
+        $defaultType = $this->safe_string($this->options, 'defaultType');
         return $this->safe_trade(array(
             'id' => $this->safe_string($trade, 'id'),
             'info' => $trade,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
-            'symbol' => $this->safe_symbol(null, $market),
+            'symbol' => $this->safe_symbol(null, $market, null, $defaultType),
             'order' => null,
             'type' => null,
             'side' => $this->safe_string($trade, 'type'),
@@ -546,7 +550,8 @@ class coinex extends \ccxt\async\coinex {
         $fullOrderBook = $this->safe_value($params, 0);
         $orderBook = $this->safe_value($params, 1);
         $marketId = $this->safe_string($params, 2);
-        $market = $this->safe_market($marketId);
+        $defaultType = $this->safe_string($this->options, 'defaultType');
+        $market = $this->safe_market($marketId, null, null, $defaultType);
         $symbol = $market['symbol'];
         $name = 'orderbook';
         $messageHash = $name . ':' . $symbol;
@@ -845,7 +850,8 @@ class coinex extends \ccxt\async\coinex {
         $remaining = $this->safe_string($order, 'left');
         $amount = $this->safe_string($order, 'amount');
         $status = $this->safe_string($order, 'status');
-        $market = $this->safe_market($marketId);
+        $defaultType = $this->safe_string($this->options, 'defaultType');
+        $market = $this->safe_market($marketId, null, null, $defaultType);
         $cost = $this->safe_string($order, 'deal_money');
         $filled = $this->safe_string($order, 'deal_stock');
         $average = null;

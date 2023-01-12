@@ -4471,13 +4471,15 @@ export default class binance extends Exchange {
         const currencyId = this.safeString2 (transaction, 'coin', 'fiatCurrency');
         let code = this.safeCurrencyCode (currencyId, currency);
         let timestamp = undefined;
-        const insertTime = this.safeInteger2 (transaction, 'insertTime', 'createTime');
+        timestamp = this.safeInteger2 (transaction, 'insertTime', 'createTime');
+        if (timestamp === undefined) {
+            timestamp = this.parse8601 (this.safeString (transaction, 'applyTime'));
+        }
         const updated = this.safeInteger2 (transaction, 'successTime', 'updateTime');
         let type = this.safeString (transaction, 'type');
         if (type === undefined) {
             const txType = this.safeString (transaction, 'transactionType');
             type = (txType === '0') ? 'deposit' : 'withdrawal';
-            timestamp = insertTime;
             const legalMoneyCurrenciesById = this.safeValue (this.options, 'legalMoneyCurrenciesById');
             code = this.safeString (legalMoneyCurrenciesById, code, code);
         }

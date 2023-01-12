@@ -5905,7 +5905,12 @@ class bybit(Exchange):
         size = Precise.string_abs(self.safe_string(position, 'size'))
         side = self.safe_string(position, 'side')
         if side is not None:
-            side = 'long' if (side == 'Buy') else 'short'
+            if side == 'Buy':
+                side = 'long'
+            elif side == 'Sell':
+                side = 'short'
+            else:
+                side = None
         notional = self.safe_string(position, 'positionValue')
         unrealisedPnl = self.omit_zero(self.safe_string(position, 'unrealisedPnl'))
         initialMarginString = self.safe_string(position, 'positionIM')

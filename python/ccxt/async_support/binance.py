@@ -4224,13 +4224,14 @@ class binance(Exchange):
         currencyId = self.safe_string_2(transaction, 'coin', 'fiatCurrency')
         code = self.safe_currency_code(currencyId, currency)
         timestamp = None
-        insertTime = self.safe_integer_2(transaction, 'insertTime', 'createTime')
+        timestamp = self.safe_integer_2(transaction, 'insertTime', 'createTime')
+        if timestamp is None:
+            timestamp = self.parse8601(self.safe_string(transaction, 'applyTime'))
         updated = self.safe_integer_2(transaction, 'successTime', 'updateTime')
         type = self.safe_string(transaction, 'type')
         if type is None:
             txType = self.safe_string(transaction, 'transactionType')
             type = 'deposit' if (txType == '0') else 'withdrawal'
-            timestamp = insertTime
             legalMoneyCurrenciesById = self.safe_value(self.options, 'legalMoneyCurrenciesById')
             code = self.safe_string(legalMoneyCurrenciesById, code, code)
         status = self.parse_transaction_status_by_type(self.safe_string(transaction, 'status'), type)

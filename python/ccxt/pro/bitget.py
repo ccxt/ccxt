@@ -316,6 +316,7 @@ class bitget(Exchange, ccxt.async_support.bitget):
             self.safe_number(ohlcv, 2),
             self.safe_number(ohlcv, 3),
             self.safe_number(ohlcv, 4),
+            self.safe_number(ohlcv, 5),
         ]
 
     async def watch_order_book(self, symbol, limit=None, params={}):

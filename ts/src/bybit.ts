@@ -6283,7 +6283,13 @@ export default class bybit extends Exchange {
         const size = Precise.stringAbs (this.safeString (position, 'size'));
         let side = this.safeString (position, 'side');
         if (side !== undefined) {
-            side = (side === 'Buy') ? 'long' : 'short';
+            if (side === 'Buy') {
+                side = 'long';
+            } else if (side === 'Sell') {
+                side = 'short';
+            } else {
+                side = undefined;
+            }
         }
         const notional = this.safeString (position, 'positionValue');
         const unrealisedPnl = this.omitZero (this.safeString (position, 'unrealisedPnl'));
