@@ -239,7 +239,7 @@ module.exports = class gemini extends Exchange {
                 },
             },
             'options': {
-                'fetchMarketsMethod': 'fetch_markets_from_web',
+                'fetchMarketsMethod': 'fetch_markets_from_api',
                 'fetchMarketFromWebRetries': 10,
                 'fetchMarketsFromAPI': {
                     'fetchDetailsForAllSymbols': false,
@@ -422,8 +422,9 @@ module.exports = class gemini extends Exchange {
         for (let i = 0; i < response.length; i++) {
             const marketId = response[i];
             const idLength = marketId.length - 0;
-            const baseId = marketId.slice (0, idLength - 3); // Not true for all markets
-            const quoteId = marketId.slice (idLength - 3, idLength);
+            const quoteSize = (marketId.indexOf ('usdt') === -1) ? 3 : 4;
+            const baseId = marketId.slice (0, idLength - quoteSize); // Not true for all markets
+            const quoteId = marketId.slice (idLength - quoteSize, idLength);
             const base = this.safeCurrencyCode (baseId);
             const quote = this.safeCurrencyCode (quoteId);
             result[marketId] = {
