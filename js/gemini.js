@@ -239,11 +239,12 @@ module.exports = class gemini extends Exchange {
                 },
             },
             'options': {
-                'fetchMarketsMethod': 'fetch_markets_from_api',
+                'fetchMarketsMethod': 'fetch_markets_from_web',
                 'fetchMarketFromWebRetries': 10,
                 'fetchMarketsFromAPI': {
                     'fetchDetailsForAllSymbols': false,
                     'fetchDetailsForMarketIds': [],
+                    'fetchUsdtMarkets': [ 'btcusdt', 'ethusdt' ], // keep this list updated (not available trough web api)
                 },
                 'fetchTickerMethod': 'fetchTickerV1', // fetchTickerV1, fetchTickerV2, fetchTickerV1AndV2
                 'networkIds': {
@@ -280,6 +281,11 @@ module.exports = class gemini extends Exchange {
          * @returns {[object]} an array of objects representing market data
          */
         const method = this.safeValue (this.options, 'fetchMarketsMethod', 'fetch_markets_from_api');
+        if (method === 'fetch_markets_from_web') {
+            const usdMarkets = await this.fetchMarketsFromWeb (params); // get usd markets
+            const usdtMarkets = await this.fetchMarketsFromAPI (params); // get usdt markets
+            return this.arrayConcat (usdMarkets, usdtMarkets);
+        }
         return await this[method] (params);
     }
 
@@ -480,10 +486,13 @@ module.exports = class gemini extends Exchange {
         const options = this.safeValue (this.options, 'fetchMarketsFromAPI', {});
         const fetchDetailsForAllSymbols = this.safeValue (options, 'fetchDetailsForAllSymbols', false);
         const fetchDetailsForMarketIds = this.safeValue (options, 'fetchDetailsForMarketIds', []);
+        const fetchUsdtMarkets = this.safeValue (options, 'fetchUsdtMarkets', []);
         let promises = [];
         let marketIds = [];
         if (fetchDetailsForAllSymbols) {
             marketIds = response;
+        } else if (fetchUsdtMarkets.length > 0) {
+            marketIds = fetchUsdtMarkets;
         } else {
             marketIds = fetchDetailsForMarketIds;
         }
