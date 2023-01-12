@@ -1772,6 +1772,7 @@ module.exports = class delta extends Exchange {
          * @description fetch the deposit address for a currency associated with this account
          * @param {string} code unified currency code
          * @param {object} params extra parameters specific to the delta api endpoint
+         * @param {string} params.network unified network code
          * @returns {object} an [address structure]{@link https://docs.ccxt.com/en/latest/manual.html#address-structure}
          */
         await this.loadMarkets ();
@@ -1779,6 +1780,11 @@ module.exports = class delta extends Exchange {
         const request = {
             'asset_symbol': currency['id'],
         };
+        const networkCode = this.safeStringUpper (params, 'network');
+        if (networkCode !== undefined) {
+            request['network'] = this.networkCodeToId (networkCode, code);
+            params = this.omit (params, 'network');
+        }
         const response = await this.privateGetDepositsAddress (this.extend (request, params));
         //
         //    {
