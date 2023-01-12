@@ -55,6 +55,8 @@ function cleanupOldTags () {
     }
 
     log.bright.red ('Deleting', tagsToDelete.length, 'tags...')
+    log.bright.red (tagsToDelete)
+    log.bright.red ('Deleting', tagsToDelete.length, 'tags...')
 
     if (!process.argv.includes ('--paper')) {
 
