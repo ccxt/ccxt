@@ -431,6 +431,15 @@ module.exports = class gemini extends Exchange {
             result[marketId] = {
                 'id': marketId,
                 'symbol': base + '/' + quote,
+                'base': base,
+                'quote': quote,
+                'settle': undefined,
+                'baseId': baseId,
+                'quoteId': quoteId,
+                'settleId': undefined,
+                'type': 'spot',
+                'spot': true,
+                'margin': false,
                 'swap': false,
                 'future': false,
                 'option': false,
@@ -438,11 +447,14 @@ module.exports = class gemini extends Exchange {
                 'contract': false,
                 'linear': undefined,
                 'inverse': undefined,
+                'contractSize': undefined,
+                'expiry': undefined,
+                'expiryDatetime': undefined,
                 'strike': undefined,
                 'optionType': undefined,
                 'precision': {
-                    'price': undefined,
                     'amount': undefined,
+                    'price': undefined,
                 },
                 'limits': {
                     'leverage': {
@@ -454,6 +466,11 @@ module.exports = class gemini extends Exchange {
                         'max': undefined,
                     },
                     'price': {
+                        'min': undefined,
+                        'max': undefined,
+                    },
+                    'cost': {
+                        'min': undefined,
                         'max': undefined,
                     },
                 },
