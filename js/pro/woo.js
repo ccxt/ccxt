@@ -433,7 +433,6 @@ module.exports = class woo extends wooRest {
             const ts = this.nonce ().toString ();
             const auth = '|' + ts;
             const signature = this.hmac (this.encode (auth), this.encode (this.secret), 'sha256');
-
             const request = {
                 'event': event,
                 'params': {
