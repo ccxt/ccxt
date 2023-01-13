@@ -196,6 +196,7 @@ import huobiproPro from  './src/pro/huobipro.js'
 import idexPro from  './src/pro/idex.js'
 import krakenPro from  './src/pro/kraken.js'
 import kucoinPro from  './src/pro/kucoin.js'
+import kucoinfuturesPro from  './src/pro/kucoinfutures.js'
 import lunoPro from  './src/pro/luno.js'
 import mexcPro from  './src/pro/mexc.js'
 import ndaxPro from  './src/pro/ndax.js'
@@ -365,6 +366,7 @@ const pro = {
     'idex':                   idexPro,
     'kraken':                 krakenPro,
     'kucoin':                 kucoinPro,
+    'kucoinfutures':          kucoinfuturesPro,
     'luno':                   lunoPro,
     'mexc':                   mexcPro,
     'ndax':                   ndaxPro,
