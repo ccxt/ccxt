@@ -1675,9 +1675,15 @@ module.exports = class Exchange {
     getDefaultOptions () {
         return {
             'defaultNetworkCodeReplacements': {
+                // mainnetCurrencyCode : { tokenNetworkCode: mainnetNetworkCode }
                 'ETH': { 'ERC20': 'ETH' },
                 'TRX': { 'TRC20': 'TRX' },
                 'CRO': { 'CRC20': 'CRONOS' },
+            },
+            'mainnetAndTokenNetworkCodes': {
+                'ETH': 'ERC20',
+                'TRX': 'TRC20',
+                'CRONOS': 'CRC20',
             },
             // this list is for common reserved CCXT unified network codes, the primary and supported secondary unified network codes
             'unifiedNetworkCodesAndAliases': {
@@ -1745,16 +1751,6 @@ module.exports = class Exchange {
             const idsFromOptions = this.safeValue (this.options, 'networkIdsToCodes', {}); // support for override, if user sets
             const networkIdsToCodes = this.extend (networkIdsToCodesAuto, idsFromOptions);
             this.optionNetworkData['idsOrTitlesToCodes'] = networkIdsToCodes;
-            //
-            // to make a quick lookup later, create a dict of mainnet codes, i.e.
-            //   { ETH, CRONOS, ...}
-            const defaultNetworkCodeReplacements = this.safeValue (this.options, 'defaultNetworkCodeReplacements', {});
-            let mainnetCodes = {};
-            const values = Object.values (defaultNetworkCodeReplacements);
-            for (let i = 0; i < values.length; i++) {
-                mainnetCodes = this.extend (mainnetCodes, this.invertStringDictionary (values[i]));
-            }
-            this.optionNetworkData['mainnetAndSecondaryNetworkCodes'] = this.values (mainnetCodes);
             //
             // to make a quick lookup later, define reversed dictionary for aliases: { 'BEP20': 'BEP20', 'BSC': 'BEP20', ... }
             const aliases = this.safeValue (this.options, 'unifiedNetworkCodesAndAliases');
@@ -1983,12 +1979,12 @@ module.exports = class Exchange {
         // replace network-codes for mainnet coins, i.e. for ethereum coin, set 'ETH' unified networkCode instead of 'ERC20'
         if (currencyCode !== undefined) {
             const defaultNetworkCodeReplacements = this.safeValue (this.options, 'defaultNetworkCodeReplacements', {});
-            const isMainnet = (currencyCode in defaultNetworkCodeReplacements)
+            const isMainnetCurrency = (currencyCode in defaultNetworkCodeReplacements);
             const replacementObject = this.safeValue (defaultNetworkCodeReplacements, currencyCode, {});
             // "networkCode" is an array at this stage, then we have to remove all mainnet matches
             if (this.isArray (networkCode)) {
-                for (let i = 0; i < this.optionNetworkData['mainnetAndSecondaryNetworkCodes'].length; i++) {
-                    const value = this.optionNetworkData['mainnetAndSecondaryNetworkCodes'][i];
+                for (let i = 0; i < this.optionNetworkData['mainnetAndTokenNetworkCodes'].length; i++) {
+                    const value = this.optionNetworkData['mainnetAndTokenNetworkCodes'][i];
     
                 }
             } else {
