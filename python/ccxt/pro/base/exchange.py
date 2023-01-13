@@ -166,18 +166,21 @@ class Exchange(BaseExchange):
             client.reject(ExchangeError(self.id + ' loadOrderBook() orderbook is not initiated'), messageHash)
             return
         try:
+            maxRetries = self.handle_option('watchOrderBook', 'maxRetries', 3)
+            tries = 0
             stored = self.orderbooks[symbol]
-            cache = stored.cache
-            order_book = await self.fetch_order_book(symbol, limit, params)
-            index = self.get_cache_index(order_book, cache)
-            if index >= 0:
-                stored.reset(order_book)
-                self.handle_deltas(stored, cache[index:])
-                cache.clear()
-                client.resolve(stored, messageHash)
-                return
-            else:
-                client.reject(ExchangeError(self.id + ' nonce is behind cache'), messageHash)
+            while tries < maxRetries:
+                cache = stored.cache
+                order_book = await self.fetch_order_book(symbol, limit, params)
+                index = self.get_cache_index(order_book, cache)
+                if index >= 0:
+                    stored.reset(order_book)
+                    self.handle_deltas(stored, cache[index:])
+                    cache.clear()
+                    client.resolve(stored, messageHash)
+                    return
+                tries += 1
+            client.reject(ExchangeError(self.id + ' nonce is behind cache after ' + str(maxRetries) + ' tries.'), messageHash)
         except BaseError as e:
             client.reject(e, messageHash)
         await self.load_order_book(client, messageHash, symbol, limit, params)

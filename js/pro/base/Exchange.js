@@ -189,20 +189,24 @@ module.exports = class Exchange extends BaseExchange {
             client.reject (new ExchangeError (this.id + ' loadOrderBook() orderbook is not initiated'), messageHash);
             return;
         }
+        const maxRetries = this.handleOption ('watchOrderBook', 'maxRetries', 3);
+        let tries = 0;
         try {
             const stored = this.orderbooks[symbol];
-            const cache = stored.cache;
-            const orderBook = await this.fetchOrderBook (symbol, limit, params);
-            const index = this.getCacheIndex (orderBook, cache);
-            if (index >= 0) {
-                stored.reset (orderBook);
-                this.handleDeltas (stored, cache.slice (index));
-                stored.cache.length = 0;
-                client.resolve (stored, messageHash);
-                return;
-            } else {
-                client.reject (new ExchangeError (this.id + ' nonce is behind the cache'), messageHash);
+            while (tries < maxRetries) {
+                const cache = stored.cache;
+                const orderBook = await this.fetchOrderBook (symbol, limit, params);
+                const index = this.getCacheIndex (orderBook, cache);
+                if (index >= 0) {
+                    stored.reset (orderBook);
+                    this.handleDeltas (stored, cache.slice (index));
+                    stored.cache.length = 0;
+                    client.resolve (stored, messageHash);
+                    return;
+                }
+                tries++;
             }
+            client.reject (new ExchangeError (this.id + ' nonce is behind the cache after ' + maxRetries.toString () + ' tries.'), messageHash);
         } catch (e) {
             client.reject (e, messageHash);
         }

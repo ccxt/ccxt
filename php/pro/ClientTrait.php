@@ -171,17 +171,21 @@ trait ClientTrait {
             }
             try {
                 $stored = $this->orderbooks[$symbol];
-                $orderBook = Async\await($this->fetch_order_book($symbol, $limit, $params));
-                $index = $this->get_cache_index($orderBook, $stored->cache);
-                if ($index >= 0) {
-                    $stored->reset($orderBook);
-                    $this->handle_deltas($stored, array_slice($stored->cache, $index));
-                    $stored->cache = array();
-                    $client->resolve($stored, $messageHash);
-                    return;
-                } else {
-                    $client->reject (new ExchangeError ($this->id . ' nonce is behind the cache'), $messageHash);
+                $maxRetries = $this->handle_option('watchOrderBook', 'maxRetries', 3);
+                $tries = 0;
+                while ($tries < $maxRetries) {
+                    $orderBook = Async\await($this->fetch_order_book($symbol, $limit, $params));
+                    $index = $this->get_cache_index($orderBook, $stored->cache);
+                    if ($index >= 0) {
+                        $stored->reset($orderBook);
+                        $this->handle_deltas($stored, array_slice($stored->cache, $index));
+                        $stored->cache = array();
+                        $client->resolve($stored, $messageHash);
+                        return;
+                    } 
+                    $tries++;
                 }
+                $client->reject (new ExchangeError ($this->id . ' nonce is behind the cache after ' . strval($tries) . ' tries.' ), $messageHash);
             } catch (BaseError $e) {
                 $client->reject($e, $messageHash);
             }
