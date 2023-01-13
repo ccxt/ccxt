@@ -829,7 +829,7 @@ class binance extends \ccxt\async\binance {
                 }
             }
             $resultKeys = is_array($result) ? array_keys($result) : array();
-            if (count($resultKeys) > 0) {
+            if (strlen($resultKeys) > 0) {
                 if ($this->newUpdates) {
                     return $result;
                 }
