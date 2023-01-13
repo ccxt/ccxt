@@ -2,7 +2,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '2.5.96'
+__version__ = '2.6.6'
 
 # -----------------------------------------------------------------------------
 
@@ -127,12 +127,6 @@ class Exchange(BaseExchange):
 
         connected.add_done_callback(after)
 
-        return future
-
-    def subscribe(self, url, message_hash, message):
-        # this function should be used inside of authenticate instead of watch
-        future = self.watch(url, message_hash, message)
-        self.clients[url].subscriptions[message_hash] = future
         return future
 
     def on_connected(self, client, message=None):

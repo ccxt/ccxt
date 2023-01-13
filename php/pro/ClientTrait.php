@@ -116,13 +116,6 @@ trait ClientTrait {
         return $future;
     }
 
-    public function subscribe($url, $messageHash, $message) {
-        // this function should be used inside of authenticate instead of watch
-        $future = $this->watch($url, $messageHash, $message);
-        $this->clients[$url]->subscriptions[$messageHash] = $future;
-        return $future;
-    }
-
     public function on_connected($client, $message = null) {
         // for user hooks
         // echo "Connected to " . $client->url . "\n";

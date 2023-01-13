@@ -2167,8 +2167,8 @@ module.exports = class Exchange {
         if (marketId !== undefined) {
             if ((this.markets_by_id !== undefined) && (marketId in this.markets_by_id)) {
                 const markets = this.markets_by_id[marketId];
-                const length = markets.length;
-                if (length === 1) {
+                const numMarkets = markets.length;
+                if (numMarkets === 1) {
                     return markets[0];
                 } else {
                     if (marketType === undefined) {

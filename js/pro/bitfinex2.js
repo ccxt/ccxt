@@ -838,41 +838,42 @@ module.exports = class bitfinex2 extends bitfinex2Rest {
         return message;
     }
 
-    async authenticate (params = {}) {
+    authenticate (params = {}) {
         const url = this.urls['api']['ws']['private'];
         const client = this.client (url);
-        const future = client.future ('authenticated');
-        const method = 'auth';
-        const authenticated = this.safeValue (client.subscriptions, method);
-        if (authenticated === undefined) {
+        const messageHash = 'authenticate';
+        let future = this.safeValue (client.subscriptions, messageHash);
+        if (future === undefined) {
             const nonce = this.milliseconds ();
             const payload = 'AUTH' + nonce.toString ();
             const signature = this.hmac (this.encode (payload), this.encode (this.secret), 'sha384', 'hex');
+            const event = 'auth';
             const request = {
                 'apiKey': this.apiKey,
                 'authSig': signature,
                 'authNonce': nonce,
                 'authPayload': payload,
-                'event': method,
+                'event': event,
             };
-            this.spawn (this.watch, url, method, request, 1);
+            const message = this.extend (request, params);
+            future = this.watch (url, messageHash, message);
+            client.subscriptions[messageHash] = future;
         }
-        return await future;
+        return future;
     }
 
     handleAuthenticationMessage (client, message) {
+        const messageHash = 'authenticated';
         const status = this.safeString (message, 'status');
         if (status === 'OK') {
             // we resolve the future here permanently so authentication only happens once
-            const future = this.safeValue (client.futures, 'authenticated');
-            future.resolve (true);
+            client.resolve (message, messageHash);
         } else {
             const error = new AuthenticationError (this.json (message));
-            client.reject (error, 'authenticated');
+            client.reject (error, messageHash);
             // allows further authentication attempts
-            const method = this.safeString (message, 'event');
-            if (method in client.subscriptions) {
-                delete client.subscriptions[method];
+            if (messageHash in client.subscriptions) {
+                delete client.subscriptions[messageHash];
             }
         }
     }
