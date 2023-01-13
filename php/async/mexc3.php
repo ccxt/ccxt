@@ -647,7 +647,7 @@ class mexc3 extends Exchange {
                         'active' => $active,
                         'deposit' => $isDepositEnabled,
                         'withdraw' => $isWithdrawEnabled,
-                        'fee' => $this->safe_number($chain, 'fee'),
+                        'fee' => $fee,
                         'precision' => null,
                         'limits' => array(
                             'withdraw' => array(
