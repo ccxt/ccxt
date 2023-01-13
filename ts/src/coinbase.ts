@@ -726,8 +726,8 @@ export default class coinbase extends Exchange {
          * @param {object} params extra parameters specific to the exchange api endpoint
          * @returns {[object]} an array of objects representing market data
          */
-        const version = this.safeValue (this.options, 'fetchMarkets');
-        const method = (this.safeString (version, 'method', 'fetch_markets_v3'));
+        const options = this.safeValue (this.options, 'fetchMarkets');
+        const method = (this.safeString (options, 'method', 'fetch_markets_v3'));
         return await this[method] (params);
     }
 

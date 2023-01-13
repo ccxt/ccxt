@@ -751,7 +751,8 @@ class binance(Exchange, ccxt.async_support.binance):
             if symbols is None or self.in_array(tickerSymbol, symbols):
                 result[tickerSymbol] = ticker
         resultKeys = list(result.keys())
-        if len(resultKeys) > 0:
+        resultKeysLength = len(resultKeys)
+        if resultKeysLength > 0:
             if self.newUpdates:
                 return result
             return self.filter_by_array(self.tickers, 'symbol', symbols)

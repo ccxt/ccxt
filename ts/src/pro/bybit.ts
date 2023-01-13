@@ -1346,14 +1346,14 @@ export default class bybit extends bybitRest {
         return await this.watch (url, messageHash, message, messageHash);
     }
 
-    async authenticate (url, params = {}) {
+    authenticate (url, params = {}) {
         this.checkRequiredCredentials ();
-        const messageHash = 'login';
+        const messageHash = 'authenticated';
         const client = this.client (url);
         let future = this.safeValue (client.subscriptions, messageHash);
         if (future === undefined) {
-            future = client.future ('authenticated');
-            const expires = (this.milliseconds () + 10000).toString ();
+            const expiresInt = this.milliseconds () + 10000;
+            const expires = expiresInt.toString ();
             const path = 'GET/realtime';
             const auth = path + expires;
             const signature = this.hmac (this.encode (auth), this.encode (this.secret), 'sha256', 'hex');
@@ -1363,9 +1363,11 @@ export default class bybit extends bybitRest {
                     this.apiKey, expires, signature,
                 ],
             };
-            this.spawn (this.watch, url, messageHash, request, messageHash, future);
+            const message = this.extend (request, params);
+            future = this.watch (url, messageHash, message);
+            client.subscriptions[messageHash] = future;
         }
-        return await future;
+        return future;
     }
 
     handleErrorMessage (client, message) {
@@ -1394,7 +1396,7 @@ export default class bybit extends bybitRest {
         //
         //   { code: '-10009', desc: 'Invalid period!' }
         //
-        const code = this.safeInteger (message, 'code');
+        const code = this.safeString2 (message, 'code', 'ret_code');
         try {
             if (code !== undefined) {
                 const feedback = this.id + ' ' + this.json (message);
@@ -1411,22 +1413,23 @@ export default class bybit extends bybitRest {
                     throw new ExchangeError (this.id + ' ' + ret_msg);
                 }
             }
-        } catch (e) {
-            if (e instanceof AuthenticationError) {
-                client.reject (e, 'authenticated');
-                const method = 'login';
-                if (method in client.subscriptions) {
-                    delete client.subscriptions[method];
+            return false;
+        } catch (error) {
+            if (error instanceof AuthenticationError) {
+                const messageHash = 'authenticated';
+                client.reject (error, messageHash);
+                if (messageHash in client.subscriptions) {
+                    delete client.subscriptions[messageHash];
                 }
-                return false;
+            } else {
+                client.reject (error);
             }
-            throw e;
+            return true;
         }
-        return message;
     }
 
     handleMessage (client, message) {
-        if (!this.handleErrorMessage (client, message)) {
+        if (this.handleErrorMessage (client, message)) {
             return;
         }
         // contract pong
@@ -1515,11 +1518,15 @@ export default class bybit extends bybitRest {
         //    }
         //
         const success = this.safeValue (message, 'success');
+        const messageHash = 'authenticated';
         if (success) {
-            client.resolve (message, 'authenticated');
+            client.resolve (message, messageHash);
         } else {
             const error = new AuthenticationError (this.id + ' ' + this.json (message));
-            client.reject (error, 'authenticated');
+            client.reject (error, messageHash);
+            if (messageHash in client.subscriptions) {
+                delete client.subscriptions[messageHash];
+            }
         }
         return message;
     }

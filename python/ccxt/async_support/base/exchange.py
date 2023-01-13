@@ -2,7 +2,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '2.5.97'
+__version__ = '2.6.10'
 
 # -----------------------------------------------------------------------------
 
@@ -1602,8 +1602,8 @@ class Exchange(BaseExchange):
         if marketId is not None:
             if (self.markets_by_id is not None) and (marketId in self.markets_by_id):
                 markets = self.markets_by_id[marketId]
-                length = len(markets)
-                if length == 1:
+                numMarkets = len(markets)
+                if numMarkets == 1:
                     return markets[0]
                 else:
                     if marketType is None:

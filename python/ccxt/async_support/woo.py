@@ -1933,7 +1933,7 @@ class woo(Exchange):
         #
         return self.parse_funding_rate(response, market)
 
-    async def fetch_funding_rates(self, symbols, params={}):
+    async def fetch_funding_rates(self, symbols=None, params={}):
         await self.load_markets()
         symbols = self.market_symbols(symbols)
         response = await self.v1PublicGetFundingRates(params)

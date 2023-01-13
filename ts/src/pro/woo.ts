@@ -420,7 +420,7 @@ export default class woo extends wooRest {
         return true;
     }
 
-    async authenticate (params) {
+    authenticate (params = {}) {
         this.checkRequiredCredentials ();
         const url = this.urls['api']['ws']['private'] + '/' + this.uid;
         const client = this.client (url);
@@ -428,10 +428,8 @@ export default class woo extends wooRest {
         const event = 'auth';
         let future = this.safeValue (client.subscriptions, messageHash);
         if (future === undefined) {
-            future = client.future (messageHash);
             const ts = this.nonce ().toString ();
-            let auth = this.urlencode (params);
-            auth += '|' + ts;
+            const auth = '|' + ts;
             const signature = this.hmac (this.encode (auth), this.encode (this.secret), 'sha256');
             const request = {
                 'event': event,
@@ -441,9 +439,11 @@ export default class woo extends wooRest {
                     'timestamp': ts,
                 },
             };
-            this.spawn (this.watch, url, messageHash, request, messageHash, future);
+            const message = this.extend (request, params);
+            future = this.watch (url, messageHash, message);
+            client.subscriptions[messageHash] = future;
         }
-        return await future;
+        return future;
     }
 
     async watchPrivate (messageHash, message, params = {}) {
@@ -689,13 +689,6 @@ export default class woo extends wooRest {
         //         ts: 1657117712212
         //     }
         //
-        const id = this.safeString (message, 'id');
-        const subscriptionsById = this.indexBy (client.subscriptions, 'id');
-        const subscription = this.safeValue (subscriptionsById, id, {});
-        const method = this.safeValue (subscription, 'method');
-        if (method !== undefined) {
-            method.call (this, client, message, subscription);
-        }
         return message;
     }
 
@@ -707,15 +700,17 @@ export default class woo extends wooRest {
         //         ts: 1657463158812
         //     }
         //
+        const messageHash = 'authenticated';
         const success = this.safeValue (message, 'success');
         if (success) {
-            const future = this.safeValue (client.futures, 'authenticated');
-            future.resolve (true);
+            client.resolve (message, messageHash);
         } else {
             const error = new AuthenticationError (this.json (message));
-            client.reject (error, 'authenticated');
+            client.reject (error, messageHash);
             // allows further authentication attempts
-            delete client.subscriptions['authenticated'];
+            if (messageHash in client.subscriptions) {
+                delete client.subscriptions['authenticated'];
+            }
         }
     }
 }

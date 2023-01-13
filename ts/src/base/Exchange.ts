@@ -1349,13 +1349,6 @@ export default class Exchange {
         return future;
     }
 
-    subscribeBase (url, messageHash, message) {
-        // this function should be used inside of authenticate instead of watch
-        const future = this.watch (url, messageHash, message)
-        this.clients[url].subscriptions[messageHash] = future
-        return future
-    }
-
     onConnected (client, message = undefined) {
         // for user hooks
         // console.log ('Connected to', client.url)
@@ -1396,20 +1389,24 @@ export default class Exchange {
             client.reject (new ExchangeError (this.id + ' loadOrderBook() orderbook is not initiated'), messageHash);
             return;
         }
+        const maxRetries = this.handleOption ('watchOrderBook', 'maxRetries', 3);
+        let tries = 0;
         try {
             const stored = this.orderbooks[symbol];
-            const cache = stored.cache;
-            const orderBook = await this.fetchOrderBook (symbol, limit, params);
-            const index = this.getCacheIndex (orderBook, cache);
-            if (index >= 0) {
-                stored.reset (orderBook);
-                this.handleDeltas (stored, cache.slice (index));
-                stored.cache.length = 0;
-                client.resolve (stored, messageHash);
-                return;
-            } else {
-                client.reject (new ExchangeError (this.id + ' nonce is behind the cache'), messageHash);
+            while (tries < maxRetries) {
+                const cache = stored.cache;
+                const orderBook = await this.fetchOrderBook (symbol, limit, params);
+                const index = this.getCacheIndex (orderBook, cache);
+                if (index >= 0) {
+                    stored.reset (orderBook);
+                    this.handleDeltas (stored, cache.slice (index));
+                    stored.cache.length = 0;
+                    client.resolve (stored, messageHash);
+                    return;
+                }
+                tries++;
             }
+            client.reject (new ExchangeError (this.id + ' nonce is behind the cache after ' + maxRetries.toString () + ' tries.'), messageHash);
         } catch (e) {
             client.reject (e, messageHash);
         }
@@ -2840,8 +2837,8 @@ export default class Exchange {
         if (marketId !== undefined) {
             if ((this.markets_by_id !== undefined) && (marketId in this.markets_by_id)) {
                 const markets = this.markets_by_id[marketId];
-                const length = markets.length;
-                if (length === 1) {
+                const numMarkets = markets.length;
+                if (numMarkets === 1) {
                     return markets[0];
                 } else {
                     if (marketType === undefined) {
