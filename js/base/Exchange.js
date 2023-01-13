@@ -1362,7 +1362,7 @@ module.exports = class Exchange {
             const key = keys[i];
             const value = dict[key];
             // if single key has single value, instead of array, i.e. 'a': [ 'b', 'c']
-            if (!Array.isArray (value)) {
+            if (typeof value === 'string') {
                 // if it was already in keys
                 if (!(value in reversed)) {
                     reversed[value] = key;
@@ -1373,7 +1373,7 @@ module.exports = class Exchange {
                         reversed[value] = [ reversed[value], key ];
                     }
                 }
-            } else {
+            } else if (this.isArray (value)) {
                 for (let j = 0; j < value.length; j++) {
                     const arrayItemValue = value[j];
                     // if it was already in keys
@@ -1714,10 +1714,8 @@ module.exports = class Exchange {
         //
         // below fields will contain derived data directly from `options['networks']`
         this.optionNetworkData = {
-            'titlesToCodes': {},
+            'idsOrTitlesToCodes': {},
             'codesToTitles': {},
-            'idsToCodes': {},
-            'codesToIds': {},
             'networkCodesAndAliasesToIds': {},
             'primaryCodeToAlias': {},
             'aliasCodeToPrimary': {},
@@ -1738,7 +1736,6 @@ module.exports = class Exchange {
             'isLoaded': false,
         };
         this.networksAreTitlesInsteadOfIds = this.safeValue (this.options, 'networksAreTitlesInsteadOfId', false);
-        this.networksOptionChosenKey = this.networksAreTitlesInsteadOfIds ? 'titlesToCodes' : 'idsToCodes';
         if ('networks' in this.options) {
             //
             // define id-to-code automatic relations
@@ -1747,7 +1744,17 @@ module.exports = class Exchange {
             const networkIdsToCodesAuto = this.invertStringDictionary (networkCodesToIds);
             const idsFromOptions = this.safeValue (this.options, 'networkIdsToCodes', {}); // support for override, if user sets
             const networkIdsToCodes = this.extend (networkIdsToCodesAuto, idsFromOptions);
-            this.optionNetworkData[this.networksOptionChosenKey] = networkIdsToCodes; // the key here will be either 'titlesToCodes' or 'idsToCodes'
+            this.optionNetworkData['idsOrTitlesToCodes'] = networkIdsToCodes;
+            //
+            // to make a quick lookup later, create a dict of mainnet codes, i.e.
+            //   { ETH, CRONOS, ...}
+            const defaultNetworkCodeReplacements = this.safeValue (this.options, 'defaultNetworkCodeReplacements', {});
+            let mainnetCodes = {};
+            const values = Object.values (defaultNetworkCodeReplacements);
+            for (let i = 0; i < values.length; i++) {
+                mainnetCodes = this.extend (mainnetCodes, this.invertStringDictionary (values[i]));
+            }
+            this.optionNetworkData['mainnetAndSecondaryNetworkCodes'] = this.values (mainnetCodes);
             //
             // to make a quick lookup later, define reversed dictionary for aliases: { 'BEP20': 'BEP20', 'BSC': 'BEP20', ... }
             const aliases = this.safeValue (this.options, 'unifiedNetworkCodesAndAliases');
@@ -1946,7 +1953,13 @@ module.exports = class Exchange {
          * @param {string|undefined} currencyCode unified currency code, but this argument is not required by default, unless there is an exchange (like huobi) that needs an override of the method to be able to pass currencyCode argument additionally
          * @returns {[string|undefined]} unified network code
          */
-        let networkCode = this.safeValue (this.optionNetworkData[this.networksOptionChosenKey], networkId);
+        // below we try to get the networkCode assigned to the provided networkId. However, for exchanges where mainnet & tokens have same networkId, i.e. in OKX:
+        //     'networks' : {
+        //         'ETH': 'erc20',
+        //         'ERC20': 'erc20',
+        //     }
+        // and `networkIdToCode ('erc20')` is executed, then below value will hold an array like ['ERC20', 'ETH']
+        let networkCode = this.safeValue (this.optionNetworkData['idsOrTitlesToCodes'], networkId);
         // if provided networkId was not found
         if (networkCode === undefined) {
             // if exchange network ids are unique per currency (i.e. usdterc20) and directly that id was passed into this method (instead of common title) then markets need to be loaded at first to convert id (usdterc20) to common title (i.e. Erc20) and then to networkCode. So, we try to find if the title was assigned to this network-id inside fetchCurrencies
@@ -1964,23 +1977,30 @@ module.exports = class Exchange {
             // if title found
             if (networkTitle !== undefined) {
                 // now, search the in the defined options
-                networkCode = this.safeString (this.optionNetworkData[this.networksOptionChosenKey], networkTitle);
+                networkCode = this.safeString (this.optionNetworkData['idsOrTitlesToCodes'], networkTitle);
             }
         }
         // replace network-codes for mainnet coins, i.e. for ethereum coin, set 'ETH' unified networkCode instead of 'ERC20'
         if (currencyCode !== undefined) {
             const defaultNetworkCodeReplacements = this.safeValue (this.options, 'defaultNetworkCodeReplacements', {});
-            if (currencyCode in defaultNetworkCodeReplacements) {
-                const replacementObject = this.safeValue (defaultNetworkCodeReplacements, currencyCode, {});
-                networkCode = this.safeString (replacementObject, networkCode, networkCode);
-            } else {
-
-            }
-        } else {
-            // if currencyCode was not provided, and we still have an array i.e. ['ETH', 'ERC20'], then don't choose any of them, instead return exchange specific (provided) networkId as is
+            const isMainnet = (currencyCode in defaultNetworkCodeReplacements)
+            const replacementObject = this.safeValue (defaultNetworkCodeReplacements, currencyCode, {});
+            // "networkCode" is an array at this stage, then we have to remove all mainnet matches
             if (this.isArray (networkCode)) {
-                networkCode = networkId;
+                for (let i = 0; i < this.optionNetworkData['mainnetAndSecondaryNetworkCodes'].length; i++) {
+                    const value = this.optionNetworkData['mainnetAndSecondaryNetworkCodes'][i];
+    
+                }
+            } else {
+                
             }
+            if (currencyCode in defaultNetworkCodeReplacements) {
+                networkCode = this.safeString (replacementObject, networkCode, networkCode);
+            }
+        }
+        // if some unexpected theoretical scenario happens, when currencyCode is not provided and the networkCode is still an array i.e. ['ETH', 'ERC20'], then don't choose any of them, just return the provided networkId
+        if (this.isArray (networkCode)) {
+            networkCode = networkId;
         }
         if (networkCode === undefined) {
             // if still not found, then just return the provided networkId
@@ -2000,8 +2020,8 @@ module.exports = class Exchange {
     }
 
     networkIdIsDefined (networkId) {
-        const networkcodeByIdAuto = this.safeValue (this.optionNetworkData, 'idsToCodes', {});
-        const networkCode = this.safeString (networkcodeByIdAuto, networkId);
+        const idsOrTitles = this.safeValue (this.optionNetworkData, 'idsOrTitlesToCodes', {});
+        const networkCode = this.safeString (idsOrTitles, networkId);
         const wasDefined = (networkCode !== undefined);
         return wasDefined;
     }
