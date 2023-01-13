@@ -14,7 +14,7 @@ module.exports = class whitebit extends Exchange {
         return this.deepExtend (super.describe (), {
             'id': 'whitebit',
             'name': 'WhiteBit',
-            'version': 'v2',
+            'version': 'v4',
             'countries': [ 'EE' ],
             'rateLimit': 500,
             'has': {
@@ -228,6 +228,7 @@ module.exports = class whitebit extends Exchange {
                     'BEP20': 'BSC',
                 },
                 'defaultType': 'spot',
+                'brokerId': 'ccxt',
             },
             'precisionMode': TICK_SIZE,
             'exceptions': {
@@ -1168,6 +1169,16 @@ module.exports = class whitebit extends Exchange {
             'side': side,
             'amount': this.amountToPrecision (symbol, amount),
         };
+        const clientOrderId = this.safeString2 (params, 'clOrdId', 'clientOrderId');
+        if (clientOrderId === undefined) {
+            const brokerId = this.safeString (this.options, 'brokerId');
+            if (brokerId !== undefined) {
+                request['clientOrderId'] = brokerId + this.uuid16 ();
+            }
+        } else {
+            request['clientOrderId'] = clientOrderId;
+            params = this.omit (params, [ 'clientOrderId' ]);
+        }
         const marketType = this.safeString (market, 'type');
         const isLimitOrder = type === 'limit';
         const isMarketOrder = type === 'market';
