@@ -3478,10 +3478,11 @@ module.exports = class coinex extends Exchange {
         //
         const data = this.safeValue (response, 'data', {});
         const ticker = this.safeValue (data, 'ticker', {});
-        return this.parseFundingRate (ticker, market);
+        const timestamp = this.safeInteger (data, 'date');
+        return this.parseFundingRate (ticker, market, timestamp);
     }
 
-    parseFundingRate (contract, market = undefined) {
+    parseFundingRate (contract, market = undefined, timestamp = undefined) {
         //
         // fetchFundingRate
         //
@@ -3508,6 +3509,8 @@ module.exports = class coinex extends Exchange {
         //         "sell_amount": "0.9388"
         //     }
         //
+        const fundingTime = this.safeInteger (contract, 'funding_time');
+        const fundingTimestamp = Math.round ((timestamp + fundingTime * 60 * 1000) / 3600000) * 3600000;
         return {
             'info': contract,
             'symbol': this.safeSymbol (undefined, market),
@@ -3515,11 +3518,11 @@ module.exports = class coinex extends Exchange {
             'indexPrice': this.safeString (contract, 'index_price'),
             'interestRate': undefined,
             'estimatedSettlePrice': undefined,
-            'timestamp': undefined,
-            'datetime': undefined,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
             'fundingRate': this.safeString (contract, 'funding_rate_next'),
-            'fundingTimestamp': undefined,
-            'fundingDatetime': undefined,
+            'fundingTimestamp': fundingTimestamp,
+            'fundingDatetime': this.iso8601 (fundingTimestamp),
             'nextFundingRate': this.safeString (contract, 'funding_rate_predict'),
             'nextFundingTimestamp': undefined,
             'nextFundingDatetime': undefined,
@@ -3584,6 +3587,7 @@ module.exports = class coinex extends Exchange {
         //     }
         const data = this.safeValue (response, 'data', {});
         const tickers = this.safeValue (data, 'ticker', {});
+        const timestamp = this.safeInteger (data, 'date');
         const result = [];
         const marketIds = Object.keys (tickers);
         for (let i = 0; i < marketIds.length; i++) {
@@ -3591,7 +3595,7 @@ module.exports = class coinex extends Exchange {
             if (marketId.indexOf ('_') === -1) { // skip _signprice and _indexprice
                 const market = this.safeMarket (marketId, undefined, undefined, 'swap');
                 const ticker = tickers[marketId];
-                result.push (this.parseFundingRate (ticker, market));
+                result.push (this.parseFundingRate (ticker, market, timestamp));
             }
         }
         return this.filterByArray (result, 'symbol', symbols);
