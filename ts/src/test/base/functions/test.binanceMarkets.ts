@@ -2,7 +2,7 @@
 // ----------------------------------------------------------------------------
 
 import ccxt from '../../../../ccxt.js';
-import HttpsProxyAgent from 'https-proxy-agent'
+import { HttpsProxyAgent } from 'https-proxy-agent'
 import assert from 'assert';
 import fs from 'fs'
 
@@ -120,13 +120,13 @@ defaultOptions = defaultOptions['binance']
             await binance.loadMarkets ()
             market = binance.market (test.symbol)
         } catch (e) {
-            console.log ('failed with ' + e.name + message)
+            console.log ('failed with ' + (e as any).name + message)
             process.exit (1)
         }
         const result = market['type']
         assert.equal (result, test.marketType, 'failed with ' + result + message)
         console.log ('succeeded' + message)
-        await binance.sleep (100)
+        await  (binance as any).sleep (100)
     }
 }) ()
 
