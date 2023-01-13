@@ -1647,7 +1647,7 @@ module.exports = class coinbase extends Exchange {
          * @param {string} symbol unified symbol of the market to create an order in
          * @param {string} type 'market' or 'limit'
          * @param {string} side 'buy' or 'sell'
-         * @param {float} amount how much you want to trade in units of the base currency
+         * @param {float} amount how much you want to trade in units of the base currency, quote currency for 'market' 'buy' orders
          * @param {float|undefined} price the price to fulfill the order, in units of the quote currency, ignored in market orders
          * @param {object} params extra parameters specific to the coinbase api endpoint
          * @param {float|undefined} params.stopPrice price to trigger stop orders
@@ -1722,12 +1722,19 @@ module.exports = class coinbase extends Exchange {
             if (isStop || isStopLoss || isTakeProfit) {
                 throw new NotSupported (this.id + ' createOrder() only stop limit orders are supported');
             }
-            request['order_configuration'] = {
-                'market_market_ioc': {
-                    'base_size': this.amountToPrecision (symbol, amount),
-                    // 'quote_size': this.amountToPrecision (symbol, amount),
-                },
-            };
+            if (side === 'buy') {
+                request['order_configuration'] = {
+                    'market_market_ioc': {
+                        'quote_size': this.amountToPrecision (symbol, amount),
+                    },
+                };
+            } else {
+                request['order_configuration'] = {
+                    'market_market_ioc': {
+                        'base_size': this.amountToPrecision (symbol, amount),
+                    },
+                };
+            }
         }
         params = this.omit (params, [ 'timeInForce', 'triggerPrice', 'stopLossPrice', 'takeProfitPrice', 'stopPrice', 'stop_price', 'stopDirection', 'stop_direction', 'clientOrderId', 'postOnly', 'post_only' ]);
         const response = await this.v3PrivatePostBrokerageOrders (this.extend (request, params));
@@ -1766,7 +1773,9 @@ module.exports = class coinbase extends Exchange {
         //
         const marketId = this.safeString (order, 'product_id');
         const symbol = this.safeSymbol (marketId, market, '-');
-        market = this.market (symbol);
+        if (symbol !== undefined) {
+            market = this.market (symbol);
+        }
         const rawSide = this.safeString (order, 'side');
         const side = (rawSide !== undefined) ? rawSide.toLowerCase () : undefined;
         return this.safeOrder ({
