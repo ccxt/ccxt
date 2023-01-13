@@ -5,6 +5,7 @@
 const bitfinexRest = require ('../bitfinex.js');
 const { ExchangeError, AuthenticationError } = require ('../base/errors');
 const { ArrayCache, ArrayCacheBySymbolById } = require ('./base/Cache');
+const Precise = require ('../base/Precise');
 
 //  ---------------------------------------------------------------------------
 
@@ -223,11 +224,11 @@ module.exports = class bitfinex extends bitfinexRest {
         const symbol = this.safeSymbol (marketId);
         const channel = 'ticker';
         const messageHash = channel + ':' + marketId;
-        const last = this.safeFloat (message, 7);
-        const change = this.safeFloat (message, 5);
+        const last = this.safeString (message, 7);
+        const change = this.safeString (message, 5);
         let open = undefined;
         if ((last !== undefined) && (change !== undefined)) {
-            open = last - change;
+            open = Precise.stringSub (last, change);
         }
         const result = {
             'symbol': symbol,
@@ -240,11 +241,11 @@ module.exports = class bitfinex extends bitfinexRest {
             'ask': this.safeFloat (message, 3),
             'askVolume': undefined,
             'vwap': undefined,
-            'open': open,
-            'close': last,
-            'last': last,
+            'open': this.parseNumber (open),
+            'close': this.parseNumber (last),
+            'last': this.parseNumber (last),
             'previousClose': undefined,
-            'change': change,
+            'change': this.parseNumber (change),
             'percentage': this.safeFloat (message, 6),
             'average': undefined,
             'baseVolume': this.safeFloat (message, 8),
