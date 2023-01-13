@@ -987,7 +987,7 @@ module.exports = class huobi extends Exchange {
                     'CRC20': 'CRO',
                     'CHILIZ': [ 'CHZCHAIN', 'CHZ20', 'CRC20' ], // 'CRC20' is used by houbi for Chiliz, not CRONOS network
                     'ERC20': 'ERC20',
-                    'ETH': 'ERC20', // 'ERC20ETH' is used by houbi only for ETH coin
+                    'ETH': 'ERC20ETH', // 'ERC20ETH' is used by houbi only for ETH coin
                     'ETC': 'ETC',
                     'ETHW': 'ETHW',
                     'FILECOIN': 'FIL',

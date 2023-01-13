@@ -1741,7 +1741,7 @@ module.exports = class Exchange {
             'networkCodesConflicts': {},
             'isLoaded': false,
         };
-        this.networksAreTitlesInsteadOfIds = this.safeValue (this.options, 'networksAreTitlesInsteadOfId', false);
+        this.networksIdsDependOnCurrencies = this.safeValue (this.options, 'networksAreTitlesInsteadOfId', false);
         if ('networks' in this.options) {
             //
             // define id-to-code automatic relations
@@ -1793,7 +1793,7 @@ module.exports = class Exchange {
          * @ignore
          * @method
          * @name exchange#defineNetworkCodeNameIdMappings
-         * @description Some exchanges (okx, huobi, ...) have different schemes of provied currencies & networks, where network id might be a random string (i.e. 'USDT-ERC20', 'USDT', 'USDT-TRC20', 'Erc-20', 'ERC_20') without any deterministic values or format.  Those IDs might or not be an unique string across whole entries (if `this.networksAreTitlesInsteadOfIds` is true, then it means that those id's are unique), but either unique or not, by previous functionality it was impossible to make `networkCode` to `networkId` conversion without providing the currencyCode. So, this method makes full mapping among `currencyCode <> currencyId <> networkCode <> networkId`, thus without making guess attempt to compilateof network-id by joining strings (i.e. `networkId = currencyId + '-' + networkId` or whatever) upon building request, this method will create full mappings during fetchCurrencies to make deterministic relation among those values.
+         * @description Some exchanges (okx, huobi, ...) have different schemes of provied currencies & networks, where network id might be a random string (i.e. 'USDT-ERC20', 'USDT', 'USDT-TRC20', 'Erc-20', 'ERC_20') without any deterministic values or format.  Those IDs might or not be an unique string across whole entries (if `this.networksIdsDependOnCurrencies` is true, then it means that those id's are unique), but either unique or not, by previous functionality it was impossible to make `networkCode` to `networkId` conversion without providing the currencyCode. So, this method makes full mapping among `currencyCode <> currencyId <> networkCode <> networkId`, thus without making guess attempt to compilateof network-id by joining strings (i.e. `networkId = currencyId + '-' + networkId` or whatever) upon building request, this method will create full mappings during fetchCurrencies to make deterministic relation among those values.
          * Also, this method additionally handles those exchanges (i.e. bitmart), where instead of having one currency entry with multiple different networks, each currency entry is referred by unique currency-id which is combination of code & network (i.e. `USDT-TRC20`, 'USDT', 'USDT-TRC20') so to send request to exchange api, we will need to retrive the unique currency-id for the user-provided currencyCode & networkCode arguments, and then without any `network` request param, we are sending just unique `currency-id` to exchange.
          * @param {string} currencyCode ccxt determined currency code
          * @param {string} currencyId exchange specific currency id, only needs to be provided for exchanges i.e. Bitmart, where each currency e.g. USDT has multiple entries where currency-ids are different with network junctions (i.e. USDT-erc20, USDT-trc20)
@@ -1858,12 +1858,27 @@ module.exports = class Exchange {
          * @param {string|undefined} currencyCode unified currency code, but this argument is not required by default, unless there is an exchange (like huobi) that needs an override of the method to be able to pass currencyCode argument additionally
          * @returns {[string|undefined]} exchange-specific network id
          */
-        // if alias is provided, replace it with primary networkCode
-        const networkCodePrimary = this.safeString (this.optionNetworkData['aliasCodeToPrimary'], networkCode, networkCode);
-        // check if conflicting id was provided
-        const conflictingObject = this.safeValue (this.generatedNetworkData['networkCodesConflicts'], networkCodePrimary);
+        let networkCodeValue = undefined;
+        const defaultNetworkCodeReplacements = this.safeValue (this.options, 'defaultNetworkCodeReplacements', {});
+        // Alias support : if user calls `networkCodeToId('ETH', 'USDT')` or `networkCodeToId('ERC20', 'ETH')` then we have to replace the networkCode accordingly in such cases, depending if the currencyCode is mainnet or not (to either ETH or ERC20)
+        if (currencyCode in defaultNetworkCodeReplacements) {
+            // if the mainnet currencyCode was passed, and if ERC20 was passed instead of ETH, then replace it with ETH
+            const replacementObject = defaultNetworkCodeReplacements[currencyCode]; // i.e. { 'ERC20': 'ETH' }
+            networkCodeValue = this.safeString (replacementObject, networkCode, networkCode);
+        } else {
+            // if currencyCode was not found in mainnet currencies (i.e. USDT instead of ETH), but had assigned mainnet networkCode (i.e. ETH instead of ERC20)
+            networkCodeValue = this.safeString (this.options['mainnetAndTokenNetworkCodes'], networkCode, networkCode);
+        }
+        // at this stage we are ensure that mainnet<>token replacements were not happened inside above if/else clause
+        if (networkCodeValue === undefined) {
+            networkCodeValue = networkCode;
+        }
+        // if alias is provided (i.e. SOL), replace it with primary networkCode (i.e. SOLANA)
+        const networkCodePrimary = this.safeString (this.optionNetworkData['aliasCodeToPrimary'], networkCodeValue, networkCodeValue);
         // if conflicting object was found
-        if (conflictingObject !== undefined) {
+        if (networkCodePrimary in this.generatedNetworkData['networkCodesConflicts']) {
+            // check if conflicting id was provided
+            const conflictingObject = this.safeValue (this.generatedNetworkData['networkCodesConflicts'], networkCodePrimary);
             const userApprovals = this.safeValue (this.options, 'networkCodesConflictsApproved', {});
             // if this conflict was not approved by user
             if (!(networkCodePrimary in userApprovals)) {
@@ -1873,7 +1888,7 @@ module.exports = class Exchange {
             }
         }
         // if exchange has flat structure from 'Currencies' endpoint with unique exchange-specific chain-ids (i.e. trc20usdt, which is combination of chain slug and currency), then at first we should get the values which were set in fetchCurrencies
-        if (this.networksAreTitlesInsteadOfIds) {
+        if (this.networksIdsDependOnCurrencies) {
             if (currencyCode === undefined) {
                 throw new ArgumentsRequired (this.id + ' networkCodeToId() requires a currencyCode argument');
             }
@@ -1887,18 +1902,19 @@ module.exports = class Exchange {
         if (Array.isArray (networkId)) {
             let found = false;
             if (currencyCode !== undefined) {
-                const codeToTitle = this.generatedNetworkData['codesToTitles'];
-                const currencyData = this.safeValue (codeToTitle, currencyCode, {});
+                const codesToTitles = this.generatedNetworkData['codesToTitles'];
+                const currencyData = this.safeValue (codesToTitles, currencyCode, {});
                 const networkData = this.safeValue (currencyData, networkCodePrimary);
                 if (networkData !== undefined) {
-                    networkId = codeToTitle[currencyCode][networkCodePrimary];
+                    networkId = codesToTitles[currencyCode][networkCodePrimary];
                     found = true;
                 }
             }
             if (!found) {
                 const idsList = networkId.join (', ');
-                const loadMarketsMessage = this.generatedNetworkData['isLoaded'] ? '' : ' try to load markets at first or ';
-                throw new ArgumentsRequired (this.id + ' networkCodeToId() can not automatically detect the network-id for given networkCode ' + networkCodePrimary + ' and currencyCode, so ' + loadMarketsMessage + ' directly choose the specific network from this list: ' + idsList);
+                const loadMarketsMessage = this.generatedNetworkData['isLoaded'] ? '' : ' try loadMarkets() at first or ';
+                const extraMessage = currencyCode === undefined ? '' : ' and currencyCode [' + currencyCode + ']';
+                throw new ArgumentsRequired (this.id + ' networkCodeToId() can not automatically detect the network-id for given networkCode [' + networkCodePrimary + ']' + extraMessage + ', so ' + loadMarketsMessage + 'directly choose the specific network from this list: ' + idsList);
             }
         }
         // if networkId was not found still
@@ -1907,34 +1923,15 @@ module.exports = class Exchange {
                 // if currencyCode was not provided, then we just set passed value to networkId
                 networkId = networkCodePrimary;
             } else {
-                // if currencyCode was provided, then we try to find if that currencyCode has a replacement (i.e. ERC20 for ETH)
-                const defaultNetworkCodeReplacements = this.safeValue (this.options, 'defaultNetworkCodeReplacements', {});
-                if (currencyCode in defaultNetworkCodeReplacements) {
-                    // if there is a replacement for the passed networkCode, then we use it to find network-id in `options->networks` object
-                    const replacementObject = defaultNetworkCodeReplacements[currencyCode]; // i.e. { 'ERC20': 'ETH' }
-                    const keys = Object.keys (replacementObject);
-                    for (let i = 0; i < keys.length; i++) {
-                        const key = keys[i];
-                        // if value matches to provided unified networkCode, then we use it's key to find network-id in `options->networks` object
-                        const value = replacementObject[key];
-                        if (value === networkCodePrimary) {
-                            networkId = this.safeString (networkCodesToIds, key);
-                            break;
-                        }
-                    }
-                }
-                // if it wasn't found, we just set the provided value to network-id
-                if (networkId === undefined) {
-                    networkId = networkCode;
-                }
+                networkId = networkCode;
             }
         }
-        if (this.networksAreTitlesInsteadOfIds) {
+        if (this.networksIdsDependOnCurrencies) {
             // at this stage, "networkId" will be just an intermediary, exchange-specific common network title i.e. 'Erc20', so we have to convert to actual networkId
             // 1) at first, check if it was present during fetchCurrencies (because there are cases, when API might return data, which contains curerncy & network ids, which were not mentioned in fetchCurrencies)
             const uniqueNetworkIdsByNames = this.safeValue (this.generatedNetworkData['titleToId'], currencyCode, {});
             // 2) if currency was present, check if it had (in fetchCurrencies) present the provided networkId
-            networkId = this.safeValue (uniqueNetworkIdsByNames, networkId, networkId);
+            networkId = this.safeValue (uniqueNetworkIdsByNames, networkId, networkCode); // till this moment "networkId" has been an intermediary title, so if it finds the end-value of real networkId, it should overwrite, otherwise it should set back the user-provided networkCode, because we dont want to return intermediary "networkId" to the user
         }
         return networkId;
     }
@@ -1980,18 +1977,26 @@ module.exports = class Exchange {
         if (currencyCode !== undefined) {
             const defaultNetworkCodeReplacements = this.safeValue (this.options, 'defaultNetworkCodeReplacements', {});
             const isMainnetCurrency = (currencyCode in defaultNetworkCodeReplacements);
+            const mainnetNetworkCodes = this.options['mainnetAndTokenNetworkCodes'];
             const replacementObject = this.safeValue (defaultNetworkCodeReplacements, currencyCode, {});
-            // "networkCode" is an array at this stage, then we have to remove all mainnet matches
+            // "networkCode" is an array at this stage, then we have to find whether mainnet coin & networks match or not i.e. if currency is ETH and network is ETH or ERC20, then we set networkCode to ETH, otherwise we set it to ERC20
             if (this.isArray (networkCode)) {
-                for (let i = 0; i < this.optionNetworkData['mainnetAndTokenNetworkCodes'].length; i++) {
-                    const value = this.optionNetworkData['mainnetAndTokenNetworkCodes'][i];
-    
+                for (let i = 0; i < networkCode.length; i++) {
+                    const currentNetworkCode = networkCode[i];
+                    const isMainnetNetworkCode = (currentNetworkCode in mainnetNetworkCodes);
+                    if (isMainnetCurrency && isMainnetNetworkCode) {
+                        networkCode = currentNetworkCode;
+                        break;
+                    } else if (!isMainnetCurrency && !isMainnetNetworkCode) {
+                        networkCode = currentNetworkCode;
+                        break;
+                    }
                 }
             } else {
-                
-            }
-            if (currencyCode in defaultNetworkCodeReplacements) {
-                networkCode = this.safeString (replacementObject, networkCode, networkCode);
+                const isMainnetNetworkCode = (networkCode in mainnetNetworkCodes);
+                if (isMainnetCurrency && isMainnetNetworkCode) {
+                    networkCode = this.safeString (replacementObject, networkCode, networkCode);
+                }
             }
         }
         // if some unexpected theoretical scenario happens, when currencyCode is not provided and the networkCode is still an array i.e. ['ETH', 'ERC20'], then don't choose any of them, just return the provided networkId
