@@ -171,7 +171,7 @@ trait ClientTrait {
             }
             try {
                 $stored = $this->orderbooks[$symbol];
-                $maxRetries = $this->handle_option('watchOrderBook', 'maxRetries', 5);
+                $maxRetries = $this->handle_option('watchOrderBook', 'maxRetries', 3);
                 $tries = 0;
                 while ($tries < $maxRetries) {
                     $orderBook = Async\await($this->fetch_order_book($symbol, $limit, $params));
