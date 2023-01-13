@@ -300,9 +300,9 @@ module.exports = class kucoinfutures extends kucoinfuturesRest {
         }
     }
 
-    handleDeltas (bookside, deltas, nonce) {
+    handleDeltas (bookside, deltas) {
         for (let i = 0; i < deltas.length; i++) {
-            this.handleDelta (bookside, deltas[i], nonce);
+            this.handleDelta (bookside, deltas[i]);
         }
     }
 
