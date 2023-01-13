@@ -30,6 +30,7 @@ module.exports = class coinbase extends Exchange {
                 'option': false,
                 'addMargin': false,
                 'cancelOrder': true,
+                'cancelOrders': true,
                 'createDepositAddress': true,
                 'createOrder': undefined,
                 'createReduceOnlyOrder': false,
@@ -1644,7 +1645,7 @@ module.exports = class coinbase extends Exchange {
         //         "client_order_id": "4d760580-6fca-4094-a70b-ebcca8626288"
         //     }
         //
-        // cancelOrder
+        // cancelOrder, cancelOrders
         //
         //     {
         //         "success": true,
@@ -1720,6 +1721,41 @@ module.exports = class coinbase extends Exchange {
         //
         const order = this.safeValue (response, 'results', []);
         return this.parseOrder (order, market);
+    }
+
+    async cancelOrders (ids, symbol = undefined, params = {}) {
+        /**
+         * @method
+         * @name coinbase#cancelOrders
+         * @description cancel multiple orders
+         * @see https://docs.cloud.coinbase.com/advanced-trade-api/reference/retailbrokerageapi_cancelorders
+         * @param {[string]} ids order ids
+         * @param {string|undefined} symbol not used by coinbase cancelOrders()
+         * @param {object} params extra parameters specific to the coinbase api endpoint
+         * @returns {object} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
+         */
+        await this.loadMarkets ();
+        let market = undefined;
+        if (symbol !== undefined) {
+            market = this.market (symbol);
+        }
+        const request = {
+            'order_ids': ids,
+        };
+        const response = await this.v3PrivatePostBrokerageOrdersBatchCancel (this.extend (request, params));
+        //
+        //     {
+        //         "results": [
+        //             {
+        //                 "success": true,
+        //                 "failure_reason": "UNKNOWN_CANCEL_FAILURE_REASON",
+        //                 "order_id": "bb8851a3-4fda-4a2c-aa06-9048db0e0f0d"
+        //             }
+        //         ]
+        //     }
+        //
+        const orders = this.safeValue (response, 'results', []);
+        return this.parseOrders (orders, market);
     }
 
     sign (path, api = [], method = 'GET', params = {}, headers = undefined, body = undefined) {
