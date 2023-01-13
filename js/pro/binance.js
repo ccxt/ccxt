@@ -1389,23 +1389,8 @@ module.exports = class binance extends binanceRest {
         const side = this.safeStringLower (order, 'S');
         const type = this.safeStringLower (order, 'o');
         const filled = this.safeString (order, 'z');
-        const cumulativeQuote = this.safeString (order, 'Z');
-        let remaining = amount;
-        let average = this.safeString (order, 'ap');
-        let cost = cumulativeQuote;
-        if (filled !== undefined) {
-            if (cost === undefined) {
-                if (price !== undefined) {
-                    cost = Precise.stringMul (filled, price);
-                }
-            }
-            if (amount !== undefined) {
-                remaining = Precise.stringMax (Precise.stringSub (amount, filled), '0');
-            }
-            if ((average === undefined) && (cumulativeQuote !== undefined) && (Precise.stringGt (filled, '0'))) {
-                average = Precise.stringDiv (cumulativeQuote, filled);
-            }
-        }
+        const cost = this.safeString (order, 'Z');
+        const average = this.safeString (order, 'ap');
         const rawStatus = this.safeString (order, 'X');
         const status = this.parseOrderStatus (rawStatus);
         const trades = undefined;
@@ -1438,7 +1423,7 @@ module.exports = class binance extends binanceRest {
             'cost': cost,
             'average': average,
             'filled': filled,
-            'remaining': remaining,
+            'remaining': undefined,
             'status': status,
             'fee': fee,
             'trades': trades,
