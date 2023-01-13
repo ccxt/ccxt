@@ -1655,8 +1655,9 @@ module.exports = class coinbase extends Exchange {
          * @param {float|undefined} params.stopLossPrice price to trigger stop-loss orders
          * @param {float|undefined} params.takeProfitPrice price to trigger take-profit orders
          * @param {bool|undefined} params.postOnly true or false
-         * @param {string|undefined} params.timeInForce "GTC", "IOC", or "PO"
+         * @param {string|undefined} params.timeInForce 'GTC', 'IOC', 'GTD' or 'PO'
          * @param {string|undefined} params.stop_direction 'UNKNOWN_STOP_DIRECTION', 'STOP_DIRECTION_STOP_UP', 'STOP_DIRECTION_STOP_DOWN' the direction the stopPrice is triggered from
+         * @param {string|undefined} params.end_time '2023-05-25T17:01:05.092Z' for 'GTD' orders
          * @returns {object} an [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
          */
         await this.loadMarkets ();
@@ -1674,20 +1675,36 @@ module.exports = class coinbase extends Exchange {
         const isTakeProfit = takeProfitPrice !== undefined;
         const timeInForce = this.safeString (params, 'timeInForce');
         const postOnly = (timeInForce === 'PO') ? true : this.safeValue2 (params, 'postOnly', 'post_only', false);
+        const endTime = this.safeString (params, 'end_time');
         let stopDirection = this.safeString (params, 'stop_direction');
         if (type === 'limit') {
             if (isStop) {
                 if (stopDirection === undefined) {
                     stopDirection = (side === 'buy') ? 'STOP_DIRECTION_STOP_DOWN' : 'STOP_DIRECTION_STOP_UP';
                 }
-                request['order_configuration'] = {
-                    'stop_limit_stop_limit_gtc': {
-                        'base_size': this.amountToPrecision (symbol, amount),
-                        'limit_price': this.priceToPrecision (symbol, price),
-                        'stop_price': this.priceToPrecision (symbol, stopPrice),
-                        'stop_direction': stopDirection,
-                    },
-                };
+                if ((timeInForce === 'GTD') || (endTime !== undefined)) {
+                    if (endTime === undefined) {
+                        throw new ExchangeError (this.id + ' createOrder() requires an end_time parameter for a GTD order');
+                    }
+                    request['order_configuration'] = {
+                        'stop_limit_stop_limit_gtd': {
+                            'base_size': this.amountToPrecision (symbol, amount),
+                            'limit_price': this.priceToPrecision (symbol, price),
+                            'stop_price': this.priceToPrecision (symbol, stopPrice),
+                            'stop_direction': stopDirection,
+                            'end_time': endTime,
+                        },
+                    };
+                } else {
+                    request['order_configuration'] = {
+                        'stop_limit_stop_limit_gtc': {
+                            'base_size': this.amountToPrecision (symbol, amount),
+                            'limit_price': this.priceToPrecision (symbol, price),
+                            'stop_price': this.priceToPrecision (symbol, stopPrice),
+                            'stop_direction': stopDirection,
+                        },
+                    };
+                }
             } else if (isStopLoss || isTakeProfit) {
                 let triggerPrice = undefined;
                 if (isStopLoss) {
@@ -1710,13 +1727,27 @@ module.exports = class coinbase extends Exchange {
                     },
                 };
             } else {
-                request['order_configuration'] = {
-                    'limit_limit_gtc': {
-                        'base_size': this.amountToPrecision (symbol, amount),
-                        'limit_price': this.priceToPrecision (symbol, price),
-                        'post_only': postOnly,
-                    },
-                };
+                if ((timeInForce === 'GTD') || (endTime !== undefined)) {
+                    if (endTime === undefined) {
+                        throw new ExchangeError (this.id + ' createOrder() requires an end_time parameter for a GTD order');
+                    }
+                    request['order_configuration'] = {
+                        'limit_limit_gtd': {
+                            'base_size': this.amountToPrecision (symbol, amount),
+                            'limit_price': this.priceToPrecision (symbol, price),
+                            'end_time': endTime,
+                            'post_only': postOnly,
+                        },
+                    };
+                } else {
+                    request['order_configuration'] = {
+                        'limit_limit_gtc': {
+                            'base_size': this.amountToPrecision (symbol, amount),
+                            'limit_price': this.priceToPrecision (symbol, price),
+                            'post_only': postOnly,
+                        },
+                    };
+                }
             }
         } else {
             if (isStop || isStopLoss || isTakeProfit) {
@@ -1736,7 +1767,7 @@ module.exports = class coinbase extends Exchange {
                 };
             }
         }
-        params = this.omit (params, [ 'timeInForce', 'triggerPrice', 'stopLossPrice', 'takeProfitPrice', 'stopPrice', 'stop_price', 'stopDirection', 'stop_direction', 'clientOrderId', 'postOnly', 'post_only' ]);
+        params = this.omit (params, [ 'timeInForce', 'triggerPrice', 'stopLossPrice', 'takeProfitPrice', 'stopPrice', 'stop_price', 'stopDirection', 'stop_direction', 'clientOrderId', 'postOnly', 'post_only', 'end_time' ]);
         const response = await this.v3PrivatePostBrokerageOrders (this.extend (request, params));
         //
         //     {
