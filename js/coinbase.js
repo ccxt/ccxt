@@ -3,7 +3,7 @@
 // ----------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
-const { ExchangeError, ArgumentsRequired, AuthenticationError, RateLimitExceeded, InvalidNonce } = require ('./base/errors');
+const { ExchangeError, ArgumentsRequired, AuthenticationError, BadRequest, RateLimitExceeded, InvalidNonce } = require ('./base/errors');
 const { TICK_SIZE } = require ('./base/functions/number');
 const Precise = require ('./base/Precise');
 
@@ -1720,6 +1720,10 @@ module.exports = class coinbase extends Exchange {
         //     }
         //
         const order = this.safeValue (response, 'results', []);
+        const success = this.safeValue (order, 'success');
+        if (success !== true) {
+            throw new BadRequest (this.id + ' cancelOrder() has failed, check your arguments and parameters');
+        }
         return this.parseOrder (order, market);
     }
 
@@ -1755,6 +1759,10 @@ module.exports = class coinbase extends Exchange {
         //     }
         //
         const orders = this.safeValue (response, 'results', []);
+        const success = this.safeValue (orders, 'success');
+        if (success !== true) {
+            throw new BadRequest (this.id + ' cancelOrders() has failed, check your arguments and parameters');
+        }
         return this.parseOrders (orders, market);
     }
 
