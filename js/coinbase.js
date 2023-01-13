@@ -29,7 +29,7 @@ module.exports = class coinbase extends Exchange {
                 'future': false,
                 'option': false,
                 'addMargin': false,
-                'cancelOrder': undefined,
+                'cancelOrder': true,
                 'createDepositAddress': true,
                 'createOrder': undefined,
                 'createReduceOnlyOrder': false,
@@ -1631,6 +1631,95 @@ module.exports = class coinbase extends Exchange {
             request['limit'] = limit;
         }
         return request;
+    }
+
+    parseOrder (order, market = undefined) {
+        //
+        // createOrder
+        //
+        //     {
+        //         "order_id": "52cfe5e2-0b29-4c19-a245-a6a773de5030",
+        //         "product_id": "LTC-BTC",
+        //         "side": "SELL",
+        //         "client_order_id": "4d760580-6fca-4094-a70b-ebcca8626288"
+        //     }
+        //
+        // cancelOrder
+        //
+        //     {
+        //         "success": true,
+        //         "failure_reason": "UNKNOWN_CANCEL_FAILURE_REASON",
+        //         "order_id": "bb8851a3-4fda-4a2c-aa06-9048db0e0f0d"
+        //     }
+        //
+        const marketId = this.safeString (order, 'product_id');
+        const symbol = this.safeSymbol (marketId, market, '-');
+        if (symbol !== undefined) {
+            market = this.market (symbol);
+        }
+        const rawSide = this.safeString (order, 'side');
+        const side = (rawSide !== undefined) ? rawSide.toLowerCase () : undefined;
+        return this.safeOrder ({
+            'info': order,
+            'id': this.safeString (order, 'order_id'),
+            'clientOrderId': this.safeString (order, 'client_order_id'),
+            'timestamp': undefined,
+            'datetime': undefined,
+            'lastTradeTimestamp': undefined,
+            'symbol': symbol,
+            'type': undefined,
+            'timeInForce': undefined,
+            'postOnly': undefined,
+            'side': side,
+            'price': undefined,
+            'stopPrice': undefined,
+            'triggerPrice': undefined,
+            'amount': undefined,
+            'filled': undefined,
+            'remaining': undefined,
+            'cost': undefined,
+            'average': undefined,
+            'status': undefined,
+            'fee': {
+                'cost': undefined,
+            },
+            'trades': undefined,
+        }, market);
+    }
+
+    async cancelOrder (id, symbol = undefined, params = {}) {
+        /**
+         * @method
+         * @name coinbase#cancelOrder
+         * @description cancels an open order
+         * @see https://docs.cloud.coinbase.com/advanced-trade-api/reference/retailbrokerageapi_cancelorders
+         * @param {string} id order id
+         * @param {string|undefined} symbol not used by coinbase cancelOrder()
+         * @param {object} params extra parameters specific to the coinbase api endpoint
+         * @returns {object} An [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
+         */
+        await this.loadMarkets ();
+        let market = undefined;
+        if (symbol !== undefined) {
+            market = this.market (symbol);
+        }
+        const request = {
+            'order_ids': [ id ],
+        };
+        const response = await this.v3PrivatePostBrokerageOrdersBatchCancel (this.extend (request, params));
+        //
+        //     {
+        //         "results": [
+        //             {
+        //                 "success": true,
+        //                 "failure_reason": "UNKNOWN_CANCEL_FAILURE_REASON",
+        //                 "order_id": "bb8851a3-4fda-4a2c-aa06-9048db0e0f0d"
+        //             }
+        //         ]
+        //     }
+        //
+        const order = this.safeValue (response, 'results', []);
+        return this.parseOrder (order, market);
     }
 
     sign (path, api = [], method = 'GET', params = {}, headers = undefined, body = undefined) {
