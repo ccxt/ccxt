@@ -5,7 +5,7 @@
 // ----------------------------------------------------------------------------
 
 import ansi from 'ansicolor'
-import { default as ololog } from 'my-module.js';
+import ololog from 'ololog';
 import { copyFile } from './fsLocal.js'
 
 ansi.nice
