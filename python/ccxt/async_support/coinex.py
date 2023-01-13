@@ -4,6 +4,7 @@
 # https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 from ccxt.async_support.base.exchange import Exchange
+import asyncio
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import PermissionDenied
@@ -69,7 +70,7 @@ class coinex(Exchange):
                 'fetchFundingHistory': True,
                 'fetchFundingRate': True,
                 'fetchFundingRateHistory': True,
-                'fetchFundingRates': False,
+                'fetchFundingRates': True,
                 'fetchIndexOHLCV': False,
                 'fetchLeverage': False,
                 'fetchLeverageTiers': True,
@@ -398,15 +399,14 @@ class coinex(Exchange):
         :param dict params: extra parameters specific to the exchange api endpoint
         :returns [dict]: an array of objects representing market data
         """
-        result = []
-        type, query = self.handle_market_type_and_params('fetchMarkets', None, params)
-        if type == 'spot' or type == 'margin':
-            result = await self.fetch_spot_markets(query)
-        elif type == 'swap':
-            result = await self.fetch_contract_markets(query)
-        else:
-            raise ExchangeError(self.id + " does not support the '" + type + "' market type, set exchange.options['defaultType'] to 'spot', 'margin' or 'swap'")
-        return result
+        promises = [
+            self.fetch_spot_markets(params),
+            self.fetch_contract_markets(params),
+        ]
+        promises = await asyncio.gather(*promises)
+        spotMarkets = promises[0]
+        swapMarkets = promises[1]
+        return self.array_concat(spotMarkets, swapMarkets)
 
     async def fetch_spot_markets(self, params):
         response = await self.publicGetMarketInfo(params)
@@ -536,6 +536,7 @@ class coinex(Exchange):
             settleId = 'USDT' if (subType == 1) else baseId
             settle = self.safe_currency_code(settleId)
             symbol = base + '/' + quote + ':' + settle
+            leveragesLength = len(leverages)
             result.append({
                 'id': id,
                 'symbol': symbol,
@@ -569,7 +570,7 @@ class coinex(Exchange):
                 'limits': {
                     'leverage': {
                         'min': self.safe_string(leverages, 0),
-                        'max': self.safe_string(leverages, len(leverages) - 1),
+                        'max': self.safe_string(leverages, leveragesLength - 1),
                     },
                     'amount': {
                         'min': self.safe_string(entry, 'amount_min'),
@@ -809,7 +810,7 @@ class coinex(Exchange):
         result = {}
         for i in range(0, len(marketIds)):
             marketId = marketIds[i]
-            market = self.safe_market(marketId)
+            market = self.safe_market(marketId, None, None, marketType)
             symbol = market['symbol']
             ticker = self.parse_ticker({
                 'date': timestamp,
@@ -976,7 +977,8 @@ class coinex(Exchange):
         priceString = self.safe_string(trade, 'price')
         amountString = self.safe_string(trade, 'amount')
         marketId = self.safe_string(trade, 'market')
-        market = self.safe_market(marketId, market)
+        defaultType = self.safe_string(self.options, 'defaultType')
+        market = self.safe_market(marketId, market, None, defaultType)
         symbol = self.safe_symbol(marketId, market)
         costString = self.safe_string(trade, 'deal_money')
         fee = None
@@ -1614,7 +1616,8 @@ class coinex(Exchange):
         averageString = self.safe_string(order, 'avg_price')
         remainingString = self.safe_string(order, 'left')
         marketId = self.safe_string(order, 'market')
-        market = self.safe_market(marketId, market)
+        defaultType = self.safe_string(self.options, 'defaultType')
+        market = self.safe_market(marketId, market, None, defaultType)
         feeCurrencyId = self.safe_string(order, 'fee_asset')
         feeCurrency = self.safe_currency_code(feeCurrencyId)
         if feeCurrency is None:
@@ -2861,7 +2864,8 @@ class coinex(Exchange):
         #     }
         #
         marketId = self.safe_string(position, 'market')
-        market = self.safe_market(marketId, market)
+        defaultType = self.safe_string(self.options, 'defaultType')
+        market = self.safe_market(marketId, market, None, defaultType)
         symbol = market['symbol']
         positionId = self.safe_integer(position, 'position_id')
         marginModeInteger = self.safe_integer(position, 'type')
@@ -3021,7 +3025,7 @@ class coinex(Exchange):
         marketIds = list(response.keys())
         for i in range(0, len(marketIds)):
             marketId = marketIds[i]
-            market = self.safe_market(marketId)
+            market = self.safe_market(marketId, None, None, 'spot')
             symbol = self.safe_string(market, 'symbol')
             symbolsLength = 0
             if symbols is not None:
@@ -3303,22 +3307,84 @@ class coinex(Exchange):
         return {
             'info': contract,
             'symbol': self.safe_symbol(None, market),
-            'markPrice': self.safe_string(contract, 'sign_price'),
-            'indexPrice': self.safe_string(contract, 'index_price'),
+            'markPrice': self.safe_number(contract, 'sign_price'),
+            'indexPrice': self.safe_number(contract, 'index_price'),
             'interestRate': None,
             'estimatedSettlePrice': None,
             'timestamp': None,
             'datetime': None,
-            'fundingRate': self.safe_string(contract, 'funding_rate_next'),
+            'fundingRate': self.safe_number(contract, 'funding_rate_next'),
             'fundingTimestamp': None,
             'fundingDatetime': None,
-            'nextFundingRate': self.safe_string(contract, 'funding_rate_predict'),
+            'nextFundingRate': self.safe_number(contract, 'funding_rate_predict'),
             'nextFundingTimestamp': None,
             'nextFundingDatetime': None,
-            'previousFundingRate': self.safe_string(contract, 'funding_rate_last'),
+            'previousFundingRate': self.safe_number(contract, 'funding_rate_last'),
             'previousFundingTimestamp': None,
             'previousFundingDatetime': None,
         }
+
+    async def fetch_funding_rates(self, symbols=None, params={}):
+        """
+         *  @method
+        fetch the current funding rates
+        :param array symbols: unified market symbols
+        :param dict params: extra parameters specific to the coinex api endpoint
+        :returns array: an array of `funding rate structures <https://docs.ccxt.com/en/latest/manual.html#funding-rate-structure>`
+        """
+        await self.load_markets()
+        symbols = self.market_symbols(symbols)
+        market = None
+        if symbols is not None:
+            symbol = self.safe_value(symbols, 0)
+            market = self.market(symbol)
+            if not market['swap']:
+                raise BadSymbol(self.id + ' fetchFundingRates() supports swap contracts only')
+        response = await self.perpetualPublicGetMarketTickerAll(params)
+        #
+        #     {
+        #         "code": 0,
+        #         "data":
+        #         {
+        #             "date": 1650678472474,
+        #             "ticker": {
+        #                 "BTCUSDT": {
+        #                     "vol": "6090.9430",
+        #                     "low": "39180.30",
+        #                     "open": "40474.97",
+        #                     "high": "40798.01",
+        #                     "last": "39659.30",
+        #                     "buy": "39663.79",
+        #                     "period": 86400,
+        #                     "funding_time": 372,
+        #                     "position_amount": "270.1956",
+        #                     "funding_rate_last": "0.00022913",
+        #                     "funding_rate_next": "0.00013158",
+        #                     "funding_rate_predict": "0.00016552",
+        #                     "insurance": "16045554.83969682659674035672",
+        #                     "sign_price": "39652.48",
+        #                     "index_price": "39648.44250000",
+        #                     "sell_total": "22.3913",
+        #                     "buy_total": "19.4498",
+        #                     "buy_amount": "12.8942",
+        #                     "sell": "39663.80",
+        #                     "sell_amount": "0.9388"
+        #                 }
+        #             }
+        #         },
+        #         "message": "OK"
+        #     }
+        data = self.safe_value(response, 'data', {})
+        tickers = self.safe_value(data, 'ticker', {})
+        result = []
+        marketIds = list(tickers.keys())
+        for i in range(0, len(marketIds)):
+            marketId = marketIds[i]
+            if marketId.find('_') == -1:  # skip _signprice and _indexprice
+                market = self.safe_market(marketId, None, None, 'swap')
+                ticker = tickers[marketId]
+                result.append(self.parse_funding_rate(ticker, market))
+        return self.filter_by_array(result, 'symbol', symbols)
 
     async def withdraw(self, code, amount, address, tag=None, params={}):
         """
@@ -3952,7 +4018,7 @@ class coinex(Exchange):
         for i in range(0, len(data)):
             entry = data[i]
             symbol = self.safe_string(entry, 'market')
-            market = self.safe_market(symbol)
+            market = self.safe_market(symbol, None, None, 'spot')
             currencyData = self.safe_value(entry, market['base'])
             rates.append({
                 'currency': market['base'],
@@ -4026,7 +4092,7 @@ class coinex(Exchange):
         #     }
         #
         marketId = self.safe_string(info, 'market_type')
-        market = self.safe_market(marketId, market)
+        market = self.safe_market(marketId, market, None, 'spot')
         symbol = self.safe_string(market, 'symbol')
         timestamp = self.safe_timestamp(info, 'expire_time')
         unflatAmount = self.safe_string(info, 'unflat_amount')

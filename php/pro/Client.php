@@ -69,7 +69,7 @@ class Client {
             $future->reject($this->rejections[$message_hash]);
             unset($this->rejections[$message_hash]);
         }
-        return $future->promise();
+        return $future;
     }
 
     public function resolve($result, $message_hash) {

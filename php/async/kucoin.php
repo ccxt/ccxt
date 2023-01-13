@@ -1471,6 +1471,8 @@ class kucoin extends Exchange {
             $quoteAmount = $this->safe_number_2($params, 'cost', 'funds');
             $amountString = null;
             $costString = null;
+            $marginMode = null;
+            list($marginMode, $params) = $this->handle_margin_mode_and_params('createOrder', $params);
             if ($type === 'market') {
                 if ($quoteAmount !== null) {
                     $params = $this->omit($params, array( 'cost', 'funds' ));
@@ -1494,16 +1496,19 @@ class kucoin extends Exchange {
             if ($isStopLoss && $isTakeProfit) {
                 throw new ExchangeError($this->id . ' createOrder() $stopLossPrice and $takeProfitPrice cannot both be defined');
             }
-            $tradeType = $this->safe_string($params, 'tradeType');
             $params = $this->omit($params, array( 'stopLossPrice', 'takeProfitPrice', 'stopPrice' ));
+            $tradeType = $this->safe_string($params, 'tradeType'); // keep it for backward compatibility
             $method = 'privatePostOrders';
             if ($isStopLoss || $isTakeProfit) {
                 $request['stop'] = $isStopLoss ? 'entry' : 'loss';
                 $triggerPrice = $isStopLoss ? $stopLossPrice : $takeProfitPrice;
                 $request['stopPrice'] = $this->price_to_precision($symbol, $triggerPrice);
                 $method = 'privatePostStopOrder';
-            } elseif ($tradeType === 'MARGIN_TRADE') {
+            } elseif ($tradeType === 'MARGIN_TRADE' || $marginMode !== null) {
                 $method = 'privatePostMarginOrder';
+                if ($marginMode === 'isolated') {
+                    $request['marginModel'] = 'isolated';
+                }
             }
             $response = Async\await($this->$method (array_merge($request, $params)));
             //

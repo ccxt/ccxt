@@ -9,7 +9,8 @@ const BaseExchange = require ("../../base/Exchange")
         CountedOrderBook,
     } = require ('./OrderBook')
     , functions = require ('./functions')
-    ,  { ExchangeError, NotSupported } = require ('../../base/errors');
+    ,  { ExchangeError, NotSupported } = require ('../../base/errors')
+    , Future = require ('./Future');
 
 module.exports = class Exchange extends BaseExchange {
     constructor (options = {}) {
@@ -66,9 +67,9 @@ module.exports = class Exchange extends BaseExchange {
     }
 
     spawn (method, ... args) {
-        return (method.apply (this, args)).catch ((e) => {
-            // todo: handle spawned errors
-        })
+        const future = Future ()
+        method.apply (this, args).then (future.resolve).catch (future.reject)
+        return future
     }
 
     delay (timeout, method, ... args) {

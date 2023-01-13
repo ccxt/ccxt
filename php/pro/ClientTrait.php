@@ -66,9 +66,16 @@ trait ClientTrait {
 
     // the ellipsis packing/unpacking requires PHP 5.6+ :(
     public function spawn($method, ... $args) {
-        return Async\async(function () use ($method, $args) {
+        $future = new Future();
+        $promise = Async\async(function () use ($method, $args) {
             return Async\await($method(...$args));
         }) ();
+        $promise->done(function ($result) use ($future){
+            $future->resolve($result);
+        }, function ($error) use ($future) {
+            $future->reject($error);
+        });
+        return $future;
     }
 
     public function delay($timeout, $method, ... $args) {

@@ -56,7 +56,7 @@ class coinex extends Exchange {
                 'fetchFundingHistory' => true,
                 'fetchFundingRate' => true,
                 'fetchFundingRateHistory' => true,
-                'fetchFundingRates' => false,
+                'fetchFundingRates' => true,
                 'fetchIndexOHLCV' => false,
                 'fetchLeverage' => false,
                 'fetchLeverageTiers' => true,
@@ -389,16 +389,13 @@ class coinex extends Exchange {
          * @param {array} $params extra parameters specific to the exchange api endpoint
          * @return {[array]} an array of objects representing market data
          */
-        $result = array();
-        list($type, $query) = $this->handle_market_type_and_params('fetchMarkets', null, $params);
-        if ($type === 'spot' || $type === 'margin') {
-            $result = $this->fetch_spot_markets($query);
-        } elseif ($type === 'swap') {
-            $result = $this->fetch_contract_markets($query);
-        } else {
-            throw new ExchangeError($this->id . " does not support the '" . $type . "' market $type, set exchange.options['defaultType'] to 'spot', 'margin' or 'swap'");
-        }
-        return $result;
+        $promises = array(
+            $this->fetch_spot_markets($params),
+            $this->fetch_contract_markets($params),
+        );
+        $spotMarkets = $promises[0];
+        $swapMarkets = $promises[1];
+        return $this->array_concat($spotMarkets, $swapMarkets);
     }
 
     public function fetch_spot_markets($params) {
@@ -532,6 +529,7 @@ class coinex extends Exchange {
             $settleId = ($subType === 1) ? 'USDT' : $baseId;
             $settle = $this->safe_currency_code($settleId);
             $symbol = $base . '/' . $quote . ':' . $settle;
+            $leveragesLength = count($leverages);
             $result[] = array(
                 'id' => $id,
                 'symbol' => $symbol,
@@ -565,7 +563,7 @@ class coinex extends Exchange {
                 'limits' => array(
                     'leverage' => array(
                         'min' => $this->safe_string($leverages, 0),
-                        'max' => $this->safe_string($leverages, strlen($leverages) - 1),
+                        'max' => $this->safe_string($leverages, $leveragesLength - 1),
                     ),
                     'amount' => array(
                         'min' => $this->safe_string($entry, 'amount_min'),
@@ -810,7 +808,7 @@ class coinex extends Exchange {
         $result = array();
         for ($i = 0; $i < count($marketIds); $i++) {
             $marketId = $marketIds[$i];
-            $market = $this->safe_market($marketId);
+            $market = $this->safe_market($marketId, null, null, $marketType);
             $symbol = $market['symbol'];
             $ticker = $this->parse_ticker(array(
                 'date' => $timestamp,
@@ -984,7 +982,8 @@ class coinex extends Exchange {
         $priceString = $this->safe_string($trade, 'price');
         $amountString = $this->safe_string($trade, 'amount');
         $marketId = $this->safe_string($trade, 'market');
-        $market = $this->safe_market($marketId, $market);
+        $defaultType = $this->safe_string($this->options, 'defaultType');
+        $market = $this->safe_market($marketId, $market, null, $defaultType);
         $symbol = $this->safe_symbol($marketId, $market);
         $costString = $this->safe_string($trade, 'deal_money');
         $fee = null;
@@ -1646,7 +1645,8 @@ class coinex extends Exchange {
         $averageString = $this->safe_string($order, 'avg_price');
         $remainingString = $this->safe_string($order, 'left');
         $marketId = $this->safe_string($order, 'market');
-        $market = $this->safe_market($marketId, $market);
+        $defaultType = $this->safe_string($this->options, 'defaultType');
+        $market = $this->safe_market($marketId, $market, null, $defaultType);
         $feeCurrencyId = $this->safe_string($order, 'fee_asset');
         $feeCurrency = $this->safe_currency_code($feeCurrencyId);
         if ($feeCurrency === null) {
@@ -2978,7 +2978,8 @@ class coinex extends Exchange {
         //     }
         //
         $marketId = $this->safe_string($position, 'market');
-        $market = $this->safe_market($marketId, $market);
+        $defaultType = $this->safe_string($this->options, 'defaultType');
+        $market = $this->safe_market($marketId, $market, null, $defaultType);
         $symbol = $market['symbol'];
         $positionId = $this->safe_integer($position, 'position_id');
         $marginModeInteger = $this->safe_integer($position, 'type');
@@ -3154,7 +3155,7 @@ class coinex extends Exchange {
         $marketIds = is_array($response) ? array_keys($response) : array();
         for ($i = 0; $i < count($marketIds); $i++) {
             $marketId = $marketIds[$i];
-            $market = $this->safe_market($marketId);
+            $market = $this->safe_market($marketId, null, null, 'spot');
             $symbol = $this->safe_string($market, 'symbol');
             $symbolsLength = 0;
             if ($symbols !== null) {
@@ -3452,22 +3453,89 @@ class coinex extends Exchange {
         return array(
             'info' => $contract,
             'symbol' => $this->safe_symbol(null, $market),
-            'markPrice' => $this->safe_string($contract, 'sign_price'),
-            'indexPrice' => $this->safe_string($contract, 'index_price'),
+            'markPrice' => $this->safe_number($contract, 'sign_price'),
+            'indexPrice' => $this->safe_number($contract, 'index_price'),
             'interestRate' => null,
             'estimatedSettlePrice' => null,
             'timestamp' => null,
             'datetime' => null,
-            'fundingRate' => $this->safe_string($contract, 'funding_rate_next'),
+            'fundingRate' => $this->safe_number($contract, 'funding_rate_next'),
             'fundingTimestamp' => null,
             'fundingDatetime' => null,
-            'nextFundingRate' => $this->safe_string($contract, 'funding_rate_predict'),
+            'nextFundingRate' => $this->safe_number($contract, 'funding_rate_predict'),
             'nextFundingTimestamp' => null,
             'nextFundingDatetime' => null,
-            'previousFundingRate' => $this->safe_string($contract, 'funding_rate_last'),
+            'previousFundingRate' => $this->safe_number($contract, 'funding_rate_last'),
             'previousFundingTimestamp' => null,
             'previousFundingDatetime' => null,
         );
+    }
+
+    public function fetch_funding_rates($symbols = null, $params = array ()) {
+        /**
+         *  @method
+         * fetch the current funding rates
+         * @param {array} $symbols unified $market $symbols
+         * @param {array} $params extra parameters specific to the coinex api endpoint
+         * @return {array} an array of {@link https://docs.ccxt.com/en/latest/manual.html#funding-rate-structure funding rate structures}
+         */
+        $this->load_markets();
+        $symbols = $this->market_symbols($symbols);
+        $market = null;
+        if ($symbols !== null) {
+            $symbol = $this->safe_value($symbols, 0);
+            $market = $this->market($symbol);
+            if (!$market['swap']) {
+                throw new BadSymbol($this->id . ' fetchFundingRates() supports swap contracts only');
+            }
+        }
+        $response = $this->perpetualPublicGetMarketTickerAll ($params);
+        //
+        //     {
+        //         "code" => 0,
+        //         "data":
+        //         {
+        //             "date" => 1650678472474,
+        //             "ticker" => {
+        //                 "BTCUSDT" => array(
+        //                     "vol" => "6090.9430",
+        //                     "low" => "39180.30",
+        //                     "open" => "40474.97",
+        //                     "high" => "40798.01",
+        //                     "last" => "39659.30",
+        //                     "buy" => "39663.79",
+        //                     "period" => 86400,
+        //                     "funding_time" => 372,
+        //                     "position_amount" => "270.1956",
+        //                     "funding_rate_last" => "0.00022913",
+        //                     "funding_rate_next" => "0.00013158",
+        //                     "funding_rate_predict" => "0.00016552",
+        //                     "insurance" => "16045554.83969682659674035672",
+        //                     "sign_price" => "39652.48",
+        //                     "index_price" => "39648.44250000",
+        //                     "sell_total" => "22.3913",
+        //                     "buy_total" => "19.4498",
+        //                     "buy_amount" => "12.8942",
+        //                     "sell" => "39663.80",
+        //                     "sell_amount" => "0.9388"
+        //                 }
+        //             }
+        //         ),
+        //         "message" => "OK"
+        //     }
+        $data = $this->safe_value($response, 'data', array());
+        $tickers = $this->safe_value($data, 'ticker', array());
+        $result = array();
+        $marketIds = is_array($tickers) ? array_keys($tickers) : array();
+        for ($i = 0; $i < count($marketIds); $i++) {
+            $marketId = $marketIds[$i];
+            if (mb_strpos($marketId, '_') === -1) { // skip _signprice and _indexprice
+                $market = $this->safe_market($marketId, null, null, 'swap');
+                $ticker = $tickers[$marketId];
+                $result[] = $this->parse_funding_rate($ticker, $market);
+            }
+        }
+        return $this->filter_by_array($result, 'symbol', $symbols);
     }
 
     public function withdraw($code, $amount, $address, $tag = null, $params = array ()) {
@@ -4135,7 +4203,7 @@ class coinex extends Exchange {
         for ($i = 0; $i < count($data); $i++) {
             $entry = $data[$i];
             $symbol = $this->safe_string($entry, 'market');
-            $market = $this->safe_market($symbol);
+            $market = $this->safe_market($symbol, null, null, 'spot');
             $currencyData = $this->safe_value($entry, $market['base']);
             $rates[] = array(
                 'currency' => $market['base'],
@@ -4214,7 +4282,7 @@ class coinex extends Exchange {
         //     }
         //
         $marketId = $this->safe_string($info, 'market_type');
-        $market = $this->safe_market($marketId, $market);
+        $market = $this->safe_market($marketId, $market, null, 'spot');
         $symbol = $this->safe_string($market, 'symbol');
         $timestamp = $this->safe_timestamp($info, 'expire_time');
         $unflatAmount = $this->safe_string($info, 'unflat_amount');

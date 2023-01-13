@@ -131,13 +131,14 @@ class coinex(Exchange, ccxt.async_support.coinex):
         #         }]
         #     }
         #
+        defaultType = self.safe_string(self.options, 'defaultType')
         params = self.safe_value(message, 'params', [])
         first = self.safe_value(params, 0, {})
         keys = list(first.keys())
         marketId = self.safe_string(keys, 0)
-        symbol = self.safe_symbol(marketId)
+        symbol = self.safe_symbol(marketId, None, None, defaultType)
         ticker = self.safe_value(first, marketId, {})
-        market = self.safe_market(marketId)
+        market = self.safe_market(marketId, None, None, defaultType)
         parsedTicker = self.parse_ws_ticker(ticker, market)
         messageHash = 'ticker:' + symbol
         self.tickers[symbol] = parsedTicker
@@ -183,8 +184,9 @@ class coinex(Exchange, ccxt.async_support.coinex):
         #         buy_total: '25.7814'
         #     }
         #
+        defaultType = self.safe_string(self.options, 'defaultType')
         return self.safe_ticker({
-            'symbol': self.safe_symbol(None, market),
+            'symbol': self.safe_symbol(None, market, None, defaultType),
             'timestamp': None,
             'datetime': None,
             'high': self.safe_string(ticker, 'high'),
@@ -280,8 +282,9 @@ class coinex(Exchange, ccxt.async_support.coinex):
         params = self.safe_value(message, 'params', [])
         marketId = self.safe_string(params, 0)
         trades = self.safe_value(params, 1, [])
-        market = self.safe_market(marketId)
-        symbol = self.safe_symbol(marketId)
+        defaultType = self.safe_string(self.options, 'defaultType')
+        market = self.safe_market(marketId, None, None, defaultType)
+        symbol = market['symbol']
         messageHash = 'trades:' + symbol
         stored = self.safe_value(self.trades, symbol)
         if stored is None:
@@ -306,12 +309,13 @@ class coinex(Exchange, ccxt.async_support.coinex):
         #     }
         #
         timestamp = self.safe_timestamp(trade, 'time')
+        defaultType = self.safe_string(self.options, 'defaultType')
         return self.safe_trade({
             'id': self.safe_string(trade, 'id'),
             'info': trade,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
-            'symbol': self.safe_symbol(None, market),
+            'symbol': self.safe_symbol(None, market, None, defaultType),
             'order': None,
             'type': None,
             'side': self.safe_string(trade, 'type'),
@@ -512,7 +516,8 @@ class coinex(Exchange, ccxt.async_support.coinex):
         fullOrderBook = self.safe_value(params, 0)
         orderBook = self.safe_value(params, 1)
         marketId = self.safe_string(params, 2)
-        market = self.safe_market(marketId)
+        defaultType = self.safe_string(self.options, 'defaultType')
+        market = self.safe_market(marketId, None, None, defaultType)
         symbol = market['symbol']
         name = 'orderbook'
         messageHash = name + ':' + symbol
@@ -795,7 +800,8 @@ class coinex(Exchange, ccxt.async_support.coinex):
         remaining = self.safe_string(order, 'left')
         amount = self.safe_string(order, 'amount')
         status = self.safe_string(order, 'status')
-        market = self.safe_market(marketId)
+        defaultType = self.safe_string(self.options, 'defaultType')
+        market = self.safe_market(marketId, None, None, defaultType)
         cost = self.safe_string(order, 'deal_money')
         filled = self.safe_string(order, 'deal_stock')
         average = None
