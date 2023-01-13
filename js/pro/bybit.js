@@ -1361,7 +1361,7 @@ module.exports = class bybit extends bybitRest {
             const request = {
                 'op': 'auth',
                 'args': [
-                    this.apiKey + 'fds', expires, signature,
+                    this.apiKey, expires, signature,
                 ],
             };
             const message = this.extend (request, params);
