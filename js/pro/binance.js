@@ -823,7 +823,8 @@ module.exports = class binance extends binanceRest {
             }
         }
         const resultKeys = Object.keys (result);
-        if (resultKeys.length > 0) {
+        const resultKeysLength = resultKeys.length;
+        if (resultKeysLength > 0) {
             if (this.newUpdates) {
                 return result;
             }
