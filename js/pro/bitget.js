@@ -1063,7 +1063,7 @@ module.exports = class bitget extends bitgetRest {
         //
         //    { event: 'error', code: 30015, msg: 'Invalid sign' }
         //
-        const event = this.safeInteger (message, 'event');
+        const event = this.safeString (message, 'event');
         try {
             if (event === 'error') {
                 const code = this.safeString (message, 'code');
