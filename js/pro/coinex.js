@@ -126,13 +126,14 @@ module.exports = class coinex extends coinexRest {
         //         }]
         //     }
         //
+        const defaultType = this.safeString (this.options, 'defaultType');
         const params = this.safeValue (message, 'params', []);
         const first = this.safeValue (params, 0, {});
         const keys = Object.keys (first);
         const marketId = this.safeString (keys, 0);
-        const symbol = this.safeSymbol (marketId);
+        const symbol = this.safeSymbol (marketId, undefined, undefined, defaultType);
         const ticker = this.safeValue (first, marketId, {});
-        const market = this.safeMarket (marketId);
+        const market = this.safeMarket (marketId, undefined, undefined, defaultType);
         const parsedTicker = this.parseWSTicker (ticker, market);
         const messageHash = 'ticker:' + symbol;
         this.tickers[symbol] = parsedTicker;
@@ -179,8 +180,9 @@ module.exports = class coinex extends coinexRest {
         //         buy_total: '25.7814'
         //     }
         //
+        const defaultType = this.safeString (this.options, 'defaultType');
         return this.safeTicker ({
-            'symbol': this.safeSymbol (undefined, market),
+            'symbol': this.safeSymbol (undefined, market, undefined, defaultType),
             'timestamp': undefined,
             'datetime': undefined,
             'high': this.safeString (ticker, 'high'),
@@ -282,8 +284,9 @@ module.exports = class coinex extends coinexRest {
         const params = this.safeValue (message, 'params', []);
         const marketId = this.safeString (params, 0);
         const trades = this.safeValue (params, 1, []);
-        const market = this.safeMarket (marketId);
-        const symbol = this.safeSymbol (marketId);
+        const defaultType = this.safeString (this.options, 'defaultType');
+        const market = this.safeMarket (marketId, undefined, undefined, defaultType);
+        const symbol = market['symbol'];
         const messageHash = 'trades:' + symbol;
         let stored = this.safeValue (this.trades, symbol);
         if (stored === undefined) {
@@ -311,12 +314,13 @@ module.exports = class coinex extends coinexRest {
         //     }
         //
         const timestamp = this.safeTimestamp (trade, 'time');
+        const defaultType = this.safeString (this.options, 'defaultType');
         return this.safeTrade ({
             'id': this.safeString (trade, 'id'),
             'info': trade,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'symbol': this.safeSymbol (undefined, market),
+            'symbol': this.safeSymbol (undefined, market, undefined, defaultType),
             'order': undefined,
             'type': undefined,
             'side': this.safeString (trade, 'type'),
@@ -541,7 +545,8 @@ module.exports = class coinex extends coinexRest {
         const fullOrderBook = this.safeValue (params, 0);
         let orderBook = this.safeValue (params, 1);
         const marketId = this.safeString (params, 2);
-        const market = this.safeMarket (marketId);
+        const defaultType = this.safeString (this.options, 'defaultType');
+        const market = this.safeMarket (marketId, undefined, undefined, defaultType);
         const symbol = market['symbol'];
         const name = 'orderbook';
         const messageHash = name + ':' + symbol;
@@ -613,9 +618,7 @@ module.exports = class coinex extends coinexRest {
             message['params'] = [ market['id'] ];
             messageHash += ':' + symbol;
         } else {
-            // deprecated usage of markets_by_id...
-            const markets = Object.keys (this.markets_by_id);
-            message['params'] = markets;
+            message['params'] = this.ids;
         }
         const url = this.urls['api']['ws'][type];
         const request = this.deepExtend (message, query);
@@ -840,7 +843,8 @@ module.exports = class coinex extends coinexRest {
         const remaining = this.safeString (order, 'left');
         const amount = this.safeString (order, 'amount');
         const status = this.safeString (order, 'status');
-        const market = this.safeMarket (marketId);
+        const defaultType = this.safeString (this.options, 'defaultType');
+        const market = this.safeMarket (marketId, undefined, undefined, defaultType);
         let cost = this.safeString (order, 'deal_money');
         let filled = this.safeString (order, 'deal_stock');
         let average = undefined;
@@ -873,6 +877,7 @@ module.exports = class coinex extends coinexRest {
             'side': side,
             'price': this.safeString (order, 'price'),
             'stopPrice': this.safeString (order, 'stop_price'),
+            'triggerPrice': this.safeString (order, 'stop_price'),
             'amount': amount,
             'filled': filled,
             'remaining': remaining,

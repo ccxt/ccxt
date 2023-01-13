@@ -36,6 +36,8 @@ class binanceus extends \ccxt\async\binance {
             'options' => array(
                 'fetchCurrencies' => false,
                 'quoteOrderQty' => false,
+                'defaultType' => 'spot',
+                'fetchMarkets' => array( 'spot' ),
             ),
             'fees' => array(
                 'trading' => array(

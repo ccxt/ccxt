@@ -956,6 +956,7 @@ class mexc extends \ccxt\async\mexc {
             'side' => $side,
             'price' => $price,
             'stopPrice' => null,
+            'triggerPrice' => null,
             'average' => $avgPrice,
             'amount' => $amount,
             'cost' => $cost,

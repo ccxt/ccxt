@@ -87,8 +87,18 @@ const truncate_regExpCache = []
     }
     , truncate = (num, precision = 0) => parseFloat (truncate_to_string (num, precision))
 
-function precisionFromString (string) {
-    const split = string.replace (/0+$/g, '').split ('.')
+function precisionFromString (str) {
+    // support string formats like '1e-4'
+    if (str.indexOf ('e') > -1) {
+        const numStr = str.replace (/\de/, '')
+        return parseInt (numStr) * -1
+    }
+    // support integer formats (without dot) like '1', '10' etc [Note: bug in decimalToPrecision, so this should not be used atm]
+    // if (str.indexOf ('.') === -1) {
+    //     return str.length * -1
+    // }
+    // default strings like '0.0001'
+    const split = str.replace (/0+$/g, '').split ('.')
     return (split.length > 1) ? (split[1].length) : 0
 }
 

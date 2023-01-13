@@ -1021,6 +1021,7 @@ class coinbasepro extends Exchange {
             'side' => $side,
             'price' => $price,
             'stopPrice' => $stopPrice,
+            'triggerPrice' => $stopPrice,
             'cost' => $cost,
             'amount' => $amount,
             'filled' => $filled,
@@ -1501,10 +1502,13 @@ class coinbasepro extends Exchange {
         return Async\async(function () use ($code, $since, $limit, $params) {
             /**
              * fetch history of deposits and withdrawals
+             * @see https://docs.cloud.coinbase.com/exchange/reference/exchangerestapi_gettransfers
+             * @see https://docs.cloud.coinbase.com/exchange/reference/exchangerestapi_getaccounttransfers
              * @param {string|null} $code unified $currency $code for the $currency of the transactions, default is null
              * @param {int|null} $since timestamp in ms of the earliest transaction, default is null
              * @param {int|null} $limit max number of transactions to return, default is null
              * @param {array} $params extra parameters specific to the coinbasepro api endpoint
+             * @param {string|null} $params->id $account $id, when defined, the endpoint used is '/accounts/{$account_id}/transfers/' instead of '/transfers/'
              * @return {array} a list of {@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure transaction structure}
              */
             Async\await($this->load_markets());
@@ -1532,6 +1536,34 @@ class coinbasepro extends Exchange {
             $response = null;
             if ($id === null) {
                 $response = Async\await($this->privateGetTransfers (array_merge($request, $params)));
+                //
+                //    array(
+                //        {
+                //            "id" => "bee6fd7c-afb2-4e47-8298-671d09997d16",
+                //            "type" => "deposit",
+                //            "created_at" => "2022-12-21 00:48:45.477503+00",
+                //            "completed_at" => null,
+                //            "account_id" => "sal3802-36bd-46be-a7b8-alsjf383sldak",
+                //            "user_id" => "6382048209f92as392039dlks2",
+                //            "amount" => "0.01000000",
+                //            "details" => array(
+                //                "network" => "litecoin",
+                //                "crypto_address" => "MKemtnCFUYKsNWaf5EMYMpwSszcXWFDtTY",
+                //                "coinbase_account_id" => "fl2b6925-f6ba-403n-jj03-40fl435n430f",
+                //                "coinbase_transaction_id" => "63a25bb13cb5cf0001d2cf17", // withdrawals only
+                //                "crypto_transaction_hash" => "752f35570736341e2a253f7041a34cf1e196fc56128c900fd03d99da899d94c1",
+                //                "tx_service_transaction_id" => "1873249104",
+                //                "coinbase_payment_method_id" => ""
+                //            ),
+                //            "canceled_at" => null,
+                //            "processed_at" => null,
+                //            "user_nonce" => null,
+                //            "idem" => "5e3201b0-e390-5k3k-a913-c32932049242",
+                //            "profile_id" => "k3k302a8-c4dk-4f49-9d39-3203923wpk39",
+                //            "currency" => "LTC"
+                //        }
+                //    )
+                //
                 for ($i = 0; $i < count($response); $i++) {
                     $account_id = $this->safe_string($response[$i], 'account_id');
                     $account = $this->safe_value($this->accountsById, $account_id);
@@ -1540,6 +1572,32 @@ class coinbasepro extends Exchange {
                 }
             } else {
                 $response = Async\await($this->privateGetAccountsIdTransfers (array_merge($request, $params)));
+                //
+                //    array(
+                //        {
+                //            "id" => "bee6fd7c-afb2-4e47-8298-671d09997d16",
+                //            "type" => "deposit",
+                //            "created_at" => "2022-12-21 00:48:45.477503+00",
+                //            "completed_at" => null,
+                //            "amount" => "0.01000000",
+                //            "details" => array(
+                //                "network" => "litecoin",
+                //                "crypto_address" => "MKemtnCFUYKsNWaf5EMYMpwSszcXWFDtTY",
+                //                "coinbase_account_id" => "fl2b6925-f6ba-403n-jj03-40fl435n430f",
+                //                "coinbase_transaction_id" => "63a25bb13cb5cf0001d2cf17", // withdrawals only
+                //                "crypto_transaction_hash" => "752f35570736341e2a253f7041a34cf1e196fc56128c900fd03d99da899d94c1",
+                //                "tx_service_transaction_id" => "1873249104",
+                //                "coinbase_payment_method_id" => ""
+                //            ),
+                //            "canceled_at" => null,
+                //            "processed_at" => null,
+                //            "user_nonce" => null,
+                //            "idem" => "5e3201b0-e390-5k3k-a913-c32932049242",
+                //            "profile_id" => "k3k302a8-c4dk-4f49-9d39-3203923wpk39",
+                //            "currency" => "LTC"
+                //        }
+                //    )
+                //
                 for ($i = 0; $i < count($response); $i++) {
                     $response[$i]['currency'] = $code;
                 }
@@ -1593,20 +1651,49 @@ class coinbasepro extends Exchange {
     }
 
     public function parse_transaction($transaction, $currency = null) {
+        //
+        // privateGetTransfers
+        //
+        //    array(
+        //        {
+        //            "id" => "bee6fd7c-afb2-4e47-8298-671d09997d16",
+        //            "type" => "deposit",
+        //            "created_at" => "2022-12-21 00:48:45.477503+00",
+        //            "completed_at" => null,
+        //            "account_id" => "sal3802-36bd-46be-a7b8-alsjf383sldak",     // only from privateGetTransfers
+        //            "user_id" => "6382048209f92as392039dlks2",                  // only from privateGetTransfers
+        //            "amount" => "0.01000000",
+        //            "details" => array(
+        //                "network" => "litecoin",
+        //                "crypto_address" => "MKemtnCFUYKsNWaf5EMYMpwSszcXWFDtTY",
+        //                "coinbase_account_id" => "fl2b6925-f6ba-403n-jj03-40fl435n430f",
+        //                "coinbase_transaction_id" => "63a25bb13cb5cf0001d2cf17", // withdrawals only
+        //                "crypto_transaction_hash" => "752f35570736341e2a253f7041a34cf1e196fc56128c900fd03d99da899d94c1",
+        //                "tx_service_transaction_id" => "1873249104",
+        //                "coinbase_payment_method_id" => ""
+        //            ),
+        //            "canceled_at" => null,
+        //            "processed_at" => null,
+        //            "user_nonce" => null,
+        //            "idem" => "5e3201b0-e390-5k3k-a913-c32932049242",
+        //            "profile_id" => "k3k302a8-c4dk-4f49-9d39-3203923wpk39",
+        //            "currency" => "LTC"
+        //        }
+        //    )
+        //
         $details = $this->safe_value($transaction, 'details', array());
-        $id = $this->safe_string($transaction, 'id');
-        $txid = $this->safe_string($details, 'crypto_transaction_hash');
         $timestamp = $this->parse8601($this->safe_string($transaction, 'created_at'));
-        $updated = $this->parse8601($this->safe_string($transaction, 'processed_at'));
         $currencyId = $this->safe_string($transaction, 'currency');
         $code = $this->safe_currency_code($currencyId, $currency);
-        $status = $this->parse_transaction_status($transaction);
         $amount = $this->safe_number($transaction, 'amount');
         $type = $this->safe_string($transaction, 'type');
         $address = $this->safe_string($details, 'crypto_address');
-        $tag = $this->safe_string($details, 'destination_tag');
         $address = $this->safe_string($transaction, 'crypto_address', $address);
-        $fee = null;
+        $fee = array(
+            'currency' => null,
+            'cost' => null,
+            'rate' => null,
+        );
         if ($type === 'withdraw') {
             $type = 'withdrawal';
             $address = $this->safe_string($details, 'sent_to_address', $address);
@@ -1615,30 +1702,30 @@ class coinbasepro extends Exchange {
                 if ($amount !== null) {
                     $amount -= $feeCost;
                 }
-                $fee = array(
-                    'cost' => $feeCost,
-                    'currency' => $code,
-                );
+                $fee['cost'] = $feeCost;
+                $fee['currency'] = $code;
             }
         }
+        $networkId = $this->safe_string($details, 'network');
         return array(
             'info' => $transaction,
-            'id' => $id,
-            'txid' => $txid,
+            'id' => $this->safe_string($transaction, 'id'),
+            'txid' => $this->safe_string($details, 'crypto_transaction_hash'),
+            'type' => $type,
+            'currency' => $code,
+            'network' => $this->network_id_to_code($networkId),
+            'amount' => $amount,
+            'status' => $this->parse_transaction_status($transaction),
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
-            'network' => null,
             'address' => $address,
-            'addressTo' => null,
             'addressFrom' => null,
-            'tag' => $tag,
-            'tagTo' => null,
+            'addressTo' => $this->safe_string($details, 'crypto_address'),
+            'tag' => $this->safe_string($details, 'destination_tag'),
             'tagFrom' => null,
-            'type' => $type,
-            'amount' => $amount,
-            'currency' => $code,
-            'status' => $status,
-            'updated' => $updated,
+            'tagTo' => null,
+            'updated' => $this->parse8601($this->safe_string($transaction, 'processed_at')),
+            'comment' => null,
             'fee' => $fee,
         );
     }

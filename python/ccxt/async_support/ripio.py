@@ -992,6 +992,7 @@ class ripio(Exchange):
             'side': side,
             'price': price,
             'stopPrice': self.safe_string(order, 'stop_price'),
+            'triggerPrice': self.safe_string(order, 'stop_price'),
             'amount': amount,
             'cost': cost,
             'average': average,

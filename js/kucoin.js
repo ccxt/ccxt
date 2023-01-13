@@ -52,6 +52,8 @@ module.exports = class kucoin extends Exchange {
                 'fetchDepositAddress': true,
                 'fetchDepositAddressesByNetwork': true,
                 'fetchDeposits': true,
+                'fetchDepositWithdrawFee': true,
+                'fetchDepositWithdrawFees': false,
                 'fetchFundingHistory': false,
                 'fetchFundingRate': false,
                 'fetchFundingRateHistory': false,
@@ -324,6 +326,7 @@ module.exports = class kucoin extends Exchange {
                     '210014': InvalidOrder, // {"code":"210014","msg":"Exceeds the max. borrowing amount, the remaining amount you can borrow: 0USDT"}
                     '210021': InsufficientFunds, // {"code":"210021","msg":"Balance not enough"}
                     '230003': InsufficientFunds, // {"code":"230003","msg":"Balance insufficient!"}
+                    '260000': InvalidAddress, // {"code":"260000","msg":"Deposit address already exists."}
                     '260100': InsufficientFunds, // {"code":"260100","msg":"account.noBalance"}
                     '300000': InvalidOrder,
                     '400000': BadSymbol,
@@ -401,17 +404,17 @@ module.exports = class kucoin extends Exchange {
                 },
             },
             'commonCurrencies': {
-                'HOT': 'HOTNOW',
+                'BIFI': 'BIFIF',
                 'EDGE': 'DADI', // https://github.com/ccxt/ccxt/issues/5756
-                'WAX': 'WAXP',
+                'HOT': 'HOTNOW',
                 'TRY': 'Trias',
                 'VAI': 'VAIOT',
+                'WAX': 'WAXP',
             },
             'options': {
                 'version': 'v1',
                 'symbolSeparator': '-',
                 'fetchMyTradesMethod': 'private_get_fills',
-                'fetchBalance': 'trade',
                 'fetchMarkets': {
                     'fetchTickersFees': true,
                 },
@@ -476,6 +479,7 @@ module.exports = class kucoin extends Exchange {
                     'main': 'main',
                     'funding': 'main',
                     'future': 'contract',
+                    'swap': 'contract',
                     'mining': 'pool',
                 },
                 'networks': {
@@ -488,6 +492,9 @@ module.exports = class kucoin extends Exchange {
                     'BNB': 'bsc',
                     'HRC20': 'heco',
                     'HT': 'heco',
+                },
+                'networksById': {
+                    'BEP20': 'BSC',
                 },
             },
         });
@@ -627,7 +634,7 @@ module.exports = class kucoin extends Exchange {
             // const quoteIncrement = this.safeNumber (market, 'quoteIncrement');
             const ticker = this.safeValue (tickersByMarketId, id, {});
             const makerFeeRate = this.safeString (ticker, 'makerFeeRate');
-            const takerFeeRate = this.safeString (ticker, 'makerFeeRate');
+            const takerFeeRate = this.safeString (ticker, 'takerFeeRate');
             const makerCoefficient = this.safeString (ticker, 'makerCoefficient');
             const takerCoefficient = this.safeString (ticker, 'takerCoefficient');
             result.push ({
@@ -789,7 +796,7 @@ module.exports = class kucoin extends Exchange {
         /**
          * @method
          * @name kucoin#fetchTransactionFee
-         * @description fetch the fee for a transaction
+         * @description *DEPRECATED* please use fetchDepositWithdrawFee instead
          * @see https://docs.kucoin.com/#get-withdrawal-quotas
          * @param {string} code unified currency code
          * @param {object} params extra parameters specific to the kucoin api endpoint
@@ -817,6 +824,86 @@ module.exports = class kucoin extends Exchange {
             'withdraw': withdrawFees,
             'deposit': {},
         };
+    }
+
+    async fetchDepositWithdrawFee (code, params = {}) {
+        /**
+         * @method
+         * @name kucoin#fetchDepositWithdrawFee
+         * @description fetch the fee for deposits and withdrawals
+         * @see https://docs.kucoin.com/#get-withdrawal-quotas
+         * @param {string} code unified currency code
+         * @param {object} params extra parameters specific to the kucoin api endpoint
+         * @param {string|undefined} params.network The chain of currency. This only apply for multi-chain currency, and there is no need for single chain currency; you can query the chain through the response of the GET /api/v2/currencies/{currency} interface
+         * @returns {object} a [fee structure]{@link https://docs.ccxt.com/en/latest/manual.html#fee-structure}
+         */
+        await this.loadMarkets ();
+        const currency = this.currency (code);
+        const request = {
+            'currency': currency['id'],
+        };
+        const networkCode = this.safeStringUpper (params, 'network');
+        const network = this.networkCodeToId (networkCode, code);
+        if (network !== undefined) {
+            request['chain'] = network;
+            params = this.omit (params, [ 'network' ]);
+        }
+        const response = await this.privateGetWithdrawalsQuotas (this.extend (request, params));
+        //
+        //    {
+        //        "code": "200000",
+        //        "data": {
+        //            "currency": "USDT",
+        //            "limitBTCAmount": "1.00000000",
+        //            "usedBTCAmount": "0.00000000",
+        //            "remainAmount": "16548.072149",
+        //            "availableAmount": "0",
+        //            "withdrawMinFee": "25",
+        //            "innerWithdrawMinFee": "0",
+        //            "withdrawMinSize": "50",
+        //            "isWithdrawEnabled": true,
+        //            "precision": 6,
+        //            "chain": "ERC20"
+        //        }
+        //    }
+        //
+        const data = this.safeValue (response, 'data');
+        return this.parseDepositWithdrawFee (data, currency);
+    }
+
+    parseDepositWithdrawFee (fee, currency = undefined) {
+        //
+        //    {
+        //        "currency": "USDT",
+        //        "limitBTCAmount": "1.00000000",
+        //        "usedBTCAmount": "0.00000000",
+        //        "remainAmount": "16548.072149",
+        //        "availableAmount": "0",
+        //        "withdrawMinFee": "25",
+        //        "innerWithdrawMinFee": "0",
+        //        "withdrawMinSize": "50",
+        //        "isWithdrawEnabled": true,
+        //        "precision": 6,
+        //        "chain": "ERC20"
+        //    }
+        //
+        const result = this.depositWithdrawFee (fee);
+        const isWithdrawEnabled = this.safeValue (fee, 'isWithdrawEnabled');
+        if (isWithdrawEnabled) {
+            const networkId = this.safeString (fee, 'chain');
+            const networkCode = this.networkIdToCode (networkId, this.safeString (currency, 'code'));
+            result['networks'][networkCode] = {
+                'withdraw': {
+                    'fee': this.safeNumber (fee, 'withdrawMinFee'),
+                    'percentage': undefined,
+                },
+                'deposit': {
+                    'fee': undefined,
+                    'percentage': undefined,
+                },
+            };
+        }
+        return this.assignDefaultDepositWithdrawFees (result);
     }
 
     isFuturesMethod (methodName, params) {
@@ -1124,6 +1211,7 @@ module.exports = class kucoin extends Exchange {
             params = this.omit (params, [ 'chain', 'network' ]);
         }
         const response = await this.privatePostDepositAddresses (this.extend (request, params));
+        // {"code":"260000","msg":"Deposit address already exists."}
         // BCH {"code":"200000","data":{"address":"bitcoincash:qza3m4nj9rx7l9r0cdadfqxts6f92shvhvr5ls4q7z","memo":""}}
         // BTC {"code":"200000","data":{"address":"36SjucKqQpQSvsak9A7h6qzFjrVXpRNZhE","memo":""}}
         const data = this.safeValue (response, 'data', {});
@@ -1381,6 +1469,8 @@ module.exports = class kucoin extends Exchange {
         const quoteAmount = this.safeNumber2 (params, 'cost', 'funds');
         let amountString = undefined;
         let costString = undefined;
+        let marginMode = undefined;
+        [ marginMode, params ] = this.handleMarginModeAndParams ('createOrder', params);
         if (type === 'market') {
             if (quoteAmount !== undefined) {
                 params = this.omit (params, [ 'cost', 'funds' ]);
@@ -1404,16 +1494,19 @@ module.exports = class kucoin extends Exchange {
         if (isStopLoss && isTakeProfit) {
             throw new ExchangeError (this.id + ' createOrder() stopLossPrice and takeProfitPrice cannot both be defined');
         }
-        const tradeType = this.safeString (params, 'tradeType');
         params = this.omit (params, [ 'stopLossPrice', 'takeProfitPrice', 'stopPrice' ]);
+        const tradeType = this.safeString (params, 'tradeType'); // keep it for backward compatibility
         let method = 'privatePostOrders';
         if (isStopLoss || isTakeProfit) {
             request['stop'] = isStopLoss ? 'entry' : 'loss';
             const triggerPrice = isStopLoss ? stopLossPrice : takeProfitPrice;
             request['stopPrice'] = this.priceToPrecision (symbol, triggerPrice);
             method = 'privatePostStopOrder';
-        } else if (tradeType === 'MARGIN_TRADE') {
+        } else if (tradeType === 'MARGIN_TRADE' || marginMode !== undefined) {
             method = 'privatePostMarginOrder';
+            if (marginMode === 'isolated') {
+                request['marginModel'] = 'isolated';
+            }
         }
         const response = await this[method] (this.extend (request, params));
         //
@@ -1780,6 +1873,7 @@ module.exports = class kucoin extends Exchange {
             'amount': amount,
             'price': price,
             'stopPrice': stopPrice,
+            'triggerPrice': stopPrice,
             'cost': cost,
             'filled': filled,
             'remaining': undefined,
@@ -2685,12 +2779,7 @@ module.exports = class kucoin extends Exchange {
             //     }
             //
             const data = this.safeValue (response, 'data');
-            const transfer = this.parseTransfer (data, currency);
-            return this.extend (transfer, {
-                'amount': requestedAmount,
-                'fromAccount': fromId,
-                'toAccount': toId,
-            });
+            return this.parseTransfer (data, currency);
         }
     }
 
@@ -2698,10 +2787,14 @@ module.exports = class kucoin extends Exchange {
         //
         // transfer (spot)
         //
-        //     {
-        //         'orderId': '605a6211e657f00006ad0ad6'
-        //     }
+        //    {
+        //        'orderId': '605a6211e657f00006ad0ad6'
+        //    }
         //
+        //    {
+        //        "code": "200000",
+        //        "msg": "Failed to transfer out. The amount exceeds the upper limit"
+        //    }
         //
         // transfer (futures)
         //

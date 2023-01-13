@@ -69,6 +69,8 @@ class kucoin(Exchange):
                 'fetchDepositAddress': True,
                 'fetchDepositAddressesByNetwork': True,
                 'fetchDeposits': True,
+                'fetchDepositWithdrawFee': True,
+                'fetchDepositWithdrawFees': False,
                 'fetchFundingHistory': False,
                 'fetchFundingRate': False,
                 'fetchFundingRateHistory': False,
@@ -341,6 +343,7 @@ class kucoin(Exchange):
                     '210014': InvalidOrder,  # {"code":"210014","msg":"Exceeds the max. borrowing amount, the remaining amount you can borrow: 0USDT"}
                     '210021': InsufficientFunds,  # {"code":"210021","msg":"Balance not enough"}
                     '230003': InsufficientFunds,  # {"code":"230003","msg":"Balance insufficient!"}
+                    '260000': InvalidAddress,  # {"code":"260000","msg":"Deposit address already exists."}
                     '260100': InsufficientFunds,  # {"code":"260100","msg":"account.noBalance"}
                     '300000': InvalidOrder,
                     '400000': BadSymbol,
@@ -418,17 +421,17 @@ class kucoin(Exchange):
                 },
             },
             'commonCurrencies': {
-                'HOT': 'HOTNOW',
+                'BIFI': 'BIFIF',
                 'EDGE': 'DADI',  # https://github.com/ccxt/ccxt/issues/5756
-                'WAX': 'WAXP',
+                'HOT': 'HOTNOW',
                 'TRY': 'Trias',
                 'VAI': 'VAIOT',
+                'WAX': 'WAXP',
             },
             'options': {
                 'version': 'v1',
                 'symbolSeparator': '-',
                 'fetchMyTradesMethod': 'private_get_fills',
-                'fetchBalance': 'trade',
                 'fetchMarkets': {
                     'fetchTickersFees': True,
                 },
@@ -493,6 +496,7 @@ class kucoin(Exchange):
                     'main': 'main',
                     'funding': 'main',
                     'future': 'contract',
+                    'swap': 'contract',
                     'mining': 'pool',
                 },
                 'networks': {
@@ -505,6 +509,9 @@ class kucoin(Exchange):
                     'BNB': 'bsc',
                     'HRC20': 'heco',
                     'HT': 'heco',
+                },
+                'networksById': {
+                    'BEP20': 'BSC',
                 },
             },
         })
@@ -633,7 +640,7 @@ class kucoin(Exchange):
             # quoteIncrement = self.safe_number(market, 'quoteIncrement')
             ticker = self.safe_value(tickersByMarketId, id, {})
             makerFeeRate = self.safe_string(ticker, 'makerFeeRate')
-            takerFeeRate = self.safe_string(ticker, 'makerFeeRate')
+            takerFeeRate = self.safe_string(ticker, 'takerFeeRate')
             makerCoefficient = self.safe_string(ticker, 'makerCoefficient')
             takerCoefficient = self.safe_string(ticker, 'takerCoefficient')
             result.append({
@@ -783,7 +790,7 @@ class kucoin(Exchange):
 
     async def fetch_transaction_fee(self, code, params={}):
         """
-        fetch the fee for a transaction
+        *DEPRECATED* please use fetchDepositWithdrawFee instead
         see https://docs.kucoin.com/#get-withdrawal-quotas
         :param str code: unified currency code
         :param dict params: extra parameters specific to the kucoin api endpoint
@@ -810,6 +817,80 @@ class kucoin(Exchange):
             'withdraw': withdrawFees,
             'deposit': {},
         }
+
+    async def fetch_deposit_withdraw_fee(self, code, params={}):
+        """
+        fetch the fee for deposits and withdrawals
+        see https://docs.kucoin.com/#get-withdrawal-quotas
+        :param str code: unified currency code
+        :param dict params: extra parameters specific to the kucoin api endpoint
+        :param str|None params['network']: The chain of currency. This only apply for multi-chain currency, and there is no need for single chain currency; you can query the chain through the response of the GET /api/v2/currencies/{currency} interface
+        :returns dict: a `fee structure <https://docs.ccxt.com/en/latest/manual.html#fee-structure>`
+        """
+        await self.load_markets()
+        currency = self.currency(code)
+        request = {
+            'currency': currency['id'],
+        }
+        networkCode = self.safe_string_upper(params, 'network')
+        network = self.network_code_to_id(networkCode, code)
+        if network is not None:
+            request['chain'] = network
+            params = self.omit(params, ['network'])
+        response = await self.privateGetWithdrawalsQuotas(self.extend(request, params))
+        #
+        #    {
+        #        "code": "200000",
+        #        "data": {
+        #            "currency": "USDT",
+        #            "limitBTCAmount": "1.00000000",
+        #            "usedBTCAmount": "0.00000000",
+        #            "remainAmount": "16548.072149",
+        #            "availableAmount": "0",
+        #            "withdrawMinFee": "25",
+        #            "innerWithdrawMinFee": "0",
+        #            "withdrawMinSize": "50",
+        #            "isWithdrawEnabled": True,
+        #            "precision": 6,
+        #            "chain": "ERC20"
+        #        }
+        #    }
+        #
+        data = self.safe_value(response, 'data')
+        return self.parse_deposit_withdraw_fee(data, currency)
+
+    def parse_deposit_withdraw_fee(self, fee, currency=None):
+        #
+        #    {
+        #        "currency": "USDT",
+        #        "limitBTCAmount": "1.00000000",
+        #        "usedBTCAmount": "0.00000000",
+        #        "remainAmount": "16548.072149",
+        #        "availableAmount": "0",
+        #        "withdrawMinFee": "25",
+        #        "innerWithdrawMinFee": "0",
+        #        "withdrawMinSize": "50",
+        #        "isWithdrawEnabled": True,
+        #        "precision": 6,
+        #        "chain": "ERC20"
+        #    }
+        #
+        result = self.deposit_withdraw_fee(fee)
+        isWithdrawEnabled = self.safe_value(fee, 'isWithdrawEnabled')
+        if isWithdrawEnabled:
+            networkId = self.safe_string(fee, 'chain')
+            networkCode = self.network_id_to_code(networkId, self.safe_string(currency, 'code'))
+            result['networks'][networkCode] = {
+                'withdraw': {
+                    'fee': self.safe_number(fee, 'withdrawMinFee'),
+                    'percentage': None,
+                },
+                'deposit': {
+                    'fee': None,
+                    'percentage': None,
+                },
+            }
+        return self.assign_default_deposit_withdraw_fees(result)
 
     def is_futures_method(self, methodName, params):
         #
@@ -1095,6 +1176,7 @@ class kucoin(Exchange):
             request['chain'] = network
             params = self.omit(params, ['chain', 'network'])
         response = await self.privatePostDepositAddresses(self.extend(request, params))
+        # {"code":"260000","msg":"Deposit address already exists."}
         # BCH {"code":"200000","data":{"address":"bitcoincash:qza3m4nj9rx7l9r0cdadfqxts6f92shvhvr5ls4q7z","memo":""}}
         # BTC {"code":"200000","data":{"address":"36SjucKqQpQSvsak9A7h6qzFjrVXpRNZhE","memo":""}}
         data = self.safe_value(response, 'data', {})
@@ -1329,6 +1411,8 @@ class kucoin(Exchange):
         quoteAmount = self.safe_number_2(params, 'cost', 'funds')
         amountString = None
         costString = None
+        marginMode = None
+        marginMode, params = self.handle_margin_mode_and_params('createOrder', params)
         if type == 'market':
             if quoteAmount is not None:
                 params = self.omit(params, ['cost', 'funds'])
@@ -1349,16 +1433,18 @@ class kucoin(Exchange):
         isTakeProfit = takeProfitPrice is not None
         if isStopLoss and isTakeProfit:
             raise ExchangeError(self.id + ' createOrder() stopLossPrice and takeProfitPrice cannot both be defined')
-        tradeType = self.safe_string(params, 'tradeType')
         params = self.omit(params, ['stopLossPrice', 'takeProfitPrice', 'stopPrice'])
+        tradeType = self.safe_string(params, 'tradeType')  # keep it for backward compatibility
         method = 'privatePostOrders'
         if isStopLoss or isTakeProfit:
             request['stop'] = 'entry' if isStopLoss else 'loss'
             triggerPrice = stopLossPrice if isStopLoss else takeProfitPrice
             request['stopPrice'] = self.price_to_precision(symbol, triggerPrice)
             method = 'privatePostStopOrder'
-        elif tradeType == 'MARGIN_TRADE':
+        elif tradeType == 'MARGIN_TRADE' or marginMode is not None:
             method = 'privatePostMarginOrder'
+            if marginMode == 'isolated':
+                request['marginModel'] = 'isolated'
         response = await getattr(self, method)(self.extend(request, params))
         #
         #     {
@@ -1687,6 +1773,7 @@ class kucoin(Exchange):
             'amount': amount,
             'price': price,
             'stopPrice': stopPrice,
+            'triggerPrice': stopPrice,
             'cost': cost,
             'filled': filled,
             'remaining': None,
@@ -2516,21 +2603,20 @@ class kucoin(Exchange):
             #     }
             #
             data = self.safe_value(response, 'data')
-            transfer = self.parse_transfer(data, currency)
-            return self.extend(transfer, {
-                'amount': requestedAmount,
-                'fromAccount': fromId,
-                'toAccount': toId,
-            })
+            return self.parse_transfer(data, currency)
 
     def parse_transfer(self, transfer, currency=None):
         #
         # transfer(spot)
         #
-        #     {
-        #         'orderId': '605a6211e657f00006ad0ad6'
-        #     }
+        #    {
+        #        'orderId': '605a6211e657f00006ad0ad6'
+        #    }
         #
+        #    {
+        #        "code": "200000",
+        #        "msg": "Failed to transfer out. The amount exceeds the upper limit"
+        #    }
         #
         # transfer(futures)
         #

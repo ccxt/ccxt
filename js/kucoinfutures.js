@@ -33,6 +33,7 @@ module.exports = class kucoinfutures extends kucoin {
                 'cancelOrder': true,
                 'createDepositAddress': true,
                 'createOrder': true,
+                'createReduceOnlyOrder': true,
                 'createStopLimitOrder': true,
                 'createStopMarketOrder': true,
                 'createStopOrder': true,
@@ -47,6 +48,8 @@ module.exports = class kucoinfutures extends kucoin {
                 'fetchCurrencies': false,
                 'fetchDepositAddress': true,
                 'fetchDeposits': true,
+                'fetchDepositWithdrawFee': false,
+                'fetchDepositWithdrawFees': false,
                 'fetchFundingHistory': true,
                 'fetchFundingRate': true,
                 'fetchFundingRateHistory': false,
@@ -71,7 +74,7 @@ module.exports = class kucoinfutures extends kucoin {
                 'fetchTickers': false,
                 'fetchTime': true,
                 'fetchTrades': true,
-                'fetchTransactionFee': true,
+                'fetchTransactionFee': false,
                 'fetchWithdrawals': true,
                 'setMarginMode': false,
                 'transfer': true,
@@ -1020,6 +1023,7 @@ module.exports = class kucoinfutures extends kucoin {
          * @method
          * @name kucoinfutures#createOrder
          * @description Create an order on the exchange
+         * @see https://docs.kucoin.com/futures/#place-an-order
          * @param {string} symbol Unified CCXT market symbol
          * @param {string} type 'limit' or 'market'
          * @param {string} side 'buy' or 'sell'
@@ -1027,14 +1031,17 @@ module.exports = class kucoinfutures extends kucoin {
          * @param {float} price *ignored in "market" orders* the price at which the order is to be fullfilled at in units of the quote currency
          * @param {object} params  Extra parameters specific to the exchange API endpoint
          * @param {float} params.leverage Leverage size of the order
-         * @param {float} params.stopPrice The price at which a trigger order is triggered at
+         * @param {float} params.stopPrice The price a stop order is triggered at
+         * @param {float} params.triggerPrice price to trigger stop orders
+         * @param {float} params.stopLossPrice price to trigger stop-loss orders
+         * @param {float} params.takeProfitPrice price to trigger take-profit orders
+         * @param {string} params.stop 'up' or 'down', the direction the stopPrice is triggered from, requires stopPrice
+         * @param {string} params.stopPriceType  TP, IP or MP, defaults to MP: Mark Price
          * @param {bool} params.reduceOnly A mark to reduce the position size only. Set to false by default. Need to set the position size when reduceOnly is true.
          * @param {string} params.timeInForce GTC, GTT, IOC, or FOK, default is GTC, limit orders only
          * @param {string} params.postOnly Post only flag, invalid when timeInForce is IOC or FOK
          * @param {string} params.clientOid client order id, defaults to uuid if not passed
          * @param {string} params.remark remark for the order, length cannot exceed 100 utf8 characters
-         * @param {string} params.stop 'up' or 'down', defaults to 'up' if side is sell and 'down' if side is buy, requires stopPrice
-         * @param {string} params.stopPriceType  TP, IP or MP, defaults to TP
          * @param {bool} params.closeOrder set to true to close position
          * @param {bool} params.forceHold A mark to forcely hold the funds for an order, even though it's an order to reduce the position size. This helps the order stay on the order book and not get canceled when the position size changes. Set to false by default.
          * @returns {object} an [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
@@ -1057,11 +1064,32 @@ module.exports = class kucoinfutures extends kucoin {
             'leverage': 1,
         };
         const stopPrice = this.safeValue2 (params, 'triggerPrice', 'stopPrice');
+        const stopLossPrice = this.safeValue (params, 'stopLossPrice');
+        const takeProfitPrice = this.safeValue (params, 'takeProfitPrice');
+        const isStopLoss = stopLossPrice !== undefined;
+        const isTakeProfit = takeProfitPrice !== undefined;
+        const stop = this.safeString (params, 'stop');
+        const stopPriceType = this.safeString (params, 'stopPriceType', 'MP');
         if (stopPrice) {
-            request['stop'] = (side === 'buy') ? 'up' : 'down';
-            const stopPriceType = this.safeString (params, 'stopPriceType', 'TP');
-            request['stopPriceType'] = stopPriceType;
+            if (stop === undefined) {
+                request['stop'] = (side === 'buy') ? 'down' : 'up';
+            }
             request['stopPrice'] = this.priceToPrecision (symbol, stopPrice);
+            request['stopPriceType'] = stopPriceType;
+        } else if (isStopLoss || isTakeProfit) {
+            if (isStopLoss) {
+                if (stop === undefined) {
+                    request['stop'] = (side === 'buy') ? 'up' : 'down';
+                }
+                request['stopPrice'] = this.priceToPrecision (symbol, stopLossPrice);
+            } else {
+                if (stop === undefined) {
+                    request['stop'] = (side === 'buy') ? 'down' : 'up';
+                }
+                request['stopPrice'] = this.priceToPrecision (symbol, takeProfitPrice);
+            }
+            request['reduceOnly'] = true;
+            request['stopPriceType'] = stopPriceType;
         }
         const uppercaseType = type.toUpperCase ();
         const timeInForce = this.safeStringUpper (params, 'timeInForce');
@@ -1087,7 +1115,7 @@ module.exports = class kucoinfutures extends kucoin {
                 throw new ArgumentsRequired (this.id + ' createOrder() requires a visibleSize parameter for iceberg orders');
             }
         }
-        params = this.omit (params, [ 'timeInForce', 'stopPrice', 'triggerPrice' ]); // Time in force only valid for limit orders, exchange error when gtc for market orders
+        params = this.omit (params, [ 'timeInForce', 'stop', 'stopPrice', 'stopPriceType', 'triggerPrice', 'stopLossPrice', 'takeProfitPrice' ]); // Time in force only valid for limit orders, exchange error when gtc for market orders
         const response = await this.futuresPrivatePostOrders (this.extend (request, params));
         //
         //    {
@@ -1119,6 +1147,7 @@ module.exports = class kucoinfutures extends kucoin {
             'timeInForce': undefined,
             'postOnly': undefined,
             'stopPrice': undefined,
+            'triggerPrice': undefined,
             'info': response,
         };
     }
@@ -1470,6 +1499,7 @@ module.exports = class kucoinfutures extends kucoin {
             'amount': amount,
             'price': price,
             'stopPrice': stopPrice,
+            'triggerPrice': stopPrice,
             'cost': cost,
             'filled': filled,
             'remaining': undefined,
@@ -1997,12 +2027,24 @@ module.exports = class kucoinfutures extends kucoin {
         /**
          * @method
          * @name kucoinfutures#fetchTransactionFee
-         * @description fetch the fee for a transaction
+         * @description *DEPRECATED* please use fetchDepositWithdrawFee instead
          * @param {string} code unified currency code
          * @param {object} params extra parameters specific to the kucoinfutures api endpoint
          * @returns {object} a [fee structure]{@link https://docs.ccxt.com/en/latest/manual.html#fee-structure}
          */
-        throw new BadRequest (this.id + ' fetchTransactionFee() is not supported yet');
+        throw new BadRequest (this.id + ' fetchTransactionFee() is not supported');
+    }
+
+    async fetchDepositWithdrawFee (code, params = {}) {
+        /**
+         * @method
+         * @name kucoinfutures#fetchDepositWithdrawFee
+         * @description Not supported
+         * @param {string} code unified currency code
+         * @param {object} params extra parameters specific to the kucoinfutures api endpoint
+         * @returns {object} a [fee structure]{@link https://docs.ccxt.com/en/latest/manual.html#fee-structure}
+         */
+        throw new BadRequest (this.id + ' fetchDepositWithdrawFee() is not supported');
     }
 
     async fetchLedger (code = undefined, since = undefined, limit = undefined, params = {}) {

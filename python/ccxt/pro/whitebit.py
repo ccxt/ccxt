@@ -574,6 +574,7 @@ class whitebit(Exchange, ccxt.async_support.whitebit):
             'side': side,
             'price': price,
             'stopPrice': stopPrice,
+            'triggerPrice': stopPrice,
             'amount': amount,
             'cost': cost,
             'average': None,

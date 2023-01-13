@@ -55,6 +55,8 @@ class kucoin extends Exchange {
                 'fetchDepositAddress' => true,
                 'fetchDepositAddressesByNetwork' => true,
                 'fetchDeposits' => true,
+                'fetchDepositWithdrawFee' => true,
+                'fetchDepositWithdrawFees' => false,
                 'fetchFundingHistory' => false,
                 'fetchFundingRate' => false,
                 'fetchFundingRateHistory' => false,
@@ -327,6 +329,7 @@ class kucoin extends Exchange {
                     '210014' => '\\ccxt\\InvalidOrder', // array("code":"210014","msg":"Exceeds the max. borrowing amount, the remaining amount you can borrow => 0USDT")
                     '210021' => '\\ccxt\\InsufficientFunds', // array("code":"210021","msg":"Balance not enough")
                     '230003' => '\\ccxt\\InsufficientFunds', // array("code":"230003","msg":"Balance insufficient!")
+                    '260000' => '\\ccxt\\InvalidAddress', // array("code":"260000","msg":"Deposit address already exists.")
                     '260100' => '\\ccxt\\InsufficientFunds', // array("code":"260100","msg":"account.noBalance")
                     '300000' => '\\ccxt\\InvalidOrder',
                     '400000' => '\\ccxt\\BadSymbol',
@@ -404,17 +407,17 @@ class kucoin extends Exchange {
                 ),
             ),
             'commonCurrencies' => array(
-                'HOT' => 'HOTNOW',
+                'BIFI' => 'BIFIF',
                 'EDGE' => 'DADI', // https://github.com/ccxt/ccxt/issues/5756
-                'WAX' => 'WAXP',
+                'HOT' => 'HOTNOW',
                 'TRY' => 'Trias',
                 'VAI' => 'VAIOT',
+                'WAX' => 'WAXP',
             ),
             'options' => array(
                 'version' => 'v1',
                 'symbolSeparator' => '-',
                 'fetchMyTradesMethod' => 'private_get_fills',
-                'fetchBalance' => 'trade',
                 'fetchMarkets' => array(
                     'fetchTickersFees' => true,
                 ),
@@ -479,6 +482,7 @@ class kucoin extends Exchange {
                     'main' => 'main',
                     'funding' => 'main',
                     'future' => 'contract',
+                    'swap' => 'contract',
                     'mining' => 'pool',
                 ),
                 'networks' => array(
@@ -491,6 +495,9 @@ class kucoin extends Exchange {
                     'BNB' => 'bsc',
                     'HRC20' => 'heco',
                     'HT' => 'heco',
+                ),
+                'networksById' => array(
+                    'BEP20' => 'BSC',
                 ),
             ),
         ));
@@ -629,7 +636,7 @@ class kucoin extends Exchange {
                 // $quoteIncrement = $this->safe_number($market, 'quoteIncrement');
                 $ticker = $this->safe_value($tickersByMarketId, $id, array());
                 $makerFeeRate = $this->safe_string($ticker, 'makerFeeRate');
-                $takerFeeRate = $this->safe_string($ticker, 'makerFeeRate');
+                $takerFeeRate = $this->safe_string($ticker, 'takerFeeRate');
                 $makerCoefficient = $this->safe_string($ticker, 'makerCoefficient');
                 $takerCoefficient = $this->safe_string($ticker, 'takerCoefficient');
                 $result[] = array(
@@ -791,7 +798,7 @@ class kucoin extends Exchange {
     public function fetch_transaction_fee($code, $params = array ()) {
         return Async\async(function () use ($code, $params) {
             /**
-             * fetch the fee for a transaction
+             * *DEPRECATED* please use fetchDepositWithdrawFee instead
              * @see https://docs.kucoin.com/#get-withdrawal-quotas
              * @param {string} $code unified $currency $code
              * @param {array} $params extra parameters specific to the kucoin api endpoint
@@ -820,6 +827,86 @@ class kucoin extends Exchange {
                 'deposit' => array(),
             );
         }) ();
+    }
+
+    public function fetch_deposit_withdraw_fee($code, $params = array ()) {
+        return Async\async(function () use ($code, $params) {
+            /**
+             * fetch the fee for deposits and withdrawals
+             * @see https://docs.kucoin.com/#get-withdrawal-quotas
+             * @param {string} $code unified $currency $code
+             * @param {array} $params extra parameters specific to the kucoin api endpoint
+             * @param {string|null} $params->network The chain of $currency-> This only apply for multi-chain $currency, and there is no need for single chain $currency; you can query the chain through the $response of the GET /api/v2/currencies/{$currency} interface
+             * @return {array} a {@link https://docs.ccxt.com/en/latest/manual.html#fee-structure fee structure}
+             */
+            Async\await($this->load_markets());
+            $currency = $this->currency($code);
+            $request = array(
+                'currency' => $currency['id'],
+            );
+            $networkCode = $this->safe_string_upper($params, 'network');
+            $network = $this->network_code_to_id($networkCode, $code);
+            if ($network !== null) {
+                $request['chain'] = $network;
+                $params = $this->omit($params, array( 'network' ));
+            }
+            $response = Async\await($this->privateGetWithdrawalsQuotas (array_merge($request, $params)));
+            //
+            //    {
+            //        "code" => "200000",
+            //        "data" => {
+            //            "currency" => "USDT",
+            //            "limitBTCAmount" => "1.00000000",
+            //            "usedBTCAmount" => "0.00000000",
+            //            "remainAmount" => "16548.072149",
+            //            "availableAmount" => "0",
+            //            "withdrawMinFee" => "25",
+            //            "innerWithdrawMinFee" => "0",
+            //            "withdrawMinSize" => "50",
+            //            "isWithdrawEnabled" => true,
+            //            "precision" => 6,
+            //            "chain" => "ERC20"
+            //        }
+            //    }
+            //
+            $data = $this->safe_value($response, 'data');
+            return $this->parse_deposit_withdraw_fee($data, $currency);
+        }) ();
+    }
+
+    public function parse_deposit_withdraw_fee($fee, $currency = null) {
+        //
+        //    {
+        //        "currency" => "USDT",
+        //        "limitBTCAmount" => "1.00000000",
+        //        "usedBTCAmount" => "0.00000000",
+        //        "remainAmount" => "16548.072149",
+        //        "availableAmount" => "0",
+        //        "withdrawMinFee" => "25",
+        //        "innerWithdrawMinFee" => "0",
+        //        "withdrawMinSize" => "50",
+        //        "isWithdrawEnabled" => true,
+        //        "precision" => 6,
+        //        "chain" => "ERC20"
+        //    }
+        //
+        $result = $this->deposit_withdraw_fee($fee);
+        $isWithdrawEnabled = $this->safe_value($fee, 'isWithdrawEnabled');
+        if ($isWithdrawEnabled) {
+            $networkId = $this->safe_string($fee, 'chain');
+            $networkCode = $this->network_id_to_code($networkId, $this->safe_string($currency, 'code'));
+            $result['networks'][$networkCode] = array(
+                'withdraw' => array(
+                    'fee' => $this->safe_number($fee, 'withdrawMinFee'),
+                    'percentage' => null,
+                ),
+                'deposit' => array(
+                    'fee' => null,
+                    'percentage' => null,
+                ),
+            );
+        }
+        return $this->assign_default_deposit_withdraw_fees($result);
     }
 
     public function is_futures_method($methodName, $params) {
@@ -1126,6 +1213,7 @@ class kucoin extends Exchange {
                 $params = $this->omit($params, array( 'chain', 'network' ));
             }
             $response = Async\await($this->privatePostDepositAddresses (array_merge($request, $params)));
+            // array("code":"260000","msg":"Deposit $address already exists.")
             // BCH array("code":"200000","data":array("address":"bitcoincash:qza3m4nj9rx7l9r0cdadfqxts6f92shvhvr5ls4q7z","memo":""))
             // BTC array("code":"200000","data":array("address":"36SjucKqQpQSvsak9A7h6qzFjrVXpRNZhE","memo":""))
             $data = $this->safe_value($response, 'data', array());
@@ -1383,6 +1471,8 @@ class kucoin extends Exchange {
             $quoteAmount = $this->safe_number_2($params, 'cost', 'funds');
             $amountString = null;
             $costString = null;
+            $marginMode = null;
+            list($marginMode, $params) = $this->handle_margin_mode_and_params('createOrder', $params);
             if ($type === 'market') {
                 if ($quoteAmount !== null) {
                     $params = $this->omit($params, array( 'cost', 'funds' ));
@@ -1406,16 +1496,19 @@ class kucoin extends Exchange {
             if ($isStopLoss && $isTakeProfit) {
                 throw new ExchangeError($this->id . ' createOrder() $stopLossPrice and $takeProfitPrice cannot both be defined');
             }
-            $tradeType = $this->safe_string($params, 'tradeType');
             $params = $this->omit($params, array( 'stopLossPrice', 'takeProfitPrice', 'stopPrice' ));
+            $tradeType = $this->safe_string($params, 'tradeType'); // keep it for backward compatibility
             $method = 'privatePostOrders';
             if ($isStopLoss || $isTakeProfit) {
                 $request['stop'] = $isStopLoss ? 'entry' : 'loss';
                 $triggerPrice = $isStopLoss ? $stopLossPrice : $takeProfitPrice;
                 $request['stopPrice'] = $this->price_to_precision($symbol, $triggerPrice);
                 $method = 'privatePostStopOrder';
-            } elseif ($tradeType === 'MARGIN_TRADE') {
+            } elseif ($tradeType === 'MARGIN_TRADE' || $marginMode !== null) {
                 $method = 'privatePostMarginOrder';
+                if ($marginMode === 'isolated') {
+                    $request['marginModel'] = 'isolated';
+                }
             }
             $response = Async\await($this->$method (array_merge($request, $params)));
             //
@@ -1783,6 +1876,7 @@ class kucoin extends Exchange {
             'amount' => $amount,
             'price' => $price,
             'stopPrice' => $stopPrice,
+            'triggerPrice' => $stopPrice,
             'cost' => $cost,
             'filled' => $filled,
             'remaining' => null,
@@ -2601,15 +2695,15 @@ class kucoin extends Exchange {
     public function transfer($code, $amount, $fromAccount, $toAccount, $params = array ()) {
         return Async\async(function () use ($code, $amount, $fromAccount, $toAccount, $params) {
             /**
-             * $transfer $currency internally between wallets on the same account
-             * @see https://docs.kucoin.com/#inner-$transfer
-             * @see https://docs.kucoin.com/futures/#$transfer-funds-to-kucoin-main-account-2
+             * transfer $currency internally between wallets on the same account
+             * @see https://docs.kucoin.com/#inner-transfer
+             * @see https://docs.kucoin.com/futures/#transfer-funds-to-kucoin-main-account-2
              * @param {string} $code unified $currency $code
-             * @param {float} $amount amount to $transfer
-             * @param {string} $fromAccount account to $transfer from
-             * @param {string} $toAccount account to $transfer to
+             * @param {float} $amount amount to transfer
+             * @param {string} $fromAccount account to transfer from
+             * @param {string} $toAccount account to transfer to
              * @param {array} $params extra parameters specific to the kucoin api endpoint
-             * @return {array} a {@link https://docs.ccxt.com/en/latest/manual.html#$transfer-structure $transfer structure}
+             * @return {array} a {@link https://docs.ccxt.com/en/latest/manual.html#transfer-structure transfer structure}
              */
             Async\await($this->load_markets());
             $currency = $this->currency($code);
@@ -2620,7 +2714,7 @@ class kucoin extends Exchange {
             $toIsolated = $this->in_array($toId, $this->ids);
             if ($fromId === 'contract') {
                 if ($toId !== 'main') {
-                    throw new ExchangeError($this->id . ' $transfer() only supports transferring from futures account to main account');
+                    throw new ExchangeError($this->id . ' transfer() only supports transferring from futures account to main account');
                 }
                 $request = array(
                     'currency' => $currency['id'],
@@ -2687,12 +2781,7 @@ class kucoin extends Exchange {
                 //     }
                 //
                 $data = $this->safe_value($response, 'data');
-                $transfer = $this->parse_transfer($data, $currency);
-                return array_merge($transfer, array(
-                    'amount' => $requestedAmount,
-                    'fromAccount' => $fromId,
-                    'toAccount' => $toId,
-                ));
+                return $this->parse_transfer($data, $currency);
             }
         }) ();
     }
@@ -2701,10 +2790,14 @@ class kucoin extends Exchange {
         //
         // $transfer (spot)
         //
-        //     {
-        //         'orderId' => '605a6211e657f00006ad0ad6'
-        //     }
+        //    {
+        //        'orderId' => '605a6211e657f00006ad0ad6'
+        //    }
         //
+        //    {
+        //        "code" => "200000",
+        //        "msg" => "Failed to $transfer out. The amount exceeds the upper limit"
+        //    }
         //
         // $transfer (futures)
         //

@@ -778,6 +778,7 @@ class oceanex(Exchange):
             'side': self.safe_value(order, 'side'),
             'price': price,
             'stopPrice': None,
+            'triggerPrice': None,
             'average': average,
             'amount': amount,
             'remaining': remaining,

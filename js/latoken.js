@@ -1026,6 +1026,7 @@ module.exports = class latoken extends Exchange {
             'side': side,
             'price': price,
             'stopPrice': undefined,
+            'triggerPrice': undefined,
             'cost': cost,
             'amount': amount,
             'filled': filled,
@@ -1395,6 +1396,7 @@ module.exports = class latoken extends Exchange {
         const statuses = {
             'TRANSACTION_STATUS_CONFIRMED': 'ok',
             'TRANSACTION_STATUS_EXECUTED': 'ok',
+            'TRANSACTION_STATUS_CANCELLED': 'canceled',
         };
         return this.safeString (statuses, status, status);
     }

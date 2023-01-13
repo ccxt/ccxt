@@ -176,6 +176,8 @@ class bitopro extends Exchange {
                     'ETH' => 'ERC20',
                     'TRX' => 'TRX',
                     'TRC20' => 'TRX',
+                    'BEP20' => 'BSC',
+                    'BSC' => 'BSC',
                 ),
             ),
             'precisionMode' => TICK_SIZE,
@@ -938,6 +940,7 @@ class bitopro extends Exchange {
             'side' => $side,
             'price' => $price,
             'stopPrice' => null,
+            'triggerPrice' => null,
             'amount' => $amount,
             'cost' => null,
             'average' => $average,
@@ -1282,76 +1285,80 @@ class bitopro extends Exchange {
     public function parse_transaction($transaction, $currency = null) {
         //
         // fetchDeposits
-        //             {
-        //                 "serial":"20220214X766799",
-        //                 "timestamp":"1644833015053",
-        //                 "address":"bnb1xml62k5a9dcewgc542fha75fyxdcp0zv8eqfsh",
-        //                 "amount":"0.20000000",
-        //                 "fee":"0.00000000",
-        //                 "total":"0.20000000",
-        //                 "status":"COMPLETE",
-        //                 "txid":"A3CC4F6828CC752B9F3737F48B5826B9EC2857040CB5141D0CC955F7E53DB6D9",
-        //                 "message":"778553959",
-        //                 "protocol":"MAIN",
-        //                 "id":"2905906537"
-        //             }
+        //
+        //    {
+        //        "serial" => "20220214X766799",
+        //        "timestamp" => "1644833015053",
+        //        "address" => "bnb1xml62k5a9dcewgc542fha75fyxdcp0zv8eqfsh",
+        //        "amount" => "0.20000000",
+        //        "fee" => "0.00000000",
+        //        "total" => "0.20000000",
+        //        "status" => "COMPLETE",
+        //        "txid" => "A3CC4F6828CC752B9F3737F48B5826B9EC2857040CB5141D0CC955F7E53DB6D9",
+        //        "message" => "778553959",
+        //        "protocol" => "MAIN",
+        //        "id" => "2905906537"
+        //    }
         //
         // fetchWithdrawals || fetchWithdraw
-        //             {
-        //                 "serial":"20220215BW14069838",
-        //                 "timestamp":"1644907716044",
-        //                 "address":"TKrwMaZaGiAvtXCFT41xHuusNcs4LPWS7w",
-        //                 "amount":"8.00000000",
-        //                 "fee":"2.00000000",
-        //                 "total":"10.00000000",
-        //                 "status":"COMPLETE",
-        //                 "txid":"50bf250c71a582f40cf699fb58bab978437ea9bdf7259ff8072e669aab30c32b",
-        //                 "protocol":"TRX",
-        //                 "id":"9925310345"
-        //             }
+        //
+        //    {
+        //        "serial" => "20220215BW14069838",
+        //        "timestamp" => "1644907716044",
+        //        "address" => "TKrwMaZaGiAvtXCFT41xHuusNcs4LPWS7w",
+        //        "amount" => "8.00000000",
+        //        "fee" => "2.00000000",
+        //        "total" => "10.00000000",
+        //        "status" => "COMPLETE",
+        //        "txid" => "50bf250c71a582f40cf699fb58bab978437ea9bdf7259ff8072e669aab30c32b",
+        //        "protocol" => "TRX",
+        //        "id" => "9925310345"
+        //    }
         //
         // withdraw
-        //             {
-        //                 "serial":"20220215BW14069838",
-        //                 "currency":"USDT",
-        //                 "protocol":"TRX",
-        //                 "address":"TKrwMaZaGiAvtXCFT41xHuusNcs4LPWS7w",
-        //                 "amount":"8",
-        //                 "fee":"2",
-        //                 "total":"10"
-        //             }
+        //
+        //    {
+        //        "serial" => "20220215BW14069838",
+        //        "currency" => "USDT",
+        //        "protocol" => "TRX",
+        //        "address" => "TKrwMaZaGiAvtXCFT41xHuusNcs4LPWS7w",
+        //        "amount" => "8",
+        //        "fee" => "2",
+        //        "total" => "10"
+        //    }
         //
         $currencyId = $this->safe_string($transaction, 'coin');
         $code = $this->safe_currency_code($currencyId, $currency);
-        $id = $this->safe_string($transaction, 'serial');
-        $txId = $this->safe_string($transaction, 'txid');
         $timestamp = $this->safe_integer($transaction, 'timestamp');
-        $amount = $this->safe_number($transaction, 'total');
         $address = $this->safe_string($transaction, 'address');
         $tag = $this->safe_string($transaction, 'message');
         $status = $this->safe_string($transaction, 'status');
-        $fee = $this->safe_number($transaction, 'fee');
+        $networkId = $this->safe_string($transaction, 'protocol');
+        if ($networkId === 'MAIN') {
+            $networkId = $code;
+        }
         return array(
             'info' => $transaction,
-            'id' => $id,
-            'txid' => $txId,
+            'id' => $this->safe_string($transaction, 'serial'),
+            'txid' => $this->safe_string($transaction, 'txid'),
+            'type' => null,
+            'currency' => $code,
+            'network' => $this->network_id_to_code($networkId),
+            'amount' => $this->safe_number($transaction, 'total'),
+            'status' => $this->parse_transaction_status($status),
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
-            'network' => null,
-            'addressFrom' => null,
             'address' => $address,
+            'addressFrom' => null,
             'addressTo' => $address,
-            'tagFrom' => null,
             'tag' => $tag,
+            'tagFrom' => null,
             'tagTo' => $tag,
-            'type' => null,
-            'amount' => $amount,
-            'currency' => $code,
-            'status' => $this->parse_transaction_status($status),
             'updated' => null,
+            'comment' => null,
             'fee' => array(
                 'currency' => $code,
-                'cost' => $fee,
+                'cost' => $this->safe_number($transaction, 'fee'),
                 'rate' => null,
             ),
         );
