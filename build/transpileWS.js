@@ -187,7 +187,6 @@ class CCXTProTranspiler extends Transpiler {
         js = this.regexAll (js, [
             [ /\'use strict\';?\s+/g, '' ],
             //[ /[^\n]+require[^\n]+\n/g, '' ],
-            //[ /function equals \([\S\s]+?return true;\n}\n/g, '' ],
             [ /[^\n]+from[^\n]+\n/g, '' ],
             [ /\/\* eslint-disable \*\/\n*/g, '' ],
             [ /export default\s+[^\n]+;*\n*/g, '' ],
