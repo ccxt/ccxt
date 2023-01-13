@@ -733,13 +733,23 @@ module.exports = class woo extends Exchange {
             'order_type': orderType, // LIMIT/MARKET/IOC/FOK/POST_ONLY/ASK/BID
             'side': orderSide,
         };
+        const isMarket = orderType === 'MARKET';
+        const timeInForce = this.safeStringLower (params, 'timeInForce');
+        const postOnly = this.isPostOnly (isMarket, undefined, params);
+        if (postOnly) {
+            request['order_type'] = 'POST_ONLY';
+        } else if (timeInForce === 'fok') {
+            request['order_type'] = 'FOK';
+        } else if (timeInForce === 'ioc') {
+            request['order_type'] = 'IOC';
+        }
         if (reduceOnly) {
             request['reduce_only'] = reduceOnly;
         }
         if (price !== undefined) {
             request['order_price'] = this.priceToPrecision (symbol, price);
         }
-        if (orderType === 'MARKET') {
+        if (isMarket) {
             // for market buy it requires the amount of quote currency to spend
             if (orderSide === 'BUY') {
                 const cost = this.safeNumber (params, 'cost');
@@ -767,7 +777,7 @@ module.exports = class woo extends Exchange {
         if (clientOrderId !== undefined) {
             request['client_order_id'] = clientOrderId;
         }
-        params = this.omit (params, [ 'clOrdID', 'clientOrderId' ]);
+        params = this.omit (params, [ 'clOrdID', 'clientOrderId', 'postOnly', 'timeInForce' ]);
         const response = await this.v1PrivatePostOrder (this.extend (request, params));
         // {
         //     success: true,
@@ -1015,6 +1025,15 @@ module.exports = class woo extends Exchange {
         return this.parseOrders (data, market, since, limit, params);
     }
 
+    parseTimeInForce (timeInForce) {
+        const timeInForces = {
+            'ioc': 'IOC',
+            'fok': 'FOK',
+            'post_only': 'PO',
+        };
+        return this.safeString (timeInForces, timeInForce, undefined);
+    }
+
     parseOrder (order, market = undefined) {
         //
         // Possible input functions:
@@ -1049,7 +1068,7 @@ module.exports = class woo extends Exchange {
             'status': this.parseOrderStatus (status),
             'symbol': symbol,
             'type': orderType,
-            'timeInForce': undefined,
+            'timeInForce': this.parseTimeInForce (orderType),
             'postOnly': undefined, // TO_DO
             'reduceOnly': this.safeValue (order, 'reduce_only'),
             'side': side,
