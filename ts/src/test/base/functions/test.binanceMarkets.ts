@@ -1,11 +1,13 @@
-'use strict'
 
 // ----------------------------------------------------------------------------
 
-const assert = require ('assert')
-const ccxt = require ('../../../../ccxt')
-const defaultOptions = require ('../../../../keys.json')['binance']
-const HttpsProxyAgent = require ('https-proxy-agent')
+import ccxt from '../../../../ccxt.js';
+import HttpsProxyAgent from 'https-proxy-agent'
+import assert from 'assert';
+import fs from 'fs'
+
+let defaultOptions = JSON.parse (fs.readFileSync('../../../../keys.json', "utf8"));
+defaultOptions = defaultOptions['binance']
 
 // ----------------------------------------------------------------------------
 
