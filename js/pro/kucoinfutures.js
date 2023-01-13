@@ -34,10 +34,8 @@ module.exports = class kucoinfutures extends kucoinfuturesRest {
                     // 'pool': ,
                 },
                 'tradesLimit': 1000,
-                'watchOrderBookRate': 100, // get updates every 100ms or 1000ms
-                'fetchOrderBookSnapshot': {
-                    'maxAttempts': 3, // default number of sync attempts
-                    'delay': 1000, // warmup delay in ms before synchronizing
+                'watchOrderBook': {
+                    'snapshotDelay': 20,
                 },
                 'watchTicker': {
                     'name': 'contractMarket/tickerV2', // market/ticker
@@ -338,7 +336,7 @@ module.exports = class kucoinfutures extends kucoinfuturesRest {
             const topic = this.safeString (message, 'topic');
             const subscription = client.subscriptions[topic];
             const limit = this.safeInteger (subscription, 'limit');
-            const snapshotDelay = this.handleOption ('watchOrderBook', 'snapshotDelay', 20);
+            const snapshotDelay = this.handleOption ('watchOrderBook', 'snapshotDelay', 5);
             if (cacheLength === snapshotDelay) {
                 this.spawn (this.loadOrderBook, client, messageHash, symbol, limit);
             }
