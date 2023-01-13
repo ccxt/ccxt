@@ -3,7 +3,7 @@
 // ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
-const { ExchangeError, BadRequest, ArgumentsRequired, InsufficientFunds, InvalidOrder } = require ('./base/errors');
+const { ExchangeError, BadRequest, ArgumentsRequired, InsufficientFunds, InvalidOrder, NotSupported } = require ('./base/errors');
 const { TICK_SIZE } = require ('./base/functions/number');
 
 // ---------------------------------------------------------------------------
@@ -19,9 +19,9 @@ module.exports = class bkex extends Exchange {
             'certified': false,
             'has': {
                 'CORS': undefined,
-                'spot': undefined,
+                'spot': true,
                 'margin': undefined,
-                'swap': undefined,
+                'swap': true,
                 'future': undefined,
                 'option': undefined,
                 'addMargin': undefined,
@@ -1401,52 +1401,107 @@ module.exports = class bkex extends Exchange {
          * @param {object} params extra parameters specific to the bkex api endpoint
          * @returns {[object]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
          */
-        if (symbol === undefined) {
-            throw new ArgumentsRequired (this.id + ' fetchOpenOrders() requires a symbol argument');
-        }
         await this.loadMarkets ();
-        const market = this.market (symbol);
-        const request = {
-            'symbol': market['id'],
-        };
-        if (limit !== undefined) {
-            request['size'] = limit; // Todo: id api-docs, 'size' is incorrectly required to be in Uppercase
+        let market = undefined;
+        if (symbol !== undefined) {
+            market = this.market (symbol);
         }
-        const response = await this.privateSpotGetUOrderOpenOrders (this.extend (request, params));
+        const [ type, query ] = this.handleMarketTypeAndParams ('fetchOpenOrders', market, params);
+        let request = {};
+        let method = undefined;
+        if (type === 'spot') {
+            if (symbol === undefined) {
+                throw new ArgumentsRequired (this.id + ' fetchOpenOrders() requires a symbol argument');
+            }
+            request['symbol'] = market['id'];
+            if (limit !== undefined) {
+                request['size'] = limit; // Todo: id api-docs, 'size' is incorrectly required to be in Uppercase
+            }
+            method = 'privateSpotGetUOrderOpenOrders';
+        } else if (market['swap']) {
+            method = 'privateSwapGetOrderUnfinish';
+            request = {
+                'timestamp': this.milliseconds (),
+            };
+            if (symbol !== undefined) {
+                request['symbol'] = market['id'];
+            }
+        } else {
+            throw NotSupported (this.id + ' fetchOpenOrders() does not support ' + type + ' markets');
+        }
+        const response = await this[method] (this.extend (request, query));
         //
-        // {
-        //     "code": "0",
-        //     "data": {
-        //       "data": [
-        //         {
-        //           "createdTime": "1646248301418",
-        //           "dealVolume": "0E-18",
-        //           "direction": "BID",
-        //           "frozenVolumeByOrder": "2.421300000000000000",
-        //           "id": "2022030303114141830007699",
-        //           "price": "0.150000000000000000",
-        //           "source": "WALLET",
-        //           "status": "0",
-        //           "symbol": "BKK_USDT",
-        //           "totalVolume": "16.142000000000000000",
-        //           "type": "LIMIT"
-        //         }
-        //       ],
-        //       "pageRequest": {
-        //         "asc": false,
-        //         "orderBy": "id",
-        //         "page": "1",
-        //         "size": 10
-        //       },
-        //       "total": 1
-        //     },
-        //     "msg": "success",
-        //     "status": 0
-        // }
+        //  spot
+        //    {
+        //        "code": "0",
+        //        "data": {
+        //          "data": [
+        //            {
+        //              "createdTime": "1646248301418",
+        //              "dealVolume": "0E-18",
+        //              "direction": "BID",
+        //              "frozenVolumeByOrder": "2.421300000000000000",
+        //              "id": "2022030303114141830007699",
+        //              "price": "0.150000000000000000",
+        //              "source": "WALLET",
+        //              "status": "0",
+        //              "symbol": "BKK_USDT",
+        //              "totalVolume": "16.142000000000000000",
+        //              "type": "LIMIT"
+        //            }
+        //          ],
+        //          "pageRequest": {
+        //            "asc": false,
+        //            "orderBy": "id",
+        //            "page": "1",
+        //            "size": 10
+        //          },
+        //          "total": 1
+        //        },
+        //        "msg": "success",
+        //        "status": 0
+        //    }
+        //  swap
+        //    {
+        //        "code": 0,
+        //        "msg": "success",
+        //        "data": [
+        //            {
+        //                "id": "22090117251664501010000602602",
+        //                "customID": "test-customID-01",
+        //                "symbol": "btc_usdt",
+        //                "type": 1,
+        //                "action": 0,
+        //                "side": 1,
+        //                "positionID": "220901172516645012603",
+        //                "price": "19319.44",
+        //                "leverage": 20,
+        //                "amount": "1",
+        //                "frozen": "965.97",
+        //                "filledAmount": "0",
+        //                "filledPrice": "0",
+        //                "filledValue": "",
+        //                "triggerType": 2,
+        //                "spPrice": "0",
+        //                "slPrice": "0",
+        //                "state": 0,
+        //                "profit": "",
+        //                "fee": "",
+        //                "pointFee": "",
+        //                "pointProfit": "",
+        //                "closePrice": "",
+        //                "triggerPrice": "",
+        //                "createdAt": 1662024316645,
+        //                "updatedAt": 1662024316645
+        //            }
+        //        ]
+        //    }
         //
-        const result = this.safeValue (response, 'data');
-        const innerData = this.safeValue (result, 'data');
-        return this.parseOrders (innerData, market, since, limit, params);
+        let data = this.safeValue (response, 'data');
+        if (!Array.isArray (data)) {
+            data = this.safeValue (data, 'data');
+        }
+        return this.parseOrders (data, market, since, limit, params);
     }
 
     async fetchOpenOrder (id, symbol = undefined, params = {}) {
@@ -1575,14 +1630,46 @@ module.exports = class bkex extends Exchange {
         //       "dealAvgPrice": "0",             // only present in 'fetchOrder' & 'fetchClosedOrders'
         //       "updateTime": 1646248301418      // only present in 'fetchOrder' & 'fetchClosedOrders'
         //  }
+        // swap order
+        //  {
+        //      "id": "22090117251664501010000602602",
+        //      "customID": "test-customID-01",
+        //      "symbol": "btc_usdt",
+        //      "type": 1,
+        //      "action": 0,
+        //      "side": 1,
+        //      "positionID": "220901172516645012603",
+        //      "price": "19319.44",
+        //      "leverage": 20,
+        //      "amount": "1",
+        //      "frozen": "965.97",
+        //      "filledAmount": "0",
+        //      "filledPrice": "0",
+        //      "filledValue": "",
+        //      "triggerType": 2,
+        //      "spPrice": "0",
+        //      "slPrice": "0",
+        //      "state": 0,
+        //      "profit": "",
+        //      "fee": "",
+        //      "pointFee": "",
+        //      "pointProfit": "",
+        //      "closePrice": "",
+        //      "triggerPrice": "",
+        //      "createdAt": 1662024316645,
+        //      "updatedAt": 1662024316645
+        //  }
         //
-        const timestamp = this.safeInteger (order, 'createdTime');
-        const updateTime = this.safeInteger (order, 'updateTime');
-        const filled = this.safeString (order, 'dealVolume');
-        const side = this.parseOrderSide (this.safeString (order, 'direction'));
-        const id = this.safeString2 (order, 'id', 'data');
+        const marketId = this.safeString (order, 'symbol');
+        market = this.safeMarket (marketId, market);
+        const isSwap = this.safeValue (market, 'swap', false);
+        const timestamp = this.safeInteger2 (order, 'createdTime', 'createdAt');
+        const updateTime = this.safeInteger2 (order, 'updateTime', 'updatedAt');
+        const filled = this.safeString2 (order, 'dealVolume', 'filledAmount');
+        const side = this.parseOrderSide (this.safeString2 (order, 'direction', 'side'));
+        const id = this.safeStringN (order, [ 'id', 'data', 'orderId' ]);
         const price = this.safeString (order, 'price');
-        const rawStatus = this.safeString (order, 'status');
+        const rawStatus = this.safeString (order, 'status', 'state');
         const rawType = this.safeString (order, 'type');
         const type = this.parseOrderType (rawType);
         let postOnly = false;
@@ -1592,16 +1679,25 @@ module.exports = class bkex extends Exchange {
         let status = undefined;
         if (timestamp !== undefined) {
             // cancelOrder handling
-            status = this.parseOrderStatus (rawStatus);
+            status = this.parseSpotOrderStatus (rawStatus);
         }
-        const marketId = this.safeString (order, 'symbol');
-        market = this.safeMarket (marketId, market);
-        const amount = this.safeString (order, 'totalVolume');
-        const stopPrice = this.safeNumber (order, 'stopPrice');
-        const average = this.safeString (order, 'dealAvgPrice');
+        if (isSwap) {
+            status = this.parseSwapOrderStatus (rawStatus);
+        }
+        const amount = this.safeString2 (order, 'totalVolume', 'amount');
+        const stopPrice = this.safeNumber2 (order, 'stopPrice', 'slPrice');
+        const triggerPrice = this.safeNumber2 (order, 'triggerPrice', 'stopPrice');
+        const average = this.safeString2 (order, 'dealAvgPrice', 'filledPrice');
+        let fee = undefined;
+        if (isSwap) {
+            fee = {
+                'cost': this.safeString (order, 'fee'),
+                'currency': this.safeString (market, 'quote'),
+            };
+        }
         return this.safeOrder ({
             'id': id,
-            'clientOrderId': undefined,
+            'clientOrderId': this.safeString (order, 'customID'),
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'lastTradeTimestamp': updateTime,
@@ -1613,14 +1709,14 @@ module.exports = class bkex extends Exchange {
             'side': side,
             'price': price,
             'stopPrice': stopPrice,
-            'triggerPrice': stopPrice,
+            'triggerPrice': triggerPrice,
             'average': average,
             'amount': amount,
             'filled': filled,
             'remaining': undefined,
-            'cost': undefined,
+            'cost': this.safeString (order, 'filledValue'),
             'trades': undefined,
-            'fee': undefined,
+            'fee': fee,
             'info': order,
         }, market);
     }
@@ -1629,16 +1725,30 @@ module.exports = class bkex extends Exchange {
         const sides = {
             'BID': 'buy',
             'ASK': 'sell',
+            '1': 'buy',
+            '2': 'sell',
         };
         return this.safeString (sides, side, side);
     }
 
-    parseOrderStatus (status) {
+    parseSpotOrderStatus (status) {
         const statuses = {
             '0': 'open',
             '1': 'closed',
             '2': 'canceled',
             '3': 'open',
+        };
+        return this.safeString (statuses, status, status);
+    }
+
+    parseSwapOrderStatus (status) {
+        // state. 1.normal 2.completed 4.partial deal 5.some deals have been cancelled 6.canceling
+        const statuses = {
+            '1': 'open',
+            '2': 'closed',
+            '4': 'open',
+            '5': 'open',
+            '6': 'canceled',
         };
         return this.safeString (statuses, status, status);
     }
@@ -1649,6 +1759,8 @@ module.exports = class bkex extends Exchange {
             'LIMIT': 'limit',
             'LIMIT_MAKER': 'limit',
             'STOP_LIMIT': 'limit',
+            '1': 'limit',
+            '2': 'market',
         };
         return this.safeString (statuses, status, status);
     }
