@@ -711,8 +711,8 @@ class coinbase extends Exchange {
          * @param {array} $params extra parameters specific to the exchange api endpoint
          * @return {[array]} an array of objects representing market data
          */
-        $version = $this->safe_string($this->options, 'fetchMarkets');
-        $method = ($this->safe_string($version, 'method', 'fetch_markets_v3'));
+        $options = $this->safe_value($this->options, 'fetchMarkets');
+        $method = ($this->safe_string($options, 'method', 'fetch_markets_v3'));
         return $this->$method ($params);
     }
 

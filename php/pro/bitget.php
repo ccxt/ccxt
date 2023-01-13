@@ -1076,7 +1076,7 @@ class bitget extends \ccxt\async\bitget {
         //
         //    array( $event => 'error', $code => 30015, msg => 'Invalid sign' )
         //
-        $event = $this->safe_integer($message, 'event');
+        $event = $this->safe_string($message, 'event');
         try {
             if ($event === 'error') {
                 $code = $this->safe_string($message, 'code');

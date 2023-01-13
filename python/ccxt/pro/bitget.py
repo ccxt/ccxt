@@ -994,7 +994,7 @@ class bitget(Exchange, ccxt.async_support.bitget):
         #
         #    {event: 'error', code: 30015, msg: 'Invalid sign'}
         #
-        event = self.safe_integer(message, 'event')
+        event = self.safe_string(message, 'event')
         try:
             if event == 'error':
                 code = self.safe_string(message, 'code')

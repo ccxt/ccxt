@@ -697,8 +697,8 @@ class coinbase(Exchange):
         :param dict params: extra parameters specific to the exchange api endpoint
         :returns [dict]: an array of objects representing market data
         """
-        version = self.safe_string(self.options, 'fetchMarkets')
-        method = (self.safe_string(version, 'method', 'fetch_markets_v3'))
+        options = self.safe_value(self.options, 'fetchMarkets')
+        method = (self.safe_string(options, 'method', 'fetch_markets_v3'))
         return await getattr(self, method)(params)
 
     async def fetch_markets_v2(self, params={}):
