@@ -1078,7 +1078,7 @@ module.exports = class bitfinex extends Exchange {
             'buy_price_oco': 0,
             'sell_price_oco': 0,
         };
-        if (type === 'market') {
+        if (type.indexOf ('market') > -1) {
             request['price'] = this.nonce ().toString ();
         } else {
             request['price'] = this.priceToPrecision (symbol, price);
