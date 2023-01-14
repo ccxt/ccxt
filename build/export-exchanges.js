@@ -494,8 +494,8 @@ async function exportEverything () {
 
     exportExchanges (replacements, unlimitedLog)
 
-    // we need to save changes to ccxt.ts but to them be applied in ccxt.js
-    // so we need to run tsc here
+    // we just updated ccxt.ts but we need the changes to be applied in ccxt.js
+    // so we run tsc here
     log.yellow("Running tsc to build ccxt.js...")
     execSync("npm run tsBuild");
 
