@@ -41,6 +41,7 @@ from ccxt.base.precise import Precise
 
 from ccxt.async_support.base.ws.functions import inflate, inflate64, gunzip
 from ccxt.async_support.base.ws.fast_client import FastClient
+from ccxt.async_support.base.ws.future import Future
 from ccxt.async_support.base.ws.order_book import OrderBook, IndexedOrderBook, CountedOrderBook
 
 # -----------------------------------------------------------------------------
@@ -282,7 +283,16 @@ class Exchange(BaseExchange):
             pass
 
     def spawn(self, method, *args):
-        asyncio.ensure_future(self.spawn_async(method, *args))
+        def callback(asyncio_future):
+            exception = asyncio_future.exception()
+            if exception is None:
+                future.resolve(asyncio_future.result())
+            else:
+                future.reject(exception)
+        future = Future()
+        task = self.asyncio_loop.create_task(method(*args))
+        task.add_done_callback(callback)
+        return future
 
     #  -----------------------------------------------------------------------
     #  WS/PRO code
@@ -391,6 +401,30 @@ class Exchange(BaseExchange):
                 del self.clients[url]
         await super(Exchange, self).close()
 
+    async def load_order_book(self, client, messageHash, symbol, limit=None, params={}):
+        if symbol not in self.orderbooks:
+            client.reject(ExchangeError(self.id + ' loadOrderBook() orderbook is not initiated'), messageHash)
+            return
+        try:
+            maxRetries = self.handle_option('watchOrderBook', 'maxRetries', 3)
+            tries = 0
+            stored = self.orderbooks[symbol]
+            while tries < maxRetries:
+                cache = stored.cache
+                order_book = await self.fetch_order_book(symbol, limit, params)
+                index = self.get_cache_index(order_book, cache)
+                if index >= 0:
+                    stored.reset(order_book)
+                    self.handle_deltas(stored, cache[index:])
+                    cache.clear()
+                    client.resolve(stored, messageHash)
+                    return
+                tries += 1
+            client.reject(ExchangeError(self.id + ' nonce is behind cache after ' + str(maxRetries) + ' tries.'), messageHash)
+        except BaseError as e:
+            client.reject(e, messageHash)
+        await self.load_order_book(client, messageHash, symbol, limit, params)
+
     def find_timeframe(self, timeframe, timeframes=None):
         timeframes = timeframes if timeframes else self.timeframes
         for key, value in timeframes.items():
@@ -469,7 +503,7 @@ class Exchange(BaseExchange):
         stringifiedNumber = str(number)
         convertedNumber = float(stringifiedNumber)
         return int(convertedNumber)
-        
+
     def get_default_options(self):
         return {
             'defaultNetworkCodeReplacements': {
@@ -1313,7 +1347,7 @@ class Exchange(BaseExchange):
             if responseNetworksLength == 0:
                 raise NotSupported(self.id + ' - ' + networkCode + ' network did not return any result for ' + currencyCode)
             else:
-                # if networkCode was provided by user, we should check it after response, as the referenced exchange doesn't support network-code during request
+                # if networkCode was provided by user, we should check it after response, referenced exchange doesn't support network-code during request
                 networkId = networkCode if isIndexedByUnifiedNetworkCode else self.networkCodeToId(networkCode, currencyCode)
                 if networkId in indexedNetworkEntries:
                     chosenNetworkId = networkId
@@ -1777,7 +1811,7 @@ class Exchange(BaseExchange):
         """
          * @ignore
         :param dict params: extra parameters specific to the exchange api endpoint
-        :returns [str|None, dict]: the marginMode in lowercase as specified by params["marginMode"], params["defaultMarginMode"] self.options["marginMode"] or self.options["defaultMarginMode"]
+        :returns [str|None, dict]: the marginMode in lowercase by params["marginMode"], params["defaultMarginMode"] self.options["marginMode"] or self.options["defaultMarginMode"]
         """
         return self.handleOptionAndParams(params, methodName, 'marginMode', defaultValue)
 
