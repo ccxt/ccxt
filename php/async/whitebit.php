@@ -20,7 +20,7 @@ class whitebit extends Exchange {
         return $this->deep_extend(parent::describe(), array(
             'id' => 'whitebit',
             'name' => 'WhiteBit',
-            'version' => 'v2',
+            'version' => 'v4',
             'countries' => array( 'EE' ),
             'rateLimit' => 500,
             'has' => array(
@@ -234,6 +234,7 @@ class whitebit extends Exchange {
                     'BEP20' => 'BSC',
                 ),
                 'defaultType' => 'spot',
+                'brokerId' => 'ccxt',
             ),
             'precisionMode' => TICK_SIZE,
             'exceptions' => array(
@@ -1173,6 +1174,16 @@ class whitebit extends Exchange {
                 'side' => $side,
                 'amount' => $this->amount_to_precision($symbol, $amount),
             );
+            $clientOrderId = $this->safe_string_2($params, 'clOrdId', 'clientOrderId');
+            if ($clientOrderId === null) {
+                $brokerId = $this->safe_string($this->options, 'brokerId');
+                if ($brokerId !== null) {
+                    $request['clientOrderId'] = $brokerId . $this->uuid16();
+                }
+            } else {
+                $request['clientOrderId'] = $clientOrderId;
+                $params = $this->omit($params, array( 'clientOrderId' ));
+            }
             $marketType = $this->safe_string($market, 'type');
             $isLimitOrder = $type === 'limit';
             $isMarketOrder = $type === 'market';
@@ -1461,6 +1472,9 @@ class whitebit extends Exchange {
         $filled = $this->safe_string($order, 'dealStock');
         $remaining = $this->safe_string($order, 'left');
         $clientOrderId = $this->safe_string($order, 'clientOrderId');
+        if ($clientOrderId === '') {
+            $clientOrderId = null;
+        }
         $price = $this->safe_string($order, 'price');
         $stopPrice = $this->safe_number($order, 'activation_price');
         $orderId = $this->safe_string_2($order, 'orderId', 'id');
