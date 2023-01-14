@@ -1014,21 +1014,22 @@ class bitfinex(Exchange):
         await self.load_markets()
         market = self.market(symbol)
         postOnly = self.safe_value(params, 'postOnly', False)
+        type = type.lower()
         params = self.omit(params, ['postOnly'])
         if market['spot']:
             # although they claim that type needs to be 'exchange limit' or 'exchange market'
             # in fact that's not the case for swap markets
-            type = self.safe_string(self.options['orderTypes'], type, type)
+            type = self.safe_string_lower(self.options['orderTypes'], type, type)
         request = {
             'symbol': market['id'],
             'side': side,
             'amount': self.amount_to_precision(symbol, amount),
-            'type': type.lower(),
+            'type': type,
             'ocoorder': False,
             'buy_price_oco': 0,
             'sell_price_oco': 0,
         }
-        if type == 'market':
+        if type.find('market') > -1:
             request['price'] = str(self.nonce())
         else:
             request['price'] = self.price_to_precision(symbol, price)
