@@ -13,7 +13,7 @@ export default class whitebit extends Exchange {
         return this.deepExtend (super.describe (), {
             'id': 'whitebit',
             'name': 'WhiteBit',
-            'version': 'v2',
+            'version': 'v4',
             'countries': [ 'EE' ],
             'rateLimit': 500,
             'has': {
@@ -227,6 +227,7 @@ export default class whitebit extends Exchange {
                     'BEP20': 'BSC',
                 },
                 'defaultType': 'spot',
+                'brokerId': 'ccxt',
             },
             'precisionMode': TICK_SIZE,
             'exceptions': {
@@ -1167,6 +1168,16 @@ export default class whitebit extends Exchange {
             'side': side,
             'amount': this.amountToPrecision (symbol, amount),
         };
+        const clientOrderId = this.safeString2 (params, 'clOrdId', 'clientOrderId');
+        if (clientOrderId === undefined) {
+            const brokerId = this.safeString (this.options, 'brokerId');
+            if (brokerId !== undefined) {
+                request['clientOrderId'] = brokerId + this.uuid16 ();
+            }
+        } else {
+            request['clientOrderId'] = clientOrderId;
+            params = this.omit (params, [ 'clientOrderId' ]);
+        }
         const marketType = this.safeString (market, 'type');
         const isLimitOrder = type === 'limit';
         const isMarketOrder = type === 'market';
@@ -1453,7 +1464,10 @@ export default class whitebit extends Exchange {
         const side = this.safeString (order, 'side');
         const filled = this.safeString (order, 'dealStock');
         const remaining = this.safeString (order, 'left');
-        const clientOrderId = this.safeString (order, 'clientOrderId');
+        let clientOrderId = this.safeString (order, 'clientOrderId');
+        if (clientOrderId === '') {
+            clientOrderId = undefined;
+        }
         const price = this.safeString (order, 'price');
         const stopPrice = this.safeNumber (order, 'activation_price');
         const orderId = this.safeString2 (order, 'orderId', 'id');

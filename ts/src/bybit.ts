@@ -2469,8 +2469,8 @@ export default class bybit extends Exchange {
         const marketId = this.safeString (trade, 'symbol');
         market = this.safeMarket (marketId, market, undefined, 'contract');
         const symbol = market['symbol'];
-        const amountString = this.safeStringN (trade, [ 'orderQty', 'size', 'execQty' ]);
-        const priceString = this.safeStringN (trade, [ 'orderPrice', 'price', 'execPrice' ]);
+        const amountString = this.safeStringN (trade, [ 'execQty', 'orderQty', 'size' ]);
+        const priceString = this.safeStringN (trade, [ 'execPrice', 'orderPrice', 'price' ]);
         const costString = this.safeString (trade, 'execValue');
         const timestamp = this.safeIntegerN (trade, [ 'time', 'execTime', 'tradeTime' ]);
         let side = this.safeStringLower (trade, 'side');

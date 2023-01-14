@@ -711,11 +711,20 @@ class woo(Exchange):
             'order_type': orderType,  # LIMIT/MARKET/IOC/FOK/POST_ONLY/ASK/BID
             'side': orderSide,
         }
+        isMarket = orderType == 'MARKET'
+        timeInForce = self.safe_string_lower(params, 'timeInForce')
+        postOnly = self.is_post_only(isMarket, None, params)
+        if postOnly:
+            request['order_type'] = 'POST_ONLY'
+        elif timeInForce == 'fok':
+            request['order_type'] = 'FOK'
+        elif timeInForce == 'ioc':
+            request['order_type'] = 'IOC'
         if reduceOnly:
             request['reduce_only'] = reduceOnly
         if price is not None:
             request['order_price'] = self.price_to_precision(symbol, price)
-        if orderType == 'MARKET':
+        if isMarket:
             # for market buy it requires the amount of quote currency to spend
             if orderSide == 'BUY':
                 cost = self.safe_number(params, 'cost')
@@ -737,7 +746,7 @@ class woo(Exchange):
         clientOrderId = self.safe_string_2(params, 'clOrdID', 'clientOrderId')
         if clientOrderId is not None:
             request['client_order_id'] = clientOrderId
-        params = self.omit(params, ['clOrdID', 'clientOrderId'])
+        params = self.omit(params, ['clOrdID', 'clientOrderId', 'postOnly', 'timeInForce'])
         response = await self.v1PrivatePostOrder(self.extend(request, params))
         # {
         #     success: True,
@@ -959,6 +968,14 @@ class woo(Exchange):
         data = self.safe_value(response, 'rows')
         return self.parse_orders(data, market, since, limit, params)
 
+    def parse_time_in_force(self, timeInForce):
+        timeInForces = {
+            'ioc': 'IOC',
+            'fok': 'FOK',
+            'post_only': 'PO',
+        }
+        return self.safe_string(timeInForces, timeInForce, None)
+
     def parse_order(self, order, market=None):
         #
         # Possible input functions:
@@ -993,7 +1010,7 @@ class woo(Exchange):
             'status': self.parse_order_status(status),
             'symbol': symbol,
             'type': orderType,
-            'timeInForce': None,
+            'timeInForce': self.parse_time_in_force(orderType),
             'postOnly': None,  # TO_DO
             'reduceOnly': self.safe_value(order, 'reduce_only'),
             'side': side,

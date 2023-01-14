@@ -27,7 +27,7 @@ class whitebit(Exchange):
         return self.deep_extend(super(whitebit, self).describe(), {
             'id': 'whitebit',
             'name': 'WhiteBit',
-            'version': 'v2',
+            'version': 'v4',
             'countries': ['EE'],
             'rateLimit': 500,
             'has': {
@@ -241,6 +241,7 @@ class whitebit(Exchange):
                     'BEP20': 'BSC',
                 },
                 'defaultType': 'spot',
+                'brokerId': 'ccxt',
             },
             'precisionMode': TICK_SIZE,
             'exceptions': {
@@ -1115,6 +1116,14 @@ class whitebit(Exchange):
             'side': side,
             'amount': self.amount_to_precision(symbol, amount),
         }
+        clientOrderId = self.safe_string_2(params, 'clOrdId', 'clientOrderId')
+        if clientOrderId is None:
+            brokerId = self.safe_string(self.options, 'brokerId')
+            if brokerId is not None:
+                request['clientOrderId'] = brokerId + self.uuid16()
+        else:
+            request['clientOrderId'] = clientOrderId
+            params = self.omit(params, ['clientOrderId'])
         marketType = self.safe_string(market, 'type')
         isLimitOrder = type == 'limit'
         isMarketOrder = type == 'market'
@@ -1369,6 +1378,8 @@ class whitebit(Exchange):
         filled = self.safe_string(order, 'dealStock')
         remaining = self.safe_string(order, 'left')
         clientOrderId = self.safe_string(order, 'clientOrderId')
+        if clientOrderId == '':
+            clientOrderId = None
         price = self.safe_string(order, 'price')
         stopPrice = self.safe_number(order, 'activation_price')
         orderId = self.safe_string_2(order, 'orderId', 'id')
