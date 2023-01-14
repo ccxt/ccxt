@@ -1010,6 +1010,12 @@ class binance extends \ccxt\async\binance {
             } elseif ($this->isInverse ($type, $subType)) {
                 $type = 'delivery';
             }
+            $marginMode = null;
+            list($marginMode, $params) = $this->handle_margin_mode_and_params('authenticate', $params);
+            $isIsolatedMargin = ($marginMode === 'isolated');
+            $isCrossMargin = ($marginMode === 'cross') || ($marginMode === null);
+            $symbol = $this->safe_string($params, 'symbol');
+            $params = $this->omit($params, 'symbol');
             $options = $this->safe_value($this->options, $type, array());
             $lastAuthenticatedTime = $this->safe_integer($options, 'lastAuthenticatedTime', 0);
             $listenKeyRefreshRate = $this->safe_integer($this->options, 'listenKeyRefreshRate', 1200000);
@@ -1020,10 +1026,17 @@ class binance extends \ccxt\async\binance {
                     $method = 'fapiPrivatePostListenKey';
                 } elseif ($type === 'delivery') {
                     $method = 'dapiPrivatePostListenKey';
-                } elseif ($type === 'margin') {
+                } elseif ($type === 'margin' && $isCrossMargin) {
                     $method = 'sapiPostUserDataStream';
+                } elseif ($isIsolatedMargin) {
+                    $method = 'sapiPostUserDataStreamIsolated';
+                    if ($symbol === null) {
+                        throw new ArgumentsRequired($this->id . ' authenticate() requires a $symbol argument for isolated margin mode');
+                    }
+                    $marketId = $this->market_id($symbol);
+                    $params['symbol'] = $marketId;
                 }
-                $response = Async\await($this->$method ());
+                $response = Async\await($this->$method ($params));
                 $this->options[$type] = array_merge($options, array(
                     'listenKey' => $this->safe_string($response, 'listenKey'),
                     'lastAuthenticatedTime' => $time,
@@ -1274,14 +1287,15 @@ class binance extends \ccxt\async\binance {
              * @return {[array]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structures}
              */
             Async\await($this->load_markets());
-            Async\await($this->authenticate($params));
             $messageHash = 'orders';
             $market = null;
             if ($symbol !== null) {
                 $market = $this->market($symbol);
                 $symbol = $market['symbol'];
                 $messageHash .= ':' . $symbol;
+                $params['symbol'] = $symbol; // needed inside authenticate for isolated margin
             }
+            Async\await($this->authenticate($params));
             $type = null;
             list($type, $params) = $this->handle_market_type_and_params('watchOrders', $market, $params);
             $url = $this->urls['api']['ws'][$type] . '/' . $this->options[$type]['listenKey'];
@@ -1560,7 +1574,6 @@ class binance extends \ccxt\async\binance {
              * @return {[array]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure
              */
             Async\await($this->load_markets());
-            Async\await($this->authenticate($params));
             $defaultType = $this->safe_string_2($this->options, 'watchMyTrades', 'defaultType', 'spot');
             $type = $this->safe_string($params, 'type', $defaultType);
             $subType = null;
@@ -1570,11 +1583,14 @@ class binance extends \ccxt\async\binance {
             } elseif ($this->isInverse ($type, $subType)) {
                 $type = 'delivery';
             }
-            $url = $this->urls['api']['ws'][$type] . '/' . $this->options[$type]['listenKey'];
             $messageHash = 'myTrades';
             if ($symbol !== null) {
+                $symbol = $this->symbol($symbol);
                 $messageHash .= ':' . $symbol;
+                $params['symbol'] = $symbol;
             }
+            Async\await($this->authenticate($params));
+            $url = $this->urls['api']['ws'][$type] . '/' . $this->options[$type]['listenKey'];
             $client = $this->client($url);
             $this->set_balance_cache($client, $type);
             $message = null;
