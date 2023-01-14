@@ -1789,6 +1789,25 @@ module.exports = class Exchange {
         }
     }
 
+    checkIfMainnetReplacementNeeded (networkCode, currencyCode) {
+        let networkCodeReplacement = undefined;
+        const defaultNetworkCodeReplacements = this.safeValue (this.options, 'defaultNetworkCodeReplacements', {});
+        // Alias support : if user calls `networkCodeToId('ETH', 'USDT')` or `networkCodeToId('ERC20', 'ETH')` then we have to replace the networkCode accordingly in such cases, depending if the currencyCode is mainnet or not (to either ETH or ERC20)
+        if (currencyCode in defaultNetworkCodeReplacements) {
+            // if the mainnet currencyCode was passed, and if ERC20 was passed instead of ETH, then replace it with ETH
+            const replacementObject = defaultNetworkCodeReplacements[currencyCode]; // i.e. { 'ERC20': 'ETH' }
+            networkCodeReplacement = this.safeString (replacementObject, networkCode, networkCode);
+        } else {
+            // if currencyCode was not found in mainnet currencies (i.e. USDT instead of ETH), but had assigned mainnet networkCode (i.e. ETH instead of ERC20)
+            networkCodeReplacement = this.safeString (this.options['mainnetAndTokenNetworkCodes'], networkCode, networkCode);
+        }
+        // at this stage we are ensure that mainnet<>token replacements were not happened inside above if/else clause
+        if (networkCodeReplacement === undefined) {
+            networkCodeReplacement = networkCode;
+        }
+        return networkCodeReplacement;
+    }
+
     defineNetworkCodeNameIdMappings (currencyCode, currencyId, networkTitle, networkId) {
         /**
          * @ignore
@@ -1982,25 +2001,6 @@ module.exports = class Exchange {
         return networkCode;
     }
 
-    checkIfMainnetReplacementNeeded (networkCode, currencyCode) {
-        let networkCodeReplacement = undefined;
-        const defaultNetworkCodeReplacements = this.safeValue (this.options, 'defaultNetworkCodeReplacements', {});
-        // Alias support : if user calls `networkCodeToId('ETH', 'USDT')` or `networkCodeToId('ERC20', 'ETH')` then we have to replace the networkCode accordingly in such cases, depending if the currencyCode is mainnet or not (to either ETH or ERC20)
-        if (currencyCode in defaultNetworkCodeReplacements) {
-            // if the mainnet currencyCode was passed, and if ERC20 was passed instead of ETH, then replace it with ETH
-            const replacementObject = defaultNetworkCodeReplacements[currencyCode]; // i.e. { 'ERC20': 'ETH' }
-            networkCodeReplacement = this.safeString (replacementObject, networkCode, networkCode);
-        } else {
-            // if currencyCode was not found in mainnet currencies (i.e. USDT instead of ETH), but had assigned mainnet networkCode (i.e. ETH instead of ERC20)
-            networkCodeReplacement = this.safeString (this.options['mainnetAndTokenNetworkCodes'], networkCode, networkCode);
-        }
-        // at this stage we are ensure that mainnet<>token replacements were not happened inside above if/else clause
-        if (networkCodeReplacement === undefined) {
-            networkCodeReplacement = networkCode;
-        }
-        return networkCodeReplacement;
-    }
-
     networkCodeToCurrencyId (networkCode, currencyCode) {
         networkCode = this.checkIfMainnetReplacementNeeded (networkCode, currencyCode);
         const currencyIdsByNetworkCodes = this.safeValue (this.generatedNetworkData['currencyIdsByNetworkCodes'], currencyCode, {});
@@ -2040,10 +2040,30 @@ module.exports = class Exchange {
         return wasDefined;
     }
 
+    networkCodesToIds (networkCodes = undefined) {
+        /**
+         * @ignore
+         * @method
+         * @name exchange#networkCodesToIds
+         * @description tries to convert the provided networkCode (which is expected to be an unified network code) to a network id. In order to achieve this, derived class needs to have 'options->networks' defined.
+         * @param {[string]|undefined} networkCodes unified network codes
+         * @returns {[string|undefined]} exchange-specific network ids
+         */
+        if (networkCodes === undefined) {
+            return undefined;
+        }
+        const ids = [];
+        for (let i = 0; i < networkCodes.length; i++) {
+            const networkCode = networkCodes[i];
+            ids.push (this.networkCodeToId (networkCode));
+        }
+        return ids;
+    }
+
     handleNetworkCodeAndParams (params) {
-        const networkCodeInParams = this.safeString (params, 'network');
+        const networkCodeInParams = this.safeString2 (params, 'networkCode', 'network');
         if (networkCodeInParams !== undefined) {
-            params = this.omit (params, 'network');
+            params = this.omit (params, [ 'networkCode', 'network' ]);
         }
         // if it was not defined by user, we should not set it from 'defaultNetworks', because handleNetworkCodeAndParams is for only request-side and thus we do not fill it with anything. We can only use 'defaultNetworks' after parsing response-side
         return [ networkCodeInParams, params ];
@@ -2077,7 +2097,7 @@ module.exports = class Exchange {
         // this method is used against raw & unparse network entries, which are just indexed by network id
         let chosenNetworkId = undefined;
         const availableNetworkIds = Object.keys (indexedNetworkEntries);
-        const responseNetworksLength = availableNetworkIds.length; // network ids are Available
+        const responseNetworksLength = availableNetworkIds.length;
         if (networkCode !== undefined) {
             if (responseNetworksLength === 0) {
                 throw new NotSupported (this.id + ' - ' + networkCode + ' network did not return any result for ' + currencyCode);

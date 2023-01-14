@@ -239,7 +239,6 @@ class Transpiler {
             [ /\.isPostOnly\s/g, '.is_post_only'],
             [ /\.reduceFeesByCurrency\s/g, '.reduce_fees_by_currency'],
             [ /\.omitZero\s/g, '.omit_zero'],
-            [ /\.generateNetworkData\s/g, '.generate_network_data'],
         ]
     }
 
