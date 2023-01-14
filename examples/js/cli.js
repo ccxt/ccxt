@@ -2,14 +2,14 @@ import fs from 'fs'
 import path from 'path'
 import ansi from 'ansicolor'
 import asTable from 'as-table'
-import log from 'ololog'
+import ololog from 'ololog'
 import util from 'util'
 import { execSync } from 'child_process'
 import ccxt from '../../js/ccxt.js'
 import { Agent } from 'https'
 
 ansi.nice
-const log2 = log.configure ({ locate: false }).unlimited
+const log = ololog.configure ({ locate: false }).unlimited
 const { ExchangeError , NetworkError} = ccxt
 //-----------------------------------------------------------------------------
 
@@ -42,8 +42,8 @@ console.log ('CCXT v' + ccxt.version)
 
 //-----------------------------------------------------------------------------
 
-process.on ('uncaughtException',  e => { log2.bright.red.error (e); log2.red.error (e.message); process.exit (1) })
-process.on ('unhandledRejection', e => { log2.bright.red.error (e); log2.red.error (e.message); process.exit (1) })
+process.on ('uncaughtException',  e => { log.bright.red.error (e); log.red.error (e.message); process.exit (1) })
+process.on ('unhandledRejection', e => { log.bright.red.error (e); log.red.error (e.message); process.exit (1) })
 
 //-----------------------------------------------------------------------------
 
@@ -113,7 +113,7 @@ try {
 
 } catch (e) {
 
-    log2.red (e)
+    log.red (e)
     printUsage ()
     process.exit ()
 }
@@ -121,35 +121,35 @@ try {
 //-----------------------------------------------------------------------------
 
 function printSupportedExchanges () {
-    log2 ('Supported exchanges:', ccxt.exchanges.join (', ').green)
+    log ('Supported exchanges:', ccxt.exchanges.join (', ').green)
 }
 
 //-----------------------------------------------------------------------------
 
 function printUsage () {
-    log2 ('This is an example of a basic command-line interface to all exchanges')
-    log2 ('Usage: node', process.argv[1], 'id'.green, 'method'.yellow, '"param1" param2 "param3" param4 ...'.blue)
-    log2 ('Examples:')
-    log2 ('node', process.argv[1], 'okcoin fetchOHLCV BTC/USD 15m')
-    log2 ('node', process.argv[1], 'bitfinex fetchBalance')
-    log2 ('node', process.argv[1], 'kraken fetchOrderBook ETH/BTC')
+    log ('This is an example of a basic command-line interface to all exchanges')
+    log ('Usage: node', process.argv[1], 'id'.green, 'method'.yellow, '"param1" param2 "param3" param4 ...'.blue)
+    log ('Examples:')
+    log ('node', process.argv[1], 'okcoin fetchOHLCV BTC/USD 15m')
+    log ('node', process.argv[1], 'bitfinex fetchBalance')
+    log ('node', process.argv[1], 'kraken fetchOrderBook ETH/BTC')
     printSupportedExchanges ()
-    log2 ('Supported options:')
-    log2 ('--verbose         Print verbose output')
-    log2 ('--debug           Print debugging output')
-    log2 ('--poll            Repeat continuously in rate-limited mode')
-    log2 ('--no-send         Print the request but do not actually send it to the exchange (sets verbose and load-markets)')
-    log2 ('--no-load-markets Do not pre-load markets (for debugging)')
-    log2 ('--details         Print detailed fetch responses')
-    log2 ('--no-table        Do not print the fetch response as a table')
-    log2 ('--table           Print the fetch response as a table')
-    log2 ('--iso8601         Print timestamps as ISO8601 datetimes')
-    log2 ('--cors            use CORS proxy for debugging')
-    log2 ('--sign-in         Call signIn() if any')
-    log2 ('--sandbox         Use the exchange sandbox if available, same as --testnet')
-    log2 ('--testnet         Use the exchange testnet if available, same as --sandbox')
-    log2 ('--test            Use the exchange testnet if available, same as --sandbox')
-    log2 ('--cache-markets   Cache the loaded markets in the .cache folder in the current directory')
+    log ('Supported options:')
+    log ('--verbose         Print verbose output')
+    log ('--debug           Print debugging output')
+    log ('--poll            Repeat continuously in rate-limited mode')
+    log ('--no-send         Print the request but do not actually send it to the exchange (sets verbose and load-markets)')
+    log ('--no-load-markets Do not pre-load markets (for debugging)')
+    log ('--details         Print detailed fetch responses')
+    log ('--no-table        Do not print the fetch response as a table')
+    log ('--table           Print the fetch response as a table')
+    log ('--iso8601         Print timestamps as ISO8601 datetimes')
+    log ('--cors            use CORS proxy for debugging')
+    log ('--sign-in         Call signIn() if any')
+    log ('--sandbox         Use the exchange sandbox if available, same as --testnet')
+    log ('--testnet         Use the exchange testnet if available, same as --sandbox')
+    log ('--test            Use the exchange testnet if available, same as --sandbox')
+    log ('--cache-markets   Cache the loaded markets in the .cache folder in the current directory')
 }
 
 //-----------------------------------------------------------------------------
@@ -162,8 +162,8 @@ const printHumanReadable = (exchange, result) => {
         if (details)
             result.forEach (object => {
                 if (arrayOfObjects)
-                    log2 ('-------------------------------------------')
-                log2 (object)
+                    log ('-------------------------------------------')
+                log (object)
             })
 
         if (arrayOfObjects || table && Array.isArray (result)) {
@@ -180,7 +180,7 @@ const printHumanReadable = (exchange, result) => {
                     return String (x)
                 }
             })
-            log2 (result.length > 0 ? configuredAsTable (result.map (element => {
+            log (result.length > 0 ? configuredAsTable (result.map (element => {
                 let keys = Object.keys (element)
                 delete element['info']
                 keys.forEach (key => {
@@ -198,10 +198,10 @@ const printHumanReadable = (exchange, result) => {
                 })
                 return element
             })) : result)
-            log2 (result.length, 'objects');
+            log (result.length, 'objects');
         } else {
             console.dir (result, { depth: null })
-            log2 (result.length, 'objects');
+            log (result.length, 'objects');
         }
     } else {
         console.dir (result, { depth: null, maxArrayLength: null })
@@ -261,9 +261,9 @@ async function run () {
 
             exchange.verbose = no_send
             exchange.fetch = function fetch (url, method = 'GET', headers = undefined, body = undefined) {
-                log2.dim.noLocate ('-------------------------------------------')
-                log2.dim.noLocate (exchange.iso8601 (exchange.milliseconds ()))
-                log2.green.unlimited ({
+                log.dim.noLocate ('-------------------------------------------')
+                log.dim.noLocate (exchange.iso8601 (exchange.milliseconds ()))
+                log.green.unlimited ({
                     url,
                     method,
                     headers,
@@ -277,7 +277,7 @@ async function run () {
 
             if (typeof exchange[methodName] === 'function') {
 
-                log2 (exchange.id + '.' + methodName, '(' + args.join (', ') + ')')
+                log (exchange.id + '.' + methodName, '(' + args.join (', ') + ')')
 
                 let start = exchange.milliseconds ()
                 let end = exchange.milliseconds ()
@@ -303,12 +303,12 @@ async function run () {
                         start = end
                     } catch (e) {
                         if (e instanceof ExchangeError) {
-                            log2.red (e.constructor.name, e.message)
+                            log.red (e.constructor.name, e.message)
                         } else if (e instanceof NetworkError) {
-                            log2.yellow (e.constructor.name, e.message)
+                            log.yellow (e.constructor.name, e.message)
                         }
 
-                        log2.dim ('---------------------------------------------------')
+                        log.dim ('---------------------------------------------------')
 
                         // rethrow for call-stack // other errors
                         throw e
@@ -327,7 +327,7 @@ async function run () {
                 }
 
             } else if (exchange[methodName] === undefined) {
-                log2.red (exchange.id + '.' + methodName + ': no such property')
+                log.red (exchange.id + '.' + methodName + ': no such property')
             } else {
                 printHumanReadable (exchange, exchange[methodName])
             }
