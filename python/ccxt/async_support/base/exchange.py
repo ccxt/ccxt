@@ -2,7 +2,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '2.6.17'
+__version__ = '2.6.18'
 
 # -----------------------------------------------------------------------------
 
@@ -424,6 +424,13 @@ class Exchange(BaseExchange):
         except BaseError as e:
             client.reject(e, messageHash)
         await self.load_order_book(client, messageHash, symbol, limit, params)
+
+    def handle_deltas(self, orderbook, deltas):
+        for delta in deltas:
+            self.handle_delta(orderbook, delta)
+
+    def handle_delta(self, orderbook, delta):
+        raise NotSupported(self.id + ' handleDelta() is not supported')
 
     def find_timeframe(self, timeframe, timeframes=None):
         timeframes = timeframes if timeframes else self.timeframes
