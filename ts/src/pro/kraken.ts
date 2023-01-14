@@ -4,6 +4,7 @@
 import krakenRest from '../kraken.js';
 import { BadSymbol, BadRequest, ExchangeError, NotSupported, InvalidNonce } from '../base/errors.js';
 import { ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById } from '../base/ws/Cache.js';
+import { Precise } from '../base/Precise.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -955,10 +956,10 @@ export default class kraken extends krakenRest {
         if (orderDescription !== undefined) {
             const parts = orderDescription.split (' ');
             side = this.safeString (parts, 0);
-            amount = this.safeFloat (parts, 1);
+            amount = this.safeString (parts, 1);
             wsName = this.safeString (parts, 2);
             type = this.safeString (parts, 4);
-            price = this.safeFloat (parts, 5);
+            price = this.safeString (parts, 5);
         }
         side = this.safeString (description, 'type', side);
         type = this.safeString (description, 'ordertype', type);
@@ -966,27 +967,23 @@ export default class kraken extends krakenRest {
         market = this.safeValue (this.options['marketsByWsName'], wsName, market);
         let symbol = undefined;
         const timestamp = this.safeTimestamp (order, 'opentm');
-        amount = this.safeFloat (order, 'vol', amount);
-        const filled = this.safeFloat (order, 'vol_exec');
-        let remaining = undefined;
-        if ((amount !== undefined) && (filled !== undefined)) {
-            remaining = amount - filled;
-        }
+        amount = this.safeString (order, 'vol', amount);
+        const filled = this.safeString (order, 'vol_exec');
         let fee = undefined;
-        const cost = this.safeFloat (order, 'cost');
-        price = this.safeFloat (description, 'price', price);
-        if ((price === undefined) || (price === 0.0)) {
-            price = this.safeFloat (description, 'price2');
+        const cost = this.safeString (order, 'cost');
+        price = this.safeString (description, 'price', price);
+        if ((price === undefined) || (Precise.stringEq (price, '0.0'))) {
+            price = this.safeString (description, 'price2');
         }
-        if ((price === undefined) || (price === 0.0)) {
-            price = this.safeFloat (order, 'price', price);
+        if ((price === undefined) || (Precise.stringEq (price, '0.0'))) {
+            price = this.safeString (order, 'price', price);
         }
-        const average = this.safeFloat2 (order, 'avg_price', 'price');
+        const average = this.safeString2 (order, 'avg_price', 'price');
         if (market !== undefined) {
             symbol = market['symbol'];
             if ('fee' in order) {
                 const flags = order['oflags'];
-                const feeCost = this.safeFloat (order, 'fee');
+                const feeCost = this.safeString (order, 'fee');
                 fee = {
                     'cost': feeCost,
                     'rate': undefined,
@@ -1010,8 +1007,8 @@ export default class kraken extends krakenRest {
         if (rawTrades !== undefined) {
             trades = this.parseTrades (rawTrades, market, undefined, undefined, { 'order': id });
         }
-        const stopPrice = this.safeFloat (order, 'stopprice');
-        return {
+        const stopPrice = this.safeNumber (order, 'stopprice');
+        return this.safeOrder ({
             'id': id,
             'clientOrderId': clientOrderId,
             'info': order,
@@ -1031,10 +1028,10 @@ export default class kraken extends krakenRest {
             'amount': amount,
             'filled': filled,
             'average': average,
-            'remaining': remaining,
+            'remaining': undefined,
             'fee': fee,
             'trades': trades,
-        };
+        });
     }
 
     handleSubscriptionStatus (client, message) {

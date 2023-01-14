@@ -218,31 +218,14 @@ console.log (ccxt.exchanges) // print all available exchanges
 
 All-in-one browser bundle (dependencies included), served from a CDN of your choice:
 
-* jsDelivr: https://cdn.jsdelivr.net/npm/ccxt@2.0.43/dist/ccxt.browser.js
-* unpkg: https://unpkg.com/ccxt@2.0.43/dist/ccxt.browser.js
+* jsDelivr: https://cdn.jsdelivr.net/npm/ccxt@2.6.17/dist/ccxt.browser.js
+* unpkg: https://unpkg.com/ccxt@2.6.17/dist/ccxt.browser.js
 
 CDNs are not updated in real-time and may have delays. Defaulting to the most recent version without specifying the version number is not recommended. Please, keep in mind that we are not responsible for the correct operation of those CDN servers.
 
 ```HTML
-<script type="text/javascript" src="https://cdn.jsdelivr.net/npm/ccxt@2.0.43/dist/ccxt.browser.js"></script>
-```
-
-Creates a global `ccxt` object:
-
-```JavaScript
-console.log (ccxt.exchanges) // print all available exchanges
-```
-
-### Python
-
-[ccxt in **PyPI**](https://pypi.python.org/pypi/ccxt)
-
-```shell
-pip install ccxt
-```
-
+<script type="text/javascript" src="https://cdn.jsdelivr.net/npm/ccxt@2.6.17/dist/ccxt.browser.js"></script>
 ```Python
-import ccxt
 print(ccxt.exchanges) # print a list of all available exchange classes
 ```
 
