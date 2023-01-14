@@ -919,7 +919,7 @@ module.exports = class huobi extends Exchange {
                     'BTC': 'BTC',
                     'USDT': 'TRC20',
                 },
-                'networksAreTitlesInsteadOfId': true,
+                'networksAreTitlesInsteadOfIds': true,
                 'networks': {
                     // The below list is made up by huobi's common network names, instead of currency-specific chain ids
                     'ACALA': 'ACA',

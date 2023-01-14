@@ -710,7 +710,7 @@ module.exports = class okx extends Exchange {
                     'BTC': 'BTC',
                     'USDT': 'TRC20',
                 },
-                'networksAreTitlesInsteadOfId': true,
+                'networksAreTitlesInsteadOfIds': true,
                 'networks': {
                     // "network names" instead of unique currency-specific network ids
                     'BTC': 'Bitcoin',
