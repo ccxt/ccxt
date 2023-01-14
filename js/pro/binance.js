@@ -1002,27 +1002,20 @@ module.exports = class binance extends binanceRest {
         } else if (this.isInverse (type, subType)) {
             type = 'delivery';
         }
-        const isIsolated = this.safeValue (params, 'isIsolated', false);
         const options = this.safeValue (this.options, type, {});
         const lastAuthenticatedTime = this.safeInteger (options, 'lastAuthenticatedTime', 0);
         const listenKeyRefreshRate = this.safeInteger (this.options, 'listenKeyRefreshRate', 1200000);
         const delay = this.sum (listenKeyRefreshRate, 10000);
-        const request = {};
         if (time - lastAuthenticatedTime > delay) {
             let method = 'publicPostUserDataStream';
             if (type === 'future') {
                 method = 'fapiPrivatePostListenKey';
             } else if (type === 'delivery') {
                 method = 'dapiPrivatePostListenKey';
-            } else if (type === 'margin' && !isIsolated) {
+            } else if (type === 'margin') {
                 method = 'sapiPostUserDataStream';
-            } else if (type === 'margin' && isIsolated) {
-                method = 'sapiPostUserDataStreamIsolated';
-                let symbol = this.safeString (params, 'symbol');
-                symbol = this.marketId (symbol);
-                request['symbol'] = symbol;
             }
-            const response = await this[method] (request);
+            const response = await this[method] ();
             this.options[type] = this.extend (options, {
                 'listenKey': this.safeString (response, 'listenKey'),
                 'lastAuthenticatedTime': time,
@@ -1042,29 +1035,23 @@ module.exports = class binance extends binanceRest {
         } else if (this.isInverse (type, subType)) {
             type = 'delivery';
         }
-        const isIsolated = this.safeValue (params, 'isIsolated', false);
         const options = this.safeValue (this.options, type, {});
         const listenKey = this.safeString (options, 'listenKey');
         if (listenKey === undefined) {
             // A network error happened: we can't renew a listen key that does not exist.
             return;
         }
-        const request = {
-            'listenKey': listenKey,
-        };
         let method = 'publicPutUserDataStream';
         if (type === 'future') {
             method = 'fapiPrivatePutListenKey';
         } else if (type === 'delivery') {
             method = 'dapiPrivatePutListenKey';
-        } else if (type === 'margin' && !isIsolated) {
+        } else if (type === 'margin') {
             method = 'sapiPutUserDataStream';
-        } else if (type === 'margin' && isIsolated) {
-            method = 'sapiPostUserDataStreamIsolated';
-            let symbol = this.safeString (params, 'symbol');
-            symbol = this.marketId (symbol);
-            request['symbol'] = symbol;
         }
+        const request = {
+            'listenKey': listenKey,
+        };
         const time = this.milliseconds ();
         const sendParams = this.omit (params, 'type');
         try {
@@ -1275,15 +1262,14 @@ module.exports = class binance extends binanceRest {
          * @returns {[object]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
          */
         await this.loadMarkets ();
+        await this.authenticate (params);
         let messageHash = 'orders';
         let market = undefined;
         if (symbol !== undefined) {
             market = this.market (symbol);
             symbol = market['symbol'];
             messageHash += ':' + symbol;
-            params['symbol'] = symbol;
         }
-        await this.authenticate (params);
         let type = undefined;
         [ type, params ] = this.handleMarketTypeAndParams ('watchOrders', market, params);
         const url = this.urls['api']['ws'][type] + '/' + this.options[type]['listenKey'];
