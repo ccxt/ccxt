@@ -494,10 +494,10 @@ async function exportEverything () {
 
     exportExchanges (replacements, unlimitedLog)
 
-    // strategically placed exactly here (we can require it AFTER the export)
-    const module = await import('../js/ccxt.js')
-    const ccxt = module.default
-    const exchanges = await createExchanges (ids, ccxt)
+    // we need to save changes to ccxt.ts but to them be applied in ccxt.js
+    // so we need to run tsc here
+    log.yellow("Running tsc to build ccxt.js...")
+    execSync("npm run tsBuild");
 
     const wikiPath = 'wiki'
         , gitWikiPath = 'build/ccxt.wiki'
