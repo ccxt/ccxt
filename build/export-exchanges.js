@@ -499,6 +499,10 @@ async function exportEverything () {
     log.yellow("Running tsc to build ccxt.js...")
     execSync("npm run tsBuild");
 
+
+    // strategically placed exactly here (we can require it AFTER the export)
+    const exchanges = await createExchanges (ids)
+
     const wikiPath = 'wiki'
         , gitWikiPath = 'build/ccxt.wiki'
 
