@@ -52,7 +52,7 @@ module.exports = class coinex extends coinexRest {
                     '6': AuthenticationError, // Permission denied
                 },
             },
-            'timeframes': {
+            'wsTimeframes': {
                 '1m': 60,
                 '3m': 180,
                 '5m': 300,
@@ -495,7 +495,7 @@ module.exports = class coinex extends coinexRest {
             'id': this.requestId (),
             'params': [
                 market['id'],
-                this.safeInteger (this.timeframes, timeframe, timeframe),
+                this.safeInteger (this.wsTimeframes, timeframe, timeframe),
             ],
         };
         const request = this.deepExtend (subscribe, params);
