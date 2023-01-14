@@ -1361,30 +1361,23 @@ module.exports = class Exchange {
         for (let i = 0; i < keys.length; i++) {
             const key = keys[i];
             const value = dict[key];
-            // if single key has single value, instead of array, i.e. 'a': [ 'b', 'c']
-            if (typeof value === 'string') {
+            // if key has a value of array i.e. 'a': [ 'b', 'c'] instead of a string i.e. 'a': 'b'
+            let checkKeys = [];
+            if (Array.isArray (value)) {
+                checkKeys = value;
+            } else if (typeof value === 'string') {
+                checkKeys.push (value);
+            }
+            for (let j = 0; j < checkKeys.length; j++) {
+                const currentKey = checkKeys[j];
                 // if it was already in keys
-                if (!(value in reversed)) {
-                    reversed[value] = key;
+                if (!(currentKey in reversed)) {
+                    reversed[currentKey] = key;
                 } else {
-                    if (Array.isArray (reversed[value])) {
-                        reversed[value].push (key);
+                    if (Array.isArray (reversed[currentKey])) {
+                        reversed[currentKey].push (key);
                     } else {
-                        reversed[value] = [ reversed[value], key ];
-                    }
-                }
-            } else if (Array.isArray (value)) {
-                for (let j = 0; j < value.length; j++) {
-                    const arrayItemValue = value[j];
-                    // if it was already in keys
-                    if (!(value in reversed)) {
-                        reversed[arrayItemValue] = key;
-                    } else {
-                        if (Array.isArray (reversed[value])) {
-                            reversed[arrayItemValue].push (key);
-                        } else {
-                            reversed[arrayItemValue] = [ reversed[arrayItemValue], key ];
-                        }
+                        reversed[currentKey] = [ reversed[currentKey], key ];
                     }
                 }
             }
@@ -1904,7 +1897,7 @@ module.exports = class Exchange {
             if (!found) {
                 const idsList = networkId.join (', ');
                 const loadMarketsMessage = this.generatedNetworkData['isLoaded'] ? '' : ' try loadMarkets() at first or ';
-                const extraMessage = currencyCode === undefined ? '' : ' and currencyCode [' + currencyCode + ']';
+                const extraMessage = (currencyCode === undefined) ? '' : ' and currencyCode [' + currencyCode + ']';
                 throw new ArgumentsRequired (this.id + ' networkCodeToId() can not automatically detect the network-id for given networkCode [' + networkCodePrimary + ']' + extraMessage + ', so ' + loadMarketsMessage + 'directly choose the specific network from this list: ' + idsList);
             }
         }
