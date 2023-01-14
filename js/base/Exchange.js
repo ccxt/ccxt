@@ -1844,21 +1844,7 @@ module.exports = class Exchange {
          * @param {string|undefined} currencyCode unified currency code, but this argument is not required by default, unless there is an exchange (like huobi) that needs an override of the method to be able to pass currencyCode argument additionally
          * @returns {[string|undefined]} exchange-specific network id
          */
-        let networkCodeValue = undefined;
-        const defaultNetworkCodeReplacements = this.safeValue (this.options, 'defaultNetworkCodeReplacements', {});
-        // Alias support : if user calls `networkCodeToId('ETH', 'USDT')` or `networkCodeToId('ERC20', 'ETH')` then we have to replace the networkCode accordingly in such cases, depending if the currencyCode is mainnet or not (to either ETH or ERC20)
-        if (currencyCode in defaultNetworkCodeReplacements) {
-            // if the mainnet currencyCode was passed, and if ERC20 was passed instead of ETH, then replace it with ETH
-            const replacementObject = defaultNetworkCodeReplacements[currencyCode]; // i.e. { 'ERC20': 'ETH' }
-            networkCodeValue = this.safeString (replacementObject, networkCode, networkCode);
-        } else {
-            // if currencyCode was not found in mainnet currencies (i.e. USDT instead of ETH), but had assigned mainnet networkCode (i.e. ETH instead of ERC20)
-            networkCodeValue = this.safeString (this.options['mainnetAndTokenNetworkCodes'], networkCode, networkCode);
-        }
-        // at this stage we are ensure that mainnet<>token replacements were not happened inside above if/else clause
-        if (networkCodeValue === undefined) {
-            networkCodeValue = networkCode;
-        }
+        const networkCodeValue = this.checkIfMainnetReplacementNeeded (networkCode, currencyCode);
         // if alias is provided (i.e. SOL), replace it with primary networkCode (i.e. SOLANA)
         const networkCodePrimary = this.safeString (this.optionNetworkData['aliasCodeToPrimary'], networkCodeValue, networkCodeValue);
         // if conflicting object was found
@@ -1996,9 +1982,29 @@ module.exports = class Exchange {
         return networkCode;
     }
 
+    checkIfMainnetReplacementNeeded (networkCode, currencyCode) {
+        let networkCodeReplacement = undefined;
+        const defaultNetworkCodeReplacements = this.safeValue (this.options, 'defaultNetworkCodeReplacements', {});
+        // Alias support : if user calls `networkCodeToId('ETH', 'USDT')` or `networkCodeToId('ERC20', 'ETH')` then we have to replace the networkCode accordingly in such cases, depending if the currencyCode is mainnet or not (to either ETH or ERC20)
+        if (currencyCode in defaultNetworkCodeReplacements) {
+            // if the mainnet currencyCode was passed, and if ERC20 was passed instead of ETH, then replace it with ETH
+            const replacementObject = defaultNetworkCodeReplacements[currencyCode]; // i.e. { 'ERC20': 'ETH' }
+            networkCodeReplacement = this.safeString (replacementObject, networkCode, networkCode);
+        } else {
+            // if currencyCode was not found in mainnet currencies (i.e. USDT instead of ETH), but had assigned mainnet networkCode (i.e. ETH instead of ERC20)
+            networkCodeReplacement = this.safeString (this.options['mainnetAndTokenNetworkCodes'], networkCode, networkCode);
+        }
+        // at this stage we are ensure that mainnet<>token replacements were not happened inside above if/else clause
+        if (networkCodeReplacement === undefined) {
+            networkCodeReplacement = networkCode;
+        }
+        return networkCodeReplacement;
+    }
+
     networkCodeToCurrencyId (networkCode, currencyCode) {
-        const currencyNetworkCodes = this.safeValue (this.generatedNetworkData['currencyIdsByNetworkCodes'], currencyCode, {});
-        let currencyId = this.safeString (currencyNetworkCodes, networkCode);
+        networkCode = this.checkIfMainnetReplacementNeeded (networkCode, currencyCode);
+        const currencyIdsByNetworkCodes = this.safeValue (this.generatedNetworkData['currencyIdsByNetworkCodes'], currencyCode, {});
+        let currencyId = this.safeString (currencyIdsByNetworkCodes, networkCode);
         if (currencyId === undefined) {
             const currencyNetworkIds = this.safeValue (this.generatedNetworkData['currencyIdsByNetworkIds'], currencyCode, {});
             currencyId = this.safeString (currencyNetworkIds, networkCode);
