@@ -1004,7 +1004,7 @@ module.exports = class kraken extends krakenRest {
         if (rawTrades !== undefined) {
             trades = this.parseTrades (rawTrades, market, undefined, undefined, { 'order': id });
         }
-        const stopPrice = this.safeString (order, 'stopprice');
+        const stopPrice = this.safeNumber (order, 'stopprice');
         return this.safeOrder ({
             'id': id,
             'clientOrderId': clientOrderId,
