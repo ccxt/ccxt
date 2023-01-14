@@ -1004,6 +1004,8 @@ module.exports = class binance extends binanceRest {
         }
         let marginMode = undefined;
         [ marginMode, params ] = this.handleMarginModeAndParams ('authenticate', params);
+        const isIsolatedMargin = (marginMode === 'isolated');
+        const isCrossMargin = (marginMode === 'cross') || (marginMode === undefined);
         const symbol = this.safeString (params, 'symbol');
         params = this.omit (params, 'symbol');
         const options = this.safeValue (this.options, type, {});
@@ -1016,9 +1018,9 @@ module.exports = class binance extends binanceRest {
                 method = 'fapiPrivatePostListenKey';
             } else if (type === 'delivery') {
                 method = 'dapiPrivatePostListenKey';
-            } else if (type === 'margin' && marginMode === 'cross') {
+            } else if (type === 'margin' && isCrossMargin) {
                 method = 'sapiPostUserDataStream';
-            } else if (marginMode === 'isolated') {
+            } else if (isIsolatedMargin) {
                 method = 'sapiPostUserDataStreamIsolated';
                 if (symbol === undefined) {
                     throw new ArgumentsRequired (this.id + ' authenticate() requires a symbol argument for isolated margin mode');
