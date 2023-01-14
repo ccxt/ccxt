@@ -2386,8 +2386,8 @@ class bybit(Exchange):
         marketId = self.safe_string(trade, 'symbol')
         market = self.safe_market(marketId, market, None, 'contract')
         symbol = market['symbol']
-        amountString = self.safe_string_n(trade, ['orderQty', 'size', 'execQty'])
-        priceString = self.safe_string_n(trade, ['orderPrice', 'price', 'execPrice'])
+        amountString = self.safe_string_n(trade, ['execQty', 'orderQty', 'size'])
+        priceString = self.safe_string_n(trade, ['execPrice', 'orderPrice', 'price'])
         costString = self.safe_string(trade, 'execValue')
         timestamp = self.safe_integer_n(trade, ['time', 'execTime', 'tradeTime'])
         side = self.safe_string_lower(trade, 'side')
