@@ -128,7 +128,6 @@ spl_autoload_register(function ($class_name) {
 namespace ccxt\pro;
 require_once PATH_TO_WS_CCXT . 'Future.php';
 require_once PATH_TO_WS_CCXT . 'Client.php';
-require_once PATH_TO_WS_CCXT . 'WsConnector.php';
 require_once PATH_TO_WS_CCXT . 'OrderBook.php';
 require_once PATH_TO_WS_CCXT . 'OrderBookSide.php';
 require_once PATH_TO_WS_CCXT . 'BaseCache.php';
