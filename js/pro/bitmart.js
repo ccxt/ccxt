@@ -511,7 +511,6 @@ module.exports = class bitmart extends bitmartRest {
             const memo = this.uid;
             const path = 'bitmart.WebSocket';
             const auth = timestamp + '#' + memo + '#' + path;
-            console.log (auth)
             const signature = this.hmac (this.encode (auth), this.encode (this.secret), 'sha256');
             const operation = 'login';
             const request = {
