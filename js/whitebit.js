@@ -1712,7 +1712,7 @@ module.exports = class whitebit extends Exchange {
         //
         const transfer = this.parseTransfer (response, currency);
         return this.extend (transfer, {
-            'amount': this.currencyToPrecision (code, amountString),
+            'amount': this.parseNumber (this.currencyToPrecision (code, amountString)),
             'fromAccount': fromAccount,
             'toAccount': toAccount,
         });
