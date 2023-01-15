@@ -471,28 +471,6 @@ class gate(Exchange, ccxt.async_support.gate):
             stored = self.safe_value(self.ohlcvs, symbol)
             client.resolve(stored, hash)
 
-    async def authenticate(self, params={}):
-        url = self.urls['api']['ws']
-        client = self.client(url)
-        future = client.future('authenticated')
-        method = 'server.sign'
-        authenticate = self.safe_value(client.subscriptions, method)
-        if authenticate is None:
-            requestId = self.milliseconds()
-            requestIdString = str(requestId)
-            signature = self.hmac(self.encode(requestIdString), self.encode(self.secret), hashlib.sha512, 'hex')
-            authenticateMessage = {
-                'id': requestId,
-                'method': method,
-                'params': [self.apiKey, signature, requestId],
-            }
-            subscribe = {
-                'id': requestId,
-                'method': self.handle_authentication_message,
-            }
-            self.spawn(self.watch, url, requestId, authenticateMessage, method, subscribe)
-        return await future
-
     async def watch_my_trades(self, symbol=None, since=None, limit=None, params={}):
         """
         watches information on multiple trades made by the user
@@ -779,24 +757,6 @@ class gate(Exchange, ccxt.async_support.gate):
             messageHash = 'orders:' + keys[i]
             client.resolve(self.orders, messageHash)
         client.resolve(self.orders, 'orders')
-
-    def handle_authentication_message(self, client, message, subscription):
-        result = self.safe_value(message, 'result')
-        status = self.safe_string(result, 'status')
-        if status == 'success':
-            # client.resolve(True, 'authenticated') will del the future
-            # we want to remember that we are authenticated in subsequent call to private methods
-            future = self.safe_value(client.futures, 'authenticated')
-            if future is not None:
-                future.resolve(True)
-        else:
-            # del authenticate subscribeHash to release the "subscribe lock"
-            # allows subsequent calls to subscribe to reauthenticate
-            # avoids sending two authentication messages before receiving a reply
-            error = AuthenticationError(self.id + ' handleAuthenticationMessage() error')
-            client.reject(error, 'authenticated')
-            if 'server.sign' in client.subscriptions:
-                del client.subscriptions['server.sign']
 
     def handle_error_message(self, client, message):
         # {

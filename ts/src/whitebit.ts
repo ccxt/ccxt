@@ -217,6 +217,9 @@ export default class whitebit extends Exchange {
             },
             'options': {
                 'fiatCurrencies': [ 'EUR', 'USD', 'RUB', 'UAH' ],
+                'fetchBalance': {
+                    'account': 'spot',
+                },
                 'accountsByType': {
                     'main': 'main',
                     'spot': 'spot',
@@ -1260,6 +1263,7 @@ export default class whitebit extends Exchange {
                 const account = this.account ();
                 account['free'] = this.safeString (balance, 'available');
                 account['used'] = this.safeString (balance, 'freeze');
+                account['total'] = this.safeString (balance, 'main_balance');
                 result[code] = account;
             } else {
                 const account = this.account ();
@@ -1284,10 +1288,26 @@ export default class whitebit extends Exchange {
         if (marketType === 'swap') {
             method = 'v4PrivatePostCollateralAccountBalance';
         } else {
-            method = 'v4PrivatePostTradeAccountBalance';
+            const options = this.safeValue (this.options, 'fetchBalance', {});
+            const defaultAccount = this.safeString (options, 'account');
+            const account = this.safeString (params, 'account', defaultAccount);
+            params = this.omit (params, 'account');
+            if (account === 'main') {
+                method = 'v4PrivatePostMainAccountBalance';
+            } else {
+                method = 'v4PrivatePostTradeAccountBalance';
+            }
         }
         const response = await this[method] (query);
-        // spot
+        //
+        // main account
+        //
+        //     {
+        //         "BTC":{"main_balance":"0.0013929494020316"},
+        //         "ETH":{"main_balance":"0.001398289308"},
+        //     }
+        //
+        // spot trade account
         //
         //     {
         //         "BTC": { "available": "0.123", "freeze": "1" },
@@ -1678,10 +1698,10 @@ export default class whitebit extends Exchange {
         const accountsByType = this.safeValue (this.options, 'accountsByType');
         const fromAccountId = this.safeString (accountsByType, fromAccount, fromAccount);
         const toAccountId = this.safeString (accountsByType, toAccount, toAccount);
-        const amountString = amount.toString ();
+        const amountString = this.currencyToPrecision (code, amount);
         const request = {
             'ticker': currency['id'],
-            'amount': this.currencyToPrecision (code, amountString),
+            'amount': amountString,
             'from': fromAccountId,
             'to': toAccountId,
         };
@@ -1691,7 +1711,7 @@ export default class whitebit extends Exchange {
         //
         const transfer = this.parseTransfer (response, currency);
         return this.extend (transfer, {
-            'amount': this.currencyToPrecision (code, amountString),
+            'amount': amount,
             'fromAccount': fromAccount,
             'toAccount': toAccount,
         });

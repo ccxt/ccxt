@@ -2,7 +2,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '2.6.18'
+__version__ = '2.6.21'
 
 # -----------------------------------------------------------------------------
 
@@ -227,9 +227,10 @@ class WsConnector:
                     return
                 tries += 1
             client.reject(ExchangeError(self.id + ' nonce is behind cache after ' + str(maxRetries) + ' tries.'), messageHash)
+            del self.clients[client.url]
         except BaseError as e:
             client.reject(e, messageHash)
-        await self.load_order_book(client, messageHash, symbol, limit, params)
+            await self.load_order_book(client, messageHash, symbol, limit, params)
 
     def handle_deltas(self, orderbook, deltas):
         for delta in deltas:

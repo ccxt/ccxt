@@ -515,30 +515,6 @@ export default class gate extends gateRest {
         }
     }
 
-    async authenticate (params = {}) {
-        const url = this.urls['api']['ws'];
-        const client = this.client (url);
-        const future = client.future ('authenticated');
-        const method = 'server.sign';
-        const authenticate = this.safeValue (client.subscriptions, method);
-        if (authenticate === undefined) {
-            const requestId = this.milliseconds ();
-            const requestIdString = requestId.toString ();
-            const signature = this.hmac (this.encode (requestIdString), this.encode (this.secret), 'sha512', 'hex');
-            const authenticateMessage = {
-                'id': requestId,
-                'method': method,
-                'params': [ this.apiKey, signature, requestId ],
-            };
-            const subscribe = {
-                'id': requestId,
-                'method': this.handleAuthenticationMessage,
-            };
-            this.spawn (this.watch, url, requestId, authenticateMessage, method, subscribe);
-        }
-        return await future;
-    }
-
     async watchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         /**
          * @method
@@ -851,28 +827,6 @@ export default class gate extends gateRest {
             client.resolve (this.orders, messageHash);
         }
         client.resolve (this.orders, 'orders');
-    }
-
-    handleAuthenticationMessage (client, message, subscription) {
-        const result = this.safeValue (message, 'result');
-        const status = this.safeString (result, 'status');
-        if (status === 'success') {
-            // client.resolve (true, 'authenticated') will delete the future
-            // we want to remember that we are authenticated in subsequent call to private methods
-            const future = this.safeValue (client.futures, 'authenticated');
-            if (future !== undefined) {
-                future.resolve (true);
-            }
-        } else {
-            // delete authenticate subscribeHash to release the "subscribe lock"
-            // allows subsequent calls to subscribe to reauthenticate
-            // avoids sending two authentication messages before receiving a reply
-            const error = new AuthenticationError (this.id + ' handleAuthenticationMessage() error');
-            client.reject (error, 'authenticated');
-            if ('server.sign' in client.subscriptions) {
-                delete client.subscriptions['server.sign'];
-            }
-        }
     }
 
     handleErrorMessage (client, message) {

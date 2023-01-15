@@ -182,14 +182,15 @@ trait ClientTrait {
                         $stored->cache = array();
                         $client->resolve($stored, $messageHash);
                         return;
-                    } 
+                    }
                     $tries++;
                 }
                 $client->reject (new ExchangeError ($this->id . ' nonce is behind the cache after ' . strval($tries) . ' tries.' ), $messageHash);
+                unset($this->clients[$client->url]);
             } catch (BaseError $e) {
                 $client->reject($e, $messageHash);
+                Async\await($this->load_order_book($client, $messageHash, $symbol, $limit, $params));
             }
-            Async\await($this->load_order_book($client, $messageHash, $symbol, $limit, $params));
         }) ();
     }
 

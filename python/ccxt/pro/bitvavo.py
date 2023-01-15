@@ -407,8 +407,7 @@ class bitvavo(Exchange, ccxt.async_support.bitvavo):
         marketId = market['id']
         url = self.urls['api']['ws']
         name = 'account'
-        subscriptionHash = name + '@' + marketId
-        messageHash = subscriptionHash + '_' + 'order'
+        messageHash = 'order:' + symbol
         request = {
             'action': 'subscribe',
             'channels': [
@@ -418,7 +417,7 @@ class bitvavo(Exchange, ccxt.async_support.bitvavo):
                 },
             ],
         }
-        orders = await self.watch(url, messageHash, request, subscriptionHash)
+        orders = await self.watch(url, messageHash, request, messageHash)
         if self.newUpdates:
             limit = orders.getLimit(symbol, limit)
         return self.filter_by_symbol_since_limit(orders, symbol, since, limit, True)
@@ -441,8 +440,7 @@ class bitvavo(Exchange, ccxt.async_support.bitvavo):
         marketId = market['id']
         url = self.urls['api']['ws']
         name = 'account'
-        subscriptionHash = name + '@' + marketId
-        messageHash = subscriptionHash + '_' + 'fill'
+        messageHash = 'myTrades:' + symbol
         request = {
             'action': 'subscribe',
             'channels': [
@@ -452,7 +450,7 @@ class bitvavo(Exchange, ccxt.async_support.bitvavo):
                 },
             ],
         }
-        trades = await self.watch(url, messageHash, request, subscriptionHash)
+        trades = await self.watch(url, messageHash, request, messageHash)
         if self.newUpdates:
             limit = trades.getLimit(symbol, limit)
         return self.filter_by_symbol_since_limit(trades, symbol, since, limit, True)
@@ -479,11 +477,10 @@ class bitvavo(Exchange, ccxt.async_support.bitvavo):
         #         postOnly: False
         #     }
         #
-        name = 'account'
-        event = self.safe_string(message, 'event')
         marketId = self.safe_string(message, 'market')
         market = self.safe_market(marketId, None, '-')
-        messageHash = name + '@' + marketId + '_' + event
+        symbol = market['symbol']
+        messageHash = 'order:' + symbol
         order = self.parse_order(message, market)
         if self.orders is None:
             limit = self.safe_integer(self.options, 'ordersLimit', 1000)
@@ -508,18 +505,16 @@ class bitvavo(Exchange, ccxt.async_support.bitvavo):
         #         feeCurrency: 'EUR'
         #     }
         #
-        name = 'account'
-        event = self.safe_string(message, 'event')
         marketId = self.safe_string(message, 'market')
-        messageHash = name + '@' + marketId + '_' + event
         market = self.safe_market(marketId, None, '-')
+        symbol = market['symbol']
+        messageHash = 'myTrades:' + symbol
         trade = self.parse_trade(message, market)
         if self.myTrades is None:
             limit = self.safe_integer(self.options, 'tradesLimit', 1000)
             self.myTrades = ArrayCache(limit)
         tradesArray = self.myTrades
         tradesArray.append(trade)
-        self.myTrades = tradesArray
         client.resolve(tradesArray, messageHash)
 
     def handle_subscription_status(self, client, message):
@@ -544,32 +539,27 @@ class bitvavo(Exchange, ccxt.async_support.bitvavo):
                 method(client, message, subscription)
         return message
 
-    async def authenticate(self, params={}):
+    def authenticate(self, params={}):
         url = self.urls['api']['ws']
         client = self.client(url)
-        future = client.future('authenticated')
-        action = 'authenticate'
-        authenticated = self.safe_value(client.subscriptions, action)
-        if authenticated is None:
-            try:
-                self.check_required_credentials()
-                timestamp = self.milliseconds()
-                stringTimestamp = str(timestamp)
-                auth = stringTimestamp + 'GET/' + self.version + '/websocket'
-                signature = self.hmac(self.encode(auth), self.encode(self.secret))
-                request = {
-                    'action': action,
-                    'key': self.apiKey,
-                    'signature': signature,
-                    'timestamp': timestamp,
-                }
-                self.spawn(self.watch, url, action, request, action)
-            except Exception as e:
-                client.reject(e, 'authenticated')
-                # allows further authentication attempts
-                if action in client.subscriptions:
-                    del client.subscriptions[action]
-        return await future
+        messageHash = 'authenticated'
+        future = self.safe_value(client.subscriptions, messageHash)
+        if future is None:
+            timestamp = self.milliseconds()
+            stringTimestamp = str(timestamp)
+            auth = stringTimestamp + 'GET/' + self.version + '/websocket'
+            signature = self.hmac(self.encode(auth), self.encode(self.secret))
+            action = 'authenticate'
+            request = {
+                'action': action,
+                'key': self.apiKey,
+                'signature': signature,
+                'timestamp': timestamp,
+            }
+            message = self.extend(request, params)
+            future = self.watch(url, messageHash, message)
+            client.subscriptions[messageHash] = future
+        return future
 
     def handle_authentication_message(self, client, message):
         #
@@ -578,18 +568,17 @@ class bitvavo(Exchange, ccxt.async_support.bitvavo):
         #         authenticated: True
         #     }
         #
+        messageHash = 'authenticated'
         authenticated = self.safe_value(message, 'authenticated', False)
         if authenticated:
             # we resolve the future here permanently so authentication only happens once
-            future = self.safe_value(client.futures, 'authenticated')
-            future.resolve(True)
+            client.resolve(message, messageHash)
         else:
             error = AuthenticationError(self.json(message))
-            client.reject(error, 'authenticated')
+            client.reject(error, messageHash)
             # allows further authentication attempts
-            event = self.safe_value(message, 'event')
-            if event in client.subscriptions:
-                del client.subscriptions[event]
+            if messageHash in client.subscriptions:
+                del client.subscriptions[messageHash]
 
     def handle_message(self, client, message):
         #

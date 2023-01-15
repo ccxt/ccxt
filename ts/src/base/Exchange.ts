@@ -1407,10 +1407,11 @@ export default class Exchange {
                 tries++;
             }
             client.reject (new ExchangeError (this.id + ' nonce is behind the cache after ' + maxRetries.toString () + ' tries.'), messageHash);
+            delete this.clients[client.url];
         } catch (e) {
             client.reject (e, messageHash);
+            await this.loadOrderBook (client, messageHash, symbol, limit, params);
         }
-        await this.loadOrderBook (client, messageHash, symbol, limit, params);
     }
 
     handleDeltas (orderbook, deltas, nonce = undefined) {

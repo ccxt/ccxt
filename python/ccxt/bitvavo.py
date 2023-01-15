@@ -1334,6 +1334,10 @@ class bitvavo(Exchange):
         remaining = self.safe_string(order, 'amountRemaining')
         filled = self.safe_string(order, 'filledAmount')
         cost = self.safe_string(order, 'filledAmountQuote')
+        if cost is None:
+            amountQuote = self.safe_string(order, 'amountQuote')
+            amountQuoteRemaining = self.safe_string(order, 'amountQuoteRemaining')
+            cost = Precise.string_sub(amountQuote, amountQuoteRemaining)
         fee = None
         feeCost = self.safe_number(order, 'feePaid')
         if feeCost is not None:

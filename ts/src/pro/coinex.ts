@@ -38,6 +38,21 @@ export default class coinex extends coinexRest {
                 },
             },
             'options': {
+                'timeframes': {
+                    '1m': 60,
+                    '3m': 180,
+                    '5m': 300,
+                    '15m': 900,
+                    '30m': 1800,
+                    '1h': 3600,
+                    '2h': 7200,
+                    '4h': 14400,
+                    '6h': 21600,
+                    '12h': 43200,
+                    '1d': 86400,
+                    '3d': 259200,
+                    '1w': 604800,
+                },
                 'account': 'spot',
                 'watchOrderBook': {
                     'limits': [ 5, 10, 20, 50 ],
@@ -57,21 +72,6 @@ export default class coinex extends coinexRest {
                     '5': RequestTimeout, // Service timeout
                     '6': AuthenticationError, // Permission denied
                 },
-            },
-            'timeframes': {
-                '1m': 60,
-                '3m': 180,
-                '5m': 300,
-                '15m': 900,
-                '30m': 1800,
-                '1h': 3600,
-                '2h': 7200,
-                '4h': 14400,
-                '6h': 21600,
-                '12h': 43200,
-                '1d': 86400,
-                '3d': 259200,
-                '1w': 604800,
             },
         });
     }
@@ -496,12 +496,13 @@ export default class coinex extends coinexRest {
             throw new NotSupported (this.id + ' watchOHLCV() is only supported for swap markets');
         }
         const url = this.urls['api']['ws'][type];
+        const timeframes = this.safeValue (this.options, 'timeframes', {});
         const subscribe = {
             'method': 'kline.subscribe',
             'id': this.requestId (),
             'params': [
                 market['id'],
-                this.safeInteger (this.timeframes, timeframe, this.parseNumber (timeframe)),
+                this.safeString (timeframes, timeframe, timeframe),
             ],
         };
         const request = this.deepExtend (subscribe, params);
