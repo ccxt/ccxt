@@ -1699,10 +1699,10 @@ module.exports = class whitebit extends Exchange {
         const accountsByType = this.safeValue (this.options, 'accountsByType');
         const fromAccountId = this.safeString (accountsByType, fromAccount, fromAccount);
         const toAccountId = this.safeString (accountsByType, toAccount, toAccount);
-        const amountString = amount.toString ();
+        const amountString = this.currencyToPrecision (code, amount);
         const request = {
             'ticker': currency['id'],
-            'amount': this.currencyToPrecision (code, amountString),
+            'amount': amountString,
             'from': fromAccountId,
             'to': toAccountId,
         };
@@ -1712,7 +1712,7 @@ module.exports = class whitebit extends Exchange {
         //
         const transfer = this.parseTransfer (response, currency);
         return this.extend (transfer, {
-            'amount': this.parseNumber (this.currencyToPrecision (code, amountString)),
+            'amount': amount,
             'fromAccount': fromAccount,
             'toAccount': toAccount,
         });
