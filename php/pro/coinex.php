@@ -37,6 +37,21 @@ class coinex extends \ccxt\async\coinex {
                 ),
             ),
             'options' => array(
+                'timeframes' => array(
+                    '1m' => 60,
+                    '3m' => 180,
+                    '5m' => 300,
+                    '15m' => 900,
+                    '30m' => 1800,
+                    '1h' => 3600,
+                    '2h' => 7200,
+                    '4h' => 14400,
+                    '6h' => 21600,
+                    '12h' => 43200,
+                    '1d' => 86400,
+                    '3d' => 259200,
+                    '1w' => 604800,
+                ),
                 'account' => 'spot',
                 'watchOrderBook' => array(
                     'limits' => array( 5, 10, 20, 50 ),
@@ -56,21 +71,6 @@ class coinex extends \ccxt\async\coinex {
                     '5' => '\\ccxt\\RequestTimeout', // Service timeout
                     '6' => '\\ccxt\\AuthenticationError', // Permission denied
                 ),
-            ),
-            'timeframes' => array(
-                '1m' => 60,
-                '3m' => 180,
-                '5m' => 300,
-                '15m' => 900,
-                '30m' => 1800,
-                '1h' => 3600,
-                '2h' => 7200,
-                '4h' => 14400,
-                '6h' => 21600,
-                '12h' => 43200,
-                '1d' => 86400,
-                '3d' => 259200,
-                '1w' => 604800,
             ),
         ));
     }
@@ -494,12 +494,13 @@ class coinex extends \ccxt\async\coinex {
                 throw new NotSupported($this->id . ' watchOHLCV() is only supported for swap markets');
             }
             $url = $this->urls['api']['ws'][$type];
+            $timeframes = $this->safe_value($this->options, 'timeframes', array());
             $subscribe = array(
                 'method' => 'kline.subscribe',
                 'id' => $this->request_id(),
                 'params' => [
                     $market['id'],
-                    $this->safe_integer($this->timeframes, $timeframe, $timeframe),
+                    $this->safe_integer($timeframes, $timeframe, $timeframe),
                 ],
             );
             $request = $this->deep_extend($subscribe, $params);

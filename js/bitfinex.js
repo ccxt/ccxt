@@ -1063,22 +1063,23 @@ module.exports = class bitfinex extends Exchange {
         await this.loadMarkets ();
         const market = this.market (symbol);
         const postOnly = this.safeValue (params, 'postOnly', false);
+        type = type.toLowerCase ();
         params = this.omit (params, [ 'postOnly' ]);
         if (market['spot']) {
             // although they claim that type needs to be 'exchange limit' or 'exchange market'
             // in fact that's not the case for swap markets
-            type = this.safeString (this.options['orderTypes'], type, type);
+            type = this.safeStringLower (this.options['orderTypes'], type, type);
         }
         const request = {
             'symbol': market['id'],
             'side': side,
             'amount': this.amountToPrecision (symbol, amount),
-            'type': type.toLowerCase (),
+            'type': type,
             'ocoorder': false,
             'buy_price_oco': 0,
             'sell_price_oco': 0,
         };
-        if (type === 'market') {
+        if (type.indexOf ('market') > -1) {
             request['price'] = this.nonce ().toString ();
         } else {
             request['price'] = this.priceToPrecision (symbol, price);

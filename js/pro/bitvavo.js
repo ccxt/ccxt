@@ -449,8 +449,7 @@ module.exports = class bitvavo extends bitvavoRest {
         const marketId = market['id'];
         const url = this.urls['api']['ws'];
         const name = 'account';
-        const subscriptionHash = name + '@' + marketId;
-        const messageHash = subscriptionHash + '_' + 'order';
+        const messageHash = 'order:' + symbol;
         const request = {
             'action': 'subscribe',
             'channels': [
@@ -460,7 +459,7 @@ module.exports = class bitvavo extends bitvavoRest {
                 },
             ],
         };
-        const orders = await this.watch (url, messageHash, request, subscriptionHash);
+        const orders = await this.watch (url, messageHash, request, messageHash);
         if (this.newUpdates) {
             limit = orders.getLimit (symbol, limit);
         }
@@ -488,8 +487,7 @@ module.exports = class bitvavo extends bitvavoRest {
         const marketId = market['id'];
         const url = this.urls['api']['ws'];
         const name = 'account';
-        const subscriptionHash = name + '@' + marketId;
-        const messageHash = subscriptionHash + '_' + 'fill';
+        const messageHash = 'myTrades:' + symbol;
         const request = {
             'action': 'subscribe',
             'channels': [
@@ -499,7 +497,7 @@ module.exports = class bitvavo extends bitvavoRest {
                 },
             ],
         };
-        const trades = await this.watch (url, messageHash, request, subscriptionHash);
+        const trades = await this.watch (url, messageHash, request, messageHash);
         if (this.newUpdates) {
             limit = trades.getLimit (symbol, limit);
         }
@@ -528,11 +526,10 @@ module.exports = class bitvavo extends bitvavoRest {
         //         postOnly: false
         //     }
         //
-        const name = 'account';
-        const event = this.safeString (message, 'event');
         const marketId = this.safeString (message, 'market');
         const market = this.safeMarket (marketId, undefined, '-');
-        const messageHash = name + '@' + marketId + '_' + event;
+        const symbol = market['symbol'];
+        const messageHash = 'order:' + symbol;
         const order = this.parseOrder (message, market);
         if (this.orders === undefined) {
             const limit = this.safeInteger (this.options, 'ordersLimit', 1000);
@@ -559,11 +556,10 @@ module.exports = class bitvavo extends bitvavoRest {
         //         feeCurrency: 'EUR'
         //     }
         //
-        const name = 'account';
-        const event = this.safeString (message, 'event');
         const marketId = this.safeString (message, 'market');
-        const messageHash = name + '@' + marketId + '_' + event;
         const market = this.safeMarket (marketId, undefined, '-');
+        const symbol = market['symbol'];
+        const messageHash = 'myTrades:' + symbol;
         const trade = this.parseTrade (message, market);
         if (this.myTrades === undefined) {
             const limit = this.safeInteger (this.options, 'tradesLimit', 1000);
@@ -571,7 +567,6 @@ module.exports = class bitvavo extends bitvavoRest {
         }
         const tradesArray = this.myTrades;
         tradesArray.append (trade);
-        this.myTrades = tradesArray;
         client.resolve (tradesArray, messageHash);
     }
 
@@ -600,35 +595,28 @@ module.exports = class bitvavo extends bitvavoRest {
         return message;
     }
 
-    async authenticate (params = {}) {
+    authenticate (params = {}) {
         const url = this.urls['api']['ws'];
         const client = this.client (url);
-        const future = client.future ('authenticated');
-        const action = 'authenticate';
-        const authenticated = this.safeValue (client.subscriptions, action);
-        if (authenticated === undefined) {
-            try {
-                this.checkRequiredCredentials ();
-                const timestamp = this.milliseconds ();
-                const stringTimestamp = timestamp.toString ();
-                const auth = stringTimestamp + 'GET/' + this.version + '/websocket';
-                const signature = this.hmac (this.encode (auth), this.encode (this.secret));
-                const request = {
-                    'action': action,
-                    'key': this.apiKey,
-                    'signature': signature,
-                    'timestamp': timestamp,
-                };
-                this.spawn (this.watch, url, action, request, action);
-            } catch (e) {
-                client.reject (e, 'authenticated');
-                // allows further authentication attempts
-                if (action in client.subscriptions) {
-                    delete client.subscriptions[action];
-                }
-            }
+        const messageHash = 'authenticated';
+        let future = this.safeValue (client.subscriptions, messageHash);
+        if (future === undefined) {
+            const timestamp = this.milliseconds ();
+            const stringTimestamp = timestamp.toString ();
+            const auth = stringTimestamp + 'GET/' + this.version + '/websocket';
+            const signature = this.hmac (this.encode (auth), this.encode (this.secret));
+            const action = 'authenticate';
+            const request = {
+                'action': action,
+                'key': this.apiKey,
+                'signature': signature,
+                'timestamp': timestamp,
+            };
+            const message = this.extend (request, params);
+            future = this.watch (url, messageHash, message);
+            client.subscriptions[messageHash] = future;
         }
-        return await future;
+        return future;
     }
 
     handleAuthenticationMessage (client, message) {
@@ -638,18 +626,17 @@ module.exports = class bitvavo extends bitvavoRest {
         //         authenticated: true
         //     }
         //
+        const messageHash = 'authenticated';
         const authenticated = this.safeValue (message, 'authenticated', false);
         if (authenticated) {
             // we resolve the future here permanently so authentication only happens once
-            const future = this.safeValue (client.futures, 'authenticated');
-            future.resolve (true);
+            client.resolve (message, messageHash);
         } else {
             const error = new AuthenticationError (this.json (message));
-            client.reject (error, 'authenticated');
+            client.reject (error, messageHash);
             // allows further authentication attempts
-            const event = this.safeValue (message, 'event');
-            if (event in client.subscriptions) {
-                delete client.subscriptions[event];
+            if (messageHash in client.subscriptions) {
+                delete client.subscriptions[messageHash];
             }
         }
     }
