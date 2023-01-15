@@ -576,8 +576,14 @@ class exmo extends \ccxt\async\exmo {
         //     $topic => 'spot/ticker:BTC_USDT'
         // }
         $event = $this->safe_string($message, 'event');
-        if ($event === 'logged_in') {
-            return $this->handle_authentication_message($client, $message);
+        $events = array(
+            'logged_in' => array($this, 'handle_authentication_message'),
+            'info' => array($this, 'handle_info'),
+            'subscribed' => array($this, 'handle_subscribed'),
+        );
+        $eventHandler = $this->safe_value($events, $event);
+        if ($eventHandler !== null) {
+            return $eventHandler($client, $message);
         }
         if (($event === 'update') || ($event === 'snapshot')) {
             $topic = $this->safe_string($message, 'topic');
@@ -602,12 +608,6 @@ class exmo extends \ccxt\async\exmo {
                     return $handler($client, $message);
                 }
             }
-        }
-        if ($event === 'info') {
-            return $this->handle_info($client, $message);
-        }
-        if ($event === 'subscribed') {
-            return $this->handle_subscribed($client, $message);
         }
         throw new NotSupported($this->id . ' received an unsupported $message => ' . $this->json($message));
     }
@@ -646,36 +646,33 @@ class exmo extends \ccxt\async\exmo {
         //         nonce => 1654215729887
         //     }
         //
-        $future = $this->safe_value($client->futures, 'authenticated');
-        if ($future !== null) {
-            $future->resolve (true);
-        }
+        $messageHash = 'authenticated';
+        $client->resolve ($message, $messageHash);
     }
 
     public function authenticate($params = array ()) {
-        return Async\async(function () use ($params) {
-            $messageHash = 'authenticated';
-            list($type, $query) = $this->handle_market_type_and_params('authenticate', null, $params);
-            $url = $this->urls['api']['ws'][$type];
-            $client = $this->client($url);
-            $future = $client->future ('authenticated');
-            $authenticated = $this->safe_value($client->subscriptions, $messageHash);
-            if ($authenticated === null) {
-                $time = $this->milliseconds();
-                $this->check_required_credentials();
-                $requestId = $this->request_id();
-                $signData = $this->apiKey . (string) $time;
-                $sign = $this->hmac($this->encode($signData), $this->encode($this->secret), 'sha512', 'base64');
-                $request = array(
-                    'method' => 'login',
-                    'id' => $requestId,
-                    'api_key' => $this->apiKey,
-                    'sign' => $sign,
-                    'nonce' => $time,
-                );
-                $this->spawn(array($this, 'watch'), $url, $messageHash, array_merge($request, $query), $messageHash);
-            }
-            return Async\await($future);
-        }) ();
+        $messageHash = 'authenticated';
+        list($type, $query) = $this->handle_market_type_and_params('authenticate', null, $params);
+        $url = $this->urls['api']['ws'][$type];
+        $client = $this->client($url);
+        $future = $this->safe_value($client->subscriptions, $messageHash);
+        if ($future === null) {
+            $time = $this->milliseconds();
+            $this->check_required_credentials();
+            $requestId = $this->request_id();
+            $signData = $this->apiKey . (string) $time;
+            $sign = $this->hmac($this->encode($signData), $this->encode($this->secret), 'sha512', 'base64');
+            $request = array(
+                'method' => 'login',
+                'id' => $requestId,
+                'api_key' => $this->apiKey,
+                'sign' => $sign,
+                'nonce' => $time,
+            );
+            $message = array_merge($request, $query);
+            $future = $this->watch($url, $messageHash, $message);
+            $client->subscriptions[$messageHash] = $future;
+        }
+        return $future;
     }
 }
