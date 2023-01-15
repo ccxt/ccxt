@@ -574,13 +574,13 @@ module.exports = class bitget extends bitgetRest {
         await this.loadMarkets ();
         let market = undefined;
         let marketId = undefined;
-        let messageHash = 'order:';
+        let messageHash = 'order';
         const subscriptionHash = 'order:trades';
         if (symbol !== undefined) {
             market = this.market (symbol);
             symbol = market['symbol'];
             marketId = market['id'];
-            messageHash += market['symbol'];
+            messageHash = messageHash + ':' + symbol;
         }
         let type = undefined;
         [ type, params ] = this.handleMarketTypeAndParams ('watchOrders', market, params);
@@ -657,6 +657,7 @@ module.exports = class bitget extends bitgetRest {
             const messageHash = 'order:' + symbol;
             client.resolve (stored, messageHash);
         }
+        client.resolve (stored, 'order');
     }
 
     parseWsOrder (order, market = undefined) {
@@ -1011,19 +1012,19 @@ module.exports = class bitget extends bitgetRest {
         return await this.watch (url, messageHash, message, messageHash);
     }
 
-    async authenticate (params = {}) {
+    authenticate (params = {}) {
         this.checkRequiredCredentials ();
         const url = this.urls['api']['ws'];
         const client = this.client (url);
-        const future = client.future ('authenticated');
-        const messageHash = 'login';
-        const authenticated = this.safeValue (client.subscriptions, messageHash);
-        if (authenticated === undefined) {
+        const messageHash = 'authenticated';
+        let future = this.safeValue (client.subscriptions, messageHash);
+        if (future === undefined) {
             const timestamp = this.seconds ().toString ();
             const auth = timestamp + 'GET' + '/user/verify';
             const signature = this.hmac (this.encode (auth), this.encode (this.secret), 'sha256', 'base64');
+            const operation = 'login';
             const request = {
-                'op': messageHash,
+                'op': operation,
                 'args': [
                     {
                         'apiKey': this.apiKey,
@@ -1033,9 +1034,11 @@ module.exports = class bitget extends bitgetRest {
                     },
                 ],
             };
-            this.spawn (this.watch, url, messageHash, this.extend (request, params), messageHash);
+            const message = this.extend (request, params);
+            future = this.watch (url, messageHash, message);
+            client.subscriptions[messageHash] = future;
         }
-        return await future;
+        return future;
     }
 
     async watchPrivate (messageHash, subscriptionHash, args, params = {}) {
@@ -1053,10 +1056,8 @@ module.exports = class bitget extends bitgetRest {
         //
         //  { event: 'login', code: 0 }
         //
-        const future = client.futures['authenticated'];
-        future.resolve (1);
-        client.resolve (1, 'login');
-        return message;
+        const messageHash = 'authenticated';
+        client.resolve (message, messageHash);
     }
 
     handleErrorMessage (client, message) {
@@ -1070,12 +1071,17 @@ module.exports = class bitget extends bitgetRest {
                 const feedback = this.id + ' ' + this.json (message);
                 this.throwExactlyMatchedException (this.exceptions['ws']['exact'], code, feedback);
             }
+            return false;
         } catch (e) {
             if (e instanceof AuthenticationError) {
-                return false;
+                const messageHash = 'authenticated';
+                client.reject (e, messageHash);
+                if (messageHash in client.subscriptions) {
+                    delete client.subscriptions[messageHash];
+                }
             }
+            return true;
         }
-        return message;
     }
 
     handleMessage (client, message) {
@@ -1113,7 +1119,7 @@ module.exports = class bitget extends bitgetRest {
         //        arg: { instType: 'spbl', channel: 'account', instId: 'default' }
         //    }
         //
-        if (!this.handleErrorMessage (client, message)) {
+        if (this.handleErrorMessage (client, message)) {
             return;
         }
         const content = this.safeString (message, 'message');
