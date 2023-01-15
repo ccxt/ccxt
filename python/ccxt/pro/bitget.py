@@ -537,13 +537,13 @@ class bitget(Exchange, ccxt.async_support.bitget):
         await self.load_markets()
         market = None
         marketId = None
-        messageHash = 'order:'
+        messageHash = 'order'
         subscriptionHash = 'order:trades'
         if symbol is not None:
             market = self.market(symbol)
             symbol = market['symbol']
             marketId = market['id']
-            messageHash += market['symbol']
+            messageHash = messageHash + ':' + symbol
         type = None
         type, params = self.handle_market_type_and_params('watchOrders', market, params)
         if (type == 'spot') and (symbol is None):
@@ -612,6 +612,7 @@ class bitget(Exchange, ccxt.async_support.bitget):
             symbol = keys[i]
             messageHash = 'order:' + symbol
             client.resolve(stored, messageHash)
+        client.resolve(stored, 'order')
 
     def parse_ws_order(self, order, market=None):
         #
@@ -946,19 +947,19 @@ class bitget(Exchange, ccxt.async_support.bitget):
         message = self.extend(request, params)
         return await self.watch(url, messageHash, message, messageHash)
 
-    async def authenticate(self, params={}):
+    def authenticate(self, params={}):
         self.check_required_credentials()
         url = self.urls['api']['ws']
         client = self.client(url)
-        future = client.future('authenticated')
-        messageHash = 'login'
-        authenticated = self.safe_value(client.subscriptions, messageHash)
-        if authenticated is None:
+        messageHash = 'authenticated'
+        future = self.safe_value(client.subscriptions, messageHash)
+        if future is None:
             timestamp = str(self.seconds())
             auth = timestamp + 'GET' + '/user/verify'
             signature = self.hmac(self.encode(auth), self.encode(self.secret), hashlib.sha256, 'base64')
+            operation = 'login'
             request = {
-                'op': messageHash,
+                'op': operation,
                 'args': [
                     {
                         'apiKey': self.apiKey,
@@ -968,8 +969,10 @@ class bitget(Exchange, ccxt.async_support.bitget):
                     },
                 ],
             }
-            self.spawn(self.watch, url, messageHash, self.extend(request, params), messageHash)
-        return await future
+            message = self.extend(request, params)
+            future = self.watch(url, messageHash, message)
+            client.subscriptions[messageHash] = future
+        return future
 
     async def watch_private(self, messageHash, subscriptionHash, args, params={}):
         await self.authenticate()
@@ -985,10 +988,8 @@ class bitget(Exchange, ccxt.async_support.bitget):
         #
         #  {event: 'login', code: 0}
         #
-        future = client.futures['authenticated']
-        future.resolve(1)
-        client.resolve(1, 'login')
-        return message
+        messageHash = 'authenticated'
+        client.resolve(message, messageHash)
 
     def handle_error_message(self, client, message):
         #
@@ -1000,10 +1001,14 @@ class bitget(Exchange, ccxt.async_support.bitget):
                 code = self.safe_string(message, 'code')
                 feedback = self.id + ' ' + self.json(message)
                 self.throw_exactly_matched_exception(self.exceptions['ws']['exact'], code, feedback)
+            return False
         except Exception as e:
             if isinstance(e, AuthenticationError):
-                return False
-        return message
+                messageHash = 'authenticated'
+                client.reject(e, messageHash)
+                if messageHash in client.subscriptions:
+                    del client.subscriptions[messageHash]
+            return True
 
     def handle_message(self, client, message):
         #
@@ -1040,7 +1045,7 @@ class bitget(Exchange, ccxt.async_support.bitget):
         #        arg: {instType: 'spbl', channel: 'account', instId: 'default'}
         #    }
         #
-        if not self.handle_error_message(client, message):
+        if self.handle_error_message(client, message):
             return
         content = self.safe_string(message, 'message')
         if content == 'pong':

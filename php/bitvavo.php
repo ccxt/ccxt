@@ -1377,6 +1377,11 @@ class bitvavo extends Exchange {
         $remaining = $this->safe_string($order, 'amountRemaining');
         $filled = $this->safe_string($order, 'filledAmount');
         $cost = $this->safe_string($order, 'filledAmountQuote');
+        if ($cost === null) {
+            $amountQuote = $this->safe_string($order, 'amountQuote');
+            $amountQuoteRemaining = $this->safe_string($order, 'amountQuoteRemaining');
+            $cost = Precise::string_sub($amountQuote, $amountQuoteRemaining);
+        }
         $fee = null;
         $feeCost = $this->safe_number($order, 'feePaid');
         if ($feeCost !== null) {

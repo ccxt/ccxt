@@ -580,13 +580,13 @@ class bitget extends \ccxt\async\bitget {
             Async\await($this->load_markets());
             $market = null;
             $marketId = null;
-            $messageHash = 'order:';
+            $messageHash = 'order';
             $subscriptionHash = 'order:trades';
             if ($symbol !== null) {
                 $market = $this->market($symbol);
                 $symbol = $market['symbol'];
                 $marketId = $market['id'];
-                $messageHash .= $market['symbol'];
+                $messageHash = $messageHash . ':' . $symbol;
             }
             $type = null;
             list($type, $params) = $this->handle_market_type_and_params('watchOrders', $market, $params);
@@ -664,6 +664,7 @@ class bitget extends \ccxt\async\bitget {
             $messageHash = 'order:' . $symbol;
             $client->resolve ($stored, $messageHash);
         }
+        $client->resolve ($stored, 'order');
     }
 
     public function parse_ws_order($order, $market = null) {
@@ -1021,32 +1022,32 @@ class bitget extends \ccxt\async\bitget {
     }
 
     public function authenticate($params = array ()) {
-        return Async\async(function () use ($params) {
-            $this->check_required_credentials();
-            $url = $this->urls['api']['ws'];
-            $client = $this->client($url);
-            $future = $client->future ('authenticated');
-            $messageHash = 'login';
-            $authenticated = $this->safe_value($client->subscriptions, $messageHash);
-            if ($authenticated === null) {
-                $timestamp = (string) $this->seconds();
-                $auth = $timestamp . 'GET' . '/user/verify';
-                $signature = $this->hmac($this->encode($auth), $this->encode($this->secret), 'sha256', 'base64');
-                $request = array(
-                    'op' => $messageHash,
-                    'args' => array(
-                        array(
-                            'apiKey' => $this->apiKey,
-                            'passphrase' => $this->password,
-                            'timestamp' => $timestamp,
-                            'sign' => $signature,
-                        ),
+        $this->check_required_credentials();
+        $url = $this->urls['api']['ws'];
+        $client = $this->client($url);
+        $messageHash = 'authenticated';
+        $future = $this->safe_value($client->subscriptions, $messageHash);
+        if ($future === null) {
+            $timestamp = (string) $this->seconds();
+            $auth = $timestamp . 'GET' . '/user/verify';
+            $signature = $this->hmac($this->encode($auth), $this->encode($this->secret), 'sha256', 'base64');
+            $operation = 'login';
+            $request = array(
+                'op' => $operation,
+                'args' => array(
+                    array(
+                        'apiKey' => $this->apiKey,
+                        'passphrase' => $this->password,
+                        'timestamp' => $timestamp,
+                        'sign' => $signature,
                     ),
-                );
-                $this->spawn(array($this, 'watch'), $url, $messageHash, array_merge($request, $params), $messageHash);
-            }
-            return Async\await($future);
-        }) ();
+                ),
+            );
+            $message = array_merge($request, $params);
+            $future = $this->watch($url, $messageHash, $message);
+            $client->subscriptions[$messageHash] = $future;
+        }
+        return $future;
     }
 
     public function watch_private($messageHash, $subscriptionHash, $args, $params = array ()) {
@@ -1066,10 +1067,8 @@ class bitget extends \ccxt\async\bitget {
         //
         //  array( event => 'login', code => 0 )
         //
-        $future = $client->futures['authenticated'];
-        $future->resolve (1);
-        $client->resolve (1, 'login');
-        return $message;
+        $messageHash = 'authenticated';
+        $client->resolve ($message, $messageHash);
     }
 
     public function handle_error_message($client, $message) {
@@ -1083,12 +1082,17 @@ class bitget extends \ccxt\async\bitget {
                 $feedback = $this->id . ' ' . $this->json($message);
                 $this->throw_exactly_matched_exception($this->exceptions['ws']['exact'], $code, $feedback);
             }
+            return false;
         } catch (Exception $e) {
             if ($e instanceof AuthenticationError) {
-                return false;
+                $messageHash = 'authenticated';
+                $client->reject ($e, $messageHash);
+                if (is_array($client->subscriptions) && array_key_exists($messageHash, $client->subscriptions)) {
+                    unset($client->subscriptions[$messageHash]);
+                }
             }
+            return true;
         }
-        return $message;
     }
 
     public function handle_message($client, $message) {
@@ -1126,7 +1130,7 @@ class bitget extends \ccxt\async\bitget {
         //        $arg => array( instType => 'spbl', channel => 'account', instId => 'default' )
         //    }
         //
-        if (!$this->handle_error_message($client, $message)) {
+        if ($this->handle_error_message($client, $message)) {
             return;
         }
         $content = $this->safe_string($message, 'message');
