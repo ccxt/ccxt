@@ -3171,6 +3171,8 @@ module.exports = class gate extends Exchange {
                 };
                 if (isLimitOrder) {
                     request['price'] = this.priceToPrecision (symbol, price);
+                } else {
+                    timeInForce = 'ioc';
                 }
                 if (timeInForce !== undefined) {
                     request['time_in_force'] = timeInForce;
