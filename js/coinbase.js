@@ -75,7 +75,7 @@ module.exports = class coinbase extends Exchange {
                 'fetchPositionsRisk': false,
                 'fetchPremiumIndexOHLCV': false,
                 'fetchTicker': true,
-                'fetchTickers': 'emulated',
+                'fetchTickers': true,
                 'fetchTime': true,
                 'fetchTrades': undefined,
                 'fetchTradingFee': false,
@@ -264,6 +264,7 @@ module.exports = class coinbase extends Exchange {
                 'advanced': true, // set to true if using any v3 endpoints from the advanced trade API
                 'fetchMarkets': 'fetchMarketsV3', // 'fetchMarketsV3' or 'fetchMarketsV2'
                 'fetchTicker': 'fetchTickerV3', // 'fetchTickerV3' or 'fetchTickerV2'
+                'fetchTickers': 'fetchTickersV3', // 'fetchTickersV3' or 'fetchTickersV2'
             },
         });
     }
@@ -1021,7 +1022,7 @@ module.exports = class coinbase extends Exchange {
         return result;
     }
 
-    async fetchTickers (symbols = undefined, params = {}) {
+    async fetchTickers (symbol, params = {}) {
         /**
          * @method
          * @name coinbase#fetchTickers
@@ -1030,26 +1031,94 @@ module.exports = class coinbase extends Exchange {
          * @param {object} params extra parameters specific to the coinbase api endpoint
          * @returns {object} an array of [ticker structures]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
          */
+        const method = this.safeString (this.options, 'fetchTickers', 'fetchTickersV3');
+        return await this[method] (symbol, params);
+    }
+
+    async fetchTickersV2 (symbols = undefined, params = {}) {
         await this.loadMarkets ();
         symbols = this.marketSymbols (symbols);
-        let symbol = undefined;
+        const request = {
+            // 'currency': 'USD',
+        };
+        const response = await this.v2PublicGetExchangeRates (this.extend (request, params));
+        //
+        //     {
+        //         "data":{
+        //             "currency":"USD",
+        //             "rates":{
+        //                 "AED":"3.6731",
+        //                 "AFN":"103.163942",
+        //                 "ALL":"106.973038",
+        //             }
+        //         }
+        //     }
+        //
+        const data = this.safeValue (response, 'data', {});
+        const rates = this.safeValue (data, 'rates', {});
+        const quoteId = this.safeString (data, 'currency');
         const result = {};
-        if (symbols !== undefined) {
-            for (let i = 0; i < symbols.length; i++) {
-                symbol = symbols[i];
-                result[symbol] = await this.fetchTicker (symbol);
-            }
-        } else {
-            const fetchTickerMethod = this.safeString (this.options, 'fetchTicker');
-            if (fetchTickerMethod !== 'fetchTickerV3') {
-                this.checkRequiredArgument ('fetchTickers', symbols, 'symbols');
-            }
-            const markets = await this.fetchMarkets ();
-            for (let i = 0; i < markets.length; i++) {
-                const entry = markets[i];
-                symbol = this.safeString (entry, 'symbol');
-                result[symbol] = await this.fetchTicker (symbol);
-            }
+        const baseIds = Object.keys (rates);
+        const delimiter = '-';
+        for (let i = 0; i < baseIds.length; i++) {
+            const baseId = baseIds[i];
+            const marketId = baseId + delimiter + quoteId;
+            const market = this.safeMarket (marketId, undefined, delimiter);
+            const symbol = market['symbol'];
+            result[symbol] = this.parseTicker (rates[baseId], market);
+        }
+        return this.filterByArray (result, 'symbol', symbols);
+    }
+
+    async fetchTickersV3 (symbols = undefined, params = {}) {
+        await this.loadMarkets ();
+        symbols = this.marketSymbols (symbols);
+        const response = await this.v3PrivateGetBrokerageProducts (params);
+        //
+        //     {
+        //         'products': [
+        //             {
+        //                 "product_id": "TONE-USD",
+        //                 "price": "0.01523",
+        //                 "price_percentage_change_24h": "1.94109772423025",
+        //                 "volume_24h": "19773129",
+        //                 "volume_percentage_change_24h": "437.0170530929949",
+        //                 "base_increment": "1",
+        //                 "quote_increment": "0.00001",
+        //                 "quote_min_size": "1",
+        //                 "quote_max_size": "10000000",
+        //                 "base_min_size": "26.7187147229469674",
+        //                 "base_max_size": "267187147.2294696735908216",
+        //                 "base_name": "TE-FOOD",
+        //                 "quote_name": "US Dollar",
+        //                 "watched": false,
+        //                 "is_disabled": false,
+        //                 "new": false,
+        //                 "status": "online",
+        //                 "cancel_only": false,
+        //                 "limit_only": false,
+        //                 "post_only": false,
+        //                 "trading_disabled": false,
+        //                 "auction_mode": false,
+        //                 "product_type": "SPOT",
+        //                 "quote_currency_id": "USD",
+        //                 "base_currency_id": "TONE",
+        //                 "fcm_trading_session_details": null,
+        //                 "mid_market_price": ""
+        //             },
+        //             ...
+        //         ],
+        //         "num_products": 549
+        //     }
+        //
+        const data = this.safeValue (response, 'products', []);
+        const result = [];
+        for (let i = 0; i < data.length; i++) {
+            const entry = data[i];
+            const marketId = this.safeString (entry, 'product_id');
+            const market = this.safeMarket (marketId, undefined, '-');
+            const symbol = market['symbol'];
+            result[symbol] = this.parseTicker (entry, market);
         }
         return this.filterByArray (result, 'symbol', symbols);
     }
@@ -1124,7 +1193,7 @@ module.exports = class coinbase extends Exchange {
         return this.parseTicker (data[0], market);
     }
 
-    async parseTicker (ticker, market = undefined) {
+    parseTicker (ticker, market = undefined) {
         //
         // fetchTickerV2
         //
@@ -1147,6 +1216,45 @@ module.exports = class coinbase extends Exchange {
         //         "ask": ""
         //     }
         //
+        // fetchTickersV2
+        //
+        //     "48691.23"
+        //
+        // fetchTickersV3
+        //
+        //     [
+        //         {
+        //             "product_id": "TONE-USD",
+        //             "price": "0.01523",
+        //             "price_percentage_change_24h": "1.94109772423025",
+        //             "volume_24h": "19773129",
+        //             "volume_percentage_change_24h": "437.0170530929949",
+        //             "base_increment": "1",
+        //             "quote_increment": "0.00001",
+        //             "quote_min_size": "1",
+        //             "quote_max_size": "10000000",
+        //             "base_min_size": "26.7187147229469674",
+        //             "base_max_size": "267187147.2294696735908216",
+        //             "base_name": "TE-FOOD",
+        //             "quote_name": "US Dollar",
+        //             "watched": false,
+        //             "is_disabled": false,
+        //             "new": false,
+        //             "status": "online",
+        //             "cancel_only": false,
+        //             "limit_only": false,
+        //             "post_only": false,
+        //             "trading_disabled": false,
+        //             "auction_mode": false,
+        //             "product_type": "SPOT",
+        //             "quote_currency_id": "USD",
+        //             "base_currency_id": "TONE",
+        //             "fcm_trading_session_details": null,
+        //             "mid_market_price": ""
+        //         },
+        //         ...
+        //     ]
+        //
         const timestamp = this.milliseconds ();
         const marketId = this.safeString (ticker, 'product_id');
         const last = this.safeNumber (ticker, 'price');
@@ -1166,7 +1274,7 @@ module.exports = class coinbase extends Exchange {
             'close': last,
             'previousClose': undefined,
             'change': undefined,
-            'percentage': undefined,
+            'percentage': this.safeNumber (ticker, 'price_percentage_change_24h'),
             'average': undefined,
             'baseVolume': undefined,
             'quoteVolume': undefined,
