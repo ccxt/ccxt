@@ -1287,7 +1287,7 @@ module.exports = class binance extends binanceRest {
         let type = undefined;
         [ type, params ] = this.handleMarketTypeAndParams ('watchOrders', market, params);
         let subType = undefined;
-        [ subType, params ] = this.handleSubTypeAndParams ('watchMyTrades', market, params);
+        [ subType, params ] = this.handleSubTypeAndParams ('watchOrders', market, params);
         if (this.isLinear (type, subType)) {
             type = 'future';
         } else if (this.isInverse (type, subType)) {
