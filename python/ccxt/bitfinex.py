@@ -1543,7 +1543,10 @@ class bitfinex(Exchange):
             return
         throwError = False
         if code >= 400:
-            firstChar = self.safe_string(body, 0)
+            if type(body) is str:
+                firstChar = body[0]
+            else:
+                firstChar = self.safe_string(body, 0)
             if firstChar == '{':
                 throwError = True
         else:
