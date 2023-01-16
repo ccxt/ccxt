@@ -611,7 +611,9 @@ module.exports = class wavesexchange extends Exchange {
         let pricePrecision = undefined;
         if (precision !== undefined) {
             amountPrecision = '1e' + precision['amount'].toString ();
-            difference = Precise.stringSub (precision['amount'].toString (), precision['price'].toString ());
+            const amountPrecisionString = precision['amount'].toString ();
+            const pricePrecisionString = precision['price'].toString ();
+            difference = Precise.stringSub (amountPrecisionString, pricePrecisionString);
             pricePrecision = '1e' + Precise.stringSub (wavesPrecision, difference);
         }
         const result = [];
