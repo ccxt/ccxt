@@ -14,8 +14,8 @@ import {
     createFolderRecursively,
 } from './fsLocal.js';
 import Exchange from '../js/src/base/Exchange.js';
-import {  Transpiler, parallelizeTranspiling } from './transpile.js';
-import { pathToFileURL } from 'url'
+import {  Transpiler, parallelizeTranspiling, isMainEntry } from './transpile.js';
+import * as url from 'node:url';
 
 const exchanges = JSON.parse (fs.readFileSync("./exchanges.json", "utf8"));
 const wsExchangeIds = exchanges.ws;
@@ -306,12 +306,7 @@ class CCXTProTranspiler extends Transpiler {
 
 // ============================================================================
 // main entry point
-const metaUrlRaw = import.meta.url
-const metaUrl = metaUrlRaw.substring(0, metaUrlRaw.lastIndexOf(".")) // remove extension
-const url = pathToFileURL(process.argv[1]);
-if (metaUrl === url.href || url.href === metaUrlRaw) { // called directly like `node module`
-    // if called directly like `node module`
-
+if (isMainEntry()) { // called directly like `node module`
     const transpiler = new CCXTProTranspiler ()
     const force = process.argv.includes ('--force')
     const multiprocess = process.argv.includes ('--multiprocess') || process.argv.includes ('--multi')

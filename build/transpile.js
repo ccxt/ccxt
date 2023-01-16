@@ -16,6 +16,7 @@ import errorHierarchy from '../js/src/base/errorHierarchy.js'
 import { platform } from 'process'
 import os from 'os'
 import { fork } from 'child_process'
+import * as url from 'node:url';
 ansi.nice
 
 const tsFilename = './ccxt.d.ts'
@@ -2085,13 +2086,23 @@ function parallelizeTranspiling (exchanges, processes = undefined) {
     }
 }
 
-// ============================================================================
-// main entry point
-const metaUrlRaw = import.meta.url
-const metaUrl = metaUrlRaw.substring(0, metaUrlRaw.lastIndexOf(".")) // remove extension
-const url = pathToFileURL(process.argv[1]);
-if (metaUrl === url.href || url.href === metaUrlRaw) { // called directly like `node module`
+function isMainEntry() {
+    // https://exploringjs.com/nodejs-shell-scripting/ch_nodejs-path.html#detecting-if-module-is-main
+    if (import.meta.url.startsWith('file:')) {
+        const modulePath = url.fileURLToPath(import.meta.url);
+        if (process.argv[1] === modulePath) {
+            return true;
+        }
+        // when called without .js extension
+        if (process.argv[1] === modulePath.replace('.js','')) {
+            return true;
+        }
+    }
+    return false;
+}
 
+// ============================================================================
+if (isMainEntry()) {
     const transpiler = new Transpiler ()
     const test = process.argv.includes ('--test') || process.argv.includes ('--tests')
     const errors = process.argv.includes ('--error') || process.argv.includes ('--errors')
@@ -2122,5 +2133,6 @@ if (metaUrl === url.href || url.href === metaUrlRaw) { // called directly like `
 
 export {
     Transpiler,
-    parallelizeTranspiling
+    parallelizeTranspiling,
+    isMainEntry
 }
