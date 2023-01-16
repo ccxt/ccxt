@@ -2486,9 +2486,39 @@ module.exports = class binance extends Exchange {
         //         volume: '81990451',
         //         weightedAvgPrice: '38215.08713747'
         //     }
+        // spot bidsAsks
+        //     {
+        //         "symbol":"ETHBTC",
+        //         "bidPrice":"0.07466800",
+        //         "bidQty":"5.31990000",
+        //         "askPrice":"0.07466900",
+        //         "askQty":"10.93540000"
+        //     }
+        // usdm bidsAsks
+        //     {
+        //         "symbol":"BTCUSDT",
+        //         "bidPrice":"21321.90",
+        //         "bidQty":"33.592",
+        //         "askPrice":"21322.00",
+        //         "askQty":"1.427",
+        //         "time":"1673899207538"
+        //     }
+        // coinm bidsAsks
+        //     {
+        //         "symbol":"BTCUSD_PERP",
+        //         "pair":"BTCUSD",
+        //         "bidPrice":"21301.2",
+        //         "bidQty":"188",
+        //         "askPrice":"21301.3",
+        //         "askQty":"10302",
+        //         "time":"1673899278514"
+        //     }
         //
         const timestamp = this.safeInteger (ticker, 'closeTime');
-        const marketType = ('bidQty' in ticker) ? 'spot' : 'contract';
+        let marketType = ('time' in ticker) ? 'contract' : 'spot';
+        if (marketType === undefined) {
+            marketType = ('bidQty' in ticker) ? 'spot' : 'contract';
+        }
         const marketId = this.safeString (ticker, 'symbol');
         const symbol = this.safeSymbol (marketId, market, undefined, marketType);
         const last = this.safeString (ticker, 'lastPrice');
@@ -2589,11 +2619,16 @@ module.exports = class binance extends Exchange {
          * @returns {object} an array of [ticker structures]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
          */
         await this.loadMarkets ();
-        const defaultType = this.safeString2 (this.options, 'fetchBidsAsks', 'defaultType', 'spot');
-        const type = this.safeString (params, 'type', defaultType);
+        symbols = this.marketSymbols (symbols);
+        let market = undefined;
+        if (symbols !== undefined) {
+            const first = this.safeString (symbols, 0);
+            market = this.market (first);
+        }
+        let type = undefined;
         let subType = undefined;
-        [ subType, params ] = this.handleSubTypeAndParams ('fetchBidsAsks', undefined, params);
-        const query = this.omit (params, 'type');
+        [ subType, params ] = this.handleSubTypeAndParams ('fetchBidsAsks', market, params);
+        [ type, params ] = this.handleMarketTypeAndParams ('fetchBidsAsks', market, params);
         let method = undefined;
         if (this.isLinear (type, subType)) {
             method = 'fapiPublicGetTickerBookTicker';
@@ -2602,7 +2637,7 @@ module.exports = class binance extends Exchange {
         } else {
             method = 'publicGetTickerBookTicker';
         }
-        const response = await this[method] (query);
+        const response = await this[method] (params);
         return this.parseTickers (response, symbols);
     }
 
