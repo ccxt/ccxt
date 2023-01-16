@@ -32,6 +32,7 @@ module.exports = class coinex extends coinexRest {
                 },
             },
             'options': {
+                'watchOHLCVWarning': true,
                 'timeframes': {
                     '1m': 60,
                     '3m': 180,
@@ -490,11 +491,12 @@ module.exports = class coinex extends coinexRest {
         }
         const url = this.urls['api']['ws'][type];
         const messageHash = 'ohlcv';
+        const watchOHLCVWarning = this.safeValue (this.options, 'watchOHLCVWarning', true);
         const client = this.safeValue (this.clients, url, {});
-        const subscriptionSymbol = this.safeString (client.subscriptions, messageHash);
+        const existingSubscription = this.safeValue (client.subscriptions, messageHash);
         // due to nature of coinex response can only watch one symbol at a time
-        if (subscriptionSymbol !== undefined && subscriptionSymbol !== symbol) {
-            throw ExchangeError (this.id + ' watchOHLCV() can only watch one symbol at a time');
+        if (watchOHLCVWarning && existingSubscription !== undefined && (existingSubscription['symbol'] !== symbol || existingSubscription['timeframe'] !== timeframe)) {
+            throw new ExchangeError (this.id + ' watchOHLCV() can only watch one symbol and timeframe at a time. To supress this warning set watchOHLCVWarning to false in options');
         }
         const timeframes = this.safeValue (this.options, 'timeframes', {});
         const subscribe = {
@@ -505,8 +507,12 @@ module.exports = class coinex extends coinexRest {
                 this.safeInteger (timeframes, timeframe, timeframe),
             ],
         };
+        const subscription = {
+            'symbol': symbol,
+            'timeframe': timeframe,
+        };
         const request = this.deepExtend (subscribe, params);
-        const ohlcvs = await this.watch (url, messageHash, request, messageHash, symbol);
+        const ohlcvs = await this.watch (url, messageHash, request, messageHash, subscription);
         if (this.newUpdates) {
             limit = ohlcvs.getLimit (symbol, limit);
         }
