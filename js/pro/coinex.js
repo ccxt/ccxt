@@ -562,6 +562,7 @@ module.exports = class coinex extends coinexRest {
         if (since === undefined) {
             since = 1640995200;  // January 1, 2022
         }
+        const id = this.requestId ();
         const subscribe = {
             'method': 'kline.query',
             'params': [
@@ -572,7 +573,6 @@ module.exports = class coinex extends coinexRest {
             ],
             'id': id,
         };
-        const id = this.requestId ();
         const subscription = {
             'id': id,
             'future': messageHash,
