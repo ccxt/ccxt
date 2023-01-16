@@ -3615,7 +3615,7 @@ module.exports = class gate extends Exchange {
         let filled = Precise.stringSub (amount, remaining);
         let cost = this.safeString (order, 'filled_total');
         let rawStatus = undefined;
-        let average = undefined;
+        let average = this.safeNumber (order, 'fill_price');
         if (put) {
             remaining = amount;
             filled = '0';
@@ -3626,7 +3626,6 @@ module.exports = class gate extends Exchange {
             type = isMarketOrder ? 'market' : 'limit';
             side = Precise.stringGt (amount, '0') ? 'buy' : 'sell';
             rawStatus = this.safeString (order, 'finish_as', 'open');
-            average = this.safeNumber (order, 'fill_price');
         } else {
             rawStatus = this.safeString (order, 'status');
         }
@@ -3667,6 +3666,14 @@ module.exports = class gate extends Exchange {
         const numFeeCurrencies = fees.length;
         const multipleFeeCurrencies = numFeeCurrencies > 1;
         const status = this.parseOrderStatus (rawStatus);
+        // handle spot market buy
+        const account = this.safeString (order, 'account'); // using this instead of market type because of the conflicting ids
+        if ((account === 'spot') && (type === 'market') && (side === 'buy')) {
+            price = undefined; // arrives as 0
+            cost = amount;
+            amount = undefined; // arrives as the cost
+            average = this.safeNumber (order, 'avg_deal_price');
+        }
         return this.safeOrder ({
             'id': this.safeString (order, 'id'),
             'clientOrderId': this.safeString (order, 'text'),
