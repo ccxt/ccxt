@@ -1665,8 +1665,7 @@ module.exports = class bitfinex extends Exchange {
         }
         let throwError = false;
         if (code >= 400) {
-            const firstChar = this.safeString (body, 0);
-            if (firstChar === '{') {
+            if (body[0] === '{') {
                 throwError = true;
             }
         } else {
