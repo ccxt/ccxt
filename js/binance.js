@@ -33,6 +33,7 @@ module.exports = class binance extends Exchange {
                 'cancelOrders': undefined,
                 'createDepositAddress': false,
                 'createOrder': true,
+                'createPostOnlyOrder': true,
                 'createReduceOnlyOrder': true,
                 'createStopLimitOrder': true,
                 'createStopMarketOrder': false,
