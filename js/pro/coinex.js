@@ -21,7 +21,8 @@ module.exports = class coinex extends coinexRest {
                 'watchMyTrades': false, // can query but can't subscribe
                 'watchOrders': true,
                 'watchOrderBook': true,
-                'watchOHLCV': false, // only for swap markets
+                'watchOHLCV': true, // only for swap markets
+                'fetchOHLCV': true,
             },
             'urls': {
                 'api': {
@@ -32,6 +33,7 @@ module.exports = class coinex extends coinexRest {
                 },
             },
             'options': {
+                'watchOHLCVWarning': true,
                 'timeframes': {
                     '1m': 60,
                     '3m': 180,
@@ -334,6 +336,23 @@ module.exports = class coinex extends coinexRest {
 
     handleOHLCV (client, message) {
         //
+        //  spot
+        //     {
+        //         error: null,
+        //         result: [
+        //           [
+        //             1673846940,
+        //             '21148.74',
+        //             '21148.38',
+        //             '21148.75',
+        //             '21138.66',
+        //             '1.57060173',
+        //             '33214.9138778914'
+        //           ],
+        //         ]
+        //         id: 1,
+        //     }
+        //  swap
         //     {
         //         method: 'kline.update',
         //         params: [
@@ -350,7 +369,7 @@ module.exports = class coinex extends coinexRest {
         //         id: null
         //     }
         //
-        const candles = this.safeValue (message, 'params', []);
+        const candles = this.safeValue2 (message, 'params', 'result', []);
         const messageHash = 'ohlcv';
         const ohlcvs = this.parseOHLCVs (candles);
         if (Object.keys (this.ohlcvs).length === 0) {
@@ -478,18 +497,26 @@ module.exports = class coinex extends coinexRest {
          * @param {int|undefined} since timestamp in ms of the earliest candle to fetch
          * @param {int|undefined} limit the maximum amount of candles to fetch
          * @param {object} params extra parameters specific to the coinex api endpoint
+         * @param {int|undefined} params.end the end time for spot markets, this.seconds () is set as default
          * @returns {[[int]]} A list of candles ordered as timestamp, open, high, low, close, volume
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
         symbol = market['symbol'];
-        const messageHash = 'ohlcv';
         let type = undefined;
         [ type, params ] = this.handleMarketTypeAndParams ('watchOHLCV', market, params);
         if (type !== 'swap') {
-            throw new NotSupported (this.id + ' watchOHLCV() is only supported for swap markets');
+            throw new NotSupported (this.id + ' watchOHLCV() is only supported for swap markets. Try using fetchOHLCV () instead');
         }
         const url = this.urls['api']['ws'][type];
+        const messageHash = 'ohlcv';
+        const watchOHLCVWarning = this.safeValue (this.options, 'watchOHLCVWarning', true);
+        const client = this.safeValue (this.clients, url, {});
+        const existingSubscription = this.safeValue (client.subscriptions, messageHash);
+        // due to nature of coinex response can only watch one symbol at a time
+        if (watchOHLCVWarning && existingSubscription !== undefined && (existingSubscription['symbol'] !== symbol || existingSubscription['timeframe'] !== timeframe)) {
+            throw new ExchangeError (this.id + ' watchOHLCV() can only watch one symbol and timeframe at a time. To supress this warning set watchOHLCVWarning to false in options');
+        }
         const timeframes = this.safeValue (this.options, 'timeframes', {});
         const subscribe = {
             'method': 'kline.subscribe',
@@ -499,8 +526,60 @@ module.exports = class coinex extends coinexRest {
                 this.safeInteger (timeframes, timeframe, timeframe),
             ],
         };
+        const subscription = {
+            'symbol': symbol,
+            'timeframe': timeframe,
+        };
         const request = this.deepExtend (subscribe, params);
-        const ohlcvs = await this.watch (url, messageHash, request, messageHash);
+        const ohlcvs = await this.watch (url, messageHash, request, messageHash, subscription);
+        if (this.newUpdates) {
+            limit = ohlcvs.getLimit (symbol, limit);
+        }
+        return this.filterBySinceLimit (ohlcvs, since, limit, 0, true);
+    }
+
+    async fetchOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
+        /**
+         * @method
+         * @name coinex#fetchOHLCV
+         * @description query historical candlestick data containing the open, high, low, and close price, and the volume of a market
+         * @param {string} symbol unified symbol of the market to query OHLCV data for
+         * @param {string} timeframe the length of time each candle represents
+         * @param {int|undefined} since timestamp in ms of the earliest candle to fetch
+         * @param {int|undefined} limit the maximum amount of candles to fetch
+         * @param {object} params extra parameters specific to the coinex api endpoint
+         * @param {int|undefined} params.end the end time for spot markets, this.seconds () is set as default
+         * @returns {[[int]]} A list of candles ordered as timestamp, open, high, low, close, volume
+         */
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const [ type, query ] = this.handleMarketTypeAndParams ('fetchOHLCV', market, params);
+        const url = this.urls['api']['ws'][type];
+        symbol = market['symbol'];
+        const messageHash = 'ohlcv';
+        const timeframes = this.safeValue (this.options, 'timeframes', {});
+        timeframe = this.safeInteger (timeframes, timeframe, timeframe);
+        if (since === undefined) {
+            since = 1640995200;  // January 1, 2022
+        }
+        const subscribe = {
+            'method': 'kline.query',
+            'params': [
+                market['id'],
+                parseInt (since / 1000),
+                this.safeInteger (params, 'end', this.seconds ()),
+                timeframe,
+            ],
+            'id': id,
+        };
+        const id = this.requestId ();
+        const subscription = {
+            'id': id,
+            'future': messageHash,
+        };
+        const subscriptionHash = id;
+        const request = this.deepExtend (subscribe, query);
+        const ohlcvs = await this.watch (url, messageHash, request, subscriptionHash, subscription);
         if (this.newUpdates) {
             limit = ohlcvs.getLimit (symbol, limit);
         }
@@ -942,6 +1021,9 @@ module.exports = class coinex extends coinexRest {
         const subscription = this.safeValue (client.subscriptions, id);
         if (subscription !== undefined) {
             const futureIndex = this.safeString (subscription, 'future');
+            if (futureIndex === 'ohlcv') {
+                return this.handleOHLCV (client, message);
+            }
             const future = this.safeValue (client.futures, futureIndex);
             if (future !== undefined) {
                 future.resolve (true);
