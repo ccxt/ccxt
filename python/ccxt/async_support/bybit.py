@@ -1544,8 +1544,8 @@ class bybit(Exchange):
         percentage = Precise.string_mul(percentage, '100')
         quoteVolume = self.safe_string_n(ticker, ['turnover_24h', 'turnover24h', 'quoteVolume'])
         baseVolume = self.safe_string_n(ticker, ['volume_24h', 'volume24h', 'volume'])
-        bid = self.safe_string_n(ticker, ['bid_price', 'bid', 'bestBidPrice', 'bidPrice'])
-        ask = self.safe_string_n(ticker, ['ask_price', 'ask', 'bestAskPrice', 'askPrice'])
+        bid = self.safe_string_n(ticker, ['bid_price', 'bid', 'bestBidPrice', 'bidPrice', 'bid1Price'])
+        ask = self.safe_string_n(ticker, ['ask_price', 'ask', 'bestAskPrice', 'askPrice', 'ask1Price'])
         high = self.safe_string_n(ticker, ['high_price_24h', 'high24h', 'highPrice', 'highPrice24h'])
         low = self.safe_string_n(ticker, ['low_price_24h', 'low24h', 'lowPrice', 'lowPrice24h'])
         return self.safe_ticker({
@@ -1555,9 +1555,9 @@ class bybit(Exchange):
             'high': high,
             'low': low,
             'bid': bid,
-            'bidVolume': self.safe_string(ticker, 'bidSize'),
+            'bidVolume': self.safe_string_2(ticker, 'bidSize', 'bid1Size'),
             'ask': ask,
-            'askVolume': self.safe_string(ticker, 'askSize'),
+            'askVolume': self.safe_string_2(ticker, 'askSize', 'ask1Size'),
             'vwap': None,
             'open': open,
             'close': last,
@@ -1834,7 +1834,11 @@ class bybit(Exchange):
         :returns dict: an array of `ticker structures <https://docs.ccxt.com/en/latest/manual.html#ticker-structure>`
         """
         await self.load_markets()
-        type, query = self.handle_market_type_and_params('fetchTickers', None, params)
+        market = None
+        if symbols is not None:
+            symbols = self.market_symbols(symbols)
+            market = self.market(symbols[0])
+        type, query = self.handle_market_type_and_params('fetchTickers', market, params)
         if type == 'spot':
             return await self.fetch_spot_tickers(symbols, query)
         else:
@@ -2250,7 +2254,7 @@ class bybit(Exchange):
                 'currency': feeCurrency,
             }
         return self.safe_trade({
-            'id': self.safe_string(trade, 'id'),
+            'id': self.safe_string(trade, 'tradeId'),
             'info': trade,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
@@ -2384,8 +2388,8 @@ class bybit(Exchange):
         marketId = self.safe_string(trade, 'symbol')
         market = self.safe_market(marketId, market, None, 'contract')
         symbol = market['symbol']
-        amountString = self.safe_string_n(trade, ['orderQty', 'size', 'execQty'])
-        priceString = self.safe_string_n(trade, ['orderPrice', 'price', 'execPrice'])
+        amountString = self.safe_string_n(trade, ['execQty', 'orderQty', 'size'])
+        priceString = self.safe_string_n(trade, ['execPrice', 'orderPrice', 'price'])
         costString = self.safe_string(trade, 'execValue')
         timestamp = self.safe_integer_n(trade, ['time', 'execTime', 'tradeTime'])
         side = self.safe_string_lower(trade, 'side')
@@ -3432,7 +3436,7 @@ class bybit(Exchange):
             # logical xor
             ascending = not isBuy if stopLossPrice else isBuy
             delta = self.number_to_string(market['precision']['price'])
-            request['basePrice'] = Precise.string_sub(preciseTriggerPrice, delta) if ascending else Precise.string_add(preciseTriggerPrice, delta)
+            request['basePrice'] = Precise.string_add(preciseTriggerPrice, delta) if ascending else Precise.string_sub(preciseTriggerPrice, delta)
         clientOrderId = self.safe_string(params, 'clientOrderId')
         if clientOrderId is not None:
             request['orderLinkId'] = clientOrderId
@@ -5900,7 +5904,13 @@ class bybit(Exchange):
         market = self.safe_market(contract, market, None, 'contract')
         size = Precise.string_abs(self.safe_string(position, 'size'))
         side = self.safe_string(position, 'side')
-        side = 'long' if (side == 'Buy') else 'short'
+        if side is not None:
+            if side == 'Buy':
+                side = 'long'
+            elif side == 'Sell':
+                side = 'short'
+            else:
+                side = None
         notional = self.safe_string(position, 'positionValue')
         unrealisedPnl = self.omit_zero(self.safe_string(position, 'unrealisedPnl'))
         initialMarginString = self.safe_string(position, 'positionIM')
@@ -5909,8 +5919,8 @@ class bybit(Exchange):
         if timestamp is None:
             timestamp = self.safe_integer(position, 'updatedAt')
         # default to cross of USDC margined positions
-        autoAddMargin = self.safe_integer(position, 'autoAddMargin', 1)
-        marginMode = 'cross' if autoAddMargin else 'isolated'
+        tradeMode = self.safe_integer(position, 'tradeMode', 0)
+        marginMode = 'isolated' if tradeMode else 'cross'
         collateralString = self.safe_string(position, 'positionBalance')
         entryPrice = self.omit_zero(self.safe_string(position, 'entryPrice'))
         liquidationPrice = self.omit_zero(self.safe_string(position, 'liqPrice'))
@@ -6053,7 +6063,7 @@ class bybit(Exchange):
                 'symbol': market['id'],
                 'leverage': leverage,
             }
-            method = 'privatePostOptionUsdcOpenapiPrivateV1PositionSetLeverage'
+            method = 'privatePostPerpetualUsdcOpenapiPrivateV1PositionLeverageSave'
         return await getattr(self, method)(self.extend(request, params))
 
     async def set_position_mode(self, hedged, symbol=None, params={}):

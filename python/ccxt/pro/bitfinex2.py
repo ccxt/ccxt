@@ -776,39 +776,40 @@ class bitfinex2(Exchange, ccxt.async_support.bitfinex2):
         client.subscriptions[channelId] = message
         return message
 
-    async def authenticate(self, params={}):
+    def authenticate(self, params={}):
         url = self.urls['api']['ws']['private']
         client = self.client(url)
-        future = client.future('authenticated')
-        method = 'auth'
-        authenticated = self.safe_value(client.subscriptions, method)
-        if authenticated is None:
+        messageHash = 'authenticate'
+        future = self.safe_value(client.subscriptions, messageHash)
+        if future is None:
             nonce = self.milliseconds()
             payload = 'AUTH' + str(nonce)
             signature = self.hmac(self.encode(payload), self.encode(self.secret), hashlib.sha384, 'hex')
+            event = 'auth'
             request = {
                 'apiKey': self.apiKey,
                 'authSig': signature,
                 'authNonce': nonce,
                 'authPayload': payload,
-                'event': method,
+                'event': event,
             }
-            self.spawn(self.watch, url, method, request, 1)
-        return await future
+            message = self.extend(request, params)
+            future = self.watch(url, messageHash, message)
+            client.subscriptions[messageHash] = future
+        return future
 
     def handle_authentication_message(self, client, message):
+        messageHash = 'authenticated'
         status = self.safe_string(message, 'status')
         if status == 'OK':
             # we resolve the future here permanently so authentication only happens once
-            future = self.safe_value(client.futures, 'authenticated')
-            future.resolve(True)
+            client.resolve(message, messageHash)
         else:
             error = AuthenticationError(self.json(message))
-            client.reject(error, 'authenticated')
+            client.reject(error, messageHash)
             # allows further authentication attempts
-            method = self.safe_string(message, 'event')
-            if method in client.subscriptions:
-                del client.subscriptions[method]
+            if messageHash in client.subscriptions:
+                del client.subscriptions[messageHash]
 
     async def watch_orders(self, symbol=None, since=None, limit=None, params={}):
         """

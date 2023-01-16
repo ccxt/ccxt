@@ -9,6 +9,7 @@ from ccxt.pro.base.cache import ArrayCache, ArrayCacheBySymbolById
 import hashlib
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
+from ccxt.base.precise import Precise
 
 
 class bitfinex(Exchange, ccxt.async_support.bitfinex):
@@ -207,11 +208,11 @@ class bitfinex(Exchange, ccxt.async_support.bitfinex):
         symbol = self.safe_symbol(marketId)
         channel = 'ticker'
         messageHash = channel + ':' + marketId
-        last = self.safe_float(message, 7)
-        change = self.safe_float(message, 5)
+        last = self.safe_string(message, 7)
+        change = self.safe_string(message, 5)
         open = None
         if (last is not None) and (change is not None):
-            open = last - change
+            open = Precise.string_sub(last, change)
         result = {
             'symbol': symbol,
             'timestamp': timestamp,
@@ -223,11 +224,11 @@ class bitfinex(Exchange, ccxt.async_support.bitfinex):
             'ask': self.safe_float(message, 3),
             'askVolume': None,
             'vwap': None,
-            'open': open,
-            'close': last,
-            'last': last,
+            'open': self.parse_number(open),
+            'close': self.parse_number(last),
+            'last': self.parse_number(last),
             'previousClose': None,
-            'change': change,
+            'change': self.parse_number(change),
             'percentage': self.safe_float(message, 6),
             'average': None,
             'baseVolume': self.safe_float(message, 8),
@@ -524,12 +525,12 @@ class bitfinex(Exchange, ccxt.async_support.bitfinex):
         id = self.safe_string(order, 0)
         marketId = self.safe_string(order, 1)
         symbol = self.safe_symbol(marketId)
-        amount = self.safe_float(order, 2)
-        remaining = self.safe_float(order, 3)
+        amount = self.safe_string(order, 2)
+        remaining = self.safe_string(order, 3)
         side = 'buy'
-        if amount < 0:
-            amount = abs(amount)
-            remaining = abs(remaining)
+        if Precise.string_lt(amount, '0'):
+            amount = Precise.string_abs(amount)
+            remaining = Precise.string_abs(remaining)
             side = 'sell'
         type = self.safe_string(order, 4)
         if type.find('LIMIT') > -1:
@@ -537,10 +538,10 @@ class bitfinex(Exchange, ccxt.async_support.bitfinex):
         elif type.find('MARKET') > -1:
             type = 'market'
         status = self.parse_ws_order_status(self.safe_string(order, 5))
-        price = self.safe_float(order, 6)
+        price = self.safe_string(order, 6)
         rawDatetime = self.safe_string(order, 8)
         timestamp = self.parse8601(rawDatetime)
-        parsed = {
+        parsed = self.safe_order({
             'info': order,
             'id': id,
             'clientOrderId': None,
@@ -556,12 +557,12 @@ class bitfinex(Exchange, ccxt.async_support.bitfinex):
             'average': None,
             'amount': amount,
             'remaining': remaining,
-            'filled': amount - remaining,
+            'filled': None,
             'status': status,
             'fee': None,
             'cost': None,
             'trades': None,
-        }
+        })
         if self.orders is None:
             limit = self.safe_integer(self.options, 'ordersLimit', 1000)
             self.orders = ArrayCacheBySymbolById(limit)

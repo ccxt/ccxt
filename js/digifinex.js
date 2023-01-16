@@ -42,6 +42,8 @@ module.exports = class digifinex extends Exchange {
                 'fetchCurrencies': true,
                 'fetchDepositAddress': true,
                 'fetchDeposits': true,
+                'fetchDepositWithdrawFee': 'emulated',
+                'fetchDepositWithdrawFees': true,
                 'fetchFundingHistory': false,
                 'fetchFundingRate': true,
                 'fetchFundingRateHistory': true,
@@ -3727,6 +3729,122 @@ module.exports = class digifinex extends Exchange {
             }
         }
         return [ marginMode, params ];
+    }
+
+    async fetchDepositWithdrawFees (codes = undefined, params = {}) {
+        /**
+         * @method
+         * @name digifinex#fetchDepositWithdrawFees
+         * @description fetch deposit and withdraw fees
+         * @see https://docs.digifinex.com/en-ww/spot/v3/rest.html#get-currency-deposit-and-withdrawal-information
+         * @param {[string]|undefined} codes not used by fetchDepositWithdrawFees ()
+         * @param {object} params extra parameters specific to the digifinex api endpoint
+         * @returns {object} a list of [fee structures]{@link https://docs.ccxt.com/en/latest/manual.html#fee-structure}
+         */
+        await this.loadMarkets ();
+        const response = await this.publicSpotGetCurrencies (params);
+        //
+        //   {
+        //       "data": [
+        //           {
+        //               "deposit_status": 0,
+        //               "min_withdraw_fee": 5,
+        //               "withdraw_fee_currency": "USDT",
+        //               "chain": "OMNI",
+        //               "withdraw_fee_rate": 0,
+        //               "min_withdraw_amount": 10,
+        //               "currency": "USDT",
+        //               "withdraw_status": 0,
+        //               "min_deposit_amount": 10
+        //           },
+        //           {
+        //               "deposit_status": 1,
+        //               "min_withdraw_fee": 5,
+        //               "withdraw_fee_currency": "USDT",
+        //               "chain": "ERC20",
+        //               "withdraw_fee_rate": 0,
+        //               "min_withdraw_amount": 10,
+        //               "currency": "USDT",
+        //               "withdraw_status": 1,
+        //               "min_deposit_amount": 10
+        //           },
+        //       ],
+        //       "code": 200,
+        //   }
+        //
+        const data = this.safeValue (response, 'data');
+        return this.parseDepositWithdrawFees (data, codes);
+    }
+
+    parseDepositWithdrawFees (response, codes = undefined, currencyIdKey = undefined) {
+        //
+        //     [
+        //         {
+        //             "deposit_status": 0,
+        //             "min_withdraw_fee": 5,
+        //             "withdraw_fee_currency": "USDT",
+        //             "chain": "OMNI",
+        //             "withdraw_fee_rate": 0,
+        //             "min_withdraw_amount": 10,
+        //             "currency": "USDT",
+        //             "withdraw_status": 0,
+        //             "min_deposit_amount": 10
+        //         },
+        //         {
+        //             "deposit_status": 1,
+        //             "min_withdraw_fee": 5,
+        //             "withdraw_fee_currency": "USDT",
+        //             "chain": "ERC20",
+        //             "withdraw_fee_rate": 0,
+        //             "min_withdraw_amount": 10,
+        //             "currency": "USDT",
+        //             "withdraw_status": 1,
+        //             "min_deposit_amount": 10
+        //         },
+        //     ]
+        //
+        const depositWithdrawFees = {};
+        codes = this.marketCodes (codes);
+        for (let i = 0; i < response.length; i++) {
+            const entry = response[i];
+            const currencyId = this.safeString (entry, 'currency');
+            const code = this.safeCurrencyCode (currencyId);
+            if ((codes === undefined) || (this.inArray (code, codes))) {
+                const depositWithdrawFee = this.safeValue (depositWithdrawFees, code);
+                if (depositWithdrawFee === undefined) {
+                    depositWithdrawFees[code] = this.depositWithdrawFee ({});
+                    depositWithdrawFees[code]['info'] = [];
+                }
+                depositWithdrawFees[code]['info'].push (entry);
+                const networkId = this.safeString (entry, 'chain');
+                const withdrawFee = this.safeValue (entry, 'min_withdraw_fee');
+                const withdrawResult = {
+                    'fee': withdrawFee,
+                    'percentage': (withdrawFee !== undefined) ? false : undefined,
+                };
+                const depositResult = {
+                    'fee': undefined,
+                    'percentage': undefined,
+                };
+                if (networkId !== undefined) {
+                    const networkCode = this.networkIdToCode (networkId);
+                    depositWithdrawFees[code]['networks'][networkCode] = {
+                        'withdraw': withdrawResult,
+                        'deposit': depositResult,
+                    };
+                } else {
+                    depositWithdrawFees[code]['withdraw'] = withdrawResult;
+                    depositWithdrawFees[code]['deposit'] = depositResult;
+                }
+            }
+        }
+        const depositWithdrawCodes = Object.keys (depositWithdrawFees);
+        for (let i = 0; i < depositWithdrawCodes.length; i++) {
+            const code = depositWithdrawCodes[i];
+            const currency = this.currency (code);
+            depositWithdrawFees[code] = this.assignDefaultDepositWithdrawFees (depositWithdrawFees[code], currency);
+        }
+        return depositWithdrawFees;
     }
 
     sign (path, api = [], method = 'GET', params = {}, headers = undefined, body = undefined) {

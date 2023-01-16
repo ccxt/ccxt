@@ -4,7 +4,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '2.5.30'
+__version__ = '2.6.25'
 
 # -----------------------------------------------------------------------------
 
@@ -106,6 +106,7 @@ class Exchange(object):
     timeout = 10000   # milliseconds = seconds * 1000
     asyncio_loop = None
     aiohttp_proxy = None
+    trust_env = False
     aiohttp_trust_env = False
     requests_trust_env = False
     session = None  # Session () by default
@@ -370,6 +371,8 @@ class Exchange(object):
     synchronous = True
 
     def __init__(self, config={}):
+        self.aiohttp_trust_env = self.aiohttp_trust_env or self.trust_env
+        self.requests_trust_env = self.requests_trust_env or self.trust_env
 
         self.precision = dict() if self.precision is None else self.precision
         self.limits = dict() if self.limits is None else self.limits
@@ -2931,8 +2934,8 @@ class Exchange(object):
         if marketId is not None:
             if (self.markets_by_id is not None) and (marketId in self.markets_by_id):
                 markets = self.markets_by_id[marketId]
-                length = len(markets)
-                if length == 1:
+                numMarkets = len(markets)
+                if numMarkets == 1:
                     return markets[0]
                 else:
                     if marketType is None:
@@ -3044,7 +3047,7 @@ class Exchange(object):
         # This method can be used to obtain method specific properties, i.e: self.handleOptionAndParams(params, 'fetchPosition', 'marginMode', 'isolated')
         defaultOptionName = 'default' + self.capitalize(optionName)  # we also need to check the 'defaultXyzWhatever'
         # check if params contain the key
-        value = self.safe_string_2(params, optionName, defaultOptionName)
+        value = self.safe_value_2(params, optionName, defaultOptionName)
         if value is not None:
             params = self.omit(params, [optionName, defaultOptionName])
         else:
@@ -3052,13 +3055,18 @@ class Exchange(object):
             exchangeWideMethodOptions = self.safe_value(self.options, methodName)
             if exchangeWideMethodOptions is not None:
                 # check if the option is defined in self method's props
-                value = self.safe_string_2(exchangeWideMethodOptions, optionName, defaultOptionName)
+                value = self.safe_value_2(exchangeWideMethodOptions, optionName, defaultOptionName)
             if value is None:
                 # if it's still None, check if global exchange-wide option exists
-                value = self.safe_string_2(self.options, optionName, defaultOptionName)
+                value = self.safe_value_2(self.options, optionName, defaultOptionName)
             # if it's still None, use the default value
             value = value if (value is not None) else defaultValue
         return [value, params]
+
+    def handle_option(self, methodName, optionName, defaultValue=None):
+        # eslint-disable-next-line no-unused-vars
+        result, empty = self.handleOptionAndParams({}, methodName, optionName, defaultValue)
+        return result
 
     def handle_market_type_and_params(self, methodName, market=None, params={}):
         defaultType = self.safe_string_2(self.options, 'defaultType', 'type', 'spot')

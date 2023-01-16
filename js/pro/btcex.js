@@ -28,6 +28,9 @@ module.exports = class btcex extends btcexRest {
                 },
             },
             'options': {
+                'watchOrderBook': {
+                    'snapshotDelay': 0,
+                },
             },
             'streaming': {
                 'ping': this.ping,
@@ -593,45 +596,47 @@ module.exports = class btcex extends btcexRest {
         const storedOrderBook = this.safeValue (this.orderbooks, symbol);
         const nonce = this.safeInteger (storedOrderBook, 'nonce');
         const deltaNonce = this.safeInteger (data, 'change_id');
+        const messageHash = 'orderbook:' + symbol;
         if (nonce === undefined) {
+            const cacheLength = storedOrderBook.cache.length;
+            const snapshotDelay = this.handleOption ('watchOrderBook', 'snapshotDelay', 0);
+            if (cacheLength === snapshotDelay) {
+                const limit = 0;
+                this.spawn (this.loadOrderBook, client, messageHash, symbol, limit);
+            }
             storedOrderBook.cache.push (data);
             return;
         } else if (deltaNonce <= nonce) {
             return;
         }
-        const messageHash = 'orderbook:' + symbol;
-        const timestamp = this.safeInteger (data, 'timestamp');
         this.handleDelta (storedOrderBook, data);
-        storedOrderBook['timestamp'] = timestamp;
-        storedOrderBook['datetime'] = this.iso8601 (timestamp);
-        storedOrderBook['nonce'] = deltaNonce;
         client.resolve (storedOrderBook, messageHash);
     }
 
     getCacheIndex (orderBook, cache) {
+        const firstElement = cache[0];
+        let lastChangeId = this.safeInteger (firstElement, 'change_id');
         const nonce = this.safeInteger (orderBook, 'nonce');
-        let lastChangeId = undefined;
+        if (nonce < lastChangeId - 1) {
+            return -1;
+        }
         for (let i = 0; i < cache.length; i++) {
             const delta = cache[i];
             lastChangeId = this.safeInteger (delta, 'change_id');
-            if (lastChangeId === nonce + 1) {
+            if (nonce === lastChangeId - 1) {
                 // nonce is inside the cache
                 // [ d, d, n, d ]
                 return i;
             }
         }
-        if (lastChangeId <= nonce) {
-            // nonce is in front of the cache
-            // [ d, d, d, ---, n ]
-            return cache.length;
-        } else {
-            // nonce is behind the cache
-            // [ n, ---, d, d, d ]
-            return -1;
-        }
+        return cache.length;
     }
 
     handleDelta (orderbook, delta) {
+        const timestamp = this.safeInteger (delta, 'timestamp');
+        orderbook['timestamp'] = timestamp;
+        orderbook['datetime'] = this.iso8601 (timestamp);
+        orderbook['nonce'] = this.safeInteger (delta, 'change_id');
         const bids = this.safeValue (delta, 'bids', []);
         const asks = this.safeValue (delta, 'asks', []);
         const storedBids = orderbook['bids'];
@@ -699,12 +704,10 @@ module.exports = class btcex extends btcexRest {
         //     }
         //
         const result = this.safeValue (message, 'result', {});
-        const expiresIn = this.safeNumber (result, 'expires_in', 0);
-        const expiresAt = (this.seconds () + expiresIn) * 1000;
-        this.options['expiresAt'] = expiresAt;
-        const future = client.future ('authenticated');
-        future.resolve (message);
-        return message;
+        const expiresIn = this.safeInteger (result, 'expires_in', 0);
+        this.options['expiresAt'] = this.sum (this.seconds (), expiresIn) * 1000;
+        const accessToken = this.safeString (result, 'access_token');
+        client.resolve (accessToken, 'authenticated');
     }
 
     handleSubscription (client, message) {
@@ -717,10 +720,7 @@ module.exports = class btcex extends btcexRest {
             if (channel === 'book') {
                 const symbol = this.safeSymbol (marketId, undefined, '-');
                 this.orderbooks[symbol] = this.orderBook ({});
-                const messageHash = 'orderbook:' + symbol;
                 // get full depth book
-                const limit = 0;
-                this.spawn (this.loadOrderBook, client, messageHash, symbol, limit);
             }
         }
     }
@@ -768,15 +768,14 @@ module.exports = class btcex extends btcexRest {
         return message;
     }
 
-    async authenticate (params = {}) {
+    authenticate (params = {}) {
         const url = this.urls['api']['ws'];
         const client = this.client (url);
-        const future = client.future ('authenticated');
-        const method = 'authenticated';
-        const authenticated = this.safeValue (client.subscriptions, method);
+        const messageHash = 'authenticated';
         const expiresAt = this.safeNumber (this.options, 'expiresAt');
         const time = this.milliseconds ();
-        if (authenticated === undefined || expiresAt <= time) {
+        let future = this.safeValue (client.subscriptions, messageHash);
+        if ((future === undefined) || (expiresAt <= time)) {
             const request = {
                 'jsonrpc': '2.0',
                 'id': this.requestId (),
@@ -787,9 +786,11 @@ module.exports = class btcex extends btcexRest {
                     'client_secret': this.secret,
                 },
             };
-            this.spawn (this.watch, url, method, request, method);
+            const message = this.extend (request, params);
+            future = this.watch (url, messageHash, message);
+            client.subscriptions[messageHash] = future;
         }
-        return await future;
+        return future;
     }
 
     ping (client) {
