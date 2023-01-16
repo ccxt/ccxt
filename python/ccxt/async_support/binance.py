@@ -57,6 +57,7 @@ class binance(Exchange):
                 'cancelOrders': None,
                 'createDepositAddress': False,
                 'createOrder': True,
+                'createPostOnlyOrder': True,
                 'createReduceOnlyOrder': True,
                 'createStopLimitOrder': True,
                 'createStopMarketOrder': False,
@@ -248,6 +249,7 @@ class binance(Exchange):
                         'margin/isolatedMarginTier': 0.1,
                         'margin/rateLimit/order': 2,
                         'margin/dribblet': 0.1,
+                        'margin/crossMarginCollateralRatio': 10,
                         'loan/income': 40,  # Weight(UID): 6000 => cost = 0.006667 * 6000 = 40
                         'loan/ongoing/orders': 40,  # Weight(IP): 400 => cost = 0.1 * 400 = 40
                         'loan/ltv/adjustment/history': 40,  # Weight(IP): 400 => cost = 0.1 * 400 = 40
@@ -302,6 +304,8 @@ class binance(Exchange):
                         'managed-subaccount/accountSnapshot': 240,
                         'managed-subaccount/queryTransLogForInvestor': 0.1,
                         'managed-subaccount/queryTransLogForTradeParent': 0.1,
+                        'managed-subaccount/fetch-future-asset': 0.1,
+                        'managed-subaccount/marginAsset': 0.1,
                         # lending endpoints
                         'lending/daily/product/list': 0.1,
                         'lending/daily/userLeftQuota': 0.1,
@@ -737,6 +741,7 @@ class binance(Exchange):
                         'marginAccount': 3,
                         'mmp': 1,
                         'countdownCancelAll': 1,
+                        'order': 1,
                     },
                     'post': {
                         'transfer': 1,
@@ -2431,9 +2436,40 @@ class binance(Exchange):
         #         volume: '81990451',
         #         weightedAvgPrice: '38215.08713747'
         #     }
+        # spot bidsAsks
+        #     {
+        #         "symbol":"ETHBTC",
+        #         "bidPrice":"0.07466800",
+        #         "bidQty":"5.31990000",
+        #         "askPrice":"0.07466900",
+        #         "askQty":"10.93540000"
+        #     }
+        # usdm bidsAsks
+        #     {
+        #         "symbol":"BTCUSDT",
+        #         "bidPrice":"21321.90",
+        #         "bidQty":"33.592",
+        #         "askPrice":"21322.00",
+        #         "askQty":"1.427",
+        #         "time":"1673899207538"
+        #     }
+        # coinm bidsAsks
+        #     {
+        #         "symbol":"BTCUSD_PERP",
+        #         "pair":"BTCUSD",
+        #         "bidPrice":"21301.2",
+        #         "bidQty":"188",
+        #         "askPrice":"21301.3",
+        #         "askQty":"10302",
+        #         "time":"1673899278514"
+        #     }
         #
         timestamp = self.safe_integer(ticker, 'closeTime')
-        marketType = 'spot' if ('bidQty' in ticker) else 'contract'
+        marketType = None
+        if ('time' in ticker):
+            marketType = 'contract'
+        if marketType is None:
+            marketType = 'spot' if ('bidQty' in ticker) else 'contract'
         marketId = self.safe_string(ticker, 'symbol')
         symbol = self.safe_symbol(marketId, market, None, marketType)
         last = self.safe_string(ticker, 'lastPrice')
@@ -2522,11 +2558,15 @@ class binance(Exchange):
         :returns dict: an array of `ticker structures <https://docs.ccxt.com/en/latest/manual.html#ticker-structure>`
         """
         await self.load_markets()
-        defaultType = self.safe_string_2(self.options, 'fetchBidsAsks', 'defaultType', 'spot')
-        type = self.safe_string(params, 'type', defaultType)
+        symbols = self.market_symbols(symbols)
+        market = None
+        if symbols is not None:
+            first = self.safe_string(symbols, 0)
+            market = self.market(first)
+        type = None
         subType = None
-        subType, params = self.handle_sub_type_and_params('fetchBidsAsks', None, params)
-        query = self.omit(params, 'type')
+        subType, params = self.handle_sub_type_and_params('fetchBidsAsks', market, params)
+        type, params = self.handle_market_type_and_params('fetchBidsAsks', market, params)
         method = None
         if self.is_linear(type, subType):
             method = 'fapiPublicGetTickerBookTicker'
@@ -2534,7 +2574,7 @@ class binance(Exchange):
             method = 'dapiPublicGetTickerBookTicker'
         else:
             method = 'publicGetTickerBookTicker'
-        response = await getattr(self, method)(query)
+        response = await getattr(self, method)(params)
         return self.parse_tickers(response, symbols)
 
     async def fetch_tickers(self, symbols=None, params={}):
