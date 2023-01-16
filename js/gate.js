@@ -3611,14 +3611,14 @@ module.exports = class gate extends Exchange {
         amount = this.safeString2 (order, 'amount', 'size', amount);
         side = this.safeString (order, 'side', side);
         price = this.safeString (order, 'price', price);
-        const remainingString = this.safeString (order, 'left');
-        const filledString = Precise.stringSub (amount, remainingString);
+        let remainingString = this.safeString (order, 'left');
+        let filledString = Precise.stringSub (amount, remainingString);
         let cost = this.safeString (order, 'filled_total');
         let rawStatus = undefined;
         let average = this.safeNumber (order, 'fill_price');
         if (put) {
-            remaining = amount;
-            filled = '0';
+            remainingString = amount;
+            filledString = '0';
             cost = '0';
         }
         if (contract) {
