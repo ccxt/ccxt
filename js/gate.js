@@ -3611,8 +3611,8 @@ module.exports = class gate extends Exchange {
         amount = this.safeString2 (order, 'amount', 'size', amount);
         side = this.safeString (order, 'side', side);
         price = this.safeString (order, 'price', price);
-        let remaining = this.safeString (order, 'left');
-        let filled = Precise.stringSub (amount, remaining);
+        const remainingString = this.safeString (order, 'left');
+        const filledString = Precise.stringSub (amount, remainingString);
         let cost = this.safeString (order, 'filled_total');
         let rawStatus = undefined;
         let average = this.safeNumber (order, 'fill_price');
@@ -3666,9 +3666,13 @@ module.exports = class gate extends Exchange {
         const numFeeCurrencies = fees.length;
         const multipleFeeCurrencies = numFeeCurrencies > 1;
         const status = this.parseOrderStatus (rawStatus);
+        let filled = this.parseNumber (Precise.stringAbs (filledString));
+        let remaining = this.parseNumber (Precise.stringAbs (remainingString));
         // handle spot market buy
         const account = this.safeString (order, 'account'); // using this instead of market type because of the conflicting ids
         if ((account === 'spot') && (type === 'market') && (side === 'buy')) {
+            filled = undefined;
+            remaining = undefined;
             price = undefined; // arrives as 0
             cost = amount;
             amount = undefined; // arrives as the cost
