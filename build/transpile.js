@@ -2086,10 +2086,10 @@ function parallelizeTranspiling (exchanges, processes = undefined) {
     }
 }
 
-function isMainEntry() {
+function isMainEntry(metaUrl) {
     // https://exploringjs.com/nodejs-shell-scripting/ch_nodejs-path.html#detecting-if-module-is-main
     if (import.meta.url.startsWith('file:')) {
-        const modulePath = url.fileURLToPath(import.meta.url);
+        const modulePath = url.fileURLToPath(metaUrl);
         if (process.argv[1] === modulePath) {
             return true;
         }
@@ -2102,7 +2102,7 @@ function isMainEntry() {
 }
 
 // ============================================================================
-if (isMainEntry()) {
+if (isMainEntry(import.meta.url)) {
     const transpiler = new Transpiler ()
     const test = process.argv.includes ('--test') || process.argv.includes ('--tests')
     const errors = process.argv.includes ('--error') || process.argv.includes ('--errors')

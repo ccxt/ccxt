@@ -15,7 +15,6 @@ import {
 } from './fsLocal.js';
 import Exchange from '../js/src/base/Exchange.js';
 import {  Transpiler, parallelizeTranspiling, isMainEntry } from './transpile.js';
-import * as url from 'node:url';
 
 const exchanges = JSON.parse (fs.readFileSync("./exchanges.json", "utf8"));
 const wsExchangeIds = exchanges.ws;
@@ -306,7 +305,7 @@ class CCXTProTranspiler extends Transpiler {
 
 // ============================================================================
 // main entry point
-if (isMainEntry()) { // called directly like `node module`
+if (isMainEntry(import.meta.url)) { // called directly like `node module`
     const transpiler = new CCXTProTranspiler ()
     const force = process.argv.includes ('--force')
     const multiprocess = process.argv.includes ('--multiprocess') || process.argv.includes ('--multi')
