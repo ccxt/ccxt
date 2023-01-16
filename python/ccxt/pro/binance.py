@@ -1170,6 +1170,12 @@ class binance(Exchange, ccxt.async_support.binance):
         await self.authenticate(params)
         type = None
         type, params = self.handle_market_type_and_params('watchOrders', market, params)
+        subType = None
+        subType, params = self.handle_sub_type_and_params('watchOrders', market, params)
+        if self.isLinear(type, subType):
+            type = 'future'
+        elif self.isInverse(type, subType):
+            type = 'delivery'
         url = self.urls['api']['ws'][type] + '/' + self.options[type]['listenKey']
         client = self.client(url)
         self.set_balance_cache(client, type)
