@@ -1671,8 +1671,7 @@ class bitfinex extends Exchange {
         }
         $throwError = false;
         if ($code >= 400) {
-            $firstChar = $this->safe_string($body, 0);
-            if ($firstChar === '{') {
+            if ($body[0] === '{') {
                 $throwError = true;
             }
         } else {
