@@ -652,27 +652,26 @@ class ascendex(Exchange, ccxt.async_support.ascendex):
                 messageString = self.safe_value(message, 'message')
                 if messageString is not None:
                     self.throw_broadly_matched_exception(self.exceptions['broad'], messageString, feedback)
+            return False
         except Exception as e:
             if isinstance(e, AuthenticationError):
-                client.reject(e, 'authenticated')
-                method = 'auth'
-                if method in client.subscriptions:
-                    del client.subscriptions[method]
-                return False
+                messageHash = 'authenticated'
+                client.reject(e, messageHash)
+                if messageHash in client.subscriptions:
+                    del client.subscriptions[messageHash]
             else:
                 client.reject(e)
-        return message
+            return True
 
     def handle_authenticate(self, client, message):
         #
         #     {m: 'auth', id: '1647605234', code: 0}
         #
-        future = client.futures['authenticated']
-        future.resolve(1)
-        return message
+        messageHash = 'authenticated'
+        client.resolve(message, messageHash)
 
     def handle_message(self, client, message):
-        if not self.handle_error_message(client, message):
+        if self.handle_error_message(client, message):
             return
         #
         #     {m: 'ping', hp: 3}
@@ -872,14 +871,12 @@ class ascendex(Exchange, ccxt.async_support.ascendex):
     def handle_ping(self, client, message):
         self.spawn(self.pong, client, message)
 
-    async def authenticate(self, url, params={}):
+    def authenticate(self, url, params={}):
         self.check_required_credentials()
         messageHash = 'authenticated'
         client = self.client(url)
         future = self.safe_value(client.futures, messageHash)
         if future is None:
-            future = client.future('authenticated')
-            client.future(messageHash)
             timestamp = str(self.milliseconds())
             urlParts = url.split('/')
             partsLength = len(urlParts)
@@ -895,5 +892,6 @@ class ascendex(Exchange, ccxt.async_support.ascendex):
                 'key': self.apiKey,
                 'sig': signature,
             }
-            self.spawn(self.watch, url, messageHash, self.extend(request, params))
-        return await future
+            future = self.watch(url, messageHash, self.extend(request, params))
+            client.subscriptions[messageHash] = future
+        return future

@@ -1066,22 +1066,23 @@ class bitfinex extends Exchange {
             Async\await($this->load_markets());
             $market = $this->market($symbol);
             $postOnly = $this->safe_value($params, 'postOnly', false);
+            $type = strtolower($type);
             $params = $this->omit($params, array( 'postOnly' ));
             if ($market['spot']) {
                 // although they claim that $type needs to be 'exchange limit' or 'exchange market'
                 // in fact that's not the case for swap markets
-                $type = $this->safe_string($this->options['orderTypes'], $type, $type);
+                $type = $this->safe_string_lower($this->options['orderTypes'], $type, $type);
             }
             $request = array(
                 'symbol' => $market['id'],
                 'side' => $side,
                 'amount' => $this->amount_to_precision($symbol, $amount),
-                'type' => strtolower($type),
+                'type' => $type,
                 'ocoorder' => false,
                 'buy_price_oco' => 0,
                 'sell_price_oco' => 0,
             );
-            if ($type === 'market') {
+            if (mb_strpos($type, 'market') > -1) {
                 $request['price'] = (string) $this->nonce();
             } else {
                 $request['price'] = $this->price_to_precision($symbol, $price);
@@ -1670,8 +1671,7 @@ class bitfinex extends Exchange {
         }
         $throwError = false;
         if ($code >= 400) {
-            $firstChar = $this->safe_string($body, 0);
-            if ($firstChar === '{') {
+            if ($body[0] === '{') {
                 $throwError = true;
             }
         } else {

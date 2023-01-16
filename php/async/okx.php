@@ -234,6 +234,7 @@ class okx extends Exchange {
                         'asset/transfer-state' => 10,
                         'asset/deposit-history' => 5 / 3,
                         'asset/withdrawal-history' => 5 / 3,
+                        'asset/deposit-withdraw-status' => 20,
                         'asset/currencies' => 5 / 3,
                         'asset/bills' => 5 / 3,
                         'asset/piggy-balance' => 5 / 3,
@@ -4353,15 +4354,26 @@ class okx extends Exchange {
         $contracts = null;
         $side = $this->safe_string($position, 'posSide');
         $hedged = $side !== 'net';
-        if ($pos !== null) {
-            $contracts = $this->parse_number($contractsAbs);
+        if ($market['margin']) {
+            // margin $position
             if ($side === 'net') {
-                if (Precise::string_gt($pos, '0')) {
-                    $side = 'long';
-                } elseif (Precise::string_lt($pos, '0')) {
-                    $side = 'short';
-                } else {
-                    $side = null;
+                $posCcy = $this->safe_string($position, 'posCcy');
+                $parsedCurrency = $this->safe_currency_code($posCcy);
+                if ($parsedCurrency !== null) {
+                    $side = ($market['base'] === $parsedCurrency) ? 'long' : 'short';
+                }
+            }
+        } else {
+            if ($pos !== null) {
+                $contracts = $this->parse_number($contractsAbs);
+                if ($side === 'net') {
+                    if (Precise::string_gt($pos, '0')) {
+                        $side = 'long';
+                    } elseif (Precise::string_lt($pos, '0')) {
+                        $side = 'short';
+                    } else {
+                        $side = null;
+                    }
                 }
             }
         }

@@ -511,7 +511,7 @@ class cryptocom(Exchange, ccxt.async_support.cryptocom):
         if method is not None:
             method(client, result)
 
-    async def authenticate(self, params={}):
+    def authenticate(self, params={}):
         self.check_required_credentials()
         url = self.urls['api']['ws']['private']
         client = self.client(url)

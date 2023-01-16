@@ -751,7 +751,8 @@ class binance(Exchange, ccxt.async_support.binance):
             if symbols is None or self.in_array(tickerSymbol, symbols):
                 result[tickerSymbol] = ticker
         resultKeys = list(result.keys())
-        if len(resultKeys) > 0:
+        resultKeysLength = len(resultKeys)
+        if resultKeysLength > 0:
             if self.newUpdates:
                 return result
             return self.filter_by_array(self.tickers, 'symbol', symbols)
@@ -916,6 +917,12 @@ class binance(Exchange, ccxt.async_support.binance):
             type = 'future'
         elif self.isInverse(type, subType):
             type = 'delivery'
+        marginMode = None
+        marginMode, params = self.handle_margin_mode_and_params('authenticate', params)
+        isIsolatedMargin = (marginMode == 'isolated')
+        isCrossMargin = (marginMode == 'cross') or (marginMode is None)
+        symbol = self.safe_string(params, 'symbol')
+        params = self.omit(params, 'symbol')
         options = self.safe_value(self.options, type, {})
         lastAuthenticatedTime = self.safe_integer(options, 'lastAuthenticatedTime', 0)
         listenKeyRefreshRate = self.safe_integer(self.options, 'listenKeyRefreshRate', 1200000)
@@ -926,9 +933,15 @@ class binance(Exchange, ccxt.async_support.binance):
                 method = 'fapiPrivatePostListenKey'
             elif type == 'delivery':
                 method = 'dapiPrivatePostListenKey'
-            elif type == 'margin':
+            elif type == 'margin' and isCrossMargin:
                 method = 'sapiPostUserDataStream'
-            response = await getattr(self, method)()
+            elif isIsolatedMargin:
+                method = 'sapiPostUserDataStreamIsolated'
+                if symbol is None:
+                    raise ArgumentsRequired(self.id + ' authenticate() requires a symbol argument for isolated margin mode')
+                marketId = self.market_id(symbol)
+                params['symbol'] = marketId
+            response = await getattr(self, method)(params)
             self.options[type] = self.extend(options, {
                 'listenKey': self.safe_string(response, 'listenKey'),
                 'lastAuthenticatedTime': time,
@@ -1147,15 +1160,22 @@ class binance(Exchange, ccxt.async_support.binance):
         :returns [dict]: a list of `order structures <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
         """
         await self.load_markets()
-        await self.authenticate(params)
         messageHash = 'orders'
         market = None
         if symbol is not None:
             market = self.market(symbol)
             symbol = market['symbol']
             messageHash += ':' + symbol
+            params['symbol'] = symbol  # needed inside authenticate for isolated margin
+        await self.authenticate(params)
         type = None
         type, params = self.handle_market_type_and_params('watchOrders', market, params)
+        subType = None
+        subType, params = self.handle_sub_type_and_params('watchOrders', market, params)
+        if self.isLinear(type, subType):
+            type = 'future'
+        elif self.isInverse(type, subType):
+            type = 'delivery'
         url = self.urls['api']['ws'][type] + '/' + self.options[type]['listenKey']
         client = self.client(url)
         self.set_balance_cache(client, type)
@@ -1415,7 +1435,6 @@ class binance(Exchange, ccxt.async_support.binance):
         :returns [dict]: a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure
         """
         await self.load_markets()
-        await self.authenticate(params)
         defaultType = self.safe_string_2(self.options, 'watchMyTrades', 'defaultType', 'spot')
         type = self.safe_string(params, 'type', defaultType)
         subType = None
@@ -1424,10 +1443,13 @@ class binance(Exchange, ccxt.async_support.binance):
             type = 'future'
         elif self.isInverse(type, subType):
             type = 'delivery'
-        url = self.urls['api']['ws'][type] + '/' + self.options[type]['listenKey']
         messageHash = 'myTrades'
         if symbol is not None:
+            symbol = self.symbol(symbol)
             messageHash += ':' + symbol
+            params['symbol'] = symbol
+        await self.authenticate(params)
+        url = self.urls['api']['ws'][type] + '/' + self.options[type]['listenKey']
         client = self.client(url)
         self.set_balance_cache(client, type)
         message = None

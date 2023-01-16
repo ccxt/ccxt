@@ -9,6 +9,7 @@ use Exception; // a common import
 use ccxt\ExchangeError;
 use ccxt\NotSupported;
 use ccxt\InvalidNonce;
+use ccxt\Precise;
 use React\Async;
 
 class kraken extends \ccxt\async\kraken {
@@ -968,10 +969,10 @@ class kraken extends \ccxt\async\kraken {
         if ($orderDescription !== null) {
             $parts = explode(' ', $orderDescription);
             $side = $this->safe_string($parts, 0);
-            $amount = $this->safe_float($parts, 1);
+            $amount = $this->safe_string($parts, 1);
             $wsName = $this->safe_string($parts, 2);
             $type = $this->safe_string($parts, 4);
-            $price = $this->safe_float($parts, 5);
+            $price = $this->safe_string($parts, 5);
         }
         $side = $this->safe_string($description, 'type', $side);
         $type = $this->safe_string($description, 'ordertype', $type);
@@ -979,27 +980,23 @@ class kraken extends \ccxt\async\kraken {
         $market = $this->safe_value($this->options['marketsByWsName'], $wsName, $market);
         $symbol = null;
         $timestamp = $this->safe_timestamp($order, 'opentm');
-        $amount = $this->safe_float($order, 'vol', $amount);
-        $filled = $this->safe_float($order, 'vol_exec');
-        $remaining = null;
-        if (($amount !== null) && ($filled !== null)) {
-            $remaining = $amount - $filled;
-        }
+        $amount = $this->safe_string($order, 'vol', $amount);
+        $filled = $this->safe_string($order, 'vol_exec');
         $fee = null;
-        $cost = $this->safe_float($order, 'cost');
-        $price = $this->safe_float($description, 'price', $price);
-        if (($price === null) || ($price === 0.0)) {
-            $price = $this->safe_float($description, 'price2');
+        $cost = $this->safe_string($order, 'cost');
+        $price = $this->safe_string($description, 'price', $price);
+        if (($price === null) || (Precise::string_eq($price, '0.0'))) {
+            $price = $this->safe_string($description, 'price2');
         }
-        if (($price === null) || ($price === 0.0)) {
-            $price = $this->safe_float($order, 'price', $price);
+        if (($price === null) || (Precise::string_eq($price, '0.0'))) {
+            $price = $this->safe_string($order, 'price', $price);
         }
-        $average = $this->safe_float_2($order, 'avg_price', 'price');
+        $average = $this->safe_string_2($order, 'avg_price', 'price');
         if ($market !== null) {
             $symbol = $market['symbol'];
             if (is_array($order) && array_key_exists('fee', $order)) {
                 $flags = $order['oflags'];
-                $feeCost = $this->safe_float($order, 'fee');
+                $feeCost = $this->safe_string($order, 'fee');
                 $fee = array(
                     'cost' => $feeCost,
                     'rate' => null,
@@ -1023,8 +1020,8 @@ class kraken extends \ccxt\async\kraken {
         if ($rawTrades !== null) {
             $trades = $this->parse_trades($rawTrades, $market, null, null, array( 'order' => $id ));
         }
-        $stopPrice = $this->safe_float($order, 'stopprice');
-        return array(
+        $stopPrice = $this->safe_number($order, 'stopprice');
+        return $this->safe_order(array(
             'id' => $id,
             'clientOrderId' => $clientOrderId,
             'info' => $order,
@@ -1044,10 +1041,10 @@ class kraken extends \ccxt\async\kraken {
             'amount' => $amount,
             'filled' => $filled,
             'average' => $average,
-            'remaining' => $remaining,
+            'remaining' => null,
             'fee' => $fee,
             'trades' => $trades,
-        );
+        ));
     }
 
     public function handle_subscription_status($client, $message) {

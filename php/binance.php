@@ -5404,7 +5404,7 @@ class binance extends Exchange {
             $timestamp = $this->safe_integer($entry, 'fundingTime');
             $rates[] = array(
                 'info' => $entry,
-                'symbol' => $this->safe_symbol($this->safe_string($entry, 'symbol'), null, 'swap'),
+                'symbol' => $this->safe_symbol($this->safe_string($entry, 'symbol'), null, null, 'swap'),
                 'fundingRate' => $this->safe_number($entry, 'fundingRate'),
                 'timestamp' => $timestamp,
                 'datetime' => $this->iso8601($timestamp),
