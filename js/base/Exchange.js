@@ -1194,8 +1194,21 @@ module.exports = class Exchange {
             // timeInForce is not undefined here
             postOnly = timeInForce === 'PO';
         }
+        let timestamp = this.safeInteger (order, 'timestamp');
+        let datetime = this.safeString (order, 'datetime');
+        if (timestamp === undefined) {
+            timestamp = this.parse8601 (timestamp);
+        }
+        if (datetime === undefined) {
+            datetime = this.iso8601 (timestamp);
+        }
         return this.extend (order, {
+            'id': this.safeString (order, 'id'),
+            'clientOrderId': this.safeString (order, 'clientOrderId'),
+            'timestamp': datetime,
+            'datetime': timestamp,
             'symbol': symbol,
+            'type': this.safeString (order, 'type'),
             'side': side,
             'lastTradeTimestamp': lastTradeTimeTimestamp,
             'price': this.parseNumber (price),
@@ -1207,6 +1220,10 @@ module.exports = class Exchange {
             'timeInForce': timeInForce,
             'postOnly': postOnly,
             'trades': trades,
+            'reduceOnly': this.safeValue (order, 'reduceOnly'),
+            'triggerPrice': this.parseNumber (this.safeString2 (order, 'triggerPrice', 'stopPrice')),
+            'status': this.safeString (order, 'status'),
+            'fee': this.safeNumber (order, 'fee'),
         });
     }
 
