@@ -4100,15 +4100,23 @@ class okx(Exchange):
         contracts = None
         side = self.safe_string(position, 'posSide')
         hedged = side != 'net'
-        if pos is not None:
-            contracts = self.parse_number(contractsAbs)
+        if market['margin']:
+            # margin position
             if side == 'net':
-                if Precise.string_gt(pos, '0'):
-                    side = 'long'
-                elif Precise.string_lt(pos, '0'):
-                    side = 'short'
-                else:
-                    side = None
+                posCcy = self.safe_string(position, 'posCcy')
+                parsedCurrency = self.safe_currency_code(posCcy)
+                if parsedCurrency is not None:
+                    side = 'long' if (market['base'] == parsedCurrency) else 'short'
+        else:
+            if pos is not None:
+                contracts = self.parse_number(contractsAbs)
+                if side == 'net':
+                    if Precise.string_gt(pos, '0'):
+                        side = 'long'
+                    elif Precise.string_lt(pos, '0'):
+                        side = 'short'
+                    else:
+                        side = None
         contractSize = self.safe_value(market, 'contractSize')
         contractSizeString = self.number_to_string(contractSize)
         markPriceString = self.safe_string(position, 'markPx')

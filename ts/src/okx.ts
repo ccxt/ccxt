@@ -4344,15 +4344,26 @@ export default class okx extends Exchange {
         let contracts = undefined;
         let side = this.safeString (position, 'posSide');
         const hedged = side !== 'net';
-        if (pos !== undefined) {
-            contracts = this.parseNumber (contractsAbs);
+        if (market['margin']) {
+            // margin position
             if (side === 'net') {
-                if (Precise.stringGt (pos, '0')) {
-                    side = 'long';
-                } else if (Precise.stringLt (pos, '0')) {
-                    side = 'short';
-                } else {
-                    side = undefined;
+                const posCcy = this.safeString (position, 'posCcy');
+                const parsedCurrency = this.safeCurrencyCode (posCcy);
+                if (parsedCurrency !== undefined) {
+                    side = (market['base'] === parsedCurrency) ? 'long' : 'short';
+                }
+            }
+        } else {
+            if (pos !== undefined) {
+                contracts = this.parseNumber (contractsAbs);
+                if (side === 'net') {
+                    if (Precise.stringGt (pos, '0')) {
+                        side = 'long';
+                    } else if (Precise.stringLt (pos, '0')) {
+                        side = 'short';
+                    } else {
+                        side = undefined;
+                    }
                 }
             }
         }
