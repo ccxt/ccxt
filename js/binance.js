@@ -2515,7 +2515,10 @@ module.exports = class binance extends Exchange {
         //     }
         //
         const timestamp = this.safeInteger (ticker, 'closeTime');
-        let marketType = ('time' in ticker) ? 'contract' : 'spot';
+        let marketType = undefined;
+        if (('time' in ticker)) {
+            marketType = 'contract';
+        }
         if (marketType === undefined) {
             marketType = ('bidQty' in ticker) ? 'spot' : 'contract';
         }
