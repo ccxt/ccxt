@@ -2080,8 +2080,7 @@ module.exports = class bybit extends Exchange {
         }
     }
 
-    parseFundingRate (ticker, market = undefined, timestamp = undefined) {
-        //
+    parseFundingRate (ticker, market = undefined) {
         //     {
         //         "symbol": "BTCUSDT",
         //         "bidPrice": "19255",
@@ -2106,8 +2105,10 @@ module.exports = class bybit extends Exchange {
         //         "deliveryTime": "0"
         //     }
         //
+        const timestamp = this.safeInteger (ticker, 'timestamp'); // added artificially to avoid changing the signature
+        ticker = this.omit (ticker, 'timestamp');
         const marketId = this.safeString (ticker, 'symbol');
-        const symbol = this.safeSymbol (marketId, market, undefined, 'contract');
+        const symbol = this.safeSymbol (marketId, market, undefined, 'swap');
         const fundingRate = this.safeNumber (ticker, 'fundingRate');
         const fundingTimestamp = this.safeInteger (ticker, 'nextFundingTime');
         const markPrice = this.safeNumber (ticker, 'markPrice');
@@ -2144,6 +2145,9 @@ module.exports = class bybit extends Exchange {
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
+        if (!market['swap']) {
+            throw new BadSymbol (this.id + ' fetchFundingRate() does not support ' + symbol);
+        }
         const request = {
             'symbol': market['id'],
         };
@@ -2153,8 +2157,6 @@ module.exports = class bybit extends Exchange {
             request['category'] = 'linear';
         } else if (market['inverse']) {
             request['category'] = 'inverse';
-        } else {
-            throw new BadSymbol (this.id + ' fetchFundingRate() does not support ' + symbol);
         }
         const response = await this[method] (this.extend (request, params));
         //
@@ -2197,7 +2199,8 @@ module.exports = class bybit extends Exchange {
         const tickers = this.safeValue (result, 'list');
         const ticker = this.safeValue (tickers, 0);
         const timestamp = this.safeInteger (response, 'time');
-        return this.parseFundingRate (ticker, market, timestamp);
+        ticker['timestamp'] = timestamp; // will be removed inside the parser
+        return this.parseFundingRate (ticker, market);
     }
 
     async fetchFundingRates (symbols = undefined, params = {}) {
@@ -2211,15 +2214,22 @@ module.exports = class bybit extends Exchange {
          */
         await this.loadMarkets ();
         symbols = this.marketSymbols (symbols);
+        const firstSymbol = this.safeString (symbols, 0);
+        let type = 'swap';
+        let market = undefined;
+        if (firstSymbol !== undefined) {
+            market = this.market (firstSymbol);
+            type = market['type'];
+        }
         const request = {};
-        const [ subType, query ] = this.handleSubTypeAndParams ('fetchFundingRates', undefined, params, 'linear');
-        if (subType === 'option') {
-            // bybit requires a symbol when query tockers for options markets
-            throw new NotSupported (this.id + ' fetchTickers() is not supported for option markets');
+        let subType = undefined;
+        [ subType, params ] = this.handleSubTypeAndParams ('fetchFundingRates', market, params, 'linear');
+        if (type !== 'swap') {
+            throw new NotSupported (this.id + ' fetchFundingRates() does not support ' + type + ' markets');
         } else {
             request['category'] = subType;
         }
-        const response = await this.publicGetDerivativesV3PublicTickers (this.extend (request, query));
+        const response = await this.publicGetDerivativesV3PublicTickers (this.extend (request, params));
         //
         //     {
         //         "retCode": 0,
@@ -2263,7 +2273,9 @@ module.exports = class bybit extends Exchange {
         }
         const fundingRates = {};
         for (let i = 0; i < tickerList.length; i++) {
-            const ticker = this.parseFundingRate (tickerList[i], undefined, timestamp);
+            const rawTicker = tickerList[i];
+            rawTicker['timestamp'] = timestamp; // will be removed inside the parser
+            const ticker = this.parseFundingRate (tickerList[i], undefined);
             const symbol = ticker['symbol'];
             fundingRates[symbol] = ticker;
         }
