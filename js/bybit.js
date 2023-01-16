@@ -2145,62 +2145,9 @@ module.exports = class bybit extends Exchange {
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
-        if (!market['swap']) {
-            throw new BadSymbol (this.id + ' fetchFundingRate() does not support ' + symbol);
-        }
-        const request = {
-            'symbol': market['id'],
-        };
-        let method = undefined;
-        method = 'publicGetDerivativesV3PublicTickers';
-        if (market['linear']) {
-            request['category'] = 'linear';
-        } else if (market['inverse']) {
-            request['category'] = 'inverse';
-        }
-        const response = await this[method] (this.extend (request, params));
-        //
-        // {
-        //     "retCode": 0,
-        //     "retMsg": "OK",
-        //     "result": {
-        //         "category": "linear",
-        //         "list": [
-        //             {
-        //                 "symbol": "BTCUSDT",
-        //                 "bidPrice": "19255",
-        //                 "askPrice": "19255.5",
-        //                 "lastPrice": "19255.50",
-        //                 "lastTickDirection": "ZeroPlusTick",
-        //                 "prevPrice24h": "18634.50",
-        //                 "price24hPcnt": "0.033325",
-        //                 "highPrice24h": "19675.00",
-        //                 "lowPrice24h": "18610.00",
-        //                 "prevPrice1h": "19278.00",
-        //                 "markPrice": "19255.00",
-        //                 "indexPrice": "19260.68",
-        //                 "openInterest": "48069.549",
-        //                 "turnover24h": "4686694853.047006",
-        //                 "volume24h": "243730.252",
-        //                 "fundingRate": "0.0001",
-        //                 "nextFundingTime": "1663689600000",
-        //                 "predictedDeliveryPrice": "",
-        //                 "basisRate": "",
-        //                 "deliveryFeeRate": "",
-        //                 "deliveryTime": "0"
-        //             }
-        //         ]
-        //     },
-        //     "retExtInfo": null,
-        //     "time": 1663670053454
-        // }
-        //
-        const result = this.safeValue (response, 'result', {});
-        const tickers = this.safeValue (result, 'list');
-        const ticker = this.safeValue (tickers, 0);
-        const timestamp = this.safeInteger (response, 'time');
-        ticker['timestamp'] = timestamp; // will be removed inside the parser
-        return this.parseFundingRate (ticker, market);
+        params['symbol'] = market['id'];
+        const symbols = [ market['symbol'] ];
+        return await this.fetchFundingRates (symbols, params);
     }
 
     async fetchFundingRates (symbols = undefined, params = {}) {
