@@ -44,6 +44,7 @@ class binance extends Exchange {
                 'cancelOrders' => null,
                 'createDepositAddress' => false,
                 'createOrder' => true,
+                'createPostOnlyOrder' => true,
                 'createReduceOnlyOrder' => true,
                 'createStopLimitOrder' => true,
                 'createStopMarketOrder' => false,
@@ -143,6 +144,7 @@ class binance extends Exchange {
                 'test' => array(
                     'dapiPublic' => 'https://testnet.binancefuture.com/dapi/v1',
                     'dapiPrivate' => 'https://testnet.binancefuture.com/dapi/v1',
+                    'dapiPrivateV2' => 'https://testnet.binancefuture.com/dapi/v2',
                     'eapiPublic' => 'https://testnet.binanceops.com/eapi/v1',
                     'eapiPrivate' => 'https://testnet.binanceops.com/eapi/v1',
                     'fapiPublic' => 'https://testnet.binancefuture.com/fapi/v1',
@@ -235,6 +237,7 @@ class binance extends Exchange {
                         'margin/isolatedMarginTier' => 0.1,
                         'margin/rateLimit/order' => 2,
                         'margin/dribblet' => 0.1,
+                        'margin/crossMarginCollateralRatio' => 10,
                         'loan/income' => 40, // Weight(UID) => 6000 => cost = 0.006667 * 6000 = 40
                         'loan/ongoing/orders' => 40, // Weight(IP) => 400 => cost = 0.1 * 400 = 40
                         'loan/ltv/adjustment/history' => 40, // Weight(IP) => 400 => cost = 0.1 * 400 = 40
@@ -289,6 +292,8 @@ class binance extends Exchange {
                         'managed-subaccount/accountSnapshot' => 240,
                         'managed-subaccount/queryTransLogForInvestor' => 0.1,
                         'managed-subaccount/queryTransLogForTradeParent' => 0.1,
+                        'managed-subaccount/fetch-future-asset' => 0.1,
+                        'managed-subaccount/marginAsset' => 0.1,
                         // lending endpoints
                         'lending/daily/product/list' => 0.1,
                         'lending/daily/userLeftQuota' => 0.1,
@@ -724,6 +729,7 @@ class binance extends Exchange {
                         'marginAccount' => 3,
                         'mmp' => 1,
                         'countdownCancelAll' => 1,
+                        'order' => 1,
                     ),
                     'post' => array(
                         'transfer' => 1,
@@ -2492,9 +2498,42 @@ class binance extends Exchange {
         //         volume => '81990451',
         //         weightedAvgPrice => '38215.08713747'
         //     }
+        // spot bidsAsks
+        //     {
+        //         "symbol":"ETHBTC",
+        //         "bidPrice":"0.07466800",
+        //         "bidQty":"5.31990000",
+        //         "askPrice":"0.07466900",
+        //         "askQty":"10.93540000"
+        //     }
+        // usdm bidsAsks
+        //     {
+        //         "symbol":"BTCUSDT",
+        //         "bidPrice":"21321.90",
+        //         "bidQty":"33.592",
+        //         "askPrice":"21322.00",
+        //         "askQty":"1.427",
+        //         "time":"1673899207538"
+        //     }
+        // coinm bidsAsks
+        //     {
+        //         "symbol":"BTCUSD_PERP",
+        //         "pair":"BTCUSD",
+        //         "bidPrice":"21301.2",
+        //         "bidQty":"188",
+        //         "askPrice":"21301.3",
+        //         "askQty":"10302",
+        //         "time":"1673899278514"
+        //     }
         //
         $timestamp = $this->safe_integer($ticker, 'closeTime');
-        $marketType = (is_array($ticker) && array_key_exists('bidQty', $ticker)) ? 'spot' : 'contract';
+        $marketType = null;
+        if ((is_array($ticker) && array_key_exists('time', $ticker))) {
+            $marketType = 'contract';
+        }
+        if ($marketType === null) {
+            $marketType = (is_array($ticker) && array_key_exists('bidQty', $ticker)) ? 'spot' : 'contract';
+        }
         $marketId = $this->safe_string($ticker, 'symbol');
         $symbol = $this->safe_symbol($marketId, $market, null, $marketType);
         $last = $this->safe_string($ticker, 'lastPrice');
@@ -2594,11 +2633,16 @@ class binance extends Exchange {
              * @return {array} an array of {@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure ticker structures}
              */
             Async\await($this->load_markets());
-            $defaultType = $this->safe_string_2($this->options, 'fetchBidsAsks', 'defaultType', 'spot');
-            $type = $this->safe_string($params, 'type', $defaultType);
+            $symbols = $this->market_symbols($symbols);
+            $market = null;
+            if ($symbols !== null) {
+                $first = $this->safe_string($symbols, 0);
+                $market = $this->market($first);
+            }
+            $type = null;
             $subType = null;
-            list($subType, $params) = $this->handle_sub_type_and_params('fetchBidsAsks', null, $params);
-            $query = $this->omit($params, 'type');
+            list($subType, $params) = $this->handle_sub_type_and_params('fetchBidsAsks', $market, $params);
+            list($type, $params) = $this->handle_market_type_and_params('fetchBidsAsks', $market, $params);
             $method = null;
             if ($this->is_linear($type, $subType)) {
                 $method = 'fapiPublicGetTickerBookTicker';
@@ -2607,7 +2651,7 @@ class binance extends Exchange {
             } else {
                 $method = 'publicGetTickerBookTicker';
             }
-            $response = Async\await($this->$method ($query));
+            $response = Async\await($this->$method ($params));
             return $this->parse_tickers($response, $symbols);
         }) ();
     }

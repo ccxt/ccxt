@@ -6,7 +6,6 @@ namespace ccxt\pro;
 // https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 use Exception; // a common import
-use ccxt\AuthenticationError;
 use ccxt\ArgumentsRequired;
 use ccxt\NotSupported;
 use ccxt\InvalidNonce;
@@ -517,32 +516,6 @@ class gate extends \ccxt\async\gate {
         }
     }
 
-    public function authenticate($params = array ()) {
-        return Async\async(function () use ($params) {
-            $url = $this->urls['api']['ws'];
-            $client = $this->client($url);
-            $future = $client->future ('authenticated');
-            $method = 'server.sign';
-            $authenticate = $this->safe_value($client->subscriptions, $method);
-            if ($authenticate === null) {
-                $requestId = $this->milliseconds();
-                $requestIdString = (string) $requestId;
-                $signature = $this->hmac($this->encode($requestIdString), $this->encode($this->secret), 'sha512', 'hex');
-                $authenticateMessage = array(
-                    'id' => $requestId,
-                    'method' => $method,
-                    'params' => array( $this->apiKey, $signature, $requestId ),
-                );
-                $subscribe = array(
-                    'id' => $requestId,
-                    'method' => array($this, 'handle_authentication_message'),
-                );
-                $this->spawn(array($this, 'watch'), $url, $requestId, $authenticateMessage, $method, $subscribe);
-            }
-            return Async\await($future);
-        }) ();
-    }
-
     public function watch_my_trades($symbol = null, $since = null, $limit = null, $params = array ()) {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
@@ -855,28 +828,6 @@ class gate extends \ccxt\async\gate {
             $client->resolve ($this->orders, $messageHash);
         }
         $client->resolve ($this->orders, 'orders');
-    }
-
-    public function handle_authentication_message($client, $message, $subscription) {
-        $result = $this->safe_value($message, 'result');
-        $status = $this->safe_string($result, 'status');
-        if ($status === 'success') {
-            // $client->resolve (true, 'authenticated') will delete the $future
-            // we want to remember that we are authenticated in subsequent call to private methods
-            $future = $this->safe_value($client->futures, 'authenticated');
-            if ($future !== null) {
-                $future->resolve (true);
-            }
-        } else {
-            // delete authenticate subscribeHash to release the "subscribe lock"
-            // allows subsequent calls to subscribe to reauthenticate
-            // avoids sending two authentication messages before receiving a reply
-            $error = new AuthenticationError ($this->id . ' handleAuthenticationMessage() error');
-            $client->reject ($error, 'authenticated');
-            if (is_array($client->subscriptions) && array_key_exists('server.sign', $client->subscriptions)) {
-                unset($client->subscriptions['server.sign']);
-            }
-        }
     }
 
     public function handle_error_message($client, $message) {

@@ -823,7 +823,8 @@ module.exports = class binance extends binanceRest {
             }
         }
         const resultKeys = Object.keys (result);
-        if (resultKeys.length > 0) {
+        const resultKeysLength = resultKeys.length;
+        if (resultKeysLength > 0) {
             if (this.newUpdates) {
                 return result;
             }
@@ -1001,6 +1002,12 @@ module.exports = class binance extends binanceRest {
         } else if (this.isInverse (type, subType)) {
             type = 'delivery';
         }
+        let marginMode = undefined;
+        [ marginMode, params ] = this.handleMarginModeAndParams ('authenticate', params);
+        const isIsolatedMargin = (marginMode === 'isolated');
+        const isCrossMargin = (marginMode === 'cross') || (marginMode === undefined);
+        const symbol = this.safeString (params, 'symbol');
+        params = this.omit (params, 'symbol');
         const options = this.safeValue (this.options, type, {});
         const lastAuthenticatedTime = this.safeInteger (options, 'lastAuthenticatedTime', 0);
         const listenKeyRefreshRate = this.safeInteger (this.options, 'listenKeyRefreshRate', 1200000);
@@ -1011,10 +1018,17 @@ module.exports = class binance extends binanceRest {
                 method = 'fapiPrivatePostListenKey';
             } else if (type === 'delivery') {
                 method = 'dapiPrivatePostListenKey';
-            } else if (type === 'margin') {
+            } else if (type === 'margin' && isCrossMargin) {
                 method = 'sapiPostUserDataStream';
+            } else if (isIsolatedMargin) {
+                method = 'sapiPostUserDataStreamIsolated';
+                if (symbol === undefined) {
+                    throw new ArgumentsRequired (this.id + ' authenticate() requires a symbol argument for isolated margin mode');
+                }
+                const marketId = this.marketId (symbol);
+                params['symbol'] = marketId;
             }
-            const response = await this[method] ();
+            const response = await this[method] (params);
             this.options[type] = this.extend (options, {
                 'listenKey': this.safeString (response, 'listenKey'),
                 'lastAuthenticatedTime': time,
@@ -1261,16 +1275,24 @@ module.exports = class binance extends binanceRest {
          * @returns {[object]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
          */
         await this.loadMarkets ();
-        await this.authenticate (params);
         let messageHash = 'orders';
         let market = undefined;
         if (symbol !== undefined) {
             market = this.market (symbol);
             symbol = market['symbol'];
             messageHash += ':' + symbol;
+            params['symbol'] = symbol; // needed inside authenticate for isolated margin
         }
+        await this.authenticate (params);
         let type = undefined;
         [ type, params ] = this.handleMarketTypeAndParams ('watchOrders', market, params);
+        let subType = undefined;
+        [ subType, params ] = this.handleSubTypeAndParams ('watchOrders', market, params);
+        if (this.isLinear (type, subType)) {
+            type = 'future';
+        } else if (this.isInverse (type, subType)) {
+            type = 'delivery';
+        }
         const url = this.urls['api']['ws'][type] + '/' + this.options[type]['listenKey'];
         const client = this.client (url);
         this.setBalanceCache (client, type);
@@ -1384,28 +1406,13 @@ module.exports = class binance extends binanceRest {
                 'currency': feeCurrency,
             };
         }
-        const price = this.safeFloat (order, 'p');
-        const amount = this.safeFloat (order, 'q');
+        const price = this.safeString (order, 'p');
+        const amount = this.safeString (order, 'q');
         const side = this.safeStringLower (order, 'S');
         const type = this.safeStringLower (order, 'o');
-        const filled = this.safeFloat (order, 'z');
-        const cumulativeQuote = this.safeFloat (order, 'Z');
-        let remaining = amount;
-        let average = this.safeFloat (order, 'ap');
-        let cost = cumulativeQuote;
-        if (filled !== undefined) {
-            if (cost === undefined) {
-                if (price !== undefined) {
-                    cost = filled * price;
-                }
-            }
-            if (amount !== undefined) {
-                remaining = Math.max (amount - filled, 0);
-            }
-            if ((average === undefined) && (cumulativeQuote !== undefined) && (filled > 0)) {
-                average = cumulativeQuote / filled;
-            }
-        }
+        const filled = this.safeString (order, 'z');
+        const cost = this.safeString (order, 'Z');
+        const average = this.safeString (order, 'ap');
         const rawStatus = this.safeString (order, 'X');
         const status = this.parseOrderStatus (rawStatus);
         const trades = undefined;
@@ -1413,13 +1420,13 @@ module.exports = class binance extends binanceRest {
         if ((clientOrderId === undefined) || (clientOrderId.length === 0)) {
             clientOrderId = this.safeString (order, 'c');
         }
-        const stopPrice = this.safeFloat2 (order, 'P', 'sp');
+        const stopPrice = this.safeString2 (order, 'P', 'sp');
         let timeInForce = this.safeString (order, 'f');
         if (timeInForce === 'GTX') {
             // GTX means "Good Till Crossing" and is an equivalent way of saying Post Only
             timeInForce = 'PO';
         }
-        return {
+        return this.safeOrder ({
             'info': order,
             'symbol': symbol,
             'id': orderId,
@@ -1438,11 +1445,11 @@ module.exports = class binance extends binanceRest {
             'cost': cost,
             'average': average,
             'filled': filled,
-            'remaining': remaining,
+            'remaining': undefined,
             'status': status,
             'fee': fee,
             'trades': trades,
-        };
+        });
     }
 
     handleOrderUpdate (client, message) {
@@ -1547,7 +1554,6 @@ module.exports = class binance extends binanceRest {
          * @returns {[object]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure
          */
         await this.loadMarkets ();
-        await this.authenticate (params);
         const defaultType = this.safeString2 (this.options, 'watchMyTrades', 'defaultType', 'spot');
         let type = this.safeString (params, 'type', defaultType);
         let subType = undefined;
@@ -1557,11 +1563,14 @@ module.exports = class binance extends binanceRest {
         } else if (this.isInverse (type, subType)) {
             type = 'delivery';
         }
-        const url = this.urls['api']['ws'][type] + '/' + this.options[type]['listenKey'];
         let messageHash = 'myTrades';
         if (symbol !== undefined) {
+            symbol = this.symbol (symbol);
             messageHash += ':' + symbol;
+            params['symbol'] = symbol;
         }
+        await this.authenticate (params);
+        const url = this.urls['api']['ws'][type] + '/' + this.options[type]['listenKey'];
         const client = this.client (url);
         this.setBalanceCache (client, type);
         const message = undefined;

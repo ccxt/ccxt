@@ -37,6 +37,22 @@ class coinex extends \ccxt\async\coinex {
                 ),
             ),
             'options' => array(
+                'watchOHLCVWarning' => true,
+                'timeframes' => array(
+                    '1m' => 60,
+                    '3m' => 180,
+                    '5m' => 300,
+                    '15m' => 900,
+                    '30m' => 1800,
+                    '1h' => 3600,
+                    '2h' => 7200,
+                    '4h' => 14400,
+                    '6h' => 21600,
+                    '12h' => 43200,
+                    '1d' => 86400,
+                    '3d' => 259200,
+                    '1w' => 604800,
+                ),
                 'account' => 'spot',
                 'watchOrderBook' => array(
                     'limits' => array( 5, 10, 20, 50 ),
@@ -56,21 +72,6 @@ class coinex extends \ccxt\async\coinex {
                     '5' => '\\ccxt\\RequestTimeout', // Service timeout
                     '6' => '\\ccxt\\AuthenticationError', // Permission denied
                 ),
-            ),
-            'timeframes' => array(
-                '1m' => 60,
-                '3m' => 180,
-                '5m' => 300,
-                '15m' => 900,
-                '30m' => 1800,
-                '1h' => 3600,
-                '2h' => 7200,
-                '4h' => 14400,
-                '6h' => 21600,
-                '12h' => 43200,
-                '1d' => 86400,
-                '3d' => 259200,
-                '1w' => 604800,
             ),
         ));
     }
@@ -487,23 +488,35 @@ class coinex extends \ccxt\async\coinex {
             Async\await($this->load_markets());
             $market = $this->market($symbol);
             $symbol = $market['symbol'];
-            $messageHash = 'ohlcv';
             $type = null;
             list($type, $params) = $this->handle_market_type_and_params('watchOHLCV', $market, $params);
             if ($type !== 'swap') {
                 throw new NotSupported($this->id . ' watchOHLCV() is only supported for swap markets');
             }
             $url = $this->urls['api']['ws'][$type];
+            $messageHash = 'ohlcv';
+            $watchOHLCVWarning = $this->safe_value($this->options, 'watchOHLCVWarning', true);
+            $client = $this->safe_value($this->clients, $url, array());
+            $existingSubscription = $this->safe_value($client->subscriptions, $messageHash);
+            // due to nature of coinex response can only watch one $symbol at a time
+            if ($watchOHLCVWarning && $existingSubscription !== null && ($existingSubscription['symbol'] !== $symbol || $existingSubscription['timeframe'] !== $timeframe)) {
+                throw new ExchangeError($this->id . ' watchOHLCV() can only watch one $symbol and $timeframe at a time. To supress this warning set $watchOHLCVWarning to false in options');
+            }
+            $timeframes = $this->safe_value($this->options, 'timeframes', array());
             $subscribe = array(
                 'method' => 'kline.subscribe',
                 'id' => $this->request_id(),
                 'params' => [
                     $market['id'],
-                    $this->safe_integer($this->timeframes, $timeframe, $timeframe),
+                    $this->safe_integer($timeframes, $timeframe, $timeframe),
                 ],
             );
+            $subscription = array(
+                'symbol' => $symbol,
+                'timeframe' => $timeframe,
+            );
             $request = $this->deep_extend($subscribe, $params);
-            $ohlcvs = Async\await($this->watch($url, $messageHash, $request, $messageHash));
+            $ohlcvs = Async\await($this->watch($url, $messageHash, $request, $messageHash, $subscription));
             if ($this->newUpdates) {
                 $limit = $ohlcvs->getLimit ($symbol, $limit);
             }

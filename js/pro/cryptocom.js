@@ -569,7 +569,7 @@ module.exports = class cryptocom extends cryptocomRest {
         }
     }
 
-    async authenticate (params = {}) {
+    authenticate (params = {}) {
         this.checkRequiredCredentials ();
         const url = this.urls['api']['ws']['private'];
         const client = this.client (url);

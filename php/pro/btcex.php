@@ -710,12 +710,10 @@ class btcex extends \ccxt\async\btcex {
         //     }
         //
         $result = $this->safe_value($message, 'result', array());
-        $expiresIn = $this->safe_number($result, 'expires_in', 0);
-        $expiresAt = ($this->seconds() . $expiresIn) * 1000;
-        $this->options['expiresAt'] = $expiresAt;
-        $future = $client->future ('authenticated');
-        $future->resolve ($message);
-        return $message;
+        $expiresIn = $this->safe_integer($result, 'expires_in', 0);
+        $this->options['expiresAt'] = $this->sum($this->seconds(), $expiresIn) * 1000;
+        $accessToken = $this->safe_string($result, 'access_token');
+        $client->resolve ($accessToken, 'authenticated');
     }
 
     public function handle_subscription($client, $message) {
@@ -777,29 +775,28 @@ class btcex extends \ccxt\async\btcex {
     }
 
     public function authenticate($params = array ()) {
-        return Async\async(function () use ($params) {
-            $url = $this->urls['api']['ws'];
-            $client = $this->client($url);
-            $future = $client->future ('authenticated');
-            $method = 'authenticated';
-            $authenticated = $this->safe_value($client->subscriptions, $method);
-            $expiresAt = $this->safe_number($this->options, 'expiresAt');
-            $time = $this->milliseconds();
-            if ($authenticated === null || $expiresAt <= $time) {
-                $request = array(
-                    'jsonrpc' => '2.0',
-                    'id' => $this->request_id(),
-                    'method' => '/public/auth',
-                    'params' => array(
-                        'grant_type' => 'client_credentials',
-                        'client_id' => $this->apiKey,
-                        'client_secret' => $this->secret,
-                    ),
-                );
-                $this->spawn(array($this, 'watch'), $url, $method, $request, $method);
-            }
-            return Async\await($future);
-        }) ();
+        $url = $this->urls['api']['ws'];
+        $client = $this->client($url);
+        $messageHash = 'authenticated';
+        $expiresAt = $this->safe_number($this->options, 'expiresAt');
+        $time = $this->milliseconds();
+        $future = $this->safe_value($client->subscriptions, $messageHash);
+        if (($future === null) || ($expiresAt <= $time)) {
+            $request = array(
+                'jsonrpc' => '2.0',
+                'id' => $this->request_id(),
+                'method' => '/public/auth',
+                'params' => array(
+                    'grant_type' => 'client_credentials',
+                    'client_id' => $this->apiKey,
+                    'client_secret' => $this->secret,
+                ),
+            );
+            $message = array_merge($request, $params);
+            $future = $this->watch($url, $messageHash, $message);
+            $client->subscriptions[$messageHash] = $future;
+        }
+        return $future;
     }
 
     public function ping($client) {
