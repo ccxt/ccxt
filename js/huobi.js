@@ -7293,7 +7293,7 @@ module.exports = class huobi extends Exchange {
         //          }
         //
         const chains = this.safeValue (fee, 'chains', []);
-        const result = this.depositWithdrawFee (fee);
+        let result = this.depositWithdrawFee (fee);
         for (let j = 0; j < chains.length; j++) {
             const chainEntry = chains[j];
             const networkId = this.safeString (chainEntry, 'chain');
@@ -7321,6 +7321,7 @@ module.exports = class huobi extends Exchange {
                     'percentage': undefined,
                 },
             };
+            result = this.assignDefaultDepositWithdrawFees (result, currency);
         }
         return result;
     }
