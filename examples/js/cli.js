@@ -22,6 +22,7 @@ let [processPath, , exchangeId, methodName, ... params] = process.argv.filter (x
     , isSpot = process.argv.includes ('--spot')
     , isSwap = process.argv.includes ('--swap')
     , isFuture = process.argv.includes ('--future')
+    , rest = process.argv.inlucdes ('--rest')
 
 //-----------------------------------------------------------------------------
 
@@ -93,7 +94,7 @@ if (callRegex.test (exchangeId)) {
 }
 
 try {
-    if (ccxt.pro.exchanges.includes(exchangeId)) {
+    if (!rest && ccxt.pro.exchanges.includes(exchangeId)) {
         exchange = new (ccxt.pro)[exchangeId] ({ timeout, httpsAgent, ... settings })
     } else {
         exchange = new (ccxt)[exchangeId] ({ timeout, httpsAgent, ... settings })

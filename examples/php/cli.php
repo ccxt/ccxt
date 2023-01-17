@@ -40,6 +40,9 @@ $main = function() use ($argv) {
         $new_updates = count(array_filter($args, function ($option) { return strstr($option, '--newUpdates') !== false; })) > 0;
         $args = array_values(array_filter($args, function ($option) { return strstr($option, '--newUpdates') === false; }));
 
+        $rest = count(array_filter($args, function ($option) { return strstr($option, '--rest') !== false; })) > 0;
+        $args = array_values(array_filter($args, function ($option) { return strstr($option, '--rest') === false; }));
+
         $id = $args[1];
         $member = $args[2];
         $args = array_slice($args, 3);
@@ -59,7 +62,7 @@ $main = function() use ($argv) {
 
             // instantiate the exchange by id
             $exchange = null;
-            if (in_array($id, \ccxt\pro\Exchange::$exchanges)) {
+            if (!$rest && in_array($id, \ccxt\pro\Exchange::$exchanges)) {
                 $exchange = '\\ccxt\\pro\\' . $id;
             } else {
                 $exchange = '\\ccxt\\async\\' . $id;

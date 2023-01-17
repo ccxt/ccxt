@@ -42,6 +42,7 @@ class Argv(object):
     spot = False
     swap = False
     future = False
+    rest = False
     args = []
 
 
@@ -62,7 +63,7 @@ parser.add_argument('--future', action='store_true', help='enable future markets
 parser.add_argument('exchange_id', type=str, help='exchange id in lowercase', nargs='?')
 parser.add_argument('method', type=str, help='method or property', nargs='?')
 parser.add_argument('args', type=str, help='arguments', nargs='*')
-
+parser.add_argument ('rest', action='store_true', help='default to rest api')
 parser.parse_args(namespace=argv)
 
 # ------------------------------------------------------------------------------
@@ -136,7 +137,7 @@ async def main():
         config.update(keys[argv.exchange_id])
 
     exchange = None
-    if (argv.exchange_id in ccxtpro.exchanges):
+    if (not argv.rest and argv.exchange_id in ccxtpro.exchanges):
         exchange = getattr(ccxtpro, argv.exchange_id)(config)
     else:
         exchange = getattr(ccxt, argv.exchange_id)(config)
