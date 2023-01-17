@@ -916,7 +916,10 @@ module.exports = class bitget extends Exchange {
         //        minTradeNum: '0.001',
         //        priceEndStep: '5',
         //        volumePlace: '3',
-        //        pricePlace: '1'
+        //        pricePlace: '1',
+        //        symbolStatus: "normal",
+        //        offTime: "-1",
+        //        limitOpenTime: "-1"
         //    }
         //
         const marketId = this.safeString (market, 'symbol');
@@ -980,10 +983,10 @@ module.exports = class bitget extends Exchange {
             const amountString = preciseAmount.toString ();
             amountPrecision = this.parseNumber (amountString);
         }
-        const status = this.safeString (market, 'status');
+        const status = this.safeString2 (market, 'status', 'symbolStatus');
         let active = undefined;
         if (status !== undefined) {
-            active = status === 'online';
+            active = (status === 'online' || status === 'normal');
         }
         let minCost = undefined;
         if (quote === 'USDT') {
