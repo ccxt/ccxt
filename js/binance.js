@@ -1862,155 +1862,158 @@ module.exports = class binance extends Exchange {
         }
         const result = [];
         for (let i = 0; i < markets.length; i++) {
-            let swap = false;
-            let future = false;
-            const market = markets[i];
-            const id = this.safeString (market, 'symbol');
-            const lowercaseId = this.safeStringLower (market, 'symbol');
-            const baseId = this.safeString (market, 'baseAsset');
-            const quoteId = this.safeString (market, 'quoteAsset');
-            const settleId = this.safeString (market, 'marginAsset');
-            const base = this.safeCurrencyCode (baseId);
-            const quote = this.safeCurrencyCode (quoteId);
-            const settle = this.safeCurrencyCode (settleId);
-            const contractType = this.safeString (market, 'contractType');
-            const contract = ('contractType' in market);
-            const spot = !contract;
-            let expiry = this.safeInteger (market, 'deliveryDate');
-            if ((contractType === 'PERPETUAL') || (expiry === 4133404800000)) { // some swap markets do not have contract type, eg: BTCST
-                expiry = undefined;
-                swap = true;
-            } else {
-                future = true;
-            }
-            const filters = this.safeValue (market, 'filters', []);
-            const filtersByType = this.indexBy (filters, 'filterType');
-            const status = this.safeString2 (market, 'status', 'contractStatus');
-            let contractSize = undefined;
-            let fees = this.fees;
-            let linear = undefined;
-            let inverse = undefined;
-            let symbol = base + '/' + quote;
-            if (contract) {
-                if (swap) {
-                    expiry = this.safeInteger (market, 'deliveryDate');
-                    symbol = symbol + ':' + settle;
-                } else if (future) {
-                    symbol = symbol + ':' + settle + '-' + this.yymmdd (expiry);
-                }
-                contractSize = this.safeNumber (market, 'contractSize', this.parseNumber ('1'));
-                linear = settle === quote;
-                inverse = settle === base;
-                const feesType = linear ? 'linear' : 'inverse';
-                fees = this.safeValue (this.fees, feesType, {});
-            }
-            let active = (status === 'TRADING');
-            if (spot) {
-                const permissions = this.safeValue (market, 'permissions', []);
-                for (let j = 0; j < permissions.length; j++) {
-                    if (permissions[j] === 'TRD_GRP_003') {
-                        active = false;
-                        break;
-                    }
-                }
-            }
-            const isMarginTradingAllowed = this.safeValue (market, 'isMarginTradingAllowed', false);
-            let unifiedType = undefined;
-            if (spot) {
-                unifiedType = 'spot';
-            } else if (swap) {
-                unifiedType = 'swap';
-            } else if (future) {
-                unifiedType = 'future';
-            }
-            const entry = {
-                'id': id,
-                'lowercaseId': lowercaseId,
-                'symbol': symbol,
-                'base': base,
-                'quote': quote,
-                'settle': settle,
-                'baseId': baseId,
-                'quoteId': quoteId,
-                'settleId': settleId,
-                'type': unifiedType,
-                'spot': spot,
-                'margin': spot && isMarginTradingAllowed,
-                'swap': swap,
-                'future': future,
-                'option': false,
-                'active': active,
-                'contract': contract,
-                'linear': linear,
-                'inverse': inverse,
-                'taker': fees['trading']['taker'],
-                'maker': fees['trading']['maker'],
-                'contractSize': contractSize,
-                'expiry': expiry,
-                'expiryDatetime': this.iso8601 (expiry),
-                'strike': undefined,
-                'optionType': undefined,
-                'precision': {
-                    'amount': this.safeInteger (market, 'quantityPrecision'),
-                    'price': this.safeInteger (market, 'pricePrecision'),
-                    'base': this.safeInteger (market, 'baseAssetPrecision'),
-                    'quote': this.safeInteger (market, 'quotePrecision'),
-                },
-                'limits': {
-                    'leverage': {
-                        'min': undefined,
-                        'max': undefined,
-                    },
-                    'amount': {
-                        'min': undefined,
-                        'max': undefined,
-                    },
-                    'price': {
-                        'min': undefined,
-                        'max': undefined,
-                    },
-                    'cost': {
-                        'min': undefined,
-                        'max': undefined,
-                    },
-                },
-                'info': market,
-            };
-            if ('PRICE_FILTER' in filtersByType) {
-                const filter = this.safeValue (filtersByType, 'PRICE_FILTER', {});
-                // PRICE_FILTER reports zero values for maxPrice
-                // since they updated filter types in November 2018
-                // https://github.com/ccxt/ccxt/issues/4286
-                // therefore limits['price']['max'] doesn't have any meaningful value except undefined
-                entry['limits']['price'] = {
-                    'min': this.safeNumber (filter, 'minPrice'),
-                    'max': this.safeNumber (filter, 'maxPrice'),
-                };
-                entry['precision']['price'] = this.precisionFromString (filter['tickSize']);
-            }
-            if ('LOT_SIZE' in filtersByType) {
-                const filter = this.safeValue (filtersByType, 'LOT_SIZE', {});
-                const stepSize = this.safeString (filter, 'stepSize');
-                entry['precision']['amount'] = this.precisionFromString (stepSize);
-                entry['limits']['amount'] = {
-                    'min': this.safeNumber (filter, 'minQty'),
-                    'max': this.safeNumber (filter, 'maxQty'),
-                };
-            }
-            if ('MARKET_LOT_SIZE' in filtersByType) {
-                const filter = this.safeValue (filtersByType, 'MARKET_LOT_SIZE', {});
-                entry['limits']['market'] = {
-                    'min': this.safeNumber (filter, 'minQty'),
-                    'max': this.safeNumber (filter, 'maxQty'),
-                };
-            }
-            if ('MIN_NOTIONAL' in filtersByType) {
-                const filter = this.safeValue (filtersByType, 'MIN_NOTIONAL', {});
-                entry['limits']['cost']['min'] = this.safeNumber2 (filter, 'minNotional', 'notional');
-            }
-            result.push (entry);
+            result.push (this.parseMarket (markets[i]));
         }
         return result;
+    }
+
+    parseMarket (market) {
+        let swap = false;
+        let future = false;
+        const id = this.safeString (market, 'symbol');
+        const lowercaseId = this.safeStringLower (market, 'symbol');
+        const baseId = this.safeString (market, 'baseAsset');
+        const quoteId = this.safeString (market, 'quoteAsset');
+        const settleId = this.safeString (market, 'marginAsset');
+        const base = this.safeCurrencyCode (baseId);
+        const quote = this.safeCurrencyCode (quoteId);
+        const settle = this.safeCurrencyCode (settleId);
+        const contractType = this.safeString (market, 'contractType');
+        const contract = ('contractType' in market);
+        const spot = !contract;
+        let expiry = this.safeInteger (market, 'deliveryDate');
+        if ((contractType === 'PERPETUAL') || (expiry === 4133404800000)) { // some swap markets do not have contract type, eg: BTCST
+            expiry = undefined;
+            swap = true;
+        } else {
+            future = true;
+        }
+        const filters = this.safeValue (market, 'filters', []);
+        const filtersByType = this.indexBy (filters, 'filterType');
+        const status = this.safeString2 (market, 'status', 'contractStatus');
+        let contractSize = undefined;
+        let fees = this.fees;
+        let linear = undefined;
+        let inverse = undefined;
+        let symbol = base + '/' + quote;
+        if (contract) {
+            if (swap) {
+                expiry = this.safeInteger (market, 'deliveryDate');
+                symbol = symbol + ':' + settle;
+            } else if (future) {
+                symbol = symbol + ':' + settle + '-' + this.yymmdd (expiry);
+            }
+            contractSize = this.safeNumber (market, 'contractSize', this.parseNumber ('1'));
+            linear = settle === quote;
+            inverse = settle === base;
+            const feesType = linear ? 'linear' : 'inverse';
+            fees = this.safeValue (this.fees, feesType, {});
+        }
+        let active = (status === 'TRADING');
+        if (spot) {
+            const permissions = this.safeValue (market, 'permissions', []);
+            for (let j = 0; j < permissions.length; j++) {
+                if (permissions[j] === 'TRD_GRP_003') {
+                    active = false;
+                    break;
+                }
+            }
+        }
+        const isMarginTradingAllowed = this.safeValue (market, 'isMarginTradingAllowed', false);
+        let unifiedType = undefined;
+        if (spot) {
+            unifiedType = 'spot';
+        } else if (swap) {
+            unifiedType = 'swap';
+        } else if (future) {
+            unifiedType = 'future';
+        }
+        const entry = {
+            'id': id,
+            'lowercaseId': lowercaseId,
+            'symbol': symbol,
+            'base': base,
+            'quote': quote,
+            'settle': settle,
+            'baseId': baseId,
+            'quoteId': quoteId,
+            'settleId': settleId,
+            'type': unifiedType,
+            'spot': spot,
+            'margin': spot && isMarginTradingAllowed,
+            'swap': swap,
+            'future': future,
+            'option': false,
+            'active': active,
+            'contract': contract,
+            'linear': linear,
+            'inverse': inverse,
+            'taker': fees['trading']['taker'],
+            'maker': fees['trading']['maker'],
+            'contractSize': contractSize,
+            'expiry': expiry,
+            'expiryDatetime': this.iso8601 (expiry),
+            'strike': undefined,
+            'optionType': undefined,
+            'precision': {
+                'amount': this.safeInteger (market, 'quantityPrecision'),
+                'price': this.safeInteger (market, 'pricePrecision'),
+                'base': this.safeInteger (market, 'baseAssetPrecision'),
+                'quote': this.safeInteger (market, 'quotePrecision'),
+            },
+            'limits': {
+                'leverage': {
+                    'min': undefined,
+                    'max': undefined,
+                },
+                'amount': {
+                    'min': undefined,
+                    'max': undefined,
+                },
+                'price': {
+                    'min': undefined,
+                    'max': undefined,
+                },
+                'cost': {
+                    'min': undefined,
+                    'max': undefined,
+                },
+            },
+            'info': market,
+        };
+        if ('PRICE_FILTER' in filtersByType) {
+            const filter = this.safeValue (filtersByType, 'PRICE_FILTER', {});
+            // PRICE_FILTER reports zero values for maxPrice
+            // since they updated filter types in November 2018
+            // https://github.com/ccxt/ccxt/issues/4286
+            // therefore limits['price']['max'] doesn't have any meaningful value except undefined
+            entry['limits']['price'] = {
+                'min': this.safeNumber (filter, 'minPrice'),
+                'max': this.safeNumber (filter, 'maxPrice'),
+            };
+            entry['precision']['price'] = this.precisionFromString (filter['tickSize']);
+        }
+        if ('LOT_SIZE' in filtersByType) {
+            const filter = this.safeValue (filtersByType, 'LOT_SIZE', {});
+            const stepSize = this.safeString (filter, 'stepSize');
+            entry['precision']['amount'] = this.precisionFromString (stepSize);
+            entry['limits']['amount'] = {
+                'min': this.safeNumber (filter, 'minQty'),
+                'max': this.safeNumber (filter, 'maxQty'),
+            };
+        }
+        if ('MARKET_LOT_SIZE' in filtersByType) {
+            const filter = this.safeValue (filtersByType, 'MARKET_LOT_SIZE', {});
+            entry['limits']['market'] = {
+                'min': this.safeNumber (filter, 'minQty'),
+                'max': this.safeNumber (filter, 'maxQty'),
+            };
+        }
+        if ('MIN_NOTIONAL' in filtersByType) {
+            const filter = this.safeValue (filtersByType, 'MIN_NOTIONAL', {});
+            entry['limits']['cost']['min'] = this.safeNumber2 (filter, 'minNotional', 'notional');
+        }
+        return entry;
     }
 
     parseBalanceHelper (entry) {
