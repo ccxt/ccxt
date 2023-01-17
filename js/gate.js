@@ -68,7 +68,7 @@ module.exports = class gate extends Exchange {
                 'borrowMargin': true,
                 'cancelAllOrders': true,
                 'cancelOrder': true,
-                'createDepositAddress': 'emulated',
+                'createDepositAddress': true,
                 'createMarketOrder': false,
                 'createOrder': true,
                 'createPostOnlyOrder': true,
@@ -1552,7 +1552,7 @@ module.exports = class gate extends Exchange {
         /**
          * @method
          * @name gate#createDepositAddress
-         * @description emulated via fetchDepositAddress, because both methods use teh same endpoint
+         * @description create a currency deposit address
          * @see https://www.gate.io/docs/developers/apiv4/en/#generate-currency-deposit-address
          * @param {string} code unified currency code of the currency for the deposit address
          * @param {object} params extra parameters specific to the gate api endpoint
