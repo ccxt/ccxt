@@ -1405,28 +1405,13 @@ export default class binance extends binanceRest {
                 'currency': feeCurrency,
             };
         }
-        const price = this.safeFloat (order, 'p');
-        const amount = this.safeFloat (order, 'q');
+        const price = this.safeString (order, 'p');
+        const amount = this.safeString (order, 'q');
         const side = this.safeStringLower (order, 'S');
         const type = this.safeStringLower (order, 'o');
-        const filled = this.safeFloat (order, 'z');
-        const cumulativeQuote = this.safeFloat (order, 'Z');
-        let remaining = amount;
-        let average = this.safeFloat (order, 'ap');
-        let cost = cumulativeQuote;
-        if (filled !== undefined) {
-            if (cost === undefined) {
-                if (price !== undefined) {
-                    cost = filled * price;
-                }
-            }
-            if (amount !== undefined) {
-                remaining = Math.max (amount - filled, 0);
-            }
-            if ((average === undefined) && (cumulativeQuote !== undefined) && (filled > 0)) {
-                average = cumulativeQuote / filled;
-            }
-        }
+        const filled = this.safeString (order, 'z');
+        const cost = this.safeString (order, 'Z');
+        const average = this.safeString (order, 'ap');
         const rawStatus = this.safeString (order, 'X');
         const status = this.parseOrderStatus (rawStatus);
         const trades = undefined;
@@ -1434,13 +1419,13 @@ export default class binance extends binanceRest {
         if ((clientOrderId === undefined) || (clientOrderId.length === 0)) {
             clientOrderId = this.safeString (order, 'c');
         }
-        const stopPrice = this.safeFloat2 (order, 'P', 'sp');
+        const stopPrice = this.safeString2 (order, 'P', 'sp');
         let timeInForce = this.safeString (order, 'f');
         if (timeInForce === 'GTX') {
             // GTX means "Good Till Crossing" and is an equivalent way of saying Post Only
             timeInForce = 'PO';
         }
-        return {
+        return this.safeOrder ({
             'info': order,
             'symbol': symbol,
             'id': orderId,
@@ -1459,11 +1444,11 @@ export default class binance extends binanceRest {
             'cost': cost,
             'average': average,
             'filled': filled,
-            'remaining': remaining,
+            'remaining': undefined,
             'status': status,
             'fee': fee,
             'trades': trades,
-        };
+        });
     }
 
     handleOrderUpdate (client, message) {

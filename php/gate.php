@@ -69,6 +69,7 @@ class gate extends Exchange {
                 'borrowMargin' => true,
                 'cancelAllOrders' => true,
                 'cancelOrder' => true,
+                'createDepositAddress' => true,
                 'createMarketOrder' => false,
                 'createOrder' => true,
                 'createPostOnlyOrder' => true,
@@ -1531,9 +1532,21 @@ class gate extends Exchange {
         return $result;
     }
 
+    public function create_deposit_address($code, $params = array ()) {
+        /**
+         * create a currency deposit address
+         * @see https://www.gate.io/docs/developers/apiv4/en/#generate-currency-deposit-address
+         * @param {string} $code unified currency $code of the currency for the deposit address
+         * @param {array} $params extra parameters specific to the gate api endpoint
+         * @return {array} an {@link https://docs.ccxt.com/en/latest/manual.html#address-structure address structure}
+         */
+        return $this->fetch_deposit_address($code, $params);
+    }
+
     public function fetch_deposit_address($code, $params = array ()) {
         /**
          * fetch the deposit $address for a $currency associated with this account
+         * @see https://www.gate.io/docs/developers/apiv4/en/#generate-$currency-deposit-$address
          * @param {string} $code unified $currency $code
          * @param {array} $params extra parameters specific to the gate api endpoint
          * @return {array} an {@link https://docs.ccxt.com/en/latest/manual.html#$address-structure $address structure}
@@ -1565,6 +1578,9 @@ class gate extends Exchange {
         $tag = null;
         $address = null;
         if ($addressField !== null) {
+            if (mb_strpos($addressField, 'New $address is being generated for you, please wait') !== false) {
+                throw new BadResponse($this->id . ' ' . 'New $address is being generated for you, please wait a few seconds and try again to get the $address->');
+            }
             if (mb_strpos($addressField, ' ') !== false) {
                 $splitted = explode(' ', $addressField);
                 $address = $splitted[0];

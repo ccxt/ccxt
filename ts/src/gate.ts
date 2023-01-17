@@ -3,7 +3,7 @@
 import { Exchange } from './base/Exchange.js';
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
-import { ExchangeError, BadRequest, ArgumentsRequired, AuthenticationError, PermissionDenied, AccountSuspended, InsufficientFunds, RateLimitExceeded, ExchangeNotAvailable, BadSymbol, InvalidOrder, OrderNotFound, NotSupported, AccountNotEnabled, OrderImmediatelyFillable } from './base/errors.js';
+import { ExchangeError, BadRequest, ArgumentsRequired, AuthenticationError, PermissionDenied, AccountSuspended, InsufficientFunds, RateLimitExceeded, ExchangeNotAvailable, BadSymbol, InvalidOrder, OrderNotFound, NotSupported, AccountNotEnabled, OrderImmediatelyFillable, BadResponse } from './base/errors.js';
 
 export default class gate extends Exchange {
     describe () {
@@ -66,6 +66,7 @@ export default class gate extends Exchange {
                 'borrowMargin': true,
                 'cancelAllOrders': true,
                 'cancelOrder': true,
+                'createDepositAddress': true,
                 'createMarketOrder': false,
                 'createOrder': true,
                 'createPostOnlyOrder': true,
@@ -1545,11 +1546,25 @@ export default class gate extends Exchange {
         return result;
     }
 
+    async createDepositAddress (code, params = {}) {
+        /**
+         * @method
+         * @name gate#createDepositAddress
+         * @description create a currency deposit address
+         * @see https://www.gate.io/docs/developers/apiv4/en/#generate-currency-deposit-address
+         * @param {string} code unified currency code of the currency for the deposit address
+         * @param {object} params extra parameters specific to the gate api endpoint
+         * @returns {object} an [address structure]{@link https://docs.ccxt.com/en/latest/manual.html#address-structure}
+         */
+        return await this.fetchDepositAddress (code, params);
+    }
+
     async fetchDepositAddress (code, params = {}) {
         /**
          * @method
          * @name gate#fetchDepositAddress
          * @description fetch the deposit address for a currency associated with this account
+         * @see https://www.gate.io/docs/developers/apiv4/en/#generate-currency-deposit-address
          * @param {string} code unified currency code
          * @param {object} params extra parameters specific to the gate api endpoint
          * @returns {object} an [address structure]{@link https://docs.ccxt.com/en/latest/manual.html#address-structure}
@@ -1581,6 +1596,9 @@ export default class gate extends Exchange {
         let tag = undefined;
         let address = undefined;
         if (addressField !== undefined) {
+            if (addressField.indexOf ('New address is being generated for you, please wait') >= 0) {
+                throw new BadResponse (this.id + ' ' + 'New address is being generated for you, please wait a few seconds and try again to get the address.');
+            }
             if (addressField.indexOf (' ') >= 0) {
                 const splitted = addressField.split (' ');
                 address = splitted[0];

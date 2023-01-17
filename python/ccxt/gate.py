@@ -13,6 +13,7 @@ from ccxt.base.errors import AccountSuspended
 from ccxt.base.errors import ArgumentsRequired
 from ccxt.base.errors import BadRequest
 from ccxt.base.errors import BadSymbol
+from ccxt.base.errors import BadResponse
 from ccxt.base.errors import InsufficientFunds
 from ccxt.base.errors import InvalidOrder
 from ccxt.base.errors import OrderNotFound
@@ -86,6 +87,7 @@ class gate(Exchange):
                 'borrowMargin': True,
                 'cancelAllOrders': True,
                 'cancelOrder': True,
+                'createDepositAddress': True,
                 'createMarketOrder': False,
                 'createOrder': True,
                 'createPostOnlyOrder': True,
@@ -1505,9 +1507,20 @@ class gate(Exchange):
             }
         return result
 
+    def create_deposit_address(self, code, params={}):
+        """
+        create a currency deposit address
+        see https://www.gate.io/docs/developers/apiv4/en/#generate-currency-deposit-address
+        :param str code: unified currency code of the currency for the deposit address
+        :param dict params: extra parameters specific to the gate api endpoint
+        :returns dict: an `address structure <https://docs.ccxt.com/en/latest/manual.html#address-structure>`
+        """
+        return self.fetch_deposit_address(code, params)
+
     def fetch_deposit_address(self, code, params={}):
         """
         fetch the deposit address for a currency associated with self account
+        see https://www.gate.io/docs/developers/apiv4/en/#generate-currency-deposit-address
         :param str code: unified currency code
         :param dict params: extra parameters specific to the gate api endpoint
         :returns dict: an `address structure <https://docs.ccxt.com/en/latest/manual.html#address-structure>`
@@ -1539,6 +1552,8 @@ class gate(Exchange):
         tag = None
         address = None
         if addressField is not None:
+            if addressField.find('New address is being generated for you, please wait') >= 0:
+                raise BadResponse(self.id + ' ' + 'New address is being generated for you, please wait a few seconds and try again to get the address.')
             if addressField.find(' ') >= 0:
                 splitted = addressField.split(' ')
                 address = splitted[0]

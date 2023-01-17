@@ -1284,35 +1284,25 @@ class binance(Exchange, ccxt.async_support.binance):
                 'cost': feeCost,
                 'currency': feeCurrency,
             }
-        price = self.safe_float(order, 'p')
-        amount = self.safe_float(order, 'q')
+        price = self.safe_string(order, 'p')
+        amount = self.safe_string(order, 'q')
         side = self.safe_string_lower(order, 'S')
         type = self.safe_string_lower(order, 'o')
-        filled = self.safe_float(order, 'z')
-        cumulativeQuote = self.safe_float(order, 'Z')
-        remaining = amount
-        average = self.safe_float(order, 'ap')
-        cost = cumulativeQuote
-        if filled is not None:
-            if cost is None:
-                if price is not None:
-                    cost = filled * price
-            if amount is not None:
-                remaining = max(amount - filled, 0)
-            if (average is None) and (cumulativeQuote is not None) and (filled > 0):
-                average = cumulativeQuote / filled
+        filled = self.safe_string(order, 'z')
+        cost = self.safe_string(order, 'Z')
+        average = self.safe_string(order, 'ap')
         rawStatus = self.safe_string(order, 'X')
         status = self.parse_order_status(rawStatus)
         trades = None
         clientOrderId = self.safe_string(order, 'C')
         if (clientOrderId is None) or (len(clientOrderId) == 0):
             clientOrderId = self.safe_string(order, 'c')
-        stopPrice = self.safe_float_2(order, 'P', 'sp')
+        stopPrice = self.safe_string_2(order, 'P', 'sp')
         timeInForce = self.safe_string(order, 'f')
         if timeInForce == 'GTX':
             # GTX means "Good Till Crossing" and is an equivalent way of saying Post Only
             timeInForce = 'PO'
-        return {
+        return self.safe_order({
             'info': order,
             'symbol': symbol,
             'id': orderId,
@@ -1331,11 +1321,11 @@ class binance(Exchange, ccxt.async_support.binance):
             'cost': cost,
             'average': average,
             'filled': filled,
-            'remaining': remaining,
+            'remaining': None,
             'status': status,
             'fee': fee,
             'trades': trades,
-        }
+        })
 
     def handle_order_update(self, client, message):
         #

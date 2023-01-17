@@ -2,7 +2,7 @@
 // ----------------------------------------------------------------------------
 
 import { Exchange } from './base/Exchange.js';
-import { ExchangeError, ArgumentsRequired, AuthenticationError, RateLimitExceeded, InvalidNonce } from './base/errors.js';
+import { ExchangeError, ArgumentsRequired, AuthenticationError, RateLimitExceeded, InvalidNonce, BadRequest } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
 // ----------------------------------------------------------------------------
@@ -27,7 +27,8 @@ export default class coinbase extends Exchange {
                 'future': false,
                 'option': false,
                 'addMargin': false,
-                'cancelOrder': undefined,
+                'cancelOrder': true,
+                'cancelOrders': true,
                 'createDepositAddress': true,
                 'createOrder': undefined,
                 'createReduceOnlyOrder': false,
@@ -261,6 +262,8 @@ export default class coinbase extends Exchange {
                 ],
                 'advanced': true, // set to true if using any v3 endpoints from the advanced trade API
                 'fetchMarkets': 'fetchMarketsV3', // 'fetchMarketsV3' or 'fetchMarketsV2'
+                'fetchTicker': 'fetchTickerV3', // 'fetchTickerV3' or 'fetchTickerV2'
+                'fetchTickers': 'fetchTickersV3', // 'fetchTickersV3' or 'fetchTickersV2'
             },
         });
     }
@@ -726,8 +729,7 @@ export default class coinbase extends Exchange {
          * @param {object} params extra parameters specific to the exchange api endpoint
          * @returns {[object]} an array of objects representing market data
          */
-        const options = this.safeValue (this.options, 'fetchMarkets');
-        const method = (this.safeString (options, 'method', 'fetch_markets_v3'));
+        const method = this.safeString (this.options, 'fetchMarkets', 'fetchMarketsV3');
         return await this[method] (params);
     }
 
@@ -1028,6 +1030,14 @@ export default class coinbase extends Exchange {
          * @param {object} params extra parameters specific to the coinbase api endpoint
          * @returns {object} an array of [ticker structures]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
          */
+        const method = this.safeString (this.options, 'fetchTickers', 'fetchTickersV3');
+        if (method === 'fetchTickersV3') {
+            return await this.fetchTickersV3 (symbols, params);
+        }
+        return await this.fetchTickersV2 (symbols, params);
+    }
+
+    async fetchTickersV2 (symbols = undefined, params = {}) {
         await this.loadMarkets ();
         symbols = this.marketSymbols (symbols);
         const request = {
@@ -1062,6 +1072,59 @@ export default class coinbase extends Exchange {
         return this.filterByArray (result, 'symbol', symbols);
     }
 
+    async fetchTickersV3 (symbols = undefined, params = {}) {
+        await this.loadMarkets ();
+        symbols = this.marketSymbols (symbols);
+        const response = await (this as any).v3PrivateGetBrokerageProducts (params);
+        //
+        //     {
+        //         'products': [
+        //             {
+        //                 "product_id": "TONE-USD",
+        //                 "price": "0.01523",
+        //                 "price_percentage_change_24h": "1.94109772423025",
+        //                 "volume_24h": "19773129",
+        //                 "volume_percentage_change_24h": "437.0170530929949",
+        //                 "base_increment": "1",
+        //                 "quote_increment": "0.00001",
+        //                 "quote_min_size": "1",
+        //                 "quote_max_size": "10000000",
+        //                 "base_min_size": "26.7187147229469674",
+        //                 "base_max_size": "267187147.2294696735908216",
+        //                 "base_name": "TE-FOOD",
+        //                 "quote_name": "US Dollar",
+        //                 "watched": false,
+        //                 "is_disabled": false,
+        //                 "new": false,
+        //                 "status": "online",
+        //                 "cancel_only": false,
+        //                 "limit_only": false,
+        //                 "post_only": false,
+        //                 "trading_disabled": false,
+        //                 "auction_mode": false,
+        //                 "product_type": "SPOT",
+        //                 "quote_currency_id": "USD",
+        //                 "base_currency_id": "TONE",
+        //                 "fcm_trading_session_details": null,
+        //                 "mid_market_price": ""
+        //             },
+        //             ...
+        //         ],
+        //         "num_products": 549
+        //     }
+        //
+        const data = this.safeValue (response, 'products', []);
+        const result = {};
+        for (let i = 0; i < data.length; i++) {
+            const entry = data[i];
+            const marketId = this.safeString (entry, 'product_id');
+            const market = this.safeMarket (marketId, undefined, '-');
+            const symbol = market['symbol'];
+            result[symbol] = this.parseTicker (entry, market);
+        }
+        return this.filterByArray (result, 'symbol', symbols);
+    }
+
     async fetchTicker (symbol, params = {}) {
         /**
          * @method
@@ -1071,6 +1134,14 @@ export default class coinbase extends Exchange {
          * @param {object} params extra parameters specific to the coinbase api endpoint
          * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
          */
+        const method = this.safeString (this.options, 'fetchTicker', 'fetchTickerV3');
+        if (method === 'fetchTickerV3') {
+            return await this.fetchTickerV3 (symbol, params);
+        }
+        return await this.fetchTickerV2 (symbol, params);
+    }
+
+    async fetchTickerV2 (symbol, params = {}) {
         await this.loadMarkets ();
         const market = this.market (symbol);
         const request = this.extend ({
@@ -1080,51 +1151,123 @@ export default class coinbase extends Exchange {
         //
         //     {"data":{"base":"BTC","currency":"USD","amount":"48691.23"}}
         //
-        const buy = await (this as any).v2PublicGetPricesSymbolBuy (request);
+        const ask = await (this as any).v2PublicGetPricesSymbolBuy (request);
         //
         //     {"data":{"base":"BTC","currency":"USD","amount":"48691.23"}}
         //
-        const sell = await (this as any).v2PublicGetPricesSymbolSell (request);
+        const bid = await (this as any).v2PublicGetPricesSymbolSell (request);
         //
         //     {"data":{"base":"BTC","currency":"USD","amount":"48691.23"}}
         //
-        return this.parseTicker ([ spot, buy, sell ], market);
+        const spotData = this.safeValue (spot, 'data', {});
+        const askData = this.safeValue (ask, 'data', {});
+        const bidData = this.safeValue (bid, 'data', {});
+        const bidAskLast = {
+            'bid': this.safeNumber (bidData, 'amount'),
+            'ask': this.safeNumber (askData, 'amount'),
+            'price': this.safeNumber (spotData, 'amount'),
+        };
+        return this.parseTicker (bidAskLast, market);
+    }
+
+    async fetchTickerV3 (symbol, params = {}) {
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const request = {
+            'product_id': market['id'],
+            'limit': 1,
+        };
+        const response = await (this as any).v3PrivateGetBrokerageProductsProductIdTicker (this.extend (request, params));
+        //
+        //     {
+        //         "trades": [
+        //             {
+        //                 "trade_id": "10209805",
+        //                 "product_id": "BTC-USDT",
+        //                 "price": "19381.27",
+        //                 "size": "0.1",
+        //                 "time": "2023-01-13T20:35:41.865970Z",
+        //                 "side": "BUY",
+        //                 "bid": "",
+        //                 "ask": ""
+        //             }
+        //         ]
+        //     }
+        //
+        const data = this.safeValue (response, 'trades', []);
+        return this.parseTicker (data[0], market);
     }
 
     parseTicker (ticker, market = undefined) {
         //
-        // fetchTicker
+        // fetchTickerV2
         //
-        //     [
-        //         "48691.23", // spot
-        //         "48691.23", // buy
-        //         "48691.23",  // sell
-        //     ]
+        //     {
+        //         "bid": 20713.37,
+        //         "ask": 20924.65,
+        //         "price": 20809.83
+        //     }
         //
-        // fetchTickers
+        // fetchTickerV3
+        //
+        //     {
+        //         "trade_id": "10209805",
+        //         "product_id": "BTC-USDT",
+        //         "price": "19381.27",
+        //         "size": "0.1",
+        //         "time": "2023-01-13T20:35:41.865970Z",
+        //         "side": "BUY",
+        //         "bid": "",
+        //         "ask": ""
+        //     }
+        //
+        // fetchTickersV2
         //
         //     "48691.23"
         //
-        const symbol = this.safeSymbol (undefined, market);
-        let ask = undefined;
-        let bid = undefined;
-        let last = undefined;
-        const timestamp = this.milliseconds ();
-        if (typeof ticker !== 'string') {
-            const [ spot, sell, buy ] = ticker;
-            const spotData = this.safeValue (spot, 'data', {});
-            const buyData = this.safeValue (buy, 'data', {});
-            const sellData = this.safeValue (sell, 'data', {});
-            last = this.safeString (spotData, 'amount');
-            bid = this.safeString (buyData, 'amount');
-            ask = this.safeString (sellData, 'amount');
-        }
+        // fetchTickersV3
+        //
+        //     [
+        //         {
+        //             "product_id": "TONE-USD",
+        //             "price": "0.01523",
+        //             "price_percentage_change_24h": "1.94109772423025",
+        //             "volume_24h": "19773129",
+        //             "volume_percentage_change_24h": "437.0170530929949",
+        //             "base_increment": "1",
+        //             "quote_increment": "0.00001",
+        //             "quote_min_size": "1",
+        //             "quote_max_size": "10000000",
+        //             "base_min_size": "26.7187147229469674",
+        //             "base_max_size": "267187147.2294696735908216",
+        //             "base_name": "TE-FOOD",
+        //             "quote_name": "US Dollar",
+        //             "watched": false,
+        //             "is_disabled": false,
+        //             "new": false,
+        //             "status": "online",
+        //             "cancel_only": false,
+        //             "limit_only": false,
+        //             "post_only": false,
+        //             "trading_disabled": false,
+        //             "auction_mode": false,
+        //             "product_type": "SPOT",
+        //             "quote_currency_id": "USD",
+        //             "base_currency_id": "TONE",
+        //             "fcm_trading_session_details": null,
+        //             "mid_market_price": ""
+        //         },
+        //         ...
+        //     ]
+        //
+        const marketId = this.safeString (ticker, 'product_id');
+        const last = this.safeNumber (ticker, 'price');
         return this.safeTicker ({
-            'symbol': symbol,
-            'timestamp': timestamp,
-            'datetime': this.iso8601 (timestamp),
-            'bid': bid,
-            'ask': ask,
+            'symbol': this.safeSymbol (marketId, market),
+            'timestamp': undefined,
+            'datetime': undefined,
+            'bid': this.safeNumber (ticker, 'bid'),
+            'ask': this.safeNumber (ticker, 'ask'),
             'last': last,
             'high': undefined,
             'low': undefined,
@@ -1135,7 +1278,7 @@ export default class coinbase extends Exchange {
             'close': last,
             'previousClose': undefined,
             'change': undefined,
-            'percentage': undefined,
+            'percentage': this.safeNumber (ticker, 'price_percentage_change_24h'),
             'average': undefined,
             'baseVolume': undefined,
             'quoteVolume': undefined,
@@ -1629,6 +1772,115 @@ export default class coinbase extends Exchange {
             request['limit'] = limit;
         }
         return request;
+    }
+
+    parseOrder (order, market = undefined) {
+        //
+        // createOrder
+        //
+        //     {
+        //         "order_id": "52cfe5e2-0b29-4c19-a245-a6a773de5030",
+        //         "product_id": "LTC-BTC",
+        //         "side": "SELL",
+        //         "client_order_id": "4d760580-6fca-4094-a70b-ebcca8626288"
+        //     }
+        //
+        // cancelOrder, cancelOrders
+        //
+        //     {
+        //         "success": true,
+        //         "failure_reason": "UNKNOWN_CANCEL_FAILURE_REASON",
+        //         "order_id": "bb8851a3-4fda-4a2c-aa06-9048db0e0f0d"
+        //     }
+        //
+        const marketId = this.safeString (order, 'product_id');
+        const symbol = this.safeSymbol (marketId, market, '-');
+        if (symbol !== undefined) {
+            market = this.market (symbol);
+        }
+        const rawSide = this.safeString (order, 'side');
+        const side = (rawSide !== undefined) ? rawSide.toLowerCase () : undefined;
+        return this.safeOrder ({
+            'info': order,
+            'id': this.safeString (order, 'order_id'),
+            'clientOrderId': this.safeString (order, 'client_order_id'),
+            'timestamp': undefined,
+            'datetime': undefined,
+            'lastTradeTimestamp': undefined,
+            'symbol': symbol,
+            'type': undefined,
+            'timeInForce': undefined,
+            'postOnly': undefined,
+            'side': side,
+            'price': undefined,
+            'stopPrice': undefined,
+            'triggerPrice': undefined,
+            'amount': undefined,
+            'filled': undefined,
+            'remaining': undefined,
+            'cost': undefined,
+            'average': undefined,
+            'status': undefined,
+            'fee': {
+                'cost': undefined,
+            },
+            'trades': undefined,
+        }, market);
+    }
+
+    async cancelOrder (id, symbol = undefined, params = {}) {
+        /**
+         * @method
+         * @name coinbase#cancelOrder
+         * @description cancels an open order
+         * @see https://docs.cloud.coinbase.com/advanced-trade-api/reference/retailbrokerageapi_cancelorders
+         * @param {string} id order id
+         * @param {string|undefined} symbol not used by coinbase cancelOrder()
+         * @param {object} params extra parameters specific to the coinbase api endpoint
+         * @returns {object} An [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
+         */
+        await this.loadMarkets ();
+        const orders = await this.cancelOrders ([ id ], symbol, params);
+        return this.safeValue (orders, 0, {});
+    }
+
+    async cancelOrders (ids, symbol = undefined, params = {}) {
+        /**
+         * @method
+         * @name coinbase#cancelOrders
+         * @description cancel multiple orders
+         * @see https://docs.cloud.coinbase.com/advanced-trade-api/reference/retailbrokerageapi_cancelorders
+         * @param {[string]} ids order ids
+         * @param {string|undefined} symbol not used by coinbase cancelOrders()
+         * @param {object} params extra parameters specific to the coinbase api endpoint
+         * @returns {object} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
+         */
+        await this.loadMarkets ();
+        let market = undefined;
+        if (symbol !== undefined) {
+            market = this.market (symbol);
+        }
+        const request = {
+            'order_ids': ids,
+        };
+        const response = await (this as any).v3PrivatePostBrokerageOrdersBatchCancel (this.extend (request, params));
+        //
+        //     {
+        //         "results": [
+        //             {
+        //                 "success": true,
+        //                 "failure_reason": "UNKNOWN_CANCEL_FAILURE_REASON",
+        //                 "order_id": "bb8851a3-4fda-4a2c-aa06-9048db0e0f0d"
+        //             }
+        //         ]
+        //     }
+        //
+        const orders = this.safeValue (response, 'results', []);
+        const success = this.safeValue (orders, 'success');
+        if (success !== true) {
+            throw new BadRequest (this.id + ' cancelOrders() has failed, check your arguments and parameters');
+        }
+        return this.parseOrders (orders, market);
     }
 
     sign (path, api = [], method = 'GET', params = {}, headers = undefined, body = undefined) {
