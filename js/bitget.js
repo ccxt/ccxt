@@ -1339,16 +1339,16 @@ module.exports = class bitget extends Exchange {
          * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure}
          */
         this.checkAddress (address);
-        const networkCodeOrId = this.safeString (params, 'chain');
-        if (networkCodeOrId === undefined) {
-            throw new ArgumentsRequired (this.id + ' withdraw() requires a chain parameter');
+        const networkCode = this.safeString2 (params, 'network', 'chain');
+        if (networkCode === undefined) {
+            throw new ArgumentsRequired (this.id + ' withdraw() requires a "network" parameter');
         }
         await this.loadMarkets ();
         const currency = this.currency (code);
         const request = {
             'coin': currency['code'],
             'address': address,
-            'chain': this.networkCodeToId (networkCodeOrId),
+            'chain': this.networkCodeToId (networkCode),
             'amount': amount,
         };
         if (tag !== undefined) {
