@@ -1032,7 +1032,10 @@ module.exports = class coinbase extends Exchange {
          * @returns {object} an array of [ticker structures]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
          */
         const method = this.safeString (this.options, 'fetchTickers', 'fetchTickersV3');
-        return await this[method] (symbols, params);
+        if (method === 'fetchTickersV3') {
+            return await this.fetchTickersV3 (symbols, params);
+        }
+        return await this.fetchTickersV2 (symbols, params);
     }
 
     async fetchTickersV2 (symbols = undefined, params = {}) {
@@ -1133,7 +1136,10 @@ module.exports = class coinbase extends Exchange {
          * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
          */
         const method = this.safeString (this.options, 'fetchTicker', 'fetchTickerV3');
-        return await this[method] (symbol, params);
+        if (method === 'fetchTickerV3') {
+            return await this.fetchTickerV3 (symbol, params);
+        }
+        return await this.fetchTickerV2 (symbol, params);
     }
 
     async fetchTickerV2 (symbol, params = {}) {
