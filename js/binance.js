@@ -133,6 +133,7 @@ module.exports = class binance extends Exchange {
                 'test': {
                     'dapiPublic': 'https://testnet.binancefuture.com/dapi/v1',
                     'dapiPrivate': 'https://testnet.binancefuture.com/dapi/v1',
+                    'dapiPrivateV2': 'https://testnet.binancefuture.com/dapi/v2',
                     'eapiPublic': 'https://testnet.binanceops.com/eapi/v1',
                     'eapiPrivate': 'https://testnet.binanceops.com/eapi/v1',
                     'fapiPublic': 'https://testnet.binancefuture.com/fapi/v1',
