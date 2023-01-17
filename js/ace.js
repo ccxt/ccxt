@@ -104,7 +104,6 @@ module.exports = class ace extends Exchange {
             'requiredCredentials': {
                 'apiKey': true,
                 'secret': true,
-                'phone': true,
             },
             'api': {
                 'public': {
