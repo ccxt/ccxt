@@ -2018,8 +2018,7 @@ module.exports = class bitget extends Exchange {
             'spot': 'publicSpotGetMarketCandles',
             'swap': 'publicMixGetMarketCandles',
         });
-        const until = this.safeInteger2 (params, 'until', 'till');
-        params = this.omit (params, [ 'until', 'till' ]);
+        const until = this.safeInteger2 (query, 'until', 'till');
         if (limit === undefined) {
             limit = 100;
         }
@@ -2052,7 +2051,8 @@ module.exports = class bitget extends Exchange {
                 }
             }
         }
-        const response = await this[method] (this.extend (request, query));
+        const ommitted = this.omit (query, [ 'until', 'till' ]);
+        const response = await this[method] (this.extend (request, ommitted));
         //  [ ["1645911960000","39406","39407","39374.5","39379","35.526","1399132.341"] ]
         const data = this.safeValue (response, 'data', response);
         return this.parseOHLCVs (data, market, timeframe, since, limit);
@@ -2524,7 +2524,7 @@ module.exports = class bitget extends Exchange {
             'symbol': market['id'],
             'orderId': id,
         };
-        const stop = this.safeValue (params, 'stop');
+        const stop = this.safeValue (query, 'stop');
         if (stop) {
             if (marketType === 'spot') {
                 method = 'privateSpotPostPlanCancelPlan';
@@ -2535,13 +2535,13 @@ module.exports = class bitget extends Exchange {
                 }
                 request['planType'] = planType;
                 method = 'privateMixPostPlanCancelPlan';
-                params = this.omit (params, [ 'stop', 'planType' ]);
             }
         }
         if (marketType === 'swap') {
             request['marginCoin'] = market['settleId'];
         }
-        const response = await this[method] (this.extend (request, query));
+        const ommitted = this.omit (query, [ 'stop', 'planType' ]);
+        const response = await this[method] (this.extend (request, ommitted));
         return this.parseOrder (response, market);
     }
 
@@ -2648,14 +2648,13 @@ module.exports = class bitget extends Exchange {
             'productType': productType,
         };
         let method = undefined;
-        const stop = this.safeValue (params, 'stop');
-        const planType = this.safeString (params, 'planType');
+        const stop = this.safeValue (query, 'stop');
+        const planType = this.safeString (query, 'planType');
         if (stop !== undefined || planType !== undefined) {
             if (planType === undefined) {
                 throw new ArgumentsRequired (this.id + ' cancelOrder() requires a planType parameter for stop orders, either normal_plan, profit_plan, loss_plan, pos_profit, pos_loss, moving_plan or track_plan');
             }
             method = 'privateMixPostPlanCancelAllPlan';
-            params = this.omit (params, [ 'stop' ]);
         } else {
             const code = this.safeString2 (params, 'code', 'marginCoin');
             if (code === undefined) {
@@ -2665,8 +2664,8 @@ module.exports = class bitget extends Exchange {
             request['marginCoin'] = this.safeCurrencyCode (code, currency);
             method = 'privateMixPostOrderCancelAllOrders';
         }
-        params = this.omit (query, [ 'code', 'marginCoin' ]);
-        const response = await this[method] (this.extend (request, params));
+        const ommitted = this.omit (query, [ 'stop', 'code', 'marginCoin' ]);
+        const response = await this[method] (this.extend (request, ommitted));
         //
         //     {
         //         "code": "00000",
@@ -2941,15 +2940,13 @@ module.exports = class bitget extends Exchange {
             'spot': 'privateSpotPostTradeHistory',
             'swap': 'privateMixGetOrderHistory',
         });
-        let omitted = query;
-        const stop = this.safeValue (omitted, 'stop');
+        const stop = this.safeValue (query, 'stop');
         if (stop) {
             if (marketType === 'spot') {
                 method = 'privateSpotPostPlanHistoryPlan';
             } else {
                 method = 'privateMixGetPlanHistoryPlan';
             }
-            omitted = this.omit (omitted, 'stop');
         }
         if (marketType === 'swap' || stop) {
             if (limit === undefined) {
@@ -2962,6 +2959,7 @@ module.exports = class bitget extends Exchange {
             request['startTime'] = since;
             request['endTime'] = this.milliseconds ();
         }
+        const omitted = this.omit (query, 'stop');
         const response = await this[method] (this.extend (request, omitted));
         //
         //  spot
