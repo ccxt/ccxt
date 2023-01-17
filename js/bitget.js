@@ -2937,11 +2937,21 @@ module.exports = class bitget extends Exchange {
         const request = {
             'symbol': market['id'],
         };
-        const method = this.getSupportedMapping (marketType, {
+        let method = this.getSupportedMapping (marketType, {
             'spot': 'privateSpotPostTradeHistory',
             'swap': 'privateMixGetOrderHistory',
         });
-        if (marketType === 'swap') {
+        let omitted = query;
+        const stop = this.safeValue (omitted, 'stop');
+        if (stop) {
+            if (marketType === 'spot') {
+                method = 'privateSpotPostPlanHistoryPlan';
+            } else {
+                method = 'privateMixGetPlanHistoryPlan';
+            }
+            omitted = this.omit (omitted, 'stop');
+        }
+        if (marketType === 'swap' || stop) {
             if (limit === undefined) {
                 limit = 100;
             }
@@ -2952,7 +2962,7 @@ module.exports = class bitget extends Exchange {
             request['startTime'] = since;
             request['endTime'] = this.milliseconds ();
         }
-        const response = await this[method] (this.extend (request, query));
+        const response = await this[method] (this.extend (request, omitted));
         //
         //  spot
         //     {
@@ -3009,6 +3019,59 @@ module.exports = class bitget extends Exchange {
         //           }
         //         ]
         //       }
+        //     }
+        //
+        // spot plan order
+        //
+        //     {
+        //         "code": "00000",
+        //         "msg": "success",
+        //         "requestTime": 1668134626684,
+        //         "data": {
+        //         "nextFlag": false,
+        //         "endId": 974792060738441216,
+        //         "orderList": [
+        //             {
+        //             "orderId": "974792060738441216",
+        //             "symbol": "TRXUSDT_SPBL",
+        //             "size": "156",
+        //             "executePrice": "0.041272",
+        //             "triggerPrice": "0.041222",
+        //             "status": "cancel",
+        //             "orderType": "limit",
+        //             "side": "buy",
+        //             "triggerType": "fill_price",
+        //             "cTime": "1668134458717"
+        //             }
+        //           ]
+        //         }
+        //     }
+        //
+        // swap plan order
+        //
+        //     {
+        //         "code":"00000",
+        //         "data":[
+        //             {
+        //                 "orderId":"803521986049314816",
+        //                 "executeOrderId":"84271931884910",
+        //                 "symbol":"BTCUSDT_UMCBL",
+        //                 "marginCoin":"USDT",
+        //                 "size":"1",
+        //                 "executePrice":"38923.1",
+        //                 "triggerPrice":"45000.3",
+        //                 "status":"not_trigger",
+        //                 "orderType":"limit",
+        //                 "planType":"normal_plan",
+        //                 "side":"open_long",
+        //                 "triggerType":"fill_price",
+        //                 "presetTakeProfitPrice":"0",
+        //                 "presetTakeLossPrice":"0",
+        //                 "ctime":"1627300490867"
+        //             }
+        //         ],
+        //         "msg":"success",
+        //         "requestTime":1627354109502
         //     }
         //
         const data = this.safeValue (response, 'data');
