@@ -1898,7 +1898,6 @@ module.exports = class binance extends Exchange {
         let symbol = base + '/' + quote;
         if (contract) {
             if (swap) {
-                expiry = this.safeInteger (market, 'deliveryDate');
                 symbol = symbol + ':' + settle;
             } else if (future) {
                 symbol = symbol + ':' + settle + '-' + this.yymmdd (expiry);
