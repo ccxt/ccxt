@@ -268,6 +268,8 @@ class coinbase(Exchange):
                 ],
                 'advanced': True,  # set to True if using any v3 endpoints from the advanced trade API
                 'fetchMarkets': 'fetchMarketsV3',  # 'fetchMarketsV3' or 'fetchMarketsV2'
+                'fetchTicker': 'fetchTickerV3',  # 'fetchTickerV3' or 'fetchTickerV2'
+                'fetchTickers': 'fetchTickersV3',  # 'fetchTickersV3' or 'fetchTickersV2'
             },
         })
 
@@ -697,8 +699,7 @@ class coinbase(Exchange):
         :param dict params: extra parameters specific to the exchange api endpoint
         :returns [dict]: an array of objects representing market data
         """
-        options = self.safe_value(self.options, 'fetchMarkets')
-        method = (self.safe_string(options, 'method', 'fetch_markets_v3'))
+        method = self.safe_string(self.options, 'fetchMarkets', 'fetchMarketsV3')
         return getattr(self, method)(params)
 
     def fetch_markets_v2(self, params={}):
@@ -984,6 +985,12 @@ class coinbase(Exchange):
         :param dict params: extra parameters specific to the coinbase api endpoint
         :returns dict: an array of `ticker structures <https://docs.ccxt.com/en/latest/manual.html#ticker-structure>`
         """
+        method = self.safe_string(self.options, 'fetchTickers', 'fetchTickersV3')
+        if method == 'fetchTickersV3':
+            return self.fetch_tickers_v3(symbols, params)
+        return self.fetch_tickers_v2(symbols, params)
+
+    def fetch_tickers_v2(self, symbols=None, params={}):
         self.load_markets()
         symbols = self.market_symbols(symbols)
         request = {
@@ -1016,6 +1023,57 @@ class coinbase(Exchange):
             result[symbol] = self.parse_ticker(rates[baseId], market)
         return self.filter_by_array(result, 'symbol', symbols)
 
+    def fetch_tickers_v3(self, symbols=None, params={}):
+        self.load_markets()
+        symbols = self.market_symbols(symbols)
+        response = self.v3PrivateGetBrokerageProducts(params)
+        #
+        #     {
+        #         'products': [
+        #             {
+        #                 "product_id": "TONE-USD",
+        #                 "price": "0.01523",
+        #                 "price_percentage_change_24h": "1.94109772423025",
+        #                 "volume_24h": "19773129",
+        #                 "volume_percentage_change_24h": "437.0170530929949",
+        #                 "base_increment": "1",
+        #                 "quote_increment": "0.00001",
+        #                 "quote_min_size": "1",
+        #                 "quote_max_size": "10000000",
+        #                 "base_min_size": "26.7187147229469674",
+        #                 "base_max_size": "267187147.2294696735908216",
+        #                 "base_name": "TE-FOOD",
+        #                 "quote_name": "US Dollar",
+        #                 "watched": False,
+        #                 "is_disabled": False,
+        #                 "new": False,
+        #                 "status": "online",
+        #                 "cancel_only": False,
+        #                 "limit_only": False,
+        #                 "post_only": False,
+        #                 "trading_disabled": False,
+        #                 "auction_mode": False,
+        #                 "product_type": "SPOT",
+        #                 "quote_currency_id": "USD",
+        #                 "base_currency_id": "TONE",
+        #                 "fcm_trading_session_details": null,
+        #                 "mid_market_price": ""
+        #             },
+        #             ...
+        #         ],
+        #         "num_products": 549
+        #     }
+        #
+        data = self.safe_value(response, 'products', [])
+        result = {}
+        for i in range(0, len(data)):
+            entry = data[i]
+            marketId = self.safe_string(entry, 'product_id')
+            market = self.safe_market(marketId, None, '-')
+            symbol = market['symbol']
+            result[symbol] = self.parse_ticker(entry, market)
+        return self.filter_by_array(result, 'symbol', symbols)
+
     def fetch_ticker(self, symbol, params={}):
         """
         fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
@@ -1023,6 +1081,12 @@ class coinbase(Exchange):
         :param dict params: extra parameters specific to the coinbase api endpoint
         :returns dict: a `ticker structure <https://docs.ccxt.com/en/latest/manual.html#ticker-structure>`
         """
+        method = self.safe_string(self.options, 'fetchTicker', 'fetchTickerV3')
+        if method == 'fetchTickerV3':
+            return self.fetch_ticker_v3(symbol, params)
+        return self.fetch_ticker_v2(symbol, params)
+
+    def fetch_ticker_v2(self, symbol, params={}):
         self.load_markets()
         market = self.market(symbol)
         request = self.extend({
@@ -1032,49 +1096,121 @@ class coinbase(Exchange):
         #
         #     {"data":{"base":"BTC","currency":"USD","amount":"48691.23"}}
         #
-        buy = self.v2PublicGetPricesSymbolBuy(request)
+        ask = self.v2PublicGetPricesSymbolBuy(request)
         #
         #     {"data":{"base":"BTC","currency":"USD","amount":"48691.23"}}
         #
-        sell = self.v2PublicGetPricesSymbolSell(request)
+        bid = self.v2PublicGetPricesSymbolSell(request)
         #
         #     {"data":{"base":"BTC","currency":"USD","amount":"48691.23"}}
         #
-        return self.parse_ticker([spot, buy, sell], market)
+        spotData = self.safe_value(spot, 'data', {})
+        askData = self.safe_value(ask, 'data', {})
+        bidData = self.safe_value(bid, 'data', {})
+        bidAskLast = {
+            'bid': self.safe_number(bidData, 'amount'),
+            'ask': self.safe_number(askData, 'amount'),
+            'price': self.safe_number(spotData, 'amount'),
+        }
+        return self.parse_ticker(bidAskLast, market)
+
+    def fetch_ticker_v3(self, symbol, params={}):
+        self.load_markets()
+        market = self.market(symbol)
+        request = {
+            'product_id': market['id'],
+            'limit': 1,
+        }
+        response = self.v3PrivateGetBrokerageProductsProductIdTicker(self.extend(request, params))
+        #
+        #     {
+        #         "trades": [
+        #             {
+        #                 "trade_id": "10209805",
+        #                 "product_id": "BTC-USDT",
+        #                 "price": "19381.27",
+        #                 "size": "0.1",
+        #                 "time": "2023-01-13T20:35:41.865970Z",
+        #                 "side": "BUY",
+        #                 "bid": "",
+        #                 "ask": ""
+        #             }
+        #         ]
+        #     }
+        #
+        data = self.safe_value(response, 'trades', [])
+        return self.parse_ticker(data[0], market)
 
     def parse_ticker(self, ticker, market=None):
         #
-        # fetchTicker
+        # fetchTickerV2
         #
-        #     [
-        #         "48691.23",  # spot
-        #         "48691.23",  # buy
-        #         "48691.23",  # sell
-        #     ]
+        #     {
+        #         "bid": 20713.37,
+        #         "ask": 20924.65,
+        #         "price": 20809.83
+        #     }
         #
-        # fetchTickers
+        # fetchTickerV3
+        #
+        #     {
+        #         "trade_id": "10209805",
+        #         "product_id": "BTC-USDT",
+        #         "price": "19381.27",
+        #         "size": "0.1",
+        #         "time": "2023-01-13T20:35:41.865970Z",
+        #         "side": "BUY",
+        #         "bid": "",
+        #         "ask": ""
+        #     }
+        #
+        # fetchTickersV2
         #
         #     "48691.23"
         #
-        symbol = self.safe_symbol(None, market)
-        ask = None
-        bid = None
-        last = None
-        timestamp = self.milliseconds()
-        if not isinstance(ticker, str):
-            spot, sell, buy = ticker
-            spotData = self.safe_value(spot, 'data', {})
-            buyData = self.safe_value(buy, 'data', {})
-            sellData = self.safe_value(sell, 'data', {})
-            last = self.safe_string(spotData, 'amount')
-            bid = self.safe_string(buyData, 'amount')
-            ask = self.safe_string(sellData, 'amount')
+        # fetchTickersV3
+        #
+        #     [
+        #         {
+        #             "product_id": "TONE-USD",
+        #             "price": "0.01523",
+        #             "price_percentage_change_24h": "1.94109772423025",
+        #             "volume_24h": "19773129",
+        #             "volume_percentage_change_24h": "437.0170530929949",
+        #             "base_increment": "1",
+        #             "quote_increment": "0.00001",
+        #             "quote_min_size": "1",
+        #             "quote_max_size": "10000000",
+        #             "base_min_size": "26.7187147229469674",
+        #             "base_max_size": "267187147.2294696735908216",
+        #             "base_name": "TE-FOOD",
+        #             "quote_name": "US Dollar",
+        #             "watched": False,
+        #             "is_disabled": False,
+        #             "new": False,
+        #             "status": "online",
+        #             "cancel_only": False,
+        #             "limit_only": False,
+        #             "post_only": False,
+        #             "trading_disabled": False,
+        #             "auction_mode": False,
+        #             "product_type": "SPOT",
+        #             "quote_currency_id": "USD",
+        #             "base_currency_id": "TONE",
+        #             "fcm_trading_session_details": null,
+        #             "mid_market_price": ""
+        #         },
+        #         ...
+        #     ]
+        #
+        marketId = self.safe_string(ticker, 'product_id')
+        last = self.safe_number(ticker, 'price')
         return self.safe_ticker({
-            'symbol': symbol,
-            'timestamp': timestamp,
-            'datetime': self.iso8601(timestamp),
-            'bid': bid,
-            'ask': ask,
+            'symbol': self.safe_symbol(marketId, market),
+            'timestamp': None,
+            'datetime': None,
+            'bid': self.safe_number(ticker, 'bid'),
+            'ask': self.safe_number(ticker, 'ask'),
             'last': last,
             'high': None,
             'low': None,
@@ -1085,7 +1221,7 @@ class coinbase(Exchange):
             'close': last,
             'previousClose': None,
             'change': None,
-            'percentage': None,
+            'percentage': self.safe_number(ticker, 'price_percentage_change_24h'),
             'average': None,
             'baseVolume': None,
             'quoteVolume': None,

@@ -262,6 +262,8 @@ class coinbase extends Exchange {
                 ),
                 'advanced' => true, // set to true if using any v3 endpoints from the advanced trade API
                 'fetchMarkets' => 'fetchMarketsV3', // 'fetchMarketsV3' or 'fetchMarketsV2'
+                'fetchTicker' => 'fetchTickerV3', // 'fetchTickerV3' or 'fetchTickerV2'
+                'fetchTickers' => 'fetchTickersV3', // 'fetchTickersV3' or 'fetchTickersV2'
             ),
         ));
     }
@@ -711,8 +713,7 @@ class coinbase extends Exchange {
          * @param {array} $params extra parameters specific to the exchange api endpoint
          * @return {[array]} an array of objects representing market data
          */
-        $options = $this->safe_value($this->options, 'fetchMarkets');
-        $method = ($this->safe_string($options, 'method', 'fetch_markets_v3'));
+        $method = $this->safe_string($this->options, 'fetchMarkets', 'fetchMarketsV3');
         return $this->$method ($params);
     }
 
@@ -1004,11 +1005,19 @@ class coinbase extends Exchange {
 
     public function fetch_tickers($symbols = null, $params = array ()) {
         /**
-         * fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each $market
-         * @param {[string]|null} $symbols unified $symbols of the markets to fetch the ticker for, all $market tickers are returned if not assigned
+         * fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
+         * @param {[string]|null} $symbols unified $symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
          * @param {array} $params extra parameters specific to the coinbase api endpoint
          * @return {array} an array of {@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure ticker structures}
          */
+        $method = $this->safe_string($this->options, 'fetchTickers', 'fetchTickersV3');
+        if ($method === 'fetchTickersV3') {
+            return $this->fetch_tickers_v3($symbols, $params);
+        }
+        return $this->fetch_tickers_v2($symbols, $params);
+    }
+
+    public function fetch_tickers_v2($symbols = null, $params = array ()) {
         $this->load_markets();
         $symbols = $this->market_symbols($symbols);
         $request = array(
@@ -1043,13 +1052,74 @@ class coinbase extends Exchange {
         return $this->filter_by_array($result, 'symbol', $symbols);
     }
 
+    public function fetch_tickers_v3($symbols = null, $params = array ()) {
+        $this->load_markets();
+        $symbols = $this->market_symbols($symbols);
+        $response = $this->v3PrivateGetBrokerageProducts ($params);
+        //
+        //     {
+        //         'products' => array(
+        //             array(
+        //                 "product_id" => "TONE-USD",
+        //                 "price" => "0.01523",
+        //                 "price_percentage_change_24h" => "1.94109772423025",
+        //                 "volume_24h" => "19773129",
+        //                 "volume_percentage_change_24h" => "437.0170530929949",
+        //                 "base_increment" => "1",
+        //                 "quote_increment" => "0.00001",
+        //                 "quote_min_size" => "1",
+        //                 "quote_max_size" => "10000000",
+        //                 "base_min_size" => "26.7187147229469674",
+        //                 "base_max_size" => "267187147.2294696735908216",
+        //                 "base_name" => "TE-FOOD",
+        //                 "quote_name" => "US Dollar",
+        //                 "watched" => false,
+        //                 "is_disabled" => false,
+        //                 "new" => false,
+        //                 "status" => "online",
+        //                 "cancel_only" => false,
+        //                 "limit_only" => false,
+        //                 "post_only" => false,
+        //                 "trading_disabled" => false,
+        //                 "auction_mode" => false,
+        //                 "product_type" => "SPOT",
+        //                 "quote_currency_id" => "USD",
+        //                 "base_currency_id" => "TONE",
+        //                 "fcm_trading_session_details" => null,
+        //                 "mid_market_price" => ""
+        //             ),
+        //             ...
+        //         ),
+        //         "num_products" => 549
+        //     }
+        //
+        $data = $this->safe_value($response, 'products', array());
+        $result = array();
+        for ($i = 0; $i < count($data); $i++) {
+            $entry = $data[$i];
+            $marketId = $this->safe_string($entry, 'product_id');
+            $market = $this->safe_market($marketId, null, '-');
+            $symbol = $market['symbol'];
+            $result[$symbol] = $this->parse_ticker($entry, $market);
+        }
+        return $this->filter_by_array($result, 'symbol', $symbols);
+    }
+
     public function fetch_ticker($symbol, $params = array ()) {
         /**
-         * fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific $market
-         * @param {string} $symbol unified $symbol of the $market to fetch the ticker for
+         * fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+         * @param {string} $symbol unified $symbol of the market to fetch the ticker for
          * @param {array} $params extra parameters specific to the coinbase api endpoint
          * @return {array} a {@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure ticker structure}
          */
+        $method = $this->safe_string($this->options, 'fetchTicker', 'fetchTickerV3');
+        if ($method === 'fetchTickerV3') {
+            return $this->fetch_ticker_v3($symbol, $params);
+        }
+        return $this->fetch_ticker_v2($symbol, $params);
+    }
+
+    public function fetch_ticker_v2($symbol, $params = array ()) {
         $this->load_markets();
         $market = $this->market($symbol);
         $request = array_merge(array(
@@ -1059,51 +1129,123 @@ class coinbase extends Exchange {
         //
         //     array("data":array("base":"BTC","currency":"USD","amount":"48691.23"))
         //
-        $buy = $this->v2PublicGetPricesSymbolBuy ($request);
+        $ask = $this->v2PublicGetPricesSymbolBuy ($request);
         //
         //     array("data":array("base":"BTC","currency":"USD","amount":"48691.23"))
         //
-        $sell = $this->v2PublicGetPricesSymbolSell ($request);
+        $bid = $this->v2PublicGetPricesSymbolSell ($request);
         //
         //     array("data":array("base":"BTC","currency":"USD","amount":"48691.23"))
         //
-        return $this->parse_ticker(array( $spot, $buy, $sell ), $market);
+        $spotData = $this->safe_value($spot, 'data', array());
+        $askData = $this->safe_value($ask, 'data', array());
+        $bidData = $this->safe_value($bid, 'data', array());
+        $bidAskLast = array(
+            'bid' => $this->safe_number($bidData, 'amount'),
+            'ask' => $this->safe_number($askData, 'amount'),
+            'price' => $this->safe_number($spotData, 'amount'),
+        );
+        return $this->parse_ticker($bidAskLast, $market);
+    }
+
+    public function fetch_ticker_v3($symbol, $params = array ()) {
+        $this->load_markets();
+        $market = $this->market($symbol);
+        $request = array(
+            'product_id' => $market['id'],
+            'limit' => 1,
+        );
+        $response = $this->v3PrivateGetBrokerageProductsProductIdTicker (array_merge($request, $params));
+        //
+        //     {
+        //         "trades" => array(
+        //             {
+        //                 "trade_id" => "10209805",
+        //                 "product_id" => "BTC-USDT",
+        //                 "price" => "19381.27",
+        //                 "size" => "0.1",
+        //                 "time" => "2023-01-13T20:35:41.865970Z",
+        //                 "side" => "BUY",
+        //                 "bid" => "",
+        //                 "ask" => ""
+        //             }
+        //         )
+        //     }
+        //
+        $data = $this->safe_value($response, 'trades', array());
+        return $this->parse_ticker($data[0], $market);
     }
 
     public function parse_ticker($ticker, $market = null) {
         //
-        // fetchTicker
+        // fetchTickerV2
         //
-        //     array(
-        //         "48691.23", // $spot
-        //         "48691.23", // $buy
-        //         "48691.23",  // $sell
-        //     )
+        //     {
+        //         "bid" => 20713.37,
+        //         "ask" => 20924.65,
+        //         "price" => 20809.83
+        //     }
         //
-        // fetchTickers
+        // fetchTickerV3
+        //
+        //     {
+        //         "trade_id" => "10209805",
+        //         "product_id" => "BTC-USDT",
+        //         "price" => "19381.27",
+        //         "size" => "0.1",
+        //         "time" => "2023-01-13T20:35:41.865970Z",
+        //         "side" => "BUY",
+        //         "bid" => "",
+        //         "ask" => ""
+        //     }
+        //
+        // fetchTickersV2
         //
         //     "48691.23"
         //
-        $symbol = $this->safe_symbol(null, $market);
-        $ask = null;
-        $bid = null;
-        $last = null;
-        $timestamp = $this->milliseconds();
-        if (gettype($ticker) !== 'string') {
-            list($spot, $sell, $buy) = $ticker;
-            $spotData = $this->safe_value($spot, 'data', array());
-            $buyData = $this->safe_value($buy, 'data', array());
-            $sellData = $this->safe_value($sell, 'data', array());
-            $last = $this->safe_string($spotData, 'amount');
-            $bid = $this->safe_string($buyData, 'amount');
-            $ask = $this->safe_string($sellData, 'amount');
-        }
+        // fetchTickersV3
+        //
+        //     array(
+        //         array(
+        //             "product_id" => "TONE-USD",
+        //             "price" => "0.01523",
+        //             "price_percentage_change_24h" => "1.94109772423025",
+        //             "volume_24h" => "19773129",
+        //             "volume_percentage_change_24h" => "437.0170530929949",
+        //             "base_increment" => "1",
+        //             "quote_increment" => "0.00001",
+        //             "quote_min_size" => "1",
+        //             "quote_max_size" => "10000000",
+        //             "base_min_size" => "26.7187147229469674",
+        //             "base_max_size" => "267187147.2294696735908216",
+        //             "base_name" => "TE-FOOD",
+        //             "quote_name" => "US Dollar",
+        //             "watched" => false,
+        //             "is_disabled" => false,
+        //             "new" => false,
+        //             "status" => "online",
+        //             "cancel_only" => false,
+        //             "limit_only" => false,
+        //             "post_only" => false,
+        //             "trading_disabled" => false,
+        //             "auction_mode" => false,
+        //             "product_type" => "SPOT",
+        //             "quote_currency_id" => "USD",
+        //             "base_currency_id" => "TONE",
+        //             "fcm_trading_session_details" => null,
+        //             "mid_market_price" => ""
+        //         ),
+        //         ...
+        //     )
+        //
+        $marketId = $this->safe_string($ticker, 'product_id');
+        $last = $this->safe_number($ticker, 'price');
         return $this->safe_ticker(array(
-            'symbol' => $symbol,
-            'timestamp' => $timestamp,
-            'datetime' => $this->iso8601($timestamp),
-            'bid' => $bid,
-            'ask' => $ask,
+            'symbol' => $this->safe_symbol($marketId, $market),
+            'timestamp' => null,
+            'datetime' => null,
+            'bid' => $this->safe_number($ticker, 'bid'),
+            'ask' => $this->safe_number($ticker, 'ask'),
             'last' => $last,
             'high' => null,
             'low' => null,
@@ -1114,7 +1256,7 @@ class coinbase extends Exchange {
             'close' => $last,
             'previousClose' => null,
             'change' => null,
-            'percentage' => null,
+            'percentage' => $this->safe_number($ticker, 'price_percentage_change_24h'),
             'average' => null,
             'baseVolume' => null,
             'quoteVolume' => null,
