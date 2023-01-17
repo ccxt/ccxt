@@ -1700,31 +1700,8 @@ module.exports = class coinbase extends Exchange {
          * @returns {object} An [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
          */
         await this.loadMarkets ();
-        let market = undefined;
-        if (symbol !== undefined) {
-            market = this.market (symbol);
-        }
-        const request = {
-            'order_ids': [ id ],
-        };
-        const response = await this.v3PrivatePostBrokerageOrdersBatchCancel (this.extend (request, params));
-        //
-        //     {
-        //         "results": [
-        //             {
-        //                 "success": true,
-        //                 "failure_reason": "UNKNOWN_CANCEL_FAILURE_REASON",
-        //                 "order_id": "bb8851a3-4fda-4a2c-aa06-9048db0e0f0d"
-        //             }
-        //         ]
-        //     }
-        //
-        const order = this.safeValue (response, 'results', []);
-        const success = this.safeValue (order, 'success');
-        if (success !== true) {
-            throw new BadRequest (this.id + ' cancelOrder() has failed, check your arguments and parameters');
-        }
-        return this.parseOrder (order, market);
+        const orders = await this.cancelOrders ([ id ], symbol, params);
+        return this.safeValue (orders, 0, {});
     }
 
     async cancelOrders (ids, symbol = undefined, params = {}) {
