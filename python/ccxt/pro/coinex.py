@@ -39,6 +39,7 @@ class coinex(Exchange, ccxt.async_support.coinex):
                 },
             },
             'options': {
+                'watchOHLCVWarning': True,
                 'timeframes': {
                     '1m': 60,
                     '3m': 180,
@@ -460,12 +461,18 @@ class coinex(Exchange, ccxt.async_support.coinex):
         await self.load_markets()
         market = self.market(symbol)
         symbol = market['symbol']
-        messageHash = 'ohlcv'
         type = None
         type, params = self.handle_market_type_and_params('watchOHLCV', market, params)
         if type != 'swap':
             raise NotSupported(self.id + ' watchOHLCV() is only supported for swap markets')
         url = self.urls['api']['ws'][type]
+        messageHash = 'ohlcv'
+        watchOHLCVWarning = self.safe_value(self.options, 'watchOHLCVWarning', True)
+        client = self.safe_value(self.clients, url, {})
+        existingSubscription = self.safe_value(client.subscriptions, messageHash)
+        # due to nature of coinex response can only watch one symbol at a time
+        if watchOHLCVWarning and existingSubscription is not None and (existingSubscription['symbol'] != symbol or existingSubscription['timeframe'] != timeframe):
+            raise ExchangeError(self.id + ' watchOHLCV() can only watch one symbol and timeframe at a time. To supress self warning set watchOHLCVWarning to False in options')
         timeframes = self.safe_value(self.options, 'timeframes', {})
         subscribe = {
             'method': 'kline.subscribe',
@@ -475,8 +482,12 @@ class coinex(Exchange, ccxt.async_support.coinex):
                 self.safe_integer(timeframes, timeframe, timeframe),
             ],
         }
+        subscription = {
+            'symbol': symbol,
+            'timeframe': timeframe,
+        }
         request = self.deep_extend(subscribe, params)
-        ohlcvs = await self.watch(url, messageHash, request, messageHash)
+        ohlcvs = await self.watch(url, messageHash, request, messageHash, subscription)
         if self.newUpdates:
             limit = ohlcvs.getLimit(symbol, limit)
         return self.filter_by_since_limit(ohlcvs, since, limit, 0, True)
