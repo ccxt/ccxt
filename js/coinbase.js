@@ -1115,7 +1115,7 @@ module.exports = class coinbase extends Exchange {
         //     }
         //
         const data = this.safeValue (response, 'products', []);
-        const result = [];
+        const result = {};
         for (let i = 0; i < data.length; i++) {
             const entry = data[i];
             const marketId = this.safeString (entry, 'product_id');
@@ -1261,13 +1261,12 @@ module.exports = class coinbase extends Exchange {
         //         ...
         //     ]
         //
-        const timestamp = this.milliseconds ();
         const marketId = this.safeString (ticker, 'product_id');
         const last = this.safeNumber (ticker, 'price');
         return this.safeTicker ({
             'symbol': this.safeSymbol (marketId, market),
-            'timestamp': timestamp,
-            'datetime': this.iso8601 (timestamp),
+            'timestamp': undefined,
+            'datetime': undefined,
             'bid': this.safeNumber (ticker, 'bid'),
             'ask': this.safeNumber (ticker, 'ask'),
             'last': last,
