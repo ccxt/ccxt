@@ -1558,7 +1558,7 @@ module.exports = class gate extends Exchange {
          * @param {object} params extra parameters specific to the gate api endpoint
          * @returns {object} an [address structure]{@link https://docs.ccxt.com/en/latest/manual.html#address-structure}
          */
-        return this.fetchDepositAddress (code, params);
+        return await this.fetchDepositAddress (code, params);
     }
 
     async fetchDepositAddress (code, params = {}) {
