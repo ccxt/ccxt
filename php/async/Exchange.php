@@ -34,11 +34,11 @@ use Exception;
 
 include 'Throttle.php';
 
-$version = '2.6.4';
+$version = '2.6.28';
 
 class Exchange extends \ccxt\Exchange {
 
-    const VERSION = '2.6.4';
+    const VERSION = '2.6.28';
 
     public $browser;
     public $marketsLoading = null;
@@ -1622,8 +1622,8 @@ class Exchange extends \ccxt\Exchange {
         if ($marketId !== null) {
             if (($this->markets_by_id !== null) && (is_array($this->markets_by_id) && array_key_exists($marketId, $this->markets_by_id))) {
                 $markets = $this->markets_by_id[$marketId];
-                $length = count($markets);
-                if ($length === 1) {
+                $numMarkets = count($markets);
+                if ($numMarkets === 1) {
                     return $markets[0];
                 } else {
                     if ($marketType === null) {

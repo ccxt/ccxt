@@ -32,6 +32,22 @@ module.exports = class coinex extends coinexRest {
                 },
             },
             'options': {
+                'watchOHLCVWarning': true,
+                'timeframes': {
+                    '1m': 60,
+                    '3m': 180,
+                    '5m': 300,
+                    '15m': 900,
+                    '30m': 1800,
+                    '1h': 3600,
+                    '2h': 7200,
+                    '4h': 14400,
+                    '6h': 21600,
+                    '12h': 43200,
+                    '1d': 86400,
+                    '3d': 259200,
+                    '1w': 604800,
+                },
                 'account': 'spot',
                 'watchOrderBook': {
                     'limits': [ 5, 10, 20, 50 ],
@@ -51,21 +67,6 @@ module.exports = class coinex extends coinexRest {
                     '5': RequestTimeout, // Service timeout
                     '6': AuthenticationError, // Permission denied
                 },
-            },
-            'timeframes': {
-                '1m': 60,
-                '3m': 180,
-                '5m': 300,
-                '15m': 900,
-                '30m': 1800,
-                '1h': 3600,
-                '2h': 7200,
-                '4h': 14400,
-                '6h': 21600,
-                '12h': 43200,
-                '1d': 86400,
-                '3d': 259200,
-                '1w': 604800,
             },
         });
     }
@@ -483,23 +484,35 @@ module.exports = class coinex extends coinexRest {
         await this.loadMarkets ();
         const market = this.market (symbol);
         symbol = market['symbol'];
-        const messageHash = 'ohlcv';
         let type = undefined;
         [ type, params ] = this.handleMarketTypeAndParams ('watchOHLCV', market, params);
         if (type !== 'swap') {
             throw new NotSupported (this.id + ' watchOHLCV() is only supported for swap markets');
         }
         const url = this.urls['api']['ws'][type];
+        const messageHash = 'ohlcv';
+        const watchOHLCVWarning = this.safeValue (this.options, 'watchOHLCVWarning', true);
+        const client = this.safeValue (this.clients, url, {});
+        const existingSubscription = this.safeValue (client.subscriptions, messageHash);
+        // due to nature of coinex response can only watch one symbol at a time
+        if (watchOHLCVWarning && existingSubscription !== undefined && (existingSubscription['symbol'] !== symbol || existingSubscription['timeframe'] !== timeframe)) {
+            throw new ExchangeError (this.id + ' watchOHLCV() can only watch one symbol and timeframe at a time. To supress this warning set watchOHLCVWarning to false in options');
+        }
+        const timeframes = this.safeValue (this.options, 'timeframes', {});
         const subscribe = {
             'method': 'kline.subscribe',
             'id': this.requestId (),
             'params': [
                 market['id'],
-                this.safeInteger (this.timeframes, timeframe, timeframe),
+                this.safeInteger (timeframes, timeframe, timeframe),
             ],
         };
+        const subscription = {
+            'symbol': symbol,
+            'timeframe': timeframe,
+        };
         const request = this.deepExtend (subscribe, params);
-        const ohlcvs = await this.watch (url, messageHash, request, messageHash);
+        const ohlcvs = await this.watch (url, messageHash, request, messageHash, subscription);
         if (this.newUpdates) {
             limit = ohlcvs.getLimit (symbol, limit);
         }

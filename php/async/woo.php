@@ -736,13 +736,23 @@ class woo extends Exchange {
                 'order_type' => $orderType, // LIMIT/MARKET/IOC/FOK/POST_ONLY/ASK/BID
                 'side' => $orderSide,
             );
+            $isMarket = $orderType === 'MARKET';
+            $timeInForce = $this->safe_string_lower($params, 'timeInForce');
+            $postOnly = $this->is_post_only($isMarket, null, $params);
+            if ($postOnly) {
+                $request['order_type'] = 'POST_ONLY';
+            } elseif ($timeInForce === 'fok') {
+                $request['order_type'] = 'FOK';
+            } elseif ($timeInForce === 'ioc') {
+                $request['order_type'] = 'IOC';
+            }
             if ($reduceOnly) {
                 $request['reduce_only'] = $reduceOnly;
             }
             if ($price !== null) {
                 $request['order_price'] = $this->price_to_precision($symbol, $price);
             }
-            if ($orderType === 'MARKET') {
+            if ($isMarket) {
                 // for $market buy it requires the $amount of quote currency to spend
                 if ($orderSide === 'BUY') {
                     $cost = $this->safe_number($params, 'cost');
@@ -770,7 +780,7 @@ class woo extends Exchange {
             if ($clientOrderId !== null) {
                 $request['client_order_id'] = $clientOrderId;
             }
-            $params = $this->omit($params, array( 'clOrdID', 'clientOrderId' ));
+            $params = $this->omit($params, array( 'clOrdID', 'clientOrderId', 'postOnly', 'timeInForce' ));
             $response = Async\await($this->v1PrivatePostOrder (array_merge($request, $params)));
             // {
             //     success => true,
@@ -1019,6 +1029,15 @@ class woo extends Exchange {
         }) ();
     }
 
+    public function parse_time_in_force($timeInForce) {
+        $timeInForces = array(
+            'ioc' => 'IOC',
+            'fok' => 'FOK',
+            'post_only' => 'PO',
+        );
+        return $this->safe_string($timeInForces, $timeInForce, null);
+    }
+
     public function parse_order($order, $market = null) {
         //
         // Possible input functions:
@@ -1053,7 +1072,7 @@ class woo extends Exchange {
             'status' => $this->parse_order_status($status),
             'symbol' => $symbol,
             'type' => $orderType,
-            'timeInForce' => null,
+            'timeInForce' => $this->parse_time_in_force($orderType),
             'postOnly' => null, // TO_DO
             'reduceOnly' => $this->safe_value($order, 'reduce_only'),
             'side' => $side,
@@ -2096,7 +2115,7 @@ class woo extends Exchange {
         }) ();
     }
 
-    public function fetch_funding_rates($symbols, $params = array ()) {
+    public function fetch_funding_rates($symbols = null, $params = array ()) {
         return Async\async(function () use ($symbols, $params) {
             Async\await($this->load_markets());
             $symbols = $this->market_symbols($symbols);
