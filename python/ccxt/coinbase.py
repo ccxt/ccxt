@@ -7,6 +7,7 @@ from ccxt.base.exchange import Exchange
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import ArgumentsRequired
+from ccxt.base.errors import BadRequest
 from ccxt.base.errors import RateLimitExceeded
 from ccxt.base.errors import InvalidNonce
 from ccxt.base.decimal_to_precision import TICK_SIZE
@@ -34,7 +35,8 @@ class coinbase(Exchange):
                 'future': False,
                 'option': False,
                 'addMargin': False,
-                'cancelOrder': None,
+                'cancelOrder': True,
+                'cancelOrders': True,
                 'createDepositAddress': True,
                 'createOrder': None,
                 'createReduceOnlyOrder': False,
@@ -1685,6 +1687,105 @@ class coinbase(Exchange):
         if limit is not None:
             request['limit'] = limit
         return request
+
+    def parse_order(self, order, market=None):
+        #
+        # createOrder
+        #
+        #     {
+        #         "order_id": "52cfe5e2-0b29-4c19-a245-a6a773de5030",
+        #         "product_id": "LTC-BTC",
+        #         "side": "SELL",
+        #         "client_order_id": "4d760580-6fca-4094-a70b-ebcca8626288"
+        #     }
+        #
+        # cancelOrder, cancelOrders
+        #
+        #     {
+        #         "success": True,
+        #         "failure_reason": "UNKNOWN_CANCEL_FAILURE_REASON",
+        #         "order_id": "bb8851a3-4fda-4a2c-aa06-9048db0e0f0d"
+        #     }
+        #
+        marketId = self.safe_string(order, 'product_id')
+        symbol = self.safe_symbol(marketId, market, '-')
+        if symbol is not None:
+            market = self.market(symbol)
+        rawSide = self.safe_string(order, 'side')
+        side = rawSide.lower() if (rawSide is not None) else None
+        return self.safe_order({
+            'info': order,
+            'id': self.safe_string(order, 'order_id'),
+            'clientOrderId': self.safe_string(order, 'client_order_id'),
+            'timestamp': None,
+            'datetime': None,
+            'lastTradeTimestamp': None,
+            'symbol': symbol,
+            'type': None,
+            'timeInForce': None,
+            'postOnly': None,
+            'side': side,
+            'price': None,
+            'stopPrice': None,
+            'triggerPrice': None,
+            'amount': None,
+            'filled': None,
+            'remaining': None,
+            'cost': None,
+            'average': None,
+            'status': None,
+            'fee': {
+                'cost': None,
+            },
+            'trades': None,
+        }, market)
+
+    def cancel_order(self, id, symbol=None, params={}):
+        """
+        cancels an open order
+        see https://docs.cloud.coinbase.com/advanced-trade-api/reference/retailbrokerageapi_cancelorders
+        :param str id: order id
+        :param str|None symbol: not used by coinbase cancelOrder()
+        :param dict params: extra parameters specific to the coinbase api endpoint
+        :returns dict: An `order structure <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
+        """
+        self.load_markets()
+        orders = self.cancel_orders([id], symbol, params)
+        return self.safe_value(orders, 0, {})
+
+    def cancel_orders(self, ids, symbol=None, params={}):
+        """
+        cancel multiple orders
+        see https://docs.cloud.coinbase.com/advanced-trade-api/reference/retailbrokerageapi_cancelorders
+        :param [str] ids: order ids
+        :param str|None symbol: not used by coinbase cancelOrders()
+        :param dict params: extra parameters specific to the coinbase api endpoint
+        :returns dict: a list of `order structures <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
+        """
+        self.load_markets()
+        market = None
+        if symbol is not None:
+            market = self.market(symbol)
+        request = {
+            'order_ids': ids,
+        }
+        response = self.v3PrivatePostBrokerageOrdersBatchCancel(self.extend(request, params))
+        #
+        #     {
+        #         "results": [
+        #             {
+        #                 "success": True,
+        #                 "failure_reason": "UNKNOWN_CANCEL_FAILURE_REASON",
+        #                 "order_id": "bb8851a3-4fda-4a2c-aa06-9048db0e0f0d"
+        #             }
+        #         ]
+        #     }
+        #
+        orders = self.safe_value(response, 'results', [])
+        success = self.safe_value(orders, 'success')
+        if success is not True:
+            raise BadRequest(self.id + ' cancelOrders() has failed, check your arguments and parameters')
+        return self.parse_orders(orders, market)
 
     def sign(self, path, api=[], method='GET', params={}, headers=None, body=None):
         version = api[0]

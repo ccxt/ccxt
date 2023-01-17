@@ -8,6 +8,7 @@ namespace ccxt\async;
 use Exception; // a common import
 use ccxt\ExchangeError;
 use ccxt\ArgumentsRequired;
+use ccxt\BadRequest;
 use ccxt\Precise;
 use React\Async;
 
@@ -32,7 +33,8 @@ class coinbase extends Exchange {
                 'future' => false,
                 'option' => false,
                 'addMargin' => false,
-                'cancelOrder' => null,
+                'cancelOrder' => true,
+                'cancelOrders' => true,
                 'createDepositAddress' => true,
                 'createOrder' => null,
                 'createReduceOnlyOrder' => false,
@@ -1795,6 +1797,115 @@ class coinbase extends Exchange {
                 $request['limit'] = $limit;
             }
             return $request;
+        }) ();
+    }
+
+    public function parse_order($order, $market = null) {
+        //
+        // createOrder
+        //
+        //     {
+        //         "order_id" => "52cfe5e2-0b29-4c19-a245-a6a773de5030",
+        //         "product_id" => "LTC-BTC",
+        //         "side" => "SELL",
+        //         "client_order_id" => "4d760580-6fca-4094-a70b-ebcca8626288"
+        //     }
+        //
+        // cancelOrder, cancelOrders
+        //
+        //     {
+        //         "success" => true,
+        //         "failure_reason" => "UNKNOWN_CANCEL_FAILURE_REASON",
+        //         "order_id" => "bb8851a3-4fda-4a2c-aa06-9048db0e0f0d"
+        //     }
+        //
+        $marketId = $this->safe_string($order, 'product_id');
+        $symbol = $this->safe_symbol($marketId, $market, '-');
+        if ($symbol !== null) {
+            $market = $this->market($symbol);
+        }
+        $rawSide = $this->safe_string($order, 'side');
+        $side = ($rawSide !== null) ? strtolower($rawSide) : null;
+        return $this->safe_order(array(
+            'info' => $order,
+            'id' => $this->safe_string($order, 'order_id'),
+            'clientOrderId' => $this->safe_string($order, 'client_order_id'),
+            'timestamp' => null,
+            'datetime' => null,
+            'lastTradeTimestamp' => null,
+            'symbol' => $symbol,
+            'type' => null,
+            'timeInForce' => null,
+            'postOnly' => null,
+            'side' => $side,
+            'price' => null,
+            'stopPrice' => null,
+            'triggerPrice' => null,
+            'amount' => null,
+            'filled' => null,
+            'remaining' => null,
+            'cost' => null,
+            'average' => null,
+            'status' => null,
+            'fee' => array(
+                'cost' => null,
+            ),
+            'trades' => null,
+        ), $market);
+    }
+
+    public function cancel_order($id, $symbol = null, $params = array ()) {
+        return Async\async(function () use ($id, $symbol, $params) {
+            /**
+             * cancels an open order
+             * @see https://docs.cloud.coinbase.com/advanced-trade-api/reference/retailbrokerageapi_cancelorders
+             * @param {string} $id order $id
+             * @param {string|null} $symbol not used by coinbase cancelOrder()
+             * @param {array} $params extra parameters specific to the coinbase api endpoint
+             * @return {array} An {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structure}
+             */
+            Async\await($this->load_markets());
+            $orders = Async\await($this->cancel_orders(array( $id ), $symbol, $params));
+            return $this->safe_value($orders, 0, array());
+        }) ();
+    }
+
+    public function cancel_orders($ids, $symbol = null, $params = array ()) {
+        return Async\async(function () use ($ids, $symbol, $params) {
+            /**
+             * cancel multiple $orders
+             * @see https://docs.cloud.coinbase.com/advanced-trade-api/reference/retailbrokerageapi_cancelorders
+             * @param {[string]} $ids order $ids
+             * @param {string|null} $symbol not used by coinbase cancelOrders()
+             * @param {array} $params extra parameters specific to the coinbase api endpoint
+             * @return {array} a list of {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structures}
+             */
+            Async\await($this->load_markets());
+            $market = null;
+            if ($symbol !== null) {
+                $market = $this->market($symbol);
+            }
+            $request = array(
+                'order_ids' => $ids,
+            );
+            $response = Async\await($this->v3PrivatePostBrokerageOrdersBatchCancel (array_merge($request, $params)));
+            //
+            //     {
+            //         "results" => array(
+            //             {
+            //                 "success" => true,
+            //                 "failure_reason" => "UNKNOWN_CANCEL_FAILURE_REASON",
+            //                 "order_id" => "bb8851a3-4fda-4a2c-aa06-9048db0e0f0d"
+            //             }
+            //         )
+            //     }
+            //
+            $orders = $this->safe_value($response, 'results', array());
+            $success = $this->safe_value($orders, 'success');
+            if ($success !== true) {
+                throw new BadRequest($this->id . ' cancelOrders() has failed, check your arguments and parameters');
+            }
+            return $this->parse_orders($orders, $market);
         }) ();
     }
 
