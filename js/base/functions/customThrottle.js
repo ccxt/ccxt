@@ -17,7 +17,7 @@ class Throttle {
             cost: 1.0,
             priorities: {},
             expireIntervals: {
-                'myTrades': 1000 * 1,
+                'myTrades': 1000 * 50, // 50 seconds
             },
         };
         Object.assign(this.config, config);
@@ -82,7 +82,6 @@ class Throttle {
 
 function customThrottle(config, path = undefined, customPriority = undefined, customExpireInterval = undefined) {
     function inner(cost = undefined, path = undefined, customPriority = undefined, customExpireInterval = undefined) {
-        console.log('customThrottle')
         let resolver;
         let rejecter;
         const promise = new Promise((resolve, reject) => {
