@@ -1202,6 +1202,7 @@ module.exports = class Exchange {
         if (datetime === undefined) {
             datetime = this.iso8601 (timestamp);
         }
+        const triggerPrice = this.parseNumber (this.safeString2 (order, 'triggerPrice', 'stopPrice'));
         return this.extend (order, {
             'id': this.safeString (order, 'id'),
             'clientOrderId': this.safeString (order, 'clientOrderId'),
@@ -1221,7 +1222,8 @@ module.exports = class Exchange {
             'postOnly': postOnly,
             'trades': trades,
             'reduceOnly': this.safeValue (order, 'reduceOnly'),
-            'triggerPrice': this.parseNumber (this.safeString2 (order, 'triggerPrice', 'stopPrice')),
+            'stopPrice': triggerPrice,  // ! deprecated, use triggerPrice instead
+            'triggerPrice': triggerPrice,
             'status': this.safeString (order, 'status'),
             'fee': this.safeValue (order, 'fee'),
         });
