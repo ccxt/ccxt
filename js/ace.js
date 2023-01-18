@@ -163,6 +163,7 @@ module.exports = class ace extends Exchange {
          * @method
          * @name ace#fetchMarkets
          * @description retrieves data on all markets for ace
+         * @url https://github.com/ace-exchange/ace-official-api-docs/blob/master/api_v2.md#oapi-api---market-pair
          * @param {object} params extra parameters specific to the exchange api endpoint
          * @returns {[object]} an array of objects representing market data
          */
@@ -282,6 +283,7 @@ module.exports = class ace extends Exchange {
          * @method
          * @name ace#fetchTicker
          * @description fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+         * @url https://github.com/ace-exchange/ace-official-api-docs/blob/master/api_v2.md#oapi-api---trade-data
          * @param {string} symbol unified symbol of the market to fetch the ticker for
          * @param {object} params extra parameters specific to the ace api endpoint
          * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
@@ -308,6 +310,7 @@ module.exports = class ace extends Exchange {
          * @method
          * @name ace#fetchTickers
          * @description fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
+         * @url https://github.com/ace-exchange/ace-official-api-docs/blob/master/api_v2.md#oapi-api---trade-data
          * @param {[string]|undefined} symbols unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
          * @param {object} params extra parameters specific to the ace api endpoint
          * @returns {object} an array of [ticker structures]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
@@ -340,6 +343,7 @@ module.exports = class ace extends Exchange {
          * @method
          * @name ace#fetchOrderBook
          * @description fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+         * @url https://github.com/ace-exchange/ace-official-api-docs/blob/master/api_v2.md#open-api---order-books
          * @param {string} symbol unified symbol of the market to fetch the order book for
          * @param {int|undefined} limit the maximum amount of order book entries to return
          * @param {object} params extra parameters specific to the ace api endpoint
@@ -422,6 +426,7 @@ module.exports = class ace extends Exchange {
          * @method
          * @name ace#fetchOHLCV
          * @description fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+         * @url https://github.com/ace-exchange/ace-official-api-docs/blob/master/api_v2.md#open-api---klinecandlestick-data
          * @param {string} symbol unified symbol of the market to fetch OHLCV data for
          * @param {string} timeframe the length of time each candle represents
          * @param {int|undefined} since timestamp in ms of the earliest candle to fetch
@@ -564,6 +569,7 @@ module.exports = class ace extends Exchange {
          * @method
          * @name ace#createOrder
          * @description create a trade order
+         * @url https://github.com/ace-exchange/ace-official-api-docs/blob/master/api_v2.md#open-api---new-order
          * @param {string} symbol unified symbol of the market to create an order in
          * @param {string} type 'market' or 'limit'
          * @param {string} side 'buy' or 'sell'
@@ -602,6 +608,7 @@ module.exports = class ace extends Exchange {
          * @method
          * @name ace#cancelOrder
          * @description cancels an open order
+         * @url https://github.com/ace-exchange/ace-official-api-docs/blob/master/api_v2.md#open-api---cancel-order
          * @param {string} id order id
          * @param {string} symbol unified symbol of the market the order was made in
          * @param {object} params extra parameters specific to the ace api endpoint
@@ -628,6 +635,7 @@ module.exports = class ace extends Exchange {
          * @method
          * @name ace#fetchOrder
          * @description fetches information on an order made by the user
+         * @url https://github.com/ace-exchange/ace-official-api-docs/blob/master/api_v2.md#open-api---order-status
          * @param {string} symbol unified symbol of the market the order was made in
          * @param {object} params extra parameters specific to the ace api endpoint
          * @returns {object} An [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
@@ -668,6 +676,7 @@ module.exports = class ace extends Exchange {
          * @method
          * @name ace#fetchOrders
          * @description fetches information on multiple orders made by the user
+         * @url https://github.com/ace-exchange/ace-official-api-docs/blob/master/api_v2.md#open-api---order-list
          * @param {string} symbol unified market symbol of the market orders were made in
          * @param {int|undefined} since the earliest time in ms to fetch orders for
          * @param {int|undefined} limit the maximum number of  orde structures to retrieve
@@ -801,6 +810,7 @@ module.exports = class ace extends Exchange {
          * @method
          * @name ace#fetchOrderTrades
          * @description fetch all the trades made from a single order
+         * @url https://github.com/ace-exchange/ace-official-api-docs/blob/master/api_v2.md#open-api---order-history
          * @param {string} id order id
          * @param {string} symbol unified market symbol
          * @param {int|undefined} since the earliest time in ms to fetch trades for
@@ -860,6 +870,7 @@ module.exports = class ace extends Exchange {
          * @method
          * @name ace#fetchTrades
          * @description get the list of most recent trades for a particular symbol
+         * @url https://github.com/ace-exchange/ace-official-api-docs/blob/master/api_v2.md#open-api---trade-list
          * @param {string} symbol unified symbol of the market to fetch trades for
          * @param {int|undefined} since timestamp in ms of the earliest trade to fetch
          * @param {int|undefined} limit the maximum amount of trades to fetch
@@ -949,6 +960,7 @@ module.exports = class ace extends Exchange {
          * @method
          * @name ace#fetchBalance
          * @description query for balance and get the amount of funds available for trading or funds locked in orders
+         * @url https://github.com/ace-exchange/ace-official-api-docs/blob/master/api_v2.md#open-api---account-balance
          * @param {object} params extra parameters specific to the ace api endpoint
          * @returns {object} a [balance structure]{@link https://docs.ccxt.com/en/latest/manual.html?#balance-structure}
          */
