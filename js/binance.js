@@ -6538,7 +6538,7 @@ module.exports = class binance extends Exchange {
             }
             let signature = undefined;
             if (this.secret.indexOf ('PRIVATE KEY') > -1) {
-                signature = this.binaryToBase64 (this.rsa (query, this.encode (this.secret)));
+                signature = this.rsa (query, this.secret);
             } else {
                 signature = this.hmac (this.encode (query), this.encode (this.secret));
             }
