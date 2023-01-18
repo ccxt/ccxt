@@ -1,5 +1,5 @@
 const { hash, ecdsa, jwt, crc32, rsa } = require ('../../../base/functions/crypto')
-const { encode, binaryToBase64 } = require ('../../../base/functions/encode')
+const { encode } = require ('../../../base/functions/encode')
 const Exchange = require ('../../../base/Exchange');
 const assert = require ('assert')
 
