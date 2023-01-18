@@ -3,7 +3,7 @@
 // ----------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
-const { ExchangeError, ArgumentsRequired, AuthenticationError, BadRequest, NotSupported, RateLimitExceeded, InvalidNonce } = require ('./base/errors');
+const { ExchangeError, ArgumentsRequired, AuthenticationError, BadRequest, InvalidOrder, NotSupported, RateLimitExceeded, InvalidNonce } = require ('./base/errors');
 const { TICK_SIZE } = require ('./base/functions/number');
 const Precise = require ('./base/Precise');
 
@@ -267,6 +267,7 @@ module.exports = class coinbase extends Exchange {
                     'fiat',
                     // 'vault',
                 ],
+                'createMarketBuyOrderRequiresPrice': true,
                 'advanced': true, // set to true if using any v3 endpoints from the advanced trade API
                 'fetchMarkets': 'fetchMarketsV3', // 'fetchMarketsV3' or 'fetchMarketsV2'
                 'fetchTicker': 'fetchTickerV3', // 'fetchTickerV3' or 'fetchTickerV2'
@@ -1897,9 +1898,23 @@ module.exports = class coinbase extends Exchange {
                 throw new NotSupported (this.id + ' createOrder() only stop limit orders are supported');
             }
             if (side === 'buy') {
+                const createMarketBuyOrderRequiresPrice = this.safeValue (this.options, 'createMarketBuyOrderRequiresPrice', true);
+                let total = undefined;
+                if (createMarketBuyOrderRequiresPrice) {
+                    if (price === undefined) {
+                        throw new InvalidOrder (this.id + ' createOrder() requires a price argument for market buy orders on spot markets to calculate the total amount to spend (amount * price), alternatively set the createMarketBuyOrderRequiresPrice option to false and pass in the cost to spend into the amount parameter');
+                    } else {
+                        const amountString = this.numberToString (amount);
+                        const priceString = this.numberToString (price);
+                        const cost = this.parseNumber (Precise.stringMul (amountString, priceString));
+                        total = this.priceToPrecision (symbol, cost);
+                    }
+                } else {
+                    total = this.amountToPrecision (symbol, amount);
+                }
                 request['order_configuration'] = {
                     'market_market_ioc': {
-                        'quote_size': this.amountToPrecision (symbol, amount),
+                        'quote_size': total,
                     },
                 };
             } else {
