@@ -45,7 +45,8 @@ module.exports = class coinbase extends Exchange {
                 'fetchBorrowRateHistory': false,
                 'fetchBorrowRates': false,
                 'fetchBorrowRatesPerSymbol': false,
-                'fetchClosedOrders': undefined,
+                'fetchCanceledOrders': true,
+                'fetchClosedOrders': true,
                 'fetchCurrencies': true,
                 'fetchDepositAddress': undefined,
                 'fetchDeposits': true,
@@ -66,7 +67,7 @@ module.exports = class coinbase extends Exchange {
                 'fetchMyTrades': undefined,
                 'fetchOHLCV': false,
                 'fetchOpenInterestHistory': false,
-                'fetchOpenOrders': undefined,
+                'fetchOpenOrders': true,
                 'fetchOrder': true,
                 'fetchOrderBook': false,
                 'fetchOrders': true,
@@ -1796,7 +1797,7 @@ module.exports = class coinbase extends Exchange {
         //         "order_id": "bb8851a3-4fda-4a2c-aa06-9048db0e0f0d"
         //     }
         //
-        // fetchOrder, fetchOrders
+        // fetchOrder, fetchOrders, fetchOpenOrders, fetchClosedOrders, fetchCanceledOrders
         //
         //     {
         //         "order_id": "9bc1eb3b-5b46-4b71-9628-ae2ed0cca75b",
@@ -2116,6 +2117,116 @@ module.exports = class coinbase extends Exchange {
         //
         const orders = this.safeValue (response, 'orders', []);
         return this.parseOrders (orders, market, since, limit);
+    }
+
+    async fetchOrdersByStatus (status, symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        await this.loadMarkets ();
+        let market = undefined;
+        if (symbol !== undefined) {
+            market = this.market (symbol);
+        }
+        const request = {
+            'order_status': status,
+        };
+        if (market !== undefined) {
+            request['product_id'] = market['id'];
+        }
+        if (limit !== undefined) {
+            request['limit'] = limit;
+        }
+        if (since !== undefined) {
+            request['start_date'] = this.parse8601 (since);
+        }
+        const response = await this.v3PrivateGetBrokerageOrdersHistoricalBatch (this.extend (request, params));
+        //
+        //     {
+        //         "orders": [
+        //             {
+        //                 "order_id": "813a53c5-3e39-47bb-863d-2faf685d22d8",
+        //                 "product_id": "BTC-USDT",
+        //                 "user_id": "1111111-1111-1111-1111-111111111111",
+        //                 "order_configuration": {
+        //                     "market_market_ioc": {
+        //                         "quote_size": "6.36"
+        //                     }
+        //                 },
+        //                 "side": "BUY",
+        //                 "client_order_id": "18eb9947-db49-4874-8e7b-39b8fe5f4317",
+        //                 "status": "FILLED",
+        //                 "time_in_force": "IMMEDIATE_OR_CANCEL",
+        //                 "created_time": "2023-01-18T01:37:37.975552Z",
+        //                 "completion_percentage": "100",
+        //                 "filled_size": "0.000297920684505",
+        //                 "average_filled_price": "21220.6399999973697697",
+        //                 "fee": "",
+        //                 "number_of_fills": "2",
+        //                 "filled_value": "6.3220675944333996",
+        //                 "pending_cancel": false,
+        //                 "size_in_quote": true,
+        //                 "total_fees": "0.0379324055666004",
+        //                 "size_inclusive_of_fees": true,
+        //                 "total_value_after_fees": "6.36",
+        //                 "trigger_status": "INVALID_ORDER_TYPE",
+        //                 "order_type": "MARKET",
+        //                 "reject_reason": "REJECT_REASON_UNSPECIFIED",
+        //                 "settled": true,
+        //                 "product_type": "SPOT",
+        //                 "reject_message": "",
+        //                 "cancel_message": "Internal error"
+        //             },
+        //         ],
+        //         "sequence": "0",
+        //         "has_next": false,
+        //         "cursor": ""
+        //     }
+        //
+        const orders = this.safeValue (response, 'orders', []);
+        return this.parseOrders (orders, market, since, limit);
+    }
+
+    async fetchOpenOrders (symbol = undefined, since = undefined, limit = 100, params = {}) {
+        /**
+         * @method
+         * @name coinbase#fetchOpenOrders
+         * @description fetches information on all currently open orders
+         * @see https://docs.cloud.coinbase.com/advanced-trade-api/reference/retailbrokerageapi_gethistoricalorders
+         * @param {string|undefined} symbol unified market symbol of the orders
+         * @param {int|undefined} since timestamp in ms of the earliest order, default is undefined
+         * @param {int|undefined} limit the maximum number of open order structures to retrieve
+         * @param {object} params extra parameters specific to the coinbase api endpoint
+         * @returns {[object]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
+         */
+        return await this.fetchOrdersByStatus ('OPEN', symbol, since, limit, params);
+    }
+
+    async fetchClosedOrders (symbol = undefined, since = undefined, limit = 100, params = {}) {
+        /**
+         * @method
+         * @name coinbase#fetchClosedOrders
+         * @description fetches information on multiple closed orders made by the user
+         * @see https://docs.cloud.coinbase.com/advanced-trade-api/reference/retailbrokerageapi_gethistoricalorders
+         * @param {string|undefined} symbol unified market symbol of the orders
+         * @param {int|undefined} since timestamp in ms of the earliest order, default is undefined
+         * @param {int|undefined} limit the maximum number of closed order structures to retrieve
+         * @param {object} params extra parameters specific to the coinbase api endpoint
+         * @returns {[object]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
+         */
+        return await this.fetchOrdersByStatus ('FILLED', symbol, since, limit, params);
+    }
+
+    async fetchCanceledOrders (symbol = undefined, since = undefined, limit = 100, params = {}) {
+        /**
+         * @method
+         * @name coinbase#fetchCanceledOrders
+         * @description fetches information on multiple canceled orders made by the user
+         * @see https://docs.cloud.coinbase.com/advanced-trade-api/reference/retailbrokerageapi_gethistoricalorders
+         * @param {string} symbol unified market symbol of the orders
+         * @param {int|undefined} since timestamp in ms of the earliest order, default is undefined
+         * @param {int|undefined} limit the maximum number of canceled order structures to retrieve
+         * @param {object} params extra parameters specific to the coinbase api endpoint
+         * @returns {object} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
+         */
+        return await this.fetchOrdersByStatus ('CANCELLED', symbol, since, limit, params);
     }
 
     sign (path, api = [], method = 'GET', params = {}, headers = undefined, body = undefined) {
