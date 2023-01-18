@@ -77,6 +77,8 @@ class huobi(Exchange):
                 'fetchDepositAddresses': None,
                 'fetchDepositAddressesByNetwork': True,
                 'fetchDeposits': True,
+                'fetchDepositWithdrawFee': 'emulated',
+                'fetchDepositWithdrawFees': True,
                 'fetchFundingHistory': True,
                 'fetchFundingRate': True,
                 'fetchFundingRateHistory': True,
@@ -6744,6 +6746,118 @@ class huobi(Exchange):
         settlementRecord = self.safe_value(data, 'settlement_record')
         settlements = self.parse_settlements(settlementRecord, market)
         return self.sort_by(settlements, 'timestamp')
+
+    def fetch_deposit_withdraw_fees(self, codes=None, params={}):
+        """
+        fetch deposit and withdraw fees
+        see https://huobiapi.github.io/docs/spot/v1/en/#get-all-supported-currencies-v2
+        :param [str]|None codes: list of unified currency codes
+        :param dict params: extra parameters specific to the huobi api endpoint
+        :returns [dict]: a list of `fees structures <https://docs.ccxt.com/en/latest/manual.html#fee-structure>`
+        """
+        self.load_markets()
+        response = self.spotPublicGetV2ReferenceCurrencies(params)
+        #
+        #    {
+        #        "code": 200,
+        #        "data": [
+        #            {
+        #                "currency": "sxp",
+        #                "assetType": "1",
+        #                "chains": [
+        #                    {
+        #                        "chain": "sxp",
+        #                        "displayName": "ERC20",
+        #                        "baseChain": "ETH",
+        #                        "baseChainProtocol": "ERC20",
+        #                        "isDynamic": True,
+        #                        "numOfConfirmations": "12",
+        #                        "numOfFastConfirmations": "12",
+        #                        "depositStatus": "allowed",
+        #                        "minDepositAmt": "0.23",
+        #                        "withdrawStatus": "allowed",
+        #                        "minWithdrawAmt": "0.23",
+        #                        "withdrawPrecision": "8",
+        #                        "maxWithdrawAmt": "227000.000000000000000000",
+        #                        "withdrawQuotaPerDay": "227000.000000000000000000",
+        #                        "withdrawQuotaPerYear": null,
+        #                        "withdrawQuotaTotal": null,
+        #                        "withdrawFeeType": "fixed",
+        #                        "transactFeeWithdraw": "11.1653",
+        #                        "addrWithTag": False,
+        #                        "addrDepositTag": False
+        #                    }
+        #                ],
+        #                "instStatus": "normal"
+        #            }
+        #        ]
+        #    }
+        #
+        data = self.safe_value(response, 'data')
+        return self.parse_deposit_withdraw_fees(data, codes, 'currency')
+
+    def parse_deposit_withdraw_fee(self, fee, currency=None):
+        #
+        #            {
+        #              "currency": "sxp",
+        #              "assetType": "1",
+        #              "chains": [
+        #                  {
+        #                      "chain": "sxp",
+        #                      "displayName": "ERC20",
+        #                      "baseChain": "ETH",
+        #                      "baseChainProtocol": "ERC20",
+        #                      "isDynamic": True,
+        #                      "numOfConfirmations": "12",
+        #                      "numOfFastConfirmations": "12",
+        #                      "depositStatus": "allowed",
+        #                      "minDepositAmt": "0.23",
+        #                      "withdrawStatus": "allowed",
+        #                      "minWithdrawAmt": "0.23",
+        #                      "withdrawPrecision": "8",
+        #                      "maxWithdrawAmt": "227000.000000000000000000",
+        #                      "withdrawQuotaPerDay": "227000.000000000000000000",
+        #                      "withdrawQuotaPerYear": null,
+        #                      "withdrawQuotaTotal": null,
+        #                      "withdrawFeeType": "fixed",
+        #                      "transactFeeWithdraw": "11.1653",
+        #                      "addrWithTag": False,
+        #                      "addrDepositTag": False
+        #                  }
+        #              ],
+        #              "instStatus": "normal"
+        #          }
+        #
+        chains = self.safe_value(fee, 'chains', [])
+        result = self.deposit_withdraw_fee(fee)
+        for j in range(0, len(chains)):
+            chainEntry = chains[j]
+            networkId = self.safe_string(chainEntry, 'chain')
+            withdrawFeeType = self.safe_string(chainEntry, 'withdrawFeeType')
+            networkCode = self.network_id_to_code(networkId)
+            withdrawFee = None
+            withdrawResult = None
+            if withdrawFeeType == 'fixed':
+                withdrawFee = self.safe_number(chainEntry, 'transactFeeWithdraw')
+                withdrawResult = {
+                    'fee': withdrawFee,
+                    'percentage': False,
+                }
+            else:
+                withdrawFee = self.safe_number(chainEntry, 'transactFeeRateWithdraw')
+                withdrawResult = {
+                    'fee': withdrawFee,
+                    'percentage': True,
+                }
+            result['networks'][networkCode] = {
+                'withdraw': withdrawResult,
+                'deposit': {
+                    'fee': None,
+                    'percentage': None,
+                },
+            }
+            result = self.assign_default_deposit_withdraw_fees(result, currency)
+        return result
 
     def parse_settlements(self, settlements, market):
         #
