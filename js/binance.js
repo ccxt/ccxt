@@ -2138,6 +2138,21 @@ module.exports = class binance extends Exchange {
         } else if (future) {
             unifiedType = 'future';
         }
+        let precisionAmount = undefined;
+        let precisionPrice = undefined;
+        let precisionBase = undefined;
+        let precisionQuote = undefined;
+        if (this.precisionMode === TICK_SIZE) {
+            precisionAmount = this.parsePrecision (this.safeString (market, 'quantityPrecision'));
+            precisionPrice = this.parsePrecision (this.safeString (market, 'pricePrecision'));
+            precisionBase = this.parsePrecision (this.safeString (market, 'baseAssetPrecision'));
+            precisionQuote = this.parsePrecision (this.safeString (market, 'quotePrecision'));
+        } else {
+            precisionAmount = this.safeInteger (market, 'quantityPrecision');
+            precisionPrice = this.safeInteger (market, 'pricePrecision');
+            precisionBase = this.safeInteger (market, 'baseAssetPrecision');
+            precisionQuote = this.safeInteger (market, 'quotePrecision');
+        }
         const entry = {
             'id': id,
             'lowercaseId': lowercaseId,
@@ -2166,10 +2181,10 @@ module.exports = class binance extends Exchange {
             'strike': undefined,
             'optionType': undefined,
             'precision': {
-                'amount': this.safeInteger (market, 'quantityPrecision'),
-                'price': this.safeInteger (market, 'pricePrecision'),
-                'base': this.safeInteger (market, 'baseAssetPrecision'),
-                'quote': this.safeInteger (market, 'quotePrecision'),
+                'amount': this.parseNumber (precisionAmount),
+                'price': this.parseNumber (precisionPrice),
+                'base': this.parseNumber (precisionBase),
+                'quote': this.parseNumber (precisionQuote),
             },
             'limits': {
                 'leverage': {
@@ -2201,12 +2216,11 @@ module.exports = class binance extends Exchange {
                 'min': this.safeNumber (filter, 'minPrice'),
                 'max': this.safeNumber (filter, 'maxPrice'),
             };
-            entry['precision']['price'] = this.precisionFromString (filter['tickSize']);
+            entry['precision']['price'] = (this.precisionMode === TICK_SIZE) ? this.safeNumber (filter, 'tickSize') : this.precisionFromString (this.safeString (filter, 'tickSize'));
         }
         if ('LOT_SIZE' in filtersByType) {
             const filter = this.safeValue (filtersByType, 'LOT_SIZE', {});
-            const stepSize = this.safeString (filter, 'stepSize');
-            entry['precision']['amount'] = this.precisionFromString (stepSize);
+            entry['precision']['amount'] = (this.precisionMode === TICK_SIZE) ? this.safeNumber (filter, 'stepSize') : this.precisionFromString (this.safeString (filter, 'stepSize'));
             entry['limits']['amount'] = {
                 'min': this.safeNumber (filter, 'minQty'),
                 'max': this.safeNumber (filter, 'maxQty'),
@@ -4752,14 +4766,14 @@ module.exports = class binance extends Exchange {
         if (internal !== undefined) {
             internal = internal ? true : false;
         }
-        const network = this.safeString (transaction, 'network');
+        const networkCode = this.networkIdToCode (this.safeString (transaction, 'network'));
         return {
             'info': transaction,
             'id': id,
             'txid': txid,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'network': network,
+            'network': networkCode,
             'address': address,
             'addressTo': address,
             'addressFrom': undefined,
@@ -5050,16 +5064,12 @@ module.exports = class binance extends Exchange {
             'coin': currency['id'],
             // 'network': 'ETH', // 'BSC', 'XMR', you can get network and isDefault in networkList in the response of sapiGetCapitalConfigDetail
         };
-        const networks = this.safeValue (this.options, 'networks', {});
-        let network = this.safeStringUpper (params, 'network'); // this line allows the user to specify either ERC20 or ETH
-        network = this.safeString (networks, network, network); // handle ERC20>ETH alias
-        if (network !== undefined) {
-            request['network'] = network;
-            params = this.omit (params, 'network');
+        const [ networkCodeOrId, query ] = this.handleNetworkCodeAndParams (params);
+        if (networkCodeOrId !== undefined) {
+            // you can get network and isDefault in networkList in the response of sapiGetCapitalConfigDetail
+            request['network'] = this.networkCodeToId (networkCodeOrId);
         }
-        // has support for the 'network' parameter
-        // https://binance-docs.github.io/apidocs/spot/en/#deposit-address-supporting-network-user_data
-        const response = await this.sapiGetCapitalDepositAddress (this.extend (request, params));
+        const response = await this.sapiGetCapitalDepositAddress (this.extend (request, query));
         //
         //     {
         //         currency: 'XRP',
@@ -5074,9 +5084,19 @@ module.exports = class binance extends Exchange {
         //     }
         //
         const address = this.safeString (response, 'address');
+        const useUnified = this.safeValue (this.options, 'useUnifiedNetworkCodes', false);
+        let networkCodeDetected = undefined;
+        if (useUnified) {
+            // if the network was specified in the request, then binance will return its data, or if  it was unrecognized network, then it throws exception and doesn't ignore silently. Thus, as long as there was network provided in the request, we can determine the network code depending on the request
+            if (networkCodeOrId === undefined) {
+                networkCodeDetected = this.safeString (this.options['defaultNetworkCodesForCurrencies'], code);
+            } else {
+                networkCodeDetected = networkCodeOrId;
+            }
+        }
         const url = this.safeString (response, 'url');
         let impliedNetwork = undefined;
-        if (url !== undefined) {
+        if (!useUnified && url !== undefined) {
             const reverseNetworks = this.safeValue (this.options, 'reverseNetworks', {});
             const parts = url.split ('/');
             let topLevel = this.safeString (parts, 2);
@@ -5105,7 +5125,7 @@ module.exports = class binance extends Exchange {
             'currency': code,
             'address': address,
             'tag': tag,
-            'network': impliedNetwork,
+            'network': useUnified ? networkCodeDetected : impliedNetwork,
             'info': response,
         };
     }
@@ -5376,14 +5396,12 @@ module.exports = class binance extends Exchange {
         if (tag !== undefined) {
             request['addressTag'] = tag;
         }
-        const networks = this.safeValue (this.options, 'networks', {});
-        let network = this.safeStringUpper (params, 'network'); // this line allows the user to specify either ERC20 or ETH
-        network = this.safeString (networks, network, network); // handle ERC20>ETH alias
-        if (network !== undefined) {
-            request['network'] = network;
-            params = this.omit (params, 'network');
+        const [ networkCode, query ] = this.handleNetworkCodeAndParams (params);
+        const networkId = this.networkCodeToId (networkCode);
+        if (networkId !== undefined) {
+            request['network'] = networkId;
         }
-        const response = await this.sapiPostCapitalWithdrawApply (this.extend (request, params));
+        const response = await this.sapiPostCapitalWithdrawApply (this.extend (request, query));
         //     { id: '9a67628b16ba4988ae20d329333f16bc' }
         return this.parseTransaction (response, currency);
     }
@@ -6006,7 +6024,8 @@ module.exports = class binance extends Exchange {
                 const rightSide = Precise.stringSub (Precise.stringMul (Precise.stringDiv ('1', entryPriceSignString), size), walletBalance);
                 liquidationPriceStringRaw = Precise.stringDiv (leftSide, rightSide);
             }
-            const pricePrecision = market['precision']['price'];
+            // the below variable is expected to be an integer, so we convert ticksize back to precision-amount
+            const pricePrecision = (this.precisionMode === TICK_SIZE) ? this.precisionFromString (this.safeString (market['precision'], 'price')) : market['precision']['price'];
             const pricePrecisionPlusOne = pricePrecision + 1;
             const pricePrecisionPlusOneString = pricePrecisionPlusOne.toString ();
             // round half up
@@ -6142,8 +6161,8 @@ module.exports = class binance extends Exchange {
                 }
                 const inner = Precise.stringMul (liquidationPriceString, onePlusMaintenanceMarginPercentageString);
                 const leftSide = Precise.stringAdd (inner, entryPriceSignString);
-                const pricePrecision = this.safeInteger (precision, 'price');
-                const quotePrecision = this.safeInteger (precision, 'quote', pricePrecision);
+                const pricePrecision = (this.precisionMode === TICK_SIZE) ? this.precisionFromString (this.safeString (precision, 'price')) : this.safeInteger (precision, 'price');
+                const quotePrecision = (this.precisionMode === TICK_SIZE) ? this.precisionFromString (this.safeString2 (precision, 'quote', 'price')) : this.safeInteger (precision, 'quote', pricePrecision);
                 if (quotePrecision !== undefined) {
                     collateralString = Precise.stringDiv (Precise.stringMul (leftSide, contractsAbs), '1', quotePrecision);
                 }
@@ -6159,7 +6178,7 @@ module.exports = class binance extends Exchange {
                 }
                 const leftSide = Precise.stringMul (contractsAbs, contractSizeString);
                 const rightSide = Precise.stringSub (Precise.stringDiv ('1', entryPriceSignString), Precise.stringDiv (onePlusMaintenanceMarginPercentageString, liquidationPriceString));
-                const basePrecision = this.safeInteger (precision, 'base');
+                const basePrecision = (this.precisionMode === TICK_SIZE) ? this.precisionFromString (this.safeString (precision, 'base')) : this.safeInteger (precision, 'base');
                 if (basePrecision !== undefined) {
                     collateralString = Precise.stringDiv (Precise.stringMul (leftSide, rightSide), '1', basePrecision);
                 }
