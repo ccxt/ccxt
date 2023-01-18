@@ -3420,6 +3420,8 @@ class coinex extends Exchange {
         //
         $data = $this->safe_value($response, 'data', array());
         $ticker = $this->safe_value($data, 'ticker', array());
+        $timestamp = $this->safe_integer($data, 'date');
+        $ticker['timestamp'] = $timestamp; // avoid changing parseFundingRate signature
         return $this->parse_funding_rate($ticker, $market);
     }
 
@@ -3450,6 +3452,11 @@ class coinex extends Exchange {
         //         "sell_amount" => "0.9388"
         //     }
         //
+        $timestamp = $this->safe_integer($contract, 'timestamp');
+        $contract = $this->omit($contract, 'timestamp');
+        $fundingDelta = $this->safe_integer($contract, 'funding_time') * 60 * 1000;
+        $fundingHour = ($timestamp . $fundingDelta) / 3600000;
+        $fundingTimestamp = (int) round($fundingHour) * 3600000;
         return array(
             'info' => $contract,
             'symbol' => $this->safe_symbol(null, $market),
@@ -3457,11 +3464,11 @@ class coinex extends Exchange {
             'indexPrice' => $this->safe_number($contract, 'index_price'),
             'interestRate' => null,
             'estimatedSettlePrice' => null,
-            'timestamp' => null,
-            'datetime' => null,
+            'timestamp' => $timestamp,
+            'datetime' => $this->iso8601($timestamp),
             'fundingRate' => $this->safe_number($contract, 'funding_rate_next'),
-            'fundingTimestamp' => null,
-            'fundingDatetime' => null,
+            'fundingTimestamp' => $fundingTimestamp,
+            'fundingDatetime' => $this->iso8601($fundingTimestamp),
             'nextFundingRate' => $this->safe_number($contract, 'funding_rate_predict'),
             'nextFundingTimestamp' => null,
             'nextFundingDatetime' => null,
@@ -3525,6 +3532,7 @@ class coinex extends Exchange {
         //     }
         $data = $this->safe_value($response, 'data', array());
         $tickers = $this->safe_value($data, 'ticker', array());
+        $timestamp = $this->safe_integer($data, 'date');
         $result = array();
         $marketIds = is_array($tickers) ? array_keys($tickers) : array();
         for ($i = 0; $i < count($marketIds); $i++) {
@@ -3532,6 +3540,7 @@ class coinex extends Exchange {
             if (mb_strpos($marketId, '_') === -1) { // skip _signprice and _indexprice
                 $market = $this->safe_market($marketId, null, null, 'swap');
                 $ticker = $tickers[$marketId];
+                $ticker['timestamp'] = $timestamp;
                 $result[] = $this->parse_funding_rate($ticker, $market);
             }
         }

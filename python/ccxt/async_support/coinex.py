@@ -3275,6 +3275,8 @@ class coinex(Exchange):
         #
         data = self.safe_value(response, 'data', {})
         ticker = self.safe_value(data, 'ticker', {})
+        timestamp = self.safe_integer(data, 'date')
+        ticker['timestamp'] = timestamp  # avoid changing parseFundingRate signature
         return self.parse_funding_rate(ticker, market)
 
     def parse_funding_rate(self, contract, market=None):
@@ -3304,6 +3306,11 @@ class coinex(Exchange):
         #         "sell_amount": "0.9388"
         #     }
         #
+        timestamp = self.safe_integer(contract, 'timestamp')
+        contract = self.omit(contract, 'timestamp')
+        fundingDelta = self.safe_integer(contract, 'funding_time') * 60 * 1000
+        fundingHour = (timestamp + fundingDelta) / 3600000
+        fundingTimestamp = int(round(fundingHour)) * 3600000
         return {
             'info': contract,
             'symbol': self.safe_symbol(None, market),
@@ -3311,11 +3318,11 @@ class coinex(Exchange):
             'indexPrice': self.safe_number(contract, 'index_price'),
             'interestRate': None,
             'estimatedSettlePrice': None,
-            'timestamp': None,
-            'datetime': None,
+            'timestamp': timestamp,
+            'datetime': self.iso8601(timestamp),
             'fundingRate': self.safe_number(contract, 'funding_rate_next'),
-            'fundingTimestamp': None,
-            'fundingDatetime': None,
+            'fundingTimestamp': fundingTimestamp,
+            'fundingDatetime': self.iso8601(fundingTimestamp),
             'nextFundingRate': self.safe_number(contract, 'funding_rate_predict'),
             'nextFundingTimestamp': None,
             'nextFundingDatetime': None,
@@ -3376,6 +3383,7 @@ class coinex(Exchange):
         #     }
         data = self.safe_value(response, 'data', {})
         tickers = self.safe_value(data, 'ticker', {})
+        timestamp = self.safe_integer(data, 'date')
         result = []
         marketIds = list(tickers.keys())
         for i in range(0, len(marketIds)):
@@ -3383,6 +3391,7 @@ class coinex(Exchange):
             if marketId.find('_') == -1:  # skip _signprice and _indexprice
                 market = self.safe_market(marketId, None, None, 'swap')
                 ticker = tickers[marketId]
+                ticker['timestamp'] = timestamp
                 result.append(self.parse_funding_rate(ticker, market))
         return self.filter_by_array(result, 'symbol', symbols)
 
