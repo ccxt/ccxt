@@ -148,6 +148,7 @@ module.exports = class ace extends Exchange {
                     '2061': BadRequest,
                     '9996': BadRequest,
                     '20182': AuthenticationError,
+                    '10012': AuthenticationError,
                 },
                 'broad': {
                 },
@@ -184,15 +185,17 @@ module.exports = class ace extends Exchange {
         for (let i = 0; i < response.length; i++) {
             const market = response[i];
             const base = this.safeString (market, 'base');
+            const baseCode = this.safeCurrencyCode (base);
             const quote = this.safeString (market, 'quote');
+            const quoteCode = this.safeCurrencyCode (quote);
             const symbol = base + '/' + quote;
             result.push ({
                 'id': this.safeString (market, 'symbol'),
                 'uppercaseId': undefined,
                 'symbol': symbol,
-                'base': base,
+                'base': baseCode,
                 'baseId': this.safeNumber (market, 'baseCurrencyId'),
-                'quote': quote,
+                'quote': quoteCode,
                 'quoteId': this.safeNumber (market, 'quoteCurrencyId'),
                 'settle': undefined,
                 'settleId': undefined,
@@ -249,8 +252,7 @@ module.exports = class ace extends Exchange {
         //     }
         //
         const marketId = this.safeString (ticker, 'id');
-        market = this.safeMarket (marketId);
-        const symbol = this.safeString (market, 'symbol');
+        const symbol = this.safeSymbol (marketId, market);
         return this.safeTicker ({
             'symbol': symbol,
             'timestamp': undefined,
@@ -298,7 +300,6 @@ module.exports = class ace extends Exchange {
         //         }
         //     }
         //
-        ticker['id'] = marketId;
         return this.parseTicker (ticker, market);
     }
 
@@ -326,11 +327,12 @@ module.exports = class ace extends Exchange {
         const pairs = Object.keys (response);
         for (let i = 0; i < pairs.length; i++) {
             const marketId = pairs[i];
-            const ticker = this.safeValue (response, marketId);
-            ticker['id'] = marketId;
+            const market = this.safeMarket (marketId);
+            const rawTicker = this.safeValue (response, marketId);
+            const ticker = this.parseTicker (rawTicker, market);
             tickers.push (ticker);
         }
-        return this.parseTickers (tickers, symbols);
+        return this.filterByArray (tickers, 'symbol', symbols);
     }
 
     async fetchOrderBook (symbol, limit = undefined, params = {}) {
