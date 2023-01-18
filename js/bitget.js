@@ -1339,8 +1339,8 @@ module.exports = class bitget extends Exchange {
          * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure}
          */
         this.checkAddress (address);
-        const networkCode = this.safeString2 (params, 'network', 'chain');
-        if (networkCode === undefined) {
+        const [ networkCodeOrId, paramsOmited ] = this.handleNetworkCodeAndParams (params);
+        if (networkCodeOrId === undefined) {
             throw new ArgumentsRequired (this.id + ' withdraw() requires a "network" parameter');
         }
         await this.loadMarkets ();
@@ -1348,13 +1348,13 @@ module.exports = class bitget extends Exchange {
         const request = {
             'coin': currency['code'],
             'address': address,
-            'chain': this.networkCodeToId (networkCode),
+            'chain': this.networkCodeToId (networkCodeOrId),
             'amount': amount,
         };
         if (tag !== undefined) {
             request['tag'] = tag;
         }
-        const response = await this.privateSpotPostWalletWithdrawal (this.extend (request, params));
+        const response = await this.privateSpotPostWalletWithdrawal (this.extend (request, paramsOmited));
         //
         //     {
         //         "code": "00000",
