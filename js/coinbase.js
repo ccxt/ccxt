@@ -69,7 +69,7 @@ module.exports = class coinbase extends Exchange {
                 'fetchOpenOrders': undefined,
                 'fetchOrder': true,
                 'fetchOrderBook': false,
-                'fetchOrders': undefined,
+                'fetchOrders': true,
                 'fetchPosition': false,
                 'fetchPositionMode': false,
                 'fetchPositions': false,
@@ -1796,7 +1796,7 @@ module.exports = class coinbase extends Exchange {
         //         "order_id": "bb8851a3-4fda-4a2c-aa06-9048db0e0f0d"
         //     }
         //
-        // fetchOrder
+        // fetchOrder, fetchOrders
         //
         //     {
         //         "order_id": "9bc1eb3b-5b46-4b71-9628-ae2ed0cca75b",
@@ -2042,6 +2042,80 @@ module.exports = class coinbase extends Exchange {
         //
         const order = this.safeValue (response, 'order', {});
         return this.parseOrder (order, market);
+    }
+
+    async fetchOrders (symbol = undefined, since = undefined, limit = 100, params = {}) {
+        /**
+         * @method
+         * @name coinbase#fetchOrders
+         * @description fetches information on multiple orders made by the user
+         * @see https://docs.cloud.coinbase.com/advanced-trade-api/reference/retailbrokerageapi_gethistoricalorders
+         * @param {string|undefined} symbol unified market symbol that the orders were made in
+         * @param {int|undefined} since the earliest time in ms to fetch orders
+         * @param {int|undefined} limit the maximum number of order structures to retrieve
+         * @param {object} params extra parameters specific to the coinbase api endpoint
+         * @returns {[object]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
+         */
+        await this.loadMarkets ();
+        let market = undefined;
+        if (symbol !== undefined) {
+            market = this.market (symbol);
+        }
+        const request = {};
+        if (market !== undefined) {
+            request['product_id'] = market['id'];
+        }
+        if (limit !== undefined) {
+            request['limit'] = limit;
+        }
+        if (since !== undefined) {
+            request['start_date'] = this.parse8601 (since);
+        }
+        const response = await this.v3PrivateGetBrokerageOrdersHistoricalBatch (this.extend (request, params));
+        //
+        //     {
+        //         "orders": [
+        //             {
+        //                 "order_id": "813a53c5-3e39-47bb-863d-2faf685d22d8",
+        //                 "product_id": "BTC-USDT",
+        //                 "user_id": "1111111-1111-1111-1111-111111111111",
+        //                 "order_configuration": {
+        //                     "market_market_ioc": {
+        //                         "quote_size": "6.36"
+        //                     }
+        //                 },
+        //                 "side": "BUY",
+        //                 "client_order_id": "18eb9947-db49-4874-8e7b-39b8fe5f4317",
+        //                 "status": "FILLED",
+        //                 "time_in_force": "IMMEDIATE_OR_CANCEL",
+        //                 "created_time": "2023-01-18T01:37:37.975552Z",
+        //                 "completion_percentage": "100",
+        //                 "filled_size": "0.000297920684505",
+        //                 "average_filled_price": "21220.6399999973697697",
+        //                 "fee": "",
+        //                 "number_of_fills": "2",
+        //                 "filled_value": "6.3220675944333996",
+        //                 "pending_cancel": false,
+        //                 "size_in_quote": true,
+        //                 "total_fees": "0.0379324055666004",
+        //                 "size_inclusive_of_fees": true,
+        //                 "total_value_after_fees": "6.36",
+        //                 "trigger_status": "INVALID_ORDER_TYPE",
+        //                 "order_type": "MARKET",
+        //                 "reject_reason": "REJECT_REASON_UNSPECIFIED",
+        //                 "settled": true,
+        //                 "product_type": "SPOT",
+        //                 "reject_message": "",
+        //                 "cancel_message": "Internal error"
+        //             },
+        //         ],
+        //         "sequence": "0",
+        //         "has_next": false,
+        //         "cursor": ""
+        //     }
+        //
+        const orders = this.safeValue (response, 'orders', []);
+        return this.parseOrders (orders, market, since, limit);
     }
 
     sign (path, api = [], method = 'GET', params = {}, headers = undefined, body = undefined) {
