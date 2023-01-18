@@ -3,7 +3,7 @@
 // ----------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
-const { ExchangeError, ArgumentsRequired, AuthenticationError, BadRequest, RateLimitExceeded, InvalidNonce } = require ('./base/errors');
+const { ExchangeError, ArgumentsRequired, AuthenticationError, BadRequest, OrderNotFound, RateLimitExceeded, InvalidNonce } = require ('./base/errors');
 const { TICK_SIZE } = require ('./base/functions/number');
 const Precise = require ('./base/Precise');
 
@@ -67,7 +67,7 @@ module.exports = class coinbase extends Exchange {
                 'fetchOHLCV': false,
                 'fetchOpenInterestHistory': false,
                 'fetchOpenOrders': undefined,
-                'fetchOrder': undefined,
+                'fetchOrder': true,
                 'fetchOrderBook': false,
                 'fetchOrders': undefined,
                 'fetchPosition': false,
@@ -248,6 +248,7 @@ module.exports = class coinbase extends Exchange {
                 },
                 'broad': {
                     'request timestamp expired': InvalidNonce, // {"errors":[{"id":"authentication_error","message":"request timestamp expired"}]}
+                    'order with this orderID was not found': OrderNotFound, // {"error":"unknown","error_details":"order with this orderID was not found","message":"order with this orderID was not found"}
                 },
             },
             'commonCurrencies': {
@@ -1795,39 +1796,134 @@ module.exports = class coinbase extends Exchange {
         //         "order_id": "bb8851a3-4fda-4a2c-aa06-9048db0e0f0d"
         //     }
         //
+        // fetchOrder
+        //
+        //     {
+        //         "order_id": "9bc1eb3b-5b46-4b71-9628-ae2ed0cca75b",
+        //         "product_id": "LTC-BTC",
+        //         "user_id": "1111111-1111-1111-1111-111111111111",
+        //         "order_configuration": {
+        //             "limit_limit_gtc": {
+        //                 "base_size": "0.2",
+        //                 "limit_price": "0.006",
+        //                 "post_only": false
+        //             }
+        //         },
+        //         "side": "SELL",
+        //         "client_order_id": "e5fe8482-05bb-428f-ad4d-dbc8ce39239c",
+        //         "status": "OPEN",
+        //         "time_in_force": "GOOD_UNTIL_CANCELLED",
+        //         "created_time": "2023-01-16T23:37:23.947030Z",
+        //         "completion_percentage": "0",
+        //         "filled_size": "0",
+        //         "average_filled_price": "0",
+        //         "fee": "",
+        //         "number_of_fills": "0",
+        //         "filled_value": "0",
+        //         "pending_cancel": false,
+        //         "size_in_quote": false,
+        //         "total_fees": "0",
+        //         "size_inclusive_of_fees": false,
+        //         "total_value_after_fees": "0",
+        //         "trigger_status": "INVALID_ORDER_TYPE",
+        //         "order_type": "LIMIT",
+        //         "reject_reason": "REJECT_REASON_UNSPECIFIED",
+        //         "settled": false,
+        //         "product_type": "SPOT",
+        //         "reject_message": "",
+        //         "cancel_message": ""
+        //     }
+        //
         const marketId = this.safeString (order, 'product_id');
         const symbol = this.safeSymbol (marketId, market, '-');
         if (symbol !== undefined) {
             market = this.market (symbol);
         }
-        const rawSide = this.safeString (order, 'side');
-        const side = (rawSide !== undefined) ? rawSide.toLowerCase () : undefined;
+        const orderConfiguration = this.safeValue (order, 'order_configuration', {});
+        const limitGTC = orderConfiguration['limit_limit_gtc'];
+        const limitGTD = orderConfiguration['limit_limit_gtd'];
+        const stopLimitGTC = orderConfiguration['stop_limit_stop_limit_gtc'];
+        const stopLimitGTD = orderConfiguration['stop_limit_stop_limit_gtd'];
+        const marketIOC = orderConfiguration['market_market_ioc'];
+        const isLimit = ((limitGTC !== undefined) || (limitGTD !== undefined));
+        const isStop = ((stopLimitGTC !== undefined) || (stopLimitGTD !== undefined));
+        let price = undefined;
+        let amount = undefined;
+        let postOnly = undefined;
+        let triggerPrice = undefined;
+        if (isLimit) {
+            price = (limitGTC !== undefined) ? this.safeNumber (limitGTC, 'limit_price') : this.safeNumber (limitGTD, 'limit_price');
+            amount = (limitGTC !== undefined) ? this.safeNumber (limitGTC, 'base_size') : this.safeNumber (limitGTD, 'base_size');
+            postOnly = (limitGTC !== undefined) ? this.safeValue (limitGTC, 'post_only') : this.safeValue (limitGTD, 'post_only');
+        } else if (isStop) {
+            price = (stopLimitGTC !== undefined) ? this.safeNumber (stopLimitGTC, 'limit_price') : this.safeNumber (stopLimitGTD, 'limit_price');
+            amount = (stopLimitGTC !== undefined) ? this.safeNumber (stopLimitGTC, 'base_size') : this.safeNumber (stopLimitGTD, 'base_size');
+            postOnly = (stopLimitGTC !== undefined) ? this.safeValue (stopLimitGTC, 'post_only') : this.safeValue (stopLimitGTD, 'post_only');
+            triggerPrice = (stopLimitGTC !== undefined) ? this.safeNumber (stopLimitGTC, 'stop_price') : this.safeNumber (stopLimitGTD, 'stop_price');
+        } else {
+            amount = this.safeNumber (marketIOC, 'base_size');
+        }
+        const datetime = this.safeString (order, 'created_time');
         return this.safeOrder ({
             'info': order,
             'id': this.safeString (order, 'order_id'),
             'clientOrderId': this.safeString (order, 'client_order_id'),
-            'timestamp': undefined,
-            'datetime': undefined,
+            'timestamp': this.parse8601 (datetime),
+            'datetime': datetime,
             'lastTradeTimestamp': undefined,
             'symbol': symbol,
-            'type': undefined,
-            'timeInForce': undefined,
-            'postOnly': undefined,
-            'side': side,
-            'price': undefined,
-            'stopPrice': undefined,
-            'triggerPrice': undefined,
-            'amount': undefined,
-            'filled': undefined,
+            'type': this.parseOrderType (this.safeString (order, 'order_type')),
+            'timeInForce': this.parseTimeInForce (this.safeString (order, 'time_in_force')),
+            'postOnly': postOnly,
+            'side': this.safeStringLower (order, 'side'),
+            'price': price,
+            'stopPrice': triggerPrice,
+            'triggerPrice': triggerPrice,
+            'amount': amount,
+            'filled': this.safeNumber (order, 'filled_size'),
             'remaining': undefined,
             'cost': undefined,
-            'average': undefined,
-            'status': undefined,
+            'average': this.safeNumber (order, 'average_filled_price'),
+            'status': this.parseOrderStatus (this.safeString (order, 'status')),
             'fee': {
-                'cost': undefined,
+                'cost': this.safeNumber (order, 'total_fees'),
             },
             'trades': undefined,
         }, market);
+    }
+
+    parseOrderStatus (status) {
+        const statuses = {
+            'OPEN': 'open',
+            'FILLED': 'closed',
+            'CANCELLED': 'canceled',
+            'EXPIRED': 'canceled',
+            'FAILED': 'canceled',
+            'UNKNOWN_ORDER_STATUS': undefined,
+        };
+        return this.safeString (statuses, status, status);
+    }
+
+    parseOrderType (type) {
+        const types = {
+            'MARKET': 'market',
+            'LIMIT': 'limit',
+            'STOP': 'limit',
+            'STOP_LIMIT': 'limit',
+            'UNKNOWN_ORDER_TYPE': undefined,
+        };
+        return this.safeString (types, type, type);
+    }
+
+    parseTimeInForce (timeInForce) {
+        const timeInForces = {
+            'GOOD_UNTIL_CANCELLED': 'GTC',
+            'GOOD_UNTIL_DATE_TIME': 'GTD',
+            'IMMEDIATE_OR_CANCEL': 'IOC',
+            'FILL_OR_KILL': 'FOK',
+            'UNKNOWN_TIME_IN_FORCE': undefined,
+        };
+        return this.safeString (timeInForces, timeInForce, timeInForce);
     }
 
     async cancelOrder (id, symbol = undefined, params = {}) {
@@ -1883,6 +1979,69 @@ module.exports = class coinbase extends Exchange {
             throw new BadRequest (this.id + ' cancelOrders() has failed, check your arguments and parameters');
         }
         return this.parseOrders (orders, market);
+    }
+
+    async fetchOrder (id, symbol = undefined, params = {}) {
+        /**
+         * @method
+         * @name coinbase#fetchOrder
+         * @description fetches information on an order made by the user
+         * @see https://docs.cloud.coinbase.com/advanced-trade-api/reference/retailbrokerageapi_gethistoricalorder
+         * @param {string} id the order id
+         * @param {string|undefined} symbol unified market symbol that the order was made in
+         * @param {object} params extra parameters specific to the coinbase api endpoint
+         * @returns {object} An [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
+         */
+        await this.loadMarkets ();
+        let market = undefined;
+        if (symbol !== undefined) {
+            market = this.market (symbol);
+        }
+        const request = {
+            'order_id': id,
+        };
+        const response = await this.v3PrivateGetBrokerageOrdersHistoricalOrderId (this.extend (request, params));
+        //
+        //     {
+        //         "order": {
+        //             "order_id": "9bc1eb3b-5b46-4b71-9628-ae2ed0cca75b",
+        //             "product_id": "LTC-BTC",
+        //             "user_id": "1111111-1111-1111-1111-111111111111",
+        //             "order_configuration": {
+        //                 "limit_limit_gtc": {
+        //                     "base_size": "0.2",
+        //                     "limit_price": "0.006",
+        //                     "post_only": false
+        //                 }
+        //             },
+        //             "side": "SELL",
+        //             "client_order_id": "e5fe8482-05bb-428f-ad4d-dbc8ce39239c",
+        //             "status": "OPEN",
+        //             "time_in_force": "GOOD_UNTIL_CANCELLED",
+        //             "created_time": "2023-01-16T23:37:23.947030Z",
+        //             "completion_percentage": "0",
+        //             "filled_size": "0",
+        //             "average_filled_price": "0",
+        //             "fee": "",
+        //             "number_of_fills": "0",
+        //             "filled_value": "0",
+        //             "pending_cancel": false,
+        //             "size_in_quote": false,
+        //             "total_fees": "0",
+        //             "size_inclusive_of_fees": false,
+        //             "total_value_after_fees": "0",
+        //             "trigger_status": "INVALID_ORDER_TYPE",
+        //             "order_type": "LIMIT",
+        //             "reject_reason": "REJECT_REASON_UNSPECIFIED",
+        //             "settled": false,
+        //             "product_type": "SPOT",
+        //             "reject_message": "",
+        //             "cancel_message": ""
+        //         }
+        //     }
+        //
+        const order = this.safeValue (response, 'order', {});
+        return this.parseOrder (order, market);
     }
 
     sign (path, api = [], method = 'GET', params = {}, headers = undefined, body = undefined) {
