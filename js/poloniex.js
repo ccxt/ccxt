@@ -205,8 +205,12 @@ module.exports = class poloniex extends Exchange {
                 'networks': {
                     'BEP20': 'BSC',
                     'ERC20': 'ETH',
-                    'TRX': 'TRON',
                     'TRC20': 'TRON',
+                },
+                'networksById': {
+                    'BSC': 'BEP20',
+                    'ETH': 'ERC20',
+                    'TRON': 'TRC20',
                 },
                 'limits': {
                     'cost': {
@@ -1815,13 +1819,18 @@ module.exports = class poloniex extends Exchange {
         //         }
         //     ]
         //
-        // console.log (response);
-        return this.parseDepositWithdrawFees (response, codes);
+        const data = {};
+        for (let i = 0; i < response.length; i++) {
+            const entry = response[i];
+            const currencies = Object.keys (entry);
+            const currencyId = this.safeString (currencies, 0);
+            data[currencyId] = entry[currencyId];
+        }
+        return this.parseDepositWithdrawFees (data, codes);
     }
 
     parseDepositWithdrawFees (response, codes = undefined, currencyIdKey = undefined) {
         //
-        //     [
         //         {
         //             "1CR": {
         //                 "id": 1,
@@ -1839,53 +1848,66 @@ module.exports = class poloniex extends Exchange {
         //                 "isMultiChain": false,
         //                 "isChildChain": false,
         //                 "childChains": []
-        //             }
+        //             },
         //         }
-        //     ]
         //
         const depositWithdrawFees = {};
-        const childChainValues = {};
         codes = this.marketCodes (codes);
-        for (let i = 0; i < response.length; i++) {
-            const entry = response[i];
-            const currencyId = this.safeString (Object.keys (entry), 0);
+        const responseKeys = Object.keys (response);
+        for (let i = 0; i < responseKeys.length; i++) {
+            const currencyId = responseKeys[i];
             const code = this.safeCurrencyCode (currencyId);
-            const feeInfo = entry[currencyId];
+            const feeInfo = response[currencyId];
             if ((codes === undefined) || (this.inArray (code, codes))) {
-                depositWithdrawFees[code] = this.depositWithdrawFee ({});
-                depositWithdrawFees[code]['info'][currencyId] = feeInfo;
-                const networkId = this.safeString (feeInfo, 'blockchain');
-                const withdrawFee = this.safeNumber (feeInfo, 'withdrawalFee:');
-                const withdrawResult = {
-                    'fee': withdrawFee,
-                    'percentage': (withdrawFee !== undefined) ? false : undefined,
-                };
-                const depositResult = {
-                    'fee': undefined,
-                    'percentage': undefined,
-                };
-                const networkCode = this.networkIdToCode (networkId);
-                depositWithdrawFees[code]['networks'][networkCode] = {
-                    'withdraw': withdrawResult,
-                    'deposit': depositResult,
-                };
+                depositWithdrawFees[code] = this.parseDepositWithdrawFee (feeInfo, code);
                 const childChains = this.safeValue (feeInfo, 'childChains');
                 if (childChains.length > 0) {
                     for (let j = 0; j < childChains.length; j++) {
-                        childChainValues[childChains[j]] = code;
+                        let networkId = childChains[j];
+                        networkId = networkId.replace (code, '');
+                        const networkCode = this.networkIdToCode (networkId);
+                        const networkInfo = this.safeValue (response, networkId);
+                        const networkObject = {};
+                        const withdrawFee = this.safeNumber (networkInfo, 'withdrawalFee');
+                        networkObject[networkCode] = {
+                            'withdraw': {
+                                'fee': withdrawFee,
+                                'percentage': (withdrawFee !== undefined) ? false : undefined,
+                            },
+                            'deposit': {
+                                'fee': undefined,
+                                'percentage': undefined,
+                            },
+                        };
+                        depositWithdrawFees[code]['networks'] = this.extend (depositWithdrawFees[code]['networks'], networkObject);
                     }
                 }
             }
         }
-        // TODO: Include sideChains
-        // const depositWithdrawCodes = Object.keys (depositWithdrawFees);
-        // for (let i = 0; i < depositWithdrawCodes.length; i++) {
-        //     const code = depositWithdrawCodes[i];
-        //     const currency = this.currency (code);
-        //     depositWithdrawFees[code] = this.assignDefaultDepositWithdrawFees (depositWithdrawFees[code], currency);
-        // }
-        console.log (childChainValues);
-        // return depositWithdrawFees;
+        return depositWithdrawFees;
+    }
+
+    parseDepositWithdrawFee (fee, currency = undefined) {
+        const depositWithdrawFee = this.depositWithdrawFee ({});
+        depositWithdrawFee['info'][currency] = fee;
+        const networkId = this.safeString (fee, 'blockchain');
+        const withdrawFee = this.safeNumber (fee, 'withdrawalFee');
+        const withdrawResult = {
+            'fee': withdrawFee,
+            'percentage': (withdrawFee !== undefined) ? false : undefined,
+        };
+        const depositResult = {
+            'fee': undefined,
+            'percentage': undefined,
+        };
+        depositWithdrawFee['withdraw'] = withdrawResult;
+        depositWithdrawFee['deposit'] = depositResult;
+        const networkCode = this.networkIdToCode (networkId);
+        depositWithdrawFee['networks'][networkCode] = {
+            'withdraw': withdrawResult,
+            'deposit': depositResult,
+        };
+        return depositWithdrawFee;
     }
 
     async fetchDeposits (code = undefined, since = undefined, limit = undefined, params = {}) {
