@@ -4,7 +4,7 @@
 
 const Exchange = require ('./base/Exchange');
 const { ExchangeError, ArgumentsRequired, ExchangeNotAvailable, InsufficientFunds, OrderNotFound, InvalidOrder, DDoSProtection, InvalidNonce, AuthenticationError, RateLimitExceeded, PermissionDenied, NotSupported, BadRequest, BadSymbol, AccountSuspended, OrderImmediatelyFillable, OnMaintenance, BadResponse, RequestTimeout, OrderNotFillable, MarginModeAlreadySet } = require ('./base/errors');
-const { TRUNCATE, DECIMAL_PLACES } = require ('./base/functions/number');
+const { TRUNCATE, TICK_SIZE } = require ('./base/functions/number');
 const Precise = require ('./base/Precise');
 
 //  ---------------------------------------------------------------------------
@@ -874,7 +874,7 @@ module.exports = class binance extends Exchange {
                 'BCC': 'BCC', // kept for backward-compatibility https://github.com/ccxt/ccxt/issues/4848
                 'YOYO': 'YOYOW',
             },
-            'precisionMode': DECIMAL_PLACES,
+            'precisionMode': TICK_SIZE,
             // exchange-specific options
             'options': {
                 'fetchMarkets': [ 'spot', 'linear', 'inverse' ],
@@ -924,14 +924,138 @@ module.exports = class binance extends Exchange {
                     'UMFUTURE': 'linear',
                     'CMFUTURE': 'inverse',
                 },
+                'useUnifiedNetworkCodes': false, // temporary flag to tell users to enable it. in near future, we will enable it by default so users will be prepared
                 'networks': {
+                    'ETH': 'ETH',
                     'ERC20': 'ETH',
-                    'TRC20': 'TRX',
-                    'BEP2': 'BNB',
+                    // 'FIAT': 'FIAT_MONEY', // not unified atm
+                    // 'LEVERAGE_TOKEN': 'ETF', // not unified atm
+                    // 'STAKING': 'STAKING',
+                    'SOLANA': 'SOL',
                     'BEP20': 'BSC',
-                    'OMNI': 'OMNI',
+                    'NEAR': 'NEAR',
+                    'BEP2': 'BNB',
+                    'HELIUM': 'HNT',
+                    'NANO': 'NANO',
+                    'AION': 'AION',
+                    'DIGIBYTE': 'DGB',
+                    'ONTOLOGY': 'ONT',
+                    'BCH': 'BCH',
+                    'TRC20': 'TRX',
+                    'TRX': 'TRX',
+                    'ARWEAVE': 'AR',
+                    'IRISNET': 'IRIS',
+                    'AVALANCHE_C': 'AVAXC',
+                    'AVALANCHE_X': 'AVAX',
+                    'ARBITRUM_ONE': 'ARBITRUM',
+                    'NEO': 'NEO',
+                    'NEO3': 'NEO3',
+                    'VITE': 'VITE',
+                    'FLARE': 'FLR',
+                    'BITCOINX': 'BCX',
+                    'ACALA': 'ACA',
+                    'ARDOR': 'ARDR',
+                    'NEBLIO': 'NEBL',
+                    'CHILIZ': 'CHZ',
+                    'MINA': 'MINA',
+                    'VECHAIN': 'VET',
+                    'REI': 'REI',
+                    'CARDANO': 'ADA',
+                    'AELF': 'ELF',
+                    'WAVES': 'WAVES',
+                    'RIPPLE': 'XRP',
+                    'POLYGON': 'MATIC',
+                    'SECRET': 'SCRT',
+                    'KAVA': 'KAVA',
+                    'THETA': 'THETA',
+                    'SUPERBITCOIN': 'SBTC',
+                    'NERVOS': 'CKB',
+                    'TERRA': 'LUNA',
+                    'TERRACLASSIC': 'LUNC',
+                    'TEZOS': 'XTZ',
                     'EOS': 'EOS',
-                    'SPL': 'SOL',
+                    'RSK': 'RSK',
+                    'WALTONCHAIN': 'WTC',
+                    'VERGE': 'XVG',
+                    'FLOW': 'FLOW',
+                    'STEEM': 'STEEM',
+                    'RONIN': 'RON',
+                    'BITSHARES_OLD': 'BTS',
+                    'BITSHARES_NEW': 'NBS',
+                    'POLKADOT': 'DOT',
+                    'FANTOM': 'FTM',
+                    'COSMOS': 'ATOM',
+                    'OPTIMISM': 'OPTIMISM',
+                    'OASIS': 'ROSE',
+                    'MOONBEAM': 'GLMR',
+                    'ETC': 'ETC',
+                    'BIFROST': 'BIFROSTKUSAMA',
+                    'TOMOCHAIN': 'TOMO',
+                    'CELO': 'CELO',
+                    'KLAYTN': 'KLAY',
+                    'ELROND': 'EGLD',
+                    'MANTA': 'MA',
+                    'AIRDAO': 'AMB', // a.k.a. AMBROSUS
+                    'NULS': 'NULS',
+                    'ETHW': 'ETHW',
+                    // '': 'CTK', // tbd
+                    'APTOS': 'APT',
+                    'IOTEX': 'IOTX',
+                    'KADENA_1': 'KDA',
+                    'KADENA_2': 'KDA2',
+                    'DOCK': 'DOCK',
+                    'STACKS': 'STX',
+                    'IOST': 'IOST',
+                    'BAND': 'BAND',
+                    'ASTAR': 'ASTR',
+                    'BTC': 'BTC',
+                    'BTCNATIVESEGWIT': 'SEGWITBTC',
+                    'IOTA': 'IOTA',
+                    'REEF': 'REEF',
+                    'BITCOINGOLD': 'BTG',
+                    'ARK': 'ARK',
+                    'HARMONY': 'ONE',
+                    'ALGORAND': 'ALGO',
+                    'SIACOIN': 'SC',
+                    'PIVX': 'PIVX',
+                    'FIRO': 'FIRO',
+                    'INTERNETCOMPUTER': 'ICP',
+                    'ZCASH': 'ZEC',
+                    'ICON': 'ICX',
+                    'POLYMESH': 'POLYX',
+                    'HORIZEN': 'ZEN',
+                    'DOGECOIN': 'DOGE',
+                    'HEDERA': 'HBAR',
+                    'RAVENCOIN': 'RVN',
+                    'OSMOSIS': 'OSMO',
+                    'SYSCOIN': 'SYS',
+                    'STRATIS': 'STRAX',
+                    'WANCHAIn': 'WAN',
+                    'MOBILECOIN': 'MOB',
+                    'ECASH': 'XEC',
+                    'ZILLIQA': 'ZIL',
+                    'NEM': 'XEM',
+                    'CORTEX': 'CTXC',
+                    'THORCHAIN': 'RUNE',
+                    'KOMODO': 'KMD',
+                    'HIVE': 'HIVE',
+                    'WAX': 'WAX',
+                    'FETCH_AI': 'FET',
+                    'DASH': 'DASH',
+                    'LISK': 'LSK',
+                    'BEAM': 'BEAM',
+                    'DECRED': 'DCR',
+                    'STELLAR': 'XLM',
+                    'LTC': 'LTC',
+                    'INJECTIVE': 'INJ',
+                    'PARALLELFINANCE': 'PARA',
+                    'EFINITY': 'EFI',
+                    'QTUM': 'QTUM',
+                    'KUSAMA': 'KSM',
+                    'FILECOIN': 'FIL',
+                    'FIO': 'FIO',
+                    'MOONRIVER': 'MOVR',
+                    'MONERO': 'XMR',
                 },
                 // keeping this object for backward-compatibility
                 'reverseNetworks': {
@@ -1467,12 +1591,30 @@ module.exports = class binance extends Exchange {
     }
 
     currencyToPrecision (code, fee, networkCode = undefined) {
-        // info is available in currencies only if the user has configured his api keys
-        if (this.safeValue (this.currencies[code], 'precision') !== undefined) {
-            return this.decimalToPrecision (fee, TRUNCATE, this.currencies[code]['precision'], this.precisionMode, this.paddingMode);
+        // precision is available in currencies only if the user has configured his api keys
+        const currency = this.currencies[code];
+        let precision = undefined;
+        if (networkCode === undefined) {
+            precision = this.safeValue (currency, 'precision');
         } else {
-            return this.numberToString (fee);
+            const networks = this.safeValue (currency, 'networks', {});
+            const networkItem = this.safeValue (networks, networkCode, {});
+            precision = this.safeValue (networkItem, 'precision');
         }
+        if (precision === undefined) {
+            return this.numberToString (fee);
+        } else {
+            precision = this.forceNumeric (precision);
+            return this.decimalToPrecision (fee, TRUNCATE, precision, this.precisionMode, this.paddingMode);
+        }
+    }
+
+    forceNumeric (value) {
+        // this method is used mostly to return back the values into numeric, in case user had `this.number = 'string'`
+        if (typeof value === 'string') {
+            return parseFloat (value);
+        }
+        return value;
     }
 
     nonce () {
@@ -1528,6 +1670,8 @@ module.exports = class binance extends Exchange {
         }
         const response = await this.sapiGetCapitalConfigGetall (params);
         const result = {};
+        const isUnifiedNetworks = this.safeValue (this.options, 'useUnifiedNetworkCodes', false);
+        this.options['defaultNetworkCodesForCurrencies'] = {};
         for (let i = 0; i < response.length; i++) {
             //
             //    {
@@ -1632,6 +1776,73 @@ module.exports = class binance extends Exchange {
             let isWithdrawEnabled = true;
             let isDepositEnabled = true;
             const networkList = this.safeValue (entry, 'networkList', []);
+            // because of backward-compatibility, we place this under if clause
+            if (isUnifiedNetworks) {
+                // we shouldnt assign any value to the below two variables on initialization
+                isWithdrawEnabled = undefined;
+                isDepositEnabled = undefined;
+                let maxDecimalPlaces = undefined;
+                const networks = {};
+                for (let j = 0; j < networkList.length; j++) {
+                    const networkItem = networkList[j];
+                    const networkId = this.safeString (networkItem, 'network');
+                    const networkCode = this.networkIdToCode (networkId);
+                    const isDefault = this.safeValue (networkItem, 'isDefault');
+                    if (isDefault) {
+                        this.options['defaultNetworkCodesForCurrencies'][code] = networkCode;
+                    }
+                    const precisionTick = this.safeString (networkItem, 'withdrawIntegerMultiple');
+                    // avoid zero values, which are mostly from fiat or leveraged tokens : https://github.com/ccxt/ccxt/pull/14902#issuecomment-1271636731
+                    // so, when there is 0 [zero] instead of i.e. 0.001, then we skip those cases, because we don't know the precision - it might be because of network is suspended, inexistent or other reasons
+                    const isZero = Precise.stringEq (precisionTick, '0');
+                    let decimalPlaces = undefined; // this and few other lines be removed when we migrate binance to ticksize
+                    if (!isZero) {
+                        decimalPlaces = this.numberToString (this.precisionFromString (precisionTick));
+                        maxDecimalPlaces = (maxDecimalPlaces === undefined) ? decimalPlaces : Precise.stringMax (maxDecimalPlaces, decimalPlaces);
+                        if (this.precisionMode === TICK_SIZE) {
+                            decimalPlaces = this.parsePrecision (this.numberToString (decimalPlaces));
+                        }
+                    }
+                    networks[networkCode] = {
+                        'info': networkItem,
+                        'id': networkId,
+                        'network': networkCode,
+                        'deposit': this.safeValue (networkItem, 'depositEnable'),
+                        'withdraw': this.safeValue (networkItem, 'withdrawEnable'),
+                        'fee': this.safeNumber (networkItem, 'withdrawFee'),
+                        'precision': this.parseNumber (decimalPlaces),
+                        'limits': {
+                            'deposit': {
+                                'min': undefined,
+                                'max': undefined,
+                            },
+                            'withdraw': {
+                                'min': this.safeNumber (networkItem, 'withdrawMin'),
+                                'max': this.safeNumber (networkItem, 'withdrawMax'),
+                            },
+                        },
+                    };
+                }
+                const trading = this.safeValue (entry, 'trading');
+                if (this.precisionMode === TICK_SIZE) {
+                    maxDecimalPlaces = this.parsePrecision (this.numberToString (maxDecimalPlaces));
+                }
+                result[code] = {
+                    'id': id,
+                    'name': name,
+                    'code': code,
+                    'precision': this.parseNumber (maxDecimalPlaces),
+                    'info': entry,
+                    'active': (isWithdrawEnabled && isDepositEnabled && trading),
+                    'deposit': isDepositEnabled,
+                    'withdraw': isWithdrawEnabled,
+                    'networks': networks,
+                    'fee': undefined,
+                    'fees': undefined,
+                    'limits': this.limits,
+                };
+                continue; // just skip rest code to avoid touching method body in this PR
+            }
             const fees = {};
             let fee = undefined;
             for (let j = 0; j < networkList.length; j++) {
