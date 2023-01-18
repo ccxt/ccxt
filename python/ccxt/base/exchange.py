@@ -1315,7 +1315,7 @@ class Exchange(object):
         encoded_data = Exchange.base64urlencode(Exchange.encode(Exchange.json(request)))
         token = encoded_header + '.' + encoded_data
         if alg[:2] == 'RS':
-            signature = Exchange.rsa(token, secret, alg)
+            signature = Exchange.base64_to_binary(Exchange.rsa(token, Exchange.decode(secret), alg))
         else:
             algorithm = algos[alg]
             signature = Exchange.hmac(Exchange.encode(token), secret, algorithm, 'binary')
@@ -1329,8 +1329,8 @@ class Exchange(object):
             "RS512": hashes.SHA512(),
         }
         algorithm = algorithms[alg]
-        priv_key = load_pem_private_key(secret, None, backends.default_backend())
-        return priv_key.sign(Exchange.encode(request), padding.PKCS1v15(), algorithm)
+        priv_key = load_pem_private_key(Exchange.encode(secret), None, backends.default_backend())
+        return Exchange.binary_to_base64(priv_key.sign(Exchange.encode(request), padding.PKCS1v15(), algorithm))
 
     @staticmethod
     def ecdsa(request, secret, algorithm='p256', hash=None, fixed_length=False):

@@ -1571,7 +1571,7 @@ class Exchange {
             }
             $signature =  static::hmac($token, $secret, $algName, 'binary');
         } elseif ($algoType === 'RS') {
-            $signature = static::rsa($token, $secret, $alg);
+            $signature = \base64_decode(static::rsa($token, $secret, $alg));
         }
         return $token . '.' . static::urlencodeBase64($signature);
     }
@@ -1588,7 +1588,7 @@ class Exchange {
         $algName = $algorithms[$alg];
         $signature = null;
         \openssl_sign($request, $signature, $secret, $algName);
-        return $signature;
+        return \base64_encode($signature);
     }
 
     public static function ecdsa($request, $secret, $algorithm = 'p256', $hash = null, $fixedLength = false) {
