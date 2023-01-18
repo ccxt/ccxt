@@ -1218,7 +1218,7 @@ class phemex extends Exchange {
             );
             $method = 'v1GetMdSpotTicker24hr';
             if ($market['swap']) {
-                if (!$market['linear']) {
+                if ($market['inverse'] || $market['settle'] === 'USD') {
                     $method = 'v1GetMdTicker24hr';
                 } else {
                     $method = 'v2GetMdV2Ticker24hr';

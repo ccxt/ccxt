@@ -934,6 +934,7 @@ class indodax(Exchange):
             fee = {
                 'currency': self.safe_currency_code(None, currency),
                 'cost': feeCost,
+                'rate': None,
             }
         return {
             'id': self.safe_string_2(transaction, 'withdraw_id', 'deposit_id'),

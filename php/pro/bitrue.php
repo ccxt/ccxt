@@ -64,8 +64,8 @@ class bitrue extends \ccxt\async\bitrue {
             /**
              * query for balance and get the amount of funds available for trading or funds locked in orders
              * @see https://github.com/Bitrue-exchange/Spot-official-api-docs#balance-update
-             * @param {dict} $params extra parameters specific to the bitrue api endpoint
-             * @return {dict} a ~@link https://docs.ccxt.com/en/latest/manual.html?#balance-structure balance structure~
+             * @param {array} $params extra parameters specific to the bitrue api endpoint
+             * @return {array} a ~@link https://docs.ccxt.com/en/latest/manual.html?#balance-structure balance structure~
              */
             $url = Async\await($this->authenticate());
             $messageHash = 'balance';
@@ -181,8 +181,8 @@ class bitrue extends \ccxt\async\bitrue {
              * @param {Array} symbols unified symbols of the $market to watch the $orders for
              * @param {int|null} $since timestamp in ms of the earliest order
              * @param {int|null} $limit the maximum amount of $orders to return
-             * @param {dict} $params extra parameters specific to the bitrue api endpoint
-             * @return {dict} A dictionary of {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structure} indexed by $market symbols
+             * @param {array} $params extra parameters specific to the bitrue api endpoint
+             * @return {array} A dictionary of {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structure} indexed by $market symbols
              */
             Async\await($this->load_markets());
             if ($symbol !== null) {

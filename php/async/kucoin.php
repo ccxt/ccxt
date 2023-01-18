@@ -407,11 +407,12 @@ class kucoin extends Exchange {
                 ),
             ),
             'commonCurrencies' => array(
-                'HOT' => 'HOTNOW',
+                'BIFI' => 'BIFIF',
                 'EDGE' => 'DADI', // https://github.com/ccxt/ccxt/issues/5756
-                'WAX' => 'WAXP',
+                'HOT' => 'HOTNOW',
                 'TRY' => 'Trias',
                 'VAI' => 'VAIOT',
+                'WAX' => 'WAXP',
             ),
             'options' => array(
                 'version' => 'v1',
@@ -1470,6 +1471,8 @@ class kucoin extends Exchange {
             $quoteAmount = $this->safe_number_2($params, 'cost', 'funds');
             $amountString = null;
             $costString = null;
+            $marginMode = null;
+            list($marginMode, $params) = $this->handle_margin_mode_and_params('createOrder', $params);
             if ($type === 'market') {
                 if ($quoteAmount !== null) {
                     $params = $this->omit($params, array( 'cost', 'funds' ));
@@ -1493,16 +1496,19 @@ class kucoin extends Exchange {
             if ($isStopLoss && $isTakeProfit) {
                 throw new ExchangeError($this->id . ' createOrder() $stopLossPrice and $takeProfitPrice cannot both be defined');
             }
-            $tradeType = $this->safe_string($params, 'tradeType');
             $params = $this->omit($params, array( 'stopLossPrice', 'takeProfitPrice', 'stopPrice' ));
+            $tradeType = $this->safe_string($params, 'tradeType'); // keep it for backward compatibility
             $method = 'privatePostOrders';
             if ($isStopLoss || $isTakeProfit) {
                 $request['stop'] = $isStopLoss ? 'entry' : 'loss';
                 $triggerPrice = $isStopLoss ? $stopLossPrice : $takeProfitPrice;
                 $request['stopPrice'] = $this->price_to_precision($symbol, $triggerPrice);
                 $method = 'privatePostStopOrder';
-            } elseif ($tradeType === 'MARGIN_TRADE') {
+            } elseif ($tradeType === 'MARGIN_TRADE' || $marginMode !== null) {
                 $method = 'privatePostMarginOrder';
+                if ($marginMode === 'isolated') {
+                    $request['marginModel'] = 'isolated';
+                }
             }
             $response = Async\await($this->$method (array_merge($request, $params)));
             //
@@ -2689,15 +2695,15 @@ class kucoin extends Exchange {
     public function transfer($code, $amount, $fromAccount, $toAccount, $params = array ()) {
         return Async\async(function () use ($code, $amount, $fromAccount, $toAccount, $params) {
             /**
-             * $transfer $currency internally between wallets on the same account
-             * @see https://docs.kucoin.com/#inner-$transfer
-             * @see https://docs.kucoin.com/futures/#$transfer-funds-to-kucoin-main-account-2
+             * transfer $currency internally between wallets on the same account
+             * @see https://docs.kucoin.com/#inner-transfer
+             * @see https://docs.kucoin.com/futures/#transfer-funds-to-kucoin-main-account-2
              * @param {string} $code unified $currency $code
-             * @param {float} $amount amount to $transfer
-             * @param {string} $fromAccount account to $transfer from
-             * @param {string} $toAccount account to $transfer to
+             * @param {float} $amount amount to transfer
+             * @param {string} $fromAccount account to transfer from
+             * @param {string} $toAccount account to transfer to
              * @param {array} $params extra parameters specific to the kucoin api endpoint
-             * @return {array} a {@link https://docs.ccxt.com/en/latest/manual.html#$transfer-structure $transfer structure}
+             * @return {array} a {@link https://docs.ccxt.com/en/latest/manual.html#transfer-structure transfer structure}
              */
             Async\await($this->load_markets());
             $currency = $this->currency($code);
@@ -2708,7 +2714,7 @@ class kucoin extends Exchange {
             $toIsolated = $this->in_array($toId, $this->ids);
             if ($fromId === 'contract') {
                 if ($toId !== 'main') {
-                    throw new ExchangeError($this->id . ' $transfer() only supports transferring from futures account to main account');
+                    throw new ExchangeError($this->id . ' transfer() only supports transferring from futures account to main account');
                 }
                 $request = array(
                     'currency' => $currency['id'],
@@ -2775,12 +2781,7 @@ class kucoin extends Exchange {
                 //     }
                 //
                 $data = $this->safe_value($response, 'data');
-                $transfer = $this->parse_transfer($data, $currency);
-                return array_merge($transfer, array(
-                    'amount' => $requestedAmount,
-                    'fromAccount' => $fromId,
-                    'toAccount' => $toId,
-                ));
+                return $this->parse_transfer($data, $currency);
             }
         }) ();
     }
@@ -2789,10 +2790,14 @@ class kucoin extends Exchange {
         //
         // $transfer (spot)
         //
-        //     {
-        //         'orderId' => '605a6211e657f00006ad0ad6'
-        //     }
+        //    {
+        //        'orderId' => '605a6211e657f00006ad0ad6'
+        //    }
         //
+        //    {
+        //        "code" => "200000",
+        //        "msg" => "Failed to $transfer out. The amount exceeds the upper limit"
+        //    }
         //
         // $transfer (futures)
         //
