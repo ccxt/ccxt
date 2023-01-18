@@ -1695,7 +1695,7 @@ class binance extends Exchange {
             /**
              * retrieves data on all $markets for binance
              * @param {array} $params extra parameters specific to the exchange api endpoint
-             * @return {[array]} an array of objects representing $market data
+             * @return {[array]} an array of objects representing market data
              */
             $promises = array();
             $fetchMarkets = $this->safe_value($this->options, 'fetchMarkets', array( 'spot', 'linear', 'inverse' ));
@@ -1708,7 +1708,7 @@ class binance extends Exchange {
                 } elseif ($marketType === 'inverse') {
                     $promises[] = $this->dapiPublicGetExchangeInfo ($params);
                 } else {
-                    throw new ExchangeError($this->id . ' $fetchMarkets() $this->options $fetchMarkets "' . $marketType . '" is not a supported $market type');
+                    throw new ExchangeError($this->id . ' $fetchMarkets() $this->options $fetchMarkets "' . $marketType . '" is not a supported market type');
                 }
             }
             $promises = Async\await(Promise\all($promises));
@@ -1719,7 +1719,7 @@ class binance extends Exchange {
             $markets = $this->array_concat($markets, $futureMarkets);
             $markets = $this->array_concat($markets, $deliveryMarkets);
             //
-            // $spot / margin
+            // spot / margin
             //
             //     {
             //         "timezone":"UTC",
@@ -1872,156 +1872,158 @@ class binance extends Exchange {
             }
             $result = array();
             for ($i = 0; $i < count($markets); $i++) {
-                $swap = false;
-                $future = false;
-                $market = $markets[$i];
-                $id = $this->safe_string($market, 'symbol');
-                $lowercaseId = $this->safe_string_lower($market, 'symbol');
-                $baseId = $this->safe_string($market, 'baseAsset');
-                $quoteId = $this->safe_string($market, 'quoteAsset');
-                $settleId = $this->safe_string($market, 'marginAsset');
-                $base = $this->safe_currency_code($baseId);
-                $quote = $this->safe_currency_code($quoteId);
-                $settle = $this->safe_currency_code($settleId);
-                $contractType = $this->safe_string($market, 'contractType');
-                $contract = (is_array($market) && array_key_exists('contractType', $market));
-                $spot = !$contract;
-                $expiry = $this->safe_integer($market, 'deliveryDate');
-                if (($contractType === 'PERPETUAL') || ($expiry === 4133404800000)) { // some $swap $markets do not have $contract type, eg => BTCST
-                    $expiry = null;
-                    $swap = true;
-                } else {
-                    $future = true;
-                }
-                $filters = $this->safe_value($market, 'filters', array());
-                $filtersByType = $this->index_by($filters, 'filterType');
-                $status = $this->safe_string_2($market, 'status', 'contractStatus');
-                $contractSize = null;
-                $fees = $this->fees;
-                $linear = null;
-                $inverse = null;
-                $symbol = $base . '/' . $quote;
-                if ($contract) {
-                    if ($swap) {
-                        $expiry = $this->safe_integer($market, 'deliveryDate');
-                        $symbol = $symbol . ':' . $settle;
-                    } elseif ($future) {
-                        $symbol = $symbol . ':' . $settle . '-' . $this->yymmdd($expiry);
-                    }
-                    $contractSize = $this->safe_number($market, 'contractSize', $this->parse_number('1'));
-                    $linear = $settle === $quote;
-                    $inverse = $settle === $base;
-                    $feesType = $linear ? 'linear' : 'inverse';
-                    $fees = $this->safe_value($this->fees, $feesType, array());
-                }
-                $active = ($status === 'TRADING');
-                if ($spot) {
-                    $permissions = $this->safe_value($market, 'permissions', array());
-                    for ($j = 0; $j < count($permissions); $j++) {
-                        if ($permissions[$j] === 'TRD_GRP_003') {
-                            $active = false;
-                            break;
-                        }
-                    }
-                }
-                $isMarginTradingAllowed = $this->safe_value($market, 'isMarginTradingAllowed', false);
-                $unifiedType = null;
-                if ($spot) {
-                    $unifiedType = 'spot';
-                } elseif ($swap) {
-                    $unifiedType = 'swap';
-                } elseif ($future) {
-                    $unifiedType = 'future';
-                }
-                $entry = array(
-                    'id' => $id,
-                    'lowercaseId' => $lowercaseId,
-                    'symbol' => $symbol,
-                    'base' => $base,
-                    'quote' => $quote,
-                    'settle' => $settle,
-                    'baseId' => $baseId,
-                    'quoteId' => $quoteId,
-                    'settleId' => $settleId,
-                    'type' => $unifiedType,
-                    'spot' => $spot,
-                    'margin' => $spot && $isMarginTradingAllowed,
-                    'swap' => $swap,
-                    'future' => $future,
-                    'option' => false,
-                    'active' => $active,
-                    'contract' => $contract,
-                    'linear' => $linear,
-                    'inverse' => $inverse,
-                    'taker' => $fees['trading']['taker'],
-                    'maker' => $fees['trading']['maker'],
-                    'contractSize' => $contractSize,
-                    'expiry' => $expiry,
-                    'expiryDatetime' => $this->iso8601($expiry),
-                    'strike' => null,
-                    'optionType' => null,
-                    'precision' => array(
-                        'amount' => $this->safe_integer($market, 'quantityPrecision'),
-                        'price' => $this->safe_integer($market, 'pricePrecision'),
-                        'base' => $this->safe_integer($market, 'baseAssetPrecision'),
-                        'quote' => $this->safe_integer($market, 'quotePrecision'),
-                    ),
-                    'limits' => array(
-                        'leverage' => array(
-                            'min' => null,
-                            'max' => null,
-                        ),
-                        'amount' => array(
-                            'min' => null,
-                            'max' => null,
-                        ),
-                        'price' => array(
-                            'min' => null,
-                            'max' => null,
-                        ),
-                        'cost' => array(
-                            'min' => null,
-                            'max' => null,
-                        ),
-                    ),
-                    'info' => $market,
-                );
-                if (is_array($filtersByType) && array_key_exists('PRICE_FILTER', $filtersByType)) {
-                    $filter = $this->safe_value($filtersByType, 'PRICE_FILTER', array());
-                    // PRICE_FILTER reports zero values for maxPrice
-                    // since they updated $filter types in November 2018
-                    // https://github.com/ccxt/ccxt/issues/4286
-                    // therefore limits['price']['max'] doesn't have any meaningful value except null
-                    $entry['limits']['price'] = array(
-                        'min' => $this->safe_number($filter, 'minPrice'),
-                        'max' => $this->safe_number($filter, 'maxPrice'),
-                    );
-                    $entry['precision']['price'] = $this->precision_from_string($filter['tickSize']);
-                }
-                if (is_array($filtersByType) && array_key_exists('LOT_SIZE', $filtersByType)) {
-                    $filter = $this->safe_value($filtersByType, 'LOT_SIZE', array());
-                    $stepSize = $this->safe_string($filter, 'stepSize');
-                    $entry['precision']['amount'] = $this->precision_from_string($stepSize);
-                    $entry['limits']['amount'] = array(
-                        'min' => $this->safe_number($filter, 'minQty'),
-                        'max' => $this->safe_number($filter, 'maxQty'),
-                    );
-                }
-                if (is_array($filtersByType) && array_key_exists('MARKET_LOT_SIZE', $filtersByType)) {
-                    $filter = $this->safe_value($filtersByType, 'MARKET_LOT_SIZE', array());
-                    $entry['limits']['market'] = array(
-                        'min' => $this->safe_number($filter, 'minQty'),
-                        'max' => $this->safe_number($filter, 'maxQty'),
-                    );
-                }
-                if (is_array($filtersByType) && array_key_exists('MIN_NOTIONAL', $filtersByType)) {
-                    $filter = $this->safe_value($filtersByType, 'MIN_NOTIONAL', array());
-                    $entry['limits']['cost']['min'] = $this->safe_number_2($filter, 'minNotional', 'notional');
-                }
-                $result[] = $entry;
+                $result[] = $this->parse_market($markets[$i]);
             }
             return $result;
         }) ();
+    }
+
+    public function parse_market($market) {
+        $swap = false;
+        $future = false;
+        $id = $this->safe_string($market, 'symbol');
+        $lowercaseId = $this->safe_string_lower($market, 'symbol');
+        $baseId = $this->safe_string($market, 'baseAsset');
+        $quoteId = $this->safe_string($market, 'quoteAsset');
+        $settleId = $this->safe_string($market, 'marginAsset');
+        $base = $this->safe_currency_code($baseId);
+        $quote = $this->safe_currency_code($quoteId);
+        $settle = $this->safe_currency_code($settleId);
+        $contractType = $this->safe_string($market, 'contractType');
+        $contract = (is_array($market) && array_key_exists('contractType', $market));
+        $spot = !$contract;
+        $expiry = $this->safe_integer($market, 'deliveryDate');
+        if (($contractType === 'PERPETUAL') || ($expiry === 4133404800000)) { // some $swap markets do not have $contract type, eg => BTCST
+            $expiry = null;
+            $swap = true;
+        } else {
+            $future = true;
+        }
+        $filters = $this->safe_value($market, 'filters', array());
+        $filtersByType = $this->index_by($filters, 'filterType');
+        $status = $this->safe_string_2($market, 'status', 'contractStatus');
+        $contractSize = null;
+        $fees = $this->fees;
+        $linear = null;
+        $inverse = null;
+        $symbol = $base . '/' . $quote;
+        if ($contract) {
+            if ($swap) {
+                $symbol = $symbol . ':' . $settle;
+            } elseif ($future) {
+                $symbol = $symbol . ':' . $settle . '-' . $this->yymmdd($expiry);
+            }
+            $contractSize = $this->safe_number($market, 'contractSize', $this->parse_number('1'));
+            $linear = $settle === $quote;
+            $inverse = $settle === $base;
+            $feesType = $linear ? 'linear' : 'inverse';
+            $fees = $this->safe_value($this->fees, $feesType, array());
+        }
+        $active = ($status === 'TRADING');
+        if ($spot) {
+            $permissions = $this->safe_value($market, 'permissions', array());
+            for ($j = 0; $j < count($permissions); $j++) {
+                if ($permissions[$j] === 'TRD_GRP_003') {
+                    $active = false;
+                    break;
+                }
+            }
+        }
+        $isMarginTradingAllowed = $this->safe_value($market, 'isMarginTradingAllowed', false);
+        $unifiedType = null;
+        if ($spot) {
+            $unifiedType = 'spot';
+        } elseif ($swap) {
+            $unifiedType = 'swap';
+        } elseif ($future) {
+            $unifiedType = 'future';
+        }
+        $entry = array(
+            'id' => $id,
+            'lowercaseId' => $lowercaseId,
+            'symbol' => $symbol,
+            'base' => $base,
+            'quote' => $quote,
+            'settle' => $settle,
+            'baseId' => $baseId,
+            'quoteId' => $quoteId,
+            'settleId' => $settleId,
+            'type' => $unifiedType,
+            'spot' => $spot,
+            'margin' => $spot && $isMarginTradingAllowed,
+            'swap' => $swap,
+            'future' => $future,
+            'option' => false,
+            'active' => $active,
+            'contract' => $contract,
+            'linear' => $linear,
+            'inverse' => $inverse,
+            'taker' => $fees['trading']['taker'],
+            'maker' => $fees['trading']['maker'],
+            'contractSize' => $contractSize,
+            'expiry' => $expiry,
+            'expiryDatetime' => $this->iso8601($expiry),
+            'strike' => null,
+            'optionType' => null,
+            'precision' => array(
+                'amount' => $this->safe_integer($market, 'quantityPrecision'),
+                'price' => $this->safe_integer($market, 'pricePrecision'),
+                'base' => $this->safe_integer($market, 'baseAssetPrecision'),
+                'quote' => $this->safe_integer($market, 'quotePrecision'),
+            ),
+            'limits' => array(
+                'leverage' => array(
+                    'min' => null,
+                    'max' => null,
+                ),
+                'amount' => array(
+                    'min' => null,
+                    'max' => null,
+                ),
+                'price' => array(
+                    'min' => null,
+                    'max' => null,
+                ),
+                'cost' => array(
+                    'min' => null,
+                    'max' => null,
+                ),
+            ),
+            'info' => $market,
+        );
+        if (is_array($filtersByType) && array_key_exists('PRICE_FILTER', $filtersByType)) {
+            $filter = $this->safe_value($filtersByType, 'PRICE_FILTER', array());
+            // PRICE_FILTER reports zero values for maxPrice
+            // since they updated $filter types in November 2018
+            // https://github.com/ccxt/ccxt/issues/4286
+            // therefore limits['price']['max'] doesn't have any meaningful value except null
+            $entry['limits']['price'] = array(
+                'min' => $this->safe_number($filter, 'minPrice'),
+                'max' => $this->safe_number($filter, 'maxPrice'),
+            );
+            $entry['precision']['price'] = $this->precision_from_string($filter['tickSize']);
+        }
+        if (is_array($filtersByType) && array_key_exists('LOT_SIZE', $filtersByType)) {
+            $filter = $this->safe_value($filtersByType, 'LOT_SIZE', array());
+            $stepSize = $this->safe_string($filter, 'stepSize');
+            $entry['precision']['amount'] = $this->precision_from_string($stepSize);
+            $entry['limits']['amount'] = array(
+                'min' => $this->safe_number($filter, 'minQty'),
+                'max' => $this->safe_number($filter, 'maxQty'),
+            );
+        }
+        if (is_array($filtersByType) && array_key_exists('MARKET_LOT_SIZE', $filtersByType)) {
+            $filter = $this->safe_value($filtersByType, 'MARKET_LOT_SIZE', array());
+            $entry['limits']['market'] = array(
+                'min' => $this->safe_number($filter, 'minQty'),
+                'max' => $this->safe_number($filter, 'maxQty'),
+            );
+        }
+        if (is_array($filtersByType) && array_key_exists('MIN_NOTIONAL', $filtersByType)) {
+            $filter = $this->safe_value($filtersByType, 'MIN_NOTIONAL', array());
+            $entry['limits']['cost']['min'] = $this->safe_number_2($filter, 'minNotional', 'notional');
+        }
+        return $entry;
     }
 
     public function parse_balance_helper($entry) {

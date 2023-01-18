@@ -1845,143 +1845,144 @@ class binance(Exchange):
             self.load_time_difference()
         result = []
         for i in range(0, len(markets)):
-            swap = False
-            future = False
-            market = markets[i]
-            id = self.safe_string(market, 'symbol')
-            lowercaseId = self.safe_string_lower(market, 'symbol')
-            baseId = self.safe_string(market, 'baseAsset')
-            quoteId = self.safe_string(market, 'quoteAsset')
-            settleId = self.safe_string(market, 'marginAsset')
-            base = self.safe_currency_code(baseId)
-            quote = self.safe_currency_code(quoteId)
-            settle = self.safe_currency_code(settleId)
-            contractType = self.safe_string(market, 'contractType')
-            contract = ('contractType' in market)
-            spot = not contract
-            expiry = self.safe_integer(market, 'deliveryDate')
-            if (contractType == 'PERPETUAL') or (expiry == 4133404800000):  # some swap markets do not have contract type, eg: BTCST
-                expiry = None
-                swap = True
-            else:
-                future = True
-            filters = self.safe_value(market, 'filters', [])
-            filtersByType = self.index_by(filters, 'filterType')
-            status = self.safe_string_2(market, 'status', 'contractStatus')
-            contractSize = None
-            fees = self.fees
-            linear = None
-            inverse = None
-            symbol = base + '/' + quote
-            if contract:
-                if swap:
-                    expiry = self.safe_integer(market, 'deliveryDate')
-                    symbol = symbol + ':' + settle
-                elif future:
-                    symbol = symbol + ':' + settle + '-' + self.yymmdd(expiry)
-                contractSize = self.safe_number(market, 'contractSize', self.parse_number('1'))
-                linear = settle == quote
-                inverse = settle == base
-                feesType = 'linear' if linear else 'inverse'
-                fees = self.safe_value(self.fees, feesType, {})
-            active = (status == 'TRADING')
-            if spot:
-                permissions = self.safe_value(market, 'permissions', [])
-                for j in range(0, len(permissions)):
-                    if permissions[j] == 'TRD_GRP_003':
-                        active = False
-                        break
-            isMarginTradingAllowed = self.safe_value(market, 'isMarginTradingAllowed', False)
-            unifiedType = None
-            if spot:
-                unifiedType = 'spot'
-            elif swap:
-                unifiedType = 'swap'
-            elif future:
-                unifiedType = 'future'
-            entry = {
-                'id': id,
-                'lowercaseId': lowercaseId,
-                'symbol': symbol,
-                'base': base,
-                'quote': quote,
-                'settle': settle,
-                'baseId': baseId,
-                'quoteId': quoteId,
-                'settleId': settleId,
-                'type': unifiedType,
-                'spot': spot,
-                'margin': spot and isMarginTradingAllowed,
-                'swap': swap,
-                'future': future,
-                'option': False,
-                'active': active,
-                'contract': contract,
-                'linear': linear,
-                'inverse': inverse,
-                'taker': fees['trading']['taker'],
-                'maker': fees['trading']['maker'],
-                'contractSize': contractSize,
-                'expiry': expiry,
-                'expiryDatetime': self.iso8601(expiry),
-                'strike': None,
-                'optionType': None,
-                'precision': {
-                    'amount': self.safe_integer(market, 'quantityPrecision'),
-                    'price': self.safe_integer(market, 'pricePrecision'),
-                    'base': self.safe_integer(market, 'baseAssetPrecision'),
-                    'quote': self.safe_integer(market, 'quotePrecision'),
-                },
-                'limits': {
-                    'leverage': {
-                        'min': None,
-                        'max': None,
-                    },
-                    'amount': {
-                        'min': None,
-                        'max': None,
-                    },
-                    'price': {
-                        'min': None,
-                        'max': None,
-                    },
-                    'cost': {
-                        'min': None,
-                        'max': None,
-                    },
-                },
-                'info': market,
-            }
-            if 'PRICE_FILTER' in filtersByType:
-                filter = self.safe_value(filtersByType, 'PRICE_FILTER', {})
-                # PRICE_FILTER reports zero values for maxPrice
-                # since they updated filter types in November 2018
-                # https://github.com/ccxt/ccxt/issues/4286
-                # therefore limits['price']['max'] doesn't have any meaningful value except None
-                entry['limits']['price'] = {
-                    'min': self.safe_number(filter, 'minPrice'),
-                    'max': self.safe_number(filter, 'maxPrice'),
-                }
-                entry['precision']['price'] = self.precision_from_string(filter['tickSize'])
-            if 'LOT_SIZE' in filtersByType:
-                filter = self.safe_value(filtersByType, 'LOT_SIZE', {})
-                stepSize = self.safe_string(filter, 'stepSize')
-                entry['precision']['amount'] = self.precision_from_string(stepSize)
-                entry['limits']['amount'] = {
-                    'min': self.safe_number(filter, 'minQty'),
-                    'max': self.safe_number(filter, 'maxQty'),
-                }
-            if 'MARKET_LOT_SIZE' in filtersByType:
-                filter = self.safe_value(filtersByType, 'MARKET_LOT_SIZE', {})
-                entry['limits']['market'] = {
-                    'min': self.safe_number(filter, 'minQty'),
-                    'max': self.safe_number(filter, 'maxQty'),
-                }
-            if 'MIN_NOTIONAL' in filtersByType:
-                filter = self.safe_value(filtersByType, 'MIN_NOTIONAL', {})
-                entry['limits']['cost']['min'] = self.safe_number_2(filter, 'minNotional', 'notional')
-            result.append(entry)
+            result.append(self.parse_market(markets[i]))
         return result
+
+    def parse_market(self, market):
+        swap = False
+        future = False
+        id = self.safe_string(market, 'symbol')
+        lowercaseId = self.safe_string_lower(market, 'symbol')
+        baseId = self.safe_string(market, 'baseAsset')
+        quoteId = self.safe_string(market, 'quoteAsset')
+        settleId = self.safe_string(market, 'marginAsset')
+        base = self.safe_currency_code(baseId)
+        quote = self.safe_currency_code(quoteId)
+        settle = self.safe_currency_code(settleId)
+        contractType = self.safe_string(market, 'contractType')
+        contract = ('contractType' in market)
+        spot = not contract
+        expiry = self.safe_integer(market, 'deliveryDate')
+        if (contractType == 'PERPETUAL') or (expiry == 4133404800000):  # some swap markets do not have contract type, eg: BTCST
+            expiry = None
+            swap = True
+        else:
+            future = True
+        filters = self.safe_value(market, 'filters', [])
+        filtersByType = self.index_by(filters, 'filterType')
+        status = self.safe_string_2(market, 'status', 'contractStatus')
+        contractSize = None
+        fees = self.fees
+        linear = None
+        inverse = None
+        symbol = base + '/' + quote
+        if contract:
+            if swap:
+                symbol = symbol + ':' + settle
+            elif future:
+                symbol = symbol + ':' + settle + '-' + self.yymmdd(expiry)
+            contractSize = self.safe_number(market, 'contractSize', self.parse_number('1'))
+            linear = settle == quote
+            inverse = settle == base
+            feesType = 'linear' if linear else 'inverse'
+            fees = self.safe_value(self.fees, feesType, {})
+        active = (status == 'TRADING')
+        if spot:
+            permissions = self.safe_value(market, 'permissions', [])
+            for j in range(0, len(permissions)):
+                if permissions[j] == 'TRD_GRP_003':
+                    active = False
+                    break
+        isMarginTradingAllowed = self.safe_value(market, 'isMarginTradingAllowed', False)
+        unifiedType = None
+        if spot:
+            unifiedType = 'spot'
+        elif swap:
+            unifiedType = 'swap'
+        elif future:
+            unifiedType = 'future'
+        entry = {
+            'id': id,
+            'lowercaseId': lowercaseId,
+            'symbol': symbol,
+            'base': base,
+            'quote': quote,
+            'settle': settle,
+            'baseId': baseId,
+            'quoteId': quoteId,
+            'settleId': settleId,
+            'type': unifiedType,
+            'spot': spot,
+            'margin': spot and isMarginTradingAllowed,
+            'swap': swap,
+            'future': future,
+            'option': False,
+            'active': active,
+            'contract': contract,
+            'linear': linear,
+            'inverse': inverse,
+            'taker': fees['trading']['taker'],
+            'maker': fees['trading']['maker'],
+            'contractSize': contractSize,
+            'expiry': expiry,
+            'expiryDatetime': self.iso8601(expiry),
+            'strike': None,
+            'optionType': None,
+            'precision': {
+                'amount': self.safe_integer(market, 'quantityPrecision'),
+                'price': self.safe_integer(market, 'pricePrecision'),
+                'base': self.safe_integer(market, 'baseAssetPrecision'),
+                'quote': self.safe_integer(market, 'quotePrecision'),
+            },
+            'limits': {
+                'leverage': {
+                    'min': None,
+                    'max': None,
+                },
+                'amount': {
+                    'min': None,
+                    'max': None,
+                },
+                'price': {
+                    'min': None,
+                    'max': None,
+                },
+                'cost': {
+                    'min': None,
+                    'max': None,
+                },
+            },
+            'info': market,
+        }
+        if 'PRICE_FILTER' in filtersByType:
+            filter = self.safe_value(filtersByType, 'PRICE_FILTER', {})
+            # PRICE_FILTER reports zero values for maxPrice
+            # since they updated filter types in November 2018
+            # https://github.com/ccxt/ccxt/issues/4286
+            # therefore limits['price']['max'] doesn't have any meaningful value except None
+            entry['limits']['price'] = {
+                'min': self.safe_number(filter, 'minPrice'),
+                'max': self.safe_number(filter, 'maxPrice'),
+            }
+            entry['precision']['price'] = self.precision_from_string(filter['tickSize'])
+        if 'LOT_SIZE' in filtersByType:
+            filter = self.safe_value(filtersByType, 'LOT_SIZE', {})
+            stepSize = self.safe_string(filter, 'stepSize')
+            entry['precision']['amount'] = self.precision_from_string(stepSize)
+            entry['limits']['amount'] = {
+                'min': self.safe_number(filter, 'minQty'),
+                'max': self.safe_number(filter, 'maxQty'),
+            }
+        if 'MARKET_LOT_SIZE' in filtersByType:
+            filter = self.safe_value(filtersByType, 'MARKET_LOT_SIZE', {})
+            entry['limits']['market'] = {
+                'min': self.safe_number(filter, 'minQty'),
+                'max': self.safe_number(filter, 'maxQty'),
+            }
+        if 'MIN_NOTIONAL' in filtersByType:
+            filter = self.safe_value(filtersByType, 'MIN_NOTIONAL', {})
+            entry['limits']['cost']['min'] = self.safe_number_2(filter, 'minNotional', 'notional')
+        return entry
 
     def parse_balance_helper(self, entry):
         account = self.account()

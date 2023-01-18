@@ -2983,7 +2983,6 @@ class gate(Exchange):
                     'contract': market['id'],  # filled in prepareRequest above
                     'size': amount,  # int64, positive = bid, negative = ask
                     # 'iceberg': 0,  # int64, display size for iceberg order, 0 for non-iceberg, note that you will have to pay the taker fee for the hidden size
-                    'price': self.price_to_precision(symbol, price),  # 0 for market order with tif set as ioc
                     # 'close': False,  # True to close the position, with size set to 0
                     # 'reduce_only': False,  # St as True to be reduce-only order
                     # 'tif': 'gtc',  # gtc, ioc, poc PendingOrCancelled == postOnly order
@@ -2991,6 +2990,10 @@ class gate(Exchange):
                     # 'auto_size': '',  # close_long, close_short, note size also needs to be set to 0
                     'settle': market['settleId'],  # filled in prepareRequest above
                 }
+                if isMarketOrder:
+                    request['price'] = price  # set to 0 for market orders
+                else:
+                    request['price'] = self.price_to_precision(symbol, price)
                 if reduceOnly is not None:
                     request['reduce_only'] = reduceOnly
                 if timeInForce is not None:
