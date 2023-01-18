@@ -987,7 +987,7 @@ module.exports = class Exchange {
 
     safeOrder (order, market = undefined) {
         // parses numbers as strings
-        // it is important pass the trades as unparsed rawTrades
+        // * it is important pass the trades as unparsed rawTrades
         let amount = this.omitZero (this.safeString (order, 'amount'));
         let remaining = this.safeString (order, 'remaining');
         let filled = this.safeString (order, 'filled');
@@ -1223,7 +1223,7 @@ module.exports = class Exchange {
             'reduceOnly': this.safeValue (order, 'reduceOnly'),
             'triggerPrice': this.parseNumber (this.safeString2 (order, 'triggerPrice', 'stopPrice')),
             'status': this.safeString (order, 'status'),
-            'fee': this.safeNumber (order, 'fee'),
+            'fee': this.safeValue (order, 'fee'),
         });
     }
 
