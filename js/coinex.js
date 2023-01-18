@@ -3479,10 +3479,11 @@ module.exports = class coinex extends Exchange {
         const data = this.safeValue (response, 'data', {});
         const ticker = this.safeValue (data, 'ticker', {});
         const timestamp = this.safeInteger (data, 'date');
-        return this.parseFundingRate (ticker, market, timestamp);
+        ticker['timestamp'] = timestamp; // avoid changing parseFundingRate signature
+        return this.parseFundingRate (ticker, market);
     }
 
-    parseFundingRate (contract, market = undefined, timestamp = undefined) {
+    parseFundingRate (contract, market = undefined) {
         //
         // fetchFundingRate
         //
@@ -3509,6 +3510,8 @@ module.exports = class coinex extends Exchange {
         //         "sell_amount": "0.9388"
         //     }
         //
+        const timestamp = this.safeInteger (contract, 'timestamp');
+        contact = this.omit (contract, 'timestamp');
         const fundingDelta = this.safeInteger (contract, 'funding_time') * 60 * 1000;
         const fundingHour = (timestamp + fundingDelta) / 3600000;
         const fundingTimestamp = Math.round (fundingHour) * 3600000;
@@ -3596,7 +3599,8 @@ module.exports = class coinex extends Exchange {
             if (marketId.indexOf ('_') === -1) { // skip _signprice and _indexprice
                 const market = this.safeMarket (marketId, undefined, undefined, 'swap');
                 const ticker = tickers[marketId];
-                result.push (this.parseFundingRate (ticker, market, timestamp));
+                ticker['timestamp'] = timestamp;
+                result.push (this.parseFundingRate (ticker, market));
             }
         }
         return this.filterByArray (result, 'symbol', symbols);
