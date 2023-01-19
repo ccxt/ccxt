@@ -6,12 +6,6 @@ namespace ccxt;
 // https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 use Exception; // a common import
-use \ccxt\ExchangeError;
-use \ccxt\ArgumentsRequired;
-use \ccxt\BadRequest;
-use \ccxt\BadSymbol;
-use \ccxt\InvalidOrder;
-use \ccxt\NotSupported;
 
 class bitget extends Exchange {
 
@@ -22,6 +16,7 @@ class bitget extends Exchange {
             'countries' => array( 'SG' ),
             'version' => 'v1',
             'rateLimit' => 50, // up to 3000 requests per 5 minutes ≈ 600 requests per minute ≈ 10 requests per second ≈ 100 ms
+            'certified' => true,
             'has' => array(
                 'CORS' => null,
                 'spot' => true,
@@ -44,7 +39,9 @@ class bitget extends Exchange {
                 'fetchBorrowRatesPerSymbol' => false,
                 'fetchClosedOrders' => true,
                 'fetchCurrencies' => true,
-                'fetchDeposits' => false,
+                'fetchDepositAddress' => true,
+                'fetchDepositAddresses' => false,
+                'fetchDeposits' => true,
                 'fetchFundingHistory' => false,
                 'fetchFundingRate' => true,
                 'fetchFundingRateHistory' => true,
@@ -59,6 +56,8 @@ class bitget extends Exchange {
                 'fetchMarkOHLCV' => false,
                 'fetchMyTrades' => true,
                 'fetchOHLCV' => true,
+                'fetchOpenInterest' => true,
+                'fetchOpenInterestHistory' => false,
                 'fetchOpenOrders' => true,
                 'fetchOrder' => true,
                 'fetchOrderBook' => true,
@@ -77,7 +76,7 @@ class bitget extends Exchange {
                 'fetchTransfer' => false,
                 'fetchTransfers' => null,
                 'fetchWithdrawal' => false,
-                'fetchWithdrawals' => false,
+                'fetchWithdrawals' => true,
                 'reduceMargin' => true,
                 'setLeverage' => true,
                 'setMarginMode' => true,
@@ -111,7 +110,7 @@ class bitget extends Exchange {
             ),
             'hostname' => 'bitget.com',
             'urls' => array(
-                'logo' => 'https://user-images.githubusercontent.com/51840849/88317935-a8a21c80-cd22-11ea-8e2b-4b9fac5975eb.jpg',
+                'logo' => 'https://user-images.githubusercontent.com/1294454/195989417-4253ddb0-afbe-4a1c-9dea-9dbcd121fa5d.jpg',
                 'api' => array(
                     'spot' => 'https://api.{hostname}',
                     'mix' => 'https://api.{hostname}',
@@ -123,9 +122,6 @@ class bitget extends Exchange {
                     'https://bitgetlimited.github.io/apidoc/en/broker',
                 ),
                 'fees' => 'https://www.bitget.cc/zh-CN/rate?tab=1',
-                'test' => array(
-                    'rest' => 'https://testnet.bitget.com',
-                ),
                 'referral' => 'https://www.bitget.com/expressly?languageType=0&channelCode=ccxt&vipCode=tg9j',
             ),
             'api' => array(
@@ -166,7 +162,11 @@ class bitget extends Exchange {
                         'get' => array(
                             'account/getInfo' => 20,
                             'account/assets' => 2,
-                            'account/transferRecords' => 1,
+                            'account/transferRecords' => 4,
+                            'wallet/deposit-address' => 4,
+                            'wallet/withdrawal-inner' => 4,
+                            'wallet/withdrawal-list' => 1,
+                            'wallet/deposit-list' => 1,
                         ),
                         'post' => array(
                             'account/bills' => 2,
@@ -178,6 +178,9 @@ class bitget extends Exchange {
                             'trade/open-orders' => 1,
                             'trade/history' => 1,
                             'trade/fills' => 1,
+                            'wallet/transfer' => 4,
+                            'wallet/withdrawal' => 4,
+                            'wallet/subTransfer' => 10,
                         ),
                     ),
                     'mix' => array(
@@ -204,6 +207,7 @@ class bitget extends Exchange {
                             'trade/profitDateList' => 2,
                             'trace/waitProfitDateList' => 2,
                             'trace/traderSymbols' => 2,
+                            'order/marginCoinCurrent' => 2,
                         ),
                         'post' => array(
                             'account/setLeverage' => 8,
@@ -739,6 +743,7 @@ class bitget extends Exchange {
                     'invalid end time' => '\\ccxt\\BadRequest', // end time is a date 30 days ago; or end time is a date in the future
                     '20003' => '\\ccxt\\ExchangeError', // operation failed, array("status":"error","ts":1595730308979,"err_code":"bad-request","err_msg":"20003")
                     '01001' => '\\ccxt\\ExchangeError', // order failed, array("status":"fail","err_code":"01001","err_msg":"系统异常，请稍后重试")
+                    '43111' => '\\ccxt\\PermissionDenied', // array("code":"43111","msg":"参数错误 address not in address book","requestTime":1665394201164,"data":null)
                 ),
                 'broad' => array(
                     'invalid size, valid range' => '\\ccxt\\ExchangeError',
@@ -759,6 +764,9 @@ class bitget extends Exchange {
                 'broker' => array(
                     'spot' => 'CCXT#',
                     'swap' => 'CCXT#',
+                ),
+                'withdraw' => array(
+                    'fillResponseFromRequest' => true,
                 ),
             ),
         ));
@@ -1108,6 +1116,291 @@ class bitget extends Exchange {
             );
         }
         return $result;
+    }
+
+    public function fetch_deposits($code = null, $since = null, $limit = null, $params = array ()) {
+        /**
+         * fetch all deposits made to an account
+         * @url https://bitgetlimited.github.io/apidoc/en/spot/#get-deposit-list
+         * @param {string|null} $code unified $currency $code
+         * @param {int} $since the earliest time in ms to fetch deposits for
+         * @param {int|null} $limit the maximum number of deposits structures to retrieve
+         * @param {array} $params extra parameters specific to the bitget api endpoint
+         * @param {string|null} $params->pageNo pageNo default 1
+         * @param {string|null} $params->pageSize pageSize default 20. Max 100
+         * @return {[array]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure transaction structures}
+         */
+        $this->load_markets();
+        if ($code === null) {
+            throw new ArgumentsRequired($this->id . ' fetchDeposits() requires a `$code` argument');
+        }
+        $currency = $this->currency($code);
+        if ($since === null) {
+            $since = $this->milliseconds() - 31556952000; // 1yr
+        }
+        $request = array(
+            'coin' => $currency['code'],
+            'startTime' => $since,
+            'endTime' => $this->milliseconds(),
+        );
+        if ($limit !== null) {
+            $request['pageSize'] = $limit;
+        }
+        $response = $this->privateSpotGetWalletDepositList (array_merge($request, $params));
+        //
+        //      {
+        //          "code" => "00000",
+        //          "msg" => "success",
+        //          "requestTime" => 0,
+        //          "data" => [array(
+        //              "id" => "925607360021839872",
+        //              "txId" => "f73a4ac034da06b729f49676ca8801f406a093cf90c69b16e5a1cc9080df4ccb",
+        //              "coin" => "USDT",
+        //              "type" => "deposit",
+        //              "amount" => "19.44800000",
+        //              "status" => "success",
+        //              "toAddress" => "TRo4JMfZ1XYHUgnLsUMfDEf8MWzcWaf8uh",
+        //              "fee" => null,
+        //              "chain" => "TRC20",
+        //              "confirm" => null,
+        //              "cTime" => "1656407912259",
+        //              "uTime" => "1656407940148"
+        //          )]
+        //      }
+        //
+        $rawTransactions = $this->safe_value($response, 'data', array());
+        return $this->parse_transactions($rawTransactions, $currency, $since, $limit);
+    }
+
+    public function withdraw($code, $amount, $address, $tag = null, $params = array ()) {
+        /**
+         * make a withdrawal
+         * @param {string} $code unified $currency $code
+         * @param {float} $amount the $amount to withdraw
+         * @param {string} $address the $address to withdraw to
+         * @param {string|null} $tag
+         * @param {array} $params extra parameters specific to the bitget api endpoint
+         * @param {string} $params->chain the $chain to withdraw to
+         * @return {array} a {@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure transaction structure}
+         */
+        $this->check_address($address);
+        $chain = $this->safe_string($params, 'chain');
+        if ($chain === null) {
+            throw new ArgumentsRequired($this->id . ' withdraw() requires a $chain parameter');
+        }
+        $this->load_markets();
+        $currency = $this->currency($code);
+        $request = array(
+            'coin' => $currency['code'],
+            'address' => $address,
+            'chain' => $chain,
+            'amount' => $amount,
+        );
+        if ($tag !== null) {
+            $request['tag'] = $tag;
+        }
+        $response = $this->privateSpotPostWalletWithdrawal (array_merge($request, $params));
+        //
+        //     {
+        //         "code" => "00000",
+        //         "msg" => "success",
+        //         "data" => "888291686266343424"
+        //     }
+        //
+        $result = array(
+            'id' => $this->safe_string($response, 'data'),
+            'info' => $response,
+            'txid' => null,
+            'timestamp' => null,
+            'datetime' => null,
+            'network' => null,
+            'addressFrom' => null,
+            'address' => null,
+            'addressTo' => null,
+            'amount' => null,
+            'type' => 'withdrawal',
+            'currency' => null,
+            'status' => null,
+            'updated' => null,
+            'tagFrom' => null,
+            'tag' => null,
+            'tagTo' => null,
+            'comment' => null,
+            'fee' => null,
+        );
+        $withdrawOptions = $this->safe_value($this->options, 'withdraw', array());
+        $fillResponseFromRequest = $this->safe_value($withdrawOptions, 'fillResponseFromRequest', true);
+        if ($fillResponseFromRequest) {
+            $result['currency'] = $code;
+            $result['timestamp'] = $this->milliseconds();
+            $result['datetime'] = $this->iso8601($this->milliseconds());
+            $result['amount'] = $amount;
+            $result['tag'] = $tag;
+            $result['address'] = $address;
+            $result['addressTo'] = $address;
+            $result['network'] = $chain;
+        }
+        return $result;
+    }
+
+    public function fetch_withdrawals($code = null, $since = null, $limit = null, $params = array ()) {
+        /**
+         * fetch all withdrawals made from an account
+         * @url https://bitgetlimited.github.io/apidoc/en/spot/#get-withdraw-list
+         * @param {string|null} $code unified $currency $code
+         * @param {int} $since the earliest time in ms to fetch withdrawals for
+         * @param {int|null} $limit the maximum number of withdrawals structures to retrieve
+         * @param {array} $params extra parameters specific to the bitget api endpoint
+         * @param {string|null} $params->pageNo pageNo default 1
+         * @param {string|null} $params->pageSize pageSize default 20. Max 100
+         * @return {[array]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure transaction structures}
+         */
+        $this->load_markets();
+        if ($code === null) {
+            throw new ArgumentsRequired($this->id . ' fetchWithdrawals() requires a `$code` argument');
+        }
+        $currency = $this->currency($code);
+        if ($since === null) {
+            $since = $this->milliseconds() - 31556952000; // 1yr
+        }
+        $request = array(
+            'coin' => $currency['code'],
+            'startTime' => $since,
+            'endTime' => $this->milliseconds(),
+        );
+        if ($limit !== null) {
+            $request['pageSize'] = $limit;
+        }
+        $response = $this->privateSpotGetWalletWithdrawalList (array_merge($request, $params));
+        //
+        //      {
+        //          "code" => "00000",
+        //          "msg" => "success",
+        //          "requestTime" => 0,
+        //          "data" => [array(
+        //              "id" => "925607360021839872",
+        //              "txId" => "f73a4ac034da06b729f49676ca8801f406a093cf90c69b16e5a1cc9080df4ccb",
+        //              "coin" => "USDT",
+        //              "type" => "deposit",
+        //              "amount" => "19.44800000",
+        //              "status" => "success",
+        //              "toAddress" => "TRo4JMfZ1XYHUgnLsUMfDEf8MWzcWaf8uh",
+        //              "fee" => null,
+        //              "chain" => "TRC20",
+        //              "confirm" => null,
+        //              "cTime" => "1656407912259",
+        //              "uTime" => "1656407940148"
+        //          )]
+        //      }
+        //
+        $rawTransactions = $this->safe_value($response, 'data', array());
+        return $this->parse_transactions($rawTransactions, $currency, $since, $limit);
+    }
+
+    public function parse_transaction($transaction, $currency = null) {
+        //
+        //     {
+        //         "id" => "925607360021839872",
+        //         "txId" => "f73a4ac034da06b729f49676ca8801f406a093cf90c69b16e5a1cc9080df4ccb",
+        //         "coin" => "USDT",
+        //         "type" => "deposit",
+        //         "amount" => "19.44800000",
+        //         "status" => "success",
+        //         "toAddress" => "TRo4JMfZ1XYHUgnLsUMfDEf8MWzcWaf8uh",
+        //         "fee" => null,
+        //         "chain" => "TRC20",
+        //         "confirm" => null,
+        //         "cTime" => "1656407912259",
+        //         "uTime" => "1656407940148"
+        //     }
+        //
+        $timestamp = $this->safe_integer($transaction, 'cTime');
+        $networkId = $this->safe_string($transaction, 'chain');
+        $currencyId = $this->safe_string($transaction, 'coin');
+        $status = $this->safe_string($transaction, 'status');
+        return array(
+            'id' => $this->safe_string($transaction, 'id'),
+            'info' => $transaction,
+            'txid' => $this->safe_string($transaction, 'txId'),
+            'timestamp' => $timestamp,
+            'datetime' => $this->iso8601($timestamp),
+            'network' => $networkId,
+            'addressFrom' => null,
+            'address' => $this->safe_string($transaction, 'toAddress'),
+            'addressTo' => $this->safe_string($transaction, 'toAddress'),
+            'amount' => $this->safe_number($transaction, 'amount'),
+            'type' => $this->safe_string($transaction, 'type'),
+            'currency' => $this->safe_currency_code($currencyId),
+            'status' => $this->parse_transaction_status($status),
+            'updated' => $this->safe_number($transaction, 'uTime'),
+            'tagFrom' => null,
+            'tag' => null,
+            'tagTo' => null,
+            'comment' => null,
+            'fee' => null,
+        );
+    }
+
+    public function parse_transaction_status($status) {
+        $statuses = array(
+            'success' => 'ok',
+            'Pending' => 'pending',
+            'pending_review' => 'pending',
+            'pending_review_fail' => 'failed',
+            'reject' => 'failed',
+        );
+        return $this->safe_string($statuses, $status, $status);
+    }
+
+    public function fetch_deposit_address($code, $params = array ()) {
+        /**
+         * fetch the deposit address for a $currency associated with this account
+         * @param {string} $code unified $currency $code
+         * @param {array} $params extra parameters specific to the binance api endpoint
+         * @return {array} an {@link https://docs.ccxt.com/en/latest/manual.html#address-structure address structure}
+         */
+        $this->load_markets();
+        $currency = $this->currency($code);
+        $request = array(
+            'coin' => $currency['code'],
+        );
+        $response = $this->privateSpotGetWalletDepositAddress (array_merge($request, $params));
+        //
+        //     {
+        //         "code" => "00000",
+        //         "msg" => "success",
+        //         "data" => {
+        //             "address" => "1HPn8Rx2y6nNSfagQBKy27GB99Vbzg89wv",
+        //             "chain" => "BTC-Bitcoin",
+        //             "coin" => "BTC",
+        //             "tag" => "",
+        //             "url" => "https://btc.com/1HPn8Rx2y6nNSfagQBKy27GB99Vbzg89wv"
+        //         }
+        //     }
+        //
+        $data = $this->safe_value($response, 'data', array());
+        return $this->parse_deposit_address($data, $currency);
+    }
+
+    public function parse_deposit_address($depositAddress, $currency = null) {
+        //
+        //    {
+        //        "address" => "1HPn8Rx2y6nNSfagQBKy27GB99Vbzg89wv",
+        //        "chain" => "BTC-Bitcoin",
+        //        "coin" => "BTC",
+        //        "tag" => "",
+        //        "url" => "https://btc.com/1HPn8Rx2y6nNSfagQBKy27GB99Vbzg89wv"
+        //    }
+        //
+        $currencyId = $this->safe_string($depositAddress, 'coin');
+        $networkId = $this->safe_string($depositAddress, 'chain');
+        return array(
+            'currency' => $this->safe_currency_code($currencyId, $currency),
+            'address' => $this->safe_string($depositAddress, 'address'),
+            'tag' => $this->safe_string($depositAddress, 'tag'),
+            'network' => $networkId,
+            'info' => $depositAddress,
+        );
     }
 
     public function fetch_order_book($symbol, $limit = null, $params = array ()) {
@@ -2973,49 +3266,6 @@ class bitget extends Exchange {
         return $this->modify_margin_helper($symbol, $amount, 'add', $params);
     }
 
-    public function sign($path, $api = [], $method = 'GET', $params = array (), $headers = null, $body = null) {
-        $signed = $api[0] === 'private';
-        $endpoint = $api[1];
-        $pathPart = ($endpoint === 'spot') ? '/api/spot/v1' : '/api/mix/v1';
-        $request = '/' . $this->implode_params($path, $params);
-        $payload = $pathPart . $request;
-        $url = $this->implode_hostname($this->urls['api'][$endpoint]) . $payload;
-        $query = $this->omit($params, $this->extract_params($path));
-        if (!$signed && ($method === 'GET')) {
-            $keys = is_array($query) ? array_keys($query) : array();
-            $keysLength = count($keys);
-            if ($keysLength > 0) {
-                $url = $url . '?' . $this->urlencode($query);
-            }
-        }
-        if ($signed) {
-            $this->check_required_credentials();
-            $timestamp = (string) $this->milliseconds();
-            $auth = $timestamp . $method . $payload;
-            if ($method === 'POST') {
-                $body = $this->json($params);
-                $auth .= $body;
-            } else {
-                if ($params) {
-                    $query = '?' . $this->urlencode($this->keysort($params));
-                    $url .= $query;
-                    $auth .= $query;
-                }
-            }
-            $signature = $this->hmac($this->encode($auth), $this->encode($this->secret), 'sha256', 'base64');
-            $headers = array(
-                'ACCESS-KEY' => $this->apiKey,
-                'ACCESS-SIGN' => $signature,
-                'ACCESS-TIMESTAMP' => $timestamp,
-                'ACCESS-PASSPHRASE' => $this->password,
-            );
-            if ($method === 'POST') {
-                $headers['Content-Type'] = 'application/json';
-            }
-        }
-        return array( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
-    }
-
     public function fetch_leverage($symbol, $params = array ()) {
         /**
          * fetch the set leverage for a $market
@@ -3091,6 +3341,63 @@ class bitget extends Exchange {
         return $this->privateMixPostAccountSetMarginMode (array_merge($request, $params));
     }
 
+    public function fetch_open_interest($symbol, $params = array ()) {
+        /**
+         * Retrieves the open interest of a currency
+         * @see https://bitgetlimited.github.io/apidoc/en/mix/#get-open-interest
+         * @param {string} $symbol Unified CCXT $market $symbol
+         * @param {array} $params exchange specific parameters
+         * @return {array} an open interest structurearray(@link https://docs.ccxt.com/en/latest/manual.html#interest-history-structure)
+         */
+        $this->load_markets();
+        $market = $this->market($symbol);
+        if (!$market['contract']) {
+            throw new BadRequest($this->id . ' fetchOpenInterest() supports contract markets only');
+        }
+        $request = array(
+            'symbol' => $market['id'],
+        );
+        $response = $this->publicMixGetMarketOpenInterest (array_merge($request, $params));
+        //
+        //     {
+        //         "code" => "00000",
+        //         "msg" => "success",
+        //         "requestTime" => 0,
+        //         "data" => {
+        //             "symbol" => "BTCUSDT_UMCBL",
+        //             "amount" => "130818.967",
+        //             "timestamp" => "1663399151127"
+        //         }
+        //     }
+        //
+        $data = $this->safe_value($response, 'data', array());
+        return $this->parse_open_interest($data, $market);
+    }
+
+    public function parse_open_interest($interest, $market = null) {
+        //
+        //     {
+        //         "symbol" => "BTCUSDT_UMCBL",
+        //         "amount" => "130818.967",
+        //         "timestamp" => "1663399151127"
+        //     }
+        //
+        $timestamp = $this->safe_integer($interest, 'timestamp');
+        $id = $this->safe_string($interest, 'symbol');
+        $market = $this->safe_market($id, $market);
+        $amount = $this->safe_number($interest, 'amount');
+        return array(
+            'symbol' => $this->safe_symbol($id),
+            'baseVolume' => $amount,  // deprecated
+            'quoteVolume' => null,  // deprecated
+            'openInterestAmount' => $amount,
+            'openInterestValue' => null,
+            'timestamp' => $timestamp,
+            'datetime' => $this->iso8601($timestamp),
+            'info' => $interest,
+        );
+    }
+
     public function handle_errors($code, $reason, $url, $method, $headers, $body, $response, $requestHeaders, $requestBody) {
         if (!$response) {
             return; // fallback to default error handler
@@ -3134,5 +3441,48 @@ class bitget extends Exchange {
         if ($nonZeroErrorCode || $nonEmptyMessage) {
             throw new ExchangeError($feedback); // unknown $message
         }
+    }
+
+    public function sign($path, $api = [], $method = 'GET', $params = array (), $headers = null, $body = null) {
+        $signed = $api[0] === 'private';
+        $endpoint = $api[1];
+        $pathPart = ($endpoint === 'spot') ? '/api/spot/v1' : '/api/mix/v1';
+        $request = '/' . $this->implode_params($path, $params);
+        $payload = $pathPart . $request;
+        $url = $this->implode_hostname($this->urls['api'][$endpoint]) . $payload;
+        $query = $this->omit($params, $this->extract_params($path));
+        if (!$signed && ($method === 'GET')) {
+            $keys = is_array($query) ? array_keys($query) : array();
+            $keysLength = count($keys);
+            if ($keysLength > 0) {
+                $url = $url . '?' . $this->urlencode($query);
+            }
+        }
+        if ($signed) {
+            $this->check_required_credentials();
+            $timestamp = (string) $this->milliseconds();
+            $auth = $timestamp . $method . $payload;
+            if ($method === 'POST') {
+                $body = $this->json($params);
+                $auth .= $body;
+            } else {
+                if ($params) {
+                    $query = '?' . $this->urlencode($this->keysort($params));
+                    $url .= $query;
+                    $auth .= $query;
+                }
+            }
+            $signature = $this->hmac($this->encode($auth), $this->encode($this->secret), 'sha256', 'base64');
+            $headers = array(
+                'ACCESS-KEY' => $this->apiKey,
+                'ACCESS-SIGN' => $signature,
+                'ACCESS-TIMESTAMP' => $timestamp,
+                'ACCESS-PASSPHRASE' => $this->password,
+            );
+            if ($method === 'POST') {
+                $headers['Content-Type'] = 'application/json';
+            }
+        }
+        return array( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
     }
 }

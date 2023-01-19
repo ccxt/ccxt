@@ -2,7 +2,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '1.93.108'
+__version__ = '2.0.91'
 
 # -----------------------------------------------------------------------------
 
@@ -616,34 +616,36 @@ class Exchange(BaseExchange):
         feeSide = self.safe_string(market, 'feeSide', 'quote')
         key = 'quote'
         cost = None
+        amountString = self.number_to_string(amount)
+        priceString = self.number_to_string(price)
         if feeSide == 'quote':
             # the fee is always in quote currency
-            cost = amount * price
+            cost = Precise.string_mul(amountString, priceString)
         elif feeSide == 'base':
             # the fee is always in base currency
-            cost = amount
+            cost = amountString
         elif feeSide == 'get':
             # the fee is always in the currency you get
-            cost = amount
+            cost = amountString
             if side == 'sell':
-                cost *= price
+                cost = priceString
             else:
                 key = 'base'
         elif feeSide == 'give':
             # the fee is always in the currency you give
-            cost = amount
+            cost = amountString
             if side == 'buy':
-                cost *= price
+                cost = Precise.string_mul(cost, priceString)
             else:
                 key = 'base'
-        rate = market[takerOrMaker]
+        rate = self.number_to_string(market[takerOrMaker])
         if cost is not None:
-            cost *= rate
+            cost = Precise.string_mul(cost, rate)
         return {
             'type': takerOrMaker,
             'currency': market[key],
-            'rate': rate,
-            'cost': cost,
+            'rate': self.parse_number(rate),
+            'cost': self.parse_number(cost),
         }
 
     def safe_trade(self, trade, market=None):
@@ -1304,18 +1306,18 @@ class Exchange(BaseExchange):
         warnOnFetchFundingFee = self.safe_value(self.options, 'warnOnFetchFundingFee', True)
         if warnOnFetchFundingFee:
             raise NotSupported(self.id + ' fetchFundingFee() method is deprecated, it will be removed in July 2022, please, use fetchTransactionFee() or set exchange.options["warnOnFetchFundingFee"] = False to suppress self warning')
-        return self.fetch_transaction_fee(code, params)
+        return await self.fetch_transaction_fee(code, params)
 
     async def fetch_funding_fees(self, codes=None, params={}):
         warnOnFetchFundingFees = self.safe_value(self.options, 'warnOnFetchFundingFees', True)
         if warnOnFetchFundingFees:
             raise NotSupported(self.id + ' fetchFundingFees() method is deprecated, it will be removed in July 2022. Please, use fetchTransactionFees() or set exchange.options["warnOnFetchFundingFees"] = False to suppress self warning')
-        return self.fetch_transaction_fees(codes, params)
+        return await self.fetch_transaction_fees(codes, params)
 
     async def fetch_transaction_fee(self, code, params={}):
         if not self.has['fetchTransactionFees']:
             raise NotSupported(self.id + ' fetchTransactionFee() is not supported yet')
-        return self.fetch_transaction_fees([code], params)
+        return await self.fetch_transaction_fees([code], params)
 
     async def fetch_transaction_fees(self, codes=None, params={}):
         raise NotSupported(self.id + ' fetchTransactionFees() is not supported yet')
@@ -1722,6 +1724,12 @@ class Exchange(BaseExchange):
             parsed = self.parse_funding_rate(response[i], market)
             result[parsed['symbol']] = parsed
         return result
+
+    def is_trigger_order(self, params):
+        isTrigger = self.safe_value_2(params, 'trigger', 'stop')
+        if isTrigger:
+            params = self.omit(params, ['trigger', 'stop'])
+        return [isTrigger, params]
 
     def is_post_only(self, isMarketOrder, exchangeSpecificParam, params={}):
         """

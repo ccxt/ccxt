@@ -6,11 +6,6 @@ namespace ccxt;
 // https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 use Exception; // a common import
-use \ccxt\ExchangeError;
-use \ccxt\ArgumentsRequired;
-use \ccxt\BadRequest;
-use \ccxt\BadSymbol;
-use \ccxt\OrderNotFound;
 
 class phemex extends Exchange {
 
@@ -1048,22 +1043,26 @@ class phemex extends Exchange {
         );
         $duration = $this->parse_timeframe($timeframe);
         $now = $this->seconds();
-        // the exchange does not return the last 1m candle
+        $maxLimit = 2000; // maximum $limit, we shouldn't sent $request of more than it
+        if ($limit === null) {
+            $limit = 100; // set default, as exchange doesn't have any defaults and needs something to be set
+        } else {
+            $limit = min ($limit, $maxLimit);
+        }
         if ($since !== null) {
-            if ($limit === null) {
-                $limit = 2000; // max 2000
-            }
+            $limit = min ($limit, $maxLimit);
             $since = intval($since / 1000);
             $request['from'] = $since;
             // time ranges ending in the future are not accepted
             // https://github.com/ccxt/ccxt/issues/8050
             $request['to'] = min ($now, $this->sum($since, $duration * $limit));
-        } elseif ($limit !== null) {
-            $limit = min ($limit, 2000);
-            $request['from'] = $now - $duration * $this->sum($limit, 1);
-            $request['to'] = $now;
         } else {
-            throw new ArgumentsRequired($this->id . ' fetchOHLCV() requires a $since argument, or a $limit argument, or both');
+            if ($limit < $maxLimit) {
+                // whenever making a $request with `$now`, that expects current latest bar to be included, the exchange does not return the last 1m candle and thus excludes one bar. So, we have to add `1` to user's set `$limit` amount to get that amount of bars back
+                $limit = $limit + 1;
+            }
+            $request['from'] = $now - $duration * $limit;
+            $request['to'] = $now;
         }
         $this->load_markets();
         $market = $this->market($symbol);
@@ -1989,7 +1988,10 @@ class phemex extends Exchange {
                 $params = $this->omit($params, 'cost');
                 if ($this->options['createOrderByQuoteRequiresPrice']) {
                     if ($price !== null) {
-                        $cost = $amount * $price;
+                        $amountString = $this->number_to_string($amount);
+                        $priceString = $this->number_to_string($price);
+                        $quoteAmount = Precise::string_mul($amountString, $priceString);
+                        $cost = $this->parse_number($quoteAmount);
                     } elseif ($cost === null) {
                         throw new ArgumentsRequired($this->id . ' createOrder() ' . $qtyType . ' requires a $price argument or a $cost parameter');
                     }

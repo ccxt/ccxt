@@ -6,8 +6,6 @@ namespace ccxt;
 // https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 use Exception; // a common import
-use \ccxt\ExchangeError;
-use \ccxt\ArgumentsRequired;
 
 class bitbank extends Exchange {
 
@@ -439,7 +437,7 @@ class bitbank extends Exchange {
         );
     }
 
-    public function fetch_ohlcv($symbol, $timeframe = '5m', $since = null, $limit = null, $params = array ()) {
+    public function fetch_ohlcv($symbol, $timeframe = '1m', $since = null, $limit = null, $params = array ()) {
         /**
          * fetches historical $candlestick $data containing the open, high, low, and close price, and the volume of a $market
          * @param {string} $symbol unified $symbol of the $market to fetch OHLCV $data for
@@ -450,7 +448,11 @@ class bitbank extends Exchange {
          * @return {[[int]]} A list of candles ordered as timestamp, open, high, low, close, volume
          */
         if ($since === null) {
-            throw new ArgumentsRequired($this->id . ' fetchOHLCV() requires a $since argument');
+            if ($limit === null) {
+                $limit = 1000; // it doesn't have any defaults, might return 200, might 2000 (i.e. https://public.bitbank.cc/btc_jpy/candlestick/4hour/2020)
+            }
+            $duration = $this->parse_timeframe($timeframe);
+            $since = $this->milliseconds() - $duration * 1000 * $limit;
         }
         $this->load_markets();
         $market = $this->market($symbol);

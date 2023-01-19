@@ -47,6 +47,7 @@ class gate(Exchange):
                         'delivery': 'https://api.gateio.ws/api/v4',
                         'spot': 'https://api.gateio.ws/api/v4',
                         'options': 'https://api.gateio.ws/api/v4',
+                        'sub_accounts': 'https://api.gateio.ws/api/v4',
                     },
                     'private': {
                         'withdrawals': 'https://api.gateio.ws/api/v4',
@@ -56,6 +57,7 @@ class gate(Exchange):
                         'delivery': 'https://api.gateio.ws/api/v4',
                         'spot': 'https://api.gateio.ws/api/v4',
                         'options': 'https://api.gateio.ws/api/v4',
+                        'subAccounts': 'https://api.gateio.ws/api/v4',
                     },
                 },
                 'test': {
@@ -137,7 +139,7 @@ class gate(Exchange):
                 'public': {
                     'wallet': {
                         'get': {
-                            'wallet/currency_chains': 1.5,
+                            'currency_chains': 1.5,
                         },
                     },
                     'spot': {
@@ -206,10 +208,10 @@ class gate(Exchange):
                 'private': {
                     'withdrawals': {
                         'post': {
-                            '': 3000,  # 3000 = 10 seconds
+                            'withdrawals': 3000,  # 3000 = 10 seconds
                         },
                         'delete': {
-                            '{withdrawal_id}': 300,
+                            'withdrawals/{withdrawal_id}': 300,
                         },
                     },
                     'wallet': {
@@ -226,6 +228,26 @@ class gate(Exchange):
                         'post': {
                             'transfers': 300,
                             'sub_account_transfers': 300,
+                        },
+                    },
+                    'subAccounts': {
+                        'get': {
+                            'sub_accounts': 1,
+                            'sub_accounts/{user_id}': 1,
+                            'sub_accounts/{user_id}/keys': 1,
+                            'sub_accounts/{user_id}/keys/{key}': 1,
+                        },
+                        'post': {
+                            'sub_accounts': 1,
+                            'sub_accounts/{user_id}/keys': 1,
+                            'sub_accounts/{user_id}/lock': 1,
+                            'sub_accounts/{user_id}/unlock': 1,
+                        },
+                        'put': {
+                            'sub_accounts/{user_id}/keys/{key}': 1,
+                        },
+                        'delete': {
+                            'sub_accounts/{user_id}/keys/{key}': 1,
                         },
                     },
                     'spot': {
@@ -1616,7 +1638,8 @@ class gate(Exchange):
     async def fetch_transaction_fees(self, codes=None, params={}):
         """
         fetch transaction fees
-        :param [str]|None codes: not used by gate fetchTransactionFees()
+        see https://www.gate.io/docs/developers/apiv4/en/#retrieve-withdrawal-status
+        :param [str]|None codes: list of unified currency codes
         :param dict params: extra parameters specific to the gate api endpoint
         :returns dict: a list of `fee structures <https://docs.ccxt.com/en/latest/manual.html#fee-structure>`
         """
@@ -1639,25 +1662,29 @@ class gate(Exchange):
         #        }
         #    }
         #
+        result = {}
         withdrawFees = {}
         for i in range(0, len(response)):
+            withdrawFees = {}
             entry = response[i]
             currencyId = self.safe_string(entry, 'currency')
             code = self.safe_currency_code(currencyId)
-            withdrawFees[code] = {}
-            withdrawFix = self.safe_value(entry, 'withdraw_fix_on_chains')
-            if withdrawFix is None:
-                withdrawFix = {}
-                withdrawFix[code] = self.safe_number(entry, 'withdraw_fix')
-            keys = list(withdrawFix.keys())
-            for i in range(0, len(keys)):
-                key = keys[i]
-                withdrawFees[code][key] = self.parse_number(withdrawFix[key])
-        return {
-            'info': response,
-            'withdraw': withdrawFees,
-            'deposit': {},
-        }
+            if (codes is not None) and not self.in_array(code, codes):
+                continue
+            withdrawFixOnChains = self.safe_value(entry, 'withdraw_fix_on_chains')
+            if withdrawFixOnChains is None:
+                withdrawFees = self.safe_number(entry, 'withdraw_fix')
+            else:
+                chainKeys = list(withdrawFixOnChains.keys())
+                for i in range(0, len(chainKeys)):
+                    chainKey = chainKeys[i]
+                    withdrawFees[chainKey] = self.parse_number(withdrawFixOnChains[chainKey])
+            result[code] = {
+                'withdraw': withdrawFees,
+                'deposit': None,
+                'info': entry,
+            }
+        return result
 
     async def fetch_funding_history(self, symbol=None, since=None, limit=None, params={}):
         """
@@ -2670,7 +2697,7 @@ class gate(Exchange):
         if network is not None:
             request['chain'] = network
             params = self.omit(params, 'network')
-        response = await self.privateWithdrawalsPost(self.extend(request, params))
+        response = await self.privateWithdrawalsPostWithdrawals(self.extend(request, params))
         #
         #    {
         #        "id": "w13389675",
@@ -3863,7 +3890,19 @@ class gate(Exchange):
         :returns [dict]: a list of `position structure <https://docs.ccxt.com/en/latest/manual.html#position-structure>`
         """
         await self.load_markets()
-        type, query = self.handle_market_type_and_params('fetchPositions', None, params)
+        market = None
+        if symbols is not None:
+            symbols = self.market_symbols(symbols)
+            symbolsLength = len(symbols)
+            if symbolsLength > 0:
+                market = self.market(symbols[0])
+                for i in range(1, len(symbols)):
+                    checkMarket = self.market(symbols[i])
+                    if checkMarket['type'] != market['type']:
+                        raise BadRequest(self.id + ' fetchPositions() does not support multiple types of positions at the same time')
+        type, query = self.handle_market_type_and_params('fetchPositions', market, params)
+        if type != 'swap' and type != 'future':
+            raise ArgumentsRequired(self.id + ' fetchPositions requires a type parameter, "swap" or "future"')
         request, requestParams = self.prepare_request(None, type, query)
         method = self.get_supported_mapping(type, {
             'swap': 'privateFuturesGetSettlePositions',
@@ -4349,6 +4388,8 @@ class gate(Exchange):
         path = self.implode_params(path, params)
         endPart = '' if (path == '') else ('/' + path)
         entirePath = '/' + type + endPart
+        if (type == 'subAccounts') or (type == 'withdrawals'):
+            entirePath = endPart
         url = self.urls['api'][authentication][type]
         if url is None:
             raise NotSupported(self.id + ' does not have a testnet for the ' + type + ' market type.')
@@ -4357,6 +4398,7 @@ class gate(Exchange):
             if query:
                 url += '?' + self.urlencode(query)
         else:
+            self.check_required_credentials()
             queryString = ''
             requiresURLEncoding = False
             if type == 'futures' and method == 'POST':

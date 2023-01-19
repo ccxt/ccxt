@@ -8,6 +8,7 @@ import hashlib
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import PermissionDenied
+from ccxt.base.errors import AccountSuspended
 from ccxt.base.errors import ArgumentsRequired
 from ccxt.base.errors import BadRequest
 from ccxt.base.errors import BadSymbol
@@ -348,6 +349,7 @@ class kraken(Exchange):
                 'EFunding:Unknown asset': BadSymbol,  # {"error":["EFunding:Unknown asset"]}
                 'EService:Market in post_only mode': OnMaintenance,  # {"error":["EService:Market in post_only mode"]}
                 'EGeneral:Too many requests': DDoSProtection,  # {"error":["EGeneral:Too many requests"]}
+                'ETrade:User Locked': AccountSuspended,  # {"error":["ETrade:User Locked"]}
             },
         })
 

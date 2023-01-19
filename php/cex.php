@@ -6,11 +6,6 @@ namespace ccxt;
 // https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 use Exception; // a common import
-use \ccxt\ExchangeError;
-use \ccxt\ArgumentsRequired;
-use \ccxt\NullResponse;
-use \ccxt\InvalidOrder;
-use \ccxt\NotSupported;
 
 class cex extends Exchange {
 

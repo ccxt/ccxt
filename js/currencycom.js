@@ -483,8 +483,8 @@ module.exports = class currencycom extends Exchange {
                 // https://github.com/ccxt/ccxt/issues/4286
                 // therefore limits['price']['max'] doesn't have any meaningful value except undefined
                 limitPriceMin = this.safeNumber (filter, 'minPrice');
-                const maxPrice = this.safeNumber (filter, 'maxPrice');
-                if ((maxPrice !== undefined) && (maxPrice > 0)) {
+                const maxPrice = this.safeString (filter, 'maxPrice');
+                if ((maxPrice !== undefined) && (Precise.stringGt (maxPrice, '0'))) {
                     limitPriceMax = maxPrice;
                 }
             }
@@ -557,7 +557,7 @@ module.exports = class currencycom extends Exchange {
                     'market': limitMarket,
                     'price': {
                         'min': limitPriceMin,
-                        'max': limitPriceMax,
+                        'max': this.parseNumber (limitPriceMax),
                     },
                     'cost': {
                         'min': costMin,

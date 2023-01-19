@@ -1052,22 +1052,26 @@ module.exports = class phemex extends Exchange {
         };
         const duration = this.parseTimeframe (timeframe);
         const now = this.seconds ();
-        // the exchange does not return the last 1m candle
+        const maxLimit = 2000; // maximum limit, we shouldn't sent request of more than it
+        if (limit === undefined) {
+            limit = 100; // set default, as exchange doesn't have any defaults and needs something to be set
+        } else {
+            limit = Math.min (limit, maxLimit);
+        }
         if (since !== undefined) {
-            if (limit === undefined) {
-                limit = 2000; // max 2000
-            }
+            limit = Math.min (limit, maxLimit);
             since = parseInt (since / 1000);
             request['from'] = since;
             // time ranges ending in the future are not accepted
             // https://github.com/ccxt/ccxt/issues/8050
             request['to'] = Math.min (now, this.sum (since, duration * limit));
-        } else if (limit !== undefined) {
-            limit = Math.min (limit, 2000);
-            request['from'] = now - duration * this.sum (limit, 1);
-            request['to'] = now;
         } else {
-            throw new ArgumentsRequired (this.id + ' fetchOHLCV() requires a since argument, or a limit argument, or both');
+            if (limit < maxLimit) {
+                // whenever making a request with `now`, that expects current latest bar to be included, the exchange does not return the last 1m candle and thus excludes one bar. So, we have to add `1` to user's set `limit` amount to get that amount of bars back
+                limit = limit + 1;
+            }
+            request['from'] = now - duration * limit;
+            request['to'] = now;
         }
         await this.loadMarkets ();
         const market = this.market (symbol);
@@ -2001,7 +2005,10 @@ module.exports = class phemex extends Exchange {
                 params = this.omit (params, 'cost');
                 if (this.options['createOrderByQuoteRequiresPrice']) {
                     if (price !== undefined) {
-                        cost = amount * price;
+                        const amountString = this.numberToString (amount);
+                        const priceString = this.numberToString (price);
+                        const quoteAmount = Precise.stringMul (amountString, priceString);
+                        cost = this.parseNumber (quoteAmount);
                     } else if (cost === undefined) {
                         throw new ArgumentsRequired (this.id + ' createOrder() ' + qtyType + ' requires a price argument or a cost parameter');
                     }

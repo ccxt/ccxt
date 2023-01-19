@@ -89,7 +89,7 @@ setup(
         ':python_version>="3.5.2"': [
             'aiohttp>=3.8',
             'aiodns>=1.1.1',
-            'yarl==1.7.2',
+            'yarl>=1.7.2',
         ],
         'qa': [
             'flake8==3.7.9',

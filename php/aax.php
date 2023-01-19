@@ -6,10 +6,6 @@ namespace ccxt;
 // https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 use Exception; // a common import
-use \ccxt\ArgumentsRequired;
-use \ccxt\BadRequest;
-use \ccxt\BadSymbol;
-use \ccxt\OrderNotFound;
 
 class aax extends Exchange {
 
@@ -78,6 +74,8 @@ class aax extends Exchange {
                 'fetchMarkOHLCV' => false,
                 'fetchMyTrades' => true,
                 'fetchOHLCV' => true,
+                'fetchOpenInterest' => true,
+                'fetchOpenInterestHistory' => false,
                 'fetchOpenOrder' => null,
                 'fetchOpenOrders' => true,
                 'fetchOrder' => true,
@@ -592,69 +590,109 @@ class aax extends Exchange {
         $response = $this->publicGetCurrencies ($params);
         //
         //     {
-        //         "code":1,
-        //         "data":array(
+        //         "code" => 1,
+        //         "data" => array(
         //             array(
-        //                 "chain":"BTC",
-        //                 "displayName":"Bitcoin",
-        //                 "withdrawFee":"0.0004",
-        //                 "withdrawMin":"0.001",
-        //                 "otcFee":"0",
-        //                 "enableOTC":true,
-        //                 "visible":true,
-        //                 "enableTransfer":true,
-        //                 "transferMin":"0.00001",
-        //                 "depositMin":"0.0005",
-        //                 "enableWithdraw":true,
-        //                 "enableDeposit":true,
-        //                 "addrWithMemo":false,
-        //                 "withdrawPrecision":"0.00000001",
-        //                 "currency":"BTC",
-        //                 "network":"BTC", // ETH, ERC20, TRX, TRC20, OMNI, LTC, XRP, XLM, ...
-        //                 "minConfirm":"2"
+        //                 "chain" => "BTC",
+        //                 "displayName" => "Bitcoin",
+        //                 "withdrawFee" => "0.0004",
+        //                 "withdrawMin" => "0.001",
+        //                 "otcFee" => "0",
+        //                 "enableOTC" => true,
+        //                 "visible" => true,
+        //                 "enableTransfer" => true,
+        //                 "transferMin" => "0.00001",
+        //                 "depositMin" => "0.0005",
+        //                 "enableWithdraw" => true,
+        //                 "enableDeposit" => true,
+        //                 "addrWithMemo" => false,
+        //                 "withdrawPrecision" => "0.00000001",
+        //                 "currency" => "BTC",
+        //                 "network" => "BTC", // ETH, ERC20, TRX, TRC20, OMNI, LTC, XRP, XLM, ...
+        //                 "minConfirm" => "2"
         //             ),
         //         ),
-        //         "message":"success",
-        //         "ts":1624330530697
+        //         "message" => "success",
+        //         "ts" => 1624330530697
         //     }
         //
         $result = array();
         $data = $this->safe_value($response, 'data', array());
         for ($i = 0; $i < count($data); $i++) {
             $currency = $data[$i];
-            $id = $this->safe_string($currency, 'chain');
-            $name = $this->safe_string($currency, 'displayName');
+            $id = $this->safe_string($currency, 'currency');
             $code = $this->safe_currency_code($id);
+            $networkId = $this->safe_string($currency, 'network');
             $enableWithdraw = $this->safe_value($currency, 'enableWithdraw');
             $enableDeposit = $this->safe_value($currency, 'enableDeposit');
-            $fee = $this->safe_number($currency, 'withdrawFee');
             $visible = $this->safe_value($currency, 'visible');
             $active = ($enableWithdraw && $enableDeposit && $visible);
-            $deposit = ($enableDeposit && $visible);
-            $withdraw = ($enableWithdraw && $visible);
-            $network = $this->safe_string($currency, 'network');
-            $result[$code] = array(
-                'id' => $id,
-                'name' => $name,
-                'code' => $code,
-                'precision' => $this->safe_number($currency, 'withdrawPrecision'),
+            $network = array(
                 'info' => $currency,
-                'active' => $active,
-                'deposit' => $deposit,
-                'withdraw' => $withdraw,
-                'fee' => $fee,
-                'network' => $network,
+                'id' => $networkId,
+                'network' => $this->safe_currency_code($networkId),
                 'limits' => array(
-                    'deposit' => array(
-                        'min' => $this->safe_number($currency, 'depositMin'),
-                        'max' => null,
-                    ),
                     'withdraw' => array(
                         'min' => $this->safe_number($currency, 'withdrawMin'),
                         'max' => null,
                     ),
+                    'deposit' => array(
+                        'min' => $this->safe_number($currency, 'depositMin'),
+                        'max' => null,
+                    ),
                 ),
+                'active' => $active,
+                'withdraw' => $enableWithdraw && $visible,
+                'deposit' => $enableDeposit && $visible,
+                'fee' => $this->safe_number($currency, 'withdrawFee'),
+                'precision' => $this->safe_number($currency, 'withdrawPrecision'),
             );
+            $resultItem = $this->safe_value($result, $code);
+            $fee = $this->safe_string($currency, 'withdrawFee');
+            $precision = $this->safe_string($currency, 'withdrawPrecision');
+            $depositMin = $this->safe_string($currency, 'depositMin');
+            $withdrawMin = $this->safe_string($currency, 'withdrawMin');
+            if ($resultItem !== null) {
+                $resultItem['networks'][] = $network;
+                $previousPrecision = (string) $resultItem['precision'];
+                $previousDepositMin = (string) $resultItem['limits']['deposit']['min'];
+                $previousWithdrawMin = (string) $resultItem['limits']['withdraw']['min'];
+                $previousFee = (string) $resultItem['fee'];
+                $resultItem['precision'] = $this->parse_number(Precise::string_max($previousPrecision, $precision));
+                $resultItem['limits']['deposit']['min'] = $this->parse_number(Precise::string_min($previousDepositMin, $depositMin));
+                $resultItem['limits']['withdraw']['min'] = $this->parse_number(Precise::string_min($previousWithdrawMin, $withdrawMin));
+                $resultItem['fee'] = $this->parse_number(Precise::string_min($previousFee, $fee));
+            } else {
+                $name = $this->safe_string($currency, 'displayName');
+                $deposit = ($enableDeposit && $visible);
+                $withdraw = ($enableWithdraw && $visible);
+                $result[$code] = array(
+                    'info' => array(),
+                    'id' => $id,
+                    'name' => $name,
+                    'code' => $code,
+                    'precision' => $this->parse_number($precision),
+                    'active' => $active,
+                    'deposit' => $deposit,
+                    'withdraw' => $withdraw,
+                    'fee' => $this->parse_number($fee),
+                    'networks' => array( $network ),
+                    'limits' => array(
+                        'amount' => array(
+                            'min' => null,
+                            'max' => null,
+                        ),
+                        'deposit' => array(
+                            'min' => $this->parse_number($depositMin),
+                            'max' => null,
+                        ),
+                        'withdraw' => array(
+                            'min' => $this->parse_number($withdrawMin),
+                            'max' => null,
+                        ),
+                    ),
+                );
+            }
         }
         return $result;
     }
@@ -3069,6 +3107,68 @@ class aax extends Exchange {
             ));
         }
         return $this->filter_by_array($result, 'symbol', $symbols, false);
+    }
+
+    public function fetch_open_interest($symbol, $params = array ()) {
+        /**
+         * Retrieves the open interest of a currency
+         * @see https://www.aax.com/apidoc/index.html#open-interest
+         * @param {string} $symbol Unified CCXT $market $symbol
+         * @param {array} $params exchange specific parameters
+         * @return {array} an open interest structurearray(@link https://docs.ccxt.com/en/latest/manual.html#interest-history-structure)
+         */
+        $this->load_markets();
+        $market = $this->market($symbol);
+        if (!$market['contract']) {
+            throw new BadRequest($this->id . ' fetchOpenInterest() supports contract markets only');
+        }
+        $request = array(
+            'symbol' => $market['id'],
+        );
+        $response = $this->publicGetFuturesPositionOpenInterest (array_merge($request, $params));
+        //
+        //     {
+        //         "code" => 1,
+        //         "data" => array(
+        //             "openInterest" => "37137299.49007",
+        //             "openInterestUSD" => "721016725.9898761994667",
+        //             "symbol" => "BTCUSDTFP"
+        //         ),
+        //         "message" => "success",
+        //         "ts" => 1664486817471
+        //     }
+        //
+        $data = $this->safe_value($response, 'data', array());
+        $timestamp = $this->safe_integer($response, 'ts');
+        $openInterest = $this->parse_open_interest($data, $market);
+        return array_merge($openInterest, array(
+            'timestamp' => $timestamp,
+            'datetime' => $this->iso8601($timestamp),
+        ));
+    }
+
+    public function parse_open_interest($interest, $market = null) {
+        //
+        //     {
+        //         "openInterest" => "37137299.49007",
+        //         "openInterestUSD" => "721016725.9898761994667",
+        //         "symbol" => "BTCUSDTFP"
+        //     }
+        //
+        $id = $this->safe_string($interest, 'symbol');
+        $market = $this->safe_market($id, $market);
+        $amount = $this->safe_number($interest, 'openInterest');
+        $value = $this->safe_number($interest, 'openInterestUSD');
+        return array(
+            'symbol' => $this->safe_symbol($id),
+            'openInterestAmount' => $amount,
+            'baseVolume' => $amount, // deprecated
+            'openInterestValue' => $value,
+            'quoteVolume' => $value, // deprecated
+            'timestamp' => null,
+            'datetime' => null,
+            'info' => $interest,
+        );
     }
 
     public function nonce() {

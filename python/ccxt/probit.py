@@ -867,9 +867,8 @@ class probit(Exchange):
         endTime = now
         if since is None:
             if limit is None:
-                raise ArgumentsRequired(self.id + ' fetchOHLCV() requires either a since argument or a limit argument')
-            else:
-                startTime = now - limit * duration * 1000
+                limit = requestLimit
+            startTime = now - limit * duration * 1000
         else:
             if limit is None:
                 endTime = now

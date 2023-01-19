@@ -1224,7 +1224,8 @@ class bitso(Exchange):
     async def fetch_transaction_fees(self, codes=None, params={}):
         """
         fetch transaction fees
-        :param [str]|None codes: not used by bitso fetchTransactionFees
+        see https://bitso.com/api_info#fees
+        :param [str]|None codes: list of unified currency codes
         :param dict params: extra parameters specific to the bitso api endpoint
         :returns [dict]: a list of `fee structures <https://docs.ccxt.com/en/latest/manual.html#fee-structure>`
         """
@@ -1273,26 +1274,39 @@ class bitso(Exchange):
         #        }
         #    }
         #
+        result = {}
         payload = self.safe_value(response, 'payload', {})
         depositFees = self.safe_value(payload, 'deposit_fees', [])
-        deposit = {}
         for i in range(0, len(depositFees)):
             depositFee = depositFees[i]
             currencyId = self.safe_string(depositFee, 'currency')
             code = self.safe_currency_code(currencyId)
-            deposit[code] = self.safe_number(depositFee, 'fee')
-        withdraw = {}
+            if (codes is not None) and not self.in_array(code, codes):
+                continue
+            result[code] = {
+                'deposit': self.safe_number(depositFee, 'fee'),
+                'withdraw': None,
+                'info': {
+                    'deposit': depositFee,
+                    'withdraw': None,
+                },
+            }
         withdrawalFees = self.safe_value(payload, 'withdrawal_fees', [])
         currencyIds = list(withdrawalFees.keys())
         for i in range(0, len(currencyIds)):
             currencyId = currencyIds[i]
             code = self.safe_currency_code(currencyId)
-            withdraw[code] = self.safe_number(withdrawalFees, currencyId)
-        return {
-            'info': response,
-            'deposit': deposit,
-            'withdraw': withdraw,
-        }
+            if (codes is not None) and not self.in_array(code, codes):
+                continue
+            result[code] = {
+                'deposit': self.safe_value(result[code], 'deposit'),
+                'withdraw': self.safe_number(withdrawalFees, currencyId),
+                'info': {
+                    'deposit': self.safe_value(result[code]['info'], 'deposit'),
+                    'withdraw': self.safe_number(withdrawalFees, currencyId),
+                },
+            }
+        return result
 
     async def withdraw(self, code, amount, address, tag=None, params={}):
         """

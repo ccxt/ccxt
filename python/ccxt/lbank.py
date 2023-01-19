@@ -6,7 +6,6 @@
 from ccxt.base.exchange import Exchange
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
-from ccxt.base.errors import ArgumentsRequired
 from ccxt.base.errors import InvalidOrder
 from ccxt.base.errors import DDoSProtection
 from ccxt.base.decimal_to_precision import TICK_SIZE
@@ -135,6 +134,7 @@ class lbank(Exchange):
             'commonCurrencies': {
                 'GMT': 'GMT Token',
                 'PNT': 'Penta',
+                'SHINJA': 'SHINJA(1M)',
                 'VET_ERC20': 'VEN',
             },
             'options': {
@@ -411,7 +411,7 @@ class lbank(Exchange):
             self.safe_number(ohlcv, 5),
         ]
 
-    def fetch_ohlcv(self, symbol, timeframe='5m', since=None, limit=1000, params={}):
+    def fetch_ohlcv(self, symbol, timeframe='1m', since=None, limit=1000, params={}):
         """
         fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
         :param str symbol: unified symbol of the market to fetch OHLCV data for
@@ -423,10 +423,11 @@ class lbank(Exchange):
         """
         self.load_markets()
         market = self.market(symbol)
-        if since is None:
-            raise ArgumentsRequired(self.id + ' fetchOHLCV() requires a `since` argument')
         if limit is None:
-            raise ArgumentsRequired(self.id + ' fetchOHLCV() requires a `limit` argument')
+            limit = 100  # as it's defined in lbank2
+        if since is None:
+            duration = self.parse_timeframe(timeframe)
+            since = self.milliseconds() - duration * 1000 * limit
         request = {
             'symbol': market['id'],
             'type': self.timeframes[timeframe],

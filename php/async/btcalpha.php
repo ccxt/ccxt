@@ -6,11 +6,12 @@ namespace ccxt\async;
 // https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 use Exception; // a common import
-use \ccxt\ExchangeError;
-use \ccxt\AuthenticationError;
-use \ccxt\InvalidOrder;
-use \ccxt\DDoSProtection;
-use \ccxt\Precise;
+use ccxt\ExchangeError;
+use ccxt\AuthenticationError;
+use ccxt\InvalidOrder;
+use ccxt\DDoSProtection;
+use ccxt\Precise;
+use React\Async;
 
 class btcalpha extends Exchange {
 
@@ -80,7 +81,6 @@ class btcalpha extends Exchange {
                 'withdraw' => false,
             ),
             'timeframes' => array(
-                '1m' => '1',
                 '5m' => '5',
                 '15m' => '15',
                 '30m' => '30',
@@ -146,109 +146,113 @@ class btcalpha extends Exchange {
     }
 
     public function fetch_markets($params = array ()) {
-        /**
-         * retrieves data on all markets for btcalpha
-         * @param {array} $params extra parameters specific to the exchange api endpoint
-         * @return {[array]} an array of objects representing $market data
-         */
-        $response = yield $this->publicGetPairs ($params);
-        //
-        //    array(
-        //        array(
-        //            "name" => "1INCH_USDT",
-        //            "currency1" => "1INCH",
-        //            "currency2" => "USDT",
-        //            "price_precision" => 4,
-        //            "amount_precision" => 2,
-        //            "minimum_order_size" => "0.01000000",
-        //            "maximum_order_size" => "900000.00000000",
-        //            "minimum_order_value" => "10.00000000",
-        //            "liquidity_type" => 10
-        //        ),
-        //    )
-        //
-        $result = array();
-        for ($i = 0; $i < count($response); $i++) {
-            $market = $response[$i];
-            $id = $this->safe_string($market, 'name');
-            $baseId = $this->safe_string($market, 'currency1');
-            $quoteId = $this->safe_string($market, 'currency2');
-            $base = $this->safe_currency_code($baseId);
-            $quote = $this->safe_currency_code($quoteId);
-            $pricePrecision = $this->safe_string($market, 'price_precision');
-            $priceLimit = $this->parse_precision($pricePrecision);
-            $amountLimit = $this->safe_string($market, 'minimum_order_size');
-            $result[] = array(
-                'id' => $id,
-                'symbol' => $base . '/' . $quote,
-                'base' => $base,
-                'quote' => $quote,
-                'settle' => null,
-                'baseId' => $baseId,
-                'quoteId' => $quoteId,
-                'settleId' => null,
-                'type' => 'spot',
-                'spot' => true,
-                'margin' => false,
-                'swap' => false,
-                'future' => false,
-                'option' => false,
-                'active' => true,
-                'contract' => false,
-                'linear' => null,
-                'inverse' => null,
-                'contractSize' => null,
-                'expiry' => null,
-                'expiryDatetime' => null,
-                'strike' => null,
-                'optionType' => null,
-                'precision' => array(
-                    'amount' => $this->parse_number($this->parse_precision($this->safe_string($market, 'amount_precision'))),
-                    'price' => $this->parse_number($this->parse_precision(($pricePrecision))),
-                ),
-                'limits' => array(
-                    'leverage' => array(
-                        'min' => null,
-                        'max' => null,
+        return Async\async(function () use ($params) {
+            /**
+             * retrieves data on all markets for btcalpha
+             * @param {array} $params extra parameters specific to the exchange api endpoint
+             * @return {[array]} an array of objects representing $market data
+             */
+            $response = Async\await($this->publicGetPairs ($params));
+            //
+            //    array(
+            //        array(
+            //            "name" => "1INCH_USDT",
+            //            "currency1" => "1INCH",
+            //            "currency2" => "USDT",
+            //            "price_precision" => 4,
+            //            "amount_precision" => 2,
+            //            "minimum_order_size" => "0.01000000",
+            //            "maximum_order_size" => "900000.00000000",
+            //            "minimum_order_value" => "10.00000000",
+            //            "liquidity_type" => 10
+            //        ),
+            //    )
+            //
+            $result = array();
+            for ($i = 0; $i < count($response); $i++) {
+                $market = $response[$i];
+                $id = $this->safe_string($market, 'name');
+                $baseId = $this->safe_string($market, 'currency1');
+                $quoteId = $this->safe_string($market, 'currency2');
+                $base = $this->safe_currency_code($baseId);
+                $quote = $this->safe_currency_code($quoteId);
+                $pricePrecision = $this->safe_string($market, 'price_precision');
+                $priceLimit = $this->parse_precision($pricePrecision);
+                $amountLimit = $this->safe_string($market, 'minimum_order_size');
+                $result[] = array(
+                    'id' => $id,
+                    'symbol' => $base . '/' . $quote,
+                    'base' => $base,
+                    'quote' => $quote,
+                    'settle' => null,
+                    'baseId' => $baseId,
+                    'quoteId' => $quoteId,
+                    'settleId' => null,
+                    'type' => 'spot',
+                    'spot' => true,
+                    'margin' => false,
+                    'swap' => false,
+                    'future' => false,
+                    'option' => false,
+                    'active' => true,
+                    'contract' => false,
+                    'linear' => null,
+                    'inverse' => null,
+                    'contractSize' => null,
+                    'expiry' => null,
+                    'expiryDatetime' => null,
+                    'strike' => null,
+                    'optionType' => null,
+                    'precision' => array(
+                        'amount' => $this->parse_number($this->parse_precision($this->safe_string($market, 'amount_precision'))),
+                        'price' => $this->parse_number($this->parse_precision(($pricePrecision))),
                     ),
-                    'amount' => array(
-                        'min' => $this->parse_number($amountLimit),
-                        'max' => $this->safe_number($market, 'maximum_order_size'),
+                    'limits' => array(
+                        'leverage' => array(
+                            'min' => null,
+                            'max' => null,
+                        ),
+                        'amount' => array(
+                            'min' => $this->parse_number($amountLimit),
+                            'max' => $this->safe_number($market, 'maximum_order_size'),
+                        ),
+                        'price' => array(
+                            'min' => $this->parse_number($priceLimit),
+                            'max' => null,
+                        ),
+                        'cost' => array(
+                            'min' => $this->parse_number(Precise::string_mul($priceLimit, $amountLimit)),
+                            'max' => null,
+                        ),
                     ),
-                    'price' => array(
-                        'min' => $this->parse_number($priceLimit),
-                        'max' => null,
-                    ),
-                    'cost' => array(
-                        'min' => $this->parse_number(Precise::string_mul($priceLimit, $amountLimit)),
-                        'max' => null,
-                    ),
-                ),
-                'info' => $market,
-            );
-        }
-        return $result;
+                    'info' => $market,
+                );
+            }
+            return $result;
+        }) ();
     }
 
     public function fetch_order_book($symbol, $limit = null, $params = array ()) {
-        /**
-         * fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
-         * @param {string} $symbol unified $symbol of the $market to fetch the order book for
-         * @param {int|null} $limit the maximum amount of order book entries to return
-         * @param {array} $params extra parameters specific to the btcalpha api endpoint
-         * @return {array} A dictionary of {@link https://docs.ccxt.com/en/latest/manual.html#order-book-structure order book structures} indexed by $market symbols
-         */
-        yield $this->load_markets();
-        $market = $this->market($symbol);
-        $request = array(
-            'pair_name' => $market['id'],
-        );
-        if ($limit) {
-            $request['limit_sell'] = $limit;
-            $request['limit_buy'] = $limit;
-        }
-        $response = yield $this->publicGetOrderbookPairName (array_merge($request, $params));
-        return $this->parse_order_book($response, $market['symbol'], null, 'buy', 'sell', 'price', 'amount');
+        return Async\async(function () use ($symbol, $limit, $params) {
+            /**
+             * fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+             * @param {string} $symbol unified $symbol of the $market to fetch the order book for
+             * @param {int|null} $limit the maximum amount of order book entries to return
+             * @param {array} $params extra parameters specific to the btcalpha api endpoint
+             * @return {array} A dictionary of {@link https://docs.ccxt.com/en/latest/manual.html#order-book-structure order book structures} indexed by $market symbols
+             */
+            Async\await($this->load_markets());
+            $market = $this->market($symbol);
+            $request = array(
+                'pair_name' => $market['id'],
+            );
+            if ($limit) {
+                $request['limit_sell'] = $limit;
+                $request['limit_buy'] = $limit;
+            }
+            $response = Async\await($this->publicGetOrderbookPairName (array_merge($request, $params)));
+            return $this->parse_order_book($response, $market['symbol'], null, 'buy', 'sell', 'price', 'amount');
+        }) ();
     }
 
     public function parse_bids_asks($bidasks, $priceKey = 0, $amountKey = 1) {
@@ -312,85 +316,91 @@ class btcalpha extends Exchange {
     }
 
     public function fetch_trades($symbol, $since = null, $limit = null, $params = array ()) {
-        /**
-         * get the list of most recent $trades for a particular $symbol
-         * @param {string} $symbol unified $symbol of the $market to fetch $trades for
-         * @param {int|null} $since timestamp in ms of the earliest trade to fetch
-         * @param {int|null} $limit the maximum amount of $trades to fetch
-         * @param {array} $params extra parameters specific to the btcalpha api endpoint
-         * @return {[array]} a list of ~@link https://docs.ccxt.com/en/latest/manual.html?#public-$trades trade structures~
-         */
-        yield $this->load_markets();
-        $market = null;
-        $request = array();
-        if ($symbol !== null) {
-            $market = $this->market($symbol);
-            $request['pair'] = $market['id'];
-        }
-        if ($limit !== null) {
-            $request['limit'] = $limit;
-        }
-        $trades = yield $this->publicGetExchanges (array_merge($request, $params));
-        return $this->parse_trades($trades, $market, $since, $limit);
+        return Async\async(function () use ($symbol, $since, $limit, $params) {
+            /**
+             * get the list of most recent $trades for a particular $symbol
+             * @param {string} $symbol unified $symbol of the $market to fetch $trades for
+             * @param {int|null} $since timestamp in ms of the earliest trade to fetch
+             * @param {int|null} $limit the maximum amount of $trades to fetch
+             * @param {array} $params extra parameters specific to the btcalpha api endpoint
+             * @return {[array]} a list of ~@link https://docs.ccxt.com/en/latest/manual.html?#public-$trades trade structures~
+             */
+            Async\await($this->load_markets());
+            $market = null;
+            $request = array();
+            if ($symbol !== null) {
+                $market = $this->market($symbol);
+                $request['pair'] = $market['id'];
+            }
+            if ($limit !== null) {
+                $request['limit'] = $limit;
+            }
+            $trades = Async\await($this->publicGetExchanges (array_merge($request, $params)));
+            return $this->parse_trades($trades, $market, $since, $limit);
+        }) ();
     }
 
     public function fetch_deposits($code = null, $since = null, $limit = null, $params = array ()) {
-        /**
-         * fetch all deposits made to an account
-         * @param {string|null} $code unified $currency $code
-         * @param {int|null} $since the earliest time in ms to fetch deposits for
-         * @param {int|null} $limit the maximum number of deposits structures to retrieve
-         * @param {array} $params extra parameters specific to the btcalpha api endpoint
-         * @return {[array]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure transaction structures}
-         */
-        yield $this->load_markets();
-        $currency = null;
-        if ($code !== null) {
-            $currency = $this->currency($code);
-        }
-        $response = yield $this->privateGetDeposits ($params);
-        //
-        //     array(
-        //         {
-        //             "timestamp" => 1485363039.18359,
-        //             "id" => 317,
-        //             "currency" => "BTC",
-        //             "amount" => 530.00000000
-        //         }
-        //     )
-        //
-        return $this->parse_transactions($response, $currency, $since, $limit, array( 'type' => 'deposit' ));
+        return Async\async(function () use ($code, $since, $limit, $params) {
+            /**
+             * fetch all deposits made to an account
+             * @param {string|null} $code unified $currency $code
+             * @param {int|null} $since the earliest time in ms to fetch deposits for
+             * @param {int|null} $limit the maximum number of deposits structures to retrieve
+             * @param {array} $params extra parameters specific to the btcalpha api endpoint
+             * @return {[array]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure transaction structures}
+             */
+            Async\await($this->load_markets());
+            $currency = null;
+            if ($code !== null) {
+                $currency = $this->currency($code);
+            }
+            $response = Async\await($this->privateGetDeposits ($params));
+            //
+            //     array(
+            //         {
+            //             "timestamp" => 1485363039.18359,
+            //             "id" => 317,
+            //             "currency" => "BTC",
+            //             "amount" => 530.00000000
+            //         }
+            //     )
+            //
+            return $this->parse_transactions($response, $currency, $since, $limit, array( 'type' => 'deposit' ));
+        }) ();
     }
 
     public function fetch_withdrawals($code = null, $since = null, $limit = null, $params = array ()) {
-        /**
-         * fetch all withdrawals made from an account
-         * @param {string|null} $code unified $currency $code
-         * @param {int|null} $since the earliest time in ms to fetch withdrawals for
-         * @param {int|null} $limit the maximum number of withdrawals structures to retrieve
-         * @param {array} $params extra parameters specific to the btcalpha api endpoint
-         * @return {[array]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure transaction structures}
-         */
-        yield $this->load_markets();
-        $currency = null;
-        $request = array();
-        if ($code !== null) {
-            $currency = $this->currency($code);
-            $request['currency_id'] = $currency['id'];
-        }
-        $response = yield $this->privateGetWithdraws (array_merge($request, $params));
-        //
-        //     array(
-        //         {
-        //             "id" => 403,
-        //             "timestamp" => 1485363466.868539,
-        //             "currency" => "BTC",
-        //             "amount" => 0.53000000,
-        //             "status" => 20
-        //         }
-        //     )
-        //
-        return $this->parse_transactions($response, $currency, $since, $limit, array( 'type' => 'withdrawal' ));
+        return Async\async(function () use ($code, $since, $limit, $params) {
+            /**
+             * fetch all withdrawals made from an account
+             * @param {string|null} $code unified $currency $code
+             * @param {int|null} $since the earliest time in ms to fetch withdrawals for
+             * @param {int|null} $limit the maximum number of withdrawals structures to retrieve
+             * @param {array} $params extra parameters specific to the btcalpha api endpoint
+             * @return {[array]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure transaction structures}
+             */
+            Async\await($this->load_markets());
+            $currency = null;
+            $request = array();
+            if ($code !== null) {
+                $currency = $this->currency($code);
+                $request['currency_id'] = $currency['id'];
+            }
+            $response = Async\await($this->privateGetWithdraws (array_merge($request, $params)));
+            //
+            //     array(
+            //         {
+            //             "id" => 403,
+            //             "timestamp" => 1485363466.868539,
+            //             "currency" => "BTC",
+            //             "amount" => 0.53000000,
+            //             "status" => 20
+            //         }
+            //     )
+            //
+            return $this->parse_transactions($response, $currency, $since, $limit, array( 'type' => 'withdrawal' ));
+        }) ();
     }
 
     public function parse_transaction($transaction, $currency = null) {
@@ -471,36 +481,38 @@ class btcalpha extends Exchange {
     }
 
     public function fetch_ohlcv($symbol, $timeframe = '5m', $since = null, $limit = null, $params = array ()) {
-        /**
-         * fetches historical candlestick data containing the open, high, low, and close price, and the volume of a $market
-         * @param {string} $symbol unified $symbol of the $market to fetch OHLCV data for
-         * @param {string} $timeframe the length of time each candle represents
-         * @param {int|null} $since timestamp in ms of the earliest candle to fetch
-         * @param {int|null} $limit the maximum amount of candles to fetch
-         * @param {array} $params extra parameters specific to the btcalpha api endpoint
-         * @return {[[int]]} A list of candles ordered as timestamp, open, high, low, close, volume
-         */
-        yield $this->load_markets();
-        $market = $this->market($symbol);
-        $request = array(
-            'pair' => $market['id'],
-            'type' => $this->timeframes[$timeframe],
-        );
-        if ($limit !== null) {
-            $request['limit'] = $limit;
-        }
-        if ($since !== null) {
-            $request['since'] = intval($since / 1000);
-        }
-        $response = yield $this->publicGetChartsPairTypeChart (array_merge($request, $params));
-        //
-        //     array(
-        //         array("time":1591296000,"open":0.024746,"close":0.024728,"low":0.024728,"high":0.024753,"volume":16.624),
-        //         array("time":1591295700,"open":0.024718,"close":0.02475,"low":0.024711,"high":0.02475,"volume":31.645),
-        //         array("time":1591295400,"open":0.024721,"close":0.024717,"low":0.024711,"high":0.02473,"volume":65.071)
-        //     )
-        //
-        return $this->parse_ohlcvs($response, $market, $timeframe, $since, $limit);
+        return Async\async(function () use ($symbol, $timeframe, $since, $limit, $params) {
+            /**
+             * fetches historical candlestick data containing the open, high, low, and close price, and the volume of a $market
+             * @param {string} $symbol unified $symbol of the $market to fetch OHLCV data for
+             * @param {string} $timeframe the length of time each candle represents
+             * @param {int|null} $since timestamp in ms of the earliest candle to fetch
+             * @param {int|null} $limit the maximum amount of candles to fetch
+             * @param {array} $params extra parameters specific to the btcalpha api endpoint
+             * @return {[[int]]} A list of candles ordered as timestamp, open, high, low, close, volume
+             */
+            Async\await($this->load_markets());
+            $market = $this->market($symbol);
+            $request = array(
+                'pair' => $market['id'],
+                'type' => $this->timeframes[$timeframe],
+            );
+            if ($limit !== null) {
+                $request['limit'] = $limit;
+            }
+            if ($since !== null) {
+                $request['since'] = intval($since / 1000);
+            }
+            $response = Async\await($this->publicGetChartsPairTypeChart (array_merge($request, $params)));
+            //
+            //     array(
+            //         array("time":1591296000,"open":0.024746,"close":0.024728,"low":0.024728,"high":0.024753,"volume":16.624),
+            //         array("time":1591295700,"open":0.024718,"close":0.02475,"low":0.024711,"high":0.02475,"volume":31.645),
+            //         array("time":1591295400,"open":0.024721,"close":0.024717,"low":0.024711,"high":0.02473,"volume":65.071)
+            //     )
+            //
+            return $this->parse_ohlcvs($response, $market, $timeframe, $since, $limit);
+        }) ();
     }
 
     public function parse_balance($response) {
@@ -518,14 +530,16 @@ class btcalpha extends Exchange {
     }
 
     public function fetch_balance($params = array ()) {
-        /**
-         * query for balance and get the amount of funds available for trading or funds locked in orders
-         * @param {array} $params extra parameters specific to the btcalpha api endpoint
-         * @return {array} a ~@link https://docs.ccxt.com/en/latest/manual.html?#balance-structure balance structure~
-         */
-        yield $this->load_markets();
-        $response = yield $this->privateGetWallets ($params);
-        return $this->parse_balance($response);
+        return Async\async(function () use ($params) {
+            /**
+             * query for balance and get the amount of funds available for trading or funds locked in orders
+             * @param {array} $params extra parameters specific to the btcalpha api endpoint
+             * @return {array} a ~@link https://docs.ccxt.com/en/latest/manual.html?#balance-structure balance structure~
+             */
+            Async\await($this->load_markets());
+            $response = Async\await($this->privateGetWallets ($params));
+            return $this->parse_balance($response);
+        }) ();
     }
 
     public function parse_order_status($status) {
@@ -610,138 +624,153 @@ class btcalpha extends Exchange {
     }
 
     public function create_order($symbol, $type, $side, $amount, $price = null, $params = array ()) {
-        /**
-         * create a trade $order
-         * @param {string} $symbol unified $symbol of the $market to create an $order in
-         * @param {string} $type 'market' or 'limit'
-         * @param {string} $side 'buy' or 'sell'
-         * @param {float} $amount how much of currency you want to trade in units of base currency
-         * @param {float|null} $price the $price at which the $order is to be fullfilled, in units of the quote currency, ignored in $market orders
-         * @param {array} $params extra parameters specific to the btcalpha api endpoint
-         * @return {array} an {@link https://docs.ccxt.com/en/latest/manual.html#$order-structure $order structure}
-         */
-        yield $this->load_markets();
-        $market = $this->market($symbol);
-        $request = array(
-            'pair' => $market['id'],
-            'type' => $side,
-            'amount' => $amount,
-            'price' => $this->price_to_precision($symbol, $price),
-        );
-        $response = yield $this->privatePostOrder (array_merge($request, $params));
-        if (!$response['success']) {
-            throw new InvalidOrder($this->id . ' ' . $this->json($response));
-        }
-        $order = $this->parse_order($response, $market);
-        $amount = ($order['amount'] > 0) ? $order['amount'] : $amount;
-        return array_merge($order, array(
-            'amount' => $amount,
-        ));
+        return Async\async(function () use ($symbol, $type, $side, $amount, $price, $params) {
+            /**
+             * create a trade $order
+             * @param {string} $symbol unified $symbol of the $market to create an $order in
+             * @param {string} $type 'market' or 'limit'
+             * @param {string} $side 'buy' or 'sell'
+             * @param {float} $amount how much of currency you want to trade in units of base currency
+             * @param {float|null} $price the $price at which the $order is to be fullfilled, in units of the quote currency, ignored in $market orders
+             * @param {array} $params extra parameters specific to the btcalpha api endpoint
+             * @return {array} an {@link https://docs.ccxt.com/en/latest/manual.html#$order-structure $order structure}
+             */
+            Async\await($this->load_markets());
+            $market = $this->market($symbol);
+            $request = array(
+                'pair' => $market['id'],
+                'type' => $side,
+                'amount' => $amount,
+                'price' => $this->price_to_precision($symbol, $price),
+            );
+            $response = Async\await($this->privatePostOrder (array_merge($request, $params)));
+            if (!$response['success']) {
+                throw new InvalidOrder($this->id . ' ' . $this->json($response));
+            }
+            $order = $this->parse_order($response, $market);
+            $orderAmount = (string) $order['amount'];
+            $amount = Precise::string_gt($orderAmount, '0') ? $order['amount'] : $amount;
+            return array_merge($order, array(
+                'amount' => $this->parse_number($amount),
+            ));
+        }) ();
     }
 
     public function cancel_order($id, $symbol = null, $params = array ()) {
-        /**
-         * cancels an open order
-         * @param {string} $id order $id
-         * @param {string|null} $symbol unified $symbol of the market the order was made in
-         * @param {array} $params extra parameters specific to the btcalpha api endpoint
-         * @return {array} An {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structure}
-         */
-        $request = array(
-            'order' => $id,
-        );
-        $response = yield $this->privatePostOrderCancel (array_merge($request, $params));
-        return $response;
+        return Async\async(function () use ($id, $symbol, $params) {
+            /**
+             * cancels an open order
+             * @param {string} $id order $id
+             * @param {string|null} $symbol unified $symbol of the market the order was made in
+             * @param {array} $params extra parameters specific to the btcalpha api endpoint
+             * @return {array} An {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structure}
+             */
+            $request = array(
+                'order' => $id,
+            );
+            $response = Async\await($this->privatePostOrderCancel (array_merge($request, $params)));
+            return $response;
+        }) ();
     }
 
     public function fetch_order($id, $symbol = null, $params = array ()) {
-        /**
-         * fetches information on an $order made by the user
-         * @param {string|null} $symbol not used by btcalpha fetchOrder
-         * @param {array} $params extra parameters specific to the btcalpha api endpoint
-         * @return {array} An {@link https://docs.ccxt.com/en/latest/manual.html#$order-structure $order structure}
-         */
-        yield $this->load_markets();
-        $request = array(
-            'id' => $id,
-        );
-        $order = yield $this->privateGetOrderId (array_merge($request, $params));
-        return $this->parse_order($order);
+        return Async\async(function () use ($id, $symbol, $params) {
+            /**
+             * fetches information on an $order made by the user
+             * @param {string|null} $symbol not used by btcalpha fetchOrder
+             * @param {array} $params extra parameters specific to the btcalpha api endpoint
+             * @return {array} An {@link https://docs.ccxt.com/en/latest/manual.html#$order-structure $order structure}
+             */
+            Async\await($this->load_markets());
+            $request = array(
+                'id' => $id,
+            );
+            $order = Async\await($this->privateGetOrderId (array_merge($request, $params)));
+            return $this->parse_order($order);
+        }) ();
     }
 
     public function fetch_orders($symbol = null, $since = null, $limit = null, $params = array ()) {
-        /**
-         * fetches information on multiple $orders made by the user
-         * @param {string|null} $symbol unified $market $symbol of the $market $orders were made in
-         * @param {int|null} $since the earliest time in ms to fetch $orders for
-         * @param {int|null} $limit the maximum number of  orde structures to retrieve
-         * @param {array} $params extra parameters specific to the btcalpha api endpoint
-         * @return {[array]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structures}
-         */
-        yield $this->load_markets();
-        $request = array();
-        $market = null;
-        if ($symbol !== null) {
-            $market = $this->market($symbol);
-            $request['pair'] = $market['id'];
-        }
-        if ($limit !== null) {
-            $request['limit'] = $limit;
-        }
-        $orders = yield $this->privateGetOrdersOwn (array_merge($request, $params));
-        return $this->parse_orders($orders, $market, $since, $limit);
+        return Async\async(function () use ($symbol, $since, $limit, $params) {
+            /**
+             * fetches information on multiple $orders made by the user
+             * @param {string|null} $symbol unified $market $symbol of the $market $orders were made in
+             * @param {int|null} $since the earliest time in ms to fetch $orders for
+             * @param {int|null} $limit the maximum number of  orde structures to retrieve
+             * @param {array} $params extra parameters specific to the btcalpha api endpoint
+             * @return {[array]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structures}
+             */
+            Async\await($this->load_markets());
+            $request = array();
+            $market = null;
+            if ($symbol !== null) {
+                $market = $this->market($symbol);
+                $request['pair'] = $market['id'];
+            }
+            if ($limit !== null) {
+                $request['limit'] = $limit;
+            }
+            $orders = Async\await($this->privateGetOrdersOwn (array_merge($request, $params)));
+            return $this->parse_orders($orders, $market, $since, $limit);
+        }) ();
     }
 
     public function fetch_open_orders($symbol = null, $since = null, $limit = null, $params = array ()) {
-        /**
-         * fetch all unfilled currently open orders
-         * @param {string|null} $symbol unified market $symbol
-         * @param {int|null} $since the earliest time in ms to fetch open orders for
-         * @param {int|null} $limit the maximum number of  open orders structures to retrieve
-         * @param {array} $params extra parameters specific to the btcalpha api endpoint
-         * @return {[array]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structures}
-         */
-        $request = array(
-            'status' => '1',
-        );
-        return yield $this->fetch_orders($symbol, $since, $limit, array_merge($request, $params));
+        return Async\async(function () use ($symbol, $since, $limit, $params) {
+            /**
+             * fetch all unfilled currently open orders
+             * @param {string|null} $symbol unified market $symbol
+             * @param {int|null} $since the earliest time in ms to fetch open orders for
+             * @param {int|null} $limit the maximum number of  open orders structures to retrieve
+             * @param {array} $params extra parameters specific to the btcalpha api endpoint
+             * @return {[array]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structures}
+             */
+            $request = array(
+                'status' => '1',
+            );
+            return Async\await($this->fetch_orders($symbol, $since, $limit, array_merge($request, $params)));
+        }) ();
     }
 
     public function fetch_closed_orders($symbol = null, $since = null, $limit = null, $params = array ()) {
-        /**
-         * fetches information on multiple closed orders made by the user
-         * @param {string|null} $symbol unified market $symbol of the market orders were made in
-         * @param {int|null} $since the earliest time in ms to fetch orders for
-         * @param {int|null} $limit the maximum number of  orde structures to retrieve
-         * @param {array} $params extra parameters specific to the btcalpha api endpoint
-         * @return {[array]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structures}
-         */
-        $request = array(
-            'status' => '3',
-        );
-        return yield $this->fetch_orders($symbol, $since, $limit, array_merge($request, $params));
+        return Async\async(function () use ($symbol, $since, $limit, $params) {
+            /**
+             * fetches information on multiple closed orders made by the user
+             * @param {string|null} $symbol unified market $symbol of the market orders were made in
+             * @param {int|null} $since the earliest time in ms to fetch orders for
+             * @param {int|null} $limit the maximum number of  orde structures to retrieve
+             * @param {array} $params extra parameters specific to the btcalpha api endpoint
+             * @return {[array]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structures}
+             */
+            $request = array(
+                'status' => '3',
+            );
+            return Async\await($this->fetch_orders($symbol, $since, $limit, array_merge($request, $params)));
+        }) ();
     }
 
     public function fetch_my_trades($symbol = null, $since = null, $limit = null, $params = array ()) {
-        /**
-         * fetch all $trades made by the user
-         * @param {string|null} $symbol unified $market $symbol
-         * @param {int|null} $since the earliest time in ms to fetch $trades for
-         * @param {int|null} $limit the maximum number of $trades structures to retrieve
-         * @param {array} $params extra parameters specific to the btcalpha api endpoint
-         * @return {[array]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#trade-structure trade structures}
-         */
-        yield $this->load_markets();
-        $request = array();
-        if ($symbol !== null) {
-            $market = $this->market($symbol);
-            $request['pair'] = $market['id'];
-        }
-        if ($limit !== null) {
-            $request['limit'] = $limit;
-        }
-        $trades = yield $this->privateGetExchangesOwn (array_merge($request, $params));
-        return $this->parse_trades($trades, null, $since, $limit);
+        return Async\async(function () use ($symbol, $since, $limit, $params) {
+            /**
+             * fetch all $trades made by the user
+             * @param {string|null} $symbol unified $market $symbol
+             * @param {int|null} $since the earliest time in ms to fetch $trades for
+             * @param {int|null} $limit the maximum number of $trades structures to retrieve
+             * @param {array} $params extra parameters specific to the btcalpha api endpoint
+             * @return {[array]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#trade-structure trade structures}
+             */
+            Async\await($this->load_markets());
+            $request = array();
+            if ($symbol !== null) {
+                $market = $this->market($symbol);
+                $request['pair'] = $market['id'];
+            }
+            if ($limit !== null) {
+                $request['limit'] = $limit;
+            }
+            $trades = Async\await($this->privateGetExchangesOwn (array_merge($request, $params)));
+            return $this->parse_trades($trades, null, $since, $limit);
+        }) ();
     }
 
     public function nonce() {

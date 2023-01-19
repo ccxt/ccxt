@@ -6,8 +6,9 @@ namespace ccxt\async;
 // https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 use Exception; // a common import
-use \ccxt\ExchangeError;
-use \ccxt\Precise;
+use ccxt\ExchangeError;
+use ccxt\Precise;
+use React\Async;
 
 class lykke extends Exchange {
 
@@ -178,167 +179,171 @@ class lykke extends Exchange {
     }
 
     public function fetch_currencies($params = array ()) {
-        /**
-         * fetches all available $currencies on an exchange
-         * @param {array} $params extra parameters specific to the lykke api endpoint
-         * @return {array} an associative dictionary of $currencies
-         */
-        $response = yield $this->publicGetAssets ($params);
-        $currencies = $this->safe_value($response, 'payload', array());
-        //
-        //     {
-        //         "payload":array(
-        //             {
-        //                 "assetId":"115a60c2-0da1-40f9-a7f2-41da723b9074",
-        //                 "name":"Monaco Token",
-        //                 "symbol":"MCO",
-        //                 "accuracy":6,
-        //                 "multiplierPower":8,
-        //                 "assetAddress":"",
-        //                 "blockchainIntegrationLayerId":"",
-        //                 "blockchain":"ethereum",
-        //                 "type":"erc20Token",
-        //                 "isTradable":true,
-        //                 "isTrusted":true,
-        //                 "kycNeeded":false,
-        //                 "blockchainWithdrawal":true,
-        //                 "cashoutMinimalAmount":0.1,
-        //                 "lowVolumeAmount":null,
-        //                 "lykkeEntityId":"LYKKE NL",
-        //                 "siriusAssetId":0,
-        //                 "siriusBlockchainId":null,
-        //                 "blockchainIntegrationType":"none",
-        //                 "blockchainDepositEnabled":false,
-        //                 "isDisabled":false
-        //             }
-        //         ),
-        //         "error":null
-        //     }
-        //
-        $result = array();
-        for ($i = 0; $i < count($currencies); $i++) {
-            $currency = $currencies[$i];
-            $id = $this->safe_string($currency, 'assetId');
-            $code = $this->safe_string($currency, 'symbol');
-            $name = $this->safe_string($currency, 'name');
-            $type = $this->safe_string($currency, 'type');
-            $deposit = $this->safe_value($currency, 'blockchainDepositEnabled');
-            $withdraw = $this->safe_value($currency, 'blockchainWithdrawal');
-            $isDisabled = $this->safe_value($currency, 'isDisabled');
-            $active = !$isDisabled;
-            $result[$code] = array(
-                'id' => $id,
-                'code' => $code,
-                'info' => $currency,
-                'type' => $type,
-                'name' => $name,
-                'active' => $active,
-                'deposit' => $deposit,
-                'withdraw' => $withdraw,
-                'fee' => null,
-                'precision' => $this->parse_number($this->parse_precision($this->safe_string($currency, 'accuracy'))),
-                'limits' => array(
-                    'withdraw' => array(
-                        'min' => $this->safe_value($currency, 'cashoutMinimalAmount'),
-                        'max' => null,
+        return Async\async(function () use ($params) {
+            /**
+             * fetches all available $currencies on an exchange
+             * @param {array} $params extra parameters specific to the lykke api endpoint
+             * @return {array} an associative dictionary of $currencies
+             */
+            $response = Async\await($this->publicGetAssets ($params));
+            $currencies = $this->safe_value($response, 'payload', array());
+            //
+            //     {
+            //         "payload":array(
+            //             {
+            //                 "assetId":"115a60c2-0da1-40f9-a7f2-41da723b9074",
+            //                 "name":"Monaco Token",
+            //                 "symbol":"MCO",
+            //                 "accuracy":6,
+            //                 "multiplierPower":8,
+            //                 "assetAddress":"",
+            //                 "blockchainIntegrationLayerId":"",
+            //                 "blockchain":"ethereum",
+            //                 "type":"erc20Token",
+            //                 "isTradable":true,
+            //                 "isTrusted":true,
+            //                 "kycNeeded":false,
+            //                 "blockchainWithdrawal":true,
+            //                 "cashoutMinimalAmount":0.1,
+            //                 "lowVolumeAmount":null,
+            //                 "lykkeEntityId":"LYKKE NL",
+            //                 "siriusAssetId":0,
+            //                 "siriusBlockchainId":null,
+            //                 "blockchainIntegrationType":"none",
+            //                 "blockchainDepositEnabled":false,
+            //                 "isDisabled":false
+            //             }
+            //         ),
+            //         "error":null
+            //     }
+            //
+            $result = array();
+            for ($i = 0; $i < count($currencies); $i++) {
+                $currency = $currencies[$i];
+                $id = $this->safe_string($currency, 'assetId');
+                $code = $this->safe_string($currency, 'symbol');
+                $name = $this->safe_string($currency, 'name');
+                $type = $this->safe_string($currency, 'type');
+                $deposit = $this->safe_value($currency, 'blockchainDepositEnabled');
+                $withdraw = $this->safe_value($currency, 'blockchainWithdrawal');
+                $isDisabled = $this->safe_value($currency, 'isDisabled');
+                $active = !$isDisabled;
+                $result[$code] = array(
+                    'id' => $id,
+                    'code' => $code,
+                    'info' => $currency,
+                    'type' => $type,
+                    'name' => $name,
+                    'active' => $active,
+                    'deposit' => $deposit,
+                    'withdraw' => $withdraw,
+                    'fee' => null,
+                    'precision' => $this->parse_number($this->parse_precision($this->safe_string($currency, 'accuracy'))),
+                    'limits' => array(
+                        'withdraw' => array(
+                            'min' => $this->safe_value($currency, 'cashoutMinimalAmount'),
+                            'max' => null,
+                        ),
+                        'amount' => array(
+                            'min' => $this->safe_value($currency, 'lowVolumeAmount'),
+                            'max' => null,
+                        ),
                     ),
-                    'amount' => array(
-                        'min' => $this->safe_value($currency, 'lowVolumeAmount'),
-                        'max' => null,
-                    ),
-                ),
-            );
-        }
-        return $result;
+                );
+            }
+            return $result;
+        }) ();
     }
 
     public function fetch_markets($params = array ()) {
-        /**
-         * retrieves data on all $markets for lykke
-         * @param {array} $params extra parameters specific to the exchange api endpoint
-         * @return {[array]} an array of objects representing $market data
-         */
-        $response = yield $this->publicGetAssetpairs ($params);
-        $markets = $this->safe_value($response, 'payload', array());
-        //
-        //     {
-        //         "payload":array(
-        //             {
-        //                 "assetPairId":"AAVEBTC",
-        //                 "baseAssetId":"c9e55548-dae5-44fc-bebd-e72249cb19f3",
-        //                 "quoteAssetId":"BTC",
-        //                 "name":"AAVE/BTC",
-        //                 "priceAccuracy":6,
-        //                 "baseAssetAccuracy":6,
-        //                 "quoteAssetAccuracy":8,
-        //                 "minVolume":0.001,
-        //                 "minOppositeVolume":0.0001
-        //             }
-        //         ),
-        //         "error":null
-        //     }
-        //
-        $result = array();
-        for ($i = 0; $i < count($markets); $i++) {
-            $market = $markets[$i];
-            $id = $this->safe_string($market, 'assetPairId');
-            $name = $this->safe_string($market, 'name');
-            $baseAssetId = $this->safe_string($market, 'baseAssetId');
-            $quoteAssetId = $this->safe_string($market, 'quoteAssetId');
-            list($baseId, $quoteId) = explode('/', $name);
-            $base = $this->safe_currency_code($baseId);
-            $quote = $this->safe_currency_code($quoteId);
-            $symbol = $base . '/' . $quote;
-            $result[] = array(
-                'id' => $id,
-                'symbol' => $symbol,
-                'base' => $base,
-                'quote' => $quote,
-                'baseId' => $baseAssetId,
-                'quoteId' => $quoteAssetId,
-                'settle' => null,
-                'settleId' => null,
-                'type' => 'spot',
-                'spot' => true,
-                'margin' => false,
-                'swap' => false,
-                'future' => false,
-                'option' => false,
-                'contract' => false,
-                'active' => true,
-                'info' => $market,
-                'linear' => null,
-                'inverse' => null,
-                'contractSize' => null,
-                'expiry' => null,
-                'expiryDatetime' => null,
-                'strike' => null,
-                'optionType' => null,
-                'precision' => array(
-                    'amount' => $this->parse_number($this->parse_precision($this->safe_string($market, 'baseAssetAccuracy'))),
-                    'price' => $this->parse_number($this->parse_precision($this->safe_string($market, 'priceAccuracy'))),
-                ),
-                'limits' => array(
-                    'amount' => array(
-                        'min' => $this->safe_number($market, 'minVolume'),
-                        'max' => null,
+        return Async\async(function () use ($params) {
+            /**
+             * retrieves data on all $markets for lykke
+             * @param {array} $params extra parameters specific to the exchange api endpoint
+             * @return {[array]} an array of objects representing $market data
+             */
+            $response = Async\await($this->publicGetAssetpairs ($params));
+            $markets = $this->safe_value($response, 'payload', array());
+            //
+            //     {
+            //         "payload":array(
+            //             {
+            //                 "assetPairId":"AAVEBTC",
+            //                 "baseAssetId":"c9e55548-dae5-44fc-bebd-e72249cb19f3",
+            //                 "quoteAssetId":"BTC",
+            //                 "name":"AAVE/BTC",
+            //                 "priceAccuracy":6,
+            //                 "baseAssetAccuracy":6,
+            //                 "quoteAssetAccuracy":8,
+            //                 "minVolume":0.001,
+            //                 "minOppositeVolume":0.0001
+            //             }
+            //         ),
+            //         "error":null
+            //     }
+            //
+            $result = array();
+            for ($i = 0; $i < count($markets); $i++) {
+                $market = $markets[$i];
+                $id = $this->safe_string($market, 'assetPairId');
+                $name = $this->safe_string($market, 'name');
+                $baseAssetId = $this->safe_string($market, 'baseAssetId');
+                $quoteAssetId = $this->safe_string($market, 'quoteAssetId');
+                list($baseId, $quoteId) = explode('/', $name);
+                $base = $this->safe_currency_code($baseId);
+                $quote = $this->safe_currency_code($quoteId);
+                $symbol = $base . '/' . $quote;
+                $result[] = array(
+                    'id' => $id,
+                    'symbol' => $symbol,
+                    'base' => $base,
+                    'quote' => $quote,
+                    'baseId' => $baseAssetId,
+                    'quoteId' => $quoteAssetId,
+                    'settle' => null,
+                    'settleId' => null,
+                    'type' => 'spot',
+                    'spot' => true,
+                    'margin' => false,
+                    'swap' => false,
+                    'future' => false,
+                    'option' => false,
+                    'contract' => false,
+                    'active' => true,
+                    'info' => $market,
+                    'linear' => null,
+                    'inverse' => null,
+                    'contractSize' => null,
+                    'expiry' => null,
+                    'expiryDatetime' => null,
+                    'strike' => null,
+                    'optionType' => null,
+                    'precision' => array(
+                        'amount' => $this->parse_number($this->parse_precision($this->safe_string($market, 'baseAssetAccuracy'))),
+                        'price' => $this->parse_number($this->parse_precision($this->safe_string($market, 'priceAccuracy'))),
                     ),
-                    'price' => array(
-                        'min' => null,
-                        'max' => null,
+                    'limits' => array(
+                        'amount' => array(
+                            'min' => $this->safe_number($market, 'minVolume'),
+                            'max' => null,
+                        ),
+                        'price' => array(
+                            'min' => null,
+                            'max' => null,
+                        ),
+                        'cost' => array(
+                            'min' => $this->safe_number($market, 'minOppositeVolume'),
+                            'max' => null,
+                        ),
+                        'leverage' => array(
+                            'min' => null,
+                            'max' => null,
+                        ),
                     ),
-                    'cost' => array(
-                        'min' => $this->safe_number($market, 'minOppositeVolume'),
-                        'max' => null,
-                    ),
-                    'leverage' => array(
-                        'min' => null,
-                        'max' => null,
-                    ),
-                ),
-            );
-        }
-        return $result;
+                );
+            }
+            return $result;
+        }) ();
     }
 
     public function parse_ticker($ticker, $market = null) {
@@ -411,131 +416,137 @@ class lykke extends Exchange {
     }
 
     public function fetch_ticker($symbol, $params = array ()) {
-        /**
-         * fetches a price $ticker, a statistical calculation with the information calculated over the past 24 hours for a specific $market
-         * @param {string} $symbol unified $symbol of the $market to fetch the $ticker for
-         * @param {array} $params extra parameters specific to the lykke api endpoint
-         * @return {array} a {@link https://docs.ccxt.com/en/latest/manual.html#$ticker-structure $ticker structure}
-         */
-        yield $this->load_markets();
-        $market = $this->market($symbol);
-        $request = array(
-            'assetPairIds' => $market['id'],
-        );
-        // publicGetTickers or publicGetPrices
-        $method = $this->safe_string($this->options, 'fetchTickerMethod', 'publicGetTickers');
-        $response = yield $this->$method (array_merge($request, $params));
-        $ticker = $this->safe_value($response, 'payload', array());
-        //
-        // publicGetTickers
-        //
-        //     {
-        //         "payload":array(
-        //             {
-        //                 "assetPairId":"BTCUSD",
-        //                 "volumeBase":0.78056880,
-        //                 "volumeQuote":29782.5169,
-        //                 "priceChange":0.0436602362590968619931324699,
-        //                 "lastPrice":38626.885,
-        //                 "high":38742.896,
-        //                 "low":36872.498,
-        //                 "timestamp":1643687822840
-        //             }
-        //         ),
-        //         "error":null
-        //     }
-        //
-        // publicGetPrices
-        //
-        //     {
-        //         "payload":array(
-        //             {
-        //                 "assetPairId":"BTCUSD",
-        //                 "bid":38597.936,
-        //                 "ask":38640.311,
-        //                 "timestamp":1643688350847
-        //             }
-        //         ),
-        //         "error":null
-        //     }
-        //
-        return $this->parse_ticker($this->safe_value($ticker, 0, array()), $market);
+        return Async\async(function () use ($symbol, $params) {
+            /**
+             * fetches a price $ticker, a statistical calculation with the information calculated over the past 24 hours for a specific $market
+             * @param {string} $symbol unified $symbol of the $market to fetch the $ticker for
+             * @param {array} $params extra parameters specific to the lykke api endpoint
+             * @return {array} a {@link https://docs.ccxt.com/en/latest/manual.html#$ticker-structure $ticker structure}
+             */
+            Async\await($this->load_markets());
+            $market = $this->market($symbol);
+            $request = array(
+                'assetPairIds' => $market['id'],
+            );
+            // publicGetTickers or publicGetPrices
+            $method = $this->safe_string($this->options, 'fetchTickerMethod', 'publicGetTickers');
+            $response = Async\await($this->$method (array_merge($request, $params)));
+            $ticker = $this->safe_value($response, 'payload', array());
+            //
+            // publicGetTickers
+            //
+            //     {
+            //         "payload":array(
+            //             {
+            //                 "assetPairId":"BTCUSD",
+            //                 "volumeBase":0.78056880,
+            //                 "volumeQuote":29782.5169,
+            //                 "priceChange":0.0436602362590968619931324699,
+            //                 "lastPrice":38626.885,
+            //                 "high":38742.896,
+            //                 "low":36872.498,
+            //                 "timestamp":1643687822840
+            //             }
+            //         ),
+            //         "error":null
+            //     }
+            //
+            // publicGetPrices
+            //
+            //     {
+            //         "payload":array(
+            //             {
+            //                 "assetPairId":"BTCUSD",
+            //                 "bid":38597.936,
+            //                 "ask":38640.311,
+            //                 "timestamp":1643688350847
+            //             }
+            //         ),
+            //         "error":null
+            //     }
+            //
+            return $this->parse_ticker($this->safe_value($ticker, 0, array()), $market);
+        }) ();
     }
 
     public function fetch_tickers($symbols = null, $params = array ()) {
-        /**
-         * fetches price $tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
-         * @param {[string]|null} $symbols unified $symbols of the markets to fetch the ticker for, all market $tickers are returned if not assigned
-         * @param {array} $params extra parameters specific to the lykke api endpoint
-         * @return {array} an array of {@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure ticker structures}
-         */
-        yield $this->load_markets();
-        $response = yield $this->publicGetTickers ($params);
-        $tickers = $this->safe_value($response, 'payload', array());
-        //
-        //     {
-        //         "payload":array(
-        //             {
-        //                 "assetPairId":"BTCUSD",
-        //                 "volumeBase":0.78056880,
-        //                 "volumeQuote":29782.5169,
-        //                 "priceChange":0.0436602362590968619931324699,
-        //                 "lastPrice":38626.885,
-        //                 "high":38742.896,
-        //                 "low":36872.498,
-        //                 "timestamp":1643687822840
-        //             }
-        //         ),
-        //         "error":null
-        //     }
-        //
-        return $this->parse_tickers($tickers, $symbols);
+        return Async\async(function () use ($symbols, $params) {
+            /**
+             * fetches price $tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
+             * @param {[string]|null} $symbols unified $symbols of the markets to fetch the ticker for, all market $tickers are returned if not assigned
+             * @param {array} $params extra parameters specific to the lykke api endpoint
+             * @return {array} an array of {@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure ticker structures}
+             */
+            Async\await($this->load_markets());
+            $response = Async\await($this->publicGetTickers ($params));
+            $tickers = $this->safe_value($response, 'payload', array());
+            //
+            //     {
+            //         "payload":array(
+            //             {
+            //                 "assetPairId":"BTCUSD",
+            //                 "volumeBase":0.78056880,
+            //                 "volumeQuote":29782.5169,
+            //                 "priceChange":0.0436602362590968619931324699,
+            //                 "lastPrice":38626.885,
+            //                 "high":38742.896,
+            //                 "low":36872.498,
+            //                 "timestamp":1643687822840
+            //             }
+            //         ),
+            //         "error":null
+            //     }
+            //
+            return $this->parse_tickers($tickers, $symbols);
+        }) ();
     }
 
     public function fetch_order_book($symbol, $limit = null, $params = array ()) {
-        /**
-         * fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
-         * @param {string} $symbol unified $symbol of the $market to fetch the order book for
-         * @param {int|null} $limit the maximum amount of order book entries to return
-         * @param {array} $params extra parameters specific to the lykke api endpoint
-         * @return {array} A dictionary of {@link https://docs.ccxt.com/en/latest/manual.html#order-book-structure order book structures} indexed by $market symbols
-         */
-        yield $this->load_markets();
-        $market = $this->market($symbol);
-        $request = array(
-            'assetPairId' => $market['id'],
-        );
-        if ($limit !== null) {
-            $request['depth'] = $limit; // default 0
-        }
-        $response = yield $this->publicGetOrderbooks (array_merge($request, $params));
-        $payload = $this->safe_value($response, 'payload', array());
-        //
-        //     {
-        //         "payload":array(
-        //             {
-        //                 assetPairId => 'BTCUSD',
-        //                 $timestamp => '1643298038203',
-        //                 bids => array(
-        //                     {
-        //                         "v":0.59034382,
-        //                         "p":36665.329
-        //                     }
-        //                 ),
-        //                 asks => array(
-        //                     {
-        //                         "v":-0.003,
-        //                         "p":36729.686
-        //                     }
-        //                 )
-        //             }
-        //         ),
-        //         "error":null
-        //     }
-        //
-        $orderbook = $this->safe_value($payload, 0, array());
-        $timestamp = $this->safe_integer($orderbook, 'timestamp');
-        return $this->parse_order_book($orderbook, $market['symbol'], $timestamp, 'bids', 'asks', 'p', 'v');
+        return Async\async(function () use ($symbol, $limit, $params) {
+            /**
+             * fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+             * @param {string} $symbol unified $symbol of the $market to fetch the order book for
+             * @param {int|null} $limit the maximum amount of order book entries to return
+             * @param {array} $params extra parameters specific to the lykke api endpoint
+             * @return {array} A dictionary of {@link https://docs.ccxt.com/en/latest/manual.html#order-book-structure order book structures} indexed by $market symbols
+             */
+            Async\await($this->load_markets());
+            $market = $this->market($symbol);
+            $request = array(
+                'assetPairId' => $market['id'],
+            );
+            if ($limit !== null) {
+                $request['depth'] = $limit; // default 0
+            }
+            $response = Async\await($this->publicGetOrderbooks (array_merge($request, $params)));
+            $payload = $this->safe_value($response, 'payload', array());
+            //
+            //     {
+            //         "payload":array(
+            //             {
+            //                 assetPairId => 'BTCUSD',
+            //                 $timestamp => '1643298038203',
+            //                 bids => array(
+            //                     {
+            //                         "v":0.59034382,
+            //                         "p":36665.329
+            //                     }
+            //                 ),
+            //                 asks => array(
+            //                     {
+            //                         "v":-0.003,
+            //                         "p":36729.686
+            //                     }
+            //                 )
+            //             }
+            //         ),
+            //         "error":null
+            //     }
+            //
+            $orderbook = $this->safe_value($payload, 0, array());
+            $timestamp = $this->safe_integer($orderbook, 'timestamp');
+            return $this->parse_order_book($orderbook, $market['symbol'], $timestamp, 'bids', 'asks', 'p', 'v');
+        }) ();
     }
 
     public function parse_trade($trade, $market) {
@@ -597,41 +608,43 @@ class lykke extends Exchange {
     }
 
     public function fetch_trades($symbol, $since = null, $limit = null, $params = array ()) {
-        /**
-         * get the list of most recent trades for a particular $symbol
-         * @param {string} $symbol unified $symbol of the $market to fetch trades for
-         * @param {int|null} $since timestamp in ms of the earliest trade to fetch
-         * @param {int|null} $limit the maximum amount of trades to fetch
-         * @param {array} $params extra parameters specific to the lykke api endpoint
-         * @return {[array]} a list of ~@link https://docs.ccxt.com/en/latest/manual.html?#public-trades trade structures~
-         */
-        yield $this->load_markets();
-        $market = $this->market($symbol);
-        $request = array(
-            'assetPairId' => $market['id'],
-            // 'offset' => 0,
-        );
-        if ($limit !== null) {
-            $request['take'] = $limit;
-        }
-        $response = yield $this->publicGetTradesPublicAssetPairId (array_merge($request, $params));
-        $result = $this->safe_value($response, 'payload', array());
-        //
-        //     {
-        //         "payload":array(
-        //             {
-        //                 "id":"71df1f0c-be4e-4d45-b809-c108fad5f2a8",
-        //                 "assetPairId":"BTCUSD",
-        //                 "timestamp":1643345958414,
-        //                 "volume":0.00010996,
-        //                 "price":37205.723,
-        //                 "side":"buy"
-        //             }
-        //         ),
-        //         "error":null
-        //     }
-        //
-        return $this->parse_trades($result, $market, $since, $limit);
+        return Async\async(function () use ($symbol, $since, $limit, $params) {
+            /**
+             * get the list of most recent trades for a particular $symbol
+             * @param {string} $symbol unified $symbol of the $market to fetch trades for
+             * @param {int|null} $since timestamp in ms of the earliest trade to fetch
+             * @param {int|null} $limit the maximum amount of trades to fetch
+             * @param {array} $params extra parameters specific to the lykke api endpoint
+             * @return {[array]} a list of ~@link https://docs.ccxt.com/en/latest/manual.html?#public-trades trade structures~
+             */
+            Async\await($this->load_markets());
+            $market = $this->market($symbol);
+            $request = array(
+                'assetPairId' => $market['id'],
+                // 'offset' => 0,
+            );
+            if ($limit !== null) {
+                $request['take'] = $limit;
+            }
+            $response = Async\await($this->publicGetTradesPublicAssetPairId (array_merge($request, $params)));
+            $result = $this->safe_value($response, 'payload', array());
+            //
+            //     {
+            //         "payload":array(
+            //             {
+            //                 "id":"71df1f0c-be4e-4d45-b809-c108fad5f2a8",
+            //                 "assetPairId":"BTCUSD",
+            //                 "timestamp":1643345958414,
+            //                 "volume":0.00010996,
+            //                 "price":37205.723,
+            //                 "side":"buy"
+            //             }
+            //         ),
+            //         "error":null
+            //     }
+            //
+            return $this->parse_trades($result, $market, $since, $limit);
+        }) ();
     }
 
     public function parse_balance($response) {
@@ -661,28 +674,30 @@ class lykke extends Exchange {
     }
 
     public function fetch_balance($params = array ()) {
-        /**
-         * query for balance and get the amount of funds available for trading or funds locked in orders
-         * @param {array} $params extra parameters specific to the lykke api endpoint
-         * @return {array} a ~@link https://docs.ccxt.com/en/latest/manual.html?#balance-structure balance structure~
-         */
-        yield $this->load_markets();
-        $response = yield $this->privateGetBalance ($params);
-        $payload = $this->safe_value($response, 'payload', array());
-        //
-        //     {
-        //         "payload":array(
-        //             {
-        //                 "assetId":"2a34d6a6-5839-40e5-836f-c1178fa09b89",
-        //                 "available":0.1,
-        //                 "reserved":0.0,
-        //                 "timestamp":1644146723620
-        //             }
-        //         ),
-        //         "error":null
-        //     }
-        //
-        return $this->parse_balance($payload);
+        return Async\async(function () use ($params) {
+            /**
+             * query for balance and get the amount of funds available for trading or funds locked in orders
+             * @param {array} $params extra parameters specific to the lykke api endpoint
+             * @return {array} a ~@link https://docs.ccxt.com/en/latest/manual.html?#balance-structure balance structure~
+             */
+            Async\await($this->load_markets());
+            $response = Async\await($this->privateGetBalance ($params));
+            $payload = $this->safe_value($response, 'payload', array());
+            //
+            //     {
+            //         "payload":array(
+            //             {
+            //                 "assetId":"2a34d6a6-5839-40e5-836f-c1178fa09b89",
+            //                 "available":0.1,
+            //                 "reserved":0.0,
+            //                 "timestamp":1644146723620
+            //             }
+            //         ),
+            //         "error":null
+            //     }
+            //
+            return $this->parse_balance($payload);
+        }) ();
     }
 
     public function parse_order_status($status) {
@@ -756,300 +771,314 @@ class lykke extends Exchange {
     }
 
     public function create_order($symbol, $type, $side, $amount, $price = null, $params = array ()) {
-        /**
-         * create a trade order
-         * @param {string} $symbol unified $symbol of the $market to create an order in
-         * @param {string} $type 'market' or 'limit'
-         * @param {string} $side 'buy' or 'sell'
-         * @param {float} $amount how much of currency you want to trade in units of base currency
-         * @param {float|null} $price the $price at which the order is to be fullfilled, in units of the quote currency, ignored in $market orders
-         * @param {array} $params extra parameters specific to the lykke api endpoint
-         * @return {array} an {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structure}
-         */
-        yield $this->load_markets();
-        $market = $this->market($symbol);
-        $query = array(
-            'assetPairId' => $market['id'],
-            'side' => $this->capitalize($side),
-            'volume' => floatval($this->amount_to_precision($market['symbol'], $amount)),
-        );
-        if ($type === 'limit') {
-            $query['price'] = floatval($this->price_to_precision($market['symbol'], $price));
-        }
-        $method = 'privatePostOrders' . $this->capitalize($type);
-        $result = yield $this->$method (array_merge($query, $params));
-        //
-        // $market
-        //
-        //         {
-        //             "payload":array(
-        //                 "orderId":"2b98ec26-8410-49b6-9f37-1fb2150e2299",
-        //                 "price":280.699
-        //             ),
-        //             "error":null
-        //         }
-        //
-        // limit
-        //
-        //         {
-        //             "payload":array(
-        //                 "orderId":"27be8802-30be-40ca-bf40-ec886b309c5b"
-        //             ),
-        //             "error":null
-        //         }
-        //
-        $payload = $this->safe_value($result, 'payload');
-        $id = $this->safe_string($payload, 'orderId');
-        if ($type === 'market') {
-            $price = $this->safe_number($payload, 'price');
-        }
-        return array(
-            'id' => $id,
-            'info' => $result,
-            'clientOrderId' => null,
-            'timestamp' => null,
-            'datetime' => null,
-            'lastTradeTimestamp' => null,
-            'symbol' => $market['symbol'],
-            'type' => $type,
-            'side' => $side,
-            'price' => $price,
-            'amount' => $amount,
-            'cost' => null,
-            'average' => null,
-            'filled' => null,
-            'remaining' => null,
-            'status' => null,
-            'fee' => null,
-            'trades' => null,
-        );
+        return Async\async(function () use ($symbol, $type, $side, $amount, $price, $params) {
+            /**
+             * create a trade order
+             * @param {string} $symbol unified $symbol of the $market to create an order in
+             * @param {string} $type 'market' or 'limit'
+             * @param {string} $side 'buy' or 'sell'
+             * @param {float} $amount how much of currency you want to trade in units of base currency
+             * @param {float|null} $price the $price at which the order is to be fullfilled, in units of the quote currency, ignored in $market orders
+             * @param {array} $params extra parameters specific to the lykke api endpoint
+             * @return {array} an {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structure}
+             */
+            Async\await($this->load_markets());
+            $market = $this->market($symbol);
+            $query = array(
+                'assetPairId' => $market['id'],
+                'side' => $this->capitalize($side),
+                'volume' => floatval($this->amount_to_precision($market['symbol'], $amount)),
+            );
+            if ($type === 'limit') {
+                $query['price'] = floatval($this->price_to_precision($market['symbol'], $price));
+            }
+            $method = 'privatePostOrders' . $this->capitalize($type);
+            $result = Async\await($this->$method (array_merge($query, $params)));
+            //
+            // $market
+            //
+            //         {
+            //             "payload":array(
+            //                 "orderId":"2b98ec26-8410-49b6-9f37-1fb2150e2299",
+            //                 "price":280.699
+            //             ),
+            //             "error":null
+            //         }
+            //
+            // limit
+            //
+            //         {
+            //             "payload":array(
+            //                 "orderId":"27be8802-30be-40ca-bf40-ec886b309c5b"
+            //             ),
+            //             "error":null
+            //         }
+            //
+            $payload = $this->safe_value($result, 'payload');
+            $id = $this->safe_string($payload, 'orderId');
+            if ($type === 'market') {
+                $price = $this->safe_number($payload, 'price');
+            }
+            return array(
+                'id' => $id,
+                'info' => $result,
+                'clientOrderId' => null,
+                'timestamp' => null,
+                'datetime' => null,
+                'lastTradeTimestamp' => null,
+                'symbol' => $market['symbol'],
+                'type' => $type,
+                'side' => $side,
+                'price' => $price,
+                'amount' => $amount,
+                'cost' => null,
+                'average' => null,
+                'filled' => null,
+                'remaining' => null,
+                'status' => null,
+                'fee' => null,
+                'trades' => null,
+            );
+        }) ();
     }
 
     public function cancel_order($id, $symbol = null, $params = array ()) {
-        /**
-         * cancels an open order
-         * @param {string} $id order $id
-         * @param {string|null} $symbol unified $symbol of the market the order was made in
-         * @param {array} $params extra parameters specific to the lykke api endpoint
-         * @return {array} An {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structure}
-         */
-        $request = array(
-            'orderId' => $id,
-        );
-        //
-        //     {
-        //         "payload":null,
-        //         "error":null
-        //     }
-        //
-        return yield $this->privateDeleteOrdersOrderId (array_merge($request, $params));
+        return Async\async(function () use ($id, $symbol, $params) {
+            /**
+             * cancels an open order
+             * @param {string} $id order $id
+             * @param {string|null} $symbol unified $symbol of the market the order was made in
+             * @param {array} $params extra parameters specific to the lykke api endpoint
+             * @return {array} An {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structure}
+             */
+            $request = array(
+                'orderId' => $id,
+            );
+            //
+            //     {
+            //         "payload":null,
+            //         "error":null
+            //     }
+            //
+            return Async\await($this->privateDeleteOrdersOrderId (array_merge($request, $params)));
+        }) ();
     }
 
     public function cancel_all_orders($symbol = null, $params = array ()) {
-        /**
-         * cancel all open orders
-         * @param {string|null} $symbol unified $market $symbol, only orders in the $market of this $symbol are cancelled when $symbol is not null
-         * @param {array} $params extra parameters specific to the lykke api endpoint
-         * @return {[array]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structures}
-         */
-        yield $this->load_markets();
-        $request = array(
-            // 'side' => 'Buy',
-        );
-        $market = null;
-        if ($symbol !== null) {
-            $market = $this->market($symbol);
-            $request['assetPairId'] = $market['id'];
-        }
-        //
-        //     {
-        //         "payload":null,
-        //         "error":null
-        //     }
-        //
-        return yield $this->privateDeleteOrders (array_merge($request, $params));
+        return Async\async(function () use ($symbol, $params) {
+            /**
+             * cancel all open orders
+             * @param {string|null} $symbol unified $market $symbol, only orders in the $market of this $symbol are cancelled when $symbol is not null
+             * @param {array} $params extra parameters specific to the lykke api endpoint
+             * @return {[array]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structures}
+             */
+            Async\await($this->load_markets());
+            $request = array(
+                // 'side' => 'Buy',
+            );
+            $market = null;
+            if ($symbol !== null) {
+                $market = $this->market($symbol);
+                $request['assetPairId'] = $market['id'];
+            }
+            //
+            //     {
+            //         "payload":null,
+            //         "error":null
+            //     }
+            //
+            return Async\await($this->privateDeleteOrders (array_merge($request, $params)));
+        }) ();
     }
 
     public function fetch_order($id, $symbol = null, $params = array ()) {
-        /**
-         * fetches information on an order made by the user
-         * @param {string|null} $symbol not used by lykke fetchOrder
-         * @param {array} $params extra parameters specific to the lykke api endpoint
-         * @return {array} An {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structure}
-         */
-        yield $this->load_markets();
-        $request = array(
-            'orderId' => $id,
-        );
-        $response = yield $this->privateGetOrdersOrderId (array_merge($request, $params));
-        $payload = $this->safe_value($response, 'payload');
-        //
-        //     {
-        //         "payload":array(
-        //             "id":"1b367978-7e4f-454b-b870-64040d484443",
-        //             "timestamp":1644155923357,
-        //             "lastTradeTimestamp":1644155923357,
-        //             "status":"Matched",
-        //             "assetPairId":"BCHEUR",
-        //             "type":"Market",
-        //             "side":"Sell",
-        //             "price":280.569,
-        //             "volume":0.01,
-        //             "filledVolume":0.01,
-        //             "remainingVolume":0.0,
-        //             "cost":2.80569
-        //         ),
-        //         "error":null
-        //     }
-        //
-        return $this->parse_order($payload);
+        return Async\async(function () use ($id, $symbol, $params) {
+            /**
+             * fetches information on an order made by the user
+             * @param {string|null} $symbol not used by lykke fetchOrder
+             * @param {array} $params extra parameters specific to the lykke api endpoint
+             * @return {array} An {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structure}
+             */
+            Async\await($this->load_markets());
+            $request = array(
+                'orderId' => $id,
+            );
+            $response = Async\await($this->privateGetOrdersOrderId (array_merge($request, $params)));
+            $payload = $this->safe_value($response, 'payload');
+            //
+            //     {
+            //         "payload":array(
+            //             "id":"1b367978-7e4f-454b-b870-64040d484443",
+            //             "timestamp":1644155923357,
+            //             "lastTradeTimestamp":1644155923357,
+            //             "status":"Matched",
+            //             "assetPairId":"BCHEUR",
+            //             "type":"Market",
+            //             "side":"Sell",
+            //             "price":280.569,
+            //             "volume":0.01,
+            //             "filledVolume":0.01,
+            //             "remainingVolume":0.0,
+            //             "cost":2.80569
+            //         ),
+            //         "error":null
+            //     }
+            //
+            return $this->parse_order($payload);
+        }) ();
     }
 
     public function fetch_open_orders($symbol = null, $since = null, $limit = null, $params = array ()) {
-        /**
-         * fetch all unfilled currently open orders
-         * @param {string|null} $symbol unified $market $symbol
-         * @param {int|null} $since the earliest time in ms to fetch open orders for
-         * @param {int|null} $limit the maximum number of  open orders structures to retrieve
-         * @param {array} $params extra parameters specific to the lykke api endpoint
-         * @return {[array]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structures}
-         */
-        yield $this->load_markets();
-        $market = null;
-        if ($symbol !== null) {
-            $market = $this->market($symbol);
-        }
-        $request = array(
-            // 'offset' => 0,
-            // 'take' => 1,
-        );
-        if ($limit !== null) {
-            $request['take'] = $limit;
-        }
-        $response = yield $this->privateGetOrdersActive (array_merge($request, $params));
-        $payload = $this->safe_value($response, 'payload');
-        //
-        //     {
-        //         "payload":array(
-        //             {
-        //                 "id":"b26f58f5-8542-4b4c-9815-91562b523cc3",
-        //                 "timestamp":1644157177155,
-        //                 "lastTradeTimestamp":null,
-        //                 "status":"Placed",
-        //                 "assetPairId":"BCHEUR",
-        //                 "type":"Limit",
-        //                 "side":"Sell",
-        //                 "price":666.666,
-        //                 "volume":0.01,
-        //                 "filledVolume":0.00,
-        //                 "remainingVolume":0.01,
-        //                 "cost":0.00000
-        //             }
-        //         ),
-        //         "error":null
-        //     }
-        //
-        return $this->parse_orders($payload, $market, $since, $limit);
+        return Async\async(function () use ($symbol, $since, $limit, $params) {
+            /**
+             * fetch all unfilled currently open orders
+             * @param {string|null} $symbol unified $market $symbol
+             * @param {int|null} $since the earliest time in ms to fetch open orders for
+             * @param {int|null} $limit the maximum number of  open orders structures to retrieve
+             * @param {array} $params extra parameters specific to the lykke api endpoint
+             * @return {[array]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structures}
+             */
+            Async\await($this->load_markets());
+            $market = null;
+            if ($symbol !== null) {
+                $market = $this->market($symbol);
+            }
+            $request = array(
+                // 'offset' => 0,
+                // 'take' => 1,
+            );
+            if ($limit !== null) {
+                $request['take'] = $limit;
+            }
+            $response = Async\await($this->privateGetOrdersActive (array_merge($request, $params)));
+            $payload = $this->safe_value($response, 'payload');
+            //
+            //     {
+            //         "payload":array(
+            //             {
+            //                 "id":"b26f58f5-8542-4b4c-9815-91562b523cc3",
+            //                 "timestamp":1644157177155,
+            //                 "lastTradeTimestamp":null,
+            //                 "status":"Placed",
+            //                 "assetPairId":"BCHEUR",
+            //                 "type":"Limit",
+            //                 "side":"Sell",
+            //                 "price":666.666,
+            //                 "volume":0.01,
+            //                 "filledVolume":0.00,
+            //                 "remainingVolume":0.01,
+            //                 "cost":0.00000
+            //             }
+            //         ),
+            //         "error":null
+            //     }
+            //
+            return $this->parse_orders($payload, $market, $since, $limit);
+        }) ();
     }
 
     public function fetch_closed_orders($symbol = null, $since = null, $limit = null, $params = array ()) {
-        /**
-         * fetches information on multiple closed orders made by the user
-         * @param {string|null} $symbol unified $market $symbol of the $market orders were made in
-         * @param {int|null} $since the earliest time in ms to fetch orders for
-         * @param {int|null} $limit the maximum number of  orde structures to retrieve
-         * @param {array} $params extra parameters specific to the lykke api endpoint
-         * @return {[array]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structures}
-         */
-        yield $this->load_markets();
-        $market = null;
-        if ($symbol !== null) {
-            $market = $this->market($symbol);
-        }
-        $request = array(
-            // 'offset' => 0,
-            // 'take' => 1,
-        );
-        if ($limit !== null) {
-            $request['take'] = $limit;
-        }
-        $response = yield $this->privateGetOrdersClosed (array_merge($request, $params));
-        $payload = $this->safe_value($response, 'payload');
-        //
-        //     {
-        //         "payload":array(
-        //             {
-        //                 "id":"1b367978-7e4f-454b-b870-64040d484443",
-        //                 "timestamp":1644155923357,
-        //                 "lastTradeTimestamp":1644155923357,
-        //                 "status":"Matched",
-        //                 "assetPairId":"BCHEUR",
-        //                 "type":"Market",
-        //                 "side":"Sell",
-        //                 "price":280.569,
-        //                 "volume":0.01,
-        //                 "filledVolume":0.01,
-        //                 "remainingVolume":0.0,
-        //                 "cost":2.80569
-        //             }
-        //         ),
-        //         "error":null
-        //     }
-        //
-        return $this->parse_orders($payload, $market, $since, $limit);
+        return Async\async(function () use ($symbol, $since, $limit, $params) {
+            /**
+             * fetches information on multiple closed orders made by the user
+             * @param {string|null} $symbol unified $market $symbol of the $market orders were made in
+             * @param {int|null} $since the earliest time in ms to fetch orders for
+             * @param {int|null} $limit the maximum number of  orde structures to retrieve
+             * @param {array} $params extra parameters specific to the lykke api endpoint
+             * @return {[array]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structures}
+             */
+            Async\await($this->load_markets());
+            $market = null;
+            if ($symbol !== null) {
+                $market = $this->market($symbol);
+            }
+            $request = array(
+                // 'offset' => 0,
+                // 'take' => 1,
+            );
+            if ($limit !== null) {
+                $request['take'] = $limit;
+            }
+            $response = Async\await($this->privateGetOrdersClosed (array_merge($request, $params)));
+            $payload = $this->safe_value($response, 'payload');
+            //
+            //     {
+            //         "payload":array(
+            //             {
+            //                 "id":"1b367978-7e4f-454b-b870-64040d484443",
+            //                 "timestamp":1644155923357,
+            //                 "lastTradeTimestamp":1644155923357,
+            //                 "status":"Matched",
+            //                 "assetPairId":"BCHEUR",
+            //                 "type":"Market",
+            //                 "side":"Sell",
+            //                 "price":280.569,
+            //                 "volume":0.01,
+            //                 "filledVolume":0.01,
+            //                 "remainingVolume":0.0,
+            //                 "cost":2.80569
+            //             }
+            //         ),
+            //         "error":null
+            //     }
+            //
+            return $this->parse_orders($payload, $market, $since, $limit);
+        }) ();
     }
 
     public function fetch_my_trades($symbol = null, $since = null, $limit = null, $params = array ()) {
-        /**
-         * fetch all trades made by the user
-         * @param {string|null} $symbol unified $market $symbol
-         * @param {int|null} $since the earliest time in ms to fetch trades for
-         * @param {int|null} $limit the maximum number of trades structures to retrieve
-         * @param {array} $params extra parameters specific to the lykke api endpoint
-         * @return {[array]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#trade-structure trade structures}
-         */
-        yield $this->load_markets();
-        $request = array(
-            // 'side' => 'buy',
-            // 'offset' => 0,
-            // 'take' => 1,
-            // 'to' => 0,
-        );
-        $market = null;
-        if ($limit !== null) {
-            $request['take'] = $limit; // How many maximum items have to be returned, max 1000 default 100.
-        }
-        if ($symbol !== null) {
-            $market = $this->market($symbol);
-            $request['assetPairId'] = $market['id'];
-        }
-        if ($since !== null) {
-            $request['from'] = $since;
-        }
-        $response = yield $this->privateGetTrades (array_merge($request, $params));
-        $payload = $this->safe_value($response, 'payload');
-        //
-        //     {
-        //         "payload":array(
-        //             {
-        //                 "id":"813a3ffa-1c4b-45cb-b13f-1c077ea2748b",
-        //                 "timestamp":1644155923357,
-        //                 "assetPairId":"BCHEUR",
-        //                 "orderId":"1b367978-7e4f-454b-b870-64040d484443",
-        //                 "role":"Taker",
-        //                 "side":"sell",
-        //                 "price":280.569,
-        //                 "baseVolume":0.01,
-        //                 "quoteVolume":2.8056,
-        //                 "baseAssetId":"2a34d6a6-5839-40e5-836f-c1178fa09b89",
-        //                 "quoteAssetId":"EUR",
-        //                 "fee":null
-        //             }
-        //         ),
-        //         "error":null
-        //     }
-        //
-        return $this->parse_trades($payload, $market, $since, $limit);
+        return Async\async(function () use ($symbol, $since, $limit, $params) {
+            /**
+             * fetch all trades made by the user
+             * @param {string|null} $symbol unified $market $symbol
+             * @param {int|null} $since the earliest time in ms to fetch trades for
+             * @param {int|null} $limit the maximum number of trades structures to retrieve
+             * @param {array} $params extra parameters specific to the lykke api endpoint
+             * @return {[array]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#trade-structure trade structures}
+             */
+            Async\await($this->load_markets());
+            $request = array(
+                // 'side' => 'buy',
+                // 'offset' => 0,
+                // 'take' => 1,
+                // 'to' => 0,
+            );
+            $market = null;
+            if ($limit !== null) {
+                $request['take'] = $limit; // How many maximum items have to be returned, max 1000 default 100.
+            }
+            if ($symbol !== null) {
+                $market = $this->market($symbol);
+                $request['assetPairId'] = $market['id'];
+            }
+            if ($since !== null) {
+                $request['from'] = $since;
+            }
+            $response = Async\await($this->privateGetTrades (array_merge($request, $params)));
+            $payload = $this->safe_value($response, 'payload');
+            //
+            //     {
+            //         "payload":array(
+            //             {
+            //                 "id":"813a3ffa-1c4b-45cb-b13f-1c077ea2748b",
+            //                 "timestamp":1644155923357,
+            //                 "assetPairId":"BCHEUR",
+            //                 "orderId":"1b367978-7e4f-454b-b870-64040d484443",
+            //                 "role":"Taker",
+            //                 "side":"sell",
+            //                 "price":280.569,
+            //                 "baseVolume":0.01,
+            //                 "quoteVolume":2.8056,
+            //                 "baseAssetId":"2a34d6a6-5839-40e5-836f-c1178fa09b89",
+            //                 "quoteAssetId":"EUR",
+            //                 "fee":null
+            //             }
+            //         ),
+            //         "error":null
+            //     }
+            //
+            return $this->parse_trades($payload, $market, $since, $limit);
+        }) ();
     }
 
     public function parse_bid_ask($bidask, $priceKey = 0, $amountKey = 1) {
@@ -1059,38 +1088,40 @@ class lykke extends Exchange {
     }
 
     public function fetch_deposit_address($code, $params = array ()) {
-        /**
-         * fetch the deposit $address for a $currency associated with this account
-         * @param {string} $code unified $currency $code
-         * @param {array} $params extra parameters specific to the lykke api endpoint
-         * @return {array} an {@link https://docs.ccxt.com/en/latest/manual.html#$address-structure $address structure}
-         */
-        yield $this->load_markets();
-        $currency = $this->currency($code);
-        $request = array(
-            'assetId' => $this->safe_string($currency, 'id'),
-        );
-        $response = yield $this->privateGetOperationsDepositsAddressesAssetId (array_merge($request, $params));
-        //
-        //     {
-        //         "assetId":"2a34d6a6-5839-40e5-836f-c1178fa09b89",
-        //         "symbol":"BCH",
-        //         "address":null,
-        //         "baseAddress":null,
-        //         "addressExtension":null,
-        //         "state":"Active"
-        //     }
-        //
-        $address = $this->safe_string($response, 'baseAddress');
-        $tag = $this->safe_string($response, 'addressExtension');
-        $this->check_address($address);
-        return array(
-            'currency' => $code,
-            'address' => $address,
-            'tag' => $tag,
-            'network' => null,
-            'info' => $response,
-        );
+        return Async\async(function () use ($code, $params) {
+            /**
+             * fetch the deposit $address for a $currency associated with this account
+             * @param {string} $code unified $currency $code
+             * @param {array} $params extra parameters specific to the lykke api endpoint
+             * @return {array} an {@link https://docs.ccxt.com/en/latest/manual.html#$address-structure $address structure}
+             */
+            Async\await($this->load_markets());
+            $currency = $this->currency($code);
+            $request = array(
+                'assetId' => $this->safe_string($currency, 'id'),
+            );
+            $response = Async\await($this->privateGetOperationsDepositsAddressesAssetId (array_merge($request, $params)));
+            //
+            //     {
+            //         "assetId":"2a34d6a6-5839-40e5-836f-c1178fa09b89",
+            //         "symbol":"BCH",
+            //         "address":null,
+            //         "baseAddress":null,
+            //         "addressExtension":null,
+            //         "state":"Active"
+            //     }
+            //
+            $address = $this->safe_string($response, 'baseAddress');
+            $tag = $this->safe_string($response, 'addressExtension');
+            $this->check_address($address);
+            return array(
+                'currency' => $code,
+                'address' => $address,
+                'tag' => $tag,
+                'network' => null,
+                'info' => $response,
+            );
+        }) ();
     }
 
     public function parse_transaction($transaction, $currency = null) {
@@ -1153,73 +1184,77 @@ class lykke extends Exchange {
     }
 
     public function fetch_transactions($code = null, $since = null, $limit = null, $params = array ()) {
-        /**
-         * fetch history of deposits and withdrawals
-         * @param {string|null} $code unified $currency $code for the $currency of the transactions, default is null
-         * @param {int|null} $since timestamp in ms of the earliest transaction, default is null
-         * @param {int|null} $limit max number of transactions to return, default is null
-         * @param {array} $params extra parameters specific to the lykke api endpoint
-         * @return {array} a list of {@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure transaction structure}
-         */
-        yield $this->load_markets();
-        $request = array(
-            // 'offset' => 0,
-            // 'take' => 1,
-        );
-        if ($limit !== null) {
-            $request['take'] = $limit;
-        }
-        $response = yield $this->privateGetOperations (array_merge($request, $params));
-        $payload = $this->safe_value($response, 'payload', array());
-        //
-        //     {
-        //         "payload":array(
-        //             {
-        //                 "operationId":"787201c8-f1cc-45c0-aec1-fa06eeea426b",
-        //                 "assetId":"2a34d6a6-5839-40e5-836f-c1178fa09b89",
-        //                 "totalVolume":0.1,
-        //                 "fee":0.0,
-        //                 "type":"deposit",
-        //                 "timestamp":1644146723620
-        //             }
-        //         ),
-        //         "error":null
-        //     }
-        //
-        $currency = null;
-        if ($code !== null) {
-            $currency = $this->currency($code);
-        }
-        return $this->parse_transactions($payload, $currency, $since, $limit);
+        return Async\async(function () use ($code, $since, $limit, $params) {
+            /**
+             * fetch history of deposits and withdrawals
+             * @param {string|null} $code unified $currency $code for the $currency of the transactions, default is null
+             * @param {int|null} $since timestamp in ms of the earliest transaction, default is null
+             * @param {int|null} $limit max number of transactions to return, default is null
+             * @param {array} $params extra parameters specific to the lykke api endpoint
+             * @return {array} a list of {@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure transaction structure}
+             */
+            Async\await($this->load_markets());
+            $request = array(
+                // 'offset' => 0,
+                // 'take' => 1,
+            );
+            if ($limit !== null) {
+                $request['take'] = $limit;
+            }
+            $response = Async\await($this->privateGetOperations (array_merge($request, $params)));
+            $payload = $this->safe_value($response, 'payload', array());
+            //
+            //     {
+            //         "payload":array(
+            //             {
+            //                 "operationId":"787201c8-f1cc-45c0-aec1-fa06eeea426b",
+            //                 "assetId":"2a34d6a6-5839-40e5-836f-c1178fa09b89",
+            //                 "totalVolume":0.1,
+            //                 "fee":0.0,
+            //                 "type":"deposit",
+            //                 "timestamp":1644146723620
+            //             }
+            //         ),
+            //         "error":null
+            //     }
+            //
+            $currency = null;
+            if ($code !== null) {
+                $currency = $this->currency($code);
+            }
+            return $this->parse_transactions($payload, $currency, $since, $limit);
+        }) ();
     }
 
     public function withdraw($code, $amount, $address, $tag = null, $params = array ()) {
-        /**
-         * make a withdrawal
-         * @param {string} $code unified $currency $code
-         * @param {float} $amount the $amount to withdraw
-         * @param {string} $address the $address to withdraw to
-         * @param {string|null} $tag
-         * @param {array} $params extra parameters specific to the lykke api endpoint
-         * @return {array} a {@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure transaction structure}
-         */
-        yield $this->load_markets();
-        $this->check_address($address);
-        $currency = $this->currency($code);
-        $request = array(
-            'assetId' => $currency['id'],
-            'volume' => floatval($this->currency_to_precision($code, $amount)),
-            'destinationAddress' => $address,
-            // 'destinationAddressExtension' => $tag,
-        );
-        if ($tag !== null) {
-            $request['destinationAddressExtension'] = $tag;
-        }
-        $response = yield $this->privatePostOperationsWithdrawals (array_merge($request, $params));
-        //
-        //     "3035b1ad-2005-4587-a986-1f7966be78e0"
-        //
-        return $this->parse_transaction($response, $currency);
+        return Async\async(function () use ($code, $amount, $address, $tag, $params) {
+            /**
+             * make a withdrawal
+             * @param {string} $code unified $currency $code
+             * @param {float} $amount the $amount to withdraw
+             * @param {string} $address the $address to withdraw to
+             * @param {string|null} $tag
+             * @param {array} $params extra parameters specific to the lykke api endpoint
+             * @return {array} a {@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure transaction structure}
+             */
+            Async\await($this->load_markets());
+            $this->check_address($address);
+            $currency = $this->currency($code);
+            $request = array(
+                'assetId' => $currency['id'],
+                'volume' => floatval($this->currency_to_precision($code, $amount)),
+                'destinationAddress' => $address,
+                // 'destinationAddressExtension' => $tag,
+            );
+            if ($tag !== null) {
+                $request['destinationAddressExtension'] = $tag;
+            }
+            $response = Async\await($this->privatePostOperationsWithdrawals (array_merge($request, $params)));
+            //
+            //     "3035b1ad-2005-4587-a986-1f7966be78e0"
+            //
+            return $this->parse_transaction($response, $currency);
+        }) ();
     }
 
     public function sign($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {

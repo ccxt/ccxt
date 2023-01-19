@@ -1332,11 +1332,11 @@ module.exports = class coinbase extends Exchange {
         //     }
         //
         const amountInfo = this.safeValue (item, 'amount', {});
-        let amount = this.safeNumber (amountInfo, 'amount');
+        let amount = this.safeString (amountInfo, 'amount');
         let direction = undefined;
-        if (amount < 0) {
+        if (Precise.stringLt (amount, '0')) {
             direction = 'out';
-            amount = -amount;
+            amount = Precise.stringNeg (amount);
         } else {
             direction = 'in';
         }
@@ -1388,7 +1388,7 @@ module.exports = class coinbase extends Exchange {
             'referenceAccount': undefined,
             'type': type,
             'currency': code,
-            'amount': amount,
+            'amount': this.parseNumber (amount),
             'before': undefined,
             'after': undefined,
             'status': status,

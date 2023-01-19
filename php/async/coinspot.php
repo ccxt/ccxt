@@ -6,8 +6,9 @@ namespace ccxt\async;
 // https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 use Exception; // a common import
-use \ccxt\ExchangeError;
-use \ccxt\ArgumentsRequired;
+use ccxt\ExchangeError;
+use ccxt\ArgumentsRequired;
+use React\Async;
 
 class coinspot extends Exchange {
 
@@ -164,48 +165,52 @@ class coinspot extends Exchange {
     }
 
     public function fetch_balance($params = array ()) {
-        /**
-         * query for balance and get the amount of funds available for trading or funds locked in orders
-         * @param {array} $params extra parameters specific to the coinspot api endpoint
-         * @return {array} a ~@link https://docs.ccxt.com/en/latest/manual.html?#balance-structure balance structure~
-         */
-        yield $this->load_markets();
-        $method = $this->safe_string($this->options, 'fetchBalance', 'private_post_my_balances');
-        $response = yield $this->$method ($params);
-        //
-        // read-write api keys
-        //
-        //     ...
-        //
-        // read-only api keys
-        //
-        //     {
-        //         "status":"ok",
-        //         "balances":array(
-        //             {
-        //                 "LTC":array("balance":0.1,"audbalance":16.59,"rate":165.95)
-        //             }
-        //         )
-        //     }
-        //
-        return $this->parse_balance($response);
+        return Async\async(function () use ($params) {
+            /**
+             * query for balance and get the amount of funds available for trading or funds locked in orders
+             * @param {array} $params extra parameters specific to the coinspot api endpoint
+             * @return {array} a ~@link https://docs.ccxt.com/en/latest/manual.html?#balance-structure balance structure~
+             */
+            Async\await($this->load_markets());
+            $method = $this->safe_string($this->options, 'fetchBalance', 'private_post_my_balances');
+            $response = Async\await($this->$method ($params));
+            //
+            // read-write api keys
+            //
+            //     ...
+            //
+            // read-only api keys
+            //
+            //     {
+            //         "status":"ok",
+            //         "balances":array(
+            //             {
+            //                 "LTC":array("balance":0.1,"audbalance":16.59,"rate":165.95)
+            //             }
+            //         )
+            //     }
+            //
+            return $this->parse_balance($response);
+        }) ();
     }
 
     public function fetch_order_book($symbol, $limit = null, $params = array ()) {
-        /**
-         * fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
-         * @param {string} $symbol unified $symbol of the $market to fetch the order book for
-         * @param {int|null} $limit the maximum amount of order book entries to return
-         * @param {array} $params extra parameters specific to the coinspot api endpoint
-         * @return {array} A dictionary of {@link https://docs.ccxt.com/en/latest/manual.html#order-book-structure order book structures} indexed by $market symbols
-         */
-        yield $this->load_markets();
-        $market = $this->market($symbol);
-        $request = array(
-            'cointype' => $market['id'],
-        );
-        $orderbook = yield $this->privatePostOrders (array_merge($request, $params));
-        return $this->parse_order_book($orderbook, $market['symbol'], null, 'buyorders', 'sellorders', 'rate', 'amount');
+        return Async\async(function () use ($symbol, $limit, $params) {
+            /**
+             * fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+             * @param {string} $symbol unified $symbol of the $market to fetch the order book for
+             * @param {int|null} $limit the maximum amount of order book entries to return
+             * @param {array} $params extra parameters specific to the coinspot api endpoint
+             * @return {array} A dictionary of {@link https://docs.ccxt.com/en/latest/manual.html#order-book-structure order book structures} indexed by $market symbols
+             */
+            Async\await($this->load_markets());
+            $market = $this->market($symbol);
+            $request = array(
+                'cointype' => $market['id'],
+            );
+            $orderbook = Async\await($this->privatePostOrders (array_merge($request, $params)));
+            return $this->parse_order_book($orderbook, $market['symbol'], null, 'buyorders', 'sellorders', 'rate', 'amount');
+        }) ();
     }
 
     public function parse_ticker($ticker, $market = null) {
@@ -246,59 +251,63 @@ class coinspot extends Exchange {
     }
 
     public function fetch_ticker($symbol, $params = array ()) {
-        /**
-         * fetches a price $ticker, a statistical calculation with the information calculated over the past 24 hours for a specific $market
-         * @param {string} $symbol unified $symbol of the $market to fetch the $ticker for
-         * @param {array} $params extra parameters specific to the coinspot api endpoint
-         * @return {array} a {@link https://docs.ccxt.com/en/latest/manual.html#$ticker-structure $ticker structure}
-         */
-        yield $this->load_markets();
-        $market = $this->market($symbol);
-        $response = yield $this->publicGetLatest ($params);
-        $id = $market['id'];
-        $id = strtolower($id);
-        $prices = $this->safe_value($response, 'prices');
-        //
-        //     {
-        //         "status":"ok",
-        //         "prices":{
-        //             "btc":{
-        //                 "bid":"52732.47000022",
-        //                 "ask":"53268.0699976",
-        //                 "last":"53284.03"
-        //             }
-        //         }
-        //     }
-        //
-        $ticker = $this->safe_value($prices, $id);
-        return $this->parse_ticker($ticker, $market);
+        return Async\async(function () use ($symbol, $params) {
+            /**
+             * fetches a price $ticker, a statistical calculation with the information calculated over the past 24 hours for a specific $market
+             * @param {string} $symbol unified $symbol of the $market to fetch the $ticker for
+             * @param {array} $params extra parameters specific to the coinspot api endpoint
+             * @return {array} a {@link https://docs.ccxt.com/en/latest/manual.html#$ticker-structure $ticker structure}
+             */
+            Async\await($this->load_markets());
+            $market = $this->market($symbol);
+            $response = Async\await($this->publicGetLatest ($params));
+            $id = $market['id'];
+            $id = strtolower($id);
+            $prices = $this->safe_value($response, 'prices');
+            //
+            //     {
+            //         "status":"ok",
+            //         "prices":{
+            //             "btc":{
+            //                 "bid":"52732.47000022",
+            //                 "ask":"53268.0699976",
+            //                 "last":"53284.03"
+            //             }
+            //         }
+            //     }
+            //
+            $ticker = $this->safe_value($prices, $id);
+            return $this->parse_ticker($ticker, $market);
+        }) ();
     }
 
     public function fetch_trades($symbol, $since = null, $limit = null, $params = array ()) {
-        /**
-         * get the list of most recent $trades for a particular $symbol
-         * @param {string} $symbol unified $symbol of the $market to fetch $trades for
-         * @param {int|null} $since timestamp in ms of the earliest trade to fetch
-         * @param {int|null} $limit the maximum amount of $trades to fetch
-         * @param {array} $params extra parameters specific to the coinspot api endpoint
-         * @return {[array]} a list of ~@link https://docs.ccxt.com/en/latest/manual.html?#public-$trades trade structures~
-         */
-        yield $this->load_markets();
-        $market = $this->market($symbol);
-        $request = array(
-            'cointype' => $market['id'],
-        );
-        $response = yield $this->privatePostOrdersHistory (array_merge($request, $params));
-        //
-        //     {
-        //         "status":"ok",
-        //         "orders":array(
-        //             array("amount":0.00102091,"rate":21549.09999991,"total":21.99969168,"coin":"BTC","solddate":1604890646143,"market":"BTC/AUD"),
-        //         ),
-        //     }
-        //
-        $trades = $this->safe_value($response, 'orders', array());
-        return $this->parse_trades($trades, $market, $since, $limit);
+        return Async\async(function () use ($symbol, $since, $limit, $params) {
+            /**
+             * get the list of most recent $trades for a particular $symbol
+             * @param {string} $symbol unified $symbol of the $market to fetch $trades for
+             * @param {int|null} $since timestamp in ms of the earliest trade to fetch
+             * @param {int|null} $limit the maximum amount of $trades to fetch
+             * @param {array} $params extra parameters specific to the coinspot api endpoint
+             * @return {[array]} a list of ~@link https://docs.ccxt.com/en/latest/manual.html?#public-$trades trade structures~
+             */
+            Async\await($this->load_markets());
+            $market = $this->market($symbol);
+            $request = array(
+                'cointype' => $market['id'],
+            );
+            $response = Async\await($this->privatePostOrdersHistory (array_merge($request, $params)));
+            //
+            //     {
+            //         "status":"ok",
+            //         "orders":array(
+            //             array("amount":0.00102091,"rate":21549.09999991,"total":21.99969168,"coin":"BTC","solddate":1604890646143,"market":"BTC/AUD"),
+            //         ),
+            //     }
+            //
+            $trades = $this->safe_value($response, 'orders', array());
+            return $this->parse_trades($trades, $market, $since, $limit);
+        }) ();
     }
 
     public function parse_trade($trade, $market = null) {
@@ -338,48 +347,52 @@ class coinspot extends Exchange {
     }
 
     public function create_order($symbol, $type, $side, $amount, $price = null, $params = array ()) {
-        /**
-         * create a trade order
-         * @param {string} $symbol unified $symbol of the $market to create an order in
-         * @param {string} $type 'market' or 'limit'
-         * @param {string} $side 'buy' or 'sell'
-         * @param {float} $amount how much of currency you want to trade in units of base currency
-         * @param {float|null} $price the $price at which the order is to be fullfilled, in units of the quote currency, ignored in $market orders
-         * @param {array} $params extra parameters specific to the coinspot api endpoint
-         * @return {array} an {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structure}
-         */
-        yield $this->load_markets();
-        $method = 'privatePostMy' . $this->capitalize($side);
-        if ($type === 'market') {
-            throw new ExchangeError($this->id . ' createOrder() allows limit orders only');
-        }
-        $market = $this->market($symbol);
-        $request = array(
-            'cointype' => $market['id'],
-            'amount' => $amount,
-            'rate' => $price,
-        );
-        return yield $this->$method (array_merge($request, $params));
+        return Async\async(function () use ($symbol, $type, $side, $amount, $price, $params) {
+            /**
+             * create a trade order
+             * @param {string} $symbol unified $symbol of the $market to create an order in
+             * @param {string} $type 'market' or 'limit'
+             * @param {string} $side 'buy' or 'sell'
+             * @param {float} $amount how much of currency you want to trade in units of base currency
+             * @param {float|null} $price the $price at which the order is to be fullfilled, in units of the quote currency, ignored in $market orders
+             * @param {array} $params extra parameters specific to the coinspot api endpoint
+             * @return {array} an {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structure}
+             */
+            Async\await($this->load_markets());
+            $method = 'privatePostMy' . $this->capitalize($side);
+            if ($type === 'market') {
+                throw new ExchangeError($this->id . ' createOrder() allows limit orders only');
+            }
+            $market = $this->market($symbol);
+            $request = array(
+                'cointype' => $market['id'],
+                'amount' => $amount,
+                'rate' => $price,
+            );
+            return Async\await($this->$method (array_merge($request, $params)));
+        }) ();
     }
 
     public function cancel_order($id, $symbol = null, $params = array ()) {
-        /**
-         * cancels an open order
-         * @param {string} $id order $id
-         * @param {string|null} $symbol not used by coinspot cancelOrder ()
-         * @param {array} $params extra parameters specific to the coinspot api endpoint
-         * @return {array} An {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structure}
-         */
-        $side = $this->safe_string($params, 'side');
-        if ($side !== 'buy' && $side !== 'sell') {
-            throw new ArgumentsRequired($this->id . ' cancelOrder() requires a $side parameter, "buy" or "sell"');
-        }
-        $params = $this->omit($params, 'side');
-        $method = 'privatePostMy' . $this->capitalize($side) . 'Cancel';
-        $request = array(
-            'id' => $id,
-        );
-        return yield $this->$method (array_merge($request, $params));
+        return Async\async(function () use ($id, $symbol, $params) {
+            /**
+             * cancels an open order
+             * @param {string} $id order $id
+             * @param {string|null} $symbol not used by coinspot cancelOrder ()
+             * @param {array} $params extra parameters specific to the coinspot api endpoint
+             * @return {array} An {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structure}
+             */
+            $side = $this->safe_string($params, 'side');
+            if ($side !== 'buy' && $side !== 'sell') {
+                throw new ArgumentsRequired($this->id . ' cancelOrder() requires a $side parameter, "buy" or "sell"');
+            }
+            $params = $this->omit($params, 'side');
+            $method = 'privatePostMy' . $this->capitalize($side) . 'Cancel';
+            $request = array(
+                'id' => $id,
+            );
+            return Async\await($this->$method (array_merge($request, $params)));
+        }) ();
     }
 
     public function sign($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {

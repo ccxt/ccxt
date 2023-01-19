@@ -480,8 +480,8 @@ class currencycom(Exchange):
                 # https://github.com/ccxt/ccxt/issues/4286
                 # therefore limits['price']['max'] doesn't have any meaningful value except None
                 limitPriceMin = self.safe_number(filter, 'minPrice')
-                maxPrice = self.safe_number(filter, 'maxPrice')
-                if (maxPrice is not None) and (maxPrice > 0):
+                maxPrice = self.safe_string(filter, 'maxPrice')
+                if (maxPrice is not None) and (Precise.string_gt(maxPrice, '0')):
                     limitPriceMax = maxPrice
             precisionAmount = self.parse_number(self.parse_precision(self.safe_string(market, 'baseAssetPrecision')))
             limitAmount = {
@@ -549,7 +549,7 @@ class currencycom(Exchange):
                     'market': limitMarket,
                     'price': {
                         'min': limitPriceMin,
-                        'max': limitPriceMax,
+                        'max': self.parse_number(limitPriceMax),
                     },
                     'cost': {
                         'min': costMin,

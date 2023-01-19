@@ -19,6 +19,7 @@ module.exports = class deribit extends Exchange {
             // 20 requests per second for non-matching-engine endpoints, 1000ms / 20 = 50ms between requests
             // 5 requests per second for matching-engine endpoints, cost = (1000ms / rateLimit) / 5 = 4
             'rateLimit': 50,
+            'pro': true,
             'has': {
                 'CORS': true,
                 'spot': false,
@@ -1086,11 +1087,10 @@ module.exports = class deribit extends Exchange {
         const now = this.milliseconds ();
         if (since === undefined) {
             if (limit === undefined) {
-                throw new ArgumentsRequired (this.id + ' fetchOHLCV() requires a since argument or a limit argument');
-            } else {
-                request['start_timestamp'] = now - (limit - 1) * duration * 1000;
-                request['end_timestamp'] = now;
+                limit = 1000; // at max, it provides 5000 bars, but we set generous default here
             }
+            request['start_timestamp'] = now - (limit - 1) * duration * 1000;
+            request['end_timestamp'] = now;
         } else {
             request['start_timestamp'] = since;
             if (limit === undefined) {

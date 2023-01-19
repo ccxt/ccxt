@@ -407,14 +407,7 @@ class kucoinfutures(kucoin):
         #            "lastTradePrice": 4545.4500000000,
         #            "nextFundingRateTime": 25481884,
         #            "maxLeverage": 100,
-        #            "sourceExchanges":  [
-        #                "huobi",
-        #                "Okex",
-        #                "Binance",
-        #                "Kucoin",
-        #                "Poloniex",
-        #                "Hitbtc"
-        #            ],
+        #            "sourceExchanges":  ["huobi", "Okex", "Binance", "Kucoin", "Poloniex", "Hitbtc"],
         #            "premiumsSymbol1M": ".ETHUSDTMPI",
         #            "premiumsSymbol8H": ".ETHUSDTMPI8H",
         #            "fundingBaseSymbol1M": ".ETHINT",
@@ -445,11 +438,22 @@ class kucoinfutures(kucoin):
             if future:
                 symbol = symbol + '-' + self.yymmdd(expiry, '')
                 type = 'future'
-            baseMinSizeString = self.safe_string(market, 'baseMinSize')
-            quoteMaxSizeString = self.safe_string(market, 'quoteMaxSize')
             inverse = self.safe_value(market, 'isInverse')
             status = self.safe_string(market, 'status')
             multiplier = self.safe_string(market, 'multiplier')
+            tickSize = self.safe_number(market, 'tickSize')
+            lotSize = self.safe_number(market, 'lotSize')
+            limitAmountMin = lotSize
+            if limitAmountMin is None:
+                limitAmountMin = self.safe_number(market, 'baseMinSize')
+            limitAmountMax = self.safe_number(market, 'maxOrderQty')
+            if limitAmountMax is None:
+                limitAmountMax = self.safe_number(market, 'baseMaxSize')
+            limitPriceMax = self.safe_number(market, 'maxPrice')
+            if limitPriceMax is None:
+                baseMinSizeString = self.safe_string(market, 'baseMinSize')
+                quoteMaxSizeString = self.safe_string(market, 'quoteMaxSize')
+                limitPriceMax = self.parse_number(Precise.string_div(quoteMaxSizeString, baseMinSizeString))
             result.append({
                 'id': id,
                 'symbol': symbol,
@@ -477,8 +481,8 @@ class kucoinfutures(kucoin):
                 'strike': None,
                 'optionType': None,
                 'precision': {
-                    'amount': self.safe_number(market, 'lotSize'),
-                    'price': self.safe_number(market, 'tickSize'),
+                    'amount': lotSize,
+                    'price': tickSize,
                 },
                 'limits': {
                     'leverage': {
@@ -486,16 +490,16 @@ class kucoinfutures(kucoin):
                         'max': self.safe_number(market, 'maxLeverage'),
                     },
                     'amount': {
-                        'min': self.parse_number(baseMinSizeString),
-                        'max': self.safe_number(market, 'baseMaxSize'),
+                        'min': limitAmountMin,
+                        'max': limitAmountMax,
                     },
                     'price': {
-                        'min': None,
-                        'max': self.parse_number(Precise.string_div(quoteMaxSizeString, baseMinSizeString)),
+                        'min': tickSize,
+                        'max': limitPriceMax,
                     },
                     'cost': {
                         'min': self.safe_number(market, 'quoteMinSize'),
-                        'max': self.parse_number(quoteMaxSizeString),
+                        'max': self.safe_number(market, 'quoteMaxSize'),
                     },
                 },
                 'info': market,
@@ -517,7 +521,7 @@ class kucoinfutures(kucoin):
         #
         return self.safe_number(response, 'data')
 
-    def fetch_ohlcv(self, symbol, timeframe='15m', since=None, limit=None, params={}):
+    def fetch_ohlcv(self, symbol, timeframe='1m', since=None, limit=None, params={}):
         """
         fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
         :param str symbol: unified symbol of the market to fetch OHLCV data for

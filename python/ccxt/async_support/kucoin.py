@@ -105,7 +105,7 @@ class kucoin(Exchange):
             },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/51840849/87295558-132aaf80-c50e-11ea-9801-a2fb0c57c799.jpg',
-                'referral': 'https://www.kucoin.com/?rcode=E5wkqe',
+                'referral': 'https://www.kucoin.com/ucenter/signup?rcode=E5wkqe',
                 'api': {
                     'public': 'https://api.kucoin.com',
                     'private': 'https://api.kucoin.com',
@@ -1021,7 +1021,7 @@ class kucoin(Exchange):
             self.safe_number(ohlcv, 5),
         ]
 
-    async def fetch_ohlcv(self, symbol, timeframe='15m', since=None, limit=None, params={}):
+    async def fetch_ohlcv(self, symbol, timeframe='1m', since=None, limit=None, params={}):
         """
         fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
         :param str symbol: unified symbol of the market to fetch OHLCV data for
@@ -1124,17 +1124,20 @@ class kucoin(Exchange):
         # BCH {"code":"200000","data":{"address":"bitcoincash:qza3m4nj9rx7l9r0cdadfqxts6f92shvhvr5ls4q7z","memo":""}}
         # BTC {"code":"200000","data":{"address":"36SjucKqQpQSvsak9A7h6qzFjrVXpRNZhE","memo":""}}
         data = self.safe_value(response, 'data', {})
-        address = self.safe_string(data, 'address')
-        tag = self.safe_string(data, 'memo')
+        return self.parse_deposit_address(data, currency)
+
+    def parse_deposit_address(self, depositAddress, currency=None):
+        address = self.safe_string(depositAddress, 'address')
+        code = currency['id']
         if code != 'NIM':
             # contains spaces
             self.check_address(address)
         return {
-            'info': response,
+            'info': depositAddress,
             'currency': code,
             'address': address,
-            'tag': tag,
-            'network': network,
+            'tag': self.safe_string(depositAddress, 'memo'),
+            'network': self.safe_string(depositAddress, 'chain'),
         }
 
     async def fetch_order_book(self, symbol, limit=None, params={}):

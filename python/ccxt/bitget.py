@@ -37,6 +37,7 @@ class bitget(Exchange):
             'countries': ['SG'],
             'version': 'v1',
             'rateLimit': 50,  # up to 3000 requests per 5 minutes ≈ 600 requests per minute ≈ 10 requests per second ≈ 100 ms
+            'certified': True,
             'has': {
                 'CORS': None,
                 'spot': True,
@@ -59,7 +60,9 @@ class bitget(Exchange):
                 'fetchBorrowRatesPerSymbol': False,
                 'fetchClosedOrders': True,
                 'fetchCurrencies': True,
-                'fetchDeposits': False,
+                'fetchDepositAddress': True,
+                'fetchDepositAddresses': False,
+                'fetchDeposits': True,
                 'fetchFundingHistory': False,
                 'fetchFundingRate': True,
                 'fetchFundingRateHistory': True,
@@ -74,6 +77,8 @@ class bitget(Exchange):
                 'fetchMarkOHLCV': False,
                 'fetchMyTrades': True,
                 'fetchOHLCV': True,
+                'fetchOpenInterest': True,
+                'fetchOpenInterestHistory': False,
                 'fetchOpenOrders': True,
                 'fetchOrder': True,
                 'fetchOrderBook': True,
@@ -92,7 +97,7 @@ class bitget(Exchange):
                 'fetchTransfer': False,
                 'fetchTransfers': None,
                 'fetchWithdrawal': False,
-                'fetchWithdrawals': False,
+                'fetchWithdrawals': True,
                 'reduceMargin': True,
                 'setLeverage': True,
                 'setMarginMode': True,
@@ -126,7 +131,7 @@ class bitget(Exchange):
             },
             'hostname': 'bitget.com',
             'urls': {
-                'logo': 'https://user-images.githubusercontent.com/51840849/88317935-a8a21c80-cd22-11ea-8e2b-4b9fac5975eb.jpg',
+                'logo': 'https://user-images.githubusercontent.com/1294454/195989417-4253ddb0-afbe-4a1c-9dea-9dbcd121fa5d.jpg',
                 'api': {
                     'spot': 'https://api.{hostname}',
                     'mix': 'https://api.{hostname}',
@@ -138,9 +143,6 @@ class bitget(Exchange):
                     'https://bitgetlimited.github.io/apidoc/en/broker',
                 ],
                 'fees': 'https://www.bitget.cc/zh-CN/rate?tab=1',
-                'test': {
-                    'rest': 'https://testnet.bitget.com',
-                },
                 'referral': 'https://www.bitget.com/expressly?languageType=0&channelCode=ccxt&vipCode=tg9j',
             },
             'api': {
@@ -181,7 +183,11 @@ class bitget(Exchange):
                         'get': {
                             'account/getInfo': 20,
                             'account/assets': 2,
-                            'account/transferRecords': 1,
+                            'account/transferRecords': 4,
+                            'wallet/deposit-address': 4,
+                            'wallet/withdrawal-inner': 4,
+                            'wallet/withdrawal-list': 1,
+                            'wallet/deposit-list': 1,
                         },
                         'post': {
                             'account/bills': 2,
@@ -193,6 +199,9 @@ class bitget(Exchange):
                             'trade/open-orders': 1,
                             'trade/history': 1,
                             'trade/fills': 1,
+                            'wallet/transfer': 4,
+                            'wallet/withdrawal': 4,
+                            'wallet/subTransfer': 10,
                         },
                     },
                     'mix': {
@@ -219,6 +228,7 @@ class bitget(Exchange):
                             'trade/profitDateList': 2,
                             'trace/waitProfitDateList': 2,
                             'trace/traderSymbols': 2,
+                            'order/marginCoinCurrent': 2,
                         },
                         'post': {
                             'account/setLeverage': 8,
@@ -754,6 +764,7 @@ class bitget(Exchange):
                     'invalid end time': BadRequest,  # end time is a date 30 days ago; or end time is a date in the future
                     '20003': ExchangeError,  # operation failed, {"status":"error","ts":1595730308979,"err_code":"bad-request","err_msg":"20003"}
                     '01001': ExchangeError,  # order failed, {"status":"fail","err_code":"01001","err_msg":"系统异常，请稍后重试"}
+                    '43111': PermissionDenied,  # {"code":"43111","msg":"参数错误 address not in address book","requestTime":1665394201164,"data":null}
                 },
                 'broad': {
                     'invalid size, valid range': ExchangeError,
@@ -774,6 +785,9 @@ class bitget(Exchange):
                 'broker': {
                     'spot': 'CCXT#',
                     'swap': 'CCXT#',
+                },
+                'withdraw': {
+                    'fillResponseFromRequest': True,
                 },
             },
         })
@@ -1108,6 +1122,275 @@ class bitget(Exchange):
                 },
             }
         return result
+
+    def fetch_deposits(self, code=None, since=None, limit=None, params={}):
+        """
+        fetch all deposits made to an account
+         * @url https://bitgetlimited.github.io/apidoc/en/spot/#get-deposit-list
+        :param str|None code: unified currency code
+        :param int since: the earliest time in ms to fetch deposits for
+        :param int|None limit: the maximum number of deposits structures to retrieve
+        :param dict params: extra parameters specific to the bitget api endpoint
+        :param str|None params['pageNo']: pageNo default 1
+        :param str|None params['pageSize']: pageSize default 20. Max 100
+        :returns [dict]: a list of `transaction structures <https://docs.ccxt.com/en/latest/manual.html#transaction-structure>`
+        """
+        self.load_markets()
+        if code is None:
+            raise ArgumentsRequired(self.id + ' fetchDeposits() requires a `code` argument')
+        currency = self.currency(code)
+        if since is None:
+            since = self.milliseconds() - 31556952000  # 1yr
+        request = {
+            'coin': currency['code'],
+            'startTime': since,
+            'endTime': self.milliseconds(),
+        }
+        if limit is not None:
+            request['pageSize'] = limit
+        response = self.privateSpotGetWalletDepositList(self.extend(request, params))
+        #
+        #      {
+        #          "code": "00000",
+        #          "msg": "success",
+        #          "requestTime": 0,
+        #          "data": [{
+        #              "id": "925607360021839872",
+        #              "txId": "f73a4ac034da06b729f49676ca8801f406a093cf90c69b16e5a1cc9080df4ccb",
+        #              "coin": "USDT",
+        #              "type": "deposit",
+        #              "amount": "19.44800000",
+        #              "status": "success",
+        #              "toAddress": "TRo4JMfZ1XYHUgnLsUMfDEf8MWzcWaf8uh",
+        #              "fee": null,
+        #              "chain": "TRC20",
+        #              "confirm": null,
+        #              "cTime": "1656407912259",
+        #              "uTime": "1656407940148"
+        #          }]
+        #      }
+        #
+        rawTransactions = self.safe_value(response, 'data', [])
+        return self.parse_transactions(rawTransactions, currency, since, limit)
+
+    def withdraw(self, code, amount, address, tag=None, params={}):
+        """
+        make a withdrawal
+        :param str code: unified currency code
+        :param float amount: the amount to withdraw
+        :param str address: the address to withdraw to
+        :param str|None tag:
+        :param dict params: extra parameters specific to the bitget api endpoint
+        :param str params['chain']: the chain to withdraw to
+        :returns dict: a `transaction structure <https://docs.ccxt.com/en/latest/manual.html#transaction-structure>`
+        """
+        self.check_address(address)
+        chain = self.safe_string(params, 'chain')
+        if chain is None:
+            raise ArgumentsRequired(self.id + ' withdraw() requires a chain parameter')
+        self.load_markets()
+        currency = self.currency(code)
+        request = {
+            'coin': currency['code'],
+            'address': address,
+            'chain': chain,
+            'amount': amount,
+        }
+        if tag is not None:
+            request['tag'] = tag
+        response = self.privateSpotPostWalletWithdrawal(self.extend(request, params))
+        #
+        #     {
+        #         "code": "00000",
+        #         "msg": "success",
+        #         "data": "888291686266343424"
+        #     }
+        #
+        result = {
+            'id': self.safe_string(response, 'data'),
+            'info': response,
+            'txid': None,
+            'timestamp': None,
+            'datetime': None,
+            'network': None,
+            'addressFrom': None,
+            'address': None,
+            'addressTo': None,
+            'amount': None,
+            'type': 'withdrawal',
+            'currency': None,
+            'status': None,
+            'updated': None,
+            'tagFrom': None,
+            'tag': None,
+            'tagTo': None,
+            'comment': None,
+            'fee': None,
+        }
+        withdrawOptions = self.safe_value(self.options, 'withdraw', {})
+        fillResponseFromRequest = self.safe_value(withdrawOptions, 'fillResponseFromRequest', True)
+        if fillResponseFromRequest:
+            result['currency'] = code
+            result['timestamp'] = self.milliseconds()
+            result['datetime'] = self.iso8601(self.milliseconds())
+            result['amount'] = amount
+            result['tag'] = tag
+            result['address'] = address
+            result['addressTo'] = address
+            result['network'] = chain
+        return result
+
+    def fetch_withdrawals(self, code=None, since=None, limit=None, params={}):
+        """
+        fetch all withdrawals made from an account
+         * @url https://bitgetlimited.github.io/apidoc/en/spot/#get-withdraw-list
+        :param str|None code: unified currency code
+        :param int since: the earliest time in ms to fetch withdrawals for
+        :param int|None limit: the maximum number of withdrawals structures to retrieve
+        :param dict params: extra parameters specific to the bitget api endpoint
+        :param str|None params['pageNo']: pageNo default 1
+        :param str|None params['pageSize']: pageSize default 20. Max 100
+        :returns [dict]: a list of `transaction structures <https://docs.ccxt.com/en/latest/manual.html#transaction-structure>`
+        """
+        self.load_markets()
+        if code is None:
+            raise ArgumentsRequired(self.id + ' fetchWithdrawals() requires a `code` argument')
+        currency = self.currency(code)
+        if since is None:
+            since = self.milliseconds() - 31556952000  # 1yr
+        request = {
+            'coin': currency['code'],
+            'startTime': since,
+            'endTime': self.milliseconds(),
+        }
+        if limit is not None:
+            request['pageSize'] = limit
+        response = self.privateSpotGetWalletWithdrawalList(self.extend(request, params))
+        #
+        #      {
+        #          "code": "00000",
+        #          "msg": "success",
+        #          "requestTime": 0,
+        #          "data": [{
+        #              "id": "925607360021839872",
+        #              "txId": "f73a4ac034da06b729f49676ca8801f406a093cf90c69b16e5a1cc9080df4ccb",
+        #              "coin": "USDT",
+        #              "type": "deposit",
+        #              "amount": "19.44800000",
+        #              "status": "success",
+        #              "toAddress": "TRo4JMfZ1XYHUgnLsUMfDEf8MWzcWaf8uh",
+        #              "fee": null,
+        #              "chain": "TRC20",
+        #              "confirm": null,
+        #              "cTime": "1656407912259",
+        #              "uTime": "1656407940148"
+        #          }]
+        #      }
+        #
+        rawTransactions = self.safe_value(response, 'data', [])
+        return self.parse_transactions(rawTransactions, currency, since, limit)
+
+    def parse_transaction(self, transaction, currency=None):
+        #
+        #     {
+        #         "id": "925607360021839872",
+        #         "txId": "f73a4ac034da06b729f49676ca8801f406a093cf90c69b16e5a1cc9080df4ccb",
+        #         "coin": "USDT",
+        #         "type": "deposit",
+        #         "amount": "19.44800000",
+        #         "status": "success",
+        #         "toAddress": "TRo4JMfZ1XYHUgnLsUMfDEf8MWzcWaf8uh",
+        #         "fee": null,
+        #         "chain": "TRC20",
+        #         "confirm": null,
+        #         "cTime": "1656407912259",
+        #         "uTime": "1656407940148"
+        #     }
+        #
+        timestamp = self.safe_integer(transaction, 'cTime')
+        networkId = self.safe_string(transaction, 'chain')
+        currencyId = self.safe_string(transaction, 'coin')
+        status = self.safe_string(transaction, 'status')
+        return {
+            'id': self.safe_string(transaction, 'id'),
+            'info': transaction,
+            'txid': self.safe_string(transaction, 'txId'),
+            'timestamp': timestamp,
+            'datetime': self.iso8601(timestamp),
+            'network': networkId,
+            'addressFrom': None,
+            'address': self.safe_string(transaction, 'toAddress'),
+            'addressTo': self.safe_string(transaction, 'toAddress'),
+            'amount': self.safe_number(transaction, 'amount'),
+            'type': self.safe_string(transaction, 'type'),
+            'currency': self.safe_currency_code(currencyId),
+            'status': self.parse_transaction_status(status),
+            'updated': self.safe_number(transaction, 'uTime'),
+            'tagFrom': None,
+            'tag': None,
+            'tagTo': None,
+            'comment': None,
+            'fee': None,
+        }
+
+    def parse_transaction_status(self, status):
+        statuses = {
+            'success': 'ok',
+            'Pending': 'pending',
+            'pending_review': 'pending',
+            'pending_review_fail': 'failed',
+            'reject': 'failed',
+        }
+        return self.safe_string(statuses, status, status)
+
+    def fetch_deposit_address(self, code, params={}):
+        """
+        fetch the deposit address for a currency associated with self account
+        :param str code: unified currency code
+        :param dict params: extra parameters specific to the binance api endpoint
+        :returns dict: an `address structure <https://docs.ccxt.com/en/latest/manual.html#address-structure>`
+        """
+        self.load_markets()
+        currency = self.currency(code)
+        request = {
+            'coin': currency['code'],
+        }
+        response = self.privateSpotGetWalletDepositAddress(self.extend(request, params))
+        #
+        #     {
+        #         "code": "00000",
+        #         "msg": "success",
+        #         "data": {
+        #             "address": "1HPn8Rx2y6nNSfagQBKy27GB99Vbzg89wv",
+        #             "chain": "BTC-Bitcoin",
+        #             "coin": "BTC",
+        #             "tag": "",
+        #             "url": "https://btc.com/1HPn8Rx2y6nNSfagQBKy27GB99Vbzg89wv"
+        #         }
+        #     }
+        #
+        data = self.safe_value(response, 'data', {})
+        return self.parse_deposit_address(data, currency)
+
+    def parse_deposit_address(self, depositAddress, currency=None):
+        #
+        #    {
+        #        "address": "1HPn8Rx2y6nNSfagQBKy27GB99Vbzg89wv",
+        #        "chain": "BTC-Bitcoin",
+        #        "coin": "BTC",
+        #        "tag": "",
+        #        "url": "https://btc.com/1HPn8Rx2y6nNSfagQBKy27GB99Vbzg89wv"
+        #    }
+        #
+        currencyId = self.safe_string(depositAddress, 'coin')
+        networkId = self.safe_string(depositAddress, 'chain')
+        return {
+            'currency': self.safe_currency_code(currencyId, currency),
+            'address': self.safe_string(depositAddress, 'address'),
+            'tag': self.safe_string(depositAddress, 'tag'),
+            'network': networkId,
+            'info': depositAddress,
+        }
 
     def fetch_order_book(self, symbol, limit=None, params={}):
         """
@@ -2869,42 +3152,6 @@ class bitget(Exchange):
             raise ArgumentsRequired(self.id + ' addMargin() requires a holdSide parameter, either long or short')
         return self.modify_margin_helper(symbol, amount, 'add', params)
 
-    def sign(self, path, api=[], method='GET', params={}, headers=None, body=None):
-        signed = api[0] == 'private'
-        endpoint = api[1]
-        pathPart = '/api/spot/v1' if (endpoint == 'spot') else '/api/mix/v1'
-        request = '/' + self.implode_params(path, params)
-        payload = pathPart + request
-        url = self.implode_hostname(self.urls['api'][endpoint]) + payload
-        query = self.omit(params, self.extract_params(path))
-        if not signed and (method == 'GET'):
-            keys = list(query.keys())
-            keysLength = len(keys)
-            if keysLength > 0:
-                url = url + '?' + self.urlencode(query)
-        if signed:
-            self.check_required_credentials()
-            timestamp = str(self.milliseconds())
-            auth = timestamp + method + payload
-            if method == 'POST':
-                body = self.json(params)
-                auth += body
-            else:
-                if params:
-                    query = '?' + self.urlencode(self.keysort(params))
-                    url += query
-                    auth += query
-            signature = self.hmac(self.encode(auth), self.encode(self.secret), hashlib.sha256, 'base64')
-            headers = {
-                'ACCESS-KEY': self.apiKey,
-                'ACCESS-SIGN': signature,
-                'ACCESS-TIMESTAMP': timestamp,
-                'ACCESS-PASSPHRASE': self.password,
-            }
-            if method == 'POST':
-                headers['Content-Type'] = 'application/json'
-        return {'url': url, 'method': method, 'body': body, 'headers': headers}
-
     def fetch_leverage(self, symbol, params={}):
         """
         fetch the set leverage for a market
@@ -2974,6 +3221,60 @@ class bitget(Exchange):
         }
         return self.privateMixPostAccountSetMarginMode(self.extend(request, params))
 
+    def fetch_open_interest(self, symbol, params={}):
+        """
+        Retrieves the open interest of a currency
+        see https://bitgetlimited.github.io/apidoc/en/mix/#get-open-interest
+        :param str symbol: Unified CCXT market symbol
+        :param dict params: exchange specific parameters
+        :returns dict} an open interest structure{@link https://docs.ccxt.com/en/latest/manual.html#interest-history-structure:
+        """
+        self.load_markets()
+        market = self.market(symbol)
+        if not market['contract']:
+            raise BadRequest(self.id + ' fetchOpenInterest() supports contract markets only')
+        request = {
+            'symbol': market['id'],
+        }
+        response = self.publicMixGetMarketOpenInterest(self.extend(request, params))
+        #
+        #     {
+        #         "code": "00000",
+        #         "msg": "success",
+        #         "requestTime": 0,
+        #         "data": {
+        #             "symbol": "BTCUSDT_UMCBL",
+        #             "amount": "130818.967",
+        #             "timestamp": "1663399151127"
+        #         }
+        #     }
+        #
+        data = self.safe_value(response, 'data', {})
+        return self.parse_open_interest(data, market)
+
+    def parse_open_interest(self, interest, market=None):
+        #
+        #     {
+        #         "symbol": "BTCUSDT_UMCBL",
+        #         "amount": "130818.967",
+        #         "timestamp": "1663399151127"
+        #     }
+        #
+        timestamp = self.safe_integer(interest, 'timestamp')
+        id = self.safe_string(interest, 'symbol')
+        market = self.safe_market(id, market)
+        amount = self.safe_number(interest, 'amount')
+        return {
+            'symbol': self.safe_symbol(id),
+            'baseVolume': amount,  # deprecated
+            'quoteVolume': None,  # deprecated
+            'openInterestAmount': amount,
+            'openInterestValue': None,
+            'timestamp': timestamp,
+            'datetime': self.iso8601(timestamp),
+            'info': interest,
+        }
+
     def handle_errors(self, code, reason, url, method, headers, body, response, requestHeaders, requestBody):
         if not response:
             return  # fallback to default error handler
@@ -3013,3 +3314,39 @@ class bitget(Exchange):
             self.throw_exactly_matched_exception(self.exceptions['exact'], errorCode, feedback)
         if nonZeroErrorCode or nonEmptyMessage:
             raise ExchangeError(feedback)  # unknown message
+
+    def sign(self, path, api=[], method='GET', params={}, headers=None, body=None):
+        signed = api[0] == 'private'
+        endpoint = api[1]
+        pathPart = '/api/spot/v1' if (endpoint == 'spot') else '/api/mix/v1'
+        request = '/' + self.implode_params(path, params)
+        payload = pathPart + request
+        url = self.implode_hostname(self.urls['api'][endpoint]) + payload
+        query = self.omit(params, self.extract_params(path))
+        if not signed and (method == 'GET'):
+            keys = list(query.keys())
+            keysLength = len(keys)
+            if keysLength > 0:
+                url = url + '?' + self.urlencode(query)
+        if signed:
+            self.check_required_credentials()
+            timestamp = str(self.milliseconds())
+            auth = timestamp + method + payload
+            if method == 'POST':
+                body = self.json(params)
+                auth += body
+            else:
+                if params:
+                    query = '?' + self.urlencode(self.keysort(params))
+                    url += query
+                    auth += query
+            signature = self.hmac(self.encode(auth), self.encode(self.secret), hashlib.sha256, 'base64')
+            headers = {
+                'ACCESS-KEY': self.apiKey,
+                'ACCESS-SIGN': signature,
+                'ACCESS-TIMESTAMP': timestamp,
+                'ACCESS-PASSPHRASE': self.password,
+            }
+            if method == 'POST':
+                headers['Content-Type'] = 'application/json'
+        return {'url': url, 'method': method, 'body': body, 'headers': headers}

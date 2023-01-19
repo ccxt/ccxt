@@ -6,6 +6,7 @@ namespace ccxt\async;
 // https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 use Exception; // a common import
+use React\Async;
 
 class binanceusdm extends binance {
 
@@ -41,12 +42,16 @@ class binanceusdm extends binance {
     }
 
     public function transfer_in($code, $amount, $params = array ()) {
-        // transfer from spot wallet to usdm futures wallet
-        return yield $this->futuresTransfer ($code, $amount, 1, $params);
+        return Async\async(function () use ($code, $amount, $params) {
+            // transfer from spot wallet to usdm futures wallet
+            return Async\await($this->futuresTransfer ($code, $amount, 1, $params));
+        }) ();
     }
 
     public function transfer_out($code, $amount, $params = array ()) {
-        // transfer from usdm futures wallet to spot wallet
-        return yield $this->futuresTransfer ($code, $amount, 2, $params);
+        return Async\async(function () use ($code, $amount, $params) {
+            // transfer from usdm futures wallet to spot wallet
+            return Async\await($this->futuresTransfer ($code, $amount, 2, $params));
+        }) ();
     }
 }

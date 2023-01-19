@@ -6,10 +6,11 @@ namespace ccxt\async;
 // https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 use Exception; // a common import
-use \ccxt\ExchangeError;
-use \ccxt\ArgumentsRequired;
-use \ccxt\InvalidOrder;
-use \ccxt\Precise;
+use ccxt\ExchangeError;
+use ccxt\ArgumentsRequired;
+use ccxt\InvalidOrder;
+use ccxt\Precise;
+use React\Async;
 
 class bitopro extends Exchange {
 
@@ -204,158 +205,162 @@ class bitopro extends Exchange {
     }
 
     public function fetch_currencies($params = array ()) {
-        /**
-         * fetches all available $currencies on an exchange
-         * @param {array} $params extra parameters specific to the bitopro api endpoint
-         * @return {array} an associative dictionary of $currencies
-         */
-        $response = yield $this->publicGetProvisioningCurrencies ($params);
-        $currencies = $this->safe_value($response, 'data', array());
-        //
-        //     {
-        //         "data":array(
-        //             {
-        //                 "currency":"eth",
-        //                 "withdrawFee":"0.007",
-        //                 "minWithdraw":"0.001",
-        //                 "maxWithdraw":"1000",
-        //                 "maxDailyWithdraw":"2000",
-        //                 "withdraw":true,
-        //                 "deposit":true,
-        //                 "depositConfirmation":"12"
-        //             }
-        //         )
-        //     }
-        //
-        $result = array();
-        for ($i = 0; $i < count($currencies); $i++) {
-            $currency = $currencies[$i];
-            $currencyId = $this->safe_string($currency, 'currency');
-            $code = $this->safe_currency_code($currencyId);
-            $deposit = $this->safe_value($currency, 'deposit');
-            $withdraw = $this->safe_value($currency, 'withdraw');
-            $fee = $this->safe_number($currency, 'withdrawFee');
-            $withdrawMin = $this->safe_number($currency, 'minWithdraw');
-            $withdrawMax = $this->safe_number($currency, 'maxWithdraw');
-            $limits = array(
-                'withdraw' => array(
-                    'min' => $withdrawMin,
-                    'max' => $withdrawMax,
-                ),
-                'amount' => array(
-                    'min' => null,
-                    'max' => null,
-                ),
-            );
-            $result[$code] = array(
-                'id' => $currencyId,
-                'code' => $code,
-                'info' => $currency,
-                'type' => null,
-                'name' => null,
-                'active' => $deposit && $withdraw,
-                'deposit' => $deposit,
-                'withdraw' => $withdraw,
-                'fee' => $fee,
-                'precision' => null,
-                'limits' => $limits,
-            );
-        }
-        return $result;
+        return Async\async(function () use ($params) {
+            /**
+             * fetches all available $currencies on an exchange
+             * @param {array} $params extra parameters specific to the bitopro api endpoint
+             * @return {array} an associative dictionary of $currencies
+             */
+            $response = Async\await($this->publicGetProvisioningCurrencies ($params));
+            $currencies = $this->safe_value($response, 'data', array());
+            //
+            //     {
+            //         "data":array(
+            //             {
+            //                 "currency":"eth",
+            //                 "withdrawFee":"0.007",
+            //                 "minWithdraw":"0.001",
+            //                 "maxWithdraw":"1000",
+            //                 "maxDailyWithdraw":"2000",
+            //                 "withdraw":true,
+            //                 "deposit":true,
+            //                 "depositConfirmation":"12"
+            //             }
+            //         )
+            //     }
+            //
+            $result = array();
+            for ($i = 0; $i < count($currencies); $i++) {
+                $currency = $currencies[$i];
+                $currencyId = $this->safe_string($currency, 'currency');
+                $code = $this->safe_currency_code($currencyId);
+                $deposit = $this->safe_value($currency, 'deposit');
+                $withdraw = $this->safe_value($currency, 'withdraw');
+                $fee = $this->safe_number($currency, 'withdrawFee');
+                $withdrawMin = $this->safe_number($currency, 'minWithdraw');
+                $withdrawMax = $this->safe_number($currency, 'maxWithdraw');
+                $limits = array(
+                    'withdraw' => array(
+                        'min' => $withdrawMin,
+                        'max' => $withdrawMax,
+                    ),
+                    'amount' => array(
+                        'min' => null,
+                        'max' => null,
+                    ),
+                );
+                $result[$code] = array(
+                    'id' => $currencyId,
+                    'code' => $code,
+                    'info' => $currency,
+                    'type' => null,
+                    'name' => null,
+                    'active' => $deposit && $withdraw,
+                    'deposit' => $deposit,
+                    'withdraw' => $withdraw,
+                    'fee' => $fee,
+                    'precision' => null,
+                    'limits' => $limits,
+                );
+            }
+            return $result;
+        }) ();
     }
 
     public function fetch_markets($params = array ()) {
-        /**
-         * retrieves data on all $markets for bitopro
-         * @param {array} $params extra parameters specific to the exchange api endpoint
-         * @return {[array]} an array of objects representing $market data
-         */
-        $response = yield $this->publicGetProvisioningTradingPairs ();
-        $markets = $this->safe_value($response, 'data', array());
-        //
-        //     {
-        //         "data":array(
-        //             {
-        //                 "pair":"shib_twd",
-        //                 "base":"shib",
-        //                 "quote":"twd",
-        //                 "basePrecision":"8",
-        //                 "quotePrecision":"6",
-        //                 "minLimitBaseAmount":"100000",
-        //                 "maxLimitBaseAmount":"5500000000",
-        //                 "minMarketBuyQuoteAmount":"1000",
-        //                 "orderOpenLimit":"200",
-        //                 "maintain":false,
-        //                 "orderBookQuotePrecision":"6",
-        //                 "orderBookQuoteScaleLevel":"5"
-        //             }
-        //         )
-        //     }
-        //
-        $result = array();
-        for ($i = 0; $i < count($markets); $i++) {
-            $market = $markets[$i];
-            $active = !$this->safe_value($market, 'maintain');
-            $id = $this->safe_string($market, 'pair');
-            $uppercaseId = strtoupper($id);
-            $baseId = $this->safe_string($market, 'base');
-            $quoteId = $this->safe_string($market, 'quote');
-            $base = $this->safe_currency_code($baseId);
-            $quote = $this->safe_currency_code($quoteId);
-            $symbol = $base . '/' . $quote;
-            $limits = array(
-                'amount' => array(
-                    'min' => $this->safe_number($market, 'minLimitBaseAmount'),
-                    'max' => $this->safe_number($market, 'maxLimitBaseAmount'),
-                ),
-                'price' => array(
-                    'min' => null,
-                    'max' => null,
-                ),
-                'cost' => array(
-                    'min' => null,
-                    'max' => null,
-                ),
-                'leverage' => array(
-                    'min' => null,
-                    'max' => null,
-                ),
-            );
-            $result[] = array(
-                'id' => $id,
-                'uppercaseId' => $uppercaseId,
-                'symbol' => $symbol,
-                'base' => $base,
-                'quote' => $quote,
-                'baseId' => $base,
-                'quoteId' => $quote,
-                'settle' => null,
-                'settleId' => null,
-                'type' => 'spot',
-                'spot' => true,
-                'margin' => false,
-                'swap' => false,
-                'future' => false,
-                'option' => false,
-                'derivative' => false,
-                'contract' => false,
-                'linear' => null,
-                'inverse' => null,
-                'contractSize' => null,
-                'expiry' => null,
-                'expiryDatetime' => null,
-                'strike' => null,
-                'optionType' => null,
-                'limits' => $limits,
-                'precision' => array(
-                    'price' => $this->parse_number($this->parse_precision($this->safe_string($market, 'quotePrecision'))),
-                    'amount' => $this->parse_number($this->parse_precision($this->safe_string($market, 'basePrecision'))),
-                ),
-                'active' => $active,
-                'info' => $market,
-            );
-        }
-        return $result;
+        return Async\async(function () use ($params) {
+            /**
+             * retrieves data on all $markets for bitopro
+             * @param {array} $params extra parameters specific to the exchange api endpoint
+             * @return {[array]} an array of objects representing $market data
+             */
+            $response = Async\await($this->publicGetProvisioningTradingPairs ());
+            $markets = $this->safe_value($response, 'data', array());
+            //
+            //     {
+            //         "data":array(
+            //             {
+            //                 "pair":"shib_twd",
+            //                 "base":"shib",
+            //                 "quote":"twd",
+            //                 "basePrecision":"8",
+            //                 "quotePrecision":"6",
+            //                 "minLimitBaseAmount":"100000",
+            //                 "maxLimitBaseAmount":"5500000000",
+            //                 "minMarketBuyQuoteAmount":"1000",
+            //                 "orderOpenLimit":"200",
+            //                 "maintain":false,
+            //                 "orderBookQuotePrecision":"6",
+            //                 "orderBookQuoteScaleLevel":"5"
+            //             }
+            //         )
+            //     }
+            //
+            $result = array();
+            for ($i = 0; $i < count($markets); $i++) {
+                $market = $markets[$i];
+                $active = !$this->safe_value($market, 'maintain');
+                $id = $this->safe_string($market, 'pair');
+                $uppercaseId = strtoupper($id);
+                $baseId = $this->safe_string($market, 'base');
+                $quoteId = $this->safe_string($market, 'quote');
+                $base = $this->safe_currency_code($baseId);
+                $quote = $this->safe_currency_code($quoteId);
+                $symbol = $base . '/' . $quote;
+                $limits = array(
+                    'amount' => array(
+                        'min' => $this->safe_number($market, 'minLimitBaseAmount'),
+                        'max' => $this->safe_number($market, 'maxLimitBaseAmount'),
+                    ),
+                    'price' => array(
+                        'min' => null,
+                        'max' => null,
+                    ),
+                    'cost' => array(
+                        'min' => null,
+                        'max' => null,
+                    ),
+                    'leverage' => array(
+                        'min' => null,
+                        'max' => null,
+                    ),
+                );
+                $result[] = array(
+                    'id' => $id,
+                    'uppercaseId' => $uppercaseId,
+                    'symbol' => $symbol,
+                    'base' => $base,
+                    'quote' => $quote,
+                    'baseId' => $base,
+                    'quoteId' => $quote,
+                    'settle' => null,
+                    'settleId' => null,
+                    'type' => 'spot',
+                    'spot' => true,
+                    'margin' => false,
+                    'swap' => false,
+                    'future' => false,
+                    'option' => false,
+                    'derivative' => false,
+                    'contract' => false,
+                    'linear' => null,
+                    'inverse' => null,
+                    'contractSize' => null,
+                    'expiry' => null,
+                    'expiryDatetime' => null,
+                    'strike' => null,
+                    'optionType' => null,
+                    'limits' => $limits,
+                    'precision' => array(
+                        'price' => $this->parse_number($this->parse_precision($this->safe_string($market, 'quotePrecision'))),
+                        'amount' => $this->parse_number($this->parse_precision($this->safe_string($market, 'basePrecision'))),
+                    ),
+                    'active' => $active,
+                    'info' => $market,
+                );
+            }
+            return $result;
+        }) ();
     }
 
     public function parse_ticker($ticker, $market = null) {
@@ -398,101 +403,107 @@ class bitopro extends Exchange {
     }
 
     public function fetch_ticker($symbol, $params = array ()) {
-        /**
-         * fetches a price $ticker, a statistical calculation with the information calculated over the past 24 hours for a specific $market
-         * @param {string} $symbol unified $symbol of the $market to fetch the $ticker for
-         * @param {array} $params extra parameters specific to the bitopro api endpoint
-         * @return {array} a {@link https://docs.ccxt.com/en/latest/manual.html#$ticker-structure $ticker structure}
-         */
-        yield $this->load_markets();
-        $market = $this->market($symbol);
-        $request = array(
-            'pair' => $market['id'],
-        );
-        $response = yield $this->publicGetTickersPair (array_merge($request, $params));
-        $ticker = $this->safe_value($response, 'data', array());
-        //
-        //     {
-        //         "data":{
-        //             "pair":"btc_twd",
-        //             "lastPrice":"1182449.00000000",
-        //             "isBuyer":false,
-        //             "priceChange24hr":"-1.99",
-        //             "volume24hr":"9.13089740",
-        //             "high24hr":"1226097.00000000",
-        //             "low24hr":"1181000.00000000"
-        //         }
-        //     }
-        //
-        return $this->parse_ticker($ticker, $market);
+        return Async\async(function () use ($symbol, $params) {
+            /**
+             * fetches a price $ticker, a statistical calculation with the information calculated over the past 24 hours for a specific $market
+             * @param {string} $symbol unified $symbol of the $market to fetch the $ticker for
+             * @param {array} $params extra parameters specific to the bitopro api endpoint
+             * @return {array} a {@link https://docs.ccxt.com/en/latest/manual.html#$ticker-structure $ticker structure}
+             */
+            Async\await($this->load_markets());
+            $market = $this->market($symbol);
+            $request = array(
+                'pair' => $market['id'],
+            );
+            $response = Async\await($this->publicGetTickersPair (array_merge($request, $params)));
+            $ticker = $this->safe_value($response, 'data', array());
+            //
+            //     {
+            //         "data":{
+            //             "pair":"btc_twd",
+            //             "lastPrice":"1182449.00000000",
+            //             "isBuyer":false,
+            //             "priceChange24hr":"-1.99",
+            //             "volume24hr":"9.13089740",
+            //             "high24hr":"1226097.00000000",
+            //             "low24hr":"1181000.00000000"
+            //         }
+            //     }
+            //
+            return $this->parse_ticker($ticker, $market);
+        }) ();
     }
 
     public function fetch_tickers($symbols = null, $params = array ()) {
-        /**
-         * fetches price $tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
-         * @param {[string]|null} $symbols unified $symbols of the markets to fetch the ticker for, all market $tickers are returned if not assigned
-         * @param {array} $params extra parameters specific to the bitopro api endpoint
-         * @return {array} an array of {@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure ticker structures}
-         */
-        yield $this->load_markets();
-        $response = yield $this->publicGetTickers ();
-        $tickers = $this->safe_value($response, 'data', array());
-        //
-        //     {
-        //         "data":array(
-        //             {
-        //                 "pair":"xrp_twd",
-        //                 "lastPrice":"21.26110000",
-        //                 "isBuyer":false,
-        //                 "priceChange24hr":"-6.53",
-        //                 "volume24hr":"102846.47084802",
-        //                 "high24hr":"23.24460000",
-        //                 "low24hr":"21.13730000"
-        //             }
-        //         )
-        //     }
-        //
-        return $this->parse_tickers($tickers, $symbols);
+        return Async\async(function () use ($symbols, $params) {
+            /**
+             * fetches price $tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
+             * @param {[string]|null} $symbols unified $symbols of the markets to fetch the ticker for, all market $tickers are returned if not assigned
+             * @param {array} $params extra parameters specific to the bitopro api endpoint
+             * @return {array} an array of {@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure ticker structures}
+             */
+            Async\await($this->load_markets());
+            $response = Async\await($this->publicGetTickers ());
+            $tickers = $this->safe_value($response, 'data', array());
+            //
+            //     {
+            //         "data":array(
+            //             {
+            //                 "pair":"xrp_twd",
+            //                 "lastPrice":"21.26110000",
+            //                 "isBuyer":false,
+            //                 "priceChange24hr":"-6.53",
+            //                 "volume24hr":"102846.47084802",
+            //                 "high24hr":"23.24460000",
+            //                 "low24hr":"21.13730000"
+            //             }
+            //         )
+            //     }
+            //
+            return $this->parse_tickers($tickers, $symbols);
+        }) ();
     }
 
     public function fetch_order_book($symbol, $limit = null, $params = array ()) {
-        /**
-         * fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
-         * @param {string} $symbol unified $symbol of the $market to fetch the order book for
-         * @param {int|null} $limit the maximum amount of order book entries to return
-         * @param {array} $params extra parameters specific to the bitopro api endpoint
-         * @return {array} A dictionary of {@link https://docs.ccxt.com/en/latest/manual.html#order-book-structure order book structures} indexed by $market symbols
-         */
-        yield $this->load_markets();
-        $market = $this->market($symbol);
-        $request = array(
-            'pair' => $market['id'],
-        );
-        if ($limit !== null) {
-            $request['limit'] = $limit;
-        }
-        $response = yield $this->publicGetOrderBookPair (array_merge($request, $params));
-        //
-        //     {
-        //         "bids":array(
-        //             {
-        //                 "price":"1175271",
-        //                 "amount":"0.00022804",
-        //                 "count":1,
-        //                 "total":"0.00022804"
-        //             }
-        //         ),
-        //         "asks":array(
-        //             {
-        //                 "price":"1176906",
-        //                 "amount":"0.0496",
-        //                 "count":1,
-        //                 "total":"0.0496"
-        //             }
-        //         )
-        //     }
-        //
-        return $this->parse_order_book($response, $market['symbol'], null, 'bids', 'asks', 'price', 'amount');
+        return Async\async(function () use ($symbol, $limit, $params) {
+            /**
+             * fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+             * @param {string} $symbol unified $symbol of the $market to fetch the order book for
+             * @param {int|null} $limit the maximum amount of order book entries to return
+             * @param {array} $params extra parameters specific to the bitopro api endpoint
+             * @return {array} A dictionary of {@link https://docs.ccxt.com/en/latest/manual.html#order-book-structure order book structures} indexed by $market symbols
+             */
+            Async\await($this->load_markets());
+            $market = $this->market($symbol);
+            $request = array(
+                'pair' => $market['id'],
+            );
+            if ($limit !== null) {
+                $request['limit'] = $limit;
+            }
+            $response = Async\await($this->publicGetOrderBookPair (array_merge($request, $params)));
+            //
+            //     {
+            //         "bids":array(
+            //             {
+            //                 "price":"1175271",
+            //                 "amount":"0.00022804",
+            //                 "count":1,
+            //                 "total":"0.00022804"
+            //             }
+            //         ),
+            //         "asks":array(
+            //             {
+            //                 "price":"1176906",
+            //                 "amount":"0.0496",
+            //                 "count":1,
+            //                 "total":"0.0496"
+            //             }
+            //         )
+            //     }
+            //
+            return $this->parse_order_book($response, $market['symbol'], null, 'bids', 'asks', 'price', 'amount');
+        }) ();
     }
 
     public function parse_trade($trade, $market) {
@@ -583,122 +594,126 @@ class bitopro extends Exchange {
     }
 
     public function fetch_trades($symbol, $since = null, $limit = null, $params = array ()) {
-        /**
-         * get the list of most recent $trades for a particular $symbol
-         * @param {string} $symbol unified $symbol of the $market to fetch $trades for
-         * @param {int|null} $since timestamp in ms of the earliest trade to fetch
-         * @param {int|null} $limit the maximum amount of $trades to fetch
-         * @param {array} $params extra parameters specific to the bitopro api endpoint
-         * @return {[array]} a list of ~@link https://docs.ccxt.com/en/latest/manual.html?#public-$trades trade structures~
-         */
-        yield $this->load_markets();
-        $market = $this->market($symbol);
-        $request = array(
-            'pair' => $market['id'],
-        );
-        $response = yield $this->publicGetTradesPair (array_merge($request, $params));
-        $trades = $this->safe_value($response, 'data', array());
-        //
-        //     {
-        //         "data":array(
-        //             {
-        //                 "timestamp":1644651458,
-        //                 "price":"1180785.00000000",
-        //                 "amount":"0.00020000",
-        //                 "isBuyer":false
-        //             }
-        //         )
-        //     }
-        //
-        return $this->parse_trades($trades, $market, $since, $limit);
+        return Async\async(function () use ($symbol, $since, $limit, $params) {
+            /**
+             * get the list of most recent $trades for a particular $symbol
+             * @param {string} $symbol unified $symbol of the $market to fetch $trades for
+             * @param {int|null} $since timestamp in ms of the earliest trade to fetch
+             * @param {int|null} $limit the maximum amount of $trades to fetch
+             * @param {array} $params extra parameters specific to the bitopro api endpoint
+             * @return {[array]} a list of ~@link https://docs.ccxt.com/en/latest/manual.html?#public-$trades trade structures~
+             */
+            Async\await($this->load_markets());
+            $market = $this->market($symbol);
+            $request = array(
+                'pair' => $market['id'],
+            );
+            $response = Async\await($this->publicGetTradesPair (array_merge($request, $params)));
+            $trades = $this->safe_value($response, 'data', array());
+            //
+            //     {
+            //         "data":array(
+            //             {
+            //                 "timestamp":1644651458,
+            //                 "price":"1180785.00000000",
+            //                 "amount":"0.00020000",
+            //                 "isBuyer":false
+            //             }
+            //         )
+            //     }
+            //
+            return $this->parse_trades($trades, $market, $since, $limit);
+        }) ();
     }
 
     public function fetch_trading_fees($params = array ()) {
-        /**
-         * fetch the trading fees for multiple markets
-         * @param {array} $params extra parameters specific to the bitopro api endpoint
-         * @return {array} a dictionary of {@link https://docs.ccxt.com/en/latest/manual.html#fee-structure fee structures} indexed by market symbols
-         */
-        yield $this->load_markets();
-        $response = yield $this->publicGetProvisioningLimitationsAndFees ($params);
-        $tradingFeeRate = $this->safe_value($response, 'tradingFeeRate', array());
-        $first = $this->safe_value($tradingFeeRate, 0);
-        //
-        //     {
-        //         "tradingFeeRate":array(
-        //             {
-        //                 "rank":0,
-        //                 "twdVolumeSymbol":"\u003c",
-        //                 "twdVolume":"3000000",
-        //                 "bitoAmountSymbol":"\u003c",
-        //                 "bitoAmount":"7500",
-        //                 "makerFee":"0.001",
-        //                 "takerFee":"0.002",
-        //                 "makerBitoFee":"0.0008",
-        //                 "takerBitoFee":"0.0016"
-        //             }
-        //         ),
-        //         "orderFeesAndLimitations":array(
-        //             {
-        //                 "pair":"BTC/TWD",
-        //                 "minimumOrderAmount":"0.0001",
-        //                 "minimumOrderAmountBase":"BTC",
-        //                 "minimumOrderNumberOfDigits":"0"
-        //             }
-        //         ),
-        //         "restrictionsOfWithdrawalFees":array(
-        //             {
-        //                 "currency":"TWD",
-        //                 "fee":"15",
-        //                 "minimumTradingAmount":"100",
-        //                 "maximumTradingAmount":"1000000",
-        //                 "dailyCumulativeMaximumAmount":"2000000",
-        //                 "remarks":"",
-        //                 "protocol":""
-        //             }
-        //         ),
-        //         "cryptocurrencyDepositFeeAndConfirmation":array(
-        //             {
-        //                 "currency":"TWD",
-        //                 "generalDepositFees":"0",
-        //                 "blockchainConfirmationRequired":""
-        //             }
-        //         ),
-        //         "ttCheckFeesAndLimitationsLevel1":array(
-        //             {
-        //                 "currency":"TWD",
-        //                 "redeemDailyCumulativeMaximumAmount":"",
-        //                 "generateMinimumTradingAmount":"",
-        //                 "generateMaximumTradingAmount":"",
-        //                 "generateDailyCumulativeMaximumAmount":""
-        //             }
-        //         ),
-        //         "ttCheckFeesAndLimitationsLevel2":array(
-        //             {
-        //                 "currency":"TWD",
-        //                 "redeemDailyCumulativeMaximumAmount":"20000000",
-        //                 "generateMinimumTradingAmount":"30",
-        //                 "generateMaximumTradingAmount":"10000000",
-        //                 "generateDailyCumulativeMaximumAmount":"10000000"
-        //             }
-        //         )
-        //     }
-        //
-        $result = array();
-        $maker = $this->safe_number($first, 'makerFee');
-        $taker = $this->safe_number($first, 'takerFee');
-        for ($i = 0; $i < count($this->symbols); $i++) {
-            $symbol = $this->symbols[$i];
-            $result[$symbol] = array(
-                'info' => $first,
-                'symbol' => $symbol,
-                'maker' => $maker,
-                'taker' => $taker,
-                'percentage' => true,
-                'tierBased' => true,
-            );
-        }
-        return $result;
+        return Async\async(function () use ($params) {
+            /**
+             * fetch the trading fees for multiple markets
+             * @param {array} $params extra parameters specific to the bitopro api endpoint
+             * @return {array} a dictionary of {@link https://docs.ccxt.com/en/latest/manual.html#fee-structure fee structures} indexed by market symbols
+             */
+            Async\await($this->load_markets());
+            $response = Async\await($this->publicGetProvisioningLimitationsAndFees ($params));
+            $tradingFeeRate = $this->safe_value($response, 'tradingFeeRate', array());
+            $first = $this->safe_value($tradingFeeRate, 0);
+            //
+            //     {
+            //         "tradingFeeRate":array(
+            //             {
+            //                 "rank":0,
+            //                 "twdVolumeSymbol":"\u003c",
+            //                 "twdVolume":"3000000",
+            //                 "bitoAmountSymbol":"\u003c",
+            //                 "bitoAmount":"7500",
+            //                 "makerFee":"0.001",
+            //                 "takerFee":"0.002",
+            //                 "makerBitoFee":"0.0008",
+            //                 "takerBitoFee":"0.0016"
+            //             }
+            //         ),
+            //         "orderFeesAndLimitations":array(
+            //             {
+            //                 "pair":"BTC/TWD",
+            //                 "minimumOrderAmount":"0.0001",
+            //                 "minimumOrderAmountBase":"BTC",
+            //                 "minimumOrderNumberOfDigits":"0"
+            //             }
+            //         ),
+            //         "restrictionsOfWithdrawalFees":array(
+            //             {
+            //                 "currency":"TWD",
+            //                 "fee":"15",
+            //                 "minimumTradingAmount":"100",
+            //                 "maximumTradingAmount":"1000000",
+            //                 "dailyCumulativeMaximumAmount":"2000000",
+            //                 "remarks":"",
+            //                 "protocol":""
+            //             }
+            //         ),
+            //         "cryptocurrencyDepositFeeAndConfirmation":array(
+            //             {
+            //                 "currency":"TWD",
+            //                 "generalDepositFees":"0",
+            //                 "blockchainConfirmationRequired":""
+            //             }
+            //         ),
+            //         "ttCheckFeesAndLimitationsLevel1":array(
+            //             {
+            //                 "currency":"TWD",
+            //                 "redeemDailyCumulativeMaximumAmount":"",
+            //                 "generateMinimumTradingAmount":"",
+            //                 "generateMaximumTradingAmount":"",
+            //                 "generateDailyCumulativeMaximumAmount":""
+            //             }
+            //         ),
+            //         "ttCheckFeesAndLimitationsLevel2":array(
+            //             {
+            //                 "currency":"TWD",
+            //                 "redeemDailyCumulativeMaximumAmount":"20000000",
+            //                 "generateMinimumTradingAmount":"30",
+            //                 "generateMaximumTradingAmount":"10000000",
+            //                 "generateDailyCumulativeMaximumAmount":"10000000"
+            //             }
+            //         )
+            //     }
+            //
+            $result = array();
+            $maker = $this->safe_number($first, 'makerFee');
+            $taker = $this->safe_number($first, 'takerFee');
+            for ($i = 0; $i < count($this->symbols); $i++) {
+                $symbol = $this->symbols[$i];
+                $result[$symbol] = array(
+                    'info' => $first,
+                    'symbol' => $symbol,
+                    'maker' => $maker,
+                    'taker' => $taker,
+                    'percentage' => true,
+                    'tierBased' => true,
+                );
+            }
+            return $result;
+        }) ();
     }
 
     public function parse_ohlcv($ohlcv, $market = null, $timeframe = '1m', $since = null, $limit = null) {
@@ -712,56 +727,58 @@ class bitopro extends Exchange {
         );
     }
 
-    public function fetch_ohlcv($symbol, $timeframe = '5m', $since = null, $limit = null, $params = array ()) {
-        /**
-         * fetches historical candlestick $data containing the open, high, low, and close price, and the volume of a $market
-         * @param {string} $symbol unified $symbol of the $market to fetch OHLCV $data for
-         * @param {string} $timeframe the length of time each candle represents
-         * @param {int|null} $since timestamp in ms of the earliest candle to fetch
-         * @param {int|null} $limit the maximum amount of candles to fetch
-         * @param {array} $params extra parameters specific to the bitopro api endpoint
-         * @return {[[int]]} A list of candles ordered as timestamp, open, high, low, close, volume
-         */
-        yield $this->load_markets();
-        $market = $this->market($symbol);
-        $resolution = $this->timeframes[$timeframe];
-        $request = array(
-            'pair' => $market['id'],
-            'resolution' => $resolution,
-        );
-        // we need to have a $limit argument because "to" and "from" are required
-        if ($limit === null) {
-            $limit = 500;
-        }
-        $timeframeInSeconds = $this->parse_timeframe($timeframe);
-        $alignedSince = null;
-        if ($since === null) {
-            $request['to'] = $this->seconds();
-            $request['from'] = $request['to'] - ($limit * $timeframeInSeconds);
-        } else {
-            $timeframeInMilliseconds = $timeframeInSeconds * 1000;
-            $alignedSince = (int) floor($since / $timeframeInMilliseconds) * $timeframeInMilliseconds;
-            $request['from'] = (int) floor($since / 1000);
-            $request['to'] = $this->sum($request['from'], $limit * $timeframeInSeconds);
-        }
-        $response = yield $this->publicGetTradingHistoryPair (array_merge($request, $params));
-        $data = $this->safe_value($response, 'data', array());
-        //
-        //     {
-        //         "data":array(
-        //             {
-        //                 "timestamp":1644581100000,
-        //                 "open":"1214737",
-        //                 "high":"1215110",
-        //                 "low":"1214737",
-        //                 "close":"1215110",
-        //                 "volume":"0.08423959"
-        //             }
-        //         )
-        //     }
-        //
-        $sparse = $this->parse_ohlcvs($data, $market, $timeframe, $since, $limit);
-        return $this->insert_missing_candles($sparse, $timeframeInSeconds, $alignedSince, $limit);
+    public function fetch_ohlcv($symbol, $timeframe = '1m', $since = null, $limit = null, $params = array ()) {
+        return Async\async(function () use ($symbol, $timeframe, $since, $limit, $params) {
+            /**
+             * fetches historical candlestick $data containing the open, high, low, and close price, and the volume of a $market
+             * @param {string} $symbol unified $symbol of the $market to fetch OHLCV $data for
+             * @param {string} $timeframe the length of time each candle represents
+             * @param {int|null} $since timestamp in ms of the earliest candle to fetch
+             * @param {int|null} $limit the maximum amount of candles to fetch
+             * @param {array} $params extra parameters specific to the bitopro api endpoint
+             * @return {[[int]]} A list of candles ordered as timestamp, open, high, low, close, volume
+             */
+            Async\await($this->load_markets());
+            $market = $this->market($symbol);
+            $resolution = $this->timeframes[$timeframe];
+            $request = array(
+                'pair' => $market['id'],
+                'resolution' => $resolution,
+            );
+            // we need to have a $limit argument because "to" and "from" are required
+            if ($limit === null) {
+                $limit = 500;
+            }
+            $timeframeInSeconds = $this->parse_timeframe($timeframe);
+            $alignedSince = null;
+            if ($since === null) {
+                $request['to'] = $this->seconds();
+                $request['from'] = $request['to'] - ($limit * $timeframeInSeconds);
+            } else {
+                $timeframeInMilliseconds = $timeframeInSeconds * 1000;
+                $alignedSince = (int) floor($since / $timeframeInMilliseconds) * $timeframeInMilliseconds;
+                $request['from'] = (int) floor($since / 1000);
+                $request['to'] = $this->sum($request['from'], $limit * $timeframeInSeconds);
+            }
+            $response = Async\await($this->publicGetTradingHistoryPair (array_merge($request, $params)));
+            $data = $this->safe_value($response, 'data', array());
+            //
+            //     {
+            //         "data":array(
+            //             {
+            //                 "timestamp":1644581100000,
+            //                 "open":"1214737",
+            //                 "high":"1215110",
+            //                 "low":"1214737",
+            //                 "close":"1215110",
+            //                 "volume":"0.08423959"
+            //             }
+            //         )
+            //     }
+            //
+            $sparse = $this->parse_ohlcvs($data, $market, $timeframe, $since, $limit);
+            return $this->insert_missing_candles($sparse, $timeframeInSeconds, $alignedSince, $limit);
+        }) ();
     }
 
     public function insert_missing_candles($candles, $distance, $since, $limit) {
@@ -833,28 +850,30 @@ class bitopro extends Exchange {
     }
 
     public function fetch_balance($params = array ()) {
-        /**
-         * query for balance and get the amount of funds available for trading or funds locked in orders
-         * @param {array} $params extra parameters specific to the bitopro api endpoint
-         * @return {array} a ~@link https://docs.ccxt.com/en/latest/manual.html?#balance-structure balance structure~
-         */
-        yield $this->load_markets();
-        $response = yield $this->privateGetAccountsBalance ($params);
-        $balances = $this->safe_value($response, 'data', array());
-        //
-        //     {
-        //         "data":array(
-        //             {
-        //                 "currency":"twd",
-        //                 "amount":"0",
-        //                 "available":"0",
-        //                 "stake":"0",
-        //                 "tradable":true
-        //             }
-        //         )
-        //     }
-        //
-        return $this->parse_balance($balances);
+        return Async\async(function () use ($params) {
+            /**
+             * query for balance and get the amount of funds available for trading or funds locked in orders
+             * @param {array} $params extra parameters specific to the bitopro api endpoint
+             * @return {array} a ~@link https://docs.ccxt.com/en/latest/manual.html?#balance-structure balance structure~
+             */
+            Async\await($this->load_markets());
+            $response = Async\await($this->privateGetAccountsBalance ($params));
+            $balances = $this->safe_value($response, 'data', array());
+            //
+            //     {
+            //         "data":array(
+            //             {
+            //                 "currency":"twd",
+            //                 "amount":"0",
+            //                 "available":"0",
+            //                 "stake":"0",
+            //                 "tradable":true
+            //             }
+            //         )
+            //     }
+            //
+            return $this->parse_balance($balances);
+        }) ();
     }
 
     public function parse_order_status($status) {
@@ -955,254 +974,266 @@ class bitopro extends Exchange {
     }
 
     public function create_order($symbol, $type, $side, $amount, $price = null, $params = array ()) {
-        /**
-         * create a trade order
-         * @param {string} $symbol unified $symbol of the $market to create an order in
-         * @param {string} $type 'market' or 'limit'
-         * @param {string} $side 'buy' or 'sell'
-         * @param {float} $amount how much of currency you want to trade in units of base currency
-         * @param {float|null} $price the $price at which the order is to be fullfilled, in units of the quote currency, ignored in $market orders
-         * @param {array} $params extra parameters specific to the bitopro api endpoint
-         * @return {array} an {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structure}
-         */
-        yield $this->load_markets();
-        $market = $this->market($symbol);
-        $request = array(
-            'type' => $type,
-            'pair' => $market['id'],
-            'action' => $side,
-            'amount' => $this->amount_to_precision($symbol, $amount),
-            'timestamp' => $this->milliseconds(),
-        );
-        $orderType = strtoupper($type);
-        if ($orderType === 'LIMIT') {
-            $request['price'] = $this->price_to_precision($symbol, $price);
-        }
-        if ($orderType === 'STOP_LIMIT') {
-            $request['price'] = $this->price_to_precision($symbol, $price);
-            $stopPrice = $this->safe_value_2($params, 'triggerPrice', 'stopPrice');
-            $params = $this->omit($params, array( 'triggerPrice', 'stopPrice' ));
-            if ($stopPrice === null) {
-                throw new InvalidOrder($this->id . ' createOrder() requires a $stopPrice parameter for ' . $orderType . ' orders');
-            } else {
-                $request['stopPrice'] = $this->price_to_precision($symbol, $stopPrice);
+        return Async\async(function () use ($symbol, $type, $side, $amount, $price, $params) {
+            /**
+             * create a trade order
+             * @param {string} $symbol unified $symbol of the $market to create an order in
+             * @param {string} $type 'market' or 'limit'
+             * @param {string} $side 'buy' or 'sell'
+             * @param {float} $amount how much of currency you want to trade in units of base currency
+             * @param {float|null} $price the $price at which the order is to be fullfilled, in units of the quote currency, ignored in $market orders
+             * @param {array} $params extra parameters specific to the bitopro api endpoint
+             * @return {array} an {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structure}
+             */
+            Async\await($this->load_markets());
+            $market = $this->market($symbol);
+            $request = array(
+                'type' => $type,
+                'pair' => $market['id'],
+                'action' => $side,
+                'amount' => $this->amount_to_precision($symbol, $amount),
+                'timestamp' => $this->milliseconds(),
+            );
+            $orderType = strtoupper($type);
+            if ($orderType === 'LIMIT') {
+                $request['price'] = $this->price_to_precision($symbol, $price);
             }
-            $condition = $this->safe_string($params, 'condition');
-            if ($condition === null) {
-                throw new InvalidOrder($this->id . ' createOrder() requires a $condition parameter for ' . $orderType . ' orders');
-            } else {
-                $request['condition'] = $condition;
+            if ($orderType === 'STOP_LIMIT') {
+                $request['price'] = $this->price_to_precision($symbol, $price);
+                $stopPrice = $this->safe_value_2($params, 'triggerPrice', 'stopPrice');
+                $params = $this->omit($params, array( 'triggerPrice', 'stopPrice' ));
+                if ($stopPrice === null) {
+                    throw new InvalidOrder($this->id . ' createOrder() requires a $stopPrice parameter for ' . $orderType . ' orders');
+                } else {
+                    $request['stopPrice'] = $this->price_to_precision($symbol, $stopPrice);
+                }
+                $condition = $this->safe_string($params, 'condition');
+                if ($condition === null) {
+                    throw new InvalidOrder($this->id . ' createOrder() requires a $condition parameter for ' . $orderType . ' orders');
+                } else {
+                    $request['condition'] = $condition;
+                }
             }
-        }
-        $response = yield $this->privatePostOrdersPair (array_merge($request, $params), $params);
-        //
-        //     {
-        //         orderId => '2220595581',
-        //         timestamp => '1644896744886',
-        //         action => 'SELL',
-        //         $amount => '0.01',
-        //         $price => '15000',
-        //         timeInForce => 'GTC'
-        //     }
-        //
-        return $this->parse_order($response, $market);
+            $response = Async\await($this->privatePostOrdersPair (array_merge($request, $params), $params));
+            //
+            //     {
+            //         orderId => '2220595581',
+            //         timestamp => '1644896744886',
+            //         action => 'SELL',
+            //         $amount => '0.01',
+            //         $price => '15000',
+            //         timeInForce => 'GTC'
+            //     }
+            //
+            return $this->parse_order($response, $market);
+        }) ();
     }
 
     public function cancel_order($id, $symbol = null, $params = array ()) {
-        /**
-         * cancels an open order
-         * @param {string} $id order $id
-         * @param {string} $symbol unified $symbol of the $market the order was made in
-         * @param {array} $params extra parameters specific to the bitopro api endpoint
-         * @return {array} An {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structure}
-         */
-        if ($symbol === null) {
-            throw new ArgumentsRequired($this->id . ' cancelOrder() requires the $symbol argument');
-        }
-        yield $this->load_markets();
-        $market = $this->market($symbol);
-        $request = array(
-            'id' => $id,
-            'pair' => $market['id'],
-        );
-        $response = yield $this->privateDeleteOrdersPairId (array_merge($request, $params));
-        //
-        //     {
-        //         "orderId":"8777138788",
-        //         "action":"SELL",
-        //         "timestamp":1644899002465,
-        //         "price":"16000",
-        //         "amount":"0.01"
-        //     }
-        //
-        return $this->parse_order($response, $market);
+        return Async\async(function () use ($id, $symbol, $params) {
+            /**
+             * cancels an open order
+             * @param {string} $id order $id
+             * @param {string} $symbol unified $symbol of the $market the order was made in
+             * @param {array} $params extra parameters specific to the bitopro api endpoint
+             * @return {array} An {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structure}
+             */
+            if ($symbol === null) {
+                throw new ArgumentsRequired($this->id . ' cancelOrder() requires the $symbol argument');
+            }
+            Async\await($this->load_markets());
+            $market = $this->market($symbol);
+            $request = array(
+                'id' => $id,
+                'pair' => $market['id'],
+            );
+            $response = Async\await($this->privateDeleteOrdersPairId (array_merge($request, $params)));
+            //
+            //     {
+            //         "orderId":"8777138788",
+            //         "action":"SELL",
+            //         "timestamp":1644899002465,
+            //         "price":"16000",
+            //         "amount":"0.01"
+            //     }
+            //
+            return $this->parse_order($response, $market);
+        }) ();
     }
 
     public function cancel_orders($ids, $symbol = null, $params = array ()) {
-        /**
-         * cancel multiple orders
-         * @param {[string]} $ids order $ids
-         * @param {string} $symbol unified $market $symbol
-         * @param {array} $params extra parameters specific to the bitopro api endpoint
-         * @return {array} an list of {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structures}
-         */
-        if ($symbol === null) {
-            throw new ArgumentsRequired($this->id . ' cancelOrders() requires a $symbol argument');
-        }
-        yield $this->load_markets();
-        $market = $this->market($symbol);
-        $id = $market['uppercaseId'];
-        $request = array();
-        $request[$id] = $ids;
-        $response = yield $this->privatePutOrders (array_merge($request, $params));
-        //
-        //     {
-        //         "data":{
-        //             "BNB_TWD":array(
-        //                 "5236347105",
-        //                 "359488711"
-        //             )
-        //         }
-        //     }
-        //
-        return $response;
+        return Async\async(function () use ($ids, $symbol, $params) {
+            /**
+             * cancel multiple orders
+             * @param {[string]} $ids order $ids
+             * @param {string} $symbol unified $market $symbol
+             * @param {array} $params extra parameters specific to the bitopro api endpoint
+             * @return {array} an list of {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structures}
+             */
+            if ($symbol === null) {
+                throw new ArgumentsRequired($this->id . ' cancelOrders() requires a $symbol argument');
+            }
+            Async\await($this->load_markets());
+            $market = $this->market($symbol);
+            $id = $market['uppercaseId'];
+            $request = array();
+            $request[$id] = $ids;
+            $response = Async\await($this->privatePutOrders (array_merge($request, $params)));
+            //
+            //     {
+            //         "data":{
+            //             "BNB_TWD":array(
+            //                 "5236347105",
+            //                 "359488711"
+            //             )
+            //         }
+            //     }
+            //
+            return $response;
+        }) ();
     }
 
     public function cancel_all_orders($symbol = null, $params = array ()) {
-        /**
-         * cancel all open orders
-         * @param {string|null} $symbol unified $market $symbol, only orders in the $market of this $symbol are cancelled when $symbol is not null
-         * @param {array} $params extra parameters specific to the bitopro api endpoint
-         * @return {[array]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structures}
-         */
-        yield $this->load_markets();
-        $request = array(
-            // 'pair' => $market['id'], // optional
-        );
-        // privateDeleteOrdersAll or privateDeleteOrdersPair
-        $method = $this->safe_string($this->options, 'privateDeleteOrdersPair', 'privateDeleteOrdersAll');
-        if ($symbol !== null) {
-            $market = $this->market($symbol);
-            $request['pair'] = $market['id'];
-            $method = 'privateDeleteOrdersPair';
-        }
-        $response = yield $this->$method (array_merge($request, $params));
-        $result = $this->safe_value($response, 'data', array());
-        //
-        //     {
-        //         "data":{
-        //             "BNB_TWD":array(
-        //                 "9515988421",
-        //                 "4639130027"
-        //             )
-        //         }
-        //     }
-        //
-        return $result;
+        return Async\async(function () use ($symbol, $params) {
+            /**
+             * cancel all open orders
+             * @param {string|null} $symbol unified $market $symbol, only orders in the $market of this $symbol are cancelled when $symbol is not null
+             * @param {array} $params extra parameters specific to the bitopro api endpoint
+             * @return {[array]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structures}
+             */
+            Async\await($this->load_markets());
+            $request = array(
+                // 'pair' => $market['id'], // optional
+            );
+            // privateDeleteOrdersAll or privateDeleteOrdersPair
+            $method = $this->safe_string($this->options, 'privateDeleteOrdersPair', 'privateDeleteOrdersAll');
+            if ($symbol !== null) {
+                $market = $this->market($symbol);
+                $request['pair'] = $market['id'];
+                $method = 'privateDeleteOrdersPair';
+            }
+            $response = Async\await($this->$method (array_merge($request, $params)));
+            $result = $this->safe_value($response, 'data', array());
+            //
+            //     {
+            //         "data":{
+            //             "BNB_TWD":array(
+            //                 "9515988421",
+            //                 "4639130027"
+            //             )
+            //         }
+            //     }
+            //
+            return $result;
+        }) ();
     }
 
     public function fetch_order($id, $symbol = null, $params = array ()) {
-        /**
-         * fetches information on an order made by the user
-         * @param {string} $symbol unified $symbol of the $market the order was made in
-         * @param {array} $params extra parameters specific to the bitopro api endpoint
-         * @return {array} An {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structure}
-         */
-        if ($symbol === null) {
-            throw new ArgumentsRequired($this->id . ' fetchOrder() requires the $symbol argument');
-        }
-        yield $this->load_markets();
-        $market = $this->market($symbol);
-        $request = array(
-            'orderId' => $id,
-            'pair' => $market['id'],
-        );
-        $response = yield $this->privateGetOrdersPairOrderId (array_merge($request, $params));
-        //
-        //     {
-        //         "id":"8777138788",
-        //         "pair":"bnb_twd",
-        //         "price":"16000",
-        //         "avgExecutionPrice":"0",
-        //         "action":"SELL",
-        //         "type":"LIMIT",
-        //         "timestamp":1644899002598,
-        //         "status":4,
-        //         "originalAmount":"0.01",
-        //         "remainingAmount":"0.01",
-        //         "executedAmount":"0",
-        //         "fee":"0",
-        //         "feeSymbol":"twd",
-        //         "bitoFee":"0",
-        //         "total":"0",
-        //         "seq":"BNBTWD548774666",
-        //         "timeInForce":"GTC",
-        //         "createdTimestamp":1644898944074,
-        //         "updatedTimestamp":1644899002598
-        //     }
-        //
-        return $this->parse_order($response, $market);
+        return Async\async(function () use ($id, $symbol, $params) {
+            /**
+             * fetches information on an order made by the user
+             * @param {string} $symbol unified $symbol of the $market the order was made in
+             * @param {array} $params extra parameters specific to the bitopro api endpoint
+             * @return {array} An {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structure}
+             */
+            if ($symbol === null) {
+                throw new ArgumentsRequired($this->id . ' fetchOrder() requires the $symbol argument');
+            }
+            Async\await($this->load_markets());
+            $market = $this->market($symbol);
+            $request = array(
+                'orderId' => $id,
+                'pair' => $market['id'],
+            );
+            $response = Async\await($this->privateGetOrdersPairOrderId (array_merge($request, $params)));
+            //
+            //     {
+            //         "id":"8777138788",
+            //         "pair":"bnb_twd",
+            //         "price":"16000",
+            //         "avgExecutionPrice":"0",
+            //         "action":"SELL",
+            //         "type":"LIMIT",
+            //         "timestamp":1644899002598,
+            //         "status":4,
+            //         "originalAmount":"0.01",
+            //         "remainingAmount":"0.01",
+            //         "executedAmount":"0",
+            //         "fee":"0",
+            //         "feeSymbol":"twd",
+            //         "bitoFee":"0",
+            //         "total":"0",
+            //         "seq":"BNBTWD548774666",
+            //         "timeInForce":"GTC",
+            //         "createdTimestamp":1644898944074,
+            //         "updatedTimestamp":1644899002598
+            //     }
+            //
+            return $this->parse_order($response, $market);
+        }) ();
     }
 
     public function fetch_orders($symbol = null, $since = null, $limit = null, $params = array ()) {
-        /**
-         * fetches information on multiple $orders made by the user
-         * @param {string} $symbol unified $market $symbol of the $market $orders were made in
-         * @param {int|null} $since the earliest time in ms to fetch $orders for
-         * @param {int|null} $limit the maximum number of  orde structures to retrieve
-         * @param {array} $params extra parameters specific to the bitopro api endpoint
-         * @return {[array]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structures}
-         */
-        if ($symbol === null) {
-            throw new ArgumentsRequired($this->id . ' fetchOrders() requires the $symbol argument');
-        }
-        yield $this->load_markets();
-        $market = $this->market($symbol);
-        $request = array(
-            'pair' => $market['id'],
-            // 'startTimestamp' => 0,
-            // 'endTimestamp' => 0,
-            // 'statusKind' => '',
-            // 'orderId' => '',
-        );
-        if ($since !== null) {
-            $request['startTimestamp'] = $since;
-        }
-        if ($limit !== null) {
-            $request['limit'] = $limit;
-        }
-        $response = yield $this->privateGetOrdersAllPair (array_merge($request, $params), $params);
-        $orders = $this->safe_value($response, 'data');
-        if ($orders === null) {
-            $orders = array();
-        }
-        //
-        //     {
-        //         "data":array(
-        //             {
-        //                 "id":"2220595581",
-        //                 "pair":"bnb_twd",
-        //                 "price":"15000",
-        //                 "avgExecutionPrice":"0",
-        //                 "action":"SELL",
-        //                 "type":"LIMIT",
-        //                 "createdTimestamp":1644896744886,
-        //                 "updatedTimestamp":1644898706236,
-        //                 "status":4,
-        //                 "originalAmount":"0.01",
-        //                 "remainingAmount":"0.01",
-        //                 "executedAmount":"0",
-        //                 "fee":"0",
-        //                 "feeSymbol":"twd",
-        //                 "bitoFee":"0",
-        //                 "total":"0",
-        //                 "seq":"BNBTWD8540871774",
-        //                 "timeInForce":"GTC"
-        //             }
-        //         )
-        //     }
-        //
-        return $this->parse_orders($orders, $market, $since, $limit);
+        return Async\async(function () use ($symbol, $since, $limit, $params) {
+            /**
+             * fetches information on multiple $orders made by the user
+             * @param {string} $symbol unified $market $symbol of the $market $orders were made in
+             * @param {int|null} $since the earliest time in ms to fetch $orders for
+             * @param {int|null} $limit the maximum number of  orde structures to retrieve
+             * @param {array} $params extra parameters specific to the bitopro api endpoint
+             * @return {[array]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structures}
+             */
+            if ($symbol === null) {
+                throw new ArgumentsRequired($this->id . ' fetchOrders() requires the $symbol argument');
+            }
+            Async\await($this->load_markets());
+            $market = $this->market($symbol);
+            $request = array(
+                'pair' => $market['id'],
+                // 'startTimestamp' => 0,
+                // 'endTimestamp' => 0,
+                // 'statusKind' => '',
+                // 'orderId' => '',
+            );
+            if ($since !== null) {
+                $request['startTimestamp'] = $since;
+            }
+            if ($limit !== null) {
+                $request['limit'] = $limit;
+            }
+            $response = Async\await($this->privateGetOrdersAllPair (array_merge($request, $params), $params));
+            $orders = $this->safe_value($response, 'data');
+            if ($orders === null) {
+                $orders = array();
+            }
+            //
+            //     {
+            //         "data":array(
+            //             {
+            //                 "id":"2220595581",
+            //                 "pair":"bnb_twd",
+            //                 "price":"15000",
+            //                 "avgExecutionPrice":"0",
+            //                 "action":"SELL",
+            //                 "type":"LIMIT",
+            //                 "createdTimestamp":1644896744886,
+            //                 "updatedTimestamp":1644898706236,
+            //                 "status":4,
+            //                 "originalAmount":"0.01",
+            //                 "remainingAmount":"0.01",
+            //                 "executedAmount":"0",
+            //                 "fee":"0",
+            //                 "feeSymbol":"twd",
+            //                 "bitoFee":"0",
+            //                 "total":"0",
+            //                 "seq":"BNBTWD8540871774",
+            //                 "timeInForce":"GTC"
+            //             }
+            //         )
+            //     }
+            //
+            return $this->parse_orders($orders, $market, $since, $limit);
+        }) ();
     }
 
     public function fetch_open_orders($symbol = null, $since = null, $limit = null, $params = array ()) {
@@ -1228,44 +1259,46 @@ class bitopro extends Exchange {
     }
 
     public function fetch_my_trades($symbol = null, $since = null, $limit = null, $params = array ()) {
-        /**
-         * fetch all $trades made by the user
-         * @param {string} $symbol unified $market $symbol
-         * @param {int|null} $since the earliest time in ms to fetch $trades for
-         * @param {int|null} $limit the maximum number of $trades structures to retrieve
-         * @param {array} $params extra parameters specific to the bitopro api endpoint
-         * @return {[array]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#trade-structure trade structures}
-         */
-        if ($symbol === null) {
-            throw new ArgumentsRequired($this->id . ' fetchMyTrades() requires the $symbol argument');
-        }
-        yield $this->load_markets();
-        $market = $this->market($symbol);
-        $request = array(
-            'pair' => $market['id'],
-        );
-        $response = yield $this->privateGetOrdersTradesPair (array_merge($request, $params));
-        $trades = $this->safe_value($response, 'data', array());
-        //
-        //     {
-        //         "data":array(
-        //             {
-        //                 "tradeId":"5685030251",
-        //                 "orderId":"9669168142",
-        //                 "price":"11821.8",
-        //                 "action":"SELL",
-        //                 "baseAmount":"0.01",
-        //                 "quoteAmount":"118.218",
-        //                 "fee":"0.236436",
-        //                 "feeSymbol":"BNB",
-        //                 "isTaker":true,
-        //                 "timestamp":1644905714862,
-        //                 "createdTimestamp":1644905714862
-        //             }
-        //         )
-        //     }
-        //
-        return $this->parse_trades($trades, $market, $since, $limit);
+        return Async\async(function () use ($symbol, $since, $limit, $params) {
+            /**
+             * fetch all $trades made by the user
+             * @param {string} $symbol unified $market $symbol
+             * @param {int|null} $since the earliest time in ms to fetch $trades for
+             * @param {int|null} $limit the maximum number of $trades structures to retrieve
+             * @param {array} $params extra parameters specific to the bitopro api endpoint
+             * @return {[array]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#trade-structure trade structures}
+             */
+            if ($symbol === null) {
+                throw new ArgumentsRequired($this->id . ' fetchMyTrades() requires the $symbol argument');
+            }
+            Async\await($this->load_markets());
+            $market = $this->market($symbol);
+            $request = array(
+                'pair' => $market['id'],
+            );
+            $response = Async\await($this->privateGetOrdersTradesPair (array_merge($request, $params)));
+            $trades = $this->safe_value($response, 'data', array());
+            //
+            //     {
+            //         "data":array(
+            //             {
+            //                 "tradeId":"5685030251",
+            //                 "orderId":"9669168142",
+            //                 "price":"11821.8",
+            //                 "action":"SELL",
+            //                 "baseAmount":"0.01",
+            //                 "quoteAmount":"118.218",
+            //                 "fee":"0.236436",
+            //                 "feeSymbol":"BNB",
+            //                 "isTaker":true,
+            //                 "timestamp":1644905714862,
+            //                 "createdTimestamp":1644905714862
+            //             }
+            //         )
+            //     }
+            //
+            return $this->parse_trades($trades, $market, $since, $limit);
+        }) ();
     }
 
     public function parse_transaction_status($status) {
@@ -1362,190 +1395,198 @@ class bitopro extends Exchange {
     }
 
     public function fetch_deposits($code = null, $since = null, $limit = null, $params = array ()) {
-        /**
-         * fetch all deposits made to an account
-         * @param {string} $code unified $currency $code
-         * @param {int|null} $since the earliest time in ms to fetch deposits for
-         * @param {int|null} $limit the maximum number of deposits structures to retrieve
-         * @param {array} $params extra parameters specific to the bitopro api endpoint
-         * @return {[array]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure transaction structures}
-         */
-        if ($code === null) {
-            throw new ArgumentsRequired($this->id . ' fetchDeposits() requires the $code argument');
-        }
-        yield $this->load_markets();
-        $currency = $this->safe_currency($code);
-        $request = array(
-            'currency' => $currency['id'],
-            // 'endTimestamp' => 0,
-            // 'id' => '',
-            // 'statuses' => '', // 'ROCESSING,COMPLETE,INVALID,WAIT_PROCESS,CANCELLED,FAILED'
-        );
-        if ($since !== null) {
-            $request['startTimestamp'] = $since;
-        }
-        if ($limit !== null) {
-            $request['limit'] = $limit;
-        }
-        $response = yield $this->privateGetWalletDepositHistoryCurrency (array_merge($request, $params));
-        $result = $this->safe_value($response, 'data', array());
-        //
-        //     {
-        //         "data":array(
-        //             {
-        //                 "serial":"20220214X766799",
-        //                 "timestamp":"1644833015053",
-        //                 "address":"bnb1xml62k5a9dcewgc542fha75fyxdcp0zv8eqfsh",
-        //                 "amount":"0.20000000",
-        //                 "fee":"0.00000000",
-        //                 "total":"0.20000000",
-        //                 "status":"COMPLETE",
-        //                 "txid":"A3CC4F6828CC752B9F3737F48B5826B9EC2857040CB5141D0CC955F7E53DB6D9",
-        //                 "message":"778553959",
-        //                 "protocol":"MAIN",
-        //                 "id":"2905906537"
-        //             }
-        //         )
-        //     }
-        //
-        return $this->parse_transactions($result, $currency, $since, $limit, array( 'type' => 'deposit' ));
+        return Async\async(function () use ($code, $since, $limit, $params) {
+            /**
+             * fetch all deposits made to an account
+             * @param {string} $code unified $currency $code
+             * @param {int|null} $since the earliest time in ms to fetch deposits for
+             * @param {int|null} $limit the maximum number of deposits structures to retrieve
+             * @param {array} $params extra parameters specific to the bitopro api endpoint
+             * @return {[array]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure transaction structures}
+             */
+            if ($code === null) {
+                throw new ArgumentsRequired($this->id . ' fetchDeposits() requires the $code argument');
+            }
+            Async\await($this->load_markets());
+            $currency = $this->safe_currency($code);
+            $request = array(
+                'currency' => $currency['id'],
+                // 'endTimestamp' => 0,
+                // 'id' => '',
+                // 'statuses' => '', // 'ROCESSING,COMPLETE,INVALID,WAIT_PROCESS,CANCELLED,FAILED'
+            );
+            if ($since !== null) {
+                $request['startTimestamp'] = $since;
+            }
+            if ($limit !== null) {
+                $request['limit'] = $limit;
+            }
+            $response = Async\await($this->privateGetWalletDepositHistoryCurrency (array_merge($request, $params)));
+            $result = $this->safe_value($response, 'data', array());
+            //
+            //     {
+            //         "data":array(
+            //             {
+            //                 "serial":"20220214X766799",
+            //                 "timestamp":"1644833015053",
+            //                 "address":"bnb1xml62k5a9dcewgc542fha75fyxdcp0zv8eqfsh",
+            //                 "amount":"0.20000000",
+            //                 "fee":"0.00000000",
+            //                 "total":"0.20000000",
+            //                 "status":"COMPLETE",
+            //                 "txid":"A3CC4F6828CC752B9F3737F48B5826B9EC2857040CB5141D0CC955F7E53DB6D9",
+            //                 "message":"778553959",
+            //                 "protocol":"MAIN",
+            //                 "id":"2905906537"
+            //             }
+            //         )
+            //     }
+            //
+            return $this->parse_transactions($result, $currency, $since, $limit, array( 'type' => 'deposit' ));
+        }) ();
     }
 
     public function fetch_withdrawals($code = null, $since = null, $limit = null, $params = array ()) {
-        /**
-         * fetch all withdrawals made from an account
-         * @param {string} $code unified $currency $code
-         * @param {int|null} $since the earliest time in ms to fetch withdrawals for
-         * @param {int|null} $limit the maximum number of withdrawals structures to retrieve
-         * @param {array} $params extra parameters specific to the bitopro api endpoint
-         * @return {[array]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure transaction structures}
-         */
-        if ($code === null) {
-            throw new ArgumentsRequired($this->id . ' fetchWithdrawals() requires the $code argument');
-        }
-        yield $this->load_markets();
-        $currency = $this->safe_currency($code);
-        $request = array(
-            'currency' => $currency['id'],
-            // 'endTimestamp' => 0,
-            // 'id' => '',
-            // 'statuses' => '', // 'PROCESSING,COMPLETE,EXPIRED,INVALID,WAIT_PROCESS,WAIT_CONFIRMATION,EMAIL_VERIFICATION,CANCELLED'
-        );
-        if ($since !== null) {
-            $request['startTimestamp'] = $since;
-        }
-        if ($limit !== null) {
-            $request['limit'] = $limit;
-        }
-        $response = yield $this->privateGetWalletWithdrawHistoryCurrency (array_merge($request, $params));
-        $result = $this->safe_value($response, 'data', array());
-        //
-        //     {
-        //         "data":array(
-        //             {
-        //                 "serial":"20220215BW14069838",
-        //                 "timestamp":"1644907716044",
-        //                 "address":"TKrwMaZaGiAvtXCFT41xHuusNcs4LPWS7w",
-        //                 "amount":"8.00000000",
-        //                 "fee":"2.00000000",
-        //                 "total":"10.00000000",
-        //                 "status":"COMPLETE",
-        //                 "txid":"50bf250c71a582f40cf699fb58bab978437ea9bdf7259ff8072e669aab30c32b",
-        //                 "protocol":"TRX",
-        //                 "id":"9925310345"
-        //             }
-        //         )
-        //     }
-        //
-        return $this->parse_transactions($result, $currency, $since, $limit, array( 'type' => 'withdrawal' ));
+        return Async\async(function () use ($code, $since, $limit, $params) {
+            /**
+             * fetch all withdrawals made from an account
+             * @param {string} $code unified $currency $code
+             * @param {int|null} $since the earliest time in ms to fetch withdrawals for
+             * @param {int|null} $limit the maximum number of withdrawals structures to retrieve
+             * @param {array} $params extra parameters specific to the bitopro api endpoint
+             * @return {[array]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure transaction structures}
+             */
+            if ($code === null) {
+                throw new ArgumentsRequired($this->id . ' fetchWithdrawals() requires the $code argument');
+            }
+            Async\await($this->load_markets());
+            $currency = $this->safe_currency($code);
+            $request = array(
+                'currency' => $currency['id'],
+                // 'endTimestamp' => 0,
+                // 'id' => '',
+                // 'statuses' => '', // 'PROCESSING,COMPLETE,EXPIRED,INVALID,WAIT_PROCESS,WAIT_CONFIRMATION,EMAIL_VERIFICATION,CANCELLED'
+            );
+            if ($since !== null) {
+                $request['startTimestamp'] = $since;
+            }
+            if ($limit !== null) {
+                $request['limit'] = $limit;
+            }
+            $response = Async\await($this->privateGetWalletWithdrawHistoryCurrency (array_merge($request, $params)));
+            $result = $this->safe_value($response, 'data', array());
+            //
+            //     {
+            //         "data":array(
+            //             {
+            //                 "serial":"20220215BW14069838",
+            //                 "timestamp":"1644907716044",
+            //                 "address":"TKrwMaZaGiAvtXCFT41xHuusNcs4LPWS7w",
+            //                 "amount":"8.00000000",
+            //                 "fee":"2.00000000",
+            //                 "total":"10.00000000",
+            //                 "status":"COMPLETE",
+            //                 "txid":"50bf250c71a582f40cf699fb58bab978437ea9bdf7259ff8072e669aab30c32b",
+            //                 "protocol":"TRX",
+            //                 "id":"9925310345"
+            //             }
+            //         )
+            //     }
+            //
+            return $this->parse_transactions($result, $currency, $since, $limit, array( 'type' => 'withdrawal' ));
+        }) ();
     }
 
     public function fetch_withdrawal($id, $code = null, $params = array ()) {
-        /**
-         * fetch data on a $currency withdrawal via the withdrawal $id
-         * @param {string} $id withdrawal $id
-         * @param {string} $code unified $currency $code of the $currency withdrawn, default is null
-         * @param {array} $params extra parameters specific to the bitopro api endpoint
-         * @return {array} a {@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure transaction structure}
-         */
-        if ($code === null) {
-            throw new ArgumentsRequired($this->id . ' fetchWithdrawal() requires the $code argument');
-        }
-        yield $this->load_markets();
-        $currency = $this->safe_currency($code);
-        $request = array(
-            'serial' => $id,
-            'currency' => $currency['id'],
-        );
-        $response = yield $this->privateGetWalletWithdrawCurrencySerial (array_merge($request, $params));
-        $result = $this->safe_value($response, 'data', array());
-        //
-        //     {
-        //         "data":{
-        //             "serial":"20220215BW14069838",
-        //             "address":"TKrwMaZaGiAvtXCFT41xHuusNcs4LPWS7w",
-        //             "amount":"8.00000000",
-        //             "fee":"2.00000000",
-        //             "total":"10.00000000",
-        //             "status":"COMPLETE",
-        //             "txid":"50bf250c71a582f40cf699fb58bab978437ea9bdf7259ff8072e669aab30c32b",
-        //             "protocol":"TRX",
-        //             "id":"9925310345",
-        //             "timestamp":"1644907716044"
-        //         }
-        //     }
-        //
-        return $this->parse_transaction($result, $currency);
+        return Async\async(function () use ($id, $code, $params) {
+            /**
+             * fetch data on a $currency withdrawal via the withdrawal $id
+             * @param {string} $id withdrawal $id
+             * @param {string} $code unified $currency $code of the $currency withdrawn, default is null
+             * @param {array} $params extra parameters specific to the bitopro api endpoint
+             * @return {array} a {@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure transaction structure}
+             */
+            if ($code === null) {
+                throw new ArgumentsRequired($this->id . ' fetchWithdrawal() requires the $code argument');
+            }
+            Async\await($this->load_markets());
+            $currency = $this->safe_currency($code);
+            $request = array(
+                'serial' => $id,
+                'currency' => $currency['id'],
+            );
+            $response = Async\await($this->privateGetWalletWithdrawCurrencySerial (array_merge($request, $params)));
+            $result = $this->safe_value($response, 'data', array());
+            //
+            //     {
+            //         "data":{
+            //             "serial":"20220215BW14069838",
+            //             "address":"TKrwMaZaGiAvtXCFT41xHuusNcs4LPWS7w",
+            //             "amount":"8.00000000",
+            //             "fee":"2.00000000",
+            //             "total":"10.00000000",
+            //             "status":"COMPLETE",
+            //             "txid":"50bf250c71a582f40cf699fb58bab978437ea9bdf7259ff8072e669aab30c32b",
+            //             "protocol":"TRX",
+            //             "id":"9925310345",
+            //             "timestamp":"1644907716044"
+            //         }
+            //     }
+            //
+            return $this->parse_transaction($result, $currency);
+        }) ();
     }
 
     public function withdraw($code, $amount, $address, $tag = null, $params = array ()) {
-        /**
-         * make a withdrawal
-         * @param {string} $code unified $currency $code
-         * @param {float} $amount the $amount to withdraw
-         * @param {string} $address the $address to withdraw to
-         * @param {string|null} $tag
-         * @param {array} $params extra parameters specific to the bitopro api endpoint
-         * @return {array} a {@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure transaction structure}
-         */
-        list($tag, $params) = $this->handle_withdraw_tag_and_params($tag, $params);
-        yield $this->load_markets();
-        $this->check_address($address);
-        $currency = $this->currency($code);
-        $request = array(
-            'currency' => $currency['id'],
-            'amount' => $this->number_to_string($amount),
-            'address' => $address,
-        );
-        if (is_array($params) && array_key_exists('network', $params)) {
-            $networks = $this->safe_value($this->options, 'networks', array());
-            $requestedNetwork = $this->safe_string_upper($params, 'network');
-            $params = $this->omit($params, array( 'network' ));
-            $networkId = $this->safe_string($networks, $requestedNetwork);
-            if ($networkId === null) {
-                throw new ExchangeError($this->id . ' invalid network ' . $requestedNetwork);
+        return Async\async(function () use ($code, $amount, $address, $tag, $params) {
+            /**
+             * make a withdrawal
+             * @param {string} $code unified $currency $code
+             * @param {float} $amount the $amount to withdraw
+             * @param {string} $address the $address to withdraw to
+             * @param {string|null} $tag
+             * @param {array} $params extra parameters specific to the bitopro api endpoint
+             * @return {array} a {@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure transaction structure}
+             */
+            list($tag, $params) = $this->handle_withdraw_tag_and_params($tag, $params);
+            Async\await($this->load_markets());
+            $this->check_address($address);
+            $currency = $this->currency($code);
+            $request = array(
+                'currency' => $currency['id'],
+                'amount' => $this->number_to_string($amount),
+                'address' => $address,
+            );
+            if (is_array($params) && array_key_exists('network', $params)) {
+                $networks = $this->safe_value($this->options, 'networks', array());
+                $requestedNetwork = $this->safe_string_upper($params, 'network');
+                $params = $this->omit($params, array( 'network' ));
+                $networkId = $this->safe_string($networks, $requestedNetwork);
+                if ($networkId === null) {
+                    throw new ExchangeError($this->id . ' invalid network ' . $requestedNetwork);
+                }
+                $request['protocol'] = $networkId;
             }
-            $request['protocol'] = $networkId;
-        }
-        if ($tag !== null) {
-            $request['message'] = $tag;
-        }
-        $response = yield $this->privatePostWalletWithdrawCurrency (array_merge($request, $params));
-        $result = $this->safe_value($response, 'data', array());
-        //
-        //     {
-        //         "data":{
-        //             "serial":"20220215BW14069838",
-        //             "currency":"USDT",
-        //             "protocol":"TRX",
-        //             "address":"TKrwMaZaGiAvtXCFT41xHuusNcs4LPWS7w",
-        //             "amount":"8",
-        //             "fee":"2",
-        //             "total":"10"
-        //         }
-        //     }
-        //
-        return $this->parse_transaction($result, $currency);
+            if ($tag !== null) {
+                $request['message'] = $tag;
+            }
+            $response = Async\await($this->privatePostWalletWithdrawCurrency (array_merge($request, $params)));
+            $result = $this->safe_value($response, 'data', array());
+            //
+            //     {
+            //         "data":{
+            //             "serial":"20220215BW14069838",
+            //             "currency":"USDT",
+            //             "protocol":"TRX",
+            //             "address":"TKrwMaZaGiAvtXCFT41xHuusNcs4LPWS7w",
+            //             "amount":"8",
+            //             "fee":"2",
+            //             "total":"10"
+            //         }
+            //     }
+            //
+            return $this->parse_transaction($result, $currency);
+        }) ();
     }
 
     public function sign($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {

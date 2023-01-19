@@ -38,6 +38,32 @@ class ftxus extends ftx {
                 'docs' => 'https://docs.ftx.us/',
                 'fees' => 'https://help.ftx.us/hc/en-us/articles/360043579273-Fees',
             ),
+            'fees' => array(
+                'trading' => array(
+                    'tierBased' => true,
+                    'percentage' => true,
+                    'maker' => $this->parse_number('0.001'),
+                    'taker' => $this->parse_number('0.002'),
+                    'tiers' => array(
+                        'taker' => array(
+                            array( $this->parse_number('0'), $this->parse_number('0.002') ),
+                            array( $this->parse_number('100000'), $this->parse_number('0.0018') ),
+                            array( $this->parse_number('1000000'), $this->parse_number('0.0015') ),
+                            array( $this->parse_number('5000000'), $this->parse_number('0.001') ),
+                            array( $this->parse_number('10000000'), $this->parse_number('0.0008') ),
+                            array( $this->parse_number('15000000'), $this->parse_number('0.0006') ),
+                        ),
+                        'maker' => array(
+                            array( $this->parse_number('0'), $this->parse_number('0.001') ),
+                            array( $this->parse_number('100000'), $this->parse_number('0.0006') ),
+                            array( $this->parse_number('1000000'), $this->parse_number('0.0005') ),
+                            array( $this->parse_number('5000000'), $this->parse_number('0.0004') ),
+                            array( $this->parse_number('10000000'), $this->parse_number('0.0002') ),
+                            array( $this->parse_number('15000000'), $this->parse_number('0.0') ),
+                        ),
+                    ),
+                ),
+            ),
         ));
     }
 }

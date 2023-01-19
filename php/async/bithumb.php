@@ -6,10 +6,11 @@ namespace ccxt\async;
 // https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 use Exception; // a common import
-use \ccxt\ExchangeError;
-use \ccxt\ArgumentsRequired;
-use \ccxt\InvalidOrder;
-use \ccxt\Precise;
+use ccxt\ExchangeError;
+use ccxt\ArgumentsRequired;
+use ccxt\InvalidOrder;
+use ccxt\Precise;
+use React\Async;
 
 class bithumb extends Exchange {
 
@@ -175,85 +176,87 @@ class bithumb extends Exchange {
     }
 
     public function fetch_markets($params = array ()) {
-        /**
-         * retrieves $data on all markets for bithumb
-         * @param {array} $params extra parameters specific to the exchange api endpoint
-         * @return {[array]} an array of objects representing $market $data
-         */
-        $result = array();
-        $quoteCurrencies = $this->safe_value($this->options, 'quoteCurrencies', array());
-        $quotes = is_array($quoteCurrencies) ? array_keys($quoteCurrencies) : array();
-        for ($i = 0; $i < count($quotes); $i++) {
-            $quote = $quotes[$i];
-            $quoteId = $quote;
-            $extension = $this->safe_value($quoteCurrencies, $quote, array());
-            $method = 'publicGetTickerALL' . $quote;
-            $response = yield $this->$method ($params);
-            $data = $this->safe_value($response, 'data');
-            $currencyIds = is_array($data) ? array_keys($data) : array();
-            for ($j = 0; $j < count($currencyIds); $j++) {
-                $currencyId = $currencyIds[$j];
-                if ($currencyId === 'date') {
-                    continue;
-                }
-                $market = $data[$currencyId];
-                $base = $this->safe_currency_code($currencyId);
-                $active = true;
-                if (gettype($market) === 'array' && array_keys($market) === array_keys(array_keys($market))) {
-                    $numElements = count($market);
-                    if ($numElements === 0) {
-                        $active = false;
+        return Async\async(function () use ($params) {
+            /**
+             * retrieves $data on all markets for bithumb
+             * @param {array} $params extra parameters specific to the exchange api endpoint
+             * @return {[array]} an array of objects representing $market $data
+             */
+            $result = array();
+            $quoteCurrencies = $this->safe_value($this->options, 'quoteCurrencies', array());
+            $quotes = is_array($quoteCurrencies) ? array_keys($quoteCurrencies) : array();
+            for ($i = 0; $i < count($quotes); $i++) {
+                $quote = $quotes[$i];
+                $quoteId = $quote;
+                $extension = $this->safe_value($quoteCurrencies, $quote, array());
+                $method = 'publicGetTickerALL' . $quote;
+                $response = Async\await($this->$method ($params));
+                $data = $this->safe_value($response, 'data');
+                $currencyIds = is_array($data) ? array_keys($data) : array();
+                for ($j = 0; $j < count($currencyIds); $j++) {
+                    $currencyId = $currencyIds[$j];
+                    if ($currencyId === 'date') {
+                        continue;
                     }
+                    $market = $data[$currencyId];
+                    $base = $this->safe_currency_code($currencyId);
+                    $active = true;
+                    if (gettype($market) === 'array' && array_keys($market) === array_keys(array_keys($market))) {
+                        $numElements = count($market);
+                        if ($numElements === 0) {
+                            $active = false;
+                        }
+                    }
+                    $entry = $this->deep_extend(array(
+                        'id' => $currencyId,
+                        'symbol' => $base . '/' . $quote,
+                        'base' => $base,
+                        'quote' => $quote,
+                        'settle' => null,
+                        'baseId' => $currencyId,
+                        'quoteId' => $quoteId,
+                        'settleId' => null,
+                        'type' => 'spot',
+                        'spot' => true,
+                        'margin' => false,
+                        'swap' => false,
+                        'future' => false,
+                        'option' => false,
+                        'active' => $active,
+                        'contract' => false,
+                        'linear' => null,
+                        'inverse' => null,
+                        'contractSize' => null,
+                        'expiry' => null,
+                        'expiryDateTime' => null,
+                        'strike' => null,
+                        'optionType' => null,
+                        'precision' => array(
+                            'amount' => intval('4'),
+                            'price' => intval('4'),
+                        ),
+                        'limits' => array(
+                            'leverage' => array(
+                                'min' => null,
+                                'max' => null,
+                            ),
+                            'amount' => array(
+                                'min' => null,
+                                'max' => null,
+                            ),
+                            'price' => array(
+                                'min' => null,
+                                'max' => null,
+                            ),
+                            'cost' => array(), // set via options
+                        ),
+                        'info' => $market,
+                    ), $extension);
+                    $result[] = $entry;
                 }
-                $entry = $this->deep_extend(array(
-                    'id' => $currencyId,
-                    'symbol' => $base . '/' . $quote,
-                    'base' => $base,
-                    'quote' => $quote,
-                    'settle' => null,
-                    'baseId' => $currencyId,
-                    'quoteId' => $quoteId,
-                    'settleId' => null,
-                    'type' => 'spot',
-                    'spot' => true,
-                    'margin' => false,
-                    'swap' => false,
-                    'future' => false,
-                    'option' => false,
-                    'active' => $active,
-                    'contract' => false,
-                    'linear' => null,
-                    'inverse' => null,
-                    'contractSize' => null,
-                    'expiry' => null,
-                    'expiryDateTime' => null,
-                    'strike' => null,
-                    'optionType' => null,
-                    'precision' => array(
-                        'amount' => intval('4'),
-                        'price' => intval('4'),
-                    ),
-                    'limits' => array(
-                        'leverage' => array(
-                            'min' => null,
-                            'max' => null,
-                        ),
-                        'amount' => array(
-                            'min' => null,
-                            'max' => null,
-                        ),
-                        'price' => array(
-                            'min' => null,
-                            'max' => null,
-                        ),
-                        'cost' => array(), // set via options
-                    ),
-                    'info' => $market,
-                ), $extension);
-                $result[] = $entry;
             }
-        }
-        return $result;
+            return $result;
+        }) ();
     }
 
     public function parse_balance($response) {
@@ -274,59 +277,63 @@ class bithumb extends Exchange {
     }
 
     public function fetch_balance($params = array ()) {
-        /**
-         * query for balance and get the amount of funds available for trading or funds locked in orders
-         * @param {array} $params extra parameters specific to the bithumb api endpoint
-         * @return {array} a ~@link https://docs.ccxt.com/en/latest/manual.html?#balance-structure balance structure~
-         */
-        yield $this->load_markets();
-        $request = array(
-            'currency' => 'ALL',
-        );
-        $response = yield $this->privatePostInfoBalance (array_merge($request, $params));
-        return $this->parse_balance($response);
+        return Async\async(function () use ($params) {
+            /**
+             * query for balance and get the amount of funds available for trading or funds locked in orders
+             * @param {array} $params extra parameters specific to the bithumb api endpoint
+             * @return {array} a ~@link https://docs.ccxt.com/en/latest/manual.html?#balance-structure balance structure~
+             */
+            Async\await($this->load_markets());
+            $request = array(
+                'currency' => 'ALL',
+            );
+            $response = Async\await($this->privatePostInfoBalance (array_merge($request, $params)));
+            return $this->parse_balance($response);
+        }) ();
     }
 
     public function fetch_order_book($symbol, $limit = null, $params = array ()) {
-        /**
-         * fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other $data
-         * @param {string} $symbol unified $symbol of the $market to fetch the order book for
-         * @param {int|null} $limit the maximum amount of order book entries to return
-         * @param {array} $params extra parameters specific to the bithumb api endpoint
-         * @return {array} A dictionary of {@link https://docs.ccxt.com/en/latest/manual.html#order-book-structure order book structures} indexed by $market symbols
-         */
-        yield $this->load_markets();
-        $market = $this->market($symbol);
-        $request = array(
-            'currency' => $market['base'] . '_' . $market['quote'],
-        );
-        if ($limit !== null) {
-            $request['count'] = $limit; // default 30, max 30
-        }
-        $response = yield $this->publicGetOrderbookCurrency (array_merge($request, $params));
-        //
-        //     {
-        //         "status":"0000",
-        //         "data":{
-        //             "timestamp":"1587621553942",
-        //             "payment_currency":"KRW",
-        //             "order_currency":"BTC",
-        //             "bids":array(
-        //                 array("price":"8652000","quantity":"0.0043"),
-        //                 array("price":"8651000","quantity":"0.0049"),
-        //                 array("price":"8650000","quantity":"8.4791"),
-        //             ),
-        //             "asks":array(
-        //                 array("price":"8654000","quantity":"0.119"),
-        //                 array("price":"8655000","quantity":"0.254"),
-        //                 array("price":"8658000","quantity":"0.119"),
-        //             )
-        //         }
-        //     }
-        //
-        $data = $this->safe_value($response, 'data', array());
-        $timestamp = $this->safe_integer($data, 'timestamp');
-        return $this->parse_order_book($data, $symbol, $timestamp, 'bids', 'asks', 'price', 'quantity');
+        return Async\async(function () use ($symbol, $limit, $params) {
+            /**
+             * fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other $data
+             * @param {string} $symbol unified $symbol of the $market to fetch the order book for
+             * @param {int|null} $limit the maximum amount of order book entries to return
+             * @param {array} $params extra parameters specific to the bithumb api endpoint
+             * @return {array} A dictionary of {@link https://docs.ccxt.com/en/latest/manual.html#order-book-structure order book structures} indexed by $market symbols
+             */
+            Async\await($this->load_markets());
+            $market = $this->market($symbol);
+            $request = array(
+                'currency' => $market['base'] . '_' . $market['quote'],
+            );
+            if ($limit !== null) {
+                $request['count'] = $limit; // default 30, max 30
+            }
+            $response = Async\await($this->publicGetOrderbookCurrency (array_merge($request, $params)));
+            //
+            //     {
+            //         "status":"0000",
+            //         "data":{
+            //             "timestamp":"1587621553942",
+            //             "payment_currency":"KRW",
+            //             "order_currency":"BTC",
+            //             "bids":array(
+            //                 array("price":"8652000","quantity":"0.0043"),
+            //                 array("price":"8651000","quantity":"0.0049"),
+            //                 array("price":"8650000","quantity":"8.4791"),
+            //             ),
+            //             "asks":array(
+            //                 array("price":"8654000","quantity":"0.119"),
+            //                 array("price":"8655000","quantity":"0.254"),
+            //                 array("price":"8658000","quantity":"0.119"),
+            //             )
+            //         }
+            //     }
+            //
+            $data = $this->safe_value($response, 'data', array());
+            $timestamp = $this->safe_integer($data, 'timestamp');
+            return $this->parse_order_book($data, $symbol, $timestamp, 'bids', 'asks', 'price', 'quantity');
+        }) ();
     }
 
     public function parse_ticker($ticker, $market = null) {
@@ -379,89 +386,93 @@ class bithumb extends Exchange {
     }
 
     public function fetch_tickers($symbols = null, $params = array ()) {
-        /**
-         * fetches price $tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each $market
-         * @param {[string]|null} $symbols unified $symbols of the markets to fetch the $ticker for, all $market $tickers are returned if not assigned
-         * @param {array} $params extra parameters specific to the bithumb api endpoint
-         * @return {array} an array of {@link https://docs.ccxt.com/en/latest/manual.html#$ticker-structure $ticker structures}
-         */
-        yield $this->load_markets();
-        $symbols = $this->market_symbols($symbols);
-        $response = yield $this->publicGetTickerAll ($params);
-        //
-        //     {
-        //         "status":"0000",
-        //         "data":{
-        //             "BTC":array(
-        //                 "opening_price":"9045000",
-        //                 "closing_price":"9132000",
-        //                 "min_price":"8938000",
-        //                 "max_price":"9168000",
-        //                 "units_traded":"4619.79967497",
-        //                 "acc_trade_value":"42021363832.5187",
-        //                 "prev_closing_price":"9041000",
-        //                 "units_traded_24H":"8793.5045804",
-        //                 "acc_trade_value_24H":"78933458515.4962",
-        //                 "fluctate_24H":"530000",
-        //                 "fluctate_rate_24H":"6.16"
-        //             ),
-        //             "date":"1587710878669"
-        //         }
-        //     }
-        //
-        $result = array();
-        $data = $this->safe_value($response, 'data', array());
-        $timestamp = $this->safe_integer($data, 'date');
-        $tickers = $this->omit($data, 'date');
-        $ids = is_array($tickers) ? array_keys($tickers) : array();
-        for ($i = 0; $i < count($ids); $i++) {
-            $id = $ids[$i];
-            $market = $this->safe_market($id);
-            $symbol = $market['symbol'];
-            $ticker = $tickers[$id];
-            $isArray = gettype($ticker) === 'array' && array_keys($ticker) === array_keys(array_keys($ticker));
-            if (!$isArray) {
-                $ticker['date'] = $timestamp;
-                $result[$symbol] = $this->parse_ticker($ticker, $market);
+        return Async\async(function () use ($symbols, $params) {
+            /**
+             * fetches price $tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each $market
+             * @param {[string]|null} $symbols unified $symbols of the markets to fetch the $ticker for, all $market $tickers are returned if not assigned
+             * @param {array} $params extra parameters specific to the bithumb api endpoint
+             * @return {array} an array of {@link https://docs.ccxt.com/en/latest/manual.html#$ticker-structure $ticker structures}
+             */
+            Async\await($this->load_markets());
+            $symbols = $this->market_symbols($symbols);
+            $response = Async\await($this->publicGetTickerAll ($params));
+            //
+            //     {
+            //         "status":"0000",
+            //         "data":{
+            //             "BTC":array(
+            //                 "opening_price":"9045000",
+            //                 "closing_price":"9132000",
+            //                 "min_price":"8938000",
+            //                 "max_price":"9168000",
+            //                 "units_traded":"4619.79967497",
+            //                 "acc_trade_value":"42021363832.5187",
+            //                 "prev_closing_price":"9041000",
+            //                 "units_traded_24H":"8793.5045804",
+            //                 "acc_trade_value_24H":"78933458515.4962",
+            //                 "fluctate_24H":"530000",
+            //                 "fluctate_rate_24H":"6.16"
+            //             ),
+            //             "date":"1587710878669"
+            //         }
+            //     }
+            //
+            $result = array();
+            $data = $this->safe_value($response, 'data', array());
+            $timestamp = $this->safe_integer($data, 'date');
+            $tickers = $this->omit($data, 'date');
+            $ids = is_array($tickers) ? array_keys($tickers) : array();
+            for ($i = 0; $i < count($ids); $i++) {
+                $id = $ids[$i];
+                $market = $this->safe_market($id);
+                $symbol = $market['symbol'];
+                $ticker = $tickers[$id];
+                $isArray = gettype($ticker) === 'array' && array_keys($ticker) === array_keys(array_keys($ticker));
+                if (!$isArray) {
+                    $ticker['date'] = $timestamp;
+                    $result[$symbol] = $this->parse_ticker($ticker, $market);
+                }
             }
-        }
-        return $this->filter_by_array($result, 'symbol', $symbols);
+            return $this->filter_by_array($result, 'symbol', $symbols);
+        }) ();
     }
 
     public function fetch_ticker($symbol, $params = array ()) {
-        /**
-         * fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific $market
-         * @param {string} $symbol unified $symbol of the $market to fetch the ticker for
-         * @param {array} $params extra parameters specific to the bithumb api endpoint
-         * @return {array} a {@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure ticker structure}
-         */
-        yield $this->load_markets();
-        $market = $this->market($symbol);
-        $request = array(
-            'currency' => $market['base'],
-        );
-        $response = yield $this->publicGetTickerCurrency (array_merge($request, $params));
-        //
-        //     {
-        //         "status":"0000",
-        //         "data":{
-        //             "opening_price":"227100",
-        //             "closing_price":"228400",
-        //             "min_price":"222300",
-        //             "max_price":"230000",
-        //             "units_traded":"82618.56075337",
-        //             "acc_trade_value":"18767376138.6031",
-        //             "prev_closing_price":"227100",
-        //             "units_traded_24H":"151871.13484676",
-        //             "acc_trade_value_24H":"34247610416.8974",
-        //             "fluctate_24H":"8700",
-        //             "fluctate_rate_24H":"3.96",
-        //             "date":"1587710327264"
-        //         }
-        //     }
-        //
-        $data = $this->safe_value($response, 'data', array());
-        return $this->parse_ticker($data, $market);
+        return Async\async(function () use ($symbol, $params) {
+            /**
+             * fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific $market
+             * @param {string} $symbol unified $symbol of the $market to fetch the ticker for
+             * @param {array} $params extra parameters specific to the bithumb api endpoint
+             * @return {array} a {@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure ticker structure}
+             */
+            Async\await($this->load_markets());
+            $market = $this->market($symbol);
+            $request = array(
+                'currency' => $market['base'],
+            );
+            $response = Async\await($this->publicGetTickerCurrency (array_merge($request, $params)));
+            //
+            //     {
+            //         "status":"0000",
+            //         "data":{
+            //             "opening_price":"227100",
+            //             "closing_price":"228400",
+            //             "min_price":"222300",
+            //             "max_price":"230000",
+            //             "units_traded":"82618.56075337",
+            //             "acc_trade_value":"18767376138.6031",
+            //             "prev_closing_price":"227100",
+            //             "units_traded_24H":"151871.13484676",
+            //             "acc_trade_value_24H":"34247610416.8974",
+            //             "fluctate_24H":"8700",
+            //             "fluctate_rate_24H":"3.96",
+            //             "date":"1587710327264"
+            //         }
+            //     }
+            //
+            $data = $this->safe_value($response, 'data', array());
+            return $this->parse_ticker($data, $market);
+        }) ();
     }
 
     public function parse_ohlcv($ohlcv, $market = null) {
@@ -486,47 +497,49 @@ class bithumb extends Exchange {
     }
 
     public function fetch_ohlcv($symbol, $timeframe = '1m', $since = null, $limit = null, $params = array ()) {
-        /**
-         * fetches historical candlestick $data containing the open, high, low, and close price, and the volume of a $market
-         * @param {string} $symbol unified $symbol of the $market to fetch OHLCV $data for
-         * @param {string} $timeframe the length of time each candle represents
-         * @param {int|null} $since timestamp in ms of the earliest candle to fetch
-         * @param {int|null} $limit the maximum amount of candles to fetch
-         * @param {array} $params extra parameters specific to the bithumb api endpoint
-         * @return {[[int]]} A list of candles ordered as timestamp, open, high, low, close, volume
-         */
-        yield $this->load_markets();
-        $market = $this->market($symbol);
-        $request = array(
-            'currency' => $market['base'],
-            'interval' => $this->timeframes[$timeframe],
-        );
-        $response = yield $this->publicGetCandlestickCurrencyInterval (array_merge($request, $params));
-        //
-        //     {
-        //         'status' => '0000',
-        //         'data' => {
-        //             array(
-        //                 1576823400000, // 기준 시간
-        //                 '8284000', // 시가
-        //                 '8286000', // 종가
-        //                 '8289000', // 고가
-        //                 '8276000', // 저가
-        //                 '15.41503692' // 거래량
-        //             ),
-        //             array(
-        //                 1576824000000, // 기준 시간
-        //                 '8284000', // 시가
-        //                 '8281000', // 종가
-        //                 '8289000', // 고가
-        //                 '8275000', // 저가
-        //                 '6.19584467' // 거래량
-        //             ),
-        //         }
-        //     }
-        //
-        $data = $this->safe_value($response, 'data', array());
-        return $this->parse_ohlcvs($data, $market, $timeframe, $since, $limit);
+        return Async\async(function () use ($symbol, $timeframe, $since, $limit, $params) {
+            /**
+             * fetches historical candlestick $data containing the open, high, low, and close price, and the volume of a $market
+             * @param {string} $symbol unified $symbol of the $market to fetch OHLCV $data for
+             * @param {string} $timeframe the length of time each candle represents
+             * @param {int|null} $since timestamp in ms of the earliest candle to fetch
+             * @param {int|null} $limit the maximum amount of candles to fetch
+             * @param {array} $params extra parameters specific to the bithumb api endpoint
+             * @return {[[int]]} A list of candles ordered as timestamp, open, high, low, close, volume
+             */
+            Async\await($this->load_markets());
+            $market = $this->market($symbol);
+            $request = array(
+                'currency' => $market['base'],
+                'interval' => $this->timeframes[$timeframe],
+            );
+            $response = Async\await($this->publicGetCandlestickCurrencyInterval (array_merge($request, $params)));
+            //
+            //     {
+            //         'status' => '0000',
+            //         'data' => {
+            //             array(
+            //                 1576823400000, // 기준 시간
+            //                 '8284000', // 시가
+            //                 '8286000', // 종가
+            //                 '8289000', // 고가
+            //                 '8276000', // 저가
+            //                 '15.41503692' // 거래량
+            //             ),
+            //             array(
+            //                 1576824000000, // 기준 시간
+            //                 '8284000', // 시가
+            //                 '8281000', // 종가
+            //                 '8289000', // 고가
+            //                 '8275000', // 저가
+            //                 '6.19584467' // 거래량
+            //             ),
+            //         }
+            //     }
+            //
+            $data = $this->safe_value($response, 'data', array());
+            return $this->parse_ohlcvs($data, $market, $timeframe, $since, $limit);
+        }) ();
     }
 
     public function parse_trade($trade, $market = null) {
@@ -608,128 +621,134 @@ class bithumb extends Exchange {
     }
 
     public function fetch_trades($symbol, $since = null, $limit = null, $params = array ()) {
-        /**
-         * get the list of most recent trades for a particular $symbol
-         * @param {string} $symbol unified $symbol of the $market to fetch trades for
-         * @param {int|null} $since timestamp in ms of the earliest trade to fetch
-         * @param {int|null} $limit the maximum amount of trades to fetch
-         * @param {array} $params extra parameters specific to the bithumb api endpoint
-         * @return {[array]} a list of ~@link https://docs.ccxt.com/en/latest/manual.html?#public-trades trade structures~
-         */
-        yield $this->load_markets();
-        $market = $this->market($symbol);
-        $request = array(
-            'currency' => $market['base'],
-        );
-        if ($limit === null) {
-            $request['count'] = $limit; // default 20, max 100
-        }
-        $response = yield $this->publicGetTransactionHistoryCurrency (array_merge($request, $params));
-        //
-        //     {
-        //         "status":"0000",
-        //         "data":array(
-        //             array(
-        //                 "transaction_date":"2020-04-23 22:21:46",
-        //                 "type":"ask",
-        //                 "units_traded":"0.0125",
-        //                 "price":"8667000",
-        //                 "total":"108337"
-        //             ),
-        //         )
-        //     }
-        //
-        $data = $this->safe_value($response, 'data', array());
-        return $this->parse_trades($data, $market, $since, $limit);
+        return Async\async(function () use ($symbol, $since, $limit, $params) {
+            /**
+             * get the list of most recent trades for a particular $symbol
+             * @param {string} $symbol unified $symbol of the $market to fetch trades for
+             * @param {int|null} $since timestamp in ms of the earliest trade to fetch
+             * @param {int|null} $limit the maximum amount of trades to fetch
+             * @param {array} $params extra parameters specific to the bithumb api endpoint
+             * @return {[array]} a list of ~@link https://docs.ccxt.com/en/latest/manual.html?#public-trades trade structures~
+             */
+            Async\await($this->load_markets());
+            $market = $this->market($symbol);
+            $request = array(
+                'currency' => $market['base'],
+            );
+            if ($limit === null) {
+                $request['count'] = $limit; // default 20, max 100
+            }
+            $response = Async\await($this->publicGetTransactionHistoryCurrency (array_merge($request, $params)));
+            //
+            //     {
+            //         "status":"0000",
+            //         "data":array(
+            //             array(
+            //                 "transaction_date":"2020-04-23 22:21:46",
+            //                 "type":"ask",
+            //                 "units_traded":"0.0125",
+            //                 "price":"8667000",
+            //                 "total":"108337"
+            //             ),
+            //         )
+            //     }
+            //
+            $data = $this->safe_value($response, 'data', array());
+            return $this->parse_trades($data, $market, $since, $limit);
+        }) ();
     }
 
     public function create_order($symbol, $type, $side, $amount, $price = null, $params = array ()) {
-        /**
-         * create a trade order
-         * @param {string} $symbol unified $symbol of the $market to create an order in
-         * @param {string} $type 'market' or 'limit'
-         * @param {string} $side 'buy' or 'sell'
-         * @param {float} $amount how much of currency you want to trade in units of base currency
-         * @param {float|null} $price the $price at which the order is to be fullfilled, in units of the quote currency, ignored in $market orders
-         * @param {array} $params extra parameters specific to the bithumb api endpoint
-         * @return {array} an {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structure}
-         */
-        yield $this->load_markets();
-        $market = $this->market($symbol);
-        $request = array(
-            'order_currency' => $market['id'],
-            'payment_currency' => $market['quote'],
-            'units' => $amount,
-        );
-        $method = 'privatePostTradePlace';
-        if ($type === 'limit') {
-            $request['price'] = $price;
-            $request['type'] = ($side === 'buy') ? 'bid' : 'ask';
-        } else {
-            $method = 'privatePostTradeMarket' . $this->capitalize($side);
-        }
-        $response = yield $this->$method (array_merge($request, $params));
-        $id = $this->safe_string($response, 'order_id');
-        if ($id === null) {
-            throw new InvalidOrder($this->id . ' createOrder() did not return an order id');
-        }
-        return array(
-            'info' => $response,
-            'symbol' => $symbol,
-            'type' => $type,
-            'side' => $side,
-            'id' => $id,
-        );
+        return Async\async(function () use ($symbol, $type, $side, $amount, $price, $params) {
+            /**
+             * create a trade order
+             * @param {string} $symbol unified $symbol of the $market to create an order in
+             * @param {string} $type 'market' or 'limit'
+             * @param {string} $side 'buy' or 'sell'
+             * @param {float} $amount how much of currency you want to trade in units of base currency
+             * @param {float|null} $price the $price at which the order is to be fullfilled, in units of the quote currency, ignored in $market orders
+             * @param {array} $params extra parameters specific to the bithumb api endpoint
+             * @return {array} an {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structure}
+             */
+            Async\await($this->load_markets());
+            $market = $this->market($symbol);
+            $request = array(
+                'order_currency' => $market['id'],
+                'payment_currency' => $market['quote'],
+                'units' => $amount,
+            );
+            $method = 'privatePostTradePlace';
+            if ($type === 'limit') {
+                $request['price'] = $price;
+                $request['type'] = ($side === 'buy') ? 'bid' : 'ask';
+            } else {
+                $method = 'privatePostTradeMarket' . $this->capitalize($side);
+            }
+            $response = Async\await($this->$method (array_merge($request, $params)));
+            $id = $this->safe_string($response, 'order_id');
+            if ($id === null) {
+                throw new InvalidOrder($this->id . ' createOrder() did not return an order id');
+            }
+            return array(
+                'info' => $response,
+                'symbol' => $symbol,
+                'type' => $type,
+                'side' => $side,
+                'id' => $id,
+            );
+        }) ();
     }
 
     public function fetch_order($id, $symbol = null, $params = array ()) {
-        /**
-         * fetches information on an order made by the user
-         * @param {string} $symbol unified $symbol of the $market the order was made in
-         * @param {array} $params extra parameters specific to the bithumb api endpoint
-         * @return {array} An {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structure}
-         */
-        if ($symbol === null) {
-            throw new ArgumentsRequired($this->id . ' fetchOrder() requires a $symbol argument');
-        }
-        yield $this->load_markets();
-        $market = $this->market($symbol);
-        $request = array(
-            'order_id' => $id,
-            'count' => 1,
-            'order_currency' => $market['base'],
-            'payment_currency' => $market['quote'],
-        );
-        $response = yield $this->privatePostInfoOrderDetail (array_merge($request, $params));
-        //
-        //     {
-        //         "status" => "0000",
-        //         "data" => {
-        //             order_date => '1603161798539254',
-        //             type => 'ask',
-        //             order_status => 'Cancel',
-        //             order_currency => 'BTC',
-        //             payment_currency => 'KRW',
-        //             watch_price => '0',
-        //             order_price => '13344000',
-        //             order_qty => '0.0125',
-        //             cancel_date => '1603161803809993',
-        //             cancel_type => '사용자취소',
-        //             contract => array(
-        //                 {
-        //                     transaction_date => '1603161799976383',
-        //                     price => '13344000',
-        //                     units => '0.0015',
-        //                     fee_currency => 'KRW',
-        //                     fee => '0',
-        //                     total => '20016'
-        //                 }
-        //             ),
-        //         }
-        //     }
-        //
-        $data = $this->safe_value($response, 'data');
-        return $this->parse_order(array_merge($data, array( 'order_id' => $id )), $market);
+        return Async\async(function () use ($id, $symbol, $params) {
+            /**
+             * fetches information on an order made by the user
+             * @param {string} $symbol unified $symbol of the $market the order was made in
+             * @param {array} $params extra parameters specific to the bithumb api endpoint
+             * @return {array} An {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structure}
+             */
+            if ($symbol === null) {
+                throw new ArgumentsRequired($this->id . ' fetchOrder() requires a $symbol argument');
+            }
+            Async\await($this->load_markets());
+            $market = $this->market($symbol);
+            $request = array(
+                'order_id' => $id,
+                'count' => 1,
+                'order_currency' => $market['base'],
+                'payment_currency' => $market['quote'],
+            );
+            $response = Async\await($this->privatePostInfoOrderDetail (array_merge($request, $params)));
+            //
+            //     {
+            //         "status" => "0000",
+            //         "data" => {
+            //             order_date => '1603161798539254',
+            //             type => 'ask',
+            //             order_status => 'Cancel',
+            //             order_currency => 'BTC',
+            //             payment_currency => 'KRW',
+            //             watch_price => '0',
+            //             order_price => '13344000',
+            //             order_qty => '0.0125',
+            //             cancel_date => '1603161803809993',
+            //             cancel_type => '사용자취소',
+            //             contract => array(
+            //                 {
+            //                     transaction_date => '1603161799976383',
+            //                     price => '13344000',
+            //                     units => '0.0015',
+            //                     fee_currency => 'KRW',
+            //                     fee => '0',
+            //                     total => '20016'
+            //                 }
+            //             ),
+            //         }
+            //     }
+            //
+            $data = $this->safe_value($response, 'data');
+            return $this->parse_order(array_merge($data, array( 'order_id' => $id )), $market);
+        }) ();
     }
 
     public function parse_order_status($status) {
@@ -840,78 +859,82 @@ class bithumb extends Exchange {
     }
 
     public function fetch_open_orders($symbol = null, $since = null, $limit = null, $params = array ()) {
-        /**
-         * fetch all unfilled currently open orders
-         * @param {string} $symbol unified $market $symbol
-         * @param {int|null} $since the earliest time in ms to fetch open orders for
-         * @param {int|null} $limit the maximum number of  open orders structures to retrieve
-         * @param {array} $params extra parameters specific to the bithumb api endpoint
-         * @return {[array]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structures}
-         */
-        if ($symbol === null) {
-            throw new ArgumentsRequired($this->id . ' fetchOpenOrders() requires a $symbol argument');
-        }
-        yield $this->load_markets();
-        $market = $this->market($symbol);
-        if ($limit === null) {
-            $limit = 100;
-        }
-        $request = array(
-            'count' => $limit,
-            'order_currency' => $market['base'],
-            'payment_currency' => $market['quote'],
-        );
-        if ($since !== null) {
-            $request['after'] = $since;
-        }
-        $response = yield $this->privatePostInfoOrders (array_merge($request, $params));
-        //
-        //     {
-        //         "status" => "0000",
-        //         "data" => array(
-        //             {
-        //                 "order_currency" => "BTC",
-        //                 "payment_currency" => "KRW",
-        //                 "order_id" => "C0101000007408440032",
-        //                 "order_date" => "1571728739360570",
-        //                 "type" => "bid",
-        //                 "units" => "5.0",
-        //                 "units_remaining" => "5.0",
-        //                 "price" => "501000",
-        //             }
-        //         )
-        //     }
-        //
-        $data = $this->safe_value($response, 'data', array());
-        return $this->parse_orders($data, $market, $since, $limit);
+        return Async\async(function () use ($symbol, $since, $limit, $params) {
+            /**
+             * fetch all unfilled currently open orders
+             * @param {string} $symbol unified $market $symbol
+             * @param {int|null} $since the earliest time in ms to fetch open orders for
+             * @param {int|null} $limit the maximum number of  open orders structures to retrieve
+             * @param {array} $params extra parameters specific to the bithumb api endpoint
+             * @return {[array]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structures}
+             */
+            if ($symbol === null) {
+                throw new ArgumentsRequired($this->id . ' fetchOpenOrders() requires a $symbol argument');
+            }
+            Async\await($this->load_markets());
+            $market = $this->market($symbol);
+            if ($limit === null) {
+                $limit = 100;
+            }
+            $request = array(
+                'count' => $limit,
+                'order_currency' => $market['base'],
+                'payment_currency' => $market['quote'],
+            );
+            if ($since !== null) {
+                $request['after'] = $since;
+            }
+            $response = Async\await($this->privatePostInfoOrders (array_merge($request, $params)));
+            //
+            //     {
+            //         "status" => "0000",
+            //         "data" => array(
+            //             {
+            //                 "order_currency" => "BTC",
+            //                 "payment_currency" => "KRW",
+            //                 "order_id" => "C0101000007408440032",
+            //                 "order_date" => "1571728739360570",
+            //                 "type" => "bid",
+            //                 "units" => "5.0",
+            //                 "units_remaining" => "5.0",
+            //                 "price" => "501000",
+            //             }
+            //         )
+            //     }
+            //
+            $data = $this->safe_value($response, 'data', array());
+            return $this->parse_orders($data, $market, $since, $limit);
+        }) ();
     }
 
     public function cancel_order($id, $symbol = null, $params = array ()) {
-        /**
-         * cancels an open order
-         * @param {string} $id order $id
-         * @param {string} $symbol unified $symbol of the $market the order was made in
-         * @param {array} $params extra parameters specific to the bithumb api endpoint
-         * @return {array} An {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structure}
-         */
-        $side_in_params = (is_array($params) && array_key_exists('side', $params));
-        if (!$side_in_params) {
-            throw new ArgumentsRequired($this->id . ' cancelOrder() requires a `$side` parameter (sell or buy)');
-        }
-        if ($symbol === null) {
-            throw new ArgumentsRequired($this->id . ' cancelOrder() requires a `$symbol` argument');
-        }
-        $market = $this->market($symbol);
-        $side = ($params['side'] === 'buy') ? 'bid' : 'ask';
-        $params = $this->omit($params, array( 'side', 'currency' ));
-        // https://github.com/ccxt/ccxt/issues/6771
-        $request = array(
-            'order_id' => $id,
-            'type' => $side,
-            'order_currency' => $market['base'],
-            'payment_currency' => $market['quote'],
-        );
-        return yield $this->privatePostTradeCancel (array_merge($request, $params));
+        return Async\async(function () use ($id, $symbol, $params) {
+            /**
+             * cancels an open order
+             * @param {string} $id order $id
+             * @param {string} $symbol unified $symbol of the $market the order was made in
+             * @param {array} $params extra parameters specific to the bithumb api endpoint
+             * @return {array} An {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structure}
+             */
+            $side_in_params = (is_array($params) && array_key_exists('side', $params));
+            if (!$side_in_params) {
+                throw new ArgumentsRequired($this->id . ' cancelOrder() requires a `$side` parameter (sell or buy)');
+            }
+            if ($symbol === null) {
+                throw new ArgumentsRequired($this->id . ' cancelOrder() requires a `$symbol` argument');
+            }
+            $market = $this->market($symbol);
+            $side = ($params['side'] === 'buy') ? 'bid' : 'ask';
+            $params = $this->omit($params, array( 'side', 'currency' ));
+            // https://github.com/ccxt/ccxt/issues/6771
+            $request = array(
+                'order_id' => $id,
+                'type' => $side,
+                'order_currency' => $market['base'],
+                'payment_currency' => $market['quote'],
+            );
+            return Async\await($this->privatePostTradeCancel (array_merge($request, $params)));
+        }) ();
     }
 
     public function cancel_unified_order($order, $params = array ()) {
@@ -922,37 +945,39 @@ class bithumb extends Exchange {
     }
 
     public function withdraw($code, $amount, $address, $tag = null, $params = array ()) {
-        /**
-         * make a withdrawal
-         * @param {string} $code unified $currency $code
-         * @param {float} $amount the $amount to withdraw
-         * @param {string} $address the $address to withdraw to
-         * @param {string|null} $tag
-         * @param {array} $params extra parameters specific to the bithumb api endpoint
-         * @return {array} a {@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure transaction structure}
-         */
-        list($tag, $params) = $this->handle_withdraw_tag_and_params($tag, $params);
-        $this->check_address($address);
-        yield $this->load_markets();
-        $currency = $this->currency($code);
-        $request = array(
-            'units' => $amount,
-            'address' => $address,
-            'currency' => $currency['id'],
-        );
-        if ($currency === 'XRP' || $currency === 'XMR' || $currency === 'EOS' || $currency === 'STEEM') {
-            $destination = $this->safe_string($params, 'destination');
-            if (($tag === null) && ($destination === null)) {
-                throw new ArgumentsRequired($this->id . ' ' . $code . ' withdraw() requires a $tag argument or an extra $destination param');
-            } elseif ($tag !== null) {
-                $request['destination'] = $tag;
+        return Async\async(function () use ($code, $amount, $address, $tag, $params) {
+            /**
+             * make a withdrawal
+             * @param {string} $code unified $currency $code
+             * @param {float} $amount the $amount to withdraw
+             * @param {string} $address the $address to withdraw to
+             * @param {string|null} $tag
+             * @param {array} $params extra parameters specific to the bithumb api endpoint
+             * @return {array} a {@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure transaction structure}
+             */
+            list($tag, $params) = $this->handle_withdraw_tag_and_params($tag, $params);
+            $this->check_address($address);
+            Async\await($this->load_markets());
+            $currency = $this->currency($code);
+            $request = array(
+                'units' => $amount,
+                'address' => $address,
+                'currency' => $currency['id'],
+            );
+            if ($currency === 'XRP' || $currency === 'XMR' || $currency === 'EOS' || $currency === 'STEEM') {
+                $destination = $this->safe_string($params, 'destination');
+                if (($tag === null) && ($destination === null)) {
+                    throw new ArgumentsRequired($this->id . ' ' . $code . ' withdraw() requires a $tag argument or an extra $destination param');
+                } elseif ($tag !== null) {
+                    $request['destination'] = $tag;
+                }
             }
-        }
-        $response = yield $this->privatePostTradeBtcWithdrawal (array_merge($request, $params));
-        //
-        // array( "status" : "0000")
-        //
-        return $this->parse_transaction($response, $currency);
+            $response = Async\await($this->privatePostTradeBtcWithdrawal (array_merge($request, $params)));
+            //
+            // array( "status" : "0000")
+            //
+            return $this->parse_transaction($response, $currency);
+        }) ();
     }
 
     public function parse_transaction($transaction, $currency = null) {

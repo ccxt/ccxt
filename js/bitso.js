@@ -1314,7 +1314,8 @@ module.exports = class bitso extends Exchange {
          * @method
          * @name bitso#fetchTransactionFees
          * @description fetch transaction fees
-         * @param {[string]|undefined} codes not used by bitso fetchTransactionFees
+         * @see https://bitso.com/api_info#fees
+         * @param {[string]|undefined} codes list of unified currency codes
          * @param {object} params extra parameters specific to the bitso api endpoint
          * @returns {[object]} a list of [fee structures]{@link https://docs.ccxt.com/en/latest/manual.html#fee-structure}
          */
@@ -1363,28 +1364,43 @@ module.exports = class bitso extends Exchange {
         //        }
         //    }
         //
+        const result = {};
         const payload = this.safeValue (response, 'payload', {});
         const depositFees = this.safeValue (payload, 'deposit_fees', []);
-        const deposit = {};
         for (let i = 0; i < depositFees.length; i++) {
             const depositFee = depositFees[i];
             const currencyId = this.safeString (depositFee, 'currency');
             const code = this.safeCurrencyCode (currencyId);
-            deposit[code] = this.safeNumber (depositFee, 'fee');
+            if ((codes !== undefined) && !this.inArray (code, codes)) {
+                continue;
+            }
+            result[code] = {
+                'deposit': this.safeNumber (depositFee, 'fee'),
+                'withdraw': undefined,
+                'info': {
+                    'deposit': depositFee,
+                    'withdraw': undefined,
+                },
+            };
         }
-        const withdraw = {};
         const withdrawalFees = this.safeValue (payload, 'withdrawal_fees', []);
         const currencyIds = Object.keys (withdrawalFees);
         for (let i = 0; i < currencyIds.length; i++) {
             const currencyId = currencyIds[i];
             const code = this.safeCurrencyCode (currencyId);
-            withdraw[code] = this.safeNumber (withdrawalFees, currencyId);
+            if ((codes !== undefined) && !this.inArray (code, codes)) {
+                continue;
+            }
+            result[code] = {
+                'deposit': this.safeValue (result[code], 'deposit'),
+                'withdraw': this.safeNumber (withdrawalFees, currencyId),
+                'info': {
+                    'deposit': this.safeValue (result[code]['info'], 'deposit'),
+                    'withdraw': this.safeNumber (withdrawalFees, currencyId),
+                },
+            };
         }
-        return {
-            'info': response,
-            'deposit': deposit,
-            'withdraw': withdraw,
-        };
+        return result;
     }
 
     async withdraw (code, amount, address, tag = undefined, params = {}) {

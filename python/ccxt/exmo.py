@@ -696,12 +696,11 @@ class exmo(Exchange):
         now = self.milliseconds()
         if since is None:
             if limit is None:
-                raise ArgumentsRequired(self.id + ' fetchOHLCV() requires a since argument or a limit argument')
-            else:
-                if limit > maxLimit:
-                    raise BadRequest(self.id + ' fetchOHLCV() will serve ' + str(maxLimit) + ' candles at most')
-                request['from'] = int(now / 1000) - limit * duration - 1
-                request['to'] = int(now / 1000)
+                limit = 1000  # cap default at generous amount
+            if limit > maxLimit:
+                limit = maxLimit  # avoid exception
+            request['from'] = int(now / 1000) - limit * duration - 1
+            request['to'] = int(now / 1000)
         else:
             request['from'] = int(since / 1000) - 1
             if limit is None:
@@ -1434,6 +1433,12 @@ class exmo(Exchange):
         """
         self.load_markets()
         response = self.privatePostDepositAddress(params)
+        #
+        #     {
+        #         "TRX":"TBnwrf4ZdoYXE3C8L2KMs7YPSL3fg6q6V9",
+        #         "USDTTRC20":"TBnwrf4ZdoYXE3C8L2KMs7YPSL3fg6q6V9"
+        #     }
+        #
         depositAddress = self.safe_string(response, code)
         address = None
         tag = None

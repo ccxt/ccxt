@@ -6,8 +6,9 @@ namespace ccxt\async;
 // https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 use Exception; // a common import
-use \ccxt\ExchangeError;
-use \ccxt\NotSupported;
+use ccxt\ExchangeError;
+use ccxt\NotSupported;
+use React\Async;
 
 class alpaca extends Exchange {
 
@@ -208,261 +209,269 @@ class alpaca extends Exchange {
     }
 
     public function fetch_markets($params = array ()) {
-        /**
-         * retrieves data on all $markets for alpaca
-         * @param {array} $params extra parameters specific to the exchange api endpoint
-         * @return {[array]} an array of objects representing market data
-         */
-        $request = array(
-            'asset_class' => 'crypto',
-            'tradeable' => true,
-        );
-        $assets = yield $this->marketsGetAssetsPublicBeta (array_merge($request, $params));
-        //
-        //    array(
-        //        {
-        //           "id":"a3ba8ac0-166d-460b-b17a-1f035622dd47",
-        //           "class":"crypto",
-        //           "exchange":"FTXU",
-        //           "symbol":"DOGEUSD",
-        //           "name":"Dogecoin",
-        //           "status":"active",
-        //           "tradable":true,
-        //           "marginable":false,
-        //           "shortable":false,
-        //           "easy_to_borrow":false,
-        //           "fractionable":true,
-        //           "min_order_size":"1",
-        //           "min_trade_increment":"1",
-        //           "price_increment":"0.0000005"
-        //        }
-        //    )
-        //
-        $markets = array();
-        for ($i = 0; $i < count($assets); $i++) {
-            $asset = $assets[$i];
-            $marketId = $this->safe_string($asset, 'symbol');
-            $parts = explode('/', $marketId);
-            $baseId = $this->safe_string($parts, 0);
-            $quoteId = $this->safe_string($parts, 1);
-            $base = $this->safe_currency_code($baseId);
-            $quote = $this->safe_currency_code($quoteId);
-            $symbol = $base . '/' . $quote;
-            $status = $this->safe_string($asset, 'status');
-            $active = ($status === 'active');
-            $minAmount = $this->safe_number($asset, 'min_order_size');
-            $amount = $this->safe_number($asset, 'min_trade_increment');
-            $price = $this->safe_number($asset, 'price_increment');
-            $markets[] = array(
-                'id' => $marketId,
-                'symbol' => $symbol,
-                'base' => $base,
-                'quote' => $quote,
-                'settle' => null,
-                'baseId' => $baseId,
-                'quoteId' => $quoteId,
-                'settleId' => null,
-                'type' => 'spot',
-                'spot' => true,
-                'margin' => null,
-                'swap' => false,
-                'future' => false,
-                'option' => false,
-                'active' => $active,
-                'contract' => false,
-                'linear' => null,
-                'inverse' => null,
-                'contractSize' => null,
-                'expiry' => null,
-                'expiryDatetime' => null,
-                'strike' => null,
-                'optionType' => null,
-                'precision' => array(
-                    'amount' => $amount,
-                    'price' => $price,
-                ),
-                'limits' => array(
-                    'leverage' => array(
-                        'min' => null,
-                        'max' => null,
-                    ),
-                    'amount' => array(
-                        'min' => $minAmount,
-                        'max' => null,
-                    ),
-                    'price' => array(
-                        'min' => null,
-                        'max' => null,
-                    ),
-                    'cost' => array(
-                        'min' => null,
-                        'max' => null,
-                    ),
-                ),
-                'info' => $asset,
+        return Async\async(function () use ($params) {
+            /**
+             * retrieves data on all $markets for alpaca
+             * @param {array} $params extra parameters specific to the exchange api endpoint
+             * @return {[array]} an array of objects representing market data
+             */
+            $request = array(
+                'asset_class' => 'crypto',
+                'tradeable' => true,
             );
-        }
-        return $markets;
+            $assets = Async\await($this->marketsGetAssetsPublicBeta (array_merge($request, $params)));
+            //
+            //    array(
+            //        {
+            //           "id":"a3ba8ac0-166d-460b-b17a-1f035622dd47",
+            //           "class":"crypto",
+            //           "exchange":"FTXU",
+            //           "symbol":"DOGEUSD",
+            //           "name":"Dogecoin",
+            //           "status":"active",
+            //           "tradable":true,
+            //           "marginable":false,
+            //           "shortable":false,
+            //           "easy_to_borrow":false,
+            //           "fractionable":true,
+            //           "min_order_size":"1",
+            //           "min_trade_increment":"1",
+            //           "price_increment":"0.0000005"
+            //        }
+            //    )
+            //
+            $markets = array();
+            for ($i = 0; $i < count($assets); $i++) {
+                $asset = $assets[$i];
+                $marketId = $this->safe_string($asset, 'symbol');
+                $parts = explode('/', $marketId);
+                $baseId = $this->safe_string($parts, 0);
+                $quoteId = $this->safe_string($parts, 1);
+                $base = $this->safe_currency_code($baseId);
+                $quote = $this->safe_currency_code($quoteId);
+                $symbol = $base . '/' . $quote;
+                $status = $this->safe_string($asset, 'status');
+                $active = ($status === 'active');
+                $minAmount = $this->safe_number($asset, 'min_order_size');
+                $amount = $this->safe_number($asset, 'min_trade_increment');
+                $price = $this->safe_number($asset, 'price_increment');
+                $markets[] = array(
+                    'id' => $marketId,
+                    'symbol' => $symbol,
+                    'base' => $base,
+                    'quote' => $quote,
+                    'settle' => null,
+                    'baseId' => $baseId,
+                    'quoteId' => $quoteId,
+                    'settleId' => null,
+                    'type' => 'spot',
+                    'spot' => true,
+                    'margin' => null,
+                    'swap' => false,
+                    'future' => false,
+                    'option' => false,
+                    'active' => $active,
+                    'contract' => false,
+                    'linear' => null,
+                    'inverse' => null,
+                    'contractSize' => null,
+                    'expiry' => null,
+                    'expiryDatetime' => null,
+                    'strike' => null,
+                    'optionType' => null,
+                    'precision' => array(
+                        'amount' => $amount,
+                        'price' => $price,
+                    ),
+                    'limits' => array(
+                        'leverage' => array(
+                            'min' => null,
+                            'max' => null,
+                        ),
+                        'amount' => array(
+                            'min' => $minAmount,
+                            'max' => null,
+                        ),
+                        'price' => array(
+                            'min' => null,
+                            'max' => null,
+                        ),
+                        'cost' => array(
+                            'min' => null,
+                            'max' => null,
+                        ),
+                    ),
+                    'info' => $asset,
+                );
+            }
+            return $markets;
+        }) ();
     }
 
     public function fetch_trades($symbol, $since = null, $limit = null, $params = array ()) {
-        /**
-         * get the list of most recent $trades for a particular $symbol
-         * @param {string} $symbol unified $symbol of the $market to fetch $trades for
-         * @param {int|null} $since timestamp in ms of the earliest trade to fetch
-         * @param {int|null} $limit the maximum amount of $trades to fetch
-         * @param {array} $params extra parameters specific to the alpaca api endpoint
-         * @return {[array]} a list of ~@link https://docs.ccxt.com/en/latest/manual.html?#public-$trades trade structures~
-         */
-        yield $this->load_markets();
-        $market = $this->market($symbol);
-        $id = $market['id'];
-        $request = array(
-            'symbols' => $id,
-        );
-        if ($since !== null) {
-            $request['start'] = $this->iso8601($since);
-        }
-        if ($limit !== null) {
-            $request['limit'] = intval($limit);
-        }
-        $method = $this->safe_string($this->options, 'fetchTradesMethod', 'cryptoPublicGetCryptoTrades');
-        $response = yield $this->$method (array_merge($request, $params));
-        //
-        // {
-        //     "next_page_token":null,
-        //     "trades":{
-        //        "BTC/USD":array(
-        //           {
-        //              "i":36440704,
-        //              "p":22625,
-        //              "s":0.0001,
-        //              "t":"2022-07-21T11:47:31.073391Z",
-        //              "tks":"B"
-        //           }
-        //        )
-        //     }
-        // }
-        //
-        $trades = $this->safe_value($response, 'trades', array());
-        $symbolTrades = $this->safe_value($trades, $market['id'], array());
-        return $this->parse_trades($symbolTrades, $market, $since, $limit);
+        return Async\async(function () use ($symbol, $since, $limit, $params) {
+            /**
+             * get the list of most recent $trades for a particular $symbol
+             * @param {string} $symbol unified $symbol of the $market to fetch $trades for
+             * @param {int|null} $since timestamp in ms of the earliest trade to fetch
+             * @param {int|null} $limit the maximum amount of $trades to fetch
+             * @param {array} $params extra parameters specific to the alpaca api endpoint
+             * @return {[array]} a list of ~@link https://docs.ccxt.com/en/latest/manual.html?#public-$trades trade structures~
+             */
+            Async\await($this->load_markets());
+            $market = $this->market($symbol);
+            $id = $market['id'];
+            $request = array(
+                'symbols' => $id,
+            );
+            if ($since !== null) {
+                $request['start'] = $this->iso8601($since);
+            }
+            if ($limit !== null) {
+                $request['limit'] = intval($limit);
+            }
+            $method = $this->safe_string($this->options, 'fetchTradesMethod', 'cryptoPublicGetCryptoTrades');
+            $response = Async\await($this->$method (array_merge($request, $params)));
+            //
+            // {
+            //     "next_page_token":null,
+            //     "trades":{
+            //        "BTC/USD":array(
+            //           {
+            //              "i":36440704,
+            //              "p":22625,
+            //              "s":0.0001,
+            //              "t":"2022-07-21T11:47:31.073391Z",
+            //              "tks":"B"
+            //           }
+            //        )
+            //     }
+            // }
+            //
+            $trades = $this->safe_value($response, 'trades', array());
+            $symbolTrades = $this->safe_value($trades, $market['id'], array());
+            return $this->parse_trades($symbolTrades, $market, $since, $limit);
+        }) ();
     }
 
     public function fetch_order_book($symbol, $limit = null, $params = array ()) {
-        /**
-         * fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
-         * @param {string} $symbol unified $symbol of the $market to fetch the order book for
-         * @param {int|null} $limit the maximum amount of order book entries to return
-         * @param {array} $params extra parameters specific to the alpaca api endpoint
-         * @return {array} A dictionary of {@link https://docs.ccxt.com/en/latest/manual.html#order-book-structure order book structures} indexed by $market symbols
-         */
-        yield $this->load_markets();
-        $market = $this->market($symbol);
-        $id = $market['id'];
-        $request = array(
-            'symbols' => $id,
-        );
-        $response = yield $this->cryptoPublicGetCryptoLatestOrderbooks (array_merge($request, $params));
-        //
-        //   {
-        //       "orderbooks":{
-        //          "BTC/USD":{
-        //             "a":array(
-        //                array(
-        //                   "p":22208,
-        //                   "s":0.0051
-        //                ),
-        //                array(
-        //                   "p":22209,
-        //                   "s":0.1123
-        //                ),
-        //                {
-        //                   "p":22210,
-        //                   "s":0.2465
-        //                }
-        //             ),
-        //             "b":array(
-        //                array(
-        //                   "p":22203,
-        //                   "s":0.395
-        //                ),
-        //                array(
-        //                   "p":22202,
-        //                   "s":0.2465
-        //                ),
-        //                {
-        //                   "p":22201,
-        //                   "s":0.6455
-        //                }
-        //             ),
-        //             "t":"2022-07-19T13:41:55.13210112Z"
-        //          }
-        //       }
-        //   }
-        //
-        $orderbooks = $this->safe_value($response, 'orderbooks', array());
-        $rawOrderbook = $this->safe_value($orderbooks, $id, array());
-        $timestamp = $this->parse8601($this->safe_string($rawOrderbook, 't'));
-        return $this->parse_order_book($rawOrderbook, $market['symbol'], $timestamp, 'b', 'a', 'p', 's');
+        return Async\async(function () use ($symbol, $limit, $params) {
+            /**
+             * fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+             * @param {string} $symbol unified $symbol of the $market to fetch the order book for
+             * @param {int|null} $limit the maximum amount of order book entries to return
+             * @param {array} $params extra parameters specific to the alpaca api endpoint
+             * @return {array} A dictionary of {@link https://docs.ccxt.com/en/latest/manual.html#order-book-structure order book structures} indexed by $market symbols
+             */
+            Async\await($this->load_markets());
+            $market = $this->market($symbol);
+            $id = $market['id'];
+            $request = array(
+                'symbols' => $id,
+            );
+            $response = Async\await($this->cryptoPublicGetCryptoLatestOrderbooks (array_merge($request, $params)));
+            //
+            //   {
+            //       "orderbooks":{
+            //          "BTC/USD":{
+            //             "a":array(
+            //                array(
+            //                   "p":22208,
+            //                   "s":0.0051
+            //                ),
+            //                array(
+            //                   "p":22209,
+            //                   "s":0.1123
+            //                ),
+            //                {
+            //                   "p":22210,
+            //                   "s":0.2465
+            //                }
+            //             ),
+            //             "b":array(
+            //                array(
+            //                   "p":22203,
+            //                   "s":0.395
+            //                ),
+            //                array(
+            //                   "p":22202,
+            //                   "s":0.2465
+            //                ),
+            //                {
+            //                   "p":22201,
+            //                   "s":0.6455
+            //                }
+            //             ),
+            //             "t":"2022-07-19T13:41:55.13210112Z"
+            //          }
+            //       }
+            //   }
+            //
+            $orderbooks = $this->safe_value($response, 'orderbooks', array());
+            $rawOrderbook = $this->safe_value($orderbooks, $id, array());
+            $timestamp = $this->parse8601($this->safe_string($rawOrderbook, 't'));
+            return $this->parse_order_book($rawOrderbook, $market['symbol'], $timestamp, 'b', 'a', 'p', 's');
+        }) ();
     }
 
     public function fetch_ohlcv($symbol, $timeframe = '1m', $since = null, $limit = null, $params = array ()) {
-        /**
-         * fetches historical candlestick data containing the open, high, low, and close price, and the volume of a $market
-         * @param {string} $symbol unified $symbol of the $market to fetch OHLCV data for
-         * @param {string} $timeframe the length of time each candle represents
-         * @param {int|null} $since timestamp in ms of the earliest candle to fetch
-         * @param {int|null} $limit the maximum amount of candles to fetch
-         * @param {array} $params extra parameters specific to the alpha api endpoint
-         * @return {[[int]]} A list of candles ordered as timestamp, open, high, low, close, volume
-         */
-        yield $this->load_markets();
-        $market = $this->market($symbol);
-        $request = array(
-            'symbols' => $market['id'],
-            'timeframe' => $this->timeframes[$timeframe],
-        );
-        if ($limit !== null) {
-            $request['limit'] = $limit;
-        }
-        if ($since !== null) {
-            $request['start'] = intval($since / 1000);
-        }
-        $method = $this->safe_string($this->options, 'fetchOHLCVMethod', 'cryptoPublicGetCryptoBars');
-        $response = yield $this->$method (array_merge($request, $params));
-        //
-        //    {
-        //        "bars":{
-        //           "BTC/USD":array(
-        //              array(
-        //                 "c":22887,
-        //                 "h":22888,
-        //                 "l":22873,
-        //                 "n":11,
-        //                 "o":22883,
-        //                 "t":"2022-07-21T05:00:00Z",
-        //                 "v":1.1138,
-        //                 "vw":22883.0155324116
-        //              ),
-        //              array(
-        //                 "c":22895,
-        //                 "h":22895,
-        //                 "l":22884,
-        //                 "n":6,
-        //                 "o":22884,
-        //                 "t":"2022-07-21T05:01:00Z",
-        //                 "v":0.001,
-        //                 "vw":22889.5
-        //              }
-        //           )
-        //        ),
-        //        "next_page_token":"QlRDL1VTRHxNfDIwMjItMDctMjFUMDU6MDE6MDAuMDAwMDAwMDAwWg=="
-        //     }
-        //
-        $bars = $this->safe_value($response, 'bars', array());
-        $ohlcvs = $this->safe_value($bars, $market['id'], array());
-        return $this->parse_ohlcvs($ohlcvs, $market, $timeframe, $since, $limit);
+        return Async\async(function () use ($symbol, $timeframe, $since, $limit, $params) {
+            /**
+             * fetches historical candlestick data containing the open, high, low, and close price, and the volume of a $market
+             * @param {string} $symbol unified $symbol of the $market to fetch OHLCV data for
+             * @param {string} $timeframe the length of time each candle represents
+             * @param {int|null} $since timestamp in ms of the earliest candle to fetch
+             * @param {int|null} $limit the maximum amount of candles to fetch
+             * @param {array} $params extra parameters specific to the alpha api endpoint
+             * @return {[[int]]} A list of candles ordered as timestamp, open, high, low, close, volume
+             */
+            Async\await($this->load_markets());
+            $market = $this->market($symbol);
+            $request = array(
+                'symbols' => $market['id'],
+                'timeframe' => $this->timeframes[$timeframe],
+            );
+            if ($limit !== null) {
+                $request['limit'] = $limit;
+            }
+            if ($since !== null) {
+                $request['start'] = intval($since / 1000);
+            }
+            $method = $this->safe_string($this->options, 'fetchOHLCVMethod', 'cryptoPublicGetCryptoBars');
+            $response = Async\await($this->$method (array_merge($request, $params)));
+            //
+            //    {
+            //        "bars":{
+            //           "BTC/USD":array(
+            //              array(
+            //                 "c":22887,
+            //                 "h":22888,
+            //                 "l":22873,
+            //                 "n":11,
+            //                 "o":22883,
+            //                 "t":"2022-07-21T05:00:00Z",
+            //                 "v":1.1138,
+            //                 "vw":22883.0155324116
+            //              ),
+            //              array(
+            //                 "c":22895,
+            //                 "h":22895,
+            //                 "l":22884,
+            //                 "n":6,
+            //                 "o":22884,
+            //                 "t":"2022-07-21T05:01:00Z",
+            //                 "v":0.001,
+            //                 "vw":22889.5
+            //              }
+            //           )
+            //        ),
+            //        "next_page_token":"QlRDL1VTRHxNfDIwMjItMDctMjFUMDU6MDE6MDAuMDAwMDAwMDAwWg=="
+            //     }
+            //
+            $bars = $this->safe_value($response, 'bars', array());
+            $ohlcvs = $this->safe_value($bars, $market['id'], array());
+            return $this->parse_ohlcvs($ohlcvs, $market, $timeframe, $since, $limit);
+        }) ();
     }
 
     public function parse_ohlcv($ohlcv, $market = null) {
@@ -491,145 +500,153 @@ class alpaca extends Exchange {
     }
 
     public function create_order($symbol, $type, $side, $amount, $price = null, $params = array ()) {
-        /**
-         * create a trade $order
-         * @param {string} $symbol unified $symbol of the $market to create an $order in
-         * @param {string} $type 'market', 'limit' or 'stop_limit'
-         * @param {string} $side 'buy' or 'sell'
-         * @param {float} $amount how much of currency you want to trade in units of base currency
-         * @param {float} $price the $price at which the $order is to be fullfilled, in units of the quote currency, ignored in $market orders
-         * @param {array} $params extra parameters specific to the alpaca api endpoint
-         * @param {float} $params->triggerPrice The $price at which a trigger $order is triggered at
-         * @return {array} an {@link https://docs.ccxt.com/en/latest/manual.html#$order-structure $order structure}
-         */
-        yield $this->load_markets();
-        $market = $this->market($symbol);
-        $id = $market['id'];
-        $request = array(
-            'symbol' => $id,
-            'qty' => $this->amount_to_precision($symbol, $amount),
-            'side' => $side,
-            'type' => $type, // $market, limit, stop_limit
-        );
-        $triggerPrice = $this->safe_string_n($params, array( 'triggerPrice', 'stop_price' ));
-        if ($triggerPrice !== null) {
-            $newType = null;
-            if (mb_strpos($type, 'limit') !== false) {
-                $newType = 'stop_limit';
-            } else {
-                throw new NotSupported($this->id . ' createOrder() does not support stop orders for ' . $type . ' orders, only stop_limit orders are supported');
+        return Async\async(function () use ($symbol, $type, $side, $amount, $price, $params) {
+            /**
+             * create a trade $order
+             * @param {string} $symbol unified $symbol of the $market to create an $order in
+             * @param {string} $type 'market', 'limit' or 'stop_limit'
+             * @param {string} $side 'buy' or 'sell'
+             * @param {float} $amount how much of currency you want to trade in units of base currency
+             * @param {float} $price the $price at which the $order is to be fullfilled, in units of the quote currency, ignored in $market orders
+             * @param {array} $params extra parameters specific to the alpaca api endpoint
+             * @param {float} $params->triggerPrice The $price at which a trigger $order is triggered at
+             * @return {array} an {@link https://docs.ccxt.com/en/latest/manual.html#$order-structure $order structure}
+             */
+            Async\await($this->load_markets());
+            $market = $this->market($symbol);
+            $id = $market['id'];
+            $request = array(
+                'symbol' => $id,
+                'qty' => $this->amount_to_precision($symbol, $amount),
+                'side' => $side,
+                'type' => $type, // $market, limit, stop_limit
+            );
+            $triggerPrice = $this->safe_string_n($params, array( 'triggerPrice', 'stop_price' ));
+            if ($triggerPrice !== null) {
+                $newType = null;
+                if (mb_strpos($type, 'limit') !== false) {
+                    $newType = 'stop_limit';
+                } else {
+                    throw new NotSupported($this->id . ' createOrder() does not support stop orders for ' . $type . ' orders, only stop_limit orders are supported');
+                }
+                $request['stop_price'] = $this->price_to_precision($symbol, $triggerPrice);
+                $request['type'] = $newType;
             }
-            $request['stop_price'] = $this->price_to_precision($symbol, $triggerPrice);
-            $request['type'] = $newType;
-        }
-        if (mb_strpos($type, 'limit') !== false) {
-            $request['limit_price'] = $this->price_to_precision($symbol, $price);
-        }
-        $defaultTIF = $this->safe_string($this->options, 'defaultTimeInForce');
-        $request['time_in_force'] = $this->safe_string($params, 'timeInForce', $defaultTIF);
-        $params = $this->omit($params, array( 'timeInForce', 'triggerPrice' ));
-        $clientOrderIdprefix = $this->safe_string($this->options, 'clientOrderId');
-        $uuid = $this->uuid();
-        $parts = explode('-', $uuid);
-        $random_id = implode('', $parts);
-        $defaultClientId = $this->implode_params($clientOrderIdprefix, array( 'id' => $random_id ));
-        $clientOrderId = $this->safe_string($params, 'clientOrderId', $defaultClientId);
-        $request['client_order_id'] = $clientOrderId;
-        $params = $this->omit($params, array( 'clientOrderId' ));
-        $order = yield $this->privatePostOrders (array_merge($request, $params));
-        //
-        //   {
-        //      "id" => "61e69015-8549-4bfd-b9c3-01e75843f47d",
-        //      "client_order_id" => "eb9e2aaa-f71a-4f51-b5b4-52a6c565dad4",
-        //      "created_at" => "2021-03-16T18:38:01.942282Z",
-        //      "updated_at" => "2021-03-16T18:38:01.942282Z",
-        //      "submitted_at" => "2021-03-16T18:38:01.937734Z",
-        //      "filled_at" => null,
-        //      "expired_at" => null,
-        //      "canceled_at" => null,
-        //      "failed_at" => null,
-        //      "replaced_at" => null,
-        //      "replaced_by" => null,
-        //      "replaces" => null,
-        //      "asset_id" => "b0b6dd9d-8b9b-48a9-ba46-b9d54906e415",
-        //      "symbol" => "AAPL",
-        //      "asset_class" => "us_equity",
-        //      "notional" => "500",
-        //      "qty" => null,
-        //      "filled_qty" => "0",
-        //      "filled_avg_price" => null,
-        //      "order_class" => "",
-        //      "order_type" => "market",
-        //      "type" => "market",
-        //      "side" => "buy",
-        //      "time_in_force" => "day",
-        //      "limit_price" => null,
-        //      "stop_price" => null,
-        //      "status" => "accepted",
-        //      "extended_hours" => false,
-        //      "legs" => null,
-        //      "trail_percent" => null,
-        //      "trail_price" => null,
-        //      "hwm" => null
-        //   }
-        //
-        return $this->parse_order($order, $market);
+            if (mb_strpos($type, 'limit') !== false) {
+                $request['limit_price'] = $this->price_to_precision($symbol, $price);
+            }
+            $defaultTIF = $this->safe_string($this->options, 'defaultTimeInForce');
+            $request['time_in_force'] = $this->safe_string($params, 'timeInForce', $defaultTIF);
+            $params = $this->omit($params, array( 'timeInForce', 'triggerPrice' ));
+            $clientOrderIdprefix = $this->safe_string($this->options, 'clientOrderId');
+            $uuid = $this->uuid();
+            $parts = explode('-', $uuid);
+            $random_id = implode('', $parts);
+            $defaultClientId = $this->implode_params($clientOrderIdprefix, array( 'id' => $random_id ));
+            $clientOrderId = $this->safe_string($params, 'clientOrderId', $defaultClientId);
+            $request['client_order_id'] = $clientOrderId;
+            $params = $this->omit($params, array( 'clientOrderId' ));
+            $order = Async\await($this->privatePostOrders (array_merge($request, $params)));
+            //
+            //   {
+            //      "id" => "61e69015-8549-4bfd-b9c3-01e75843f47d",
+            //      "client_order_id" => "eb9e2aaa-f71a-4f51-b5b4-52a6c565dad4",
+            //      "created_at" => "2021-03-16T18:38:01.942282Z",
+            //      "updated_at" => "2021-03-16T18:38:01.942282Z",
+            //      "submitted_at" => "2021-03-16T18:38:01.937734Z",
+            //      "filled_at" => null,
+            //      "expired_at" => null,
+            //      "canceled_at" => null,
+            //      "failed_at" => null,
+            //      "replaced_at" => null,
+            //      "replaced_by" => null,
+            //      "replaces" => null,
+            //      "asset_id" => "b0b6dd9d-8b9b-48a9-ba46-b9d54906e415",
+            //      "symbol" => "AAPL",
+            //      "asset_class" => "us_equity",
+            //      "notional" => "500",
+            //      "qty" => null,
+            //      "filled_qty" => "0",
+            //      "filled_avg_price" => null,
+            //      "order_class" => "",
+            //      "order_type" => "market",
+            //      "type" => "market",
+            //      "side" => "buy",
+            //      "time_in_force" => "day",
+            //      "limit_price" => null,
+            //      "stop_price" => null,
+            //      "status" => "accepted",
+            //      "extended_hours" => false,
+            //      "legs" => null,
+            //      "trail_percent" => null,
+            //      "trail_price" => null,
+            //      "hwm" => null
+            //   }
+            //
+            return $this->parse_order($order, $market);
+        }) ();
     }
 
     public function cancel_order($id, $symbol = null, $params = array ()) {
-        /**
-         * cancels an open order
-         * @param {string} $id order $id
-         * @param {string|null} $symbol unified $symbol of the market the order was made in
-         * @param {array} $params extra parameters specific to the alpaca api endpoint
-         * @return {array} An {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structure}
-         */
-        $request = array(
-            'order_id' => $id,
-        );
-        $response = yield $this->privateDeleteOrdersOrderId (array_merge($request, $params));
-        //
-        //   {
-        //       "code" => 40410000,
-        //       "message" => "order is not found."
-        //   }
-        //
-        return $this->safe_value($response, 'message', array());
+        return Async\async(function () use ($id, $symbol, $params) {
+            /**
+             * cancels an open order
+             * @param {string} $id order $id
+             * @param {string|null} $symbol unified $symbol of the market the order was made in
+             * @param {array} $params extra parameters specific to the alpaca api endpoint
+             * @return {array} An {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structure}
+             */
+            $request = array(
+                'order_id' => $id,
+            );
+            $response = Async\await($this->privateDeleteOrdersOrderId (array_merge($request, $params)));
+            //
+            //   {
+            //       "code" => 40410000,
+            //       "message" => "order is not found."
+            //   }
+            //
+            return $this->safe_value($response, 'message', array());
+        }) ();
     }
 
     public function fetch_order($id, $symbol = null, $params = array ()) {
-        /**
-         * fetches information on an $order made by the user
-         * @param {string|null} $symbol unified $symbol of the $market the $order was made in
-         * @param {array} $params extra parameters specific to the alpaca api endpoint
-         * @return {array} An {@link https://docs.ccxt.com/en/latest/manual.html#$order-structure $order structure}
-         */
-        yield $this->load_markets();
-        $request = array(
-            'order_id' => $id,
-        );
-        $order = yield $this->privateGetOrdersOrderId (array_merge($request, $params));
-        $marketId = $this->safe_string($order, 'symbol');
-        $market = $this->safe_market($marketId);
-        return $this->parse_order($order, $market);
+        return Async\async(function () use ($id, $symbol, $params) {
+            /**
+             * fetches information on an $order made by the user
+             * @param {string|null} $symbol unified $symbol of the $market the $order was made in
+             * @param {array} $params extra parameters specific to the alpaca api endpoint
+             * @return {array} An {@link https://docs.ccxt.com/en/latest/manual.html#$order-structure $order structure}
+             */
+            Async\await($this->load_markets());
+            $request = array(
+                'order_id' => $id,
+            );
+            $order = Async\await($this->privateGetOrdersOrderId (array_merge($request, $params)));
+            $marketId = $this->safe_string($order, 'symbol');
+            $market = $this->safe_market($marketId);
+            return $this->parse_order($order, $market);
+        }) ();
     }
 
     public function fetch_open_orders($symbol = null, $since = null, $limit = null, $params = array ()) {
-        /**
-         * fetch all unfilled currently open $orders
-         * @param {string|null} $symbol unified $market $symbol
-         * @param {int|null} $since the earliest time in ms to fetch open $orders for
-         * @param {int|null} $limit the maximum number of  open $orders structures to retrieve
-         * @param {array} $params extra parameters specific to the alpaca api endpoint
-         * @return {[array]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structures}
-         */
-        yield $this->load_markets();
-        $market = null;
-        if ($symbol !== null) {
-            $market = $this->market($symbol);
-        }
-        $orders = yield $this->privateGetOrders ($params);
-        return $this->parse_orders($orders, $market, $since, $limit);
+        return Async\async(function () use ($symbol, $since, $limit, $params) {
+            /**
+             * fetch all unfilled currently open $orders
+             * @param {string|null} $symbol unified $market $symbol
+             * @param {int|null} $since the earliest time in ms to fetch open $orders for
+             * @param {int|null} $limit the maximum number of  open $orders structures to retrieve
+             * @param {array} $params extra parameters specific to the alpaca api endpoint
+             * @return {[array]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structures}
+             */
+            Async\await($this->load_markets());
+            $market = null;
+            if ($symbol !== null) {
+                $market = $this->market($symbol);
+            }
+            $orders = Async\await($this->privateGetOrders ($params));
+            return $this->parse_orders($orders, $market, $since, $limit);
+        }) ();
     }
 
     public function parse_order($order, $market = null) {

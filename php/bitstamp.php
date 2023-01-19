@@ -6,10 +6,6 @@ namespace ccxt;
 // https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 use Exception; // a common import
-use \ccxt\ExchangeError;
-use \ccxt\AuthenticationError;
-use \ccxt\ArgumentsRequired;
-use \ccxt\NotSupported;
 
 class bitstamp extends Exchange {
 
@@ -990,7 +986,7 @@ class bitstamp extends Exchange {
         $duration = $this->parse_timeframe($timeframe);
         if ($limit === null) {
             if ($since === null) {
-                throw new ArgumentsRequired($this->id . ' fetchOHLCV() requires a $since argument or a $limit argument');
+                $request['limit'] = 1000; // we need to specify an allowed amount of `$limit` if no `$since` is set and there is no default $limit by exchange
             } else {
                 $limit = 1000;
                 $start = intval($since / 1000);
@@ -1536,8 +1532,10 @@ class bitstamp extends Exchange {
     }
 
     public function parse_transaction_status($status) {
-        // withdrawals:
-        // 0 (open), 1 (in process), 2 (finished), 3 (canceled) or 4 (failed).
+        //
+        //   withdrawals:
+        //   0 (open), 1 (in process), 2 (finished), 3 (canceled) or 4 (failed).
+        //
         $statuses = array(
             '0' => 'pending', // Open
             '1' => 'pending', // In process
@@ -1549,43 +1547,44 @@ class bitstamp extends Exchange {
     }
 
     public function parse_order($order, $market = null) {
-        // from fetch $order:
-        //   { $status => 'Finished',
-        //     $id => 731693945,
-        //     client_order_id => '',
-        //     $transactions:
-        //     array( { fee => '0.000019',
-        //         $price => '0.00015803',
-        //         datetime => '2018-01-07 10:45:34.132551',
-        //         btc => '0.0079015000000000',
-        //         tid => 42777395,
-        //         type => 2,
-        //         xrp => '50.00000000' } ) }
         //
-        // partially filled $order:
-        //   { "id" => 468646390,
-        //     "client_order_id" => "",
-        //     "status" => "Canceled",
-        //     "transactions" => [array(
-        //         "eth" => "0.23000000",
-        //         "fee" => "0.09",
-        //         "tid" => 25810126,
-        //         "usd" => "69.8947000000000000",
-        //         "type" => 2,
-        //         "price" => "303.89000000",
-        //         "datetime" => "2017-11-11 07:22:20.710567"
-        //     )]}
+        //   from fetch $order:
+        //     { $status => 'Finished',
+        //       $id => 731693945,
+        //       client_order_id => '',
+        //       $transactions:
+        //       array( { fee => '0.000019',
+        //           $price => '0.00015803',
+        //           datetime => '2018-01-07 10:45:34.132551',
+        //           btc => '0.0079015000000000',
+        //           tid => 42777395,
+        //           type => 2,
+        //           xrp => '50.00000000' } ) }
         //
-        // from create $order response:
-        //     {
-        //         $price => '0.00008012',
-        //         client_order_id => '',
-        //         currency_pair => 'XRP/BTC',
-        //         datetime => '2019-01-31 21:23:36',
-        //         $amount => '15.00000000',
-        //         type => '0',
-        //         $id => '2814205012'
-        //     }
+        //   partially filled $order:
+        //     { "id" => 468646390,
+        //       "client_order_id" => "",
+        //       "status" => "Canceled",
+        //       "transactions" => [array(
+        //           "eth" => "0.23000000",
+        //           "fee" => "0.09",
+        //           "tid" => 25810126,
+        //           "usd" => "69.8947000000000000",
+        //           "type" => 2,
+        //           "price" => "303.89000000",
+        //           "datetime" => "2017-11-11 07:22:20.710567"
+        //       )]}
+        //
+        //   from create $order response:
+        //       {
+        //           $price => '0.00008012',
+        //           client_order_id => '',
+        //           currency_pair => 'XRP/BTC',
+        //           datetime => '2019-01-31 21:23:36',
+        //           $amount => '15.00000000',
+        //           type => '0',
+        //           $id => '2814205012'
+        //       }
         //
         $id = $this->safe_string($order, 'id');
         $clientOrderId = $this->safe_string($order, 'client_order_id');
@@ -1703,13 +1702,13 @@ class bitstamp extends Exchange {
             $parsedTransaction = $this->parse_transaction($item, $currency);
             $direction = null;
             if (is_array($item) && array_key_exists('amount', $item)) {
-                $amount = $this->safe_number($item, 'amount');
-                $direction = ($amount > 0) ? 'in' : 'out';
+                $amount = $this->safe_string($item, 'amount');
+                $direction = Precise::string_gt($amount, '0') ? 'in' : 'out';
             } elseif ((is_array($parsedTransaction) && array_key_exists('currency', $parsedTransaction)) && $parsedTransaction['currency'] !== null) {
                 $currencyCode = $this->safe_string($parsedTransaction, 'currency');
                 $currency = $this->currency($currencyCode);
-                $amount = $this->safe_number($item, $currency['id']);
-                $direction = ($amount > 0) ? 'in' : 'out';
+                $amount = $this->safe_string($item, $currency['id']);
+                $direction = Precise::string_gt($amount, '0') ? 'in' : 'out';
             }
             return array(
                 'id' => $parsedTransaction['id'],
@@ -1768,6 +1767,7 @@ class bitstamp extends Exchange {
             $market = $this->market($symbol);
         }
         $response = $this->privatePostOpenOrdersAll ($params);
+        //
         //     array(
         //         {
         //             price => '0.00008012',
@@ -1787,6 +1787,11 @@ class bitstamp extends Exchange {
     }
 
     public function get_currency_name($code) {
+        /**
+         * @ignore
+         * @param {string} $code Unified currency $code
+         * @return {string} lowercase version of $code
+         */
         return strtolower($code);
     }
 
@@ -1919,6 +1924,7 @@ class bitstamp extends Exchange {
         //     array("error" => "No permission found") // fetchDepositAddress returns this on apiKeys that don't have the permission required
         //     array("status" => "error", "reason" => array("__all__" => ["Minimum order size is 5.0 EUR."]))
         //     reuse of a nonce gives => array( $status => 'error', $reason => 'Invalid nonce', $code => 'API0004' )
+        //
         $status = $this->safe_string($response, 'status');
         $error = $this->safe_value($response, 'error');
         if (($status === 'error') || ($error !== null)) {

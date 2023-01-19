@@ -3,7 +3,7 @@
 //  ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
-const { ExchangeError, AuthenticationError, InvalidNonce, InsufficientFunds, InvalidOrder, OrderNotFound, PermissionDenied, ArgumentsRequired } = require ('./base/errors');
+const { ExchangeError, AuthenticationError, InvalidNonce, InsufficientFunds, InvalidOrder, OrderNotFound, PermissionDenied } = require ('./base/errors');
 const { TICK_SIZE } = require ('./base/functions/number');
 
 //  ---------------------------------------------------------------------------
@@ -447,7 +447,7 @@ module.exports = class bitbank extends Exchange {
         ];
     }
 
-    async fetchOHLCV (symbol, timeframe = '5m', since = undefined, limit = undefined, params = {}) {
+    async fetchOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
         /**
          * @method
          * @name bitbank#fetchOHLCV
@@ -460,7 +460,11 @@ module.exports = class bitbank extends Exchange {
          * @returns {[[int]]} A list of candles ordered as timestamp, open, high, low, close, volume
          */
         if (since === undefined) {
-            throw new ArgumentsRequired (this.id + ' fetchOHLCV() requires a since argument');
+            if (limit === undefined) {
+                limit = 1000; // it doesn't have any defaults, might return 200, might 2000 (i.e. https://public.bitbank.cc/btc_jpy/candlestick/4hour/2020)
+            }
+            const duration = this.parseTimeframe (timeframe);
+            since = this.milliseconds () - duration * 1000 * limit;
         }
         await this.loadMarkets ();
         const market = this.market (symbol);

@@ -732,14 +732,13 @@ module.exports = class exmo extends Exchange {
         const now = this.milliseconds ();
         if (since === undefined) {
             if (limit === undefined) {
-                throw new ArgumentsRequired (this.id + ' fetchOHLCV() requires a since argument or a limit argument');
-            } else {
-                if (limit > maxLimit) {
-                    throw new BadRequest (this.id + ' fetchOHLCV() will serve ' + maxLimit.toString () + ' candles at most');
-                }
-                request['from'] = parseInt (now / 1000) - limit * duration - 1;
-                request['to'] = parseInt (now / 1000);
+                limit = 1000; // cap default at generous amount
             }
+            if (limit > maxLimit) {
+                limit = maxLimit; // avoid exception
+            }
+            request['from'] = parseInt (now / 1000) - limit * duration - 1;
+            request['to'] = parseInt (now / 1000);
         } else {
             request['from'] = parseInt (since / 1000) - 1;
             if (limit === undefined) {
@@ -1566,6 +1565,12 @@ module.exports = class exmo extends Exchange {
          */
         await this.loadMarkets ();
         const response = await this.privatePostDepositAddress (params);
+        //
+        //     {
+        //         "TRX":"TBnwrf4ZdoYXE3C8L2KMs7YPSL3fg6q6V9",
+        //         "USDTTRC20":"TBnwrf4ZdoYXE3C8L2KMs7YPSL3fg6q6V9"
+        //     }
+        //
         const depositAddress = this.safeString (response, code);
         let address = undefined;
         let tag = undefined;

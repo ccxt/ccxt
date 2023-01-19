@@ -715,7 +715,7 @@ class hollaex(Exchange):
             }
         return result
 
-    async def fetch_ohlcv(self, symbol, timeframe='1h', since=None, limit=None, params={}):
+    async def fetch_ohlcv(self, symbol, timeframe='1m', since=None, limit=None, params={}):
         """
         fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
         :param str symbol: unified symbol of the market to fetch OHLCV data for
@@ -734,12 +734,11 @@ class hollaex(Exchange):
         duration = self.parse_timeframe(timeframe)
         if since is None:
             if limit is None:
-                raise ArgumentsRequired(self.id + " fetchOHLCV() requires a 'since' or a 'limit' argument")
-            else:
-                end = self.seconds()
-                start = end - duration * limit
-                request['to'] = end
-                request['from'] = start
+                limit = 1000  # they have no defaults and can actually provide tens of thousands of bars in one request, but we should cap "default" at generous amount
+            end = self.seconds()
+            start = end - duration * limit
+            request['to'] = end
+            request['from'] = start
         else:
             if limit is None:
                 request['from'] = int(since / 1000)

@@ -1268,11 +1268,11 @@ class coinbase(Exchange):
         #     }
         #
         amountInfo = self.safe_value(item, 'amount', {})
-        amount = self.safe_number(amountInfo, 'amount')
+        amount = self.safe_string(amountInfo, 'amount')
         direction = None
-        if amount < 0:
+        if Precise.string_lt(amount, '0'):
             direction = 'out'
-            amount = -amount
+            amount = Precise.string_neg(amount)
         else:
             direction = 'in'
         currencyId = self.safe_string(amountInfo, 'currency')
@@ -1320,7 +1320,7 @@ class coinbase(Exchange):
             'referenceAccount': None,
             'type': type,
             'currency': code,
-            'amount': amount,
+            'amount': self.parse_number(amount),
             'before': None,
             'after': None,
             'status': status,

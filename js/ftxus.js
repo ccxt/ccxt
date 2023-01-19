@@ -34,6 +34,32 @@ module.exports = class ftxus extends ftx {
                 'docs': 'https://docs.ftx.us/',
                 'fees': 'https://help.ftx.us/hc/en-us/articles/360043579273-Fees',
             },
+            'fees': {
+                'trading': {
+                    'tierBased': true,
+                    'percentage': true,
+                    'maker': this.parseNumber ('0.001'),
+                    'taker': this.parseNumber ('0.002'),
+                    'tiers': {
+                        'taker': [
+                            [ this.parseNumber ('0'), this.parseNumber ('0.002') ],
+                            [ this.parseNumber ('100000'), this.parseNumber ('0.0018') ],
+                            [ this.parseNumber ('1000000'), this.parseNumber ('0.0015') ],
+                            [ this.parseNumber ('5000000'), this.parseNumber ('0.001') ],
+                            [ this.parseNumber ('10000000'), this.parseNumber ('0.0008') ],
+                            [ this.parseNumber ('15000000'), this.parseNumber ('0.0006') ],
+                        ],
+                        'maker': [
+                            [ this.parseNumber ('0'), this.parseNumber ('0.001') ],
+                            [ this.parseNumber ('100000'), this.parseNumber ('0.0006') ],
+                            [ this.parseNumber ('1000000'), this.parseNumber ('0.0005') ],
+                            [ this.parseNumber ('5000000'), this.parseNumber ('0.0004') ],
+                            [ this.parseNumber ('10000000'), this.parseNumber ('0.0002') ],
+                            [ this.parseNumber ('15000000'), this.parseNumber ('0.0') ],
+                        ],
+                    },
+                },
+            },
         });
     }
 };

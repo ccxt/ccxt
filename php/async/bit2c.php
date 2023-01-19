@@ -6,10 +6,11 @@ namespace ccxt\async;
 // https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 use Exception; // a common import
-use \ccxt\ExchangeError;
-use \ccxt\ArgumentsRequired;
-use \ccxt\NotSupported;
-use \ccxt\Precise;
+use ccxt\ExchangeError;
+use ccxt\ArgumentsRequired;
+use ccxt\NotSupported;
+use ccxt\Precise;
+use React\Async;
 
 class bit2c extends Exchange {
 
@@ -165,73 +166,77 @@ class bit2c extends Exchange {
     }
 
     public function fetch_balance($params = array ()) {
-        /**
-         * query for balance and get the amount of funds available for trading or funds locked in orders
-         * @param {array} $params extra parameters specific to the bit2c api endpoint
-         * @return {array} a ~@link https://docs.ccxt.com/en/latest/manual.html?#balance-structure balance structure~
-         */
-        yield $this->load_markets();
-        $response = yield $this->privateGetAccountBalanceV2 ($params);
-        //
-        //     {
-        //         "AVAILABLE_NIS" => 0.0,
-        //         "NIS" => 0.0,
-        //         "LOCKED_NIS" => 0.0,
-        //         "AVAILABLE_BTC" => 0.0,
-        //         "BTC" => 0.0,
-        //         "LOCKED_BTC" => 0.0,
-        //         "AVAILABLE_ETH" => 0.0,
-        //         "ETH" => 0.0,
-        //         "LOCKED_ETH" => 0.0,
-        //         "AVAILABLE_BCHSV" => 0.0,
-        //         "BCHSV" => 0.0,
-        //         "LOCKED_BCHSV" => 0.0,
-        //         "AVAILABLE_BCHABC" => 0.0,
-        //         "BCHABC" => 0.0,
-        //         "LOCKED_BCHABC" => 0.0,
-        //         "AVAILABLE_LTC" => 0.0,
-        //         "LTC" => 0.0,
-        //         "LOCKED_LTC" => 0.0,
-        //         "AVAILABLE_ETC" => 0.0,
-        //         "ETC" => 0.0,
-        //         "LOCKED_ETC" => 0.0,
-        //         "AVAILABLE_BTG" => 0.0,
-        //         "BTG" => 0.0,
-        //         "LOCKED_BTG" => 0.0,
-        //         "AVAILABLE_GRIN" => 0.0,
-        //         "GRIN" => 0.0,
-        //         "LOCKED_GRIN" => 0.0,
-        //         "Fees" => {
-        //             "BtcNis" => array( "FeeMaker" => 1.0, "FeeTaker" => 1.0 ),
-        //             "EthNis" => array( "FeeMaker" => 1.0, "FeeTaker" => 1.0 ),
-        //             "BchabcNis" => array( "FeeMaker" => 1.0, "FeeTaker" => 1.0 ),
-        //             "LtcNis" => array( "FeeMaker" => 1.0, "FeeTaker" => 1.0 ),
-        //             "EtcNis" => array( "FeeMaker" => 1.0, "FeeTaker" => 1.0 ),
-        //             "BtgNis" => array( "FeeMaker" => 1.0, "FeeTaker" => 1.0 ),
-        //             "LtcBtc" => array( "FeeMaker" => 1.0, "FeeTaker" => 1.0 ),
-        //             "BchsvNis" => array( "FeeMaker" => 1.0, "FeeTaker" => 1.0 ),
-        //             "GrinNis" => array( "FeeMaker" => 1.0, "FeeTaker" => 1.0 )
-        //         }
-        //     }
-        //
-        return $this->parse_balance($response);
+        return Async\async(function () use ($params) {
+            /**
+             * query for balance and get the amount of funds available for trading or funds locked in orders
+             * @param {array} $params extra parameters specific to the bit2c api endpoint
+             * @return {array} a ~@link https://docs.ccxt.com/en/latest/manual.html?#balance-structure balance structure~
+             */
+            Async\await($this->load_markets());
+            $response = Async\await($this->privateGetAccountBalanceV2 ($params));
+            //
+            //     {
+            //         "AVAILABLE_NIS" => 0.0,
+            //         "NIS" => 0.0,
+            //         "LOCKED_NIS" => 0.0,
+            //         "AVAILABLE_BTC" => 0.0,
+            //         "BTC" => 0.0,
+            //         "LOCKED_BTC" => 0.0,
+            //         "AVAILABLE_ETH" => 0.0,
+            //         "ETH" => 0.0,
+            //         "LOCKED_ETH" => 0.0,
+            //         "AVAILABLE_BCHSV" => 0.0,
+            //         "BCHSV" => 0.0,
+            //         "LOCKED_BCHSV" => 0.0,
+            //         "AVAILABLE_BCHABC" => 0.0,
+            //         "BCHABC" => 0.0,
+            //         "LOCKED_BCHABC" => 0.0,
+            //         "AVAILABLE_LTC" => 0.0,
+            //         "LTC" => 0.0,
+            //         "LOCKED_LTC" => 0.0,
+            //         "AVAILABLE_ETC" => 0.0,
+            //         "ETC" => 0.0,
+            //         "LOCKED_ETC" => 0.0,
+            //         "AVAILABLE_BTG" => 0.0,
+            //         "BTG" => 0.0,
+            //         "LOCKED_BTG" => 0.0,
+            //         "AVAILABLE_GRIN" => 0.0,
+            //         "GRIN" => 0.0,
+            //         "LOCKED_GRIN" => 0.0,
+            //         "Fees" => {
+            //             "BtcNis" => array( "FeeMaker" => 1.0, "FeeTaker" => 1.0 ),
+            //             "EthNis" => array( "FeeMaker" => 1.0, "FeeTaker" => 1.0 ),
+            //             "BchabcNis" => array( "FeeMaker" => 1.0, "FeeTaker" => 1.0 ),
+            //             "LtcNis" => array( "FeeMaker" => 1.0, "FeeTaker" => 1.0 ),
+            //             "EtcNis" => array( "FeeMaker" => 1.0, "FeeTaker" => 1.0 ),
+            //             "BtgNis" => array( "FeeMaker" => 1.0, "FeeTaker" => 1.0 ),
+            //             "LtcBtc" => array( "FeeMaker" => 1.0, "FeeTaker" => 1.0 ),
+            //             "BchsvNis" => array( "FeeMaker" => 1.0, "FeeTaker" => 1.0 ),
+            //             "GrinNis" => array( "FeeMaker" => 1.0, "FeeTaker" => 1.0 )
+            //         }
+            //     }
+            //
+            return $this->parse_balance($response);
+        }) ();
     }
 
     public function fetch_order_book($symbol, $limit = null, $params = array ()) {
-        /**
-         * fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
-         * @param {string} $symbol unified $symbol of the $market to fetch the order book for
-         * @param {int|null} $limit the maximum amount of order book entries to return
-         * @param {array} $params extra parameters specific to the bit2c api endpoint
-         * @return {array} A dictionary of {@link https://docs.ccxt.com/en/latest/manual.html#order-book-structure order book structures} indexed by $market symbols
-         */
-        yield $this->load_markets();
-        $market = $this->market($symbol);
-        $request = array(
-            'pair' => $market['id'],
-        );
-        $orderbook = yield $this->publicGetExchangesPairOrderbook (array_merge($request, $params));
-        return $this->parse_order_book($orderbook, $market['symbol']);
+        return Async\async(function () use ($symbol, $limit, $params) {
+            /**
+             * fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+             * @param {string} $symbol unified $symbol of the $market to fetch the order book for
+             * @param {int|null} $limit the maximum amount of order book entries to return
+             * @param {array} $params extra parameters specific to the bit2c api endpoint
+             * @return {array} A dictionary of {@link https://docs.ccxt.com/en/latest/manual.html#order-book-structure order book structures} indexed by $market symbols
+             */
+            Async\await($this->load_markets());
+            $market = $this->market($symbol);
+            $request = array(
+                'pair' => $market['id'],
+            );
+            $orderbook = Async\await($this->publicGetExchangesPairOrderbook (array_merge($request, $params)));
+            return $this->parse_order_book($orderbook, $market['symbol']);
+        }) ();
     }
 
     public function parse_ticker($ticker, $market = null) {
@@ -265,171 +270,183 @@ class bit2c extends Exchange {
     }
 
     public function fetch_ticker($symbol, $params = array ()) {
-        /**
-         * fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific $market
-         * @param {string} $symbol unified $symbol of the $market to fetch the ticker for
-         * @param {array} $params extra parameters specific to the bit2c api endpoint
-         * @return {array} a {@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure ticker structure}
-         */
-        yield $this->load_markets();
-        $market = $this->market($symbol);
-        $request = array(
-            'pair' => $market['id'],
-        );
-        $response = yield $this->publicGetExchangesPairTicker (array_merge($request, $params));
-        return $this->parse_ticker($response, $market);
+        return Async\async(function () use ($symbol, $params) {
+            /**
+             * fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific $market
+             * @param {string} $symbol unified $symbol of the $market to fetch the ticker for
+             * @param {array} $params extra parameters specific to the bit2c api endpoint
+             * @return {array} a {@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure ticker structure}
+             */
+            Async\await($this->load_markets());
+            $market = $this->market($symbol);
+            $request = array(
+                'pair' => $market['id'],
+            );
+            $response = Async\await($this->publicGetExchangesPairTicker (array_merge($request, $params)));
+            return $this->parse_ticker($response, $market);
+        }) ();
     }
 
     public function fetch_trades($symbol, $since = null, $limit = null, $params = array ()) {
-        /**
-         * get the list of most recent trades for a particular $symbol
-         * @param {string} $symbol unified $symbol of the $market to fetch trades for
-         * @param {int|null} $since timestamp in ms of the earliest trade to fetch
-         * @param {int|null} $limit the maximum amount of trades to fetch
-         * @param {array} $params extra parameters specific to the bit2c api endpoint
-         * @return {[array]} a list of ~@link https://docs.ccxt.com/en/latest/manual.html?#public-trades trade structures~
-         */
-        yield $this->load_markets();
-        $market = $this->market($symbol);
-        $method = $this->options['fetchTradesMethod']; // public_get_exchanges_pair_trades or public_get_exchanges_pair_lasttrades
-        $request = array(
-            'pair' => $market['id'],
-        );
-        if ($since !== null) {
-            $request['date'] = intval($since);
-        }
-        if ($limit !== null) {
-            $request['limit'] = $limit; // max 100000
-        }
-        $response = yield $this->$method (array_merge($request, $params));
-        //
-        //     array(
-        //         array("date":1651785980,"price":127975.68,"amount":0.3750321,"isBid":true,"tid":1261018),
-        //         array("date":1651785980,"price":127987.70,"amount":0.0389527820303982335802581029,"isBid":true,"tid":1261020),
-        //         array("date":1651786701,"price":128084.03,"amount":0.0015614749161156156626239821,"isBid":true,"tid":1261022),
-        //     )
-        //
-        if (gettype($response) === 'string') {
-            throw new ExchangeError($response);
-        }
-        return $this->parse_trades($response, $market, $since, $limit);
+        return Async\async(function () use ($symbol, $since, $limit, $params) {
+            /**
+             * get the list of most recent trades for a particular $symbol
+             * @param {string} $symbol unified $symbol of the $market to fetch trades for
+             * @param {int|null} $since timestamp in ms of the earliest trade to fetch
+             * @param {int|null} $limit the maximum amount of trades to fetch
+             * @param {array} $params extra parameters specific to the bit2c api endpoint
+             * @return {[array]} a list of ~@link https://docs.ccxt.com/en/latest/manual.html?#public-trades trade structures~
+             */
+            Async\await($this->load_markets());
+            $market = $this->market($symbol);
+            $method = $this->options['fetchTradesMethod']; // public_get_exchanges_pair_trades or public_get_exchanges_pair_lasttrades
+            $request = array(
+                'pair' => $market['id'],
+            );
+            if ($since !== null) {
+                $request['date'] = intval($since);
+            }
+            if ($limit !== null) {
+                $request['limit'] = $limit; // max 100000
+            }
+            $response = Async\await($this->$method (array_merge($request, $params)));
+            //
+            //     array(
+            //         array("date":1651785980,"price":127975.68,"amount":0.3750321,"isBid":true,"tid":1261018),
+            //         array("date":1651785980,"price":127987.70,"amount":0.0389527820303982335802581029,"isBid":true,"tid":1261020),
+            //         array("date":1651786701,"price":128084.03,"amount":0.0015614749161156156626239821,"isBid":true,"tid":1261022),
+            //     )
+            //
+            if (gettype($response) === 'string') {
+                throw new ExchangeError($response);
+            }
+            return $this->parse_trades($response, $market, $since, $limit);
+        }) ();
     }
 
     public function fetch_trading_fees($params = array ()) {
-        /**
-         * fetch the trading $fees for multiple markets
-         * @param {array} $params extra parameters specific to the bit2c api endpoint
-         * @return {array} a dictionary of {@link https://docs.ccxt.com/en/latest/manual.html#$fee-structure $fee structures} indexed by market symbols
-         */
-        yield $this->load_markets();
-        $response = yield $this->privateGetAccountBalance ($params);
-        //
-        //     {
-        //         "AVAILABLE_NIS" => 0.0,
-        //         "NIS" => 0.0,
-        //         "LOCKED_NIS" => 0.0,
-        //         "AVAILABLE_BTC" => 0.0,
-        //         "BTC" => 0.0,
-        //         "LOCKED_BTC" => 0.0,
-        //         ...
-        //         "Fees" => {
-        //             "BtcNis" => array( "FeeMaker" => 1.0, "FeeTaker" => 1.0 ),
-        //             "EthNis" => array( "FeeMaker" => 1.0, "FeeTaker" => 1.0 ),
-        //             ...
-        //         }
-        //     }
-        //
-        $fees = $this->safe_value($response, 'Fees', array());
-        $keys = is_array($fees) ? array_keys($fees) : array();
-        $result = array();
-        for ($i = 0; $i < count($keys); $i++) {
-            $marketId = $keys[$i];
-            $symbol = $this->safe_symbol($marketId);
-            $fee = $this->safe_value($fees, $marketId);
-            $makerString = $this->safe_string($fee, 'FeeMaker');
-            $takerString = $this->safe_string($fee, 'FeeTaker');
-            $maker = $this->parse_number(Precise::string_div($makerString, '100'));
-            $taker = $this->parse_number(Precise::string_div($takerString, '100'));
-            $result[$symbol] = array(
-                'info' => $fee,
-                'symbol' => $symbol,
-                'taker' => $taker,
-                'maker' => $maker,
-                'percentage' => true,
-                'tierBased' => false,
-            );
-        }
-        return $result;
+        return Async\async(function () use ($params) {
+            /**
+             * fetch the trading $fees for multiple markets
+             * @param {array} $params extra parameters specific to the bit2c api endpoint
+             * @return {array} a dictionary of {@link https://docs.ccxt.com/en/latest/manual.html#$fee-structure $fee structures} indexed by market symbols
+             */
+            Async\await($this->load_markets());
+            $response = Async\await($this->privateGetAccountBalance ($params));
+            //
+            //     {
+            //         "AVAILABLE_NIS" => 0.0,
+            //         "NIS" => 0.0,
+            //         "LOCKED_NIS" => 0.0,
+            //         "AVAILABLE_BTC" => 0.0,
+            //         "BTC" => 0.0,
+            //         "LOCKED_BTC" => 0.0,
+            //         ...
+            //         "Fees" => {
+            //             "BtcNis" => array( "FeeMaker" => 1.0, "FeeTaker" => 1.0 ),
+            //             "EthNis" => array( "FeeMaker" => 1.0, "FeeTaker" => 1.0 ),
+            //             ...
+            //         }
+            //     }
+            //
+            $fees = $this->safe_value($response, 'Fees', array());
+            $keys = is_array($fees) ? array_keys($fees) : array();
+            $result = array();
+            for ($i = 0; $i < count($keys); $i++) {
+                $marketId = $keys[$i];
+                $symbol = $this->safe_symbol($marketId);
+                $fee = $this->safe_value($fees, $marketId);
+                $makerString = $this->safe_string($fee, 'FeeMaker');
+                $takerString = $this->safe_string($fee, 'FeeTaker');
+                $maker = $this->parse_number(Precise::string_div($makerString, '100'));
+                $taker = $this->parse_number(Precise::string_div($takerString, '100'));
+                $result[$symbol] = array(
+                    'info' => $fee,
+                    'symbol' => $symbol,
+                    'taker' => $taker,
+                    'maker' => $maker,
+                    'percentage' => true,
+                    'tierBased' => false,
+                );
+            }
+            return $result;
+        }) ();
     }
 
     public function create_order($symbol, $type, $side, $amount, $price = null, $params = array ()) {
-        /**
-         * create a trade order
-         * @param {string} $symbol unified $symbol of the $market to create an order in
-         * @param {string} $type 'market' or 'limit'
-         * @param {string} $side 'buy' or 'sell'
-         * @param {float} $amount how much of currency you want to trade in units of base currency
-         * @param {float|null} $price the $price at which the order is to be fullfilled, in units of the quote currency, ignored in $market orders
-         * @param {array} $params extra parameters specific to the bit2c api endpoint
-         * @return {array} an {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structure}
-         */
-        yield $this->load_markets();
-        $method = 'privatePostOrderAddOrder';
-        $market = $this->market($symbol);
-        $request = array(
-            'Amount' => $amount,
-            'Pair' => $market['id'],
-        );
-        if ($type === 'market') {
-            $method .= 'MarketPrice' . $this->capitalize($side);
-        } else {
-            $request['Price'] = $price;
-            $request['Total'] = $amount * $price;
-            $request['IsBid'] = ($side === 'buy');
-        }
-        $response = yield $this->$method (array_merge($request, $params));
-        return array(
-            'info' => $response,
-            'id' => $response['NewOrder']['id'],
-        );
+        return Async\async(function () use ($symbol, $type, $side, $amount, $price, $params) {
+            /**
+             * create a trade order
+             * @param {string} $symbol unified $symbol of the $market to create an order in
+             * @param {string} $type 'market' or 'limit'
+             * @param {string} $side 'buy' or 'sell'
+             * @param {float} $amount how much of currency you want to trade in units of base currency
+             * @param {float|null} $price the $price at which the order is to be fullfilled, in units of the quote currency, ignored in $market orders
+             * @param {array} $params extra parameters specific to the bit2c api endpoint
+             * @return {array} an {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structure}
+             */
+            Async\await($this->load_markets());
+            $method = 'privatePostOrderAddOrder';
+            $market = $this->market($symbol);
+            $request = array(
+                'Amount' => $amount,
+                'Pair' => $market['id'],
+            );
+            if ($type === 'market') {
+                $method .= 'MarketPrice' . $this->capitalize($side);
+            } else {
+                $request['Price'] = $price;
+                $request['Total'] = $amount * $price;
+                $request['IsBid'] = ($side === 'buy');
+            }
+            $response = Async\await($this->$method (array_merge($request, $params)));
+            return array(
+                'info' => $response,
+                'id' => $response['NewOrder']['id'],
+            );
+        }) ();
     }
 
     public function cancel_order($id, $symbol = null, $params = array ()) {
-        /**
-         * cancels an open order
-         * @param {string} $id order $id
-         * @param {string|null} $symbol Not used by bit2c cancelOrder ()
-         * @param {array} $params extra parameters specific to the bit2c api endpoint
-         * @return {array} An {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structure}
-         */
-        $request = array(
-            'id' => $id,
-        );
-        return yield $this->privatePostOrderCancelOrder (array_merge($request, $params));
+        return Async\async(function () use ($id, $symbol, $params) {
+            /**
+             * cancels an open order
+             * @param {string} $id order $id
+             * @param {string|null} $symbol Not used by bit2c cancelOrder ()
+             * @param {array} $params extra parameters specific to the bit2c api endpoint
+             * @return {array} An {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structure}
+             */
+            $request = array(
+                'id' => $id,
+            );
+            return Async\await($this->privatePostOrderCancelOrder (array_merge($request, $params)));
+        }) ();
     }
 
     public function fetch_open_orders($symbol = null, $since = null, $limit = null, $params = array ()) {
-        /**
-         * fetch all unfilled currently open $orders
-         * @param {string} $symbol unified $market $symbol
-         * @param {int|null} $since the earliest time in ms to fetch open $orders for
-         * @param {int|null} $limit the maximum number of  open $orders structures to retrieve
-         * @param {array} $params extra parameters specific to the bit2c api endpoint
-         * @return {[array]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structures}
-         */
-        if ($symbol === null) {
-            throw new ArgumentsRequired($this->id . ' fetchOpenOrders() requires a $symbol argument');
-        }
-        yield $this->load_markets();
-        $market = $this->market($symbol);
-        $request = array(
-            'pair' => $market['id'],
-        );
-        $response = yield $this->privateGetOrderMyOrders (array_merge($request, $params));
-        $orders = $this->safe_value($response, $market['id'], array());
-        $asks = $this->safe_value($orders, 'ask', array());
-        $bids = $this->safe_value($orders, 'bid', array());
-        return $this->parse_orders($this->array_concat($asks, $bids), $market, $since, $limit);
+        return Async\async(function () use ($symbol, $since, $limit, $params) {
+            /**
+             * fetch all unfilled currently open $orders
+             * @param {string} $symbol unified $market $symbol
+             * @param {int|null} $since the earliest time in ms to fetch open $orders for
+             * @param {int|null} $limit the maximum number of  open $orders structures to retrieve
+             * @param {array} $params extra parameters specific to the bit2c api endpoint
+             * @return {[array]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structures}
+             */
+            if ($symbol === null) {
+                throw new ArgumentsRequired($this->id . ' fetchOpenOrders() requires a $symbol argument');
+            }
+            Async\await($this->load_markets());
+            $market = $this->market($symbol);
+            $request = array(
+                'pair' => $market['id'],
+            );
+            $response = Async\await($this->privateGetOrderMyOrders (array_merge($request, $params)));
+            $orders = $this->safe_value($response, $market['id'], array());
+            $asks = $this->safe_value($orders, 'ask', array());
+            $bids = $this->safe_value($orders, 'bid', array());
+            return $this->parse_orders($this->array_concat($asks, $bids), $market, $since, $limit);
+        }) ();
     }
 
     public function parse_order($order, $market = null) {
@@ -471,69 +488,71 @@ class bit2c extends Exchange {
     }
 
     public function fetch_my_trades($symbol = null, $since = null, $limit = null, $params = array ()) {
-        /**
-         * fetch all trades made by the user
-         * @param {string|null} $symbol unified $market $symbol
-         * @param {int|null} $since the earliest time in ms to fetch trades for
-         * @param {int|null} $limit the maximum number of trades structures to retrieve
-         * @param {array} $params extra parameters specific to the bit2c api endpoint
-         * @return {[array]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#trade-structure trade structures}
-         */
-        yield $this->load_markets();
-        $market = null;
-        $request = array();
-        if ($limit !== null) {
+        return Async\async(function () use ($symbol, $since, $limit, $params) {
+            /**
+             * fetch all trades made by the user
+             * @param {string|null} $symbol unified $market $symbol
+             * @param {int|null} $since the earliest time in ms to fetch trades for
+             * @param {int|null} $limit the maximum number of trades structures to retrieve
+             * @param {array} $params extra parameters specific to the bit2c api endpoint
+             * @return {[array]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#trade-structure trade structures}
+             */
+            Async\await($this->load_markets());
+            $market = null;
+            $request = array();
+            if ($limit !== null) {
+                $request['take'] = $limit;
+            }
             $request['take'] = $limit;
-        }
-        $request['take'] = $limit;
-        if ($since !== null) {
-            $request['toTime'] = $this->yyyymmdd($this->milliseconds(), '.');
-            $request['fromTime'] = $this->yyyymmdd($since, '.');
-        }
-        if ($symbol !== null) {
-            $market = $this->market($symbol);
-            $request['pair'] = $market['id'];
-        }
-        $response = yield $this->privateGetOrderOrderHistory (array_merge($request, $params));
-        //
-        //     array(
-        //         array(
-        //             "ticks":1574767951,
-        //             "created":"26/11/19 13:32",
-        //             "action":1,
-        //             "price":"1000",
-        //             "pair":"EthNis",
-        //             "reference":"EthNis|10867390|10867377",
-        //             "fee":"0.5",
-        //             "feeAmount":"0.08",
-        //             "feeCoin":"₪",
-        //             "firstAmount":"-0.015",
-        //             "firstAmountBalance":"9",
-        //             "secondAmount":"14.93",
-        //             "secondAmountBalance":"130,233.28",
-        //             "firstCoin":"ETH",
-        //             "secondCoin":"₪"
-        //         ),
-        //         {
-        //             "ticks":1574767951,
-        //             "created":"26/11/19 13:32",
-        //             "action":0,
-        //             "price":"1000",
-        //             "pair":"EthNis",
-        //             "reference":"EthNis|10867390|10867377",
-        //             "fee":"0.5",
-        //             "feeAmount":"0.08",
-        //             "feeCoin":"₪",
-        //             "firstAmount":"0.015",
-        //             "firstAmountBalance":"9.015",
-        //             "secondAmount":"-15.08",
-        //             "secondAmountBalance":"130,218.35",
-        //             "firstCoin":"ETH",
-        //             "secondCoin":"₪"
-        //         }
-        //     )
-        //
-        return $this->parse_trades($response, $market, $since, $limit);
+            if ($since !== null) {
+                $request['toTime'] = $this->yyyymmdd($this->milliseconds(), '.');
+                $request['fromTime'] = $this->yyyymmdd($since, '.');
+            }
+            if ($symbol !== null) {
+                $market = $this->market($symbol);
+                $request['pair'] = $market['id'];
+            }
+            $response = Async\await($this->privateGetOrderOrderHistory (array_merge($request, $params)));
+            //
+            //     array(
+            //         array(
+            //             "ticks":1574767951,
+            //             "created":"26/11/19 13:32",
+            //             "action":1,
+            //             "price":"1000",
+            //             "pair":"EthNis",
+            //             "reference":"EthNis|10867390|10867377",
+            //             "fee":"0.5",
+            //             "feeAmount":"0.08",
+            //             "feeCoin":"₪",
+            //             "firstAmount":"-0.015",
+            //             "firstAmountBalance":"9",
+            //             "secondAmount":"14.93",
+            //             "secondAmountBalance":"130,233.28",
+            //             "firstCoin":"ETH",
+            //             "secondCoin":"₪"
+            //         ),
+            //         {
+            //             "ticks":1574767951,
+            //             "created":"26/11/19 13:32",
+            //             "action":0,
+            //             "price":"1000",
+            //             "pair":"EthNis",
+            //             "reference":"EthNis|10867390|10867377",
+            //             "fee":"0.5",
+            //             "feeAmount":"0.08",
+            //             "feeCoin":"₪",
+            //             "firstAmount":"0.015",
+            //             "firstAmountBalance":"9.015",
+            //             "secondAmount":"-15.08",
+            //             "secondAmountBalance":"130,218.35",
+            //             "firstCoin":"ETH",
+            //             "secondCoin":"₪"
+            //         }
+            //     )
+            //
+            return $this->parse_trades($response, $market, $since, $limit);
+        }) ();
     }
 
     public function parse_trade($trade, $market = null) {
@@ -636,28 +655,30 @@ class bit2c extends Exchange {
     }
 
     public function fetch_deposit_address($code, $params = array ()) {
-        /**
-         * fetch the deposit address for a $currency associated with this account
-         * @param {string} $code unified $currency $code
-         * @param {array} $params extra parameters specific to the bit2c api endpoint
-         * @return {array} an {@link https://docs.ccxt.com/en/latest/manual.html#address-structure address structure}
-         */
-        yield $this->load_markets();
-        $currency = $this->currency($code);
-        if ($this->is_fiat($code)) {
-            throw new NotSupported($this->id . ' fetchDepositAddress() does not support fiat currencies');
-        }
-        $request = array(
-            'Coin' => $currency['id'],
-        );
-        $response = yield $this->privatePostFundsAddCoinFundsRequest (array_merge($request, $params));
-        //
-        //     {
-        //         'address' => '0xf14b94518d74aff2b1a6d3429471bcfcd3881d42',
-        //         'hasTx' => False
-        //     }
-        //
-        return $this->parse_deposit_address($response, $currency);
+        return Async\async(function () use ($code, $params) {
+            /**
+             * fetch the deposit address for a $currency associated with this account
+             * @param {string} $code unified $currency $code
+             * @param {array} $params extra parameters specific to the bit2c api endpoint
+             * @return {array} an {@link https://docs.ccxt.com/en/latest/manual.html#address-structure address structure}
+             */
+            Async\await($this->load_markets());
+            $currency = $this->currency($code);
+            if ($this->is_fiat($code)) {
+                throw new NotSupported($this->id . ' fetchDepositAddress() does not support fiat currencies');
+            }
+            $request = array(
+                'Coin' => $currency['id'],
+            );
+            $response = Async\await($this->privatePostFundsAddCoinFundsRequest (array_merge($request, $params)));
+            //
+            //     {
+            //         'address' => '0xf14b94518d74aff2b1a6d3429471bcfcd3881d42',
+            //         'hasTx' => False
+            //     }
+            //
+            return $this->parse_deposit_address($response, $currency);
+        }) ();
     }
 
     public function parse_deposit_address($depositAddress, $currency = null) {

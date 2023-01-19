@@ -3,7 +3,7 @@
 //  ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
-const { AuthenticationError, BadRequest, ExchangeError, NotSupported, PermissionDenied, InvalidNonce, OrderNotFound, InsufficientFunds, InvalidAddress, InvalidOrder, ArgumentsRequired, OnMaintenance, ExchangeNotAvailable } = require ('./base/errors');
+const { AuthenticationError, BadRequest, ExchangeError, NotSupported, PermissionDenied, InvalidNonce, OrderNotFound, InsufficientFunds, InvalidAddress, InvalidOrder, OnMaintenance, ExchangeNotAvailable } = require ('./base/errors');
 const { TICK_SIZE } = require ('./base/functions/number');
 const Precise = require ('./base/Precise');
 
@@ -999,7 +999,7 @@ module.exports = class bitstamp extends Exchange {
         const duration = this.parseTimeframe (timeframe);
         if (limit === undefined) {
             if (since === undefined) {
-                throw new ArgumentsRequired (this.id + ' fetchOHLCV() requires a since argument or a limit argument');
+                request['limit'] = 1000; // we need to specify an allowed amount of `limit` if no `since` is set and there is no default limit by exchange
             } else {
                 limit = 1000;
                 const start = parseInt (since / 1000);
@@ -1567,8 +1567,10 @@ module.exports = class bitstamp extends Exchange {
     }
 
     parseTransactionStatus (status) {
-        // withdrawals:
-        // 0 (open), 1 (in process), 2 (finished), 3 (canceled) or 4 (failed).
+        //
+        //   withdrawals:
+        //   0 (open), 1 (in process), 2 (finished), 3 (canceled) or 4 (failed).
+        //
         const statuses = {
             '0': 'pending', // Open
             '1': 'pending', // In process
@@ -1580,43 +1582,44 @@ module.exports = class bitstamp extends Exchange {
     }
 
     parseOrder (order, market = undefined) {
-        // from fetch order:
-        //   { status: 'Finished',
-        //     id: 731693945,
-        //     client_order_id: '',
-        //     transactions:
-        //     [ { fee: '0.000019',
-        //         price: '0.00015803',
-        //         datetime: '2018-01-07 10:45:34.132551',
-        //         btc: '0.0079015000000000',
-        //         tid: 42777395,
-        //         type: 2,
-        //         xrp: '50.00000000' } ] }
         //
-        // partially filled order:
-        //   { "id": 468646390,
-        //     "client_order_id": "",
-        //     "status": "Canceled",
-        //     "transactions": [{
-        //         "eth": "0.23000000",
-        //         "fee": "0.09",
-        //         "tid": 25810126,
-        //         "usd": "69.8947000000000000",
-        //         "type": 2,
-        //         "price": "303.89000000",
-        //         "datetime": "2017-11-11 07:22:20.710567"
-        //     }]}
+        //   from fetch order:
+        //     { status: 'Finished',
+        //       id: 731693945,
+        //       client_order_id: '',
+        //       transactions:
+        //       [ { fee: '0.000019',
+        //           price: '0.00015803',
+        //           datetime: '2018-01-07 10:45:34.132551',
+        //           btc: '0.0079015000000000',
+        //           tid: 42777395,
+        //           type: 2,
+        //           xrp: '50.00000000' } ] }
         //
-        // from create order response:
-        //     {
-        //         price: '0.00008012',
-        //         client_order_id: '',
-        //         currency_pair: 'XRP/BTC',
-        //         datetime: '2019-01-31 21:23:36',
-        //         amount: '15.00000000',
-        //         type: '0',
-        //         id: '2814205012'
-        //     }
+        //   partially filled order:
+        //     { "id": 468646390,
+        //       "client_order_id": "",
+        //       "status": "Canceled",
+        //       "transactions": [{
+        //           "eth": "0.23000000",
+        //           "fee": "0.09",
+        //           "tid": 25810126,
+        //           "usd": "69.8947000000000000",
+        //           "type": 2,
+        //           "price": "303.89000000",
+        //           "datetime": "2017-11-11 07:22:20.710567"
+        //       }]}
+        //
+        //   from create order response:
+        //       {
+        //           price: '0.00008012',
+        //           client_order_id: '',
+        //           currency_pair: 'XRP/BTC',
+        //           datetime: '2019-01-31 21:23:36',
+        //           amount: '15.00000000',
+        //           type: '0',
+        //           id: '2814205012'
+        //       }
         //
         const id = this.safeString (order, 'id');
         const clientOrderId = this.safeString (order, 'client_order_id');
@@ -1734,13 +1737,13 @@ module.exports = class bitstamp extends Exchange {
             const parsedTransaction = this.parseTransaction (item, currency);
             let direction = undefined;
             if ('amount' in item) {
-                const amount = this.safeNumber (item, 'amount');
-                direction = (amount > 0) ? 'in' : 'out';
+                const amount = this.safeString (item, 'amount');
+                direction = Precise.stringGt (amount, '0') ? 'in' : 'out';
             } else if (('currency' in parsedTransaction) && parsedTransaction['currency'] !== undefined) {
                 const currencyCode = this.safeString (parsedTransaction, 'currency');
                 currency = this.currency (currencyCode);
-                const amount = this.safeNumber (item, currency['id']);
-                direction = (amount > 0) ? 'in' : 'out';
+                const amount = this.safeString (item, currency['id']);
+                direction = Precise.stringGt (amount, '0') ? 'in' : 'out';
             }
             return {
                 'id': parsedTransaction['id'],
@@ -1803,6 +1806,7 @@ module.exports = class bitstamp extends Exchange {
             market = this.market (symbol);
         }
         const response = await this.privatePostOpenOrdersAll (params);
+        //
         //     [
         //         {
         //             price: '0.00008012',
@@ -1822,6 +1826,12 @@ module.exports = class bitstamp extends Exchange {
     }
 
     getCurrencyName (code) {
+        /**
+         * @ignore
+         * @method
+         * @param {string} code Unified currency code
+         * @returns {string} lowercase version of code
+         */
         return code.toLowerCase ();
     }
 
@@ -1958,6 +1968,7 @@ module.exports = class bitstamp extends Exchange {
         //     {"error": "No permission found"} // fetchDepositAddress returns this on apiKeys that don't have the permission required
         //     {"status": "error", "reason": {"__all__": ["Minimum order size is 5.0 EUR."]}}
         //     reuse of a nonce gives: { status: 'error', reason: 'Invalid nonce', code: 'API0004' }
+        //
         const status = this.safeString (response, 'status');
         const error = this.safeValue (response, 'error');
         if ((status === 'error') || (error !== undefined)) {

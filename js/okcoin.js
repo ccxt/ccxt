@@ -751,6 +751,7 @@ module.exports = class okcoin extends Exchange {
                 'accountsByType': {
                     'spot': '1',
                     'funding': '6',
+                    'main': '6',
                 },
                 'accountsById': {
                     '1': 'spot',

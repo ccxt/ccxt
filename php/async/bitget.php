@@ -6,13 +6,14 @@ namespace ccxt\async;
 // https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 use Exception; // a common import
-use \ccxt\ExchangeError;
-use \ccxt\ArgumentsRequired;
-use \ccxt\BadRequest;
-use \ccxt\BadSymbol;
-use \ccxt\InvalidOrder;
-use \ccxt\NotSupported;
-use \ccxt\Precise;
+use ccxt\ExchangeError;
+use ccxt\ArgumentsRequired;
+use ccxt\BadRequest;
+use ccxt\BadSymbol;
+use ccxt\InvalidOrder;
+use ccxt\NotSupported;
+use ccxt\Precise;
+use React\Async;
 
 class bitget extends Exchange {
 
@@ -23,6 +24,7 @@ class bitget extends Exchange {
             'countries' => array( 'SG' ),
             'version' => 'v1',
             'rateLimit' => 50, // up to 3000 requests per 5 minutes ≈ 600 requests per minute ≈ 10 requests per second ≈ 100 ms
+            'certified' => true,
             'has' => array(
                 'CORS' => null,
                 'spot' => true,
@@ -45,7 +47,9 @@ class bitget extends Exchange {
                 'fetchBorrowRatesPerSymbol' => false,
                 'fetchClosedOrders' => true,
                 'fetchCurrencies' => true,
-                'fetchDeposits' => false,
+                'fetchDepositAddress' => true,
+                'fetchDepositAddresses' => false,
+                'fetchDeposits' => true,
                 'fetchFundingHistory' => false,
                 'fetchFundingRate' => true,
                 'fetchFundingRateHistory' => true,
@@ -60,6 +64,8 @@ class bitget extends Exchange {
                 'fetchMarkOHLCV' => false,
                 'fetchMyTrades' => true,
                 'fetchOHLCV' => true,
+                'fetchOpenInterest' => true,
+                'fetchOpenInterestHistory' => false,
                 'fetchOpenOrders' => true,
                 'fetchOrder' => true,
                 'fetchOrderBook' => true,
@@ -78,7 +84,7 @@ class bitget extends Exchange {
                 'fetchTransfer' => false,
                 'fetchTransfers' => null,
                 'fetchWithdrawal' => false,
-                'fetchWithdrawals' => false,
+                'fetchWithdrawals' => true,
                 'reduceMargin' => true,
                 'setLeverage' => true,
                 'setMarginMode' => true,
@@ -112,7 +118,7 @@ class bitget extends Exchange {
             ),
             'hostname' => 'bitget.com',
             'urls' => array(
-                'logo' => 'https://user-images.githubusercontent.com/51840849/88317935-a8a21c80-cd22-11ea-8e2b-4b9fac5975eb.jpg',
+                'logo' => 'https://user-images.githubusercontent.com/1294454/195989417-4253ddb0-afbe-4a1c-9dea-9dbcd121fa5d.jpg',
                 'api' => array(
                     'spot' => 'https://api.{hostname}',
                     'mix' => 'https://api.{hostname}',
@@ -124,9 +130,6 @@ class bitget extends Exchange {
                     'https://bitgetlimited.github.io/apidoc/en/broker',
                 ),
                 'fees' => 'https://www.bitget.cc/zh-CN/rate?tab=1',
-                'test' => array(
-                    'rest' => 'https://testnet.bitget.com',
-                ),
                 'referral' => 'https://www.bitget.com/expressly?languageType=0&channelCode=ccxt&vipCode=tg9j',
             ),
             'api' => array(
@@ -167,7 +170,11 @@ class bitget extends Exchange {
                         'get' => array(
                             'account/getInfo' => 20,
                             'account/assets' => 2,
-                            'account/transferRecords' => 1,
+                            'account/transferRecords' => 4,
+                            'wallet/deposit-address' => 4,
+                            'wallet/withdrawal-inner' => 4,
+                            'wallet/withdrawal-list' => 1,
+                            'wallet/deposit-list' => 1,
                         ),
                         'post' => array(
                             'account/bills' => 2,
@@ -179,6 +186,9 @@ class bitget extends Exchange {
                             'trade/open-orders' => 1,
                             'trade/history' => 1,
                             'trade/fills' => 1,
+                            'wallet/transfer' => 4,
+                            'wallet/withdrawal' => 4,
+                            'wallet/subTransfer' => 10,
                         ),
                     ),
                     'mix' => array(
@@ -205,6 +215,7 @@ class bitget extends Exchange {
                             'trade/profitDateList' => 2,
                             'trace/waitProfitDateList' => 2,
                             'trace/traderSymbols' => 2,
+                            'order/marginCoinCurrent' => 2,
                         ),
                         'post' => array(
                             'account/setLeverage' => 8,
@@ -740,6 +751,7 @@ class bitget extends Exchange {
                     'invalid end time' => '\\ccxt\\BadRequest', // end time is a date 30 days ago; or end time is a date in the future
                     '20003' => '\\ccxt\\ExchangeError', // operation failed, array("status":"error","ts":1595730308979,"err_code":"bad-request","err_msg":"20003")
                     '01001' => '\\ccxt\\ExchangeError', // order failed, array("status":"fail","err_code":"01001","err_msg":"系统异常，请稍后重试")
+                    '43111' => '\\ccxt\\PermissionDenied', // array("code":"43111","msg":"参数错误 address not in address book","requestTime":1665394201164,"data":null)
                 ),
                 'broad' => array(
                     'invalid size, valid range' => '\\ccxt\\ExchangeError',
@@ -761,52 +773,59 @@ class bitget extends Exchange {
                     'spot' => 'CCXT#',
                     'swap' => 'CCXT#',
                 ),
+                'withdraw' => array(
+                    'fillResponseFromRequest' => true,
+                ),
             ),
         ));
     }
 
     public function fetch_time($params = array ()) {
-        /**
-         * fetches the current integer timestamp in milliseconds from the exchange server
-         * @param {array} $params extra parameters specific to the bitget api endpoint
-         * @return {int} the current integer timestamp in milliseconds from the exchange server
-         */
-        $response = yield $this->publicSpotGetPublicTime ($params);
-        //
-        //     {
-        //       code => '00000',
-        //       msg => 'success',
-        //       requestTime => 1645837773501,
-        //       data => '1645837773501'
-        //     }
-        //
-        return $this->safe_integer($response, 'data');
+        return Async\async(function () use ($params) {
+            /**
+             * fetches the current integer timestamp in milliseconds from the exchange server
+             * @param {array} $params extra parameters specific to the bitget api endpoint
+             * @return {int} the current integer timestamp in milliseconds from the exchange server
+             */
+            $response = Async\await($this->publicSpotGetPublicTime ($params));
+            //
+            //     {
+            //       code => '00000',
+            //       msg => 'success',
+            //       requestTime => 1645837773501,
+            //       data => '1645837773501'
+            //     }
+            //
+            return $this->safe_integer($response, 'data');
+        }) ();
     }
 
     public function fetch_markets($params = array ()) {
-        /**
-         * retrieves data on all $markets for bitget
-         * @param {array} $params extra parameters specific to the exchange api endpoint
-         * @return {[array]} an array of objects representing market data
-         */
-        $types = $this->safe_value($this->options, 'fetchMarkets', array( 'spot', 'swap' ));
-        $result = array();
-        for ($i = 0; $i < count($types); $i++) {
-            $type = $types[$i];
-            if ($type === 'swap') {
-                $subTypes = array( 'umcbl', 'dmcbl' );
-                for ($j = 0; $j < count($subTypes); $j++) {
-                    $markets = yield $this->fetch_markets_by_type($type, array_merge($params, array(
-                        'productType' => $subTypes[$j],
-                    )));
+        return Async\async(function () use ($params) {
+            /**
+             * retrieves data on all $markets for bitget
+             * @param {array} $params extra parameters specific to the exchange api endpoint
+             * @return {[array]} an array of objects representing market data
+             */
+            $types = $this->safe_value($this->options, 'fetchMarkets', array( 'spot', 'swap' ));
+            $result = array();
+            for ($i = 0; $i < count($types); $i++) {
+                $type = $types[$i];
+                if ($type === 'swap') {
+                    $subTypes = array( 'umcbl', 'dmcbl' );
+                    for ($j = 0; $j < count($subTypes); $j++) {
+                        $markets = Async\await($this->fetch_markets_by_type($type, array_merge($params, array(
+                            'productType' => $subTypes[$j],
+                        ))));
+                        $result = $this->array_concat($result, $markets);
+                    }
+                } else {
+                    $markets = Async\await($this->fetch_markets_by_type($types[$i], $params));
                     $result = $this->array_concat($result, $markets);
                 }
-            } else {
-                $markets = yield $this->fetch_markets_by_type($types[$i], $params);
-                $result = $this->array_concat($result, $markets);
             }
-        }
-        return $result;
+            return $result;
+        }) ();
     }
 
     public function parse_markets($markets) {
@@ -963,191 +982,490 @@ class bitget extends Exchange {
     }
 
     public function fetch_markets_by_type($type, $params = array ()) {
-        $method = $this->get_supported_mapping($type, array(
-            'spot' => 'publicSpotGetPublicProducts',
-            'swap' => 'publicMixGetMarketContracts',
-        ));
-        $response = yield $this->$method ($params);
-        //
-        // spot
-        //     {
-        //       code => '00000',
-        //       msg => 'success',
-        //       requestTime => 1645840064031,
-        //       $data => array(
-        //         {
-        //           symbol => 'ALPHAUSDT_SPBL',
-        //           symbolName => 'ALPHAUSDT',
-        //           baseCoin => 'ALPHA',
-        //           quoteCoin => 'USDT',
-        //           minTradeAmount => '2',
-        //           maxTradeAmount => '0',
-        //           takerFeeRate => '0.001',
-        //           makerFeeRate => '0.001',
-        //           priceScale => '4',
-        //           quantityScale => '4',
-        //           status => 'online'
-        //         }
-        //       )
-        //     }
-        //
-        // swap
-        //     {
-        //       code => '00000',
-        //       msg => 'success',
-        //       requestTime => 1645840821493,
-        //       $data => [
-        //         {
-        //           symbol => 'BTCUSDT_UMCBL',
-        //           makerFeeRate => '0.0002',
-        //           takerFeeRate => '0.0006',
-        //           feeRateUpRatio => '0.005',
-        //           openCostUpRatio => '0.01',
-        //           quoteCoin => 'USDT',
-        //           baseCoin => 'BTC',
-        //           buyLimitPriceRatio => '0.01',
-        //           sellLimitPriceRatio => '0.01',
-        //           supportMarginCoins => [Array],
-        //           minTradeNum => '0.001',
-        //           priceEndStep => '5',
-        //           volumePlace => '3',
-        //           pricePlace => '1'
-        //         }
-        //       ]
-        //     }
-        //
-        $data = $this->safe_value($response, 'data', array());
-        return $this->parse_markets($data);
+        return Async\async(function () use ($type, $params) {
+            $method = $this->get_supported_mapping($type, array(
+                'spot' => 'publicSpotGetPublicProducts',
+                'swap' => 'publicMixGetMarketContracts',
+            ));
+            $response = Async\await($this->$method ($params));
+            //
+            // spot
+            //     {
+            //       code => '00000',
+            //       msg => 'success',
+            //       requestTime => 1645840064031,
+            //       $data => array(
+            //         {
+            //           symbol => 'ALPHAUSDT_SPBL',
+            //           symbolName => 'ALPHAUSDT',
+            //           baseCoin => 'ALPHA',
+            //           quoteCoin => 'USDT',
+            //           minTradeAmount => '2',
+            //           maxTradeAmount => '0',
+            //           takerFeeRate => '0.001',
+            //           makerFeeRate => '0.001',
+            //           priceScale => '4',
+            //           quantityScale => '4',
+            //           status => 'online'
+            //         }
+            //       )
+            //     }
+            //
+            // swap
+            //     {
+            //       code => '00000',
+            //       msg => 'success',
+            //       requestTime => 1645840821493,
+            //       $data => [
+            //         {
+            //           symbol => 'BTCUSDT_UMCBL',
+            //           makerFeeRate => '0.0002',
+            //           takerFeeRate => '0.0006',
+            //           feeRateUpRatio => '0.005',
+            //           openCostUpRatio => '0.01',
+            //           quoteCoin => 'USDT',
+            //           baseCoin => 'BTC',
+            //           buyLimitPriceRatio => '0.01',
+            //           sellLimitPriceRatio => '0.01',
+            //           supportMarginCoins => [Array],
+            //           minTradeNum => '0.001',
+            //           priceEndStep => '5',
+            //           volumePlace => '3',
+            //           pricePlace => '1'
+            //         }
+            //       ]
+            //     }
+            //
+            $data = $this->safe_value($response, 'data', array());
+            return $this->parse_markets($data);
+        }) ();
     }
 
     public function fetch_currencies($params = array ()) {
-        /**
-         * fetches all available currencies on an exchange
-         * @param {array} $params extra parameters specific to the bitget api endpoint
-         * @return {array} an associative dictionary of currencies
-         */
-        $response = yield $this->publicSpotGetPublicCurrencies ($params);
-        //
-        //     {
-        //       $code => '00000',
-        //       msg => 'success',
-        //       requestTime => 1645935668288,
-        //       $data => array(
-        //         {
-        //           coinId => '230',
-        //           coinName => 'KIN',
-        //           transfer => 'false',
-        //           $chains => array(
-        //             {
-        //               $chain => 'SOL',
-        //               needTag => 'false',
-        //               withdrawable => 'true',
-        //               rechargeable => 'true',
-        //               withdrawFee => '187500',
-        //               depositConfirm => '100',
-        //               withdrawConfirm => '100',
-        //               minDepositAmount => '12500',
-        //               minWithdrawAmount => '250000',
-        //               browserUrl => 'https://explorer.solana.com/tx/'
-        //             }
-        //           )
-        //         }
-        //       )
-        //     }
-        //
-        $result = array();
-        $data = $this->safe_value($response, 'data', array());
-        for ($i = 0; $i < count($data); $i++) {
-            $entry = $data[$i];
-            $id = $this->safe_string($entry, 'coinId');
-            $code = $this->safe_currency_code($this->safe_string($entry, 'coinName'));
-            $chains = $this->safe_value($entry, 'chains', array());
-            $networks = array();
-            for ($j = 0; $j < count($chains); $j++) {
-                $chain = $chains[$j];
-                $networkId = $this->safe_string($chain, 'chain');
-                $network = $this->safe_currency_code($networkId);
-                $withdrawEnabled = $this->safe_string($chain, 'withdrawable');
-                $depositEnabled = $this->safe_string($chain, 'rechargeable');
-                $networks[$network] = array(
-                    'info' => $chain,
-                    'id' => $networkId,
-                    'network' => $network,
-                    'limits' => array(
-                        'withdraw' => array(
-                            'min' => $this->safe_number($chain, 'minWithdrawAmount'),
-                            'max' => null,
+        return Async\async(function () use ($params) {
+            /**
+             * fetches all available currencies on an exchange
+             * @param {array} $params extra parameters specific to the bitget api endpoint
+             * @return {array} an associative dictionary of currencies
+             */
+            $response = Async\await($this->publicSpotGetPublicCurrencies ($params));
+            //
+            //     {
+            //       $code => '00000',
+            //       msg => 'success',
+            //       requestTime => 1645935668288,
+            //       $data => array(
+            //         {
+            //           coinId => '230',
+            //           coinName => 'KIN',
+            //           transfer => 'false',
+            //           $chains => array(
+            //             {
+            //               $chain => 'SOL',
+            //               needTag => 'false',
+            //               withdrawable => 'true',
+            //               rechargeable => 'true',
+            //               withdrawFee => '187500',
+            //               depositConfirm => '100',
+            //               withdrawConfirm => '100',
+            //               minDepositAmount => '12500',
+            //               minWithdrawAmount => '250000',
+            //               browserUrl => 'https://explorer.solana.com/tx/'
+            //             }
+            //           )
+            //         }
+            //       )
+            //     }
+            //
+            $result = array();
+            $data = $this->safe_value($response, 'data', array());
+            for ($i = 0; $i < count($data); $i++) {
+                $entry = $data[$i];
+                $id = $this->safe_string($entry, 'coinId');
+                $code = $this->safe_currency_code($this->safe_string($entry, 'coinName'));
+                $chains = $this->safe_value($entry, 'chains', array());
+                $networks = array();
+                for ($j = 0; $j < count($chains); $j++) {
+                    $chain = $chains[$j];
+                    $networkId = $this->safe_string($chain, 'chain');
+                    $network = $this->safe_currency_code($networkId);
+                    $withdrawEnabled = $this->safe_string($chain, 'withdrawable');
+                    $depositEnabled = $this->safe_string($chain, 'rechargeable');
+                    $networks[$network] = array(
+                        'info' => $chain,
+                        'id' => $networkId,
+                        'network' => $network,
+                        'limits' => array(
+                            'withdraw' => array(
+                                'min' => $this->safe_number($chain, 'minWithdrawAmount'),
+                                'max' => null,
+                            ),
+                            'deposit' => array(
+                                'min' => $this->safe_number($chain, 'minDepositAmount'),
+                                'max' => null,
+                            ),
                         ),
-                        'deposit' => array(
-                            'min' => $this->safe_number($chain, 'minDepositAmount'),
-                            'max' => null,
-                        ),
-                    ),
+                        'active' => null,
+                        'withdraw' => $withdrawEnabled === 'true',
+                        'deposit' => $depositEnabled === 'true',
+                        'fee' => $this->safe_number($chain, 'withdrawFee'),
+                        'precision' => null,
+                    );
+                }
+                $result[$code] = array(
+                    'info' => $entry,
+                    'id' => $id,
+                    'code' => $code,
+                    'networks' => $networks,
+                    'type' => null,
+                    'name' => null,
                     'active' => null,
-                    'withdraw' => $withdrawEnabled === 'true',
-                    'deposit' => $depositEnabled === 'true',
-                    'fee' => $this->safe_number($chain, 'withdrawFee'),
+                    'deposit' => null,
+                    'withdraw' => null,
+                    'fee' => null,
                     'precision' => null,
+                    'limits' => array(
+                        'amount' => array( 'min' => null, 'max' => null ),
+                        'withdraw' => array( 'min' => null, 'max' => null ),
+                    ),
                 );
             }
-            $result[$code] = array(
-                'info' => $entry,
-                'id' => $id,
-                'code' => $code,
-                'networks' => $networks,
-                'type' => null,
-                'name' => null,
-                'active' => null,
-                'deposit' => null,
-                'withdraw' => null,
-                'fee' => null,
-                'precision' => null,
-                'limits' => array(
-                    'amount' => array( 'min' => null, 'max' => null ),
-                    'withdraw' => array( 'min' => null, 'max' => null ),
-                ),
+            return $result;
+        }) ();
+    }
+
+    public function fetch_deposits($code = null, $since = null, $limit = null, $params = array ()) {
+        return Async\async(function () use ($code, $since, $limit, $params) {
+            /**
+             * fetch all deposits made to an account
+             * @url https://bitgetlimited.github.io/apidoc/en/spot/#get-deposit-list
+             * @param {string|null} $code unified $currency $code
+             * @param {int} $since the earliest time in ms to fetch deposits for
+             * @param {int|null} $limit the maximum number of deposits structures to retrieve
+             * @param {array} $params extra parameters specific to the bitget api endpoint
+             * @param {string|null} $params->pageNo pageNo default 1
+             * @param {string|null} $params->pageSize pageSize default 20. Max 100
+             * @return {[array]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure transaction structures}
+             */
+            Async\await($this->load_markets());
+            if ($code === null) {
+                throw new ArgumentsRequired($this->id . ' fetchDeposits() requires a `$code` argument');
+            }
+            $currency = $this->currency($code);
+            if ($since === null) {
+                $since = $this->milliseconds() - 31556952000; // 1yr
+            }
+            $request = array(
+                'coin' => $currency['code'],
+                'startTime' => $since,
+                'endTime' => $this->milliseconds(),
             );
-        }
-        return $result;
+            if ($limit !== null) {
+                $request['pageSize'] = $limit;
+            }
+            $response = Async\await($this->privateSpotGetWalletDepositList (array_merge($request, $params)));
+            //
+            //      {
+            //          "code" => "00000",
+            //          "msg" => "success",
+            //          "requestTime" => 0,
+            //          "data" => [array(
+            //              "id" => "925607360021839872",
+            //              "txId" => "f73a4ac034da06b729f49676ca8801f406a093cf90c69b16e5a1cc9080df4ccb",
+            //              "coin" => "USDT",
+            //              "type" => "deposit",
+            //              "amount" => "19.44800000",
+            //              "status" => "success",
+            //              "toAddress" => "TRo4JMfZ1XYHUgnLsUMfDEf8MWzcWaf8uh",
+            //              "fee" => null,
+            //              "chain" => "TRC20",
+            //              "confirm" => null,
+            //              "cTime" => "1656407912259",
+            //              "uTime" => "1656407940148"
+            //          )]
+            //      }
+            //
+            $rawTransactions = $this->safe_value($response, 'data', array());
+            return $this->parse_transactions($rawTransactions, $currency, $since, $limit);
+        }) ();
+    }
+
+    public function withdraw($code, $amount, $address, $tag = null, $params = array ()) {
+        return Async\async(function () use ($code, $amount, $address, $tag, $params) {
+            /**
+             * make a withdrawal
+             * @param {string} $code unified $currency $code
+             * @param {float} $amount the $amount to withdraw
+             * @param {string} $address the $address to withdraw to
+             * @param {string|null} $tag
+             * @param {array} $params extra parameters specific to the bitget api endpoint
+             * @param {string} $params->chain the $chain to withdraw to
+             * @return {array} a {@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure transaction structure}
+             */
+            $this->check_address($address);
+            $chain = $this->safe_string($params, 'chain');
+            if ($chain === null) {
+                throw new ArgumentsRequired($this->id . ' withdraw() requires a $chain parameter');
+            }
+            Async\await($this->load_markets());
+            $currency = $this->currency($code);
+            $request = array(
+                'coin' => $currency['code'],
+                'address' => $address,
+                'chain' => $chain,
+                'amount' => $amount,
+            );
+            if ($tag !== null) {
+                $request['tag'] = $tag;
+            }
+            $response = Async\await($this->privateSpotPostWalletWithdrawal (array_merge($request, $params)));
+            //
+            //     {
+            //         "code" => "00000",
+            //         "msg" => "success",
+            //         "data" => "888291686266343424"
+            //     }
+            //
+            $result = array(
+                'id' => $this->safe_string($response, 'data'),
+                'info' => $response,
+                'txid' => null,
+                'timestamp' => null,
+                'datetime' => null,
+                'network' => null,
+                'addressFrom' => null,
+                'address' => null,
+                'addressTo' => null,
+                'amount' => null,
+                'type' => 'withdrawal',
+                'currency' => null,
+                'status' => null,
+                'updated' => null,
+                'tagFrom' => null,
+                'tag' => null,
+                'tagTo' => null,
+                'comment' => null,
+                'fee' => null,
+            );
+            $withdrawOptions = $this->safe_value($this->options, 'withdraw', array());
+            $fillResponseFromRequest = $this->safe_value($withdrawOptions, 'fillResponseFromRequest', true);
+            if ($fillResponseFromRequest) {
+                $result['currency'] = $code;
+                $result['timestamp'] = $this->milliseconds();
+                $result['datetime'] = $this->iso8601($this->milliseconds());
+                $result['amount'] = $amount;
+                $result['tag'] = $tag;
+                $result['address'] = $address;
+                $result['addressTo'] = $address;
+                $result['network'] = $chain;
+            }
+            return $result;
+        }) ();
+    }
+
+    public function fetch_withdrawals($code = null, $since = null, $limit = null, $params = array ()) {
+        return Async\async(function () use ($code, $since, $limit, $params) {
+            /**
+             * fetch all withdrawals made from an account
+             * @url https://bitgetlimited.github.io/apidoc/en/spot/#get-withdraw-list
+             * @param {string|null} $code unified $currency $code
+             * @param {int} $since the earliest time in ms to fetch withdrawals for
+             * @param {int|null} $limit the maximum number of withdrawals structures to retrieve
+             * @param {array} $params extra parameters specific to the bitget api endpoint
+             * @param {string|null} $params->pageNo pageNo default 1
+             * @param {string|null} $params->pageSize pageSize default 20. Max 100
+             * @return {[array]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure transaction structures}
+             */
+            Async\await($this->load_markets());
+            if ($code === null) {
+                throw new ArgumentsRequired($this->id . ' fetchWithdrawals() requires a `$code` argument');
+            }
+            $currency = $this->currency($code);
+            if ($since === null) {
+                $since = $this->milliseconds() - 31556952000; // 1yr
+            }
+            $request = array(
+                'coin' => $currency['code'],
+                'startTime' => $since,
+                'endTime' => $this->milliseconds(),
+            );
+            if ($limit !== null) {
+                $request['pageSize'] = $limit;
+            }
+            $response = Async\await($this->privateSpotGetWalletWithdrawalList (array_merge($request, $params)));
+            //
+            //      {
+            //          "code" => "00000",
+            //          "msg" => "success",
+            //          "requestTime" => 0,
+            //          "data" => [array(
+            //              "id" => "925607360021839872",
+            //              "txId" => "f73a4ac034da06b729f49676ca8801f406a093cf90c69b16e5a1cc9080df4ccb",
+            //              "coin" => "USDT",
+            //              "type" => "deposit",
+            //              "amount" => "19.44800000",
+            //              "status" => "success",
+            //              "toAddress" => "TRo4JMfZ1XYHUgnLsUMfDEf8MWzcWaf8uh",
+            //              "fee" => null,
+            //              "chain" => "TRC20",
+            //              "confirm" => null,
+            //              "cTime" => "1656407912259",
+            //              "uTime" => "1656407940148"
+            //          )]
+            //      }
+            //
+            $rawTransactions = $this->safe_value($response, 'data', array());
+            return $this->parse_transactions($rawTransactions, $currency, $since, $limit);
+        }) ();
+    }
+
+    public function parse_transaction($transaction, $currency = null) {
+        //
+        //     {
+        //         "id" => "925607360021839872",
+        //         "txId" => "f73a4ac034da06b729f49676ca8801f406a093cf90c69b16e5a1cc9080df4ccb",
+        //         "coin" => "USDT",
+        //         "type" => "deposit",
+        //         "amount" => "19.44800000",
+        //         "status" => "success",
+        //         "toAddress" => "TRo4JMfZ1XYHUgnLsUMfDEf8MWzcWaf8uh",
+        //         "fee" => null,
+        //         "chain" => "TRC20",
+        //         "confirm" => null,
+        //         "cTime" => "1656407912259",
+        //         "uTime" => "1656407940148"
+        //     }
+        //
+        $timestamp = $this->safe_integer($transaction, 'cTime');
+        $networkId = $this->safe_string($transaction, 'chain');
+        $currencyId = $this->safe_string($transaction, 'coin');
+        $status = $this->safe_string($transaction, 'status');
+        return array(
+            'id' => $this->safe_string($transaction, 'id'),
+            'info' => $transaction,
+            'txid' => $this->safe_string($transaction, 'txId'),
+            'timestamp' => $timestamp,
+            'datetime' => $this->iso8601($timestamp),
+            'network' => $networkId,
+            'addressFrom' => null,
+            'address' => $this->safe_string($transaction, 'toAddress'),
+            'addressTo' => $this->safe_string($transaction, 'toAddress'),
+            'amount' => $this->safe_number($transaction, 'amount'),
+            'type' => $this->safe_string($transaction, 'type'),
+            'currency' => $this->safe_currency_code($currencyId),
+            'status' => $this->parse_transaction_status($status),
+            'updated' => $this->safe_number($transaction, 'uTime'),
+            'tagFrom' => null,
+            'tag' => null,
+            'tagTo' => null,
+            'comment' => null,
+            'fee' => null,
+        );
+    }
+
+    public function parse_transaction_status($status) {
+        $statuses = array(
+            'success' => 'ok',
+            'Pending' => 'pending',
+            'pending_review' => 'pending',
+            'pending_review_fail' => 'failed',
+            'reject' => 'failed',
+        );
+        return $this->safe_string($statuses, $status, $status);
+    }
+
+    public function fetch_deposit_address($code, $params = array ()) {
+        return Async\async(function () use ($code, $params) {
+            /**
+             * fetch the deposit address for a $currency associated with this account
+             * @param {string} $code unified $currency $code
+             * @param {array} $params extra parameters specific to the binance api endpoint
+             * @return {array} an {@link https://docs.ccxt.com/en/latest/manual.html#address-structure address structure}
+             */
+            Async\await($this->load_markets());
+            $currency = $this->currency($code);
+            $request = array(
+                'coin' => $currency['code'],
+            );
+            $response = Async\await($this->privateSpotGetWalletDepositAddress (array_merge($request, $params)));
+            //
+            //     {
+            //         "code" => "00000",
+            //         "msg" => "success",
+            //         "data" => {
+            //             "address" => "1HPn8Rx2y6nNSfagQBKy27GB99Vbzg89wv",
+            //             "chain" => "BTC-Bitcoin",
+            //             "coin" => "BTC",
+            //             "tag" => "",
+            //             "url" => "https://btc.com/1HPn8Rx2y6nNSfagQBKy27GB99Vbzg89wv"
+            //         }
+            //     }
+            //
+            $data = $this->safe_value($response, 'data', array());
+            return $this->parse_deposit_address($data, $currency);
+        }) ();
+    }
+
+    public function parse_deposit_address($depositAddress, $currency = null) {
+        //
+        //    {
+        //        "address" => "1HPn8Rx2y6nNSfagQBKy27GB99Vbzg89wv",
+        //        "chain" => "BTC-Bitcoin",
+        //        "coin" => "BTC",
+        //        "tag" => "",
+        //        "url" => "https://btc.com/1HPn8Rx2y6nNSfagQBKy27GB99Vbzg89wv"
+        //    }
+        //
+        $currencyId = $this->safe_string($depositAddress, 'coin');
+        $networkId = $this->safe_string($depositAddress, 'chain');
+        return array(
+            'currency' => $this->safe_currency_code($currencyId, $currency),
+            'address' => $this->safe_string($depositAddress, 'address'),
+            'tag' => $this->safe_string($depositAddress, 'tag'),
+            'network' => $networkId,
+            'info' => $depositAddress,
+        );
     }
 
     public function fetch_order_book($symbol, $limit = null, $params = array ()) {
-        /**
-         * fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other $data
-         * @param {string} $symbol unified $symbol of the $market to fetch the order book for
-         * @param {int|null} $limit the maximum amount of order book entries to return
-         * @param {array} $params extra parameters specific to the bitget api endpoint
-         * @return {array} A dictionary of {@link https://docs.ccxt.com/en/latest/manual.html#order-book-structure order book structures} indexed by $market symbols
-         */
-        yield $this->load_markets();
-        $market = $this->market($symbol);
-        list($marketType, $query) = $this->handle_market_type_and_params('fetchOrderBook', $market, $params);
-        $method = $this->get_supported_mapping($marketType, array(
-            'spot' => 'publicSpotGetMarketDepth',
-            'swap' => 'publicMixGetMarketDepth',
-        ));
-        $request = array(
-            'symbol' => $market['id'],
-        );
-        if ($limit !== null) {
-            $request['limit'] = $limit;
-        }
-        $response = yield $this->$method (array_merge($request, $query));
-        //
-        //     {
-        //       code => '00000',
-        //       msg => 'success',
-        //       requestTime => 1645854610294,
-        //       $data => {
-        //         asks => array( array( '39102', '11.026' ) ),
-        //         bids => array( array( '39100.5', '1.773' ) ),
-        //         $timestamp => '1645854610294'
-        //       }
-        //     }
-        //
-        $data = $this->safe_value($response, 'data');
-        $timestamp = $this->safe_integer($data, 'timestamp');
-        return $this->parse_order_book($data, $symbol, $timestamp);
+        return Async\async(function () use ($symbol, $limit, $params) {
+            /**
+             * fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other $data
+             * @param {string} $symbol unified $symbol of the $market to fetch the order book for
+             * @param {int|null} $limit the maximum amount of order book entries to return
+             * @param {array} $params extra parameters specific to the bitget api endpoint
+             * @return {array} A dictionary of {@link https://docs.ccxt.com/en/latest/manual.html#order-book-structure order book structures} indexed by $market symbols
+             */
+            Async\await($this->load_markets());
+            $market = $this->market($symbol);
+            list($marketType, $query) = $this->handle_market_type_and_params('fetchOrderBook', $market, $params);
+            $method = $this->get_supported_mapping($marketType, array(
+                'spot' => 'publicSpotGetMarketDepth',
+                'swap' => 'publicMixGetMarketDepth',
+            ));
+            $request = array(
+                'symbol' => $market['id'],
+            );
+            if ($limit !== null) {
+                $request['limit'] = $limit;
+            }
+            $response = Async\await($this->$method (array_merge($request, $query)));
+            //
+            //     {
+            //       code => '00000',
+            //       msg => 'success',
+            //       requestTime => 1645854610294,
+            //       $data => {
+            //         asks => array( array( '39102', '11.026' ) ),
+            //         bids => array( array( '39100.5', '1.773' ) ),
+            //         $timestamp => '1645854610294'
+            //       }
+            //     }
+            //
+            $data = $this->safe_value($response, 'data');
+            $timestamp = $this->safe_integer($data, 'timestamp');
+            return $this->parse_order_book($data, $symbol, $timestamp);
+        }) ();
     }
 
     public function parse_ticker($ticker, $market = null) {
@@ -1223,113 +1541,117 @@ class bitget extends Exchange {
     }
 
     public function fetch_ticker($symbol, $params = array ()) {
-        /**
-         * fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific $market
-         * @param {string} $symbol unified $symbol of the $market to fetch the ticker for
-         * @param {array} $params extra parameters specific to the bitget api endpoint
-         * @return {array} a {@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure ticker structure}
-         */
-        yield $this->load_markets();
-        $market = $this->market($symbol);
-        $request = array(
-            'symbol' => $market['id'],
-        );
-        list($marketType, $query) = $this->handle_market_type_and_params('fetchTicker', $market, $params);
-        $method = $this->get_supported_mapping($marketType, array(
-            'spot' => 'publicSpotGetMarketTicker',
-            'swap' => 'publicMixGetMarketTicker',
-        ));
-        $response = yield $this->$method (array_merge($request, $query));
-        //
-        //     {
-        //         code => '00000',
-        //         msg => 'success',
-        //         requestTime => '1645856138576',
-        //         $data => {
-        //             $symbol => 'BTCUSDT',
-        //             high24h => '40252.43',
-        //             low24h => '38548.54',
-        //             close => '39104.65',
-        //             quoteVol => '67221762.2184',
-        //             baseVol => '1721.527',
-        //             usdtVol => '67221762.218361',
-        //             ts => '1645856138031',
-        //             buyOne => '39102.55',
-        //             sellOne => '39110.56'
-        //         }
-        //     }
-        //
-        $data = $this->safe_value($response, 'data');
-        return $this->parse_ticker($data, $market);
+        return Async\async(function () use ($symbol, $params) {
+            /**
+             * fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific $market
+             * @param {string} $symbol unified $symbol of the $market to fetch the ticker for
+             * @param {array} $params extra parameters specific to the bitget api endpoint
+             * @return {array} a {@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure ticker structure}
+             */
+            Async\await($this->load_markets());
+            $market = $this->market($symbol);
+            $request = array(
+                'symbol' => $market['id'],
+            );
+            list($marketType, $query) = $this->handle_market_type_and_params('fetchTicker', $market, $params);
+            $method = $this->get_supported_mapping($marketType, array(
+                'spot' => 'publicSpotGetMarketTicker',
+                'swap' => 'publicMixGetMarketTicker',
+            ));
+            $response = Async\await($this->$method (array_merge($request, $query)));
+            //
+            //     {
+            //         code => '00000',
+            //         msg => 'success',
+            //         requestTime => '1645856138576',
+            //         $data => {
+            //             $symbol => 'BTCUSDT',
+            //             high24h => '40252.43',
+            //             low24h => '38548.54',
+            //             close => '39104.65',
+            //             quoteVol => '67221762.2184',
+            //             baseVol => '1721.527',
+            //             usdtVol => '67221762.218361',
+            //             ts => '1645856138031',
+            //             buyOne => '39102.55',
+            //             sellOne => '39110.56'
+            //         }
+            //     }
+            //
+            $data = $this->safe_value($response, 'data');
+            return $this->parse_ticker($data, $market);
+        }) ();
     }
 
     public function fetch_tickers($symbols = null, $params = array ()) {
-        /**
-         * fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
-         * @param {[string]|null} $symbols unified $symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
-         * @param {array} $params extra parameters specific to the bitget api endpoint
-         * @return {array} an array of {@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure ticker structures}
-         */
-        yield $this->load_markets();
-        list($marketType, $query) = $this->handle_market_type_and_params('fetchTickers', null, $params);
-        $method = $this->get_supported_mapping($marketType, array(
-            'spot' => 'publicSpotGetMarketTickers',
-            'swap' => 'publicMixGetMarketTickers',
-        ));
-        $request = array();
-        if ($method === 'publicMixGetMarketTickers') {
-            $defaultSubType = $this->safe_string($this->options, 'defaultSubType');
-            $request['productType'] = ($defaultSubType === 'linear') ? 'UMCBL' : 'DMCBL';
-        }
-        $response = yield $this->$method (array_merge($request, $query));
-        //
-        // spot
-        //
-        //     {
-        //         "code":"00000",
-        //         "msg":"success",
-        //         "requestTime":1653237548496,
-        //         "data":array(
-        //             array(
-        //                 "symbol":"LINKUSDT",
-        //                 "high24h":"7.2634",
-        //                 "low24h":"7.1697",
-        //                 "close":"7.2444",
-        //                 "quoteVol":"330424.2366",
-        //                 "baseVol":"46401.3116",
-        //                 "usdtVol":"330424.2365573",
-        //                 "ts":"1653237548026",
-        //                 "buyOne":"7.2382",
-        //                 "sellOne":"7.2513"
-        //             ),
-        //         )
-        //     }
-        //
-        // swap
-        //
-        //     {
-        //         "code":"00000",
-        //         "msg":"success",
-        //         "requestTime":1653237819762,
-        //         "data":array(
-        //             array(
-        //                 "symbol":"BTCUSDT_UMCBL",
-        //                 "last":"29891.5",
-        //                 "bestAsk":"29891.5",
-        //                 "bestBid":"29889.5",
-        //                 "high24h":"29941.5",
-        //                 "low24h":"29737.5",
-        //                 "timestamp":"1653237819761",
-        //                 "priceChangePercent":"0.00163",
-        //                 "baseVolume":"127937.56",
-        //                 "quoteVolume":"3806276573.6285",
-        //                 "usdtVolume":"3806276573.6285"
-        //             ),
-        //         )
-        //     }
-        //
-        $data = $this->safe_value($response, 'data');
-        return $this->parse_tickers($data, $symbols);
+        return Async\async(function () use ($symbols, $params) {
+            /**
+             * fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
+             * @param {[string]|null} $symbols unified $symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
+             * @param {array} $params extra parameters specific to the bitget api endpoint
+             * @return {array} an array of {@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure ticker structures}
+             */
+            Async\await($this->load_markets());
+            list($marketType, $query) = $this->handle_market_type_and_params('fetchTickers', null, $params);
+            $method = $this->get_supported_mapping($marketType, array(
+                'spot' => 'publicSpotGetMarketTickers',
+                'swap' => 'publicMixGetMarketTickers',
+            ));
+            $request = array();
+            if ($method === 'publicMixGetMarketTickers') {
+                $defaultSubType = $this->safe_string($this->options, 'defaultSubType');
+                $request['productType'] = ($defaultSubType === 'linear') ? 'UMCBL' : 'DMCBL';
+            }
+            $response = Async\await($this->$method (array_merge($request, $query)));
+            //
+            // spot
+            //
+            //     {
+            //         "code":"00000",
+            //         "msg":"success",
+            //         "requestTime":1653237548496,
+            //         "data":array(
+            //             array(
+            //                 "symbol":"LINKUSDT",
+            //                 "high24h":"7.2634",
+            //                 "low24h":"7.1697",
+            //                 "close":"7.2444",
+            //                 "quoteVol":"330424.2366",
+            //                 "baseVol":"46401.3116",
+            //                 "usdtVol":"330424.2365573",
+            //                 "ts":"1653237548026",
+            //                 "buyOne":"7.2382",
+            //                 "sellOne":"7.2513"
+            //             ),
+            //         )
+            //     }
+            //
+            // swap
+            //
+            //     {
+            //         "code":"00000",
+            //         "msg":"success",
+            //         "requestTime":1653237819762,
+            //         "data":array(
+            //             array(
+            //                 "symbol":"BTCUSDT_UMCBL",
+            //                 "last":"29891.5",
+            //                 "bestAsk":"29891.5",
+            //                 "bestBid":"29889.5",
+            //                 "high24h":"29941.5",
+            //                 "low24h":"29737.5",
+            //                 "timestamp":"1653237819761",
+            //                 "priceChangePercent":"0.00163",
+            //                 "baseVolume":"127937.56",
+            //                 "quoteVolume":"3806276573.6285",
+            //                 "usdtVolume":"3806276573.6285"
+            //             ),
+            //         )
+            //     }
+            //
+            $data = $this->safe_value($response, 'data');
+            return $this->parse_tickers($data, $symbols);
+        }) ();
     }
 
     public function parse_trade($trade, $market = null) {
@@ -1426,126 +1748,132 @@ class bitget extends Exchange {
     }
 
     public function fetch_trades($symbol, $limit = null, $since = null, $params = array ()) {
-        /**
-         * get the list of most recent trades for a particular $symbol
-         * @param {string} $symbol unified $symbol of the $market to fetch trades for
-         * @param {int|null} $since timestamp in ms of the earliest trade to fetch
-         * @param {int|null} $limit the maximum amount of trades to fetch
-         * @param {array} $params extra parameters specific to the bitget api endpoint
-         * @return {[array]} a list of ~@link https://docs.ccxt.com/en/latest/manual.html?#public-trades trade structures~
-         */
-        yield $this->load_markets();
-        $market = $this->market($symbol);
-        $request = array(
-            'symbol' => $market['id'],
-        );
-        if ($limit !== null) {
-            $request['limit'] = $limit;
-        }
-        list($marketType, $query) = $this->handle_market_type_and_params('fetchTrades', $market, $params);
-        $method = $this->get_supported_mapping($marketType, array(
-            'spot' => 'publicSpotGetMarketFills',
-            'swap' => 'publicMixGetMarketFills',
-        ));
-        $response = yield $this->$method (array_merge($request, $query));
-        //
-        //     {
-        //       code => '00000',
-        //       msg => 'success',
-        //       requestTime => '1645861382032',
-        //       $data => array(
-        //         {
-        //           $symbol => 'BTCUSDT_SPBL',
-        //           tradeId => '881371996363608065',
-        //           side => 'sell',
-        //           fillPrice => '39123.05',
-        //           fillQuantity => '0.0363',
-        //           fillTime => '1645861379709'
-        //         }
-        //       )
-        //     }
-        //
-        $data = $this->safe_value($response, 'data', array());
-        return $this->parse_trades($data, $market, $since, $limit);
+        return Async\async(function () use ($symbol, $limit, $since, $params) {
+            /**
+             * get the list of most recent trades for a particular $symbol
+             * @param {string} $symbol unified $symbol of the $market to fetch trades for
+             * @param {int|null} $since timestamp in ms of the earliest trade to fetch
+             * @param {int|null} $limit the maximum amount of trades to fetch
+             * @param {array} $params extra parameters specific to the bitget api endpoint
+             * @return {[array]} a list of ~@link https://docs.ccxt.com/en/latest/manual.html?#public-trades trade structures~
+             */
+            Async\await($this->load_markets());
+            $market = $this->market($symbol);
+            $request = array(
+                'symbol' => $market['id'],
+            );
+            if ($limit !== null) {
+                $request['limit'] = $limit;
+            }
+            list($marketType, $query) = $this->handle_market_type_and_params('fetchTrades', $market, $params);
+            $method = $this->get_supported_mapping($marketType, array(
+                'spot' => 'publicSpotGetMarketFills',
+                'swap' => 'publicMixGetMarketFills',
+            ));
+            $response = Async\await($this->$method (array_merge($request, $query)));
+            //
+            //     {
+            //       code => '00000',
+            //       msg => 'success',
+            //       requestTime => '1645861382032',
+            //       $data => array(
+            //         {
+            //           $symbol => 'BTCUSDT_SPBL',
+            //           tradeId => '881371996363608065',
+            //           side => 'sell',
+            //           fillPrice => '39123.05',
+            //           fillQuantity => '0.0363',
+            //           fillTime => '1645861379709'
+            //         }
+            //       )
+            //     }
+            //
+            $data = $this->safe_value($response, 'data', array());
+            return $this->parse_trades($data, $market, $since, $limit);
+        }) ();
     }
 
     public function fetch_trading_fee($symbol, $params = array ()) {
-        /**
-         * fetch the trading fees for a $market
-         * @param {string} $symbol unified $market $symbol
-         * @param {array} $params extra parameters specific to the bitget api endpoint
-         * @return {array} a {@link https://docs.ccxt.com/en/latest/manual.html#fee-structure fee structure}
-         */
-        yield $this->load_markets();
-        $market = $this->market($symbol);
-        $request = array(
-            'symbol' => $market['id'],
-        );
-        $response = yield $this->publicSpotGetPublicProduct (array_merge($request, $params));
-        //
-        //     {
-        //         code => '00000',
-        //         msg => 'success',
-        //         requestTime => '1646255374000',
-        //         $data => {
-        //           $symbol => 'ethusdt_SPBL',
-        //           symbolName => null,
-        //           baseCoin => 'ETH',
-        //           quoteCoin => 'USDT',
-        //           minTradeAmount => '0',
-        //           maxTradeAmount => '0',
-        //           takerFeeRate => '0.002',
-        //           makerFeeRate => '0.002',
-        //           priceScale => '2',
-        //           quantityScale => '4',
-        //           status => 'online'
-        //         }
-        //     }
-        //
-        $data = $this->safe_value($response, 'data', array());
-        return $this->parse_trading_fee($data, $market);
+        return Async\async(function () use ($symbol, $params) {
+            /**
+             * fetch the trading fees for a $market
+             * @param {string} $symbol unified $market $symbol
+             * @param {array} $params extra parameters specific to the bitget api endpoint
+             * @return {array} a {@link https://docs.ccxt.com/en/latest/manual.html#fee-structure fee structure}
+             */
+            Async\await($this->load_markets());
+            $market = $this->market($symbol);
+            $request = array(
+                'symbol' => $market['id'],
+            );
+            $response = Async\await($this->publicSpotGetPublicProduct (array_merge($request, $params)));
+            //
+            //     {
+            //         code => '00000',
+            //         msg => 'success',
+            //         requestTime => '1646255374000',
+            //         $data => {
+            //           $symbol => 'ethusdt_SPBL',
+            //           symbolName => null,
+            //           baseCoin => 'ETH',
+            //           quoteCoin => 'USDT',
+            //           minTradeAmount => '0',
+            //           maxTradeAmount => '0',
+            //           takerFeeRate => '0.002',
+            //           makerFeeRate => '0.002',
+            //           priceScale => '2',
+            //           quantityScale => '4',
+            //           status => 'online'
+            //         }
+            //     }
+            //
+            $data = $this->safe_value($response, 'data', array());
+            return $this->parse_trading_fee($data, $market);
+        }) ();
     }
 
     public function fetch_trading_fees($params = array ()) {
-        /**
-         * fetch the trading fees for multiple markets
-         * @param {array} $params extra parameters specific to the bitget api endpoint
-         * @return {array} a dictionary of {@link https://docs.ccxt.com/en/latest/manual.html#$fee-structure $fee structures} indexed by market symbols
-         */
-        yield $this->load_markets();
-        $response = yield $this->publicSpotGetPublicProducts ($params);
-        //
-        //     {
-        //         code => '00000',
-        //         msg => 'success',
-        //         requestTime => '1646255662391',
-        //         $data => array(
-        //           array(
-        //             $symbol => 'ALPHAUSDT_SPBL',
-        //             symbolName => 'ALPHAUSDT',
-        //             baseCoin => 'ALPHA',
-        //             quoteCoin => 'USDT',
-        //             minTradeAmount => '2',
-        //             maxTradeAmount => '0',
-        //             takerFeeRate => '0.001',
-        //             makerFeeRate => '0.001',
-        //             priceScale => '4',
-        //             quantityScale => '4',
-        //             status => 'online'
-        //           ),
-        //           ...
-        //         )
-        //     }
-        //
-        $data = $this->safe_value($response, 'data', array());
-        $result = array();
-        for ($i = 0; $i < count($data); $i++) {
-            $feeInfo = $data[$i];
-            $fee = $this->parse_trading_fee($feeInfo);
-            $symbol = $fee['symbol'];
-            $result[$symbol] = $fee;
-        }
-        return $result;
+        return Async\async(function () use ($params) {
+            /**
+             * fetch the trading fees for multiple markets
+             * @param {array} $params extra parameters specific to the bitget api endpoint
+             * @return {array} a dictionary of {@link https://docs.ccxt.com/en/latest/manual.html#$fee-structure $fee structures} indexed by market symbols
+             */
+            Async\await($this->load_markets());
+            $response = Async\await($this->publicSpotGetPublicProducts ($params));
+            //
+            //     {
+            //         code => '00000',
+            //         msg => 'success',
+            //         requestTime => '1646255662391',
+            //         $data => array(
+            //           array(
+            //             $symbol => 'ALPHAUSDT_SPBL',
+            //             symbolName => 'ALPHAUSDT',
+            //             baseCoin => 'ALPHA',
+            //             quoteCoin => 'USDT',
+            //             minTradeAmount => '2',
+            //             maxTradeAmount => '0',
+            //             takerFeeRate => '0.001',
+            //             makerFeeRate => '0.001',
+            //             priceScale => '4',
+            //             quantityScale => '4',
+            //             status => 'online'
+            //           ),
+            //           ...
+            //         )
+            //     }
+            //
+            $data = $this->safe_value($response, 'data', array());
+            $result = array();
+            for ($i = 0; $i < count($data); $i++) {
+                $feeInfo = $data[$i];
+                $fee = $this->parse_trading_fee($feeInfo);
+                $symbol = $fee['symbol'];
+                $result[$symbol] = $fee;
+            }
+            return $result;
+        }) ();
     }
 
     public function parse_trading_fee($data, $market = null) {
@@ -1596,122 +1924,126 @@ class bitget extends Exchange {
     }
 
     public function fetch_ohlcv($symbol, $timeframe = '1m', $since = null, $limit = null, $params = array ()) {
-        /**
-         * fetches historical candlestick $data containing the open, high, low, and close price, and the volume of a $market
-         * @param {string} $symbol unified $symbol of the $market to fetch OHLCV $data for
-         * @param {string} $timeframe the length of time each candle represents
-         * @param {int|null} $since timestamp in ms of the earliest candle to fetch
-         * @param {int|null} $limit the maximum amount of candles to fetch
-         * @param {array} $params extra parameters specific to the bitget api endpoint
-         * @param {int|null} $params->until timestamp in ms of the latest candle to fetch
-         * @return {[[int]]} A list of candles ordered as timestamp, open, high, low, close, volume
-         */
-        yield $this->load_markets();
-        $market = $this->market($symbol);
-        $request = array(
-            'symbol' => $market['id'],
-        );
-        list($marketType, $query) = $this->handle_market_type_and_params('fetchOHLCV', $market, $params);
-        $method = $this->get_supported_mapping($marketType, array(
-            'spot' => 'publicSpotGetMarketCandles',
-            'swap' => 'publicMixGetMarketCandles',
-        ));
-        $until = $this->safe_integer_2($params, 'until', 'till');
-        $params = $this->omit($params, array( 'until', 'till' ));
-        if ($limit === null) {
-            $limit = 100;
-        }
-        if ($market['type'] === 'spot') {
-            $request['period'] = $this->timeframes['spot'][$timeframe];
-            $request['limit'] = $limit;
-            if ($since !== null) {
-                $request['after'] = $since;
-                if ($until === null) {
-                    $millisecondsPerTimeframe = $this->timeframes['swap'][$timeframe] * 1000;
-                    $request['before'] = $this->sum($since, $millisecondsPerTimeframe * $limit);
+        return Async\async(function () use ($symbol, $timeframe, $since, $limit, $params) {
+            /**
+             * fetches historical candlestick $data containing the open, high, low, and close price, and the volume of a $market
+             * @param {string} $symbol unified $symbol of the $market to fetch OHLCV $data for
+             * @param {string} $timeframe the length of time each candle represents
+             * @param {int|null} $since timestamp in ms of the earliest candle to fetch
+             * @param {int|null} $limit the maximum amount of candles to fetch
+             * @param {array} $params extra parameters specific to the bitget api endpoint
+             * @param {int|null} $params->until timestamp in ms of the latest candle to fetch
+             * @return {[[int]]} A list of candles ordered as timestamp, open, high, low, close, volume
+             */
+            Async\await($this->load_markets());
+            $market = $this->market($symbol);
+            $request = array(
+                'symbol' => $market['id'],
+            );
+            list($marketType, $query) = $this->handle_market_type_and_params('fetchOHLCV', $market, $params);
+            $method = $this->get_supported_mapping($marketType, array(
+                'spot' => 'publicSpotGetMarketCandles',
+                'swap' => 'publicMixGetMarketCandles',
+            ));
+            $until = $this->safe_integer_2($params, 'until', 'till');
+            $params = $this->omit($params, array( 'until', 'till' ));
+            if ($limit === null) {
+                $limit = 100;
+            }
+            if ($market['type'] === 'spot') {
+                $request['period'] = $this->timeframes['spot'][$timeframe];
+                $request['limit'] = $limit;
+                if ($since !== null) {
+                    $request['after'] = $since;
+                    if ($until === null) {
+                        $millisecondsPerTimeframe = $this->timeframes['swap'][$timeframe] * 1000;
+                        $request['before'] = $this->sum($since, $millisecondsPerTimeframe * $limit);
+                    }
                 }
-            }
-            if ($until !== null) {
-                $request['before'] = $until;
-            }
-        } elseif ($market['type'] === 'swap') {
-            $request['granularity'] = $this->timeframes['swap'][$timeframe];
-            $duration = $this->parse_timeframe($timeframe);
-            $now = $this->milliseconds();
-            if ($since === null) {
-                $request['startTime'] = $now - ($limit - 1) * ($duration * 1000);
-                $request['endTime'] = $now;
-            } else {
-                $request['startTime'] = $this->sum($since, $duration * 1000);
                 if ($until !== null) {
-                    $request['endTime'] = $until;
+                    $request['before'] = $until;
+                }
+            } elseif ($market['type'] === 'swap') {
+                $request['granularity'] = $this->timeframes['swap'][$timeframe];
+                $duration = $this->parse_timeframe($timeframe);
+                $now = $this->milliseconds();
+                if ($since === null) {
+                    $request['startTime'] = $now - ($limit - 1) * ($duration * 1000);
+                    $request['endTime'] = $now;
                 } else {
-                    $request['endTime'] = $this->sum($since, $limit * $duration * 1000);
+                    $request['startTime'] = $this->sum($since, $duration * 1000);
+                    if ($until !== null) {
+                        $request['endTime'] = $until;
+                    } else {
+                        $request['endTime'] = $this->sum($since, $limit * $duration * 1000);
+                    }
                 }
             }
-        }
-        $response = yield $this->$method (array_merge($request, $query));
-        //  [ ["1645911960000","39406","39407","39374.5","39379","35.526","1399132.341"] ]
-        $data = $this->safe_value($response, 'data', $response);
-        return $this->parse_ohlcvs($data, $market, $timeframe, $since, $limit);
+            $response = Async\await($this->$method (array_merge($request, $query)));
+            //  [ ["1645911960000","39406","39407","39374.5","39379","35.526","1399132.341"] ]
+            $data = $this->safe_value($response, 'data', $response);
+            return $this->parse_ohlcvs($data, $market, $timeframe, $since, $limit);
+        }) ();
     }
 
     public function fetch_balance($params = array ()) {
-        /**
-         * $query for balance and get the amount of funds available for trading or funds locked in orders
-         * @param {array} $params extra parameters specific to the bitget api endpoint
-         * @return {array} a ~@link https://docs.ccxt.com/en/latest/manual.html?#balance-structure balance structure~
-         */
-        yield $this->load_markets();
-        list($marketType, $query) = $this->handle_market_type_and_params('fetchBalance', null, $params);
-        $method = $this->get_supported_mapping($marketType, array(
-            'spot' => 'privateSpotGetAccountAssets',
-            'swap' => 'privateMixGetAccountAccounts',
-        ));
-        $request = array();
-        if ($marketType === 'swap') {
-            $defaultSubType = $this->safe_string($this->options, 'defaultSubType');
-            $request['productType'] = ($defaultSubType === 'linear') ? 'UMCBL' : 'DMCBL';
-        }
-        $response = yield $this->$method (array_merge($request, $query));
-        // spot
-        //     {
-        //       code => '00000',
-        //       msg => 'success',
-        //       requestTime => 1645928868827,
-        //       $data => array(
-        //         {
-        //           coinId => 1,
-        //           coinName => 'BTC',
-        //           available => '0.00070000',
-        //           frozen => '0.00000000',
-        //           lock => '0.00000000',
-        //           uTime => '1645921706000'
-        //         }
-        //       )
-        //     }
-        //
-        // swap
-        //     {
-        //       code => '00000',
-        //       msg => 'success',
-        //       requestTime => 1645928929251,
-        //       $data => array(
-        //         {
-        //           marginCoin => 'USDT',
-        //           locked => '0',
-        //           available => '8.078525',
-        //           crossMaxAvailable => '8.078525',
-        //           fixedMaxAvailable => '8.078525',
-        //           maxTransferOut => '8.078525',
-        //           equity => '10.02508',
-        //           usdtEquity => '10.02508',
-        //           btcEquity => '0.00026057027'
-        //         }
-        //       )
-        //     }
-        $data = $this->safe_value($response, 'data');
-        return $this->parse_balance($data);
+        return Async\async(function () use ($params) {
+            /**
+             * $query for balance and get the amount of funds available for trading or funds locked in orders
+             * @param {array} $params extra parameters specific to the bitget api endpoint
+             * @return {array} a ~@link https://docs.ccxt.com/en/latest/manual.html?#balance-structure balance structure~
+             */
+            Async\await($this->load_markets());
+            list($marketType, $query) = $this->handle_market_type_and_params('fetchBalance', null, $params);
+            $method = $this->get_supported_mapping($marketType, array(
+                'spot' => 'privateSpotGetAccountAssets',
+                'swap' => 'privateMixGetAccountAccounts',
+            ));
+            $request = array();
+            if ($marketType === 'swap') {
+                $defaultSubType = $this->safe_string($this->options, 'defaultSubType');
+                $request['productType'] = ($defaultSubType === 'linear') ? 'UMCBL' : 'DMCBL';
+            }
+            $response = Async\await($this->$method (array_merge($request, $query)));
+            // spot
+            //     {
+            //       code => '00000',
+            //       msg => 'success',
+            //       requestTime => 1645928868827,
+            //       $data => array(
+            //         {
+            //           coinId => 1,
+            //           coinName => 'BTC',
+            //           available => '0.00070000',
+            //           frozen => '0.00000000',
+            //           lock => '0.00000000',
+            //           uTime => '1645921706000'
+            //         }
+            //       )
+            //     }
+            //
+            // swap
+            //     {
+            //       code => '00000',
+            //       msg => 'success',
+            //       requestTime => 1645928929251,
+            //       $data => array(
+            //         {
+            //           marginCoin => 'USDT',
+            //           locked => '0',
+            //           available => '8.078525',
+            //           crossMaxAvailable => '8.078525',
+            //           fixedMaxAvailable => '8.078525',
+            //           maxTransferOut => '8.078525',
+            //           equity => '10.02508',
+            //           usdtEquity => '10.02508',
+            //           btcEquity => '0.00026057027'
+            //         }
+            //       )
+            //     }
+            $data = $this->safe_value($response, 'data');
+            return $this->parse_balance($data);
+        }) ();
     }
 
     public function parse_balance($balance) {
@@ -1845,621 +2177,637 @@ class bitget extends Exchange {
     }
 
     public function create_order($symbol, $type, $side, $amount, $price = null, $params = array ()) {
-        /**
-         * create a trade order
-         * @param {string} $symbol unified $symbol of the $market to create an order in
-         * @param {string} $type 'market' or 'limit'
-         * @param {string} $side 'buy' or 'sell'
-         * @param {float} $amount how much of currency you want to trade in units of base currency
-         * @param {float|null} $price the $price at which the order is to be fullfilled, in units of the quote currency, ignored in $market orders
-         * @param {array} $params extra parameters specific to the bitget api endpoint
-         * @return {array} an {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structure}
-         */
-        yield $this->load_markets();
-        $market = $this->market($symbol);
-        list($marketType, $query) = $this->handle_market_type_and_params('createOrder', $market, $params);
-        $request = array(
-            'symbol' => $market['id'],
-            'orderType' => $type,
-        );
-        $isMarketOrder = $type === 'market';
-        $triggerPrice = $this->safe_value_2($params, 'stopPrice', 'triggerPrice');
-        $isTriggerOrder = $triggerPrice !== null;
-        $stopLossPrice = $this->safe_value($params, 'stopLossPrice');
-        $isStopLossOrder = $stopLossPrice !== null;
-        $takeProfitPrice = $this->safe_value($params, 'takeProfitPrice');
-        $isTakeProfitOrder = $takeProfitPrice !== null;
-        $isStopOrder = $isStopLossOrder || $isTakeProfitOrder;
-        if ($this->sum($isTriggerOrder, $isStopLossOrder, $isTakeProfitOrder) > 1) {
-            throw new ExchangeError($this->id . ' createOrder() $params can only contain one of $triggerPrice, $stopLossPrice, takeProfitPrice');
-        }
-        if (($type === 'limit') && ($triggerPrice === null)) {
-            $request['price'] = $this->price_to_precision($symbol, $price);
-        }
-        $clientOrderId = $this->safe_string_2($params, 'client_oid', 'clientOrderId');
-        if ($clientOrderId === null) {
-            $broker = $this->safe_value($this->options, 'broker');
-            if ($broker !== null) {
-                $brokerId = $this->safe_string($broker, $market['type']);
-                if ($brokerId !== null) {
-                    $clientOrderId = $brokerId . $this->uuid22();
+        return Async\async(function () use ($symbol, $type, $side, $amount, $price, $params) {
+            /**
+             * create a trade order
+             * @param {string} $symbol unified $symbol of the $market to create an order in
+             * @param {string} $type 'market' or 'limit'
+             * @param {string} $side 'buy' or 'sell'
+             * @param {float} $amount how much of currency you want to trade in units of base currency
+             * @param {float|null} $price the $price at which the order is to be fullfilled, in units of the quote currency, ignored in $market orders
+             * @param {array} $params extra parameters specific to the bitget api endpoint
+             * @return {array} an {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structure}
+             */
+            Async\await($this->load_markets());
+            $market = $this->market($symbol);
+            list($marketType, $query) = $this->handle_market_type_and_params('createOrder', $market, $params);
+            $request = array(
+                'symbol' => $market['id'],
+                'orderType' => $type,
+            );
+            $isMarketOrder = $type === 'market';
+            $triggerPrice = $this->safe_value_2($params, 'stopPrice', 'triggerPrice');
+            $isTriggerOrder = $triggerPrice !== null;
+            $stopLossPrice = $this->safe_value($params, 'stopLossPrice');
+            $isStopLossOrder = $stopLossPrice !== null;
+            $takeProfitPrice = $this->safe_value($params, 'takeProfitPrice');
+            $isTakeProfitOrder = $takeProfitPrice !== null;
+            $isStopOrder = $isStopLossOrder || $isTakeProfitOrder;
+            if ($this->sum($isTriggerOrder, $isStopLossOrder, $isTakeProfitOrder) > 1) {
+                throw new ExchangeError($this->id . ' createOrder() $params can only contain one of $triggerPrice, $stopLossPrice, takeProfitPrice');
+            }
+            if (($type === 'limit') && ($triggerPrice === null)) {
+                $request['price'] = $this->price_to_precision($symbol, $price);
+            }
+            $clientOrderId = $this->safe_string_2($params, 'client_oid', 'clientOrderId');
+            if ($clientOrderId === null) {
+                $broker = $this->safe_value($this->options, 'broker');
+                if ($broker !== null) {
+                    $brokerId = $this->safe_string($broker, $market['type']);
+                    if ($brokerId !== null) {
+                        $clientOrderId = $brokerId . $this->uuid22();
+                    }
                 }
             }
-        }
-        $method = $this->get_supported_mapping($marketType, array(
-            'spot' => 'privateSpotPostTradeOrders',
-            'swap' => 'privateMixPostOrderPlaceOrder',
-        ));
-        $exchangeSpecificParam = $this->safe_string_2($params, 'force', 'timeInForceValue');
-        $postOnly = $this->is_post_only($isMarketOrder, $exchangeSpecificParam === 'post_only', $params);
-        if ($marketType === 'spot') {
-            if ($isStopOrder) {
-                throw new InvalidOrder($this->id . ' createOrder() does not support stop orders on spot markets, only swap markets');
-            }
-            $createMarketBuyOrderRequiresPrice = $this->safe_value($this->options, 'createMarketBuyOrderRequiresPrice', true);
-            if ($createMarketBuyOrderRequiresPrice && $isMarketOrder && ($side === 'buy')) {
-                if ($price === null) {
-                    throw new InvalidOrder($this->id . ' createOrder() requires $price argument for $market buy orders on spot markets to calculate the total $amount to spend ($amount * $price), alternatively set the $createMarketBuyOrderRequiresPrice option to false and pass in the $cost to spend into the $amount parameter');
+            $method = $this->get_supported_mapping($marketType, array(
+                'spot' => 'privateSpotPostTradeOrders',
+                'swap' => 'privateMixPostOrderPlaceOrder',
+            ));
+            $exchangeSpecificParam = $this->safe_string_2($params, 'force', 'timeInForceValue');
+            $postOnly = $this->is_post_only($isMarketOrder, $exchangeSpecificParam === 'post_only', $params);
+            if ($marketType === 'spot') {
+                if ($isStopOrder) {
+                    throw new InvalidOrder($this->id . ' createOrder() does not support stop orders on spot markets, only swap markets');
+                }
+                $createMarketBuyOrderRequiresPrice = $this->safe_value($this->options, 'createMarketBuyOrderRequiresPrice', true);
+                if ($createMarketBuyOrderRequiresPrice && $isMarketOrder && ($side === 'buy')) {
+                    if ($price === null) {
+                        throw new InvalidOrder($this->id . ' createOrder() requires $price argument for $market buy orders on spot markets to calculate the total $amount to spend ($amount * $price), alternatively set the $createMarketBuyOrderRequiresPrice option to false and pass in the $cost to spend into the $amount parameter');
+                    } else {
+                        $amountString = $this->number_to_string($amount);
+                        $priceString = $this->number_to_string($price);
+                        $cost = $this->parse_number(Precise::string_mul($amountString, $priceString));
+                        $request['quantity'] = $this->price_to_precision($symbol, $cost);
+                    }
                 } else {
-                    $amountString = $this->number_to_string($amount);
-                    $priceString = $this->number_to_string($price);
-                    $cost = $this->parse_number(Precise::string_mul($amountString, $priceString));
-                    $request['quantity'] = $this->price_to_precision($symbol, $cost);
+                    $request['quantity'] = $this->amount_to_precision($symbol, $amount);
                 }
-            } else {
-                $request['quantity'] = $this->amount_to_precision($symbol, $amount);
-            }
-            $request['clientOrderId'] = $clientOrderId;
-            $request['side'] = $side;
-            if ($postOnly) {
-                $request['force'] = 'post_only';
-            } else {
-                $request['force'] = 'gtc';
-            }
-        } else {
-            $request['clientOid'] = $clientOrderId;
-            $request['size'] = $this->amount_to_precision($symbol, $amount);
-            if ($postOnly) {
-                $request['timeInForceValue'] = 'post_only';
-            }
-            $reduceOnly = $this->safe_value($params, 'reduceOnly', false);
-            if ($triggerPrice !== null) {
-                // default $triggerType to $market $price for unification
-                $triggerType = $this->safe_string($params, 'triggerType', 'market_price');
-                $request['triggerType'] = $triggerType;
-                $request['triggerPrice'] = $this->price_to_precision($symbol, $triggerPrice);
-                $request['executePrice'] = $this->price_to_precision($symbol, $price);
-                $method = 'privateMixPostPlanPlacePlan';
-            }
-            if ($isStopOrder) {
-                if (!$isMarketOrder) {
-                    throw new ExchangeError($this->id . ' createOrder() bitget stopLoss or takeProfit orders must be $market orders');
-                }
-                if ($isStopLossOrder) {
-                    $request['triggerPrice'] = $this->price_to_precision($symbol, $stopLossPrice);
-                    $request['planType'] = 'loss_plan';
-                } elseif ($isTakeProfitOrder) {
-                    $request['triggerPrice'] = $this->price_to_precision($symbol, $takeProfitPrice);
-                    $request['planType'] = 'profit_plan';
-                }
-                $request['holdSide'] = ($side === 'buy') ? 'long' : 'short';
-                $method = 'privateMixPostPlanPlaceTPSL';
-            } else {
-                if ($reduceOnly) {
-                    $request['side'] = ($side === 'buy') ? 'close_short' : 'close_long';
+                $request['clientOrderId'] = $clientOrderId;
+                $request['side'] = $side;
+                if ($postOnly) {
+                    $request['force'] = 'post_only';
                 } else {
-                    $request['side'] = ($side === 'buy') ? 'open_long' : 'open_short';
+                    $request['force'] = 'gtc';
                 }
+            } else {
+                $request['clientOid'] = $clientOrderId;
+                $request['size'] = $this->amount_to_precision($symbol, $amount);
+                if ($postOnly) {
+                    $request['timeInForceValue'] = 'post_only';
+                }
+                $reduceOnly = $this->safe_value($params, 'reduceOnly', false);
+                if ($triggerPrice !== null) {
+                    // default $triggerType to $market $price for unification
+                    $triggerType = $this->safe_string($params, 'triggerType', 'market_price');
+                    $request['triggerType'] = $triggerType;
+                    $request['triggerPrice'] = $this->price_to_precision($symbol, $triggerPrice);
+                    $request['executePrice'] = $this->price_to_precision($symbol, $price);
+                    $method = 'privateMixPostPlanPlacePlan';
+                }
+                if ($isStopOrder) {
+                    if (!$isMarketOrder) {
+                        throw new ExchangeError($this->id . ' createOrder() bitget stopLoss or takeProfit orders must be $market orders');
+                    }
+                    if ($isStopLossOrder) {
+                        $request['triggerPrice'] = $this->price_to_precision($symbol, $stopLossPrice);
+                        $request['planType'] = 'loss_plan';
+                    } elseif ($isTakeProfitOrder) {
+                        $request['triggerPrice'] = $this->price_to_precision($symbol, $takeProfitPrice);
+                        $request['planType'] = 'profit_plan';
+                    }
+                    $request['holdSide'] = ($side === 'buy') ? 'long' : 'short';
+                    $method = 'privateMixPostPlanPlaceTPSL';
+                } else {
+                    if ($reduceOnly) {
+                        $request['side'] = ($side === 'buy') ? 'close_short' : 'close_long';
+                    } else {
+                        $request['side'] = ($side === 'buy') ? 'open_long' : 'open_short';
+                    }
+                }
+                $request['marginCoin'] = $market['settleId'];
             }
-            $request['marginCoin'] = $market['settleId'];
-        }
-        $omitted = $this->omit($query, array( 'stopPrice', 'triggerType', 'stopLossPrice', 'takeProfitPrice', 'postOnly' ));
-        $response = yield $this->$method (array_merge($request, $omitted));
-        //
-        //     {
-        //         "code" => "00000",
-        //         "msg" => "success",
-        //         "requestTime" => 1645932209602,
-        //         "data" => {
-        //             "orderId" => "881669078313766912",
-        //             "clientOrderId" => "iauIBf#a45b595f96474d888d0ada"
-        //         }
-        //     }
-        //
-        $data = $this->safe_value($response, 'data');
-        return $this->parse_order($data, $market);
+            $omitted = $this->omit($query, array( 'stopPrice', 'triggerType', 'stopLossPrice', 'takeProfitPrice', 'postOnly' ));
+            $response = Async\await($this->$method (array_merge($request, $omitted)));
+            //
+            //     {
+            //         "code" => "00000",
+            //         "msg" => "success",
+            //         "requestTime" => 1645932209602,
+            //         "data" => {
+            //             "orderId" => "881669078313766912",
+            //             "clientOrderId" => "iauIBf#a45b595f96474d888d0ada"
+            //         }
+            //     }
+            //
+            $data = $this->safe_value($response, 'data');
+            return $this->parse_order($data, $market);
+        }) ();
     }
 
     public function cancel_order($id, $symbol = null, $params = array ()) {
-        /**
-         * cancels an open order
-         * @param {string} $id order $id
-         * @param {string} $symbol unified $symbol of the $market the order was made in
-         * @param {array} $params extra parameters specific to the bitget api endpoint
-         * @return {array} An {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structure}
-         */
-        if ($symbol === null) {
-            throw new ArgumentsRequired($this->id . ' cancelOrder() requires a $symbol argument for spot orders');
-        }
-        yield $this->load_markets();
-        $market = $this->market($symbol);
-        list($marketType, $query) = $this->handle_market_type_and_params('cancelOrder', $market, $params);
-        $method = $this->get_supported_mapping($marketType, array(
-            'spot' => 'privateSpotPostTradeCancelOrder',
-            'swap' => 'privateMixPostOrderCancelOrder',
-        ));
-        $request = array(
-            'symbol' => $market['id'],
-            'orderId' => $id,
-        );
-        $stop = $this->safe_value($params, 'stop');
-        if ($stop) {
-            $planType = $this->safe_string($params, 'planType');
-            if ($planType === null) {
-                throw new ArgumentsRequired($this->id . ' cancelOrder() requires a $planType parameter for $stop orders, either normal_plan, profit_plan or loss_plan');
+        return Async\async(function () use ($id, $symbol, $params) {
+            /**
+             * cancels an open order
+             * @param {string} $id order $id
+             * @param {string} $symbol unified $symbol of the $market the order was made in
+             * @param {array} $params extra parameters specific to the bitget api endpoint
+             * @return {array} An {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structure}
+             */
+            if ($symbol === null) {
+                throw new ArgumentsRequired($this->id . ' cancelOrder() requires a $symbol argument for spot orders');
             }
-            $request['planType'] = $planType;
-            $method = 'privateMixPostPlanCancelPlan';
-            $params = $this->omit($params, array( 'stop', 'planType' ));
-        }
-        if ($marketType === 'swap') {
-            $request['marginCoin'] = $market['settleId'];
-        }
-        $response = yield $this->$method (array_merge($request, $query));
-        return $this->parse_order($response, $market);
+            Async\await($this->load_markets());
+            $market = $this->market($symbol);
+            list($marketType, $query) = $this->handle_market_type_and_params('cancelOrder', $market, $params);
+            $method = $this->get_supported_mapping($marketType, array(
+                'spot' => 'privateSpotPostTradeCancelOrder',
+                'swap' => 'privateMixPostOrderCancelOrder',
+            ));
+            $request = array(
+                'symbol' => $market['id'],
+                'orderId' => $id,
+            );
+            $stop = $this->safe_value($params, 'stop');
+            if ($stop) {
+                $planType = $this->safe_string($params, 'planType');
+                if ($planType === null) {
+                    throw new ArgumentsRequired($this->id . ' cancelOrder() requires a $planType parameter for $stop orders, either normal_plan, profit_plan or loss_plan');
+                }
+                $request['planType'] = $planType;
+                $method = 'privateMixPostPlanCancelPlan';
+                $params = $this->omit($params, array( 'stop', 'planType' ));
+            }
+            if ($marketType === 'swap') {
+                $request['marginCoin'] = $market['settleId'];
+            }
+            $response = Async\await($this->$method (array_merge($request, $query)));
+            return $this->parse_order($response, $market);
+        }) ();
     }
 
     public function cancel_orders($ids, $symbol = null, $params = array ()) {
-        /**
-         * cancel multiple orders
-         * @param {[string]} $ids order $ids
-         * @param {string} $symbol unified $market $symbol, default is null
-         * @param {array} $params extra parameters specific to the bitget api endpoint
-         * @return {array} an list of {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structures}
-         */
-        if ($symbol === null) {
-            throw new ArgumentsRequired($this->id . ' cancelOrders() requires a $symbol argument');
-        }
-        yield $this->load_markets();
-        $market = $this->market($symbol);
-        $type = $this->safe_string($params, 'type', $market['type']);
-        if ($type === null) {
-            throw new ArgumentsRequired($this->id . " cancelOrders() requires a $type parameter (one of 'spot', 'swap').");
-        }
-        $params = $this->omit($params, 'type');
-        $request = array();
-        $method = null;
-        if ($type === 'spot') {
-            $method = 'apiPostOrderOrdersBatchcancel';
-            $request['method'] = 'batchcancel';
-            $jsonIds = $this->json($ids);
-            $parts = explode('"', $jsonIds);
-            $request['order_ids'] = implode('', $parts);
-        } elseif ($type === 'swap') {
-            $method = 'privateMixPostOrderCancelBatchOrders';
-            $request['symbol'] = $market['id'];
-            $request['marginCoin'] = $market['quote'];
-            $request['orderIds'] = $ids;
-        }
-        $response = yield $this->$method (array_merge($request, $params));
-        //
-        //     spot
-        //
-        //     {
-        //         "status" => "ok",
-        //         "data" => {
-        //             "success" => array(
-        //                 "673451224205135872",
-        //             ),
-        //             "failed" => array(
-        //                 {
-        //                 "err-msg" => "invalid record",
-        //                 "order-id" => "673451224205135873",
-        //                 "err-code" => "base record invalid"
-        //                 }
-        //             )
-        //         }
-        //     }
-        //
-        //     swap
-        //
-        //     {
-        //         "result":true,
-        //         "symbol":"cmt_btcusdt",
-        //         "order_ids":array(
-        //             "258414711",
-        //             "478585558"
-        //         ),
-        //         "fail_infos":array(
-        //             {
-        //                 "order_id":"258414711",
-        //                 "err_code":"401",
-        //                 "err_msg":""
-        //             }
-        //         )
-        //     }
-        //
-        return $response;
+        return Async\async(function () use ($ids, $symbol, $params) {
+            /**
+             * cancel multiple orders
+             * @param {[string]} $ids order $ids
+             * @param {string} $symbol unified $market $symbol, default is null
+             * @param {array} $params extra parameters specific to the bitget api endpoint
+             * @return {array} an list of {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structures}
+             */
+            if ($symbol === null) {
+                throw new ArgumentsRequired($this->id . ' cancelOrders() requires a $symbol argument');
+            }
+            Async\await($this->load_markets());
+            $market = $this->market($symbol);
+            $type = $this->safe_string($params, 'type', $market['type']);
+            if ($type === null) {
+                throw new ArgumentsRequired($this->id . " cancelOrders() requires a $type parameter (one of 'spot', 'swap').");
+            }
+            $params = $this->omit($params, 'type');
+            $request = array();
+            $method = null;
+            if ($type === 'spot') {
+                $method = 'apiPostOrderOrdersBatchcancel';
+                $request['method'] = 'batchcancel';
+                $jsonIds = $this->json($ids);
+                $parts = explode('"', $jsonIds);
+                $request['order_ids'] = implode('', $parts);
+            } elseif ($type === 'swap') {
+                $method = 'privateMixPostOrderCancelBatchOrders';
+                $request['symbol'] = $market['id'];
+                $request['marginCoin'] = $market['quote'];
+                $request['orderIds'] = $ids;
+            }
+            $response = Async\await($this->$method (array_merge($request, $params)));
+            //
+            //     spot
+            //
+            //     {
+            //         "status" => "ok",
+            //         "data" => {
+            //             "success" => array(
+            //                 "673451224205135872",
+            //             ),
+            //             "failed" => array(
+            //                 {
+            //                 "err-msg" => "invalid record",
+            //                 "order-id" => "673451224205135873",
+            //                 "err-code" => "base record invalid"
+            //                 }
+            //             )
+            //         }
+            //     }
+            //
+            //     swap
+            //
+            //     {
+            //         "result":true,
+            //         "symbol":"cmt_btcusdt",
+            //         "order_ids":array(
+            //             "258414711",
+            //             "478585558"
+            //         ),
+            //         "fail_infos":array(
+            //             {
+            //                 "order_id":"258414711",
+            //                 "err_code":"401",
+            //                 "err_msg":""
+            //             }
+            //         )
+            //     }
+            //
+            return $response;
+        }) ();
     }
 
     public function cancel_all_orders($symbol = null, $params = array ()) {
-        /**
-         * cancel all open orders
-         * @see https://bitgetlimited.github.io/apidoc/en/mix/#cancel-all-order
-         * @param {string|null} $symbol unified $market $symbol
-         * @param {array} $params extra parameters specific to the bitget api endpoint
-         * @param {string} $params->code marginCoin unified $currency $code
-         * @return {[array]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structures}
-         */
-        yield $this->load_markets();
-        $code = $this->safe_string_2($params, 'code', 'marginCoin');
-        if ($code === null) {
-            throw new ArgumentsRequired($this->id . ' cancelAllOrders () requires a $code argument in the params');
-        }
-        $market = null;
-        $defaultSubType = $this->safe_string($this->options, 'defaultSubType');
-        if ($symbol !== null) {
-            $market = $this->market($symbol);
-            $defaultSubType = ($market['linear']) ? 'linear' : 'inverse';
-        }
-        $productType = ($defaultSubType === 'linear') ? 'UMCBL' : 'DMCBL';
-        list($marketType, $query) = $this->handle_market_type_and_params('cancelAllOrders', $market, $params);
-        if ($marketType === 'spot') {
-            throw new NotSupported($this->id . ' cancelAllOrders () does not support spot markets');
-        }
-        $currency = $this->currency($code);
-        $request = array(
-            'marginCoin' => $this->safe_currency_code($code, $currency),
-            'productType' => $productType,
-        );
-        $params = $this->omit($query, array( 'code', 'marginCoin' ));
-        $response = yield $this->privateMixPostOrderCancelAllOrders (array_merge($request, $params));
-        //
-        //     {
-        //         "code" => "00000",
-        //         "msg" => "success",
-        //         "requestTime" => 1663312535998,
-        //         "data" => {
-        //             "result" => true,
-        //             "order_ids" => ["954564352813969409"],
-        //             "fail_infos" => array(
-        //                 {
-        //                     "order_id" => "",
-        //                     "err_code" => "",
-        //                     "err_msg" => ""
-        //                 }
-        //             )
-        //         }
-        //     }
-        //
-        return $response;
+        return Async\async(function () use ($symbol, $params) {
+            /**
+             * cancel all open orders
+             * @see https://bitgetlimited.github.io/apidoc/en/mix/#cancel-all-order
+             * @param {string|null} $symbol unified $market $symbol
+             * @param {array} $params extra parameters specific to the bitget api endpoint
+             * @param {string} $params->code marginCoin unified $currency $code
+             * @return {[array]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structures}
+             */
+            Async\await($this->load_markets());
+            $code = $this->safe_string_2($params, 'code', 'marginCoin');
+            if ($code === null) {
+                throw new ArgumentsRequired($this->id . ' cancelAllOrders () requires a $code argument in the params');
+            }
+            $market = null;
+            $defaultSubType = $this->safe_string($this->options, 'defaultSubType');
+            if ($symbol !== null) {
+                $market = $this->market($symbol);
+                $defaultSubType = ($market['linear']) ? 'linear' : 'inverse';
+            }
+            $productType = ($defaultSubType === 'linear') ? 'UMCBL' : 'DMCBL';
+            list($marketType, $query) = $this->handle_market_type_and_params('cancelAllOrders', $market, $params);
+            if ($marketType === 'spot') {
+                throw new NotSupported($this->id . ' cancelAllOrders () does not support spot markets');
+            }
+            $currency = $this->currency($code);
+            $request = array(
+                'marginCoin' => $this->safe_currency_code($code, $currency),
+                'productType' => $productType,
+            );
+            $params = $this->omit($query, array( 'code', 'marginCoin' ));
+            $response = Async\await($this->privateMixPostOrderCancelAllOrders (array_merge($request, $params)));
+            //
+            //     {
+            //         "code" => "00000",
+            //         "msg" => "success",
+            //         "requestTime" => 1663312535998,
+            //         "data" => {
+            //             "result" => true,
+            //             "order_ids" => ["954564352813969409"],
+            //             "fail_infos" => array(
+            //                 {
+            //                     "order_id" => "",
+            //                     "err_code" => "",
+            //                     "err_msg" => ""
+            //                 }
+            //             )
+            //         }
+            //     }
+            //
+            return $response;
+        }) ();
     }
 
     public function fetch_order($id, $symbol = null, $params = array ()) {
-        /**
-         * fetches information on an order made by the user
-         * @param {string} $symbol unified $symbol of the $market the order was made in
-         * @param {array} $params extra parameters specific to the bitget api endpoint
-         * @return {array} An {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structure}
-         */
-        if ($symbol === null) {
-            throw new ArgumentsRequired($this->id . ' fetchOrder() requires a $symbol argument');
-        }
-        yield $this->load_markets();
-        $market = $this->market($symbol);
-        list($marketType, $query) = $this->handle_market_type_and_params('fetchOrder', $market, $params);
-        $method = $this->get_supported_mapping($marketType, array(
-            'spot' => 'privateSpotPostTradeOrderInfo',
-            'swap' => 'privateMixGetOrderDetail',
-        ));
-        $request = array(
-            'symbol' => $market['id'],
-            'orderId' => $id,
-        );
-        $response = yield $this->$method (array_merge($request, $query));
-        // spot
-        //     {
-        //       code => '00000',
-        //       msg => 'success',
-        //       requestTime => '1645926849436',
-        //       $data => array(
-        //         {
-        //           accountId => '6394957606',
-        //           $symbol => 'BTCUSDT_SPBL',
-        //           orderId => '881626139738935296',
-        //           clientOrderId => '525890c8-767e-4cd6-8585-38160ed7bb5e',
-        //           price => '38000.000000000000',
-        //           quantity => '0.000700000000',
-        //           orderType => 'limit',
-        //           side => 'buy',
-        //           status => 'new',
-        //           fillPrice => '0.000000000000',
-        //           fillQuantity => '0.000000000000',
-        //           fillTotalAmount => '0.000000000000',
-        //           cTime => '1645921972212'
-        //         }
-        //       )
-        //     }
-        //
-        // swap
-        //     {
-        //       code => '00000',
-        //       msg => 'success',
-        //       requestTime => '1645926587877',
-        //       $data => {
-        //         $symbol => 'BTCUSDT_UMCBL',
-        //         size => '0.001',
-        //         orderId => '881640729145409536',
-        //         clientOid => '881640729204129792',
-        //         filledQty => '0.001',
-        //         fee => '0E-8',
-        //         price => null,
-        //         priceAvg => '38429.50',
-        //         state => 'filled',
-        //         side => 'open_long',
-        //         timeInForce => 'normal',
-        //         totalProfits => '0E-8',
-        //         posSide => 'long',
-        //         marginCoin => 'USDT',
-        //         filledAmount => '38.4295',
-        //         orderType => 'market',
-        //         cTime => '1645925450611',
-        //         uTime => '1645925450746'
-        //       }
-        //     }
-        //
-        $data = $this->safe_value($response, 'data');
-        $first = $this->safe_value($data, 0, $data);
-        return $this->parse_order($first, $market);
+        return Async\async(function () use ($id, $symbol, $params) {
+            /**
+             * fetches information on an order made by the user
+             * @param {string} $symbol unified $symbol of the $market the order was made in
+             * @param {array} $params extra parameters specific to the bitget api endpoint
+             * @return {array} An {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structure}
+             */
+            if ($symbol === null) {
+                throw new ArgumentsRequired($this->id . ' fetchOrder() requires a $symbol argument');
+            }
+            Async\await($this->load_markets());
+            $market = $this->market($symbol);
+            list($marketType, $query) = $this->handle_market_type_and_params('fetchOrder', $market, $params);
+            $method = $this->get_supported_mapping($marketType, array(
+                'spot' => 'privateSpotPostTradeOrderInfo',
+                'swap' => 'privateMixGetOrderDetail',
+            ));
+            $request = array(
+                'symbol' => $market['id'],
+                'orderId' => $id,
+            );
+            $response = Async\await($this->$method (array_merge($request, $query)));
+            // spot
+            //     {
+            //       code => '00000',
+            //       msg => 'success',
+            //       requestTime => '1645926849436',
+            //       $data => array(
+            //         {
+            //           accountId => '6394957606',
+            //           $symbol => 'BTCUSDT_SPBL',
+            //           orderId => '881626139738935296',
+            //           clientOrderId => '525890c8-767e-4cd6-8585-38160ed7bb5e',
+            //           price => '38000.000000000000',
+            //           quantity => '0.000700000000',
+            //           orderType => 'limit',
+            //           side => 'buy',
+            //           status => 'new',
+            //           fillPrice => '0.000000000000',
+            //           fillQuantity => '0.000000000000',
+            //           fillTotalAmount => '0.000000000000',
+            //           cTime => '1645921972212'
+            //         }
+            //       )
+            //     }
+            //
+            // swap
+            //     {
+            //       code => '00000',
+            //       msg => 'success',
+            //       requestTime => '1645926587877',
+            //       $data => {
+            //         $symbol => 'BTCUSDT_UMCBL',
+            //         size => '0.001',
+            //         orderId => '881640729145409536',
+            //         clientOid => '881640729204129792',
+            //         filledQty => '0.001',
+            //         fee => '0E-8',
+            //         price => null,
+            //         priceAvg => '38429.50',
+            //         state => 'filled',
+            //         side => 'open_long',
+            //         timeInForce => 'normal',
+            //         totalProfits => '0E-8',
+            //         posSide => 'long',
+            //         marginCoin => 'USDT',
+            //         filledAmount => '38.4295',
+            //         orderType => 'market',
+            //         cTime => '1645925450611',
+            //         uTime => '1645925450746'
+            //       }
+            //     }
+            //
+            $data = $this->safe_value($response, 'data');
+            $first = $this->safe_value($data, 0, $data);
+            return $this->parse_order($first, $market);
+        }) ();
     }
 
     public function fetch_open_orders($symbol = null, $since = null, $limit = null, $params = array ()) {
-        /**
-         * fetch all unfilled currently open orders
-         * @param {string} $symbol unified $market $symbol
-         * @param {int|null} $since the earliest time in ms to fetch open orders for
-         * @param {int|null} $limit the maximum number of  open orders structures to retrieve
-         * @param {array} $params extra parameters specific to the bitget api endpoint
-         * @return {[array]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structures}
-         */
-        if ($symbol === null) {
-            throw new ArgumentsRequired($this->id . ' fetchOpenOrders() requires a $symbol argument');
-        }
-        yield $this->load_markets();
-        $market = $this->market($symbol);
-        list($marketType, $query) = $this->handle_market_type_and_params('fetchOpenOrders', $market, $params);
-        $request = array(
-            'symbol' => $market['id'],
-        );
-        $method = $this->get_supported_mapping($marketType, array(
-            'spot' => 'privateSpotPostTradeOpenOrders',
-            'swap' => 'privateMixGetOrderCurrent',
-        ));
-        $stop = $this->safe_value($params, 'stop');
-        if ($stop) {
-            $method = 'privateMixGetPlanCurrentPlan';
-            $params = $this->omit($params, 'stop');
-        }
-        $response = yield $this->$method (array_merge($request, $query));
-        //
-        //  spot
-        //     {
-        //       code => '00000',
-        //       msg => 'success',
-        //       requestTime => 1645921640193,
-        //       $data => array(
-        //         {
-        //           accountId => '6394957606',
-        //           $symbol => 'BTCUSDT_SPBL',
-        //           orderId => '881623995442958336',
-        //           clientOrderId => '135335e9-b054-4e43-b00a-499f11d3a5cc',
-        //           price => '39000.000000000000',
-        //           quantity => '0.000700000000',
-        //           orderType => 'limit',
-        //           side => 'buy',
-        //           status => 'new',
-        //           fillPrice => '0.000000000000',
-        //           fillQuantity => '0.000000000000',
-        //           fillTotalAmount => '0.000000000000',
-        //           cTime => '1645921460972'
-        //         }
-        //       )
-        //     }
-        //
-        // swap
-        //     {
-        //       code => '00000',
-        //       msg => 'success',
-        //       requestTime => 1645922324630,
-        //       $data => array(
-        //         {
-        //           $symbol => 'BTCUSDT_UMCBL',
-        //           size => 0.001,
-        //           orderId => '881627074081226752',
-        //           clientOid => '881627074160918528',
-        //           filledQty => 0,
-        //           fee => 0,
-        //           price => 38000,
-        //           state => 'new',
-        //           side => 'open_long',
-        //           timeInForce => 'normal',
-        //           totalProfits => 0,
-        //           posSide => 'long',
-        //           marginCoin => 'USDT',
-        //           filledAmount => 0,
-        //           orderType => 'limit',
-        //           cTime => '1645922194995',
-        //           uTime => '1645922194995'
-        //         }
-        //       )
-        //     }
-        //
-        // $stop
-        //
-        //     {
-        //         "code" => "00000",
-        //         "msg" => "success",
-        //         "requestTime" => 1652745815697,
-        //         "data" => array(
-        //             {
-        //                 "orderId" => "910246821491617792",
-        //                 "symbol" => "BTCUSDT_UMCBL",
-        //                 "marginCoin" => "USDT",
-        //                 "size" => "16",
-        //                 "executePrice" => "20000",
-        //                 "triggerPrice" => "24000",
-        //                 "status" => "not_trigger",
-        //                 "orderType" => "limit",
-        //                 "planType" => "normal_plan",
-        //                 "side" => "open_long",
-        //                 "triggerType" => "market_price",
-        //                 "presetTakeProfitPrice" => "0",
-        //                 "presetTakeLossPrice" => "0",
-        //                 "cTime" => "1652745674488"
-        //             }
-        //         )
-        //     }
-        //
-        $data = $this->safe_value($response, 'data', array());
-        return $this->parse_orders($data, $market, $since, $limit);
+        return Async\async(function () use ($symbol, $since, $limit, $params) {
+            /**
+             * fetch all unfilled currently open orders
+             * @param {string} $symbol unified $market $symbol
+             * @param {int|null} $since the earliest time in ms to fetch open orders for
+             * @param {int|null} $limit the maximum number of  open orders structures to retrieve
+             * @param {array} $params extra parameters specific to the bitget api endpoint
+             * @return {[array]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structures}
+             */
+            if ($symbol === null) {
+                throw new ArgumentsRequired($this->id . ' fetchOpenOrders() requires a $symbol argument');
+            }
+            Async\await($this->load_markets());
+            $market = $this->market($symbol);
+            list($marketType, $query) = $this->handle_market_type_and_params('fetchOpenOrders', $market, $params);
+            $request = array(
+                'symbol' => $market['id'],
+            );
+            $method = $this->get_supported_mapping($marketType, array(
+                'spot' => 'privateSpotPostTradeOpenOrders',
+                'swap' => 'privateMixGetOrderCurrent',
+            ));
+            $stop = $this->safe_value($params, 'stop');
+            if ($stop) {
+                $method = 'privateMixGetPlanCurrentPlan';
+                $params = $this->omit($params, 'stop');
+            }
+            $response = Async\await($this->$method (array_merge($request, $query)));
+            //
+            //  spot
+            //     {
+            //       code => '00000',
+            //       msg => 'success',
+            //       requestTime => 1645921640193,
+            //       $data => array(
+            //         {
+            //           accountId => '6394957606',
+            //           $symbol => 'BTCUSDT_SPBL',
+            //           orderId => '881623995442958336',
+            //           clientOrderId => '135335e9-b054-4e43-b00a-499f11d3a5cc',
+            //           price => '39000.000000000000',
+            //           quantity => '0.000700000000',
+            //           orderType => 'limit',
+            //           side => 'buy',
+            //           status => 'new',
+            //           fillPrice => '0.000000000000',
+            //           fillQuantity => '0.000000000000',
+            //           fillTotalAmount => '0.000000000000',
+            //           cTime => '1645921460972'
+            //         }
+            //       )
+            //     }
+            //
+            // swap
+            //     {
+            //       code => '00000',
+            //       msg => 'success',
+            //       requestTime => 1645922324630,
+            //       $data => array(
+            //         {
+            //           $symbol => 'BTCUSDT_UMCBL',
+            //           size => 0.001,
+            //           orderId => '881627074081226752',
+            //           clientOid => '881627074160918528',
+            //           filledQty => 0,
+            //           fee => 0,
+            //           price => 38000,
+            //           state => 'new',
+            //           side => 'open_long',
+            //           timeInForce => 'normal',
+            //           totalProfits => 0,
+            //           posSide => 'long',
+            //           marginCoin => 'USDT',
+            //           filledAmount => 0,
+            //           orderType => 'limit',
+            //           cTime => '1645922194995',
+            //           uTime => '1645922194995'
+            //         }
+            //       )
+            //     }
+            //
+            // $stop
+            //
+            //     {
+            //         "code" => "00000",
+            //         "msg" => "success",
+            //         "requestTime" => 1652745815697,
+            //         "data" => array(
+            //             {
+            //                 "orderId" => "910246821491617792",
+            //                 "symbol" => "BTCUSDT_UMCBL",
+            //                 "marginCoin" => "USDT",
+            //                 "size" => "16",
+            //                 "executePrice" => "20000",
+            //                 "triggerPrice" => "24000",
+            //                 "status" => "not_trigger",
+            //                 "orderType" => "limit",
+            //                 "planType" => "normal_plan",
+            //                 "side" => "open_long",
+            //                 "triggerType" => "market_price",
+            //                 "presetTakeProfitPrice" => "0",
+            //                 "presetTakeLossPrice" => "0",
+            //                 "cTime" => "1652745674488"
+            //             }
+            //         )
+            //     }
+            //
+            $data = $this->safe_value($response, 'data', array());
+            return $this->parse_orders($data, $market, $since, $limit);
+        }) ();
     }
 
     public function fetch_closed_orders($symbol = null, $since = null, $limit = null, $params = array ()) {
-        /**
-         * fetches information on multiple closed orders made by the user
-         * @param {string} $symbol unified $market $symbol of the $market orders were made in
-         * @param {int|null} $since the earliest time in ms to fetch orders for
-         * @param {int|null} $limit the maximum number of  orde structures to retrieve
-         * @param {array} $params extra parameters specific to the bitget api endpoint
-         * @return {[array]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structures}
-         */
-        if ($symbol === null) {
-            throw new ArgumentsRequired($this->id . ' fetchClosedOrders() requires a $symbol argument');
-        }
-        yield $this->load_markets();
-        $market = $this->market($symbol);
-        list($marketType, $query) = $this->handle_market_type_and_params('fetchClosedOrders', $market, $params);
-        $request = array(
-            'symbol' => $market['id'],
-        );
-        $method = $this->get_supported_mapping($marketType, array(
-            'spot' => 'privateSpotPostTradeHistory',
-            'swap' => 'privateMixGetOrderHistory',
-        ));
-        if ($marketType === 'swap') {
-            if ($limit === null) {
-                $limit = 100;
+        return Async\async(function () use ($symbol, $since, $limit, $params) {
+            /**
+             * fetches information on multiple closed orders made by the user
+             * @param {string} $symbol unified $market $symbol of the $market orders were made in
+             * @param {int|null} $since the earliest time in ms to fetch orders for
+             * @param {int|null} $limit the maximum number of  orde structures to retrieve
+             * @param {array} $params extra parameters specific to the bitget api endpoint
+             * @return {[array]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structures}
+             */
+            if ($symbol === null) {
+                throw new ArgumentsRequired($this->id . ' fetchClosedOrders() requires a $symbol argument');
             }
-            $request['pageSize'] = $limit;
-            if ($since === null) {
-                $since = 0;
+            Async\await($this->load_markets());
+            $market = $this->market($symbol);
+            list($marketType, $query) = $this->handle_market_type_and_params('fetchClosedOrders', $market, $params);
+            $request = array(
+                'symbol' => $market['id'],
+            );
+            $method = $this->get_supported_mapping($marketType, array(
+                'spot' => 'privateSpotPostTradeHistory',
+                'swap' => 'privateMixGetOrderHistory',
+            ));
+            if ($marketType === 'swap') {
+                if ($limit === null) {
+                    $limit = 100;
+                }
+                $request['pageSize'] = $limit;
+                if ($since === null) {
+                    $since = 0;
+                }
+                $request['startTime'] = $since;
+                $request['endTime'] = $this->milliseconds();
             }
-            $request['startTime'] = $since;
-            $request['endTime'] = $this->milliseconds();
-        }
-        $response = yield $this->$method (array_merge($request, $query));
-        //
-        //  spot
-        //     {
-        //       code => '00000',
-        //       msg => 'success',
-        //       requestTime => 1645925335553,
-        //       $data => array(
-        //         {
-        //           accountId => '6394957606',
-        //           $symbol => 'BTCUSDT_SPBL',
-        //           orderId => '881623995442958336',
-        //           clientOrderId => '135335e9-b054-4e43-b00a-499f11d3a5cc',
-        //           price => '39000.000000000000',
-        //           quantity => '0.000700000000',
-        //           orderType => 'limit',
-        //           side => 'buy',
-        //           status => 'full_fill',
-        //           fillPrice => '39000.000000000000',
-        //           fillQuantity => '0.000700000000',
-        //           fillTotalAmount => '27.300000000000',
-        //           cTime => '1645921460972'
-        //         }
-        //       )
-        //     }
-        //
-        // swap
-        //     {
-        //       code => '00000',
-        //       msg => 'success',
-        //       requestTime => 1645925688701,
-        //       $data => {
-        //         nextFlag => false,
-        //         endId => '881640729145409536',
-        //         $orderList => array(
-        //           {
-        //             $symbol => 'BTCUSDT_UMCBL',
-        //             size => 0.001,
-        //             orderId => '881640729145409536',
-        //             clientOid => '881640729204129792',
-        //             filledQty => 0.001,
-        //             fee => 0,
-        //             price => null,
-        //             priceAvg => 38429.5,
-        //             state => 'filled',
-        //             side => 'open_long',
-        //             timeInForce => 'normal',
-        //             totalProfits => 0,
-        //             posSide => 'long',
-        //             marginCoin => 'USDT',
-        //             filledAmount => 38.4295,
-        //             orderType => 'market',
-        //             cTime => '1645925450611',
-        //             uTime => '1645925450746'
-        //           }
-        //         )
-        //       }
-        //     }
-        //
-        $data = $this->safe_value($response, 'data');
-        $orderList = $this->safe_value($data, 'orderList', $data);
-        return $this->parse_orders($orderList, $market, $since, $limit);
+            $response = Async\await($this->$method (array_merge($request, $query)));
+            //
+            //  spot
+            //     {
+            //       code => '00000',
+            //       msg => 'success',
+            //       requestTime => 1645925335553,
+            //       $data => array(
+            //         {
+            //           accountId => '6394957606',
+            //           $symbol => 'BTCUSDT_SPBL',
+            //           orderId => '881623995442958336',
+            //           clientOrderId => '135335e9-b054-4e43-b00a-499f11d3a5cc',
+            //           price => '39000.000000000000',
+            //           quantity => '0.000700000000',
+            //           orderType => 'limit',
+            //           side => 'buy',
+            //           status => 'full_fill',
+            //           fillPrice => '39000.000000000000',
+            //           fillQuantity => '0.000700000000',
+            //           fillTotalAmount => '27.300000000000',
+            //           cTime => '1645921460972'
+            //         }
+            //       )
+            //     }
+            //
+            // swap
+            //     {
+            //       code => '00000',
+            //       msg => 'success',
+            //       requestTime => 1645925688701,
+            //       $data => {
+            //         nextFlag => false,
+            //         endId => '881640729145409536',
+            //         $orderList => array(
+            //           {
+            //             $symbol => 'BTCUSDT_UMCBL',
+            //             size => 0.001,
+            //             orderId => '881640729145409536',
+            //             clientOid => '881640729204129792',
+            //             filledQty => 0.001,
+            //             fee => 0,
+            //             price => null,
+            //             priceAvg => 38429.5,
+            //             state => 'filled',
+            //             side => 'open_long',
+            //             timeInForce => 'normal',
+            //             totalProfits => 0,
+            //             posSide => 'long',
+            //             marginCoin => 'USDT',
+            //             filledAmount => 38.4295,
+            //             orderType => 'market',
+            //             cTime => '1645925450611',
+            //             uTime => '1645925450746'
+            //           }
+            //         )
+            //       }
+            //     }
+            //
+            $data = $this->safe_value($response, 'data');
+            $orderList = $this->safe_value($data, 'orderList', $data);
+            return $this->parse_orders($orderList, $market, $since, $limit);
+        }) ();
     }
 
     public function fetch_ledger($code = null, $since = null, $limit = null, $params = array ()) {
-        /**
-         * fetch the history of changes, actions done by the user or operations that altered balance of the user
-         * @param {string|null} $code unified $currency $code, default is null
-         * @param {int|null} $since timestamp in ms of the earliest ledger entry, default is null
-         * @param {int|null} $limit max number of ledger entrys to return, default is null
-         * @param {array} $params extra parameters specific to the bitget api endpoint
-         * @return {array} a {@link https://docs.ccxt.com/en/latest/manual.html#ledger-structure ledger structure}
-         */
-        yield $this->load_markets();
-        $currency = null;
-        $request = array();
-        if ($code !== null) {
-            $currency = $this->currency($code);
-            $request['coinId'] = $currency['id'];
-        }
-        $response = yield $this->privateSpotPostAccountBills (array_merge($request, $params));
-        //
-        //     {
-        //       $code => '00000',
-        //       msg => 'success',
-        //       requestTime => '1645929886887',
-        //       $data => array(
-        //         {
-        //           billId => '881626974170554368',
-        //           coinId => '2',
-        //           coinName => 'USDT',
-        //           groupType => 'transfer',
-        //           bizType => 'transfer-out',
-        //           quantity => '-10.00000000',
-        //           balance => '73.36005300',
-        //           fees => '0.00000000',
-        //           cTime => '1645922171146'
-        //         }
-        //       )
-        //     }
-        //
-        $data = $this->safe_value($response, 'data');
-        return $this->parse_ledger($data, $currency, $since, $limit);
+        return Async\async(function () use ($code, $since, $limit, $params) {
+            /**
+             * fetch the history of changes, actions done by the user or operations that altered balance of the user
+             * @param {string|null} $code unified $currency $code, default is null
+             * @param {int|null} $since timestamp in ms of the earliest ledger entry, default is null
+             * @param {int|null} $limit max number of ledger entrys to return, default is null
+             * @param {array} $params extra parameters specific to the bitget api endpoint
+             * @return {array} a {@link https://docs.ccxt.com/en/latest/manual.html#ledger-structure ledger structure}
+             */
+            Async\await($this->load_markets());
+            $currency = null;
+            $request = array();
+            if ($code !== null) {
+                $currency = $this->currency($code);
+                $request['coinId'] = $currency['id'];
+            }
+            $response = Async\await($this->privateSpotPostAccountBills (array_merge($request, $params)));
+            //
+            //     {
+            //       $code => '00000',
+            //       msg => 'success',
+            //       requestTime => '1645929886887',
+            //       $data => array(
+            //         {
+            //           billId => '881626974170554368',
+            //           coinId => '2',
+            //           coinName => 'USDT',
+            //           groupType => 'transfer',
+            //           bizType => 'transfer-out',
+            //           quantity => '-10.00000000',
+            //           balance => '73.36005300',
+            //           fees => '0.00000000',
+            //           cTime => '1645922171146'
+            //         }
+            //       )
+            //     }
+            //
+            $data = $this->safe_value($response, 'data');
+            return $this->parse_ledger($data, $currency, $since, $limit);
+        }) ();
     }
 
     public function parse_ledger_entry($item, $currency = null) {
@@ -2510,202 +2858,210 @@ class bitget extends Exchange {
     }
 
     public function fetch_my_trades($symbol = null, $since = null, $limit = null, $params = array ()) {
-        /**
-         * fetch all trades made by the user
-         * @param {string} $symbol unified $market $symbol
-         * @param {int|null} $since the earliest time in ms to fetch trades for
-         * @param {int|null} $limit the maximum number of trades structures to retrieve
-         * @param {array} $params extra parameters specific to the bitget api endpoint
-         * @return {[array]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#trade-structure trade structures}
-         */
-        if ($symbol === null) {
-            throw new ArgumentsRequired($this->id . ' fetchMyTrades() requires a $symbol argument');
-        }
-        yield $this->load_markets();
-        $market = $this->market($symbol);
-        if ($market['swap']) {
-            throw new BadSymbol($this->id . ' fetchMyTrades() only supports spot markets');
-        }
-        $request = array(
-            'symbol' => $market['id'],
-        );
-        if ($limit !== null) {
-            $request['limit'] = $limit;
-        }
-        $response = yield $this->privateSpotPostTradeFills (array_merge($request, $params));
-        //
-        //     {
-        //       code => '00000',
-        //       msg => 'success',
-        //       requestTime => '1645918954082',
-        //       $data => array(
-        //         {
-        //           accountId => '6394957606',
-        //           $symbol => 'LTCUSDT_SPBL',
-        //           orderId => '864752115272552448',
-        //           fillId => '864752115685969921',
-        //           orderType => 'limit',
-        //           side => 'buy',
-        //           fillPrice => '127.92000000',
-        //           fillQuantity => '0.10000000',
-        //           fillTotalAmount => '12.79200000',
-        //           feeCcy => 'LTC',
-        //           fees => '0.00000000',
-        //           cTime => '1641898891373'
-        //         }
-        //       )
-        //     }
-        //
-        $data = $this->safe_value($response, 'data');
-        return $this->parse_trades($data, $market, $since, $limit);
+        return Async\async(function () use ($symbol, $since, $limit, $params) {
+            /**
+             * fetch all trades made by the user
+             * @param {string} $symbol unified $market $symbol
+             * @param {int|null} $since the earliest time in ms to fetch trades for
+             * @param {int|null} $limit the maximum number of trades structures to retrieve
+             * @param {array} $params extra parameters specific to the bitget api endpoint
+             * @return {[array]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#trade-structure trade structures}
+             */
+            if ($symbol === null) {
+                throw new ArgumentsRequired($this->id . ' fetchMyTrades() requires a $symbol argument');
+            }
+            Async\await($this->load_markets());
+            $market = $this->market($symbol);
+            if ($market['swap']) {
+                throw new BadSymbol($this->id . ' fetchMyTrades() only supports spot markets');
+            }
+            $request = array(
+                'symbol' => $market['id'],
+            );
+            if ($limit !== null) {
+                $request['limit'] = $limit;
+            }
+            $response = Async\await($this->privateSpotPostTradeFills (array_merge($request, $params)));
+            //
+            //     {
+            //       code => '00000',
+            //       msg => 'success',
+            //       requestTime => '1645918954082',
+            //       $data => array(
+            //         {
+            //           accountId => '6394957606',
+            //           $symbol => 'LTCUSDT_SPBL',
+            //           orderId => '864752115272552448',
+            //           fillId => '864752115685969921',
+            //           orderType => 'limit',
+            //           side => 'buy',
+            //           fillPrice => '127.92000000',
+            //           fillQuantity => '0.10000000',
+            //           fillTotalAmount => '12.79200000',
+            //           feeCcy => 'LTC',
+            //           fees => '0.00000000',
+            //           cTime => '1641898891373'
+            //         }
+            //       )
+            //     }
+            //
+            $data = $this->safe_value($response, 'data');
+            return $this->parse_trades($data, $market, $since, $limit);
+        }) ();
     }
 
     public function fetch_order_trades($id, $symbol = null, $since = null, $limit = null, $params = array ()) {
-        /**
-         * fetch all the trades made from a single order
-         * @param {string} $id order $id
-         * @param {string} $symbol unified $market $symbol
-         * @param {int|null} $since the earliest time in ms to fetch trades for
-         * @param {int|null} $limit the maximum number of trades to retrieve
-         * @param {array} $params extra parameters specific to the bitget api endpoint
-         * @return {[array]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#trade-structure trade structures}
-         */
-        if ($symbol === null) {
-            throw new ArgumentsRequired($this->id . ' fetchOrderTrades() requires a $symbol argument');
-        }
-        yield $this->load_markets();
-        $market = $this->market($symbol);
-        list($marketType, $query) = $this->handle_market_type_and_params('fetchOrderTrades', $market, $params);
-        $method = $this->get_supported_mapping($marketType, array(
-            'spot' => 'privateSpotPostTradeFills',
-            'swap' => 'privateMixGetOrderFills',
-        ));
-        $request = array(
-            'symbol' => $market['id'],
-            'orderId' => $id,
-        );
-        $response = yield $this->$method (array_merge($request, $query));
-        // spot
-        //
-        // swap
-        //     {
-        //       code => '00000',
-        //       msg => 'success',
-        //       requestTime => 1645927862710,
-        //       $data => array(
-        //         {
-        //           tradeId => '881640729552281602',
-        //           $symbol => 'BTCUSDT_UMCBL',
-        //           orderId => '881640729145409536',
-        //           price => '38429.50',
-        //           sizeQty => '0.001',
-        //           fee => '0',
-        //           side => 'open_long',
-        //           fillAmount => '38.4295',
-        //           profit => '0',
-        //           cTime => '1645925450694'
-        //         }
-        //       )
-        //     }
-        //
-        $data = $this->safe_value($response, 'data');
-        return yield $this->parse_trades($data, $market, $since, $limit);
+        return Async\async(function () use ($id, $symbol, $since, $limit, $params) {
+            /**
+             * fetch all the trades made from a single order
+             * @param {string} $id order $id
+             * @param {string} $symbol unified $market $symbol
+             * @param {int|null} $since the earliest time in ms to fetch trades for
+             * @param {int|null} $limit the maximum number of trades to retrieve
+             * @param {array} $params extra parameters specific to the bitget api endpoint
+             * @return {[array]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#trade-structure trade structures}
+             */
+            if ($symbol === null) {
+                throw new ArgumentsRequired($this->id . ' fetchOrderTrades() requires a $symbol argument');
+            }
+            Async\await($this->load_markets());
+            $market = $this->market($symbol);
+            list($marketType, $query) = $this->handle_market_type_and_params('fetchOrderTrades', $market, $params);
+            $method = $this->get_supported_mapping($marketType, array(
+                'spot' => 'privateSpotPostTradeFills',
+                'swap' => 'privateMixGetOrderFills',
+            ));
+            $request = array(
+                'symbol' => $market['id'],
+                'orderId' => $id,
+            );
+            $response = Async\await($this->$method (array_merge($request, $query)));
+            // spot
+            //
+            // swap
+            //     {
+            //       code => '00000',
+            //       msg => 'success',
+            //       requestTime => 1645927862710,
+            //       $data => array(
+            //         {
+            //           tradeId => '881640729552281602',
+            //           $symbol => 'BTCUSDT_UMCBL',
+            //           orderId => '881640729145409536',
+            //           price => '38429.50',
+            //           sizeQty => '0.001',
+            //           fee => '0',
+            //           side => 'open_long',
+            //           fillAmount => '38.4295',
+            //           profit => '0',
+            //           cTime => '1645925450694'
+            //         }
+            //       )
+            //     }
+            //
+            $data = $this->safe_value($response, 'data');
+            return Async\await($this->parse_trades($data, $market, $since, $limit));
+        }) ();
     }
 
     public function fetch_position($symbol, $params = array ()) {
-        /**
-         * fetch $data on a single open contract trade position
-         * @param {string} $symbol unified $market $symbol of the $market the position is held in, default is null
-         * @param {array} $params extra parameters specific to the bitget api endpoint
-         * @return {array} a {@link https://docs.ccxt.com/en/latest/manual.html#position-structure position structure}
-         */
-        yield $this->load_markets();
-        $market = $this->market($symbol);
-        $request = array(
-            'symbol' => $market['id'],
-            'marginCoin' => $market['settleId'],
-        );
-        $response = yield $this->privateMixGetPositionSinglePosition (array_merge($request, $params));
-        //
-        //     {
-        //       code => '00000',
-        //       msg => 'success',
-        //       requestTime => '1645933957584',
-        //       $data => array(
-        //         {
-        //           marginCoin => 'USDT',
-        //           $symbol => 'BTCUSDT_UMCBL',
-        //           holdSide => 'long',
-        //           openDelegateCount => '0',
-        //           margin => '1.921475',
-        //           available => '0.001',
-        //           locked => '0',
-        //           total => '0.001',
-        //           leverage => '20',
-        //           achievedProfits => '0',
-        //           averageOpenPrice => '38429.5',
-        //           marginMode => 'fixed',
-        //           holdMode => 'double_hold',
-        //           unrealizedPL => '0.1634',
-        //           liquidationPrice => '0',
-        //           keepMarginRate => '0.004',
-        //           cTime => '1645922194988'
-        //         }
-        //       )
-        //     }
-        //
-        $data = $this->safe_value($response, 'data', array());
-        return $this->parse_position($data[0], $market);
+        return Async\async(function () use ($symbol, $params) {
+            /**
+             * fetch $data on a single open contract trade position
+             * @param {string} $symbol unified $market $symbol of the $market the position is held in, default is null
+             * @param {array} $params extra parameters specific to the bitget api endpoint
+             * @return {array} a {@link https://docs.ccxt.com/en/latest/manual.html#position-structure position structure}
+             */
+            Async\await($this->load_markets());
+            $market = $this->market($symbol);
+            $request = array(
+                'symbol' => $market['id'],
+                'marginCoin' => $market['settleId'],
+            );
+            $response = Async\await($this->privateMixGetPositionSinglePosition (array_merge($request, $params)));
+            //
+            //     {
+            //       code => '00000',
+            //       msg => 'success',
+            //       requestTime => '1645933957584',
+            //       $data => array(
+            //         {
+            //           marginCoin => 'USDT',
+            //           $symbol => 'BTCUSDT_UMCBL',
+            //           holdSide => 'long',
+            //           openDelegateCount => '0',
+            //           margin => '1.921475',
+            //           available => '0.001',
+            //           locked => '0',
+            //           total => '0.001',
+            //           leverage => '20',
+            //           achievedProfits => '0',
+            //           averageOpenPrice => '38429.5',
+            //           marginMode => 'fixed',
+            //           holdMode => 'double_hold',
+            //           unrealizedPL => '0.1634',
+            //           liquidationPrice => '0',
+            //           keepMarginRate => '0.004',
+            //           cTime => '1645922194988'
+            //         }
+            //       )
+            //     }
+            //
+            $data = $this->safe_value($response, 'data', array());
+            return $this->parse_position($data[0], $market);
+        }) ();
     }
 
     public function fetch_positions($symbols = null, $params = array ()) {
-        /**
-         * fetch all open positions
-         * @param {[string]|null} $symbols list of unified market $symbols
-         * @param {array} $params extra parameters specific to the bitget api endpoint
-         * @return {[array]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#$position-structure $position structure}
-         */
-        yield $this->load_markets();
-        $defaultSubType = $this->safe_string($this->options, 'defaultSubType');
-        $request = array(
-            'productType' => ($defaultSubType === 'linear') ? 'UMCBL' : 'DMCBL',
-        );
-        $response = yield $this->privateMixGetPositionAllPosition (array_merge($request, $params));
-        //
-        //     {
-        //       code => '00000',
-        //       msg => 'success',
-        //       requestTime => '1645933905060',
-        //       data => array(
-        //         {
-        //           marginCoin => 'USDT',
-        //           symbol => 'BTCUSDT_UMCBL',
-        //           holdSide => 'long',
-        //           openDelegateCount => '0',
-        //           margin => '1.921475',
-        //           available => '0.001',
-        //           locked => '0',
-        //           total => '0.001',
-        //           leverage => '20',
-        //           achievedProfits => '0',
-        //           averageOpenPrice => '38429.5',
-        //           marginMode => 'fixed',
-        //           holdMode => 'double_hold',
-        //           unrealizedPL => '0.14869',
-        //           liquidationPrice => '0',
-        //           keepMarginRate => '0.004',
-        //           cTime => '1645922194988'
-        //         }
-        //       )
-        //     }
-        //
-        $position = $this->safe_value($response, 'data', array());
-        $result = array();
-        for ($i = 0; $i < count($position); $i++) {
-            $result[] = $this->parse_position($position[$i]);
-        }
-        $symbols = $this->market_symbols($symbols);
-        return $this->filter_by_array($result, 'symbol', $symbols, false);
+        return Async\async(function () use ($symbols, $params) {
+            /**
+             * fetch all open positions
+             * @param {[string]|null} $symbols list of unified market $symbols
+             * @param {array} $params extra parameters specific to the bitget api endpoint
+             * @return {[array]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#$position-structure $position structure}
+             */
+            Async\await($this->load_markets());
+            $defaultSubType = $this->safe_string($this->options, 'defaultSubType');
+            $request = array(
+                'productType' => ($defaultSubType === 'linear') ? 'UMCBL' : 'DMCBL',
+            );
+            $response = Async\await($this->privateMixGetPositionAllPosition (array_merge($request, $params)));
+            //
+            //     {
+            //       code => '00000',
+            //       msg => 'success',
+            //       requestTime => '1645933905060',
+            //       data => array(
+            //         {
+            //           marginCoin => 'USDT',
+            //           symbol => 'BTCUSDT_UMCBL',
+            //           holdSide => 'long',
+            //           openDelegateCount => '0',
+            //           margin => '1.921475',
+            //           available => '0.001',
+            //           locked => '0',
+            //           total => '0.001',
+            //           leverage => '20',
+            //           achievedProfits => '0',
+            //           averageOpenPrice => '38429.5',
+            //           marginMode => 'fixed',
+            //           holdMode => 'double_hold',
+            //           unrealizedPL => '0.14869',
+            //           liquidationPrice => '0',
+            //           keepMarginRate => '0.004',
+            //           cTime => '1645922194988'
+            //         }
+            //       )
+            //     }
+            //
+            $position = $this->safe_value($response, 'data', array());
+            $result = array();
+            for ($i = 0; $i < count($position); $i++) {
+                $result[] = $this->parse_position($position[$i]);
+            }
+            $symbols = $this->market_symbols($symbols);
+            return $this->filter_by_array($result, 'symbol', $symbols, false);
+        }) ();
     }
 
     public function parse_position($position, $market = null) {
@@ -2781,91 +3137,95 @@ class bitget extends Exchange {
     }
 
     public function fetch_funding_rate_history($symbol = null, $since = null, $limit = null, $params = array ()) {
-        /**
-         * fetches historical funding rate prices
-         * @param {string|null} $symbol unified $symbol of the $market to fetch the funding rate history for
-         * @param {int|null} $since $timestamp in ms of the earliest funding rate to fetch
-         * @param {int|null} $limit the maximum amount of ~@link https://docs.ccxt.com/en/latest/manual.html?#funding-rate-history-structure funding rate structures~ to fetch
-         * @param {array} $params extra parameters specific to the bitget api endpoint
-         * @return {[array]} a list of ~@link https://docs.ccxt.com/en/latest/manual.html?#funding-rate-history-structure funding rate structures~
-         */
-        if ($symbol === null) {
-            throw new ArgumentsRequired($this->id . ' fetchFundingRateHistory() requires a $symbol argument');
-        }
-        yield $this->load_markets();
-        $market = $this->market($symbol);
-        $request = array(
-            'symbol' => $market['id'],
-            // 'pageSize' => $limit, // default 20
-            // 'pageNo' => 1,
-            // 'nextPage' => false,
-        );
-        if ($limit !== null) {
-            $request['pageSize'] = $limit;
-        }
-        $response = yield $this->publicMixGetMarketHistoryFundRate (array_merge($request, $params));
-        //
-        //     {
-        //         "code" => "00000",
-        //         "msg" => "success",
-        //         "requestTime" => 1652406728393,
-        //         "data" => array(
-        //             array(
-        //                 "symbol" => "BTCUSDT",
-        //                 "fundingRate" => "-0.0003",
-        //                 "settleTime" => "1652396400000"
-        //             ),
-        //         )
-        //     }
-        //
-        $data = $this->safe_value($response, 'data', array());
-        $rates = array();
-        for ($i = 0; $i < count($data); $i++) {
-            $entry = $data[$i];
-            $marketId = $this->safe_string($entry, 'symbol');
-            $symbol = $this->safe_symbol($marketId, $market);
-            $timestamp = $this->safe_integer($entry, 'settleTime');
-            $rates[] = array(
-                'info' => $entry,
-                'symbol' => $symbol,
-                'fundingRate' => $this->safe_string($entry, 'fundingRate'),
-                'timestamp' => $timestamp,
-                'datetime' => $this->iso8601($timestamp),
+        return Async\async(function () use ($symbol, $since, $limit, $params) {
+            /**
+             * fetches historical funding rate prices
+             * @param {string|null} $symbol unified $symbol of the $market to fetch the funding rate history for
+             * @param {int|null} $since $timestamp in ms of the earliest funding rate to fetch
+             * @param {int|null} $limit the maximum amount of ~@link https://docs.ccxt.com/en/latest/manual.html?#funding-rate-history-structure funding rate structures~ to fetch
+             * @param {array} $params extra parameters specific to the bitget api endpoint
+             * @return {[array]} a list of ~@link https://docs.ccxt.com/en/latest/manual.html?#funding-rate-history-structure funding rate structures~
+             */
+            if ($symbol === null) {
+                throw new ArgumentsRequired($this->id . ' fetchFundingRateHistory() requires a $symbol argument');
+            }
+            Async\await($this->load_markets());
+            $market = $this->market($symbol);
+            $request = array(
+                'symbol' => $market['id'],
+                // 'pageSize' => $limit, // default 20
+                // 'pageNo' => 1,
+                // 'nextPage' => false,
             );
-        }
-        $sorted = $this->sort_by($rates, 'timestamp');
-        return $this->filter_by_symbol_since_limit($sorted, $market['symbol'], $since, $limit);
+            if ($limit !== null) {
+                $request['pageSize'] = $limit;
+            }
+            $response = Async\await($this->publicMixGetMarketHistoryFundRate (array_merge($request, $params)));
+            //
+            //     {
+            //         "code" => "00000",
+            //         "msg" => "success",
+            //         "requestTime" => 1652406728393,
+            //         "data" => array(
+            //             array(
+            //                 "symbol" => "BTCUSDT",
+            //                 "fundingRate" => "-0.0003",
+            //                 "settleTime" => "1652396400000"
+            //             ),
+            //         )
+            //     }
+            //
+            $data = $this->safe_value($response, 'data', array());
+            $rates = array();
+            for ($i = 0; $i < count($data); $i++) {
+                $entry = $data[$i];
+                $marketId = $this->safe_string($entry, 'symbol');
+                $symbol = $this->safe_symbol($marketId, $market);
+                $timestamp = $this->safe_integer($entry, 'settleTime');
+                $rates[] = array(
+                    'info' => $entry,
+                    'symbol' => $symbol,
+                    'fundingRate' => $this->safe_string($entry, 'fundingRate'),
+                    'timestamp' => $timestamp,
+                    'datetime' => $this->iso8601($timestamp),
+                );
+            }
+            $sorted = $this->sort_by($rates, 'timestamp');
+            return $this->filter_by_symbol_since_limit($sorted, $market['symbol'], $since, $limit);
+        }) ();
     }
 
     public function fetch_funding_rate($symbol, $params = array ()) {
-        /**
-         * fetch the current funding rate
-         * @param {string} $symbol unified $market $symbol
-         * @param {array} $params extra parameters specific to the bitget api endpoint
-         * @return {array} a {@link https://docs.ccxt.com/en/latest/manual.html#funding-rate-structure funding rate structure}
-         */
-        yield $this->load_markets();
-        $market = $this->market($symbol);
-        if (!$market['swap']) {
-            throw new BadSymbol($this->id . ' fetchFundingRate() supports swap contracts only');
-        }
-        $request = array(
-            'symbol' => $market['id'],
-        );
-        $response = yield $this->publicMixGetMarketCurrentFundRate (array_merge($request, $params));
-        //
-        //     {
-        //         "code" => "00000",
-        //         "msg" => "success",
-        //         "requestTime" => 1652401684275,
-        //         "data" => {
-        //             "symbol" => "BTCUSDT_UMCBL",
-        //             "fundingRate" => "-0.000182"
-        //         }
-        //     }
-        //
-        $data = $this->safe_value($response, 'data', array());
-        return $this->parse_funding_rate($data, $market);
+        return Async\async(function () use ($symbol, $params) {
+            /**
+             * fetch the current funding rate
+             * @param {string} $symbol unified $market $symbol
+             * @param {array} $params extra parameters specific to the bitget api endpoint
+             * @return {array} a {@link https://docs.ccxt.com/en/latest/manual.html#funding-rate-structure funding rate structure}
+             */
+            Async\await($this->load_markets());
+            $market = $this->market($symbol);
+            if (!$market['swap']) {
+                throw new BadSymbol($this->id . ' fetchFundingRate() supports swap contracts only');
+            }
+            $request = array(
+                'symbol' => $market['id'],
+            );
+            $response = Async\await($this->publicMixGetMarketCurrentFundRate (array_merge($request, $params)));
+            //
+            //     {
+            //         "code" => "00000",
+            //         "msg" => "success",
+            //         "requestTime" => 1652401684275,
+            //         "data" => {
+            //             "symbol" => "BTCUSDT_UMCBL",
+            //             "fundingRate" => "-0.000182"
+            //         }
+            //     }
+            //
+            $data = $this->safe_value($response, 'data', array());
+            return $this->parse_funding_rate($data, $market);
+        }) ();
     }
 
     public function parse_funding_rate($contract, $market = null) {
@@ -2899,32 +3259,34 @@ class bitget extends Exchange {
     }
 
     public function modify_margin_helper($symbol, $amount, $type, $params = array ()) {
-        yield $this->load_markets();
-        $holdSide = $this->safe_string($params, 'holdSide');
-        $market = $this->market($symbol);
-        $marginCoin = ($market['linear']) ? $market['quote'] : $market['base'];
-        $request = array(
-            'symbol' => $market['id'],
-            'marginCoin' => $marginCoin,
-            'amount' => $this->amount_to_precision($symbol, $amount), // positive value for adding margin, negative for reducing
-            'holdSide' => $holdSide, // long or short
-        );
-        $params = $this->omit($params, 'holdSide');
-        $response = yield $this->privateMixPostAccountSetMargin (array_merge($request, $params));
-        //
-        //     {
-        //         "code" => "00000",
-        //         "msg" => "success",
-        //         "requestTime" => 1652483636792,
-        //         "data" => {
-        //             "result" => true
-        //         }
-        //     }
-        //
-        return array_merge($this->parse_margin_modification($response, $market), array(
-            'amount' => $this->parse_number($amount),
-            'type' => $type,
-        ));
+        return Async\async(function () use ($symbol, $amount, $type, $params) {
+            Async\await($this->load_markets());
+            $holdSide = $this->safe_string($params, 'holdSide');
+            $market = $this->market($symbol);
+            $marginCoin = ($market['linear']) ? $market['quote'] : $market['base'];
+            $request = array(
+                'symbol' => $market['id'],
+                'marginCoin' => $marginCoin,
+                'amount' => $this->amount_to_precision($symbol, $amount), // positive value for adding margin, negative for reducing
+                'holdSide' => $holdSide, // long or short
+            );
+            $params = $this->omit($params, 'holdSide');
+            $response = Async\await($this->privateMixPostAccountSetMargin (array_merge($request, $params)));
+            //
+            //     {
+            //         "code" => "00000",
+            //         "msg" => "success",
+            //         "requestTime" => 1652483636792,
+            //         "data" => {
+            //             "result" => true
+            //         }
+            //     }
+            //
+            return array_merge($this->parse_margin_modification($response, $market), array(
+                'amount' => $this->parse_number($amount),
+                'type' => $type,
+            ));
+        }) ();
     }
 
     public function parse_margin_modification($data, $market = null) {
@@ -2942,154 +3304,180 @@ class bitget extends Exchange {
     }
 
     public function reduce_margin($symbol, $amount, $params = array ()) {
-        /**
-         * remove margin from a position
-         * @param {string} $symbol unified market $symbol
-         * @param {float} $amount the $amount of margin to remove
-         * @param {array} $params extra parameters specific to the bitget api endpoint
-         * @return {array} a {@link https://docs.ccxt.com/en/latest/manual.html#reduce-margin-structure margin structure}
-         */
-        if ($amount > 0) {
-            throw new BadRequest($this->id . ' reduceMargin() $amount parameter must be a negative value');
-        }
-        $holdSide = $this->safe_string($params, 'holdSide');
-        if ($holdSide === null) {
-            throw new ArgumentsRequired($this->id . ' reduceMargin() requires a $holdSide parameter, either long or short');
-        }
-        return yield $this->modify_margin_helper($symbol, $amount, 'reduce', $params);
+        return Async\async(function () use ($symbol, $amount, $params) {
+            /**
+             * remove margin from a position
+             * @param {string} $symbol unified market $symbol
+             * @param {float} $amount the $amount of margin to remove
+             * @param {array} $params extra parameters specific to the bitget api endpoint
+             * @return {array} a {@link https://docs.ccxt.com/en/latest/manual.html#reduce-margin-structure margin structure}
+             */
+            if ($amount > 0) {
+                throw new BadRequest($this->id . ' reduceMargin() $amount parameter must be a negative value');
+            }
+            $holdSide = $this->safe_string($params, 'holdSide');
+            if ($holdSide === null) {
+                throw new ArgumentsRequired($this->id . ' reduceMargin() requires a $holdSide parameter, either long or short');
+            }
+            return Async\await($this->modify_margin_helper($symbol, $amount, 'reduce', $params));
+        }) ();
     }
 
     public function add_margin($symbol, $amount, $params = array ()) {
-        /**
-         * add margin
-         * @param {string} $symbol unified market $symbol
-         * @param {float} $amount amount of margin to add
-         * @param {array} $params extra parameters specific to the bitget api endpoint
-         * @return {array} a {@link https://docs.ccxt.com/en/latest/manual.html#add-margin-structure margin structure}
-         */
-        $holdSide = $this->safe_string($params, 'holdSide');
-        if ($holdSide === null) {
-            throw new ArgumentsRequired($this->id . ' addMargin() requires a $holdSide parameter, either long or short');
-        }
-        return yield $this->modify_margin_helper($symbol, $amount, 'add', $params);
-    }
-
-    public function sign($path, $api = [], $method = 'GET', $params = array (), $headers = null, $body = null) {
-        $signed = $api[0] === 'private';
-        $endpoint = $api[1];
-        $pathPart = ($endpoint === 'spot') ? '/api/spot/v1' : '/api/mix/v1';
-        $request = '/' . $this->implode_params($path, $params);
-        $payload = $pathPart . $request;
-        $url = $this->implode_hostname($this->urls['api'][$endpoint]) . $payload;
-        $query = $this->omit($params, $this->extract_params($path));
-        if (!$signed && ($method === 'GET')) {
-            $keys = is_array($query) ? array_keys($query) : array();
-            $keysLength = count($keys);
-            if ($keysLength > 0) {
-                $url = $url . '?' . $this->urlencode($query);
+        return Async\async(function () use ($symbol, $amount, $params) {
+            /**
+             * add margin
+             * @param {string} $symbol unified market $symbol
+             * @param {float} $amount amount of margin to add
+             * @param {array} $params extra parameters specific to the bitget api endpoint
+             * @return {array} a {@link https://docs.ccxt.com/en/latest/manual.html#add-margin-structure margin structure}
+             */
+            $holdSide = $this->safe_string($params, 'holdSide');
+            if ($holdSide === null) {
+                throw new ArgumentsRequired($this->id . ' addMargin() requires a $holdSide parameter, either long or short');
             }
-        }
-        if ($signed) {
-            $this->check_required_credentials();
-            $timestamp = (string) $this->milliseconds();
-            $auth = $timestamp . $method . $payload;
-            if ($method === 'POST') {
-                $body = $this->json($params);
-                $auth .= $body;
-            } else {
-                if ($params) {
-                    $query = '?' . $this->urlencode($this->keysort($params));
-                    $url .= $query;
-                    $auth .= $query;
-                }
-            }
-            $signature = $this->hmac($this->encode($auth), $this->encode($this->secret), 'sha256', 'base64');
-            $headers = array(
-                'ACCESS-KEY' => $this->apiKey,
-                'ACCESS-SIGN' => $signature,
-                'ACCESS-TIMESTAMP' => $timestamp,
-                'ACCESS-PASSPHRASE' => $this->password,
-            );
-            if ($method === 'POST') {
-                $headers['Content-Type'] = 'application/json';
-            }
-        }
-        return array( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
+            return Async\await($this->modify_margin_helper($symbol, $amount, 'add', $params));
+        }) ();
     }
 
     public function fetch_leverage($symbol, $params = array ()) {
-        /**
-         * fetch the set leverage for a $market
-         * @param {string} $symbol unified $market $symbol
-         * @param {array} $params extra parameters specific to the bitget api endpoint
-         * @return {array} a {@link https://docs.ccxt.com/en/latest/manual.html#leverage-structure leverage structure}
-         */
-        yield $this->load_markets();
-        $market = $this->market($symbol);
-        $request = array(
-            'symbol' => $market['id'],
-        );
-        $response = yield $this->publicMixGetMarketSymbolLeverage (array_merge($request, $params));
-        //
-        //     {
-        //         "code" => "00000",
-        //         "msg" => "success",
-        //         "requestTime" => 1652347673483,
-        //         "data" => {
-        //             "symbol" => "BTCUSDT_UMCBL",
-        //             "minLeverage" => "1",
-        //             "maxLeverage" => "125"
-        //         }
-        //     }
-        //
-        return $response;
+        return Async\async(function () use ($symbol, $params) {
+            /**
+             * fetch the set leverage for a $market
+             * @param {string} $symbol unified $market $symbol
+             * @param {array} $params extra parameters specific to the bitget api endpoint
+             * @return {array} a {@link https://docs.ccxt.com/en/latest/manual.html#leverage-structure leverage structure}
+             */
+            Async\await($this->load_markets());
+            $market = $this->market($symbol);
+            $request = array(
+                'symbol' => $market['id'],
+            );
+            $response = Async\await($this->publicMixGetMarketSymbolLeverage (array_merge($request, $params)));
+            //
+            //     {
+            //         "code" => "00000",
+            //         "msg" => "success",
+            //         "requestTime" => 1652347673483,
+            //         "data" => {
+            //             "symbol" => "BTCUSDT_UMCBL",
+            //             "minLeverage" => "1",
+            //             "maxLeverage" => "125"
+            //         }
+            //     }
+            //
+            return $response;
+        }) ();
     }
 
     public function set_leverage($leverage, $symbol = null, $params = array ()) {
-        /**
-         * set the level of $leverage for a $market
-         * @param {float} $leverage the rate of $leverage
-         * @param {string} $symbol unified $market $symbol
-         * @param {array} $params extra parameters specific to the bitget api endpoint
-         * @return {array} response from the exchange
-         */
-        if ($symbol === null) {
-            throw new ArgumentsRequired($this->id . ' setLeverage() requires a $symbol argument');
-        }
-        yield $this->load_markets();
-        $market = $this->market($symbol);
-        $request = array(
-            'symbol' => $market['id'],
-            'marginCoin' => $market['settleId'],
-            'leverage' => $leverage,
-            // 'holdSide' => 'long',
-        );
-        return yield $this->privateMixPostAccountSetLeverage (array_merge($request, $params));
+        return Async\async(function () use ($leverage, $symbol, $params) {
+            /**
+             * set the level of $leverage for a $market
+             * @param {float} $leverage the rate of $leverage
+             * @param {string} $symbol unified $market $symbol
+             * @param {array} $params extra parameters specific to the bitget api endpoint
+             * @return {array} response from the exchange
+             */
+            if ($symbol === null) {
+                throw new ArgumentsRequired($this->id . ' setLeverage() requires a $symbol argument');
+            }
+            Async\await($this->load_markets());
+            $market = $this->market($symbol);
+            $request = array(
+                'symbol' => $market['id'],
+                'marginCoin' => $market['settleId'],
+                'leverage' => $leverage,
+                // 'holdSide' => 'long',
+            );
+            return Async\await($this->privateMixPostAccountSetLeverage (array_merge($request, $params)));
+        }) ();
     }
 
     public function set_margin_mode($marginMode, $symbol = null, $params = array ()) {
-        /**
-         * set margin mode to 'cross' or 'isolated'
-         * @param {string} $marginMode 'cross' or 'isolated'
-         * @param {string} $symbol unified $market $symbol
-         * @param {array} $params extra parameters specific to the bitget api endpoint
-         * @return {array} response from the exchange
-         */
-        if ($symbol === null) {
-            throw new ArgumentsRequired($this->id . ' setMarginMode() requires a $symbol argument');
-        }
-        $marginMode = strtolower($marginMode);
-        if (($marginMode !== 'fixed') && ($marginMode !== 'crossed')) {
-            throw new ArgumentsRequired($this->id . ' setMarginMode() $marginMode must be "fixed" or "crossed"');
-        }
-        yield $this->load_markets();
-        $market = $this->market($symbol);
-        $request = array(
-            'symbol' => $market['id'],
-            'marginCoin' => $market['settleId'],
-            'marginMode' => $marginMode,
+        return Async\async(function () use ($marginMode, $symbol, $params) {
+            /**
+             * set margin mode to 'cross' or 'isolated'
+             * @param {string} $marginMode 'cross' or 'isolated'
+             * @param {string} $symbol unified $market $symbol
+             * @param {array} $params extra parameters specific to the bitget api endpoint
+             * @return {array} response from the exchange
+             */
+            if ($symbol === null) {
+                throw new ArgumentsRequired($this->id . ' setMarginMode() requires a $symbol argument');
+            }
+            $marginMode = strtolower($marginMode);
+            if (($marginMode !== 'fixed') && ($marginMode !== 'crossed')) {
+                throw new ArgumentsRequired($this->id . ' setMarginMode() $marginMode must be "fixed" or "crossed"');
+            }
+            Async\await($this->load_markets());
+            $market = $this->market($symbol);
+            $request = array(
+                'symbol' => $market['id'],
+                'marginCoin' => $market['settleId'],
+                'marginMode' => $marginMode,
+            );
+            return Async\await($this->privateMixPostAccountSetMarginMode (array_merge($request, $params)));
+        }) ();
+    }
+
+    public function fetch_open_interest($symbol, $params = array ()) {
+        return Async\async(function () use ($symbol, $params) {
+            /**
+             * Retrieves the open interest of a currency
+             * @see https://bitgetlimited.github.io/apidoc/en/mix/#get-open-interest
+             * @param {string} $symbol Unified CCXT $market $symbol
+             * @param {array} $params exchange specific parameters
+             * @return {array} an open interest structurearray(@link https://docs.ccxt.com/en/latest/manual.html#interest-history-structure)
+             */
+            Async\await($this->load_markets());
+            $market = $this->market($symbol);
+            if (!$market['contract']) {
+                throw new BadRequest($this->id . ' fetchOpenInterest() supports contract markets only');
+            }
+            $request = array(
+                'symbol' => $market['id'],
+            );
+            $response = Async\await($this->publicMixGetMarketOpenInterest (array_merge($request, $params)));
+            //
+            //     {
+            //         "code" => "00000",
+            //         "msg" => "success",
+            //         "requestTime" => 0,
+            //         "data" => {
+            //             "symbol" => "BTCUSDT_UMCBL",
+            //             "amount" => "130818.967",
+            //             "timestamp" => "1663399151127"
+            //         }
+            //     }
+            //
+            $data = $this->safe_value($response, 'data', array());
+            return $this->parse_open_interest($data, $market);
+        }) ();
+    }
+
+    public function parse_open_interest($interest, $market = null) {
+        //
+        //     {
+        //         "symbol" => "BTCUSDT_UMCBL",
+        //         "amount" => "130818.967",
+        //         "timestamp" => "1663399151127"
+        //     }
+        //
+        $timestamp = $this->safe_integer($interest, 'timestamp');
+        $id = $this->safe_string($interest, 'symbol');
+        $market = $this->safe_market($id, $market);
+        $amount = $this->safe_number($interest, 'amount');
+        return array(
+            'symbol' => $this->safe_symbol($id),
+            'baseVolume' => $amount,  // deprecated
+            'quoteVolume' => null,  // deprecated
+            'openInterestAmount' => $amount,
+            'openInterestValue' => null,
+            'timestamp' => $timestamp,
+            'datetime' => $this->iso8601($timestamp),
+            'info' => $interest,
         );
-        return yield $this->privateMixPostAccountSetMarginMode (array_merge($request, $params));
     }
 
     public function handle_errors($code, $reason, $url, $method, $headers, $body, $response, $requestHeaders, $requestBody) {
@@ -3135,5 +3523,48 @@ class bitget extends Exchange {
         if ($nonZeroErrorCode || $nonEmptyMessage) {
             throw new ExchangeError($feedback); // unknown $message
         }
+    }
+
+    public function sign($path, $api = [], $method = 'GET', $params = array (), $headers = null, $body = null) {
+        $signed = $api[0] === 'private';
+        $endpoint = $api[1];
+        $pathPart = ($endpoint === 'spot') ? '/api/spot/v1' : '/api/mix/v1';
+        $request = '/' . $this->implode_params($path, $params);
+        $payload = $pathPart . $request;
+        $url = $this->implode_hostname($this->urls['api'][$endpoint]) . $payload;
+        $query = $this->omit($params, $this->extract_params($path));
+        if (!$signed && ($method === 'GET')) {
+            $keys = is_array($query) ? array_keys($query) : array();
+            $keysLength = count($keys);
+            if ($keysLength > 0) {
+                $url = $url . '?' . $this->urlencode($query);
+            }
+        }
+        if ($signed) {
+            $this->check_required_credentials();
+            $timestamp = (string) $this->milliseconds();
+            $auth = $timestamp . $method . $payload;
+            if ($method === 'POST') {
+                $body = $this->json($params);
+                $auth .= $body;
+            } else {
+                if ($params) {
+                    $query = '?' . $this->urlencode($this->keysort($params));
+                    $url .= $query;
+                    $auth .= $query;
+                }
+            }
+            $signature = $this->hmac($this->encode($auth), $this->encode($this->secret), 'sha256', 'base64');
+            $headers = array(
+                'ACCESS-KEY' => $this->apiKey,
+                'ACCESS-SIGN' => $signature,
+                'ACCESS-TIMESTAMP' => $timestamp,
+                'ACCESS-PASSPHRASE' => $this->password,
+            );
+            if ($method === 'POST') {
+                $headers['Content-Type'] = 'application/json';
+            }
+        }
+        return array( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
     }
 }

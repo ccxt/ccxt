@@ -6,9 +6,10 @@ namespace ccxt\async;
 // https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 use Exception; // a common import
-use \ccxt\ArgumentsRequired;
-use \ccxt\OrderNotFound;
-use \ccxt\NotSupported;
+use ccxt\ArgumentsRequired;
+use ccxt\OrderNotFound;
+use ccxt\NotSupported;
+use React\Async;
 
 class kuna extends Exchange {
 
@@ -297,132 +298,138 @@ class kuna extends Exchange {
     }
 
     public function fetch_time($params = array ()) {
-        /**
-         * fetches the current integer timestamp in milliseconds from the exchange server
-         * @param {array} $params extra parameters specific to the kuna api endpoint
-         * @return {int} the current integer timestamp in milliseconds from the exchange server
-         */
-        $response = yield $this->publicGetTimestamp ($params);
-        //
-        //     1594911427
-        //
-        return $response * 1000;
+        return Async\async(function () use ($params) {
+            /**
+             * fetches the current integer timestamp in milliseconds from the exchange server
+             * @param {array} $params extra parameters specific to the kuna api endpoint
+             * @return {int} the current integer timestamp in milliseconds from the exchange server
+             */
+            $response = Async\await($this->publicGetTimestamp ($params));
+            //
+            //     1594911427
+            //
+            return $response * 1000;
+        }) ();
     }
 
     public function fetch_markets($params = array ()) {
-        /**
-         * retrieves data on all $markets for kuna
-         * @param {array} $params extra parameters specific to the exchange api endpoint
-         * @return {[array]} an array of objects representing market data
-         */
-        $quotes = array( 'btc', 'rub', 'uah', 'usd', 'usdt', 'usdc' );
-        $markets = array();
-        $response = yield $this->publicGetTickers ($params);
-        //
-        //    {
-        //        shibuah => {
-        //            at => '1644463685',
-        //            ticker => {
-        //                buy => '0.000911',
-        //                sell => '0.00092',
-        //                low => '0.000872',
-        //                high => '0.000963',
-        //                last => '0.000911',
-        //                vol => '1539278096.0',
-        //                price => '1434244.211249'
-        //            }
-        //        }
-        //    }
-        //
-        $ids = is_array($response) ? array_keys($response) : array();
-        for ($i = 0; $i < count($ids); $i++) {
-            $id = $ids[$i];
-            for ($j = 0; $j < count($quotes); $j++) {
-                $quoteId = $quotes[$j];
-                // usd gets matched before usdt in usdtusd USDT/USD
-                // https://github.com/ccxt/ccxt/issues/9868
-                $slicedId = mb_substr($id, 1);
-                $index = mb_strpos($slicedId, $quoteId);
-                $slice = mb_substr($slicedId, $index);
-                if (($index > 0) && ($slice === $quoteId)) {
+        return Async\async(function () use ($params) {
+            /**
+             * retrieves data on all $markets for kuna
+             * @param {array} $params extra parameters specific to the exchange api endpoint
+             * @return {[array]} an array of objects representing market data
+             */
+            $quotes = array( 'btc', 'rub', 'uah', 'usd', 'usdt', 'usdc' );
+            $markets = array();
+            $response = Async\await($this->publicGetTickers ($params));
+            //
+            //    {
+            //        shibuah => {
+            //            at => '1644463685',
+            //            ticker => {
+            //                buy => '0.000911',
+            //                sell => '0.00092',
+            //                low => '0.000872',
+            //                high => '0.000963',
+            //                last => '0.000911',
+            //                vol => '1539278096.0',
+            //                price => '1434244.211249'
+            //            }
+            //        }
+            //    }
+            //
+            $ids = is_array($response) ? array_keys($response) : array();
+            for ($i = 0; $i < count($ids); $i++) {
+                $id = $ids[$i];
+                for ($j = 0; $j < count($quotes); $j++) {
+                    $quoteId = $quotes[$j];
                     // usd gets matched before usdt in usdtusd USDT/USD
                     // https://github.com/ccxt/ccxt/issues/9868
-                    $baseId = $id[0] . str_replace($quoteId, '', $slicedId);
-                    $base = $this->safe_currency_code($baseId);
-                    $quote = $this->safe_currency_code($quoteId);
-                    $markets[] = array(
-                        'id' => $id,
-                        'symbol' => $base . '/' . $quote,
-                        'base' => $base,
-                        'quote' => $quote,
-                        'settle' => null,
-                        'baseId' => $baseId,
-                        'quoteId' => $quoteId,
-                        'settleId' => null,
-                        'type' => 'spot',
-                        'spot' => true,
-                        'margin' => false,
-                        'swap' => false,
-                        'future' => false,
-                        'option' => false,
-                        'active' => null,
-                        'contract' => false,
-                        'linear' => null,
-                        'inverse' => null,
-                        'contractSize' => null,
-                        'expiry' => null,
-                        'expiryDatetime' => null,
-                        'strike' => null,
-                        'optionType' => null,
-                        'precision' => array(
-                            'amount' => null,
-                            'price' => null,
-                        ),
-                        'limits' => array(
-                            'leverage' => array(
-                                'min' => null,
-                                'max' => null,
+                    $slicedId = mb_substr($id, 1);
+                    $index = mb_strpos($slicedId, $quoteId);
+                    $slice = mb_substr($slicedId, $index);
+                    if (($index > 0) && ($slice === $quoteId)) {
+                        // usd gets matched before usdt in usdtusd USDT/USD
+                        // https://github.com/ccxt/ccxt/issues/9868
+                        $baseId = $id[0] . str_replace($quoteId, '', $slicedId);
+                        $base = $this->safe_currency_code($baseId);
+                        $quote = $this->safe_currency_code($quoteId);
+                        $markets[] = array(
+                            'id' => $id,
+                            'symbol' => $base . '/' . $quote,
+                            'base' => $base,
+                            'quote' => $quote,
+                            'settle' => null,
+                            'baseId' => $baseId,
+                            'quoteId' => $quoteId,
+                            'settleId' => null,
+                            'type' => 'spot',
+                            'spot' => true,
+                            'margin' => false,
+                            'swap' => false,
+                            'future' => false,
+                            'option' => false,
+                            'active' => null,
+                            'contract' => false,
+                            'linear' => null,
+                            'inverse' => null,
+                            'contractSize' => null,
+                            'expiry' => null,
+                            'expiryDatetime' => null,
+                            'strike' => null,
+                            'optionType' => null,
+                            'precision' => array(
+                                'amount' => null,
+                                'price' => null,
                             ),
-                            'amount' => array(
-                                'min' => null,
-                                'max' => null,
+                            'limits' => array(
+                                'leverage' => array(
+                                    'min' => null,
+                                    'max' => null,
+                                ),
+                                'amount' => array(
+                                    'min' => null,
+                                    'max' => null,
+                                ),
+                                'price' => array(
+                                    'min' => null,
+                                    'max' => null,
+                                ),
+                                'cost' => array(
+                                    'min' => null,
+                                    'max' => null,
+                                ),
                             ),
-                            'price' => array(
-                                'min' => null,
-                                'max' => null,
-                            ),
-                            'cost' => array(
-                                'min' => null,
-                                'max' => null,
-                            ),
-                        ),
-                        'info' => null,
-                    );
+                            'info' => null,
+                        );
+                    }
                 }
             }
-        }
-        return $markets;
+            return $markets;
+        }) ();
     }
 
     public function fetch_order_book($symbol, $limit = null, $params = array ()) {
-        /**
-         * fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
-         * @param {string} $symbol unified $symbol of the $market to fetch the order book for
-         * @param {int|null} $limit the maximum amount of order book entries to return
-         * @param {array} $params extra parameters specific to the kuna api endpoint
-         * @return {array} A dictionary of {@link https://docs.ccxt.com/en/latest/manual.html#order-book-structure order book structures} indexed by $market symbols
-         */
-        yield $this->load_markets();
-        $market = $this->market($symbol);
-        $request = array(
-            'market' => $market['id'],
-        );
-        if ($limit !== null) {
-            $request['limit'] = $limit; // default = 300
-        }
-        $orderbook = yield $this->publicGetDepth (array_merge($request, $params));
-        $timestamp = $this->safe_timestamp($orderbook, 'timestamp');
-        return $this->parse_order_book($orderbook, $market['symbol'], $timestamp);
+        return Async\async(function () use ($symbol, $limit, $params) {
+            /**
+             * fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+             * @param {string} $symbol unified $symbol of the $market to fetch the order book for
+             * @param {int|null} $limit the maximum amount of order book entries to return
+             * @param {array} $params extra parameters specific to the kuna api endpoint
+             * @return {array} A dictionary of {@link https://docs.ccxt.com/en/latest/manual.html#order-book-structure order book structures} indexed by $market symbols
+             */
+            Async\await($this->load_markets());
+            $market = $this->market($symbol);
+            $request = array(
+                'market' => $market['id'],
+            );
+            if ($limit !== null) {
+                $request['limit'] = $limit; // default = 300
+            }
+            $orderbook = Async\await($this->publicGetDepth (array_merge($request, $params)));
+            $timestamp = $this->safe_timestamp($orderbook, 'timestamp');
+            return $this->parse_order_book($orderbook, $market['symbol'], $timestamp);
+        }) ();
     }
 
     public function parse_ticker($ticker, $market = null) {
@@ -455,83 +462,91 @@ class kuna extends Exchange {
     }
 
     public function fetch_tickers($symbols = null, $params = array ()) {
-        /**
-         * fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each $market
-         * @param {[string]|null} $symbols unified $symbols of the markets to fetch the ticker for, all $market tickers are returned if not assigned
-         * @param {array} $params extra parameters specific to the kuna api endpoint
-         * @return {array} an array of {@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure ticker structures}
-         */
-        yield $this->load_markets();
-        $symbols = $this->market_symbols($symbols);
-        $response = yield $this->publicGetTickers ($params);
-        $ids = is_array($response) ? array_keys($response) : array();
-        $result = array();
-        for ($i = 0; $i < count($ids); $i++) {
-            $id = $ids[$i];
-            $market = $this->safe_market($id);
-            $symbol = $market['symbol'];
-            $result[$symbol] = $this->parse_ticker($response[$id], $market);
-        }
-        return $this->filter_by_array($result, 'symbol', $symbols);
+        return Async\async(function () use ($symbols, $params) {
+            /**
+             * fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each $market
+             * @param {[string]|null} $symbols unified $symbols of the markets to fetch the ticker for, all $market tickers are returned if not assigned
+             * @param {array} $params extra parameters specific to the kuna api endpoint
+             * @return {array} an array of {@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure ticker structures}
+             */
+            Async\await($this->load_markets());
+            $symbols = $this->market_symbols($symbols);
+            $response = Async\await($this->publicGetTickers ($params));
+            $ids = is_array($response) ? array_keys($response) : array();
+            $result = array();
+            for ($i = 0; $i < count($ids); $i++) {
+                $id = $ids[$i];
+                $market = $this->safe_market($id);
+                $symbol = $market['symbol'];
+                $result[$symbol] = $this->parse_ticker($response[$id], $market);
+            }
+            return $this->filter_by_array($result, 'symbol', $symbols);
+        }) ();
     }
 
     public function fetch_ticker($symbol, $params = array ()) {
-        /**
-         * fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific $market
-         * @param {string} $symbol unified $symbol of the $market to fetch the ticker for
-         * @param {array} $params extra parameters specific to the kuna api endpoint
-         * @return {array} a {@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure ticker structure}
-         */
-        yield $this->load_markets();
-        $market = $this->market($symbol);
-        $request = array(
-            'market' => $market['id'],
-        );
-        $response = yield $this->publicGetTickersMarket (array_merge($request, $params));
-        return $this->parse_ticker($response, $market);
+        return Async\async(function () use ($symbol, $params) {
+            /**
+             * fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific $market
+             * @param {string} $symbol unified $symbol of the $market to fetch the ticker for
+             * @param {array} $params extra parameters specific to the kuna api endpoint
+             * @return {array} a {@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure ticker structure}
+             */
+            Async\await($this->load_markets());
+            $market = $this->market($symbol);
+            $request = array(
+                'market' => $market['id'],
+            );
+            $response = Async\await($this->publicGetTickersMarket (array_merge($request, $params)));
+            return $this->parse_ticker($response, $market);
+        }) ();
     }
 
     public function fetch_l3_order_book($symbol, $limit = null, $params = array ()) {
-        /**
-         * fetches level 3 information on open orders with bid (buy) and ask (sell) prices, volumes and other data
-         * @param {string} $symbol unified market $symbol
-         * @param {int|null} $limit max number of orders to return, default is null
-         * @param {array} $params extra parameters specific to the kuna api endpoint
-         * @return {array} an {@link https://docs.ccxt.com/en/latest/manual.html#order-book-structure order book structure}
-         */
-        return yield $this->fetch_order_book($symbol, $limit, $params);
+        return Async\async(function () use ($symbol, $limit, $params) {
+            /**
+             * fetches level 3 information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+             * @param {string} $symbol unified market $symbol
+             * @param {int|null} $limit max number of orders to return, default is null
+             * @param {array} $params extra parameters specific to the kuna api endpoint
+             * @return {array} an {@link https://docs.ccxt.com/en/latest/manual.html#order-book-structure order book structure}
+             */
+            return Async\await($this->fetch_order_book($symbol, $limit, $params));
+        }) ();
     }
 
     public function fetch_trades($symbol, $since = null, $limit = null, $params = array ()) {
-        /**
-         * get the list of most recent trades for a particular $symbol
-         * @param {string} $symbol unified $symbol of the $market to fetch trades for
-         * @param {int|null} $since timestamp in ms of the earliest trade to fetch
-         * @param {int|null} $limit the maximum amount of trades to fetch
-         * @param {array} $params extra parameters specific to the kuna api endpoint
-         * @return {[array]} a list of ~@link https://docs.ccxt.com/en/latest/manual.html?#public-trades trade structures~
-         */
-        yield $this->load_markets();
-        $market = $this->market($symbol);
-        $request = array(
-            'market' => $market['id'],
-        );
-        $response = yield $this->publicGetTrades (array_merge($request, $params));
-        //
-        //      array(
-        //          array(
-        //              "id":11353466,
-        //              "price":"3000.16",
-        //              "volume":"0.000397",
-        //              "funds":"1.19106352",
-        //              "market":"ethusdt",
-        //              "created_at":"2022-04-12T18:32:36Z",
-        //              "side":null,
-        //              "trend":"sell"
-        //          ),
-        //      )
-        //
-        return $this->parse_trades($response, $market, $since, $limit);
+        return Async\async(function () use ($symbol, $since, $limit, $params) {
+            /**
+             * get the list of most recent trades for a particular $symbol
+             * @param {string} $symbol unified $symbol of the $market to fetch trades for
+             * @param {int|null} $since timestamp in ms of the earliest trade to fetch
+             * @param {int|null} $limit the maximum amount of trades to fetch
+             * @param {array} $params extra parameters specific to the kuna api endpoint
+             * @return {[array]} a list of ~@link https://docs.ccxt.com/en/latest/manual.html?#public-trades trade structures~
+             */
+            Async\await($this->load_markets());
+            $market = $this->market($symbol);
+            $request = array(
+                'market' => $market['id'],
+            );
+            $response = Async\await($this->publicGetTrades (array_merge($request, $params)));
+            //
+            //      array(
+            //          array(
+            //              "id":11353466,
+            //              "price":"3000.16",
+            //              "volume":"0.000397",
+            //              "funds":"1.19106352",
+            //              "market":"ethusdt",
+            //              "created_at":"2022-04-12T18:32:36Z",
+            //              "side":null,
+            //              "trend":"sell"
+            //          ),
+            //      )
+            //
+            return $this->parse_trades($response, $market, $since, $limit);
+        }) ();
     }
 
     public function parse_trade($trade, $market = null) {
@@ -599,31 +614,33 @@ class kuna extends Exchange {
     }
 
     public function fetch_ohlcv($symbol, $timeframe = '1m', $since = null, $limit = null, $params = array ()) {
-        /**
-         * fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
-         * @param {string} $symbol unified $symbol of the market to fetch OHLCV data for
-         * @param {string} $timeframe the length of time each candle represents
-         * @param {int|null} $since timestamp in ms of the earliest candle to fetch
-         * @param {int|null} $limit the maximum amount of candles to fetch
-         * @param {array} $params extra parameters specific to the kuna api endpoint
-         * @return {[[int]]} A list of candles ordered as timestamp, open, high, low, close, volume
-         */
-        yield $this->load_markets();
-        $trades = yield $this->fetch_trades($symbol, $since, $limit, $params);
-        $ohlcvc = $this->build_ohlcvc($trades, $timeframe, $since, $limit);
-        $result = array();
-        for ($i = 0; $i < count($ohlcvc); $i++) {
-            $ohlcv = $ohlcvc[$i];
-            $result[] = [
-                $ohlcv[0],
-                $ohlcv[1],
-                $ohlcv[2],
-                $ohlcv[3],
-                $ohlcv[4],
-                $ohlcv[5],
-            ];
-        }
-        return $result;
+        return Async\async(function () use ($symbol, $timeframe, $since, $limit, $params) {
+            /**
+             * fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+             * @param {string} $symbol unified $symbol of the market to fetch OHLCV data for
+             * @param {string} $timeframe the length of time each candle represents
+             * @param {int|null} $since timestamp in ms of the earliest candle to fetch
+             * @param {int|null} $limit the maximum amount of candles to fetch
+             * @param {array} $params extra parameters specific to the kuna api endpoint
+             * @return {[[int]]} A list of candles ordered as timestamp, open, high, low, close, volume
+             */
+            Async\await($this->load_markets());
+            $trades = Async\await($this->fetch_trades($symbol, $since, $limit, $params));
+            $ohlcvc = $this->build_ohlcvc($trades, $timeframe, $since, $limit);
+            $result = array();
+            for ($i = 0; $i < count($ohlcvc); $i++) {
+                $ohlcv = $ohlcvc[$i];
+                $result[] = [
+                    $ohlcv[0],
+                    $ohlcv[1],
+                    $ohlcv[2],
+                    $ohlcv[3],
+                    $ohlcv[4],
+                    $ohlcv[5],
+                ];
+            }
+            return $result;
+        }) ();
     }
 
     public function parse_balance($response) {
@@ -642,61 +659,67 @@ class kuna extends Exchange {
     }
 
     public function fetch_balance($params = array ()) {
-        /**
-         * query for balance and get the amount of funds available for trading or funds locked in orders
-         * @param {array} $params extra parameters specific to the kuna api endpoint
-         * @return {array} a ~@link https://docs.ccxt.com/en/latest/manual.html?#balance-structure balance structure~
-         */
-        yield $this->load_markets();
-        $response = yield $this->privateGetMembersMe ($params);
-        return $this->parse_balance($response);
+        return Async\async(function () use ($params) {
+            /**
+             * query for balance and get the amount of funds available for trading or funds locked in orders
+             * @param {array} $params extra parameters specific to the kuna api endpoint
+             * @return {array} a ~@link https://docs.ccxt.com/en/latest/manual.html?#balance-structure balance structure~
+             */
+            Async\await($this->load_markets());
+            $response = Async\await($this->privateGetMembersMe ($params));
+            return $this->parse_balance($response);
+        }) ();
     }
 
     public function create_order($symbol, $type, $side, $amount, $price = null, $params = array ()) {
-        /**
-         * create a trade order
-         * @param {string} $symbol unified $symbol of the $market to create an order in
-         * @param {string} $type 'market' or 'limit'
-         * @param {string} $side 'buy' or 'sell'
-         * @param {float} $amount how much of currency you want to trade in units of base currency
-         * @param {float|null} $price the $price at which the order is to be fullfilled, in units of the quote currency, ignored in $market orders
-         * @param {array} $params extra parameters specific to the kuna api endpoint
-         * @return {array} an {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structure}
-         */
-        yield $this->load_markets();
-        $market = $this->market($symbol);
-        $request = array(
-            'market' => $market['id'],
-            'side' => $side,
-            'volume' => (string) $amount,
-            'ord_type' => $type,
-        );
-        if ($type === 'limit') {
-            $request['price'] = (string) $price;
-        }
-        $response = yield $this->privatePostOrders (array_merge($request, $params));
-        return $this->parse_order($response, $market);
+        return Async\async(function () use ($symbol, $type, $side, $amount, $price, $params) {
+            /**
+             * create a trade order
+             * @param {string} $symbol unified $symbol of the $market to create an order in
+             * @param {string} $type 'market' or 'limit'
+             * @param {string} $side 'buy' or 'sell'
+             * @param {float} $amount how much of currency you want to trade in units of base currency
+             * @param {float|null} $price the $price at which the order is to be fullfilled, in units of the quote currency, ignored in $market orders
+             * @param {array} $params extra parameters specific to the kuna api endpoint
+             * @return {array} an {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structure}
+             */
+            Async\await($this->load_markets());
+            $market = $this->market($symbol);
+            $request = array(
+                'market' => $market['id'],
+                'side' => $side,
+                'volume' => (string) $amount,
+                'ord_type' => $type,
+            );
+            if ($type === 'limit') {
+                $request['price'] = (string) $price;
+            }
+            $response = Async\await($this->privatePostOrders (array_merge($request, $params)));
+            return $this->parse_order($response, $market);
+        }) ();
     }
 
     public function cancel_order($id, $symbol = null, $params = array ()) {
-        /**
-         * cancels an open $order
-         * @param {string} $id $order $id
-         * @param {string|null} $symbol not used by kuna cancelOrder ()
-         * @param {array} $params extra parameters specific to the kuna api endpoint
-         * @return {array} An {@link https://docs.ccxt.com/en/latest/manual.html#$order-structure $order structure}
-         */
-        yield $this->load_markets();
-        $request = array(
-            'id' => $id,
-        );
-        $response = yield $this->privatePostOrderDelete (array_merge($request, $params));
-        $order = $this->parse_order($response);
-        $status = $order['status'];
-        if ($status === 'closed' || $status === 'canceled') {
-            throw new OrderNotFound($this->id . ' ' . $this->json($order));
-        }
-        return $order;
+        return Async\async(function () use ($id, $symbol, $params) {
+            /**
+             * cancels an open $order
+             * @param {string} $id $order $id
+             * @param {string|null} $symbol not used by kuna cancelOrder ()
+             * @param {array} $params extra parameters specific to the kuna api endpoint
+             * @return {array} An {@link https://docs.ccxt.com/en/latest/manual.html#$order-structure $order structure}
+             */
+            Async\await($this->load_markets());
+            $request = array(
+                'id' => $id,
+            );
+            $response = Async\await($this->privatePostOrderDelete (array_merge($request, $params)));
+            $order = $this->parse_order($response);
+            $status = $order['status'];
+            if ($status === 'closed' || $status === 'canceled') {
+                throw new OrderNotFound($this->id . ' ' . $this->json($order));
+            }
+            return $order;
+        }) ();
     }
 
     public function parse_order_status($status) {
@@ -742,78 +765,84 @@ class kuna extends Exchange {
     }
 
     public function fetch_order($id, $symbol = null, $params = array ()) {
-        /**
-         * fetches information on an order made by the user
-         * @param {string|null} $symbol not used by kuna fetchOrder
-         * @param {array} $params extra parameters specific to the kuna api endpoint
-         * @return {array} An {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structure}
-         */
-        yield $this->load_markets();
-        $request = array(
-            'id' => intval($id),
-        );
-        $response = yield $this->privateGetOrder (array_merge($request, $params));
-        return $this->parse_order($response);
+        return Async\async(function () use ($id, $symbol, $params) {
+            /**
+             * fetches information on an order made by the user
+             * @param {string|null} $symbol not used by kuna fetchOrder
+             * @param {array} $params extra parameters specific to the kuna api endpoint
+             * @return {array} An {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structure}
+             */
+            Async\await($this->load_markets());
+            $request = array(
+                'id' => intval($id),
+            );
+            $response = Async\await($this->privateGetOrder (array_merge($request, $params)));
+            return $this->parse_order($response);
+        }) ();
     }
 
     public function fetch_open_orders($symbol = null, $since = null, $limit = null, $params = array ()) {
-        /**
-         * fetch all unfilled currently open orders
-         * @param {string} $symbol unified $market $symbol
-         * @param {int|null} $since the earliest time in ms to fetch open orders for
-         * @param {int|null} $limit the maximum number of  open orders structures to retrieve
-         * @param {array} $params extra parameters specific to the kuna api endpoint
-         * @return {[array]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structures}
-         */
-        if ($symbol === null) {
-            throw new ArgumentsRequired($this->id . ' fetchOpenOrders() requires a $symbol argument');
-        }
-        yield $this->load_markets();
-        $market = $this->market($symbol);
-        $request = array(
-            'market' => $market['id'],
-        );
-        $response = yield $this->privateGetOrders (array_merge($request, $params));
-        // todo emulation of fetchClosedOrders, fetchOrders, fetchOrder
-        // with order cache . fetchOpenOrders
-        // as in BTC-e, Liqui, Yobit, DSX, Tidex, WEX
-        return $this->parse_orders($response, $market, $since, $limit);
+        return Async\async(function () use ($symbol, $since, $limit, $params) {
+            /**
+             * fetch all unfilled currently open orders
+             * @param {string} $symbol unified $market $symbol
+             * @param {int|null} $since the earliest time in ms to fetch open orders for
+             * @param {int|null} $limit the maximum number of  open orders structures to retrieve
+             * @param {array} $params extra parameters specific to the kuna api endpoint
+             * @return {[array]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structures}
+             */
+            if ($symbol === null) {
+                throw new ArgumentsRequired($this->id . ' fetchOpenOrders() requires a $symbol argument');
+            }
+            Async\await($this->load_markets());
+            $market = $this->market($symbol);
+            $request = array(
+                'market' => $market['id'],
+            );
+            $response = Async\await($this->privateGetOrders (array_merge($request, $params)));
+            // todo emulation of fetchClosedOrders, fetchOrders, fetchOrder
+            // with order cache . fetchOpenOrders
+            // as in BTC-e, Liqui, Yobit, DSX, Tidex, WEX
+            return $this->parse_orders($response, $market, $since, $limit);
+        }) ();
     }
 
     public function fetch_my_trades($symbol = null, $since = null, $limit = null, $params = array ()) {
-        /**
-         * fetch all trades made by the user
-         * @param {string} $symbol unified $market $symbol
-         * @param {int|null} $since the earliest time in ms to fetch trades for
-         * @param {int|null} $limit the maximum number of trades structures to retrieve
-         * @param {array} $params extra parameters specific to the kuna api endpoint
-         * @return {[array]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#trade-structure trade structures}
-         */
-        if ($symbol === null) {
-            throw new ArgumentsRequired($this->id . ' fetchMyTrades() requires a $symbol argument');
-        }
-        yield $this->load_markets();
-        $market = $this->market($symbol);
-        $request = array(
-            'market' => $market['id'],
-        );
-        $response = yield $this->privateGetTradesMy (array_merge($request, $params));
-        //
-        //      array(
-        //          array(
-        //              "id":11353719,
-        //              "price":"0.13566",
-        //              "volume":"99.0",
-        //              "funds":"13.43034",
-        //              "market":"dogeusdt",
-        //              "created_at":"2022-04-12T18:58:44Z",
-        //              "side":"ask",
-        //              "order_id":1665670371,
-        //              "trend":"buy"
-        //          ),
-        //      )
-        //
-        return $this->parse_trades($response, $market, $since, $limit);
+        return Async\async(function () use ($symbol, $since, $limit, $params) {
+            /**
+             * fetch all trades made by the user
+             * @param {string} $symbol unified $market $symbol
+             * @param {int|null} $since the earliest time in ms to fetch trades for
+             * @param {int|null} $limit the maximum number of trades structures to retrieve
+             * @param {array} $params extra parameters specific to the kuna api endpoint
+             * @return {[array]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#trade-structure trade structures}
+             */
+            if ($symbol === null) {
+                throw new ArgumentsRequired($this->id . ' fetchMyTrades() requires a $symbol argument');
+            }
+            Async\await($this->load_markets());
+            $market = $this->market($symbol);
+            $request = array(
+                'market' => $market['id'],
+            );
+            $response = Async\await($this->privateGetTradesMy (array_merge($request, $params)));
+            //
+            //      array(
+            //          array(
+            //              "id":11353719,
+            //              "price":"0.13566",
+            //              "volume":"99.0",
+            //              "funds":"13.43034",
+            //              "market":"dogeusdt",
+            //              "created_at":"2022-04-12T18:58:44Z",
+            //              "side":"ask",
+            //              "order_id":1665670371,
+            //              "trend":"buy"
+            //          ),
+            //      )
+            //
+            return $this->parse_trades($response, $market, $since, $limit);
+        }) ();
     }
 
     public function nonce() {

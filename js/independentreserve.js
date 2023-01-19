@@ -407,27 +407,15 @@ module.exports = class independentreserve extends Exchange {
             }
         }
         const timestamp = this.parse8601 (this.safeString (order, 'CreatedTimestampUtc'));
-        const amount = this.safeString2 (order, 'VolumeOrdered', 'Volume');
-        const filled = this.safeNumber (order, 'VolumeFilled');
-        const remaining = this.safeString (order, 'Outstanding');
-        const feeRate = this.safeNumber (order, 'FeePercent');
+        const filled = this.safeString (order, 'VolumeFilled');
+        const feeRate = this.safeString (order, 'FeePercent');
         let feeCost = undefined;
         if (feeRate !== undefined && filled !== undefined) {
-            feeCost = feeRate * filled;
+            feeCost = Precise.stringMul (feeRate, filled);
         }
-        const fee = {
-            'rate': feeRate,
-            'cost': feeCost,
-            'currency': base,
-        };
-        const id = this.safeString (order, 'OrderGuid');
-        const status = this.parseOrderStatus (this.safeString (order, 'Status'));
-        const cost = this.safeString (order, 'Value');
-        const average = this.safeString (order, 'AvgPrice');
-        const price = this.safeString (order, 'Price');
         return this.safeOrder ({
             'info': order,
-            'id': id,
+            'id': this.safeString (order, 'OrderGuid'),
             'clientOrderId': undefined,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
@@ -437,15 +425,19 @@ module.exports = class independentreserve extends Exchange {
             'timeInForce': undefined,
             'postOnly': undefined,
             'side': side,
-            'price': price,
+            'price': this.safeString (order, 'Price'),
             'stopPrice': undefined,
-            'cost': cost,
-            'average': average,
-            'amount': amount,
+            'cost': this.safeString (order, 'Value'),
+            'average': this.safeString (order, 'AvgPrice'),
+            'amount': this.safeString2 (order, 'VolumeOrdered', 'Volume'),
             'filled': filled,
-            'remaining': remaining,
-            'status': status,
-            'fee': fee,
+            'remaining': this.safeString (order, 'Outstanding'),
+            'status': this.parseOrderStatus (this.safeString (order, 'Status')),
+            'fee': {
+                'rate': feeRate,
+                'cost': feeCost,
+                'currency': base,
+            },
             'trades': undefined,
         }, market);
     }

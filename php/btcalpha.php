@@ -6,10 +6,6 @@ namespace ccxt;
 // https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 use Exception; // a common import
-use \ccxt\ExchangeError;
-use \ccxt\AuthenticationError;
-use \ccxt\InvalidOrder;
-use \ccxt\DDoSProtection;
 
 class btcalpha extends Exchange {
 
@@ -79,7 +75,6 @@ class btcalpha extends Exchange {
                 'withdraw' => false,
             ),
             'timeframes' => array(
-                '1m' => '1',
                 '5m' => '5',
                 '15m' => '15',
                 '30m' => '30',
@@ -632,9 +627,10 @@ class btcalpha extends Exchange {
             throw new InvalidOrder($this->id . ' ' . $this->json($response));
         }
         $order = $this->parse_order($response, $market);
-        $amount = ($order['amount'] > 0) ? $order['amount'] : $amount;
+        $orderAmount = (string) $order['amount'];
+        $amount = Precise::string_gt($orderAmount, '0') ? $order['amount'] : $amount;
         return array_merge($order, array(
-            'amount' => $amount,
+            'amount' => $this->parse_number($amount),
         ));
     }
 

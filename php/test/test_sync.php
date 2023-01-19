@@ -12,6 +12,8 @@ include_once 'test_position.php';
 include_once 'test_transaction.php';
 include_once 'test_account.php';
 
+use React\Async;
+
 function style($s, $style) {
     return $style . $s . "\033[0m";
 }
@@ -277,23 +279,19 @@ function test_symbol($exchange, $symbol, $code) {
     if ($exchange->has[$method]) {
         test_ticker($exchange, $symbol);
     }
-    if ($exchange->id === 'coinmarketcap') {
-        dump(var_export($exchange->fetchGlobal()));
-    } else {
-        test_order_book($exchange, $symbol);
-        test_trades($exchange, $symbol);
-        test_ohlcvs($exchange, $symbol);
-        if ($exchange->check_required_credentials(false)) {
-            if ($exchange->has['signIn']) {
-                $exchange->sign_in();
-            }
-            test_orders($exchange, $symbol);
-            test_closed_orders($exchange, $symbol);
-            test_open_orders($exchange, $symbol);
-            test_transactions($exchange, $code);
-            $balance = $exchange->fetch_balance();
-            var_dump($balance);
+    test_order_book($exchange, $symbol);
+    test_trades($exchange, $symbol);
+    test_ohlcvs($exchange, $symbol);
+    if ($exchange->check_required_credentials(false)) {
+        if ($exchange->has['signIn']) {
+            $exchange->sign_in();
         }
+        test_orders($exchange, $symbol);
+        test_closed_orders($exchange, $symbol);
+        test_open_orders($exchange, $symbol);
+        test_transactions($exchange, $code);
+        $balance = $exchange->fetch_balance();
+        var_dump($balance);
     }
 }
 
@@ -530,4 +528,5 @@ $main = function() use ($args, $exchanges, $proxies, $config, $common_codes) {
     }
 };
 
-$main();
+$promise = $main();
+$promise;

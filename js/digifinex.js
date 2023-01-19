@@ -224,6 +224,14 @@ module.exports = class digifinex extends Exchange {
         });
     }
 
+    safeNetwork (networkId) {
+        if (networkId === undefined) {
+            return undefined;
+        } else {
+            return networkId.toUpperCase ();
+        }
+    }
+
     async fetchCurrencies (params = {}) {
         /**
          * @method
@@ -281,12 +289,51 @@ module.exports = class digifinex extends Exchange {
             const deposit = depositStatus > 0;
             const withdraw = withdrawStatus > 0;
             const active = deposit && withdraw;
-            const fee = this.safeNumber (currency, 'withdraw_fee_rate');
+            const fee = this.safeNumber (currency, 'min_withdraw_fee'); // withdraw_fee_rate was zero for all currencies, so this was the worst case scenario
+            const minWithdraw = this.safeNumber (currency, 'min_withdraw_amount');
+            const minDeposit = this.safeNumber (currency, 'min_deposit_amount');
+            const networkId = this.safeString (currency, 'chain');
+            const network = {
+                'id': networkId,
+                'network': this.safeNetwork (networkId),
+                'name': undefined,
+                'active': active,
+                'fee': fee,
+                'precision': this.parseNumber ('0.00000001'), // todo fix hardcoded value
+                'deposit': deposit,
+                'withdraw': withdraw,
+                'limits': {
+                    'amount': {
+                        'min': undefined,
+                        'max': undefined,
+                    },
+                    'withdraw': {
+                        'min': minWithdraw,
+                        'max': undefined,
+                    },
+                    'deposit': {
+                        'min': minDeposit,
+                        'max': undefined,
+                    },
+                },
+                'info': currency,
+            };
             if (code in result) {
                 if (Array.isArray (result[code]['info'])) {
                     result[code]['info'].push (currency);
                 } else {
                     result[code]['info'] = [ result[code]['info'], currency ];
+                }
+                if (withdraw) {
+                    result[code]['withdraw'] = true;
+                    result[code]['limits']['withdraw']['min'] = Math.min (result[code]['limits']['withdraw']['min'], minWithdraw);
+                }
+                if (deposit) {
+                    result[code]['deposit'] = true;
+                    result[code]['limits']['deposit']['min'] = Math.min (result[code]['limits']['deposit']['min'], minDeposit);
+                }
+                if (active) {
+                    result[code]['active'] = true;
                 }
             } else {
                 result[code] = {
@@ -306,12 +353,18 @@ module.exports = class digifinex extends Exchange {
                             'max': undefined,
                         },
                         'withdraw': {
-                            'min': this.safeNumber (currency, 'min_withdraw_amount'),
+                            'min': minWithdraw,
+                            'max': undefined,
+                        },
+                        'deposit': {
+                            'min': minDeposit,
                             'max': undefined,
                         },
                     },
+                    'networks': {},
                 };
             }
+            result[code]['networks'][networkId] = network;
         }
         return result;
     }

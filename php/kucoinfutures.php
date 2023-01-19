@@ -6,9 +6,6 @@ namespace ccxt;
 // https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 use Exception; // a common import
-use \ccxt\ArgumentsRequired;
-use \ccxt\BadRequest;
-use \ccxt\InvalidOrder;
 
 class kucoinfutures extends kucoin {
 
@@ -400,14 +397,7 @@ class kucoinfutures extends kucoin {
         //            "lastTradePrice" => 4545.4500000000,
         //            "nextFundingRateTime" => 25481884,
         //            "maxLeverage" => 100,
-        //            "sourceExchanges" =>  array(
-        //                "huobi",
-        //                "Okex",
-        //                "Binance",
-        //                "Kucoin",
-        //                "Poloniex",
-        //                "Hitbtc"
-        //            ),
+        //            "sourceExchanges" =>  array( "huobi", "Okex", "Binance", "Kucoin", "Poloniex", "Hitbtc" ),
         //            "premiumsSymbol1M" => ".ETHUSDTMPI",
         //            "premiumsSymbol8H" => ".ETHUSDTMPI8H",
         //            "fundingBaseSymbol1M" => ".ETHINT",
@@ -439,11 +429,25 @@ class kucoinfutures extends kucoin {
                 $symbol = $symbol . '-' . $this->yymmdd($expiry, '');
                 $type = 'future';
             }
-            $baseMinSizeString = $this->safe_string($market, 'baseMinSize');
-            $quoteMaxSizeString = $this->safe_string($market, 'quoteMaxSize');
             $inverse = $this->safe_value($market, 'isInverse');
             $status = $this->safe_string($market, 'status');
             $multiplier = $this->safe_string($market, 'multiplier');
+            $tickSize = $this->safe_number($market, 'tickSize');
+            $lotSize = $this->safe_number($market, 'lotSize');
+            $limitAmountMin = $lotSize;
+            if ($limitAmountMin === null) {
+                $limitAmountMin = $this->safe_number($market, 'baseMinSize');
+            }
+            $limitAmountMax = $this->safe_number($market, 'maxOrderQty');
+            if ($limitAmountMax === null) {
+                $limitAmountMax = $this->safe_number($market, 'baseMaxSize');
+            }
+            $limitPriceMax = $this->safe_number($market, 'maxPrice');
+            if ($limitPriceMax === null) {
+                $baseMinSizeString = $this->safe_string($market, 'baseMinSize');
+                $quoteMaxSizeString = $this->safe_string($market, 'quoteMaxSize');
+                $limitPriceMax = $this->parse_number(Precise::string_div($quoteMaxSizeString, $baseMinSizeString));
+            }
             $result[] = array(
                 'id' => $id,
                 'symbol' => $symbol,
@@ -471,8 +475,8 @@ class kucoinfutures extends kucoin {
                 'strike' => null,
                 'optionType' => null,
                 'precision' => array(
-                    'amount' => $this->safe_number($market, 'lotSize'),
-                    'price' => $this->safe_number($market, 'tickSize'),
+                    'amount' => $lotSize,
+                    'price' => $tickSize,
                 ),
                 'limits' => array(
                     'leverage' => array(
@@ -480,16 +484,16 @@ class kucoinfutures extends kucoin {
                         'max' => $this->safe_number($market, 'maxLeverage'),
                     ),
                     'amount' => array(
-                        'min' => $this->parse_number($baseMinSizeString),
-                        'max' => $this->safe_number($market, 'baseMaxSize'),
+                        'min' => $limitAmountMin,
+                        'max' => $limitAmountMax,
                     ),
                     'price' => array(
-                        'min' => null,
-                        'max' => $this->parse_number(Precise::string_div($quoteMaxSizeString, $baseMinSizeString)),
+                        'min' => $tickSize,
+                        'max' => $limitPriceMax,
                     ),
                     'cost' => array(
                         'min' => $this->safe_number($market, 'quoteMinSize'),
-                        'max' => $this->parse_number($quoteMaxSizeString),
+                        'max' => $this->safe_number($market, 'quoteMaxSize'),
                     ),
                 ),
                 'info' => $market,
@@ -514,7 +518,7 @@ class kucoinfutures extends kucoin {
         return $this->safe_number($response, 'data');
     }
 
-    public function fetch_ohlcv($symbol, $timeframe = '15m', $since = null, $limit = null, $params = array ()) {
+    public function fetch_ohlcv($symbol, $timeframe = '1m', $since = null, $limit = null, $params = array ()) {
         /**
          * fetches historical candlestick $data containing the open, high, low, and close price, and the volume of a $market
          * @param {string} $symbol unified $symbol of the $market to fetch OHLCV $data for

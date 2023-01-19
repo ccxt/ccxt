@@ -621,16 +621,15 @@ class timex(Exchange):
         }
         # if since and limit are not specified
         duration = self.parse_timeframe(timeframe)
+        if limit is None:
+            limit = 1000  # exchange provides tens of thousands of data, but we set generous default value
         if since is not None:
             request['from'] = self.iso8601(since)
-            if limit is not None:
-                request['till'] = self.iso8601(self.sum(since, self.sum(limit, 1) * duration * 1000))
-        elif limit is not None:
+            request['till'] = self.iso8601(self.sum(since, self.sum(limit, 1) * duration * 1000))
+        else:
             now = self.milliseconds()
             request['till'] = self.iso8601(now)
             request['from'] = self.iso8601(now - limit * duration * 1000 - 1)
-        else:
-            request['till'] = self.iso8601(self.milliseconds())
         response = await self.publicGetCandles(self.extend(request, params))
         #
         #     [

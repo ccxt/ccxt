@@ -6,10 +6,6 @@ namespace ccxt;
 // https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 use Exception; // a common import
-use \ccxt\ExchangeError;
-use \ccxt\ArgumentsRequired;
-use \ccxt\InvalidOrder;
-use \ccxt\DDoSProtection;
 
 class currencycom extends Exchange {
 
@@ -480,8 +476,8 @@ class currencycom extends Exchange {
                 // https://github.com/ccxt/ccxt/issues/4286
                 // therefore limits['price']['max'] doesn't have any meaningful value except null
                 $limitPriceMin = $this->safe_number($filter, 'minPrice');
-                $maxPrice = $this->safe_number($filter, 'maxPrice');
-                if (($maxPrice !== null) && ($maxPrice > 0)) {
+                $maxPrice = $this->safe_string($filter, 'maxPrice');
+                if (($maxPrice !== null) && (Precise::string_gt($maxPrice, '0'))) {
                     $limitPriceMax = $maxPrice;
                 }
             }
@@ -554,7 +550,7 @@ class currencycom extends Exchange {
                     'market' => $limitMarket,
                     'price' => array(
                         'min' => $limitPriceMin,
-                        'max' => $limitPriceMax,
+                        'max' => $this->parse_number($limitPriceMax),
                     ),
                     'cost' => array(
                         'min' => $costMin,
