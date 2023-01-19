@@ -31,11 +31,16 @@ class coinbase extends Exchange {
                 'cancelOrder' => true,
                 'cancelOrders' => true,
                 'createDepositAddress' => true,
-                'createOrder' => null,
+                'createLimitBuyOrder' => true,
+                'createLimitSellOrder' => true,
+                'createMarketBuyOrder' => true,
+                'createMarketSellOrder' => true,
+                'createOrder' => true,
+                'createPostOnlyOrder' => true,
                 'createReduceOnlyOrder' => false,
-                'createStopLimitOrder' => false,
+                'createStopLimitOrder' => true,
                 'createStopMarketOrder' => false,
-                'createStopOrder' => false,
+                'createStopOrder' => true,
                 'fetchAccounts' => true,
                 'fetchBalance' => true,
                 'fetchBidsAsks' => null,
@@ -261,6 +266,7 @@ class coinbase extends Exchange {
                     'fiat',
                     // 'vault',
                 ),
+                'createMarketBuyOrderRequiresPrice' => true,
                 'advanced' => true, // set to true if using any v3 endpoints from the advanced trade API
                 'fetchMarkets' => 'fetchMarketsV3', // 'fetchMarketsV3' or 'fetchMarketsV2'
                 'fetchTicker' => 'fetchTickerV3', // 'fetchTickerV3' or 'fetchTickerV2'
@@ -1747,6 +1753,171 @@ class coinbase extends Exchange {
             $request['limit'] = $limit;
         }
         return $request;
+    }
+
+    public function create_order($symbol, $type, $side, $amount, $price = null, $params = array ()) {
+        /**
+         * create a trade order
+         * @see https://docs.cloud.coinbase.com/advanced-trade-api/reference/retailbrokerageapi_postorder
+         * @param {string} $symbol unified $symbol of the $market to create an order in
+         * @param {string} $type 'market' or 'limit'
+         * @param {string} $side 'buy' or 'sell'
+         * @param {float} $amount how much you want to trade in units of the base currency, quote currency for 'market' 'buy' orders
+         * @param {float|null} $price the $price to fulfill the order, in units of the quote currency, ignored in $market orders
+         * @param {array} $params extra parameters specific to the coinbase api endpoint
+         * @param {float|null} $params->stopPrice $price to trigger stop orders
+         * @param {float|null} $params->triggerPrice $price to trigger stop orders
+         * @param {float|null} $params->stopLossPrice $price to trigger stop-loss orders
+         * @param {float|null} $params->takeProfitPrice $price to trigger take-profit orders
+         * @param {bool|null} $params->postOnly true or false
+         * @param {string|null} $params->timeInForce 'GTC', 'IOC', 'GTD' or 'PO'
+         * @param {string|null} $params->stop_direction 'UNKNOWN_STOP_DIRECTION', 'STOP_DIRECTION_STOP_UP', 'STOP_DIRECTION_STOP_DOWN' the direction the $stopPrice is triggered from
+         * @param {string|null} $params->end_time '2023-05-25T17:01:05.092Z' for 'GTD' orders
+         * @return {array} an {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structure}
+         */
+        $this->load_markets();
+        $market = $this->market($symbol);
+        $request = array(
+            'client_order_id' => $this->uuid(),
+            'product_id' => $market['id'],
+            'side' => strtoupper($side),
+        );
+        $stopPrice = $this->safe_number_n($params, array( 'stopPrice', 'stop_price', 'triggerPrice' ));
+        $stopLossPrice = $this->safe_number($params, 'stopLossPrice');
+        $takeProfitPrice = $this->safe_number($params, 'takeProfitPrice');
+        $isStop = $stopPrice !== null;
+        $isStopLoss = $stopLossPrice !== null;
+        $isTakeProfit = $takeProfitPrice !== null;
+        $timeInForce = $this->safe_string($params, 'timeInForce');
+        $postOnly = ($timeInForce === 'PO') ? true : $this->safe_value_2($params, 'postOnly', 'post_only', false);
+        $endTime = $this->safe_string($params, 'end_time');
+        $stopDirection = $this->safe_string($params, 'stop_direction');
+        if ($type === 'limit') {
+            if ($isStop) {
+                if ($stopDirection === null) {
+                    $stopDirection = ($side === 'buy') ? 'STOP_DIRECTION_STOP_DOWN' : 'STOP_DIRECTION_STOP_UP';
+                }
+                if (($timeInForce === 'GTD') || ($endTime !== null)) {
+                    if ($endTime === null) {
+                        throw new ExchangeError($this->id . ' createOrder() requires an end_time parameter for a GTD order');
+                    }
+                    $request['order_configuration'] = array(
+                        'stop_limit_stop_limit_gtd' => array(
+                            'base_size' => $this->amount_to_precision($symbol, $amount),
+                            'limit_price' => $this->price_to_precision($symbol, $price),
+                            'stop_price' => $this->price_to_precision($symbol, $stopPrice),
+                            'stop_direction' => $stopDirection,
+                            'end_time' => $endTime,
+                        ),
+                    );
+                } else {
+                    $request['order_configuration'] = array(
+                        'stop_limit_stop_limit_gtc' => array(
+                            'base_size' => $this->amount_to_precision($symbol, $amount),
+                            'limit_price' => $this->price_to_precision($symbol, $price),
+                            'stop_price' => $this->price_to_precision($symbol, $stopPrice),
+                            'stop_direction' => $stopDirection,
+                        ),
+                    );
+                }
+            } elseif ($isStopLoss || $isTakeProfit) {
+                $triggerPrice = null;
+                if ($isStopLoss) {
+                    if ($stopDirection === null) {
+                        $stopDirection = ($side === 'buy') ? 'STOP_DIRECTION_STOP_UP' : 'STOP_DIRECTION_STOP_DOWN';
+                    }
+                    $triggerPrice = $this->price_to_precision($symbol, $stopLossPrice);
+                } else {
+                    if ($stopDirection === null) {
+                        $stopDirection = ($side === 'buy') ? 'STOP_DIRECTION_STOP_DOWN' : 'STOP_DIRECTION_STOP_UP';
+                    }
+                    $triggerPrice = $this->price_to_precision($symbol, $takeProfitPrice);
+                }
+                $request['order_configuration'] = array(
+                    'stop_limit_stop_limit_gtc' => array(
+                        'base_size' => $this->amount_to_precision($symbol, $amount),
+                        'limit_price' => $this->price_to_precision($symbol, $price),
+                        'stop_price' => $triggerPrice,
+                        'stop_direction' => $stopDirection,
+                    ),
+                );
+            } else {
+                if (($timeInForce === 'GTD') || ($endTime !== null)) {
+                    if ($endTime === null) {
+                        throw new ExchangeError($this->id . ' createOrder() requires an end_time parameter for a GTD order');
+                    }
+                    $request['order_configuration'] = array(
+                        'limit_limit_gtd' => array(
+                            'base_size' => $this->amount_to_precision($symbol, $amount),
+                            'limit_price' => $this->price_to_precision($symbol, $price),
+                            'end_time' => $endTime,
+                            'post_only' => $postOnly,
+                        ),
+                    );
+                } else {
+                    $request['order_configuration'] = array(
+                        'limit_limit_gtc' => array(
+                            'base_size' => $this->amount_to_precision($symbol, $amount),
+                            'limit_price' => $this->price_to_precision($symbol, $price),
+                            'post_only' => $postOnly,
+                        ),
+                    );
+                }
+            }
+        } else {
+            if ($isStop || $isStopLoss || $isTakeProfit) {
+                throw new NotSupported($this->id . ' createOrder() only stop limit orders are supported');
+            }
+            if ($side === 'buy') {
+                $createMarketBuyOrderRequiresPrice = $this->safe_value($this->options, 'createMarketBuyOrderRequiresPrice', true);
+                $total = null;
+                if ($createMarketBuyOrderRequiresPrice) {
+                    if ($price === null) {
+                        throw new InvalidOrder($this->id . ' createOrder() requires a $price argument for $market buy orders on spot markets to calculate the $total $amount to spend ($amount * $price), alternatively set the $createMarketBuyOrderRequiresPrice option to false and pass in the $cost to spend into the $amount parameter');
+                    } else {
+                        $amountString = $this->number_to_string($amount);
+                        $priceString = $this->number_to_string($price);
+                        $cost = $this->parse_number(Precise::string_mul($amountString, $priceString));
+                        $total = $this->price_to_precision($symbol, $cost);
+                    }
+                } else {
+                    $total = $this->amount_to_precision($symbol, $amount);
+                }
+                $request['order_configuration'] = array(
+                    'market_market_ioc' => array(
+                        'quote_size' => $total,
+                    ),
+                );
+            } else {
+                $request['order_configuration'] = array(
+                    'market_market_ioc' => array(
+                        'base_size' => $this->amount_to_precision($symbol, $amount),
+                    ),
+                );
+            }
+        }
+        $params = $this->omit($params, array( 'timeInForce', 'triggerPrice', 'stopLossPrice', 'takeProfitPrice', 'stopPrice', 'stop_price', 'stopDirection', 'stop_direction', 'clientOrderId', 'postOnly', 'post_only', 'end_time' ));
+        $response = $this->v3PrivatePostBrokerageOrders (array_merge($request, $params));
+        //
+        //     {
+        //         "success" => true,
+        //         "failure_reason" => "UNKNOWN_FAILURE_REASON",
+        //         "order_id" => "52cfe5e2-0b29-4c19-a245-a6a773de5030",
+        //         "success_response" => array(
+        //             "order_id" => "52cfe5e2-0b29-4c19-a245-a6a773de5030",
+        //             "product_id" => "LTC-BTC",
+        //             "side" => "SELL",
+        //             "client_order_id" => "4d760580-6fca-4094-a70b-ebcca8626288"
+        //         ),
+        //         "order_configuration" => null
+        //     }
+        //
+        $success = $this->safe_value($response, 'success');
+        if ($success !== true) {
+            throw new BadRequest($this->id . ' createOrder() has failed, check your arguments and parameters');
+        }
+        $data = $this->safe_value($response, 'success_response', array());
+        return $this->parse_order($data, $market);
     }
 
     public function parse_order($order, $market = null) {

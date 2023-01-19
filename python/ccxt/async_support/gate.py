@@ -121,7 +121,8 @@ class gate(Exchange):
                 'fetchMyTrades': True,
                 'fetchNetworkDepositAddress': True,
                 'fetchOHLCV': True,
-                'fetchOpenInterestHistory': False,
+                'fetchOpenInterest': False,
+                'fetchOpenInterestHistory': True,
                 'fetchOpenOrders': True,
                 'fetchOrder': True,
                 'fetchOrderBook': True,
@@ -4727,6 +4728,83 @@ class gate(Exchange):
         :returns dict: a `margin structure <https://docs.ccxt.com/en/latest/manual.html#add-margin-structure>`
         """
         return await self.modify_margin_helper(symbol, amount, params)
+
+    async def fetch_open_interest_history(self, symbol, timeframe='5m', since=None, limit=None, params={}):
+        """
+        Retrieves the open interest of a currency
+        see https://www.gate.io/docs/developers/apiv4/en/#futures-stats
+        :param str symbol: Unified CCXT market symbol
+        :param str timeframe: "5m", "15m", "30m", "1h", "4h", "1d"
+        :param int|None since: the time(ms) of the earliest record to retrieve as a unix timestamp
+        :param int|None limit: default 30
+        :param dict params: exchange specific parameters
+        :returns dict} an open interest structure{@link https://docs.ccxt.com/en/latest/manual.html#interest-history-structure:
+        """
+        await self.load_markets()
+        market = self.market(symbol)
+        if not market['contract']:
+            raise BadRequest(self.id + ' fetchOpenInterest() supports contract markets only')
+        request = {
+            'contract': market['id'],
+            'settle': market['settleId'],
+            'interval': self.timeframes[timeframe],
+        }
+        if limit is not None:
+            request['limit'] = limit
+        if since is not None:
+            request['from'] = since
+        response = await self.publicFuturesGetSettleContractStats(self.extend(request, params))
+        #
+        #    [
+        #        {
+        #            long_liq_size: '0',
+        #            short_liq_size: '0',
+        #            short_liq_usd: '0',
+        #            lsr_account: '3.2808988764045',
+        #            mark_price: '0.34619',
+        #            top_lsr_size: '0',
+        #            time: '1674057000',
+        #            short_liq_amount: '0',
+        #            long_liq_amount: '0',
+        #            open_interest_usd: '9872386.7775',
+        #            top_lsr_account: '0',
+        #            open_interest: '2851725',
+        #            long_liq_usd: '0',
+        #            lsr_taker: '9.3765153315902'
+        #        },
+        #        ...
+        #    ]
+        #
+        return self.parse_open_interests(response, market, since, limit)
+
+    def parse_open_interest(self, interest, market=None):
+        #
+        #    {
+        #        long_liq_size: '0',
+        #        short_liq_size: '0',
+        #        short_liq_usd: '0',
+        #        lsr_account: '3.2808988764045',
+        #        mark_price: '0.34619',
+        #        top_lsr_size: '0',
+        #        time: '1674057000',
+        #        short_liq_amount: '0',
+        #        long_liq_amount: '0',
+        #        open_interest_usd: '9872386.7775',
+        #        top_lsr_account: '0',
+        #        open_interest: '2851725',
+        #        long_liq_usd: '0',
+        #        lsr_taker: '9.3765153315902'
+        #    }
+        #
+        timestamp = self.safe_integer_product(interest, 'time', 1000)
+        return {
+            'symbol': self.safe_string(market, 'symbol'),
+            'openInterestAmount': self.safe_number(interest, 'open_interest'),
+            'openInterestValue': self.safe_number(interest, 'open_interest_usd'),
+            'timestamp': timestamp,
+            'datetime': self.iso8601(timestamp),
+            'info': interest,
+        }
 
     def handle_errors(self, code, reason, url, method, headers, body, response, requestHeaders, requestBody):
         if response is None:

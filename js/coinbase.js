@@ -3,7 +3,7 @@
 // ----------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
-const { ExchangeError, ArgumentsRequired, AuthenticationError, BadRequest, OrderNotFound, RateLimitExceeded, InvalidNonce } = require ('./base/errors');
+const { ExchangeError, ArgumentsRequired, AuthenticationError, BadRequest, InvalidOrder, NotSupported, OrderNotFound, RateLimitExceeded, InvalidNonce } = require ('./base/errors');
 const { TICK_SIZE } = require ('./base/functions/number');
 const Precise = require ('./base/Precise');
 
@@ -32,11 +32,16 @@ module.exports = class coinbase extends Exchange {
                 'cancelOrder': true,
                 'cancelOrders': true,
                 'createDepositAddress': true,
-                'createOrder': undefined,
+                'createLimitBuyOrder': true,
+                'createLimitSellOrder': true,
+                'createMarketBuyOrder': true,
+                'createMarketSellOrder': true,
+                'createOrder': true,
+                'createPostOnlyOrder': true,
                 'createReduceOnlyOrder': false,
-                'createStopLimitOrder': false,
+                'createStopLimitOrder': true,
                 'createStopMarketOrder': false,
-                'createStopOrder': false,
+                'createStopOrder': true,
                 'fetchAccounts': true,
                 'fetchBalance': true,
                 'fetchBidsAsks': undefined,
@@ -264,6 +269,7 @@ module.exports = class coinbase extends Exchange {
                     'fiat',
                     // 'vault',
                 ],
+                'createMarketBuyOrderRequiresPrice': true,
                 'advanced': true, // set to true if using any v3 endpoints from the advanced trade API
                 'fetchMarkets': 'fetchMarketsV3', // 'fetchMarketsV3' or 'fetchMarketsV2'
                 'fetchTicker': 'fetchTickerV3', // 'fetchTickerV3' or 'fetchTickerV2'
@@ -1776,6 +1782,173 @@ module.exports = class coinbase extends Exchange {
             request['limit'] = limit;
         }
         return request;
+    }
+
+    async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
+        /**
+         * @method
+         * @name coinbase#createOrder
+         * @description create a trade order
+         * @see https://docs.cloud.coinbase.com/advanced-trade-api/reference/retailbrokerageapi_postorder
+         * @param {string} symbol unified symbol of the market to create an order in
+         * @param {string} type 'market' or 'limit'
+         * @param {string} side 'buy' or 'sell'
+         * @param {float} amount how much you want to trade in units of the base currency, quote currency for 'market' 'buy' orders
+         * @param {float|undefined} price the price to fulfill the order, in units of the quote currency, ignored in market orders
+         * @param {object} params extra parameters specific to the coinbase api endpoint
+         * @param {float|undefined} params.stopPrice price to trigger stop orders
+         * @param {float|undefined} params.triggerPrice price to trigger stop orders
+         * @param {float|undefined} params.stopLossPrice price to trigger stop-loss orders
+         * @param {float|undefined} params.takeProfitPrice price to trigger take-profit orders
+         * @param {bool|undefined} params.postOnly true or false
+         * @param {string|undefined} params.timeInForce 'GTC', 'IOC', 'GTD' or 'PO'
+         * @param {string|undefined} params.stop_direction 'UNKNOWN_STOP_DIRECTION', 'STOP_DIRECTION_STOP_UP', 'STOP_DIRECTION_STOP_DOWN' the direction the stopPrice is triggered from
+         * @param {string|undefined} params.end_time '2023-05-25T17:01:05.092Z' for 'GTD' orders
+         * @returns {object} an [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
+         */
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const request = {
+            'client_order_id': this.uuid (),
+            'product_id': market['id'],
+            'side': side.toUpperCase (),
+        };
+        const stopPrice = this.safeNumberN (params, [ 'stopPrice', 'stop_price', 'triggerPrice' ]);
+        const stopLossPrice = this.safeNumber (params, 'stopLossPrice');
+        const takeProfitPrice = this.safeNumber (params, 'takeProfitPrice');
+        const isStop = stopPrice !== undefined;
+        const isStopLoss = stopLossPrice !== undefined;
+        const isTakeProfit = takeProfitPrice !== undefined;
+        const timeInForce = this.safeString (params, 'timeInForce');
+        const postOnly = (timeInForce === 'PO') ? true : this.safeValue2 (params, 'postOnly', 'post_only', false);
+        const endTime = this.safeString (params, 'end_time');
+        let stopDirection = this.safeString (params, 'stop_direction');
+        if (type === 'limit') {
+            if (isStop) {
+                if (stopDirection === undefined) {
+                    stopDirection = (side === 'buy') ? 'STOP_DIRECTION_STOP_DOWN' : 'STOP_DIRECTION_STOP_UP';
+                }
+                if ((timeInForce === 'GTD') || (endTime !== undefined)) {
+                    if (endTime === undefined) {
+                        throw new ExchangeError (this.id + ' createOrder() requires an end_time parameter for a GTD order');
+                    }
+                    request['order_configuration'] = {
+                        'stop_limit_stop_limit_gtd': {
+                            'base_size': this.amountToPrecision (symbol, amount),
+                            'limit_price': this.priceToPrecision (symbol, price),
+                            'stop_price': this.priceToPrecision (symbol, stopPrice),
+                            'stop_direction': stopDirection,
+                            'end_time': endTime,
+                        },
+                    };
+                } else {
+                    request['order_configuration'] = {
+                        'stop_limit_stop_limit_gtc': {
+                            'base_size': this.amountToPrecision (symbol, amount),
+                            'limit_price': this.priceToPrecision (symbol, price),
+                            'stop_price': this.priceToPrecision (symbol, stopPrice),
+                            'stop_direction': stopDirection,
+                        },
+                    };
+                }
+            } else if (isStopLoss || isTakeProfit) {
+                let triggerPrice = undefined;
+                if (isStopLoss) {
+                    if (stopDirection === undefined) {
+                        stopDirection = (side === 'buy') ? 'STOP_DIRECTION_STOP_UP' : 'STOP_DIRECTION_STOP_DOWN';
+                    }
+                    triggerPrice = this.priceToPrecision (symbol, stopLossPrice);
+                } else {
+                    if (stopDirection === undefined) {
+                        stopDirection = (side === 'buy') ? 'STOP_DIRECTION_STOP_DOWN' : 'STOP_DIRECTION_STOP_UP';
+                    }
+                    triggerPrice = this.priceToPrecision (symbol, takeProfitPrice);
+                }
+                request['order_configuration'] = {
+                    'stop_limit_stop_limit_gtc': {
+                        'base_size': this.amountToPrecision (symbol, amount),
+                        'limit_price': this.priceToPrecision (symbol, price),
+                        'stop_price': triggerPrice,
+                        'stop_direction': stopDirection,
+                    },
+                };
+            } else {
+                if ((timeInForce === 'GTD') || (endTime !== undefined)) {
+                    if (endTime === undefined) {
+                        throw new ExchangeError (this.id + ' createOrder() requires an end_time parameter for a GTD order');
+                    }
+                    request['order_configuration'] = {
+                        'limit_limit_gtd': {
+                            'base_size': this.amountToPrecision (symbol, amount),
+                            'limit_price': this.priceToPrecision (symbol, price),
+                            'end_time': endTime,
+                            'post_only': postOnly,
+                        },
+                    };
+                } else {
+                    request['order_configuration'] = {
+                        'limit_limit_gtc': {
+                            'base_size': this.amountToPrecision (symbol, amount),
+                            'limit_price': this.priceToPrecision (symbol, price),
+                            'post_only': postOnly,
+                        },
+                    };
+                }
+            }
+        } else {
+            if (isStop || isStopLoss || isTakeProfit) {
+                throw new NotSupported (this.id + ' createOrder() only stop limit orders are supported');
+            }
+            if (side === 'buy') {
+                const createMarketBuyOrderRequiresPrice = this.safeValue (this.options, 'createMarketBuyOrderRequiresPrice', true);
+                let total = undefined;
+                if (createMarketBuyOrderRequiresPrice) {
+                    if (price === undefined) {
+                        throw new InvalidOrder (this.id + ' createOrder() requires a price argument for market buy orders on spot markets to calculate the total amount to spend (amount * price), alternatively set the createMarketBuyOrderRequiresPrice option to false and pass in the cost to spend into the amount parameter');
+                    } else {
+                        const amountString = this.numberToString (amount);
+                        const priceString = this.numberToString (price);
+                        const cost = this.parseNumber (Precise.stringMul (amountString, priceString));
+                        total = this.priceToPrecision (symbol, cost);
+                    }
+                } else {
+                    total = this.amountToPrecision (symbol, amount);
+                }
+                request['order_configuration'] = {
+                    'market_market_ioc': {
+                        'quote_size': total,
+                    },
+                };
+            } else {
+                request['order_configuration'] = {
+                    'market_market_ioc': {
+                        'base_size': this.amountToPrecision (symbol, amount),
+                    },
+                };
+            }
+        }
+        params = this.omit (params, [ 'timeInForce', 'triggerPrice', 'stopLossPrice', 'takeProfitPrice', 'stopPrice', 'stop_price', 'stopDirection', 'stop_direction', 'clientOrderId', 'postOnly', 'post_only', 'end_time' ]);
+        const response = await this.v3PrivatePostBrokerageOrders (this.extend (request, params));
+        //
+        //     {
+        //         "success": true,
+        //         "failure_reason": "UNKNOWN_FAILURE_REASON",
+        //         "order_id": "52cfe5e2-0b29-4c19-a245-a6a773de5030",
+        //         "success_response": {
+        //             "order_id": "52cfe5e2-0b29-4c19-a245-a6a773de5030",
+        //             "product_id": "LTC-BTC",
+        //             "side": "SELL",
+        //             "client_order_id": "4d760580-6fca-4094-a70b-ebcca8626288"
+        //         },
+        //         "order_configuration": null
+        //     }
+        //
+        const success = this.safeValue (response, 'success');
+        if (success !== true) {
+            throw new BadRequest (this.id + ' createOrder() has failed, check your arguments and parameters');
+        }
+        const data = this.safeValue (response, 'success_response', {});
+        return this.parseOrder (data, market);
     }
 
     parseOrder (order, market = undefined) {

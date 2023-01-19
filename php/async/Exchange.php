@@ -34,11 +34,11 @@ use Exception;
 
 include 'Throttle.php';
 
-$version = '2.6.35';
+$version = '2.6.47';
 
 class Exchange extends \ccxt\Exchange {
 
-    const VERSION = '2.6.35';
+    const VERSION = '2.6.47';
 
     public $browser;
     public $marketsLoading = null;
@@ -426,7 +426,7 @@ class Exchange extends \ccxt\Exchange {
 
     public function safe_order($order, $market = null) {
         // parses numbers as strings
-        // it is important pass the $trades as unparsed $rawTrades
+        // * it is important pass the $trades as unparsed $rawTrades
         $amount = $this->omit_zero($this->safe_string($order, 'amount'));
         $remaining = $this->safe_string($order, 'remaining');
         $filled = $this->safe_string($order, 'filled');
@@ -633,8 +633,22 @@ class Exchange extends \ccxt\Exchange {
             // $timeInForce is not null here
             $postOnly = $timeInForce === 'PO';
         }
+        $timestamp = $this->safe_integer($order, 'timestamp');
+        $datetime = $this->safe_string($order, 'datetime');
+        if ($timestamp === null) {
+            $timestamp = $this->parse8601 ($timestamp);
+        }
+        if ($datetime === null) {
+            $datetime = $this->iso8601 ($timestamp);
+        }
+        $triggerPrice = $this->parse_number($this->safe_string_2($order, 'triggerPrice', 'stopPrice'));
         return array_merge($order, array(
+            'id' => $this->safe_string($order, 'id'),
+            'clientOrderId' => $this->safe_string($order, 'clientOrderId'),
+            'timestamp' => $datetime,
+            'datetime' => $timestamp,
             'symbol' => $symbol,
+            'type' => $this->safe_string($order, 'type'),
             'side' => $side,
             'lastTradeTimestamp' => $lastTradeTimeTimestamp,
             'price' => $this->parse_number($price),
@@ -646,6 +660,11 @@ class Exchange extends \ccxt\Exchange {
             'timeInForce' => $timeInForce,
             'postOnly' => $postOnly,
             'trades' => $trades,
+            'reduceOnly' => $this->safe_value($order, 'reduceOnly'),
+            'stopPrice' => $triggerPrice,  // ! deprecated, use $triggerPrice instead
+            'triggerPrice' => $triggerPrice,
+            'status' => $this->safe_string($order, 'status'),
+            'fee' => $this->safe_value($order, 'fee'),
         ));
     }
 

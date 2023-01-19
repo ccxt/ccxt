@@ -4341,9 +4341,9 @@ module.exports = class okx extends Exchange {
         const symbol = market['symbol'];
         const pos = this.safeString (position, 'pos'); // 'pos' field: One way mode: 0 if position is not open, 1 if open | Two way (hedge) mode: -1 if short, 1 if long, 0 if position is not open
         const contractsAbs = Precise.stringAbs (pos);
-        let contracts = undefined;
         let side = this.safeString (position, 'posSide');
         const hedged = side !== 'net';
+        const contracts = this.parseNumber (contractsAbs);
         if (market['margin']) {
             // margin position
             if (side === 'net') {
@@ -4355,7 +4355,6 @@ module.exports = class okx extends Exchange {
             }
         } else {
             if (pos !== undefined) {
-                contracts = this.parseNumber (contractsAbs);
                 if (side === 'net') {
                     if (Precise.stringGt (pos, '0')) {
                         side = 'long';
