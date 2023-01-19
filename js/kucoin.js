@@ -496,6 +496,11 @@ module.exports = class kucoin extends Exchange {
                 'networksById': {
                     'BEP20': 'BSC',
                 },
+                'marginModes': {
+                    'cross': 'MARGIN_TRADE',
+                    'isolated': 'MARGIN_ISOLATED_TRADE',
+                    'spot': 'TRADE',
+                },
             },
         });
     }
