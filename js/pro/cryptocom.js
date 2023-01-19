@@ -484,7 +484,7 @@ module.exports = class cryptocom extends cryptocomRest {
         // }
         const errorCode = this.safeInteger (message, 'code');
         try {
-            if (errorCode !== undefined && errorCode !== 0) {
+            if (errorCode) {
                 const feedback = this.id + ' ' + this.json (message);
                 this.throwExactlyMatchedException (this.exceptions['exact'], errorCode, feedback);
                 const messageString = this.safeValue (message, 'message');
@@ -492,18 +492,19 @@ module.exports = class cryptocom extends cryptocomRest {
                     this.throwBroadlyMatchedException (this.exceptions['broad'], messageString, feedback);
                 }
             }
+            return false;
         } catch (e) {
             if (e instanceof AuthenticationError) {
-                client.reject (e, 'authenticated');
-                if ('public/auth' in client.subscriptions) {
-                    delete client.subscriptions['public/auth'];
+                const messageHash = 'authenticated';
+                client.reject (e, messageHash);
+                if (messageHash in client.subscriptions) {
+                    delete client.subscriptions[messageHash];
                 }
-                return false;
             } else {
                 client.reject (e);
             }
+            return true;
         }
-        return message;
     }
 
     handleMessage (client, message) {
@@ -536,7 +537,7 @@ module.exports = class cryptocom extends cryptocomRest {
         //        "channel":"ticker",
         //        "data":[ { } ]
         //
-        if (!this.handleErrorMessage (client, message)) {
+        if (this.handleErrorMessage (client, message)) {
             return;
         }
         const subject = this.safeString (message, 'method');
@@ -568,27 +569,29 @@ module.exports = class cryptocom extends cryptocomRest {
         }
     }
 
-    async authenticate (params = {}) {
-        const url = this.urls['api']['ws']['private'];
+    authenticate (params = {}) {
         this.checkRequiredCredentials ();
+        const url = this.urls['api']['ws']['private'];
         const client = this.client (url);
-        const future = client.future ('authenticated');
-        const messageHash = 'public/auth';
-        const authenticated = this.safeValue (client.subscriptions, messageHash);
-        if (authenticated === undefined) {
+        const messageHash = 'authenticated';
+        let future = this.safeValue (client.subscriptions, messageHash);
+        if (future === undefined) {
+            const method = 'public/auth';
             const nonce = this.nonce ().toString ();
-            const auth = messageHash + nonce + this.apiKey + nonce;
+            const auth = method + nonce + this.apiKey + nonce;
             const signature = this.hmac (this.encode (auth), this.encode (this.secret), 'sha256');
             const request = {
                 'id': nonce,
                 'nonce': nonce,
-                'method': messageHash,
+                'method': method,
                 'api_key': this.apiKey,
                 'sig': signature,
             };
-            this.spawn (this.watch, url, messageHash, this.extend (request, params), messageHash);
+            const message = this.extend (request, params);
+            future = this.watch (url, messageHash, message);
+            client.subscriptions[messageHash] = future;
         }
-        return await future;
+        return future;
     }
 
     handlePing (client, message) {
@@ -599,9 +602,6 @@ module.exports = class cryptocom extends cryptocomRest {
         //
         //  { id: 1648132625434, method: 'public/auth', code: 0 }
         //
-        const future = client.futures['authenticated'];
-        future.resolve (1);
-        client.resolve (1, 'public/auth');
-        return message;
+        client.resolve (message, 'authenticated');
     }
 };

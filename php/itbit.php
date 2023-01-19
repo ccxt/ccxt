@@ -682,6 +682,7 @@ class itbit extends Exchange {
             'side' => $side,
             'price' => $price,
             'stopPrice' => null,
+            'triggerPrice' => null,
             'cost' => null,
             'average' => $average,
             'amount' => $amount,

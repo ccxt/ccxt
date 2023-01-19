@@ -373,7 +373,9 @@ class bybit extends \ccxt\async\bybit {
         $topicLength = count($topicParts);
         $timeframeId = $this->safe_string($topicParts, 1);
         $marketId = $this->safe_string($topicParts, $topicLength - 1);
-        $market = $this->safe_market($marketId);
+        $isSpot = mb_strpos($client->url, 'spot') > -1;
+        $marketType = $isSpot ? 'spot' : 'contract';
+        $market = $this->safe_market($marketId, null, null, $marketType);
         $symbol = $market['symbol'];
         $ohlcvsByTimeframe = $this->safe_value($this->ohlcvs, $symbol);
         if ($ohlcvsByTimeframe === null) {
@@ -445,6 +447,13 @@ class bybit extends \ccxt\async\bybit {
                 } else {
                     $limit = 200;
                 }
+            } else {
+                if (!$market['spot']) {
+                    // bybit only support $limit 1, 50 , 200 for contract
+                    if (($limit !== 1) && ($limit !== 50) && ($limit !== 200)) {
+                        throw new BadRequest($this->id . ' watchOrderBook() can only use $limit 1, 50 and 200.');
+                    }
+                }
             }
             $topics = [ 'orderbook.' . (string) $limit . '.' . $market['id'] ];
             $orderbook = Async\await($this->watch_topics($url, $messageHash, $topics, $params));
@@ -513,8 +522,9 @@ class bybit extends \ccxt\async\bybit {
         }
         $data = $this->safe_value($message, 'data', array());
         $marketId = $this->safe_string($data, 's');
-        $market = $this->safe_market($marketId);
-        $symbol = $this->safe_symbol($marketId, $market);
+        $marketType = $isSpot ? 'spot' : 'contract';
+        $market = $this->safe_market($marketId, null, null, $marketType);
+        $symbol = $market['symbol'];
         $timestamp = $this->safe_integer($message, 'ts');
         $orderbook = $this->safe_value($this->orderbooks, $symbol);
         if ($orderbook === null) {
@@ -621,8 +631,10 @@ class bybit extends \ccxt\async\bybit {
         $topic = $this->safe_string($message, 'topic');
         $trades = null;
         $parts = explode('.', $topic);
+        $tradeType = $this->safe_string($parts, 0);
+        $marketType = ($tradeType === 'trade') ? 'spot' : 'contract';
         $marketId = $this->safe_string($parts, 1);
-        $market = $this->safe_market($marketId);
+        $market = $this->safe_market($marketId, null, null, $marketType);
         if (gettype($data) === 'array' && array_keys($data) === array_keys(array_keys($data))) {
             // contract markets
             $trades = $data;
@@ -713,8 +725,10 @@ class bybit extends \ccxt\async\bybit {
         //     }
         //
         $id = $this->safe_string_n($trade, array( 'i', 'T', 'v' ));
+        $isContract = (is_array($trade) && array_key_exists('BT', $trade));
+        $marketType = $isContract ? 'contract' : 'spot';
         $marketId = $this->safe_string($trade, 's');
-        $market = $this->safe_market($marketId, $market);
+        $market = $this->safe_market($marketId, $market, null, $marketType);
         $symbol = $market['symbol'];
         $timestamp = $this->safe_integer_2($trade, 't', 'T');
         $side = $this->safe_string_lower($trade, 'S');
@@ -1088,7 +1102,7 @@ class bybit extends \ccxt\async\bybit {
         //
         $id = $this->safe_string($order, 'i');
         $marketId = $this->safe_string($order, 's');
-        $symbol = $this->safe_symbol($marketId, $market);
+        $symbol = $this->safe_symbol($marketId, $market, null, 'spot');
         $timestamp = $this->safe_integer($order, 'O');
         $price = $this->safe_string($order, 'p');
         if ($price === '0') {
@@ -1135,6 +1149,7 @@ class bybit extends \ccxt\async\bybit {
             'side' => $side,
             'price' => $price,
             'stopPrice' => null,
+            'triggerPrice' => null,
             'amount' => $amount,
             'cost' => $cost,
             'average' => null,
@@ -1341,28 +1356,27 @@ class bybit extends \ccxt\async\bybit {
     }
 
     public function authenticate($url, $params = array ()) {
-        return Async\async(function () use ($url, $params) {
-            $this->check_required_credentials();
-            $messageHash = 'login';
-            $client = $this->client($url);
-            $future = $this->safe_value($client->subscriptions, $messageHash);
-            if ($future === null) {
-                $future = $client->future ('authenticated');
-                $expires = $this->milliseconds() + 10000;
-                $expires = (string) $expires;
-                $path = 'GET/realtime';
-                $auth = $path . $expires;
-                $signature = $this->hmac($this->encode($auth), $this->encode($this->secret), 'sha256', 'hex');
-                $request = array(
-                    'op' => 'auth',
-                    'args' => array(
-                        $this->apiKey, $expires, $signature,
-                    ),
-                );
-                $this->spawn(array($this, 'watch'), $url, $messageHash, $request, $messageHash, $future);
-            }
-            return Async\await($future);
-        }) ();
+        $this->check_required_credentials();
+        $messageHash = 'authenticated';
+        $client = $this->client($url);
+        $future = $this->safe_value($client->subscriptions, $messageHash);
+        if ($future === null) {
+            $expires = $this->milliseconds() + 10000;
+            $expires = (string) $expires;
+            $path = 'GET/realtime';
+            $auth = $path . $expires;
+            $signature = $this->hmac($this->encode($auth), $this->encode($this->secret), 'sha256', 'hex');
+            $request = array(
+                'op' => 'auth',
+                'args' => array(
+                    $this->apiKey, $expires, $signature,
+                ),
+            );
+            $message = array_merge($request, $params);
+            $future = $this->watch($url, $messageHash, $message);
+            $client->subscriptions[$messageHash] = $future;
+        }
+        return $future;
     }
 
     public function handle_error_message($client, $message) {
@@ -1374,7 +1388,7 @@ class bybit extends \ccxt\async\bybit {
         //       $request => array( $op => '', args => null )
         //   }
         //
-        // auth error
+        // auth $error
         //
         //   {
         //       $success => false,
@@ -1391,7 +1405,7 @@ class bybit extends \ccxt\async\bybit {
         //
         //   array( $code => '-10009', desc => 'Invalid period!' )
         //
-        $code = $this->safe_integer($message, 'code');
+        $code = $this->safe_string_2($message, 'code', 'ret_code');
         try {
             if ($code !== null) {
                 $feedback = $this->id . ' ' . $this->json($message);
@@ -1408,22 +1422,23 @@ class bybit extends \ccxt\async\bybit {
                     throw new ExchangeError($this->id . ' ' . $ret_msg);
                 }
             }
-        } catch (Exception $e) {
-            if ($e instanceof AuthenticationError) {
-                $client->reject ($e, 'authenticated');
-                $method = 'login';
-                if (is_array($client->subscriptions) && array_key_exists($method, $client->subscriptions)) {
-                    unset($client->subscriptions[$method]);
+            return false;
+        } catch (Exception $error) {
+            if ($error instanceof AuthenticationError) {
+                $messageHash = 'authenticated';
+                $client->reject ($error, $messageHash);
+                if (is_array($client->subscriptions) && array_key_exists($messageHash, $client->subscriptions)) {
+                    unset($client->subscriptions[$messageHash]);
                 }
-                return false;
+            } else {
+                $client->reject ($error);
             }
-            throw $e;
+            return true;
         }
-        return $message;
     }
 
     public function handle_message($client, $message) {
-        if (!$this->handle_error_message($client, $message)) {
+        if ($this->handle_error_message($client, $message)) {
             return;
         }
         // contract $pong
@@ -1480,7 +1495,7 @@ class bybit extends \ccxt\async\bybit {
         }
     }
 
-    public function ping() {
+    public function ping($client) {
         return array(
             'req_id' => $this->request_id(),
             'op' => 'ping',
@@ -1512,11 +1527,15 @@ class bybit extends \ccxt\async\bybit {
         //    }
         //
         $success = $this->safe_value($message, 'success');
+        $messageHash = 'authenticated';
         if ($success) {
-            $client->resolve ($message, 'authenticated');
+            $client->resolve ($message, $messageHash);
         } else {
             $error = new AuthenticationError ($this->id . ' ' . $this->json($message));
-            $client->reject ($error, 'authenticated');
+            $client->reject ($error, $messageHash);
+            if (is_array($client->subscriptions) && array_key_exists($messageHash, $client->subscriptions)) {
+                unset($client->subscriptions[$messageHash]);
+            }
         }
         return $message;
     }

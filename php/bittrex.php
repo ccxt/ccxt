@@ -1761,6 +1761,7 @@ class bittrex extends Exchange {
             'side' => $direction,
             'price' => $limit,
             'stopPrice' => $this->safe_string($order, 'triggerPrice'),
+            'triggerPrice' => $this->safe_string($order, 'triggerPrice'),
             'cost' => $proceeds,
             'average' => null,
             'amount' => $quantity,

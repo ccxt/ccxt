@@ -1202,7 +1202,7 @@ class phemex extends Exchange {
         );
         $method = 'v1GetMdSpotTicker24hr';
         if ($market['swap']) {
-            if (!$market['linear']) {
+            if ($market['inverse'] || $market['settle'] === 'USD') {
                 $method = 'v1GetMdTicker24hr';
             } else {
                 $method = 'v2GetMdV2Ticker24hr';
@@ -1843,6 +1843,7 @@ class phemex extends Exchange {
             'side' => $side,
             'price' => $price,
             'stopPrice' => $stopPrice,
+            'triggerPrice' => $stopPrice,
             'amount' => $amount,
             'cost' => $cost,
             'average' => $average,
@@ -1934,6 +1935,7 @@ class phemex extends Exchange {
             'side' => $side,
             'price' => $price,
             'stopPrice' => $stopPrice,
+            'triggerPrice' => $stopPrice,
             'amount' => $amount,
             'filled' => $filled,
             'remaining' => $remaining,

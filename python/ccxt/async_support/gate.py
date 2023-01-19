@@ -14,6 +14,7 @@ from ccxt.base.errors import AccountSuspended
 from ccxt.base.errors import ArgumentsRequired
 from ccxt.base.errors import BadRequest
 from ccxt.base.errors import BadSymbol
+from ccxt.base.errors import BadResponse
 from ccxt.base.errors import InsufficientFunds
 from ccxt.base.errors import InvalidOrder
 from ccxt.base.errors import OrderNotFound
@@ -87,6 +88,7 @@ class gate(Exchange):
                 'borrowMargin': True,
                 'cancelAllOrders': True,
                 'cancelOrder': True,
+                'createDepositAddress': True,
                 'createMarketOrder': False,
                 'createOrder': True,
                 'createPostOnlyOrder': True,
@@ -699,7 +701,7 @@ class gate(Exchange):
         contractMarkets = promises[1]
         return self.array_concat(spotMarkets, contractMarkets)
 
-    async def fetch_spot_markets(self, params):
+    async def fetch_spot_markets(self, params={}):
         marginResponse = await self.publicMarginGetCurrencyPairs(params)
         spotMarketsResponse = await self.publicSpotGetCurrencyPairs(params)
         marginMarkets = self.index_by(marginResponse, 'id')
@@ -804,23 +806,25 @@ class gate(Exchange):
             })
         return result
 
-    async def fetch_contract_markets(self, params):
+    async def fetch_contract_markets(self, params={}):
         result = []
         swapSettlementCurrencies = self.get_settlement_currencies('swap', 'fetchMarkets')
         futureSettlementCurrencies = self.get_settlement_currencies('future', 'fetchMarkets')
         for c in range(0, len(swapSettlementCurrencies)):
             settleId = swapSettlementCurrencies[c]
-            query = params
-            query['settle'] = settleId
-            response = await self.publicFuturesGetSettleContracts(query)
+            request = {
+                'settle': settleId,
+            }
+            response = await self.publicFuturesGetSettleContracts(self.extend(request, params))
             for i in range(0, len(response)):
                 parsedMarket = self.parse_contract_market(response[i], settleId)
                 result.append(parsedMarket)
         for c in range(0, len(futureSettlementCurrencies)):
             settleId = futureSettlementCurrencies[c]
-            query = params
-            query['settle'] = settleId
-            response = await self.publicDeliveryGetSettleContracts(query)
+            request = {
+                'settle': settleId,
+            }
+            response = await self.publicDeliveryGetSettleContracts(self.extend(request, params))
             for i in range(0, len(response)):
                 parsedMarket = self.parse_contract_market(response[i], settleId)
                 result.append(parsedMarket)
@@ -1441,7 +1445,7 @@ class gate(Exchange):
         #    }
         #
         marketId = self.safe_string(contract, 'name')
-        symbol = self.safe_symbol(marketId, market)
+        symbol = self.safe_symbol(marketId, market, '_', 'swap')
         markPrice = self.safe_number(contract, 'mark_price')
         indexPrice = self.safe_number(contract, 'index_price')
         interestRate = self.safe_number(contract, 'interest_rate')
@@ -1505,9 +1509,20 @@ class gate(Exchange):
             }
         return result
 
+    async def create_deposit_address(self, code, params={}):
+        """
+        create a currency deposit address
+        see https://www.gate.io/docs/developers/apiv4/en/#generate-currency-deposit-address
+        :param str code: unified currency code of the currency for the deposit address
+        :param dict params: extra parameters specific to the gate api endpoint
+        :returns dict: an `address structure <https://docs.ccxt.com/en/latest/manual.html#address-structure>`
+        """
+        return await self.fetch_deposit_address(code, params)
+
     async def fetch_deposit_address(self, code, params={}):
         """
         fetch the deposit address for a currency associated with self account
+        see https://www.gate.io/docs/developers/apiv4/en/#generate-currency-deposit-address
         :param str code: unified currency code
         :param dict params: extra parameters specific to the gate api endpoint
         :returns dict: an `address structure <https://docs.ccxt.com/en/latest/manual.html#address-structure>`
@@ -1539,6 +1554,8 @@ class gate(Exchange):
         tag = None
         address = None
         if addressField is not None:
+            if addressField.find('New address is being generated for you, please wait') >= 0:
+                raise BadResponse(self.id + ' ' + 'New address is being generated for you, please wait a few seconds and try again to get the address.')
             if addressField.find(' ') >= 0:
                 splitted = addressField.split(' ')
                 address = splitted[0]
@@ -2014,8 +2031,9 @@ class gate(Exchange):
         #        A: '0.0353'  # best ask size
         #     }
         #
-        marketId = self.safe_string_n(ticker, ['currency_pair', 'contract', 's'])
-        symbol = self.safe_symbol(marketId, market)
+        marketId = self.safe_string_2(ticker, 'currency_pair', 'contract')
+        marketType = 'contract' if ('contract' in ticker) else 'spot'
+        symbol = self.safe_symbol(marketId, market, '_', marketType)
         last = self.safe_string(ticker, 'last')
         ask = self.safe_string_2(ticker, 'lowest_ask', 'a')
         bid = self.safe_string_2(ticker, 'highest_bid', 'b')
@@ -2118,7 +2136,7 @@ class gate(Exchange):
             'future': 'privateDeliveryGetSettleAccounts',
         })
         response = await getattr(self, method)(self.extend(request, requestQuery))
-        contract = (type == 'swap' or type == 'future')
+        contract = ((type == 'swap') or (type == 'future'))
         if contract:
             response = [response]
         #
@@ -2251,7 +2269,7 @@ class gate(Exchange):
             entry = data[i]
             if isolated:
                 marketId = self.safe_string(entry, 'currency_pair')
-                symbol = self.safe_symbol(marketId, None, '_')
+                symbol = self.safe_symbol(marketId, None, '_', 'margin')
                 base = self.safe_value(entry, 'base', {})
                 quote = self.safe_value(entry, 'quote', {})
                 baseCode = self.safe_currency_code(self.safe_string(base, 'currency'))
@@ -2863,12 +2881,13 @@ class gate(Exchange):
         id = self.safe_string(transaction, 'id')
         type = None
         amount = self.safe_string(transaction, 'amount')
-        if id[0] == 'b':
-            # GateCode handling
-            type = 'deposit' if Precise.string_gt(amount, '0') else 'withdrawal'
-            amount = Precise.string_abs(amount)
-        elif id is not None:
-            type = self.parse_transaction_type(id[0])
+        if id is not None:
+            if id[0] == 'b':
+                # GateCode handling
+                type = 'deposit' if Precise.string_gt(amount, '0') else 'withdrawal'
+                amount = Precise.string_abs(amount)
+            else:
+                type = self.parse_transaction_type(id[0])
         currencyId = self.safe_string(transaction, 'currency')
         code = self.safe_currency_code(currencyId)
         txid = self.safe_string(transaction, 'txid')
@@ -2956,9 +2975,6 @@ class gate(Exchange):
                     raise ExchangeError(self.id + ' createOrder() timeInForce for market orders must be "IOC"')
                 timeInForce = 'ioc'
                 price = 0
-        elif not isLimitOrder:
-            # exchange doesn't have market orders for spot
-            raise InvalidOrder(self.id + ' createOrder() does not support ' + type + ' orders for ' + market['type'] + ' markets')
         request = None
         if not isStopOrder and (trigger is None):
             if contract:
@@ -2967,7 +2983,6 @@ class gate(Exchange):
                     'contract': market['id'],  # filled in prepareRequest above
                     'size': amount,  # int64, positive = bid, negative = ask
                     # 'iceberg': 0,  # int64, display size for iceberg order, 0 for non-iceberg, note that you will have to pay the taker fee for the hidden size
-                    'price': self.price_to_precision(symbol, price),  # 0 for market order with tif set as ioc
                     # 'close': False,  # True to close the position, with size set to 0
                     # 'reduce_only': False,  # St as True to be reduce-only order
                     # 'tif': 'gtc',  # gtc, ioc, poc PendingOrCancelled == postOnly order
@@ -2975,6 +2990,10 @@ class gate(Exchange):
                     # 'auto_size': '',  # close_long, close_short, note size also needs to be set to 0
                     'settle': market['settleId'],  # filled in prepareRequest above
                 }
+                if isMarketOrder:
+                    request['price'] = price  # set to 0 for market orders
+                else:
+                    request['price'] = self.price_to_precision(symbol, price)
                 if reduceOnly is not None:
                     request['reduce_only'] = reduceOnly
                 if timeInForce is not None:
@@ -2989,13 +3008,31 @@ class gate(Exchange):
                     'type': type,
                     'account': marginMode,  # 'spot', 'margin', 'cross_margin'
                     'side': side,
-                    'amount': self.amount_to_precision(symbol, amount),
-                    'price': self.price_to_precision(symbol, price),
                     # 'time_in_force': 'gtc',  # gtc, ioc, poc PendingOrCancelled == postOnly order
                     # 'iceberg': 0,  # amount to display for the iceberg order, null or 0 for normal orders, set to -1 to hide the order completely
                     # 'auto_borrow': False,  # used in margin or cross margin trading to allow automatic loan of insufficient amount if balance is not enough
                     # 'auto_repay': False,  # automatic repayment for automatic borrow loan generated by cross margin order, diabled by default
                 }
+                createMarketBuyOrderRequiresPrice = self.safe_value(self.options, 'createMarketBuyOrderRequiresPrice', True)
+                if isMarketOrder and (side == 'buy'):
+                    if createMarketBuyOrderRequiresPrice:
+                        if price is None:
+                            raise InvalidOrder(self.id + ' createOrder() requires price argument for market buy orders on spot markets to calculate the total amount to spend(amount * price), alternatively set the createMarketBuyOrderRequiresPrice option to False and pass in the cost to spend into the amount parameter')
+                        else:
+                            amountString = self.number_to_string(amount)
+                            priceString = self.number_to_string(price)
+                            cost = self.parse_number(Precise.string_mul(amountString, priceString))
+                            request['amount'] = self.cost_to_precision(symbol, cost)
+                    else:
+                        cost = self.safe_number(params, 'cost', amount)
+                        params = self.omit(params, 'cost')
+                        request['amount'] = self.cost_to_precision(symbol, cost)
+                else:
+                    request['amount'] = self.amount_to_precision(symbol, amount)
+                if isLimitOrder:
+                    request['price'] = self.price_to_precision(symbol, price)
+                else:
+                    timeInForce = 'ioc'
                 if timeInForce is not None:
                     request['time_in_force'] = timeInForce
             clientOrderId = self.safe_string_2(params, 'text', 'clientOrderId')
@@ -3390,21 +3427,20 @@ class gate(Exchange):
         amount = self.safe_string_2(order, 'amount', 'size', amount)
         side = self.safe_string(order, 'side', side)
         price = self.safe_string(order, 'price', price)
-        remaining = self.safe_string(order, 'left')
-        filled = Precise.string_sub(amount, remaining)
+        remainingString = self.safe_string(order, 'left')
+        filledString = Precise.string_sub(amount, remainingString)
         cost = self.safe_string(order, 'filled_total')
         rawStatus = None
-        average = None
+        average = self.safe_number(order, 'fill_price')
         if put:
-            remaining = amount
-            filled = '0'
+            remainingString = amount
+            filledString = '0'
             cost = '0'
         if contract:
             isMarketOrder = Precise.string_equals(price, '0') and (timeInForce == 'IOC')
             type = 'market' if isMarketOrder else 'limit'
             side = 'buy' if Precise.string_gt(amount, '0') else 'sell'
             rawStatus = self.safe_string(order, 'finish_as', 'open')
-            average = self.safe_number(order, 'fill_price')
         else:
             rawStatus = self.safe_string(order, 'status')
         timestamp = self.safe_integer(order, 'create_time_ms')
@@ -3413,7 +3449,9 @@ class gate(Exchange):
         lastTradeTimestamp = self.safe_integer(order, 'update_time_ms')
         if lastTradeTimestamp is None:
             lastTradeTimestamp = self.safe_timestamp_2(order, 'update_time', 'finish_time')
+        marketType = 'spot' if ('currency_pair' in order) else 'contract'
         exchangeSymbol = self.safe_string_2(order, 'currency_pair', 'market', contract)
+        symbol = self.safe_symbol(exchangeSymbol, market, '_', marketType)
         # Everything below self(above return) is related to fees
         fees = []
         gtFee = self.safe_string(order, 'gt_fee')
@@ -3437,6 +3475,18 @@ class gate(Exchange):
         numFeeCurrencies = len(fees)
         multipleFeeCurrencies = numFeeCurrencies > 1
         status = self.parse_order_status(rawStatus)
+        filled = self.parse_number(Precise.string_abs(filledString))
+        remaining = self.parse_number(Precise.string_abs(remainingString))
+        # handle spot market buy
+        account = self.safe_string(order, 'account')  # using self instead of market type because of the conflicting ids
+        if (account == 'spot') and (type == 'market') and (side == 'buy'):
+            averageString = self.safe_string(order, 'avg_deal_price')
+            average = self.parse_number(averageString)
+            filled = Precise.string_div(filledString, averageString)
+            remaining = Precise.string_div(remainingString, averageString)
+            price = None  # arrives as 0
+            cost = amount
+            amount = Precise.string_div(amount, averageString)
         return self.safe_order({
             'id': self.safe_string(order, 'id'),
             'clientOrderId': self.safe_string(order, 'text'),
@@ -3444,7 +3494,7 @@ class gate(Exchange):
             'datetime': self.iso8601(timestamp),
             'lastTradeTimestamp': lastTradeTimestamp,
             'status': status,
-            'symbol': self.safe_symbol(exchangeSymbol),
+            'symbol': symbol,
             'type': type,
             'timeInForce': timeInForce,
             'postOnly': postOnly,
@@ -3452,11 +3502,12 @@ class gate(Exchange):
             'side': side,
             'price': self.parse_number(price),
             'stopPrice': self.safe_number(trigger, 'price'),
+            'triggerPrice': self.safe_number(trigger, 'price'),
             'average': average,
             'amount': self.parse_number(Precise.string_abs(amount)),
             'cost': Precise.string_abs(cost),
-            'filled': self.parse_number(Precise.string_abs(filled)),
-            'remaining': self.parse_number(Precise.string_abs(remaining)),
+            'filled': filled,
+            'remaining': remaining,
             'fee': None if multipleFeeCurrencies else self.safe_value(fees, 0),
             'fees': fees if multipleFeeCurrencies else [],
             'trades': None,
@@ -4545,7 +4596,7 @@ class gate(Exchange):
             'id': self.safe_integer(info, 'id'),
             'currency': self.safe_currency_code(currencyId, currency),
             'amount': self.safe_number(info, 'amount'),
-            'symbol': self.safe_symbol(marketId, None),
+            'symbol': self.safe_symbol(marketId, None, '_', 'margin'),
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
             'info': info,

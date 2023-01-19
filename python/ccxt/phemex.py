@@ -1176,7 +1176,7 @@ class phemex(Exchange):
         }
         method = 'v1GetMdSpotTicker24hr'
         if market['swap']:
-            if not market['linear']:
+            if market['inverse'] or market['settle'] == 'USD':
                 method = 'v1GetMdTicker24hr'
             else:
                 method = 'v2GetMdV2Ticker24hr'
@@ -1794,6 +1794,7 @@ class phemex(Exchange):
             'side': side,
             'price': price,
             'stopPrice': stopPrice,
+            'triggerPrice': stopPrice,
             'amount': amount,
             'cost': cost,
             'average': average,
@@ -1881,6 +1882,7 @@ class phemex(Exchange):
             'side': side,
             'price': price,
             'stopPrice': stopPrice,
+            'triggerPrice': stopPrice,
             'amount': amount,
             'filled': filled,
             'remaining': remaining,

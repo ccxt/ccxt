@@ -599,7 +599,8 @@ class alpaca extends \ccxt\async\alpaca {
                     'secret' => $this->secret,
                 );
                 if ($url === $this->urls['api']['ws']['trading']) {
-                    $request = array( // this auth $request is being deprecated in test environment
+                    // this auth $request is being deprecated in test environment
+                    $request = array(
                         'action' => 'authenticate',
                         'data' => array(
                             'key_id' => $this->apiKey,

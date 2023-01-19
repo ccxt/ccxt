@@ -311,6 +311,7 @@ class mexc(Exchange):
                 'FLUX1': 'FLUX',  # switched places
                 'FLUX': 'FLUX1',  # switched places
                 'FREE': 'FreeRossDAO',  # conflict with FREE Coin
+                'GAS': 'GASDAO',
                 'GMT': 'GMT Token',
                 'HERO': 'Step Hero',  # conflict with Metahero
                 'MIMO': 'Mimosa',
@@ -2221,6 +2222,7 @@ class mexc(Exchange):
             'side': side,
             'price': price,
             'stopPrice': self.safe_string(order, 'triggerPrice'),
+            'triggerPrice': self.safe_string(order, 'triggerPrice'),
             'average': self.safe_string(order, 'dealAvgPrice'),
             'amount': amount,
             'cost': cost,

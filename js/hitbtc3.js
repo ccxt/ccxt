@@ -41,6 +41,8 @@ module.exports = class hitbtc3 extends Exchange {
                 'fetchCurrencies': true,
                 'fetchDepositAddress': true,
                 'fetchDeposits': true,
+                'fetchDepositWithdrawFee': 'emulated',
+                'fetchDepositWithdrawFees': true,
                 'fetchFundingHistory': undefined,
                 'fetchFundingRate': true,
                 'fetchFundingRateHistory': true,
@@ -1120,33 +1122,36 @@ module.exports = class hitbtc3 extends Exchange {
         const sender = this.safeValue (native, 'senders');
         const addressFrom = this.safeString (sender, 0);
         const amount = this.safeNumber (native, 'amount');
-        let fee = undefined;
+        const fee = {
+            'currency': undefined,
+            'cost': undefined,
+            'rate': undefined,
+        };
         const feeCost = this.safeNumber (native, 'fee');
         if (feeCost !== undefined) {
-            fee = {
-                'currency': code,
-                'cost': feeCost,
-            };
+            fee['currency'] = code;
+            fee['cost'] = feeCost;
         }
         return {
             'info': transaction,
             'id': id,
             'txid': txhash,
+            'type': type,
             'code': code, // kept here for backward-compatibility, but will be removed soon
             'currency': code,
-            'amount': amount,
             'network': undefined,
+            'amount': amount,
+            'status': status,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
             'address': address,
             'addressFrom': addressFrom,
             'addressTo': addressTo,
             'tag': tag,
             'tagFrom': undefined,
             'tagTo': tagTo,
-            'timestamp': timestamp,
-            'datetime': this.iso8601 (timestamp),
             'updated': updated,
-            'status': status,
-            'type': type,
+            'comment': undefined,
             'fee': fee,
         };
     }
@@ -2679,6 +2684,96 @@ module.exports = class hitbtc3 extends Exchange {
             // 'strict_validate': false,
         };
         return await this.privatePutFuturesAccountIsolatedSymbol (this.extend (request, params));
+    }
+
+    async fetchDepositWithdrawFees (codes = undefined, params = {}) {
+        /**
+         * @method
+         * @name hitbtc3#fetchDepositWithdrawFees
+         * @description fetch deposit and withdraw fees
+         * @see https://api.hitbtc.com/#currencies
+         * @param {[string]|undefined} codes list of unified currency codes
+         * @param {object} params extra parameters specific to the hitbtc3 api endpoint
+         * @returns {[object]} a list of [fees structures]{@link https://docs.ccxt.com/en/latest/manual.html#fee-structure}
+         */
+        await this.loadMarkets ();
+        const response = await this.publicGetPublicCurrency (params);
+        //
+        //     {
+        //       "WEALTH": {
+        //         "full_name": "ConnectWealth",
+        //         "payin_enabled": false,
+        //         "payout_enabled": false,
+        //         "transfer_enabled": true,
+        //         "precision_transfer": "0.001",
+        //         "networks": [
+        //           {
+        //             "network": "ETH",
+        //             "protocol": "ERC20",
+        //             "default": true,
+        //             "payin_enabled": false,
+        //             "payout_enabled": false,
+        //             "precision_payout": "0.001",
+        //             "payout_fee": "0.016800000000",
+        //             "payout_is_payment_id": false,
+        //             "payin_payment_id": false,
+        //             "payin_confirmations": "2"
+        //           }
+        //         ]
+        //       }
+        //     }
+        //
+        return this.parseDepositWithdrawFees (response, codes);
+    }
+
+    parseDepositWithdrawFee (fee, currency = undefined) {
+        //
+        //    {
+        //         "full_name": "ConnectWealth",
+        //         "payin_enabled": false,
+        //         "payout_enabled": false,
+        //         "transfer_enabled": true,
+        //         "precision_transfer": "0.001",
+        //         "networks": [
+        //           {
+        //             "network": "ETH",
+        //             "protocol": "ERC20",
+        //             "default": true,
+        //             "payin_enabled": false,
+        //             "payout_enabled": false,
+        //             "precision_payout": "0.001",
+        //             "payout_fee": "0.016800000000",
+        //             "payout_is_payment_id": false,
+        //             "payin_payment_id": false,
+        //             "payin_confirmations": "2"
+        //           }
+        //         ]
+        //    }
+        //
+        const networks = this.safeValue (fee, 'networks', []);
+        const result = this.depositWithdrawFee (fee);
+        for (let j = 0; j < networks.length; j++) {
+            const networkEntry = networks[j];
+            const networkId = this.safeString (networkEntry, 'network');
+            const networkCode = this.networkIdToCode (networkId);
+            const withdrawFee = this.safeNumber (networkEntry, 'payout_fee');
+            const isDefault = this.safeValue (networkEntry, 'default');
+            const withdrawResult = {
+                'fee': withdrawFee,
+                'percentage': (withdrawFee !== undefined) ? false : undefined,
+            };
+            if (isDefault === true) {
+                result['withdraw'] = withdrawResult;
+            }
+            result['networks'][networkCode] = {
+                'withdraw': withdrawResult,
+                'deposit': {
+                    'fee': undefined,
+                    'percentage': undefined,
+                },
+            };
+        }
+        return result;
     }
 
     handleMarginModeAndParams (methodName, params = {}, defaultValue = undefined) {

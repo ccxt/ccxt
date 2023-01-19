@@ -45,7 +45,7 @@ class bitget(Exchange):
                 'spot': True,
                 'margin': False,
                 'swap': True,
-                'future': False,
+                'future': True,
                 'option': False,
                 'addMargin': True,
                 'cancelAllOrders': True,
@@ -109,10 +109,12 @@ class bitget(Exchange):
             },
             'timeframes': {
                 '1m': '1m',
+                '3m': '3m',
                 '5m': '5m',
                 '15m': '15m',
                 '30m': '30m',
                 '1h': '1h',
+                '2h': '2h',
                 '4h': '4h',
                 '6h': '6h',
                 '12h': '12h',
@@ -773,29 +775,34 @@ class bitget(Exchange):
             'options': {
                 'timeframes': {
                     'spot': {
-                        '1m': '1min',
-                        '5m': '5min',
-                        '15m': '15min',
-                        '30m': '30min',
+                        '1m': '1m',
+                        '5m': '5m',
+                        '15m': '15m',
+                        '30m': '30m',
                         '1h': '1h',
                         '4h': '4h',
-                        '6h': '6h',
-                        '12h': '12h',
-                        '1d': '1day',
-                        '3d': '3day',
-                        '1w': '1week',
-                        '1M': '1M',
+                        '6h': '6Hutc',
+                        '12h': '12Hutc',
+                        '1d': '1Dutc',
+                        '3d': '3Dutc',
+                        '1w': '1Wutc',
+                        '1M': '1Mutc',
                     },
                     'swap': {
-                        '1m': '60',
-                        '5m': '300',
-                        '15m': '900',
-                        '30m': '1800',
-                        '1h': '3600',
-                        '4h': '14400',
-                        '12h': '43200',
-                        '1d': '86400',
-                        '1w': '604800',
+                        '1m': '1m',
+                        '3m': '3m',
+                        '5m': '5m',
+                        '15m': '15m',
+                        '30m': '30m',
+                        '1h': '1H',
+                        '2h': '2H',
+                        '4h': '4H',
+                        '6h': '6Hutc',
+                        '12h': '12Hutc',
+                        '1d': '1Dutc',
+                        '3d': '3Dutc',
+                        '1w': '1Wutc',
+                        '1M': '1Mutc',
                     },
                 },
                 'fetchMarkets': [
@@ -805,15 +812,16 @@ class bitget(Exchange):
                 'defaultType': 'spot',  # 'spot', 'swap'
                 'defaultSubType': 'linear',  # 'linear', 'inverse'
                 'createMarketBuyOrderRequiresPrice': True,
-                'broker': {
-                    'spot': 'CCXT#',
-                    'swap': 'CCXT#',
-                },
+                'broker': 'p4sve',
                 'withdraw': {
                     'fillResponseFromRequest': True,
                 },
+                'sandboxMode': False,
             },
         })
+
+    def set_sandbox_mode(self, enabled):
+        self.options['sandboxMode'] = enabled
 
     async def fetch_time(self, params={}):
         """
@@ -838,13 +846,20 @@ class bitget(Exchange):
         :param dict params: extra parameters specific to the exchange api endpoint
         :returns [dict]: an array of objects representing market data
         """
+        sandboxMode = self.safe_value(self.options, 'sandboxMode', False)
         types = self.safe_value(self.options, 'fetchMarkets', ['spot', 'swap'])
+        if sandboxMode:
+            types = ['swap']
         promises = []
         for i in range(0, len(types)):
             type = types[i]
             if type == 'swap':
-                # the following are simulated trading markets ['sumcbl', 'sdmcbl', 'scmcbl']
-                subTypes = ['umcbl', 'dmcbl', 'cmcbl']
+                subTypes = None
+                if sandboxMode:
+                    # the following are simulated trading markets ['sumcbl', 'sdmcbl', 'scmcbl']
+                    subTypes = ['sumcbl', 'sdmcbl', 'scmcbl']
+                else:
+                    subTypes = ['umcbl', 'dmcbl', 'cmcbl']
                 for j in range(0, len(subTypes)):
                     promises.append(self.fetch_markets_by_type(type, self.extend(params, {
                         'productType': subTypes[j],
@@ -874,6 +889,7 @@ class bitget(Exchange):
         #        quoteCoin: 'USDT',
         #        minTradeAmount: '2',
         #        maxTradeAmount: '0',
+        #        minTradeUSDT": '5',
         #        takerFeeRate: '0.001',
         #        makerFeeRate: '0.001',
         #        priceScale: '4',
@@ -943,13 +959,8 @@ class bitget(Exchange):
                 swap = True
                 symbol = symbol + ':' + settle
             contract = True
-            sumcbl = (typeId == 'SUMCBL')
-            sdmcbl = (typeId == 'SDMCBL')
-            scmcbl = (typeId == 'SCMCBL')
-            linear = (typeId == 'UMCBL') or (typeId == 'CMCBL') or sumcbl or scmcbl
+            linear = (typeId == 'UMCBL') or (typeId == 'CMCBL') or (typeId == 'SUMCBL') or (typeId == 'SCMCBL')
             inverse = not linear
-            if sumcbl or sdmcbl or scmcbl:
-                symbol = marketId
             priceDecimals = self.safe_integer(market, 'pricePlace')
             amountDecimals = self.safe_integer(market, 'volumePlace')
             priceStep = self.safe_string(market, 'priceEndStep')
@@ -968,6 +979,9 @@ class bitget(Exchange):
         active = None
         if status is not None:
             active = status == 'online'
+        minCost = None
+        if quote == 'USDT':
+            minCost = self.safe_number(market, 'minTradeUSDT')
         return {
             'id': marketId,
             'symbol': symbol,
@@ -1004,15 +1018,15 @@ class bitget(Exchange):
                     'max': None,
                 },
                 'amount': {
-                    'min': self.safe_number(market, 'minTradeNum'),
-                    'max': None,
+                    'min': self.safe_number_2(market, 'minTradeNum', 'minTradeAmount'),
+                    'max': self.safe_number(market, 'maxTradeAmount'),
                 },
                 'price': {
                     'min': None,
                     'max': None,
                 },
                 'cost': {
-                    'min': None,
+                    'min': minCost,
                     'max': None,
                 },
             },
@@ -1506,6 +1520,12 @@ class bitget(Exchange):
         #     }
         #
         marketId = self.safe_string(ticker, 'symbol')
+        if (market is None) and (marketId is not None) and (marketId.find('_') == -1):
+            # fetchTickers fix:
+            # spot symbol are different from the "request id"
+            # so we need to convert it to the exchange-specific id
+            # otherwise we will not be able to find the market
+            marketId = marketId + '_SPBL'
         symbol = self.safe_symbol(marketId, market)
         high = self.safe_string(ticker, 'high24h')
         low = self.safe_string(ticker, 'low24h')
@@ -2035,7 +2055,7 @@ class bitget(Exchange):
             code = self.safe_currency_code(currencyId)
             account = self.account()
             frozen = self.safe_string(entry, 'frozen')
-            locked = self.safe_string(entry, 'lock')
+            locked = self.safe_string_2(entry, 'lock', 'locked')
             account['used'] = Precise.string_add(frozen, locked)
             account['free'] = self.safe_string(entry, 'available')
             result[code] = account
@@ -2118,7 +2138,7 @@ class bitget(Exchange):
         amount = self.safe_string_2(order, 'quantity', 'size')
         filled = self.safe_string_2(order, 'fillQuantity', 'filledQty')
         cost = self.safe_string_2(order, 'fillTotalAmount', 'filledAmount')
-        average = self.safe_string(order, 'fillPrice')
+        average = self.safe_string_2(order, 'fillPrice', 'priceAvg')
         type = self.safe_string(order, 'orderType')
         timestamp = self.safe_integer(order, 'cTime')
         side = self.safe_string_2(order, 'side', 'posSide')
@@ -2145,6 +2165,7 @@ class bitget(Exchange):
             'side': side,
             'price': price,
             'stopPrice': self.safe_number(order, 'triggerPrice'),
+            'triggerPrice': self.safe_number(order, 'triggerPrice'),
             'average': average,
             'cost': cost,
             'amount': amount,
@@ -2185,13 +2206,7 @@ class bitget(Exchange):
             raise ExchangeError(self.id + ' createOrder() params can only contain one of triggerPrice, stopLossPrice, takeProfitPrice')
         if (type == 'limit') and (triggerPrice is None):
             request['price'] = self.price_to_precision(symbol, price)
-        clientOrderId = self.safe_string_2(params, 'client_oid', 'clientOrderId')
-        if clientOrderId is None:
-            broker = self.safe_value(self.options, 'broker')
-            if broker is not None:
-                brokerId = self.safe_string(broker, market['type'])
-                if brokerId is not None:
-                    clientOrderId = brokerId + self.uuid22()
+        clientOrderId = self.safe_string_2(params, 'clientOid', 'clientOrderId')
         method = self.get_supported_mapping(marketType, {
             'spot': 'privateSpotPostTradeOrders',
             'swap': 'privateMixPostOrderPlaceOrder',
@@ -2212,14 +2227,16 @@ class bitget(Exchange):
                     request['quantity'] = self.price_to_precision(symbol, cost)
             else:
                 request['quantity'] = self.amount_to_precision(symbol, amount)
-            request['clientOrderId'] = clientOrderId
+            if clientOrderId is not None:
+                request['clientOrderId'] = clientOrderId
             request['side'] = side
             if postOnly:
                 request['force'] = 'post_only'
             else:
                 request['force'] = 'gtc'
         else:
-            request['clientOid'] = clientOrderId
+            if clientOrderId is not None:
+                request['clientOid'] = clientOrderId
             request['size'] = self.amount_to_precision(symbol, amount)
             if postOnly:
                 request['timeInForceValue'] = 'post_only'
@@ -2927,7 +2944,7 @@ class bitget(Exchange):
         #     }
         #
         data = self.safe_value(response, 'data', [])
-        return self.parse_position(data[0], market)
+        return self.parse_positions(data)
 
     async def fetch_positions(self, symbols=None, params={}):
         """
@@ -3001,47 +3018,83 @@ class bitget(Exchange):
         #
         marketId = self.safe_string(position, 'symbol')
         market = self.safe_market(marketId, market)
+        symbol = market['symbol']
         timestamp = self.safe_integer(position, 'cTime')
         marginMode = self.safe_string(position, 'marginMode')
+        collateral = None
+        initialMargin = None
+        unrealizedPnl = self.safe_string(position, 'unrealizedPL')
+        rawCollateral = self.safe_string(position, 'margin')
         if marginMode == 'fixed':
             marginMode = 'isolated'
+            collateral = Precise.string_add(rawCollateral, unrealizedPnl)
         elif marginMode == 'crossed':
             marginMode = 'cross'
-        hedged = self.safe_string(position, 'holdMode')
-        if hedged == 'double_hold':
+            initialMargin = rawCollateral
+        holdMode = self.safe_string(position, 'holdMode')
+        hedged = None
+        if holdMode == 'double_hold':
             hedged = True
-        elif hedged == 'single_hold':
+        elif holdMode == 'single_hold':
             hedged = False
-        contracts = self.safe_integer(position, 'openDelegateCount')
-        liquidation = self.safe_number(position, 'liquidationPrice')
-        if contracts == 0:
-            contracts = None
-        if liquidation == 0:
-            liquidation = None
+        side = self.safe_string(position, 'holdSide')
+        leverage = self.safe_string(position, 'leverage')
+        contractSizeNumber = self.safe_value(market, 'contractSize')
+        contractSize = self.number_to_string(contractSizeNumber)
+        baseAmount = self.safe_string(position, 'total')
+        entryPrice = self.safe_string(position, 'averageOpenPrice')
+        maintenanceMarginPercentage = self.safe_string(position, 'keepMarginRate')
+        openNotional = Precise.string_mul(entryPrice, baseAmount)
+        if initialMargin is None:
+            initialMargin = Precise.string_div(openNotional, leverage)
+        contracts = self.parse_number(Precise.string_div(baseAmount, contractSize))
+        markPrice = self.safe_string(position, 'marketPrice')
+        notional = Precise.string_mul(baseAmount, markPrice)
+        initialMarginPercentage = Precise.string_div(initialMargin, notional)
+        liquidationPrice = self.parse_number(self.omit_zero(self.safe_string(position, 'liquidationPrice')))
+        calcTakerFeeRate = '0.0006'
+        calcTakerFeeMult = '0.9994'
+        if (liquidationPrice is None) and (marginMode == 'isolated') and Precise.string_gt(baseAmount, '0'):
+            signedMargin = Precise.string_div(rawCollateral, baseAmount)
+            signedMmp = maintenanceMarginPercentage
+            if side == 'short':
+                signedMargin = Precise.string_neg(signedMargin)
+                signedMmp = Precise.string_neg(signedMmp)
+            mmrMinusOne = Precise.string_sub('1', signedMmp)
+            numerator = Precise.string_sub(entryPrice, signedMargin)
+            if side == 'long':
+                mmrMinusOne = Precise.string_mul(mmrMinusOne, calcTakerFeeMult)
+            else:
+                numerator = Precise.string_mul(numerator, calcTakerFeeMult)
+            liquidationPrice = Precise.string_div(numerator, mmrMinusOne)
+        feeToClose = Precise.string_mul(notional, calcTakerFeeRate)
+        maintenanceMargin = Precise.string_add(Precise.string_mul(maintenanceMarginPercentage, notional), feeToClose)
+        marginRatio = Precise.string_div(maintenanceMargin, collateral)
+        percentage = Precise.string_mul(Precise.string_div(unrealizedPnl, initialMargin, 4), '100')
         return {
             'info': position,
             'id': None,
-            'symbol': market['symbol'],
-            'notional': None,
+            'symbol': symbol,
+            'notional': self.parse_number(notional),
             'marginMode': marginMode,
-            'liquidationPrice': liquidation,
-            'entryPrice': self.safe_number(position, 'averageOpenPrice'),
-            'unrealizedPnl': self.safe_number(position, 'unrealizedPL'),
-            'percentage': None,
+            'liquidationPrice': self.parse_number(liquidationPrice),
+            'entryPrice': self.parse_number(entryPrice),
+            'unrealizedPnl': self.parse_number(unrealizedPnl),
+            'percentage': self.parse_number(percentage),
             'contracts': contracts,
-            'contractSize': self.safe_number(position, 'total'),
-            'markPrice': None,
-            'side': self.safe_string(position, 'holdSide'),
+            'contractSize': contractSizeNumber,
+            'markPrice': self.parse_number(markPrice),
+            'side': side,
             'hedged': hedged,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
-            'maintenanceMargin': None,
-            'maintenanceMarginPercentage': self.safe_number(position, 'keepMarginRate'),
-            'collateral': self.safe_number(position, 'margin'),
-            'initialMargin': None,
-            'initialMarginPercentage': None,
-            'leverage': self.safe_number(position, 'leverage'),
-            'marginRatio': None,
+            'maintenanceMargin': self.parse_number(maintenanceMargin),
+            'maintenanceMarginPercentage': self.parse_number(maintenanceMarginPercentage),
+            'collateral': self.parse_number(collateral),
+            'initialMargin': self.parse_number(initialMargin),
+            'initialMarginPercentage': self.parse_number(initialMarginPercentage),
+            'leverage': self.parse_number(leverage),
+            'marginRatio': self.parse_number(marginRatio),
         }
 
     async def fetch_funding_rate_history(self, symbol=None, since=None, limit=None, params={}):
@@ -3434,12 +3487,10 @@ class bitget(Exchange):
         #
         timestamp = self.safe_integer(interest, 'timestamp')
         id = self.safe_string(interest, 'symbol')
-        market = self.safe_market(id, market)
+        symbol = self.safe_symbol(id, market)
         amount = self.safe_number(interest, 'amount')
         return {
-            'symbol': self.safe_symbol(id),
-            'baseVolume': amount,  # deprecated
-            'quoteVolume': None,  # deprecated
+            'symbol': symbol,
             'openInterestAmount': amount,
             'openInterestValue': None,
             'timestamp': timestamp,
@@ -3513,11 +3564,13 @@ class bitget(Exchange):
                     url += query
                     auth += query
             signature = self.hmac(self.encode(auth), self.encode(self.secret), hashlib.sha256, 'base64')
+            broker = self.safe_string(self.options, 'broker')
             headers = {
                 'ACCESS-KEY': self.apiKey,
                 'ACCESS-SIGN': signature,
                 'ACCESS-TIMESTAMP': timestamp,
                 'ACCESS-PASSPHRASE': self.password,
+                'X-CHANNEL-API-CODE': broker,
             }
             if method == 'POST':
                 headers['Content-Type'] = 'application/json'

@@ -252,6 +252,7 @@ class bkex extends Exchange {
                 ),
             ),
             'commonCurrencies' => array(
+                'SHINJA' => 'SHINJA(1M)',
             ),
             'precisionMode' => TICK_SIZE,
             'exceptions' => array(
@@ -1573,6 +1574,7 @@ class bkex extends Exchange {
             'side' => $side,
             'price' => $price,
             'stopPrice' => $stopPrice,
+            'triggerPrice' => $stopPrice,
             'average' => $average,
             'amount' => $amount,
             'filled' => $filled,

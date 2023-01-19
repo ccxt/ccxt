@@ -296,6 +296,7 @@ class mexc extends Exchange {
                 'FLUX1' => 'FLUX', // switched places
                 'FLUX' => 'FLUX1', // switched places
                 'FREE' => 'FreeRossDAO', // conflict with FREE Coin
+                'GAS' => 'GASDAO',
                 'GMT' => 'GMT Token',
                 'HERO' => 'Step Hero', // conflict with Metahero
                 'MIMO' => 'Mimosa',
@@ -2325,6 +2326,7 @@ class mexc extends Exchange {
             'side' => $side,
             'price' => $price,
             'stopPrice' => $this->safe_string($order, 'triggerPrice'),
+            'triggerPrice' => $this->safe_string($order, 'triggerPrice'),
             'average' => $this->safe_string($order, 'dealAvgPrice'),
             'amount' => $amount,
             'cost' => $cost,

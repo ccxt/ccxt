@@ -34,11 +34,11 @@ use Exception;
 
 include 'Throttle.php';
 
-$version = '2.4.71';
+$version = '2.6.40';
 
 class Exchange extends \ccxt\Exchange {
 
-    const VERSION = '2.4.71';
+    const VERSION = '2.6.40';
 
     public $browser;
     public $marketsLoading = null;
@@ -1304,7 +1304,7 @@ class Exchange extends \ccxt\Exchange {
         for ($i = 0; $i < count($response); $i++) {
             $item = $response[$i];
             $id = $this->safe_string($item, $marketIdKey);
-            $market = $this->safe_market($id);
+            $market = $this->safe_market($id, null, null, $this->safe_string($this->options, 'defaultType'));
             $symbol = $market['symbol'];
             $contract = $this->safe_value($market, 'contract', false);
             if ($contract && (($symbols === null) || $this->in_array($symbol, $symbols))) {
@@ -1574,7 +1574,7 @@ class Exchange extends \ccxt\Exchange {
         );
     }
 
-    public function safe_market($marketId = null, $market = null, $delimiter = null, $marketType = 'spot') {
+    public function safe_market($marketId = null, $market = null, $delimiter = null, $marketType = null) {
         $result = array(
             'id' => $marketId,
             'symbol' => $marketId,
@@ -1622,10 +1622,13 @@ class Exchange extends \ccxt\Exchange {
         if ($marketId !== null) {
             if (($this->markets_by_id !== null) && (is_array($this->markets_by_id) && array_key_exists($marketId, $this->markets_by_id))) {
                 $markets = $this->markets_by_id[$marketId];
-                $length = count($markets);
-                if ($length === 1) {
+                $numMarkets = count($markets);
+                if ($numMarkets === 1) {
                     return $markets[0];
                 } else {
+                    if ($marketType === null) {
+                        throw new ArgumentsRequired($this->id . ' safeMarket() requires a fourth argument for ' . $marketId . ' to disambiguate between different $markets with the same $market id');
+                    }
                     for ($i = 0; $i < count($markets); $i++) {
                         $market = $markets[$i];
                         if ($market[$marketType]) {
@@ -1788,23 +1791,30 @@ class Exchange extends \ccxt\Exchange {
         // This method can be used to obtain method specific properties, i.e => $this->handleOptionAndParams ($params, 'fetchPosition', 'marginMode', 'isolated')
         $defaultOptionName = 'default' . $this->capitalize ($optionName); // we also need to check the 'defaultXyzWhatever'
         // check if $params contain the key
-        $value = $this->safe_string_2($params, $optionName, $defaultOptionName);
+        $value = $this->safe_value_2($params, $optionName, $defaultOptionName);
         if ($value !== null) {
             $params = $this->omit ($params, array( $optionName, $defaultOptionName ));
-        }
-        if ($value === null) {
-            // check if exchange-wide method options contain the key
+        } else {
+            // check if exchange has properties for this method
             $exchangeWideMethodOptions = $this->safe_value($this->options, $methodName);
             if ($exchangeWideMethodOptions !== null) {
-                $value = $this->safe_string_2($exchangeWideMethodOptions, $optionName, $defaultOptionName);
+                // check if the option is defined in this method's props
+                $value = $this->safe_value_2($exchangeWideMethodOptions, $optionName, $defaultOptionName);
             }
+            if ($value === null) {
+                // if it's still null, check if global exchange-wide option exists
+                $value = $this->safe_value_2($this->options, $optionName, $defaultOptionName);
+            }
+            // if it's still null, use the default $value
+            $value = ($value !== null) ? $value : $defaultValue;
         }
-        if ($value === null) {
-            // check if exchange-wide options contain the key
-            $value = $this->safe_string_2($this->options, $optionName, $defaultOptionName);
-        }
-        $value = ($value !== null) ? $value : $defaultValue;
         return array( $value, $params );
+    }
+
+    public function handle_option($methodName, $optionName, $defaultValue = null) {
+        // eslint-disable-next-line no-unused-vars
+        list($result, $empty) = $this->handleOptionAndParams (array(), $methodName, $optionName, $defaultValue);
+        return $result;
     }
 
     public function handle_market_type_and_params($methodName, $market = null, $params = array ()) {
@@ -1824,7 +1834,7 @@ class Exchange extends \ccxt\Exchange {
         return array( $type, $params );
     }
 
-    public function handle_sub_type_and_params($methodName, $market = null, $params = array (), $defaultValue = 'linear') {
+    public function handle_sub_type_and_params($methodName, $market = null, $params = array (), $defaultValue = null) {
         $subType = null;
         // if set in $params, it takes precedence
         $subTypeInParams = $this->safe_string_2($params, 'subType', 'defaultSubType');
@@ -2021,15 +2031,12 @@ class Exchange extends \ccxt\Exchange {
         if ($this->markets === null) {
             throw new ExchangeError($this->id . ' $markets not loaded');
         }
-        if ($this->markets_by_id === null) {
-            throw new ExchangeError($this->id . ' $markets not loaded');
-        }
         if (gettype($symbol) === 'string') {
             if (is_array($this->markets) && array_key_exists($symbol, $this->markets)) {
                 return $this->markets[$symbol];
             } elseif (is_array($this->markets_by_id) && array_key_exists($symbol, $this->markets_by_id)) {
                 $markets = $this->markets_by_id[$symbol];
-                $defaultType = $this->safe_string($this->options, 'defaultType', 'spot');
+                $defaultType = $this->safe_string_2($this->options, 'defaultType', 'defaultSubType', 'spot');
                 for ($i = 0; $i < count($markets); $i++) {
                     $market = $markets[$i];
                     if ($market[$defaultType]) {
@@ -2320,8 +2327,8 @@ class Exchange extends \ccxt\Exchange {
         return $this->filter_by_symbol_since_limit($sorted, $symbol, $since, $limit);
     }
 
-    public function safe_symbol($marketId, $market = null, $delimiter = null) {
-        $market = $this->safe_market($marketId, $market, $delimiter);
+    public function safe_symbol($marketId, $market = null, $delimiter = null, $marketType = null) {
+        $market = $this->safe_market($marketId, $market, $delimiter, $marketType);
         return $market['symbol'];
     }
 

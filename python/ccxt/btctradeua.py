@@ -425,6 +425,7 @@ class btctradeua(Exchange):
             'side': side,
             'price': price,
             'stopPrice': None,
+            'triggerPrice': None,
             'amount': amount,
             'filled': None,
             'remaining': remaining,

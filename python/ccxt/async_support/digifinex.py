@@ -60,6 +60,8 @@ class digifinex(Exchange):
                 'fetchCurrencies': True,
                 'fetchDepositAddress': True,
                 'fetchDeposits': True,
+                'fetchDepositWithdrawFee': 'emulated',
+                'fetchDepositWithdrawFees': True,
                 'fetchFundingHistory': False,
                 'fetchFundingRate': True,
                 'fetchFundingRateHistory': True,
@@ -423,17 +425,14 @@ class digifinex(Exchange):
             withdraw = withdrawStatus > 0
             active = deposit and withdraw
             feeString = self.safe_string(currency, 'min_withdraw_fee')  # withdraw_fee_rate was zero for all currencies, so self was the worst case scenario
-            fee = self.parse_number(feeString)
             minWithdrawString = self.safe_string(currency, 'min_withdraw_amount')
-            minWithdraw = self.parse_number(minWithdrawString)
             minDepositString = self.safe_string(currency, 'min_deposit_amount')
-            minDepositPrecisionLength = self.precision_from_string(minDepositString)
-            # define precision with temporary way
-            feePrecisionLength = self.precision_from_string(feeString)
-            minWithdrawPrecisionLength = self.precision_from_string(minWithdrawString)
             minDeposit = self.parse_number(minDepositString)
-            maxFoundPrecision = max(feePrecisionLength, max(minWithdrawPrecisionLength, minDepositPrecisionLength))
-            precision = self.parse_number(self.parse_precision(self.number_to_string(maxFoundPrecision)))
+            minWithdraw = self.parse_number(minWithdrawString)
+            fee = self.parse_number(feeString)
+            # define precision with temporary way
+            minFoundPrecision = Precise.string_min(feeString, Precise.string_min(minDepositString, minWithdrawString))
+            precision = self.parse_number(minFoundPrecision)
             networkId = self.safe_string(currency, 'chain')
             networkCode = self.network_id_to_code(networkId)
             network = {
@@ -441,7 +440,7 @@ class digifinex(Exchange):
                 'id': networkId,
                 'network': networkCode,
                 'active': active,
-                'fee': self.parse_number(feeString),
+                'fee': fee,
                 'precision': precision,
                 'deposit': deposit,
                 'withdraw': withdraw,
@@ -483,7 +482,7 @@ class digifinex(Exchange):
                     'active': active,
                     'deposit': deposit,
                     'withdraw': withdraw,
-                    'fee': fee,
+                    'fee': self.parse_number(feeString),
                     'precision': None,
                     'limits': {
                         'amount': {
@@ -1813,6 +1812,7 @@ class digifinex(Exchange):
             'side': side,
             'price': self.safe_number(order, 'price'),
             'stopPrice': None,
+            'triggerPrice': None,
             'amount': self.safe_number_2(order, 'amount', 'size'),
             'filled': self.safe_number_2(order, 'executed_amount', 'filled_qty'),
             'remaining': None,
@@ -3486,6 +3486,113 @@ class digifinex(Exchange):
             if (defaultType == 'margin') or (isMargin is True):
                 marginMode = 'cross'
         return [marginMode, params]
+
+    async def fetch_deposit_withdraw_fees(self, codes=None, params={}):
+        """
+        fetch deposit and withdraw fees
+        see https://docs.digifinex.com/en-ww/spot/v3/rest.html#get-currency-deposit-and-withdrawal-information
+        :param [str]|None codes: not used by fetchDepositWithdrawFees()
+        :param dict params: extra parameters specific to the digifinex api endpoint
+        :returns dict: a list of `fee structures <https://docs.ccxt.com/en/latest/manual.html#fee-structure>`
+        """
+        await self.load_markets()
+        response = await self.publicSpotGetCurrencies(params)
+        #
+        #   {
+        #       "data": [
+        #           {
+        #               "deposit_status": 0,
+        #               "min_withdraw_fee": 5,
+        #               "withdraw_fee_currency": "USDT",
+        #               "chain": "OMNI",
+        #               "withdraw_fee_rate": 0,
+        #               "min_withdraw_amount": 10,
+        #               "currency": "USDT",
+        #               "withdraw_status": 0,
+        #               "min_deposit_amount": 10
+        #           },
+        #           {
+        #               "deposit_status": 1,
+        #               "min_withdraw_fee": 5,
+        #               "withdraw_fee_currency": "USDT",
+        #               "chain": "ERC20",
+        #               "withdraw_fee_rate": 0,
+        #               "min_withdraw_amount": 10,
+        #               "currency": "USDT",
+        #               "withdraw_status": 1,
+        #               "min_deposit_amount": 10
+        #           },
+        #       ],
+        #       "code": 200,
+        #   }
+        #
+        data = self.safe_value(response, 'data')
+        return self.parse_deposit_withdraw_fees(data, codes)
+
+    def parse_deposit_withdraw_fees(self, response, codes=None, currencyIdKey=None):
+        #
+        #     [
+        #         {
+        #             "deposit_status": 0,
+        #             "min_withdraw_fee": 5,
+        #             "withdraw_fee_currency": "USDT",
+        #             "chain": "OMNI",
+        #             "withdraw_fee_rate": 0,
+        #             "min_withdraw_amount": 10,
+        #             "currency": "USDT",
+        #             "withdraw_status": 0,
+        #             "min_deposit_amount": 10
+        #         },
+        #         {
+        #             "deposit_status": 1,
+        #             "min_withdraw_fee": 5,
+        #             "withdraw_fee_currency": "USDT",
+        #             "chain": "ERC20",
+        #             "withdraw_fee_rate": 0,
+        #             "min_withdraw_amount": 10,
+        #             "currency": "USDT",
+        #             "withdraw_status": 1,
+        #             "min_deposit_amount": 10
+        #         },
+        #     ]
+        #
+        depositWithdrawFees = {}
+        codes = self.market_codes(codes)
+        for i in range(0, len(response)):
+            entry = response[i]
+            currencyId = self.safe_string(entry, 'currency')
+            code = self.safe_currency_code(currencyId)
+            if (codes is None) or (self.in_array(code, codes)):
+                depositWithdrawFee = self.safe_value(depositWithdrawFees, code)
+                if depositWithdrawFee is None:
+                    depositWithdrawFees[code] = self.deposit_withdraw_fee({})
+                    depositWithdrawFees[code]['info'] = []
+                depositWithdrawFees[code]['info'].append(entry)
+                networkId = self.safe_string(entry, 'chain')
+                withdrawFee = self.safe_value(entry, 'min_withdraw_fee')
+                withdrawResult = {
+                    'fee': withdrawFee,
+                    'percentage': False if (withdrawFee is not None) else None,
+                }
+                depositResult = {
+                    'fee': None,
+                    'percentage': None,
+                }
+                if networkId is not None:
+                    networkCode = self.network_id_to_code(networkId)
+                    depositWithdrawFees[code]['networks'][networkCode] = {
+                        'withdraw': withdrawResult,
+                        'deposit': depositResult,
+                    }
+                else:
+                    depositWithdrawFees[code]['withdraw'] = withdrawResult
+                    depositWithdrawFees[code]['deposit'] = depositResult
+        depositWithdrawCodes = list(depositWithdrawFees.keys())
+        for i in range(0, len(depositWithdrawCodes)):
+            code = depositWithdrawCodes[i]
+            currency = self.currency(code)
+            depositWithdrawFees[code] = self.assign_default_deposit_withdraw_fees(depositWithdrawFees[code], currency)
+        return depositWithdrawFees
 
     def sign(self, path, api=[], method='GET', params={}, headers=None, body=None):
         signed = api[0] == 'private'
