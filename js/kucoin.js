@@ -1803,92 +1803,137 @@ module.exports = class kucoin extends Exchange {
 
     parseOrder (order, market = undefined) {
         //
+        // createOrder
+        //
+        //    {
+        //        "orderId": "63c97e47d686c5000159a656"
+        //    }
+        //
+        // cancelOrder
+        //
+        //    {
+        //        "cancelledOrderIds": [ "63c97e47d686c5000159a656" ]
+        //    }
+        //
         // fetchOpenOrders, fetchClosedOrders
         //
-        //     {
-        //         "id": "5c35c02703aa673ceec2a168",   //orderid
-        //         "symbol": "BTC-USDT",   //symbol
-        //         "opType": "DEAL",      // operation type,deal is pending order,cancel is cancel order
-        //         "type": "limit",       // order type,e.g. limit,markrt,stop_limit.
-        //         "side": "buy",         // transaction direction,include buy and sell
-        //         "price": "10",         // order price
-        //         "size": "2",           // order quantity
-        //         "funds": "0",          // order funds
-        //         "dealFunds": "0.166",  // deal funds
-        //         "dealSize": "2",       // deal quantity
-        //         "fee": "0",            // fee
-        //         "feeCurrency": "USDT", // charge fee currency
-        //         "stp": "",             // self trade prevention,include CN,CO,DC,CB
-        //         "stop": "",            // stop type
-        //         "stopTriggered": false,  // stop order is triggered
-        //         "stopPrice": "0",      // stop price
-        //         "timeInForce": "GTC",  // time InForce,include GTC,GTT,IOC,FOK
-        //         "postOnly": false,     // postOnly
-        //         "hidden": false,       // hidden order
-        //         "iceberg": false,      // iceberg order
-        //         "visibleSize": "0",    // display quantity for iceberg order
-        //         "cancelAfter": 0,      // cancel orders time，requires timeInForce to be GTT
-        //         "channel": "IOS",      // order source
-        //         "clientOid": "",       // user-entered order unique mark
-        //         "remark": "",          // remark
-        //         "tags": "",            // tag order source
-        //         "isActive": false,     // status before unfilled or uncancelled
-        //         "cancelExist": false,   // order cancellation transaction record
-        //         "createdAt": 1547026471000  // time
-        //     }
+        //    {
+        //        "id": "63c97ce8d686c500015793bb",
+        //        "symbol": "USDC-USDT",
+        //        "opType": "DEAL",
+        //        "type": "limit",
+        //        "side": "sell",
+        //        "price": "1.05",
+        //        "size": "1",
+        //        "funds": "0",
+        //        "dealFunds": "0",
+        //        "dealSize": "0",
+        //        "fee": "0",
+        //        "feeCurrency": "USDT",
+        //        "stp": "",
+        //        "stop": "",
+        //        "stopTriggered": false,
+        //        "stopPrice": "0",
+        //        "timeInForce": "GTC",
+        //        "postOnly": false,
+        //        "hidden": false,
+        //        "iceberg": false,
+        //        "visibleSize": "0",
+        //        "cancelAfter": 0,
+        //        "channel": "API",
+        //        "clientOid": "d602d73f-5424-4751-bef0-8debce8f0a82",
+        //        "remark": null,
+        //        "tags": "partner:ccxt",
+        //        "isActive": true,
+        //        "cancelExist": false,
+        //        "createdAt": 1674149096927,
+        //        "tradeType": "TRADE"
+        //    }
+        //
+        // stop orders (fetchOpenOrders, fetchClosedOrders)
+        //
+        //    {
+        //        "id": "vs9f6ou9e864rgq8000t4qnm",
+        //        "symbol": "USDC-USDT",
+        //        "userId": "613a896885d8660006151f01",
+        //        "status": "NEW",
+        //        "type": "market",
+        //        "side": "sell",
+        //        "price": null,
+        //        "size": "1.00000000000000000000",
+        //        "funds": null,
+        //        "stp": null,
+        //        "timeInForce": "GTC",
+        //        "cancelAfter": -1,
+        //        "postOnly": false,
+        //        "hidden": false,
+        //        "iceberg": false,
+        //        "visibleSize": null,
+        //        "channel": "API",
+        //        "clientOid": "5d3fd727-6456-438d-9550-40d9d85eee0b",
+        //        "remark": null,
+        //        "tags": "partner:ccxt",
+        //        "relatedNo": null,
+        //        "orderTime": 1674146316994000028,
+        //        "domainId": "kucoin",
+        //        "tradeSource": "USER",
+        //        "tradeType": "MARGIN_TRADE",
+        //        "feeCurrency": "USDT",
+        //        "takerFeeRate": "0.00100000000000000000",
+        //        "makerFeeRate": "0.00100000000000000000",
+        //        "createdAt": 1674146316994,
+        //        "stop": "loss",
+        //        "stopTriggerTime": null,
+        //        "stopPrice": "0.97000000000000000000"
+        //    }
         //
         const marketId = this.safeString (order, 'symbol');
-        const symbol = this.safeSymbol (marketId, market, '-');
-        const orderId = this.safeString (order, 'id');
-        const type = this.safeString (order, 'type');
         const timestamp = this.safeInteger (order, 'createdAt');
-        const datetime = this.iso8601 (timestamp);
-        const price = this.safeString (order, 'price');
-        // price is zero for market order
-        // omitZero is called in safeOrder2
-        const side = this.safeString (order, 'side');
         const feeCurrencyId = this.safeString (order, 'feeCurrency');
-        const feeCurrency = this.safeCurrencyCode (feeCurrencyId);
-        const feeCost = this.safeNumber (order, 'fee');
-        const amount = this.safeString (order, 'size');
-        const filled = this.safeString (order, 'dealSize');
-        const cost = this.safeString (order, 'dealFunds');
-        // bool
-        const isActive = this.safeValue (order, 'isActive', false);
         const cancelExist = this.safeValue (order, 'cancelExist', false);
-        const stop = this.safeString (order, 'stop');
+        const responseStop = this.safeString (order, 'stop');
+        const stop = responseStop !== undefined;
         const stopTriggered = this.safeValue (order, 'stopTriggered', false);
-        let status = isActive ? 'open' : 'closed';
-        const cancelExistWithStop = cancelExist || (!isActive && stop && !stopTriggered);
-        status = cancelExistWithStop ? 'canceled' : status;
-        const fee = {
-            'currency': feeCurrency,
-            'cost': feeCost,
-        };
-        const clientOrderId = this.safeString (order, 'clientOid');
-        const timeInForce = this.safeString (order, 'timeInForce');
+        const isActive = this.safeValue (order, 'isActive');
+        let status = undefined;
+        if (isActive === true) {
+            status = 'open';
+        }
+        if (stop) {
+            const responseStatus = this.safeString (order, 'status');
+            if (responseStatus === 'NEW') {
+                status = 'open';
+            } else if (!isActive && !stopTriggered) {
+                status = 'cancelled';
+            }
+        }
+        if (cancelExist) {
+            status = 'canceled';
+        }
         const stopPrice = this.safeNumber (order, 'stopPrice');
-        const postOnly = this.safeValue (order, 'postOnly');
         return this.safeOrder ({
-            'id': orderId,
-            'clientOrderId': clientOrderId,
-            'symbol': symbol,
-            'type': type,
-            'timeInForce': timeInForce,
-            'postOnly': postOnly,
-            'side': side,
-            'amount': amount,
-            'price': price,
+            'info': order,
+            'id': this.safeString (order, 'id'),
+            'clientOrderId': this.safeString (order, 'clientOid'),
+            'symbol': this.safeSymbol (marketId, market, '-'),
+            'type': this.safeString (order, 'type'),
+            'timeInForce': this.safeString (order, 'timeInForce'),
+            'postOnly': this.safeValue (order, 'postOnly'),
+            'side': this.safeString (order, 'side'),
+            'amount': this.safeString (order, 'size'),
+            'price': this.safeString (order, 'price'), // price is zero for market order, omitZero is called in safeOrder2
             'stopPrice': stopPrice,
             'triggerPrice': stopPrice,
-            'cost': cost,
-            'filled': filled,
+            'cost': this.safeString (order, 'dealFunds'),
+            'filled': this.safeString (order, 'dealSize'),
             'remaining': undefined,
             'timestamp': timestamp,
-            'datetime': datetime,
-            'fee': fee,
+            'datetime': this.iso8601 (timestamp),
+            'fee': {
+                'currency': this.safeCurrencyCode (feeCurrencyId),
+                'cost': this.safeNumber (order, 'fee'),
+            },
             'status': status,
-            'info': order,
             'lastTradeTimestamp': undefined,
             'average': undefined,
             'trades': undefined,
