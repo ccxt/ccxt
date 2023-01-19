@@ -496,6 +496,11 @@ module.exports = class kucoin extends Exchange {
                 'networksById': {
                     'BEP20': 'BSC',
                 },
+                'marginModes': {
+                    'cross': 'MARGIN_TRADE',
+                    'isolated': 'MARGIN_ISOLATED_TRADE',
+                    'spot': 'TRADE',
+                },
             },
         });
     }
@@ -1624,6 +1629,10 @@ module.exports = class kucoin extends Exchange {
          */
         await this.loadMarkets ();
         let lowercaseStatus = status.toLowerCase ();
+        const until = this.safeInteger2 (params, 'until', 'till');
+        const stop = this.safeValue (params, 'stop');
+        params = this.omit (params, [ 'stop', 'till', 'until' ]);
+        const [ marginMode, query ] = this.handleMarginModeAndParams ('fetchOrdersByStatus', params);
         if (lowercaseStatus === 'open') {
             lowercaseStatus = 'active';
         } else if (lowercaseStatus === 'closed') {
@@ -1643,17 +1652,17 @@ module.exports = class kucoin extends Exchange {
         if (limit !== undefined) {
             request['pageSize'] = limit;
         }
-        const until = this.safeInteger2 (params, 'until', 'till');
         if (until) {
             request['endAt'] = until;
         }
-        const stop = this.safeValue (params, 'stop');
-        params = this.omit (params, [ 'stop', 'till', 'until' ]);
         let method = 'privateGetOrders';
         if (stop) {
             method = 'privateGetStopOrder';
         }
-        const response = await this[method] (this.extend (request, params));
+        if (marginMode !== undefined) {
+            request['tradeType'] = this.safeString (this.options['marginModes'], marginMode, marginMode);
+        }
+        const response = await this[method] (this.extend (request, query));
         //
         //     {
         //         code: '200000',
