@@ -112,7 +112,8 @@ class gate extends Exchange {
                 'fetchMyTrades' => true,
                 'fetchNetworkDepositAddress' => true,
                 'fetchOHLCV' => true,
-                'fetchOpenInterestHistory' => false,
+                'fetchOpenInterest' => false,
+                'fetchOpenInterestHistory' => true,
                 'fetchOpenOrders' => true,
                 'fetchOrder' => true,
                 'fetchOrderBook' => true,
@@ -5048,6 +5049,90 @@ class gate extends Exchange {
              */
             return Async\await($this->modify_margin_helper($symbol, $amount, $params));
         }) ();
+    }
+
+    public function fetch_open_interest_history($symbol, $timeframe = '5m', $since = null, $limit = null, $params = array ()) {
+        return Async\async(function () use ($symbol, $timeframe, $since, $limit, $params) {
+            /**
+             * Retrieves the open interest of a currency
+             * @see https://www.gate.io/docs/developers/apiv4/en/#futures-stats
+             * @param {string} $symbol Unified CCXT $market $symbol
+             * @param {string} $timeframe "5m", "15m", "30m", "1h", "4h", "1d"
+             * @param {int|null} $since the time(ms) of the earliest record to retrieve as a unix timestamp
+             * @param {int|null} $limit default 30
+             * @param {array} $params exchange specific parameters
+             * @return {array} an open interest structurearray(@link https://docs.ccxt.com/en/latest/manual.html#interest-history-structure)
+             */
+            Async\await($this->load_markets());
+            $market = $this->market($symbol);
+            if (!$market['contract']) {
+                throw new BadRequest($this->id . ' fetchOpenInterest() supports contract markets only');
+            }
+            $request = array(
+                'contract' => $market['id'],
+                'settle' => $market['settleId'],
+                'interval' => $this->timeframes[$timeframe],
+            );
+            if ($limit !== null) {
+                $request['limit'] = $limit;
+            }
+            if ($since !== null) {
+                $request['from'] = $since;
+            }
+            $response = Async\await($this->publicFuturesGetSettleContractStats (array_merge($request, $params)));
+            //
+            //    array(
+            //        array(
+            //            long_liq_size => '0',
+            //            short_liq_size => '0',
+            //            short_liq_usd => '0',
+            //            lsr_account => '3.2808988764045',
+            //            mark_price => '0.34619',
+            //            top_lsr_size => '0',
+            //            time => '1674057000',
+            //            short_liq_amount => '0',
+            //            long_liq_amount => '0',
+            //            open_interest_usd => '9872386.7775',
+            //            top_lsr_account => '0',
+            //            open_interest => '2851725',
+            //            long_liq_usd => '0',
+            //            lsr_taker => '9.3765153315902'
+            //        ),
+            //        ...
+            //    )
+            //
+            return $this->parse_open_interests($response, $market, $since, $limit);
+        }) ();
+    }
+
+    public function parse_open_interest($interest, $market = null) {
+        //
+        //    {
+        //        long_liq_size => '0',
+        //        short_liq_size => '0',
+        //        short_liq_usd => '0',
+        //        lsr_account => '3.2808988764045',
+        //        mark_price => '0.34619',
+        //        top_lsr_size => '0',
+        //        time => '1674057000',
+        //        short_liq_amount => '0',
+        //        long_liq_amount => '0',
+        //        open_interest_usd => '9872386.7775',
+        //        top_lsr_account => '0',
+        //        open_interest => '2851725',
+        //        long_liq_usd => '0',
+        //        lsr_taker => '9.3765153315902'
+        //    }
+        //
+        $timestamp = $this->safe_integer_product($interest, 'time', 1000);
+        return array(
+            'symbol' => $this->safe_string($market, 'symbol'),
+            'openInterestAmount' => $this->safe_number($interest, 'open_interest'),
+            'openInterestValue' => $this->safe_number($interest, 'open_interest_usd'),
+            'timestamp' => $timestamp,
+            'datetime' => $this->iso8601($timestamp),
+            'info' => $interest,
+        );
     }
 
     public function handle_errors($code, $reason, $url, $method, $headers, $body, $response, $requestHeaders, $requestBody) {
