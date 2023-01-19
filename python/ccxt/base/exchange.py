@@ -412,7 +412,7 @@ class Exchange(object):
         if self.markets:
             self.set_markets(self.markets)
 
-        # convert all properties from underscore notation foo_bar to camelcase notation fooBar
+        # convert all properties from underscore notation foo_bar to camelcase notation fooBar. as we don't have magic __call in Python (as opposed to PHP), instead of runtime we have to predefine the functions in advance
         cls = type(self)
         for name in dir(self):
             if name[0] != '_' and name[-1] != '_' and '_' in name:
@@ -486,6 +486,7 @@ class Exchange(object):
                 api_argument = paths[0]
         camelcase = camelcase_prefix + camelcase_method + Exchange.capitalize(camelcase_suffix)
         underscore = underscore_prefix + '_' + lowercase_method + '_' + underscore_suffix.lower()
+        uncamelcased = self.un_camel_case(camelcase)
 
         def partialer():
             outer_kwargs = {'path': path, 'api': api_argument, 'method': uppercase_method, 'config': config}
@@ -507,6 +508,8 @@ class Exchange(object):
         to_bind = partialer()
         setattr(cls, camelcase, to_bind)
         setattr(cls, underscore, to_bind)
+        if uncamelcased != underscore:
+            setattr(cls, uncamelcased, to_bind)
 
     def define_rest_api(self, api, method_name, paths=[]):
         for key, value in api.items():
@@ -529,6 +532,15 @@ class Exchange(object):
                         raise NotSupported(self.id + ' define_rest_api() API format not supported, API leafs must strings, objects or numbers')
             else:
                 self.define_rest_api(value, method_name, paths + [key])
+
+    def un_camel_case(self, str):
+        if not re.search(r'[A-Z]', str):
+            return str
+        str = re.sub('([a-z0-9])([A-Z])', r'\1_\2', str)
+        str = re.sub('([A-Z0-9])([A-Z0-9])([a-z])([^$])', r'\1_\2\3\4', str)
+        str = re.sub('([a-z])([0-9])$', r'\1_\2', str)
+        str = str.lower()
+        return str
 
     def throttle(self, cost=None):
         now = float(self.milliseconds())
@@ -2392,7 +2404,7 @@ class Exchange(object):
         if not self.has['fetchTrades']:
             raise NotSupported(self.id + ' fetchOHLCV() is not supported yet')
         self.load_markets()
-        trades = self.fetchTrades(symbol, since, limit, params)
+        trades = self.fetch_trades(symbol, since, limit, params)
         ohlcvc = self.build_ohlcvc(trades, timeframe, since, limit)
         result = []
         for i in range(0, len(ohlcvc)):
@@ -2833,7 +2845,7 @@ class Exchange(object):
         if not self.has['fetchTrades']:
             raise NotSupported(self.id + ' fetchOHLCV() is not supported yet')
         self.load_markets()
-        trades = self.fetchTrades(symbol, since, limit, params)
+        trades = self.fetch_trades(symbol, since, limit, params)
         return self.build_ohlcvc(trades, timeframe, since, limit)
 
     def parse_trading_view_ohlcv(self, ohlcvs, market=None, timeframe='1m', since=None, limit=None):
@@ -2850,7 +2862,7 @@ class Exchange(object):
         return self.edit_order(id, symbol, 'limit', side, amount, price, params)
 
     def edit_order(self, id, symbol, type, side, amount, price=None, params={}):
-        self.cancelOrder(id, symbol)
+        self.cancel_order(id, symbol)
         return self.create_order(symbol, type, side, amount, price, params)
 
     def fetch_permissions(self, params={}):
@@ -2995,7 +3007,7 @@ class Exchange(object):
 
     def fetch_status(self, params={}):
         if self.has['fetchTime']:
-            time = self.fetchTime(params)
+            time = self.fetch_time(params)
             self.status = self.extend(self.status, {
                 'updated': time,
             })
@@ -3169,7 +3181,7 @@ class Exchange(object):
         raise NotSupported(self.id + ' cancelOrder() is not supported yet')
 
     def cancel_unified_order(self, order, params={}):
-        return self.cancelOrder(self.safe_value(order, 'id'), self.safe_value(order, 'symbol'), params)
+        return self.cancel_order(self.safe_value(order, 'id'), self.safe_value(order, 'symbol'), params)
 
     def fetch_orders(self, symbol=None, since=None, limit=None, params={}):
         raise NotSupported(self.id + ' fetchOrders() is not supported yet')
@@ -3194,7 +3206,7 @@ class Exchange(object):
 
     def fetch_deposit_address(self, code, params={}):
         if self.has['fetchDepositAddresses']:
-            depositAddresses = self.fetchDepositAddresses([code], params)
+            depositAddresses = self.fetch_deposit_addresses([code], params)
             depositAddress = self.safe_value(depositAddresses, code)
             if depositAddress is None:
                 raise InvalidAddress(self.id + ' fetchDepositAddress() could not find a deposit address for ' + code + ', make sure you have created a corresponding deposit address in your wallet on the exchange website')
@@ -3317,7 +3329,7 @@ class Exchange(object):
         return '1e' + Precise.string_neg(precision)
 
     def load_time_difference(self, params={}):
-        serverTime = self.fetchTime(params)
+        serverTime = self.fetch_time(params)
         after = self.milliseconds()
         self.options['timeDifference'] = after - serverTime
         return self.options['timeDifference']
@@ -3512,7 +3524,7 @@ class Exchange(object):
             market = self.market(symbol)
             if not market['contract']:
                 raise BadSymbol(self.id + ' fetchFundingRate() supports contract markets only')
-            rates = self.fetchFundingRates([symbol], params)
+            rates = self.fetch_funding_rates([symbol], params)
             rate = self.safe_value(rates, symbol)
             if rate is None:
                 raise NullResponse(self.id + ' fetchFundingRate() returned no data for ' + symbol)
