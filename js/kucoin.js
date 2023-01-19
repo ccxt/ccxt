@@ -1502,6 +1502,11 @@ module.exports = class kucoin extends Exchange {
             const triggerPrice = isStopLoss ? stopLossPrice : takeProfitPrice;
             request['stopPrice'] = this.priceToPrecision (symbol, triggerPrice);
             method = 'privatePostStopOrder';
+            if (marginMode === 'isolated') {
+                throw new BadRequest (this.id + ' createOrder does not support isolated margin for stop orders');
+            } else if (marginMode === 'cross') {
+                request['tradeType'] = this.options['marginModes'][marginMode];
+            }
         } else if (tradeType === 'MARGIN_TRADE' || marginMode !== undefined) {
             method = 'privatePostMarginOrder';
             if (marginMode === 'isolated') {
