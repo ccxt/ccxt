@@ -422,6 +422,27 @@ $loop = \React\EventLoop\Factory::create(); // the event loop goes here ↓
 $exchange = new \ccxt\pro\kucoin(array('loop' => $loop, 'newUpdates': false ));
 ```
 
+## Proxy
+### Python Proxies
+
+The python version of the library uses the [aiohttp]([python-requests.org](https://docs.aiohttp.org/en/stable/client_advanced.html) package for underlying websockets client.
+
+You can configure proxies by setting `aiohttp_trust_env` to `True` and setting the environment variables HTPP_PROXY, HTTPS_PROXY, WS_PROXY and WSS_PROXY.
+
+```python
+import ccxt
+exchange = ccxt.pro.binance({
+    'aiohttp_trust_env': True
+})
+```
+
+```shell
+$ export HTTP_PROXY="http://10.10.1.10:3128"
+$ export HTTPS_PROXY="http://10.10.1.10:1080"
+$ export WS_PROXY="http://10.10.1.10:3128"
+$ export WSS_PROXY="http://10.10.1.10:1080"
+```
+
 ## Exchange Properties
 
 Every CCXT Pro instance contains all properties of the underlying CCXT instance. Apart from the standard CCXT properties, the CCXT Pro instance includes the following:

@@ -6,6 +6,7 @@
   - [Streaming Specifics](ccxt.pro.manual#streaming-specifics)
   - [Linking](ccxt.pro.manual#linking)
   - [Instantiation](ccxt.pro.manual#instantiation)
+  - [Proxy] (ccxt.pro.manual#proxy)
   - [Exchange Properties](ccxt.pro.manual#exchange-properties)
   - [Unified API](ccxt.pro.manual#unified-api)
     - [Public Methods](ccxt.pro.manual#public-methods)
