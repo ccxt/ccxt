@@ -5,6 +5,7 @@
 const krakenRest = require ('../kraken.js');
 const { BadSymbol, BadRequest, ExchangeError, NotSupported, InvalidNonce } = require ('../base/errors');
 const { ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById } = require ('./base/Cache');
+const Precise = require ('../base/Precise.js');
 
 //  ---------------------------------------------------------------------------
 
@@ -252,6 +253,8 @@ module.exports = class kraken extends krakenRest {
          * @param {object} params extra parameters specific to the kraken api endpoint
          * @returns {[object]} a list of [trade structures]{@link https://docs.ccxt.com/en/latest/manual.html?#public-trades}
          */
+        await this.loadMarkets ();
+        symbol = this.symbol (symbol);
         const name = 'trade';
         const trades = await this.watchPublic (name, symbol, params);
         if (this.newUpdates) {
@@ -282,13 +285,25 @@ module.exports = class kraken extends krakenRest {
             }
         }
         const orderbook = await this.watchPublic (name, symbol, this.extend (request, params));
-        return orderbook.limit (limit);
+        return orderbook.limit ();
     }
 
     async watchOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
+        /**
+         * @method
+         * @name kraken#watchOHLCV
+         * @description watches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+         * @param {string} symbol unified symbol of the market to fetch OHLCV data for
+         * @param {string} timeframe the length of time each candle represents
+         * @param {int|undefined} since timestamp in ms of the earliest candle to fetch
+         * @param {int|undefined} limit the maximum amount of candles to fetch
+         * @param {object} params extra parameters specific to the kraken api endpoint
+         * @returns {[[int]]} A list of candles ordered as timestamp, open, high, low, close, volume
+         */
         await this.loadMarkets ();
         const name = 'ohlc';
         const market = this.market (symbol);
+        symbol = market['symbol'];
         const wsName = this.safeValue (market['info'], 'wsname');
         const messageHash = name + ':' + timeframe + ':' + wsName;
         const url = this.urls['api']['ws']['public'];
@@ -563,6 +578,7 @@ module.exports = class kraken extends krakenRest {
         const subscriptionHash = name;
         let messageHash = name;
         if (symbol !== undefined) {
+            symbol = this.symbol (symbol);
             messageHash += ':' + symbol;
         }
         const url = this.urls['api']['ws']['private'];
@@ -751,6 +767,7 @@ module.exports = class kraken extends krakenRest {
         /**
          * @method
          * @name kraken#watchOrders
+         * @see https://docs.kraken.com/websockets/#message-openOrders
          * @description watches information on multiple orders made by the user
          * @param {string|undefined} symbol unified market symbol of the market orders were made in
          * @param {int|undefined} since the earliest time in ms to fetch orders for
@@ -897,11 +914,34 @@ module.exports = class kraken extends krakenRest {
     parseWsOrder (order, market = undefined) {
         //
         // createOrder
-        //
-        //     {
-        //         descr: { order: 'buy 0.02100000 ETHUSDT @ limit 330.00' },
-        //         txid: [ 'OEKVV2-IH52O-TPL6GZ' ]
-        //     }
+        //    {
+        //        avg_price: '0.00000',
+        //        cost: '0.00000',
+        //        descr: {
+        //            close: null,
+        //            leverage: null,
+        //            order: 'sell 0.01000000 ETH/USDT @ limit 1900.00000',
+        //            ordertype: 'limit',
+        //            pair: 'ETH/USDT',
+        //            price: '1900.00000',
+        //            price2: '0.00000',
+        //            type: 'sell'
+        //        },
+        //        expiretm: null,
+        //        fee: '0.00000',
+        //        limitprice: '0.00000',
+        //        misc: '',
+        //        oflags: 'fciq',
+        //        opentm: '1667522705.757622',
+        //        refid: null,
+        //        starttm: null,
+        //        status: 'open',
+        //        stopprice: '0.00000',
+        //        timeinforce: 'GTC',
+        //        userref: 0,
+        //        vol: '0.01000000',
+        //        vol_exec: '0.00000000'
+        //    }
         //
         const description = this.safeValue (order, 'descr', {});
         const orderDescription = this.safeString (description, 'order');
@@ -913,10 +953,10 @@ module.exports = class kraken extends krakenRest {
         if (orderDescription !== undefined) {
             const parts = orderDescription.split (' ');
             side = this.safeString (parts, 0);
-            amount = this.safeFloat (parts, 1);
+            amount = this.safeString (parts, 1);
             wsName = this.safeString (parts, 2);
             type = this.safeString (parts, 4);
-            price = this.safeFloat (parts, 5);
+            price = this.safeString (parts, 5);
         }
         side = this.safeString (description, 'type', side);
         type = this.safeString (description, 'ordertype', type);
@@ -924,27 +964,23 @@ module.exports = class kraken extends krakenRest {
         market = this.safeValue (this.options['marketsByWsName'], wsName, market);
         let symbol = undefined;
         const timestamp = this.safeTimestamp (order, 'opentm');
-        amount = this.safeFloat (order, 'vol', amount);
-        const filled = this.safeFloat (order, 'vol_exec');
-        let remaining = undefined;
-        if ((amount !== undefined) && (filled !== undefined)) {
-            remaining = amount - filled;
-        }
+        amount = this.safeString (order, 'vol', amount);
+        const filled = this.safeString (order, 'vol_exec');
         let fee = undefined;
-        const cost = this.safeFloat (order, 'cost');
-        price = this.safeFloat (description, 'price', price);
-        if ((price === undefined) || (price === 0.0)) {
-            price = this.safeFloat (description, 'price2');
+        const cost = this.safeString (order, 'cost');
+        price = this.safeString (description, 'price', price);
+        if ((price === undefined) || (Precise.stringEq (price, '0.0'))) {
+            price = this.safeString (description, 'price2');
         }
-        if ((price === undefined) || (price === 0.0)) {
-            price = this.safeFloat (order, 'price', price);
+        if ((price === undefined) || (Precise.stringEq (price, '0.0'))) {
+            price = this.safeString (order, 'price', price);
         }
-        const average = this.safeFloat (order, 'price');
+        const average = this.safeString2 (order, 'avg_price', 'price');
         if (market !== undefined) {
             symbol = market['symbol'];
             if ('fee' in order) {
                 const flags = order['oflags'];
-                const feeCost = this.safeFloat (order, 'fee');
+                const feeCost = this.safeString (order, 'fee');
                 fee = {
                     'cost': feeCost,
                     'rate': undefined,
@@ -968,8 +1004,8 @@ module.exports = class kraken extends krakenRest {
         if (rawTrades !== undefined) {
             trades = this.parseTrades (rawTrades, market, undefined, undefined, { 'order': id });
         }
-        const stopPrice = this.safeFloat (order, 'stopprice');
-        return {
+        const stopPrice = this.safeNumber (order, 'stopprice');
+        return this.safeOrder ({
             'id': id,
             'clientOrderId': clientOrderId,
             'info': order,
@@ -984,14 +1020,15 @@ module.exports = class kraken extends krakenRest {
             'side': side,
             'price': price,
             'stopPrice': stopPrice,
+            'triggerPrice': stopPrice,
             'cost': cost,
             'amount': amount,
             'filled': filled,
             'average': average,
-            'remaining': remaining,
+            'remaining': undefined,
             'fee': fee,
             'trades': trades,
-        };
+        });
     }
 
     handleSubscriptionStatus (client, message) {

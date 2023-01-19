@@ -35,6 +35,7 @@ class upbit extends \ccxt\async\upbit {
         return Async\async(function () use ($symbol, $channel, $params) {
             Async\await($this->load_markets());
             $market = $this->market($symbol);
+            $symbol = $market['symbol'];
             $marketId = $market['id'];
             $url = $this->urls['api']['ws'];
             $this->options[$channel] = $this->safe_value($this->options, $channel, array());
@@ -79,6 +80,8 @@ class upbit extends \ccxt\async\upbit {
              * @param {array} $params extra parameters specific to the upbit api endpoint
              * @return {[array]} a list of ~@link https://docs.ccxt.com/en/latest/manual.html?#public-$trades trade structures~
              */
+            Async\await($this->load_markets());
+            $symbol = $this->symbol($symbol);
             $trades = Async\await($this->watch_public($symbol, 'trade'));
             if ($this->newUpdates) {
                 $limit = $trades->getLimit ($symbol, $limit);
@@ -97,7 +100,7 @@ class upbit extends \ccxt\async\upbit {
              * @return {array} A dictionary of {@link https://docs.ccxt.com/en/latest/manual.html#order-book-structure order book structures} indexed by market symbols
              */
             $orderbook = Async\await($this->watch_public($symbol, 'orderbook'));
-            return $orderbook->limit ($limit);
+            return $orderbook->limit ();
         }) ();
     }
 

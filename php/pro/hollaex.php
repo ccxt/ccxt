@@ -69,7 +69,7 @@ class hollaex extends \ccxt\async\hollaex {
             $market = $this->market($symbol);
             $messageHash = 'orderbook' . ':' . $market['id'];
             $orderbook = Async\await($this->watch_public($messageHash, $params));
-            return $orderbook->limit ($limit);
+            return $orderbook->limit ();
         }) ();
     }
 

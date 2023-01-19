@@ -67,7 +67,7 @@ class hollaex(Exchange, ccxt.async_support.hollaex):
         market = self.market(symbol)
         messageHash = 'orderbook' + ':' + market['id']
         orderbook = await self.watch_public(messageHash, params)
-        return orderbook.limit(limit)
+        return orderbook.limit()
 
     def handle_order_book(self, client, message):
         #

@@ -77,7 +77,7 @@ module.exports = class bitopro extends bitoproRest {
             endPart = market['id'] + ':' + limit;
         }
         const orderbook = await this.watchPublic ('order-books', messageHash, endPart);
-        return orderbook.limit (limit);
+        return orderbook.limit ();
     }
 
     handleOrderBook (client, message) {

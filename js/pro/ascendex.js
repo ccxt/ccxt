@@ -75,6 +75,17 @@ module.exports = class ascendex extends ascendexRest {
     }
 
     async watchOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
+        /**
+         * @method
+         * @name ascendex#watchOHLCV
+         * @description watches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+         * @param {string} symbol unified symbol of the market to fetch OHLCV data for
+         * @param {string} timeframe the length of time each candle represents
+         * @param {int|undefined} since timestamp in ms of the earliest candle to fetch
+         * @param {int|undefined} limit the maximum amount of candles to fetch
+         * @param {object} params extra parameters specific to the ascendex api endpoint
+         * @returns {[[int]]} A list of candles ordered as timestamp, open, high, low, close, volume
+         */
         await this.loadMarkets ();
         const market = this.market (symbol);
         symbol = market['symbol'];
@@ -210,7 +221,7 @@ module.exports = class ascendex extends ascendexRest {
             'ch': channel,
         });
         const orderbook = await this.watchPublic (channel, params);
-        return orderbook.limit (limit);
+        return orderbook.limit ();
     }
 
     async watchOrderBookSnapshot (symbol, limit = undefined, params = {}) {
@@ -226,7 +237,7 @@ module.exports = class ascendex extends ascendexRest {
             'op': 'req',
         });
         const orderbook = await this.watchPublic (channel, params);
-        return orderbook.limit (limit);
+        return orderbook.limit ();
     }
 
     handleOrderBookSnapshot (client, message) {
@@ -661,6 +672,7 @@ module.exports = class ascendex extends ascendexRest {
             'side': side,
             'price': price,
             'stopPrice': stopPrice,
+            'triggerPrice': stopPrice,
             'amount': amount,
             'cost': undefined,
             'average': average,
@@ -691,32 +703,31 @@ module.exports = class ascendex extends ascendexRest {
                     this.throwBroadlyMatchedException (this.exceptions['broad'], messageString, feedback);
                 }
             }
+            return false;
         } catch (e) {
             if (e instanceof AuthenticationError) {
-                client.reject (e, 'authenticated');
-                const method = 'auth';
-                if (method in client.subscriptions) {
-                    delete client.subscriptions[method];
+                const messageHash = 'authenticated';
+                client.reject (e, messageHash);
+                if (messageHash in client.subscriptions) {
+                    delete client.subscriptions[messageHash];
                 }
-                return false;
             } else {
                 client.reject (e);
             }
+            return true;
         }
-        return message;
     }
 
     handleAuthenticate (client, message) {
         //
         //     { m: 'auth', id: '1647605234', code: 0 }
         //
-        const future = client.futures['authenticated'];
-        future.resolve (1);
-        return message;
+        const messageHash = 'authenticated';
+        client.resolve (message, messageHash);
     }
 
     handleMessage (client, message) {
-        if (!this.handleErrorMessage (client, message)) {
+        if (this.handleErrorMessage (client, message)) {
             return;
         }
         //
@@ -927,14 +938,12 @@ module.exports = class ascendex extends ascendexRest {
         this.spawn (this.pong, client, message);
     }
 
-    async authenticate (url, params = {}) {
+    authenticate (url, params = {}) {
         this.checkRequiredCredentials ();
         const messageHash = 'authenticated';
         const client = this.client (url);
         let future = this.safeValue (client.futures, messageHash);
         if (future === undefined) {
-            future = client.future ('authenticated');
-            client.future (messageHash);
             const timestamp = this.milliseconds ().toString ();
             const urlParts = url.split ('/');
             const partsLength = urlParts.length;
@@ -950,8 +959,9 @@ module.exports = class ascendex extends ascendexRest {
                 'key': this.apiKey,
                 'sig': signature,
             };
-            this.spawn (this.watch, url, messageHash, this.extend (request, params));
+            future = this.watch (url, messageHash, this.extend (request, params));
+            client.subscriptions[messageHash] = future;
         }
-        return await future;
+        return future;
     }
 };

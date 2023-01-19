@@ -318,6 +318,7 @@ class phemex(Exchange, ccxt.async_support.phemex):
         """
         await self.load_markets()
         market = self.market(symbol)
+        symbol = market['symbol']
         name = 'spot_market24h' if market['spot'] else 'market24h'
         url = self.urls['api']['ws']
         requestId = self.request_id()
@@ -342,6 +343,7 @@ class phemex(Exchange, ccxt.async_support.phemex):
         """
         await self.load_markets()
         market = self.market(symbol)
+        symbol = market['symbol']
         url = self.urls['api']['ws']
         requestId = self.request_id()
         name = 'trade'
@@ -370,6 +372,7 @@ class phemex(Exchange, ccxt.async_support.phemex):
         """
         await self.load_markets()
         market = self.market(symbol)
+        symbol = market['symbol']
         url = self.urls['api']['ws']
         requestId = self.request_id()
         name = 'orderbook'
@@ -384,11 +387,21 @@ class phemex(Exchange, ccxt.async_support.phemex):
         }
         request = self.deep_extend(subscribe, params)
         orderbook = await self.watch(url, messageHash, request, messageHash)
-        return orderbook.limit(limit)
+        return orderbook.limit()
 
     async def watch_ohlcv(self, symbol, timeframe='1m', since=None, limit=None, params={}):
+        """
+        watches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+        :param str symbol: unified symbol of the market to fetch OHLCV data for
+        :param str timeframe: the length of time each candle represents
+        :param int|None since: timestamp in ms of the earliest candle to fetch
+        :param int|None limit: the maximum amount of candles to fetch
+        :param dict params: extra parameters specific to the phemex api endpoint
+        :returns [[int]]: A list of candles ordered as timestamp, open, high, low, close, volume
+        """
         await self.load_markets()
         market = self.market(symbol)
+        symbol = market['symbol']
         url = self.urls['api']['ws']
         requestId = self.request_id()
         name = 'kline'
@@ -535,15 +548,13 @@ class phemex(Exchange, ccxt.async_support.phemex):
         for i in range(0, len(message)):
             rawTrade = message[i]
             marketId = self.safe_string(rawTrade, 'symbol')
-            # skip delisted  markets
-            if marketId in self.markets_by_id:
-                parsed = self.parse_trade(rawTrade)
-                cachedTrades.append(parsed)
-                symbol = parsed['symbol']
-                market = self.market(symbol)
-                if type is None:
-                    type = market['type']
-                marketIds[symbol] = True
+            market = self.safe_market(marketId)
+            parsed = self.parse_trade(rawTrade)
+            cachedTrades.append(parsed)
+            symbol = parsed['symbol']
+            if type is None:
+                type = market['type']
+            marketIds[symbol] = True
         keys = list(marketIds.keys())
         for i in range(0, len(keys)):
             market = keys[i]
@@ -679,27 +690,20 @@ class phemex(Exchange, ccxt.async_support.phemex):
             ordersLength = len(orders)
             if ordersLength == 0:
                 return
-            fills = self.safe_value(message, 'fills', [])
-            trades = fills
+            trades = self.safe_value(message, 'fills', [])
             for i in range(0, len(orders)):
                 rawOrder = orders[i]
-                marketId = self.safe_string(rawOrder, 'symbol')
-                # skip delisted spot markets
-                if marketId in self.markets_by_id:
-                    parsedOrder = self.parse_order(rawOrder)
-                    parsedOrders.append(parsedOrder)
+                parsedOrder = self.parse_order(rawOrder)
+                parsedOrders.append(parsedOrder)
         else:
             for i in range(0, len(message)):
                 update = message[i]
-                marketId = self.safe_string(update, 'symbol')
-                if marketId in self.markets_by_id:
-                    # skip delisted swap markets
-                    action = self.safe_string(update, 'action')
-                    if (action is not None) and (action != 'Cancel'):
-                        # order + trade info together
-                        trades.append(update)
-                    parsedOrder = self.parse_ws_swap_order(update)
-                    parsedOrders.append(parsedOrder)
+                action = self.safe_string(update, 'action')
+                if (action is not None) and (action != 'Cancel'):
+                    # order + trade info together
+                    trades.append(update)
+                parsedOrder = self.parse_ws_swap_order(update)
+                parsedOrders.append(parsedOrder)
         self.handle_my_trades(client, trades)
         limit = self.safe_integer(self.options, 'ordersLimit', 1000)
         marketIds = {}
@@ -818,6 +822,7 @@ class phemex(Exchange, ccxt.async_support.phemex):
             'side': side,
             'price': price,
             'stopPrice': stopPrice,
+            'triggerPrice': stopPrice,
             'amount': amount,
             'filled': filled,
             'remaining': remaining,

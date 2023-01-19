@@ -347,6 +347,7 @@ class phemex extends \ccxt\async\phemex {
              */
             Async\await($this->load_markets());
             $market = $this->market($symbol);
+            $symbol = $market['symbol'];
             $name = $market['spot'] ? 'spot_market24h' : 'market24h';
             $url = $this->urls['api']['ws'];
             $requestId = $this->request_id();
@@ -374,6 +375,7 @@ class phemex extends \ccxt\async\phemex {
              */
             Async\await($this->load_markets());
             $market = $this->market($symbol);
+            $symbol = $market['symbol'];
             $url = $this->urls['api']['ws'];
             $requestId = $this->request_id();
             $name = 'trade';
@@ -406,6 +408,7 @@ class phemex extends \ccxt\async\phemex {
              */
             Async\await($this->load_markets());
             $market = $this->market($symbol);
+            $symbol = $market['symbol'];
             $url = $this->urls['api']['ws'];
             $requestId = $this->request_id();
             $name = 'orderbook';
@@ -420,14 +423,24 @@ class phemex extends \ccxt\async\phemex {
             );
             $request = $this->deep_extend($subscribe, $params);
             $orderbook = Async\await($this->watch($url, $messageHash, $request, $messageHash));
-            return $orderbook->limit ($limit);
+            return $orderbook->limit ();
         }) ();
     }
 
     public function watch_ohlcv($symbol, $timeframe = '1m', $since = null, $limit = null, $params = array ()) {
         return Async\async(function () use ($symbol, $timeframe, $since, $limit, $params) {
+            /**
+             * watches historical candlestick data containing the open, high, low, and close price, and the volume of a $market
+             * @param {string} $symbol unified $symbol of the $market to fetch OHLCV data for
+             * @param {string} $timeframe the length of time each candle represents
+             * @param {int|null} $since timestamp in ms of the earliest candle to fetch
+             * @param {int|null} $limit the maximum amount of candles to fetch
+             * @param {array} $params extra parameters specific to the phemex api endpoint
+             * @return {[[int]]} A list of candles ordered as timestamp, open, high, low, close, volume
+             */
             Async\await($this->load_markets());
             $market = $this->market($symbol);
+            $symbol = $market['symbol'];
             $url = $this->urls['api']['ws'];
             $requestId = $this->request_id();
             $name = 'kline';
@@ -591,17 +604,14 @@ class phemex extends \ccxt\async\phemex {
         for ($i = 0; $i < count($message); $i++) {
             $rawTrade = $message[$i];
             $marketId = $this->safe_string($rawTrade, 'symbol');
-            // skip delisted  markets
-            if (is_array($this->markets_by_id) && array_key_exists($marketId, $this->markets_by_id)) {
-                $parsed = $this->parse_trade($rawTrade);
-                $cachedTrades->append ($parsed);
-                $symbol = $parsed['symbol'];
-                $market = $this->market($symbol);
-                if ($type === null) {
-                    $type = $market['type'];
-                }
-                $marketIds[$symbol] = true;
+            $market = $this->safe_market($marketId);
+            $parsed = $this->parse_trade($rawTrade);
+            $cachedTrades->append ($parsed);
+            $symbol = $parsed['symbol'];
+            if ($type === null) {
+                $type = $market['type'];
             }
+            $marketIds[$symbol] = true;
         }
         $keys = is_array($marketIds) ? array_keys($marketIds) : array();
         for ($i = 0; $i < count($keys); $i++) {
@@ -747,31 +757,22 @@ class phemex extends \ccxt\async\phemex {
             if ($ordersLength === 0) {
                 return;
             }
-            $fills = $this->safe_value($message, 'fills', array());
-            $trades = $fills;
+            $trades = $this->safe_value($message, 'fills', array());
             for ($i = 0; $i < count($orders); $i++) {
                 $rawOrder = $orders[$i];
-                $marketId = $this->safe_string($rawOrder, 'symbol');
-                // skip delisted spot markets
-                if (is_array($this->markets_by_id) && array_key_exists($marketId, $this->markets_by_id)) {
-                    $parsedOrder = $this->parse_order($rawOrder);
-                    $parsedOrders[] = $parsedOrder;
-                }
+                $parsedOrder = $this->parse_order($rawOrder);
+                $parsedOrders[] = $parsedOrder;
             }
         } else {
             for ($i = 0; $i < count($message); $i++) {
                 $update = $message[$i];
-                $marketId = $this->safe_string($update, 'symbol');
-                if (is_array($this->markets_by_id) && array_key_exists($marketId, $this->markets_by_id)) {
-                    // skip delisted swap markets
-                    $action = $this->safe_string($update, 'action');
-                    if (($action !== null) && ($action !== 'Cancel')) {
-                        // order . trade info together
-                        $trades[] = $update;
-                    }
-                    $parsedOrder = $this->parse_ws_swap_order($update);
-                    $parsedOrders[] = $parsedOrder;
+                $action = $this->safe_string($update, 'action');
+                if (($action !== null) && ($action !== 'Cancel')) {
+                    // order . trade info together
+                    $trades[] = $update;
                 }
+                $parsedOrder = $this->parse_ws_swap_order($update);
+                $parsedOrders[] = $parsedOrder;
             }
         }
         $this->handle_my_trades($client, $trades);
@@ -899,6 +900,7 @@ class phemex extends \ccxt\async\phemex {
             'side' => $side,
             'price' => $price,
             'stopPrice' => $stopPrice,
+            'triggerPrice' => $stopPrice,
             'amount' => $amount,
             'filled' => $filled,
             'remaining' => $remaining,

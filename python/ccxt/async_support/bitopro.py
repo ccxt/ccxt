@@ -185,6 +185,8 @@ class bitopro(Exchange):
                     'ETH': 'ERC20',
                     'TRX': 'TRX',
                     'TRC20': 'TRX',
+                    'BEP20': 'BSC',
+                    'BSC': 'BSC',
                 },
             },
             'precisionMode': TICK_SIZE,
@@ -912,6 +914,7 @@ class bitopro(Exchange):
             'side': side,
             'price': price,
             'stopPrice': None,
+            'triggerPrice': None,
             'amount': amount,
             'cost': None,
             'average': average,
@@ -1232,76 +1235,79 @@ class bitopro(Exchange):
     def parse_transaction(self, transaction, currency=None):
         #
         # fetchDeposits
-        #             {
-        #                 "serial":"20220214X766799",
-        #                 "timestamp":"1644833015053",
-        #                 "address":"bnb1xml62k5a9dcewgc542fha75fyxdcp0zv8eqfsh",
-        #                 "amount":"0.20000000",
-        #                 "fee":"0.00000000",
-        #                 "total":"0.20000000",
-        #                 "status":"COMPLETE",
-        #                 "txid":"A3CC4F6828CC752B9F3737F48B5826B9EC2857040CB5141D0CC955F7E53DB6D9",
-        #                 "message":"778553959",
-        #                 "protocol":"MAIN",
-        #                 "id":"2905906537"
-        #             }
+        #
+        #    {
+        #        "serial": "20220214X766799",
+        #        "timestamp": "1644833015053",
+        #        "address": "bnb1xml62k5a9dcewgc542fha75fyxdcp0zv8eqfsh",
+        #        "amount": "0.20000000",
+        #        "fee": "0.00000000",
+        #        "total": "0.20000000",
+        #        "status": "COMPLETE",
+        #        "txid": "A3CC4F6828CC752B9F3737F48B5826B9EC2857040CB5141D0CC955F7E53DB6D9",
+        #        "message": "778553959",
+        #        "protocol": "MAIN",
+        #        "id": "2905906537"
+        #    }
         #
         # fetchWithdrawals or fetchWithdraw
-        #             {
-        #                 "serial":"20220215BW14069838",
-        #                 "timestamp":"1644907716044",
-        #                 "address":"TKrwMaZaGiAvtXCFT41xHuusNcs4LPWS7w",
-        #                 "amount":"8.00000000",
-        #                 "fee":"2.00000000",
-        #                 "total":"10.00000000",
-        #                 "status":"COMPLETE",
-        #                 "txid":"50bf250c71a582f40cf699fb58bab978437ea9bdf7259ff8072e669aab30c32b",
-        #                 "protocol":"TRX",
-        #                 "id":"9925310345"
-        #             }
+        #
+        #    {
+        #        "serial": "20220215BW14069838",
+        #        "timestamp": "1644907716044",
+        #        "address": "TKrwMaZaGiAvtXCFT41xHuusNcs4LPWS7w",
+        #        "amount": "8.00000000",
+        #        "fee": "2.00000000",
+        #        "total": "10.00000000",
+        #        "status": "COMPLETE",
+        #        "txid": "50bf250c71a582f40cf699fb58bab978437ea9bdf7259ff8072e669aab30c32b",
+        #        "protocol": "TRX",
+        #        "id": "9925310345"
+        #    }
         #
         # withdraw
-        #             {
-        #                 "serial":"20220215BW14069838",
-        #                 "currency":"USDT",
-        #                 "protocol":"TRX",
-        #                 "address":"TKrwMaZaGiAvtXCFT41xHuusNcs4LPWS7w",
-        #                 "amount":"8",
-        #                 "fee":"2",
-        #                 "total":"10"
-        #             }
+        #
+        #    {
+        #        "serial": "20220215BW14069838",
+        #        "currency": "USDT",
+        #        "protocol": "TRX",
+        #        "address": "TKrwMaZaGiAvtXCFT41xHuusNcs4LPWS7w",
+        #        "amount": "8",
+        #        "fee": "2",
+        #        "total": "10"
+        #    }
         #
         currencyId = self.safe_string(transaction, 'coin')
         code = self.safe_currency_code(currencyId, currency)
-        id = self.safe_string(transaction, 'serial')
-        txId = self.safe_string(transaction, 'txid')
         timestamp = self.safe_integer(transaction, 'timestamp')
-        amount = self.safe_number(transaction, 'total')
         address = self.safe_string(transaction, 'address')
         tag = self.safe_string(transaction, 'message')
         status = self.safe_string(transaction, 'status')
-        fee = self.safe_number(transaction, 'fee')
+        networkId = self.safe_string(transaction, 'protocol')
+        if networkId == 'MAIN':
+            networkId = code
         return {
             'info': transaction,
-            'id': id,
-            'txid': txId,
+            'id': self.safe_string(transaction, 'serial'),
+            'txid': self.safe_string(transaction, 'txid'),
+            'type': None,
+            'currency': code,
+            'network': self.network_id_to_code(networkId),
+            'amount': self.safe_number(transaction, 'total'),
+            'status': self.parse_transaction_status(status),
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
-            'network': None,
-            'addressFrom': None,
             'address': address,
+            'addressFrom': None,
             'addressTo': address,
-            'tagFrom': None,
             'tag': tag,
+            'tagFrom': None,
             'tagTo': tag,
-            'type': None,
-            'amount': amount,
-            'currency': code,
-            'status': self.parse_transaction_status(status),
             'updated': None,
+            'comment': None,
             'fee': {
                 'currency': code,
-                'cost': fee,
+                'cost': self.safe_number(transaction, 'fee'),
                 'rate': None,
             },
         }

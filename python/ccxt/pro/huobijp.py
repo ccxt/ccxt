@@ -56,6 +56,7 @@ class huobijp(Exchange, ccxt.async_support.huobijp):
         """
         await self.load_markets()
         market = self.market(symbol)
+        symbol = market['symbol']
         # only supports a limit of 150 at self time
         messageHash = 'market.' + market['id'] + '.detail'
         api = self.safe_string(self.options, 'api', 'api')
@@ -117,6 +118,7 @@ class huobijp(Exchange, ccxt.async_support.huobijp):
         """
         await self.load_markets()
         market = self.market(symbol)
+        symbol = market['symbol']
         # only supports a limit of 150 at self time
         messageHash = 'market.' + market['id'] + '.trade.detail'
         api = self.safe_string(self.options, 'api', 'api')
@@ -178,8 +180,18 @@ class huobijp(Exchange, ccxt.async_support.huobijp):
         return message
 
     async def watch_ohlcv(self, symbol, timeframe='1m', since=None, limit=None, params={}):
+        """
+        watches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+        :param str symbol: unified symbol of the market to fetch OHLCV data for
+        :param str timeframe: the length of time each candle represents
+        :param int|None since: timestamp in ms of the earliest candle to fetch
+        :param int|None limit: the maximum amount of candles to fetch
+        :param dict params: extra parameters specific to the huobijp api endpoint
+        :returns [[int]]: A list of candles ordered as timestamp, open, high, low, close, volume
+        """
         await self.load_markets()
         market = self.market(symbol)
+        symbol = market['symbol']
         interval = self.timeframes[timeframe]
         messageHash = 'market.' + market['id'] + '.kline.' + interval
         api = self.safe_string(self.options, 'api', 'api')
@@ -249,6 +261,7 @@ class huobijp(Exchange, ccxt.async_support.huobijp):
             raise ExchangeError(self.id + ' watchOrderBook accepts limit = 150 only')
         await self.load_markets()
         market = self.market(symbol)
+        symbol = market['symbol']
         # only supports a limit of 150 at self time
         limit = 150 if (limit is None) else limit
         messageHash = 'market.' + market['id'] + '.mbp.' + str(limit)
@@ -269,7 +282,7 @@ class huobijp(Exchange, ccxt.async_support.huobijp):
             'method': self.handle_order_book_subscription,
         }
         orderbook = await self.watch(url, messageHash, self.extend(request, params), messageHash, subscription)
-        return orderbook.limit(limit)
+        return orderbook.limit()
 
     def handle_order_book_snapshot(self, client, message, subscription):
         #
@@ -331,7 +344,7 @@ class huobijp(Exchange, ccxt.async_support.huobijp):
             'method': self.handle_order_book_snapshot,
         }
         orderbook = await self.watch(url, requestId, request, requestId, snapshotSubscription)
-        return orderbook.limit(limit)
+        return orderbook.limit()
 
     def handle_delta(self, bookside, delta):
         price = self.safe_float(delta, 0)

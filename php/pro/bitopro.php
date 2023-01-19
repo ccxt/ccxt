@@ -82,7 +82,7 @@ class bitopro extends \ccxt\async\bitopro {
                 $endPart = $market['id'] . ':' . $limit;
             }
             $orderbook = Async\await($this->watch_public('order-books', $messageHash, $endPart));
-            return $orderbook->limit ($limit);
+            return $orderbook->limit ();
         }) ();
     }
 

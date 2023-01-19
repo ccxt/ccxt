@@ -75,6 +75,15 @@ class ascendex(Exchange, ccxt.async_support.ascendex):
         return await self.watch(url, messageHash, message, channel)
 
     async def watch_ohlcv(self, symbol, timeframe='1m', since=None, limit=None, params={}):
+        """
+        watches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+        :param str symbol: unified symbol of the market to fetch OHLCV data for
+        :param str timeframe: the length of time each candle represents
+        :param int|None since: timestamp in ms of the earliest candle to fetch
+        :param int|None limit: the maximum amount of candles to fetch
+        :param dict params: extra parameters specific to the ascendex api endpoint
+        :returns [[int]]: A list of candles ordered as timestamp, open, high, low, close, volume
+        """
         await self.load_markets()
         market = self.market(symbol)
         symbol = market['symbol']
@@ -195,7 +204,7 @@ class ascendex(Exchange, ccxt.async_support.ascendex):
             'ch': channel,
         })
         orderbook = await self.watch_public(channel, params)
-        return orderbook.limit(limit)
+        return orderbook.limit()
 
     async def watch_order_book_snapshot(self, symbol, limit=None, params={}):
         await self.load_markets()
@@ -210,7 +219,7 @@ class ascendex(Exchange, ccxt.async_support.ascendex):
             'op': 'req',
         })
         orderbook = await self.watch_public(channel, params)
-        return orderbook.limit(limit)
+        return orderbook.limit()
 
     def handle_order_book_snapshot(self, client, message):
         #
@@ -615,6 +624,7 @@ class ascendex(Exchange, ccxt.async_support.ascendex):
             'side': side,
             'price': price,
             'stopPrice': stopPrice,
+            'triggerPrice': stopPrice,
             'amount': amount,
             'cost': None,
             'average': average,
@@ -642,27 +652,26 @@ class ascendex(Exchange, ccxt.async_support.ascendex):
                 messageString = self.safe_value(message, 'message')
                 if messageString is not None:
                     self.throw_broadly_matched_exception(self.exceptions['broad'], messageString, feedback)
+            return False
         except Exception as e:
             if isinstance(e, AuthenticationError):
-                client.reject(e, 'authenticated')
-                method = 'auth'
-                if method in client.subscriptions:
-                    del client.subscriptions[method]
-                return False
+                messageHash = 'authenticated'
+                client.reject(e, messageHash)
+                if messageHash in client.subscriptions:
+                    del client.subscriptions[messageHash]
             else:
                 client.reject(e)
-        return message
+            return True
 
     def handle_authenticate(self, client, message):
         #
         #     {m: 'auth', id: '1647605234', code: 0}
         #
-        future = client.futures['authenticated']
-        future.resolve(1)
-        return message
+        messageHash = 'authenticated'
+        client.resolve(message, messageHash)
 
     def handle_message(self, client, message):
-        if not self.handle_error_message(client, message):
+        if self.handle_error_message(client, message):
             return
         #
         #     {m: 'ping', hp: 3}
@@ -862,14 +871,12 @@ class ascendex(Exchange, ccxt.async_support.ascendex):
     def handle_ping(self, client, message):
         self.spawn(self.pong, client, message)
 
-    async def authenticate(self, url, params={}):
+    def authenticate(self, url, params={}):
         self.check_required_credentials()
         messageHash = 'authenticated'
         client = self.client(url)
         future = self.safe_value(client.futures, messageHash)
         if future is None:
-            future = client.future('authenticated')
-            client.future(messageHash)
             timestamp = str(self.milliseconds())
             urlParts = url.split('/')
             partsLength = len(urlParts)
@@ -885,5 +892,6 @@ class ascendex(Exchange, ccxt.async_support.ascendex):
                 'key': self.apiKey,
                 'sig': signature,
             }
-            self.spawn(self.watch, url, messageHash, self.extend(request, params))
-        return await future
+            future = self.watch(url, messageHash, self.extend(request, params))
+            client.subscriptions[messageHash] = future
+        return future

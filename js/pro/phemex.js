@@ -344,6 +344,7 @@ module.exports = class phemex extends phemexRest {
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
+        symbol = market['symbol'];
         const name = market['spot'] ? 'spot_market24h' : 'market24h';
         const url = this.urls['api']['ws'];
         const requestId = this.requestId ();
@@ -371,6 +372,7 @@ module.exports = class phemex extends phemexRest {
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
+        symbol = market['symbol'];
         const url = this.urls['api']['ws'];
         const requestId = this.requestId ();
         const name = 'trade';
@@ -403,6 +405,7 @@ module.exports = class phemex extends phemexRest {
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
+        symbol = market['symbol'];
         const url = this.urls['api']['ws'];
         const requestId = this.requestId ();
         const name = 'orderbook';
@@ -417,12 +420,24 @@ module.exports = class phemex extends phemexRest {
         };
         const request = this.deepExtend (subscribe, params);
         const orderbook = await this.watch (url, messageHash, request, messageHash);
-        return orderbook.limit (limit);
+        return orderbook.limit ();
     }
 
     async watchOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
+        /**
+         * @method
+         * @name phemex#watchOHLCV
+         * @description watches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+         * @param {string} symbol unified symbol of the market to fetch OHLCV data for
+         * @param {string} timeframe the length of time each candle represents
+         * @param {int|undefined} since timestamp in ms of the earliest candle to fetch
+         * @param {int|undefined} limit the maximum amount of candles to fetch
+         * @param {object} params extra parameters specific to the phemex api endpoint
+         * @returns {[[int]]} A list of candles ordered as timestamp, open, high, low, close, volume
+         */
         await this.loadMarkets ();
         const market = this.market (symbol);
+        symbol = market['symbol'];
         const url = this.urls['api']['ws'];
         const requestId = this.requestId ();
         const name = 'kline';
@@ -585,17 +600,14 @@ module.exports = class phemex extends phemexRest {
         for (let i = 0; i < message.length; i++) {
             const rawTrade = message[i];
             const marketId = this.safeString (rawTrade, 'symbol');
-            // skip delisted  markets
-            if (marketId in this.markets_by_id) {
-                const parsed = this.parseTrade (rawTrade);
-                cachedTrades.append (parsed);
-                const symbol = parsed['symbol'];
-                const market = this.market (symbol);
-                if (type === undefined) {
-                    type = market['type'];
-                }
-                marketIds[symbol] = true;
+            const market = this.safeMarket (marketId);
+            const parsed = this.parseTrade (rawTrade);
+            cachedTrades.append (parsed);
+            const symbol = parsed['symbol'];
+            if (type === undefined) {
+                type = market['type'];
             }
+            marketIds[symbol] = true;
         }
         const keys = Object.keys (marketIds);
         for (let i = 0; i < keys.length; i++) {
@@ -741,31 +753,22 @@ module.exports = class phemex extends phemexRest {
             if (ordersLength === 0) {
                 return;
             }
-            const fills = this.safeValue (message, 'fills', []);
-            trades = fills;
+            trades = this.safeValue (message, 'fills', []);
             for (let i = 0; i < orders.length; i++) {
                 const rawOrder = orders[i];
-                const marketId = this.safeString (rawOrder, 'symbol');
-                // skip delisted spot markets
-                if (marketId in this.markets_by_id) {
-                    const parsedOrder = this.parseOrder (rawOrder);
-                    parsedOrders.push (parsedOrder);
-                }
+                const parsedOrder = this.parseOrder (rawOrder);
+                parsedOrders.push (parsedOrder);
             }
         } else {
             for (let i = 0; i < message.length; i++) {
                 const update = message[i];
-                const marketId = this.safeString (update, 'symbol');
-                if (marketId in this.markets_by_id) {
-                    // skip delisted swap markets
-                    const action = this.safeString (update, 'action');
-                    if ((action !== undefined) && (action !== 'Cancel')) {
-                        // order + trade info together
-                        trades.push (update);
-                    }
-                    const parsedOrder = this.parseWSSwapOrder (update);
-                    parsedOrders.push (parsedOrder);
+                const action = this.safeString (update, 'action');
+                if ((action !== undefined) && (action !== 'Cancel')) {
+                    // order + trade info together
+                    trades.push (update);
                 }
+                const parsedOrder = this.parseWSSwapOrder (update);
+                parsedOrders.push (parsedOrder);
             }
         }
         this.handleMyTrades (client, trades);
@@ -893,6 +896,7 @@ module.exports = class phemex extends phemexRest {
             'side': side,
             'price': price,
             'stopPrice': stopPrice,
+            'triggerPrice': stopPrice,
             'amount': amount,
             'filled': filled,
             'remaining': remaining,

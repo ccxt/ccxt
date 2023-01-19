@@ -36,6 +36,7 @@ class ripio extends \ccxt\async\ripio {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             Async\await($this->load_markets());
             $market = $this->market($symbol);
+            $symbol = $market['symbol'];
             $name = 'trades';
             $messageHash = $name . '_' . strtolower($market['id']);
             $url = $this->urls['api']['ws'] . $messageHash . '/' . $this->options['uuid'];
@@ -105,6 +106,7 @@ class ripio extends \ccxt\async\ripio {
              */
             Async\await($this->load_markets());
             $market = $this->market($symbol);
+            $symbol = $market['symbol'];
             $name = 'rate';
             $messageHash = $name . '_' . strtolower($market['id']);
             $url = $this->urls['api']['ws'] . $messageHash . '/' . $this->options['uuid'];
@@ -166,6 +168,7 @@ class ripio extends \ccxt\async\ripio {
              */
             Async\await($this->load_markets());
             $market = $this->market($symbol);
+            $symbol = $market['symbol'];
             $name = 'orderbook';
             $messageHash = $name . '_' . strtolower($market['id']);
             $url = $this->urls['api']['ws'] . $messageHash . '/' . $this->options['uuid'];
@@ -185,7 +188,7 @@ class ripio extends \ccxt\async\ripio {
                 $this->delay($delay, array($this, 'fetch_order_book_snapshot'), $client, $subscription);
             }
             $orderbook = Async\await($this->watch($url, $messageHash, null, $messageHash, $subscription));
-            return $orderbook->limit ($limit);
+            return $orderbook->limit ();
         }) ();
     }
 

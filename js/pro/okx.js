@@ -109,6 +109,8 @@ module.exports = class okx extends okxRest {
          * @param {object} params extra parameters specific to the okx api endpoint
          * @returns {[object]} a list of [trade structures]{@link https://docs.ccxt.com/en/latest/manual.html?#public-trades}
          */
+        await this.loadMarkets ();
+        symbol = this.symbol (symbol);
         const trades = await this.subscribe ('public', 'trades', symbol, params);
         if (this.newUpdates) {
             limit = trades.getLimit (symbol, limit);
@@ -205,6 +207,19 @@ module.exports = class okx extends okxRest {
     }
 
     async watchOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
+        /**
+         * @method
+         * @name okx#watchOHLCV
+         * @description watches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+         * @param {string} symbol unified symbol of the market to fetch OHLCV data for
+         * @param {string} timeframe the length of time each candle represents
+         * @param {int|undefined} since timestamp in ms of the earliest candle to fetch
+         * @param {int|undefined} limit the maximum amount of candles to fetch
+         * @param {object} params extra parameters specific to the okx api endpoint
+         * @returns {[[int]]} A list of candles ordered as timestamp, open, high, low, close, volume
+         */
+        await this.loadMarkets ();
+        symbol = this.symbol (symbol);
         const interval = this.timeframes[timeframe];
         const name = 'candle' + interval;
         const ohlcv = await this.subscribe ('public', name, symbol, params);
@@ -291,7 +306,7 @@ module.exports = class okx extends okxRest {
         //
         const depth = this.safeString (options, 'depth', 'books');
         const orderbook = await this.subscribe ('public', depth, symbol, params);
-        return orderbook.limit (limit);
+        return orderbook.limit ();
     }
 
     handleDelta (bookside, delta) {
@@ -473,6 +488,7 @@ module.exports = class okx extends okxRest {
                 const update = data[i];
                 const orderbook = this.orderBook ({}, limit);
                 this.orderbooks[symbol] = orderbook;
+                orderbook['symbol'] = symbol;
                 this.handleOrderBookMessage (client, update, orderbook, messageHash);
                 client.resolve (orderbook, messageHash);
             }
@@ -502,21 +518,21 @@ module.exports = class okx extends okxRest {
         return message;
     }
 
-    async authenticate (params = {}) {
+    authenticate (params = {}) {
         this.checkRequiredCredentials ();
         const url = this.urls['api']['ws']['private'];
-        const messageHash = 'login';
+        const messageHash = 'authenticated';
         const client = this.client (url);
         let future = this.safeValue (client.subscriptions, messageHash);
         if (future === undefined) {
-            future = client.future ('authenticated');
             const timestamp = this.seconds ().toString ();
             const method = 'GET';
             const path = '/users/self/verify';
             const auth = timestamp + method + path;
             const signature = this.hmac (this.encode (auth), this.encode (this.secret), 'sha256', 'base64');
+            const operation = 'login';
             const request = {
-                'op': messageHash,
+                'op': operation,
                 'args': [
                     {
                         'apiKey': this.apiKey,
@@ -526,9 +542,11 @@ module.exports = class okx extends okxRest {
                     },
                 ],
             };
-            this.spawn (this.watch, url, messageHash, request, messageHash, future);
+            const message = this.extend (request, params);
+            future = this.watch (url, messageHash, message);
+            client.subscriptions[messageHash] = future;
         }
-        return await future;
+        return future;
     }
 
     async watchBalance (params = {}) {
@@ -607,6 +625,7 @@ module.exports = class okx extends okxRest {
          * @param {int|undefined} since the earliest time in ms to fetch orders for
          * @param {int|undefined} limit the maximum number of  orde structures to retrieve
          * @param {object} params extra parameters specific to the okx api endpoint
+         * @param {bool} params.stop true if fetching trigger or conditional orders
          * @returns {[object]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
          */
         await this.loadMarkets ();
@@ -628,10 +647,12 @@ module.exports = class okx extends okxRest {
         // By default, receive order updates from any instrument type
         let type = this.safeString (options, 'type', 'ANY');
         type = this.safeString (params, 'type', type);
-        params = this.omit (params, 'type');
+        const isStop = this.safeValue (params, 'stop', false);
+        params = this.omit (params, [ 'type', 'stop' ]);
         let market = undefined;
         if (symbol !== undefined) {
             market = this.market (symbol);
+            symbol = market['symbol'];
             type = market['type'];
         }
         if (type === 'future') {
@@ -641,7 +662,8 @@ module.exports = class okx extends okxRest {
         const request = {
             'instType': uppercaseType,
         };
-        const orders = await this.subscribe ('private', 'orders', symbol, this.extend (request, params));
+        const channel = isStop ? 'orders-algo' : 'orders';
+        const orders = await this.subscribe ('private', channel, symbol, this.extend (request, params));
         if (this.newUpdates) {
             limit = orders.getLimit (symbol, limit);
         }
@@ -744,7 +766,6 @@ module.exports = class okx extends okxRest {
         //     { event: 'login', success: true }
         //
         client.resolve (message, 'authenticated');
-        return message;
     }
 
     ping (client) {
@@ -763,9 +784,9 @@ module.exports = class okx extends okxRest {
         //     { event: 'error', msg: 'Illegal request: {"op":"subscribe","args":["spot/ticker:BTC-USDT"]}', code: '60012' }
         //     { event: 'error', msg: "channel:ticker,instId:BTC-USDT doesn't exist", code: '60018' }
         //
-        const errorCode = this.safeString (message, 'errorCode');
+        const errorCode = this.safeInteger (message, 'code');
         try {
-            if (errorCode !== undefined) {
+            if (errorCode) {
                 const feedback = this.id + ' ' + this.json (message);
                 this.throwExactlyMatchedException (this.exceptions['exact'], errorCode, feedback);
                 const messageString = this.safeValue (message, 'message');
@@ -775,10 +796,10 @@ module.exports = class okx extends okxRest {
             }
         } catch (e) {
             if (e instanceof AuthenticationError) {
-                client.reject (e, 'authenticated');
-                const method = 'login';
-                if (method in client.subscriptions) {
-                    delete client.subscriptions[method];
+                const messageHash = 'authenticated';
+                client.reject (e, messageHash);
+                if (messageHash in client.subscriptions) {
+                    delete client.subscriptions[messageHash];
                 }
                 return false;
             }
@@ -862,6 +883,7 @@ module.exports = class okx extends okxRest {
                 'account': this.handleBalance,
                 // 'margin_account': this.handleBalance,
                 'orders': this.handleOrders,
+                'orders-algo': this.handleOrders,
             };
             const method = this.safeValue (methods, channel);
             if (method === undefined) {

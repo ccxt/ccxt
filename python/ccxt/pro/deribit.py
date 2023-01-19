@@ -387,7 +387,7 @@ class deribit(Exchange, ccxt.async_support.deribit):
         }
         request = self.deep_extend(subscribe, params)
         orderbook = await self.watch(url, channel, request, channel)
-        return orderbook.limit(limit)
+        return orderbook.limit()
 
     def handle_order_book(self, client, message):
         #
@@ -556,7 +556,7 @@ class deribit(Exchange, ccxt.async_support.deribit):
         channel = self.safe_string(params, 'channel', '')
         data = self.safe_value(params, 'data', {})
         orders = []
-        if self.is_array(data):
+        if isinstance(data, list):
             orders = self.parse_orders(data)
         else:
             order = self.parse_order(data)

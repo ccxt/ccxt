@@ -412,7 +412,7 @@ module.exports = class deribit extends deribitRest {
         };
         const request = this.deepExtend (subscribe, params);
         const orderbook = await this.watch (url, channel, request, channel);
-        return orderbook.limit (limit);
+        return orderbook.limit ();
     }
 
     handleOrderBook (client, message) {
@@ -597,7 +597,7 @@ module.exports = class deribit extends deribitRest {
         const channel = this.safeString (params, 'channel', '');
         const data = this.safeValue (params, 'data', {});
         let orders = [];
-        if (this.isArray (data)) {
+        if (Array.isArray (data)) {
             orders = this.parseOrders (data);
         } else {
             const order = this.parseOrder (data);

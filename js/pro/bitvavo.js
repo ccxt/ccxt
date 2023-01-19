@@ -151,6 +151,17 @@ module.exports = class bitvavo extends bitvavoRest {
     }
 
     async watchOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
+        /**
+         * @method
+         * @name bitvavo#watchOHLCV
+         * @description watches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+         * @param {string} symbol unified symbol of the market to fetch OHLCV data for
+         * @param {string} timeframe the length of time each candle represents
+         * @param {int|undefined} since timestamp in ms of the earliest candle to fetch
+         * @param {int|undefined} limit the maximum amount of candles to fetch
+         * @param {object} params extra parameters specific to the bitvavo api endpoint
+         * @returns {[[int]]} A list of candles ordered as timestamp, open, high, low, close, volume
+         */
         await this.loadMarkets ();
         const market = this.market (symbol);
         symbol = market['symbol'];
@@ -257,7 +268,7 @@ module.exports = class bitvavo extends bitvavoRest {
         };
         const message = this.extend (request, params);
         const orderbook = await this.watch (url, messageHash, message, messageHash, subscription);
-        return orderbook.limit (limit);
+        return orderbook.limit ();
     }
 
     handleDelta (bookside, delta) {
@@ -337,7 +348,6 @@ module.exports = class bitvavo extends bitvavoRest {
     }
 
     async watchOrderBookSnapshot (client, message, subscription) {
-        const limit = this.safeInteger (subscription, 'limit');
         const params = this.safeValue (subscription, 'params');
         const marketId = this.safeString (subscription, 'marketId');
         const name = 'getBook';
@@ -348,7 +358,7 @@ module.exports = class bitvavo extends bitvavoRest {
             'market': marketId,
         };
         const orderbook = await this.watch (url, messageHash, this.extend (request, params), messageHash, subscription);
-        return orderbook.limit (limit);
+        return orderbook.limit ();
     }
 
     handleOrderBookSnapshot (client, message) {
@@ -376,11 +386,7 @@ module.exports = class bitvavo extends bitvavoRest {
             return message;
         }
         const marketId = this.safeString (response, 'market');
-        let symbol = undefined;
-        if (marketId in this.markets_by_id) {
-            const market = this.markets_by_id[marketId];
-            symbol = market['symbol'];
-        }
+        const symbol = this.safeSymbol (marketId, undefined, '-');
         const name = 'book';
         const messageHash = name + '@' + marketId;
         const orderbook = this.orderbooks[symbol];
@@ -410,16 +416,13 @@ module.exports = class bitvavo extends bitvavoRest {
         const name = 'book';
         for (let i = 0; i < marketIds.length; i++) {
             const marketId = this.safeString (marketIds, i);
-            if (marketId in this.markets_by_id) {
-                const market = this.markets_by_id[marketId];
-                const symbol = market['symbol'];
-                const messageHash = name + '@' + marketId;
-                if (!(symbol in this.orderbooks)) {
-                    const subscription = this.safeValue (client.subscriptions, messageHash);
-                    const method = this.safeValue (subscription, 'method');
-                    if (method !== undefined) {
-                        method.call (this, client, message, subscription);
-                    }
+            const symbol = this.safeSymbol (marketId, undefined, '-');
+            const messageHash = name + '@' + marketId;
+            if (!(symbol in this.orderbooks)) {
+                const subscription = this.safeValue (client.subscriptions, messageHash);
+                const method = this.safeValue (subscription, 'method');
+                if (method !== undefined) {
+                    method.call (this, client, message, subscription);
                 }
             }
         }
@@ -446,8 +449,7 @@ module.exports = class bitvavo extends bitvavoRest {
         const marketId = market['id'];
         const url = this.urls['api']['ws'];
         const name = 'account';
-        const subscriptionHash = name + '@' + marketId;
-        const messageHash = subscriptionHash + '_' + 'order';
+        const messageHash = 'order:' + symbol;
         const request = {
             'action': 'subscribe',
             'channels': [
@@ -457,7 +459,7 @@ module.exports = class bitvavo extends bitvavoRest {
                 },
             ],
         };
-        const orders = await this.watch (url, messageHash, request, subscriptionHash);
+        const orders = await this.watch (url, messageHash, request, messageHash);
         if (this.newUpdates) {
             limit = orders.getLimit (symbol, limit);
         }
@@ -485,8 +487,7 @@ module.exports = class bitvavo extends bitvavoRest {
         const marketId = market['id'];
         const url = this.urls['api']['ws'];
         const name = 'account';
-        const subscriptionHash = name + '@' + marketId;
-        const messageHash = subscriptionHash + '_' + 'fill';
+        const messageHash = 'myTrades:' + symbol;
         const request = {
             'action': 'subscribe',
             'channels': [
@@ -496,7 +497,7 @@ module.exports = class bitvavo extends bitvavoRest {
                 },
             ],
         };
-        const trades = await this.watch (url, messageHash, request, subscriptionHash);
+        const trades = await this.watch (url, messageHash, request, messageHash);
         if (this.newUpdates) {
             limit = trades.getLimit (symbol, limit);
         }
@@ -525,21 +526,18 @@ module.exports = class bitvavo extends bitvavoRest {
         //         postOnly: false
         //     }
         //
-        const name = 'account';
-        const event = this.safeString (message, 'event');
-        const marketId = this.safeString (message, 'market', '-');
-        const messageHash = name + '@' + marketId + '_' + event;
-        if (marketId in this.markets_by_id) {
-            const market = this.markets_by_id[marketId];
-            const order = this.parseOrder (message, market);
-            if (this.orders === undefined) {
-                const limit = this.safeInteger (this.options, 'ordersLimit', 1000);
-                this.orders = new ArrayCacheBySymbolById (limit);
-            }
-            const orders = this.orders;
-            orders.append (order);
-            client.resolve (this.orders, messageHash);
+        const marketId = this.safeString (message, 'market');
+        const market = this.safeMarket (marketId, undefined, '-');
+        const symbol = market['symbol'];
+        const messageHash = 'order:' + symbol;
+        const order = this.parseOrder (message, market);
+        if (this.orders === undefined) {
+            const limit = this.safeInteger (this.options, 'ordersLimit', 1000);
+            this.orders = new ArrayCacheBySymbolById (limit);
         }
+        const orders = this.orders;
+        orders.append (order);
+        client.resolve (this.orders, messageHash);
     }
 
     handleMyTrade (client, message) {
@@ -558,11 +556,10 @@ module.exports = class bitvavo extends bitvavoRest {
         //         feeCurrency: 'EUR'
         //     }
         //
-        const name = 'account';
-        const event = this.safeString (message, 'event');
         const marketId = this.safeString (message, 'market');
-        const messageHash = name + '@' + marketId + '_' + event;
         const market = this.safeMarket (marketId, undefined, '-');
+        const symbol = market['symbol'];
+        const messageHash = 'myTrades:' + symbol;
         const trade = this.parseTrade (message, market);
         if (this.myTrades === undefined) {
             const limit = this.safeInteger (this.options, 'tradesLimit', 1000);
@@ -570,7 +567,6 @@ module.exports = class bitvavo extends bitvavoRest {
         }
         const tradesArray = this.myTrades;
         tradesArray.append (trade);
-        this.myTrades = tradesArray;
         client.resolve (tradesArray, messageHash);
     }
 
@@ -599,35 +595,28 @@ module.exports = class bitvavo extends bitvavoRest {
         return message;
     }
 
-    async authenticate (params = {}) {
+    authenticate (params = {}) {
         const url = this.urls['api']['ws'];
         const client = this.client (url);
-        const future = client.future ('authenticated');
-        const action = 'authenticate';
-        const authenticated = this.safeValue (client.subscriptions, action);
-        if (authenticated === undefined) {
-            try {
-                this.checkRequiredCredentials ();
-                const timestamp = this.milliseconds ();
-                const stringTimestamp = timestamp.toString ();
-                const auth = stringTimestamp + 'GET/' + this.version + '/websocket';
-                const signature = this.hmac (this.encode (auth), this.encode (this.secret));
-                const request = {
-                    'action': action,
-                    'key': this.apiKey,
-                    'signature': signature,
-                    'timestamp': timestamp,
-                };
-                this.spawn (this.watch, url, action, request, action);
-            } catch (e) {
-                client.reject (e, 'authenticated');
-                // allows further authentication attempts
-                if (action in client.subscriptions) {
-                    delete client.subscriptions[action];
-                }
-            }
+        const messageHash = 'authenticated';
+        let future = this.safeValue (client.subscriptions, messageHash);
+        if (future === undefined) {
+            const timestamp = this.milliseconds ();
+            const stringTimestamp = timestamp.toString ();
+            const auth = stringTimestamp + 'GET/' + this.version + '/websocket';
+            const signature = this.hmac (this.encode (auth), this.encode (this.secret));
+            const action = 'authenticate';
+            const request = {
+                'action': action,
+                'key': this.apiKey,
+                'signature': signature,
+                'timestamp': timestamp,
+            };
+            const message = this.extend (request, params);
+            future = this.watch (url, messageHash, message);
+            client.subscriptions[messageHash] = future;
         }
-        return await future;
+        return future;
     }
 
     handleAuthenticationMessage (client, message) {
@@ -637,18 +626,17 @@ module.exports = class bitvavo extends bitvavoRest {
         //         authenticated: true
         //     }
         //
+        const messageHash = 'authenticated';
         const authenticated = this.safeValue (message, 'authenticated', false);
         if (authenticated) {
             // we resolve the future here permanently so authentication only happens once
-            const future = this.safeValue (client.futures, 'authenticated');
-            future.resolve (true);
+            client.resolve (message, messageHash);
         } else {
             const error = new AuthenticationError (this.json (message));
-            client.reject (error, 'authenticated');
+            client.reject (error, messageHash);
             // allows further authentication attempts
-            const event = this.safeValue (message, 'event');
-            if (event in client.subscriptions) {
-                delete client.subscriptions[event];
+            if (messageHash in client.subscriptions) {
+                delete client.subscriptions[messageHash];
             }
         }
     }

@@ -377,8 +377,8 @@ class upbit extends Exchange {
                 'strike' => null,
                 'optionType' => null,
                 'precision' => array(
-                    'amount' => $this->parse_number('0.00000001'),
-                    'price' => $this->parse_number('0.00000001'),
+                    'amount' => $this->parse_number('1e-8'),
+                    'price' => $this->parse_number('1e-8'),
                 ),
                 'limits' => array(
                     'leverage' => array(
@@ -455,8 +455,8 @@ class upbit extends Exchange {
                     'strike' => null,
                     'optionType' => null,
                     'precision' => array(
-                        'price' => $this->parse_number('0.00000001'),
-                        'amount' => $this->parse_number('0.00000001'),
+                        'price' => $this->parse_number('1e-8'),
+                        'amount' => $this->parse_number('1e-8'),
                     ),
                     'limits' => array(
                         'leverage' => array(
@@ -1443,6 +1443,7 @@ class upbit extends Exchange {
             'side' => $side,
             'price' => $price,
             'stopPrice' => null,
+            'triggerPrice' => null,
             'cost' => $cost,
             'average' => $average,
             'amount' => $amount,

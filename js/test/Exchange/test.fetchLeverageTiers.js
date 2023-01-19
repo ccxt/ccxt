@@ -12,6 +12,13 @@ module.exports = async (exchange, symbol) => {
     //     ],
     // };
     if (exchange.has[method]) {
+
+        const market = exchange.market (symbol);
+        if (market.spot) {
+            console.log (method + '() is not supported for spot markets');
+            return;
+        }
+
         const tiers = await exchange [method] ([ symbol ]);
         const tierKeys = Object.keys (tiers);
         const numTierKeys = tierKeys.length;
