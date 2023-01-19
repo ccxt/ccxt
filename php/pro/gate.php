@@ -634,7 +634,7 @@ class gate extends \ccxt\async\gate {
                 'option' => 'options',
             ));
             $channel = $channelType . '.balances';
-            $messageHash = 'balance';
+            $messageHash = $type . '.balance';
             return Async\await($this->subscribe_private($url, $messageHash, null, $channel, $params, $requiresUid));
         }) ();
     }
@@ -644,7 +644,7 @@ class gate extends \ccxt\async\gate {
         // spot order fill
         //   {
         //       time => 1653664351,
-        //       channel => 'spot.balances',
+        //       $channel => 'spot.balances',
         //       event => 'update',
         //       $result => array(
         //         {
@@ -664,7 +664,7 @@ class gate extends \ccxt\async\gate {
         //    {
         //        id => null,
         //        time => 1653665088,
-        //        channel => 'futures.balances',
+        //        $channel => 'futures.balances',
         //        event => 'update',
         //        error => null,
         //        $result => array(
@@ -684,7 +684,7 @@ class gate extends \ccxt\async\gate {
         //   {
         //       id => null,
         //       time => 1653665311,
-        //       channel => 'futures.balances',
+        //       $channel => 'futures.balances',
         //       event => 'update',
         //       error => null,
         //       $result => array(
@@ -710,8 +710,17 @@ class gate extends \ccxt\async\gate {
             $account['total'] = $this->safe_string_2($rawBalance, 'total', 'balance');
             $this->balance[$code] = $account;
         }
+        $channel = $this->safe_string($message, 'channel');
+        $parts = explode('.', $channel);
+        $rawType = $this->safe_string($parts, 0);
+        $channelType = $this->get_supported_mapping($rawType, array(
+            'spot' => 'spot',
+            'futures' => 'swap',
+            'options' => 'option',
+        ));
+        $messageHash = $channelType . '.balance';
         $this->balance = $this->safe_balance($this->balance);
-        $client->resolve ($this->balance, 'balance');
+        $client->resolve ($this->balance, $messageHash);
     }
 
     public function watch_orders($symbol = null, $since = null, $limit = null, $params = array ()) {
@@ -877,13 +886,17 @@ class gate extends \ccxt\async\gate {
             'balance' => array($this, 'handle_balance_subscription'),
             'order_book' => array($this, 'handle_order_book_subscription'),
         );
-        $keys = is_array($methods) ? array_keys($methods) : array();
-        for ($i = 0; $i < count($keys); $i++) {
-            $key = $keys[$i];
-            if (mb_strpos($channel, $key) !== false) {
-                $method = $methods[$key];
-                $subscription = $client->subscriptions[$channel];
-                $method($client, $message, $subscription);
+        $id = $this->safe_string($message, 'id');
+        $subscriptionsById = $this->index_by($client->subscriptions, 'id');
+        $subscription = $this->safe_value($subscriptionsById, $id);
+        if ($subscription !== null) {
+            $keys = is_array($methods) ? array_keys($methods) : array();
+            for ($i = 0; $i < count($keys); $i++) {
+                $key = $keys[$i];
+                if (mb_strpos($channel, $key) !== false) {
+                    $method = $methods[$key];
+                    $method($client, $message, $subscription);
+                }
             }
         }
     }
@@ -1066,7 +1079,7 @@ class gate extends \ccxt\async\gate {
                 'messageHash' => $messageHash,
             ));
             $message = array_merge($request, $params);
-            return Async\await($this->watch($url, $messageHash, $message, $subscriptionHash, $subscription));
+            return Async\await($this->watch($url, $messageHash, $message, $messageHash, $subscription));
         }) ();
     }
 
@@ -1110,7 +1123,7 @@ class gate extends \ccxt\async\gate {
                 'id' => $requestId,
                 'messageHash' => $messageHash,
             );
-            return Async\await($this->watch($url, $messageHash, $message, $subscriptionHash, $subscription));
+            return Async\await($this->watch($url, $messageHash, $message, $messageHash, $subscription));
         }) ();
     }
 }
