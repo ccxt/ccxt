@@ -22,7 +22,7 @@ let [processPath, , exchangeId, methodName, ... params] = process.argv.filter (x
     , isSpot = process.argv.includes ('--spot')
     , isSwap = process.argv.includes ('--swap')
     , isFuture = process.argv.includes ('--future')
-    , rest = process.argv.inlucdes ('--rest')
+    , rest = process.argv.includes ('--rest')
 
 //-----------------------------------------------------------------------------
 
