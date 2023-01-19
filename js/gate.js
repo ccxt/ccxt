@@ -5106,7 +5106,7 @@ module.exports = class gate extends Exchange {
         //        lsr_taker: '9.3765153315902'
         //    }
         //
-        const timestamp = this.safeInteger (interest, 'time') * 1000;
+        const timestamp = this.safeIntegerProduct (interest, 'time', 1000);
         return {
             'symbol': this.safeString (market, 'symbol'),
             'openInterestAmount': this.safeNumber (interest, 'open_interest'),
