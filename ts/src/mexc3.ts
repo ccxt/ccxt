@@ -2337,7 +2337,7 @@ export default class mexc3 extends Exchange {
             throw new BadRequest (this.id + ' fetchOrdersByState() is not supported for ' + marketType);
         } else {
             params['states'] = state;
-            return this.fetchOrders (symbol, since, limit, params);
+            return await this.fetchOrders (symbol, since, limit, params);
         }
     }
 

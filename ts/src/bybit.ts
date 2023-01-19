@@ -2147,7 +2147,8 @@ export default class bybit extends Exchange {
         const market = this.market (symbol);
         params['symbol'] = market['id'];
         const symbols = [ market['symbol'] ];
-        return await this.fetchFundingRates (symbols, params);
+        const fr = await this.fetchFundingRates (symbols, params);
+        return this.safeValue (fr, market['symbol']);
     }
 
     async fetchFundingRates (symbols = undefined, params = {}) {

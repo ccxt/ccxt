@@ -2084,7 +2084,8 @@ class bybit(Exchange):
         market = self.market(symbol)
         params['symbol'] = market['id']
         symbols = [market['symbol']]
-        return await self.fetch_funding_rates(symbols, params)
+        fr = await self.fetch_funding_rates(symbols, params)
+        return self.safe_value(fr, market['symbol'])
 
     async def fetch_funding_rates(self, symbols=None, params={}):
         """

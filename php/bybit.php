@@ -2132,7 +2132,8 @@ class bybit extends Exchange {
         $market = $this->market($symbol);
         $params['symbol'] = $market['id'];
         $symbols = [ $market['symbol'] ];
-        return $this->fetch_funding_rates($symbols, $params);
+        $fr = $this->fetch_funding_rates($symbols, $params);
+        return $this->safe_value($fr, $market['symbol']);
     }
 
     public function fetch_funding_rates($symbols = null, $params = array ()) {

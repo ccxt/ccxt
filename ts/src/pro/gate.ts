@@ -634,7 +634,7 @@ export default class gate extends gateRest {
             'option': 'options',
         });
         const channel = channelType + '.balances';
-        const messageHash = 'balance';
+        const messageHash = type + '.balance';
         return await this.subscribePrivate (url, messageHash, undefined, channel, params, requiresUid);
     }
 
@@ -709,8 +709,17 @@ export default class gate extends gateRest {
             account['total'] = this.safeString2 (rawBalance, 'total', 'balance');
             this.balance[code] = account;
         }
+        const channel = this.safeString (message, 'channel');
+        const parts = channel.split ('.');
+        const rawType = this.safeString (parts, 0);
+        const channelType = this.getSupportedMapping (rawType, {
+            'spot': 'spot',
+            'futures': 'swap',
+            'options': 'option',
+        });
+        const messageHash = channelType + '.balance';
         this.balance = this.safeBalance (this.balance);
-        client.resolve (this.balance, 'balance');
+        client.resolve (this.balance, messageHash);
     }
 
     async watchOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
@@ -876,13 +885,17 @@ export default class gate extends gateRest {
             'balance': this.handleBalanceSubscription,
             'order_book': this.handleOrderBookSubscription,
         };
-        const keys = Object.keys (methods);
-        for (let i = 0; i < keys.length; i++) {
-            const key = keys[i];
-            if (channel.indexOf (key) >= 0) {
-                const method = methods[key];
-                const subscription = client.subscriptions[channel];
-                method.call (this, client, message, subscription);
+        const id = this.safeString (message, 'id');
+        const subscriptionsById = this.indexBy (client.subscriptions, 'id');
+        const subscription = this.safeValue (subscriptionsById, id);
+        if (subscription !== undefined) {
+            const keys = Object.keys (methods);
+            for (let i = 0; i < keys.length; i++) {
+                const key = keys[i];
+                if (channel.indexOf (key) >= 0) {
+                    const method = methods[key];
+                    method.call (this, client, message, subscription);
+                }
             }
         }
     }
@@ -1064,7 +1077,7 @@ export default class gate extends gateRest {
             'messageHash': messageHash,
         });
         const message = this.extend (request, params);
-        return await this.watch (url, messageHash, message, subscriptionHash, subscription);
+        return await this.watch (url, messageHash, message, messageHash, subscription);
     }
 
     async subscribePrivate (url, messageHash, payload, subscriptionHash, params, requiresUid = false) {
@@ -1106,6 +1119,6 @@ export default class gate extends gateRest {
             'id': requestId,
             'messageHash': messageHash,
         };
-        return await this.watch (url, messageHash, message, subscriptionHash, subscription);
+        return await this.watch (url, messageHash, message, messageHash, subscription);
     }
 }

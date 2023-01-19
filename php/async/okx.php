@@ -4351,9 +4351,9 @@ class okx extends Exchange {
         $symbol = $market['symbol'];
         $pos = $this->safe_string($position, 'pos'); // 'pos' field => One way mode => 0 if $position is not open, 1 if open | Two way (hedge) mode => -1 if short, 1 if long, 0 if $position is not open
         $contractsAbs = Precise::string_abs($pos);
-        $contracts = null;
         $side = $this->safe_string($position, 'posSide');
         $hedged = $side !== 'net';
+        $contracts = $this->parse_number($contractsAbs);
         if ($market['margin']) {
             // margin $position
             if ($side === 'net') {
@@ -4365,7 +4365,6 @@ class okx extends Exchange {
             }
         } else {
             if ($pos !== null) {
-                $contracts = $this->parse_number($contractsAbs);
                 if ($side === 'net') {
                     if (Precise::string_gt($pos, '0')) {
                         $side = 'long';

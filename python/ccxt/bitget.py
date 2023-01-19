@@ -52,6 +52,7 @@ class bitget(Exchange):
                 'cancelOrders': True,
                 'createOrder': True,
                 'createReduceOnlyOrder': False,
+                'editOrder': True,
                 'fetchAccounts': False,
                 'fetchBalance': True,
                 'fetchBorrowRate': False,
@@ -196,6 +197,11 @@ class bitget(Exchange):
                             'wallet/transfer': 4,
                             'wallet/withdrawal': 4,
                             'wallet/subTransfer': 10,
+                            'plan/placePlan': 1,
+                            'plan/modifyPlan': 1,
+                            'plan/cancelPlan': 1,
+                            'plan/currentPlan': 1,
+                            'plan/historyPlan': 1,
                         },
                     },
                     'mix': {
@@ -698,6 +704,8 @@ class bitget(Exchange):
                     '40712': InsufficientFunds,  # Insufficient margin
                     '40713': ExchangeError,  # Cannot exceed the maximum transferable margin amount
                     '40714': ExchangeError,  # No direct margin call is allowed
+                    '43011': InvalidOrder,  # The parameter does not meet the specification executePrice <= 0
+                    '43025': InvalidOrder,  # Plan order does not exist
                     '45110': InvalidOrder,  # {"code":"45110","msg":"less than the minimum amount 5 USDT","requestTime":1669911118932,"data":null}
                     # spot
                     'invalid sign': AuthenticationError,
@@ -911,7 +919,10 @@ class bitget(Exchange):
         #        minTradeNum: '0.001',
         #        priceEndStep: '5',
         #        volumePlace: '3',
-        #        pricePlace: '1'
+        #        pricePlace: '1',
+        #        symbolStatus: "normal",
+        #        offTime: "-1",
+        #        limitOpenTime: "-1"
         #    }
         #
         marketId = self.safe_string(market, 'symbol')
@@ -973,10 +984,10 @@ class bitget(Exchange):
             preciseAmount.reduce()
             amountString = str(preciseAmount)
             amountPrecision = self.parse_number(amountString)
-        status = self.safe_string(market, 'status')
+        status = self.safe_string_2(market, 'status', 'symbolStatus')
         active = None
         if status is not None:
-            active = status == 'online'
+            active = (status == 'online' or status == 'normal')
         minCost = None
         if quote == 'USDT':
             minCost = self.safe_number(market, 'minTradeUSDT')
@@ -1402,7 +1413,7 @@ class bitget(Exchange):
         """
         fetch the deposit address for a currency associated with self account
         :param str code: unified currency code
-        :param dict params: extra parameters specific to the binance api endpoint
+        :param dict params: extra parameters specific to the bitget api endpoint
         :returns dict: an `address structure <https://docs.ccxt.com/en/latest/manual.html#address-structure>`
         """
         self.load_markets()
@@ -1947,8 +1958,7 @@ class bitget(Exchange):
             'spot': 'publicSpotGetMarketCandles',
             'swap': 'publicMixGetMarketCandles',
         })
-        until = self.safe_integer_2(params, 'until', 'till')
-        params = self.omit(params, ['until', 'till'])
+        until = self.safe_integer_2(query, 'until', 'till')
         if limit is None:
             limit = 100
         if market['type'] == 'spot':
@@ -1974,7 +1984,8 @@ class bitget(Exchange):
                     request['endTime'] = until
                 else:
                     request['endTime'] = self.sum(since, limit * duration * 1000)
-        response = getattr(self, method)(self.extend(request, query))
+        ommitted = self.omit(query, ['until', 'till'])
+        response = getattr(self, method)(self.extend(request, ommitted))
         #  [["1645911960000","39406","39407","39374.5","39379","35.526","1399132.341"]]
         data = self.safe_value(response, 'data', response)
         return self.parse_ohlcvs(data, market, timeframe, since, limit)
@@ -2199,7 +2210,7 @@ class bitget(Exchange):
         isStopLossOrder = stopLossPrice is not None
         takeProfitPrice = self.safe_value(params, 'takeProfitPrice')
         isTakeProfitOrder = takeProfitPrice is not None
-        isStopOrder = isStopLossOrder or isTakeProfitOrder
+        isStopLossOrTakeProfit = isStopLossOrder or isTakeProfitOrder
         if self.sum(isTriggerOrder, isStopLossOrder, isTakeProfitOrder) > 1:
             raise ExchangeError(self.id + ' createOrder() params can only contain one of triggerPrice, stopLossPrice, takeProfitPrice')
         if (type == 'limit') and (triggerPrice is None):
@@ -2212,8 +2223,11 @@ class bitget(Exchange):
         exchangeSpecificParam = self.safe_string_2(params, 'force', 'timeInForceValue')
         postOnly = self.is_post_only(isMarketOrder, exchangeSpecificParam == 'post_only', params)
         if marketType == 'spot':
-            if isStopOrder:
-                raise InvalidOrder(self.id + ' createOrder() does not support stop orders on spot markets, only swap markets')
+            if isStopLossOrTakeProfit:
+                raise InvalidOrder(self.id + ' createOrder() does not support stop loss/take profit orders on spot markets, only swap markets')
+            timeInForceKey = 'force'
+            quantityKey = 'quantity'
+            quantity = None
             createMarketBuyOrderRequiresPrice = self.safe_value(self.options, 'createMarketBuyOrderRequiresPrice', True)
             if createMarketBuyOrderRequiresPrice and isMarketOrder and (side == 'buy'):
                 if price is None:
@@ -2222,16 +2236,27 @@ class bitget(Exchange):
                     amountString = self.number_to_string(amount)
                     priceString = self.number_to_string(price)
                     cost = self.parse_number(Precise.string_mul(amountString, priceString))
-                    request['quantity'] = self.price_to_precision(symbol, cost)
+                    quantity = self.price_to_precision(symbol, cost)
             else:
-                request['quantity'] = self.amount_to_precision(symbol, amount)
+                quantity = self.amount_to_precision(symbol, amount)
             if clientOrderId is not None:
                 request['clientOrderId'] = clientOrderId
             request['side'] = side
+            if triggerPrice is not None:
+                quantityKey = 'size'
+                timeInForceKey = 'timeInForceValue'
+                # default triggerType to market price for unification
+                triggerType = self.safe_string(params, 'triggerType', 'market_price')
+                request['triggerType'] = triggerType
+                request['triggerPrice'] = self.price_to_precision(symbol, triggerPrice)
+                request['executePrice'] = self.price_to_precision(symbol, price)
+                method = 'privateSpotPostPlanPlacePlan'
+            if quantity is not None:
+                request[quantityKey] = quantity
             if postOnly:
-                request['force'] = 'post_only'
+                request[timeInForceKey] = 'post_only'
             else:
-                request['force'] = 'gtc'
+                request[timeInForceKey] = 'normal'
         else:
             if clientOrderId is not None:
                 request['clientOid'] = clientOrderId
@@ -2246,7 +2271,7 @@ class bitget(Exchange):
                 request['triggerPrice'] = self.price_to_precision(symbol, triggerPrice)
                 request['executePrice'] = self.price_to_precision(symbol, price)
                 method = 'privateMixPostPlanPlacePlan'
-            if isStopOrder:
+            if isStopLossOrTakeProfit:
                 if not isMarketOrder:
                     raise ExchangeError(self.id + ' createOrder() bitget stopLoss or takeProfit orders must be market orders')
                 if isStopLossOrder:
@@ -2279,6 +2304,92 @@ class bitget(Exchange):
         data = self.safe_value(response, 'data')
         return self.parse_order(data, market)
 
+    def edit_order(self, id, symbol, type, side, amount, price=None, params={}):
+        """
+        edit a trade order
+        :param str id: cancel order id
+        :param str symbol: unified symbol of the market to create an order in
+        :param str type: 'market' or 'limit'
+        :param str side: 'buy' or 'sell'
+        :param float amount: how much of currency you want to trade in units of base currency
+        :param float|None price: the price at which the order is to be fullfilled, in units of the base currency, ignored in market orders
+        :param dict params: extra parameters specific to the bitget api endpoint
+        :returns dict: an `order structure <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
+        """
+        self.load_markets()
+        market = self.market(symbol)
+        marketType, query = self.handle_market_type_and_params('editOrder', market, params)
+        request = {
+            'orderId': id,
+            'orderType': type,
+        }
+        isMarketOrder = type == 'market'
+        triggerPrice = self.safe_value_2(params, 'stopPrice', 'triggerPrice')
+        isTriggerOrder = triggerPrice is not None
+        stopLossPrice = self.safe_value(params, 'stopLossPrice')
+        isStopLossOrder = stopLossPrice is not None
+        takeProfitPrice = self.safe_value(params, 'takeProfitPrice')
+        isTakeProfitOrder = takeProfitPrice is not None
+        isStopOrder = isStopLossOrder or isTakeProfitOrder
+        if self.sum(isTriggerOrder, isStopLossOrder, isTakeProfitOrder) > 1:
+            raise ExchangeError(self.id + ' editOrder() params can only contain one of triggerPrice, stopLossPrice, takeProfitPrice')
+        if not isStopOrder and not isTriggerOrder:
+            raise InvalidOrder(self.id + ' editOrder() only support plan orders')
+        method = self.get_supported_mapping(marketType, {
+            'spot': 'privateSpotPostPlanModifyPlan',
+            'swap': 'privateMixPostPlanModifyPlan',
+        })
+        if triggerPrice is not None:
+            # default triggerType to market price for unification
+            triggerType = self.safe_string(params, 'triggerType', 'market_price')
+            request['triggerType'] = triggerType
+            request['triggerPrice'] = self.price_to_precision(symbol, triggerPrice)
+            request['executePrice'] = self.price_to_precision(symbol, price)
+        if marketType == 'spot':
+            if isStopOrder:
+                raise InvalidOrder(self.id + ' editOrder() does not support stop orders on spot markets, only swap markets')
+            editMarketBuyOrderRequiresPrice = self.safe_value(self.options, 'editMarketBuyOrderRequiresPrice', True)
+            if editMarketBuyOrderRequiresPrice and isMarketOrder and (side == 'buy'):
+                if price is None:
+                    raise InvalidOrder(self.id + ' editOrder() requires price argument for market buy orders on spot markets to calculate the total amount to spend(amount * price), alternatively set the editMarketBuyOrderRequiresPrice option to False and pass in the cost to spend into the amount parameter')
+                else:
+                    amountString = self.number_to_string(amount)
+                    priceString = self.number_to_string(price)
+                    cost = self.parse_number(Precise.string_mul(amountString, priceString))
+                    request['size'] = self.price_to_precision(symbol, cost)
+            else:
+                request['size'] = self.amount_to_precision(symbol, amount)
+        else:
+            request['symbol'] = market['id']
+            request['size'] = self.amount_to_precision(symbol, amount)
+            if isStopOrder:
+                if not isMarketOrder:
+                    raise ExchangeError(self.id + ' editOrder() bitget stopLoss or takeProfit orders must be market orders')
+                if isStopLossOrder:
+                    request['triggerPrice'] = self.price_to_precision(symbol, stopLossPrice)
+                    request['planType'] = 'loss_plan'
+                elif isTakeProfitOrder:
+                    request['triggerPrice'] = self.price_to_precision(symbol, takeProfitPrice)
+                    request['planType'] = 'profit_plan'
+                method = 'privateMixPostPlanModifyTPSLPlan'
+            request['marginCoin'] = market['settleId']
+        omitted = self.omit(query, ['stopPrice', 'triggerType', 'stopLossPrice', 'takeProfitPrice'])
+        response = getattr(self, method)(self.extend(request, omitted))
+        #
+        # spot
+        #     {
+        #         "code": "00000",
+        #         "msg": "success",
+        #         "requestTime": 1668136575920,
+        #         "data": {
+        #         "orderId": "974792060738441216",
+        #         "clientOrderId": "974792554995224576"
+        #         }
+        #     }
+        #
+        data = self.safe_value(response, 'data')
+        return self.parse_order(data, market)
+
     def cancel_order(self, id, symbol=None, params={}):
         """
         cancels an open order
@@ -2300,17 +2411,20 @@ class bitget(Exchange):
             'symbol': market['id'],
             'orderId': id,
         }
-        stop = self.safe_value(params, 'stop')
+        stop = self.safe_value(query, 'stop')
         if stop:
-            planType = self.safe_string(params, 'planType')
-            if planType is None:
-                raise ArgumentsRequired(self.id + ' cancelOrder() requires a planType parameter for stop orders, either normal_plan, profit_plan or loss_plan')
-            request['planType'] = planType
-            method = 'privateMixPostPlanCancelPlan'
-            params = self.omit(params, ['stop', 'planType'])
+            if marketType == 'spot':
+                method = 'privateSpotPostPlanCancelPlan'
+            else:
+                planType = self.safe_string(params, 'planType')
+                if planType is None:
+                    raise ArgumentsRequired(self.id + ' cancelOrder() requires a planType parameter for stop orders, either normal_plan, profit_plan or loss_plan')
+                request['planType'] = planType
+                method = 'privateMixPostPlanCancelPlan'
         if marketType == 'swap':
             request['marginCoin'] = market['settleId']
-        response = getattr(self, method)(self.extend(request, query))
+        ommitted = self.omit(query, ['stop', 'planType'])
+        response = getattr(self, method)(self.extend(request, ommitted))
         return self.parse_order(response, market)
 
     def cancel_orders(self, ids, symbol=None, params={}):
@@ -2406,13 +2520,12 @@ class bitget(Exchange):
             'productType': productType,
         }
         method = None
-        stop = self.safe_value(params, 'stop')
-        planType = self.safe_string(params, 'planType')
+        stop = self.safe_value(query, 'stop')
+        planType = self.safe_string(query, 'planType')
         if stop is not None or planType is not None:
             if planType is None:
                 raise ArgumentsRequired(self.id + ' cancelOrder() requires a planType parameter for stop orders, either normal_plan, profit_plan, loss_plan, pos_profit, pos_loss, moving_plan or track_plan')
             method = 'privateMixPostPlanCancelAllPlan'
-            params = self.omit(params, ['stop'])
         else:
             code = self.safe_string_2(params, 'code', 'marginCoin')
             if code is None:
@@ -2420,8 +2533,8 @@ class bitget(Exchange):
             currency = self.currency(code)
             request['marginCoin'] = self.safe_currency_code(code, currency)
             method = 'privateMixPostOrderCancelAllOrders'
-        params = self.omit(query, ['code', 'marginCoin'])
-        response = getattr(self, method)(self.extend(request, params))
+        ommitted = self.omit(query, ['stop', 'code', 'marginCoin'])
+        response = getattr(self, method)(self.extend(request, ommitted))
         #
         #     {
         #         "code": "00000",
@@ -2531,6 +2644,8 @@ class bitget(Exchange):
             raise ArgumentsRequired(self.id + ' fetchOpenOrders() requires a symbol argument')
         self.load_markets()
         market = self.market(symbol)
+        marketType = None
+        query = None
         marketType, query = self.handle_market_type_and_params('fetchOpenOrders', market, params)
         request = {
             'symbol': market['id'],
@@ -2539,10 +2654,15 @@ class bitget(Exchange):
             'spot': 'privateSpotPostTradeOpenOrders',
             'swap': 'privateMixGetOrderCurrent',
         })
-        stop = self.safe_value(params, 'stop')
+        stop = self.safe_value(query, 'stop')
         if stop:
-            method = 'privateMixGetPlanCurrentPlan'
-            params = self.omit(params, 'stop')
+            if marketType == 'spot':
+                method = 'privateSpotPostPlanCurrentPlan'
+                if limit is not None:
+                    request['pageSize'] = limit
+            else:
+                method = 'privateMixGetPlanCurrentPlan'
+            query = self.omit(query, 'stop')
         response = getattr(self, method)(self.extend(request, query))
         #
         #  spot
@@ -2623,7 +2743,33 @@ class bitget(Exchange):
         #         ]
         #     }
         #
+        # spot plan order
+        #
+        #     {
+        #         "code": "00000",
+        #         "msg": "success",
+        #         "requestTime": 1668134581005,
+        #         "data": {
+        #             "nextFlag": False,
+        #             "endId": 974792555020390400,
+        #             "orderList": [{
+        #                 "orderId": "974792555020390400",
+        #                 "symbol": "TRXUSDT_SPBL",
+        #                 "size": "151",
+        #                 "executePrice": "0.041572",
+        #                 "triggerPrice": "0.041572",
+        #                 "status": "not_trigger",
+        #                 "orderType": "limit",
+        #                 "side": "buy",
+        #                 "triggerType": "fill_price",
+        #                 "cTime": "1668134576563"
+        #             }]
+        #         }
+        #     }
+        #
         data = self.safe_value(response, 'data', [])
+        if not isinstance(data, list):
+            data = self.safe_value(data, 'orderList', [])
         return self.parse_orders(data, market, since, limit)
 
     def fetch_closed_orders(self, symbol=None, since=None, limit=None, params={}):
@@ -2647,7 +2793,13 @@ class bitget(Exchange):
             'spot': 'privateSpotPostTradeHistory',
             'swap': 'privateMixGetOrderHistory',
         })
-        if marketType == 'swap':
+        stop = self.safe_value(query, 'stop')
+        if stop:
+            if marketType == 'spot':
+                method = 'privateSpotPostPlanHistoryPlan'
+            else:
+                method = 'privateMixGetPlanHistoryPlan'
+        if marketType == 'swap' or stop:
             if limit is None:
                 limit = 100
             request['pageSize'] = limit
@@ -2655,7 +2807,8 @@ class bitget(Exchange):
                 since = 0
             request['startTime'] = since
             request['endTime'] = self.milliseconds()
-        response = getattr(self, method)(self.extend(request, query))
+        omitted = self.omit(query, 'stop')
+        response = getattr(self, method)(self.extend(request, omitted))
         #
         #  spot
         #     {
@@ -2712,6 +2865,59 @@ class bitget(Exchange):
         #           }
         #         ]
         #       }
+        #     }
+        #
+        # spot plan order
+        #
+        #     {
+        #         "code": "00000",
+        #         "msg": "success",
+        #         "requestTime": 1668134626684,
+        #         "data": {
+        #         "nextFlag": False,
+        #         "endId": 974792060738441216,
+        #         "orderList": [
+        #             {
+        #             "orderId": "974792060738441216",
+        #             "symbol": "TRXUSDT_SPBL",
+        #             "size": "156",
+        #             "executePrice": "0.041272",
+        #             "triggerPrice": "0.041222",
+        #             "status": "cancel",
+        #             "orderType": "limit",
+        #             "side": "buy",
+        #             "triggerType": "fill_price",
+        #             "cTime": "1668134458717"
+        #             }
+        #           ]
+        #         }
+        #     }
+        #
+        # swap plan order
+        #
+        #     {
+        #         "code":"00000",
+        #         "data":[
+        #             {
+        #                 "orderId":"803521986049314816",
+        #                 "executeOrderId":"84271931884910",
+        #                 "symbol":"BTCUSDT_UMCBL",
+        #                 "marginCoin":"USDT",
+        #                 "size":"1",
+        #                 "executePrice":"38923.1",
+        #                 "triggerPrice":"45000.3",
+        #                 "status":"not_trigger",
+        #                 "orderType":"limit",
+        #                 "planType":"normal_plan",
+        #                 "side":"open_long",
+        #                 "triggerType":"fill_price",
+        #                 "presetTakeProfitPrice":"0",
+        #                 "presetTakeLossPrice":"0",
+        #                 "ctime":"1627300490867"
+        #             }
+        #         ],
+        #         "msg":"success",
+        #         "requestTime":1627354109502
         #     }
         #
         data = self.safe_value(response, 'data')
@@ -3348,8 +3554,8 @@ class bitget(Exchange):
         """
         set hedged to True or False for a market
         :param bool hedged: set to True to use dualSidePosition
-        :param str|None symbol: not used by binance setPositionMode()
-        :param dict params: extra parameters specific to the binance api endpoint
+        :param str|None symbol: not used by bitget setPositionMode()
+        :param dict params: extra parameters specific to the bitget api endpoint
         :returns dict: response from the exchange
          *
         """

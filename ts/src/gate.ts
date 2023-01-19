@@ -99,7 +99,8 @@ export default class gate extends Exchange {
                 'fetchMyTrades': true,
                 'fetchNetworkDepositAddress': true,
                 'fetchOHLCV': true,
-                'fetchOpenInterestHistory': false,
+                'fetchOpenInterest': false,
+                'fetchOpenInterestHistory': true,
                 'fetchOpenOrders': true,
                 'fetchOrder': true,
                 'fetchOrderBook': true,
@@ -5028,6 +5029,90 @@ export default class gate extends Exchange {
          * @returns {object} a [margin structure]{@link https://docs.ccxt.com/en/latest/manual.html#add-margin-structure}
          */
         return await this.modifyMarginHelper (symbol, amount, params);
+    }
+
+    async fetchOpenInterestHistory (symbol, timeframe = '5m', since = undefined, limit = undefined, params = {}) {
+        /**
+         * @method
+         * @name gate#fetchOpenInterest
+         * @description Retrieves the open interest of a currency
+         * @see https://www.gate.io/docs/developers/apiv4/en/#futures-stats
+         * @param {string} symbol Unified CCXT market symbol
+         * @param {string} timeframe "5m", "15m", "30m", "1h", "4h", "1d"
+         * @param {int|undefined} since the time(ms) of the earliest record to retrieve as a unix timestamp
+         * @param {int|undefined} limit default 30
+         * @param {object} params exchange specific parameters
+         * @returns {object} an open interest structure{@link https://docs.ccxt.com/en/latest/manual.html#interest-history-structure}
+         */
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        if (!market['contract']) {
+            throw new BadRequest (this.id + ' fetchOpenInterest() supports contract markets only');
+        }
+        const request = {
+            'contract': market['id'],
+            'settle': market['settleId'],
+            'interval': this.timeframes[timeframe],
+        };
+        if (limit !== undefined) {
+            request['limit'] = limit;
+        }
+        if (since !== undefined) {
+            request['from'] = since;
+        }
+        const response = await (this as any).publicFuturesGetSettleContractStats (this.extend (request, params));
+        //
+        //    [
+        //        {
+        //            long_liq_size: '0',
+        //            short_liq_size: '0',
+        //            short_liq_usd: '0',
+        //            lsr_account: '3.2808988764045',
+        //            mark_price: '0.34619',
+        //            top_lsr_size: '0',
+        //            time: '1674057000',
+        //            short_liq_amount: '0',
+        //            long_liq_amount: '0',
+        //            open_interest_usd: '9872386.7775',
+        //            top_lsr_account: '0',
+        //            open_interest: '2851725',
+        //            long_liq_usd: '0',
+        //            lsr_taker: '9.3765153315902'
+        //        },
+        //        ...
+        //    ]
+        //
+        return this.parseOpenInterests (response, market, since, limit);
+    }
+
+    parseOpenInterest (interest, market = undefined) {
+        //
+        //    {
+        //        long_liq_size: '0',
+        //        short_liq_size: '0',
+        //        short_liq_usd: '0',
+        //        lsr_account: '3.2808988764045',
+        //        mark_price: '0.34619',
+        //        top_lsr_size: '0',
+        //        time: '1674057000',
+        //        short_liq_amount: '0',
+        //        long_liq_amount: '0',
+        //        open_interest_usd: '9872386.7775',
+        //        top_lsr_account: '0',
+        //        open_interest: '2851725',
+        //        long_liq_usd: '0',
+        //        lsr_taker: '9.3765153315902'
+        //    }
+        //
+        const timestamp = this.safeIntegerProduct (interest, 'time', 1000);
+        return {
+            'symbol': this.safeString (market, 'symbol'),
+            'openInterestAmount': this.safeNumber (interest, 'open_interest'),
+            'openInterestValue': this.safeNumber (interest, 'open_interest_usd'),
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'info': interest,
+        };
     }
 
     handleErrors (code, reason, url, method, headers, body, response, requestHeaders, requestBody) {
