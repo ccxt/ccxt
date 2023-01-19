@@ -2292,7 +2292,7 @@ module.exports = class bitget extends Exchange {
         const isStopLossOrder = stopLossPrice !== undefined;
         const takeProfitPrice = this.safeValue (params, 'takeProfitPrice');
         const isTakeProfitOrder = takeProfitPrice !== undefined;
-        const isStopOrder = isStopLossOrder || isTakeProfitOrder;
+        const isStopLossOrTakeProfit = isStopLossOrder || isTakeProfitOrder;
         if (this.sum (isTriggerOrder, isStopLossOrder, isTakeProfitOrder) > 1) {
             throw new ExchangeError (this.id + ' createOrder() params can only contain one of triggerPrice, stopLossPrice, takeProfitPrice');
         }
@@ -2307,8 +2307,8 @@ module.exports = class bitget extends Exchange {
         const exchangeSpecificParam = this.safeString2 (params, 'force', 'timeInForceValue');
         const postOnly = this.isPostOnly (isMarketOrder, exchangeSpecificParam === 'post_only', params);
         if (marketType === 'spot') {
-            if (isStopOrder) {
-                throw new InvalidOrder (this.id + ' createOrder() does not support stop orders on spot markets, only swap markets');
+            if (isStopLossOrTakeProfit) {
+                throw new InvalidOrder (this.id + ' createOrder() does not support stop loss/take profit orders on spot markets, only swap markets');
             }
             let timeInForceKey = 'force';
             let quantityKey = 'quantity';
@@ -2365,7 +2365,7 @@ module.exports = class bitget extends Exchange {
                 request['executePrice'] = this.priceToPrecision (symbol, price);
                 method = 'privateMixPostPlanPlacePlan';
             }
-            if (isStopOrder) {
+            if (isStopLossOrTakeProfit) {
                 if (!isMarketOrder) {
                     throw new ExchangeError (this.id + ' createOrder() bitget stopLoss or takeProfit orders must be market orders');
                 }
