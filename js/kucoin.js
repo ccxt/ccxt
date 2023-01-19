@@ -1659,9 +1659,7 @@ module.exports = class kucoin extends Exchange {
         if (stop) {
             method = 'privateGetStopOrder';
         }
-        if (marginMode !== undefined) {
-            request['tradeType'] = this.safeString (this.options['marginModes'], marginMode, marginMode);
-        }
+        request['tradeType'] = this.safeString (this.options['marginModes'], marginMode, 'TRADE');
         const response = await this[method] (this.extend (request, query));
         //
         //     {
