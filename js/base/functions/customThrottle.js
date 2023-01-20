@@ -103,10 +103,8 @@ function customThrottle(config, path = undefined, customExpireInterval = undefin
         }
 
         let expireInterval;
-        console.log('customExpireInterval', customExpireInterval)
         if (customExpireInterval !== undefined) {
             expireInterval = customExpireInterval;
-            console.log('customExpireInterval', customExpireInterval)
         } else if (path !== undefined) {
             expireInterval = this.config['expireIntervals'][path];
         }
