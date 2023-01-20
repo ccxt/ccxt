@@ -729,12 +729,23 @@ module.exports = class coinbase extends Exchange {
         }
         const sizeInQuote = this.safeValue (trade, 'size_in_quote');
         const v3Price = this.safeString (trade, 'price');
-        const v3Amount = sizeInQuote ? undefined : this.safeString (trade, 'size');
-        const v3Cost = sizeInQuote ? this.safeString (trade, 'size') : undefined;
+        const v3Amount = (sizeInQuote) ? undefined : this.safeString (trade, 'size');
+        const v3Cost = (sizeInQuote) ? this.safeString (trade, 'size') : undefined;
         const v3FeeCost = this.safeString (trade, 'commission');
         const amountString = this.safeString (amountObject, 'amount', v3Amount);
         const costString = this.safeString (subtotalObject, 'amount', v3Cost);
-        const priceString = ((costString !== undefined) && (amountString !== undefined)) ? Precise.stringDiv (costString, amountString) : v3Price;
+        let priceString = undefined;
+        let cost = undefined;
+        if ((costString !== undefined) && (amountString !== undefined)) {
+            priceString = Precise.stringDiv (costString, amountString);
+        } else {
+            priceString = v3Price;
+        }
+        if ((priceString !== undefined) && (amountString !== undefined)) {
+            cost = Precise.stringMul (priceString, amountString);
+        } else {
+            cost = costString;
+        }
         const feeCurrencyId = this.safeString (feeObject, 'currency');
         const datetime = this.safeStringN (trade, [ 'created_at', 'trade_time', 'time' ]);
         const side = this.safeStringLower2 (trade, 'resource', 'side');
@@ -751,7 +762,7 @@ module.exports = class coinbase extends Exchange {
             'takerOrMaker': (takerOrMaker === 'unknown_liquidity_indicator') ? undefined : takerOrMaker,
             'price': this.parseNumber (priceString),
             'amount': this.parseNumber (amountString),
-            'cost': (priceString !== undefined && amountString !== undefined) ? this.parseNumber (Precise.stringMul (priceString, amountString)) : this.parseNumber (costString),
+            'cost': this.parseNumber (cost),
             'fee': {
                 'cost': this.safeNumber (feeObject, 'amount', v3FeeCost),
                 'currency': this.safeCurrencyCode (feeCurrencyId),
