@@ -1106,83 +1106,49 @@ module.exports = class therock extends Exchange {
         //         "position_id": null,
         //         "trades": [
         //             {
-        //                 "id":237338,
-        //                 "fund_id":"BTCEUR",
-        //                 "amount":50,
-        //                 "price":0.0102,
-        //                 "side":"buy",
-        //                 "dark":false,
-        //                 "date":"2015-06-03T00:49:49.000Z"
+        //                 "id": 237338,
+        //                 "fund_id": "BTCEUR",
+        //                 "amount": 50,
+        //                 "price": 0.0102,
+        //                 "side": "buy",
+        //                 "dark": false,
+        //                 "date": "2015-06-03T00:49:49.000Z"
         //             }
         //         ]
         //     }
         //
         const id = this.safeString (order, 'id');
         const marketId = this.safeString (order, 'fund_id');
-        const symbol = this.safeSymbol (marketId, market);
-        const status = this.parseOrderStatus (this.safeString (order, 'status'));
         const timestamp = this.parse8601 (this.safeString (order, 'date'));
-        const type = this.safeString (order, 'type');
-        const side = this.safeString (order, 'side');
-        const amount = this.safeNumber (order, 'amount');
-        const remaining = this.safeNumber (order, 'amount_unfilled');
-        let filled = undefined;
-        if (amount !== undefined) {
-            if (remaining !== undefined) {
-                filled = amount - remaining;
-            }
-        }
-        const price = this.safeNumber (order, 'price');
-        let trades = this.safeValue (order, 'trades');
-        let cost = undefined;
-        let average = undefined;
-        let lastTradeTimestamp = undefined;
-        if (trades !== undefined) {
-            const numTrades = trades.length;
-            if (numTrades > 0) {
-                trades = this.parseTrades (trades, market, undefined, undefined, {
-                    'orderId': id,
-                });
-                // todo: determine the cost and the average price from trades
-                cost = 0;
-                filled = 0;
-                for (let i = 0; i < numTrades; i++) {
-                    const trade = trades[i];
-                    cost = this.sum (cost, trade['cost']);
-                    filled = this.sum (filled, trade['amount']);
-                }
-                if (filled > 0) {
-                    average = cost / filled;
-                }
-                lastTradeTimestamp = trades[numTrades - 1]['timestamp'];
-            } else {
-                cost = 0;
-            }
-        }
-        const stopPrice = this.safeNumber (order, 'conditional_price');
-        return {
+        const amount = this.safeString (order, 'amount');
+        const remaining = this.safeString (order, 'amount_unfilled');
+        const price = this.safeString (order, 'price');
+        const trades = this.safeValue (order, 'trades');
+        const stopPrice = this.safeString (order, 'conditional_price');
+        return this.safeOrder ({
             'id': id,
             'clientOrderId': undefined,
             'info': order,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'lastTradeTimestamp': lastTradeTimestamp,
-            'status': status,
-            'symbol': symbol,
-            'type': type,
+            'lastTradeTimestamp': undefined,
+            'status': this.parseOrderStatus (this.safeString (order, 'status')),
+            'symbol': this.safeSymbol (marketId, market),
+            'type': this.safeString (order, 'type'),
             'timeInForce': undefined,
             'postOnly': undefined,
-            'side': side,
+            'side': this.safeString (order, 'side'),
             'price': price,
             'stopPrice': stopPrice,
-            'cost': cost,
+            'triggerPrice': stopPrice,
+            'cost': undefined,
             'amount': amount,
-            'filled': filled,
-            'average': average,
+            'filled': undefined,
+            'average': undefined,
             'remaining': remaining,
             'fee': undefined,
             'trades': trades,
-        };
+        }, market);
     }
 
     async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {

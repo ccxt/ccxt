@@ -128,8 +128,6 @@ module.exports = class okx extends Exchange {
                 '1w': '1W',
                 '1M': '1M',
                 '3M': '3M',
-                '6M': '6M',
-                '1y': '1Y',
             },
             'hostname': 'www.okx.com', // or aws.okx.com
             'urls': {
@@ -155,13 +153,13 @@ module.exports = class okx extends Exchange {
                         'market/books-lite': 1.66,
                         'market/candles': 0.5,
                         'market/history-candles': 1,
-                        'market/history-mark-price-candles': 120,
-                        'market/history-index-candles': 120,
+                        'market/history-mark-price-candles': 2,
+                        'market/history-index-candles': 2,
                         'market/index-candles': 1,
                         'market/mark-price-candles': 1,
                         'market/trades': 1,
                         'market/platform-24-volume': 10,
-                        'market/open-oracle': 100,
+                        'market/open-oracle': 40,
                         'market/index-components': 1,
                         'market/option/instrument-family-trades': 1,
                         // 'market/oracle',
@@ -177,6 +175,7 @@ module.exports = class okx extends Exchange {
                         'public/time': 2,
                         'public/liquidation-orders': 0.5,
                         'public/mark-price': 2,
+                        'public/option-trades': 1,
                         // 'public/tier',
                         'public/position-tiers': 2,
                         'public/underlying': 1,
@@ -229,6 +228,7 @@ module.exports = class okx extends Exchange {
                         'asset/transfer-state': 10,
                         'asset/deposit-history': 5 / 3,
                         'asset/withdrawal-history': 5 / 3,
+                        'asset/deposit-withdraw-status': 20,
                         'asset/currencies': 5 / 3,
                         'asset/bills': 5 / 3,
                         'asset/piggy-balance': 5 / 3,
@@ -301,6 +301,7 @@ module.exports = class okx extends Exchange {
                         'account/simulated_margin': 10,
                         'account/borrow-repay': 5 / 3,
                         'account/quick-margin-borrow-repay': 4,
+                        'account/activate-option': 4,
                         'asset/transfer': 10,
                         'asset/withdrawal': 5 / 3,
                         'asset/purchase_redempt': 5 / 3,
@@ -714,6 +715,9 @@ module.exports = class okx extends Exchange {
                     'POLYGON': 'Polygon',
                     'OEC': 'OEC',
                     'ALGO': 'ALGO', // temporarily unavailable
+                    'OPTIMISM': 'Optimism',
+                    'ARBITRUM': 'Arbitrum one',
+                    'AVALANCHE': 'Avalanche C-Chain',
                 },
                 'fetchOpenInterestHistory': {
                     'timeframes': {
@@ -2580,6 +2584,7 @@ module.exports = class okx extends Exchange {
             'side': side,
             'price': price,
             'stopPrice': stopPrice,
+            'triggerPrice': stopPrice,
             'average': average,
             'cost': cost,
             'amount': amount,
@@ -3694,7 +3699,7 @@ module.exports = class okx extends Exchange {
         this.checkAddress (address);
         await this.loadMarkets ();
         const currency = this.currency (code);
-        if (tag !== undefined) {
+        if ((tag !== undefined) && (tag.length > 0)) {
             address = address + ':' + tag;
         }
         const fee = this.safeString (params, 'fee');
@@ -4336,18 +4341,30 @@ module.exports = class okx extends Exchange {
         const marketId = this.safeString (position, 'instId');
         market = this.safeMarket (marketId, market);
         const symbol = market['symbol'];
-        const contractsString = this.safeString (position, 'pos');
-        const contractsAbs = Precise.stringAbs (contractsString);
-        let contracts = undefined;
+        const pos = this.safeString (position, 'pos'); // 'pos' field: One way mode: 0 if position is not open, 1 if open | Two way (hedge) mode: -1 if short, 1 if long, 0 if position is not open
+        const contractsAbs = Precise.stringAbs (pos);
         let side = this.safeString (position, 'posSide');
         const hedged = side !== 'net';
-        if (contractsString !== undefined) {
-            contracts = this.parseNumber (contractsAbs);
+        const contracts = this.parseNumber (contractsAbs);
+        if (market['margin']) {
+            // margin position
             if (side === 'net') {
-                if (Precise.stringGt (contractsString, '0')) {
-                    side = 'long';
-                } else {
-                    side = 'short';
+                const posCcy = this.safeString (position, 'posCcy');
+                const parsedCurrency = this.safeCurrencyCode (posCcy);
+                if (parsedCurrency !== undefined) {
+                    side = (market['base'] === parsedCurrency) ? 'long' : 'short';
+                }
+            }
+        } else {
+            if (pos !== undefined) {
+                if (side === 'net') {
+                    if (Precise.stringGt (pos, '0')) {
+                        side = 'long';
+                    } else if (Precise.stringLt (pos, '0')) {
+                        side = 'short';
+                    } else {
+                        side = undefined;
+                    }
                 }
             }
         }

@@ -855,32 +855,35 @@ class hitbtc(Exchange):
         amount = self.safe_number(transaction, 'amount')
         address = self.safe_string(transaction, 'address')
         txid = self.safe_string(transaction, 'hash')
-        fee = None
+        fee = {
+            'currency': None,
+            'cost': None,
+            'rate': None,
+        }
         feeCost = self.safe_number(transaction, 'fee')
         if feeCost is not None:
-            fee = {
-                'cost': feeCost,
-                'currency': code,
-            }
+            fee['cost'] = feeCost
+            fee['currency'] = code
         type = self.parse_transaction_type(self.safe_string(transaction, 'type'))
         return {
             'info': transaction,
             'id': id,
             'txid': txid,
+            'type': type,
+            'currency': code,
+            'network': None,
+            'amount': amount,
+            'status': status,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
-            'network': None,
             'address': address,
-            'addressTo': None,
             'addressFrom': None,
+            'addressTo': None,
             'tag': None,
-            'tagTo': None,
             'tagFrom': None,
-            'type': type,
-            'amount': amount,
-            'currency': code,
-            'status': status,
+            'tagTo': None,
             'updated': updated,
+            'comment': None,
             'fee': fee,
         }
 
@@ -1087,6 +1090,7 @@ class hitbtc(Exchange):
             'side': side,
             'price': price,
             'stopPrice': None,
+            'triggerPrice': None,
             'average': average,
             'amount': amount,
             'cost': None,

@@ -338,9 +338,11 @@ module.exports = class btcmarkets extends Exchange {
             'currency': code,
             'status': status,
             'updated': lastUpdate,
+            'comment': undefined,
             'fee': {
                 'currency': code,
                 'cost': fee,
+                'rate': undefined,
             },
             'info': transaction,
         };
@@ -996,6 +998,7 @@ module.exports = class btcmarkets extends Exchange {
             'side': side,
             'price': price,
             'stopPrice': stopPrice,
+            'triggerPrice': stopPrice,
             'cost': undefined,
             'amount': amount,
             'filled': undefined,

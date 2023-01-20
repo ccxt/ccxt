@@ -1109,83 +1109,49 @@ class therock extends Exchange {
         //         "position_id" => null,
         //         "trades" => array(
         //             {
-        //                 "id":237338,
-        //                 "fund_id":"BTCEUR",
-        //                 "amount":50,
-        //                 "price":0.0102,
-        //                 "side":"buy",
-        //                 "dark":false,
-        //                 "date":"2015-06-03T00:49:49.000Z"
+        //                 "id" => 237338,
+        //                 "fund_id" => "BTCEUR",
+        //                 "amount" => 50,
+        //                 "price" => 0.0102,
+        //                 "side" => "buy",
+        //                 "dark" => false,
+        //                 "date" => "2015-06-03T00:49:49.000Z"
         //             }
         //         )
         //     }
         //
         $id = $this->safe_string($order, 'id');
         $marketId = $this->safe_string($order, 'fund_id');
-        $symbol = $this->safe_symbol($marketId, $market);
-        $status = $this->parse_order_status($this->safe_string($order, 'status'));
         $timestamp = $this->parse8601($this->safe_string($order, 'date'));
-        $type = $this->safe_string($order, 'type');
-        $side = $this->safe_string($order, 'side');
-        $amount = $this->safe_number($order, 'amount');
-        $remaining = $this->safe_number($order, 'amount_unfilled');
-        $filled = null;
-        if ($amount !== null) {
-            if ($remaining !== null) {
-                $filled = $amount - $remaining;
-            }
-        }
-        $price = $this->safe_number($order, 'price');
+        $amount = $this->safe_string($order, 'amount');
+        $remaining = $this->safe_string($order, 'amount_unfilled');
+        $price = $this->safe_string($order, 'price');
         $trades = $this->safe_value($order, 'trades');
-        $cost = null;
-        $average = null;
-        $lastTradeTimestamp = null;
-        if ($trades !== null) {
-            $numTrades = count($trades);
-            if ($numTrades > 0) {
-                $trades = $this->parse_trades($trades, $market, null, null, array(
-                    'orderId' => $id,
-                ));
-                // todo => determine the $cost and the $average $price from $trades
-                $cost = 0;
-                $filled = 0;
-                for ($i = 0; $i < $numTrades; $i++) {
-                    $trade = $trades[$i];
-                    $cost = $this->sum($cost, $trade['cost']);
-                    $filled = $this->sum($filled, $trade['amount']);
-                }
-                if ($filled > 0) {
-                    $average = $cost / $filled;
-                }
-                $lastTradeTimestamp = $trades[$numTrades - 1]['timestamp'];
-            } else {
-                $cost = 0;
-            }
-        }
-        $stopPrice = $this->safe_number($order, 'conditional_price');
-        return array(
+        $stopPrice = $this->safe_string($order, 'conditional_price');
+        return $this->safe_order(array(
             'id' => $id,
             'clientOrderId' => null,
             'info' => $order,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
-            'lastTradeTimestamp' => $lastTradeTimestamp,
-            'status' => $status,
-            'symbol' => $symbol,
-            'type' => $type,
+            'lastTradeTimestamp' => null,
+            'status' => $this->parse_order_status($this->safe_string($order, 'status')),
+            'symbol' => $this->safe_symbol($marketId, $market),
+            'type' => $this->safe_string($order, 'type'),
             'timeInForce' => null,
             'postOnly' => null,
-            'side' => $side,
+            'side' => $this->safe_string($order, 'side'),
             'price' => $price,
             'stopPrice' => $stopPrice,
-            'cost' => $cost,
+            'triggerPrice' => $stopPrice,
+            'cost' => null,
             'amount' => $amount,
-            'filled' => $filled,
-            'average' => $average,
+            'filled' => null,
+            'average' => null,
             'remaining' => $remaining,
             'fee' => null,
             'trades' => $trades,
-        );
+        ), $market);
     }
 
     public function fetch_open_orders($symbol = null, $since = null, $limit = null, $params = array ()) {

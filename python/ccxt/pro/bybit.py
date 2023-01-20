@@ -9,6 +9,7 @@ from ccxt.pro.base.cache import ArrayCache, ArrayCacheBySymbolById, ArrayCacheBy
 import hashlib
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
+from ccxt.base.errors import BadRequest
 
 
 class bybit(Exchange, ccxt.async_support.bybit):
@@ -70,6 +71,9 @@ class bybit(Exchange, ccxt.async_support.bybit):
                 },
             },
             'options': {
+                'watchTicker': {
+                    'name': 'tickers',  # 'tickers' for 24hr statistical ticker or 'bookticker' for Best bid price and best ask price
+                },
                 'spot': {
                     'timeframes': {
                         '1m': '1m',
@@ -86,7 +90,6 @@ class bybit(Exchange, ccxt.async_support.bybit):
                         '1w': '1w',
                         '1M': '1M',
                     },
-                    'watchTickerTopic': 'tickers',  # 'tickers' for 24hr statistical ticker or 'bookticker' for Best bid price and best ask price
                 },
                 'contract': {
                     'timeframes': {
@@ -179,10 +182,10 @@ class bybit(Exchange, ccxt.async_support.bybit):
         messageHash = 'ticker:' + market['symbol']
         url = self.get_url_by_market_type(symbol, False, False, params)
         params = self.clean_params(params)
-        topic = 'tickers'
-        if market['spot']:
-            spotOptions = self.safe_value(self.options, 'spot', {})
-            topic = self.safe_string(spotOptions, 'watchTickerTopic', 'tickers')
+        options = self.safe_value(self.options, 'watchTicker', {})
+        topic = self.safe_string(options, 'name', 'tickers')
+        if not market['spot'] and topic != 'tickers':
+            raise BadRequest(self.id + ' watchTicker() only supports name tickers for contract markets')
         topic += '.' + market['id']
         topics = [topic]
         return await self.watch_topics(url, messageHash, topics, params)
@@ -351,7 +354,9 @@ class bybit(Exchange, ccxt.async_support.bybit):
         topicLength = len(topicParts)
         timeframeId = self.safe_string(topicParts, 1)
         marketId = self.safe_string(topicParts, topicLength - 1)
-        market = self.safe_market(marketId)
+        isSpot = client.url.find('spot') > -1
+        marketType = 'spot' if isSpot else 'contract'
+        market = self.safe_market(marketId, None, None, marketType)
         symbol = market['symbol']
         ohlcvsByTimeframe = self.safe_value(self.ohlcvs, symbol)
         if ohlcvsByTimeframe is None:
@@ -415,6 +420,11 @@ class bybit(Exchange, ccxt.async_support.bybit):
                 limit = 40
             else:
                 limit = 200
+        else:
+            if not market['spot']:
+                # bybit only support limit 1, 50 , 200 for contract
+                if (limit != 1) and (limit != 50) and (limit != 200):
+                    raise BadRequest(self.id + ' watchOrderBook() can only use limit 1, 50 and 200.')
         topics = ['orderbook.' + str(limit) + '.' + market['id']]
         orderbook = await self.watch_topics(url, messageHash, topics, params)
         return orderbook.limit()
@@ -479,8 +489,9 @@ class bybit(Exchange, ccxt.async_support.bybit):
             isSnapshot = True
         data = self.safe_value(message, 'data', {})
         marketId = self.safe_string(data, 's')
-        market = self.safe_market(marketId)
-        symbol = self.safe_symbol(marketId, market)
+        marketType = 'spot' if isSpot else 'contract'
+        market = self.safe_market(marketId, None, None, marketType)
+        symbol = market['symbol']
         timestamp = self.safe_integer(message, 'ts')
         orderbook = self.safe_value(self.orderbooks, symbol)
         if orderbook is None:
@@ -489,8 +500,8 @@ class bybit(Exchange, ccxt.async_support.bybit):
             snapshot = self.parse_order_book(data, symbol, timestamp, 'b', 'a')
             orderbook.reset(snapshot)
         else:
-            asks = self.safe_value(orderbook, 'a', [])
-            bids = self.safe_value(orderbook, 'b', [])
+            asks = self.safe_value(data, 'a', [])
+            bids = self.safe_value(data, 'b', [])
             self.handle_deltas(orderbook['asks'], asks)
             self.handle_deltas(orderbook['bids'], bids)
             orderbook['timestamp'] = timestamp
@@ -575,8 +586,10 @@ class bybit(Exchange, ccxt.async_support.bybit):
         topic = self.safe_string(message, 'topic')
         trades = None
         parts = topic.split('.')
+        tradeType = self.safe_string(parts, 0)
+        marketType = 'spot' if (tradeType == 'trade') else 'contract'
         marketId = self.safe_string(parts, 1)
-        market = self.safe_market(marketId)
+        market = self.safe_market(marketId, None, None, marketType)
         if isinstance(data, list):
             # contract markets
             trades = data
@@ -663,8 +676,10 @@ class bybit(Exchange, ccxt.async_support.bybit):
         #     }
         #
         id = self.safe_string_n(trade, ['i', 'T', 'v'])
+        isContract = ('BT' in trade)
+        marketType = 'contract' if isContract else 'spot'
         marketId = self.safe_string(trade, 's')
-        market = self.safe_market(marketId, market)
+        market = self.safe_market(marketId, market, None, marketType)
         symbol = market['symbol']
         timestamp = self.safe_integer_2(trade, 't', 'T')
         side = self.safe_string_lower(trade, 'S')
@@ -1015,7 +1030,7 @@ class bybit(Exchange, ccxt.async_support.bybit):
         #
         id = self.safe_string(order, 'i')
         marketId = self.safe_string(order, 's')
-        symbol = self.safe_symbol(marketId, market)
+        symbol = self.safe_symbol(marketId, market, None, 'spot')
         timestamp = self.safe_integer(order, 'O')
         price = self.safe_string(order, 'p')
         if price == '0':
@@ -1058,6 +1073,7 @@ class bybit(Exchange, ccxt.async_support.bybit):
             'side': side,
             'price': price,
             'stopPrice': None,
+            'triggerPrice': None,
             'amount': amount,
             'cost': cost,
             'average': None,
@@ -1248,13 +1264,12 @@ class bybit(Exchange, ccxt.async_support.bybit):
         message = self.extend(request, params)
         return await self.watch(url, messageHash, message, messageHash)
 
-    async def authenticate(self, url, params={}):
+    def authenticate(self, url, params={}):
         self.check_required_credentials()
-        messageHash = 'login'
+        messageHash = 'authenticated'
         client = self.client(url)
         future = self.safe_value(client.subscriptions, messageHash)
         if future is None:
-            future = client.future('authenticated')
             expires = self.milliseconds() + 10000
             expires = str(expires)
             path = 'GET/realtime'
@@ -1266,8 +1281,10 @@ class bybit(Exchange, ccxt.async_support.bybit):
                     self.apiKey, expires, signature,
                 ],
             }
-            self.spawn(self.watch, url, messageHash, request, messageHash, future)
-        return await future
+            message = self.extend(request, params)
+            future = self.watch(url, messageHash, message)
+            client.subscriptions[messageHash] = future
+        return future
 
     def handle_error_message(self, client, message):
         #
@@ -1295,7 +1312,7 @@ class bybit(Exchange, ccxt.async_support.bybit):
         #
         #   {code: '-10009', desc: 'Invalid period!'}
         #
-        code = self.safe_integer(message, 'code')
+        code = self.safe_string_2(message, 'code', 'ret_code')
         try:
             if code is not None:
                 feedback = self.id + ' ' + self.json(message)
@@ -1309,18 +1326,19 @@ class bybit(Exchange, ccxt.async_support.bybit):
                     raise AuthenticationError('Authentication failed: ' + ret_msg)
                 else:
                     raise ExchangeError(self.id + ' ' + ret_msg)
-        except Exception as e:
-            if isinstance(e, AuthenticationError):
-                client.reject(e, 'authenticated')
-                method = 'login'
-                if method in client.subscriptions:
-                    del client.subscriptions[method]
-                return False
-            raise e
-        return message
+            return False
+        except Exception as error:
+            if isinstance(error, AuthenticationError):
+                messageHash = 'authenticated'
+                client.reject(error, messageHash)
+                if messageHash in client.subscriptions:
+                    del client.subscriptions[messageHash]
+            else:
+                client.reject(error)
+            return True
 
     def handle_message(self, client, message):
-        if not self.handle_error_message(client, message):
+        if self.handle_error_message(client, message):
             return
         # contract pong
         ret_msg = self.safe_string(message, 'ret_msg')
@@ -1368,7 +1386,7 @@ class bybit(Exchange, ccxt.async_support.bybit):
         if (op == 'auth') or (type == 'AUTH_RESP'):
             self.handle_authenticate(client, message)
 
-    def ping(self):
+    def ping(self, client):
         return {
             'req_id': self.request_id(),
             'op': 'ping',
@@ -1398,11 +1416,14 @@ class bybit(Exchange, ccxt.async_support.bybit):
         #    }
         #
         success = self.safe_value(message, 'success')
+        messageHash = 'authenticated'
         if success:
-            client.resolve(message, 'authenticated')
+            client.resolve(message, messageHash)
         else:
             error = AuthenticationError(self.id + ' ' + self.json(message))
-            client.reject(error, 'authenticated')
+            client.reject(error, messageHash)
+            if messageHash in client.subscriptions:
+                del client.subscriptions[messageHash]
         return message
 
     def handle_subscription_status(self, client, message):

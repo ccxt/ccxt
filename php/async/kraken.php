@@ -1442,7 +1442,7 @@ class kraken extends Exchange {
         }
         $status = $this->parse_order_status($this->safe_string($order, 'status'));
         $id = $this->safe_string_2($order, 'id', 'txid');
-        if ($id === null) {
+        if (($id === null) || (mb_substr($id, 0, 1 - 0) === '[')) {
             $txid = $this->safe_value($order, 'txid');
             $id = $this->safe_string($txid, 0);
         }
@@ -1464,6 +1464,7 @@ class kraken extends Exchange {
             'side' => $side,
             'price' => $price,
             'stopPrice' => $stopPrice,
+            'triggerPrice' => $stopPrice,
             'cost' => null,
             'amount' => $amount,
             'filled' => $filled,

@@ -195,6 +195,8 @@ class mexc3(Exchange):
                             'rebate/taxQuery': 1,
                             'rebate/detail': 1,
                             'rebate/detail/kickback': 1,
+                            'rebate/referCode': 1,
+                            'mxDeduct/enable': 1,
                         },
                         'post': {
                             'order': 1,
@@ -212,6 +214,7 @@ class mexc3(Exchange):
                             'margin/order': 1,
                             'margin/loan': 1,
                             'margin/repay': 1,
+                            'mxDeduct/enable': 1,
                         },
                         'delete': {
                             'order': 1,
@@ -424,6 +427,7 @@ class mexc3(Exchange):
                 },
                 'recvWindow': 5 * 1000,  # 5 sec, default
                 'maxTimeTillEnd': 90 * 86400 * 1000 - 1,  # 90 days
+                'broker': 'CCXT',
             },
             'commonCurrencies': {
                 'BEYONDPROTOCOL': 'BEYOND',
@@ -632,7 +636,7 @@ class mexc3(Exchange):
                     'active': active,
                     'deposit': isDepositEnabled,
                     'withdraw': isWithdrawEnabled,
-                    'fee': self.safe_number(chain, 'fee'),
+                    'fee': fee,
                     'precision': None,
                     'limits': {
                         'withdraw': {
@@ -1437,7 +1441,7 @@ class mexc3(Exchange):
             #
             ticker = self.safe_value(response, 'data', {})
         # when it's single symbol request, the returned structure is different(singular object) for both spot & swap, thus we need to wrap inside array
-        return self.parse_ticker(ticker, symbol)
+        return self.parse_ticker(ticker, market)
 
     def parse_ticker(self, ticker, market=None):
         marketId = self.safe_string(ticker, 'symbol')
@@ -2196,7 +2200,7 @@ class mexc3(Exchange):
             raise BadRequest(self.id + ' fetchOrdersByState() is not supported for ' + marketType)
         else:
             params['states'] = state
-            return self.fetch_orders(symbol, since, limit, params)
+            return await self.fetch_orders(symbol, since, limit, params)
 
     async def cancel_order(self, id, symbol=None, params={}):
         """
@@ -2583,6 +2587,7 @@ class mexc3(Exchange):
             'side': self.parse_order_side(self.safe_string(order, 'side')),
             'price': self.safe_number(order, 'price'),
             'stopPrice': self.safe_number_2(order, 'stopPrice', 'triggerPrice'),
+            'triggerPrice': self.safe_number_2(order, 'stopPrice', 'triggerPrice'),
             'average': self.safe_number(order, 'dealAvgPrice'),
             'amount': self.safe_number_2(order, 'origQty', 'vol'),
             'cost': self.safe_number(order, 'cummulativeQuoteQty'),  # 'cummulativeQuoteQty' vs 'origQuoteOrderQty'
@@ -4494,6 +4499,7 @@ class mexc3(Exchange):
                 url += '&' + 'signature=' + signature
                 headers = {
                     'X-MEXC-APIKEY': self.apiKey,
+                    'source': self.safe_string(self.options, 'broker', 'CCXT'),
                 }
             if method == 'POST':
                 headers['Content-Type'] = 'application/json'
@@ -4511,6 +4517,7 @@ class mexc3(Exchange):
                     'ApiKey': self.apiKey,
                     'Request-Time': timestamp,
                     'Content-Type': 'application/json',
+                    'source': self.safe_string(self.options, 'broker', 'CCXT'),
                 }
                 if method == 'POST':
                     auth = self.json(params)

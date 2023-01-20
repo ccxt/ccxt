@@ -407,10 +407,12 @@ module.exports = class bitfinex2 extends Exchange {
         // https://docs.bitfinex.com/docs/introduction#amount-precision
         // The amount field allows up to 8 decimals.
         // Anything exceeding this will be rounded to the 8th decimal.
+        symbol = this.safeSymbol (symbol);
         return this.decimalToPrecision (amount, TRUNCATE, this.markets[symbol]['precision']['amount'], DECIMAL_PLACES);
     }
 
     priceToPrecision (symbol, price) {
+        symbol = this.safeSymbol (symbol);
         price = this.decimalToPrecision (price, ROUND, this.markets[symbol]['precision']['price'], this.precisionMode);
         // https://docs.bitfinex.com/docs/introduction#price-precision
         // The precision level of all trading prices is based on significant figures.
@@ -1153,12 +1155,10 @@ module.exports = class bitfinex2 extends Exchange {
         const result = {};
         for (let i = 0; i < tickers.length; i++) {
             const ticker = tickers[i];
-            const id = ticker[0];
-            if (id in this.markets_by_id) {
-                const market = this.markets_by_id[id];
-                const symbol = market['symbol'];
-                result[symbol] = this.parseTicker (ticker, market);
-            }
+            const marketId = this.safeString (ticker, 0);
+            const market = this.safeMarket (marketId);
+            const symbol = market['symbol'];
+            result[symbol] = this.parseTicker (ticker, market);
         }
         return this.filterByArray (result, 'symbol', symbols);
     }
@@ -1252,12 +1252,7 @@ module.exports = class bitfinex2 extends Exchange {
         const timestamp = this.safeInteger (trade, timestampIndex);
         if (isPrivate) {
             const marketId = trade[1];
-            if (marketId in this.markets_by_id) {
-                market = this.markets_by_id[marketId];
-                symbol = market['symbol'];
-            } else {
-                symbol = this.parseSymbol (marketId);
-            }
+            symbol = this.parseSymbol (marketId);
             orderId = this.safeString (trade, 3);
             const maker = this.safeInteger (trade, 8);
             takerOrMaker = (maker === 1) ? 'maker' : 'taker';
@@ -1271,11 +1266,6 @@ module.exports = class bitfinex2 extends Exchange {
             };
             const orderType = trade[6];
             type = this.safeString (this.options['exchangeTypes'], orderType);
-        }
-        if (symbol === undefined) {
-            if (market !== undefined) {
-                symbol = market['symbol'];
-            }
         }
         return this.safeTrade ({
             'id': id,
@@ -1441,16 +1431,8 @@ module.exports = class bitfinex2 extends Exchange {
 
     parseOrder (order, market = undefined) {
         const id = this.safeString (order, 0);
-        let symbol = undefined;
         const marketId = this.safeString (order, 3);
-        if (marketId in this.markets_by_id) {
-            market = this.markets_by_id[marketId];
-        } else {
-            symbol = this.parseSymbol (marketId);
-        }
-        if ((symbol === undefined) && (market !== undefined)) {
-            symbol = market['symbol'];
-        }
+        const symbol = this.parseSymbol (marketId);
         // https://github.com/ccxt/ccxt/issues/6686
         // const timestamp = this.safeTimestamp (order, 5);
         const timestamp = this.safeInteger (order, 5);
@@ -1477,7 +1459,7 @@ module.exports = class bitfinex2 extends Exchange {
             price = undefined;
             stopPrice = this.safeNumber (order, 16);
             if (orderType === 'EXCHANGE STOP LIMIT') {
-                price = this.safeNumber (order, 19);
+                price = this.safeString (order, 19);
             }
         }
         let status = undefined;
@@ -1502,6 +1484,7 @@ module.exports = class bitfinex2 extends Exchange {
             'side': side,
             'price': price,
             'stopPrice': stopPrice,
+            'triggerPrice': stopPrice,
             'amount': amount,
             'cost': undefined,
             'average': average,
@@ -1540,7 +1523,12 @@ module.exports = class bitfinex2 extends Exchange {
         // order types "limit" and "market" immediatley parsed "EXCHANGE LIMIT" and "EXCHANGE MARKET"
         // note: same order types exist for margin orders without the EXCHANGE prefix
         const orderTypes = this.safeValue (this.options, 'orderTypes', {});
-        const orderType = this.safeStringUpper (orderTypes, type, type);
+        let orderType = type.toUpperCase ();
+        if (market['spot']) {
+            // although they claim that type needs to be 'exchange limit' or 'exchange market'
+            // in fact that's not the case for swap markets
+            orderType = this.safeStringUpper (orderTypes, type, type);
+        }
         const stopPrice = this.safeString2 (params, 'stopPrice', 'triggerPrice');
         const timeInForce = this.safeString (params, 'timeInForce');
         const postOnlyParam = this.safeValue (params, 'postOnly', false);
@@ -2105,6 +2093,8 @@ module.exports = class bitfinex2 extends Exchange {
         let feeCost = undefined;
         let txid = undefined;
         let addressTo = undefined;
+        let network = undefined;
+        let comment = undefined;
         if (transactionLength === 8) {
             const data = this.safeValue (transaction, 4, []);
             timestamp = this.safeInteger (transaction, 0);
@@ -2113,7 +2103,7 @@ module.exports = class bitfinex2 extends Exchange {
             }
             feeCost = this.safeString (data, 8);
             if (feeCost !== undefined) {
-                feeCost = Precise.stringNeg (feeCost);
+                feeCost = Precise.stringAbs (feeCost);
             }
             amount = this.safeNumber (data, 5);
             id = this.safeValue (data, 0);
@@ -2128,12 +2118,15 @@ module.exports = class bitfinex2 extends Exchange {
             id = this.safeString (transaction, 0);
             const currencyId = this.safeString (transaction, 1);
             code = this.safeCurrencyCode (currencyId, currency);
+            const networkId = this.safeString (transaction, 2);
+            network = this.safeNetwork (networkId);
             timestamp = this.safeInteger (transaction, 5);
             updated = this.safeInteger (transaction, 6);
             status = this.parseTransactionStatus (this.safeString (transaction, 9));
-            amount = this.safeString (transaction, 12);
-            if (amount !== undefined) {
-                if (Precise.stringLt (amount, '0')) {
+            const signedAmount = this.safeString (transaction, 12);
+            amount = Precise.stringAbs (signedAmount);
+            if (signedAmount !== undefined) {
+                if (Precise.stringLt (signedAmount, '0')) {
                     type = 'withdrawal';
                 } else {
                     type = 'deposit';
@@ -2141,10 +2134,11 @@ module.exports = class bitfinex2 extends Exchange {
             }
             feeCost = this.safeString (transaction, 13);
             if (feeCost !== undefined) {
-                feeCost = Precise.stringNeg (feeCost);
+                feeCost = Precise.stringAbs (feeCost);
             }
             addressTo = this.safeString (transaction, 16);
             txid = this.safeString (transaction, 20);
+            comment = this.safeString (transaction, 21);
         }
         return {
             'info': transaction,
@@ -2152,7 +2146,7 @@ module.exports = class bitfinex2 extends Exchange {
             'txid': txid,
             'type': type,
             'currency': code,
-            'network': undefined,
+            'network': network,
             'amount': this.parseNumber (amount),
             'status': status,
             'timestamp': timestamp,
@@ -2164,7 +2158,7 @@ module.exports = class bitfinex2 extends Exchange {
             'tagFrom': undefined,
             'tagTo': tag,
             'updated': updated,
-            'comment': undefined,
+            'comment': comment,
             'fee': {
                 'currency': code,
                 'cost': this.parseNumber (feeCost),

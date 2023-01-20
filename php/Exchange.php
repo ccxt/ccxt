@@ -36,7 +36,7 @@ use Elliptic\EdDSA;
 use BN\BN;
 use Exception;
 
-$version = '2.4.43';
+$version = '2.6.47';
 
 // rounding mode
 const TRUNCATE = 0;
@@ -55,7 +55,7 @@ const PAD_WITH_ZERO = 1;
 
 class Exchange {
 
-    const VERSION = '2.4.43';
+    const VERSION = '2.6.47';
 
     private static $base58_alphabet = '123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz';
     private static $base58_encoder = null;
@@ -155,8 +155,8 @@ class Exchange {
         'paymium',
         'phemex',
         'poloniex',
+        'poloniexfutures',
         'probit',
-        'qtrade',
         'ripio',
         'stex',
         'therock',
@@ -356,6 +356,7 @@ class Exchange {
         'getSupportedMapping' => 'get_supported_mapping',
         'fetchBorrowRate' => 'fetch_borrow_rate',
         'handleOptionAndParams' => 'handle_option_and_params',
+        'handleOption' => 'handle_option',
         'handleMarketTypeAndParams' => 'handle_market_type_and_params',
         'handleSubTypeAndParams' => 'handle_sub_type_and_params',
         'handleMarginModeAndParams' => 'handle_margin_mode_and_params',
@@ -496,7 +497,7 @@ class Exchange {
     }
 
     public static function safe_value($object, $key, $default_value = null) {
-        return (is_array($object) && isset($object[$key])) ? $object[$key] : $default_value;
+        return isset($object[$key]) ? $object[$key] : $default_value;
     }
 
     // we're not using safe_floats with a list argument as we're trying to save some cycles here
@@ -590,7 +591,7 @@ class Exchange {
 
     public static function safe_value_n($object, $array, $default_value = null) {
         $value = static::get_object_value_from_key_array($object, $array);
-        return (isset($value) && is_scalar($value)) ? $value : $default_value;
+        return isset($value) ? $value : $default_value;
     }
 
     public static function get_object_value_from_key_array($object, $array) {
@@ -1570,7 +1571,7 @@ class Exchange {
             }
             $signature =  static::hmac($token, $secret, $algName, 'binary');
         } elseif ($algoType === 'RS') {
-            $signature = static::rsa($token, $secret, $alg);
+            $signature = \base64_decode(static::rsa($token, $secret, $alg));
         }
         return $token . '.' . static::urlencodeBase64($signature);
     }
@@ -1587,7 +1588,7 @@ class Exchange {
         $algName = $algorithms[$alg];
         $signature = null;
         \openssl_sign($request, $signature, $secret, $algName);
-        return $signature;
+        return \base64_encode($signature);
     }
 
     public static function ecdsa($request, $secret, $algorithm = 'p256', $hash = null, $fixedLength = false) {
@@ -1944,8 +1945,18 @@ class Exchange {
         return $this->currencies ? $this->currencies : array();
     }
 
-    public function precision_from_string($string) {
-        $parts = explode('.', preg_replace('/0+$/', '', $string));
+    public function precision_from_string($str) {
+        // support string formats like '1e-4'
+        if (strpos($str, 'e') > -1) {
+            $numStr = preg_replace ('/\de/', '', $str);
+            return ((int)$numStr) * -1;
+        }
+        // support integer formats (without dot) like '1', '10' etc [Note: bug in decimalToPrecision, so this should not be used atm]
+        // if (strpos($str, '.') === -1) {
+        //     return strlen(str) * -1;
+        // }
+        // default strings like '0.0001'
+        $parts = explode('.', preg_replace('/0+$/', '', $str));
         return (count($parts) > 1) ? strlen($parts[1]) : 0;
     }
 
@@ -2534,16 +2545,24 @@ class Exchange {
 
     public function set_markets($markets, $currencies = null) {
         $values = array();
-        $marketValues = $this->to_array($markets);
+        $this->markets_by_id = array();
+        // handle marketId conflicts
+        // we insert spot $markets first
+        $marketValues = $this->sort_by($this->to_array($markets), 'spot', true);
         for ($i = 0; $i < count($marketValues); $i++) {
+            $value = $marketValues[$i];
+            if (is_array($this->markets_by_id) && array_key_exists($value['id'], $this->markets_by_id)) {
+                $this->markets_by_id[$value['id']][] = $value;
+            } else {
+                $this->markets_by_id[$value['id']] = array( $value );
+            }
             $market = $this->deep_extend($this->safe_market(), array(
                 'precision' => $this->precision,
                 'limits' => $this->limits,
-            ), $this->fees['trading'], $marketValues[$i]);
+            ), $this->fees['trading'], $value);
             $values[] = $market;
         }
         $this->markets = $this->index_by($values, 'symbol');
-        $this->markets_by_id = $this->index_by($markets, 'id');
         $marketsSortedBySymbol = $this->keysort ($this->markets);
         $marketsSortedById = $this->keysort ($this->markets_by_id);
         $this->symbols = is_array($marketsSortedBySymbol) ? array_keys($marketsSortedBySymbol) : array();
@@ -2652,7 +2671,7 @@ class Exchange {
 
     public function safe_order($order, $market = null) {
         // parses numbers as strings
-        // it is important pass the $trades as unparsed $rawTrades
+        // * it is important pass the $trades as unparsed $rawTrades
         $amount = $this->omit_zero($this->safe_string($order, 'amount'));
         $remaining = $this->safe_string($order, 'remaining');
         $filled = $this->safe_string($order, 'filled');
@@ -2660,12 +2679,16 @@ class Exchange {
         $average = $this->omit_zero($this->safe_string($order, 'average'));
         $price = $this->omit_zero($this->safe_string($order, 'price'));
         $lastTradeTimeTimestamp = $this->safe_integer($order, 'lastTradeTimestamp');
+        $symbol = $this->safe_string($order, 'symbol');
+        $side = $this->safe_string($order, 'side');
         $parseFilled = ($filled === null);
         $parseCost = ($cost === null);
         $parseLastTradeTimeTimestamp = ($lastTradeTimeTimestamp === null);
         $fee = $this->safe_value($order, 'fee');
         $parseFee = ($fee === null);
         $parseFees = $this->safe_value($order, 'fees') === null;
+        $parseSymbol = $symbol === null;
+        $parseSide = $side === null;
         $shouldParseFees = $parseFee || $parseFees;
         $fees = $this->safe_value($order, 'fees', array());
         $trades = array();
@@ -2674,12 +2697,7 @@ class Exchange {
             $oldNumber = $this->number;
             // we parse $trades as strings here!
             $this->number = 'strval';
-            $trades = $this->parse_trades($rawTrades, $market, null, null, array(
-                'symbol' => $order['symbol'],
-                'side' => $order['side'],
-                'type' => $order['type'],
-                'order' => $order['id'],
-            ));
+            $trades = $this->parse_trades($rawTrades, $market);
             $this->number = $oldNumber;
             $tradesLength = 0;
             $isArray = gettype($trades) === 'array' && array_keys($trades) === array_keys(array_keys($trades));
@@ -2715,6 +2733,12 @@ class Exchange {
                     $tradeCost = $this->safe_string($trade, 'cost');
                     if ($parseCost && ($tradeCost !== null)) {
                         $cost = Precise::string_add($cost, $tradeCost);
+                    }
+                    if ($parseSymbol) {
+                        $symbol = $this->safe_string($trade, 'symbol');
+                    }
+                    if ($parseSide) {
+                        $side = $this->safe_string($trade, 'side');
                     }
                     $tradeTimestamp = $this->safe_value($trade, 'timestamp');
                     if ($parseLastTradeTimeTimestamp && ($tradeTimestamp !== null)) {
@@ -2854,7 +2878,23 @@ class Exchange {
             // $timeInForce is not null here
             $postOnly = $timeInForce === 'PO';
         }
+        $timestamp = $this->safe_integer($order, 'timestamp');
+        $datetime = $this->safe_string($order, 'datetime');
+        if ($timestamp === null) {
+            $timestamp = $this->parse8601 ($timestamp);
+        }
+        if ($datetime === null) {
+            $datetime = $this->iso8601 ($timestamp);
+        }
+        $triggerPrice = $this->parse_number($this->safe_string_2($order, 'triggerPrice', 'stopPrice'));
         return array_merge($order, array(
+            'id' => $this->safe_string($order, 'id'),
+            'clientOrderId' => $this->safe_string($order, 'clientOrderId'),
+            'timestamp' => $datetime,
+            'datetime' => $timestamp,
+            'symbol' => $symbol,
+            'type' => $this->safe_string($order, 'type'),
+            'side' => $side,
             'lastTradeTimestamp' => $lastTradeTimeTimestamp,
             'price' => $this->parse_number($price),
             'amount' => $this->parse_number($amount),
@@ -2865,6 +2905,11 @@ class Exchange {
             'timeInForce' => $timeInForce,
             'postOnly' => $postOnly,
             'trades' => $trades,
+            'reduceOnly' => $this->safe_value($order, 'reduceOnly'),
+            'stopPrice' => $triggerPrice,  // ! deprecated, use $triggerPrice instead
+            'triggerPrice' => $triggerPrice,
+            'status' => $this->safe_string($order, 'status'),
+            'fee' => $this->safe_value($order, 'fee'),
         ));
     }
 
@@ -2984,20 +3029,6 @@ class Exchange {
         $parseFees = $this->safe_value($trade, 'fees') === null;
         $shouldParseFees = $parseFee || $parseFees;
         $fees = array();
-        if ($shouldParseFees) {
-            $tradeFees = $this->safe_value($trade, 'fees');
-            if ($tradeFees !== null) {
-                for ($j = 0; $j < count($tradeFees); $j++) {
-                    $tradeFee = $tradeFees[$j];
-                    $fees[] = array_merge(array(), $tradeFee);
-                }
-            } else {
-                $tradeFee = $this->safe_value($trade, 'fee');
-                if ($tradeFee !== null) {
-                    $fees[] = array_merge(array(), $tradeFee);
-                }
-            }
-        }
         $fee = $this->safe_value($trade, 'fee');
         if ($shouldParseFees) {
             $reducedFees = $this->reduceFees ? $this->reduce_fees_by_currency($fees) : $fees;
@@ -3239,6 +3270,9 @@ class Exchange {
     }
 
     public function market_ids($symbols) {
+        if ($symbols === null) {
+            return $symbols;
+        }
         $result = array();
         for ($i = 0; $i < count($symbols); $i++) {
             $result[] = $this->market_id($symbols[$i]);
@@ -3530,7 +3564,7 @@ class Exchange {
         for ($i = 0; $i < count($response); $i++) {
             $item = $response[$i];
             $id = $this->safe_string($item, $marketIdKey);
-            $market = $this->safe_market($id);
+            $market = $this->safe_market($id, null, null, $this->safe_string($this->options, 'defaultType'));
             $symbol = $market['symbol'];
             $contract = $this->safe_value($market, 'contract', false);
             if ($contract && (($symbols === null) || $this->in_array($symbol, $symbols))) {
@@ -3782,7 +3816,7 @@ class Exchange {
         );
     }
 
-    public function safe_market($marketId = null, $market = null, $delimiter = null) {
+    public function safe_market($marketId = null, $market = null, $delimiter = null, $marketType = null) {
         $result = array(
             'id' => $marketId,
             'symbol' => $marketId,
@@ -3829,7 +3863,21 @@ class Exchange {
         );
         if ($marketId !== null) {
             if (($this->markets_by_id !== null) && (is_array($this->markets_by_id) && array_key_exists($marketId, $this->markets_by_id))) {
-                $market = $this->markets_by_id[$marketId];
+                $markets = $this->markets_by_id[$marketId];
+                $numMarkets = count($markets);
+                if ($numMarkets === 1) {
+                    return $markets[0];
+                } else {
+                    if ($marketType === null) {
+                        throw new ArgumentsRequired($this->id . ' safeMarket() requires a fourth argument for ' . $marketId . ' to disambiguate between different $markets with the same $market id');
+                    }
+                    for ($i = 0; $i < count($markets); $i++) {
+                        $market = $markets[$i];
+                        if ($market[$marketType]) {
+                            return $market;
+                        }
+                    }
+                }
             } elseif ($delimiter !== null) {
                 $parts = explode($delimiter, $marketId);
                 $partsLength = count($parts);
@@ -3965,23 +4013,30 @@ class Exchange {
         // This method can be used to obtain method specific properties, i.e => $this->handleOptionAndParams ($params, 'fetchPosition', 'marginMode', 'isolated')
         $defaultOptionName = 'default' . $this->capitalize ($optionName); // we also need to check the 'defaultXyzWhatever'
         // check if $params contain the key
-        $value = $this->safe_string_2($params, $optionName, $defaultOptionName);
+        $value = $this->safe_value_2($params, $optionName, $defaultOptionName);
         if ($value !== null) {
             $params = $this->omit ($params, array( $optionName, $defaultOptionName ));
-        }
-        if ($value === null) {
-            // check if exchange-wide method options contain the key
+        } else {
+            // check if exchange has properties for this method
             $exchangeWideMethodOptions = $this->safe_value($this->options, $methodName);
             if ($exchangeWideMethodOptions !== null) {
-                $value = $this->safe_string_2($exchangeWideMethodOptions, $optionName, $defaultOptionName);
+                // check if the option is defined in this method's props
+                $value = $this->safe_value_2($exchangeWideMethodOptions, $optionName, $defaultOptionName);
             }
+            if ($value === null) {
+                // if it's still null, check if global exchange-wide option exists
+                $value = $this->safe_value_2($this->options, $optionName, $defaultOptionName);
+            }
+            // if it's still null, use the default $value
+            $value = ($value !== null) ? $value : $defaultValue;
         }
-        if ($value === null) {
-            // check if exchange-wide options contain the key
-            $value = $this->safe_string_2($this->options, $optionName, $defaultOptionName);
-        }
-        $value = ($value !== null) ? $value : $defaultValue;
         return array( $value, $params );
+    }
+
+    public function handle_option($methodName, $optionName, $defaultValue = null) {
+        // eslint-disable-next-line no-unused-vars
+        list($result, $empty) = $this->handleOptionAndParams (array(), $methodName, $optionName, $defaultValue);
+        return $result;
     }
 
     public function handle_market_type_and_params($methodName, $market = null, $params = array ()) {
@@ -4001,7 +4056,7 @@ class Exchange {
         return array( $type, $params );
     }
 
-    public function handle_sub_type_and_params($methodName, $market = null, $params = array (), $defaultValue = 'linear') {
+    public function handle_sub_type_and_params($methodName, $market = null, $params = array (), $defaultValue = null) {
         $subType = null;
         // if set in $params, it takes precedence
         $subTypeInParams = $this->safe_string_2($params, 'subType', 'defaultSubType');
@@ -4188,19 +4243,24 @@ class Exchange {
 
     public function market($symbol) {
         if ($this->markets === null) {
-            throw new ExchangeError($this->id . ' markets not loaded');
-        }
-        if ($this->markets_by_id === null) {
-            throw new ExchangeError($this->id . ' markets not loaded');
+            throw new ExchangeError($this->id . ' $markets not loaded');
         }
         if (gettype($symbol) === 'string') {
             if (is_array($this->markets) && array_key_exists($symbol, $this->markets)) {
                 return $this->markets[$symbol];
             } elseif (is_array($this->markets_by_id) && array_key_exists($symbol, $this->markets_by_id)) {
-                return $this->markets_by_id[$symbol];
+                $markets = $this->markets_by_id[$symbol];
+                $defaultType = $this->safe_string_2($this->options, 'defaultType', 'defaultSubType', 'spot');
+                for ($i = 0; $i < count($markets); $i++) {
+                    $market = $markets[$i];
+                    if ($market[$defaultType]) {
+                        return $market;
+                    }
+                }
+                return $markets[0];
             }
         }
-        throw new BadSymbol($this->id . ' does not have market $symbol ' . $symbol);
+        throw new BadSymbol($this->id . ' does not have $market $symbol ' . $symbol);
     }
 
     public function handle_withdraw_tag_and_params($tag, $params) {
@@ -4455,8 +4515,8 @@ class Exchange {
         return $this->filter_by_symbol_since_limit($sorted, $symbol, $since, $limit);
     }
 
-    public function safe_symbol($marketId, $market = null, $delimiter = null) {
-        $market = $this->safe_market($marketId, $market, $delimiter);
+    public function safe_symbol($marketId, $market = null, $delimiter = null, $marketType = null) {
+        $market = $this->safe_market($marketId, $market, $delimiter, $marketType);
         return $market['symbol'];
     }
 

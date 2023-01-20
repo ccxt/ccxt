@@ -8,24 +8,15 @@ const ccxt = require ('../../ccxt.js');
 async function example () {
     // ########## user inputs ##########
     const exchange = new ccxt['binance']({'apiKey': 'xxx', 'secret': 'xxx'});
-    // set target symbol
-    const symbol = 'BUSD/USDT';
-    // margin mode (cross or isolated)
-    const marginMode = 'isolated';
-    // which asset you want to use for margin-borrow collateral
-    const collateral_coin = 'USDT'; 
-    // which coin to borrow
-    const borrow_coin = 'BUSD'; 
-    // which side to trade
-    const order_side = 'sell';
-    // how many coins to sell
-    const amount_to_trade = 20;
-    // order type (can be market, limit or etc)
-    const order_type = 'limit';
-    // at what limit-price you want to sell (set undefined/null/None if market-order)
-    const limit_price = 0.99;
-    // what is the target margin. This might be obtainable from exchange automatically, using available endpoints, but for example purposes, we set here manually
-    const margin_magnitude = 10; 
+    const symbol = 'BUSD/USDT'; // set target symbol
+    const marginMode = 'isolated'; // margin mode (cross or isolated)
+    const collateral_coin = 'USDT';  // which asset you want to use for margin-borrow collateral
+    const borrow_coin = 'BUSD'; // which coin to borrow
+    const order_side = 'sell'; // which side to trade
+    const amount_to_trade = 20; // how many coins to sell
+    const order_type = 'limit'; // order type (can be market, limit or etc)
+    const limit_price = 0.99; // price to sell at (set undefined/null/None if market-order)
+    const margin_magnitude = 5; // target margin (aka 'leverage'). This might also be obtainable using other unified methods, but for example purposes, we set here manually
     // ########## end of user-inputs ##########
 
     // for example purposes, let's also check available balance at first
@@ -62,7 +53,7 @@ async function example () {
 
     // ...
     // ...
-    // some time later, if you want to repay the loan back ('close the position')...
+    // some time later, if you want to repay the loan back (like 'close the position')...
     // ...
     // ...
 

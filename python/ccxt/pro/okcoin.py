@@ -477,14 +477,8 @@ class okcoin(Exchange, ccxt.async_support.okcoin):
         currency = None
         if code is not None:
             currency = self.currency(code)
-        marketId = self.safe_string(params, 'instrument_id')
         symbol = self.safe_string(params, 'symbol')
-        market = None
-        if symbol is not None:
-            market = self.market(symbol)
-        elif marketId is not None:
-            if marketId in self.markets_by_id:
-                market = self.markets_by_id[marketId]
+        market = self.market(symbol)
         marketUndefined = (market is None)
         currencyUndefined = (currency is None)
         if type == 'spot':

@@ -626,6 +626,7 @@ class whitebit extends \ccxt\async\whitebit {
             'side' => $side,
             'price' => $price,
             'stopPrice' => $stopPrice,
+            'triggerPrice' => $stopPrice,
             'amount' => $amount,
             'cost' => $cost,
             'average' => null,

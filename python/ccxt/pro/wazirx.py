@@ -600,6 +600,7 @@ class wazirx(Exchange, ccxt.async_support.wazirx):
             'side': self.safe_string(order, 'o'),
             'price': self.safe_string(order, 'p'),
             'stopPrice': None,
+            'triggerPrice': None,
             'amount': self.safe_string(order, 'V'),
             'filled': None,
             'remaining': self.safe_string(order, 'q'),
@@ -723,10 +724,10 @@ class wazirx(Exchange, ccxt.async_support.wazirx):
         messageHash = 'authenticated'
         now = self.milliseconds()
         subscription = self.safe_value(client.subscriptions, messageHash)
-        expires = self.safe_number(subscription, 'expires')
+        expires = self.safe_integer(subscription, 'expires')
         if subscription is None or now > expires:
             subscription = await self.privatePostCreateAuthToken()
-            subscription['expires'] = now + self.safe_number(subscription, 'timeout_duration') * 1000
+            subscription['expires'] = now + self.safe_integer(subscription, 'timeout_duration') * 1000
             #
             #     {
             #         "auth_key": "Xx***dM",
