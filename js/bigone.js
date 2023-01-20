@@ -5,6 +5,7 @@
 const Exchange = require ('./base/Exchange');
 const { ExchangeError, ArgumentsRequired, AuthenticationError, InsufficientFunds, PermissionDenied, BadRequest, BadSymbol, RateLimitExceeded, InvalidOrder } = require ('./base/errors');
 const { TICK_SIZE } = require ('./base/functions/number');
+const Precise = require ('./base/Precise');
 
 //  ---------------------------------------------------------------------------
 
@@ -31,6 +32,7 @@ module.exports = class bigone extends Exchange {
                 'createStopOrder': true,
                 'fetchBalance': true,
                 'fetchClosedOrders': true,
+                'fetchCurrencies': true,
                 'fetchDepositAddress': true,
                 'fetchDeposits': true,
                 'fetchMarkets': true,
@@ -81,6 +83,7 @@ module.exports = class bigone extends Exchange {
                 'public': {
                     'get': [
                         'ping',
+                        'uc/v2/assets',
                         'asset_pairs',
                         'asset_pairs/{asset_pair_name}/depth',
                         'asset_pairs/{asset_pair_name}/trades',
@@ -130,6 +133,106 @@ module.exports = class bigone extends Exchange {
                     'fillResponseFromRequest': true,
                 },
                 'exchangeMillisecondsCorrection': -100,
+                'defaultNetwork': 'ERC20',
+                'defaultNetworks': {
+                    'USDT': 'TRC20',
+                },
+                'networks': {
+                    'ABBC': 'ABBC',
+                    'ACALA': 'Acala',
+                    'AETERNITY': 'Aeternity',
+                    'ALGORAND': 'Algorand',
+                    'APTOS': 'Aptos',
+                    'ARWEAVE': 'Arweave',
+                    'ASTAR': 'Astar',
+                    'AVALANCHE_C': 'Avax',
+                    'AVALANCHE_X': 'AvaxChain',
+                    'BEAM': 'Beam',
+                    'BEP20': 'BinanceSmartChain',
+                    'BITCI': 'BitciChain',
+                    'BTC': 'Bitcoin',
+                    'BCH': 'BitcoinCash',
+                    'BITCOINDIAMON': 'BitcoinDiamond',
+                    'BITCOINGOLD': 'BitcoinGold',
+                    'BSV': 'BitcoinSV',
+                    'BUTTRUSTSYSTEM': 'BitTrustSystem',
+                    'BYTOM_V2': 'BytomV2',
+                    'CELO': 'Celo',
+                    'CHAINX_V2': 'ChainxV2',
+                    'NERVOS': 'CKB',
+                    'CLASSZZ': 'Classzz',
+                    'CLASSZZ_V2': 'ClasszzV2',
+                    'CLOVER': 'Clover',
+                    'COSMOS': 'Cosmos',
+                    'CRC20': 'CRO',
+                    'DASH': 'Dash',
+                    'INTERNETCOMPUTER': 'Dfinity',
+                    'DOGECOIN': 'Dogecoin',
+                    'ECASH': 'ECash',
+                    'EOS': 'EOS',
+                    'ETH': 'Ethereum',
+                    'ETC': 'EthereumClassic',
+                    'ETHW': 'EthereumPow',
+                    'FANTOM': 'Fantom',
+                    'FILECOIN': 'Filecoin',
+                    'FUSION': 'Fusion',
+                    'GRIN': 'Grin',
+                    'GXSHARES': 'Gxshares',
+                    'HARMONY': 'Harmony',
+                    'HRC20': 'Hecochain',
+                    'HEDERA': 'Hedera',
+                    'HELIUM': 'Helium',
+                    'HORIZEN': 'Horizen',
+                    'IOST': 'IOST',
+                    'IRIS': 'IRIS',
+                    'KLAYTN': 'Klaytn',
+                    'KUSAMA': 'Kusama',
+                    'LAMDEN': 'Lamden',
+                    'LBRY': 'Lbry',
+                    'LIBONOMY': 'Libonomy',
+                    'LTC': 'Litecoin',
+                    'MOBILECOIN': 'Mobilecoin',
+                    'MONERO': 'Monero',
+                    'MOONBEAM': 'Moonbeam',
+                    'NEAR': 'Near',
+                    'NEO': 'Neo',
+                    'NEON3': 'NeoN3',
+                    'BITSHARES_OLD': 'Bitshares',
+                    'BITSHARES_NEW': 'NewBitshares',
+                    'OASIS': 'Oasis',
+                    'OKC': 'Okexchain',
+                    'ONTOLOGY': 'Ontology',
+                    'OPTIMISM': 'Optimism',
+                    'PARALLELFINANCE': 'Parallel',
+                    'PLCULTIMA': 'Plcu',
+                    'PLCULTIMA2': 'Plcu2',
+                    'POLKADOT': 'Polkadot',
+                    'POLYGON': 'Polygon',
+                    'QTUM': 'Qtum',
+                    'REI': 'REI',
+                    'RIPPLE': 'Ripple',
+                    'SONGBIRD': 'SGB',
+                    'SHIDEN': 'Shiden',
+                    'SIACLASSIC': 'Sia',
+                    'SIACOIN': 'SiaCore',
+                    'SOLANA': 'Solana',
+                    'STELLAR': 'Stellar',
+                    'SUPERBITCOIN': 'SuperBitcoin',
+                    'TERA': 'Tera',
+                    'TERRACLASSIC': 'Terra',
+                    'TERRA': 'Terra2',
+                    'TEZOS': 'Tezos',
+                    'TRC20': 'Tron',
+                    'UCACOIN': 'Ucacoin',
+                    'VANILLACASH': 'Vcash',
+                    'VECHAIN': 'Vechain',
+                    'VSYSTEMS': 'VSystems',
+                    'WAX': 'WAX',
+                    'WAYFCOIN': 'Wayfcoin',
+                    'ZCASH': 'Zcash',
+                    'ZEEPIN': 'Zeepin',
+                    // undetermined: XinFin, YAS, Ycash
+                },
             },
             'precisionMode': TICK_SIZE,
             'exceptions': {
@@ -169,6 +272,187 @@ module.exports = class bigone extends Exchange {
                 'ONE': 'BigONE Token',
             },
         });
+    }
+
+    async fetchCurrencies (params = {}) {
+        /**
+         * @method
+         * @name bigone#fetchCurrencies
+         * @description fetches all available currencies on an exchange
+         * @param {dict} params extra parameters specific to the aax api endpoint
+         * @returns {dict} an associative dictionary of currencies
+         */
+        // we use undocumented link (possible, less informative alternative is : https://big.one/api/uc/v3/assets/accounts)
+        const response = await this.publicGetUcV2Assets (params);
+        //
+        // {
+        //     code: "0",
+        //     message: "",
+        //     data: [
+        //       {
+        //         name: "TetherUS",
+        //         symbol: "USDT",
+        //         contract_address: "31",
+        //         is_deposit_enabled: true,
+        //         is_withdrawal_enabled: true,
+        //         is_stub: false,
+        //         withdrawal_fee: "5.0",
+        //         is_fiat: false,
+        //         is_memo_required: false,
+        //         logo: {
+        //           default: "https://assets.peatio.com/assets/v1/color/normal/usdt.png",
+        //           white: "https://assets.peatio.com/assets/v1/white/normal/usdt.png",
+        //         },
+        //         info_link: null,
+        //         scale: "12",
+        //         default_gateway: ..., // one object from "gateways"
+        //         gateways: [
+        //           {
+        //             uuid: "f0fa5a85-7f65-428a-b7b7-13aad55c2837",
+        //             name: "Mixin",
+        //             kind: "CHAIN",
+        //             required_confirmations: "0",
+        //           },
+        //           {
+        //             uuid: "b75446c6-1446-4c8d-b3d1-39f385b0a926",
+        //             name: "Ethereum",
+        //             kind: "CHAIN",
+        //             required_confirmations: "18",
+        //           },
+        //           {
+        //             uuid: "fe9b1b0b-e55c-4017-b5ce-16f524df5fc0",
+        //             name: "Tron",
+        //             kind: "CHAIN",
+        //             required_confirmations: "1",
+        //           },
+        //          ...
+        //         ],
+        //         payments: [],
+        //         uuid: "17082d1c-0195-4fb6-8779-2cdbcb9eeb3c",
+        //         binding_gateways: [
+        //           {
+        //             guid: "07efc37f-d1ec-4bc9-8339-a745256ea2ba",
+        //             contract_address: "0xdac17f958d2ee523a2206206994597c13d831ec7",
+        //             is_deposit_enabled: true,
+        //             display_name: "Ethereum(ERC20)",
+        //             gateway_name: "Ethereum",
+        //             min_withdrawal_amount: "0.000001",
+        //             min_internal_withdrawal_amount: "0.00000001",
+        //             withdrawal_fee: "14",
+        //             is_withdrawal_enabled: true,
+        //             min_deposit_amount: "0.000001",
+        //             is_memo_required: false,
+        //             withdrawal_scale: "2",
+        //             gateway: {
+        //               uuid: "b75446c6-1446-4c8d-b3d1-39f385b0a926",
+        //               name: "Ethereum",
+        //               kind: "CHAIN",
+        //               required_confirmations: "18",
+        //             },
+        //             scale: "12",
+        //          },
+        //          {
+        //             guid: "b80a4d13-cac7-4319-842d-b33c3bfab8ec",
+        //             contract_address: "TR7NHqjeKQxGTCi8q8ZY4pL8otSzgjLj6t",
+        //             is_deposit_enabled: true,
+        //             display_name: "Tron(TRC20)",
+        //             gateway_name: "Tron",
+        //             min_withdrawal_amount: "0.000001",
+        //             min_internal_withdrawal_amount: "0.00000001",
+        //             withdrawal_fee: "1",
+        //             is_withdrawal_enabled: true,
+        //             min_deposit_amount: "0.000001",
+        //             is_memo_required: false,
+        //             withdrawal_scale: "6",
+        //             gateway: {
+        //               uuid: "fe9b1b0b-e55c-4017-b5ce-16f524df5fc0",
+        //               name: "Tron",
+        //               kind: "CHAIN",
+        //               required_confirmations: "1",
+        //             },
+        //             scale: "12",
+        //           },
+        //           ...
+        //         ],
+        //       },
+        //       ...
+        //     ],
+        // }
+        //
+        const data = this.safeValue (response, 'data', []);
+        const result = {};
+        for (let i = 0; i < data.length; i++) {
+            const currency = data[i];
+            const id = this.safeString (currency, 'symbol');
+            const code = this.safeCurrencyCode (id);
+            const name = this.safeString (currency, 'name');
+            const type = this.safeValue (currency, 'is_fiat') ? 'fiat' : 'crypto';
+            const networks = {};
+            const chains = this.safeValue (currency, 'binding_gateways', []);
+            let currencyMaxPrecision = undefined;
+            let currencyDepositEnabled = undefined;
+            let currencyWithdrawEnabled = undefined;
+            for (let j = 0; j < chains.length; j++) {
+                const chain = chains[j];
+                const networkId = this.safeString (chain, 'gateway_name');
+                const networkCode = this.networkIdToCode (networkId);
+                const deposit = this.safeValue (chain, 'is_deposit_enabled');
+                const withdraw = this.safeValue (chain, 'is_withdrawal_enabled');
+                const minDepositAmount = this.safeString (chain, 'min_deposit_amount');
+                const minWithdrawalAmount = this.safeString (chain, 'min_withdrawal_amount');
+                const withdrawalFee = this.safeString (chain, 'withdrawal_fee');
+                const precision = this.parsePrecision (this.safeString (chain, 'withdrawal_scale'));
+                networks[networkCode] = {
+                    'id': networkId,
+                    'network': networkCode,
+                    'type': type,
+                    'margin': undefined,
+                    'deposit': deposit,
+                    'withdraw': withdraw,
+                    'active': undefined,
+                    'fee': this.parseNumber (withdrawalFee),
+                    'precision': this.parseNumber (precision),
+                    'limits': {
+                        'deposit': {
+                            'min': minDepositAmount,
+                            'max': undefined,
+                        },
+                        'withdraw': {
+                            'min': minWithdrawalAmount,
+                            'max': undefined,
+                        },
+                    },
+                    'info': chain,
+                };
+                // fill global values
+                currencyDepositEnabled = (currencyDepositEnabled === undefined) || deposit ? deposit : currencyDepositEnabled;
+                currencyWithdrawEnabled = (currencyWithdrawEnabled === undefined) || withdraw ? withdraw : currencyWithdrawEnabled;
+                currencyMaxPrecision = (currencyMaxPrecision === undefined || Precise.stringGt (currencyMaxPrecision, precision)) ? precision : currencyMaxPrecision;
+            }
+            result[code] = {
+                'id': id,
+                'code': code,
+                'info': currency,
+                'name': name,
+                'active': undefined,
+                'deposit': currencyDepositEnabled,
+                'withdraw': currencyWithdrawEnabled,
+                'fee': undefined,
+                'precision': currencyMaxPrecision,
+                'limits': {
+                    'amount': {
+                        'min': undefined,
+                        'max': undefined,
+                    },
+                    'withdraw': {
+                        'min': undefined,
+                        'max': undefined,
+                    },
+                },
+                'networks': networks,
+            };
+        }
+        return result;
     }
 
     async fetchMarkets (params = {}) {
@@ -1145,6 +1429,9 @@ module.exports = class bigone extends Exchange {
         let url = baseUrl + '/' + this.implodeParams (path, params);
         headers = {};
         if (api === 'public') {
+            if (path === 'uc/v2/assets') {
+                url = this.urls['www'] + '/api/' + this.implodeParams (path, params);
+            }
             if (Object.keys (query).length) {
                 url += '?' + this.urlencode (query);
             }
@@ -1186,7 +1473,8 @@ module.exports = class bigone extends Exchange {
         const request = {
             'asset_symbol': currency['id'],
         };
-        const response = await this.privateGetAssetsAssetSymbolAddress (this.extend (request, params));
+        const [ networkCode, paramsOmitted ] = this.handleNetworkCodeAndParams (params);
+        const response = await this.privateGetAssetsAssetSymbolAddress (this.extend (request, paramsOmitted));
         //
         // the actual response format is not the same as the documented one
         // the data key contains an array in the actual response
@@ -1209,15 +1497,17 @@ module.exports = class bigone extends Exchange {
         if (dataLength < 1) {
             throw new ExchangeError (this.id + ' fetchDepositAddress() returned empty address response');
         }
-        const firstElement = data[0];
-        const address = this.safeString (firstElement, 'value');
-        const tag = this.safeString (firstElement, 'memo');
+        const chainsIndexedById = this.indexBy (data, 'chain');
+        const selectedNetworkId = this.selectNetworkIdFromRawNetworks (code, networkCode, chainsIndexedById);
+        const addressObject = this.safeValue (chainsIndexedById, selectedNetworkId, {});
+        const address = this.safeString (addressObject, 'value');
+        const tag = this.safeString (addressObject, 'memo');
         this.checkAddress (address);
         return {
             'currency': code,
             'address': address,
             'tag': tag,
-            'network': undefined,
+            'network': this.networkIdToCode (selectedNetworkId),
             'info': response,
         };
     }
@@ -1519,6 +1809,11 @@ module.exports = class bigone extends Exchange {
         };
         if (tag !== undefined) {
             request['memo'] = tag;
+        }
+        let networkCode = undefined;
+        [ networkCode, params ] = this.handleNetworkCodeAndParams (params);
+        if (networkCode !== undefined) {
+            request['gateway_name'] = this.networkCodeToId (networkCode);
         }
         // requires write permission on the wallet
         const response = await this.privatePostWithdrawals (this.extend (request, params));
