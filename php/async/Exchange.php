@@ -94,7 +94,7 @@ class Exchange extends \ccxt\Exchange {
             $this->lastRestRequestTimestamp = $this->milliseconds();
 
             try {
-                $result = React\Async\await($this->browser->request($method, $url, $headers, $body));
+                $result = React\Async\await($this->browser->request($method, $url, $headers, $body ?? ''));
             } catch (Exception $e) {
                 $message = $e->getMessage();
                 if (strpos($message, 'timed out') !== false) { // no way to determine this easily https://github.com/clue/reactphp-buzz/issues/146
