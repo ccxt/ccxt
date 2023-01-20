@@ -1213,6 +1213,7 @@ class currencycom extends Exchange {
             'side' => $side,
             'price' => $price,
             'stopPrice' => null,
+            'triggerPrice' => null,
             'amount' => $amount,
             'cost' => null,
             'average' => null,
@@ -1555,59 +1556,73 @@ class currencycom extends Exchange {
             }
             $response = Async\await($this->$method (array_merge($request, $params)));
             //
-            //     array(
-            //       array(
-            //         "id" => "616769213",
-            //         "balance" => "2.088",
-            //         "amount" => "1.304",   // negative for 'withdrawal'
-            //         "currency" => "CAKE",
-            //         "type" => "deposit",
-            //         "timestamp" => "1645282121023",
-            //         "paymentMethod" => "BLOCKCHAIN",
-            //         "blockchainTransactionHash" => "0x57c68c1f2ae74d5eda5a2a00516361d241a5c9e1ee95bf32573523857c38c112",
-            //         "status" => "PROCESSED",
-            //         "commission" => "0.14", // this property only exists in withdrawal
-            //       ),
-            //     )
+            //    array(
+            //        array(
+            //            "id" => "616769213",
+            //            "balance" => "2.088",
+            //            "amount" => "1.304",   // negative for 'withdrawal'
+            //            "currency" => "CAKE",
+            //            "type" => "deposit",
+            //            "timestamp" => "1645282121023",
+            //            "paymentMethod" => "BLOCKCHAIN",
+            //            "blockchainTransactionHash" => "0x57c68c1f2ae74d5eda5a2a00516361d241a5c9e1ee95bf32573523857c38c112",
+            //            "status" => "PROCESSED",
+            //            "commission" => "0.14", // this property only exists in withdrawal
+            //        ),
+            //    )
             //
             return $this->parse_transactions($response, $currency, $since, $limit, $params);
         }) ();
     }
 
     public function parse_transaction($transaction, $currency = null) {
-        $id = $this->safe_string($transaction, 'id');
-        $txHash = $this->safe_string($transaction, 'blockchainTransactionHash');
-        $amount = $this->safe_number($transaction, 'amount');
+        //
+        //    {
+        //        "id" => "616769213",
+        //        "balance" => "2.088",
+        //        "amount" => "1.304",   // negative for 'withdrawal'
+        //        "currency" => "CAKE",
+        //        "type" => "deposit",
+        //        "timestamp" => "1645282121023",
+        //        "paymentMethod" => "BLOCKCHAIN",
+        //        "blockchainTransactionHash" => "0x57c68c1f2ae74d5eda5a2a00516361d241a5c9e1ee95bf32573523857c38c112",
+        //        "status" => "PROCESSED",
+        //        "commission" => "0.14", // this property only exists in withdrawal
+        //    }
+        //
         $timestamp = $this->safe_integer($transaction, 'timestamp');
         $currencyId = $this->safe_string($transaction, 'currency');
         $code = $this->safe_currency_code($currencyId, $currency);
-        $state = $this->parse_transaction_status($this->safe_string($transaction, 'state'));
-        $type = $this->parse_transaction_type($this->safe_string($transaction, 'type'));
         $feeCost = $this->safe_string($transaction, 'commission');
-        $fee = null;
+        $fee = array(
+            'currency' => null,
+            'cost' => null,
+            'rate' => null,
+        );
         if ($feeCost !== null) {
-            $fee = array( 'currency' => $code, 'cost' => $feeCost );
+            $fee['currency'] = $code;
+            $fee['cost'] = $feeCost;
         }
         $result = array(
-            'id' => $id,
-            'txid' => $txHash,
+            'info' => $transaction,
+            'id' => $this->safe_string($transaction, 'id'),
+            'txid' => $this->safe_string($transaction, 'blockchainTransactionHash'),
+            'type' => $this->parse_transaction_type($this->safe_string($transaction, 'type')),
+            'currency' => $code,
+            'network' => null,
+            'amount' => $this->safe_number($transaction, 'amount'),
+            'status' => $this->parse_transaction_status($this->safe_string($transaction, 'state')),
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
-            'network' => null,
-            'addressFrom' => null,
             'address' => null,
+            'addressFrom' => null,
             'addressTo' => null,
-            'tagFrom' => null,
             'tag' => null,
+            'tagFrom' => null,
             'tagTo' => null,
-            'type' => $type,
-            'amount' => $amount,
-            'currency' => $code,
-            'status' => $state,
             'updated' => null,
             'comment' => null,
             'fee' => $fee,
-            'info' => $transaction,
         );
         return $result;
     }

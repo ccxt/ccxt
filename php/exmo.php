@@ -38,6 +38,8 @@ class exmo extends Exchange {
                 'fetchDeposit' => true,
                 'fetchDepositAddress' => true,
                 'fetchDeposits' => true,
+                'fetchDepositWithdrawFee' => 'emulated',
+                'fetchDepositWithdrawFees' => true,
                 'fetchFundingHistory' => false,
                 'fetchFundingRate' => false,
                 'fetchFundingRateHistory' => false,
@@ -175,7 +177,7 @@ class exmo extends Exchange {
                 ),
                 'transaction' => array(
                     'tierBased' => false,
-                    'percentage' => false, // fixed transaction fees for crypto, see fetchTransactionFees below
+                    'percentage' => false, // fixed transaction fees for crypto, see fetchDepositWithdrawFees below
                 ),
             ),
             'options' => array(
@@ -413,21 +415,13 @@ class exmo extends Exchange {
 
     public function fetch_transaction_fees($codes = null, $params = array ()) {
         /**
-         * fetch transaction fees
+         * *DEPRECATED* please use fetchDepositWithdrawFees instead
+         * @see https://documenter.getpostman.com/view/10287440/SzYXWKPi#4190035d-24b1-453d-833b-37e0a52f88e2
          * @param {[string]|null} $codes list of unified $currency $codes
          * @param {array} $params extra parameters specific to the exmo api endpoint
          * @return {array} a list of {@link https://docs.ccxt.com/en/latest/manual.html#fees-structure transaction fees structures}
          */
         $this->load_markets();
-        $currencyList = $this->publicGetCurrencyListExtended ($params);
-        //
-        //     array(
-        //         array("name":"VLX","description":"Velas"),
-        //         array("name":"RUB","description":"Russian Ruble"),
-        //         array("name":"BTC","description":"Bitcoin"),
-        //         array("name":"USD","description":"US Dollar")
-        //     )
-        //
         $cryptoList = $this->publicGetPaymentsProvidersCryptoList ($params);
         //
         //     {
@@ -463,30 +457,119 @@ class exmo extends Exchange {
         //         ),
         //     }
         //
-        $result = array(
-            'info' => $cryptoList,
-            'withdraw' => array(),
-            'deposit' => array(),
-        );
-        for ($i = 0; $i < count($currencyList); $i++) {
-            $currency = $currencyList[$i];
-            $currencyId = $this->safe_string($currency, 'name');
-            $code = $this->safe_currency_code($currencyId);
+        $result = array();
+        $cryptoListKeys = is_array($cryptoList) ? array_keys($cryptoList) : array();
+        for ($i = 0; $i < count($cryptoListKeys); $i++) {
+            $code = $cryptoListKeys[$i];
+            if ($codes !== null && !$this->in_array($code, $codes)) {
+                continue;
+            }
+            $result[$code] = array(
+                'deposit' => null,
+                'withdraw' => null,
+            );
+            $currency = $this->currency($code);
+            $currencyId = $this->safe_string($currency, 'id');
             $providers = $this->safe_value($cryptoList, $currencyId, array());
             for ($j = 0; $j < count($providers); $j++) {
                 $provider = $providers[$j];
                 $type = $this->safe_string($provider, 'type');
                 $commissionDesc = $this->safe_string($provider, 'commission_desc');
-                $newFee = $this->parse_fixed_float_value($commissionDesc);
-                $previousFee = $this->safe_number($result[$type], $code);
-                if (($previousFee === null) || (($newFee !== null) && ($newFee < $previousFee))) {
-                    $result[$type][$code] = $newFee;
-                }
+                $fee = $this->parse_fixed_float_value($commissionDesc);
+                $result[$code][$type] = $fee;
             }
+            $result[$code]['info'] = $providers;
         }
         // cache them for later use
         $this->options['transactionFees'] = $result;
         return $result;
+    }
+
+    public function fetch_deposit_withdraw_fees($codes = null, $params = array ()) {
+        /**
+         * fetch deposit and withdraw fees
+         * @see https://documenter.getpostman.com/view/10287440/SzYXWKPi#4190035d-24b1-453d-833b-37e0a52f88e2
+         * @param {[string]|null} $codes list of unified currency $codes
+         * @param {array} $params extra parameters specific to the exmo api endpoint
+         * @return {array} a list of {@link https://docs.ccxt.com/en/latest/manual.html#fees-structure transaction fees structures}
+         */
+        $this->load_markets();
+        $response = $this->publicGetPaymentsProvidersCryptoList ($params);
+        //
+        //    {
+        //        "USDT" => array(
+        //            array(
+        //                "type" => "deposit", // or "withdraw"
+        //                "name" => "USDT (ERC20)",
+        //                "currency_name" => "USDT",
+        //                "min" => "10",
+        //                "max" => "0",
+        //                "enabled" => true,
+        //                "comment" => "Minimum deposit amount is 10 USDT",
+        //                "commission_desc" => "0%",
+        //                "currency_confirmations" => 2
+        //            ),
+        //            ...
+        //        ),
+        //        ...
+        //    }
+        //
+        $result = $this->parse_deposit_withdraw_fees($response, $codes);
+        // cache them for later use
+        $this->options['transactionFees'] = $result;
+        return $result;
+    }
+
+    public function parse_deposit_withdraw_fee($fee, $currency = null) {
+        //
+        //    array(
+        //        array(
+        //            "type" => "deposit", // or "withdraw"
+        //            "name" => "BTC",
+        //            "currency_name" => "BTC",
+        //            "min" => "0.001",
+        //            "max" => "0",
+        //            "enabled" => true,
+        //            "comment" => "Minimum deposit amount is 0.001 BTC. We do not support BSC and BEP20 $network, please consider this when sending funds",
+        //            "commission_desc" => "0%",
+        //            "currency_confirmations" => 1
+        //        ),
+        //        ...
+        //    )
+        //
+        $result = $this->deposit_withdraw_fee($fee);
+        for ($i = 0; $i < count($fee); $i++) {
+            $provider = $fee[$i];
+            $type = $this->safe_string($provider, 'type');
+            $networkId = $this->safe_string($provider, 'name');
+            $networkCode = $this->network_id_to_code($networkId, $this->safe_string($currency, 'code'));
+            $commissionDesc = $this->safe_string($provider, 'commission_desc');
+            $splitCommissionDesc = array();
+            $percentage = null;
+            if ($commissionDesc !== null) {
+                $splitCommissionDesc = explode('%', $commissionDesc);
+                $splitCommissionDescLength = count($splitCommissionDesc);
+                $percentage = $splitCommissionDescLength >= 2;
+            }
+            $network = $this->safe_value($result['networks'], $networkCode);
+            if ($network === null) {
+                $result['networks'][$networkCode] = array(
+                    'withdraw' => array(
+                        'fee' => null,
+                        'percentage' => null,
+                    ),
+                    'deposit' => array(
+                        'fee' => null,
+                        'percentage' => null,
+                    ),
+                );
+            }
+            $result['networks'][$networkCode][$type] = array(
+                'fee' => $this->parse_fixed_float_value($this->safe_string($splitCommissionDesc, 0)),
+                'percentage' => $percentage,
+            );
+        }
+        return $this->assign_default_deposit_withdraw_fees($result);
     }
 
     public function fetch_currencies($params = array ()) {
@@ -600,7 +683,7 @@ class exmo extends Exchange {
                 'deposit' => $depositEnabled,
                 'withdraw' => $withdrawEnabled,
                 'fee' => $fee,
-                'precision' => $this->parse_number('0.00000001'),
+                'precision' => $this->parse_number('1e-8'),
                 'limits' => $limits,
                 'info' => $providers,
             );
@@ -656,7 +739,7 @@ class exmo extends Exchange {
                 'swap' => false,
                 'future' => false,
                 'option' => false,
-                'active' => true,
+                'active' => null,
                 'contract' => false,
                 'linear' => null,
                 'inverse' => null,
@@ -668,7 +751,7 @@ class exmo extends Exchange {
                 'strike' => null,
                 'optionType' => null,
                 'precision' => array(
-                    'amount' => $this->parse_number('0.00000001'),
+                    'amount' => $this->parse_number('1e-8'),
                     'price' => $this->parse_number($this->parse_precision($this->safe_string($market, 'price_precision'))),
                 ),
                 'limits' => array(
@@ -1368,7 +1451,6 @@ class exmo extends Exchange {
         //
         $id = $this->safe_string($order, 'order_id');
         $timestamp = $this->safe_timestamp($order, 'created');
-        $symbol = null;
         $side = $this->safe_string($order, 'type');
         $marketId = null;
         if (is_array($order) && array_key_exists('pair', $order)) {
@@ -1381,83 +1463,23 @@ class exmo extends Exchange {
             }
         }
         $market = $this->safe_market($marketId, $market);
-        $amount = $this->safe_number($order, 'quantity');
+        $symbol = $market['symbol'];
+        $amount = $this->safe_string($order, 'quantity');
         if ($amount === null) {
             $amountField = ($side === 'buy') ? 'in_amount' : 'out_amount';
-            $amount = $this->safe_number($order, $amountField);
+            $amount = $this->safe_string($order, $amountField);
         }
-        $price = $this->safe_number($order, 'price');
-        $cost = $this->safe_number($order, 'amount');
-        $filled = 0.0;
-        $trades = array();
+        $price = $this->safe_string($order, 'price');
+        $cost = $this->safe_string($order, 'amount');
         $transactions = $this->safe_value($order, 'trades', array());
-        $feeCost = null;
-        $lastTradeTimestamp = null;
-        $average = null;
-        $numTransactions = count($transactions);
-        if ($numTransactions > 0) {
-            $feeCost = 0;
-            for ($i = 0; $i < $numTransactions; $i++) {
-                $trade = $this->parse_trade($transactions[$i], $market);
-                if ($id === null) {
-                    $id = $trade['order'];
-                }
-                if ($timestamp === null) {
-                    $timestamp = $trade['timestamp'];
-                }
-                if ($timestamp > $trade['timestamp']) {
-                    $timestamp = $trade['timestamp'];
-                }
-                $filled = $this->sum($filled, $trade['amount']);
-                $feeCost = $this->sum($feeCost, $trade['fee']['cost']);
-                $trades[] = $trade;
-            }
-            $lastTradeTimestamp = $trades[$numTransactions - 1]['timestamp'];
-        }
-        $status = $this->safe_string($order, 'status'); // in case we need to redefine it for canceled orders
-        $remaining = null;
-        if ($amount !== null) {
-            $remaining = $amount - $filled;
-            if ($filled >= $amount) {
-                $status = 'closed';
-            } else {
-                $status = 'open';
-            }
-        }
-        if ($market === null) {
-            $market = $this->get_market_from_trades($trades);
-        }
-        $feeCurrency = null;
-        if ($market !== null) {
-            $symbol = $market['symbol'];
-            $feeCurrency = $market['quote'];
-        }
-        if ($cost === null) {
-            if ($price !== null) {
-                $cost = $price * $filled;
-            }
-        } else {
-            if ($filled > 0) {
-                if ($average === null) {
-                    $average = $cost / $filled;
-                }
-                if ($price === null) {
-                    $price = $cost / $filled;
-                }
-            }
-        }
-        $fee = array(
-            'cost' => $feeCost,
-            'currency' => $feeCurrency,
-        );
         $clientOrderId = $this->safe_integer($order, 'client_id');
-        return array(
+        return $this->safe_order(array(
             'id' => $id,
             'clientOrderId' => $clientOrderId,
             'datetime' => $this->iso8601($timestamp),
             'timestamp' => $timestamp,
-            'lastTradeTimestamp' => $lastTradeTimestamp,
-            'status' => $status,
+            'lastTradeTimestamp' => null,
+            'status' => null,
             'symbol' => $symbol,
             'type' => 'limit',
             'timeInForce' => null,
@@ -1465,15 +1487,16 @@ class exmo extends Exchange {
             'side' => $side,
             'price' => $price,
             'stopPrice' => null,
+            'triggerPrice' => null,
             'cost' => $cost,
             'amount' => $amount,
-            'filled' => $filled,
-            'remaining' => $remaining,
-            'average' => $average,
-            'trades' => $trades,
-            'fee' => $fee,
+            'filled' => null,
+            'remaining' => null,
+            'average' => null,
+            'trades' => $transactions,
+            'fee' => null,
             'info' => $order,
-        );
+        ), $market);
     }
 
     public function fetch_canceled_orders($symbol = null, $since = null, $limit = null, $params = array ()) {
@@ -1606,54 +1629,59 @@ class exmo extends Exchange {
         //
         // fetchTransactions
         //
-        //          {
-        //            "dt" => 1461841192,
-        //            "type" => "deposit",
-        //            "curr" => "RUB",
-        //            "status" => "processing",
-        //            "provider" => "Qiwi (LA) [12345]",
-        //            "amount" => "1",
-        //            "account" => "",
-        //            "txid" => "ec46f784ad976fd7f7539089d1a129fe46...",
-        //          }
+        //    {
+        //        "dt" => 1461841192,
+        //        "type" => "deposit",
+        //        "curr" => "RUB",
+        //        "status" => "processing",
+        //        "provider" => "Qiwi (LA) [12345]",
+        //        "amount" => "1",
+        //        "account" => "",
+        //        "txid" => "ec46f784ad976fd7f7539089d1a129fe46...",
+        //    }
         //
         // fetchWithdrawals
         //
-        //          array(
-        //             "operation_id" => 47412538520634344,
-        //             "created" => 1573760013,
-        //             "updated" => 1573760013,
-        //             "type" => "withdraw",
-        //             "currency" => "DOGE",
-        //             "status" => "Paid",
-        //             "amount" => "300",
-        //             "provider" => "DOGE",
-        //             "commission" => "0",
-        //             "account" => "DOGE => DBVy8pF1f8yxaCVEHqHeR7kkcHecLQ8nRS",
-        //             "order_id" => 69670170,
-        //             "provider_type" => "crypto",
-        //             "crypto_address" => "DBVy8pF1f8yxaCVEHqHeR7kkcHecLQ8nRS",
-        //             "card_number" => "",
-        //             "wallet_address" => "",
-        //             "email" => "",
-        //             "phone" => "",
-        //             "extra" => array(
-        //                 "txid" => "f2b66259ae1580f371d38dd27e31a23fff8c04122b65ee3ab5a3f612d579c792",
-        //                 "confirmations" => null,
-        //                 "excode" => "",
-        //                 "invoice" => ""
-        //             ),
-        //             "error" => ""
-        //          ),
+        //    {
+        //        "operation_id" => 47412538520634344,
+        //        "created" => 1573760013,
+        //        "updated" => 1573760013,
+        //        "type" => "withdraw",
+        //        "currency" => "DOGE",
+        //        "status" => "Paid",
+        //        "amount" => "300",
+        //        "provider" => "DOGE",
+        //        "commission" => "0",
+        //        "account" => "DOGE => DBVy8pF1f8yxaCVEHqHeR7kkcHecLQ8nRS",
+        //        "order_id" => 69670170,
+        //        "provider_type" => "crypto",
+        //        "crypto_address" => "DBVy8pF1f8yxaCVEHqHeR7kkcHecLQ8nRS",
+        //        "card_number" => "",
+        //        "wallet_address" => "",
+        //        "email" => "",
+        //        "phone" => "",
+        //        "extra" => array(
+        //            "txid" => "f2b66259ae1580f371d38dd27e31a23fff8c04122b65ee3ab5a3f612d579c792",
+        //            "confirmations" => null,
+        //            "excode" => "",
+        //            "invoice" => ""
+        //        ),
+        //        "error" => ""
+        //    }
         //
-        $id = $this->safe_string_2($transaction, 'order_id', 'task_id');
+        // withdraw
+        //
+        //    {
+        //        "result" => true,
+        //        "error" => "",
+        //        "task_id" => 11775077
+        //    }
+        //
         $timestamp = $this->safe_timestamp_2($transaction, 'dt', 'created');
-        $updated = $this->safe_timestamp($transaction, 'updated');
         $amount = $this->safe_string($transaction, 'amount');
         if ($amount !== null) {
             $amount = Precise::string_abs($amount);
         }
-        $status = $this->parse_transaction_status($this->safe_string_lower($transaction, 'status'));
         $txid = $this->safe_string($transaction, 'txid');
         if ($txid === null) {
             $extra = $this->safe_value($transaction, 'extra', array());
@@ -1666,7 +1694,6 @@ class exmo extends Exchange {
         $currencyId = $this->safe_string_2($transaction, 'curr', 'currency');
         $code = $this->safe_currency_code($currencyId, $currency);
         $address = null;
-        $tag = null;
         $comment = null;
         $account = $this->safe_string($transaction, 'account');
         if ($type === 'deposit') {
@@ -1682,13 +1709,19 @@ class exmo extends Exchange {
                 }
             }
         }
-        $fee = null;
+        $fee = array(
+            'currency' => null,
+            'cost' => null,
+            'rate' => null,
+        );
         // fixed funding fees only (for now)
         if (!$this->fees['transaction']['percentage']) {
             $key = ($type === 'withdrawal') ? 'withdraw' : 'deposit';
             $feeCost = $this->safe_string($transaction, 'commission');
             if ($feeCost === null) {
-                $feeCost = $this->safe_string($this->options['transactionFees'][$key], $code);
+                $transactionFees = $this->safe_value($this->options, 'transactionFees', array());
+                $codeFees = $this->safe_value($transactionFees, $code, array());
+                $feeCost = $this->safe_string($codeFees, $key);
             }
             // users don't pay for cashbacks, no fees for that
             $provider = $this->safe_string($transaction, 'provider');
@@ -1700,33 +1733,29 @@ class exmo extends Exchange {
                 if ($type === 'withdrawal') {
                     $amount = Precise::string_sub($amount, $feeCost);
                 }
-                $fee = array(
-                    'cost' => $this->parse_number($feeCost),
-                    'currency' => $code,
-                    'rate' => null,
-                );
+                $fee['cost'] = $this->parse_number($feeCost);
+                $fee['currency'] = $code;
             }
         }
-        $network = $this->safe_string($transaction, 'provider');
         return array(
             'info' => $transaction,
-            'id' => $id,
+            'id' => $this->safe_string_2($transaction, 'order_id', 'task_id'),
+            'txid' => $txid,
+            'type' => $type,
+            'currency' => $code,
+            'network' => $this->safe_string($transaction, 'provider'),
+            'amount' => $amount,
+            'status' => $this->parse_transaction_status($this->safe_string_lower($transaction, 'status')),
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
-            'currency' => $code,
-            'amount' => $amount,
-            'network' => $network,
             'address' => $address,
-            'addressTo' => $address,
             'addressFrom' => null,
-            'tag' => $tag,
-            'tagTo' => $tag,
+            'addressTo' => $address,
+            'tag' => null,
             'tagFrom' => null,
-            'status' => $status,
-            'type' => $type,
-            'updated' => $updated,
+            'tagTo' => null,
+            'updated' => $this->safe_timestamp($transaction, 'updated'),
             'comment' => $comment,
-            'txid' => $txid,
             'fee' => $fee,
         );
     }

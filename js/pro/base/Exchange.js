@@ -8,7 +8,9 @@ const BaseExchange = require ("../../base/Exchange")
         IndexedOrderBook,
         CountedOrderBook,
     } = require ('./OrderBook')
-    , functions = require ('./functions');
+    , functions = require ('./functions')
+    ,  { ExchangeError, NotSupported } = require ('../../base/errors')
+    , Future = require ('./Future');
 
 module.exports = class Exchange extends BaseExchange {
     constructor (options = {}) {
@@ -49,11 +51,15 @@ module.exports = class Exchange extends BaseExchange {
             const onConnected = this.onConnected.bind (this);
             // decide client type here: ws / signalr / socketio
             const wsOptions = this.safeValue (this.options, 'ws', {});
-            const options = this.extend (this.streaming, {
+            const options = this.deepExtend (this.streaming, {
                 'log': this.log ? this.log.bind (this) : this.log,
                 'ping': this.ping ? this.ping.bind (this) : this.ping,
                 'verbose': this.verbose,
                 'throttle': throttle (this.tokenBucket),
+                // add support for proxies
+                'options': {
+                    'agent': this.agent || this.httpsAgent || this.httpAgent,
+                }
             }, wsOptions);
             this.clients[url] = new WsClient (url, onMessage, onError, onClose, onConnected, options);
         }
@@ -61,9 +67,9 @@ module.exports = class Exchange extends BaseExchange {
     }
 
     spawn (method, ... args) {
-        (method.apply (this, args)).catch ((e) => {
-            // todo: handle spawned errors
-        })
+        const future = Future ()
+        method.apply (this, args).then (future.resolve).catch (future.reject)
+        return future
     }
 
     delay (timeout, method, ... args) {
@@ -178,10 +184,45 @@ module.exports = class Exchange extends BaseExchange {
         return undefined;
     }
 
-    formatScientificNotationFTX (n) {
-        if (n === 0) {
-            return '0e-00';
+    async loadOrderBook (client, messageHash, symbol, limit = undefined, params = {}) {
+        if (!(symbol in this.orderbooks)) {
+            client.reject (new ExchangeError (this.id + ' loadOrderBook() orderbook is not initiated'), messageHash);
+            return;
         }
-        return n.toExponential ().replace ('e-', 'e-0');
+        const maxRetries = this.handleOption ('watchOrderBook', 'maxRetries', 3);
+        let tries = 0;
+        try {
+            const stored = this.orderbooks[symbol];
+            while (tries < maxRetries) {
+                const cache = stored.cache;
+                const orderBook = await this.fetchOrderBook (symbol, limit, params);
+                const index = this.getCacheIndex (orderBook, cache);
+                if (index >= 0) {
+                    stored.reset (orderBook);
+                    this.handleDeltas (stored, cache.slice (index));
+                    stored.cache.length = 0;
+                    client.resolve (stored, messageHash);
+                    return;
+                }
+                tries++;
+            }
+            client.reject (new ExchangeError (this.id + ' nonce is behind the cache after ' + maxRetries.toString () + ' tries.'), messageHash);
+            delete this.clients[client.url];
+        } catch (e) {
+            client.reject (e, messageHash);
+            await this.loadOrderBook (client, messageHash, symbol, limit, params);
+        }
+    }
+
+    handleDeltas (orderbook, deltas) {
+        for (let i = 0; i < deltas.length; i++) {
+            this.handleDelta (orderbook, deltas[i]);
+        }
+    }
+
+    // eslint-disable-next-line no-unused-vars
+    getCacheIndex (orderbook, deltas) {
+        // return the first index of the cache that can be applied to the orderbook or -1 if not possible
+        return -1;
     }
 };

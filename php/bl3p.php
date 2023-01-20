@@ -269,9 +269,9 @@ class bl3p extends Exchange {
          * @return {[array]} a list of ~@link https://docs.ccxt.com/en/latest/manual.html?#public-trades trade structures~
          */
         $market = $this->market($symbol);
-        $response = Async\await($this->publicGetMarketTrades (array_merge(array(
+        $response = $this->publicGetMarketTrades (array_merge(array(
             'market' => $market['id'],
-        ), $params)));
+        ), $params));
         $result = $this->parse_trades($response['data']['trades'], $market, $since, $limit);
         return $result;
     }

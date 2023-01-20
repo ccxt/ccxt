@@ -214,6 +214,7 @@ module.exports = class exmo extends exmoRest {
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
+        symbol = market['symbol'];
         const url = this.urls['api']['ws']['public'];
         const messageHash = 'ticker:' + symbol;
         const message = {
@@ -272,6 +273,7 @@ module.exports = class exmo extends exmoRest {
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
+        symbol = market['symbol'];
         const url = this.urls['api']['ws']['public'];
         const messageHash = 'trades:' + symbol;
         const message = {
@@ -344,6 +346,7 @@ module.exports = class exmo extends exmoRest {
             messageHash = 'myTrades:' + type;
         } else {
             const market = this.market (symbol);
+            symbol = market['symbol'];
             messageHash = 'myTrades:' + market['symbol'];
         }
         const message = {
@@ -464,6 +467,7 @@ module.exports = class exmo extends exmoRest {
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
+        symbol = market['symbol'];
         const url = this.urls['api']['ws']['public'];
         const messageHash = 'orderbook:' + symbol;
         params = this.omit (params, 'aggregation');
@@ -476,7 +480,7 @@ module.exports = class exmo extends exmoRest {
         };
         const request = this.deepExtend (subscribe, params);
         const orderbook = await this.watch (url, messageHash, request, messageHash);
-        return orderbook.limit (limit);
+        return orderbook.limit ();
     }
 
     handleOrderBook (client, message) {
@@ -568,8 +572,14 @@ module.exports = class exmo extends exmoRest {
         //     topic: 'spot/ticker:BTC_USDT'
         // }
         const event = this.safeString (message, 'event');
-        if (event === 'logged_in') {
-            return this.handleAuthenticationMessage (client, message);
+        const events = {
+            'logged_in': this.handleAuthenticationMessage,
+            'info': this.handleInfo,
+            'subscribed': this.handleSubscribed,
+        };
+        const eventHandler = this.safeValue (events, event);
+        if (eventHandler !== undefined) {
+            return eventHandler.call (this, client, message);
         }
         if ((event === 'update') || (event === 'snapshot')) {
             const topic = this.safeString (message, 'topic');
@@ -594,12 +604,6 @@ module.exports = class exmo extends exmoRest {
                     return handler.call (this, client, message);
                 }
             }
-        }
-        if (event === 'info') {
-            return this.handleInfo (client, message);
-        }
-        if (event === 'subscribed') {
-            return this.handleSubscribed (client, message);
         }
         throw new NotSupported (this.id + ' received an unsupported message: ' + this.json (message));
     }
@@ -638,21 +642,18 @@ module.exports = class exmo extends exmoRest {
         //         nonce: 1654215729887
         //     }
         //
-        const future = this.safeValue (client.futures, 'authenticated');
-        if (future !== undefined) {
-            future.resolve (true);
-        }
+        const messageHash = 'authenticated';
+        client.resolve (message, messageHash);
     }
 
-    async authenticate (params = {}) {
+    authenticate (params = {}) {
+        const messageHash = 'authenticated';
         const [ type, query ] = this.handleMarketTypeAndParams ('authenticate', undefined, params);
         const url = this.urls['api']['ws'][type];
         const client = this.client (url);
-        const time = this.milliseconds ();
-        const messageHash = 'authenticated';
-        const future = client.future ('authenticated');
-        const authenticated = this.safeValue (client.subscriptions, messageHash);
-        if (authenticated === undefined) {
+        let future = this.safeValue (client.subscriptions, messageHash);
+        if (future === undefined) {
+            const time = this.milliseconds ();
             this.checkRequiredCredentials ();
             const requestId = this.requestId ();
             const signData = this.apiKey + time.toString ();
@@ -664,8 +665,10 @@ module.exports = class exmo extends exmoRest {
                 'sign': sign,
                 'nonce': time,
             };
-            this.spawn (this.watch, url, messageHash, this.extend (request, query), messageHash);
+            const message = this.extend (request, query);
+            future = this.watch (url, messageHash, message);
+            client.subscriptions[messageHash] = future;
         }
-        return await future;
+        return future;
     }
 };

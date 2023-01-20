@@ -29,7 +29,7 @@ class btcex(Exchange):
             'countries': ['CA'],  # Canada
             'version': 'v1',
             'certified': False,
-            'pro': False,
+            'pro': True,
             'requiredCredentials': {
                 'apiKey': True,
                 'secret': True,
@@ -99,17 +99,20 @@ class btcex(Exchange):
                 'withdraw': False,
             },
             'timeframes': {
-                '15s': '15',
-                '1m': '60',
-                '5m': '300',
-                '15m': '900',
-                '1h': '3600',
-                '4h': '14400',
-                '1d': '86400',
-                '3d': '259200',
-                '1w': '604800',
-                '2w': '1209600',
-                '1M': '2592000',
+                '1m': '1',
+                '3m': '3',
+                '5m': '5',
+                '15m': '15',
+                '30m': '30',
+                '1h': '60',
+                '2h': '120',
+                '3h': '180',
+                '4h': '240',
+                '6h': '360',
+                '12h': '720',
+                '1d': '1D',
+                '3d': '3D',
+                '1M': '30D',
             },
             'api': {
                 'public': {
@@ -288,6 +291,7 @@ class btcex(Exchange):
                     '8105': BadRequest,  # GOOGLE_CODE_CHECK_FAIL 2FA Code error!
                     '8106': DDoSProtection,  # SMS_CODE_LIMIT Your message service is over limit today, please try tomorrow
                     '8107': ExchangeError,  # REQUEST_FAILED Request failed
+                    '10000': AuthenticationError,  # Authentication Failure
                     '11000': BadRequest,  # CHANNEL_REGEX_ERROR channel regex not match
                 },
                 'broad': {
@@ -473,8 +477,10 @@ class btcex(Exchange):
         #     }
         #
         marketId = self.safe_string(ticker, 'instrument_name')
+        if marketId.find('PERPETUAL') < 0:
+            marketId = marketId + '-SPOT'
         market = self.safe_market(marketId, market)
-        symbol = self.safe_symbol(marketId, market)
+        symbol = self.safe_symbol(marketId, market, '-')
         timestamp = self.safe_integer(ticker, 'timestamp')
         stats = self.safe_value(ticker, 'stats')
         return self.safe_ticker({
@@ -542,6 +548,8 @@ class btcex(Exchange):
         request = {
             'instrument_name': market['id'],
         }
+        if limit is not None:
+            request['depth'] = limit
         response = self.publicGetGetOrderBook(self.extend(request, params))
         result = self.safe_value(response, 'result', {})
         #
@@ -560,7 +568,9 @@ class btcex(Exchange):
         #     }
         #
         timestamp = self.safe_integer(result, 'timestamp')
-        return self.parse_order_book(result, market['symbol'], timestamp)
+        orderBook = self.parse_order_book(result, market['symbol'], timestamp)
+        orderBook['nonce'] = self.safe_integer(result, 'version')
+        return orderBook
 
     def parse_ohlcv(self, ohlcv, market=None):
         #
@@ -575,7 +585,7 @@ class btcex(Exchange):
         #     }
         #
         return [
-            self.safe_integer(ohlcv, 'tick'),
+            self.safe_timestamp(ohlcv, 'tick'),
             self.safe_number(ohlcv, 'open'),
             self.safe_number(ohlcv, 'high'),
             self.safe_number(ohlcv, 'low'),
@@ -1098,6 +1108,8 @@ class btcex(Exchange):
         lastUpdate = self.safe_integer(order, 'last_update_timestamp')
         id = self.safe_string(order, 'order_id')
         priceString = self.safe_string(order, 'price')
+        if priceString == '-1':
+            priceString = None
         averageString = self.safe_string(order, 'average_price')
         amountString = self.safe_string(order, 'amount')
         filledString = self.safe_string(order, 'filled_amount')
@@ -1121,8 +1133,6 @@ class btcex(Exchange):
         type = self.safe_string(order, 'order_type')
         # injected in createOrder
         trades = self.safe_value(order, 'trades')
-        if trades is not None:
-            trades = self.parse_trades(trades, market)
         timeInForce = self.parse_time_in_force(self.safe_string(order, 'time_in_force'))
         stopPrice = self.safe_value(order, 'trigger_price')
         postOnly = self.safe_value(order, 'post_only')
@@ -1140,6 +1150,7 @@ class btcex(Exchange):
             'side': side,
             'price': priceString,
             'stopPrice': stopPrice,
+            'triggerPrice': stopPrice,
             'amount': amountString,
             'cost': None,
             'average': averageString,

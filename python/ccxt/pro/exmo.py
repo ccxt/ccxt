@@ -203,6 +203,7 @@ class exmo(Exchange, ccxt.async_support.exmo):
         """
         await self.load_markets()
         market = self.market(symbol)
+        symbol = market['symbol']
         url = self.urls['api']['ws']['public']
         messageHash = 'ticker:' + symbol
         message = {
@@ -257,6 +258,7 @@ class exmo(Exchange, ccxt.async_support.exmo):
         """
         await self.load_markets()
         market = self.market(symbol)
+        symbol = market['symbol']
         url = self.urls['api']['ws']['public']
         messageHash = 'trades:' + symbol
         message = {
@@ -323,6 +325,7 @@ class exmo(Exchange, ccxt.async_support.exmo):
             messageHash = 'myTrades:' + type
         else:
             market = self.market(symbol)
+            symbol = market['symbol']
             messageHash = 'myTrades:' + market['symbol']
         message = {
             'method': 'subscribe',
@@ -434,6 +437,7 @@ class exmo(Exchange, ccxt.async_support.exmo):
         """
         await self.load_markets()
         market = self.market(symbol)
+        symbol = market['symbol']
         url = self.urls['api']['ws']['public']
         messageHash = 'orderbook:' + symbol
         params = self.omit(params, 'aggregation')
@@ -446,7 +450,7 @@ class exmo(Exchange, ccxt.async_support.exmo):
         }
         request = self.deep_extend(subscribe, params)
         orderbook = await self.watch(url, messageHash, request, messageHash)
-        return orderbook.limit(limit)
+        return orderbook.limit()
 
     def handle_order_book(self, client, message):
         #
@@ -531,8 +535,14 @@ class exmo(Exchange, ccxt.async_support.exmo):
         #     topic: 'spot/ticker:BTC_USDT'
         # }
         event = self.safe_string(message, 'event')
-        if event == 'logged_in':
-            return self.handle_authentication_message(client, message)
+        events = {
+            'logged_in': self.handle_authentication_message,
+            'info': self.handle_info,
+            'subscribed': self.handle_subscribed,
+        }
+        eventHandler = self.safe_value(events, event)
+        if eventHandler is not None:
+            return eventHandler(client, message)
         if (event == 'update') or (event == 'snapshot'):
             topic = self.safe_string(message, 'topic')
             if topic is not None:
@@ -554,10 +564,6 @@ class exmo(Exchange, ccxt.async_support.exmo):
                 handler = self.safe_value(handlers, channel)
                 if handler is not None:
                     return handler(client, message)
-        if event == 'info':
-            return self.handle_info(client, message)
-        if event == 'subscribed':
-            return self.handle_subscribed(client, message)
         raise NotSupported(self.id + ' received an unsupported message: ' + self.json(message))
 
     def handle_subscribed(self, client, message):
@@ -592,19 +598,17 @@ class exmo(Exchange, ccxt.async_support.exmo):
         #         nonce: 1654215729887
         #     }
         #
-        future = self.safe_value(client.futures, 'authenticated')
-        if future is not None:
-            future.resolve(True)
+        messageHash = 'authenticated'
+        client.resolve(message, messageHash)
 
-    async def authenticate(self, params={}):
+    def authenticate(self, params={}):
+        messageHash = 'authenticated'
         type, query = self.handle_market_type_and_params('authenticate', None, params)
         url = self.urls['api']['ws'][type]
         client = self.client(url)
-        time = self.milliseconds()
-        messageHash = 'authenticated'
-        future = client.future('authenticated')
-        authenticated = self.safe_value(client.subscriptions, messageHash)
-        if authenticated is None:
+        future = self.safe_value(client.subscriptions, messageHash)
+        if future is None:
+            time = self.milliseconds()
             self.check_required_credentials()
             requestId = self.request_id()
             signData = self.apiKey + str(time)
@@ -616,5 +620,7 @@ class exmo(Exchange, ccxt.async_support.exmo):
                 'sign': sign,
                 'nonce': time,
             }
-            self.spawn(self.watch, url, messageHash, self.extend(request, query), messageHash)
-        return await future
+            message = self.extend(request, query)
+            future = self.watch(url, messageHash, message)
+            client.subscriptions[messageHash] = future
+        return future

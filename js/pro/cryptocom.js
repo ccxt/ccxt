@@ -3,7 +3,7 @@
 //  ---------------------------------------------------------------------------
 
 const cryptocomRest = require ('../cryptocom.js');
-const { AuthenticationError, NotSupported, ExchangeError } = require ('../base/errors');
+const { AuthenticationError, NotSupported } = require ('../base/errors');
 const { ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById } = require ('./base/Cache');
 
 //  ---------------------------------------------------------------------------
@@ -51,21 +51,24 @@ module.exports = class cryptocom extends cryptocomRest {
     }
 
     async watchOrderBook (symbol, limit = undefined, params = {}) {
-        if (limit !== undefined) {
-            if ((limit !== 10) && (limit !== 150)) {
-                throw new ExchangeError (this.id + ' watchOrderBook limit argument must be undefined, 10 or 150');
-            }
-        } else {
-            limit = 150; // default value
-        }
+        /**
+         * @method
+         * @name cryptocom#watchOrderBook
+         * @description watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+         * @see https://exchange-docs.crypto.com/spot/index.html#book-instrument_name-depth
+         * @param {string} symbol unified symbol of the market to fetch the order book for
+         * @param {int|undefined} limit the maximum amount of order book entries to return
+         * @param {object} params extra parameters specific to the cryptocom api endpoint
+         * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-book-structure} indexed by market symbols
+         */
         await this.loadMarkets ();
         const market = this.market (symbol);
         if (!market['spot']) {
             throw new NotSupported (this.id + ' watchOrderBook() supports spot markets only');
         }
-        const messageHash = 'book' + '.' + market['id'] + '.' + limit.toString ();
+        const messageHash = 'book' + '.' + market['id'];
         const orderbook = await this.watchPublic (messageHash, params);
-        return orderbook.limit (limit);
+        return orderbook.limit ();
     }
 
     handleOrderBookSnapshot (client, message) {
@@ -110,8 +113,19 @@ module.exports = class cryptocom extends cryptocomRest {
     }
 
     async watchTrades (symbol, since = undefined, limit = undefined, params = {}) {
+        /**
+         * @method
+         * @name cryptocom#watchTrades
+         * @description get the list of most recent trades for a particular symbol
+         * @param {string} symbol unified symbol of the market to fetch trades for
+         * @param {int|undefined} since timestamp in ms of the earliest trade to fetch
+         * @param {int|undefined} limit the maximum amount of trades to fetch
+         * @param {object} params extra parameters specific to the cryptocom api endpoint
+         * @returns {[object]} a list of [trade structures]{@link https://docs.ccxt.com/en/latest/manual.html?#public-trades}
+         */
         await this.loadMarkets ();
         const market = this.market (symbol);
+        symbol = market['symbol'];
         if (!market['spot']) {
             throw new NotSupported (this.id + ' watchTrades() supports spot markets only');
         }
@@ -167,10 +181,21 @@ module.exports = class cryptocom extends cryptocomRest {
     }
 
     async watchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        /**
+         * @method
+         * @name cryptocom#watchMyTrades
+         * @description watches information on multiple trades made by the user
+         * @param {string} symbol unified market symbol of the market orders were made in
+         * @param {int|undefined} since the earliest time in ms to fetch orders for
+         * @param {int|undefined} limit the maximum number of  orde structures to retrieve
+         * @param {object} params extra parameters specific to the cryptocom api endpoint
+         * @returns {[object]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure
+         */
         await this.loadMarkets ();
         let market = undefined;
         if (symbol !== undefined) {
             market = this.market (symbol);
+            symbol = market['symbol'];
         }
         const defaultType = this.safeString (this.options, 'defaultType', 'spot');
         let messageHash = (defaultType === 'margin') ? 'user.margin.trade' : 'user.trade';
@@ -183,6 +208,14 @@ module.exports = class cryptocom extends cryptocomRest {
     }
 
     async watchTicker (symbol, params = {}) {
+        /**
+         * @method
+         * @name cryptocom#watchTicker
+         * @description watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+         * @param {string} symbol unified symbol of the market to fetch the ticker for
+         * @param {object} params extra parameters specific to the cryptocom api endpoint
+         * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
+         */
         await this.loadMarkets ();
         const market = this.market (symbol);
         if (!market['spot']) {
@@ -229,8 +262,20 @@ module.exports = class cryptocom extends cryptocomRest {
     }
 
     async watchOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
+        /**
+         * @method
+         * @name cryptocom#watchOHLCV
+         * @description watches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+         * @param {string} symbol unified symbol of the market to fetch OHLCV data for
+         * @param {string} timeframe the length of time each candle represents
+         * @param {int|undefined} since timestamp in ms of the earliest candle to fetch
+         * @param {int|undefined} limit the maximum amount of candles to fetch
+         * @param {object} params extra parameters specific to the cryptocom api endpoint
+         * @returns {[[int]]} A list of candles ordered as timestamp, open, high, low, close, volume
+         */
         await this.loadMarkets ();
         const market = this.market (symbol);
+        symbol = market['symbol'];
         if (!market['spot']) {
             throw new NotSupported (this.id + ' watchOHLCV() supports spot markets only');
         }
@@ -277,10 +322,21 @@ module.exports = class cryptocom extends cryptocomRest {
     }
 
     async watchOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        /**
+         * @method
+         * @name cryptocom#watchOrders
+         * @description watches information on multiple orders made by the user
+         * @param {string|undefined} symbol unified market symbol of the market orders were made in
+         * @param {int|undefined} since the earliest time in ms to fetch orders for
+         * @param {int|undefined} limit the maximum number of  orde structures to retrieve
+         * @param {object} params extra parameters specific to the cryptocom api endpoint
+         * @returns {[object]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
+         */
         await this.loadMarkets ();
         let market = undefined;
         if (symbol !== undefined) {
             market = this.market (symbol);
+            symbol = market['symbol'];
         }
         const defaultType = this.safeString (this.options, 'defaultType', 'spot');
         let messageHash = (defaultType === 'margin') ? 'user.margin.order' : 'user.order';
@@ -343,6 +399,13 @@ module.exports = class cryptocom extends cryptocomRest {
     }
 
     async watchBalance (params = {}) {
+        /**
+         * @method
+         * @name cryptocom#watchBalance
+         * @description query for balance and get the amount of funds available for trading or funds locked in orders
+         * @param {object} params extra parameters specific to the cryptocom api endpoint
+         * @returns {object} a [balance structure]{@link https://docs.ccxt.com/en/latest/manual.html?#balance-structure}
+         */
         const defaultType = this.safeString (this.options, 'defaultType', 'spot');
         const messageHash = (defaultType === 'margin') ? 'user.margin.balance' : 'user.balance';
         return await this.watchPrivate (messageHash, params);
@@ -421,7 +484,7 @@ module.exports = class cryptocom extends cryptocomRest {
         // }
         const errorCode = this.safeInteger (message, 'code');
         try {
-            if (errorCode !== undefined && errorCode !== 0) {
+            if (errorCode) {
                 const feedback = this.id + ' ' + this.json (message);
                 this.throwExactlyMatchedException (this.exceptions['exact'], errorCode, feedback);
                 const messageString = this.safeValue (message, 'message');
@@ -429,18 +492,19 @@ module.exports = class cryptocom extends cryptocomRest {
                     this.throwBroadlyMatchedException (this.exceptions['broad'], messageString, feedback);
                 }
             }
+            return false;
         } catch (e) {
             if (e instanceof AuthenticationError) {
-                client.reject (e, 'authenticated');
-                if ('public/auth' in client.subscriptions) {
-                    delete client.subscriptions['public/auth'];
+                const messageHash = 'authenticated';
+                client.reject (e, messageHash);
+                if (messageHash in client.subscriptions) {
+                    delete client.subscriptions[messageHash];
                 }
-                return false;
             } else {
                 client.reject (e);
             }
+            return true;
         }
-        return message;
     }
 
     handleMessage (client, message) {
@@ -473,7 +537,7 @@ module.exports = class cryptocom extends cryptocomRest {
         //        "channel":"ticker",
         //        "data":[ { } ]
         //
-        if (!this.handleErrorMessage (client, message)) {
+        if (this.handleErrorMessage (client, message)) {
             return;
         }
         const subject = this.safeString (message, 'method');
@@ -505,27 +569,29 @@ module.exports = class cryptocom extends cryptocomRest {
         }
     }
 
-    async authenticate (params = {}) {
-        const url = this.urls['api']['ws']['private'];
+    authenticate (params = {}) {
         this.checkRequiredCredentials ();
+        const url = this.urls['api']['ws']['private'];
         const client = this.client (url);
-        const future = client.future ('authenticated');
-        const messageHash = 'public/auth';
-        const authenticated = this.safeValue (client.subscriptions, messageHash);
-        if (authenticated === undefined) {
+        const messageHash = 'authenticated';
+        let future = this.safeValue (client.subscriptions, messageHash);
+        if (future === undefined) {
+            const method = 'public/auth';
             const nonce = this.nonce ().toString ();
-            const auth = messageHash + nonce + this.apiKey + nonce;
+            const auth = method + nonce + this.apiKey + nonce;
             const signature = this.hmac (this.encode (auth), this.encode (this.secret), 'sha256');
             const request = {
                 'id': nonce,
                 'nonce': nonce,
-                'method': messageHash,
+                'method': method,
                 'api_key': this.apiKey,
                 'sig': signature,
             };
-            this.spawn (this.watch, url, messageHash, this.extend (request, params), messageHash);
+            const message = this.extend (request, params);
+            future = this.watch (url, messageHash, message);
+            client.subscriptions[messageHash] = future;
         }
-        return await future;
+        return future;
     }
 
     handlePing (client, message) {
@@ -536,9 +602,6 @@ module.exports = class cryptocom extends cryptocomRest {
         //
         //  { id: 1648132625434, method: 'public/auth', code: 0 }
         //
-        const future = client.futures['authenticated'];
-        future.resolve (1);
-        client.resolve (1, 'public/auth');
-        return message;
+        client.resolve (message, 'authenticated');
     }
 };

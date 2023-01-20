@@ -163,7 +163,7 @@ class whitebit extends \ccxt\async\whitebit {
                 true, // true for allowing multiple subscriptions
             ];
             $orderbook = Async\await($this->watch_public($messageHash, $method, $reqParams, $params));
-            return $orderbook->limit ($limit);
+            return $orderbook->limit ();
         }) ();
     }
 
@@ -626,6 +626,7 @@ class whitebit extends \ccxt\async\whitebit {
             'side' => $side,
             'price' => $price,
             'stopPrice' => $stopPrice,
+            'triggerPrice' => $stopPrice,
             'amount' => $amount,
             'cost' => $cost,
             'average' => null,

@@ -159,7 +159,7 @@ module.exports = class whitebit extends whitebitRest {
             true, // true for allowing multiple subscriptions
         ];
         const orderbook = await this.watchPublic (messageHash, method, reqParams, params);
-        return orderbook.limit (limit);
+        return orderbook.limit ();
     }
 
     handleOrderBook (client, message) {
@@ -621,6 +621,7 @@ module.exports = class whitebit extends whitebitRest {
             'side': side,
             'price': price,
             'stopPrice': stopPrice,
+            'triggerPrice': stopPrice,
             'amount': amount,
             'cost': cost,
             'average': undefined,

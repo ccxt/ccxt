@@ -419,6 +419,7 @@ class independentreserve extends Exchange {
             'side' => $side,
             'price' => $this->safe_string($order, 'Price'),
             'stopPrice' => null,
+            'triggerPrice' => null,
             'cost' => $this->safe_string($order, 'Value'),
             'average' => $this->safe_string($order, 'AvgPrice'),
             'amount' => $this->safe_string_2($order, 'VolumeOrdered', 'Volume'),
@@ -455,9 +456,9 @@ class independentreserve extends Exchange {
          * @return {array} An {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structure}
          */
         $this->load_markets();
-        $response = Async\await($this->privatePostGetOrderDetails (array_merge(array(
+        $response = $this->privatePostGetOrderDetails (array_merge(array(
             'orderGuid' => $id,
-        ), $params)));
+        ), $params));
         $market = null;
         if ($symbol !== null) {
             $market = $this->market($symbol);

@@ -30,7 +30,8 @@ class binancecoinm extends binance {
                 'createStopMarketOrder' => true,
             ),
             'options' => array(
-                'defaultType' => 'delivery',
+                'fetchMarkets' => array( 'inverse' ),
+                'defaultSubType' => 'inverse',
                 'leverageBrackets' => null,
             ),
         ));

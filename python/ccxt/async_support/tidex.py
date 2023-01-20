@@ -86,7 +86,7 @@ class tidex(Exchange):
                 },
                 'www': 'https://tidex.com',
                 'doc': 'https://tidex.com/exchange/public-api',
-                'referral': 'https://tidex.com/exchange/?ref=57f5638d9cd7',
+                'referral': 'https://tidex.com/exchange',
                 'fees': [
                     'https://tidex.com/exchange/assets-spec',
                     'https://tidex.com/exchange/pairs-spec',
@@ -719,6 +719,7 @@ class tidex(Exchange):
             'side': self.safe_string(order, 'type'),
             'price': price,
             'stopPrice': None,
+            'triggerPrice': None,
             'cost': None,
             'amount': amount,
             'remaining': remaining,

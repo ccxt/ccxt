@@ -8,6 +8,7 @@ namespace ccxt\async;
 use Exception; // a common import
 use ccxt\ExchangeError;
 use ccxt\ArgumentsRequired;
+use ccxt\NotSupported;
 use ccxt\Precise;
 use React\Async;
 
@@ -34,7 +35,7 @@ class poloniex extends Exchange {
                 'createDepositAddress' => true,
                 'createMarketOrder' => null,
                 'createOrder' => true,
-                'editOrder' => false,
+                'editOrder' => true,
                 'fetchBalance' => true,
                 'fetchClosedOrder' => false,
                 'fetchCurrencies' => true,
@@ -116,6 +117,11 @@ class poloniex extends Exchange {
                         'accounts/{id}/balances' => 4,
                         'accounts/transfer' => 20,
                         'accounts/transfer/{id}' => 4,
+                        'subaccounts' => 4,
+                        'subaccounts/balances' => 20,
+                        'subaccounts/{id}/balances' => 4,
+                        'subaccounts/transfer' => 20,
+                        'subaccounts/transfer/{id}' => 4,
                         'feeinfo' => 20,
                         'wallets/addresses' => 20,
                         'wallets/activity' => 20,
@@ -123,6 +129,7 @@ class poloniex extends Exchange {
                         'orders' => 20,
                         'orders/{id}' => 4,
                         'orders/history' => 20,
+                        'orders/killSwitchStatus' => 4,
                         'smartorders' => 20,
                         'smartorders/{id}' => 4,
                         'smartorders/history' => 20,
@@ -131,9 +138,12 @@ class poloniex extends Exchange {
                     ),
                     'post' => array(
                         'accounts/transfer' => 4,
+                        'subaccounts/transfer' => 20,
                         'wallets/address' => 20,
                         'wallets/withdraw' => 20,
                         'orders' => 4,
+                        'orders/killSwitch' => 4,
+                        'orders/batch' => 20,
                         'smartorders' => 4,
                     ),
                     'delete' => array(
@@ -143,6 +153,10 @@ class poloniex extends Exchange {
                         'smartorders/{id}' => 4,
                         'smartorders/cancelByIds' => 20,
                         'smartorders' => 20,
+                    ),
+                    'put' => array(
+                        'orders/{id}' => 4,
+                        'smartorders/{id}' => 4,
                     ),
                 ),
             ),
@@ -222,7 +236,7 @@ class poloniex extends Exchange {
                     'futures' => 'future',
                 ),
             ),
-            'precisionMode' => DECIMAL_PLACES,
+            'precisionMode' => TICK_SIZE,
             'exceptions' => array(
                 'exact' => array(
                     'You may only place orders that reduce your position.' => '\\ccxt\\InvalidOrder',
@@ -418,8 +432,8 @@ class poloniex extends Exchange {
                     'strike' => null,
                     'optionType' => null,
                     'precision' => array(
-                        'amount' => $this->safe_integer($symbolTradeLimit, 'quantityScale'),
-                        'price' => $this->safe_integer($symbolTradeLimit, 'priceScale'),
+                        'amount' => $this->parse_number($this->parse_precision($this->safe_string($symbolTradeLimit, 'quantityScale'))),
+                        'price' => $this->parse_number($this->parse_precision($this->safe_string($symbolTradeLimit, 'priceScale'))),
                     ),
                     'limits' => array(
                         'amount' => array(
@@ -474,7 +488,7 @@ class poloniex extends Exchange {
         //
         $timestamp = $this->safe_integer($ticker, 'ts');
         $marketId = $this->safe_string($ticker, 'symbol');
-        $market = $this->market($marketId);
+        $market = $this->safe_market($marketId);
         $close = $this->safe_string($ticker, 'close');
         $relativeChange = $this->safe_string($ticker, 'percentChange');
         $percentage = Precise::string_mul($relativeChange, '100');
@@ -881,7 +895,7 @@ class poloniex extends Exchange {
         //         "updateTime" => 1646925216548
         //     }
         //
-        // createOrder
+        // createOrder, editOrder
         //
         //     {
         //         "id" => "29772698821328896",
@@ -942,6 +956,7 @@ class poloniex extends Exchange {
             'side' => $side,
             'price' => $price,
             'stopPrice' => null,
+            'triggerPrice' => null,
             'cost' => null,
             'average' => $this->safe_string($order, 'avgPrice'),
             'amount' => $amount,
@@ -1028,6 +1043,7 @@ class poloniex extends Exchange {
         return Async\async(function () use ($symbol, $type, $side, $amount, $price, $params) {
             /**
              * create a trade order
+             * @see https://docs.poloniex.com/#authenticated-endpoints-orders-create-order
              * @param {string} $symbol unified $symbol of the $market to create an order in
              * @param {string} $type 'market' or 'limit'
              * @param {string} $side 'buy' or 'sell'
@@ -1041,38 +1057,85 @@ class poloniex extends Exchange {
             // }
             Async\await($this->load_markets());
             $market = $this->market($symbol);
-            $upperCaseType = strtoupper($type);
-            $isMarket = $upperCaseType === 'MARKET';
-            $isPostOnly = $this->is_post_only($isMarket, $upperCaseType === 'LIMIT_MAKER', $params);
-            if ($isPostOnly) {
-                $upperCaseType = 'LIMIT_MAKER';
-                $params = $this->omit($params, 'postOnly');
+            if (!$market['spot']) {
+                throw new NotSupported($this->id . ' createOrder() does not support ' . $market['type'] . ' orders, only spot orders are accepted');
             }
             $request = array(
                 'symbol' => $market['id'],
                 'side' => $side,
-                'type' => $upperCaseType,
                 // 'timeInForce' => timeInForce,
                 // 'accountType' => 'SPOT',
                 // 'amount' => $amount,
             );
-            if ($isMarket) {
-                if ($side === 'buy') {
-                    $request['amount'] = $this->currency_to_precision($market['quote'], $amount);
-                } else {
-                    $request['quantity'] = $this->amount_to_precision($symbol, $amount);
-                }
+            $orderRequest = $this->order_request($symbol, $type, $side, $amount, $request, $price, $params);
+            $response = Async\await($this->privatePostOrders (array_merge($orderRequest[0], $orderRequest[1])));
+            //
+            //     {
+            //         "id" : "78923648051920896",
+            //         "clientOrderId" : ""
+            //     }
+            //
+            $response = array_merge($response, array(
+                'type' => $side,
+            ));
+            return $this->parse_order($response, $market);
+        }) ();
+    }
+
+    public function order_request($symbol, $type, $side, $amount, $request, $price = null, $params = array ()) {
+        $market = $this->market($symbol);
+        $upperCaseType = strtoupper($type);
+        $isMarket = $upperCaseType === 'MARKET';
+        $isPostOnly = $this->is_post_only($isMarket, $upperCaseType === 'LIMIT_MAKER', $params);
+        if ($isPostOnly) {
+            $upperCaseType = 'LIMIT_MAKER';
+            $params = $this->omit($params, 'postOnly');
+        }
+        $request['type'] = $upperCaseType;
+        if ($isMarket) {
+            if ($side === 'buy') {
+                $request['amount'] = $this->currency_to_precision($market['quote'], $amount);
             } else {
                 $request['quantity'] = $this->amount_to_precision($symbol, $amount);
-                $request['price'] = $this->price_to_precision($symbol, $price);
             }
-            $clientOrderId = $this->safe_string($params, 'clientOrderId');
-            if ($clientOrderId !== null) {
-                $request['clientOrderId'] = $clientOrderId;
-                $params = $this->omit($params, 'clientOrderId');
+        } else {
+            $request['quantity'] = $this->amount_to_precision($symbol, $amount);
+            $request['price'] = $this->price_to_precision($symbol, $price);
+        }
+        $clientOrderId = $this->safe_string($params, 'clientOrderId');
+        if ($clientOrderId !== null) {
+            $request['clientOrderId'] = $clientOrderId;
+            $params = $this->omit($params, 'clientOrderId');
+        }
+        // remember the timestamp before issuing the $request
+        return array( $request, $params );
+    }
+
+    public function edit_order($id, $symbol, $type, $side, $amount, $price = null, $params = array ()) {
+        return Async\async(function () use ($id, $symbol, $type, $side, $amount, $price, $params) {
+            /**
+             * edit a trade order
+             * @see https://docs.poloniex.com/#authenticated-endpoints-orders-cancel-replace-order
+             * @param {string} $id order $id
+             * @param {string} $symbol unified $symbol of the $market to create an order in
+             * @param {string} $type 'market' or 'limit'
+             * @param {string} $side 'buy' or 'sell'
+             * @param {float} $amount how much of the currency you want to trade in units of the base currency
+             * @param {float|null} $price the $price at which the order is to be fullfilled, in units of the quote currency, ignored in $market orders
+             * @param {array} $params extra parameters specific to the poloniex api endpoint
+             * @return {array} an {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structure}
+             */
+            Async\await($this->load_markets());
+            $market = $this->market($symbol);
+            if (!$market['spot']) {
+                throw new NotSupported($this->id . ' editOrder() does not support ' . $market['type'] . ' orders, only spot orders are accepted');
             }
-            // remember the timestamp before issuing the $request
-            $response = Async\await($this->privatePostOrders (array_merge($request, $params)));
+            $request = array(
+                'id' => $id,
+                // 'timeInForce' => timeInForce,
+            );
+            $orderRequest = $this->order_request($symbol, $type, $side, $amount, $request, $price, $params);
+            $response = Async\await($this->privatePutOrdersId (array_merge($orderRequest[0], $orderRequest[1])));
             //
             //     {
             //         "id" : "78923648051920896",

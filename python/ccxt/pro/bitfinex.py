@@ -9,6 +9,7 @@ from ccxt.pro.base.cache import ArrayCache, ArrayCacheBySymbolById
 import hashlib
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
+from ccxt.base.precise import Precise
 
 
 class bitfinex(Exchange, ccxt.async_support.bitfinex):
@@ -57,12 +58,28 @@ class bitfinex(Exchange, ccxt.async_support.bitfinex):
         return await self.watch(url, messageHash, self.deep_extend(request, params), messageHash)
 
     async def watch_trades(self, symbol, since=None, limit=None, params={}):
+        """
+        get the list of most recent trades for a particular symbol
+        :param str symbol: unified symbol of the market to fetch trades for
+        :param int|None since: timestamp in ms of the earliest trade to fetch
+        :param int|None limit: the maximum amount of trades to fetch
+        :param dict params: extra parameters specific to the bitfinex api endpoint
+        :returns [dict]: a list of `trade structures <https://docs.ccxt.com/en/latest/manual.html?#public-trades>`
+        """
+        await self.load_markets()
+        symbol = self.symbol(symbol)
         trades = await self.subscribe('trades', symbol, params)
         if self.newUpdates:
             limit = trades.getLimit(symbol, limit)
         return self.filter_by_since_limit(trades, since, limit, 'timestamp', True)
 
     async def watch_ticker(self, symbol, params={}):
+        """
+        watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+        :param str symbol: unified symbol of the market to fetch the ticker for
+        :param dict params: extra parameters specific to the bitfinex api endpoint
+        :returns dict: a `ticker structure <https://docs.ccxt.com/en/latest/manual.html#ticker-structure>`
+        """
         return await self.subscribe('ticker', symbol, params)
 
     def handle_trades(self, client, message, subscription):
@@ -92,25 +109,24 @@ class bitfinex(Exchange, ccxt.async_support.bitfinex):
         marketId = self.safe_string(subscription, 'pair')
         messageHash = channel + ':' + marketId
         tradesLimit = self.safe_integer(self.options, 'tradesLimit', 1000)
-        if marketId in self.markets_by_id:
-            market = self.markets_by_id[marketId]
-            symbol = market['symbol']
-            data = self.safe_value(message, 1)
-            stored = self.safe_value(self.trades, symbol)
-            if stored is None:
-                stored = ArrayCache(tradesLimit)
-                self.trades[symbol] = stored
-            if isinstance(data, list):
-                trades = self.parse_trades(data, market)
-                for i in range(0, len(trades)):
-                    stored.append(trades[i])
-            else:
-                second = self.safe_string(message, 1)
-                if second != 'tu':
-                    return
-                trade = self.parse_trade(message, market)
-                stored.append(trade)
-            client.resolve(stored, messageHash)
+        market = self.safe_market(marketId)
+        symbol = market['symbol']
+        data = self.safe_value(message, 1)
+        stored = self.safe_value(self.trades, symbol)
+        if stored is None:
+            stored = ArrayCache(tradesLimit)
+            self.trades[symbol] = stored
+        if isinstance(data, list):
+            trades = self.parse_trades(data, market)
+            for i in range(0, len(trades)):
+                stored.append(trades[i])
+        else:
+            second = self.safe_string(message, 1)
+            if second != 'tu':
+                return
+            trade = self.parse_trade(message, market)
+            stored.append(trade)
+        client.resolve(stored, messageHash)
         return message
 
     def parse_trade(self, trade, market=None):
@@ -192,11 +208,11 @@ class bitfinex(Exchange, ccxt.async_support.bitfinex):
         symbol = self.safe_symbol(marketId)
         channel = 'ticker'
         messageHash = channel + ':' + marketId
-        last = self.safe_float(message, 7)
-        change = self.safe_float(message, 5)
+        last = self.safe_string(message, 7)
+        change = self.safe_string(message, 5)
         open = None
         if (last is not None) and (change is not None):
-            open = last - change
+            open = Precise.string_sub(last, change)
         result = {
             'symbol': symbol,
             'timestamp': timestamp,
@@ -208,11 +224,11 @@ class bitfinex(Exchange, ccxt.async_support.bitfinex):
             'ask': self.safe_float(message, 3),
             'askVolume': None,
             'vwap': None,
-            'open': open,
-            'close': last,
-            'last': last,
+            'open': self.parse_number(open),
+            'close': self.parse_number(last),
+            'last': self.parse_number(last),
             'previousClose': None,
-            'change': change,
+            'change': self.parse_number(change),
             'percentage': self.safe_float(message, 6),
             'average': None,
             'baseVolume': self.safe_float(message, 8),
@@ -223,6 +239,13 @@ class bitfinex(Exchange, ccxt.async_support.bitfinex):
         client.resolve(result, messageHash)
 
     async def watch_order_book(self, symbol, limit=None, params={}):
+        """
+        watches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
+        :param str symbol: unified symbol of the market to fetch the order book for
+        :param int|None limit: the maximum amount of order book entries to return
+        :param dict params: extra parameters specific to the bitfinex api endpoint
+        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/en/latest/manual.html#order-book-structure>` indexed by market symbols
+        """
         if limit is not None:
             if (limit != 25) and (limit != 100):
                 raise ExchangeError(self.id + ' watchOrderBook limit argument must be None, 25 or 100')
@@ -238,7 +261,7 @@ class bitfinex(Exchange, ccxt.async_support.bitfinex):
             'len': limit,  # string, number of price points, '25', '100', default = '25'
         }
         orderbook = await self.subscribe('book', symbol, self.deep_extend(request, params))
-        return orderbook.limit(limit)
+        return orderbook.limit()
 
     def handle_order_book(self, client, message, subscription):
         #
@@ -404,8 +427,18 @@ class bitfinex(Exchange, ccxt.async_support.bitfinex):
         return await self.watch(url, id, None, 1)
 
     async def watch_orders(self, symbol=None, since=None, limit=None, params={}):
+        """
+        watches information on multiple orders made by the user
+        :param str|None symbol: unified market symbol of the market orders were made in
+        :param int|None since: the earliest time in ms to fetch orders for
+        :param int|None limit: the maximum number of  orde structures to retrieve
+        :param dict params: extra parameters specific to the bitfinex api endpoint
+        :returns [dict]: a list of `order structures <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
+        """
         await self.load_markets()
         await self.authenticate()
+        if symbol is not None:
+            symbol = self.symbol(symbol)
         url = self.urls['api']['ws']['private']
         orders = await self.watch(url, 'os', None, 1)
         if self.newUpdates:
@@ -492,12 +525,12 @@ class bitfinex(Exchange, ccxt.async_support.bitfinex):
         id = self.safe_string(order, 0)
         marketId = self.safe_string(order, 1)
         symbol = self.safe_symbol(marketId)
-        amount = self.safe_float(order, 2)
-        remaining = self.safe_float(order, 3)
+        amount = self.safe_string(order, 2)
+        remaining = self.safe_string(order, 3)
         side = 'buy'
-        if amount < 0:
-            amount = abs(amount)
-            remaining = abs(remaining)
+        if Precise.string_lt(amount, '0'):
+            amount = Precise.string_abs(amount)
+            remaining = Precise.string_abs(remaining)
             side = 'sell'
         type = self.safe_string(order, 4)
         if type.find('LIMIT') > -1:
@@ -505,10 +538,10 @@ class bitfinex(Exchange, ccxt.async_support.bitfinex):
         elif type.find('MARKET') > -1:
             type = 'market'
         status = self.parse_ws_order_status(self.safe_string(order, 5))
-        price = self.safe_float(order, 6)
+        price = self.safe_string(order, 6)
         rawDatetime = self.safe_string(order, 8)
         timestamp = self.parse8601(rawDatetime)
-        parsed = {
+        parsed = self.safe_order({
             'info': order,
             'id': id,
             'clientOrderId': None,
@@ -520,15 +553,16 @@ class bitfinex(Exchange, ccxt.async_support.bitfinex):
             'side': side,
             'price': price,
             'stopPrice': None,
+            'triggerPrice': None,
             'average': None,
             'amount': amount,
             'remaining': remaining,
-            'filled': amount - remaining,
+            'filled': None,
             'status': status,
             'fee': None,
             'cost': None,
             'trades': None,
-        }
+        })
         if self.orders is None:
             limit = self.safe_integer(self.options, 'ordersLimit', 1000)
             self.orders = ArrayCacheBySymbolById(limit)
