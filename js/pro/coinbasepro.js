@@ -24,6 +24,9 @@ module.exports = class coinbasepro extends coinbaseproRest {
                 'watchMyTrades': true,
             },
             'urls': {
+                'test': {
+                    'ws': 'wss://ws-feed-public.sandbox.exchange.coinbase.com',
+                },
                 'api': {
                     'ws': 'wss://ws-feed.pro.coinbase.com',
                 },
