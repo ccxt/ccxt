@@ -75,7 +75,7 @@ class coinbase extends Exchange {
                 'fetchMyBuys' => true,
                 'fetchMySells' => true,
                 'fetchMyTrades' => null,
-                'fetchOHLCV' => false,
+                'fetchOHLCV' => true,
                 'fetchOpenInterestHistory' => false,
                 'fetchOpenOrders' => null,
                 'fetchOrder' => null,
@@ -260,6 +260,16 @@ class coinbase extends Exchange {
                 'broad' => array(
                     'request timestamp expired' => '\\ccxt\\InvalidNonce', // array("errors":[array("id":"authentication_error","message":"request timestamp expired")])
                 ),
+            ),
+            'timeframes' => array(
+                '1m' => 'ONE_MINUTE',
+                '5m' => 'FIVE_MINUTE',
+                '15m' => 'FIFTEEN_MINUTE',
+                '30m' => 'THIRTY_MINUTE',
+                '1h' => 'ONE_HOUR',
+                '2h' => 'TWO_HOUR',
+                '6h' => 'SIX_HOUR',
+                '1d' => 'ONE_DAY',
             ),
             'commonCurrencies' => array(
                 'CGLD' => 'CELO',
@@ -2082,6 +2092,76 @@ class coinbase extends Exchange {
             }
             return $this->parse_orders($orders, $market);
         }) ();
+    }
+
+    public function fetch_ohlcv($symbol, $timeframe = '1m', $since = null, $limit = null, $params = array ()) {
+        return Async\async(function () use ($symbol, $timeframe, $since, $limit, $params) {
+            /**
+             * fetches historical candlestick data containing the open, high, low, and close price, and the volume of a $market
+             * @see https://docs.cloud.coinbase.com/advanced-trade-api/reference/retailbrokerageapi_getcandles
+             * @param {string} $symbol unified $symbol of the $market to fetch OHLCV data for
+             * @param {string} $timeframe the length of time each candle represents
+             * @param {int|null} $since timestamp in ms of the earliest candle to fetch
+             * @param {int|null} $limit the maximum amount of $candles to fetch, not used by coinbase
+             * @param {array} $params extra parameters specific to the coinbase api endpoint
+             * @return {[[int]]} A list of $candles ordered as timestamp, open, high, low, close, volume
+             */
+            Async\await($this->load_markets());
+            $market = $this->market($symbol);
+            $end = (string) $this->seconds();
+            $request = array(
+                'product_id' => $market['id'],
+                'granularity' => $this->safe_string($this->timeframes, $timeframe, $timeframe),
+                'end' => $end,
+            );
+            if ($since !== null) {
+                $since = (string) $since;
+                $timeframeToSeconds = Precise::string_div($since, '1000');
+                $request['start'] = $this->decimal_to_precision($timeframeToSeconds, TRUNCATE, 0, DECIMAL_PLACES);
+            } else {
+                $request['start'] = Precise::string_sub($end, '18000'); // default to 5h in seconds, max 300 $candles
+            }
+            $response = Async\await($this->v3PrivateGetBrokerageProductsProductIdCandles (array_merge($request, $params)));
+            //
+            //     {
+            //         "candles" => array(
+            //             array(
+            //                 "start" => "1673391780",
+            //                 "low" => "17414.36",
+            //                 "high" => "17417.99",
+            //                 "open" => "17417.74",
+            //                 "close" => "17417.38",
+            //                 "volume" => "1.87780853"
+            //             ),
+            //         )
+            //     }
+            //
+            $candles = $this->safe_value($response, 'candles', array());
+            return $this->parse_ohlcvs($candles, $market, $timeframe, $since, $limit);
+        }) ();
+    }
+
+    public function parse_ohlcv($ohlcv, $market = null) {
+        //
+        //     array(
+        //         array(
+        //             "start" => "1673391780",
+        //             "low" => "17414.36",
+        //             "high" => "17417.99",
+        //             "open" => "17417.74",
+        //             "close" => "17417.38",
+        //             "volume" => "1.87780853"
+        //         ),
+        //     )
+        //
+        return array(
+            $this->safe_timestamp($ohlcv, 'start'),
+            $this->safe_number($ohlcv, 'open'),
+            $this->safe_number($ohlcv, 'high'),
+            $this->safe_number($ohlcv, 'low'),
+            $this->safe_number($ohlcv, 'close'),
+            $this->safe_number($ohlcv, 'volume'),
+        );
     }
 
     public function sign($path, $api = [], $method = 'GET', $params = array (), $headers = null, $body = null) {
