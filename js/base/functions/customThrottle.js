@@ -81,7 +81,7 @@ class Throttle {
 }
 
 function customThrottle(config, path = undefined, customExpireInterval = undefined, customPriority = undefined) {
-    function inner(cost = undefined, path = undefined, customThrottleConfig) {
+    function inner(cost = undefined, path = undefined, customExpireInterval = undefined, customPriority = undefined) {
         let resolver;
         let rejecter;
         const promise = new Promise((resolve, reject) => {
@@ -103,8 +103,10 @@ function customThrottle(config, path = undefined, customExpireInterval = undefin
         }
 
         let expireInterval;
+        console.log('customExpireInterval', customExpireInterval)
         if (customExpireInterval !== undefined) {
             expireInterval = customExpireInterval;
+            console.log('customExpireInterval', customExpireInterval)
         } else if (path !== undefined) {
             expireInterval = this.config['expireIntervals'][path];
         }
