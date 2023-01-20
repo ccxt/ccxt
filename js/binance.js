@@ -3217,6 +3217,7 @@ module.exports = class binance extends Exchange {
             'PENDING_CANCEL': 'canceling', // currently unused
             'REJECTED': 'rejected',
             'EXPIRED': 'expired',
+            'EXPIRED_IN_MATCH': 'expired',
         };
         return this.safeString (statuses, status, status);
     }
