@@ -13,7 +13,7 @@ module.exports = class litebit extends Exchange {
     describe () {
         return this.deepExtend (super.describe (), {
             'id': 'litebit',
-            'name': 'LiteBit Exchange',
+            'name': 'LiteBit',
             'countries': [ 'NL' ], // Netherlands
             'rateLimit': 60, // 1000 requests per minute
             'version': 'v1',
