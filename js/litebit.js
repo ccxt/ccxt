@@ -153,9 +153,6 @@ module.exports = class litebit extends Exchange {
             },
             'options': {
                 'LITEBIT-WINDOW': 10000, // default 10 sec
-                'fetchCurrencies': {
-                    'expires': 1000, // 1 second
-                },
             },
             'precisionMode': TICK_SIZE,
         });
