@@ -3,7 +3,7 @@
 //  ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
-const { ArgumentsRequired, BadRequest, AuthenticationError, InsufficientFunds } = require ('./base/errors');
+const { ArgumentsRequired, BadRequest, AuthenticationError, InsufficientFunds, InvalidOrder } = require ('./base/errors');
 const { TICK_SIZE } = require ('./base/functions/number');
 const Precise = require ('./base/Precise');
 
@@ -145,9 +145,11 @@ module.exports = class ace extends Exchange {
             'exceptions': {
                 'exact': {
                     '2021': InsufficientFunds,
+                    '2039': InvalidOrder,
                     '2061': BadRequest,
                     '9996': BadRequest,
                     '20182': AuthenticationError,
+                    '20183': InvalidOrder,
                     '10012': AuthenticationError,
                 },
                 'broad': {
@@ -195,9 +197,9 @@ module.exports = class ace extends Exchange {
                 'uppercaseId': undefined,
                 'symbol': symbol,
                 'base': baseCode,
-                'baseId': this.safeNumber (market, 'baseCurrencyId'),
+                'baseId': this.safeInteger (market, 'baseCurrencyId'),
                 'quote': quoteCode,
-                'quoteId': this.safeNumber (market, 'quoteCurrencyId'),
+                'quoteId': this.safeInteger (market, 'quoteCurrencyId'),
                 'settle': undefined,
                 'settleId': undefined,
                 'type': 'spot',
@@ -355,6 +357,9 @@ module.exports = class ace extends Exchange {
             'quoteCurrencyId': market['quoteId'],
             'baseCurrencyId': market['baseId'],
         };
+        if (limit !== undefined) {
+            request['depth'] = limit;
+        }
         const response = await this.publicGetOpenV2PublicGetOrderBook (this.extend (request, params));
         //
         //     {
@@ -518,6 +523,7 @@ module.exports = class ace extends Exchange {
         let status = undefined;
         let filled = undefined;
         let remaining = undefined;
+        let average = undefined;
         if (typeof order === 'string') {
             id = order;
         } else {
@@ -538,6 +544,7 @@ module.exports = class ace extends Exchange {
             filled = this.safeString (order, 'tradeNum');
             remaining = this.safeString (order, 'remainNum');
             status = this.parseOrderStatus (this.safeString (order, 'status'));
+            average = this.safeString (order, 'averagePrice');
         }
         return this.safeOrder ({
             'id': id,
@@ -554,7 +561,7 @@ module.exports = class ace extends Exchange {
             'stopPrice': undefined,
             'amount': amount,
             'cost': undefined,
-            'average': undefined,
+            'average': average,
             'filled': filled,
             'remaining': remaining,
             'status': status,
@@ -588,8 +595,10 @@ module.exports = class ace extends Exchange {
             'type': (orderType === 'LIMIT') ? 1 : 2,
             'buyOrSell': (orderSide === 'BUY') ? 1 : 2,
             'num': this.amountToPrecision (symbol, amount),
-            'price': this.priceToPrecision (symbol, price),
         };
+        if (type === 'limit') {
+            request['price'] = this.priceToPrecision (symbol, price);
+        }
         const response = await this.privatePostV2OrderOrder (this.extend (request, params), params);
         //
         //     {
@@ -1003,9 +1012,10 @@ module.exports = class ace extends Exchange {
             const dataKeys = Object.keys (data);
             const sortedDataKeys = this.sortBy (dataKeys, 0);
             for (let i = 0; i < sortedDataKeys.length; i++) {
-                auth += data[sortedDataKeys[i]];
+                const key = sortedDataKeys[i];
+                auth += this.safeString (data, key);
             }
-            const signature = this.hash (auth, 'sha256', 'hex');
+            const signature = this.hash (this.encode (auth), 'sha256', 'hex');
             data['signKey'] = signature;
             headers = {
                 'Content-Type': 'application/x-www-form-urlencoded',
