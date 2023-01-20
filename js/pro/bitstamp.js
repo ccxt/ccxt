@@ -30,7 +30,7 @@ module.exports = class bitstamp extends bitstampRest {
                 'userId': '',
                 'wsSessionToken': '',
                 'watchOrderBook': {
-                    'type': 'order_book', // detail_order_book, diff_order_book
+                    'snapshotDelay': 6,
                 },
                 'tradesLimit': 1000,
                 'OHLCVLimit': 1000,
@@ -107,7 +107,8 @@ module.exports = class bitstamp extends bitstampRest {
             const cacheLength = storedOrderBook.cache.length;
             // the rest API is very delayed
             // usually it takes at least 4-5 deltas to resolve
-            if (cacheLength === 6) {
+            const snapshotDelay = this.handleOption ('watchOrderBook', 'snapshotDelay', 6);
+            if (cacheLength === snapshotDelay) {
                 this.spawn (this.loadOrderBook, client, messageHash, symbol);
             }
             storedOrderBook.cache.push (delta);
@@ -116,14 +117,14 @@ module.exports = class bitstamp extends bitstampRest {
             return;
         }
         this.handleDelta (storedOrderBook, delta);
-        const timestamp = this.safeTimestamp (delta, 'timestamp');
-        storedOrderBook['timestamp'] = timestamp;
-        storedOrderBook['datetime'] = this.iso8601 (timestamp);
-        storedOrderBook['nonce'] = this.safeInteger (delta, 'microtimestamp');
         client.resolve (storedOrderBook, messageHash);
     }
 
     handleDelta (orderbook, delta) {
+        const timestamp = this.safeTimestamp (delta, 'timestamp');
+        orderbook['timestamp'] = timestamp;
+        orderbook['datetime'] = this.iso8601 (timestamp);
+        orderbook['nonce'] = this.safeInteger (delta, 'microtimestamp');
         const bids = this.safeValue (delta, 'bids', []);
         const asks = this.safeValue (delta, 'asks', []);
         const storedBids = orderbook['bids'];

@@ -2,7 +2,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '2.5.36'
+__version__ = '2.6.47'
 
 # -----------------------------------------------------------------------------
 
@@ -444,7 +444,7 @@ class Exchange(BaseExchange):
 
     def safe_order(self, order, market=None):
         # parses numbers as strings
-        # it is important pass the trades as unparsed rawTrades
+        # * it is important pass the trades as unparsed rawTrades
         amount = self.omit_zero(self.safe_string(order, 'amount'))
         remaining = self.safe_string(order, 'remaining')
         filled = self.safe_string(order, 'filled')
@@ -607,8 +607,20 @@ class Exchange(BaseExchange):
         elif postOnly is None:
             # timeInForce is not None here
             postOnly = timeInForce == 'PO'
+        timestamp = self.safe_integer(order, 'timestamp')
+        datetime = self.safe_string(order, 'datetime')
+        if timestamp is None:
+            timestamp = self.parse8601(timestamp)
+        if datetime is None:
+            datetime = self.iso8601(timestamp)
+        triggerPrice = self.parse_number(self.safe_string_2(order, 'triggerPrice', 'stopPrice'))
         return self.extend(order, {
+            'id': self.safe_string(order, 'id'),
+            'clientOrderId': self.safe_string(order, 'clientOrderId'),
+            'timestamp': datetime,
+            'datetime': timestamp,
             'symbol': symbol,
+            'type': self.safe_string(order, 'type'),
             'side': side,
             'lastTradeTimestamp': lastTradeTimeTimestamp,
             'price': self.parse_number(price),
@@ -620,6 +632,11 @@ class Exchange(BaseExchange):
             'timeInForce': timeInForce,
             'postOnly': postOnly,
             'trades': trades,
+            'reduceOnly': self.safe_value(order, 'reduceOnly'),
+            'stopPrice': triggerPrice,  # ! deprecated, use triggerPrice instead
+            'triggerPrice': triggerPrice,
+            'status': self.safe_string(order, 'status'),
+            'fee': self.safe_value(order, 'fee'),
         })
 
     def parse_orders(self, orders, market=None, since=None, limit=None, params={}):
@@ -1420,8 +1437,8 @@ class Exchange(BaseExchange):
         if marketId is not None:
             if (self.markets_by_id is not None) and (marketId in self.markets_by_id):
                 markets = self.markets_by_id[marketId]
-                length = len(markets)
-                if length == 1:
+                numMarkets = len(markets)
+                if numMarkets == 1:
                     return markets[0]
                 else:
                     if marketType is None:
@@ -1533,7 +1550,7 @@ class Exchange(BaseExchange):
         # This method can be used to obtain method specific properties, i.e: self.handleOptionAndParams(params, 'fetchPosition', 'marginMode', 'isolated')
         defaultOptionName = 'default' + self.capitalize(optionName)  # we also need to check the 'defaultXyzWhatever'
         # check if params contain the key
-        value = self.safe_string_2(params, optionName, defaultOptionName)
+        value = self.safe_value_2(params, optionName, defaultOptionName)
         if value is not None:
             params = self.omit(params, [optionName, defaultOptionName])
         else:
@@ -1541,13 +1558,18 @@ class Exchange(BaseExchange):
             exchangeWideMethodOptions = self.safe_value(self.options, methodName)
             if exchangeWideMethodOptions is not None:
                 # check if the option is defined in self method's props
-                value = self.safe_string_2(exchangeWideMethodOptions, optionName, defaultOptionName)
+                value = self.safe_value_2(exchangeWideMethodOptions, optionName, defaultOptionName)
             if value is None:
                 # if it's still None, check if global exchange-wide option exists
-                value = self.safe_string_2(self.options, optionName, defaultOptionName)
+                value = self.safe_value_2(self.options, optionName, defaultOptionName)
             # if it's still None, use the default value
             value = value if (value is not None) else defaultValue
         return [value, params]
+
+    def handle_option(self, methodName, optionName, defaultValue=None):
+        # eslint-disable-next-line no-unused-vars
+        result, empty = self.handleOptionAndParams({}, methodName, optionName, defaultValue)
+        return result
 
     def handle_market_type_and_params(self, methodName, market=None, params={}):
         defaultType = self.safe_string_2(self.options, 'defaultType', 'type', 'spot')

@@ -9,7 +9,8 @@ const BaseExchange = require ("../../base/Exchange")
         CountedOrderBook,
     } = require ('./OrderBook')
     , functions = require ('./functions')
-    ,  { ExchangeError, NotSupported } = require ('../../base/errors');
+    ,  { ExchangeError, NotSupported } = require ('../../base/errors')
+    , Future = require ('./Future');
 
 module.exports = class Exchange extends BaseExchange {
     constructor (options = {}) {
@@ -66,9 +67,9 @@ module.exports = class Exchange extends BaseExchange {
     }
 
     spawn (method, ... args) {
-        (method.apply (this, args)).catch ((e) => {
-            // todo: handle spawned errors
-        })
+        const future = Future ()
+        method.apply (this, args).then (future.resolve).catch (future.reject)
+        return future
     }
 
     delay (timeout, method, ... args) {
@@ -188,22 +189,28 @@ module.exports = class Exchange extends BaseExchange {
             client.reject (new ExchangeError (this.id + ' loadOrderBook() orderbook is not initiated'), messageHash);
             return;
         }
-        const stored = this.orderbooks[symbol];
+        const maxRetries = this.handleOption ('watchOrderBook', 'maxRetries', 3);
+        let tries = 0;
         try {
-            const orderBook = await this.fetchOrderBook (symbol, limit, params);
-            const cache = stored.cache;
-            const index = this.getCacheIndex (orderBook, cache);
-            if (index >= 0) {
-                stored.reset (orderBook);
-                this.handleDeltas (stored, cache.slice (index));
-                cache.length = 0;
-                client.resolve (stored, messageHash);
-            } else {
-                client.reject (new ExchangeError (this.id + ' nonce is behind the cache'));
+            const stored = this.orderbooks[symbol];
+            while (tries < maxRetries) {
+                const cache = stored.cache;
+                const orderBook = await this.fetchOrderBook (symbol, limit, params);
+                const index = this.getCacheIndex (orderBook, cache);
+                if (index >= 0) {
+                    stored.reset (orderBook);
+                    this.handleDeltas (stored, cache.slice (index));
+                    stored.cache.length = 0;
+                    client.resolve (stored, messageHash);
+                    return;
+                }
+                tries++;
             }
+            client.reject (new ExchangeError (this.id + ' nonce is behind the cache after ' + maxRetries.toString () + ' tries.'), messageHash);
+            delete this.clients[client.url];
         } catch (e) {
-            delete this.orderbooks[symbol];
             client.reject (e, messageHash);
+            await this.loadOrderBook (client, messageHash, symbol, limit, params);
         }
     }
 

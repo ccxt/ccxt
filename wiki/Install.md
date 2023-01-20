@@ -40,13 +40,13 @@ console.log (ccxt.exchanges) // print all available exchanges
 
 All-in-one browser bundle (dependencies included), served from a CDN of your choice:
 
-* jsDelivr: https://cdn.jsdelivr.net/npm/ccxt@2.5.36/dist/ccxt.browser.js
-* unpkg: https://unpkg.com/ccxt@2.5.36/dist/ccxt.browser.js
+* jsDelivr: https://cdn.jsdelivr.net/npm/ccxt@2.6.47/dist/ccxt.browser.js
+* unpkg: https://unpkg.com/ccxt@2.6.47/dist/ccxt.browser.js
 
 You can obtain a live-updated version of the bundle by removing the version number from the URL (the `@a.b.c` thing) — however, we do not recommend to do that, as it may break your app eventually. Also, please keep in mind that we are not responsible for the correct operation of those CDN servers.
 
 ```HTML
-<script type="text/javascript" src="https://cdn.jsdelivr.net/npm/ccxt@2.5.36/dist/ccxt.browser.js"></script>
+<script type="text/javascript" src="https://cdn.jsdelivr.net/npm/ccxt@2.6.47/dist/ccxt.browser.js"></script>
 ```
 
 Creates a global `ccxt` object:
@@ -175,7 +175,14 @@ const kraken = new ccxt.kraken ({ agent })
 
 The python version of the library uses the [python-requests](python-requests.org) package for underlying HTTP and supports all means of customization available in the `requests` package, including proxies.
 
-You can configure proxies by setting the environment variables HTTP_PROXY and HTTPS_PROXY.
+You can configure proxies by setting `trust_env` to `True`(default to `False`) and setting the environment variables HTTP_PROXY and HTTPS_PROXY.
+
+```python
+import ccxt
+exchange = ccxt.binance({
+    'trust_env': True
+})
+```
 
 ```shell
 $ export HTTP_PROXY="http://10.10.1.10:3128"

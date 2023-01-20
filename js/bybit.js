@@ -1873,7 +1873,12 @@ module.exports = class bybit extends Exchange {
          * @returns {object} an array of [ticker structures]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
          */
         await this.loadMarkets ();
-        const [ type, query ] = this.handleMarketTypeAndParams ('fetchTickers', undefined, params);
+        let market = undefined;
+        if (symbols !== undefined) {
+            symbols = this.marketSymbols (symbols);
+            market = this.market (symbols[0]);
+        }
+        const [ type, query ] = this.handleMarketTypeAndParams ('fetchTickers', market, params);
         if (type === 'spot') {
             return await this.fetchSpotTickers (symbols, query);
         } else {
@@ -2075,6 +2080,60 @@ module.exports = class bybit extends Exchange {
         }
     }
 
+    parseFundingRate (ticker, market = undefined) {
+        //     {
+        //         "symbol": "BTCUSDT",
+        //         "bidPrice": "19255",
+        //         "askPrice": "19255.5",
+        //         "lastPrice": "19255.50",
+        //         "lastTickDirection": "ZeroPlusTick",
+        //         "prevPrice24h": "18634.50",
+        //         "price24hPcnt": "0.033325",
+        //         "highPrice24h": "19675.00",
+        //         "lowPrice24h": "18610.00",
+        //         "prevPrice1h": "19278.00",
+        //         "markPrice": "19255.00",
+        //         "indexPrice": "19260.68",
+        //         "openInterest": "48069.549",
+        //         "turnover24h": "4686694853.047006",
+        //         "volume24h": "243730.252",
+        //         "fundingRate": "0.0001",
+        //         "nextFundingTime": "1663689600000",
+        //         "predictedDeliveryPrice": "",
+        //         "basisRate": "",
+        //         "deliveryFeeRate": "",
+        //         "deliveryTime": "0"
+        //     }
+        //
+        const timestamp = this.safeInteger (ticker, 'timestamp'); // added artificially to avoid changing the signature
+        ticker = this.omit (ticker, 'timestamp');
+        const marketId = this.safeString (ticker, 'symbol');
+        const symbol = this.safeSymbol (marketId, market, undefined, 'swap');
+        const fundingRate = this.safeNumber (ticker, 'fundingRate');
+        const fundingTimestamp = this.safeInteger (ticker, 'nextFundingTime');
+        const markPrice = this.safeNumber (ticker, 'markPrice');
+        const indexPrice = this.safeNumber (ticker, 'indexPrice');
+        return {
+            'info': ticker,
+            'symbol': symbol,
+            'markPrice': markPrice,
+            'indexPrice': indexPrice,
+            'interestRate': undefined,
+            'estimatedSettlePrice': undefined,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'fundingRate': fundingRate,
+            'fundingTimestamp': fundingTimestamp,
+            'fundingDatetime': this.iso8601 (fundingTimestamp),
+            'nextFundingRate': undefined,
+            'nextFundingTimestamp': undefined,
+            'nextFundingDatetime': undefined,
+            'previousFundingRate': undefined,
+            'previousFundingTimestamp': undefined,
+            'previousFundingDatetime': undefined,
+        };
+    }
+
     async fetchFundingRate (symbol, params = {}) {
         /**
          * @method
@@ -2086,82 +2145,89 @@ module.exports = class bybit extends Exchange {
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const request = {
-            'symbol': market['id'],
-        };
-        const isUsdcSettled = market['settle'] === 'USDC';
-        let method = undefined;
-        if (isUsdcSettled) {
-            method = 'privatePostPerpetualUsdcOpenapiPrivateV1PredictedFunding';
-        } else {
-            method = market['linear'] ? 'privateGetPrivateLinearFundingPredictedFunding' : 'privateGetV2PrivateFundingPredictedFunding';
+        params['symbol'] = market['id'];
+        const symbols = [ market['symbol'] ];
+        const fr = await this.fetchFundingRates (symbols, params);
+        return this.safeValue (fr, market['symbol']);
+    }
+
+    async fetchFundingRates (symbols = undefined, params = {}) {
+        /**
+         * @method
+         * @name bybit#fetchFundingRates
+         * @description fetches funding rates for multiple markets
+         * @param {[string]|undefined} symbols unified symbols of the markets to fetch the funding rates for, all market funding rates are returned if not assigned
+         * @param {object} params extra parameters specific to the bybit api endpoint
+         * @returns {object} an array of [funding rate structures]{@link https://docs.ccxt.com/en/latest/manual.html#funding-rate-structure}
+         */
+        await this.loadMarkets ();
+        symbols = this.marketSymbols (symbols);
+        const firstSymbol = this.safeString (symbols, 0);
+        let type = 'swap';
+        let market = undefined;
+        if (firstSymbol !== undefined) {
+            market = this.market (firstSymbol);
+            type = market['type'];
         }
-        const response = await this[method] (this.extend (request, params));
+        const request = {};
+        let subType = undefined;
+        [ subType, params ] = this.handleSubTypeAndParams ('fetchFundingRates', market, params, 'linear');
+        if (type !== 'swap') {
+            throw new NotSupported (this.id + ' fetchFundingRates() does not support ' + type + ' markets');
+        } else {
+            request['category'] = subType;
+        }
+        const response = await this.publicGetDerivativesV3PublicTickers (this.extend (request, params));
         //
-        // linear
         //     {
-        //       "ret_code": 0,
-        //       "ret_msg": "OK",
-        //       "ext_code": "",
-        //       "ext_info": "",
-        //       "result": {
-        //         "predicted_funding_rate": 0.0001,
-        //         "predicted_funding_fee": 0.00231849
-        //       },
-        //       "time_now": "1658446366.304113",
-        //       "rate_limit_status": 119,
-        //       "rate_limit_reset_ms": 1658446366300,
-        //       "rate_limit": 120
+        //         "retCode": 0,
+        //         "retMsg": "OK",
+        //         "result": {
+        //             "category": "linear",
+        //             "list": [
+        //                 {
+        //                     "symbol": "BTCUSDT",
+        //                     "bidPrice": "19255",
+        //                     "askPrice": "19255.5",
+        //                     "lastPrice": "19255.50",
+        //                     "lastTickDirection": "ZeroPlusTick",
+        //                     "prevPrice24h": "18634.50",
+        //                     "price24hPcnt": "0.033325",
+        //                     "highPrice24h": "19675.00",
+        //                     "lowPrice24h": "18610.00",
+        //                     "prevPrice1h": "19278.00",
+        //                     "markPrice": "19255.00",
+        //                     "indexPrice": "19260.68",
+        //                     "openInterest": "48069.549",
+        //                     "turnover24h": "4686694853.047006",
+        //                     "volume24h": "243730.252",
+        //                     "fundingRate": "0.0001",
+        //                     "nextFundingTime": "1663689600000",
+        //                     "predictedDeliveryPrice": "",
+        //                     "basisRate": "",
+        //                     "deliveryFeeRate": "",
+        //                     "deliveryTime": "0"
+        //                 }
+        //             ]
+        //         },
+        //         "retExtInfo": null,
+        //         "time": 1663670053454
         //     }
         //
-        // inverse
-        //     {
-        //       "ret_code": 0,
-        //       "ret_msg": "OK",
-        //       "ext_code": "",
-        //       "ext_info": "",
-        //       "result": {
-        //         "predicted_funding_rate": -0.00001769,
-        //         "predicted_funding_fee": 0
-        //       },
-        //       "time_now": "1658445512.778048",
-        //       "rate_limit_status": 119,
-        //       "rate_limit_reset_ms": 1658445512773,
-        //       "rate_limit": 120
-        //     }
-        //
-        // usdc
-        //     {
-        //       "result": {
-        //         "predictedFundingRate": "0.0002213",
-        //         "predictedFundingFee": "0"
-        //       },
-        //       "retCode": 0,
-        //       "retMsg": "success"
-        //     }
-        //
-        const result = this.safeValue (response, 'result', {});
-        const fundingRate = this.safeNumber2 (result, 'predicted_funding_rate', 'predictedFundingRate');
-        const timestamp = this.safeTimestamp (response, 'time_now');
-        return {
-            'info': response,
-            'symbol': symbol,
-            'markPrice': undefined,
-            'indexPrice': undefined,
-            'interestRate': undefined,
-            'estimatedSettlePrice': undefined,
-            'timestamp': timestamp,
-            'datetime': this.iso8601 (timestamp),
-            'fundingRate': fundingRate,
-            'fundingTimestamp': undefined,
-            'fundingDatetime': undefined,
-            'nextFundingRate': undefined,
-            'nextFundingTimestamp': undefined,
-            'nextFundingDatetime': undefined,
-            'previousFundingRate': undefined,
-            'previousFundingTimestamp': undefined,
-            'previousFundingDatetime': undefined,
-        };
+        let tickerList = this.safeValue (response, 'result', []);
+        const timestamp = this.safeInteger (response, 'time');
+        if (!Array.isArray (tickerList)) {
+            tickerList = this.safeValue (tickerList, 'list');
+        }
+        const fundingRates = {};
+        for (let i = 0; i < tickerList.length; i++) {
+            const rawTicker = tickerList[i];
+            rawTicker['timestamp'] = timestamp; // will be removed inside the parser
+            const ticker = this.parseFundingRate (tickerList[i], undefined);
+            const symbol = ticker['symbol'];
+            fundingRates[symbol] = ticker;
+        }
+        return this.filterByArray (fundingRates, 'symbol', symbols);
     }
 
     async fetchFundingRateHistory (symbol = undefined, since = undefined, limit = undefined, params = {}) {
@@ -2329,7 +2395,7 @@ module.exports = class bybit extends Exchange {
             };
         }
         return this.safeTrade ({
-            'id': this.safeString (trade, 'id'),
+            'id': this.safeString (trade, 'tradeId'),
             'info': trade,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
@@ -2464,8 +2530,8 @@ module.exports = class bybit extends Exchange {
         const marketId = this.safeString (trade, 'symbol');
         market = this.safeMarket (marketId, market, undefined, 'contract');
         const symbol = market['symbol'];
-        const amountString = this.safeStringN (trade, [ 'orderQty', 'size', 'execQty' ]);
-        const priceString = this.safeStringN (trade, [ 'orderPrice', 'price', 'execPrice' ]);
+        const amountString = this.safeStringN (trade, [ 'execQty', 'orderQty', 'size' ]);
+        const priceString = this.safeStringN (trade, [ 'execPrice', 'orderPrice', 'price' ]);
         const costString = this.safeString (trade, 'execValue');
         const timestamp = this.safeIntegerN (trade, [ 'time', 'execTime', 'tradeTime' ]);
         let side = this.safeStringLower (trade, 'side');
@@ -6277,7 +6343,15 @@ module.exports = class bybit extends Exchange {
         market = this.safeMarket (contract, market, undefined, 'contract');
         const size = Precise.stringAbs (this.safeString (position, 'size'));
         let side = this.safeString (position, 'side');
-        side = (side === 'Buy') ? 'long' : 'short';
+        if (side !== undefined) {
+            if (side === 'Buy') {
+                side = 'long';
+            } else if (side === 'Sell') {
+                side = 'short';
+            } else {
+                side = undefined;
+            }
+        }
         const notional = this.safeString (position, 'positionValue');
         const unrealisedPnl = this.omitZero (this.safeString (position, 'unrealisedPnl'));
         let initialMarginString = this.safeString (position, 'positionIM');
@@ -6287,8 +6361,8 @@ module.exports = class bybit extends Exchange {
             timestamp = this.safeInteger (position, 'updatedAt');
         }
         // default to cross of USDC margined positions
-        const autoAddMargin = this.safeInteger (position, 'autoAddMargin', 1);
-        const marginMode = autoAddMargin ? 'cross' : 'isolated';
+        const tradeMode = this.safeInteger (position, 'tradeMode', 0);
+        const marginMode = tradeMode ? 'isolated' : 'cross';
         let collateralString = this.safeString (position, 'positionBalance');
         const entryPrice = this.omitZero (this.safeString (position, 'entryPrice'));
         const liquidationPrice = this.omitZero (this.safeString (position, 'liqPrice'));
@@ -6446,7 +6520,7 @@ module.exports = class bybit extends Exchange {
                 'symbol': market['id'],
                 'leverage': leverage,
             };
-            method = 'privatePostOptionUsdcOpenapiPrivateV1PositionSetLeverage';
+            method = 'privatePostPerpetualUsdcOpenapiPrivateV1PositionLeverageSave';
         }
         return await this[method] (this.extend (request, params));
     }

@@ -68,6 +68,8 @@ class huobi extends Exchange {
                 'fetchDepositAddresses' => null,
                 'fetchDepositAddressesByNetwork' => true,
                 'fetchDeposits' => true,
+                'fetchDepositWithdrawFee' => 'emulated',
+                'fetchDepositWithdrawFees' => true,
                 'fetchFundingHistory' => true,
                 'fetchFundingRate' => true,
                 'fetchFundingRateHistory' => true,
@@ -876,6 +878,7 @@ class huobi extends Exchange {
                     'order-marketorder-amount-min-error' => '\\ccxt\\InvalidOrder', // market order amount error, min => `0.01`
                     'order-limitorder-price-min-error' => '\\ccxt\\InvalidOrder', // limit order price error
                     'order-limitorder-price-max-error' => '\\ccxt\\InvalidOrder', // limit order price error
+                    'order-stop-order-hit-trigger' => '\\ccxt\\InvalidOrder', // array("status":"error","err-code":"order-stop-order-hit-trigger","err-msg":"Orders that are triggered immediately are not supported.","data":null)
                     'order-value-min-error' => '\\ccxt\\InvalidOrder', // array("status":"error","err-code":"order-value-min-error","err-msg":"Order total cannot be lower than => 1 USDT","data":null)
                     'order-invalid-price' => '\\ccxt\\InvalidOrder', // array("status":"error","err-code":"order-invalid-price","err-msg":"invalid price","data":null)
                     'order-holding-limit-failed' => '\\ccxt\\InvalidOrder', // array("status":"error","err-code":"order-holding-limit-failed","err-msg":"Order failed, exceeded the holding limit of this currency","data":null)
@@ -7241,6 +7244,124 @@ class huobi extends Exchange {
             $settlements = $this->parse_settlements($settlementRecord, $market);
             return $this->sort_by($settlements, 'timestamp');
         }) ();
+    }
+
+    public function fetch_deposit_withdraw_fees($codes = null, $params = array ()) {
+        return Async\async(function () use ($codes, $params) {
+            /**
+             * fetch deposit and withdraw fees
+             * @see https://huobiapi.github.io/docs/spot/v1/en/#get-all-supported-currencies-v2
+             * @param {[string]|null} $codes list of unified currency $codes
+             * @param {array} $params extra parameters specific to the huobi api endpoint
+             * @return {[array]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#fee-structure fees structures}
+             */
+            Async\await($this->load_markets());
+            $response = Async\await($this->spotPublicGetV2ReferenceCurrencies ($params));
+            //
+            //    {
+            //        "code" => 200,
+            //        "data" => array(
+            //            {
+            //                "currency" => "sxp",
+            //                "assetType" => "1",
+            //                "chains" => array(
+            //                    {
+            //                        "chain" => "sxp",
+            //                        "displayName" => "ERC20",
+            //                        "baseChain" => "ETH",
+            //                        "baseChainProtocol" => "ERC20",
+            //                        "isDynamic" => true,
+            //                        "numOfConfirmations" => "12",
+            //                        "numOfFastConfirmations" => "12",
+            //                        "depositStatus" => "allowed",
+            //                        "minDepositAmt" => "0.23",
+            //                        "withdrawStatus" => "allowed",
+            //                        "minWithdrawAmt" => "0.23",
+            //                        "withdrawPrecision" => "8",
+            //                        "maxWithdrawAmt" => "227000.000000000000000000",
+            //                        "withdrawQuotaPerDay" => "227000.000000000000000000",
+            //                        "withdrawQuotaPerYear" => null,
+            //                        "withdrawQuotaTotal" => null,
+            //                        "withdrawFeeType" => "fixed",
+            //                        "transactFeeWithdraw" => "11.1653",
+            //                        "addrWithTag" => false,
+            //                        "addrDepositTag" => false
+            //                    }
+            //                ),
+            //                "instStatus" => "normal"
+            //            }
+            //        )
+            //    }
+            //
+            $data = $this->safe_value($response, 'data');
+            return $this->parse_deposit_withdraw_fees($data, $codes, 'currency');
+        }) ();
+    }
+
+    public function parse_deposit_withdraw_fee($fee, $currency = null) {
+        //
+        //            {
+        //              "currency" => "sxp",
+        //              "assetType" => "1",
+        //              "chains" => array(
+        //                  {
+        //                      "chain" => "sxp",
+        //                      "displayName" => "ERC20",
+        //                      "baseChain" => "ETH",
+        //                      "baseChainProtocol" => "ERC20",
+        //                      "isDynamic" => true,
+        //                      "numOfConfirmations" => "12",
+        //                      "numOfFastConfirmations" => "12",
+        //                      "depositStatus" => "allowed",
+        //                      "minDepositAmt" => "0.23",
+        //                      "withdrawStatus" => "allowed",
+        //                      "minWithdrawAmt" => "0.23",
+        //                      "withdrawPrecision" => "8",
+        //                      "maxWithdrawAmt" => "227000.000000000000000000",
+        //                      "withdrawQuotaPerDay" => "227000.000000000000000000",
+        //                      "withdrawQuotaPerYear" => null,
+        //                      "withdrawQuotaTotal" => null,
+        //                      "withdrawFeeType" => "fixed",
+        //                      "transactFeeWithdraw" => "11.1653",
+        //                      "addrWithTag" => false,
+        //                      "addrDepositTag" => false
+        //                  }
+        //              ),
+        //              "instStatus" => "normal"
+        //          }
+        //
+        $chains = $this->safe_value($fee, 'chains', array());
+        $result = $this->deposit_withdraw_fee($fee);
+        for ($j = 0; $j < count($chains); $j++) {
+            $chainEntry = $chains[$j];
+            $networkId = $this->safe_string($chainEntry, 'chain');
+            $withdrawFeeType = $this->safe_string($chainEntry, 'withdrawFeeType');
+            $networkCode = $this->network_id_to_code($networkId);
+            $withdrawFee = null;
+            $withdrawResult = null;
+            if ($withdrawFeeType === 'fixed') {
+                $withdrawFee = $this->safe_number($chainEntry, 'transactFeeWithdraw');
+                $withdrawResult = array(
+                    'fee' => $withdrawFee,
+                    'percentage' => false,
+                );
+            } else {
+                $withdrawFee = $this->safe_number($chainEntry, 'transactFeeRateWithdraw');
+                $withdrawResult = array(
+                    'fee' => $withdrawFee,
+                    'percentage' => true,
+                );
+            }
+            $result['networks'][$networkCode] = array(
+                'withdraw' => $withdrawResult,
+                'deposit' => array(
+                    'fee' => null,
+                    'percentage' => null,
+                ),
+            );
+            $result = $this->assign_default_deposit_withdraw_fees($result, $currency);
+        }
+        return $result;
     }
 
     public function parse_settlements($settlements, $market) {

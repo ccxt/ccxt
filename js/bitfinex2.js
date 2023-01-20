@@ -407,10 +407,12 @@ module.exports = class bitfinex2 extends Exchange {
         // https://docs.bitfinex.com/docs/introduction#amount-precision
         // The amount field allows up to 8 decimals.
         // Anything exceeding this will be rounded to the 8th decimal.
+        symbol = this.safeSymbol (symbol);
         return this.decimalToPrecision (amount, TRUNCATE, this.markets[symbol]['precision']['amount'], DECIMAL_PLACES);
     }
 
     priceToPrecision (symbol, price) {
+        symbol = this.safeSymbol (symbol);
         price = this.decimalToPrecision (price, ROUND, this.markets[symbol]['precision']['price'], this.precisionMode);
         // https://docs.bitfinex.com/docs/introduction#price-precision
         // The precision level of all trading prices is based on significant figures.
@@ -1521,7 +1523,12 @@ module.exports = class bitfinex2 extends Exchange {
         // order types "limit" and "market" immediatley parsed "EXCHANGE LIMIT" and "EXCHANGE MARKET"
         // note: same order types exist for margin orders without the EXCHANGE prefix
         const orderTypes = this.safeValue (this.options, 'orderTypes', {});
-        const orderType = this.safeStringUpper (orderTypes, type, type);
+        let orderType = type.toUpperCase ();
+        if (market['spot']) {
+            // although they claim that type needs to be 'exchange limit' or 'exchange market'
+            // in fact that's not the case for swap markets
+            orderType = this.safeStringUpper (orderTypes, type, type);
+        }
         const stopPrice = this.safeString2 (params, 'stopPrice', 'triggerPrice');
         const timeInForce = this.safeString (params, 'timeInForce');
         const postOnlyParam = this.safeValue (params, 'postOnly', false);

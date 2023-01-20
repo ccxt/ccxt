@@ -56,7 +56,7 @@ class coinex extends Exchange {
                 'fetchFundingHistory' => true,
                 'fetchFundingRate' => true,
                 'fetchFundingRateHistory' => true,
-                'fetchFundingRates' => false,
+                'fetchFundingRates' => true,
                 'fetchIndexOHLCV' => false,
                 'fetchLeverage' => false,
                 'fetchLeverageTiers' => true,
@@ -389,16 +389,13 @@ class coinex extends Exchange {
          * @param {array} $params extra parameters specific to the exchange api endpoint
          * @return {[array]} an array of objects representing market data
          */
-        $result = array();
-        list($type, $query) = $this->handle_market_type_and_params('fetchMarkets', null, $params);
-        if ($type === 'spot' || $type === 'margin') {
-            $result = $this->fetch_spot_markets($query);
-        } elseif ($type === 'swap') {
-            $result = $this->fetch_contract_markets($query);
-        } else {
-            throw new ExchangeError($this->id . " does not support the '" . $type . "' market $type, set exchange.options['defaultType'] to 'spot', 'margin' or 'swap'");
-        }
-        return $result;
+        $promises = array(
+            $this->fetch_spot_markets($params),
+            $this->fetch_contract_markets($params),
+        );
+        $spotMarkets = $promises[0];
+        $swapMarkets = $promises[1];
+        return $this->array_concat($spotMarkets, $swapMarkets);
     }
 
     public function fetch_spot_markets($params) {
@@ -532,6 +529,7 @@ class coinex extends Exchange {
             $settleId = ($subType === 1) ? 'USDT' : $baseId;
             $settle = $this->safe_currency_code($settleId);
             $symbol = $base . '/' . $quote . ':' . $settle;
+            $leveragesLength = count($leverages);
             $result[] = array(
                 'id' => $id,
                 'symbol' => $symbol,
@@ -565,7 +563,7 @@ class coinex extends Exchange {
                 'limits' => array(
                     'leverage' => array(
                         'min' => $this->safe_string($leverages, 0),
-                        'max' => $this->safe_string($leverages, strlen($leverages) - 1),
+                        'max' => $this->safe_string($leverages, $leveragesLength - 1),
                     ),
                     'amount' => array(
                         'min' => $this->safe_string($entry, 'amount_min'),
@@ -810,7 +808,7 @@ class coinex extends Exchange {
         $result = array();
         for ($i = 0; $i < count($marketIds); $i++) {
             $marketId = $marketIds[$i];
-            $market = $this->safe_market($marketId);
+            $market = $this->safe_market($marketId, null, null, $marketType);
             $symbol = $market['symbol'];
             $ticker = $this->parse_ticker(array(
                 'date' => $timestamp,
@@ -984,7 +982,8 @@ class coinex extends Exchange {
         $priceString = $this->safe_string($trade, 'price');
         $amountString = $this->safe_string($trade, 'amount');
         $marketId = $this->safe_string($trade, 'market');
-        $market = $this->safe_market($marketId, $market);
+        $defaultType = $this->safe_string($this->options, 'defaultType');
+        $market = $this->safe_market($marketId, $market, null, $defaultType);
         $symbol = $this->safe_symbol($marketId, $market);
         $costString = $this->safe_string($trade, 'deal_money');
         $fee = null;
@@ -1646,7 +1645,8 @@ class coinex extends Exchange {
         $averageString = $this->safe_string($order, 'avg_price');
         $remainingString = $this->safe_string($order, 'left');
         $marketId = $this->safe_string($order, 'market');
-        $market = $this->safe_market($marketId, $market);
+        $defaultType = $this->safe_string($this->options, 'defaultType');
+        $market = $this->safe_market($marketId, $market, null, $defaultType);
         $feeCurrencyId = $this->safe_string($order, 'fee_asset');
         $feeCurrency = $this->safe_currency_code($feeCurrencyId);
         if ($feeCurrency === null) {
@@ -2978,7 +2978,8 @@ class coinex extends Exchange {
         //     }
         //
         $marketId = $this->safe_string($position, 'market');
-        $market = $this->safe_market($marketId, $market);
+        $defaultType = $this->safe_string($this->options, 'defaultType');
+        $market = $this->safe_market($marketId, $market, null, $defaultType);
         $symbol = $market['symbol'];
         $positionId = $this->safe_integer($position, 'position_id');
         $marginModeInteger = $this->safe_integer($position, 'type');
@@ -3154,7 +3155,7 @@ class coinex extends Exchange {
         $marketIds = is_array($response) ? array_keys($response) : array();
         for ($i = 0; $i < count($marketIds); $i++) {
             $marketId = $marketIds[$i];
-            $market = $this->safe_market($marketId);
+            $market = $this->safe_market($marketId, null, null, 'spot');
             $symbol = $this->safe_string($market, 'symbol');
             $symbolsLength = 0;
             if ($symbols !== null) {
@@ -3419,6 +3420,8 @@ class coinex extends Exchange {
         //
         $data = $this->safe_value($response, 'data', array());
         $ticker = $this->safe_value($data, 'ticker', array());
+        $timestamp = $this->safe_integer($data, 'date');
+        $ticker['timestamp'] = $timestamp; // avoid changing parseFundingRate signature
         return $this->parse_funding_rate($ticker, $market);
     }
 
@@ -3449,25 +3452,99 @@ class coinex extends Exchange {
         //         "sell_amount" => "0.9388"
         //     }
         //
+        $timestamp = $this->safe_integer($contract, 'timestamp');
+        $contract = $this->omit($contract, 'timestamp');
+        $fundingDelta = $this->safe_integer($contract, 'funding_time') * 60 * 1000;
+        $fundingHour = ($timestamp . $fundingDelta) / 3600000;
+        $fundingTimestamp = (int) round($fundingHour) * 3600000;
         return array(
             'info' => $contract,
             'symbol' => $this->safe_symbol(null, $market),
-            'markPrice' => $this->safe_string($contract, 'sign_price'),
-            'indexPrice' => $this->safe_string($contract, 'index_price'),
+            'markPrice' => $this->safe_number($contract, 'sign_price'),
+            'indexPrice' => $this->safe_number($contract, 'index_price'),
             'interestRate' => null,
             'estimatedSettlePrice' => null,
-            'timestamp' => null,
-            'datetime' => null,
-            'fundingRate' => $this->safe_string($contract, 'funding_rate_next'),
-            'fundingTimestamp' => null,
-            'fundingDatetime' => null,
-            'nextFundingRate' => $this->safe_string($contract, 'funding_rate_predict'),
+            'timestamp' => $timestamp,
+            'datetime' => $this->iso8601($timestamp),
+            'fundingRate' => $this->safe_number($contract, 'funding_rate_next'),
+            'fundingTimestamp' => $fundingTimestamp,
+            'fundingDatetime' => $this->iso8601($fundingTimestamp),
+            'nextFundingRate' => $this->safe_number($contract, 'funding_rate_predict'),
             'nextFundingTimestamp' => null,
             'nextFundingDatetime' => null,
-            'previousFundingRate' => $this->safe_string($contract, 'funding_rate_last'),
+            'previousFundingRate' => $this->safe_number($contract, 'funding_rate_last'),
             'previousFundingTimestamp' => null,
             'previousFundingDatetime' => null,
         );
+    }
+
+    public function fetch_funding_rates($symbols = null, $params = array ()) {
+        /**
+         *  @method
+         * fetch the current funding rates
+         * @param {array} $symbols unified $market $symbols
+         * @param {array} $params extra parameters specific to the coinex api endpoint
+         * @return {array} an array of {@link https://docs.ccxt.com/en/latest/manual.html#funding-rate-structure funding rate structures}
+         */
+        $this->load_markets();
+        $symbols = $this->market_symbols($symbols);
+        $market = null;
+        if ($symbols !== null) {
+            $symbol = $this->safe_value($symbols, 0);
+            $market = $this->market($symbol);
+            if (!$market['swap']) {
+                throw new BadSymbol($this->id . ' fetchFundingRates() supports swap contracts only');
+            }
+        }
+        $response = $this->perpetualPublicGetMarketTickerAll ($params);
+        //
+        //     {
+        //         "code" => 0,
+        //         "data":
+        //         {
+        //             "date" => 1650678472474,
+        //             "ticker" => {
+        //                 "BTCUSDT" => array(
+        //                     "vol" => "6090.9430",
+        //                     "low" => "39180.30",
+        //                     "open" => "40474.97",
+        //                     "high" => "40798.01",
+        //                     "last" => "39659.30",
+        //                     "buy" => "39663.79",
+        //                     "period" => 86400,
+        //                     "funding_time" => 372,
+        //                     "position_amount" => "270.1956",
+        //                     "funding_rate_last" => "0.00022913",
+        //                     "funding_rate_next" => "0.00013158",
+        //                     "funding_rate_predict" => "0.00016552",
+        //                     "insurance" => "16045554.83969682659674035672",
+        //                     "sign_price" => "39652.48",
+        //                     "index_price" => "39648.44250000",
+        //                     "sell_total" => "22.3913",
+        //                     "buy_total" => "19.4498",
+        //                     "buy_amount" => "12.8942",
+        //                     "sell" => "39663.80",
+        //                     "sell_amount" => "0.9388"
+        //                 }
+        //             }
+        //         ),
+        //         "message" => "OK"
+        //     }
+        $data = $this->safe_value($response, 'data', array());
+        $tickers = $this->safe_value($data, 'ticker', array());
+        $timestamp = $this->safe_integer($data, 'date');
+        $result = array();
+        $marketIds = is_array($tickers) ? array_keys($tickers) : array();
+        for ($i = 0; $i < count($marketIds); $i++) {
+            $marketId = $marketIds[$i];
+            if (mb_strpos($marketId, '_') === -1) { // skip _signprice and _indexprice
+                $market = $this->safe_market($marketId, null, null, 'swap');
+                $ticker = $tickers[$marketId];
+                $ticker['timestamp'] = $timestamp;
+                $result[] = $this->parse_funding_rate($ticker, $market);
+            }
+        }
+        return $this->filter_by_array($result, 'symbol', $symbols);
     }
 
     public function withdraw($code, $amount, $address, $tag = null, $params = array ()) {
@@ -3597,41 +3674,55 @@ class coinex extends Exchange {
         //
         // fetchDeposits
         //
-        //     {
-        //         "actual_amount" => "120.00000000",
-        //         "actual_amount_display" => "120",
-        //         "add_explorer" => "XXX",
-        //         "amount" => "120.00000000",
-        //         "amount_display" => "120",
-        //         "coin_address" => "XXXXXXXX",
-        //         "coin_address_display" => "XXXXXXXX",
-        //         "coin_deposit_id" => 1866,
-        //         "coin_type" => "USDT",
-        //         "confirmations" => 0,
-        //         "create_time" => 1539595701,
-        //         "explorer" => "",
-        //         "remark" => "",
-        //         "status" => "finish",
-        //         "status_display" => "finish",
-        //         "transfer_method" => "local",
-        //         "tx_id" => "",
-        //         "tx_id_display" => "XXXXXXXXXX"
-        //     }
+        //    {
+        //        "coin_deposit_id" => 32555985,
+        //        "create_time" => 1673325495,
+        //        "amount" => "12.71",
+        //        "amount_display" => "12.71",
+        //        "diff_amount" => "0",
+        //        "min_amount" => "0",
+        //        "actual_amount" => "12.71",
+        //        "actual_amount_display" => "12.71",
+        //        "confirmations" => 35,
+        //        "tx_id" => "0x57f1c92cc10b48316e2bf5faf230694fec2174e7744c1562a9a88b9c1e585f56",
+        //        "tx_id_display" => "0x57f1c92cc10b48316e2bf5faf230694fec2174e7744c1562a9a88b9c1e585f56",
+        //        "coin_address" => "0xe7a3831c56836f466b6a6268cff4fc852cf4b738",
+        //        "coin_address_display" => "0xe7a3****f4b738",
+        //        "add_explorer" => "https://bscscan.com/address/0xe7a3831c56836f466b6a6268cff4fc852cf4b738",
+        //        "coin_type" => "USDT",
+        //        "smart_contract_name" => "BSC",
+        //        "transfer_method" => "onchain",
+        //        "status" => "finish",
+        //        "status_display" => "finish",
+        //        "remark" => "",
+        //        "explorer" => "https://bscscan.com/tx/0x57f1c92cc10b48316e2bf5faf230694fec2174e7744c1562a9a88b9c1e585f56"
+        //    }
         //
         // fetchWithdrawals
         //
-        //     {
-        //         "actual_amount" => "0.10000000",
-        //         "amount" => "0.10000000",
-        //         "coin_address" => "15sr1VdyXQ6sVLqeJUJ1uPzLpmQtgUeBSB",
-        //         "coin_type" => "BCH",
-        //         "coin_withdraw_id" => 203,
-        //         "confirmations" => 11,
-        //         "create_time" => 1515806440,
-        //         "status" => "finish",
-        //         "tx_fee" => "0",
-        //         "tx_id" => "896371d0e23d64d1cac65a0b7c9e9093d835affb572fec89dd4547277fbdd2f6"
-        //     }
+        //    {
+        //        "coin_withdraw_id" => 20076836,
+        //        "create_time" => 1673325776,
+        //        "actual_amount" => "0.029",
+        //        "actual_amount_display" => "0.029",
+        //        "amount" => "0.03",
+        //        "amount_display" => "0.03",
+        //        "coin_address" => "MBhJcc3r5b3insc7QxyvEPtf31NqUdJpAb",
+        //        "app_coin_address_display" => "MBh****pAb",
+        //        "coin_address_display" => "MBhJcc****UdJpAb",
+        //        "add_explorer" => "https://explorer.viawallet.com/ltc/address/MBhJcc3r5b3insc7QxyvEPtf31NqUdJpAb",
+        //        "coin_type" => "LTC",
+        //        "confirmations" => 7,
+        //        "explorer" => "https://explorer.viawallet.com/ltc/tx/a0aa082132619b8a499b87e7d5bc3c508e0227104f5202ae26b695bb4cb7fbf9",
+        //        "fee" => "0",
+        //        "remark" => "",
+        //        "smart_contract_name" => "",
+        //        "status" => "finish",
+        //        "status_display" => "finish",
+        //        "transfer_method" => "onchain",
+        //        "tx_fee" => "0.001",
+        //        "tx_id" => "a0aa082132619b8a499b87e7d5bc3c508e0227104f5202ae26b695bb4cb7fbf9"
+        //    }
         //
         $id = $this->safe_string_2($transaction, 'coin_withdraw_id', 'coin_deposit_id');
         $address = $this->safe_string($transaction, 'coin_address');
@@ -3652,34 +3743,36 @@ class coinex extends Exchange {
         $timestamp = $this->safe_timestamp($transaction, 'create_time');
         $type = (is_array($transaction) && array_key_exists('coin_withdraw_id', $transaction)) ? 'withdraw' : 'deposit';
         $status = $this->parse_transaction_status($this->safe_string($transaction, 'status'));
-        $amount = $this->safe_number($transaction, 'amount');
-        $feeCost = $this->safe_number($transaction, 'tx_fee');
+        $networkId = $this->safe_string($transaction, 'smart_contract_name');
+        $amount = $this->safe_number($transaction, 'actual_amount');
+        $feeCost = $this->safe_string($transaction, 'tx_fee');
+        $addressTo = null;
+        $addressFrom = null;
         if ($type === 'deposit') {
-            $feeCost = 0;
+            $feeCost = '0';
+            $addressTo = $address;
+        } else {
+            $addressFrom = $address;
         }
         $fee = array(
-            'cost' => $feeCost,
+            'cost' => $this->parse_number($feeCost),
             'currency' => $code,
         );
-        // https://github.com/ccxt/ccxt/issues/8321
-        if ($amount !== null) {
-            $amount = $amount - $feeCost;
-        }
         return array(
             'info' => $transaction,
             'id' => $id,
             'txid' => $txid,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
-            'network' => null,
+            'network' => $this->network_id_to_code($networkId),
             'address' => $address,
             'addressTo' => null,
             'addressFrom' => null,
             'tag' => $tag,
-            'tagTo' => null,
-            'tagFrom' => null,
+            'tagTo' => $addressTo,
+            'tagFrom' => $addressFrom,
             'type' => $type,
-            'amount' => $amount,
+            'amount' => $this->parse_number($amount),
             'currency' => $code,
             'status' => $status,
             'updated' => null,
@@ -3901,42 +3994,42 @@ class coinex extends Exchange {
         }
         $response = $this->privateGetBalanceCoinWithdraw (array_merge($request, $params));
         //
-        //     {
-        //         "code" => 0,
-        //         "data" => array(
-        //             "has_next" => true,
-        //             "curr_page" => 1,
-        //             "count" => 10,
-        //             "data" => array(
-        //                 array(
-        //                     "coin_withdraw_id" => 203,
-        //                     "create_time" => 1513933541,
-        //                     "actual_amount" => "0.00100000",
-        //                     "actual_amount_display" => "***",
-        //                     "amount" => "0.00100000",
-        //                     "amount_display" => "******",
-        //                     "coin_address" => "1GVVx5UBddLKrckTprNi4VhHSymeQ8tsLF",
-        //                     "app_coin_address_display" => "**********",
-        //                     "coin_address_display" => "****************",
-        //                     "add_explorer" => "https://explorer.viawallet.com/btc/address/1GVVx5UBddLKrckTprNi4VhHSymeQ8tsLF",
-        //                     "coin_type" => "BTC",
-        //                     "confirmations" => 6,
-        //                     "explorer" => "https://explorer.viawallet.com/btc/tx/1GVVx5UBddLKrckTprNi4VhHSymeQ8tsLF",
-        //                     "fee" => "0",
-        //                     "remark" => "",
-        //                     "smart_contract_name" => "BTC",
-        //                     "status" => "finish",
-        //                     "status_display" => "finish",
-        //                     "transfer_method" => "onchain",
-        //                     "tx_fee" => "0",
-        //                     "tx_id" => "896371d0e23d64d1cac65a0b7c9e9093d835affb572fec89dd4547277fbdd2f6"
-        //                 ), /* many more $data points */
-        //             ),
-        //             "total" => ***,
-        //             "total_page":***
-        //         ),
-        //         "message" => "Success"
-        //     }
+        //    {
+        //        "code" => 0,
+        //        "data" => {
+        //            "has_next" => false,
+        //            "curr_page" => 1,
+        //            "count" => 1,
+        //            "data" => array(
+        //                array(
+        //                    "coin_withdraw_id" => 20076836,
+        //                    "create_time" => 1673325776,
+        //                    "actual_amount" => "0.029",
+        //                    "actual_amount_display" => "0.029",
+        //                    "amount" => "0.03",
+        //                    "amount_display" => "0.03",
+        //                    "coin_address" => "MBhJcc3r5b3insc7QxyvEPtf31NqUdJpAb",
+        //                    "app_coin_address_display" => "MBh****pAb",
+        //                    "coin_address_display" => "MBhJcc****UdJpAb",
+        //                    "add_explorer" => "https://explorer.viawallet.com/ltc/address/MBhJcc3r5b3insc7QxyvEPtf31NqUdJpAb",
+        //                    "coin_type" => "LTC",
+        //                    "confirmations" => 7,
+        //                    "explorer" => "https://explorer.viawallet.com/ltc/tx/a0aa082132619b8a499b87e7d5bc3c508e0227104f5202ae26b695bb4cb7fbf9",
+        //                    "fee" => "0",
+        //                    "remark" => "",
+        //                    "smart_contract_name" => "",
+        //                    "status" => "finish",
+        //                    "status_display" => "finish",
+        //                    "transfer_method" => "onchain",
+        //                    "tx_fee" => "0.001",
+        //                    "tx_id" => "a0aa082132619b8a499b87e7d5bc3c508e0227104f5202ae26b695bb4cb7fbf9"
+        //                }
+        //            ),
+        //            "total" => 1,
+        //            "total_page" => 1
+        //        ),
+        //        "message" => "Success"
+        //    }
         //
         $data = $this->safe_value($response, 'data');
         if (gettype($data) !== 'array' || array_keys($data) !== array_keys(array_keys($data))) {
@@ -3966,32 +4059,43 @@ class coinex extends Exchange {
             $request['Limit'] = $limit;
         }
         $response = $this->privateGetBalanceCoinDeposit (array_merge($request, $params));
-        //     {
-        //         "code" => 0,
-        //         "data" => array(
-        //             {
-        //                 "actual_amount" => "4.65397682",
-        //                 "actual_amount_display" => "4.65397682",
-        //                 "add_explorer" => "https://etherscan.io/address/0x361XXXXXX",
-        //                 "amount" => "4.65397682",
-        //                 "amount_display" => "4.65397682",
-        //                 "coin_address" => "0x36dabcdXXXXXX",
-        //                 "coin_address_display" => "0x361X*****XXXXX",
-        //                 "coin_deposit_id" => 966191,
-        //                 "coin_type" => "ETH",
-        //                 "confirmations" => 30,
-        //                 "create_time" => 1531661445,
-        //                 "explorer" => "https://etherscan.io/tx/0x361XXXXXX",
-        //                 "remark" => "",
-        //                 "status" => "finish",
-        //                 "status_display" => "finish",
-        //                 "transfer_method" => "onchain",
-        //                 "tx_id" => "0x361XXXXXX",
-        //                 "tx_id_display" => "0x361XXXXXX"
-        //             }
-        //         ),
-        //         "message" => "Ok"
-        //     }
+        //
+        //    {
+        //        "code" => 0,
+        //        "data" => {
+        //            "has_next" => false,
+        //            "curr_page" => 1,
+        //            "count" => 1,
+        //            "data" => array(
+        //                array(
+        //                    "coin_deposit_id" => 32555985,
+        //                    "create_time" => 1673325495,
+        //                    "amount" => "12.71",
+        //                    "amount_display" => "12.71",
+        //                    "diff_amount" => "0",
+        //                    "min_amount" => "0",
+        //                    "actual_amount" => "12.71",
+        //                    "actual_amount_display" => "12.71",
+        //                    "confirmations" => 35,
+        //                    "tx_id" => "0x57f1c92cc10b48316e2bf5faf230694fec2174e7744c1562a9a88b9c1e585f56",
+        //                    "tx_id_display" => "0x57f1c92cc10b48316e2bf5faf230694fec2174e7744c1562a9a88b9c1e585f56",
+        //                    "coin_address" => "0xe7a3831c56836f466b6a6268cff4fc852cf4b738",
+        //                    "coin_address_display" => "0xe7a3****f4b738",
+        //                    "add_explorer" => "https://bscscan.com/address/0xe7a3831c56836f466b6a6268cff4fc852cf4b738",
+        //                    "coin_type" => "USDT",
+        //                    "smart_contract_name" => "BSC",
+        //                    "transfer_method" => "onchain",
+        //                    "status" => "finish",
+        //                    "status_display" => "finish",
+        //                    "remark" => "",
+        //                    "explorer" => "https://bscscan.com/tx/0x57f1c92cc10b48316e2bf5faf230694fec2174e7744c1562a9a88b9c1e585f56"
+        //                }
+        //            ),
+        //            "total" => 1,
+        //            "total_page" => 1
+        //        ),
+        //        "message" => "Success"
+        //    }
         //
         $data = $this->safe_value($response, 'data');
         if (gettype($data) !== 'array' || array_keys($data) !== array_keys(array_keys($data))) {
@@ -4108,7 +4212,7 @@ class coinex extends Exchange {
         for ($i = 0; $i < count($data); $i++) {
             $entry = $data[$i];
             $symbol = $this->safe_string($entry, 'market');
-            $market = $this->safe_market($symbol);
+            $market = $this->safe_market($symbol, null, null, 'spot');
             $currencyData = $this->safe_value($entry, $market['base']);
             $rates[] = array(
                 'currency' => $market['base'],
@@ -4187,7 +4291,7 @@ class coinex extends Exchange {
         //     }
         //
         $marketId = $this->safe_string($info, 'market_type');
-        $market = $this->safe_market($marketId, $market);
+        $market = $this->safe_market($marketId, $market, null, 'spot');
         $symbol = $this->safe_string($market, 'symbol');
         $timestamp = $this->safe_timestamp($info, 'expire_time');
         $unflatAmount = $this->safe_string($info, 'unflat_amount');

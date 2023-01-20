@@ -32,6 +32,9 @@ class btcex(Exchange, ccxt.async_support.btcex):
                 },
             },
             'options': {
+                'watchOrderBook': {
+                    'snapshotDelay': 0,
+                },
             },
             'streaming': {
                 'ping': self.ping,
@@ -556,18 +559,15 @@ class btcex(Exchange, ccxt.async_support.btcex):
         messageHash = 'orderbook:' + symbol
         if nonce is None:
             cacheLength = len(storedOrderBook.cache)
-            if cacheLength == 0:
+            snapshotDelay = self.handle_option('watchOrderBook', 'snapshotDelay', 0)
+            if cacheLength == snapshotDelay:
                 limit = 0
                 self.spawn(self.load_order_book, client, messageHash, symbol, limit)
             storedOrderBook.cache.append(data)
             return
         elif deltaNonce <= nonce:
             return
-        timestamp = self.safe_integer(data, 'timestamp')
         self.handle_delta(storedOrderBook, data)
-        storedOrderBook['timestamp'] = timestamp
-        storedOrderBook['datetime'] = self.iso8601(timestamp)
-        storedOrderBook['nonce'] = deltaNonce
         client.resolve(storedOrderBook, messageHash)
 
     def get_cache_index(self, orderBook, cache):
@@ -586,6 +586,10 @@ class btcex(Exchange, ccxt.async_support.btcex):
         return len(cache)
 
     def handle_delta(self, orderbook, delta):
+        timestamp = self.safe_integer(delta, 'timestamp')
+        orderbook['timestamp'] = timestamp
+        orderbook['datetime'] = self.iso8601(timestamp)
+        orderbook['nonce'] = self.safe_integer(delta, 'change_id')
         bids = self.safe_value(delta, 'bids', [])
         asks = self.safe_value(delta, 'asks', [])
         storedBids = orderbook['bids']
@@ -647,12 +651,10 @@ class btcex(Exchange, ccxt.async_support.btcex):
         #     }
         #
         result = self.safe_value(message, 'result', {})
-        expiresIn = self.safe_number(result, 'expires_in', 0)
-        expiresAt = (self.seconds() + expiresIn) * 1000
-        self.options['expiresAt'] = expiresAt
-        future = client.future('authenticated')
-        future.resolve(message)
-        return message
+        expiresIn = self.safe_integer(result, 'expires_in', 0)
+        self.options['expiresAt'] = self.sum(self.seconds(), expiresIn) * 1000
+        accessToken = self.safe_string(result, 'access_token')
+        client.resolve(accessToken, 'authenticated')
 
     def handle_subscription(self, client, message):
         channels = self.safe_value(message, 'result', [])
@@ -702,15 +704,14 @@ class btcex(Exchange, ccxt.async_support.btcex):
             self.handle_subscription(client, message)
         return message
 
-    async def authenticate(self, params={}):
+    def authenticate(self, params={}):
         url = self.urls['api']['ws']
         client = self.client(url)
-        future = client.future('authenticated')
-        method = 'authenticated'
-        authenticated = self.safe_value(client.subscriptions, method)
+        messageHash = 'authenticated'
         expiresAt = self.safe_number(self.options, 'expiresAt')
         time = self.milliseconds()
-        if authenticated is None or expiresAt <= time:
+        future = self.safe_value(client.subscriptions, messageHash)
+        if (future is None) or (expiresAt <= time):
             request = {
                 'jsonrpc': '2.0',
                 'id': self.request_id(),
@@ -721,8 +722,10 @@ class btcex(Exchange, ccxt.async_support.btcex):
                     'client_secret': self.secret,
                 },
             }
-            self.spawn(self.watch, url, method, request, method)
-        return await future
+            message = self.extend(request, params)
+            future = self.watch(url, messageHash, message)
+            client.subscriptions[messageHash] = future
+        return future
 
     def ping(self, client):
         return 'PING'

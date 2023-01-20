@@ -234,6 +234,7 @@ class okx extends Exchange {
                         'asset/transfer-state' => 10,
                         'asset/deposit-history' => 5 / 3,
                         'asset/withdrawal-history' => 5 / 3,
+                        'asset/deposit-withdraw-status' => 20,
                         'asset/currencies' => 5 / 3,
                         'asset/bills' => 5 / 3,
                         'asset/piggy-balance' => 5 / 3,
@@ -3705,7 +3706,7 @@ class okx extends Exchange {
             $this->check_address($address);
             Async\await($this->load_markets());
             $currency = $this->currency($code);
-            if ($tag !== null) {
+            if (($tag !== null) && (strlen($tag) > 0)) {
                 $address = $address . ':' . $tag;
             }
             $fee = $this->safe_string($params, 'fee');
@@ -4350,18 +4351,28 @@ class okx extends Exchange {
         $symbol = $market['symbol'];
         $pos = $this->safe_string($position, 'pos'); // 'pos' field => One way mode => 0 if $position is not open, 1 if open | Two way (hedge) mode => -1 if short, 1 if long, 0 if $position is not open
         $contractsAbs = Precise::string_abs($pos);
-        $contracts = null;
         $side = $this->safe_string($position, 'posSide');
         $hedged = $side !== 'net';
-        if ($pos !== null) {
-            $contracts = $this->parse_number($contractsAbs);
+        $contracts = $this->parse_number($contractsAbs);
+        if ($market['margin']) {
+            // margin $position
             if ($side === 'net') {
-                if (Precise::string_gt($pos, '0')) {
-                    $side = 'long';
-                } elseif (Precise::string_lt($pos, '0')) {
-                    $side = 'short';
-                } else {
-                    $side = null;
+                $posCcy = $this->safe_string($position, 'posCcy');
+                $parsedCurrency = $this->safe_currency_code($posCcy);
+                if ($parsedCurrency !== null) {
+                    $side = ($market['base'] === $parsedCurrency) ? 'long' : 'short';
+                }
+            }
+        } else {
+            if ($pos !== null) {
+                if ($side === 'net') {
+                    if (Precise::string_gt($pos, '0')) {
+                        $side = 'long';
+                    } elseif (Precise::string_lt($pos, '0')) {
+                        $side = 'short';
+                    } else {
+                        $side = null;
+                    }
                 }
             }
         }

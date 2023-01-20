@@ -647,7 +647,7 @@ class mexc3 extends Exchange {
                         'active' => $active,
                         'deposit' => $isDepositEnabled,
                         'withdraw' => $isWithdrawEnabled,
-                        'fee' => $this->safe_number($chain, 'fee'),
+                        'fee' => $fee,
                         'precision' => null,
                         'limits' => array(
                             'withdraw' => array(
@@ -1514,7 +1514,7 @@ class mexc3 extends Exchange {
                 $ticker = $this->safe_value($response, 'data', array());
             }
             // when it's single $symbol $request, the returned structure is different (singular object) for both spot & swap, thus we need to wrap inside array
-            return $this->parse_ticker($ticker, $symbol);
+            return $this->parse_ticker($ticker, $market);
         }) ();
     }
 
@@ -2356,7 +2356,7 @@ class mexc3 extends Exchange {
                 throw new BadRequest($this->id . ' fetchOrdersByState() is not supported for ' . $marketType);
             } else {
                 $params['states'] = $state;
-                return $this->fetch_orders($symbol, $since, $limit, $params);
+                return Async\await($this->fetch_orders($symbol, $since, $limit, $params));
             }
         }) ();
     }

@@ -326,6 +326,7 @@ module.exports = class kucoin extends Exchange {
                     '210014': InvalidOrder, // {"code":"210014","msg":"Exceeds the max. borrowing amount, the remaining amount you can borrow: 0USDT"}
                     '210021': InsufficientFunds, // {"code":"210021","msg":"Balance not enough"}
                     '230003': InsufficientFunds, // {"code":"230003","msg":"Balance insufficient!"}
+                    '260000': InvalidAddress, // {"code":"260000","msg":"Deposit address already exists."}
                     '260100': InsufficientFunds, // {"code":"260100","msg":"account.noBalance"}
                     '300000': InvalidOrder,
                     '400000': BadSymbol,
@@ -403,11 +404,12 @@ module.exports = class kucoin extends Exchange {
                 },
             },
             'commonCurrencies': {
-                'HOT': 'HOTNOW',
+                'BIFI': 'BIFIF',
                 'EDGE': 'DADI', // https://github.com/ccxt/ccxt/issues/5756
-                'WAX': 'WAXP',
+                'HOT': 'HOTNOW',
                 'TRY': 'Trias',
                 'VAI': 'VAIOT',
+                'WAX': 'WAXP',
             },
             'options': {
                 'version': 'v1',
@@ -1209,6 +1211,7 @@ module.exports = class kucoin extends Exchange {
             params = this.omit (params, [ 'chain', 'network' ]);
         }
         const response = await this.privatePostDepositAddresses (this.extend (request, params));
+        // {"code":"260000","msg":"Deposit address already exists."}
         // BCH {"code":"200000","data":{"address":"bitcoincash:qza3m4nj9rx7l9r0cdadfqxts6f92shvhvr5ls4q7z","memo":""}}
         // BTC {"code":"200000","data":{"address":"36SjucKqQpQSvsak9A7h6qzFjrVXpRNZhE","memo":""}}
         const data = this.safeValue (response, 'data', {});
@@ -1466,6 +1469,8 @@ module.exports = class kucoin extends Exchange {
         const quoteAmount = this.safeNumber2 (params, 'cost', 'funds');
         let amountString = undefined;
         let costString = undefined;
+        let marginMode = undefined;
+        [ marginMode, params ] = this.handleMarginModeAndParams ('createOrder', params);
         if (type === 'market') {
             if (quoteAmount !== undefined) {
                 params = this.omit (params, [ 'cost', 'funds' ]);
@@ -1489,16 +1494,19 @@ module.exports = class kucoin extends Exchange {
         if (isStopLoss && isTakeProfit) {
             throw new ExchangeError (this.id + ' createOrder() stopLossPrice and takeProfitPrice cannot both be defined');
         }
-        const tradeType = this.safeString (params, 'tradeType');
         params = this.omit (params, [ 'stopLossPrice', 'takeProfitPrice', 'stopPrice' ]);
+        const tradeType = this.safeString (params, 'tradeType'); // keep it for backward compatibility
         let method = 'privatePostOrders';
         if (isStopLoss || isTakeProfit) {
             request['stop'] = isStopLoss ? 'entry' : 'loss';
             const triggerPrice = isStopLoss ? stopLossPrice : takeProfitPrice;
             request['stopPrice'] = this.priceToPrecision (symbol, triggerPrice);
             method = 'privatePostStopOrder';
-        } else if (tradeType === 'MARGIN_TRADE') {
+        } else if (tradeType === 'MARGIN_TRADE' || marginMode !== undefined) {
             method = 'privatePostMarginOrder';
+            if (marginMode === 'isolated') {
+                request['marginModel'] = 'isolated';
+            }
         }
         const response = await this[method] (this.extend (request, params));
         //
@@ -2771,12 +2779,7 @@ module.exports = class kucoin extends Exchange {
             //     }
             //
             const data = this.safeValue (response, 'data');
-            const transfer = this.parseTransfer (data, currency);
-            return this.extend (transfer, {
-                'amount': requestedAmount,
-                'fromAccount': fromId,
-                'toAccount': toId,
-            });
+            return this.parseTransfer (data, currency);
         }
     }
 
@@ -2784,10 +2787,14 @@ module.exports = class kucoin extends Exchange {
         //
         // transfer (spot)
         //
-        //     {
-        //         'orderId': '605a6211e657f00006ad0ad6'
-        //     }
+        //    {
+        //        'orderId': '605a6211e657f00006ad0ad6'
+        //    }
         //
+        //    {
+        //        "code": "200000",
+        //        "msg": "Failed to transfer out. The amount exceeds the upper limit"
+        //    }
         //
         // transfer (futures)
         //

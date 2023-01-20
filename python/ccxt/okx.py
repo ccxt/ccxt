@@ -247,6 +247,7 @@ class okx(Exchange):
                         'asset/transfer-state': 10,
                         'asset/deposit-history': 5 / 3,
                         'asset/withdrawal-history': 5 / 3,
+                        'asset/deposit-withdraw-status': 20,
                         'asset/currencies': 5 / 3,
                         'asset/bills': 5 / 3,
                         'asset/piggy-balance': 5 / 3,
@@ -3497,7 +3498,7 @@ class okx(Exchange):
         self.check_address(address)
         self.load_markets()
         currency = self.currency(code)
-        if tag is not None:
+        if (tag is not None) and (len(tag) > 0):
             address = address + ':' + tag
         fee = self.safe_string(params, 'fee')
         if fee is None:
@@ -4094,18 +4095,25 @@ class okx(Exchange):
         symbol = market['symbol']
         pos = self.safe_string(position, 'pos')  # 'pos' field: One way mode: 0 if position is not open, 1 if open | Two way(hedge) mode: -1 if short, 1 if long, 0 if position is not open
         contractsAbs = Precise.string_abs(pos)
-        contracts = None
         side = self.safe_string(position, 'posSide')
         hedged = side != 'net'
-        if pos is not None:
-            contracts = self.parse_number(contractsAbs)
+        contracts = self.parse_number(contractsAbs)
+        if market['margin']:
+            # margin position
             if side == 'net':
-                if Precise.string_gt(pos, '0'):
-                    side = 'long'
-                elif Precise.string_lt(pos, '0'):
-                    side = 'short'
-                else:
-                    side = None
+                posCcy = self.safe_string(position, 'posCcy')
+                parsedCurrency = self.safe_currency_code(posCcy)
+                if parsedCurrency is not None:
+                    side = 'long' if (market['base'] == parsedCurrency) else 'short'
+        else:
+            if pos is not None:
+                if side == 'net':
+                    if Precise.string_gt(pos, '0'):
+                        side = 'long'
+                    elif Precise.string_lt(pos, '0'):
+                        side = 'short'
+                    else:
+                        side = None
         contractSize = self.safe_value(market, 'contractSize')
         contractSizeString = self.number_to_string(contractSize)
         markPriceString = self.safe_string(position, 'markPx')

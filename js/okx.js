@@ -226,6 +226,7 @@ module.exports = class okx extends Exchange {
                         'asset/transfer-state': 10,
                         'asset/deposit-history': 5 / 3,
                         'asset/withdrawal-history': 5 / 3,
+                        'asset/deposit-withdraw-status': 20,
                         'asset/currencies': 5 / 3,
                         'asset/bills': 5 / 3,
                         'asset/piggy-balance': 5 / 3,
@@ -3696,7 +3697,7 @@ module.exports = class okx extends Exchange {
         this.checkAddress (address);
         await this.loadMarkets ();
         const currency = this.currency (code);
-        if (tag !== undefined) {
+        if ((tag !== undefined) && (tag.length > 0)) {
             address = address + ':' + tag;
         }
         const fee = this.safeString (params, 'fee');
@@ -4340,18 +4341,28 @@ module.exports = class okx extends Exchange {
         const symbol = market['symbol'];
         const pos = this.safeString (position, 'pos'); // 'pos' field: One way mode: 0 if position is not open, 1 if open | Two way (hedge) mode: -1 if short, 1 if long, 0 if position is not open
         const contractsAbs = Precise.stringAbs (pos);
-        let contracts = undefined;
         let side = this.safeString (position, 'posSide');
         const hedged = side !== 'net';
-        if (pos !== undefined) {
-            contracts = this.parseNumber (contractsAbs);
+        const contracts = this.parseNumber (contractsAbs);
+        if (market['margin']) {
+            // margin position
             if (side === 'net') {
-                if (Precise.stringGt (pos, '0')) {
-                    side = 'long';
-                } else if (Precise.stringLt (pos, '0')) {
-                    side = 'short';
-                } else {
-                    side = undefined;
+                const posCcy = this.safeString (position, 'posCcy');
+                const parsedCurrency = this.safeCurrencyCode (posCcy);
+                if (parsedCurrency !== undefined) {
+                    side = (market['base'] === parsedCurrency) ? 'long' : 'short';
+                }
+            }
+        } else {
+            if (pos !== undefined) {
+                if (side === 'net') {
+                    if (Precise.stringGt (pos, '0')) {
+                        side = 'long';
+                    } else if (Precise.stringLt (pos, '0')) {
+                        side = 'short';
+                    } else {
+                        side = undefined;
+                    }
                 }
             }
         }
