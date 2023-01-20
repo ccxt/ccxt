@@ -540,7 +540,9 @@ module.exports = class ace extends Exchange {
                 symbol = baseId + '/' + quoteId;
             }
             const orderType = this.safeNumber (order, 'type');
-            type = (orderType === 1) ? 'limit' : 'market';
+            if (orderType !== undefined) {
+                type = (orderType === 1) ? 'limit' : 'market';
+            }
             filled = this.safeString (order, 'tradeNum');
             remaining = this.safeString (order, 'remainNum');
             status = this.parseOrderStatus (this.safeString (order, 'status'));
