@@ -776,6 +776,7 @@ module.exports = class binance extends Exchange {
                         'account': 10,
                         'myTrades': 10,
                         'rateLimit/order': 20,
+                        'myPreventedMatches': 1,
                     },
                     'post': {
                         'order/oco': 1,
@@ -3216,6 +3217,7 @@ module.exports = class binance extends Exchange {
             'PENDING_CANCEL': 'canceling', // currently unused
             'REJECTED': 'rejected',
             'EXPIRED': 'expired',
+            'EXPIRED_IN_MATCH': 'expired',
         };
         return this.safeString (statuses, status, status);
     }
