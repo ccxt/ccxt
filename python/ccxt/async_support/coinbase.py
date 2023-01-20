@@ -8,8 +8,12 @@ from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import ArgumentsRequired
 from ccxt.base.errors import BadRequest
+from ccxt.base.errors import InvalidOrder
+from ccxt.base.errors import NotSupported
 from ccxt.base.errors import RateLimitExceeded
 from ccxt.base.errors import InvalidNonce
+from ccxt.base.decimal_to_precision import TRUNCATE
+from ccxt.base.decimal_to_precision import DECIMAL_PLACES
 from ccxt.base.decimal_to_precision import TICK_SIZE
 from ccxt.base.precise import Precise
 
@@ -38,11 +42,16 @@ class coinbase(Exchange):
                 'cancelOrder': True,
                 'cancelOrders': True,
                 'createDepositAddress': True,
-                'createOrder': None,
+                'createLimitBuyOrder': True,
+                'createLimitSellOrder': True,
+                'createMarketBuyOrder': True,
+                'createMarketSellOrder': True,
+                'createOrder': True,
+                'createPostOnlyOrder': True,
                 'createReduceOnlyOrder': False,
-                'createStopLimitOrder': False,
+                'createStopLimitOrder': True,
                 'createStopMarketOrder': False,
-                'createStopOrder': False,
+                'createStopOrder': True,
                 'fetchAccounts': True,
                 'fetchBalance': True,
                 'fetchBidsAsks': None,
@@ -70,7 +79,7 @@ class coinbase(Exchange):
                 'fetchMyBuys': True,
                 'fetchMySells': True,
                 'fetchMyTrades': None,
-                'fetchOHLCV': False,
+                'fetchOHLCV': True,
                 'fetchOpenInterestHistory': False,
                 'fetchOpenOrders': None,
                 'fetchOrder': None,
@@ -256,6 +265,16 @@ class coinbase(Exchange):
                     'request timestamp expired': InvalidNonce,  # {"errors":[{"id":"authentication_error","message":"request timestamp expired"}]}
                 },
             },
+            'timeframes': {
+                '1m': 'ONE_MINUTE',
+                '5m': 'FIVE_MINUTE',
+                '15m': 'FIFTEEN_MINUTE',
+                '30m': 'THIRTY_MINUTE',
+                '1h': 'ONE_HOUR',
+                '2h': 'TWO_HOUR',
+                '6h': 'SIX_HOUR',
+                '1d': 'ONE_DAY',
+            },
             'commonCurrencies': {
                 'CGLD': 'CELO',
             },
@@ -268,6 +287,7 @@ class coinbase(Exchange):
                     'fiat',
                     # 'vault',
                 ],
+                'createMarketBuyOrderRequiresPrice': True,
                 'advanced': True,  # set to True if using any v3 endpoints from the advanced trade API
                 'fetchMarkets': 'fetchMarketsV3',  # 'fetchMarketsV3' or 'fetchMarketsV2'
                 'fetchTicker': 'fetchTickerV3',  # 'fetchTickerV3' or 'fetchTickerV2'
@@ -1688,6 +1708,155 @@ class coinbase(Exchange):
             request['limit'] = limit
         return request
 
+    async def create_order(self, symbol, type, side, amount, price=None, params={}):
+        """
+        create a trade order
+        see https://docs.cloud.coinbase.com/advanced-trade-api/reference/retailbrokerageapi_postorder
+        :param str symbol: unified symbol of the market to create an order in
+        :param str type: 'market' or 'limit'
+        :param str side: 'buy' or 'sell'
+        :param float amount: how much you want to trade in units of the base currency, quote currency for 'market' 'buy' orders
+        :param float|None price: the price to fulfill the order, in units of the quote currency, ignored in market orders
+        :param dict params: extra parameters specific to the coinbase api endpoint
+        :param float|None params['stopPrice']: price to trigger stop orders
+        :param float|None params['triggerPrice']: price to trigger stop orders
+        :param float|None params['stopLossPrice']: price to trigger stop-loss orders
+        :param float|None params['takeProfitPrice']: price to trigger take-profit orders
+        :param bool|None params['postOnly']: True or False
+        :param str|None params['timeInForce']: 'GTC', 'IOC', 'GTD' or 'PO'
+        :param str|None params['stop_direction']: 'UNKNOWN_STOP_DIRECTION', 'STOP_DIRECTION_STOP_UP', 'STOP_DIRECTION_STOP_DOWN' the direction the stopPrice is triggered from
+        :param str|None params['end_time']: '2023-05-25T17:01:05.092Z' for 'GTD' orders
+        :returns dict: an `order structure <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
+        """
+        await self.load_markets()
+        market = self.market(symbol)
+        request = {
+            'client_order_id': self.uuid(),
+            'product_id': market['id'],
+            'side': side.upper(),
+        }
+        stopPrice = self.safe_number_n(params, ['stopPrice', 'stop_price', 'triggerPrice'])
+        stopLossPrice = self.safe_number(params, 'stopLossPrice')
+        takeProfitPrice = self.safe_number(params, 'takeProfitPrice')
+        isStop = stopPrice is not None
+        isStopLoss = stopLossPrice is not None
+        isTakeProfit = takeProfitPrice is not None
+        timeInForce = self.safe_string(params, 'timeInForce')
+        postOnly = True if (timeInForce == 'PO') else self.safe_value_2(params, 'postOnly', 'post_only', False)
+        endTime = self.safe_string(params, 'end_time')
+        stopDirection = self.safe_string(params, 'stop_direction')
+        if type == 'limit':
+            if isStop:
+                if stopDirection is None:
+                    stopDirection = 'STOP_DIRECTION_STOP_DOWN' if (side == 'buy') else 'STOP_DIRECTION_STOP_UP'
+                if (timeInForce == 'GTD') or (endTime is not None):
+                    if endTime is None:
+                        raise ExchangeError(self.id + ' createOrder() requires an end_time parameter for a GTD order')
+                    request['order_configuration'] = {
+                        'stop_limit_stop_limit_gtd': {
+                            'base_size': self.amount_to_precision(symbol, amount),
+                            'limit_price': self.price_to_precision(symbol, price),
+                            'stop_price': self.price_to_precision(symbol, stopPrice),
+                            'stop_direction': stopDirection,
+                            'end_time': endTime,
+                        },
+                    }
+                else:
+                    request['order_configuration'] = {
+                        'stop_limit_stop_limit_gtc': {
+                            'base_size': self.amount_to_precision(symbol, amount),
+                            'limit_price': self.price_to_precision(symbol, price),
+                            'stop_price': self.price_to_precision(symbol, stopPrice),
+                            'stop_direction': stopDirection,
+                        },
+                    }
+            elif isStopLoss or isTakeProfit:
+                triggerPrice = None
+                if isStopLoss:
+                    if stopDirection is None:
+                        stopDirection = 'STOP_DIRECTION_STOP_UP' if (side == 'buy') else 'STOP_DIRECTION_STOP_DOWN'
+                    triggerPrice = self.price_to_precision(symbol, stopLossPrice)
+                else:
+                    if stopDirection is None:
+                        stopDirection = 'STOP_DIRECTION_STOP_DOWN' if (side == 'buy') else 'STOP_DIRECTION_STOP_UP'
+                    triggerPrice = self.price_to_precision(symbol, takeProfitPrice)
+                request['order_configuration'] = {
+                    'stop_limit_stop_limit_gtc': {
+                        'base_size': self.amount_to_precision(symbol, amount),
+                        'limit_price': self.price_to_precision(symbol, price),
+                        'stop_price': triggerPrice,
+                        'stop_direction': stopDirection,
+                    },
+                }
+            else:
+                if (timeInForce == 'GTD') or (endTime is not None):
+                    if endTime is None:
+                        raise ExchangeError(self.id + ' createOrder() requires an end_time parameter for a GTD order')
+                    request['order_configuration'] = {
+                        'limit_limit_gtd': {
+                            'base_size': self.amount_to_precision(symbol, amount),
+                            'limit_price': self.price_to_precision(symbol, price),
+                            'end_time': endTime,
+                            'post_only': postOnly,
+                        },
+                    }
+                else:
+                    request['order_configuration'] = {
+                        'limit_limit_gtc': {
+                            'base_size': self.amount_to_precision(symbol, amount),
+                            'limit_price': self.price_to_precision(symbol, price),
+                            'post_only': postOnly,
+                        },
+                    }
+        else:
+            if isStop or isStopLoss or isTakeProfit:
+                raise NotSupported(self.id + ' createOrder() only stop limit orders are supported')
+            if side == 'buy':
+                createMarketBuyOrderRequiresPrice = self.safe_value(self.options, 'createMarketBuyOrderRequiresPrice', True)
+                total = None
+                if createMarketBuyOrderRequiresPrice:
+                    if price is None:
+                        raise InvalidOrder(self.id + ' createOrder() requires a price argument for market buy orders on spot markets to calculate the total amount to spend(amount * price), alternatively set the createMarketBuyOrderRequiresPrice option to False and pass in the cost to spend into the amount parameter')
+                    else:
+                        amountString = self.number_to_string(amount)
+                        priceString = self.number_to_string(price)
+                        cost = self.parse_number(Precise.string_mul(amountString, priceString))
+                        total = self.price_to_precision(symbol, cost)
+                else:
+                    total = self.amount_to_precision(symbol, amount)
+                request['order_configuration'] = {
+                    'market_market_ioc': {
+                        'quote_size': total,
+                    },
+                }
+            else:
+                request['order_configuration'] = {
+                    'market_market_ioc': {
+                        'base_size': self.amount_to_precision(symbol, amount),
+                    },
+                }
+        params = self.omit(params, ['timeInForce', 'triggerPrice', 'stopLossPrice', 'takeProfitPrice', 'stopPrice', 'stop_price', 'stopDirection', 'stop_direction', 'clientOrderId', 'postOnly', 'post_only', 'end_time'])
+        response = await self.v3PrivatePostBrokerageOrders(self.extend(request, params))
+        #
+        #     {
+        #         "success": True,
+        #         "failure_reason": "UNKNOWN_FAILURE_REASON",
+        #         "order_id": "52cfe5e2-0b29-4c19-a245-a6a773de5030",
+        #         "success_response": {
+        #             "order_id": "52cfe5e2-0b29-4c19-a245-a6a773de5030",
+        #             "product_id": "LTC-BTC",
+        #             "side": "SELL",
+        #             "client_order_id": "4d760580-6fca-4094-a70b-ebcca8626288"
+        #         },
+        #         "order_configuration": null
+        #     }
+        #
+        success = self.safe_value(response, 'success')
+        if success is not True:
+            raise BadRequest(self.id + ' createOrder() has failed, check your arguments and parameters')
+        data = self.safe_value(response, 'success_response', {})
+        return self.parse_order(data, market)
+
     def parse_order(self, order, market=None):
         #
         # createOrder
@@ -1786,6 +1955,71 @@ class coinbase(Exchange):
         if success is not True:
             raise BadRequest(self.id + ' cancelOrders() has failed, check your arguments and parameters')
         return self.parse_orders(orders, market)
+
+    async def fetch_ohlcv(self, symbol, timeframe='1m', since=None, limit=None, params={}):
+        """
+        fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+        see https://docs.cloud.coinbase.com/advanced-trade-api/reference/retailbrokerageapi_getcandles
+        :param str symbol: unified symbol of the market to fetch OHLCV data for
+        :param str timeframe: the length of time each candle represents
+        :param int|None since: timestamp in ms of the earliest candle to fetch
+        :param int|None limit: the maximum amount of candles to fetch, not used by coinbase
+        :param dict params: extra parameters specific to the coinbase api endpoint
+        :returns [[int]]: A list of candles ordered as timestamp, open, high, low, close, volume
+        """
+        await self.load_markets()
+        market = self.market(symbol)
+        end = str(self.seconds())
+        request = {
+            'product_id': market['id'],
+            'granularity': self.safe_string(self.timeframes, timeframe, timeframe),
+            'end': end,
+        }
+        if since is not None:
+            since = str(since)
+            timeframeToSeconds = Precise.string_div(since, '1000')
+            request['start'] = self.decimal_to_precision(timeframeToSeconds, TRUNCATE, 0, DECIMAL_PLACES)
+        else:
+            request['start'] = Precise.string_sub(end, '18000')  # default to 5h in seconds, max 300 candles
+        response = await self.v3PrivateGetBrokerageProductsProductIdCandles(self.extend(request, params))
+        #
+        #     {
+        #         "candles": [
+        #             {
+        #                 "start": "1673391780",
+        #                 "low": "17414.36",
+        #                 "high": "17417.99",
+        #                 "open": "17417.74",
+        #                 "close": "17417.38",
+        #                 "volume": "1.87780853"
+        #             },
+        #         ]
+        #     }
+        #
+        candles = self.safe_value(response, 'candles', [])
+        return self.parse_ohlcvs(candles, market, timeframe, since, limit)
+
+    def parse_ohlcv(self, ohlcv, market=None):
+        #
+        #     [
+        #         {
+        #             "start": "1673391780",
+        #             "low": "17414.36",
+        #             "high": "17417.99",
+        #             "open": "17417.74",
+        #             "close": "17417.38",
+        #             "volume": "1.87780853"
+        #         },
+        #     ]
+        #
+        return [
+            self.safe_timestamp(ohlcv, 'start'),
+            self.safe_number(ohlcv, 'open'),
+            self.safe_number(ohlcv, 'high'),
+            self.safe_number(ohlcv, 'low'),
+            self.safe_number(ohlcv, 'close'),
+            self.safe_number(ohlcv, 'volume'),
+        ]
 
     def sign(self, path, api=[], method='GET', params={}, headers=None, body=None):
         version = api[0]

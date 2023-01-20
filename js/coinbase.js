@@ -3,8 +3,8 @@
 // ----------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
-const { ExchangeError, ArgumentsRequired, AuthenticationError, BadRequest, RateLimitExceeded, InvalidNonce } = require ('./base/errors');
-const { TICK_SIZE } = require ('./base/functions/number');
+const { ExchangeError, ArgumentsRequired, AuthenticationError, BadRequest, InvalidOrder, NotSupported, RateLimitExceeded, InvalidNonce } = require ('./base/errors');
+const { TICK_SIZE, TRUNCATE, DECIMAL_PLACES } = require ('./base/functions/number');
 const Precise = require ('./base/Precise');
 
 // ----------------------------------------------------------------------------
@@ -32,11 +32,16 @@ module.exports = class coinbase extends Exchange {
                 'cancelOrder': true,
                 'cancelOrders': true,
                 'createDepositAddress': true,
-                'createOrder': undefined,
+                'createLimitBuyOrder': true,
+                'createLimitSellOrder': true,
+                'createMarketBuyOrder': true,
+                'createMarketSellOrder': true,
+                'createOrder': true,
+                'createPostOnlyOrder': true,
                 'createReduceOnlyOrder': false,
-                'createStopLimitOrder': false,
+                'createStopLimitOrder': true,
                 'createStopMarketOrder': false,
-                'createStopOrder': false,
+                'createStopOrder': true,
                 'fetchAccounts': true,
                 'fetchBalance': true,
                 'fetchBidsAsks': undefined,
@@ -64,7 +69,7 @@ module.exports = class coinbase extends Exchange {
                 'fetchMyBuys': true,
                 'fetchMySells': true,
                 'fetchMyTrades': true,
-                'fetchOHLCV': false,
+                'fetchOHLCV': true,
                 'fetchOpenInterestHistory': false,
                 'fetchOpenOrders': undefined,
                 'fetchOrder': undefined,
@@ -250,6 +255,16 @@ module.exports = class coinbase extends Exchange {
                     'request timestamp expired': InvalidNonce, // {"errors":[{"id":"authentication_error","message":"request timestamp expired"}]}
                 },
             },
+            'timeframes': {
+                '1m': 'ONE_MINUTE',
+                '5m': 'FIVE_MINUTE',
+                '15m': 'FIFTEEN_MINUTE',
+                '30m': 'THIRTY_MINUTE',
+                '1h': 'ONE_HOUR',
+                '2h': 'TWO_HOUR',
+                '6h': 'SIX_HOUR',
+                '1d': 'ONE_DAY',
+            },
             'commonCurrencies': {
                 'CGLD': 'CELO',
             },
@@ -262,6 +277,7 @@ module.exports = class coinbase extends Exchange {
                     'fiat',
                     // 'vault',
                 ],
+                'createMarketBuyOrderRequiresPrice': true,
                 'advanced': true, // set to true if using any v3 endpoints from the advanced trade API
                 'fetchMarkets': 'fetchMarketsV3', // 'fetchMarketsV3' or 'fetchMarketsV2'
                 'fetchTicker': 'fetchTickerV3', // 'fetchTickerV3' or 'fetchTickerV2'
@@ -1823,6 +1839,173 @@ module.exports = class coinbase extends Exchange {
         return request;
     }
 
+    async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
+        /**
+         * @method
+         * @name coinbase#createOrder
+         * @description create a trade order
+         * @see https://docs.cloud.coinbase.com/advanced-trade-api/reference/retailbrokerageapi_postorder
+         * @param {string} symbol unified symbol of the market to create an order in
+         * @param {string} type 'market' or 'limit'
+         * @param {string} side 'buy' or 'sell'
+         * @param {float} amount how much you want to trade in units of the base currency, quote currency for 'market' 'buy' orders
+         * @param {float|undefined} price the price to fulfill the order, in units of the quote currency, ignored in market orders
+         * @param {object} params extra parameters specific to the coinbase api endpoint
+         * @param {float|undefined} params.stopPrice price to trigger stop orders
+         * @param {float|undefined} params.triggerPrice price to trigger stop orders
+         * @param {float|undefined} params.stopLossPrice price to trigger stop-loss orders
+         * @param {float|undefined} params.takeProfitPrice price to trigger take-profit orders
+         * @param {bool|undefined} params.postOnly true or false
+         * @param {string|undefined} params.timeInForce 'GTC', 'IOC', 'GTD' or 'PO'
+         * @param {string|undefined} params.stop_direction 'UNKNOWN_STOP_DIRECTION', 'STOP_DIRECTION_STOP_UP', 'STOP_DIRECTION_STOP_DOWN' the direction the stopPrice is triggered from
+         * @param {string|undefined} params.end_time '2023-05-25T17:01:05.092Z' for 'GTD' orders
+         * @returns {object} an [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
+         */
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const request = {
+            'client_order_id': this.uuid (),
+            'product_id': market['id'],
+            'side': side.toUpperCase (),
+        };
+        const stopPrice = this.safeNumberN (params, [ 'stopPrice', 'stop_price', 'triggerPrice' ]);
+        const stopLossPrice = this.safeNumber (params, 'stopLossPrice');
+        const takeProfitPrice = this.safeNumber (params, 'takeProfitPrice');
+        const isStop = stopPrice !== undefined;
+        const isStopLoss = stopLossPrice !== undefined;
+        const isTakeProfit = takeProfitPrice !== undefined;
+        const timeInForce = this.safeString (params, 'timeInForce');
+        const postOnly = (timeInForce === 'PO') ? true : this.safeValue2 (params, 'postOnly', 'post_only', false);
+        const endTime = this.safeString (params, 'end_time');
+        let stopDirection = this.safeString (params, 'stop_direction');
+        if (type === 'limit') {
+            if (isStop) {
+                if (stopDirection === undefined) {
+                    stopDirection = (side === 'buy') ? 'STOP_DIRECTION_STOP_DOWN' : 'STOP_DIRECTION_STOP_UP';
+                }
+                if ((timeInForce === 'GTD') || (endTime !== undefined)) {
+                    if (endTime === undefined) {
+                        throw new ExchangeError (this.id + ' createOrder() requires an end_time parameter for a GTD order');
+                    }
+                    request['order_configuration'] = {
+                        'stop_limit_stop_limit_gtd': {
+                            'base_size': this.amountToPrecision (symbol, amount),
+                            'limit_price': this.priceToPrecision (symbol, price),
+                            'stop_price': this.priceToPrecision (symbol, stopPrice),
+                            'stop_direction': stopDirection,
+                            'end_time': endTime,
+                        },
+                    };
+                } else {
+                    request['order_configuration'] = {
+                        'stop_limit_stop_limit_gtc': {
+                            'base_size': this.amountToPrecision (symbol, amount),
+                            'limit_price': this.priceToPrecision (symbol, price),
+                            'stop_price': this.priceToPrecision (symbol, stopPrice),
+                            'stop_direction': stopDirection,
+                        },
+                    };
+                }
+            } else if (isStopLoss || isTakeProfit) {
+                let triggerPrice = undefined;
+                if (isStopLoss) {
+                    if (stopDirection === undefined) {
+                        stopDirection = (side === 'buy') ? 'STOP_DIRECTION_STOP_UP' : 'STOP_DIRECTION_STOP_DOWN';
+                    }
+                    triggerPrice = this.priceToPrecision (symbol, stopLossPrice);
+                } else {
+                    if (stopDirection === undefined) {
+                        stopDirection = (side === 'buy') ? 'STOP_DIRECTION_STOP_DOWN' : 'STOP_DIRECTION_STOP_UP';
+                    }
+                    triggerPrice = this.priceToPrecision (symbol, takeProfitPrice);
+                }
+                request['order_configuration'] = {
+                    'stop_limit_stop_limit_gtc': {
+                        'base_size': this.amountToPrecision (symbol, amount),
+                        'limit_price': this.priceToPrecision (symbol, price),
+                        'stop_price': triggerPrice,
+                        'stop_direction': stopDirection,
+                    },
+                };
+            } else {
+                if ((timeInForce === 'GTD') || (endTime !== undefined)) {
+                    if (endTime === undefined) {
+                        throw new ExchangeError (this.id + ' createOrder() requires an end_time parameter for a GTD order');
+                    }
+                    request['order_configuration'] = {
+                        'limit_limit_gtd': {
+                            'base_size': this.amountToPrecision (symbol, amount),
+                            'limit_price': this.priceToPrecision (symbol, price),
+                            'end_time': endTime,
+                            'post_only': postOnly,
+                        },
+                    };
+                } else {
+                    request['order_configuration'] = {
+                        'limit_limit_gtc': {
+                            'base_size': this.amountToPrecision (symbol, amount),
+                            'limit_price': this.priceToPrecision (symbol, price),
+                            'post_only': postOnly,
+                        },
+                    };
+                }
+            }
+        } else {
+            if (isStop || isStopLoss || isTakeProfit) {
+                throw new NotSupported (this.id + ' createOrder() only stop limit orders are supported');
+            }
+            if (side === 'buy') {
+                const createMarketBuyOrderRequiresPrice = this.safeValue (this.options, 'createMarketBuyOrderRequiresPrice', true);
+                let total = undefined;
+                if (createMarketBuyOrderRequiresPrice) {
+                    if (price === undefined) {
+                        throw new InvalidOrder (this.id + ' createOrder() requires a price argument for market buy orders on spot markets to calculate the total amount to spend (amount * price), alternatively set the createMarketBuyOrderRequiresPrice option to false and pass in the cost to spend into the amount parameter');
+                    } else {
+                        const amountString = this.numberToString (amount);
+                        const priceString = this.numberToString (price);
+                        const cost = this.parseNumber (Precise.stringMul (amountString, priceString));
+                        total = this.priceToPrecision (symbol, cost);
+                    }
+                } else {
+                    total = this.amountToPrecision (symbol, amount);
+                }
+                request['order_configuration'] = {
+                    'market_market_ioc': {
+                        'quote_size': total,
+                    },
+                };
+            } else {
+                request['order_configuration'] = {
+                    'market_market_ioc': {
+                        'base_size': this.amountToPrecision (symbol, amount),
+                    },
+                };
+            }
+        }
+        params = this.omit (params, [ 'timeInForce', 'triggerPrice', 'stopLossPrice', 'takeProfitPrice', 'stopPrice', 'stop_price', 'stopDirection', 'stop_direction', 'clientOrderId', 'postOnly', 'post_only', 'end_time' ]);
+        const response = await this.v3PrivatePostBrokerageOrders (this.extend (request, params));
+        //
+        //     {
+        //         "success": true,
+        //         "failure_reason": "UNKNOWN_FAILURE_REASON",
+        //         "order_id": "52cfe5e2-0b29-4c19-a245-a6a773de5030",
+        //         "success_response": {
+        //             "order_id": "52cfe5e2-0b29-4c19-a245-a6a773de5030",
+        //             "product_id": "LTC-BTC",
+        //             "side": "SELL",
+        //             "client_order_id": "4d760580-6fca-4094-a70b-ebcca8626288"
+        //         },
+        //         "order_configuration": null
+        //     }
+        //
+        const success = this.safeValue (response, 'success');
+        if (success !== true) {
+            throw new BadRequest (this.id + ' createOrder() has failed, check your arguments and parameters');
+        }
+        const data = this.safeValue (response, 'success_response', {});
+        return this.parseOrder (data, market);
+    }
+
     parseOrder (order, market = undefined) {
         //
         // createOrder
@@ -1930,6 +2113,76 @@ module.exports = class coinbase extends Exchange {
             throw new BadRequest (this.id + ' cancelOrders() has failed, check your arguments and parameters');
         }
         return this.parseOrders (orders, market);
+    }
+
+    async fetchOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
+        /**
+         * @method
+         * @name coinbase#fetchOHLCV
+         * @description fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+         * @see https://docs.cloud.coinbase.com/advanced-trade-api/reference/retailbrokerageapi_getcandles
+         * @param {string} symbol unified symbol of the market to fetch OHLCV data for
+         * @param {string} timeframe the length of time each candle represents
+         * @param {int|undefined} since timestamp in ms of the earliest candle to fetch
+         * @param {int|undefined} limit the maximum amount of candles to fetch, not used by coinbase
+         * @param {object} params extra parameters specific to the coinbase api endpoint
+         * @returns {[[int]]} A list of candles ordered as timestamp, open, high, low, close, volume
+         */
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const end = this.seconds ().toString ();
+        const request = {
+            'product_id': market['id'],
+            'granularity': this.safeString (this.timeframes, timeframe, timeframe),
+            'end': end,
+        };
+        if (since !== undefined) {
+            since = since.toString ();
+            const timeframeToSeconds = Precise.stringDiv (since, '1000');
+            request['start'] = this.decimalToPrecision (timeframeToSeconds, TRUNCATE, 0, DECIMAL_PLACES);
+        } else {
+            request['start'] = Precise.stringSub (end, '18000'); // default to 5h in seconds, max 300 candles
+        }
+        const response = await this.v3PrivateGetBrokerageProductsProductIdCandles (this.extend (request, params));
+        //
+        //     {
+        //         "candles": [
+        //             {
+        //                 "start": "1673391780",
+        //                 "low": "17414.36",
+        //                 "high": "17417.99",
+        //                 "open": "17417.74",
+        //                 "close": "17417.38",
+        //                 "volume": "1.87780853"
+        //             },
+        //         ]
+        //     }
+        //
+        const candles = this.safeValue (response, 'candles', []);
+        return this.parseOHLCVs (candles, market, timeframe, since, limit);
+    }
+
+    parseOHLCV (ohlcv, market = undefined) {
+        //
+        //     [
+        //         {
+        //             "start": "1673391780",
+        //             "low": "17414.36",
+        //             "high": "17417.99",
+        //             "open": "17417.74",
+        //             "close": "17417.38",
+        //             "volume": "1.87780853"
+        //         },
+        //     ]
+        //
+        return [
+            this.safeTimestamp (ohlcv, 'start'),
+            this.safeNumber (ohlcv, 'open'),
+            this.safeNumber (ohlcv, 'high'),
+            this.safeNumber (ohlcv, 'low'),
+            this.safeNumber (ohlcv, 'close'),
+            this.safeNumber (ohlcv, 'volume'),
+        ];
     }
 
     async fetchTrades (symbol, since = undefined, limit = undefined, params = {}) {

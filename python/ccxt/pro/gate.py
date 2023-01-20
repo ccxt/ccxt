@@ -577,7 +577,7 @@ class gate(Exchange, ccxt.async_support.gate):
             'option': 'options',
         })
         channel = channelType + '.balances'
-        messageHash = 'balance'
+        messageHash = type + '.balance'
         return await self.subscribe_private(url, messageHash, None, channel, params, requiresUid)
 
     def handle_balance(self, client, message):
@@ -650,8 +650,17 @@ class gate(Exchange, ccxt.async_support.gate):
             account['free'] = self.safe_string(rawBalance, 'available')
             account['total'] = self.safe_string_2(rawBalance, 'total', 'balance')
             self.balance[code] = account
+        channel = self.safe_string(message, 'channel')
+        parts = channel.split('.')
+        rawType = self.safe_string(parts, 0)
+        channelType = self.get_supported_mapping(rawType, {
+            'spot': 'spot',
+            'futures': 'swap',
+            'options': 'option',
+        })
+        messageHash = channelType + '.balance'
         self.balance = self.safe_balance(self.balance)
-        client.resolve(self.balance, 'balance')
+        client.resolve(self.balance, messageHash)
 
     async def watch_orders(self, symbol=None, since=None, limit=None, params={}):
         """
@@ -799,13 +808,16 @@ class gate(Exchange, ccxt.async_support.gate):
             'balance': self.handle_balance_subscription,
             'order_book': self.handle_order_book_subscription,
         }
-        keys = list(methods.keys())
-        for i in range(0, len(keys)):
-            key = keys[i]
-            if channel.find(key) >= 0:
-                method = methods[key]
-                subscription = client.subscriptions[channel]
-                method(client, message, subscription)
+        id = self.safe_string(message, 'id')
+        subscriptionsById = self.index_by(client.subscriptions, 'id')
+        subscription = self.safe_value(subscriptionsById, id)
+        if subscription is not None:
+            keys = list(methods.keys())
+            for i in range(0, len(keys)):
+                key = keys[i]
+                if channel.find(key) >= 0:
+                    method = methods[key]
+                    method(client, message, subscription)
 
     def handle_message(self, client, message):
         #
@@ -972,7 +984,7 @@ class gate(Exchange, ccxt.async_support.gate):
             'messageHash': messageHash,
         })
         message = self.extend(request, params)
-        return await self.watch(url, messageHash, message, subscriptionHash, subscription)
+        return await self.watch(url, messageHash, message, messageHash, subscription)
 
     async def subscribe_private(self, url, messageHash, payload, subscriptionHash, params, requiresUid=False):
         self.check_required_credentials()
@@ -1009,4 +1021,4 @@ class gate(Exchange, ccxt.async_support.gate):
             'id': requestId,
             'messageHash': messageHash,
         }
-        return await self.watch(url, messageHash, message, subscriptionHash, subscription)
+        return await self.watch(url, messageHash, message, messageHash, subscription)
