@@ -4,7 +4,7 @@
 
 const Exchange = require ('./base/Exchange');
 const { ExchangeError, ArgumentsRequired, AuthenticationError, BadRequest, InvalidOrder, NotSupported, RateLimitExceeded, InvalidNonce } = require ('./base/errors');
-const { TICK_SIZE } = require ('./base/functions/number');
+const { TICK_SIZE, TRUNCATE, DECIMAL_PLACES } = require ('./base/functions/number');
 const Precise = require ('./base/Precise');
 
 // ----------------------------------------------------------------------------
@@ -69,7 +69,7 @@ module.exports = class coinbase extends Exchange {
                 'fetchMyBuys': true,
                 'fetchMySells': true,
                 'fetchMyTrades': undefined,
-                'fetchOHLCV': false,
+                'fetchOHLCV': true,
                 'fetchOpenInterestHistory': false,
                 'fetchOpenOrders': undefined,
                 'fetchOrder': undefined,
@@ -254,6 +254,16 @@ module.exports = class coinbase extends Exchange {
                 'broad': {
                     'request timestamp expired': InvalidNonce, // {"errors":[{"id":"authentication_error","message":"request timestamp expired"}]}
                 },
+            },
+            'timeframes': {
+                '1m': 'ONE_MINUTE',
+                '5m': 'FIVE_MINUTE',
+                '15m': 'FIFTEEN_MINUTE',
+                '30m': 'THIRTY_MINUTE',
+                '1h': 'ONE_HOUR',
+                '2h': 'TWO_HOUR',
+                '6h': 'SIX_HOUR',
+                '1d': 'ONE_DAY',
             },
             'commonCurrencies': {
                 'CGLD': 'CELO',
@@ -2056,6 +2066,76 @@ module.exports = class coinbase extends Exchange {
             throw new BadRequest (this.id + ' cancelOrders() has failed, check your arguments and parameters');
         }
         return this.parseOrders (orders, market);
+    }
+
+    async fetchOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
+        /**
+         * @method
+         * @name coinbase#fetchOHLCV
+         * @description fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+         * @see https://docs.cloud.coinbase.com/advanced-trade-api/reference/retailbrokerageapi_getcandles
+         * @param {string} symbol unified symbol of the market to fetch OHLCV data for
+         * @param {string} timeframe the length of time each candle represents
+         * @param {int|undefined} since timestamp in ms of the earliest candle to fetch
+         * @param {int|undefined} limit the maximum amount of candles to fetch, not used by coinbase
+         * @param {object} params extra parameters specific to the coinbase api endpoint
+         * @returns {[[int]]} A list of candles ordered as timestamp, open, high, low, close, volume
+         */
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const end = this.seconds ().toString ();
+        const request = {
+            'product_id': market['id'],
+            'granularity': this.timeframes[timeframe],
+            'end': end,
+        };
+        if (since !== undefined) {
+            since = since.toString ();
+            const timeframeToSeconds = Precise.stringDiv (since, '1000');
+            request['start'] = this.decimalToPrecision (timeframeToSeconds, TRUNCATE, 0, DECIMAL_PLACES);
+        } else {
+            request['start'] = Precise.stringSub (end, '18000'); // default to 5h in seconds, max 300 candles
+        }
+        const response = await this.v3PrivateGetBrokerageProductsProductIdCandles (this.extend (request, params));
+        //
+        //     {
+        //         "candles": [
+        //             {
+        //                 "start": "1673391780",
+        //                 "low": "17414.36",
+        //                 "high": "17417.99",
+        //                 "open": "17417.74",
+        //                 "close": "17417.38",
+        //                 "volume": "1.87780853"
+        //             },
+        //         ]
+        //     }
+        //
+        const candles = this.safeValue (response, 'candles', []);
+        return this.parseOHLCVs (candles, market, timeframe, since, limit);
+    }
+
+    parseOHLCV (ohlcv, market = undefined) {
+        //
+        //     [
+        //         {
+        //             "start": "1673391780",
+        //             "low": "17414.36",
+        //             "high": "17417.99",
+        //             "open": "17417.74",
+        //             "close": "17417.38",
+        //             "volume": "1.87780853"
+        //         },
+        //     ]
+        //
+        return [
+            this.safeTimestamp (ohlcv, 'start'),
+            this.safeNumber (ohlcv, 'open'),
+            this.safeNumber (ohlcv, 'high'),
+            this.safeNumber (ohlcv, 'low'),
+            this.safeNumber (ohlcv, 'close'),
+            this.safeNumber (ohlcv, 'volume'),
+        ];
     }
 
     sign (path, api = [], method = 'GET', params = {}, headers = undefined, body = undefined) {
