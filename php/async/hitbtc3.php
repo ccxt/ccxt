@@ -54,6 +54,8 @@ class hitbtc3 extends Exchange {
                 'fetchCurrencies' => true,
                 'fetchDepositAddress' => true,
                 'fetchDeposits' => true,
+                'fetchDepositWithdrawFee' => 'emulated',
+                'fetchDepositWithdrawFees' => true,
                 'fetchFundingHistory' => null,
                 'fetchFundingRate' => true,
                 'fetchFundingRateHistory' => true,
@@ -1135,33 +1137,36 @@ class hitbtc3 extends Exchange {
         $sender = $this->safe_value($native, 'senders');
         $addressFrom = $this->safe_string($sender, 0);
         $amount = $this->safe_number($native, 'amount');
-        $fee = null;
+        $fee = array(
+            'currency' => null,
+            'cost' => null,
+            'rate' => null,
+        );
         $feeCost = $this->safe_number($native, 'fee');
         if ($feeCost !== null) {
-            $fee = array(
-                'currency' => $code,
-                'cost' => $feeCost,
-            );
+            $fee['currency'] = $code;
+            $fee['cost'] = $feeCost;
         }
         return array(
             'info' => $transaction,
             'id' => $id,
             'txid' => $txhash,
+            'type' => $type,
             'code' => $code, // kept here for backward-compatibility, but will be removed soon
             'currency' => $code,
-            'amount' => $amount,
             'network' => null,
+            'amount' => $amount,
+            'status' => $status,
+            'timestamp' => $timestamp,
+            'datetime' => $this->iso8601($timestamp),
             'address' => $address,
             'addressFrom' => $addressFrom,
             'addressTo' => $addressTo,
             'tag' => $tag,
             'tagFrom' => null,
             'tagTo' => $tagTo,
-            'timestamp' => $timestamp,
-            'datetime' => $this->iso8601($timestamp),
             'updated' => $updated,
-            'status' => $status,
-            'type' => $type,
+            'comment' => null,
             'fee' => $fee,
         );
     }
@@ -2700,6 +2705,96 @@ class hitbtc3 extends Exchange {
             );
             return Async\await($this->privatePutFuturesAccountIsolatedSymbol (array_merge($request, $params)));
         }) ();
+    }
+
+    public function fetch_deposit_withdraw_fees($codes = null, $params = array ()) {
+        return Async\async(function () use ($codes, $params) {
+            /**
+             * fetch deposit and withdraw fees
+             * @see https://api.hitbtc.com/#currencies
+             * @param {[string]|null} $codes list of unified currency $codes
+             * @param {array} $params extra parameters specific to the hitbtc3 api endpoint
+             * @return {[array]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#fee-structure fees structures}
+             */
+            Async\await($this->load_markets());
+            $response = Async\await($this->publicGetPublicCurrency ($params));
+            //
+            //     {
+            //       "WEALTH" => {
+            //         "full_name" => "ConnectWealth",
+            //         "payin_enabled" => false,
+            //         "payout_enabled" => false,
+            //         "transfer_enabled" => true,
+            //         "precision_transfer" => "0.001",
+            //         "networks" => array(
+            //           {
+            //             "network" => "ETH",
+            //             "protocol" => "ERC20",
+            //             "default" => true,
+            //             "payin_enabled" => false,
+            //             "payout_enabled" => false,
+            //             "precision_payout" => "0.001",
+            //             "payout_fee" => "0.016800000000",
+            //             "payout_is_payment_id" => false,
+            //             "payin_payment_id" => false,
+            //             "payin_confirmations" => "2"
+            //           }
+            //         )
+            //       }
+            //     }
+            //
+            return $this->parse_deposit_withdraw_fees($response, $codes);
+        }) ();
+    }
+
+    public function parse_deposit_withdraw_fee($fee, $currency = null) {
+        //
+        //    {
+        //         "full_name" => "ConnectWealth",
+        //         "payin_enabled" => false,
+        //         "payout_enabled" => false,
+        //         "transfer_enabled" => true,
+        //         "precision_transfer" => "0.001",
+        //         "networks" => array(
+        //           {
+        //             "network" => "ETH",
+        //             "protocol" => "ERC20",
+        //             "default" => true,
+        //             "payin_enabled" => false,
+        //             "payout_enabled" => false,
+        //             "precision_payout" => "0.001",
+        //             "payout_fee" => "0.016800000000",
+        //             "payout_is_payment_id" => false,
+        //             "payin_payment_id" => false,
+        //             "payin_confirmations" => "2"
+        //           }
+        //         )
+        //    }
+        //
+        $networks = $this->safe_value($fee, 'networks', array());
+        $result = $this->deposit_withdraw_fee($fee);
+        for ($j = 0; $j < count($networks); $j++) {
+            $networkEntry = $networks[$j];
+            $networkId = $this->safe_string($networkEntry, 'network');
+            $networkCode = $this->network_id_to_code($networkId);
+            $withdrawFee = $this->safe_number($networkEntry, 'payout_fee');
+            $isDefault = $this->safe_value($networkEntry, 'default');
+            $withdrawResult = array(
+                'fee' => $withdrawFee,
+                'percentage' => ($withdrawFee !== null) ? false : null,
+            );
+            if ($isDefault === true) {
+                $result['withdraw'] = $withdrawResult;
+            }
+            $result['networks'][$networkCode] = array(
+                'withdraw' => $withdrawResult,
+                'deposit' => array(
+                    'fee' => null,
+                    'percentage' => null,
+                ),
+            );
+        }
+        return $result;
     }
 
     public function handle_margin_mode_and_params($methodName, $params = array (), $defaultValue = null) {

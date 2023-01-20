@@ -457,8 +457,7 @@ class bitvavo extends \ccxt\async\bitvavo {
             $marketId = $market['id'];
             $url = $this->urls['api']['ws'];
             $name = 'account';
-            $subscriptionHash = $name . '@' . $marketId;
-            $messageHash = $subscriptionHash . '_' . 'order';
+            $messageHash = 'order:' . $symbol;
             $request = array(
                 'action' => 'subscribe',
                 'channels' => array(
@@ -468,7 +467,7 @@ class bitvavo extends \ccxt\async\bitvavo {
                     ),
                 ),
             );
-            $orders = Async\await($this->watch($url, $messageHash, $request, $subscriptionHash));
+            $orders = Async\await($this->watch($url, $messageHash, $request, $messageHash));
             if ($this->newUpdates) {
                 $limit = $orders->getLimit ($symbol, $limit);
             }
@@ -496,8 +495,7 @@ class bitvavo extends \ccxt\async\bitvavo {
             $marketId = $market['id'];
             $url = $this->urls['api']['ws'];
             $name = 'account';
-            $subscriptionHash = $name . '@' . $marketId;
-            $messageHash = $subscriptionHash . '_' . 'fill';
+            $messageHash = 'myTrades:' . $symbol;
             $request = array(
                 'action' => 'subscribe',
                 'channels' => array(
@@ -507,7 +505,7 @@ class bitvavo extends \ccxt\async\bitvavo {
                     ),
                 ),
             );
-            $trades = Async\await($this->watch($url, $messageHash, $request, $subscriptionHash));
+            $trades = Async\await($this->watch($url, $messageHash, $request, $messageHash));
             if ($this->newUpdates) {
                 $limit = $trades->getLimit ($symbol, $limit);
             }
@@ -518,7 +516,7 @@ class bitvavo extends \ccxt\async\bitvavo {
     public function handle_order($client, $message) {
         //
         //     {
-        //         $event => 'order',
+        //         event => 'order',
         //         orderId => 'f0e5180f-9497-4d05-9dc2-7056e8a2de9b',
         //         $market => 'ETH-EUR',
         //         created => 1590948500319,
@@ -537,11 +535,10 @@ class bitvavo extends \ccxt\async\bitvavo {
         //         postOnly => false
         //     }
         //
-        $name = 'account';
-        $event = $this->safe_string($message, 'event');
         $marketId = $this->safe_string($message, 'market');
         $market = $this->safe_market($marketId, null, '-');
-        $messageHash = $name . '@' . $marketId . '_' . $event;
+        $symbol = $market['symbol'];
+        $messageHash = 'order:' . $symbol;
         $order = $this->parse_order($message, $market);
         if ($this->orders === null) {
             $limit = $this->safe_integer($this->options, 'ordersLimit', 1000);
@@ -555,7 +552,7 @@ class bitvavo extends \ccxt\async\bitvavo {
     public function handle_my_trade($client, $message) {
         //
         //     {
-        //         $event => 'fill',
+        //         event => 'fill',
         //         timestamp => 1590964470132,
         //         $market => 'ETH-EUR',
         //         orderId => '85d082e1-eda4-4209-9580-248281a29a9a',
@@ -568,11 +565,10 @@ class bitvavo extends \ccxt\async\bitvavo {
         //         feeCurrency => 'EUR'
         //     }
         //
-        $name = 'account';
-        $event = $this->safe_string($message, 'event');
         $marketId = $this->safe_string($message, 'market');
-        $messageHash = $name . '@' . $marketId . '_' . $event;
         $market = $this->safe_market($marketId, null, '-');
+        $symbol = $market['symbol'];
+        $messageHash = 'myTrades:' . $symbol;
         $trade = $this->parse_trade($message, $market);
         if ($this->myTrades === null) {
             $limit = $this->safe_integer($this->options, 'tradesLimit', 1000);
@@ -580,7 +576,6 @@ class bitvavo extends \ccxt\async\bitvavo {
         }
         $tradesArray = $this->myTrades;
         $tradesArray->append ($trade);
-        $this->myTrades = $tradesArray;
         $client->resolve ($tradesArray, $messageHash);
     }
 
@@ -610,57 +605,47 @@ class bitvavo extends \ccxt\async\bitvavo {
     }
 
     public function authenticate($params = array ()) {
-        return Async\async(function () use ($params) {
-            $url = $this->urls['api']['ws'];
-            $client = $this->client($url);
-            $future = $client->future ('authenticated');
+        $url = $this->urls['api']['ws'];
+        $client = $this->client($url);
+        $messageHash = 'authenticated';
+        $future = $this->safe_value($client->subscriptions, $messageHash);
+        if ($future === null) {
+            $timestamp = $this->milliseconds();
+            $stringTimestamp = (string) $timestamp;
+            $auth = $stringTimestamp . 'GET/' . $this->version . '/websocket';
+            $signature = $this->hmac($this->encode($auth), $this->encode($this->secret));
             $action = 'authenticate';
-            $authenticated = $this->safe_value($client->subscriptions, $action);
-            if ($authenticated === null) {
-                try {
-                    $this->check_required_credentials();
-                    $timestamp = $this->milliseconds();
-                    $stringTimestamp = (string) $timestamp;
-                    $auth = $stringTimestamp . 'GET/' . $this->version . '/websocket';
-                    $signature = $this->hmac($this->encode($auth), $this->encode($this->secret));
-                    $request = array(
-                        'action' => $action,
-                        'key' => $this->apiKey,
-                        'signature' => $signature,
-                        'timestamp' => $timestamp,
-                    );
-                    $this->spawn(array($this, 'watch'), $url, $action, $request, $action);
-                } catch (Exception $e) {
-                    $client->reject ($e, 'authenticated');
-                    // allows further authentication attempts
-                    if (is_array($client->subscriptions) && array_key_exists($action, $client->subscriptions)) {
-                        unset($client->subscriptions[$action]);
-                    }
-                }
-            }
-            return Async\await($future);
-        }) ();
+            $request = array(
+                'action' => $action,
+                'key' => $this->apiKey,
+                'signature' => $signature,
+                'timestamp' => $timestamp,
+            );
+            $message = array_merge($request, $params);
+            $future = $this->watch($url, $messageHash, $message);
+            $client->subscriptions[$messageHash] = $future;
+        }
+        return $future;
     }
 
     public function handle_authentication_message($client, $message) {
         //
         //     {
-        //         $event => 'authenticate',
+        //         event => 'authenticate',
         //         $authenticated => true
         //     }
         //
+        $messageHash = 'authenticated';
         $authenticated = $this->safe_value($message, 'authenticated', false);
         if ($authenticated) {
-            // we resolve the $future here permanently so authentication only happens once
-            $future = $this->safe_value($client->futures, 'authenticated');
-            $future->resolve (true);
+            // we resolve the future here permanently so authentication only happens once
+            $client->resolve ($message, $messageHash);
         } else {
             $error = new AuthenticationError ($this->json($message));
-            $client->reject ($error, 'authenticated');
+            $client->reject ($error, $messageHash);
             // allows further authentication attempts
-            $event = $this->safe_value($message, 'event');
-            if (is_array($client->subscriptions) && array_key_exists($event, $client->subscriptions)) {
-                unset($client->subscriptions[$event]);
+            if (is_array($client->subscriptions) && array_key_exists($messageHash, $client->subscriptions)) {
+                unset($client->subscriptions[$messageHash]);
             }
         }
     }

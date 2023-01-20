@@ -125,8 +125,6 @@ class okx extends Exchange {
                 '1w' => '1W',
                 '1M' => '1M',
                 '3M' => '3M',
-                '6M' => '6M',
-                '1y' => '1Y',
             ),
             'hostname' => 'www.okx.com', // or aws.okx.com
             'urls' => array(
@@ -174,6 +172,7 @@ class okx extends Exchange {
                         'public/time' => 2,
                         'public/liquidation-orders' => 0.5,
                         'public/mark-price' => 2,
+                        'public/option-trades' => 1,
                         // 'public/tier',
                         'public/position-tiers' => 2,
                         'public/underlying' => 1,
@@ -226,6 +225,7 @@ class okx extends Exchange {
                         'asset/transfer-state' => 10,
                         'asset/deposit-history' => 5 / 3,
                         'asset/withdrawal-history' => 5 / 3,
+                        'asset/deposit-withdraw-status' => 20,
                         'asset/currencies' => 5 / 3,
                         'asset/bills' => 5 / 3,
                         'asset/piggy-balance' => 5 / 3,
@@ -712,6 +712,9 @@ class okx extends Exchange {
                     'POLYGON' => 'Polygon',
                     'OEC' => 'OEC',
                     'ALGO' => 'ALGO', // temporarily unavailable
+                    'OPTIMISM' => 'Optimism',
+                    'ARBITRUM' => 'Arbitrum one',
+                    'AVALANCHE' => 'Avalanche C-Chain',
                 ),
                 'fetchOpenInterestHistory' => array(
                     'timeframes' => array(
@@ -2543,6 +2546,7 @@ class okx extends Exchange {
             'side' => $side,
             'price' => $price,
             'stopPrice' => $stopPrice,
+            'triggerPrice' => $stopPrice,
             'average' => $average,
             'cost' => $cost,
             'amount' => $amount,
@@ -3637,7 +3641,7 @@ class okx extends Exchange {
         $this->check_address($address);
         $this->load_markets();
         $currency = $this->currency($code);
-        if ($tag !== null) {
+        if (($tag !== null) && (strlen($tag) > 0)) {
             $address = $address . ':' . $tag;
         }
         $fee = $this->safe_string($params, 'fee');
@@ -4267,18 +4271,28 @@ class okx extends Exchange {
         $symbol = $market['symbol'];
         $pos = $this->safe_string($position, 'pos'); // 'pos' field => One way mode => 0 if $position is not open, 1 if open | Two way (hedge) mode => -1 if short, 1 if long, 0 if $position is not open
         $contractsAbs = Precise::string_abs($pos);
-        $contracts = null;
         $side = $this->safe_string($position, 'posSide');
         $hedged = $side !== 'net';
-        if ($pos !== null) {
-            $contracts = $this->parse_number($contractsAbs);
+        $contracts = $this->parse_number($contractsAbs);
+        if ($market['margin']) {
+            // margin $position
             if ($side === 'net') {
-                if (Precise::string_gt($pos, '0')) {
-                    $side = 'long';
-                } elseif (Precise::string_lt($pos, '0')) {
-                    $side = 'short';
-                } else {
-                    $side = null;
+                $posCcy = $this->safe_string($position, 'posCcy');
+                $parsedCurrency = $this->safe_currency_code($posCcy);
+                if ($parsedCurrency !== null) {
+                    $side = ($market['base'] === $parsedCurrency) ? 'long' : 'short';
+                }
+            }
+        } else {
+            if ($pos !== null) {
+                if ($side === 'net') {
+                    if (Precise::string_gt($pos, '0')) {
+                        $side = 'long';
+                    } elseif (Precise::string_lt($pos, '0')) {
+                        $side = 'short';
+                    } else {
+                        $side = null;
+                    }
                 }
             }
         }

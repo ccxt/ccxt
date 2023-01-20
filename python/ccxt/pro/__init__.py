@@ -4,7 +4,7 @@
 
 # ----------------------------------------------------------------------------
 
-__version__ = '2.4.74'
+__version__ = '2.6.47'
 
 # ----------------------------------------------------------------------------
 
@@ -32,6 +32,7 @@ from ccxt.pro.bitrue import bitrue                                        # noqa
 from ccxt.pro.bitstamp import bitstamp                                    # noqa: F401
 from ccxt.pro.bittrex import bittrex                                      # noqa: F401
 from ccxt.pro.bitvavo import bitvavo                                      # noqa: F401
+from ccxt.pro.btcex import btcex                                          # noqa: F401
 from ccxt.pro.bybit import bybit                                          # noqa: F401
 from ccxt.pro.cex import cex                                              # noqa: F401
 from ccxt.pro.coinbaseprime import coinbaseprime                          # noqa: F401
@@ -43,6 +44,7 @@ from ccxt.pro.deribit import deribit                                      # noqa
 from ccxt.pro.exmo import exmo                                            # noqa: F401
 from ccxt.pro.gate import gate                                            # noqa: F401
 from ccxt.pro.gateio import gateio                                        # noqa: F401
+from ccxt.pro.gemini import gemini                                        # noqa: F401
 from ccxt.pro.hitbtc import hitbtc                                        # noqa: F401
 from ccxt.pro.hollaex import hollaex                                      # noqa: F401
 from ccxt.pro.huobi import huobi                                          # noqa: F401
@@ -51,6 +53,7 @@ from ccxt.pro.huobipro import huobipro                                    # noqa
 from ccxt.pro.idex import idex                                            # noqa: F401
 from ccxt.pro.kraken import kraken                                        # noqa: F401
 from ccxt.pro.kucoin import kucoin                                        # noqa: F401
+from ccxt.pro.kucoinfutures import kucoinfutures                          # noqa: F401
 from ccxt.pro.luno import luno                                            # noqa: F401
 from ccxt.pro.mexc import mexc                                            # noqa: F401
 from ccxt.pro.ndax import ndax                                            # noqa: F401
@@ -85,6 +88,7 @@ exchanges = [
     'bitstamp',
     'bittrex',
     'bitvavo',
+    'btcex',
     'bybit',
     'cex',
     'coinbaseprime',
@@ -96,6 +100,7 @@ exchanges = [
     'exmo',
     'gate',
     'gateio',
+    'gemini',
     'hitbtc',
     'hollaex',
     'huobi',
@@ -104,6 +109,7 @@ exchanges = [
     'idex',
     'kraken',
     'kucoin',
+    'kucoinfutures',
     'luno',
     'mexc',
     'ndax',

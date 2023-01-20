@@ -822,6 +822,7 @@ class phemex(Exchange, ccxt.async_support.phemex):
             'side': side,
             'price': price,
             'stopPrice': stopPrice,
+            'triggerPrice': stopPrice,
             'amount': amount,
             'filled': filled,
             'remaining': remaining,

@@ -2222,6 +2222,7 @@ class mexc(Exchange):
             'side': side,
             'price': price,
             'stopPrice': self.safe_string(order, 'triggerPrice'),
+            'triggerPrice': self.safe_string(order, 'triggerPrice'),
             'average': self.safe_string(order, 'dealAvgPrice'),
             'amount': amount,
             'cost': cost,

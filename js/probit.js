@@ -1117,6 +1117,7 @@ module.exports = class probit extends Exchange {
             'status': status,
             'price': price,
             'stopPrice': undefined,
+            'triggerPrice': undefined,
             'amount': amount,
             'filled': filled,
             'remaining': remaining,

@@ -610,7 +610,7 @@ class bithumb(Exchange):
         request = {
             'currency': market['base'],
         }
-        if limit is None:
+        if limit is not None:
             request['count'] = limit  # default 20, max 100
         response = self.publicGetTransactionHistoryCurrency(self.extend(request, params))
         #
@@ -804,6 +804,7 @@ class bithumb(Exchange):
             'side': side,
             'price': price,
             'stopPrice': None,
+            'triggerPrice': None,
             'amount': amount,
             'cost': None,
             'average': None,

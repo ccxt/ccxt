@@ -49,64 +49,62 @@ if (!exchanges.length) {
 // ----------------------------------------------------------------------------
 
 const sleep = s => new Promise (resolve => setTimeout (resolve, s))
-const timeout = (s, promise) => Promise.race ([ promise, sleep (s).then (() => { throw new Error ('Test execution took longer than ' + maxTimeout.toString () + ' milliseconds, testing timed out.') }) ])
-const maxTimeout = 1200000 // 20 minutes
+const maxProcessTimeout = 300000 // 5 minutes
 
 // ----------------------------------------------------------------------------
 
-const exec = (bin, ...args) =>
+const exec = (bin, ...args) => {
 
     // a custom version of child_process.exec that captures both stdout and
     // stderr,  not separating them into distinct buffers — so that we can show
     // the same output as if it were running in a terminal.
 
-    timeout (maxTimeout, new Promise (return_ => {
+    const ps = spawn (bin, args, { timeout: maxProcessTimeout })
 
-        const ps = spawn (bin, args)
+    let output = ''
+    let stderr = ''
+    let hasWarnings = false
 
-        let output = ''
-        let stderr = ''
-        let hasWarnings = false
+    ps.stdout.on ('data', data => { output += data.toString () })
+    ps.stderr.on ('data', data => { output += data.toString (); stderr += data.toString (); hasWarnings = true })
 
-        ps.stdout.on ('data', data => { output += data.toString () })
-        ps.stderr.on ('data', data => { output += data.toString (); stderr += data.toString (); hasWarnings = true })
+    let return_
+    const promise = new Promise ((resolve) => {
+        return_ = resolve
+    })
 
-        ps.on ('exit', code => {
+    ps.on ('exit', (code, signal) => {
 
-            output = ansi.strip (output.trim ())
-            stderr = ansi.strip (stderr)
+        output = ansi.strip (output.trim ())
+        stderr = ansi.strip (stderr)
 
-            const regex = /\[[a-z]+?\]/gmi
+        const regex = /\[[a-z]+?\]/gmi
 
-            let match = undefined
-            const warnings = []
+        let match = undefined
+        const warnings = []
 
-            match = regex.exec (output)
+        match = regex.exec (output)
 
-            if (match) {
-                warnings.push (match[0])
-                do {
-                    if (match = regex.exec (output)) {
-                        warnings.push (match[0])
-                    }
-                } while (match);
-            }
+        if (match) {
+            warnings.push (match[0])
+            do {
+                if (match = regex.exec (output)) {
+                    warnings.push (match[0])
+                }
+            } while (match);
+        }
 
-            return_ ({
-                failed: code !== 0,
-                output,
-                hasOutput: output.length > 0,
-                hasWarnings: hasWarnings || warnings.length > 0,
-                warnings: warnings,
-            })
+        return_ ({
+            failed: code !== 0,
+            stalled: (code === null) && (signal !== null),
+            output,
+            hasOutput: output.length > 0,
+            hasWarnings: hasWarnings || warnings.length > 0,
+            warnings: warnings,
         })
-
-    })).catch (e => ({
-
-        failed: true,
-        output: e.message
-
-    })).then (x => Object.assign (x, { hasOutput: x.output.length > 0 }))
+    })
+    return promise
+}
 
 // ----------------------------------------------------------------------------
 
@@ -141,6 +139,7 @@ const testExchange = async (exchange) => {
         , scheduledTests = selectedTests.length ? selectedTests : allTests
         , completeTests  = await sequentialMap (scheduledTests, async test => Object.assign (test, await exec (...test.exec)))
         , failed         = completeTests.find (test => test.failed)
+        , stalled        = completeTests.find (test => test.stalled)
         , hasWarnings    = completeTests.find (test => test.hasWarnings)
         , warnings       = completeTests.reduce ((total, { warnings }) => total.concat (warnings), [])
 
@@ -150,9 +149,17 @@ const testExchange = async (exchange) => {
 
     const percentsDone = ((numExchangesTested / exchanges.length) * 100).toFixed (0) + '%'
 
-    const result = (failed      ? 'FAIL'.red :
-                   (hasWarnings ? (warnings.length ? warnings.join (' ') : 'WARN').yellow
-                                                                         : 'OK'.green))
+    let result
+    if (stalled) {
+        // a timeout is always also a fail
+        result = 'TIMEOUT'.red
+    } else if (failed) {
+        result = 'FAILED'.red
+    } else if (hasWarnings) {
+        result = warnings.join (' ').yellow
+    } else {
+        result = 'OK'.green
+    }
 
     const date = (new Date()).toISOString ()
     log.bright (date, ('[' + percentsDone + ']').dim, 'Testing WS', exchange.cyan, result)
@@ -163,15 +170,16 @@ const testExchange = async (exchange) => {
 
         exchange,
         failed,
+        stalled,
         hasWarnings,
         explain () {
-            for (const { language, failed, output, hasWarnings } of completeTests) {
+            for (const { language, failed, stalled, output, hasWarnings } of completeTests) {
                 if (failed || hasWarnings) {
 
                     if (!failed && output.indexOf('[Skipped]') >= 0)
                         continue;
 
-                    if (failed) { log.bright ('\nFAILED'.bgBrightRed.white, exchange.red,    '(' + language + '):\n') }
+                    if (failed || stalled) { log.bright ((stalled ? '\nTIMEOUT' : '\nFAILED').bgBrightRed.white, exchange.red,    '(' + language + '):\n') }
                     else        { log.bright ('\nWARN'.yellow.inverse,      exchange.yellow, '(' + language + '):\n') }
 
                     log.indent (1) (output)
@@ -242,7 +250,8 @@ async function testAllExchanges () {
 
     const tested    = await testAllExchanges ()
         , warnings  = tested.filter (t => !t.failed && t.hasWarnings)
-        , failed    = tested.filter (t =>  t.failed)
+        , failed    = tested.filter (t =>  t.failed && !t.stalled)
+        , stalled  = tested.filter (t =>  t.stalled)
         , succeeded = tested.filter (t => !t.failed && !t.hasWarnings)
 
     log.newline ()
@@ -253,11 +262,13 @@ async function testAllExchanges () {
     log.newline ()
 
     if (failed.length)   { log.noPretty.bright.red    ('FAIL'.bgBrightRed.white, failed.map (t => t.exchange)) }
+    if (stalled.length)  { log.noPretty.bright.red    ('TIMEOUT'.bgBrightRed.white, stalled.map (t => t.exchange)) }
     if (warnings.length) { log.noPretty.bright.yellow ('WARN'.inverse,           warnings.map (t => t.exchange)) }
 
     log.newline ()
 
     log.bright ('All done,', [failed.length    && (failed.length    + ' failed')   .red,
+                              stalled.length   && (stalled.length + ' timed out').red,
                               succeeded.length && (succeeded.length + ' succeeded').green,
                               warnings.length  && (warnings.length  + ' warnings') .yellow].filter (s => s).join (', '))
 

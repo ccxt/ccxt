@@ -482,6 +482,11 @@ class bybit(Exchange):
                         'unified/v3/private/position/set-risk-limit': 2.5,
                         'unified/v3/private/position/trading-stop': 2.5,
                         'unified/v3/private/account/upgrade-unified-account': 2.5,
+                        # tax
+                        'fht/compliance/tax/v3/private/registertime': 50,
+                        'fht/compliance/tax/v3/private/create': 50,
+                        'fht/compliance/tax/v3/private/status': 50,
+                        'fht/compliance/tax/v3/private/url': 50,
                     },
                     'delete': {
                         # spot
@@ -1205,7 +1210,7 @@ class bybit(Exchange):
         #             "nextPageCursor": ""
         #         },
         #         "retExtInfo": {},
-        #         "time": 1667533491917
+        #         "time": 1667533491916
         #     }
         #
         # option response
@@ -1352,8 +1357,8 @@ class bybit(Exchange):
                 'contract': True,
                 'linear': linear,
                 'inverse': inverse,
-                'taker': self.safe_number(market, 'taker_fee'),
-                'maker': self.safe_number(market, 'maker_fee'),
+                'taker': self.safe_number(market, 'takerFee', self.parse_number('0.0006')),
+                'maker': self.safe_number(market, 'makerFee', self.parse_number('0.0001')),
                 'contractSize': contractSize,
                 'expiry': expiry,
                 'expiryDatetime': expiryDatetime,
@@ -1539,8 +1544,8 @@ class bybit(Exchange):
         percentage = Precise.string_mul(percentage, '100')
         quoteVolume = self.safe_string_n(ticker, ['turnover_24h', 'turnover24h', 'quoteVolume'])
         baseVolume = self.safe_string_n(ticker, ['volume_24h', 'volume24h', 'volume'])
-        bid = self.safe_string_n(ticker, ['bid_price', 'bid', 'bestBidPrice', 'bidPrice'])
-        ask = self.safe_string_n(ticker, ['ask_price', 'ask', 'bestAskPrice', 'askPrice'])
+        bid = self.safe_string_n(ticker, ['bid_price', 'bid', 'bestBidPrice', 'bidPrice', 'bid1Price'])
+        ask = self.safe_string_n(ticker, ['ask_price', 'ask', 'bestAskPrice', 'askPrice', 'ask1Price'])
         high = self.safe_string_n(ticker, ['high_price_24h', 'high24h', 'highPrice', 'highPrice24h'])
         low = self.safe_string_n(ticker, ['low_price_24h', 'low24h', 'lowPrice', 'lowPrice24h'])
         return self.safe_ticker({
@@ -1550,9 +1555,9 @@ class bybit(Exchange):
             'high': high,
             'low': low,
             'bid': bid,
-            'bidVolume': self.safe_string(ticker, 'bidSize'),
+            'bidVolume': self.safe_string_2(ticker, 'bidSize', 'bid1Size'),
             'ask': ask,
-            'askVolume': self.safe_string(ticker, 'askSize'),
+            'askVolume': self.safe_string_2(ticker, 'askSize', 'ask1Size'),
             'vwap': None,
             'open': open,
             'close': last,
@@ -1766,7 +1771,7 @@ class bybit(Exchange):
         await self.load_markets()
         symbols = self.market_symbols(symbols)
         request = {}
-        subType, query = self.handle_sub_type_and_params('fetchTickers', None, params)
+        subType, query = self.handle_sub_type_and_params('fetchTickers', None, params, 'linear')
         if subType == 'option':
             # bybit requires a symbol when query tockers for options markets
             raise NotSupported(self.id + ' fetchTickers() is not supported for option markets')
@@ -1829,7 +1834,11 @@ class bybit(Exchange):
         :returns dict: an array of `ticker structures <https://docs.ccxt.com/en/latest/manual.html#ticker-structure>`
         """
         await self.load_markets()
-        type, query = self.handle_market_type_and_params('fetchTickers', None, params)
+        market = None
+        if symbols is not None:
+            symbols = self.market_symbols(symbols)
+            market = self.market(symbols[0])
+        type, query = self.handle_market_type_and_params('fetchTickers', market, params)
         if type == 'spot':
             return await self.fetch_spot_tickers(symbols, query)
         else:
@@ -2011,6 +2020,59 @@ class bybit(Exchange):
         else:
             return await self.fetch_derivatives_ohlcv(symbol, timeframe, since, limit, params)
 
+    def parse_funding_rate(self, ticker, market=None):
+        #     {
+        #         "symbol": "BTCUSDT",
+        #         "bidPrice": "19255",
+        #         "askPrice": "19255.5",
+        #         "lastPrice": "19255.50",
+        #         "lastTickDirection": "ZeroPlusTick",
+        #         "prevPrice24h": "18634.50",
+        #         "price24hPcnt": "0.033325",
+        #         "highPrice24h": "19675.00",
+        #         "lowPrice24h": "18610.00",
+        #         "prevPrice1h": "19278.00",
+        #         "markPrice": "19255.00",
+        #         "indexPrice": "19260.68",
+        #         "openInterest": "48069.549",
+        #         "turnover24h": "4686694853.047006",
+        #         "volume24h": "243730.252",
+        #         "fundingRate": "0.0001",
+        #         "nextFundingTime": "1663689600000",
+        #         "predictedDeliveryPrice": "",
+        #         "basisRate": "",
+        #         "deliveryFeeRate": "",
+        #         "deliveryTime": "0"
+        #     }
+        #
+        timestamp = self.safe_integer(ticker, 'timestamp')  # added artificially to avoid changing the signature
+        ticker = self.omit(ticker, 'timestamp')
+        marketId = self.safe_string(ticker, 'symbol')
+        symbol = self.safe_symbol(marketId, market, None, 'swap')
+        fundingRate = self.safe_number(ticker, 'fundingRate')
+        fundingTimestamp = self.safe_integer(ticker, 'nextFundingTime')
+        markPrice = self.safe_number(ticker, 'markPrice')
+        indexPrice = self.safe_number(ticker, 'indexPrice')
+        return {
+            'info': ticker,
+            'symbol': symbol,
+            'markPrice': markPrice,
+            'indexPrice': indexPrice,
+            'interestRate': None,
+            'estimatedSettlePrice': None,
+            'timestamp': timestamp,
+            'datetime': self.iso8601(timestamp),
+            'fundingRate': fundingRate,
+            'fundingTimestamp': fundingTimestamp,
+            'fundingDatetime': self.iso8601(fundingTimestamp),
+            'nextFundingRate': None,
+            'nextFundingTimestamp': None,
+            'nextFundingDatetime': None,
+            'previousFundingRate': None,
+            'previousFundingTimestamp': None,
+            'previousFundingDatetime': None,
+        }
+
     async def fetch_funding_rate(self, symbol, params={}):
         """
         fetch the current funding rate
@@ -2020,81 +2082,82 @@ class bybit(Exchange):
         """
         await self.load_markets()
         market = self.market(symbol)
-        request = {
-            'symbol': market['id'],
-        }
-        isUsdcSettled = market['settle'] == 'USDC'
-        method = None
-        if isUsdcSettled:
-            method = 'privatePostPerpetualUsdcOpenapiPrivateV1PredictedFunding'
+        params['symbol'] = market['id']
+        symbols = [market['symbol']]
+        fr = await self.fetch_funding_rates(symbols, params)
+        return self.safe_value(fr, market['symbol'])
+
+    async def fetch_funding_rates(self, symbols=None, params={}):
+        """
+        fetches funding rates for multiple markets
+        :param [str]|None symbols: unified symbols of the markets to fetch the funding rates for, all market funding rates are returned if not assigned
+        :param dict params: extra parameters specific to the bybit api endpoint
+        :returns dict: an array of `funding rate structures <https://docs.ccxt.com/en/latest/manual.html#funding-rate-structure>`
+        """
+        await self.load_markets()
+        symbols = self.market_symbols(symbols)
+        firstSymbol = self.safe_string(symbols, 0)
+        type = 'swap'
+        market = None
+        if firstSymbol is not None:
+            market = self.market(firstSymbol)
+            type = market['type']
+        request = {}
+        subType = None
+        subType, params = self.handle_sub_type_and_params('fetchFundingRates', market, params, 'linear')
+        if type != 'swap':
+            raise NotSupported(self.id + ' fetchFundingRates() does not support ' + type + ' markets')
         else:
-            method = 'privateGetPrivateLinearFundingPredictedFunding' if market['linear'] else 'privateGetV2PrivateFundingPredictedFunding'
-        response = await getattr(self, method)(self.extend(request, params))
+            request['category'] = subType
+        response = await self.publicGetDerivativesV3PublicTickers(self.extend(request, params))
         #
-        # linear
         #     {
-        #       "ret_code": 0,
-        #       "ret_msg": "OK",
-        #       "ext_code": "",
-        #       "ext_info": "",
-        #       "result": {
-        #         "predicted_funding_rate": 0.0001,
-        #         "predicted_funding_fee": 0.00231849
-        #       },
-        #       "time_now": "1658446366.304113",
-        #       "rate_limit_status": 119,
-        #       "rate_limit_reset_ms": 1658446366300,
-        #       "rate_limit": 120
+        #         "retCode": 0,
+        #         "retMsg": "OK",
+        #         "result": {
+        #             "category": "linear",
+        #             "list": [
+        #                 {
+        #                     "symbol": "BTCUSDT",
+        #                     "bidPrice": "19255",
+        #                     "askPrice": "19255.5",
+        #                     "lastPrice": "19255.50",
+        #                     "lastTickDirection": "ZeroPlusTick",
+        #                     "prevPrice24h": "18634.50",
+        #                     "price24hPcnt": "0.033325",
+        #                     "highPrice24h": "19675.00",
+        #                     "lowPrice24h": "18610.00",
+        #                     "prevPrice1h": "19278.00",
+        #                     "markPrice": "19255.00",
+        #                     "indexPrice": "19260.68",
+        #                     "openInterest": "48069.549",
+        #                     "turnover24h": "4686694853.047006",
+        #                     "volume24h": "243730.252",
+        #                     "fundingRate": "0.0001",
+        #                     "nextFundingTime": "1663689600000",
+        #                     "predictedDeliveryPrice": "",
+        #                     "basisRate": "",
+        #                     "deliveryFeeRate": "",
+        #                     "deliveryTime": "0"
+        #                 }
+        #             ]
+        #         },
+        #         "retExtInfo": null,
+        #         "time": 1663670053454
         #     }
         #
-        # inverse
-        #     {
-        #       "ret_code": 0,
-        #       "ret_msg": "OK",
-        #       "ext_code": "",
-        #       "ext_info": "",
-        #       "result": {
-        #         "predicted_funding_rate": -0.00001769,
-        #         "predicted_funding_fee": 0
-        #       },
-        #       "time_now": "1658445512.778048",
-        #       "rate_limit_status": 119,
-        #       "rate_limit_reset_ms": 1658445512773,
-        #       "rate_limit": 120
-        #     }
-        #
-        # usdc
-        #     {
-        #       "result": {
-        #         "predictedFundingRate": "0.0002213",
-        #         "predictedFundingFee": "0"
-        #       },
-        #       "retCode": 0,
-        #       "retMsg": "success"
-        #     }
-        #
-        result = self.safe_value(response, 'result', {})
-        fundingRate = self.safe_number_2(result, 'predicted_funding_rate', 'predictedFundingRate')
-        timestamp = self.safe_timestamp(response, 'time_now')
-        return {
-            'info': response,
-            'symbol': symbol,
-            'markPrice': None,
-            'indexPrice': None,
-            'interestRate': None,
-            'estimatedSettlePrice': None,
-            'timestamp': timestamp,
-            'datetime': self.iso8601(timestamp),
-            'fundingRate': fundingRate,
-            'fundingTimestamp': None,
-            'fundingDatetime': None,
-            'nextFundingRate': None,
-            'nextFundingTimestamp': None,
-            'nextFundingDatetime': None,
-            'previousFundingRate': None,
-            'previousFundingTimestamp': None,
-            'previousFundingDatetime': None,
-        }
+        tickerList = self.safe_value(response, 'result', [])
+        timestamp = self.safe_integer(response, 'time')
+        if not isinstance(tickerList, list):
+            tickerList = self.safe_value(tickerList, 'list')
+        fundingRates = {}
+        for i in range(0, len(tickerList)):
+            rawTicker = tickerList[i]
+            rawTicker['timestamp'] = timestamp  # will be removed inside the parser
+            ticker = self.parse_funding_rate(tickerList[i], None)
+            symbol = ticker['symbol']
+            fundingRates[symbol] = ticker
+        return self.filter_by_array(fundingRates, 'symbol', symbols)
 
     async def fetch_funding_rate_history(self, symbol=None, since=None, limit=None, params={}):
         """
@@ -2245,7 +2308,7 @@ class bybit(Exchange):
                 'currency': feeCurrency,
             }
         return self.safe_trade({
-            'id': self.safe_string(trade, 'id'),
+            'id': self.safe_string(trade, 'tradeId'),
             'info': trade,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
@@ -2379,8 +2442,8 @@ class bybit(Exchange):
         marketId = self.safe_string(trade, 'symbol')
         market = self.safe_market(marketId, market, None, 'contract')
         symbol = market['symbol']
-        amountString = self.safe_string_n(trade, ['orderQty', 'size', 'execQty'])
-        priceString = self.safe_string_n(trade, ['orderPrice', 'price', 'execPrice'])
+        amountString = self.safe_string_n(trade, ['execQty', 'orderQty', 'size'])
+        priceString = self.safe_string_n(trade, ['execPrice', 'orderPrice', 'price'])
         costString = self.safe_string(trade, 'execValue')
         timestamp = self.safe_integer_n(trade, ['time', 'execTime', 'tradeTime'])
         side = self.safe_string_lower(trade, 'side')
@@ -3119,8 +3182,8 @@ class bybit(Exchange):
             'postOnly': None,
             'side': side,
             'price': price,
-            'triggerPrice': stopPrice,
             'stopPrice': stopPrice,
+            'triggerPrice': stopPrice,
             'amount': amount,
             'cost': cost,
             'average': None,
@@ -3954,7 +4017,7 @@ class bybit(Exchange):
             settle = market['settle']
             request['symbol'] = market['id']
         subType = None
-        subType, params = self.handle_sub_type_and_params('cancelAllOrders', market, params)
+        subType, params = self.handle_sub_type_and_params('cancelAllOrders', market, params, 'linear')
         request['category'] = subType
         settle, params = self.handle_option_and_params(params, 'cancelAllOrders', 'settle', settle)
         if settle is not None:
@@ -4127,7 +4190,7 @@ class bybit(Exchange):
         market = None
         if symbol is None:
             subType = None
-            subType, params = self.handle_sub_type_and_params('fetchUnifiedMarginOrders', market, params)
+            subType, params = self.handle_sub_type_and_params('fetchUnifiedMarginOrders', market, params, 'linear')
             request['category'] = subType
         else:
             market = self.market(symbol)
@@ -4430,7 +4493,7 @@ class bybit(Exchange):
         market = None
         if symbol is None:
             subType = None
-            subType, params = self.handle_sub_type_and_params('fetchUnifiedMarginOrders', market, params)
+            subType, params = self.handle_sub_type_and_params('fetchUnifiedMarginOrders', market, params, 'linear')
             request['category'] = subType
         else:
             market = self.market(symbol)
@@ -4706,7 +4769,6 @@ class bybit(Exchange):
 
     async def fetch_my_unified_margin_trades(self, symbol=None, since=None, limit=None, params={}):
         await self.load_markets()
-        await self.load_markets()
         market = None
         settle = None
         request = {
@@ -4722,7 +4784,7 @@ class bybit(Exchange):
             settle = market['settle']
             request['symbol'] = market['id']
         subType = None
-        subType, params = self.handle_sub_type_and_params('fetchMyTrades', market, params)
+        subType, params = self.handle_sub_type_and_params('fetchMyTrades', market, params, 'linear')
         request['category'] = subType
         settle, params = self.handle_option_and_params(params, 'cancelAllOrders', 'settle', settle)
         if settle is not None:
@@ -5571,7 +5633,7 @@ class bybit(Exchange):
         # market None
         type, params = self.handle_market_type_and_params('fetchPositions', None, params)
         subType = None
-        subType, params = self.handle_sub_type_and_params('fetchPositions', None, params)
+        subType, params = self.handle_sub_type_and_params('fetchPositions', None, params, 'linear')
         request['category'] = subType
         if type == 'option':
             request['category'] = 'option'
@@ -5699,7 +5761,8 @@ class bybit(Exchange):
         if isinstance(symbols, list):
             if len(symbols) > 1:
                 raise ArgumentsRequired(self.id + ' fetchPositions() does not accept an array with more than one symbol')
-            request['symbol'] = self.market_id(symbols[0])
+            if len(symbols) == 1:
+                request['symbol'] = self.market_id(symbols[0])
         elif symbols is not None:
             request['symbol'] = self.market_id(symbols)
         else:
@@ -5895,7 +5958,13 @@ class bybit(Exchange):
         market = self.safe_market(contract, market, None, 'contract')
         size = Precise.string_abs(self.safe_string(position, 'size'))
         side = self.safe_string(position, 'side')
-        side = 'long' if (side == 'Buy') else 'short'
+        if side is not None:
+            if side == 'Buy':
+                side = 'long'
+            elif side == 'Sell':
+                side = 'short'
+            else:
+                side = None
         notional = self.safe_string(position, 'positionValue')
         unrealisedPnl = self.omit_zero(self.safe_string(position, 'unrealisedPnl'))
         initialMarginString = self.safe_string(position, 'positionIM')
@@ -5904,8 +5973,8 @@ class bybit(Exchange):
         if timestamp is None:
             timestamp = self.safe_integer(position, 'updatedAt')
         # default to cross of USDC margined positions
-        autoAddMargin = self.safe_integer(position, 'autoAddMargin', 1)
-        marginMode = 'cross' if autoAddMargin else 'isolated'
+        tradeMode = self.safe_integer(position, 'tradeMode', 0)
+        marginMode = 'isolated' if tradeMode else 'cross'
         collateralString = self.safe_string(position, 'positionBalance')
         entryPrice = self.omit_zero(self.safe_string(position, 'entryPrice'))
         liquidationPrice = self.omit_zero(self.safe_string(position, 'liqPrice'))
@@ -6048,7 +6117,7 @@ class bybit(Exchange):
                 'symbol': market['id'],
                 'leverage': leverage,
             }
-            method = 'privatePostOptionUsdcOpenapiPrivateV1PositionSetLeverage'
+            method = 'privatePostPerpetualUsdcOpenapiPrivateV1PositionLeverageSave'
         return await getattr(self, method)(self.extend(request, params))
 
     async def set_position_mode(self, hedged, symbol=None, params={}):

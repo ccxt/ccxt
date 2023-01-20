@@ -665,6 +665,7 @@ class coinone extends Exchange {
             'side' => $side,
             'price' => $priceString,
             'stopPrice' => null,
+            'triggerPrice' => null,
             'cost' => null,
             'average' => null,
             'amount' => $amountString,

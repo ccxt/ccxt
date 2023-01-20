@@ -148,8 +148,6 @@ class okx(Exchange):
                 '1w': '1W',
                 '1M': '1M',
                 '3M': '3M',
-                '6M': '6M',
-                '1y': '1Y',
             },
             'hostname': 'www.okx.com',  # or aws.okx.com
             'urls': {
@@ -197,6 +195,7 @@ class okx(Exchange):
                         'public/time': 2,
                         'public/liquidation-orders': 0.5,
                         'public/mark-price': 2,
+                        'public/option-trades': 1,
                         # 'public/tier',
                         'public/position-tiers': 2,
                         'public/underlying': 1,
@@ -249,6 +248,7 @@ class okx(Exchange):
                         'asset/transfer-state': 10,
                         'asset/deposit-history': 5 / 3,
                         'asset/withdrawal-history': 5 / 3,
+                        'asset/deposit-withdraw-status': 20,
                         'asset/currencies': 5 / 3,
                         'asset/bills': 5 / 3,
                         'asset/piggy-balance': 5 / 3,
@@ -735,6 +735,9 @@ class okx(Exchange):
                     'POLYGON': 'Polygon',
                     'OEC': 'OEC',
                     'ALGO': 'ALGO',  # temporarily unavailable
+                    'OPTIMISM': 'Optimism',
+                    'ARBITRUM': 'Arbitrum one',
+                    'AVALANCHE': 'Avalanche C-Chain',
                 },
                 'fetchOpenInterestHistory': {
                     'timeframes': {
@@ -2454,6 +2457,7 @@ class okx(Exchange):
             'side': side,
             'price': price,
             'stopPrice': stopPrice,
+            'triggerPrice': stopPrice,
             'average': average,
             'cost': cost,
             'amount': amount,
@@ -3496,7 +3500,7 @@ class okx(Exchange):
         self.check_address(address)
         await self.load_markets()
         currency = self.currency(code)
-        if tag is not None:
+        if (tag is not None) and (len(tag) > 0):
             address = address + ':' + tag
         fee = self.safe_string(params, 'fee')
         if fee is None:
@@ -4093,18 +4097,25 @@ class okx(Exchange):
         symbol = market['symbol']
         pos = self.safe_string(position, 'pos')  # 'pos' field: One way mode: 0 if position is not open, 1 if open | Two way(hedge) mode: -1 if short, 1 if long, 0 if position is not open
         contractsAbs = Precise.string_abs(pos)
-        contracts = None
         side = self.safe_string(position, 'posSide')
         hedged = side != 'net'
-        if pos is not None:
-            contracts = self.parse_number(contractsAbs)
+        contracts = self.parse_number(contractsAbs)
+        if market['margin']:
+            # margin position
             if side == 'net':
-                if Precise.string_gt(pos, '0'):
-                    side = 'long'
-                elif Precise.string_lt(pos, '0'):
-                    side = 'short'
-                else:
-                    side = None
+                posCcy = self.safe_string(position, 'posCcy')
+                parsedCurrency = self.safe_currency_code(posCcy)
+                if parsedCurrency is not None:
+                    side = 'long' if (market['base'] == parsedCurrency) else 'short'
+        else:
+            if pos is not None:
+                if side == 'net':
+                    if Precise.string_gt(pos, '0'):
+                        side = 'long'
+                    elif Precise.string_lt(pos, '0'):
+                        side = 'short'
+                    else:
+                        side = None
         contractSize = self.safe_value(market, 'contractSize')
         contractSizeString = self.number_to_string(contractSize)
         markPriceString = self.safe_string(position, 'markPx')
