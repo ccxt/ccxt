@@ -1952,7 +1952,7 @@ module.exports = class bybit extends Exchange {
         const now = this.seconds ();
         let sinceTimestamp = undefined;
         if (limit === undefined) {
-            limit = 200; // default is 200 when requested with `since`
+            limit = 1000; // default is 1000 when requested with `since`
         }
         if (since === undefined) {
             sinceTimestamp = now - limit * duration;
@@ -1960,7 +1960,7 @@ module.exports = class bybit extends Exchange {
             sinceTimestamp = parseInt (since / 1000);
         }
         if (limit !== undefined) {
-            request['limit'] = limit; // max 200, default 200
+            request['limit'] = limit; // max 1000, default 1000
         }
         request['interval'] = timeframe;
         request['from'] = sinceTimestamp;
@@ -2064,6 +2064,10 @@ module.exports = class bybit extends Exchange {
          * @method
          * @name bybit#fetchOHLCV
          * @description fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+         * @see https://bybit-exchange.github.io/docs/spot/v3/#t-querykline
+         * @see https://bybit-exchange.github.io/docs/derivativesV3/contract/#t-dv_querykline
+         * @see https://bybit-exchange.github.io/docs/derivativesV3/contract/#t-dv_markpricekline
+         * @see https://bybit-exchange.github.io/docs/derivativesV3/contract/#t-dv_indexpricekline
          * @param {string} symbol unified symbol of the market to fetch OHLCV data for
          * @param {string} timeframe the length of time each candle represents
          * @param {int|undefined} since timestamp in ms of the earliest candle to fetch
