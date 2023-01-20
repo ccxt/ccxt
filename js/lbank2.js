@@ -1168,6 +1168,7 @@ module.exports = class lbank2 extends Exchange {
             'side': side,
             'price': price,
             'stopPrice': undefined,
+            'triggerPrice': undefined,
             'cost': costString,
             'amount': amountString,
             'filled': filledString,
@@ -2323,8 +2324,7 @@ module.exports = class lbank2 extends Exchange {
                 } else {
                     pem = this.convertSecretToPem (this.encode (this.secret));
                 }
-                const encodedPem = this.encode (pem);
-                sign = this.binaryToBase64 (this.rsa (uppercaseHash, encodedPem, 'RS256'));
+                sign = this.rsa (uppercaseHash, pem);
             } else if (signatureMethod === 'HmacSHA256') {
                 sign = this.hmac (this.encode (uppercaseHash), this.encode (this.secret));
             }

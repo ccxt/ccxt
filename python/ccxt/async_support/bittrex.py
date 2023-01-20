@@ -1678,6 +1678,7 @@ class bittrex(Exchange):
             'side': direction,
             'price': limit,
             'stopPrice': self.safe_string(order, 'triggerPrice'),
+            'triggerPrice': self.safe_string(order, 'triggerPrice'),
             'cost': proceeds,
             'average': None,
             'amount': quantity,

@@ -1443,6 +1443,7 @@ class upbit extends Exchange {
             'side' => $side,
             'price' => $price,
             'stopPrice' => null,
+            'triggerPrice' => null,
             'cost' => $cost,
             'average' => $average,
             'amount' => $amount,

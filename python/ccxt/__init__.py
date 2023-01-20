@@ -22,7 +22,7 @@
 
 # ----------------------------------------------------------------------------
 
-__version__ = '2.2.103'
+__version__ = '2.6.47'
 
 # ----------------------------------------------------------------------------
 
@@ -76,7 +76,6 @@ from ccxt.base.errors import error_hierarchy                          # noqa: F4
 from ccxt.alpaca import alpaca                                        # noqa: F401
 from ccxt.ascendex import ascendex                                    # noqa: F401
 from ccxt.bequant import bequant                                      # noqa: F401
-from ccxt.bibox import bibox                                          # noqa: F401
 from ccxt.bigone import bigone                                        # noqa: F401
 from ccxt.binance import binance                                      # noqa: F401
 from ccxt.binancecoinm import binancecoinm                            # noqa: F401
@@ -167,8 +166,8 @@ from ccxt.okx import okx                                              # noqa: F4
 from ccxt.paymium import paymium                                      # noqa: F401
 from ccxt.phemex import phemex                                        # noqa: F401
 from ccxt.poloniex import poloniex                                    # noqa: F401
+from ccxt.poloniexfutures import poloniexfutures                      # noqa: F401
 from ccxt.probit import probit                                        # noqa: F401
-from ccxt.qtrade import qtrade                                        # noqa: F401
 from ccxt.ripio import ripio                                          # noqa: F401
 from ccxt.stex import stex                                            # noqa: F401
 from ccxt.therock import therock                                      # noqa: F401
@@ -190,7 +189,6 @@ exchanges = [
     'alpaca',
     'ascendex',
     'bequant',
-    'bibox',
     'bigone',
     'binance',
     'binancecoinm',
@@ -281,8 +279,8 @@ exchanges = [
     'paymium',
     'phemex',
     'poloniex',
+    'poloniexfutures',
     'probit',
-    'qtrade',
     'ripio',
     'stex',
     'therock',

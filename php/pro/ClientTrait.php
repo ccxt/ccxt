@@ -3,8 +3,11 @@
 namespace ccxt\pro;
 
 use ccxt\async\Throttle;
+use ccxt\BaseError;
+use ccxt\ExchangeError;
 use React\Async;
 use React\EventLoop\Loop;
+use function React\Promise\resolve;
 
 trait ClientTrait {
 
@@ -63,9 +66,16 @@ trait ClientTrait {
 
     // the ellipsis packing/unpacking requires PHP 5.6+ :(
     public function spawn($method, ... $args) {
-        return Async\async(function () use ($method, $args) {
+        $future = new Future();
+        $promise = Async\async(function () use ($method, $args) {
             return Async\await($method(...$args));
         }) ();
+        $promise->done(function ($result) use ($future){
+            $future->resolve($result);
+        }, function ($error) use ($future) {
+            $future->reject($error);
+        });
+        return $future;
     }
 
     public function delay($timeout, $method, ... $args) {
@@ -103,7 +113,7 @@ trait ClientTrait {
                 }
             }
         );
-        return $future->promise();
+        return $future;
     }
 
     public function on_connected($client, $message = null) {
@@ -151,5 +161,42 @@ trait ClientTrait {
             }
         }
         return null;
+    }
+
+    public function load_order_book($client, $messageHash, $symbol, $limit = null, $params = array()) {
+        return Async\async(function () use ($client, $messageHash, $symbol, $limit, $params) {
+            if (!array_key_exists($symbol, $this->orderbooks)) {
+                $client->reject(new ExchangeError($this->id . ' loadOrderBook() orderbook is not initiated'), $messageHash);
+                return;
+            }
+            try {
+                $stored = $this->orderbooks[$symbol];
+                $maxRetries = $this->handle_option('watchOrderBook', 'maxRetries', 3);
+                $tries = 0;
+                while ($tries < $maxRetries) {
+                    $orderBook = Async\await($this->fetch_order_book($symbol, $limit, $params));
+                    $index = $this->get_cache_index($orderBook, $stored->cache);
+                    if ($index >= 0) {
+                        $stored->reset($orderBook);
+                        $this->handle_deltas($stored, array_slice($stored->cache, $index));
+                        $stored->cache = array();
+                        $client->resolve($stored, $messageHash);
+                        return;
+                    }
+                    $tries++;
+                }
+                $client->reject (new ExchangeError ($this->id . ' nonce is behind the cache after ' . strval($tries) . ' tries.' ), $messageHash);
+                unset($this->clients[$client->url]);
+            } catch (BaseError $e) {
+                $client->reject($e, $messageHash);
+                Async\await($this->load_order_book($client, $messageHash, $symbol, $limit, $params));
+            }
+        }) ();
+    }
+
+    public function handle_deltas($orderbook, $deltas) {
+        foreach ($deltas as $delta) {
+            $this->handle_delta($orderbook, $delta);
+        }
     }
 }

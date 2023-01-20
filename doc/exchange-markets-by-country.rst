@@ -255,17 +255,6 @@ The ccxt library currently supports the following cryptocurrency exchange market
           :alt: API Version 2
      
    * - China
-     - .. image:: https://user-images.githubusercontent.com/51840849/77257418-3262b000-6c85-11ea-8fb8-20bdf20b3592.jpg
-          :target: https://www.{hostname}
-          :alt: bibox
-     
-     - bibox
-     - `Bibox <https://www.{hostname}>`__
-     - .. image:: https://img.shields.io/badge/3.1-lightgray
-          :target: https://biboxcom.github.io/en/
-          :alt: API Version 3.1
-     
-   * - China
      - .. image:: https://user-images.githubusercontent.com/1294454/69354403-1d532180-0c91-11ea-88ed-44c06cefdf87.jpg
           :target: https://b1.run/users/new?code=D3LLBVFT
           :alt: bigone
@@ -1025,17 +1014,6 @@ The ccxt library currently supports the following cryptocurrency exchange market
           :alt: API Version 1
      
    * - South Korea
-     - .. image:: https://user-images.githubusercontent.com/51840849/77257418-3262b000-6c85-11ea-8fb8-20bdf20b3592.jpg
-          :target: https://www.{hostname}
-          :alt: bibox
-     
-     - bibox
-     - `Bibox <https://www.{hostname}>`__
-     - .. image:: https://img.shields.io/badge/3.1-lightgray
-          :target: https://biboxcom.github.io/en/
-          :alt: API Version 3.1
-     
-   * - South Korea
      - .. image:: https://user-images.githubusercontent.com/1294454/30597177-ea800172-9d5e-11e7-804c-b9d4fa9b56b0.jpg
           :target: https://www.bithumb.com
           :alt: bithumb
@@ -1267,17 +1245,6 @@ The ccxt library currently supports the following cryptocurrency exchange market
           :alt: API Version *
      
    * - US
-     - .. image:: https://user-images.githubusercontent.com/51840849/77257418-3262b000-6c85-11ea-8fb8-20bdf20b3592.jpg
-          :target: https://www.{hostname}
-          :alt: bibox
-     
-     - bibox
-     - `Bibox <https://www.{hostname}>`__
-     - .. image:: https://img.shields.io/badge/3.1-lightgray
-          :target: https://biboxcom.github.io/en/
-          :alt: API Version 3.1
-     
-   * - US
      - .. image:: https://user-images.githubusercontent.com/1294454/65177307-217b7c80-da5f-11e9-876e-0b748ba0a358.jpg
           :target: https://www.binance.us/?ref=35005074
           :alt: binanceus
@@ -1430,17 +1397,6 @@ The ccxt library currently supports the following cryptocurrency exchange market
      - .. image:: https://img.shields.io/badge/*-lightgray
           :target: https://docs.poloniex.com
           :alt: API Version *
-     
-   * - US
-     - .. image:: https://user-images.githubusercontent.com/51840849/80491487-74a99c00-896b-11ea-821e-d307e832f13e.jpg
-          :target: https://qtrade.io/?ref=BKOQWVFGRH2C
-          :alt: qtrade
-     
-     - qtrade
-     - `qTrade <https://qtrade.io/?ref=BKOQWVFGRH2C>`__
-     - .. image:: https://img.shields.io/badge/1-lightgray
-          :target: https://qtrade-exchange.github.io/qtrade-docs
-          :alt: API Version 1
      
    * - Ukraine
      - .. image:: https://user-images.githubusercontent.com/1294454/27941483-79fc7350-62d9-11e7-9f61-ac47f28fcd96.jpg

@@ -8,6 +8,7 @@ namespace ccxt\pro;
 use Exception; // a common import
 use ccxt\ExchangeError;
 use ccxt\AuthenticationError;
+use ccxt\Precise;
 use React\Async;
 
 class bitfinex extends \ccxt\async\bitfinex {
@@ -120,30 +121,28 @@ class bitfinex extends \ccxt\async\bitfinex {
         $marketId = $this->safe_string($subscription, 'pair');
         $messageHash = $channel . ':' . $marketId;
         $tradesLimit = $this->safe_integer($this->options, 'tradesLimit', 1000);
-        if (is_array($this->markets_by_id) && array_key_exists($marketId, $this->markets_by_id)) {
-            $market = $this->markets_by_id[$marketId];
-            $symbol = $market['symbol'];
-            $data = $this->safe_value($message, 1);
-            $stored = $this->safe_value($this->trades, $symbol);
-            if ($stored === null) {
-                $stored = new ArrayCache ($tradesLimit);
-                $this->trades[$symbol] = $stored;
-            }
-            if (gettype($data) === 'array' && array_keys($data) === array_keys(array_keys($data))) {
-                $trades = $this->parse_trades($data, $market);
-                for ($i = 0; $i < count($trades); $i++) {
-                    $stored->append ($trades[$i]);
-                }
-            } else {
-                $second = $this->safe_string($message, 1);
-                if ($second !== 'tu') {
-                    return;
-                }
-                $trade = $this->parse_trade($message, $market);
-                $stored->append ($trade);
-            }
-            $client->resolve ($stored, $messageHash);
+        $market = $this->safe_market($marketId);
+        $symbol = $market['symbol'];
+        $data = $this->safe_value($message, 1);
+        $stored = $this->safe_value($this->trades, $symbol);
+        if ($stored === null) {
+            $stored = new ArrayCache ($tradesLimit);
+            $this->trades[$symbol] = $stored;
         }
+        if (gettype($data) === 'array' && array_keys($data) === array_keys(array_keys($data))) {
+            $trades = $this->parse_trades($data, $market);
+            for ($i = 0; $i < count($trades); $i++) {
+                $stored->append ($trades[$i]);
+            }
+        } else {
+            $second = $this->safe_string($message, 1);
+            if ($second !== 'tu') {
+                return;
+            }
+            $trade = $this->parse_trade($message, $market);
+            $stored->append ($trade);
+        }
+        $client->resolve ($stored, $messageHash);
         return $message;
     }
 
@@ -232,11 +231,11 @@ class bitfinex extends \ccxt\async\bitfinex {
         $symbol = $this->safe_symbol($marketId);
         $channel = 'ticker';
         $messageHash = $channel . ':' . $marketId;
-        $last = $this->safe_float($message, 7);
-        $change = $this->safe_float($message, 5);
+        $last = $this->safe_string($message, 7);
+        $change = $this->safe_string($message, 5);
         $open = null;
         if (($last !== null) && ($change !== null)) {
-            $open = $last - $change;
+            $open = Precise::string_sub($last, $change);
         }
         $result = array(
             'symbol' => $symbol,
@@ -249,11 +248,11 @@ class bitfinex extends \ccxt\async\bitfinex {
             'ask' => $this->safe_float($message, 3),
             'askVolume' => null,
             'vwap' => null,
-            'open' => $open,
-            'close' => $last,
-            'last' => $last,
+            'open' => $this->parse_number($open),
+            'close' => $this->parse_number($last),
+            'last' => $this->parse_number($last),
             'previousClose' => null,
-            'change' => $change,
+            'change' => $this->parse_number($change),
             'percentage' => $this->safe_float($message, 6),
             'average' => null,
             'baseVolume' => $this->safe_float($message, 8),
@@ -586,12 +585,12 @@ class bitfinex extends \ccxt\async\bitfinex {
         $id = $this->safe_string($order, 0);
         $marketId = $this->safe_string($order, 1);
         $symbol = $this->safe_symbol($marketId);
-        $amount = $this->safe_float($order, 2);
-        $remaining = $this->safe_float($order, 3);
+        $amount = $this->safe_string($order, 2);
+        $remaining = $this->safe_string($order, 3);
         $side = 'buy';
-        if ($amount < 0) {
-            $amount = abs($amount);
-            $remaining = abs($remaining);
+        if (Precise::string_lt($amount, '0')) {
+            $amount = Precise::string_abs($amount);
+            $remaining = Precise::string_abs($remaining);
             $side = 'sell';
         }
         $type = $this->safe_string($order, 4);
@@ -601,10 +600,10 @@ class bitfinex extends \ccxt\async\bitfinex {
             $type = 'market';
         }
         $status = $this->parse_ws_order_status($this->safe_string($order, 5));
-        $price = $this->safe_float($order, 6);
+        $price = $this->safe_string($order, 6);
         $rawDatetime = $this->safe_string($order, 8);
         $timestamp = $this->parse8601($rawDatetime);
-        $parsed = array(
+        $parsed = $this->safe_order(array(
             'info' => $order,
             'id' => $id,
             'clientOrderId' => null,
@@ -616,15 +615,16 @@ class bitfinex extends \ccxt\async\bitfinex {
             'side' => $side,
             'price' => $price,
             'stopPrice' => null,
+            'triggerPrice' => null,
             'average' => null,
             'amount' => $amount,
             'remaining' => $remaining,
-            'filled' => $amount - $remaining,
+            'filled' => null,
             'status' => $status,
             'fee' => null,
             'cost' => null,
             'trades' => null,
-        );
+        ));
         if ($this->orders === null) {
             $limit = $this->safe_integer($this->options, 'ordersLimit', 1000);
             $this->orders = new ArrayCacheBySymbolById ($limit);

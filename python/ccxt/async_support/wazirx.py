@@ -838,7 +838,7 @@ class wazirx(Exchange):
             data = self.keysort(data)
             signature = self.hmac(self.encode(self.urlencode(data)), self.encode(self.secret), hashlib.sha256)
             url += '?' + self.urlencode(data)
-            url += '&signature=' + signature
+            url += '&' + 'signature=' + signature
             headers = {
                 'Content-Type': 'application/x-www-form-urlencoded',
                 'X-Api-Key': self.apiKey,

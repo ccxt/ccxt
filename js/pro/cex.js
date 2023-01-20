@@ -287,7 +287,7 @@ module.exports = class cex extends cexRest {
         const request = this.deepExtend (message, params);
         const ticker = await this.watch (url, messageHash, request, messageHash);
         const tickerSymbol = ticker['symbol'];
-        if (symbols !== undefined && !this.inArray (symbols, tickerSymbol)) {
+        if (symbols !== undefined && !this.inArray (tickerSymbol, symbols)) {
             return await this.watchTickers (symbols, params);
         }
         if (this.newUpdates) {
@@ -793,6 +793,7 @@ module.exports = class cex extends cexRest {
             'side': this.safeString (order, 'type'),
             'price': this.safeNumber (order, 'price'),
             'stopPrice': undefined,
+            'triggerPrice': undefined,
             'average': undefined,
             'cost': undefined,
             'amount': amount,

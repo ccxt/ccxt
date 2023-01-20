@@ -78,6 +78,8 @@ class huobi(Exchange):
                 'fetchDepositAddresses': None,
                 'fetchDepositAddressesByNetwork': True,
                 'fetchDeposits': True,
+                'fetchDepositWithdrawFee': 'emulated',
+                'fetchDepositWithdrawFees': True,
                 'fetchFundingHistory': True,
                 'fetchFundingRate': True,
                 'fetchFundingRateHistory': True,
@@ -886,6 +888,7 @@ class huobi(Exchange):
                     'order-marketorder-amount-min-error': InvalidOrder,  # market order amount error, min: `0.01`
                     'order-limitorder-price-min-error': InvalidOrder,  # limit order price error
                     'order-limitorder-price-max-error': InvalidOrder,  # limit order price error
+                    'order-stop-order-hit-trigger': InvalidOrder,  # {"status":"error","err-code":"order-stop-order-hit-trigger","err-msg":"Orders that are triggered immediately are not supported.","data":null}
                     'order-value-min-error': InvalidOrder,  # {"status":"error","err-code":"order-value-min-error","err-msg":"Order total cannot be lower than: 1 USDT","data":null}
                     'order-invalid-price': InvalidOrder,  # {"status":"error","err-code":"order-invalid-price","err-msg":"invalid price","data":null}
                     'order-holding-limit-failed': InvalidOrder,  # {"status":"error","err-code":"order-holding-limit-failed","err-msg":"Order failed, exceeded the holding limit of self currency","data":null}
@@ -908,6 +911,8 @@ class huobi(Exchange):
                     'invalid-address': BadRequest,  # {"status":"error","err-code":"invalid-address","err-msg":"Invalid address.","data":null},
                     'base-currency-chain-error': BadRequest,  # {"status":"error","err-code":"base-currency-chain-error","err-msg":"The current currency chain does not exist","data":null},
                     'dw-insufficient-balance': InsufficientFunds,  # {"status":"error","err-code":"dw-insufficient-balance","err-msg":"Insufficient balance. You can only transfer `12.3456` at most.","data":null}
+                    'base-withdraw-fee-error': BadRequest,  # {"status":"error","err-code":"base-withdraw-fee-error","err-msg":"withdrawal fee is not within limits","data":null}
+                    'dw-withdraw-min-limit': BadRequest,  # {"status":"error","err-code":"dw-withdraw-min-limit","err-msg":"The withdrawal amount is less than the minimum limit.","data":null}
                 },
             },
             'precisionMode': TICK_SIZE,
@@ -924,6 +929,9 @@ class huobi(Exchange):
                             'inverse': True,
                         },
                     },
+                },
+                'withdraw': {
+                    'includeFee': False,
                 },
                 'defaultType': 'spot',  # spot, future, swap
                 'defaultSubType': 'linear',  # inverse, linear
@@ -1738,9 +1746,20 @@ class huobi(Exchange):
         #         askSize:  0.4156
         #     }
         #
+        # watchTikcer - bbo
+        #     {
+        #         seqId: 161499562790,
+        #         ask: 16829.51,
+        #         askSize: 0.707776,
+        #         bid: 16829.5,
+        #         bidSize: 1.685945,
+        #         quoteTime: 1671941599612,
+        #         symbol: 'btcusdt'
+        #     }
+        #
         marketId = self.safe_string_2(ticker, 'symbol', 'contract_code')
         symbol = self.safe_symbol(marketId, market)
-        timestamp = self.safe_integer(ticker, 'ts')
+        timestamp = self.safe_integer_2(ticker, 'ts', 'quoteTime')
         bid = None
         bidVolume = None
         ask = None
@@ -3862,6 +3881,7 @@ class huobi(Exchange):
             'side': side,
             'price': price,
             'stopPrice': stopPrice,
+            'triggerPrice': stopPrice,
             'average': average,
             'cost': cost,
             'amount': amount,
@@ -4509,6 +4529,7 @@ class huobi(Exchange):
             currency = self.currency(code)
         request = {
             'type': 'deposit',
+            'direct': 'next',
             'from': 0,  # From 'id' ... if you want to get results after a particular transaction id, pass the id in params.from
         }
         if currency is not None:
@@ -4561,6 +4582,7 @@ class huobi(Exchange):
             currency = self.currency(code)
         request = {
             'type': 'withdraw',
+            'direct': 'next',
             'from': 0,  # From 'id' ... if you want to get results after a particular transaction id, pass the id in params.from
         }
         if currency is not None:
@@ -4718,15 +4740,35 @@ class huobi(Exchange):
         currency = self.currency(code)
         request = {
             'address': address,  # only supports existing addresses in your withdraw address list
-            'amount': amount,
             'currency': currency['id'].lower(),
         }
         if tag is not None:
             request['addr-tag'] = tag  # only for XRP?
-        networkCode, paramsOmited = self.handle_network_code_and_params(params)
+        networkCode = None
+        networkCode, params = self.handle_network_code_and_params(params)
         if networkCode is not None:
-            request['chain'] = self.network_code_to_id(code, networkCode)
-        response = await self.spotPrivatePostV1DwWithdrawApiCreate(self.extend(request, paramsOmited))
+            request['chain'] = self.network_code_to_id(networkCode, code)
+        amount = float(self.currency_to_precision(code, amount, networkCode))
+        withdrawOptions = self.safe_value(self.options, 'withdraw', {})
+        if self.safe_value(withdrawOptions, 'includeFee', False):
+            fee = self.safe_number(params, 'fee')
+            if fee is None:
+                currencies = await self.fetch_currencies()
+                self.currencies = self.deep_extend(self.currencies, currencies)
+                targetNetwork = self.safe_value(currency['networks'], networkCode, {})
+                fee = self.safe_number(targetNetwork, 'fee')
+                if fee is None:
+                    raise ArgumentsRequired(self.id + ' withdraw() function can not find withdraw fee for chosen network. You need to re-load markets with "exchange.loadMarkets(True)", or provide the "fee" parameter')
+            # fee needs to be deducted from whole amount
+            feeString = self.currency_to_precision(code, fee, networkCode)
+            params = self.omit(params, 'fee')
+            amountString = self.number_to_string(amount)
+            amountSubtractedString = Precise.string_sub(amountString, feeString)
+            amountSubtracted = float(amountSubtractedString)
+            request['fee'] = float(feeString)
+            amount = float(self.currency_to_precision(code, amountSubtracted, networkCode))
+        request['amount'] = amount
+        response = await self.spotPrivatePostV1DwWithdrawApiCreate(self.extend(request, params))
         #
         #     {
         #         "status": "ok",
@@ -4855,8 +4897,8 @@ class huobi(Exchange):
                     'timestamp': timestamp,
                     'datetime': self.iso8601(timestamp),
                 }
-            market = self.markets_by_id[self.safe_string(rate, 'symbol')]
-            symbol = market['symbol']
+            marketId = self.safe_string(rate, 'symbol')
+            symbol = self.safe_symbol(marketId)
             rates[symbol] = symbolRates
         return rates
 
@@ -6706,6 +6748,118 @@ class huobi(Exchange):
         settlementRecord = self.safe_value(data, 'settlement_record')
         settlements = self.parse_settlements(settlementRecord, market)
         return self.sort_by(settlements, 'timestamp')
+
+    async def fetch_deposit_withdraw_fees(self, codes=None, params={}):
+        """
+        fetch deposit and withdraw fees
+        see https://huobiapi.github.io/docs/spot/v1/en/#get-all-supported-currencies-v2
+        :param [str]|None codes: list of unified currency codes
+        :param dict params: extra parameters specific to the huobi api endpoint
+        :returns [dict]: a list of `fees structures <https://docs.ccxt.com/en/latest/manual.html#fee-structure>`
+        """
+        await self.load_markets()
+        response = await self.spotPublicGetV2ReferenceCurrencies(params)
+        #
+        #    {
+        #        "code": 200,
+        #        "data": [
+        #            {
+        #                "currency": "sxp",
+        #                "assetType": "1",
+        #                "chains": [
+        #                    {
+        #                        "chain": "sxp",
+        #                        "displayName": "ERC20",
+        #                        "baseChain": "ETH",
+        #                        "baseChainProtocol": "ERC20",
+        #                        "isDynamic": True,
+        #                        "numOfConfirmations": "12",
+        #                        "numOfFastConfirmations": "12",
+        #                        "depositStatus": "allowed",
+        #                        "minDepositAmt": "0.23",
+        #                        "withdrawStatus": "allowed",
+        #                        "minWithdrawAmt": "0.23",
+        #                        "withdrawPrecision": "8",
+        #                        "maxWithdrawAmt": "227000.000000000000000000",
+        #                        "withdrawQuotaPerDay": "227000.000000000000000000",
+        #                        "withdrawQuotaPerYear": null,
+        #                        "withdrawQuotaTotal": null,
+        #                        "withdrawFeeType": "fixed",
+        #                        "transactFeeWithdraw": "11.1653",
+        #                        "addrWithTag": False,
+        #                        "addrDepositTag": False
+        #                    }
+        #                ],
+        #                "instStatus": "normal"
+        #            }
+        #        ]
+        #    }
+        #
+        data = self.safe_value(response, 'data')
+        return self.parse_deposit_withdraw_fees(data, codes, 'currency')
+
+    def parse_deposit_withdraw_fee(self, fee, currency=None):
+        #
+        #            {
+        #              "currency": "sxp",
+        #              "assetType": "1",
+        #              "chains": [
+        #                  {
+        #                      "chain": "sxp",
+        #                      "displayName": "ERC20",
+        #                      "baseChain": "ETH",
+        #                      "baseChainProtocol": "ERC20",
+        #                      "isDynamic": True,
+        #                      "numOfConfirmations": "12",
+        #                      "numOfFastConfirmations": "12",
+        #                      "depositStatus": "allowed",
+        #                      "minDepositAmt": "0.23",
+        #                      "withdrawStatus": "allowed",
+        #                      "minWithdrawAmt": "0.23",
+        #                      "withdrawPrecision": "8",
+        #                      "maxWithdrawAmt": "227000.000000000000000000",
+        #                      "withdrawQuotaPerDay": "227000.000000000000000000",
+        #                      "withdrawQuotaPerYear": null,
+        #                      "withdrawQuotaTotal": null,
+        #                      "withdrawFeeType": "fixed",
+        #                      "transactFeeWithdraw": "11.1653",
+        #                      "addrWithTag": False,
+        #                      "addrDepositTag": False
+        #                  }
+        #              ],
+        #              "instStatus": "normal"
+        #          }
+        #
+        chains = self.safe_value(fee, 'chains', [])
+        result = self.deposit_withdraw_fee(fee)
+        for j in range(0, len(chains)):
+            chainEntry = chains[j]
+            networkId = self.safe_string(chainEntry, 'chain')
+            withdrawFeeType = self.safe_string(chainEntry, 'withdrawFeeType')
+            networkCode = self.network_id_to_code(networkId)
+            withdrawFee = None
+            withdrawResult = None
+            if withdrawFeeType == 'fixed':
+                withdrawFee = self.safe_number(chainEntry, 'transactFeeWithdraw')
+                withdrawResult = {
+                    'fee': withdrawFee,
+                    'percentage': False,
+                }
+            else:
+                withdrawFee = self.safe_number(chainEntry, 'transactFeeRateWithdraw')
+                withdrawResult = {
+                    'fee': withdrawFee,
+                    'percentage': True,
+                }
+            result['networks'][networkCode] = {
+                'withdraw': withdrawResult,
+                'deposit': {
+                    'fee': None,
+                    'percentage': None,
+                },
+            }
+            result = self.assign_default_deposit_withdraw_fees(result, currency)
+        return result
 
     def parse_settlements(self, settlements, market):
         #

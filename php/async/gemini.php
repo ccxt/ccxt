@@ -12,6 +12,7 @@ use ccxt\ArgumentsRequired;
 use ccxt\NotSupported;
 use ccxt\Precise;
 use React\Async;
+use React\Promise;
 
 class gemini extends Exchange {
 
@@ -24,7 +25,7 @@ class gemini extends Exchange {
             // 120 requests a minute = 2 requests per second => ( 1000ms / rateLimit ) / 2 = 5 (public endpoints)
             'rateLimit' => 100,
             'version' => 'v1',
-            'pro' => false,
+            'pro' => true,
             'has' => array(
                 'CORS' => null,
                 'spot' => true,
@@ -122,6 +123,7 @@ class gemini extends Exchange {
                     'get' => array(
                         'v1/symbols' => 5,
                         'v1/symbols/details/{symbol}' => 5,
+                        'v1/staking/rates' => 5,
                         'v1/pubticker/{symbol}' => 5,
                         'v2/ticker/{symbol}' => 5,
                         'v2/candles/{symbol}/{timeframe}' => 5,
@@ -135,6 +137,10 @@ class gemini extends Exchange {
                 ),
                 'private' => array(
                     'post' => array(
+                        'v1/staking/unstake' => 1,
+                        'v1/staking/stake' => 1,
+                        'v1/staking/rewards' => 1,
+                        'v1/staking/history' => 1,
                         'v1/order/new' => 1,
                         'v1/order/cancel' => 1,
                         'v1/wrap/{symbol}' => 1,
@@ -150,6 +156,7 @@ class gemini extends Exchange {
                         'v1/clearing/cancel' => 1,
                         'v1/clearing/confirm' => 1,
                         'v1/balances' => 1,
+                        'v1/balances/staking' => 1,
                         'v1/notionalbalances/{currency}' => 1,
                         'v1/transfers' => 1,
                         'v1/addresses/{network}' => 1,
@@ -162,6 +169,7 @@ class gemini extends Exchange {
                         'v1/payments/sen/withdraw' => 1,
                         'v1/balances/earn' => 1,
                         'v1/earn/interest' => 1,
+                        'v1/earn/history' => 1,
                         'v1/approvedAddresses/{network}/request' => 1,
                         'v1/approvedAddresses/account/{network}' => 1,
                         'v1/approvedAddresses/{network}/remove' => 1,
@@ -238,6 +246,12 @@ class gemini extends Exchange {
             ),
             'options' => array(
                 'fetchMarketsMethod' => 'fetch_markets_from_web',
+                'fetchMarketFromWebRetries' => 10,
+                'fetchMarketsFromAPI' => array(
+                    'fetchDetailsForAllSymbols' => false,
+                    'fetchDetailsForMarketIds' => array(),
+                ),
+                'fetchUsdtMarkets' => array( 'btcusdt', 'ethusdt' ), // keep this list updated (not available trough web api)
                 'fetchTickerMethod' => 'fetchTickerV1', // fetchTickerV1, fetchTickerV2, fetchTickerV1AndV2
                 'networkIds' => array(
                     'bitcoin' => 'BTC',
@@ -259,6 +273,7 @@ class gemini extends Exchange {
                     'DOGE' => 'dogecoin',
                     'XTZ' => 'tezos',
                 ),
+                'nonce' => 'milliseconds', // if getting a Network 400 error change to seconds
             ),
         ));
     }
@@ -271,13 +286,32 @@ class gemini extends Exchange {
              * @return {[array]} an array of objects representing market data
              */
             $method = $this->safe_value($this->options, 'fetchMarketsMethod', 'fetch_markets_from_api');
-            return Async\await($this->$method ($params));
+            if ($method === 'fetch_markets_from_web') {
+                $usdMarkets = Async\await($this->fetch_markets_from_web($params)); // get usd markets
+                $usdtMarkets = Async\await($this->fetch_usdt_markets($params)); // get usdt markets
+                return $this->array_concat($usdMarkets, $usdtMarkets);
+            }
+            return Async\await($this->fetch_markets_from_api($params));
         }) ();
     }
 
     public function fetch_markets_from_web($params = array ()) {
         return Async\async(function () use ($params) {
-            $response = Async\await($this->webGetRestApi ($params));
+            // This endpoint so we $retry
+            $maxRetries = $this->safe_integer($this->options, 'fetchMarketFromWebRetries', 10);
+            $response = null;
+            $retry = 0;
+            while ($retry < $maxRetries) {
+                try {
+                    $response = Async\await($this->webGetRestApi ($params));
+                    break;
+                } catch (Exception $e) {
+                    $retry = $retry + 1;
+                    if ($retry === $maxRetries) {
+                        throw $e;
+                    }
+                }
+            }
             $sections = explode('<h1 id="symbols-and-minimums">Symbols and minimums</h1>', $response);
             $numSections = count($sections);
             $error = $this->id . ' fetchMarketsFromWeb() the ' . $this->name . ' API doc HTML markup has changed, breaking the parser of order limits and precision info for ' . $this->name . ' markets.';
@@ -378,6 +412,36 @@ class gemini extends Exchange {
         }) ();
     }
 
+    public function parse_market_active($status) {
+        $statuses = array(
+            'open' => true,
+            'closed' => false,
+            'cancel_only' => true,
+            'post_only' => true,
+            'limit_only' => true,
+        );
+        return $this->safe_value($statuses, $status, true);
+    }
+
+    public function fetch_usdt_markets($params = array ()) {
+        return Async\async(function () use ($params) {
+            // these markets can't be scrapped and fetchMarketsFrom api does an extra call
+            // to load market ids which we don't need here
+            $fetchUsdtMarkets = $this->safe_value($this->options, 'fetchUsdtMarkets', array());
+            $result = array();
+            for ($i = 0; $i < count($fetchUsdtMarkets); $i++) {
+                $marketId = $fetchUsdtMarkets[$i];
+                $request = array(
+                    'symbol' => $marketId,
+                );
+                // don't use Promise.all here, for some reason the exchange can't handle it and crashes
+                $rawResponse = Async\await($this->publicGetV1SymbolsDetailsSymbol (array_merge($request, $params)));
+                $result[] = $this->parse_market($rawResponse);
+            }
+            return $result;
+        }) ();
+    }
+
     public function fetch_markets_from_api($params = array ()) {
         return Async\async(function () use ($params) {
             $response = Async\await($this->publicGetV1Symbols ($params));
@@ -391,63 +455,113 @@ class gemini extends Exchange {
             $result = array();
             for ($i = 0; $i < count($response); $i++) {
                 $marketId = $response[$i];
-                $market = $marketId;
-                $idLength = strlen($marketId) - 0;
-                $baseId = mb_substr($marketId, 0, $idLength - 3 - 0);
-                $quoteId = mb_substr($marketId, $idLength - 3, $idLength - $idLength - 3);
-                $base = $this->safe_currency_code($baseId);
-                $quote = $this->safe_currency_code($quoteId);
-                $result[] = array(
-                    'id' => $marketId,
-                    'symbol' => $base . '/' . $quote,
-                    'base' => $base,
-                    'quote' => $quote,
-                    'settle' => null,
-                    'baseId' => $baseId,
-                    'quoteId' => $quoteId,
-                    'settleId' => null,
-                    'type' => 'spot',
-                    'spot' => true,
-                    'margin' => false,
-                    'swap' => false,
-                    'future' => false,
-                    'option' => false,
-                    'active' => null,
-                    'contract' => false,
-                    'linear' => null,
-                    'inverse' => null,
-                    'contractSize' => null,
-                    'expiry' => null,
-                    'expiryDatetime' => null,
-                    'strike' => null,
-                    'optionType' => null,
-                    'precision' => array(
-                        'price' => null,
-                        'amount' => null,
-                    ),
-                    'limits' => array(
-                        'leverage' => array(
-                            'min' => null,
-                            'max' => null,
-                        ),
-                        'amount' => array(
-                            'min' => null,
-                            'max' => null,
-                        ),
-                        'price' => array(
-                            'min' => null,
-                            'max' => null,
-                        ),
-                        'cost' => array(
-                            'min' => null,
-                            'max' => null,
-                        ),
-                    ),
-                    'info' => $market,
+                $market = array(
+                    'symbol' => $marketId,
                 );
+                $result[$marketId] = $this->parse_market($market);
             }
-            return $result;
+            $options = $this->safe_value($this->options, 'fetchMarketsFromAPI', array());
+            $fetchDetailsForAllSymbols = $this->safe_value($options, 'fetchDetailsForAllSymbols', false);
+            $fetchDetailsForMarketIds = $this->safe_value($options, 'fetchDetailsForMarketIds', array());
+            $promises = array();
+            $marketIds = array();
+            if ($fetchDetailsForAllSymbols) {
+                $marketIds = $response;
+            } else {
+                $marketIds = $fetchDetailsForMarketIds;
+            }
+            for ($i = 0; $i < count($marketIds); $i++) {
+                $marketId = $marketIds[$i];
+                $method = 'publicGetV1SymbolsDetailsSymbol';
+                $request = array(
+                    'symbol' => $marketId,
+                );
+                $promises[] = $this->$method (array_merge($request, $params));
+                //
+                //     {
+                //         "symbol" => "BTCUSD",
+                //         "base_currency" => "BTC",
+                //         "quote_currency" => "USD",
+                //         "tick_size" => 1E-8,
+                //         "quote_increment" => 0.01,
+                //         "min_order_size" => "0.00001",
+                //         "status" => "open",
+                //         "wrap_enabled" => false
+                //     }
+                //
+            }
+            $promises = Async\await(Promise\all($promises));
+            for ($i = 0; $i < count($promises); $i++) {
+                $response = $promises[$i];
+                $marketId = $this->safe_string_lower($response, 'symbol');
+                $result[$marketId] = $this->parse_market($response);
+            }
+            return $this->to_array($result);
         }) ();
+    }
+
+    public function parse_market($response) {
+        $marketId = $this->safe_string_lower($response, 'symbol');
+        $baseId = $this->safe_string($response, 'base_currency');
+        $quoteId = $this->safe_string($response, 'quote_currency');
+        if ($baseId === null) {
+            $idLength = strlen($marketId) - 0;
+            $isUSDT = mb_strpos($marketId, 'usdt') !== -1;
+            $quoteSize = $isUSDT ? 4 : 3;
+            $baseId = mb_substr($marketId, 0, $idLength - $quoteSize - 0); // Not true for all markets
+            $quoteId = mb_substr($marketId, $idLength - $quoteSize, $idLength - $idLength - $quoteSize);
+        }
+        $base = $this->safe_currency_code($baseId);
+        $quote = $this->safe_currency_code($quoteId);
+        $status = $this->safe_string($response, 'status');
+        return array(
+            'id' => $marketId,
+            'symbol' => $base . '/' . $quote,
+            'base' => $base,
+            'quote' => $quote,
+            'settle' => null,
+            'baseId' => $baseId,
+            'quoteId' => $quoteId,
+            'settleId' => null,
+            'type' => 'spot',
+            'spot' => true,
+            'margin' => false,
+            'swap' => false,
+            'future' => false,
+            'option' => false,
+            'active' => $this->parse_market_active($status),
+            'contract' => false,
+            'linear' => null,
+            'inverse' => null,
+            'contractSize' => null,
+            'expiry' => null,
+            'expiryDatetime' => null,
+            'strike' => null,
+            'optionType' => null,
+            'precision' => array(
+                'price' => $this->safe_number($response, 'quote_increment'),
+                'amount' => $this->safe_number($response, 'tick_size'),
+            ),
+            'limits' => array(
+                'leverage' => array(
+                    'min' => null,
+                    'max' => null,
+                ),
+                'amount' => array(
+                    'min' => $this->safe_number($response, 'min_order_size'),
+                    'max' => null,
+                ),
+                'price' => array(
+                    'min' => null,
+                    'max' => null,
+                ),
+                'cost' => array(
+                    'min' => null,
+                    'max' => null,
+                ),
+            ),
+            'info' => $response,
+        );
     }
 
     public function fetch_order_book($symbol, $limit = null, $params = array ()) {
@@ -1018,6 +1132,7 @@ class gemini extends Exchange {
             'side' => $side,
             'price' => $price,
             'stopPrice' => null,
+            'triggerPrice' => null,
             'average' => $average,
             'cost' => null,
             'amount' => $amount,
@@ -1332,7 +1447,11 @@ class gemini extends Exchange {
     }
 
     public function nonce() {
-        return $this->milliseconds();
+        $nonceMethod = $this->safe_string($this->options, 'nonce', 'milliseconds');
+        if ($nonceMethod === 'milliseconds') {
+            return $this->milliseconds();
+        }
+        return $this->seconds();
     }
 
     public function fetch_transactions($code = null, $since = null, $limit = null, $params = array ()) {
@@ -1562,8 +1681,9 @@ class gemini extends Exchange {
              */
             Async\await($this->load_markets());
             $market = $this->market($symbol);
+            $timeframeId = $this->safe_string($this->timeframes, $timeframe, $timeframe);
             $request = array(
-                'timeframe' => $this->timeframes[$timeframe],
+                'timeframe' => $timeframeId,
                 'symbol' => $market['id'],
             );
             $response = Async\await($this->publicGetV2CandlesSymbolTimeframe (array_merge($request, $params)));
