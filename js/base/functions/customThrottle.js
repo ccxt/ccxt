@@ -80,8 +80,8 @@ class Throttle {
     }
 }
 
-function customThrottle(config, path = undefined, customPriority = undefined, customExpireInterval = undefined) {
-    function inner(cost = undefined, path = undefined, customPriority = undefined, customExpireInterval = undefined) {
+function customThrottle(config, path = undefined, customExpireInterval = undefined, customPriority = undefined) {
+    function inner(cost = undefined, path = undefined, customThrottleConfig) {
         let resolver;
         let rejecter;
         const promise = new Promise((resolve, reject) => {
