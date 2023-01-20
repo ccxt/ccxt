@@ -2086,7 +2086,7 @@ module.exports = class coinbase extends Exchange {
         const end = this.seconds ().toString ();
         const request = {
             'product_id': market['id'],
-            'granularity': this.timeframes[timeframe],
+            'granularity': this.safeString (this.timeframes, timeframe, timeframe),
             'end': end,
         };
         if (since !== undefined) {
