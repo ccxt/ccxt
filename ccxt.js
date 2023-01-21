@@ -37,7 +37,7 @@ const Exchange  = require ('./js/base/Exchange')
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
 
-const version = '2.6.51'
+const version = '2.6.53'
 
 Exchange.ccxtVersion = version
 
@@ -153,7 +153,6 @@ const exchanges = {
     'yobit':                   require ('./js/yobit.js'),
     'zaif':                    require ('./js/zaif.js'),
     'zb':                      require ('./js/zb.js'),
-    'zipmex':                  require ('./js/zipmex.js'),
     'zonda':                   require ('./js/zonda.js'),
 }
 
@@ -211,7 +210,6 @@ const pro = {
     'whitebit':                require ('./js/pro/whitebit.js'),
     'woo':                     require ('./js/pro/woo.js'),
     'zb':                      require ('./js/pro/zb.js'),
-    'zipmex':                  require ('./js/pro/zipmex.js'),
 }
 
 for (const exchange in pro) {
