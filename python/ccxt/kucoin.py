@@ -513,6 +513,11 @@ class kucoin(Exchange):
                 'networksById': {
                     'BEP20': 'BSC',
                 },
+                'marginModes': {
+                    'cross': 'MARGIN_TRADE',
+                    'isolated': 'MARGIN_ISOLATED_TRADE',
+                    'spot': 'TRADE',
+                },
             },
         })
 
@@ -1511,22 +1516,23 @@ class kucoin(Exchange):
         cancel all open orders
         :param str|None symbol: unified market symbol, only orders in the market of self symbol are cancelled when symbol is not None
         :param dict params: extra parameters specific to the kucoin api endpoint
-        :param bool params['stop']: True if cancelling all stop orders
-        :param str params['tradeType']: The type of trading, "TRADE" for Spot Trading, "MARGIN_TRADE" for Margin Trading
+        :param bool params['stop']: *invalid for isolated margin* True if cancelling all stop orders
+        :param str params['marginMode']: 'cross' or 'isolated'
         :param str params['orderIds']: *stop orders only* Comma seperated order IDs
         :returns: Response from the exchange
         """
         self.load_markets()
         request = {}
-        market = None
-        if symbol is not None:
-            market = self.market(symbol)
-            request['symbol'] = market['id']
-        method = 'privateDeleteOrders'
         stop = self.safe_value(params, 'stop')
-        if stop:
-            method = 'privateDeleteStopOrderCancel'
-        return getattr(self, method)(self.extend(request, params))
+        marginMode, query = self.handle_margin_mode_and_params('cancelAllOrders', params)
+        if symbol is not None:
+            request['symbol'] = self.market_id(symbol)
+        if marginMode is not None:
+            request['tradeType'] = self.options['marginModes'][marginMode]
+            if marginMode == 'isolated' and stop:
+                raise BadRequest(self.id + ' cancelAllOrders does not support isolated margin for stop orders')
+        method = 'privateDeleteStopOrderCancel' if stop else 'privateDeleteOrders'
+        return getattr(self, method)(self.extend(request, query))
 
     def fetch_orders_by_status(self, status, symbol=None, since=None, limit=None, params={}):
         """
@@ -1547,6 +1553,10 @@ class kucoin(Exchange):
         """
         self.load_markets()
         lowercaseStatus = status.lower()
+        until = self.safe_integer_2(params, 'until', 'till')
+        stop = self.safe_value(params, 'stop')
+        params = self.omit(params, ['stop', 'till', 'until'])
+        marginMode, query = self.handle_margin_mode_and_params('fetchOrdersByStatus', params)
         if lowercaseStatus == 'open':
             lowercaseStatus = 'active'
         elif lowercaseStatus == 'closed':
@@ -1562,15 +1572,14 @@ class kucoin(Exchange):
             request['startAt'] = since
         if limit is not None:
             request['pageSize'] = limit
-        until = self.safe_integer_2(params, 'until', 'till')
         if until:
             request['endAt'] = until
-        stop = self.safe_value(params, 'stop')
-        params = self.omit(params, ['stop', 'till', 'until'])
         method = 'privateGetOrders'
         if stop:
             method = 'privateGetStopOrder'
-        response = getattr(self, method)(self.extend(request, params))
+        if marginMode is not None:
+            request['tradeType'] = self.safe_string(self.options['marginModes'], marginMode, marginMode)
+        response = getattr(self, method)(self.extend(request, query))
         #
         #     {
         #         code: '200000',
