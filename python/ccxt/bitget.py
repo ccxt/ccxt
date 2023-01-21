@@ -1192,7 +1192,7 @@ class bitget(Exchange):
     def fetch_deposits(self, code=None, since=None, limit=None, params={}):
         """
         fetch all deposits made to an account
-         * @url https://bitgetlimited.github.io/apidoc/en/spot/#get-deposit-list
+        see https://bitgetlimited.github.io/apidoc/en/spot/#get-deposit-list
         :param str|None code: unified currency code
         :param int since: the earliest time in ms to fetch deposits for
         :param int|None limit: the maximum number of deposits structures to retrieve
@@ -1309,7 +1309,7 @@ class bitget(Exchange):
     def fetch_withdrawals(self, code=None, since=None, limit=None, params={}):
         """
         fetch all withdrawals made from an account
-         * @url https://bitgetlimited.github.io/apidoc/en/spot/#get-withdraw-list
+        see https://bitgetlimited.github.io/apidoc/en/spot/#get-withdraw-list
         :param str|None code: unified currency code
         :param int since: the earliest time in ms to fetch withdrawals for
         :param int|None limit: the maximum number of withdrawals structures to retrieve
