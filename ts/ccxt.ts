@@ -152,7 +152,6 @@ import woo from  './src/woo.js'
 import yobit from  './src/yobit.js'
 import zaif from  './src/zaif.js'
 import zb from  './src/zb.js'
-import zipmex from  './src/zipmex.js'
 import zonda from  './src/zonda.js'
 
 
@@ -210,7 +209,6 @@ import wazirxPro from  './src/pro/wazirx.js'
 import whitebitPro from  './src/pro/whitebit.js'
 import wooPro from  './src/pro/woo.js'
 import zbPro from  './src/pro/zb.js'
-import zipmexPro from  './src/pro/zipmex.js'
 
 const exchanges = {
     'alpaca':                 alpaca,
@@ -322,7 +320,6 @@ const exchanges = {
     'yobit':                  yobit,
     'zaif':                   zaif,
     'zb':                     zb,
-    'zipmex':                 zipmex,
     'zonda':                  zonda,
 }
 
@@ -380,7 +377,6 @@ const pro = {
     'whitebit':               whitebitPro,
     'woo':                    wooPro,
     'zb':                     zbPro,
-    'zipmex':                 zipmexPro,
 }
 
 for (const exchange in pro) {
@@ -515,7 +511,6 @@ export {
     yobit,
     zaif,
     zb,
-    zipmex,
     zonda,    
 }
 

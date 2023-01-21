@@ -1794,7 +1794,7 @@ export default class poloniex extends Exchange {
          * @returns {[object]} a list of [fees structures]{@link https://docs.ccxt.com/en/latest/manual.html#fee-structure}
          */
         await this.loadMarkets ();
-        const response = await this.publicGetCurrencies (this.extend (params, { 'includeMultiChainCurrencies': true }));
+        const response = await (this as any).publicGetCurrencies (this.extend (params, { 'includeMultiChainCurrencies': true }));
         //
         //     [
         //         {

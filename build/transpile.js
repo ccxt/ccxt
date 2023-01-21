@@ -8,7 +8,7 @@ import ansi from 'ansicolor'
 import { promisify } from 'util'
 import errors from "../js/src/base/errors.js"
 import {unCamelCase, precisionConstants, safeString, unique} from "../js/src/base/functions.js"
-import { Exchange } from '../js/src/base/Exchange.js'
+import Exchange from '../js/src/base/Exchange.js'
 import { basename, join } from 'path'
 import { createFolderRecursively, replaceInFile, overwriteFile } from './fsLocal.js'
 import { pathToFileURL } from 'url'
@@ -1196,7 +1196,7 @@ class Transpiler {
     getExchangeClassDeclarationMatches (contents) {
         return contents.match (/^export default\s*class\s+([\S]+)\s+extends\s+([\S]+)\s+{([\s\S]+?)^};*/m)
     }
-    
+
     getClassDeclarationMatches (contents) {
         return contents.match (/^export \s*(?:default)?\s*class\s+([\S]+)(?:\s+extends\s+([\S]+))?\s+{([\s\S]+?)^};*/m)
     }
@@ -2017,7 +2017,7 @@ class Transpiler {
                 fs.readFileSync (jsFilePath, 'utf8')
             ].join ("\n")
             overwriteFile (jsFilePath, contents)
-        }) 
+        })
         log.bright.yellow ('Added JS preamble to all ', jsFiles.length + ' files.')
     }
 

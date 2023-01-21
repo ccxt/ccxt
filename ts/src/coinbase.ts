@@ -2095,7 +2095,7 @@ export default class coinbase extends Exchange {
         } else {
             request['start'] = Precise.stringSub (end, '18000'); // default to 5h in seconds, max 300 candles
         }
-        const response = await this.v3PrivateGetBrokerageProductsProductIdCandles (this.extend (request, params));
+        const response = await (this as any).v3PrivateGetBrokerageProductsProductIdCandles (this.extend (request, params));
         //
         //     {
         //         "candles": [

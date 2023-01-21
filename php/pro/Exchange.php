@@ -72,6 +72,5 @@ Exchange::$exchanges = array(
     'whitebit',
     'woo',
     'zb',
-    'zipmex',
 );
 
