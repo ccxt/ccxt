@@ -5841,7 +5841,7 @@ module.exports = class okx extends Exchange {
                     'fee': undefined,
                     'percentage': undefined,
                 };
-                const networkCode = this.networkIdToCode (networkId);
+                const networkCode = this.networkIdToCode (networkId, code);
                 depositWithdrawFees[code]['networks'][networkCode] = {
                     'withdraw': withdrawResult,
                     'deposit': depositResult,
