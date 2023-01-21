@@ -1577,8 +1577,7 @@ class kucoin(Exchange):
         method = 'privateGetOrders'
         if stop:
             method = 'privateGetStopOrder'
-        if marginMode is not None:
-            request['tradeType'] = self.safe_string(self.options['marginModes'], marginMode, marginMode)
+        request['tradeType'] = self.safe_string(self.options['marginModes'], marginMode, 'TRADE')
         response = getattr(self, method)(self.extend(request, query))
         #
         #     {
@@ -1705,92 +1704,133 @@ class kucoin(Exchange):
 
     def parse_order(self, order, market=None):
         #
+        # createOrder
+        #
+        #    {
+        #        "orderId": "63c97e47d686c5000159a656"
+        #    }
+        #
+        # cancelOrder
+        #
+        #    {
+        #        "cancelledOrderIds": ["63c97e47d686c5000159a656"]
+        #    }
+        #
         # fetchOpenOrders, fetchClosedOrders
         #
-        #     {
-        #         "id": "5c35c02703aa673ceec2a168",   #orderid
-        #         "symbol": "BTC-USDT",   #symbol
-        #         "opType": "DEAL",      # operation type,deal is pending order,cancel is cancel order
-        #         "type": "limit",       # order type,e.g. limit,markrt,stop_limit.
-        #         "side": "buy",         # transaction direction,include buy and sell
-        #         "price": "10",         # order price
-        #         "size": "2",           # order quantity
-        #         "funds": "0",          # order funds
-        #         "dealFunds": "0.166",  # deal funds
-        #         "dealSize": "2",       # deal quantity
-        #         "fee": "0",            # fee
-        #         "feeCurrency": "USDT",  # charge fee currency
-        #         "stp": "",             # self trade prevention,include CN,CO,DC,CB
-        #         "stop": "",            # stop type
-        #         "stopTriggered": False,  # stop order is triggered
-        #         "stopPrice": "0",      # stop price
-        #         "timeInForce": "GTC",  # time InForce,include GTC,GTT,IOC,FOK
-        #         "postOnly": False,     # postOnly
-        #         "hidden": False,       # hidden order
-        #         "iceberg": False,      # iceberg order
-        #         "visibleSize": "0",    # display quantity for iceberg order
-        #         "cancelAfter": 0,      # cancel orders time，requires timeInForce to be GTT
-        #         "channel": "IOS",      # order source
-        #         "clientOid": "",       # user-entered order unique mark
-        #         "remark": "",          # remark
-        #         "tags": "",            # tag order source
-        #         "isActive": False,     # status before unfilled or uncancelled
-        #         "cancelExist": False,   # order cancellation transaction record
-        #         "createdAt": 1547026471000  # time
-        #     }
+        #    {
+        #        "id": "63c97ce8d686c500015793bb",
+        #        "symbol": "USDC-USDT",
+        #        "opType": "DEAL",
+        #        "type": "limit",
+        #        "side": "sell",
+        #        "price": "1.05",
+        #        "size": "1",
+        #        "funds": "0",
+        #        "dealFunds": "0",
+        #        "dealSize": "0",
+        #        "fee": "0",
+        #        "feeCurrency": "USDT",
+        #        "stp": "",
+        #        "stop": "",
+        #        "stopTriggered": False,
+        #        "stopPrice": "0",
+        #        "timeInForce": "GTC",
+        #        "postOnly": False,
+        #        "hidden": False,
+        #        "iceberg": False,
+        #        "visibleSize": "0",
+        #        "cancelAfter": 0,
+        #        "channel": "API",
+        #        "clientOid": "d602d73f-5424-4751-bef0-8debce8f0a82",
+        #        "remark": null,
+        #        "tags": "partner:ccxt",
+        #        "isActive": True,
+        #        "cancelExist": False,
+        #        "createdAt": 1674149096927,
+        #        "tradeType": "TRADE"
+        #    }
+        #
+        # stop orders(fetchOpenOrders, fetchClosedOrders)
+        #
+        #    {
+        #        "id": "vs9f6ou9e864rgq8000t4qnm",
+        #        "symbol": "USDC-USDT",
+        #        "userId": "613a896885d8660006151f01",
+        #        "status": "NEW",
+        #        "type": "market",
+        #        "side": "sell",
+        #        "price": null,
+        #        "size": "1.00000000000000000000",
+        #        "funds": null,
+        #        "stp": null,
+        #        "timeInForce": "GTC",
+        #        "cancelAfter": -1,
+        #        "postOnly": False,
+        #        "hidden": False,
+        #        "iceberg": False,
+        #        "visibleSize": null,
+        #        "channel": "API",
+        #        "clientOid": "5d3fd727-6456-438d-9550-40d9d85eee0b",
+        #        "remark": null,
+        #        "tags": "partner:ccxt",
+        #        "relatedNo": null,
+        #        "orderTime": 1674146316994000028,
+        #        "domainId": "kucoin",
+        #        "tradeSource": "USER",
+        #        "tradeType": "MARGIN_TRADE",
+        #        "feeCurrency": "USDT",
+        #        "takerFeeRate": "0.00100000000000000000",
+        #        "makerFeeRate": "0.00100000000000000000",
+        #        "createdAt": 1674146316994,
+        #        "stop": "loss",
+        #        "stopTriggerTime": null,
+        #        "stopPrice": "0.97000000000000000000"
+        #    }
         #
         marketId = self.safe_string(order, 'symbol')
-        symbol = self.safe_symbol(marketId, market, '-')
-        orderId = self.safe_string(order, 'id')
-        type = self.safe_string(order, 'type')
         timestamp = self.safe_integer(order, 'createdAt')
-        datetime = self.iso8601(timestamp)
-        price = self.safe_string(order, 'price')
-        # price is zero for market order
-        # omitZero is called in safeOrder2
-        side = self.safe_string(order, 'side')
         feeCurrencyId = self.safe_string(order, 'feeCurrency')
-        feeCurrency = self.safe_currency_code(feeCurrencyId)
-        feeCost = self.safe_number(order, 'fee')
-        amount = self.safe_string(order, 'size')
-        filled = self.safe_string(order, 'dealSize')
-        cost = self.safe_string(order, 'dealFunds')
-        # bool
-        isActive = self.safe_value(order, 'isActive', False)
         cancelExist = self.safe_value(order, 'cancelExist', False)
-        stop = self.safe_string(order, 'stop')
+        responseStop = self.safe_string(order, 'stop')
+        stop = responseStop is not None
         stopTriggered = self.safe_value(order, 'stopTriggered', False)
-        status = 'open' if isActive else 'closed'
-        cancelExistWithStop = cancelExist or (not isActive and stop and not stopTriggered)
-        status = 'canceled' if cancelExistWithStop else status
-        fee = {
-            'currency': feeCurrency,
-            'cost': feeCost,
-        }
-        clientOrderId = self.safe_string(order, 'clientOid')
-        timeInForce = self.safe_string(order, 'timeInForce')
+        isActive = self.safe_value(order, 'isActive')
+        status = None
+        if isActive is True:
+            status = 'open'
+        if stop:
+            responseStatus = self.safe_string(order, 'status')
+            if responseStatus == 'NEW':
+                status = 'open'
+            elif not isActive and not stopTriggered:
+                status = 'cancelled'
+        if cancelExist:
+            status = 'canceled'
         stopPrice = self.safe_number(order, 'stopPrice')
-        postOnly = self.safe_value(order, 'postOnly')
         return self.safe_order({
-            'id': orderId,
-            'clientOrderId': clientOrderId,
-            'symbol': symbol,
-            'type': type,
-            'timeInForce': timeInForce,
-            'postOnly': postOnly,
-            'side': side,
-            'amount': amount,
-            'price': price,
+            'info': order,
+            'id': self.safe_string(order, 'id'),
+            'clientOrderId': self.safe_string(order, 'clientOid'),
+            'symbol': self.safe_symbol(marketId, market, '-'),
+            'type': self.safe_string(order, 'type'),
+            'timeInForce': self.safe_string(order, 'timeInForce'),
+            'postOnly': self.safe_value(order, 'postOnly'),
+            'side': self.safe_string(order, 'side'),
+            'amount': self.safe_string(order, 'size'),
+            'price': self.safe_string(order, 'price'),  # price is zero for market order, omitZero is called in safeOrder2
             'stopPrice': stopPrice,
             'triggerPrice': stopPrice,
-            'cost': cost,
-            'filled': filled,
+            'cost': self.safe_string(order, 'dealFunds'),
+            'filled': self.safe_string(order, 'dealSize'),
             'remaining': None,
             'timestamp': timestamp,
-            'datetime': datetime,
-            'fee': fee,
+            'datetime': self.iso8601(timestamp),
+            'fee': {
+                'currency': self.safe_currency_code(feeCurrencyId),
+                'cost': self.safe_number(order, 'fee'),
+            },
             'status': status,
-            'info': order,
             'lastTradeTimestamp': None,
             'average': None,
             'trades': None,

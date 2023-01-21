@@ -281,6 +281,7 @@ export default class coinbase extends Exchange {
                 'fetchMarkets': 'fetchMarketsV3', // 'fetchMarketsV3' or 'fetchMarketsV2'
                 'fetchTicker': 'fetchTickerV3', // 'fetchTickerV3' or 'fetchTickerV2'
                 'fetchTickers': 'fetchTickersV3', // 'fetchTickersV3' or 'fetchTickersV2'
+                'fetchAccounts': 'fetchAccountsV3', // 'fetchAccountsV3' or 'fetchAccountsV2'
             },
         });
     }
@@ -314,6 +315,14 @@ export default class coinbase extends Exchange {
          * @param {object} params extra parameters specific to the coinbase api endpoint
          * @returns {object} a dictionary of [account structures]{@link https://docs.ccxt.com/en/latest/manual.html#account-structure} indexed by the account type
          */
+        const method = this.safeString (this.options, 'fetchAccounts', 'fetchAccountsV3');
+        if (method === 'fetchAccountsV3') {
+            return await this.fetchAccountsV3 (params);
+        }
+        return await this.fetchAccountsV2 (params);
+    }
+
+    async fetchAccountsV2 (params = {}) {
         await this.loadMarkets ();
         const request = {
             'limit': 100,
@@ -321,39 +330,95 @@ export default class coinbase extends Exchange {
         const response = await (this as any).v2PrivateGetAccounts (this.extend (request, params));
         //
         //     {
-        //         "id": "XLM",
-        //         "name": "XLM Wallet",
-        //         "primary": false,
-        //         "type": "wallet",
-        //         "currency": {
-        //             "code": "XLM",
-        //             "name": "Stellar Lumens",
-        //             "color": "#000000",
-        //             "sort_index": 127,
-        //             "exponent": 7,
-        //             "type": "crypto",
-        //             "address_regex": "^G[A-Z2-7]{55}$",
-        //             "asset_id": "13b83335-5ede-595b-821e-5bcdfa80560f",
-        //             "destination_tag_name": "XLM Memo ID",
-        //             "destination_tag_regex": "^[ -~]{1,28}$"
+        //         "pagination": {
+        //             "ending_before": null,
+        //             "starting_after": null,
+        //             "previous_ending_before": null,
+        //             "next_starting_after": null,
+        //             "limit": 244,
+        //             "order": "desc",
+        //             "previous_uri": null,
+        //             "next_uri": null
         //         },
-        //         "balance": {
-        //             "amount": "0.0000000",
-        //             "currency": "XLM"
-        //         },
-        //         "created_at": null,
-        //         "updated_at": null,
-        //         "resource": "account",
-        //         "resource_path": "/v2/accounts/XLM",
-        //         "allow_deposits": true,
-        //         "allow_withdrawals": true
+        //         "data": [
+        //             {
+        //                 "id": "XLM",
+        //                 "name": "XLM Wallet",
+        //                 "primary": false,
+        //                 "type": "wallet",
+        //                 "currency": {
+        //                     "code": "XLM",
+        //                     "name": "Stellar Lumens",
+        //                     "color": "#000000",
+        //                     "sort_index": 127,
+        //                     "exponent": 7,
+        //                     "type": "crypto",
+        //                     "address_regex": "^G[A-Z2-7]{55}$",
+        //                     "asset_id": "13b83335-5ede-595b-821e-5bcdfa80560f",
+        //                     "destination_tag_name": "XLM Memo ID",
+        //                     "destination_tag_regex": "^[ -~]{1,28}$"
+        //                 },
+        //                 "balance": {
+        //                     "amount": "0.0000000",
+        //                     "currency": "XLM"
+        //                 },
+        //                 "created_at": null,
+        //                 "updated_at": null,
+        //                 "resource": "account",
+        //                 "resource_path": "/v2/accounts/XLM",
+        //                 "allow_deposits": true,
+        //                 "allow_withdrawals": true
+        //             },
+        //         ]
         //     }
         //
         const data = this.safeValue (response, 'data', []);
         return this.parseAccounts (data, params);
     }
 
+    async fetchAccountsV3 (params = {}) {
+        await this.loadMarkets ();
+        const request = {
+            'limit': 100,
+        };
+        const response = await (this as any).v3PrivateGetBrokerageAccounts (this.extend (request, params));
+        //
+        //     {
+        //         "accounts": [
+        //             {
+        //                 "uuid": "11111111-1111-1111-1111-111111111111",
+        //                 "name": "USDC Wallet",
+        //                 "currency": "USDC",
+        //                 "available_balance": {
+        //                     "value": "0.0000000000000000",
+        //                     "currency": "USDC"
+        //                 },
+        //                 "default": true,
+        //                 "active": true,
+        //                 "created_at": "2023-01-04T06:20:06.456Z",
+        //                 "updated_at": "2023-01-04T06:20:07.181Z",
+        //                 "deleted_at": null,
+        //                 "type": "ACCOUNT_TYPE_CRYPTO",
+        //                 "ready": false,
+        //                 "hold": {
+        //                     "value": "0.0000000000000000",
+        //                     "currency": "USDC"
+        //                 }
+        //             },
+        //             ...
+        //         ],
+        //         "has_next": false,
+        //         "cursor": "",
+        //         "size": 9
+        //     }
+        //
+        const data = this.safeValue (response, 'accounts', []);
+        return this.parseAccounts (data, params);
+    }
+
     parseAccount (account) {
+        //
+        // fetchAccountsV2
         //
         //     {
         //         "id": "XLM",
@@ -384,13 +449,40 @@ export default class coinbase extends Exchange {
         //         "allow_withdrawals": true
         //     }
         //
+        // fetchAccountsV3
+        //
+        //     {
+        //         "uuid": "11111111-1111-1111-1111-111111111111",
+        //         "name": "USDC Wallet",
+        //         "currency": "USDC",
+        //         "available_balance": {
+        //             "value": "0.0000000000000000",
+        //             "currency": "USDC"
+        //         },
+        //         "default": true,
+        //         "active": true,
+        //         "created_at": "2023-01-04T06:20:06.456Z",
+        //         "updated_at": "2023-01-04T06:20:07.181Z",
+        //         "deleted_at": null,
+        //         "type": "ACCOUNT_TYPE_CRYPTO",
+        //         "ready": false,
+        //         "hold": {
+        //             "value": "0.0000000000000000",
+        //             "currency": "USDC"
+        //         }
+        //     }
+        //
+        const active = this.safeValue (account, 'active');
+        const currencyIdV3 = this.safeString (account, 'currency');
         const currency = this.safeValue (account, 'currency', {});
-        const currencyId = this.safeString (currency, 'code');
-        const code = this.safeCurrencyCode (currencyId);
+        const currencyId = this.safeString (currency, 'code', currencyIdV3);
+        const typeV3 = this.safeString (account, 'name');
+        const typeV2 = this.safeString (account, 'type');
+        const parts = typeV3.split (' ');
         return {
-            'id': this.safeString (account, 'id'),
-            'type': this.safeString (account, 'type'),
-            'code': code,
+            'id': this.safeString2 (account, 'id', 'uuid'),
+            'type': (active !== undefined) ? this.safeStringLower (parts, 1) : typeV2,
+            'code': this.safeCurrencyCode (currencyId),
             'info': account,
         };
     }
