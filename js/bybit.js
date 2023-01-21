@@ -1953,8 +1953,10 @@ module.exports = class bybit extends Exchange {
         if (since !== undefined) {
             // startTime isn't working, emulated since using endTime
             // request['startTime'] = since;
-            const millisecondDuration = Precise.stringMul (this.parseTimeframe (timeframe).toString (), '1000');
-            const emulatedSince = Precise.stringAdd (since.toString (), (Precise.stringMul (limit.toString (), millisecondDuration)));
+            const duration = this.parseTimeframe (timeframe).toString ();
+            const millisecondDuration = Precise.stringMul (duration, '1000');
+            const timeFromSince = Precise.stringMul (limit.toString (), millisecondDuration);
+            const emulatedSince = Precise.stringAdd (since.toString (), timeFromSince);
             const emulatedSinceAdjustDurationError = Precise.stringSub (emulatedSince, millisecondDuration);
             request['endTime'] = this.parseNumber (emulatedSinceAdjustDurationError);
         }
