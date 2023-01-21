@@ -22,6 +22,11 @@ module.exports = class kraken extends krakenRest {
                 'watchTicker': true,
                 'watchTickers': false, // for now
                 'watchTrades': true,
+                'createOrder': true,
+                'editOrder': true,
+                'cancelOrder': true,
+                'cancelOrders': true,
+                'cancelAllOrders': true,
                 // 'watchHeartbeat': true,
                 // 'watchStatus': true,
             },
@@ -31,6 +36,7 @@ module.exports = class kraken extends krakenRest {
                         'public': 'wss://ws.kraken.com',
                         'private': 'wss://ws-auth.kraken.com',
                         'beta': 'wss://beta-ws.kraken.com',
+                        'beta-private': 'wss://beta-ws-auth.kraken.com',
                     },
                 },
             },
@@ -55,6 +61,197 @@ module.exports = class kraken extends krakenRest {
                 },
             },
         });
+    }
+
+    async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
+        /**
+         * @method
+         * @name kraken#createOrder
+         * @description create a trade order
+         * @param {string} symbol unified symbol of the market to create an order in
+         * @param {string} type 'market' or 'limit'
+         * @param {string} side 'buy' or 'sell'
+         * @param {float} amount how much of currency you want to trade in units of base currency
+         * @param {float|undefined} price the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+         * @param {object} params extra parameters specific to the kraken api endpoint
+         * @returns {object} an [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
+         */
+        await this.loadMarkets ();
+        const token = await this.authenticate ();
+        const market = this.market (symbol);
+        const url = this.urls['api']['ws']['private'];
+        const requestId = this.requestId ();
+        const messageHash = requestId;
+        let request = {
+            'event': 'addOrder',
+            'token': token,
+            'reqid': requestId,
+            'ordertype': type,
+            'type': side,
+            'pair': market['wsId'],
+            'volume': this.amountToPrecision (symbol, amount),
+        };
+        [ request, params ] = this.orderRequest ('createOrder()', symbol, type, request, price, params);
+        return await this.watch (url, messageHash, this.extend (request, params), messageHash);
+    }
+
+    handleCreateEditOrder (client, message) {
+        //
+        //  createOrder
+        //    {
+        //        descr: 'sell 0.00010000 XBTUSDT @ market',
+        //        event: 'addOrderStatus',
+        //        reqid: 1,
+        //        status: 'ok',
+        //        txid: 'OAVXZH-XIE54-JCYYDG'
+        //    }
+        //  editOrder
+        //    {
+        //        "descr": "order edited price = 9000.00000000",
+        //        "event": "editOrderStatus",
+        //        "originaltxid": "O65KZW-J4AW3-VFS74A",
+        //        "reqid": 3,
+        //        "status": "ok",
+        //        "txid": "OTI672-HJFAO-XOIPPK"
+        //    }
+        //
+        const order = this.parseOrder (message);
+        const messageHash = this.safeValue (message, 'reqid');
+        client.resolve (order, messageHash);
+    }
+
+    async editOrder (id, symbol, type, side, amount, price = undefined, params = {}) {
+        /**
+         * @method
+         * @name kraken#editOrder
+         * @description edit a trade order
+         * @see https://docs.kraken.com/rest/#tag/User-Trading/operation/editOrder
+         * @param {string} id order id
+         * @param {string} symbol unified symbol of the market to create an order in
+         * @param {string} type 'market' or 'limit'
+         * @param {string} side 'buy' or 'sell'
+         * @param {float} amount how much of the currency you want to trade in units of the base currency
+         * @param {float|undefined} price the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+         * @param {object} params extra parameters specific to the kraken api endpoint
+         * @returns {object} an [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
+         */
+        await this.loadMarkets ();
+        const token = await this.authenticate ();
+        const market = this.market (symbol);
+        const url = this.urls['api']['ws']['private'];
+        const requestId = this.requestId ();
+        const messageHash = requestId;
+        let request = {
+            'event': 'editOrder',
+            'token': token,
+            'reqid': requestId,
+            'orderid': id,
+            'pair': market['wsId'],
+            'volume': this.amountToPrecision (symbol, amount),
+        };
+        [ request, params ] = this.orderRequest ('editOrder()', symbol, type, request, price, params);
+        return await this.watch (url, messageHash, this.extend (request, params), messageHash);
+    }
+
+    async cancelOrders (ids, symbol = undefined, params = {}) {
+        /**
+         * @method
+         * @name kraken#cancelOrders
+         * @description cancel multiple orders
+         * @param {[string]} ids order ids
+         * @param {string|undefined} symbol unified market symbol, default is undefined
+         * @param {object} params extra parameters specific to the kraken api endpoint
+         * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
+         */
+        await this.loadMarkets ();
+        const token = await this.authenticate ();
+        const url = this.urls['api']['ws']['private'];
+        const requestId = this.requestId ();
+        const messageHash = requestId;
+        const request = {
+            'event': 'cancelOrder',
+            'token': token,
+            'reqid': requestId,
+            'txid': ids,
+        };
+        return await this.watch (url, messageHash, this.extend (request, params), messageHash);
+    }
+
+    async cancelOrder (id, symbol = undefined, params = {}) {
+        /**
+         * @method
+         * @name kraken#cancelOrder
+         * @description cancels an open order
+         * @param {string} id order id
+         * @param {string|undefined} symbol unified symbol of the market the order was made in
+         * @param {object} params extra parameters specific to the kraken api endpoint
+         * @returns {object} An [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
+         */
+        await this.loadMarkets ();
+        const token = await this.authenticate ();
+        const url = this.urls['api']['ws']['private'];
+        const requestId = this.requestId ();
+        const messageHash = requestId;
+        const clientOrderId = this.safeValue2 (params, 'userref', 'clientOrderId', id);
+        params = this.omit (params, [ 'userref', 'clientOrderId' ]);
+        const request = {
+            'event': 'cancelOrder',
+            'token': token,
+            'reqid': requestId,
+            'txid': [ clientOrderId ],
+        };
+        return await this.watch (url, messageHash, this.extend (request, params), messageHash);
+    }
+
+    handleCancelOrder (client, message) {
+        //
+        //  success
+        //    {
+        //        "event": "cancelOrderStatus",
+        //        "status": "ok"
+        //        "reqid": 1,
+        //    }
+        //
+        const reqId = this.safeValue (message, 'reqid');
+        client.resolve (message, reqId);
+    }
+
+    async cancelAllOrders (symbol = undefined, params = {}) {
+        /**
+         * @method
+         * @name kraken#cancelAllOrders
+         * @description cancel all open orders
+         * @param {string|undefined} symbol unified market symbol, only orders in the market of this symbol are cancelled when symbol is not undefined
+         * @param {object} params extra parameters specific to the kraken api endpoint
+         * @returns {[object]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
+         */
+        if (symbol !== undefined) {
+            throw new NotSupported (this.id + ' cancelAllOrders () does not support cancelling orders in a specific market.');
+        }
+        await this.loadMarkets ();
+        const token = await this.authenticate ();
+        const url = this.urls['api']['ws']['private'];
+        const requestId = this.requestId ();
+        const messageHash = requestId;
+        const request = {
+            'event': 'cancelAll',
+            'token': token,
+            'reqid': requestId,
+        };
+        return await this.watch (url, messageHash, this.extend (request, params), messageHash);
+    }
+
+    handleCancelAllOrders (client, message) {
+        //
+        //    {
+        //        "count": 2,
+        //        "event": "cancelAllStatus",
+        //        "status": "ok",
+        //        "reqId": 1
+        //    }
+        //
+        const reqId = this.safeValue (message, 'reqid');
+        client.resolve (message, reqId);
     }
 
     handleTicker (client, message, subscription) {
@@ -1126,6 +1323,10 @@ module.exports = class kraken extends krakenRest {
                     'heartbeat': this.handleHeartbeat,
                     'systemStatus': this.handleSystemStatus,
                     'subscriptionStatus': this.handleSubscriptionStatus,
+                    'addOrderStatus': this.handleCreateEditOrder,
+                    'editOrderStatus': this.handleCreateEditOrder,
+                    'cancelOrderStatus': this.handleCancelOrder,
+                    'cancelAllStatus': this.handleCancelAllOrders,
                 };
                 const method = this.safeValue (methods, event);
                 if (method === undefined) {
