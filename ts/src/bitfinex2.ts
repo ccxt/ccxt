@@ -1178,26 +1178,6 @@ export default class bitfinex2 extends Exchange {
         return this.parseTicker (ticker, market);
     }
 
-    parseSymbol (marketId) {
-        if (marketId === undefined) {
-            return marketId;
-        }
-        marketId = marketId.replace ('t', '');
-        let baseId = undefined;
-        let quoteId = undefined;
-        if (marketId.indexOf (':') >= 0) {
-            const parts = marketId.split (':');
-            baseId = parts[0];
-            quoteId = parts[1];
-        } else {
-            baseId = marketId.slice (0, 3);
-            quoteId = marketId.slice (3, 6);
-        }
-        const base = this.safeCurrencyCode (baseId);
-        const quote = this.safeCurrencyCode (quoteId);
-        return base + '/' + quote;
-    }
-
     parseTrade (trade, market = undefined) {
         //
         // fetchTrades (public)
@@ -1249,7 +1229,7 @@ export default class bitfinex2 extends Exchange {
         const timestamp = this.safeInteger (trade, timestampIndex);
         if (isPrivate) {
             const marketId = trade[1];
-            symbol = this.parseSymbol (marketId);
+            symbol = this.safeSymbol (marketId);
             orderId = this.safeString (trade, 3);
             const maker = this.safeInteger (trade, 8);
             takerOrMaker = (maker === 1) ? 'maker' : 'taker';
@@ -1429,7 +1409,7 @@ export default class bitfinex2 extends Exchange {
     parseOrder (order, market = undefined) {
         const id = this.safeString (order, 0);
         const marketId = this.safeString (order, 3);
-        const symbol = this.parseSymbol (marketId);
+        const symbol = this.safeSymbol (marketId);
         // https://github.com/ccxt/ccxt/issues/6686
         // const timestamp = this.safeTimestamp (order, 5);
         const timestamp = this.safeInteger (order, 5);
