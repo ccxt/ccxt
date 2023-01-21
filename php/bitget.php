@@ -1192,7 +1192,7 @@ class bitget extends Exchange {
     public function fetch_deposits($code = null, $since = null, $limit = null, $params = array ()) {
         /**
          * fetch all deposits made to an account
-         * @url https://bitgetlimited.github.io/apidoc/en/spot/#get-deposit-list
+         * @see https://bitgetlimited.github.io/apidoc/en/spot/#get-deposit-list
          * @param {string|null} $code unified $currency $code
          * @param {int} $since the earliest time in ms to fetch deposits for
          * @param {int|null} $limit the maximum number of deposits structures to retrieve
@@ -1317,7 +1317,7 @@ class bitget extends Exchange {
     public function fetch_withdrawals($code = null, $since = null, $limit = null, $params = array ()) {
         /**
          * fetch all withdrawals made from an account
-         * @url https://bitgetlimited.github.io/apidoc/en/spot/#get-withdraw-list
+         * @see https://bitgetlimited.github.io/apidoc/en/spot/#get-withdraw-list
          * @param {string|null} $code unified $currency $code
          * @param {int} $since the earliest time in ms to fetch withdrawals for
          * @param {int|null} $limit the maximum number of withdrawals structures to retrieve

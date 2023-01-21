@@ -12,6 +12,8 @@ from ccxt.base.errors import InvalidOrder
 from ccxt.base.errors import NotSupported
 from ccxt.base.errors import RateLimitExceeded
 from ccxt.base.errors import InvalidNonce
+from ccxt.base.decimal_to_precision import TRUNCATE
+from ccxt.base.decimal_to_precision import DECIMAL_PLACES
 from ccxt.base.decimal_to_precision import TICK_SIZE
 from ccxt.base.precise import Precise
 
@@ -77,7 +79,7 @@ class coinbase(Exchange):
                 'fetchMyBuys': True,
                 'fetchMySells': True,
                 'fetchMyTrades': None,
-                'fetchOHLCV': False,
+                'fetchOHLCV': True,
                 'fetchOpenInterestHistory': False,
                 'fetchOpenOrders': None,
                 'fetchOrder': None,
@@ -262,6 +264,16 @@ class coinbase(Exchange):
                 'broad': {
                     'request timestamp expired': InvalidNonce,  # {"errors":[{"id":"authentication_error","message":"request timestamp expired"}]}
                 },
+            },
+            'timeframes': {
+                '1m': 'ONE_MINUTE',
+                '5m': 'FIVE_MINUTE',
+                '15m': 'FIFTEEN_MINUTE',
+                '30m': 'THIRTY_MINUTE',
+                '1h': 'ONE_HOUR',
+                '2h': 'TWO_HOUR',
+                '6h': 'SIX_HOUR',
+                '1d': 'ONE_DAY',
             },
             'commonCurrencies': {
                 'CGLD': 'CELO',
@@ -1943,6 +1955,71 @@ class coinbase(Exchange):
         if success is not True:
             raise BadRequest(self.id + ' cancelOrders() has failed, check your arguments and parameters')
         return self.parse_orders(orders, market)
+
+    def fetch_ohlcv(self, symbol, timeframe='1m', since=None, limit=None, params={}):
+        """
+        fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+        see https://docs.cloud.coinbase.com/advanced-trade-api/reference/retailbrokerageapi_getcandles
+        :param str symbol: unified symbol of the market to fetch OHLCV data for
+        :param str timeframe: the length of time each candle represents
+        :param int|None since: timestamp in ms of the earliest candle to fetch
+        :param int|None limit: the maximum amount of candles to fetch, not used by coinbase
+        :param dict params: extra parameters specific to the coinbase api endpoint
+        :returns [[int]]: A list of candles ordered as timestamp, open, high, low, close, volume
+        """
+        self.load_markets()
+        market = self.market(symbol)
+        end = str(self.seconds())
+        request = {
+            'product_id': market['id'],
+            'granularity': self.safe_string(self.timeframes, timeframe, timeframe),
+            'end': end,
+        }
+        if since is not None:
+            since = str(since)
+            timeframeToSeconds = Precise.string_div(since, '1000')
+            request['start'] = self.decimal_to_precision(timeframeToSeconds, TRUNCATE, 0, DECIMAL_PLACES)
+        else:
+            request['start'] = Precise.string_sub(end, '18000')  # default to 5h in seconds, max 300 candles
+        response = self.v3PrivateGetBrokerageProductsProductIdCandles(self.extend(request, params))
+        #
+        #     {
+        #         "candles": [
+        #             {
+        #                 "start": "1673391780",
+        #                 "low": "17414.36",
+        #                 "high": "17417.99",
+        #                 "open": "17417.74",
+        #                 "close": "17417.38",
+        #                 "volume": "1.87780853"
+        #             },
+        #         ]
+        #     }
+        #
+        candles = self.safe_value(response, 'candles', [])
+        return self.parse_ohlcvs(candles, market, timeframe, since, limit)
+
+    def parse_ohlcv(self, ohlcv, market=None):
+        #
+        #     [
+        #         {
+        #             "start": "1673391780",
+        #             "low": "17414.36",
+        #             "high": "17417.99",
+        #             "open": "17417.74",
+        #             "close": "17417.38",
+        #             "volume": "1.87780853"
+        #         },
+        #     ]
+        #
+        return [
+            self.safe_timestamp(ohlcv, 'start'),
+            self.safe_number(ohlcv, 'open'),
+            self.safe_number(ohlcv, 'high'),
+            self.safe_number(ohlcv, 'low'),
+            self.safe_number(ohlcv, 'close'),
+            self.safe_number(ohlcv, 'volume'),
+        ]
 
     def sign(self, path, api=[], method='GET', params={}, headers=None, body=None):
         version = api[0]

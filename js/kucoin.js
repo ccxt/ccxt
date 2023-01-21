@@ -1588,24 +1588,26 @@ module.exports = class kucoin extends Exchange {
          * @description cancel all open orders
          * @param {string|undefined} symbol unified market symbol, only orders in the market of this symbol are cancelled when symbol is not undefined
          * @param {object} params extra parameters specific to the kucoin api endpoint
-         * @param {bool} params.stop true if cancelling all stop orders
-         * @param {string} params.tradeType The type of trading, "TRADE" for Spot Trading, "MARGIN_TRADE" for Margin Trading
+         * @param {bool} params.stop *invalid for isolated margin* true if cancelling all stop orders
+         * @param {string} params.marginMode 'cross' or 'isolated'
          * @param {string} params.orderIds *stop orders only* Comma seperated order IDs
          * @returns Response from the exchange
          */
         await this.loadMarkets ();
         const request = {};
-        let market = undefined;
-        if (symbol !== undefined) {
-            market = this.market (symbol);
-            request['symbol'] = market['id'];
-        }
-        let method = 'privateDeleteOrders';
         const stop = this.safeValue (params, 'stop');
-        if (stop) {
-            method = 'privateDeleteStopOrderCancel';
+        const [ marginMode, query ] = this.handleMarginModeAndParams ('cancelAllOrders', params);
+        if (symbol !== undefined) {
+            request['symbol'] = this.marketId (symbol);
         }
-        return await this[method] (this.extend (request, params));
+        if (marginMode !== undefined) {
+            request['tradeType'] = this.options['marginModes'][marginMode];
+            if (marginMode === 'isolated' && stop) {
+                throw new BadRequest (this.id + ' cancelAllOrders does not support isolated margin for stop orders');
+            }
+        }
+        const method = stop ? 'privateDeleteStopOrderCancel' : 'privateDeleteOrders';
+        return await this[method] (this.extend (request, query));
     }
 
     async fetchOrdersByStatus (status, symbol = undefined, since = undefined, limit = undefined, params = {}) {
@@ -1659,7 +1661,9 @@ module.exports = class kucoin extends Exchange {
         if (stop) {
             method = 'privateGetStopOrder';
         }
-        request['tradeType'] = this.safeString (this.options['marginModes'], marginMode, 'TRADE');
+        if (marginMode !== undefined) {
+            request['tradeType'] = this.safeString (this.options['marginModes'], marginMode, marginMode);
+        }
         const response = await this[method] (this.extend (request, query));
         //
         //     {

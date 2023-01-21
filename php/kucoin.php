@@ -495,6 +495,11 @@ class kucoin extends Exchange {
                 'networksById' => array(
                     'BEP20' => 'BSC',
                 ),
+                'marginModes' => array(
+                    'cross' => 'MARGIN_TRADE',
+                    'isolated' => 'MARGIN_ISOLATED_TRADE',
+                    'spot' => 'TRADE',
+                ),
             ),
         ));
     }
@@ -1546,26 +1551,28 @@ class kucoin extends Exchange {
     public function cancel_all_orders($symbol = null, $params = array ()) {
         /**
          * cancel all open orders
-         * @param {string|null} $symbol unified $market $symbol, only orders in the $market of this $symbol are cancelled when $symbol is not null
+         * @param {string|null} $symbol unified market $symbol, only orders in the market of this $symbol are cancelled when $symbol is not null
          * @param {array} $params extra parameters specific to the kucoin api endpoint
-         * @param {bool} $params->stop true if cancelling all $stop orders
-         * @param {string} $params->tradeType The type of trading, "TRADE" for Spot Trading, "MARGIN_TRADE" for Margin Trading
+         * @param {bool} $params->stop *invalid for isolated margin* true if cancelling all $stop orders
+         * @param {string} $params->marginMode 'cross' or 'isolated'
          * @param {string} $params->orderIds *$stop orders only* Comma seperated order IDs
          * @return Response from the exchange
          */
         $this->load_markets();
         $request = array();
-        $market = null;
-        if ($symbol !== null) {
-            $market = $this->market($symbol);
-            $request['symbol'] = $market['id'];
-        }
-        $method = 'privateDeleteOrders';
         $stop = $this->safe_value($params, 'stop');
-        if ($stop) {
-            $method = 'privateDeleteStopOrderCancel';
+        list($marginMode, $query) = $this->handle_margin_mode_and_params('cancelAllOrders', $params);
+        if ($symbol !== null) {
+            $request['symbol'] = $this->market_id($symbol);
         }
-        return $this->$method (array_merge($request, $params));
+        if ($marginMode !== null) {
+            $request['tradeType'] = $this->options['marginModes'][$marginMode];
+            if ($marginMode === 'isolated' && $stop) {
+                throw new BadRequest($this->id . ' cancelAllOrders does not support isolated margin for $stop orders');
+            }
+        }
+        $method = $stop ? 'privateDeleteStopOrderCancel' : 'privateDeleteOrders';
+        return $this->$method (array_merge($request, $query));
     }
 
     public function fetch_orders_by_status($status, $symbol = null, $since = null, $limit = null, $params = array ()) {
@@ -1587,6 +1594,10 @@ class kucoin extends Exchange {
          */
         $this->load_markets();
         $lowercaseStatus = strtolower($status);
+        $until = $this->safe_integer_2($params, 'until', 'till');
+        $stop = $this->safe_value($params, 'stop');
+        $params = $this->omit($params, array( 'stop', 'till', 'until' ));
+        list($marginMode, $query) = $this->handle_margin_mode_and_params('fetchOrdersByStatus', $params);
         if ($lowercaseStatus === 'open') {
             $lowercaseStatus = 'active';
         } elseif ($lowercaseStatus === 'closed') {
@@ -1606,17 +1617,17 @@ class kucoin extends Exchange {
         if ($limit !== null) {
             $request['pageSize'] = $limit;
         }
-        $until = $this->safe_integer_2($params, 'until', 'till');
         if ($until) {
             $request['endAt'] = $until;
         }
-        $stop = $this->safe_value($params, 'stop');
-        $params = $this->omit($params, array( 'stop', 'till', 'until' ));
         $method = 'privateGetOrders';
         if ($stop) {
             $method = 'privateGetStopOrder';
         }
-        $response = $this->$method (array_merge($request, $params));
+        if ($marginMode !== null) {
+            $request['tradeType'] = $this->safe_string($this->options['marginModes'], $marginMode, $marginMode);
+        }
+        $response = $this->$method (array_merge($request, $query));
         //
         //     {
         //         code => '200000',
