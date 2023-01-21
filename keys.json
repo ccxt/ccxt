@@ -27,6 +27,7 @@
     "hollaex":       { "skipWs": true },
     "idex":          { "skipWs": true },
     "kucoin":        { "skipWs": true },
+    "kucoinfutures": { "skipWs": true },
     "ndax":          { "skipWs": true },
     "ripio":         { "skip":true, "skipWs": true },
     "upbit":         { "skipWs": true },
