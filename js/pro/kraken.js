@@ -67,6 +67,7 @@ module.exports = class kraken extends krakenRest {
         /**
          * @method
          * @name kraken#createOrder
+         * @see https://docs.kraken.com/websockets/#message-addOrder
          * @description create a trade order
          * @param {string} symbol unified symbol of the market to create an order in
          * @param {string} type 'market' or 'limit'
@@ -125,7 +126,7 @@ module.exports = class kraken extends krakenRest {
          * @method
          * @name kraken#editOrder
          * @description edit a trade order
-         * @see https://docs.kraken.com/rest/#tag/User-Trading/operation/editOrder
+         * @see https://docs.kraken.com/websockets/#message-editOrder
          * @param {string} id order id
          * @param {string} symbol unified symbol of the market to create an order in
          * @param {string} type 'market' or 'limit'
@@ -157,6 +158,7 @@ module.exports = class kraken extends krakenRest {
         /**
          * @method
          * @name kraken#cancelOrders
+         * @see https://docs.kraken.com/websockets/#message-cancelOrder
          * @description cancel multiple orders
          * @param {[string]} ids order ids
          * @param {string|undefined} symbol unified market symbol, default is undefined
@@ -181,6 +183,7 @@ module.exports = class kraken extends krakenRest {
         /**
          * @method
          * @name kraken#cancelOrder
+         * @see https://docs.kraken.com/websockets/#message-cancelOrder
          * @description cancels an open order
          * @param {string} id order id
          * @param {string|undefined} symbol unified symbol of the market the order was made in
@@ -220,6 +223,7 @@ module.exports = class kraken extends krakenRest {
         /**
          * @method
          * @name kraken#cancelAllOrders
+         * @see https://docs.kraken.com/websockets/#message-cancelAll
          * @description cancel all open orders
          * @param {string|undefined} symbol unified market symbol, only orders in the market of this symbol are cancelled when symbol is not undefined
          * @param {object} params extra parameters specific to the kraken api endpoint
