@@ -208,6 +208,7 @@ class bitget(Exchange):
                         'get': {
                             'account/account': 2,
                             'account/accounts': 2,
+                            'account/accountBill': 2,
                             'account/open-count': 1,
                             'order/current': 2,
                             'order/history': 2,
