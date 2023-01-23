@@ -3047,12 +3047,12 @@ class binance extends Exchange {
             // ALLOW_FAILURE - new order placement will be attempted even if cancel $request fails.
         );
         $clientOrderId = $this->safe_string_2($params, 'newClientOrderId', 'clientOrderId');
-        $postOnly = $this->safe_value($params, 'postOnly', false);
-        if ($postOnly) {
-            $type = 'LIMIT_MAKER';
-        }
         $initialUppercaseType = strtoupper($type);
         $uppercaseType = $initialUppercaseType;
+        $postOnly = $this->is_post_only($initialUppercaseType === 'MARKET', $initialUppercaseType === 'LIMIT_MAKER', $params);
+        if ($postOnly) {
+            $uppercaseType = 'LIMIT_MAKER';
+        }
         $request['type'] = $uppercaseType;
         $stopPrice = $this->safe_number($params, 'stopPrice');
         if ($stopPrice !== null) {
