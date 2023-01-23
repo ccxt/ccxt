@@ -326,6 +326,8 @@ module.exports = class bitfinex2 extends Exchange {
                     'derivatives': 'margin',
                     'future': 'margin',
                 },
+                'networks': {
+                },
             },
             'exceptions': {
                 'exact': {
@@ -588,6 +590,7 @@ module.exports = class bitfinex2 extends Exchange {
             'pub:map:currency:explorer', // maps symbols to their recognised block explorer URLs
             'pub:map:currency:tx:fee', // maps currencies to their withdrawal fees https://github.com/ccxt/ccxt/issues/7745,
             'pub:map:tx:method', // maps withdrawal/deposit methods to their API symbols
+            'pub:info:tx:status', // wallet status for each currency for deposits and withdrawals, also if payment IDs are allowed for deposits and withdrawals (1 = active, 0 = maintenance)
         ];
         const config = labels.join (',');
         const request = {
@@ -670,7 +673,10 @@ module.exports = class bitfinex2 extends Exchange {
         //             ["ABS",[0,131.3]],
         //             ["ADA",[0,0.3]],
         //         ],
+        //         // pub:info:tx:status
+        //         [METHOD, DEP_STATUS, WD_STATUS, PH, PH, PH, PH, PAYMENT_ID_DEP, PAYMENT_ID_WD, PH, PH, DEPOSIT_CONFIRMATIONS_REQUIRED]
         //     ]
+        //
         //
         const indexed = {
             'sym': this.indexBy (this.safeValue (response, 1, []), 0),
@@ -680,6 +686,7 @@ module.exports = class bitfinex2 extends Exchange {
             'pool': this.indexBy (this.safeValue (response, 5, []), 0),
             'explorer': this.indexBy (this.safeValue (response, 6, []), 0),
             'fees': this.indexBy (this.safeValue (response, 7, []), 0),
+            'networkStatuses': this.indexBy (this.safeValue (response, 9, []), 0),
         };
         const ids = this.safeValue (response, 0, []);
         const result = {};
@@ -700,6 +707,47 @@ module.exports = class bitfinex2 extends Exchange {
             const undl = this.safeValue (indexed['undl'], id, []);
             const precision = '8'; // default precision, todo: fix "magic constants"
             const fid = 'f' + id;
+            const networks = {};
+            const currencyChains = this.safeValue (response, 8, []);
+            let depositEnabled = false;
+            let withdrawEnabled = false;
+            // networks ids & currency ids are in a reversed array, so we have to loop through each iteration, i.e. [ DASH : [ DSH ]] where DSH is currency id and DASH is "network method" id
+            for (let j = 0; j < currencyChains.length; j++) {
+                const pair = currencyChains[j];
+                const currencyIds = this.safeValue (pair, 1, []);
+                for (let k = 0; k < currencyIds.length; k++) {
+                    const currencyId = this.safeString (currencyIds, k);
+                    if (currencyId === id) {
+                        const networkId = this.safeString (pair, 0);
+                        const networkStatusObject = this.safeValue (indexed['networkStatuses'], networkId, []);
+                        const deposit = this.safeInteger (networkStatusObject, 1, 0) === 1;
+                        const withdraw = this.safeInteger (networkStatusObject, 2, 0) === 1;
+                        const networkCode = this.networkIdToCode (networkId);
+                        networks[networkCode] = {
+                            'info': pair,
+                            'id': networkId,
+                            'network': networkCode,
+                            'active': undefined,
+                            'deposit': deposit,
+                            'withdraw': withdraw,
+                            'fee': undefined,
+                            'precision': undefined,
+                            'limits': {
+                                'withdraw': {
+                                    'min': undefined,
+                                    'max': undefined,
+                                },
+                            },
+                        };
+                        if (deposit) {
+                            depositEnabled = true;
+                        }
+                        if (withdraw) {
+                            withdrawEnabled = true;
+                        }
+                    }
+                }
+            }
             result[code] = {
                 'id': fid,
                 'uppercaseId': id,
@@ -708,10 +756,11 @@ module.exports = class bitfinex2 extends Exchange {
                 'type': type,
                 'name': name,
                 'active': true,
-                'deposit': undefined,
-                'withdraw': undefined,
+                'deposit': depositEnabled,
+                'withdraw': withdrawEnabled,
                 'fee': fee,
                 'precision': parseInt (precision),
+                'networks': networks,
                 'limits': {
                     'amount': {
                         'min': this.parseNumber (this.parsePrecision (precision)),
@@ -723,38 +772,6 @@ module.exports = class bitfinex2 extends Exchange {
                     },
                 },
             };
-            const networks = {};
-            const currencyNetworks = this.safeValue (response, 8, []);
-            const cleanId = id.replace ('F0', '');
-            for (let j = 0; j < currencyNetworks.length; j++) {
-                const pair = currencyNetworks[j];
-                const networkId = this.safeString (pair, 0);
-                const currencyId = this.safeString (this.safeValue (pair, 1, []), 0);
-                if (currencyId === cleanId) {
-                    const network = this.safeNetwork (networkId);
-                    networks[network] = {
-                        'info': networkId,
-                        'id': networkId.toLowerCase (),
-                        'network': networkId,
-                        'active': undefined,
-                        'deposit': undefined,
-                        'withdraw': undefined,
-                        'fee': undefined,
-                        'precision': undefined,
-                        'limits': {
-                            'withdraw': {
-                                'min': undefined,
-                                'max': undefined,
-                            },
-                        },
-                    };
-                }
-            }
-            const keysNetworks = Object.keys (networks);
-            const networksLength = keysNetworks.length;
-            if (networksLength > 0) {
-                result[code]['networks'] = networks;
-            }
         }
         return result;
     }
