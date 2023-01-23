@@ -3467,7 +3467,7 @@ module.exports = class binance extends Exchange {
                 type = 'LIMIT_MAKER';
             }
         }
-        let uppercaseType = initialUppercaseType;
+        let uppercaseType = type.toUpperCase ();
         let stopPrice = undefined;
         if (isStopLoss) {
             stopPrice = stopLossPrice;
