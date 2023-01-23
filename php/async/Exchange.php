@@ -645,8 +645,8 @@ class Exchange extends \ccxt\Exchange {
         return array_merge($order, array(
             'id' => $this->safe_string($order, 'id'),
             'clientOrderId' => $this->safe_string($order, 'clientOrderId'),
-            'timestamp' => $datetime,
-            'datetime' => $timestamp,
+            'timestamp' => $timestamp,
+            'datetime' => $datetime,
             'symbol' => $symbol,
             'type' => $this->safe_string($order, 'type'),
             'side' => $side,
