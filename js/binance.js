@@ -3072,18 +3072,20 @@ module.exports = class binance extends Exchange {
             // ALLOW_FAILURE - new order placement will be attempted even if cancel request fails.
         };
         const clientOrderId = this.safeString2 (params, 'newClientOrderId', 'clientOrderId');
-        const postOnly = this.safeValue (params, 'postOnly', false);
-        if (postOnly) {
-            type = 'LIMIT_MAKER';
-        }
         const initialUppercaseType = type.toUpperCase ();
         let uppercaseType = initialUppercaseType;
+        const isMarketOrder = initialUppercaseType === 'MARKET';
+        const isLimitOrder = initialUppercaseType === 'LIMIT';
+        const postOnly = this.isPostOnly (isMarketOrder, initialUppercaseType === 'LIMIT_MAKER', params);
+        if (postOnly) {
+            uppercaseType = 'LIMIT_MAKER';
+        }
         request['type'] = uppercaseType;
         const stopPrice = this.safeNumber (params, 'stopPrice');
         if (stopPrice !== undefined) {
-            if (uppercaseType === 'MARKET') {
+            if (isMarketOrder) {
                 uppercaseType = 'STOP_LOSS';
-            } else if (uppercaseType === 'LIMIT') {
+            } else if (isLimitOrder) {
                 uppercaseType = 'STOP_LOSS_LIMIT';
             }
         }
@@ -3111,7 +3113,7 @@ module.exports = class binance extends Exchange {
         let priceIsRequired = false;
         let stopPriceIsRequired = false;
         let quantityIsRequired = false;
-        if (uppercaseType === 'MARKET') {
+        if (isMarketOrder) {
             const quoteOrderQty = this.safeValue (this.options, 'quoteOrderQty', true);
             if (quoteOrderQty) {
                 const quoteOrderQty = this.safeValue2 (params, 'quoteOrderQty', 'cost');
@@ -3129,7 +3131,7 @@ module.exports = class binance extends Exchange {
             } else {
                 quantityIsRequired = true;
             }
-        } else if (uppercaseType === 'LIMIT') {
+        } else if (isLimitOrder) {
             priceIsRequired = true;
             timeInForceIsRequired = true;
             quantityIsRequired = true;
