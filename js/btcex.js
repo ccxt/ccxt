@@ -60,6 +60,7 @@ module.exports = class btcex extends Exchange {
                 'fetchFundingRateHistory': false,
                 'fetchFundingRates': false,
                 'fetchIndexOHLCV': false,
+                'fetchLeverage': true,
                 'fetchMarginMode': false,
                 'fetchMarkets': true,
                 'fetchMarkOHLCV': false,
@@ -147,6 +148,7 @@ module.exports = class btcex extends Exchange {
                         'get_user_trades_by_currency',
                         'get_user_trades_by_instrument',
                         'get_user_trades_by_order',
+                        'get_perpetual_user_config',
                     ],
                     'post': [
                         // auth
@@ -1882,6 +1884,41 @@ module.exports = class btcex extends Exchange {
         const records = this.filterBy (result, 'id', id);
         const record = this.safeValue (records, 0);
         return this.parseTransaction (record, currency);
+    }
+
+    async fetchLeverage (symbol, params = {}) {
+        /**
+         * @method
+         * @name btcex#fetchLeverage
+         * @see https://docs.btcex.com/#get-perpetual-instrument-config
+         * @description fetch the set leverage for a market
+         * @param {string} symbol unified market symbol
+         * @param {object} params extra parameters specific to the btcex api endpoint
+         * @returns {object} a [leverage structure]{@link https://docs.ccxt.com/en/latest/manual.html#leverage-structure}
+         */
+        await this.signIn ();
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const request = {
+            'instrument_name': market['id'],
+        };
+        const response = await this.privateGetGetPerpetualUserConfig (this.extend (request, params));
+        //
+        //     {
+        //         "jsonrpc": "2.0",
+        //         "usIn": 1674182494283,
+        //         "usOut": 1674182494294,
+        //         "usDiff": 11,
+        //         "result": {
+        //             "margin_type": "cross",
+        //             "leverage": "20",
+        //             "instrument_name": "BTC-USDT-PERPETUAL",
+        //             "time": "1674182494293"
+        //         }
+        //     }
+        //
+        const data = this.safeValue (response, 'result', {});
+        return this.safeNumber (data, 'leverage');
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
