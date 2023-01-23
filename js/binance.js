@@ -2140,7 +2140,7 @@ module.exports = class binance extends Exchange {
             const fetchBalanceOptions = this.safeValue (options, 'fetchBalance', {});
             method = this.safeString (fetchBalanceOptions, 'method', 'dapiPrivateGetAccount');
             type = 'inverse';
-        } else if ((type === 'margin') || (marginMode === 'cross')) {
+        } else if ((type === 'margin') && (marginMode === 'cross')) {
             method = 'sapiGetMarginAccount';
         } else if (type === 'savings') {
             method = 'sapiGetLendingUnionAccount';
