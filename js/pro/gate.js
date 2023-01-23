@@ -193,7 +193,7 @@ module.exports = class gate extends gateRest {
             const waitAmount = isSpot ? snapshotDelay : 0;
             if (cacheLength === waitAmount) {
                 // max limit is 100
-                const subscription = client.subscriptions[channel];
+                const subscription = client.subscriptions[messageHash];
                 const limit = this.safeInteger (subscription, 'limit');
                 this.spawn (this.loadOrderBook, client, messageHash, symbol, limit);
             }
@@ -880,7 +880,7 @@ module.exports = class gate extends gateRest {
             'balance': this.handleBalanceSubscription,
             'order_book': this.handleOrderBookSubscription,
         };
-        const id = this.safeString (message, 'id');
+        const id = this.safeInteger (message, 'id');
         const subscriptionsById = this.indexBy (client.subscriptions, 'id');
         const subscription = this.safeValue (subscriptionsById, id);
         if (subscription !== undefined) {
