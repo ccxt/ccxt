@@ -1070,7 +1070,7 @@ class hitbtc3(Exchange, ccxt.async_support.hitbtc3):
 
     def strstr(self, haystack, needle, bool=False):
         pos = haystack.find(needle)
-        if (pos == -1) or (pos == False):
+        if (pos == -1) or (not pos):
             return haystack
         else:
             if bool:

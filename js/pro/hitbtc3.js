@@ -1177,7 +1177,7 @@ module.exports = class hitbtc3 extends hitbtc3Rest {
 
     strstr (haystack, needle, bool = false) {
         const pos = haystack.indexOf (needle);
-        if ((pos === -1) || (pos === false)) {
+        if ((pos === -1) || (!pos)) {
             return haystack;
         } else {
             if (bool) {

@@ -1211,7 +1211,7 @@ class hitbtc3 extends \ccxt\async\hitbtc3 {
 
     public function strstr($haystack, $needle, $bool = false) {
         $pos = mb_strpos($haystack, $needle);
-        if (($pos === -1) || ($pos === false)) {
+        if (($pos === -1) || (!$pos)) {
             return $haystack;
         } else {
             if ($bool) {
