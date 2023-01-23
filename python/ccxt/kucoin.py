@@ -1403,14 +1403,14 @@ class kucoin(Exchange):
         :returns dict: an `order structure <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
         """
         self.load_markets()
-        marketId = self.market_id(symbol)
+        market = self.market(symbol)
         # required param, cannot be used twice
         clientOrderId = self.safe_string_2(params, 'clientOid', 'clientOrderId', self.uuid())
         params = self.omit(params, ['clientOid', 'clientOrderId'])
         request = {
             'clientOid': clientOrderId,
             'side': side,
-            'symbol': marketId,
+            'symbol': market['id'],
             'type': type,  # limit or market
         }
         quoteAmount = self.safe_number_2(params, 'cost', 'funds')
@@ -1446,6 +1446,10 @@ class kucoin(Exchange):
             triggerPrice = stopLossPrice if isStopLoss else takeProfitPrice
             request['stopPrice'] = self.price_to_precision(symbol, triggerPrice)
             method = 'privatePostStopOrder'
+            if marginMode == 'isolated':
+                raise BadRequest(self.id + ' createOrder does not support isolated margin for stop orders')
+            elif marginMode == 'cross':
+                request['tradeType'] = self.options['marginModes'][marginMode]
         elif tradeType == 'MARGIN_TRADE' or marginMode is not None:
             method = 'privatePostMarginOrder'
             if marginMode == 'isolated':
@@ -1460,29 +1464,7 @@ class kucoin(Exchange):
         #    }
         #
         data = self.safe_value(response, 'data', {})
-        timestamp = self.milliseconds()
-        id = self.safe_string(data, 'orderId')
-        order = {
-            'id': id,
-            'clientOrderId': clientOrderId,
-            'info': data,
-            'timestamp': timestamp,
-            'datetime': self.iso8601(timestamp),
-            'lastTradeTimestamp': None,
-            'symbol': symbol,
-            'type': type,
-            'side': side,
-            'price': price,
-            'amount': self.parse_number(amountString),
-            'cost': self.parse_number(costString),
-            'average': None,
-            'filled': None,
-            'remaining': None,
-            'status': None,
-            'fee': None,
-            'trades': None,
-        }
-        return order
+        return self.parse_order(data, market)
 
     def cancel_order(self, id, symbol=None, params={}):
         """
