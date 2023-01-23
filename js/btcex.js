@@ -62,6 +62,7 @@ module.exports = class btcex extends Exchange {
                 'fetchIndexOHLCV': false,
                 'fetchLeverage': true,
                 'fetchMarginMode': false,
+                'fetchMarketLeverageTiers': true,
                 'fetchMarkets': true,
                 'fetchMarkOHLCV': false,
                 'fetchMyTrades': true,
@@ -127,6 +128,7 @@ module.exports = class btcex extends Exchange {
                         'coin_gecko_market_trades',
                         'coin_gecko_contracts',
                         'coin_gecko_contract_orderbook',
+                        'get_perpetual_leverage_bracket',
                     ],
                     'post': [
                         'auth',
@@ -1919,6 +1921,79 @@ module.exports = class btcex extends Exchange {
         //
         const data = this.safeValue (response, 'result', {});
         return this.safeNumber (data, 'leverage');
+    }
+
+    async fetchMarketLeverageTiers (symbol, params = {}) {
+        /**
+         * @method
+         * @name btcex#fetchMarketLeverageTiers
+         * @see https://docs.btcex.com/#get-perpetual-instrument-leverage-config
+         * @description retrieve information on the maximum leverage, for different trade sizes for a single market
+         * @param {string} symbol unified market symbol
+         * @param {object} params extra parameters specific to the btcex api endpoint
+         * @returns {object} a [leverage tiers structure]{@link https://docs.ccxt.com/en/latest/manual.html#leverage-tiers-structure}
+         */
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        if (!market['swap']) {
+            throw new BadRequest (this.id + ' fetchMarketLeverageTiers() supports swap markets only');
+        }
+        const request = {
+            'instrument_name': market['id'],
+        };
+        const response = await this.publicGetGetPerpetualLeverageBracket (this.extend (request, params));
+        //
+        //     {
+        //         "jsonrpc": "2.0",
+        //         "usIn": 1674184074454,
+        //         "usOut": 1674184074457,
+        //         "usDiff": 3,
+        //         "result": [
+        //             {
+        //                 "bracket": 1,
+        //                 "initialLeverage": 125,
+        //                 "maintenanceMarginRate": "0.004",
+        //                 "notionalCap": "50000",
+        //                 "notionalFloor": "0",
+        //                 "cum": "0"
+        //             },
+        //             ...
+        //         ]
+        //     }
+        //
+        const data = this.safeValue (response, 'result', []);
+        return this.parseMarketLeverageTiers (data, market);
+    }
+
+    parseMarketLeverageTiers (info, market) {
+        //
+        //     [
+        //         {
+        //             "bracket": 1,
+        //             "initialLeverage": 125,
+        //             "maintenanceMarginRate": "0.004",
+        //             "notionalCap": "50000",
+        //             "notionalFloor": "0",
+        //             "cum": "0"
+        //         },
+        //         ...
+        //     ]
+        //
+        const tiers = [];
+        const brackets = info;
+        for (let i = 0; i < brackets.length; i++) {
+            const tier = brackets[i];
+            tiers.push ({
+                'tier': this.safeInteger (tier, 'bracket'),
+                'currency': market['settle'],
+                'minNotional': this.safeNumber (tier, 'notionalFloor'),
+                'maxNotional': this.safeNumber (tier, 'notionalCap'),
+                'maintenanceMarginRate': this.safeNumber (tier, 'maintenanceMarginRate'),
+                'maxLeverage': this.safeNumber (tier, 'initialLeverage'),
+                'info': tier,
+            });
+        }
+        return tiers;
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
