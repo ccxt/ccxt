@@ -3332,7 +3332,7 @@ class binance(Exchange):
             # only supported for spot/margin api(all margin markets are spot markets)
             if postOnly:
                 type = 'LIMIT_MAKER'
-        uppercaseType = initialUppercaseType
+        uppercaseType = type.upper()
         stopPrice = None
         if isStopLoss:
             stopPrice = stopLossPrice

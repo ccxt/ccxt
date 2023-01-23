@@ -3439,7 +3439,7 @@ class binance extends Exchange {
                 $type = 'LIMIT_MAKER';
             }
         }
-        $uppercaseType = $initialUppercaseType;
+        $uppercaseType = strtoupper($type);
         $stopPrice = null;
         if ($isStopLoss) {
             $stopPrice = $stopLossPrice;
