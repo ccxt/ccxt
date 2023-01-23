@@ -51,6 +51,7 @@ Exchange::$exchanges = array(
     'gateio',
     'gemini',
     'hitbtc',
+    'hitbtc3',
     'hollaex',
     'huobi',
     'huobijp',

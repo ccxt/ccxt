@@ -189,6 +189,7 @@ const pro = {
     'gateio':                  require ('./js/pro/gateio.js'),
     'gemini':                  require ('./js/pro/gemini.js'),
     'hitbtc':                  require ('./js/pro/hitbtc.js'),
+    'hitbtc3':                 require ('./js/pro/hitbtc3.js'),
     'hollaex':                 require ('./js/pro/hollaex.js'),
     'huobi':                   require ('./js/pro/huobi.js'),
     'huobijp':                 require ('./js/pro/huobijp.js'),
