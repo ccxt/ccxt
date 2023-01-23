@@ -61,6 +61,7 @@ module.exports = class btcex extends Exchange {
                 'fetchFundingRates': false,
                 'fetchIndexOHLCV': false,
                 'fetchLeverage': true,
+                'fetchLeverageTiers': true,
                 'fetchMarginMode': false,
                 'fetchMarketLeverageTiers': true,
                 'fetchMarkets': true,
@@ -129,6 +130,7 @@ module.exports = class btcex extends Exchange {
                         'coin_gecko_contracts',
                         'coin_gecko_contract_orderbook',
                         'get_perpetual_leverage_bracket',
+                        'get_perpetual_leverage_bracket_all',
                     ],
                     'post': [
                         'auth',
@@ -1994,6 +1996,83 @@ module.exports = class btcex extends Exchange {
             });
         }
         return tiers;
+    }
+
+    async fetchLeverageTiers (symbols = undefined, params = {}) {
+        /**
+         * @method
+         * @name btcex#fetchLeverageTiers
+         * @see https://docs.btcex.com/#get-all-perpetual-instrument-leverage-config
+         * @description retrieve information on the maximum leverage, for different trade sizes
+         * @param {[string]|undefined} symbols a list of unified market symbols
+         * @param {object} params extra parameters specific to the btcex api endpoint
+         * @returns {object} a dictionary of [leverage tiers structures]{@link https://docs.ccxt.com/en/latest/manual.html#leverage-tiers-structure}, indexed by market symbols
+         */
+        await this.loadMarkets ();
+        const response = await this.publicGetGetPerpetualLeverageBracketAll (params);
+        //
+        //     {
+        //         "jsonrpc": "2.0",
+        //         "usIn": 1674183578745,
+        //         "usOut": 1674183578752,
+        //         "usDiff": 7,
+        //         "result": {
+        //             "WAVES-USDT-PERPETUAL": [
+        //                 {
+        //                     "bracket": 1,
+        //                     "initialLeverage": 50,
+        //                     "maintenanceMarginRate": "0.01",
+        //                     "notionalCap": "50000",
+        //                     "notionalFloor": "0",
+        //                     "cum": "0"
+        //                 },
+        //                 ...
+        //             ]
+        //         }
+        //     }
+        //
+        const data = this.safeValue (response, 'result', {});
+        symbols = this.marketSymbols (symbols);
+        return this.parseLeverageTiers (data, symbols, 'symbol');
+    }
+
+    parseLeverageTiers (response, symbols = undefined, marketIdKey = undefined) {
+        //
+        //     {
+        //         "WAVES-USDT-PERPETUAL": [
+        //             {
+        //                 "bracket": 1,
+        //                 "initialLeverage": 50,
+        //                 "maintenanceMarginRate": "0.01",
+        //                 "notionalCap": "50000",
+        //                 "notionalFloor": "0",
+        //                 "cum": "0"
+        //             },
+        //             ...
+        //         ]
+        //     }
+        //
+        const tiers = {};
+        const result = {};
+        const marketIds = Object.keys (response);
+        for (let i = 0; i < marketIds.length; i++) {
+            const marketId = marketIds[i];
+            const entry = response[marketId];
+            const market = this.safeMarket (marketId);
+            const symbol = this.safeSymbol (marketId, market);
+            let symbolsLength = 0;
+            tiers[symbol] = this.parseMarketLeverageTiers (entry, market);
+            if (symbols !== undefined) {
+                symbolsLength = symbols.length;
+                if (this.inArray (symbol, symbols)) {
+                    result[symbol] = this.parseMarketLeverageTiers (entry, market);
+                }
+            }
+            if (symbol !== undefined && (symbolsLength === 0 || this.inArray (symbols, symbol))) {
+                result[symbol] = this.parseMarketLeverageTiers (entry, market);
+            }
+        }
+        return result;
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
