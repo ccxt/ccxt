@@ -327,6 +327,226 @@ module.exports = class bitfinex2 extends Exchange {
                     'future': 'margin',
                 },
                 'networks': {
+                   /*
+                    'BTC': 'BITCOIN',
+                    'LTC': 'LITECOIN',
+                    'ETH': 'ETHEREUM',
+                    'ETC': 'ETHEREUMC',
+                    '': 'TETHERUSO',
+                    'ZCASH': 'ZCASH',
+                    'MONERO': 'MONERO',
+                    'IOTA': 'IOTA',
+                    'RIPPLE': 'RIPPLE',
+                    'DASH': 'DASH',
+                    // '': 'WIRE', fiat
+                    'EOS': 'EOS',
+                    // '': 'OMISEGO', OMG
+                    'NEO': 'NEO',
+                    // '': 'METAVERSE', // etp
+                    'QTUM': 'QTUM',
+                    // '': 'EIDOO',
+                    '': 'TETHERUSE',
+                    '': 'TETHEREUE',
+                    'BITCOINGOLD': 'BGOLD',
+                    '': 'GOLEM',
+                    '': 'STATUS',
+                    '': 'BAT',
+                    '': 'MNA',
+                    '': 'FUN',
+                    '': 'ZRX',
+                    'TRC20': 'TRX',
+                    'TRX': 'TRX',
+                    '': 'REP',
+                    '': 'REQ',
+                    '': 'LRC',
+                    'WAX': 'WAX',
+                    'DAI': 'DAI',
+                    '': 'BFT',
+                    '': 'ANT',
+                    '': 'STJ',
+                    'STELLAR': 'XLM',
+                    'VERGE': 'XVG',
+                    '': 'MKR',
+                    '': 'KNC',
+                    '': 'LYM',
+                    '': 'UTK',
+                    '': 'VEE',
+                    '': 'ZCN',
+                    '': 'IQX',
+                    '': 'ZIL',
+                    '': 'BNT',
+                    '': 'XRA',
+                    'VECHAIN': 'VET',
+                    'TEZOS': 'XTZ',
+                    '': 'MLN',
+                    '': 'OMN',
+                    '': 'PNK',
+                    'DIGIBYTE': 'DGB',
+                    'BSV': 'BSV',
+                    '': 'ENJ',
+                    'RSK': 'RBT',
+                    '': 'UDC',
+                    '': 'TSD',
+                    '': 'PAX',
+                    '': 'PAS',
+                    '': 'VSY',
+                    '': 'BTT',
+                    '': 'CLO',
+                    '': 'GNO',
+                    '': 'ATO',
+                    '': 'WBT',
+                    '': 'EUS',
+                    '': 'LBT',
+                    '': 'LET',
+                    '': 'LES',
+                    '': 'GTX',
+                    '': 'KAN',
+                    '': 'AMP',
+                    'ALGORAND': 'ALG',
+                    'DUSK': 'DUSK',
+                    '': 'UOS',
+                    '': 'TETHERUSX',
+                    '': 'TETHERUSL',
+                    '': 'TETHERUSS',
+                    '': 'TETHERCNHTE',
+                    '': 'TETHERXAUTE',
+                    '': 'TETHERUSDTALG',
+                    '': 'TETHERUSDTBCH',
+                    '': 'TETHERUSDTSOL
+                    '': 'FTT',
+                    'CHILIZ': 'CHZ',
+                    '': 'LNX',',
+                    '': 'BTSE',
+                    'POLKADOT': 'DOT',
+                    'CARDANO': 'ADA',
+                    '': 'FET',
+                    '': 'LINK',
+                    '': 'COMP',
+                    '': 'KSM',
+                    'ELROND': 'EGLD',
+                    '': 'UNI',
+                    'BAND': 'BAND',
+                    '': 'AVAX',
+                    '': 'SNX',
+                    '': 'YFI',
+                    '': 'BAL',
+                    'FILECOIN': 'FIL',
+                    '': 'JST',
+                    'BCHABC': 'BCHABC',
+                    '': 'BCHN',
+                    'XDC': 'XDC',
+                    '': 'PLU',
+                    '': 'SUN',
+                    '': 'SUSHI',
+                    '': 'EXRD',
+                    'AAVE': 'AAVE',
+                    'SOLANA': 'SOL',
+                    '': 'BEST',
+                    '': 'ALBT',
+                    '': 'CEL',
+                    '': 'SUKU',
+                    '': 'BMI',
+                    '': 'MOB',
+                    'NEAR': 'NEAR',
+                    'BOSON': 'BOSON',
+                    '': 'LUNA',
+                    '': 'ICE',
+                    'DOGECOIN': 'DOGE',
+                    'OXYGEN': 'OXY',
+                    '': '1INCH',
+                    '': 'IDX',
+                    '': 'FORTH',
+                    '': 'CHEX',
+                    '': 'QTF',
+                    '': 'OCEAN',
+                    '': 'PLANETS',
+                    'FANTOM': 'FTM',
+                    'NEXO': 'NEXO',
+                    '': 'VELO',
+                    'INTERNETCOMPUTER': 'ICP',
+                    '': 'FCL',
+                    '': 'TERRAUST',
+                    '': 'MIR',
+                    '': 'GRT',
+                    '': 'WAVES',
+                    '': 'REEF',
+                    '': 'CHSB',
+                    '': 'XRD',
+                    '': 'EXO',
+                    '': 'ROSE',
+                    '': 'MATIC',
+                    '': 'AXS',
+                    '': 'HMT',
+                    '': 'DORA',
+                    '': 'JASMY',
+                    '': 'ANC',
+                    '': 'AIX',
+                    '': 'SHIB',
+                    '': 'MIM',
+                    '': 'QRDO',
+                    '': 'TETHERUSDTAVAX',
+                    '': 'TLOS',
+                    '': 'BOBA',
+                    '': 'SPELL',
+                    '': 'WNCG',
+                    '': 'SRM',
+                    'CURVE': 'CRV',
+                    'THETA': 'THETA',
+                    '': 'ZMT',
+                    '': 'WILD',
+                    '': 'DVF',
+                    '': 'PNG',
+                    '': 'KAI',
+                    '': 'MATICM',
+                    '': 'WOO',
+                    '': 'TRADE',
+                    '': 'SGB',
+                    '': 'SXX',
+                    '': 'CCD',
+                    '': 'BMN',
+                    '': 'SHFT',
+                    '': 'POLC',
+                    '': 'HIX',
+                    '': 'GALA',
+                    '': 'APE',
+                    '': 'HMTPLG',
+                    '': 'SIDUS',
+                    '': 'SENATE',
+                    '': 'B2M',
+                    '': 'SHFTM',
+                    '': 'TETHERUSDTKSM',
+                    '': 'STG',
+                    '': 'LUXO',
+                    '': 'SAND',
+                    '': 'POLIS',
+                    '': 'ATLAS',
+                    '': 'LUNA2',
+                    '': 'NEOGAS',
+                    '': 'VRA',
+                    '': 'TETHERMXNTE',
+                    '': 'RLY',
+                    '': 'GXT',
+                    '': 'CONV',
+                    '': 'APENFT',
+                    '': 'FBT',
+                    '': 'TETHERUSDTXTZ',
+                    '': 'SWEAT',
+                    '': 'TETHERUSDTNEAR',
+                    'ETHW': 'ETHW',
+                    '': 'XCN',
+                    '': 'TETHERUSDTDOT',
+                    '': 'SMR',
+                    '': 'TETHERUSDTPLY',
+                    '': 'HEC',
+                    '': 'TREEB',
+                    '': 'BOO',
+                    '': 'APT',
+                    '': 'XCAD',
+                    '': 'HTX',
+                    '': 'ONE',
+                    '': 'TETHERCNHTX',
+                    '': 'FLR',
+                 */
                 },
             },
             'exceptions': {
@@ -678,7 +898,7 @@ module.exports = class bitfinex2 extends Exchange {
         //     ]
         //
         //
-        const indexed = {
+        this.indexedCurrencyData = {
             'sym': this.indexBy (this.safeValue (response, 1, []), 0),
             'label': this.indexBy (this.safeValue (response, 2, []), 0),
             'unit': this.indexBy (this.safeValue (response, 3, []), 0),
@@ -688,38 +908,45 @@ module.exports = class bitfinex2 extends Exchange {
             'fees': this.indexBy (this.safeValue (response, 7, []), 0),
             'networkStatuses': this.indexBy (this.safeValue (response, 9, []), 0),
         };
+        const withdrawalMethods = this.safeValue (response, 8, []);
+        const withdrawalMethodsIndexedByCurrency = this.withdrawalMethodsIndexedByCurrency (withdrawalMethods);
         const ids = this.safeValue (response, 0, []);
         const result = {};
         for (let i = 0; i < ids.length; i++) {
             const id = ids[i];
             if (id.indexOf ('F0') >= 0) {
-                // we get a lot of F0 currencies, skip those
+                // skip `f0` derivatives currencies
                 continue;
             }
             const code = this.safeCurrencyCode (id);
-            const label = this.safeValue (indexed['label'], id, []);
+            const label = this.safeValue (this.indexedCurrencyData['label'], id, []);
             const name = this.safeString (label, 1);
-            const pool = this.safeValue (indexed['pool'], id, []);
-            const type = this.safeString (pool, 1);
-            const feeValues = this.safeValue (indexed['fees'], id, []);
+            const feeValues = this.safeValue (this.indexedCurrencyData['fees'], id, []);
             const fees = this.safeValue (feeValues, 1, []);
             const fee = this.safeNumber (fees, 1);
-            const undl = this.safeValue (indexed['undl'], id, []);
+            const undl = this.safeValue (this.indexedCurrencyData['undl'], id, []);
             const precision = '8'; // default precision, todo: fix "magic constants"
             const fid = 'f' + id;
             const networks = {};
-            const currencyChains = this.safeValue (response, 8, []);
             let depositEnabled = false;
             let withdrawEnabled = false;
             // networks ids & currency ids are in a reversed array, so we have to loop through each iteration, i.e. [ DASH : [ DSH ]] where DSH is currency id and DASH is "network method" id
-            for (let j = 0; j < currencyChains.length; j++) {
-                const pair = currencyChains[j];
+            const networkMethodsForCurrency = this.safeValue (withdrawalMethodsIndexedByCurrency, id, []);
+            
+            // https://gist.github.com/ttodua/615a5aa1a76938ca679ec0af23147935
+            // https://docs.bitfinex.com/reference/rest-public-conf
+
+            const pool = this.safeValue (this.indexedCurrencyData['pool'], id, []);
+            const poolName = this.safeString (pool, 1, id); // if pool didn't exist, i.e. for BTC, then we assume pool is same network as currency id
+    
+            for (let j = 0; j < withdrawalMethods.length; j++) {
+                const pair = withdrawalMethods[j];
                 const currencyIds = this.safeValue (pair, 1, []);
                 for (let k = 0; k < currencyIds.length; k++) {
                     const currencyId = this.safeString (currencyIds, k);
                     if (currencyId === id) {
                         const networkId = this.safeString (pair, 0);
-                        const networkStatusObject = this.safeValue (indexed['networkStatuses'], networkId, []);
+                        const networkStatusObject = this.safeValue (this.indexedCurrencyData['networkStatuses'], networkId, []);
                         const deposit = this.safeInteger (networkStatusObject, 1, 0) === 1;
                         const withdraw = this.safeInteger (networkStatusObject, 2, 0) === 1;
                         const networkCode = this.networkIdToCode (networkId);
@@ -772,6 +999,28 @@ module.exports = class bitfinex2 extends Exchange {
                     },
                 },
             };
+        }
+        return result;
+    }
+
+    networkIdForCurrencyJunctionId (currencyJunctionId) {
+        return this.safeValue (this.indexedCurrencyData['pool'], currencyJunctionId, currencyJunctionId);
+    }
+
+    withdrawalMethodsIndexedByCurrency (data) {
+        const result = {};
+        for (let i = 0; i < data.length; i++) {
+            const pair = data[i];
+            const networkId = this.safeString (pair, 0);
+            const currencyIds = this.safeValue (pair, 1, []);
+            for (let j = 0; j < currencyIds.length; j++) {
+                const currencyId = this.safeString (currencyIds, j);
+                if (currencyId in result) {
+                    result[currencyId].push (networkId);
+                } else {
+                    result[currencyId] = [ networkId ];
+                }
+            }
         }
         return result;
     }
