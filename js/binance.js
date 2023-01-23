@@ -3074,18 +3074,16 @@ module.exports = class binance extends Exchange {
         const clientOrderId = this.safeString2 (params, 'newClientOrderId', 'clientOrderId');
         const initialUppercaseType = type.toUpperCase ();
         let uppercaseType = initialUppercaseType;
-        const isMarketOrder = initialUppercaseType === 'MARKET';
-        const isLimitOrder = initialUppercaseType === 'LIMIT';
-        const postOnly = this.isPostOnly (isMarketOrder, initialUppercaseType === 'LIMIT_MAKER', params);
+        const postOnly = this.isPostOnly (initialUppercaseType === 'MARKET', initialUppercaseType === 'LIMIT_MAKER', params);
         if (postOnly) {
             uppercaseType = 'LIMIT_MAKER';
         }
         request['type'] = uppercaseType;
         const stopPrice = this.safeNumber (params, 'stopPrice');
         if (stopPrice !== undefined) {
-            if (isMarketOrder) {
+            if (uppercaseType === 'MARKET') {
                 uppercaseType = 'STOP_LOSS';
-            } else if (isLimitOrder) {
+            } else if (uppercaseType === 'LIMIT') {
                 uppercaseType = 'STOP_LOSS_LIMIT';
             }
         }
@@ -3113,7 +3111,7 @@ module.exports = class binance extends Exchange {
         let priceIsRequired = false;
         let stopPriceIsRequired = false;
         let quantityIsRequired = false;
-        if (isMarketOrder) {
+        if (uppercaseType === 'MARKET') {
             const quoteOrderQty = this.safeValue (this.options, 'quoteOrderQty', true);
             if (quoteOrderQty) {
                 const quoteOrderQty = this.safeValue2 (params, 'quoteOrderQty', 'cost');
@@ -3131,7 +3129,7 @@ module.exports = class binance extends Exchange {
             } else {
                 quantityIsRequired = true;
             }
-        } else if (isLimitOrder) {
+        } else if (uppercaseType === 'LIMIT') {
             priceIsRequired = true;
             timeInForceIsRequired = true;
             quantityIsRequired = true;
