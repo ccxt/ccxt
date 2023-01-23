@@ -2075,8 +2075,7 @@ module.exports = class coinbase extends Exchange {
         if (symbol !== undefined) {
             market = this.market (symbol);
         }
-        const rawSide = this.safeString (order, 'side');
-        const side = (rawSide !== undefined) ? rawSide.toLowerCase () : undefined;
+        const side = this.safeStringLower (order, 'side');
         return this.safeOrder ({
             'info': order,
             'id': this.safeString (order, 'order_id'),
@@ -2153,9 +2152,11 @@ module.exports = class coinbase extends Exchange {
         //     }
         //
         const orders = this.safeValue (response, 'results', []);
-        const success = this.safeValue (orders, 'success');
-        if (success !== true) {
-            throw new BadRequest (this.id + ' cancelOrders() has failed, check your arguments and parameters');
+        for (let i = 0; i < orders.length; i++) {
+            const success = this.safeValue (orders[i], 'success');
+            if (success !== true) {
+                throw new BadRequest (this.id + ' cancelOrders() has failed, check your arguments and parameters');
+            }
         }
         return this.parseOrders (orders, market);
     }
