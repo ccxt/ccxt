@@ -495,6 +495,11 @@ class kucoin extends Exchange {
                 'networksById' => array(
                     'BEP20' => 'BSC',
                 ),
+                'marginModes' => array(
+                    'cross' => 'MARGIN_TRADE',
+                    'isolated' => 'MARGIN_ISOLATED_TRADE',
+                    'spot' => 'TRADE',
+                ),
             ),
         ));
     }
@@ -1546,26 +1551,28 @@ class kucoin extends Exchange {
     public function cancel_all_orders($symbol = null, $params = array ()) {
         /**
          * cancel all open orders
-         * @param {string|null} $symbol unified $market $symbol, only orders in the $market of this $symbol are cancelled when $symbol is not null
+         * @param {string|null} $symbol unified market $symbol, only orders in the market of this $symbol are cancelled when $symbol is not null
          * @param {array} $params extra parameters specific to the kucoin api endpoint
-         * @param {bool} $params->stop true if cancelling all $stop orders
-         * @param {string} $params->tradeType The type of trading, "TRADE" for Spot Trading, "MARGIN_TRADE" for Margin Trading
+         * @param {bool} $params->stop *invalid for isolated margin* true if cancelling all $stop orders
+         * @param {string} $params->marginMode 'cross' or 'isolated'
          * @param {string} $params->orderIds *$stop orders only* Comma seperated order IDs
          * @return Response from the exchange
          */
         $this->load_markets();
         $request = array();
-        $market = null;
-        if ($symbol !== null) {
-            $market = $this->market($symbol);
-            $request['symbol'] = $market['id'];
-        }
-        $method = 'privateDeleteOrders';
         $stop = $this->safe_value($params, 'stop');
-        if ($stop) {
-            $method = 'privateDeleteStopOrderCancel';
+        list($marginMode, $query) = $this->handle_margin_mode_and_params('cancelAllOrders', $params);
+        if ($symbol !== null) {
+            $request['symbol'] = $this->market_id($symbol);
         }
-        return $this->$method (array_merge($request, $params));
+        if ($marginMode !== null) {
+            $request['tradeType'] = $this->options['marginModes'][$marginMode];
+            if ($marginMode === 'isolated' && $stop) {
+                throw new BadRequest($this->id . ' cancelAllOrders does not support isolated margin for $stop orders');
+            }
+        }
+        $method = $stop ? 'privateDeleteStopOrderCancel' : 'privateDeleteOrders';
+        return $this->$method (array_merge($request, $query));
     }
 
     public function fetch_orders_by_status($status, $symbol = null, $since = null, $limit = null, $params = array ()) {
@@ -1587,6 +1594,10 @@ class kucoin extends Exchange {
          */
         $this->load_markets();
         $lowercaseStatus = strtolower($status);
+        $until = $this->safe_integer_2($params, 'until', 'till');
+        $stop = $this->safe_value($params, 'stop');
+        $params = $this->omit($params, array( 'stop', 'till', 'until' ));
+        list($marginMode, $query) = $this->handle_margin_mode_and_params('fetchOrdersByStatus', $params);
         if ($lowercaseStatus === 'open') {
             $lowercaseStatus = 'active';
         } elseif ($lowercaseStatus === 'closed') {
@@ -1606,17 +1617,15 @@ class kucoin extends Exchange {
         if ($limit !== null) {
             $request['pageSize'] = $limit;
         }
-        $until = $this->safe_integer_2($params, 'until', 'till');
         if ($until) {
             $request['endAt'] = $until;
         }
-        $stop = $this->safe_value($params, 'stop');
-        $params = $this->omit($params, array( 'stop', 'till', 'until' ));
         $method = 'privateGetOrders';
         if ($stop) {
             $method = 'privateGetStopOrder';
         }
-        $response = $this->$method (array_merge($request, $params));
+        $request['tradeType'] = $this->safe_string($this->options['marginModes'], $marginMode, 'TRADE');
+        $response = $this->$method (array_merge($request, $query));
         //
         //     {
         //         code => '200000',
@@ -1753,92 +1762,137 @@ class kucoin extends Exchange {
 
     public function parse_order($order, $market = null) {
         //
+        // createOrder
+        //
+        //    {
+        //        "orderId" => "63c97e47d686c5000159a656"
+        //    }
+        //
+        // cancelOrder
+        //
+        //    {
+        //        "cancelledOrderIds" => array( "63c97e47d686c5000159a656" )
+        //    }
+        //
         // fetchOpenOrders, fetchClosedOrders
         //
-        //     {
-        //         "id" => "5c35c02703aa673ceec2a168",   //orderid
-        //         "symbol" => "BTC-USDT",   //symbol
-        //         "opType" => "DEAL",      // operation $type,deal is pending $order,cancel is cancel $order
-        //         "type" => "limit",       // $order $type,e.g. limit,markrt,stop_limit.
-        //         "side" => "buy",         // transaction direction,include buy and sell
-        //         "price" => "10",         // $order $price
-        //         "size" => "2",           // $order quantity
-        //         "funds" => "0",          // $order funds
-        //         "dealFunds" => "0.166",  // deal funds
-        //         "dealSize" => "2",       // deal quantity
-        //         "fee" => "0",            // $fee
-        //         "feeCurrency" => "USDT", // charge $fee currency
-        //         "stp" => "",             // self trade prevention,include CN,CO,DC,CB
-        //         "stop" => "",            // $stop $type
-        //         "stopTriggered" => false,  // $stop $order is triggered
-        //         "stopPrice" => "0",      // $stop $price
-        //         "timeInForce" => "GTC",  // time InForce,include GTC,GTT,IOC,FOK
-        //         "postOnly" => false,     // $postOnly
-        //         "hidden" => false,       // hidden $order
-        //         "iceberg" => false,      // iceberg $order
-        //         "visibleSize" => "0",    // display quantity for iceberg $order
-        //         "cancelAfter" => 0,      // cancel orders time，requires $timeInForce to be GTT
-        //         "channel" => "IOS",      // $order source
-        //         "clientOid" => "",       // user-entered $order unique mark
-        //         "remark" => "",          // remark
-        //         "tags" => "",            // tag $order source
-        //         "isActive" => false,     // $status before unfilled or uncancelled
-        //         "cancelExist" => false,   // $order cancellation transaction record
-        //         "createdAt" => 1547026471000  // time
-        //     }
+        //    {
+        //        "id" => "63c97ce8d686c500015793bb",
+        //        "symbol" => "USDC-USDT",
+        //        "opType" => "DEAL",
+        //        "type" => "limit",
+        //        "side" => "sell",
+        //        "price" => "1.05",
+        //        "size" => "1",
+        //        "funds" => "0",
+        //        "dealFunds" => "0",
+        //        "dealSize" => "0",
+        //        "fee" => "0",
+        //        "feeCurrency" => "USDT",
+        //        "stp" => "",
+        //        "stop" => "",
+        //        "stopTriggered" => false,
+        //        "stopPrice" => "0",
+        //        "timeInForce" => "GTC",
+        //        "postOnly" => false,
+        //        "hidden" => false,
+        //        "iceberg" => false,
+        //        "visibleSize" => "0",
+        //        "cancelAfter" => 0,
+        //        "channel" => "API",
+        //        "clientOid" => "d602d73f-5424-4751-bef0-8debce8f0a82",
+        //        "remark" => null,
+        //        "tags" => "partner:ccxt",
+        //        "isActive" => true,
+        //        "cancelExist" => false,
+        //        "createdAt" => 1674149096927,
+        //        "tradeType" => "TRADE"
+        //    }
+        //
+        // $stop orders (fetchOpenOrders, fetchClosedOrders)
+        //
+        //    {
+        //        "id" => "vs9f6ou9e864rgq8000t4qnm",
+        //        "symbol" => "USDC-USDT",
+        //        "userId" => "613a896885d8660006151f01",
+        //        "status" => "NEW",
+        //        "type" => "market",
+        //        "side" => "sell",
+        //        "price" => null,
+        //        "size" => "1.00000000000000000000",
+        //        "funds" => null,
+        //        "stp" => null,
+        //        "timeInForce" => "GTC",
+        //        "cancelAfter" => -1,
+        //        "postOnly" => false,
+        //        "hidden" => false,
+        //        "iceberg" => false,
+        //        "visibleSize" => null,
+        //        "channel" => "API",
+        //        "clientOid" => "5d3fd727-6456-438d-9550-40d9d85eee0b",
+        //        "remark" => null,
+        //        "tags" => "partner:ccxt",
+        //        "relatedNo" => null,
+        //        "orderTime" => 1674146316994000028,
+        //        "domainId" => "kucoin",
+        //        "tradeSource" => "USER",
+        //        "tradeType" => "MARGIN_TRADE",
+        //        "feeCurrency" => "USDT",
+        //        "takerFeeRate" => "0.00100000000000000000",
+        //        "makerFeeRate" => "0.00100000000000000000",
+        //        "createdAt" => 1674146316994,
+        //        "stop" => "loss",
+        //        "stopTriggerTime" => null,
+        //        "stopPrice" => "0.97000000000000000000"
+        //    }
         //
         $marketId = $this->safe_string($order, 'symbol');
-        $symbol = $this->safe_symbol($marketId, $market, '-');
-        $orderId = $this->safe_string($order, 'id');
-        $type = $this->safe_string($order, 'type');
         $timestamp = $this->safe_integer($order, 'createdAt');
-        $datetime = $this->iso8601($timestamp);
-        $price = $this->safe_string($order, 'price');
-        // $price is zero for $market $order
-        // omitZero is called in safeOrder2
-        $side = $this->safe_string($order, 'side');
         $feeCurrencyId = $this->safe_string($order, 'feeCurrency');
-        $feeCurrency = $this->safe_currency_code($feeCurrencyId);
-        $feeCost = $this->safe_number($order, 'fee');
-        $amount = $this->safe_string($order, 'size');
-        $filled = $this->safe_string($order, 'dealSize');
-        $cost = $this->safe_string($order, 'dealFunds');
-        // bool
-        $isActive = $this->safe_value($order, 'isActive', false);
         $cancelExist = $this->safe_value($order, 'cancelExist', false);
-        $stop = $this->safe_string($order, 'stop');
+        $responseStop = $this->safe_string($order, 'stop');
+        $stop = $responseStop !== null;
         $stopTriggered = $this->safe_value($order, 'stopTriggered', false);
-        $status = $isActive ? 'open' : 'closed';
-        $cancelExistWithStop = $cancelExist || (!$isActive && $stop && !$stopTriggered);
-        $status = $cancelExistWithStop ? 'canceled' : $status;
-        $fee = array(
-            'currency' => $feeCurrency,
-            'cost' => $feeCost,
-        );
-        $clientOrderId = $this->safe_string($order, 'clientOid');
-        $timeInForce = $this->safe_string($order, 'timeInForce');
+        $isActive = $this->safe_value($order, 'isActive');
+        $status = null;
+        if ($isActive === true) {
+            $status = 'open';
+        }
+        if ($stop) {
+            $responseStatus = $this->safe_string($order, 'status');
+            if ($responseStatus === 'NEW') {
+                $status = 'open';
+            } elseif (!$isActive && !$stopTriggered) {
+                $status = 'cancelled';
+            }
+        }
+        if ($cancelExist) {
+            $status = 'canceled';
+        }
         $stopPrice = $this->safe_number($order, 'stopPrice');
-        $postOnly = $this->safe_value($order, 'postOnly');
         return $this->safe_order(array(
-            'id' => $orderId,
-            'clientOrderId' => $clientOrderId,
-            'symbol' => $symbol,
-            'type' => $type,
-            'timeInForce' => $timeInForce,
-            'postOnly' => $postOnly,
-            'side' => $side,
-            'amount' => $amount,
-            'price' => $price,
+            'info' => $order,
+            'id' => $this->safe_string($order, 'id'),
+            'clientOrderId' => $this->safe_string($order, 'clientOid'),
+            'symbol' => $this->safe_symbol($marketId, $market, '-'),
+            'type' => $this->safe_string($order, 'type'),
+            'timeInForce' => $this->safe_string($order, 'timeInForce'),
+            'postOnly' => $this->safe_value($order, 'postOnly'),
+            'side' => $this->safe_string($order, 'side'),
+            'amount' => $this->safe_string($order, 'size'),
+            'price' => $this->safe_string($order, 'price'), // price is zero for $market $order, omitZero is called in safeOrder2
             'stopPrice' => $stopPrice,
             'triggerPrice' => $stopPrice,
-            'cost' => $cost,
-            'filled' => $filled,
+            'cost' => $this->safe_string($order, 'dealFunds'),
+            'filled' => $this->safe_string($order, 'dealSize'),
             'remaining' => null,
             'timestamp' => $timestamp,
-            'datetime' => $datetime,
-            'fee' => $fee,
+            'datetime' => $this->iso8601($timestamp),
+            'fee' => array(
+                'currency' => $this->safe_currency_code($feeCurrencyId),
+                'cost' => $this->safe_number($order, 'fee'),
+            ),
             'status' => $status,
-            'info' => $order,
             'lastTradeTimestamp' => null,
             'average' => null,
             'trades' => null,

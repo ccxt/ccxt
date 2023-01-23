@@ -64,6 +64,8 @@ class okx extends Exchange {
                 'fetchDepositAddresses' => false,
                 'fetchDepositAddressesByNetwork' => true,
                 'fetchDeposits' => true,
+                'fetchDepositWithdrawFee' => 'emulated',
+                'fetchDepositWithdrawFees' => true,
                 'fetchFundingHistory' => true,
                 'fetchFundingRate' => true,
                 'fetchFundingRateHistory' => true,
@@ -714,16 +716,24 @@ class okx extends Exchange {
             'options' => array(
                 'defaultNetwork' => 'ERC20',
                 'networks' => array(
-                    'ETH' => 'ERC20',
-                    'TRX' => 'TRC20',
+                    'BTC' => 'Bitcoin',
                     'OMNI' => 'Omni',
-                    'SOLANA' => 'Solana',
-                    'POLYGON' => 'Polygon',
-                    'OEC' => 'OEC',
-                    'ALGO' => 'ALGO', // temporarily unavailable
-                    'OPTIMISM' => 'Optimism',
-                    'ARBITRUM' => 'Arbitrum one',
-                    'AVALANCHE' => 'Avalanche C-Chain',
+                    'SOL' => 'Solana',
+                    'LTC' => 'Litecoin',
+                    'MATIC' => 'Polygon',
+                    'OP' => 'Optimism',
+                    'ARB' => 'Arbitrum one',
+                    'AVAX' => 'Avalanche C-Chain',
+                ),
+                'networksById' => array(
+                    'Bitcoin' => 'BTC',
+                    'Omni' => 'OMNI',
+                    'Solana' => 'SOL',
+                    'Litecoin' => 'LTC',
+                    'Polygon' => 'MATIC',
+                    'Optimism' => 'OP',
+                    'Arbitrum one' => 'ARB',
+                    'Avalanche C-Chain' => 'AVAX',
                 ),
                 'fetchOpenInterestHistory' => array(
                     'timeframes' => array(
@@ -1196,6 +1206,7 @@ class okx extends Exchange {
         return Async\async(function () use ($params) {
             /**
              * fetches all available currencies on an exchange
+             * @see https://www.okx.com/docs-v5/en/#rest-api-funding-get-currencies
              * @param {array} $params extra parameters specific to the okx api endpoint
              * @return {array} an associative dictionary of currencies
              */
@@ -5747,6 +5758,127 @@ class okx extends Exchange {
         } elseif (is_array($this->headers) && array_key_exists('x-simulated-trading', $this->headers)) {
             $this->headers = $this->omit($this->headers, 'x-simulated-trading');
         }
+    }
+
+    public function fetch_deposit_withdraw_fees($codes = null, $params = array ()) {
+        return Async\async(function () use ($codes, $params) {
+            /**
+             * fetch deposit and withdraw fees
+             * @see https://www.okx.com/docs-v5/en/#rest-api-funding-get-currencies
+             * @param {[string]|null} $codes list of unified currency $codes
+             * @param {array} $params extra parameters specific to the okx api endpoint
+             * @return {[array]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#fee-structure fees structures}
+             */
+            Async\await($this->load_markets());
+            $response = Async\await($this->privateGetAssetCurrencies ($params));
+            //
+            //    {
+            //        "code" => "0",
+            //        "data" => array(
+            //            array(
+            //                "canDep" => true,
+            //                "canInternal" => false,
+            //                "canWd" => true,
+            //                "ccy" => "USDT",
+            //                "chain" => "USDT-TRC20",
+            //                "logoLink" => "https://static.coinall.ltd/cdn/assets/imgs/221/5F74EB20302D7761.png",
+            //                "mainNet" => false,
+            //                "maxFee" => "1.6",
+            //                "maxWd" => "8852150",
+            //                "minFee" => "0.8",
+            //                "minWd" => "2",
+            //                "name" => "Tether",
+            //                "usedWdQuota" => "0",
+            //                "wdQuota" => "500",
+            //                "wdTickSz" => "3"
+            //            ),
+            //            array(
+            //                "canDep" => true,
+            //                "canInternal" => false,
+            //                "canWd" => true,
+            //                "ccy" => "USDT",
+            //                "chain" => "USDT-ERC20",
+            //                "logoLink" => "https://static.coinall.ltd/cdn/assets/imgs/221/5F74EB20302D7761.png",
+            //                "mainNet" => false,
+            //                "maxFee" => "16",
+            //                "maxWd" => "8852150",
+            //                "minFee" => "8",
+            //                "minWd" => "2",
+            //                "name" => "Tether",
+            //                "usedWdQuota" => "0",
+            //                "wdQuota" => "500",
+            //                "wdTickSz" => "3"
+            //            ),
+            //            ...
+            //        ),
+            //        "msg" => ""
+            //    }
+            //
+            $data = $this->safe_value($response, 'data');
+            return $this->parse_deposit_withdraw_fees($data, $codes);
+        }) ();
+    }
+
+    public function parse_deposit_withdraw_fees($response, $codes = null, $currencyIdKey = null) {
+        //
+        // array(
+        //   {
+        //       "canDep" => true,
+        //       "canInternal" => false,
+        //       "canWd" => true,
+        //       "ccy" => "USDT",
+        //       "chain" => "USDT-TRC20",
+        //       "logoLink" => "https://static.coinall.ltd/cdn/assets/imgs/221/5F74EB20302D7761.png",
+        //       "mainNet" => false,
+        //       "maxFee" => "1.6",
+        //       "maxWd" => "8852150",
+        //       "minFee" => "0.8",
+        //       "minWd" => "2",
+        //       "name" => "Tether",
+        //       "usedWdQuota" => "0",
+        //       "wdQuota" => "500",
+        //       "wdTickSz" => "3"
+        //   }
+        // )
+        //
+        $depositWithdrawFees = array();
+        $codes = $this->market_codes($codes);
+        for ($i = 0; $i < count($response); $i++) {
+            $feeInfo = $response[$i];
+            $currencyId = $this->safe_string($feeInfo, 'ccy');
+            $code = $this->safe_currency_code($currencyId);
+            if (($codes === null) || ($this->in_array($code, $codes))) {
+                $depositWithdrawFee = $this->safe_value($depositWithdrawFees, $code);
+                if ($depositWithdrawFee === null) {
+                    $depositWithdrawFees[$code] = $this->deposit_withdraw_fee(array());
+                }
+                $depositWithdrawFees[$code]['info'][$currencyId] = $feeInfo;
+                $chain = $this->safe_string($feeInfo, 'chain');
+                $chainSplit = explode('-', $chain);
+                $networkId = $this->safe_value($chainSplit, 1);
+                $withdrawFee = $this->safe_number($feeInfo, 'minFee');
+                $withdrawResult = array(
+                    'fee' => $withdrawFee,
+                    'percentage' => ($withdrawFee !== null) ? false : null,
+                );
+                $depositResult = array(
+                    'fee' => null,
+                    'percentage' => null,
+                );
+                $networkCode = $this->network_id_to_code($networkId, $code);
+                $depositWithdrawFees[$code]['networks'][$networkCode] = array(
+                    'withdraw' => $withdrawResult,
+                    'deposit' => $depositResult,
+                );
+            }
+        }
+        $depositWithdrawCodes = is_array($depositWithdrawFees) ? array_keys($depositWithdrawFees) : array();
+        for ($i = 0; $i < count($depositWithdrawCodes); $i++) {
+            $code = $depositWithdrawCodes[$i];
+            $currency = $this->currency($code);
+            $depositWithdrawFees[$code] = $this->assign_default_deposit_withdraw_fees($depositWithdrawFees[$code], $currency);
+        }
+        return $depositWithdrawFees;
     }
 
     public function handle_errors($httpCode, $reason, $url, $method, $headers, $body, $response, $requestHeaders, $requestBody) {

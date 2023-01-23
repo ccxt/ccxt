@@ -54,6 +54,8 @@ class poloniex(Exchange):
                 'fetchCurrencies': True,
                 'fetchDepositAddress': True,
                 'fetchDeposits': True,
+                'fetchDepositWithdrawFee': 'emulated',
+                'fetchDepositWithdrawFees': True,
                 'fetchMarginMode': False,
                 'fetchMarkets': True,
                 'fetchMyTrades': True,
@@ -220,8 +222,12 @@ class poloniex(Exchange):
                 'networks': {
                     'BEP20': 'BSC',
                     'ERC20': 'ETH',
-                    'TRX': 'TRON',
                     'TRC20': 'TRON',
+                },
+                'networksById': {
+                    'BSC': 'BEP20',
+                    'ETH': 'ERC20',
+                    'TRON': 'TRC20',
                 },
                 'limits': {
                     'cost': {
@@ -1662,6 +1668,122 @@ class poloniex(Exchange):
         withdrawals = self.safe_value(response, 'withdrawals', [])
         transactions = self.parse_transactions(withdrawals, currency, since, limit)
         return self.filter_by_currency_since_limit(transactions, code, since, limit)
+
+    async def fetch_deposit_withdraw_fees(self, codes=None, params={}):
+        """
+        fetch deposit and withdraw fees
+        see https://docs.poloniex.com/#public-endpoints-reference-data-currency-information
+        :param [str]|None codes: list of unified currency codes
+        :param dict params: extra parameters specific to the poloniex api endpoint
+        :returns [dict]: a list of `fees structures <https://docs.ccxt.com/en/latest/manual.html#fee-structure>`
+        """
+        await self.load_markets()
+        response = await self.publicGetCurrencies(self.extend(params, {'includeMultiChainCurrencies': True}))
+        #
+        #     [
+        #         {
+        #             "1CR": {
+        #                 "id": 1,
+        #                 "name": "1CRedit",
+        #                 "description": "BTC Clone",
+        #                 "type": "address",
+        #                 "withdrawalFee": "0.01000000",
+        #                 "minConf": 10000,
+        #                 "depositAddress": null,
+        #                 "blockchain": "1CR",
+        #                 "delisted": False,
+        #                 "tradingState": "NORMAL",
+        #                 "walletState": "DISABLED",
+        #                 "parentChain": null,
+        #                 "isMultiChain": False,
+        #                 "isChildChain": False,
+        #                 "childChains": []
+        #             }
+        #         }
+        #     ]
+        #
+        data = {}
+        for i in range(0, len(response)):
+            entry = response[i]
+            currencies = list(entry.keys())
+            currencyId = self.safe_string(currencies, 0)
+            data[currencyId] = entry[currencyId]
+        return self.parse_deposit_withdraw_fees(data, codes)
+
+    def parse_deposit_withdraw_fees(self, response, codes=None, currencyIdKey=None):
+        #
+        #         {
+        #             "1CR": {
+        #                 "id": 1,
+        #                 "name": "1CRedit",
+        #                 "description": "BTC Clone",
+        #                 "type": "address",
+        #                 "withdrawalFee": "0.01000000",
+        #                 "minConf": 10000,
+        #                 "depositAddress": null,
+        #                 "blockchain": "1CR",
+        #                 "delisted": False,
+        #                 "tradingState": "NORMAL",
+        #                 "walletState": "DISABLED",
+        #                 "parentChain": null,
+        #                 "isMultiChain": False,
+        #                 "isChildChain": False,
+        #                 "childChains": []
+        #             },
+        #         }
+        #
+        depositWithdrawFees = {}
+        codes = self.market_codes(codes)
+        responseKeys = list(response.keys())
+        for i in range(0, len(responseKeys)):
+            currencyId = responseKeys[i]
+            code = self.safe_currency_code(currencyId)
+            feeInfo = response[currencyId]
+            if (codes is None) or (self.in_array(code, codes)):
+                depositWithdrawFees[code] = self.parse_deposit_withdraw_fee(feeInfo, code)
+                childChains = self.safe_value(feeInfo, 'childChains')
+                if len(childChains) > 0:
+                    for j in range(0, len(childChains)):
+                        networkId = childChains[j]
+                        networkId = networkId.replace(code, '')
+                        networkCode = self.network_id_to_code(networkId)
+                        networkInfo = self.safe_value(response, networkId)
+                        networkObject = {}
+                        withdrawFee = self.safe_number(networkInfo, 'withdrawalFee')
+                        networkObject[networkCode] = {
+                            'withdraw': {
+                                'fee': withdrawFee,
+                                'percentage': False if (withdrawFee is not None) else None,
+                            },
+                            'deposit': {
+                                'fee': None,
+                                'percentage': None,
+                            },
+                        }
+                        depositWithdrawFees[code]['networks'] = self.extend(depositWithdrawFees[code]['networks'], networkObject)
+        return depositWithdrawFees
+
+    def parse_deposit_withdraw_fee(self, fee, currency=None):
+        depositWithdrawFee = self.deposit_withdraw_fee({})
+        depositWithdrawFee['info'][currency] = fee
+        networkId = self.safe_string(fee, 'blockchain')
+        withdrawFee = self.safe_number(fee, 'withdrawalFee')
+        withdrawResult = {
+            'fee': withdrawFee,
+            'percentage': False if (withdrawFee is not None) else None,
+        }
+        depositResult = {
+            'fee': None,
+            'percentage': None,
+        }
+        depositWithdrawFee['withdraw'] = withdrawResult
+        depositWithdrawFee['deposit'] = depositResult
+        networkCode = self.network_id_to_code(networkId)
+        depositWithdrawFee['networks'][networkCode] = {
+            'withdraw': withdrawResult,
+            'deposit': depositResult,
+        }
+        return depositWithdrawFee
 
     async def fetch_deposits(self, code=None, since=None, limit=None, params={}):
         """

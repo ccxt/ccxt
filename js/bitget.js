@@ -188,6 +188,7 @@ module.exports = class bitget extends Exchange {
                         'get': {
                             'account/account': 2,
                             'account/accounts': 2,
+                            'account/accountBill': 2,
                             'account/open-count': 1,
                             'order/current': 2,
                             'order/history': 2,
@@ -224,6 +225,7 @@ module.exports = class bitget extends Exchange {
                             'plan/modifyPlan': 2,
                             'plan/modifyPlanPreset': 2,
                             'plan/placeTPSL': 2,
+                            'plan/placeTrailStop': 2,
                             'plan/placePositionsTPSL': 2,
                             'plan/modifyTPSLPlan': 2,
                             'plan/cancelPlan': 2,
@@ -1202,7 +1204,7 @@ module.exports = class bitget extends Exchange {
          * @method
          * @name bitget#fetchDeposits
          * @description fetch all deposits made to an account
-         * @url https://bitgetlimited.github.io/apidoc/en/spot/#get-deposit-list
+         * @see https://bitgetlimited.github.io/apidoc/en/spot/#get-deposit-list
          * @param {string|undefined} code unified currency code
          * @param {int} since the earliest time in ms to fetch deposits for
          * @param {int|undefined} limit the maximum number of deposits structures to retrieve
@@ -1331,7 +1333,7 @@ module.exports = class bitget extends Exchange {
          * @method
          * @name bitget#fetchWithdrawals
          * @description fetch all withdrawals made from an account
-         * @url https://bitgetlimited.github.io/apidoc/en/spot/#get-withdraw-list
+         * @see https://bitgetlimited.github.io/apidoc/en/spot/#get-withdraw-list
          * @param {string|undefined} code unified currency code
          * @param {int} since the earliest time in ms to fetch withdrawals for
          * @param {int|undefined} limit the maximum number of withdrawals structures to retrieve

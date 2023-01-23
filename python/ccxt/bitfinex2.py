@@ -1138,23 +1138,6 @@ class bitfinex2(Exchange):
         ticker = self.publicGetTickerSymbol(self.extend(request, params))
         return self.parse_ticker(ticker, market)
 
-    def parse_symbol(self, marketId):
-        if marketId is None:
-            return marketId
-        marketId = marketId.replace('t', '')
-        baseId = None
-        quoteId = None
-        if marketId.find(':') >= 0:
-            parts = marketId.split(':')
-            baseId = parts[0]
-            quoteId = parts[1]
-        else:
-            baseId = marketId[0:3]
-            quoteId = marketId[3:6]
-        base = self.safe_currency_code(baseId)
-        quote = self.safe_currency_code(quoteId)
-        return base + '/' + quote
-
     def parse_trade(self, trade, market=None):
         #
         # fetchTrades(public)
@@ -1205,7 +1188,7 @@ class bitfinex2(Exchange):
         timestamp = self.safe_integer(trade, timestampIndex)
         if isPrivate:
             marketId = trade[1]
-            symbol = self.parse_symbol(marketId)
+            symbol = self.safe_symbol(marketId)
             orderId = self.safe_string(trade, 3)
             maker = self.safe_integer(trade, 8)
             takerOrMaker = 'maker' if (maker == 1) else 'taker'
@@ -1368,7 +1351,7 @@ class bitfinex2(Exchange):
     def parse_order(self, order, market=None):
         id = self.safe_string(order, 0)
         marketId = self.safe_string(order, 3)
-        symbol = self.parse_symbol(marketId)
+        symbol = self.safe_symbol(marketId)
         # https://github.com/ccxt/ccxt/issues/6686
         # timestamp = self.safe_timestamp(order, 5)
         timestamp = self.safe_integer(order, 5)

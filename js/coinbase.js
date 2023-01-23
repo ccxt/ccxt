@@ -4,7 +4,7 @@
 
 const Exchange = require ('./base/Exchange');
 const { ExchangeError, ArgumentsRequired, AuthenticationError, BadRequest, InvalidOrder, NotSupported, RateLimitExceeded, InvalidNonce } = require ('./base/errors');
-const { TICK_SIZE } = require ('./base/functions/number');
+const { TICK_SIZE, TRUNCATE, DECIMAL_PLACES } = require ('./base/functions/number');
 const Precise = require ('./base/Precise');
 
 // ----------------------------------------------------------------------------
@@ -69,7 +69,7 @@ module.exports = class coinbase extends Exchange {
                 'fetchMyBuys': true,
                 'fetchMySells': true,
                 'fetchMyTrades': undefined,
-                'fetchOHLCV': false,
+                'fetchOHLCV': true,
                 'fetchOpenInterestHistory': false,
                 'fetchOpenOrders': undefined,
                 'fetchOrder': undefined,
@@ -255,6 +255,16 @@ module.exports = class coinbase extends Exchange {
                     'request timestamp expired': InvalidNonce, // {"errors":[{"id":"authentication_error","message":"request timestamp expired"}]}
                 },
             },
+            'timeframes': {
+                '1m': 'ONE_MINUTE',
+                '5m': 'FIVE_MINUTE',
+                '15m': 'FIFTEEN_MINUTE',
+                '30m': 'THIRTY_MINUTE',
+                '1h': 'ONE_HOUR',
+                '2h': 'TWO_HOUR',
+                '6h': 'SIX_HOUR',
+                '1d': 'ONE_DAY',
+            },
             'commonCurrencies': {
                 'CGLD': 'CELO',
             },
@@ -272,6 +282,7 @@ module.exports = class coinbase extends Exchange {
                 'fetchMarkets': 'fetchMarketsV3', // 'fetchMarketsV3' or 'fetchMarketsV2'
                 'fetchTicker': 'fetchTickerV3', // 'fetchTickerV3' or 'fetchTickerV2'
                 'fetchTickers': 'fetchTickersV3', // 'fetchTickersV3' or 'fetchTickersV2'
+                'fetchAccounts': 'fetchAccountsV3', // 'fetchAccountsV3' or 'fetchAccountsV2'
             },
         });
     }
@@ -305,6 +316,14 @@ module.exports = class coinbase extends Exchange {
          * @param {object} params extra parameters specific to the coinbase api endpoint
          * @returns {object} a dictionary of [account structures]{@link https://docs.ccxt.com/en/latest/manual.html#account-structure} indexed by the account type
          */
+        const method = this.safeString (this.options, 'fetchAccounts', 'fetchAccountsV3');
+        if (method === 'fetchAccountsV3') {
+            return await this.fetchAccountsV3 (params);
+        }
+        return await this.fetchAccountsV2 (params);
+    }
+
+    async fetchAccountsV2 (params = {}) {
         await this.loadMarkets ();
         const request = {
             'limit': 100,
@@ -312,39 +331,95 @@ module.exports = class coinbase extends Exchange {
         const response = await this.v2PrivateGetAccounts (this.extend (request, params));
         //
         //     {
-        //         "id": "XLM",
-        //         "name": "XLM Wallet",
-        //         "primary": false,
-        //         "type": "wallet",
-        //         "currency": {
-        //             "code": "XLM",
-        //             "name": "Stellar Lumens",
-        //             "color": "#000000",
-        //             "sort_index": 127,
-        //             "exponent": 7,
-        //             "type": "crypto",
-        //             "address_regex": "^G[A-Z2-7]{55}$",
-        //             "asset_id": "13b83335-5ede-595b-821e-5bcdfa80560f",
-        //             "destination_tag_name": "XLM Memo ID",
-        //             "destination_tag_regex": "^[ -~]{1,28}$"
+        //         "pagination": {
+        //             "ending_before": null,
+        //             "starting_after": null,
+        //             "previous_ending_before": null,
+        //             "next_starting_after": null,
+        //             "limit": 244,
+        //             "order": "desc",
+        //             "previous_uri": null,
+        //             "next_uri": null
         //         },
-        //         "balance": {
-        //             "amount": "0.0000000",
-        //             "currency": "XLM"
-        //         },
-        //         "created_at": null,
-        //         "updated_at": null,
-        //         "resource": "account",
-        //         "resource_path": "/v2/accounts/XLM",
-        //         "allow_deposits": true,
-        //         "allow_withdrawals": true
+        //         "data": [
+        //             {
+        //                 "id": "XLM",
+        //                 "name": "XLM Wallet",
+        //                 "primary": false,
+        //                 "type": "wallet",
+        //                 "currency": {
+        //                     "code": "XLM",
+        //                     "name": "Stellar Lumens",
+        //                     "color": "#000000",
+        //                     "sort_index": 127,
+        //                     "exponent": 7,
+        //                     "type": "crypto",
+        //                     "address_regex": "^G[A-Z2-7]{55}$",
+        //                     "asset_id": "13b83335-5ede-595b-821e-5bcdfa80560f",
+        //                     "destination_tag_name": "XLM Memo ID",
+        //                     "destination_tag_regex": "^[ -~]{1,28}$"
+        //                 },
+        //                 "balance": {
+        //                     "amount": "0.0000000",
+        //                     "currency": "XLM"
+        //                 },
+        //                 "created_at": null,
+        //                 "updated_at": null,
+        //                 "resource": "account",
+        //                 "resource_path": "/v2/accounts/XLM",
+        //                 "allow_deposits": true,
+        //                 "allow_withdrawals": true
+        //             },
+        //         ]
         //     }
         //
         const data = this.safeValue (response, 'data', []);
         return this.parseAccounts (data, params);
     }
 
+    async fetchAccountsV3 (params = {}) {
+        await this.loadMarkets ();
+        const request = {
+            'limit': 100,
+        };
+        const response = await this.v3PrivateGetBrokerageAccounts (this.extend (request, params));
+        //
+        //     {
+        //         "accounts": [
+        //             {
+        //                 "uuid": "11111111-1111-1111-1111-111111111111",
+        //                 "name": "USDC Wallet",
+        //                 "currency": "USDC",
+        //                 "available_balance": {
+        //                     "value": "0.0000000000000000",
+        //                     "currency": "USDC"
+        //                 },
+        //                 "default": true,
+        //                 "active": true,
+        //                 "created_at": "2023-01-04T06:20:06.456Z",
+        //                 "updated_at": "2023-01-04T06:20:07.181Z",
+        //                 "deleted_at": null,
+        //                 "type": "ACCOUNT_TYPE_CRYPTO",
+        //                 "ready": false,
+        //                 "hold": {
+        //                     "value": "0.0000000000000000",
+        //                     "currency": "USDC"
+        //                 }
+        //             },
+        //             ...
+        //         ],
+        //         "has_next": false,
+        //         "cursor": "",
+        //         "size": 9
+        //     }
+        //
+        const data = this.safeValue (response, 'accounts', []);
+        return this.parseAccounts (data, params);
+    }
+
     parseAccount (account) {
+        //
+        // fetchAccountsV2
         //
         //     {
         //         "id": "XLM",
@@ -375,13 +450,40 @@ module.exports = class coinbase extends Exchange {
         //         "allow_withdrawals": true
         //     }
         //
+        // fetchAccountsV3
+        //
+        //     {
+        //         "uuid": "11111111-1111-1111-1111-111111111111",
+        //         "name": "USDC Wallet",
+        //         "currency": "USDC",
+        //         "available_balance": {
+        //             "value": "0.0000000000000000",
+        //             "currency": "USDC"
+        //         },
+        //         "default": true,
+        //         "active": true,
+        //         "created_at": "2023-01-04T06:20:06.456Z",
+        //         "updated_at": "2023-01-04T06:20:07.181Z",
+        //         "deleted_at": null,
+        //         "type": "ACCOUNT_TYPE_CRYPTO",
+        //         "ready": false,
+        //         "hold": {
+        //             "value": "0.0000000000000000",
+        //             "currency": "USDC"
+        //         }
+        //     }
+        //
+        const active = this.safeValue (account, 'active');
+        const currencyIdV3 = this.safeString (account, 'currency');
         const currency = this.safeValue (account, 'currency', {});
-        const currencyId = this.safeString (currency, 'code');
-        const code = this.safeCurrencyCode (currencyId);
+        const currencyId = this.safeString (currency, 'code', currencyIdV3);
+        const typeV3 = this.safeString (account, 'name');
+        const typeV2 = this.safeString (account, 'type');
+        const parts = typeV3.split (' ');
         return {
-            'id': this.safeString (account, 'id'),
-            'type': this.safeString (account, 'type'),
-            'code': code,
+            'id': this.safeString2 (account, 'id', 'uuid'),
+            'type': (active !== undefined) ? this.safeStringLower (parts, 1) : typeV2,
+            'code': this.safeCurrencyCode (currencyId),
             'info': account,
         };
     }
@@ -1973,8 +2075,7 @@ module.exports = class coinbase extends Exchange {
         if (symbol !== undefined) {
             market = this.market (symbol);
         }
-        const rawSide = this.safeString (order, 'side');
-        const side = (rawSide !== undefined) ? rawSide.toLowerCase () : undefined;
+        const side = this.safeStringLower (order, 'side');
         return this.safeOrder ({
             'info': order,
             'id': this.safeString (order, 'order_id'),
@@ -2051,11 +2152,83 @@ module.exports = class coinbase extends Exchange {
         //     }
         //
         const orders = this.safeValue (response, 'results', []);
-        const success = this.safeValue (orders, 'success');
-        if (success !== true) {
-            throw new BadRequest (this.id + ' cancelOrders() has failed, check your arguments and parameters');
+        for (let i = 0; i < orders.length; i++) {
+            const success = this.safeValue (orders[i], 'success');
+            if (success !== true) {
+                throw new BadRequest (this.id + ' cancelOrders() has failed, check your arguments and parameters');
+            }
         }
         return this.parseOrders (orders, market);
+    }
+
+    async fetchOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
+        /**
+         * @method
+         * @name coinbase#fetchOHLCV
+         * @description fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+         * @see https://docs.cloud.coinbase.com/advanced-trade-api/reference/retailbrokerageapi_getcandles
+         * @param {string} symbol unified symbol of the market to fetch OHLCV data for
+         * @param {string} timeframe the length of time each candle represents
+         * @param {int|undefined} since timestamp in ms of the earliest candle to fetch
+         * @param {int|undefined} limit the maximum amount of candles to fetch, not used by coinbase
+         * @param {object} params extra parameters specific to the coinbase api endpoint
+         * @returns {[[int]]} A list of candles ordered as timestamp, open, high, low, close, volume
+         */
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const end = this.seconds ().toString ();
+        const request = {
+            'product_id': market['id'],
+            'granularity': this.safeString (this.timeframes, timeframe, timeframe),
+            'end': end,
+        };
+        if (since !== undefined) {
+            since = since.toString ();
+            const timeframeToSeconds = Precise.stringDiv (since, '1000');
+            request['start'] = this.decimalToPrecision (timeframeToSeconds, TRUNCATE, 0, DECIMAL_PLACES);
+        } else {
+            request['start'] = Precise.stringSub (end, '18000'); // default to 5h in seconds, max 300 candles
+        }
+        const response = await this.v3PrivateGetBrokerageProductsProductIdCandles (this.extend (request, params));
+        //
+        //     {
+        //         "candles": [
+        //             {
+        //                 "start": "1673391780",
+        //                 "low": "17414.36",
+        //                 "high": "17417.99",
+        //                 "open": "17417.74",
+        //                 "close": "17417.38",
+        //                 "volume": "1.87780853"
+        //             },
+        //         ]
+        //     }
+        //
+        const candles = this.safeValue (response, 'candles', []);
+        return this.parseOHLCVs (candles, market, timeframe, since, limit);
+    }
+
+    parseOHLCV (ohlcv, market = undefined) {
+        //
+        //     [
+        //         {
+        //             "start": "1673391780",
+        //             "low": "17414.36",
+        //             "high": "17417.99",
+        //             "open": "17417.74",
+        //             "close": "17417.38",
+        //             "volume": "1.87780853"
+        //         },
+        //     ]
+        //
+        return [
+            this.safeTimestamp (ohlcv, 'start'),
+            this.safeNumber (ohlcv, 'open'),
+            this.safeNumber (ohlcv, 'high'),
+            this.safeNumber (ohlcv, 'low'),
+            this.safeNumber (ohlcv, 'close'),
+            this.safeNumber (ohlcv, 'volume'),
+        ];
     }
 
     sign (path, api = [], method = 'GET', params = {}, headers = undefined, body = undefined) {

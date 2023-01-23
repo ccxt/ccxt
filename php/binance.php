@@ -775,6 +775,7 @@ class binance extends Exchange {
                         'account' => 10,
                         'myTrades' => 10,
                         'rateLimit/order' => 20,
+                        'myPreventedMatches' => 1,
                     ),
                     'post' => array(
                         'order/oco' => 1,
@@ -3046,12 +3047,12 @@ class binance extends Exchange {
             // ALLOW_FAILURE - new order placement will be attempted even if cancel $request fails.
         );
         $clientOrderId = $this->safe_string_2($params, 'newClientOrderId', 'clientOrderId');
-        $postOnly = $this->safe_value($params, 'postOnly', false);
-        if ($postOnly) {
-            $type = 'LIMIT_MAKER';
-        }
         $initialUppercaseType = strtoupper($type);
         $uppercaseType = $initialUppercaseType;
+        $postOnly = $this->is_post_only($initialUppercaseType === 'MARKET', $initialUppercaseType === 'LIMIT_MAKER', $params);
+        if ($postOnly) {
+            $uppercaseType = 'LIMIT_MAKER';
+        }
         $request['type'] = $uppercaseType;
         $stopPrice = $this->safe_number($params, 'stopPrice');
         if ($stopPrice !== null) {
@@ -3190,6 +3191,7 @@ class binance extends Exchange {
             'PENDING_CANCEL' => 'canceling', // currently unused
             'REJECTED' => 'rejected',
             'EXPIRED' => 'expired',
+            'EXPIRED_IN_MATCH' => 'expired',
         );
         return $this->safe_string($statuses, $status, $status);
     }
@@ -3437,7 +3439,7 @@ class binance extends Exchange {
                 $type = 'LIMIT_MAKER';
             }
         }
-        $uppercaseType = $initialUppercaseType;
+        $uppercaseType = strtoupper($type);
         $stopPrice = null;
         if ($isStopLoss) {
             $stopPrice = $stopLossPrice;

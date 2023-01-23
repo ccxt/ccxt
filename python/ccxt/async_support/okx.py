@@ -78,6 +78,8 @@ class okx(Exchange):
                 'fetchDepositAddresses': False,
                 'fetchDepositAddressesByNetwork': True,
                 'fetchDeposits': True,
+                'fetchDepositWithdrawFee': 'emulated',
+                'fetchDepositWithdrawFees': True,
                 'fetchFundingHistory': True,
                 'fetchFundingRate': True,
                 'fetchFundingRateHistory': True,
@@ -728,16 +730,24 @@ class okx(Exchange):
             'options': {
                 'defaultNetwork': 'ERC20',
                 'networks': {
-                    'ETH': 'ERC20',
-                    'TRX': 'TRC20',
+                    'BTC': 'Bitcoin',
                     'OMNI': 'Omni',
-                    'SOLANA': 'Solana',
-                    'POLYGON': 'Polygon',
-                    'OEC': 'OEC',
-                    'ALGO': 'ALGO',  # temporarily unavailable
-                    'OPTIMISM': 'Optimism',
-                    'ARBITRUM': 'Arbitrum one',
-                    'AVALANCHE': 'Avalanche C-Chain',
+                    'SOL': 'Solana',
+                    'LTC': 'Litecoin',
+                    'MATIC': 'Polygon',
+                    'OP': 'Optimism',
+                    'ARB': 'Arbitrum one',
+                    'AVAX': 'Avalanche C-Chain',
+                },
+                'networksById': {
+                    'Bitcoin': 'BTC',
+                    'Omni': 'OMNI',
+                    'Solana': 'SOL',
+                    'Litecoin': 'LTC',
+                    'Polygon': 'MATIC',
+                    'Optimism': 'OP',
+                    'Arbitrum one': 'ARB',
+                    'Avalanche C-Chain': 'AVAX',
                 },
                 'fetchOpenInterestHistory': {
                     'timeframes': {
@@ -1175,6 +1185,7 @@ class okx(Exchange):
     async def fetch_currencies(self, params={}):
         """
         fetches all available currencies on an exchange
+        see https://www.okx.com/docs-v5/en/#rest-api-funding-get-currencies
         :param dict params: extra parameters specific to the okx api endpoint
         :returns dict: an associative dictionary of currencies
         """
@@ -5362,6 +5373,119 @@ class okx(Exchange):
             self.headers['x-simulated-trading'] = '1'
         elif 'x-simulated-trading' in self.headers:
             self.headers = self.omit(self.headers, 'x-simulated-trading')
+
+    async def fetch_deposit_withdraw_fees(self, codes=None, params={}):
+        """
+        fetch deposit and withdraw fees
+        see https://www.okx.com/docs-v5/en/#rest-api-funding-get-currencies
+        :param [str]|None codes: list of unified currency codes
+        :param dict params: extra parameters specific to the okx api endpoint
+        :returns [dict]: a list of `fees structures <https://docs.ccxt.com/en/latest/manual.html#fee-structure>`
+        """
+        await self.load_markets()
+        response = await self.privateGetAssetCurrencies(params)
+        #
+        #    {
+        #        "code": "0",
+        #        "data": [
+        #            {
+        #                "canDep": True,
+        #                "canInternal": False,
+        #                "canWd": True,
+        #                "ccy": "USDT",
+        #                "chain": "USDT-TRC20",
+        #                "logoLink": "https://static.coinall.ltd/cdn/assets/imgs/221/5F74EB20302D7761.png",
+        #                "mainNet": False,
+        #                "maxFee": "1.6",
+        #                "maxWd": "8852150",
+        #                "minFee": "0.8",
+        #                "minWd": "2",
+        #                "name": "Tether",
+        #                "usedWdQuota": "0",
+        #                "wdQuota": "500",
+        #                "wdTickSz": "3"
+        #            },
+        #            {
+        #                "canDep": True,
+        #                "canInternal": False,
+        #                "canWd": True,
+        #                "ccy": "USDT",
+        #                "chain": "USDT-ERC20",
+        #                "logoLink": "https://static.coinall.ltd/cdn/assets/imgs/221/5F74EB20302D7761.png",
+        #                "mainNet": False,
+        #                "maxFee": "16",
+        #                "maxWd": "8852150",
+        #                "minFee": "8",
+        #                "minWd": "2",
+        #                "name": "Tether",
+        #                "usedWdQuota": "0",
+        #                "wdQuota": "500",
+        #                "wdTickSz": "3"
+        #            },
+        #            ...
+        #        ],
+        #        "msg": ""
+        #    }
+        #
+        data = self.safe_value(response, 'data')
+        return self.parse_deposit_withdraw_fees(data, codes)
+
+    def parse_deposit_withdraw_fees(self, response, codes=None, currencyIdKey=None):
+        #
+        # [
+        #   {
+        #       "canDep": True,
+        #       "canInternal": False,
+        #       "canWd": True,
+        #       "ccy": "USDT",
+        #       "chain": "USDT-TRC20",
+        #       "logoLink": "https://static.coinall.ltd/cdn/assets/imgs/221/5F74EB20302D7761.png",
+        #       "mainNet": False,
+        #       "maxFee": "1.6",
+        #       "maxWd": "8852150",
+        #       "minFee": "0.8",
+        #       "minWd": "2",
+        #       "name": "Tether",
+        #       "usedWdQuota": "0",
+        #       "wdQuota": "500",
+        #       "wdTickSz": "3"
+        #   }
+        # ]
+        #
+        depositWithdrawFees = {}
+        codes = self.market_codes(codes)
+        for i in range(0, len(response)):
+            feeInfo = response[i]
+            currencyId = self.safe_string(feeInfo, 'ccy')
+            code = self.safe_currency_code(currencyId)
+            if (codes is None) or (self.in_array(code, codes)):
+                depositWithdrawFee = self.safe_value(depositWithdrawFees, code)
+                if depositWithdrawFee is None:
+                    depositWithdrawFees[code] = self.deposit_withdraw_fee({})
+                depositWithdrawFees[code]['info'][currencyId] = feeInfo
+                chain = self.safe_string(feeInfo, 'chain')
+                chainSplit = chain.split('-')
+                networkId = self.safe_value(chainSplit, 1)
+                withdrawFee = self.safe_number(feeInfo, 'minFee')
+                withdrawResult = {
+                    'fee': withdrawFee,
+                    'percentage': False if (withdrawFee is not None) else None,
+                }
+                depositResult = {
+                    'fee': None,
+                    'percentage': None,
+                }
+                networkCode = self.network_id_to_code(networkId, code)
+                depositWithdrawFees[code]['networks'][networkCode] = {
+                    'withdraw': withdrawResult,
+                    'deposit': depositResult,
+                }
+        depositWithdrawCodes = list(depositWithdrawFees.keys())
+        for i in range(0, len(depositWithdrawCodes)):
+            code = depositWithdrawCodes[i]
+            currency = self.currency(code)
+            depositWithdrawFees[code] = self.assign_default_deposit_withdraw_fees(depositWithdrawFees[code], currency)
+        return depositWithdrawFees
 
     def handle_errors(self, httpCode, reason, url, method, headers, body, response, requestHeaders, requestBody):
         if not response:

@@ -68,7 +68,7 @@ class coinbase extends Exchange {
                 'fetchMyBuys' => true,
                 'fetchMySells' => true,
                 'fetchMyTrades' => null,
-                'fetchOHLCV' => false,
+                'fetchOHLCV' => true,
                 'fetchOpenInterestHistory' => false,
                 'fetchOpenOrders' => null,
                 'fetchOrder' => null,
@@ -254,6 +254,16 @@ class coinbase extends Exchange {
                     'request timestamp expired' => '\\ccxt\\InvalidNonce', // array("errors":[array("id":"authentication_error","message":"request timestamp expired")])
                 ),
             ),
+            'timeframes' => array(
+                '1m' => 'ONE_MINUTE',
+                '5m' => 'FIVE_MINUTE',
+                '15m' => 'FIFTEEN_MINUTE',
+                '30m' => 'THIRTY_MINUTE',
+                '1h' => 'ONE_HOUR',
+                '2h' => 'TWO_HOUR',
+                '6h' => 'SIX_HOUR',
+                '1d' => 'ONE_DAY',
+            ),
             'commonCurrencies' => array(
                 'CGLD' => 'CELO',
             ),
@@ -271,6 +281,7 @@ class coinbase extends Exchange {
                 'fetchMarkets' => 'fetchMarketsV3', // 'fetchMarketsV3' or 'fetchMarketsV2'
                 'fetchTicker' => 'fetchTickerV3', // 'fetchTickerV3' or 'fetchTickerV2'
                 'fetchTickers' => 'fetchTickersV3', // 'fetchTickersV3' or 'fetchTickersV2'
+                'fetchAccounts' => 'fetchAccountsV3', // 'fetchAccountsV3' or 'fetchAccountsV2'
             ),
         ));
     }
@@ -300,6 +311,14 @@ class coinbase extends Exchange {
          * @param {array} $params extra parameters specific to the coinbase api endpoint
          * @return {array} a dictionary of {@link https://docs.ccxt.com/en/latest/manual.html#account-structure account structures} indexed by the account type
          */
+        $method = $this->safe_string($this->options, 'fetchAccounts', 'fetchAccountsV3');
+        if ($method === 'fetchAccountsV3') {
+            return $this->fetch_accounts_v3($params);
+        }
+        return $this->fetch_accounts_v2($params);
+    }
+
+    public function fetch_accounts_v2($params = array ()) {
         $this->load_markets();
         $request = array(
             'limit' => 100,
@@ -307,39 +326,95 @@ class coinbase extends Exchange {
         $response = $this->v2PrivateGetAccounts (array_merge($request, $params));
         //
         //     {
-        //         "id" => "XLM",
-        //         "name" => "XLM Wallet",
-        //         "primary" => false,
-        //         "type" => "wallet",
-        //         "currency" => array(
-        //             "code" => "XLM",
-        //             "name" => "Stellar Lumens",
-        //             "color" => "#000000",
-        //             "sort_index" => 127,
-        //             "exponent" => 7,
-        //             "type" => "crypto",
-        //             "address_regex" => "^G[A-Z2-7]{55}$",
-        //             "asset_id" => "13b83335-5ede-595b-821e-5bcdfa80560f",
-        //             "destination_tag_name" => "XLM Memo ID",
-        //             "destination_tag_regex" => "^[ -~]array(1,28)$"
+        //         "pagination" => array(
+        //             "ending_before" => null,
+        //             "starting_after" => null,
+        //             "previous_ending_before" => null,
+        //             "next_starting_after" => null,
+        //             "limit" => 244,
+        //             "order" => "desc",
+        //             "previous_uri" => null,
+        //             "next_uri" => null
         //         ),
-        //         "balance" => array(
-        //             "amount" => "0.0000000",
-        //             "currency" => "XLM"
-        //         ),
-        //         "created_at" => null,
-        //         "updated_at" => null,
-        //         "resource" => "account",
-        //         "resource_path" => "/v2/accounts/XLM",
-        //         "allow_deposits" => true,
-        //         "allow_withdrawals" => true
+        //         "data" => [
+        //             array(
+        //                 "id" => "XLM",
+        //                 "name" => "XLM Wallet",
+        //                 "primary" => false,
+        //                 "type" => "wallet",
+        //                 "currency" => array(
+        //                     "code" => "XLM",
+        //                     "name" => "Stellar Lumens",
+        //                     "color" => "#000000",
+        //                     "sort_index" => 127,
+        //                     "exponent" => 7,
+        //                     "type" => "crypto",
+        //                     "address_regex" => "^G[A-Z2-7]{55}$",
+        //                     "asset_id" => "13b83335-5ede-595b-821e-5bcdfa80560f",
+        //                     "destination_tag_name" => "XLM Memo ID",
+        //                     "destination_tag_regex" => "^[ -~]array(1,28)$"
+        //                 ),
+        //                 "balance" => array(
+        //                     "amount" => "0.0000000",
+        //                     "currency" => "XLM"
+        //                 ),
+        //                 "created_at" => null,
+        //                 "updated_at" => null,
+        //                 "resource" => "account",
+        //                 "resource_path" => "/v2/accounts/XLM",
+        //                 "allow_deposits" => true,
+        //                 "allow_withdrawals" => true
+        //             ),
+        //         ]
         //     }
         //
         $data = $this->safe_value($response, 'data', array());
         return $this->parse_accounts($data, $params);
     }
 
+    public function fetch_accounts_v3($params = array ()) {
+        $this->load_markets();
+        $request = array(
+            'limit' => 100,
+        );
+        $response = $this->v3PrivateGetBrokerageAccounts (array_merge($request, $params));
+        //
+        //     {
+        //         "accounts" => array(
+        //             {
+        //                 "uuid" => "11111111-1111-1111-1111-111111111111",
+        //                 "name" => "USDC Wallet",
+        //                 "currency" => "USDC",
+        //                 "available_balance" => array(
+        //                     "value" => "0.0000000000000000",
+        //                     "currency" => "USDC"
+        //                 ),
+        //                 "default" => true,
+        //                 "active" => true,
+        //                 "created_at" => "2023-01-04T06:20:06.456Z",
+        //                 "updated_at" => "2023-01-04T06:20:07.181Z",
+        //                 "deleted_at" => null,
+        //                 "type" => "ACCOUNT_TYPE_CRYPTO",
+        //                 "ready" => false,
+        //                 "hold" => array(
+        //                     "value" => "0.0000000000000000",
+        //                     "currency" => "USDC"
+        //                 }
+        //             ),
+        //             ...
+        //         ),
+        //         "has_next" => false,
+        //         "cursor" => "",
+        //         "size" => 9
+        //     }
+        //
+        $data = $this->safe_value($response, 'accounts', array());
+        return $this->parse_accounts($data, $params);
+    }
+
     public function parse_account($account) {
+        //
+        // fetchAccountsV2
         //
         //     {
         //         "id" => "XLM",
@@ -370,13 +445,40 @@ class coinbase extends Exchange {
         //         "allow_withdrawals" => true
         //     }
         //
+        // fetchAccountsV3
+        //
+        //     {
+        //         "uuid" => "11111111-1111-1111-1111-111111111111",
+        //         "name" => "USDC Wallet",
+        //         "currency" => "USDC",
+        //         "available_balance" => array(
+        //             "value" => "0.0000000000000000",
+        //             "currency" => "USDC"
+        //         ),
+        //         "default" => true,
+        //         "active" => true,
+        //         "created_at" => "2023-01-04T06:20:06.456Z",
+        //         "updated_at" => "2023-01-04T06:20:07.181Z",
+        //         "deleted_at" => null,
+        //         "type" => "ACCOUNT_TYPE_CRYPTO",
+        //         "ready" => false,
+        //         "hold" => {
+        //             "value" => "0.0000000000000000",
+        //             "currency" => "USDC"
+        //         }
+        //     }
+        //
+        $active = $this->safe_value($account, 'active');
+        $currencyIdV3 = $this->safe_string($account, 'currency');
         $currency = $this->safe_value($account, 'currency', array());
-        $currencyId = $this->safe_string($currency, 'code');
-        $code = $this->safe_currency_code($currencyId);
+        $currencyId = $this->safe_string($currency, 'code', $currencyIdV3);
+        $typeV3 = $this->safe_string($account, 'name');
+        $typeV2 = $this->safe_string($account, 'type');
+        $parts = explode(' ', $typeV3);
         return array(
-            'id' => $this->safe_string($account, 'id'),
-            'type' => $this->safe_string($account, 'type'),
-            'code' => $code,
+            'id' => $this->safe_string_2($account, 'id', 'uuid'),
+            'type' => ($active !== null) ? $this->safe_string_lower($parts, 1) : $typeV2,
+            'code' => $this->safe_currency_code($currencyId),
             'info' => $account,
         );
     }
@@ -1944,8 +2046,7 @@ class coinbase extends Exchange {
         if ($symbol !== null) {
             $market = $this->market($symbol);
         }
-        $rawSide = $this->safe_string($order, 'side');
-        $side = ($rawSide !== null) ? strtolower($rawSide) : null;
+        $side = $this->safe_string_lower($order, 'side');
         return $this->safe_order(array(
             'info' => $order,
             'id' => $this->safe_string($order, 'order_id'),
@@ -2018,11 +2119,81 @@ class coinbase extends Exchange {
         //     }
         //
         $orders = $this->safe_value($response, 'results', array());
-        $success = $this->safe_value($orders, 'success');
-        if ($success !== true) {
-            throw new BadRequest($this->id . ' cancelOrders() has failed, check your arguments and parameters');
+        for ($i = 0; $i < count($orders); $i++) {
+            $success = $this->safe_value($orders[$i], 'success');
+            if ($success !== true) {
+                throw new BadRequest($this->id . ' cancelOrders() has failed, check your arguments and parameters');
+            }
         }
         return $this->parse_orders($orders, $market);
+    }
+
+    public function fetch_ohlcv($symbol, $timeframe = '1m', $since = null, $limit = null, $params = array ()) {
+        /**
+         * fetches historical candlestick data containing the open, high, low, and close price, and the volume of a $market
+         * @see https://docs.cloud.coinbase.com/advanced-trade-api/reference/retailbrokerageapi_getcandles
+         * @param {string} $symbol unified $symbol of the $market to fetch OHLCV data for
+         * @param {string} $timeframe the length of time each candle represents
+         * @param {int|null} $since timestamp in ms of the earliest candle to fetch
+         * @param {int|null} $limit the maximum amount of $candles to fetch, not used by coinbase
+         * @param {array} $params extra parameters specific to the coinbase api endpoint
+         * @return {[[int]]} A list of $candles ordered as timestamp, open, high, low, close, volume
+         */
+        $this->load_markets();
+        $market = $this->market($symbol);
+        $end = (string) $this->seconds();
+        $request = array(
+            'product_id' => $market['id'],
+            'granularity' => $this->safe_string($this->timeframes, $timeframe, $timeframe),
+            'end' => $end,
+        );
+        if ($since !== null) {
+            $since = (string) $since;
+            $timeframeToSeconds = Precise::string_div($since, '1000');
+            $request['start'] = $this->decimal_to_precision($timeframeToSeconds, TRUNCATE, 0, DECIMAL_PLACES);
+        } else {
+            $request['start'] = Precise::string_sub($end, '18000'); // default to 5h in seconds, max 300 $candles
+        }
+        $response = $this->v3PrivateGetBrokerageProductsProductIdCandles (array_merge($request, $params));
+        //
+        //     {
+        //         "candles" => array(
+        //             array(
+        //                 "start" => "1673391780",
+        //                 "low" => "17414.36",
+        //                 "high" => "17417.99",
+        //                 "open" => "17417.74",
+        //                 "close" => "17417.38",
+        //                 "volume" => "1.87780853"
+        //             ),
+        //         )
+        //     }
+        //
+        $candles = $this->safe_value($response, 'candles', array());
+        return $this->parse_ohlcvs($candles, $market, $timeframe, $since, $limit);
+    }
+
+    public function parse_ohlcv($ohlcv, $market = null) {
+        //
+        //     array(
+        //         array(
+        //             "start" => "1673391780",
+        //             "low" => "17414.36",
+        //             "high" => "17417.99",
+        //             "open" => "17417.74",
+        //             "close" => "17417.38",
+        //             "volume" => "1.87780853"
+        //         ),
+        //     )
+        //
+        return array(
+            $this->safe_timestamp($ohlcv, 'start'),
+            $this->safe_number($ohlcv, 'open'),
+            $this->safe_number($ohlcv, 'high'),
+            $this->safe_number($ohlcv, 'low'),
+            $this->safe_number($ohlcv, 'close'),
+            $this->safe_number($ohlcv, 'volume'),
+        );
     }
 
     public function sign($path, $api = [], $method = 'GET', $params = array (), $headers = null, $body = null) {

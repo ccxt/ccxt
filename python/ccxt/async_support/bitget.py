@@ -209,6 +209,7 @@ class bitget(Exchange):
                         'get': {
                             'account/account': 2,
                             'account/accounts': 2,
+                            'account/accountBill': 2,
                             'account/open-count': 1,
                             'order/current': 2,
                             'order/history': 2,
@@ -245,6 +246,7 @@ class bitget(Exchange):
                             'plan/modifyPlan': 2,
                             'plan/modifyPlanPreset': 2,
                             'plan/placeTPSL': 2,
+                            'plan/placeTrailStop': 2,
                             'plan/placePositionsTPSL': 2,
                             'plan/modifyTPSLPlan': 2,
                             'plan/cancelPlan': 2,
@@ -1194,7 +1196,7 @@ class bitget(Exchange):
     async def fetch_deposits(self, code=None, since=None, limit=None, params={}):
         """
         fetch all deposits made to an account
-         * @url https://bitgetlimited.github.io/apidoc/en/spot/#get-deposit-list
+        see https://bitgetlimited.github.io/apidoc/en/spot/#get-deposit-list
         :param str|None code: unified currency code
         :param int since: the earliest time in ms to fetch deposits for
         :param int|None limit: the maximum number of deposits structures to retrieve
@@ -1311,7 +1313,7 @@ class bitget(Exchange):
     async def fetch_withdrawals(self, code=None, since=None, limit=None, params={}):
         """
         fetch all withdrawals made from an account
-         * @url https://bitgetlimited.github.io/apidoc/en/spot/#get-withdraw-list
+        see https://bitgetlimited.github.io/apidoc/en/spot/#get-withdraw-list
         :param str|None code: unified currency code
         :param int since: the earliest time in ms to fetch withdrawals for
         :param int|None limit: the maximum number of withdrawals structures to retrieve

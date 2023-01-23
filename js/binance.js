@@ -776,6 +776,7 @@ module.exports = class binance extends Exchange {
                         'account': 10,
                         'myTrades': 10,
                         'rateLimit/order': 20,
+                        'myPreventedMatches': 1,
                     },
                     'post': {
                         'order/oco': 1,
@@ -3072,12 +3073,12 @@ module.exports = class binance extends Exchange {
             // ALLOW_FAILURE - new order placement will be attempted even if cancel request fails.
         };
         const clientOrderId = this.safeString2 (params, 'newClientOrderId', 'clientOrderId');
-        const postOnly = this.safeValue (params, 'postOnly', false);
-        if (postOnly) {
-            type = 'LIMIT_MAKER';
-        }
         const initialUppercaseType = type.toUpperCase ();
         let uppercaseType = initialUppercaseType;
+        const postOnly = this.isPostOnly (initialUppercaseType === 'MARKET', initialUppercaseType === 'LIMIT_MAKER', params);
+        if (postOnly) {
+            uppercaseType = 'LIMIT_MAKER';
+        }
         request['type'] = uppercaseType;
         const stopPrice = this.safeNumber (params, 'stopPrice');
         if (stopPrice !== undefined) {
@@ -3216,6 +3217,7 @@ module.exports = class binance extends Exchange {
             'PENDING_CANCEL': 'canceling', // currently unused
             'REJECTED': 'rejected',
             'EXPIRED': 'expired',
+            'EXPIRED_IN_MATCH': 'expired',
         };
         return this.safeString (statuses, status, status);
     }
@@ -3465,7 +3467,7 @@ module.exports = class binance extends Exchange {
                 type = 'LIMIT_MAKER';
             }
         }
-        let uppercaseType = initialUppercaseType;
+        let uppercaseType = type.toUpperCase ();
         let stopPrice = undefined;
         if (isStopLoss) {
             stopPrice = stopLossPrice;

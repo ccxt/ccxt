@@ -799,6 +799,7 @@ class binance(Exchange):
                         'account': 10,
                         'myTrades': 10,
                         'rateLimit/order': 20,
+                        'myPreventedMatches': 1,
                     },
                     'post': {
                         'order/oco': 1,
@@ -2967,11 +2968,11 @@ class binance(Exchange):
             # ALLOW_FAILURE - new order placement will be attempted even if cancel request fails.
         }
         clientOrderId = self.safe_string_2(params, 'newClientOrderId', 'clientOrderId')
-        postOnly = self.safe_value(params, 'postOnly', False)
-        if postOnly:
-            type = 'LIMIT_MAKER'
         initialUppercaseType = type.upper()
         uppercaseType = initialUppercaseType
+        postOnly = self.is_post_only(initialUppercaseType == 'MARKET', initialUppercaseType == 'LIMIT_MAKER', params)
+        if postOnly:
+            uppercaseType = 'LIMIT_MAKER'
         request['type'] = uppercaseType
         stopPrice = self.safe_number(params, 'stopPrice')
         if stopPrice is not None:
@@ -3093,6 +3094,7 @@ class binance(Exchange):
             'PENDING_CANCEL': 'canceling',  # currently unused
             'REJECTED': 'rejected',
             'EXPIRED': 'expired',
+            'EXPIRED_IN_MATCH': 'expired',
         }
         return self.safe_string(statuses, status, status)
 
@@ -3328,7 +3330,7 @@ class binance(Exchange):
             # only supported for spot/margin api(all margin markets are spot markets)
             if postOnly:
                 type = 'LIMIT_MAKER'
-        uppercaseType = initialUppercaseType
+        uppercaseType = type.upper()
         stopPrice = None
         if isStopLoss:
             stopPrice = stopLossPrice
