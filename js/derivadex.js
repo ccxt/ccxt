@@ -83,6 +83,7 @@ module.exports = class derivadex extends Exchange {
                     'private': 'https://beta.derivadex.io',
                     'stats': 'https://beta.derivadex.io/stats',
                     'v2': 'https://beta.derivadex.io/v2',
+                    'op1': 'http://op1.ddx.one:15080/stats', // TODO: delete this before submitting
                 },
                 'logo': 'https://gitlab.com/dexlabs/assets/-/raw/main/light-round.png',
                 'api': {
@@ -123,7 +124,7 @@ module.exports = class derivadex extends Exchange {
                         'order_intents': 1,
                         'positions': 1,
                         'prices': 1,
-                        'specs/{kind}': 1,
+                        'specs': 1,
                         'strategies': 1,
                         'startegy_updates': 1,
                         'trader_updates': 1,
@@ -157,15 +158,7 @@ module.exports = class derivadex extends Exchange {
                     'ETH': 'ERC20',
                 },
                 'networksById': {
-                    'btc': 'BTC',
                     'eth': 'ERC20',
-                    'bsc': 'BSC',
-                    'tron': 'TRX',
-                    'avax': 'AVAX',
-                    'near': 'NEAR',
-                    'xtz': 'XTZ',
-                    'dot': 'DOT',
-                    'sol': 'SOL',
                 },
             },
             'fees': {
@@ -188,9 +181,8 @@ module.exports = class derivadex extends Exchange {
          * @param {object} params extra parameters specific to the derivadex api endpoint
          * @returns {[object]} an array of objects representing market data
          */
-
         params['kind'] = 0;
-        const response = await this.publicGetSpecsKind (params);
+        const response = await this.publicGetSpecs (params);
         // {
         //     "value": [
         //         {
@@ -230,10 +222,7 @@ module.exports = class derivadex extends Exchange {
         //         "timestamp": 1674260369,
         //         "success": true
         // }
-        const result = [];
         const markets = response['value'];
-        const id = this.safeString (market, 'name');
-        // const baseId =
         return [
             {
                 'id': 'BTCPERP',
@@ -326,7 +315,45 @@ module.exports = class derivadex extends Exchange {
                     },
                 },
                 'info': markets,
-            }
+            },
         ];
+    }
+
+    sign (path, api = 'stats', method = 'GET', params = {}, headers = undefined, body = undefined) {
+        let query = '/api/' + this.version + '/' + path;
+        if (method === 'GET') {
+            if (Object.keys (params).length) {
+                query += '?' + this.urlencode (params);
+            }
+        } else {
+            const format = this.safeString (params, '_format');
+            if (format !== undefined) {
+                query += '?' + this.urlencode ({ '_format': format });
+                params = this.omit (params, '_format');
+            }
+        }
+        const url = this.urls['test']['op1'] + query; // TODO: SWITCH TO MAINNET URL
+        const isAuthenticated = this.checkRequiredCredentials (false);
+        if (api === 'private' || (api === 'public' && isAuthenticated)) {
+            this.checkRequiredCredentials ();
+            let auth = method + query;
+            let expires = this.safeInteger (this.options, 'api-expires');
+            headers = {
+                'Content-Type': 'application/json',
+                'api-key': this.apiKey,
+            };
+            expires = this.sum (this.seconds (), expires);
+            expires = expires.toString ();
+            auth += expires;
+            headers['api-expires'] = expires;
+            if (method === 'POST' || method === 'PUT' || method === 'DELETE') {
+                if (Object.keys (params).length) {
+                    body = this.json (params);
+                    auth += body;
+                }
+            }
+            headers['api-signature'] = this.hmac (this.encode (auth), this.encode (this.secret));
+        }
+        return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
 };
