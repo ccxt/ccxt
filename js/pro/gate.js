@@ -188,7 +188,10 @@ module.exports = class gate extends gateRest {
         const storedOrderBook = this.safeValue (this.orderbooks, symbol);
         const nonce = this.safeInteger (storedOrderBook, 'nonce');
         if (nonce === undefined) {
-            const cacheLength = storedOrderBook.cache.length;
+            let cacheLength = 0;
+            if (storedOrderBook !== undefined) {
+                cacheLength = storedOrderBook.cache.length;
+            }
             const snapshotDelay = this.handleOption ('watchOrderBook', 'snapshotDelay', 10);
             const waitAmount = isSpot ? snapshotDelay : 0;
             if (cacheLength === waitAmount) {
