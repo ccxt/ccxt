@@ -158,7 +158,7 @@ module.exports = class derivadex extends Exchange {
                     'ETH': 'ERC20',
                 },
                 'networksById': {
-                    'eth': 'ERC20',
+                    'ETH': 'ERC20',
                 },
             },
             'fees': {
@@ -315,6 +315,58 @@ module.exports = class derivadex extends Exchange {
                     },
                 },
                 'info': markets,
+            },
+        ];
+    }
+
+    async fetchCurrencies (params = {}) {
+        /**
+         * @method
+         * @name derivadex#fetchCurrencies
+         * @description fetches all available currencies on an exchange
+         * @param {object} params extra parameters specific to the derivadex api endpoint
+         * @returns {object} an associative dictionary of currencies
+         */
+        const networks = {};
+        networks['ERC20'] = {
+            'info': undefined,
+            'id': 'ETH',
+            'network': this.networkIdToCode ('ETH'),
+            'active': true,
+            'deposit': true,
+            'withdraw': true,
+            'fee': undefined,
+        };
+        return [
+            {
+                'id': 'usdc',
+                'code': 'USDC',
+                'name': 'USDC',
+                'active': true,
+                'fee': 0,
+                'precision': 2,
+                'deposit': true,
+                'withdraw': true,
+                'limits': {
+                    'deposit': {
+                        'min': 1000,
+                        'max': 1000000,
+                    },
+                },
+                'networks': networks,
+                'info': undefined,
+            },
+            {
+                'id': 'ddx',
+                'code': 'DDX',
+                'name': 'DDX',
+                'active': false,
+                'fee': 0,
+                'precision': 2,
+                'deposit': true,
+                'withdraw': true,
+                'networks': networks,
+                'info': undefined,
             },
         ];
     }
