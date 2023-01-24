@@ -1902,7 +1902,7 @@ export default class btcex extends Exchange {
         const request = {
             'instrument_name': market['id'],
         };
-        const response = await this.privateGetGetPerpetualUserConfig (this.extend (request, params));
+        const response = await (this as any).privateGetGetPerpetualUserConfig (this.extend (request, params));
         //
         //     {
         //         "jsonrpc": "2.0",
@@ -1939,7 +1939,7 @@ export default class btcex extends Exchange {
         const request = {
             'instrument_name': market['id'],
         };
-        const response = await this.publicGetGetPerpetualLeverageBracket (this.extend (request, params));
+        const response = await (this as any).publicGetGetPerpetualLeverageBracket (this.extend (request, params));
         //
         //     {
         //         "jsonrpc": "2.0",
@@ -2005,7 +2005,7 @@ export default class btcex extends Exchange {
          * @returns {object} a dictionary of [leverage tiers structures]{@link https://docs.ccxt.com/en/latest/manual.html#leverage-tiers-structure}, indexed by market symbols
          */
         await this.loadMarkets ();
-        const response = await this.publicGetGetPerpetualLeverageBracketAll (params);
+        const response = await (this as any).publicGetGetPerpetualLeverageBracketAll (params);
         //
         //     {
         //         "jsonrpc": "2.0",
