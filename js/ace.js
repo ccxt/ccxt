@@ -525,7 +525,9 @@ module.exports = class ace extends Exchange {
             orderTime = this.safeString (order, 'orderTime');
             timestamp = this.parse8601 (orderTime);
             const orderSide = this.safeNumber (order, 'buyOrSell');
-            side = (orderSide === 1) ? 'buy' : 'sell';
+            if (orderSide !== undefined) {
+                side = (orderSide === 1) ? 'buy' : 'sell';
+            }
             amount = this.safeString (order, 'num');
             price = this.safeString (order, 'price');
             const quoteId = this.safeString (order, 'quoteCurrencyName');
