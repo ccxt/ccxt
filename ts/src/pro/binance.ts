@@ -432,7 +432,7 @@ export default class binance extends binanceRest {
         };
         const trades = await this.watch (url, messageHash, this.extend (request, query), messageHash, subscribe);
         if (this.newUpdates) {
-            limit = trades.getLimit (symbol, limit);
+            limit = trades.getLimit (market['symbol'], limit);
         }
         return this.filterBySinceLimit (trades, since, limit, 'timestamp', true);
     }
