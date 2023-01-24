@@ -1942,23 +1942,32 @@ module.exports = class bybit extends Exchange {
         ];
     }
 
-    async fetchSpotOHLCV (symbol, timeframe = '1m', since = undefined, limit = 1000, params = {}) {
+    async fetchSpotOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
         const market = this.market (symbol);
         const request = {
             'symbol': market['id'],
-            'limit': limit, // default is 1000, max is 1000
             'interval': timeframe,
         };
+        let limitString = undefined;
+        if (limit !== undefined) {
+            limitString = limit.toString ();
+        } else {
+            limitString = '1000';
+        }
         if (since !== undefined) {
-            // startTime isn't working, emulated since using endTime
             // request['startTime'] = since;
+            // startTime isn't working, emulated since using endTime
+            since = since.toString ();
             const duration = this.parseTimeframe (timeframe).toString ();
             const millisecondDuration = Precise.stringMul (duration, '1000');
-            const timeFromSince = Precise.stringMul (limit.toString (), millisecondDuration);
-            const emulatedSince = Precise.stringAdd (since.toString (), timeFromSince);
+            const timeFromSince = Precise.stringMul (limitString, millisecondDuration);
+            const emulatedSince = Precise.stringAdd (since, timeFromSince);
             const emulatedSinceAdjustDurationError = Precise.stringSub (emulatedSince, millisecondDuration);
             request['endTime'] = this.parseNumber (emulatedSinceAdjustDurationError);
+        }
+        if (limit !== undefined) {
+            request['limit'] = limit; // default is 1000, max is 1000
         }
         const response = await this.publicGetSpotV3PublicQuoteKline (this.extend (request, params));
         //
