@@ -407,7 +407,6 @@ module.exports = class derivadex extends Exchange {
         const result = {};
         for (let i = 0; i < symbols.length; i++) {
             const ticker = await this.constructTicker (symbols[i]);
-            console.log ('TICKER RESULT', ticker);
             if (ticker !== undefined) {
                 result[symbols[i]] = ticker;
             }
@@ -421,8 +420,11 @@ module.exports = class derivadex extends Exchange {
         const marketsResponse = await this.publicGetAggregationsMarkets (params); // aggregations/markets endpoint response is cached for 30 minutes
         params['limit'] = 1;
         params['priceAggregation'] = symbol === 'BTCPERP' ? 1 : 0.1; // set aggregation to minimum tick size for the market
-        const orderBookResponse = await this.publicGetAggregationsOrderBookL2Symbol (params); // aggregations/order_book endpoint response is cached for 30 minutes
-        const marketsValue = marketsResponse['value'];
+        const request = {
+            'symbol': symbol,
+        };
+        const orderBookResponse = await this.publicGetAggregationsOrderBookL2Symbol (this.extend (request, params)); // aggregations/order_book endpoint response is cached for 30 minutes
+        const marketsValue = marketsResponse['value'][0];
         const orderBookValue = orderBookResponse['value'];
         const quoteVolume = this.safeString (marketsValue, 'volume');
         const timestamp = this.safeString (marketsResponse, 'timestamp');
@@ -456,7 +458,8 @@ module.exports = class derivadex extends Exchange {
     }
 
     sign (path, api = 'stats', method = 'GET', params = {}, headers = undefined, body = undefined) {
-        let query = '/api/' + this.version + '/' + path;
+        const implodedPath = this.implodeParams (path, params);
+        let query = '/api/' + this.version + '/' + implodedPath;
         if (method === 'GET') {
             if (Object.keys (params).length) {
                 query += '?' + this.urlencode (params);
