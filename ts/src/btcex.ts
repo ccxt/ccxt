@@ -56,7 +56,10 @@ export default class btcex extends Exchange {
                 'fetchFundingRateHistory': false,
                 'fetchFundingRates': false,
                 'fetchIndexOHLCV': false,
+                'fetchLeverage': true,
+                'fetchLeverageTiers': true,
                 'fetchMarginMode': false,
+                'fetchMarketLeverageTiers': true,
                 'fetchMarkets': true,
                 'fetchMarkOHLCV': false,
                 'fetchMyTrades': true,
@@ -122,6 +125,8 @@ export default class btcex extends Exchange {
                         'coin_gecko_market_trades',
                         'coin_gecko_contracts',
                         'coin_gecko_contract_orderbook',
+                        'get_perpetual_leverage_bracket',
+                        'get_perpetual_leverage_bracket_all',
                     ],
                     'post': [
                         'auth',
@@ -143,6 +148,7 @@ export default class btcex extends Exchange {
                         'get_user_trades_by_currency',
                         'get_user_trades_by_instrument',
                         'get_user_trades_by_order',
+                        'get_perpetual_user_config',
                     ],
                     'post': [
                         // auth
@@ -1878,6 +1884,191 @@ export default class btcex extends Exchange {
         const records = this.filterBy (result, 'id', id);
         const record = this.safeValue (records, 0);
         return this.parseTransaction (record, currency);
+    }
+
+    async fetchLeverage (symbol, params = {}) {
+        /**
+         * @method
+         * @name btcex#fetchLeverage
+         * @see https://docs.btcex.com/#get-perpetual-instrument-config
+         * @description fetch the set leverage for a market
+         * @param {string} symbol unified market symbol
+         * @param {object} params extra parameters specific to the btcex api endpoint
+         * @returns {object} a [leverage structure]{@link https://docs.ccxt.com/en/latest/manual.html#leverage-structure}
+         */
+        await this.signIn ();
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const request = {
+            'instrument_name': market['id'],
+        };
+        const response = await this.privateGetGetPerpetualUserConfig (this.extend (request, params));
+        //
+        //     {
+        //         "jsonrpc": "2.0",
+        //         "usIn": 1674182494283,
+        //         "usOut": 1674182494294,
+        //         "usDiff": 11,
+        //         "result": {
+        //             "margin_type": "cross",
+        //             "leverage": "20",
+        //             "instrument_name": "BTC-USDT-PERPETUAL",
+        //             "time": "1674182494293"
+        //         }
+        //     }
+        //
+        const data = this.safeValue (response, 'result', {});
+        return this.safeNumber (data, 'leverage');
+    }
+
+    async fetchMarketLeverageTiers (symbol, params = {}) {
+        /**
+         * @method
+         * @name btcex#fetchMarketLeverageTiers
+         * @see https://docs.btcex.com/#get-perpetual-instrument-leverage-config
+         * @description retrieve information on the maximum leverage, for different trade sizes for a single market
+         * @param {string} symbol unified market symbol
+         * @param {object} params extra parameters specific to the btcex api endpoint
+         * @returns {object} a [leverage tiers structure]{@link https://docs.ccxt.com/en/latest/manual.html#leverage-tiers-structure}
+         */
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        if (!market['swap']) {
+            throw new BadRequest (this.id + ' fetchMarketLeverageTiers() supports swap markets only');
+        }
+        const request = {
+            'instrument_name': market['id'],
+        };
+        const response = await this.publicGetGetPerpetualLeverageBracket (this.extend (request, params));
+        //
+        //     {
+        //         "jsonrpc": "2.0",
+        //         "usIn": 1674184074454,
+        //         "usOut": 1674184074457,
+        //         "usDiff": 3,
+        //         "result": [
+        //             {
+        //                 "bracket": 1,
+        //                 "initialLeverage": 125,
+        //                 "maintenanceMarginRate": "0.004",
+        //                 "notionalCap": "50000",
+        //                 "notionalFloor": "0",
+        //                 "cum": "0"
+        //             },
+        //             ...
+        //         ]
+        //     }
+        //
+        const data = this.safeValue (response, 'result', []);
+        return this.parseMarketLeverageTiers (data, market);
+    }
+
+    parseMarketLeverageTiers (info, market) {
+        //
+        //     [
+        //         {
+        //             "bracket": 1,
+        //             "initialLeverage": 125,
+        //             "maintenanceMarginRate": "0.004",
+        //             "notionalCap": "50000",
+        //             "notionalFloor": "0",
+        //             "cum": "0"
+        //         },
+        //         ...
+        //     ]
+        //
+        const tiers = [];
+        const brackets = info;
+        for (let i = 0; i < brackets.length; i++) {
+            const tier = brackets[i];
+            tiers.push ({
+                'tier': this.safeInteger (tier, 'bracket'),
+                'currency': market['settle'],
+                'minNotional': this.safeNumber (tier, 'notionalFloor'),
+                'maxNotional': this.safeNumber (tier, 'notionalCap'),
+                'maintenanceMarginRate': this.safeNumber (tier, 'maintenanceMarginRate'),
+                'maxLeverage': this.safeNumber (tier, 'initialLeverage'),
+                'info': tier,
+            });
+        }
+        return tiers;
+    }
+
+    async fetchLeverageTiers (symbols = undefined, params = {}) {
+        /**
+         * @method
+         * @name btcex#fetchLeverageTiers
+         * @see https://docs.btcex.com/#get-all-perpetual-instrument-leverage-config
+         * @description retrieve information on the maximum leverage, for different trade sizes
+         * @param {[string]|undefined} symbols a list of unified market symbols
+         * @param {object} params extra parameters specific to the btcex api endpoint
+         * @returns {object} a dictionary of [leverage tiers structures]{@link https://docs.ccxt.com/en/latest/manual.html#leverage-tiers-structure}, indexed by market symbols
+         */
+        await this.loadMarkets ();
+        const response = await this.publicGetGetPerpetualLeverageBracketAll (params);
+        //
+        //     {
+        //         "jsonrpc": "2.0",
+        //         "usIn": 1674183578745,
+        //         "usOut": 1674183578752,
+        //         "usDiff": 7,
+        //         "result": {
+        //             "WAVES-USDT-PERPETUAL": [
+        //                 {
+        //                     "bracket": 1,
+        //                     "initialLeverage": 50,
+        //                     "maintenanceMarginRate": "0.01",
+        //                     "notionalCap": "50000",
+        //                     "notionalFloor": "0",
+        //                     "cum": "0"
+        //                 },
+        //                 ...
+        //             ]
+        //         }
+        //     }
+        //
+        const data = this.safeValue (response, 'result', {});
+        symbols = this.marketSymbols (symbols);
+        return this.parseLeverageTiers (data, symbols, 'symbol');
+    }
+
+    parseLeverageTiers (response, symbols = undefined, marketIdKey = undefined) {
+        //
+        //     {
+        //         "WAVES-USDT-PERPETUAL": [
+        //             {
+        //                 "bracket": 1,
+        //                 "initialLeverage": 50,
+        //                 "maintenanceMarginRate": "0.01",
+        //                 "notionalCap": "50000",
+        //                 "notionalFloor": "0",
+        //                 "cum": "0"
+        //             },
+        //             ...
+        //         ]
+        //     }
+        //
+        const tiers = {};
+        const result = {};
+        const marketIds = Object.keys (response);
+        for (let i = 0; i < marketIds.length; i++) {
+            const marketId = marketIds[i];
+            const entry = response[marketId];
+            const market = this.safeMarket (marketId);
+            const symbol = this.safeSymbol (marketId, market);
+            let symbolsLength = 0;
+            tiers[symbol] = this.parseMarketLeverageTiers (entry, market);
+            if (symbols !== undefined) {
+                symbolsLength = symbols.length;
+                if (this.inArray (symbol, symbols)) {
+                    result[symbol] = this.parseMarketLeverageTiers (entry, market);
+                }
+            }
+            if (symbol !== undefined && (symbolsLength === 0 || this.inArray (symbol, symbols))) {
+                result[symbol] = this.parseMarketLeverageTiers (entry, market);
+            }
+        }
+        return result;
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {

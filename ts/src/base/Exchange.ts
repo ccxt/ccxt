@@ -395,6 +395,7 @@ export default class Exchange {
     inflate64 = inflate64
     gunzip = gunzip
 
+    cntx;
     describe () {
         return {
             'id': undefined,

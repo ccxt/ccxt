@@ -1969,8 +1969,7 @@ class coinbase(Exchange):
         symbol = self.safe_symbol(marketId, market, '-')
         if symbol is not None:
             market = self.market(symbol)
-        rawSide = self.safe_string(order, 'side')
-        side = rawSide.lower() if (rawSide is not None) else None
+        side = self.safe_string_lower(order, 'side')
         return self.safe_order({
             'info': order,
             'id': self.safe_string(order, 'order_id'),
@@ -2040,9 +2039,10 @@ class coinbase(Exchange):
         #     }
         #
         orders = self.safe_value(response, 'results', [])
-        success = self.safe_value(orders, 'success')
-        if success is not True:
-            raise BadRequest(self.id + ' cancelOrders() has failed, check your arguments and parameters')
+        for i in range(0, len(orders)):
+            success = self.safe_value(orders[i], 'success')
+            if success is not True:
+                raise BadRequest(self.id + ' cancelOrders() has failed, check your arguments and parameters')
         return self.parse_orders(orders, market)
 
     async def fetch_ohlcv(self, symbol, timeframe='1m', since=None, limit=None, params={}):

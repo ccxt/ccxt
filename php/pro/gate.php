@@ -194,12 +194,15 @@ class gate extends \ccxt\async\gate {
         $storedOrderBook = $this->safe_value($this->orderbooks, $symbol);
         $nonce = $this->safe_integer($storedOrderBook, 'nonce');
         if ($nonce === null) {
-            $cacheLength = count($storedOrderBook->cache);
+            $cacheLength = 0;
+            if ($storedOrderBook !== null) {
+                $cacheLength = count($storedOrderBook->cache);
+            }
             $snapshotDelay = $this->handle_option('watchOrderBook', 'snapshotDelay', 10);
             $waitAmount = $isSpot ? $snapshotDelay : 0;
             if ($cacheLength === $waitAmount) {
                 // max $limit is 100
-                $subscription = $client->subscriptions[$channel];
+                $subscription = $client->subscriptions[$messageHash];
                 $limit = $this->safe_integer($subscription, 'limit');
                 $this->spawn(array($this, 'load_order_book'), $client, $messageHash, $symbol, $limit);
             }
@@ -886,7 +889,7 @@ class gate extends \ccxt\async\gate {
             'balance' => array($this, 'handle_balance_subscription'),
             'order_book' => array($this, 'handle_order_book_subscription'),
         );
-        $id = $this->safe_string($message, 'id');
+        $id = $this->safe_integer($message, 'id');
         $subscriptionsById = $this->index_by($client->subscriptions, 'id');
         $subscription = $this->safe_value($subscriptionsById, $id);
         if ($subscription !== null) {

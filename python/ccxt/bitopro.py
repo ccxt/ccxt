@@ -839,6 +839,7 @@ class bitopro(Exchange):
             '2': 'closed',
             '3': 'closed',
             '4': 'canceled',
+            '6': 'canceled',
         }
         return self.safe_string(statuses, status, None)
 
@@ -893,6 +894,9 @@ class bitopro(Exchange):
         filled = self.safe_string(order, 'executedAmount')
         remaining = self.safe_string(order, 'remainingAmount')
         timeInForce = self.safe_string(order, 'timeInForce')
+        postOnly = None
+        if timeInForce == 'POST_ONLY':
+            postOnly = True
         fee = None
         feeAmount = self.safe_string(order, 'fee')
         feeSymbol = self.safe_currency_code(self.safe_string(order, 'feeSymbol'))
@@ -910,7 +914,7 @@ class bitopro(Exchange):
             'symbol': symbol,
             'type': type,
             'timeInForce': timeInForce,
-            'postOnly': None,
+            'postOnly': postOnly,
             'side': side,
             'price': price,
             'stopPrice': None,
@@ -962,6 +966,9 @@ class bitopro(Exchange):
                 raise InvalidOrder(self.id + ' createOrder() requires a condition parameter for ' + orderType + ' orders')
             else:
                 request['condition'] = condition
+        postOnly = self.is_post_only(orderType == 'MARKET', None, params)
+        if postOnly:
+            request['timeInForce'] = 'POST_ONLY'
         response = self.privatePostOrdersPair(self.extend(request, params), params)
         #
         #     {

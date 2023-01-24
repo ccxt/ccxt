@@ -1400,45 +1400,45 @@ class kucoin extends Exchange {
 
     public function create_order($symbol, $type, $side, $amount, $price = null, $params = array ()) {
         /**
-         * Create an $order on the exchange
-         * @param {string} $symbol Unified CCXT market $symbol
+         * Create an order on the exchange
+         * @param {string} $symbol Unified CCXT $market $symbol
          * @param {string} $type 'limit' or 'market'
          * @param {string} $side 'buy' or 'sell'
          * @param {float} $amount the $amount of currency to trade
-         * @param {float} $price *ignored in "market" orders* the $price at which the $order is to be fullfilled at in units of the quote currency
+         * @param {float} $price *ignored in "market" orders* the $price at which the order is to be fullfilled at in units of the quote currency
          * @param {array} $params  Extra parameters specific to the exchange API endpoint
-         * @param {string} $params->clientOid client $order $id, defaults to uuid if not passed
-         * @param {string} $params->remark remark for the $order, length cannot exceed 100 utf8 characters
+         * @param {string} $params->clientOid client order id, defaults to uuid if not passed
+         * @param {string} $params->remark remark for the order, length cannot exceed 100 utf8 characters
          * @param {string} $params->tradeType 'TRADE', // TRADE, MARGIN_TRADE // not used with margin orders
          * limit orders ---------------------------------------------------
          * @param {string} $params->timeInForce GTC, GTT, IOC, or FOK, default is GTC, limit orders only
          * @param {float} $params->cancelAfter long, // cancel after n seconds, requires timeInForce to be GTT
          * @param {string} $params->postOnly Post only flag, invalid when timeInForce is IOC or FOK
-         * @param {bool} $params->hidden false, // Order will not be displayed in the $order book
-         * @param {bool} $params->iceberg false, // Only a portion of the $order is displayed in the $order book
-         * @param {string} $params->visibleSize $this->amount_to_precision($symbol, visibleSize), // The maximum visible size of an iceberg $order
-         * market orders --------------------------------------------------
+         * @param {bool} $params->hidden false, // Order will not be displayed in the order book
+         * @param {bool} $params->iceberg false, // Only a portion of the order is displayed in the order book
+         * @param {string} $params->visibleSize $this->amount_to_precision($symbol, visibleSize), // The maximum visible size of an iceberg order
+         * $market orders --------------------------------------------------
          * @param {string} $params->funds // Amount of quote currency to use
          * stop orders ----------------------------------------------------
          * @param {string} $params->stop  Either loss or entry, the default is loss. Requires stopPrice to be defined
-         * @param {float} $params->stopPrice The $price at which a trigger $order is triggered at
+         * @param {float} $params->stopPrice The $price at which a trigger order is triggered at
          * margin orders --------------------------------------------------
-         * @param {float} $params->leverage Leverage size of the $order
+         * @param {float} $params->leverage Leverage size of the order
          * @param {string} $params->stp '', // self trade prevention, CN, CO, CB or DC
          * @param {string} $params->marginMode 'cross', // cross (cross mode) and isolated (isolated mode), set to cross by default, the isolated mode will be released soon, stay tuned
-         * @param {bool} $params->autoBorrow false, // The system will first borrow you funds at the optimal interest rate and then place an $order for you
-         * @return {array} an {@link https://docs.ccxt.com/en/latest/manual.html#$order-structure $order structure}
+         * @param {bool} $params->autoBorrow false, // The system will first borrow you funds at the optimal interest rate and then place an order for you
+         * @return {array} an {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structure}
          */
         $this->load_markets();
-        $marketId = $this->market_id($symbol);
+        $market = $this->market($symbol);
         // required param, cannot be used twice
         $clientOrderId = $this->safe_string_2($params, 'clientOid', 'clientOrderId', $this->uuid());
         $params = $this->omit($params, array( 'clientOid', 'clientOrderId' ));
         $request = array(
             'clientOid' => $clientOrderId,
             'side' => $side,
-            'symbol' => $marketId,
-            'type' => $type, // limit or market
+            'symbol' => $market['id'],
+            'type' => $type, // limit or $market
         );
         $quoteAmount = $this->safe_number_2($params, 'cost', 'funds');
         $amountString = null;
@@ -1476,6 +1476,11 @@ class kucoin extends Exchange {
             $triggerPrice = $isStopLoss ? $stopLossPrice : $takeProfitPrice;
             $request['stopPrice'] = $this->price_to_precision($symbol, $triggerPrice);
             $method = 'privatePostStopOrder';
+            if ($marginMode === 'isolated') {
+                throw new BadRequest($this->id . ' createOrder does not support isolated margin for stop orders');
+            } elseif ($marginMode === 'cross') {
+                $request['tradeType'] = $this->options['marginModes'][$marginMode];
+            }
         } elseif ($tradeType === 'MARGIN_TRADE' || $marginMode !== null) {
             $method = 'privatePostMarginOrder';
             if ($marginMode === 'isolated') {
@@ -1492,29 +1497,7 @@ class kucoin extends Exchange {
         //    }
         //
         $data = $this->safe_value($response, 'data', array());
-        $timestamp = $this->milliseconds();
-        $id = $this->safe_string($data, 'orderId');
-        $order = array(
-            'id' => $id,
-            'clientOrderId' => $clientOrderId,
-            'info' => $data,
-            'timestamp' => $timestamp,
-            'datetime' => $this->iso8601($timestamp),
-            'lastTradeTimestamp' => null,
-            'symbol' => $symbol,
-            'type' => $type,
-            'side' => $side,
-            'price' => $price,
-            'amount' => $this->parse_number($amountString),
-            'cost' => $this->parse_number($costString),
-            'average' => null,
-            'filled' => null,
-            'remaining' => null,
-            'status' => null,
-            'fee' => null,
-            'trades' => null,
-        );
-        return $order;
+        return $this->parse_order($data, $market);
     }
 
     public function cancel_order($id, $symbol = null, $params = array ()) {

@@ -193,12 +193,15 @@ export default class gate extends gateRest {
         const storedOrderBook = this.safeValue (this.orderbooks, symbol);
         const nonce = this.safeInteger (storedOrderBook, 'nonce');
         if (nonce === undefined) {
-            const cacheLength = storedOrderBook.cache.length;
+            let cacheLength = 0;
+            if (storedOrderBook !== undefined) {
+                cacheLength = storedOrderBook.cache.length;
+            }
             const snapshotDelay = this.handleOption ('watchOrderBook', 'snapshotDelay', 10);
             const waitAmount = isSpot ? snapshotDelay : 0;
             if (cacheLength === waitAmount) {
                 // max limit is 100
-                const subscription = client.subscriptions[channel];
+                const subscription = client.subscriptions[messageHash];
                 const limit = this.safeInteger (subscription, 'limit');
                 this.spawn (this.loadOrderBook, client, messageHash, symbol, limit);
             }
@@ -885,7 +888,7 @@ export default class gate extends gateRest {
             'balance': this.handleBalanceSubscription,
             'order_book': this.handleOrderBookSubscription,
         };
-        const id = this.safeString (message, 'id');
+        const id = this.safeInteger (message, 'id');
         const subscriptionsById = this.indexBy (client.subscriptions, 'id');
         const subscription = this.safeValue (subscriptionsById, id);
         if (subscription !== undefined) {

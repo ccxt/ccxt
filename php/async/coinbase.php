@@ -2105,8 +2105,7 @@ class coinbase extends Exchange {
         if ($symbol !== null) {
             $market = $this->market($symbol);
         }
-        $rawSide = $this->safe_string($order, 'side');
-        $side = ($rawSide !== null) ? strtolower($rawSide) : null;
+        $side = $this->safe_string_lower($order, 'side');
         return $this->safe_order(array(
             'info' => $order,
             'id' => $this->safe_string($order, 'order_id'),
@@ -2182,9 +2181,11 @@ class coinbase extends Exchange {
             //     }
             //
             $orders = $this->safe_value($response, 'results', array());
-            $success = $this->safe_value($orders, 'success');
-            if ($success !== true) {
-                throw new BadRequest($this->id . ' cancelOrders() has failed, check your arguments and parameters');
+            for ($i = 0; $i < count($orders); $i++) {
+                $success = $this->safe_value($orders[$i], 'success');
+                if ($success !== true) {
+                    throw new BadRequest($this->id . ' cancelOrders() has failed, check your arguments and parameters');
+                }
             }
             return $this->parse_orders($orders, $market);
         }) ();

@@ -188,12 +188,14 @@ class gate(Exchange, ccxt.async_support.gate):
         storedOrderBook = self.safe_value(self.orderbooks, symbol)
         nonce = self.safe_integer(storedOrderBook, 'nonce')
         if nonce is None:
-            cacheLength = len(storedOrderBook.cache)
+            cacheLength = 0
+            if storedOrderBook is not None:
+                cacheLength = len(storedOrderBook.cache)
             snapshotDelay = self.handle_option('watchOrderBook', 'snapshotDelay', 10)
             waitAmount = snapshotDelay if isSpot else 0
             if cacheLength == waitAmount:
                 # max limit is 100
-                subscription = client.subscriptions[channel]
+                subscription = client.subscriptions[messageHash]
                 limit = self.safe_integer(subscription, 'limit')
                 self.spawn(self.load_order_book, client, messageHash, symbol, limit)
             storedOrderBook.cache.append(delta)
@@ -808,7 +810,7 @@ class gate(Exchange, ccxt.async_support.gate):
             'balance': self.handle_balance_subscription,
             'order_book': self.handle_order_book_subscription,
         }
-        id = self.safe_string(message, 'id')
+        id = self.safe_integer(message, 'id')
         subscriptionsById = self.index_by(client.subscriptions, 'id')
         subscription = self.safe_value(subscriptionsById, id)
         if subscription is not None:

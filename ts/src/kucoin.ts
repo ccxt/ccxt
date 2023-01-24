@@ -1460,14 +1460,14 @@ export default class kucoin extends Exchange {
          * @returns {object} an [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
          */
         await this.loadMarkets ();
-        const marketId = this.marketId (symbol);
+        const market = this.market (symbol);
         // required param, cannot be used twice
         const clientOrderId = this.safeString2 (params, 'clientOid', 'clientOrderId', this.uuid ());
         params = this.omit (params, [ 'clientOid', 'clientOrderId' ]);
         const request = {
             'clientOid': clientOrderId,
             'side': side,
-            'symbol': marketId,
+            'symbol': market['id'],
             'type': type, // limit or market
         };
         const quoteAmount = this.safeNumber2 (params, 'cost', 'funds');
@@ -1506,6 +1506,11 @@ export default class kucoin extends Exchange {
             const triggerPrice = isStopLoss ? stopLossPrice : takeProfitPrice;
             request['stopPrice'] = this.priceToPrecision (symbol, triggerPrice);
             method = 'privatePostStopOrder';
+            if (marginMode === 'isolated') {
+                throw new BadRequest (this.id + ' createOrder does not support isolated margin for stop orders');
+            } else if (marginMode === 'cross') {
+                request['tradeType'] = this.options['marginModes'][marginMode];
+            }
         } else if (tradeType === 'MARGIN_TRADE' || marginMode !== undefined) {
             method = 'privatePostMarginOrder';
             if (marginMode === 'isolated') {
@@ -1522,29 +1527,7 @@ export default class kucoin extends Exchange {
         //    }
         //
         const data = this.safeValue (response, 'data', {});
-        const timestamp = this.milliseconds ();
-        const id = this.safeString (data, 'orderId');
-        const order = {
-            'id': id,
-            'clientOrderId': clientOrderId,
-            'info': data,
-            'timestamp': timestamp,
-            'datetime': this.iso8601 (timestamp),
-            'lastTradeTimestamp': undefined,
-            'symbol': symbol,
-            'type': type,
-            'side': side,
-            'price': price,
-            'amount': this.parseNumber (amountString),
-            'cost': this.parseNumber (costString),
-            'average': undefined,
-            'filled': undefined,
-            'remaining': undefined,
-            'status': undefined,
-            'fee': undefined,
-            'trades': undefined,
-        };
-        return order;
+        return this.parseOrder (data, market);
     }
 
     async cancelOrder (id, symbol = undefined, params = {}) {

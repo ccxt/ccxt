@@ -94,7 +94,6 @@ export default class bybit extends Exchange {
                 '1d': 'D',
                 '1w': 'W',
                 '1M': 'M',
-                '1y': 'Y',
             },
             'urls': {
                 'test': {
