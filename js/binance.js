@@ -2055,7 +2055,7 @@ module.exports = class binance extends Exchange {
             for (let i = 0; i < assets.length; i++) {
                 const asset = assets[i];
                 const marketId = this.safeValue (asset, 'symbol');
-                const symbol = this.safeSymbol (marketId, undefined, undefined, 'margin');
+                const symbol = this.safeSymbol (marketId, undefined, undefined, 'spot');
                 const base = this.safeValue (asset, 'baseAsset', {});
                 const quote = this.safeValue (asset, 'quoteAsset', {});
                 const baseCode = this.safeCurrencyCode (this.safeString (base, 'asset'));
@@ -2140,12 +2140,6 @@ module.exports = class binance extends Exchange {
             const fetchBalanceOptions = this.safeValue (options, 'fetchBalance', {});
             method = this.safeString (fetchBalanceOptions, 'method', 'dapiPrivateGetAccount');
             type = 'inverse';
-        } else if ((type === 'margin') || (marginMode === 'cross')) {
-            method = 'sapiGetMarginAccount';
-        } else if (type === 'savings') {
-            method = 'sapiGetLendingUnionAccount';
-        } else if (type === 'funding') {
-            method = 'sapiPostAssetGetFundingAsset';
         } else if (marginMode === 'isolated') {
             method = 'sapiGetMarginIsolatedAccount';
             const paramSymbols = this.safeValue (params, 'symbols');
@@ -2163,6 +2157,12 @@ module.exports = class binance extends Exchange {
                 }
                 request['symbols'] = symbols;
             }
+        } else if ((type === 'margin') || (marginMode === 'cross')) {
+            method = 'sapiGetMarginAccount';
+        } else if (type === 'savings') {
+            method = 'sapiGetLendingUnionAccount';
+        } else if (type === 'funding') {
+            method = 'sapiPostAssetGetFundingAsset';
         }
         const requestParams = this.omit (query, [ 'type', 'symbols' ]);
         const response = await this[method] (this.extend (request, requestParams));
