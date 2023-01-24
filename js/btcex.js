@@ -2068,7 +2068,7 @@ module.exports = class btcex extends Exchange {
                     result[symbol] = this.parseMarketLeverageTiers (entry, market);
                 }
             }
-            if (symbol !== undefined && (symbolsLength === 0 || this.inArray (symbols, symbol))) {
+            if (symbol !== undefined && (symbolsLength === 0 || this.inArray (symbol, symbols))) {
                 result[symbol] = this.parseMarketLeverageTiers (entry, market);
             }
         }
