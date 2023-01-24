@@ -50,10 +50,10 @@ module.exports = class ace extends Exchange {
                 'fetchMyTrades': true,
                 'fetchOHLCV': true,
                 'fetchOpenInterestHistory': false,
-                'fetchOpenOrders': false,
+                'fetchOpenOrders': true,
                 'fetchOrder': true,
                 'fetchOrderBook': true,
-                'fetchOrders': true,
+                'fetchOrders': false,
                 'fetchOrderTrades': true,
                 'fetchPositionMode': false,
                 'fetchPositions': false,
@@ -134,12 +134,6 @@ module.exports = class ace extends Exchange {
                 },
             },
             'options': {
-                'networks': {
-                    'ERC20': 'ERC20',
-                    'ETH': 'ERC20',
-                    'TRX': 'TRX',
-                    'TRC20': 'TRX',
-                },
             },
             'precisionMode': TICK_SIZE,
             'exceptions': {
@@ -236,8 +230,8 @@ module.exports = class ace extends Exchange {
                     },
                 },
                 'precision': {
-                    'price': this.safeNumber (market, 'basePrecision'),
-                    'amount': this.safeNumber (market, 'quotePrecision'),
+                    'price': this.parseNumber (this.parsePrecision (this.safeString (market, 'basePrecision'))),
+                    'amount': this.parseNumber (this.parsePrecision (this.safeString (market, 'quotePrecision'))),
                 },
                 'active': undefined,
                 'info': market,
@@ -402,7 +396,7 @@ module.exports = class ace extends Exchange {
         return this.parseOrderBook (orderBook, market['symbol'], undefined, 'bids', 'asks');
     }
 
-    parseOHLCV (ohlcv, market = undefined, timeframe = '1m', since = undefined, limit = undefined) {
+    parseOHLCV (ohlcv, market = undefined) {
         //
         //     {
         //         "changeRate": 0,
@@ -490,7 +484,7 @@ module.exports = class ace extends Exchange {
         // createOrder
         //         "15697850529570392100421100482693"
         //
-        // fetchOrders
+        // fetchOpenOrders
         //         {
         //             "uid": 0,
         //             "orderNo": "16113081376560890227301101413941",
@@ -569,7 +563,7 @@ module.exports = class ace extends Exchange {
             'status': status,
             'fee': undefined,
             'trades': undefined,
-            'info': undefined,
+            'info': order,
         }, market);
     }
 
@@ -682,11 +676,11 @@ module.exports = class ace extends Exchange {
         return this.parseOrder (data, undefined);
     }
 
-    async fetchOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+    async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         /**
          * @method
-         * @name ace#fetchOrders
-         * @description fetches information on multiple orders made by the user
+         * @name ace#fetchOpenOrders
+         * @description fetch all unfilled currently open orders
          * @see https://github.com/ace-exchange/ace-official-api-docs/blob/master/api_v2.md#open-api---order-list
          * @param {string} symbol unified market symbol of the market orders were made in
          * @param {int|undefined} since the earliest time in ms to fetch orders for
@@ -695,7 +689,7 @@ module.exports = class ace extends Exchange {
          * @returns {[object]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
          */
         if (symbol === undefined) {
-            throw new ArgumentsRequired (this.id + ' fetchOrders() requires the symbol argument');
+            throw new ArgumentsRequired (this.id + ' fetchOpenOrders() requires the symbol argument');
         }
         await this.loadMarkets ();
         const market = this.market (symbol);
@@ -879,8 +873,8 @@ module.exports = class ace extends Exchange {
     async fetchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         /**
          * @method
-         * @name ace#fetchTrades
-         * @description get the list of most recent trades for a particular symbol
+         * @name ace#fetchMyTrades
+         * @description fetch all trades made by the user
          * @see https://github.com/ace-exchange/ace-official-api-docs/blob/master/api_v2.md#open-api---trade-list
          * @param {string} symbol unified symbol of the market to fetch trades for
          * @param {int|undefined} since timestamp in ms of the earliest trade to fetch
