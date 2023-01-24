@@ -5028,19 +5028,21 @@ class binance(Exchange):
             symbols = list(self.markets.keys())
             result = {}
             feeTier = self.safe_integer(response, 'feeTier')
-            feeTiers = self.fees[type]['trading']['tiers']
+            feeTiers = self.fees['linear']['trading']['tiers']
             maker = feeTiers['maker'][feeTier][1]
             taker = feeTiers['taker'][feeTier][1]
             for i in range(0, len(symbols)):
                 symbol = symbols[i]
-                result[symbol] = {
-                    'info': {
-                        'feeTier': feeTier,
-                    },
-                    'symbol': symbol,
-                    'maker': maker,
-                    'taker': taker,
-                }
+                market = self.markets[symbol]
+                if market['linear']:
+                    result[symbol] = {
+                        'info': {
+                            'feeTier': feeTier,
+                        },
+                        'symbol': symbol,
+                        'maker': maker,
+                        'taker': taker,
+                    }
             return result
         elif isInverse:
             #
@@ -5055,19 +5057,21 @@ class binance(Exchange):
             symbols = list(self.markets.keys())
             result = {}
             feeTier = self.safe_integer(response, 'feeTier')
-            feeTiers = self.fees[type]['trading']['tiers']
+            feeTiers = self.fees['inverse']['trading']['tiers']
             maker = feeTiers['maker'][feeTier][1]
             taker = feeTiers['taker'][feeTier][1]
             for i in range(0, len(symbols)):
                 symbol = symbols[i]
-                result[symbol] = {
-                    'info': {
-                        'feeTier': feeTier,
-                    },
-                    'symbol': symbol,
-                    'maker': maker,
-                    'taker': taker,
-                }
+                market = self.markets[symbol]
+                if market['inverse']:
+                    result[symbol] = {
+                        'info': {
+                            'feeTier': feeTier,
+                        },
+                        'symbol': symbol,
+                        'maker': maker,
+                        'taker': taker,
+                    }
             return result
 
     async def futures_transfer(self, code, amount, type, params={}):

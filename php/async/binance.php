@@ -5241,7 +5241,7 @@ class binance extends Exchange {
             /**
              * fetch the trading fees for multiple markets
              * @param {array} $params extra parameters specific to the binance api endpoint
-             * @return {array} a dictionary of {@link https://docs.ccxt.com/en/latest/manual.html#$fee-structure $fee structures} indexed by market $symbols
+             * @return {array} a dictionary of {@link https://docs.ccxt.com/en/latest/manual.html#$fee-structure $fee structures} indexed by $market $symbols
              */
             Async\await($this->load_markets());
             $method = null;
@@ -5356,19 +5356,22 @@ class binance extends Exchange {
                 $symbols = is_array($this->markets) ? array_keys($this->markets) : array();
                 $result = array();
                 $feeTier = $this->safe_integer($response, 'feeTier');
-                $feeTiers = $this->fees[$type]['trading']['tiers'];
+                $feeTiers = $this->fees['linear']['trading']['tiers'];
                 $maker = $feeTiers['maker'][$feeTier][1];
                 $taker = $feeTiers['taker'][$feeTier][1];
                 for ($i = 0; $i < count($symbols); $i++) {
                     $symbol = $symbols[$i];
-                    $result[$symbol] = array(
-                        'info' => array(
-                            'feeTier' => $feeTier,
-                        ),
-                        'symbol' => $symbol,
-                        'maker' => $maker,
-                        'taker' => $taker,
-                    );
+                    $market = $this->markets[$symbol];
+                    if ($market['linear']) {
+                        $result[$symbol] = array(
+                            'info' => array(
+                                'feeTier' => $feeTier,
+                            ),
+                            'symbol' => $symbol,
+                            'maker' => $maker,
+                            'taker' => $taker,
+                        );
+                    }
                 }
                 return $result;
             } elseif ($isInverse) {
@@ -5384,19 +5387,22 @@ class binance extends Exchange {
                 $symbols = is_array($this->markets) ? array_keys($this->markets) : array();
                 $result = array();
                 $feeTier = $this->safe_integer($response, 'feeTier');
-                $feeTiers = $this->fees[$type]['trading']['tiers'];
+                $feeTiers = $this->fees['inverse']['trading']['tiers'];
                 $maker = $feeTiers['maker'][$feeTier][1];
                 $taker = $feeTiers['taker'][$feeTier][1];
                 for ($i = 0; $i < count($symbols); $i++) {
                     $symbol = $symbols[$i];
-                    $result[$symbol] = array(
-                        'info' => array(
-                            'feeTier' => $feeTier,
-                        ),
-                        'symbol' => $symbol,
-                        'maker' => $maker,
-                        'taker' => $taker,
-                    );
+                    $market = $this->markets[$symbol];
+                    if ($market['inverse']) {
+                        $result[$symbol] = array(
+                            'info' => array(
+                                'feeTier' => $feeTier,
+                            ),
+                            'symbol' => $symbol,
+                            'maker' => $maker,
+                            'taker' => $taker,
+                        );
+                    }
                 }
                 return $result;
             }
