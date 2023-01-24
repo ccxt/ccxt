@@ -3,7 +3,7 @@
 // ----------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
-const { ExchangeError, ArgumentsRequired, AuthenticationError, BadRequest, InvalidOrder, NotSupported, RateLimitExceeded, InvalidNonce } = require ('./base/errors');
+const { ExchangeError, ArgumentsRequired, AuthenticationError, BadRequest, InvalidOrder, NotSupported, OrderNotFound, RateLimitExceeded, InvalidNonce } = require ('./base/errors');
 const { TICK_SIZE, TRUNCATE, DECIMAL_PLACES } = require ('./base/functions/number');
 const Precise = require ('./base/Precise');
 
@@ -50,7 +50,8 @@ module.exports = class coinbase extends Exchange {
                 'fetchBorrowRateHistory': false,
                 'fetchBorrowRates': false,
                 'fetchBorrowRatesPerSymbol': false,
-                'fetchClosedOrders': undefined,
+                'fetchCanceledOrders': true,
+                'fetchClosedOrders': true,
                 'fetchCurrencies': true,
                 'fetchDepositAddress': undefined,
                 'fetchDeposits': true,
@@ -71,10 +72,10 @@ module.exports = class coinbase extends Exchange {
                 'fetchMyTrades': undefined,
                 'fetchOHLCV': true,
                 'fetchOpenInterestHistory': false,
-                'fetchOpenOrders': undefined,
-                'fetchOrder': undefined,
+                'fetchOpenOrders': true,
+                'fetchOrder': true,
                 'fetchOrderBook': false,
-                'fetchOrders': undefined,
+                'fetchOrders': true,
                 'fetchPosition': false,
                 'fetchPositionMode': false,
                 'fetchPositions': false,
@@ -253,6 +254,7 @@ module.exports = class coinbase extends Exchange {
                 },
                 'broad': {
                     'request timestamp expired': InvalidNonce, // {"errors":[{"id":"authentication_error","message":"request timestamp expired"}]}
+                    'order with this orderID was not found': OrderNotFound, // {"error":"unknown","error_details":"order with this orderID was not found","message":"order with this orderID was not found"}
                 },
             },
             'timeframes': {
@@ -2070,38 +2072,139 @@ module.exports = class coinbase extends Exchange {
         //         "order_id": "bb8851a3-4fda-4a2c-aa06-9048db0e0f0d"
         //     }
         //
+        // fetchOrder, fetchOrders, fetchOpenOrders, fetchClosedOrders, fetchCanceledOrders
+        //
+        //     {
+        //         "order_id": "9bc1eb3b-5b46-4b71-9628-ae2ed0cca75b",
+        //         "product_id": "LTC-BTC",
+        //         "user_id": "1111111-1111-1111-1111-111111111111",
+        //         "order_configuration": {
+        //             "limit_limit_gtc": {
+        //                 "base_size": "0.2",
+        //                 "limit_price": "0.006",
+        //                 "post_only": false
+        //             }
+        //         },
+        //         "side": "SELL",
+        //         "client_order_id": "e5fe8482-05bb-428f-ad4d-dbc8ce39239c",
+        //         "status": "OPEN",
+        //         "time_in_force": "GOOD_UNTIL_CANCELLED",
+        //         "created_time": "2023-01-16T23:37:23.947030Z",
+        //         "completion_percentage": "0",
+        //         "filled_size": "0",
+        //         "average_filled_price": "0",
+        //         "fee": "",
+        //         "number_of_fills": "0",
+        //         "filled_value": "0",
+        //         "pending_cancel": false,
+        //         "size_in_quote": false,
+        //         "total_fees": "0",
+        //         "size_inclusive_of_fees": false,
+        //         "total_value_after_fees": "0",
+        //         "trigger_status": "INVALID_ORDER_TYPE",
+        //         "order_type": "LIMIT",
+        //         "reject_reason": "REJECT_REASON_UNSPECIFIED",
+        //         "settled": false,
+        //         "product_type": "SPOT",
+        //         "reject_message": "",
+        //         "cancel_message": ""
+        //     }
+        //
         const marketId = this.safeString (order, 'product_id');
         const symbol = this.safeSymbol (marketId, market, '-');
         if (symbol !== undefined) {
             market = this.market (symbol);
         }
-        const side = this.safeStringLower (order, 'side');
+        const orderConfiguration = this.safeValue (order, 'order_configuration', {});
+        const limitGTC = this.safeValue (orderConfiguration, 'limit_limit_gtc', {});
+        const limitGTD = this.safeValue (orderConfiguration, 'limit_limit_gtd', {});
+        const stopLimitGTC = this.safeValue (orderConfiguration, 'stop_limit_stop_limit_gtc', {});
+        const stopLimitGTD = this.safeValue (orderConfiguration, 'stop_limit_stop_limit_gtd', {});
+        const marketIOC = this.safeValue (orderConfiguration, 'market_market_ioc', {});
+        const isLimit = ((limitGTC !== undefined) || (limitGTD !== undefined));
+        const isStop = ((stopLimitGTC !== undefined) || (stopLimitGTD !== undefined));
+        let price = undefined;
+        let amount = undefined;
+        let postOnly = undefined;
+        let triggerPrice = undefined;
+        if (isLimit) {
+            const target = (limitGTC !== undefined) ? limitGTC : limitGTD;
+            price = this.safeString (target, 'limit_price');
+            amount = this.safeString (target, 'base_size');
+            postOnly = this.safeValue (target, 'post_only');
+        } else if (isStop) {
+            const stopTarget = (stopLimitGTC !== undefined) ? stopLimitGTC : stopLimitGTD;
+            price = this.safeString (stopTarget, 'limit_price');
+            amount = this.safeString (stopTarget, 'base_size');
+            postOnly = this.safeValue (stopTarget, 'post_only');
+            triggerPrice = this.safeString (stopTarget, 'stop_price');
+        } else {
+            amount = this.safeString (marketIOC, 'base_size');
+        }
+        const datetime = this.safeString (order, 'created_time');
         return this.safeOrder ({
             'info': order,
             'id': this.safeString (order, 'order_id'),
             'clientOrderId': this.safeString (order, 'client_order_id'),
-            'timestamp': undefined,
-            'datetime': undefined,
+            'timestamp': this.parse8601 (datetime),
+            'datetime': datetime,
             'lastTradeTimestamp': undefined,
             'symbol': symbol,
-            'type': undefined,
-            'timeInForce': undefined,
-            'postOnly': undefined,
-            'side': side,
-            'price': undefined,
-            'stopPrice': undefined,
-            'triggerPrice': undefined,
-            'amount': undefined,
-            'filled': undefined,
+            'type': this.parseOrderType (this.safeString (order, 'order_type')),
+            'timeInForce': this.parseTimeInForce (this.safeString (order, 'time_in_force')),
+            'postOnly': postOnly,
+            'side': this.safeStringLower (order, 'side'),
+            'price': price,
+            'stopPrice': triggerPrice,
+            'triggerPrice': triggerPrice,
+            'amount': amount,
+            'filled': this.safeString (order, 'filled_size'),
             'remaining': undefined,
             'cost': undefined,
-            'average': undefined,
-            'status': undefined,
+            'average': this.safeString (order, 'average_filled_price'),
+            'status': this.parseOrderStatus (this.safeString (order, 'status')),
             'fee': {
-                'cost': undefined,
+                'cost': this.safeString (order, 'total_fees'),
+                'currency': undefined,
             },
             'trades': undefined,
         }, market);
+    }
+
+    parseOrderStatus (status) {
+        const statuses = {
+            'OPEN': 'open',
+            'FILLED': 'closed',
+            'CANCELLED': 'canceled',
+            'EXPIRED': 'canceled',
+            'FAILED': 'canceled',
+            'UNKNOWN_ORDER_STATUS': undefined,
+        };
+        return this.safeString (statuses, status, status);
+    }
+
+    parseOrderType (type) {
+        if (type === 'UNKNOWN_ORDER_TYPE') {
+            return undefined;
+        }
+        const types = {
+            'MARKET': 'market',
+            'LIMIT': 'limit',
+            'STOP': 'limit',
+            'STOP_LIMIT': 'limit',
+        };
+        return this.safeString (types, type, type);
+    }
+
+    parseTimeInForce (timeInForce) {
+        const timeInForces = {
+            'GOOD_UNTIL_CANCELLED': 'GTC',
+            'GOOD_UNTIL_DATE_TIME': 'GTD',
+            'IMMEDIATE_OR_CANCEL': 'IOC',
+            'FILL_OR_KILL': 'FOK',
+            'UNKNOWN_TIME_IN_FORCE': undefined,
+        };
+        return this.safeString (timeInForces, timeInForce, timeInForce);
     }
 
     async cancelOrder (id, symbol = undefined, params = {}) {
@@ -2159,6 +2262,254 @@ module.exports = class coinbase extends Exchange {
             }
         }
         return this.parseOrders (orders, market);
+    }
+
+    async fetchOrder (id, symbol = undefined, params = {}) {
+        /**
+         * @method
+         * @name coinbase#fetchOrder
+         * @description fetches information on an order made by the user
+         * @see https://docs.cloud.coinbase.com/advanced-trade-api/reference/retailbrokerageapi_gethistoricalorder
+         * @param {string} id the order id
+         * @param {string|undefined} symbol unified market symbol that the order was made in
+         * @param {object} params extra parameters specific to the coinbase api endpoint
+         * @returns {object} An [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
+         */
+        await this.loadMarkets ();
+        let market = undefined;
+        if (symbol !== undefined) {
+            market = this.market (symbol);
+        }
+        const request = {
+            'order_id': id,
+        };
+        const response = await this.v3PrivateGetBrokerageOrdersHistoricalOrderId (this.extend (request, params));
+        //
+        //     {
+        //         "order": {
+        //             "order_id": "9bc1eb3b-5b46-4b71-9628-ae2ed0cca75b",
+        //             "product_id": "LTC-BTC",
+        //             "user_id": "1111111-1111-1111-1111-111111111111",
+        //             "order_configuration": {
+        //                 "limit_limit_gtc": {
+        //                     "base_size": "0.2",
+        //                     "limit_price": "0.006",
+        //                     "post_only": false
+        //                 }
+        //             },
+        //             "side": "SELL",
+        //             "client_order_id": "e5fe8482-05bb-428f-ad4d-dbc8ce39239c",
+        //             "status": "OPEN",
+        //             "time_in_force": "GOOD_UNTIL_CANCELLED",
+        //             "created_time": "2023-01-16T23:37:23.947030Z",
+        //             "completion_percentage": "0",
+        //             "filled_size": "0",
+        //             "average_filled_price": "0",
+        //             "fee": "",
+        //             "number_of_fills": "0",
+        //             "filled_value": "0",
+        //             "pending_cancel": false,
+        //             "size_in_quote": false,
+        //             "total_fees": "0",
+        //             "size_inclusive_of_fees": false,
+        //             "total_value_after_fees": "0",
+        //             "trigger_status": "INVALID_ORDER_TYPE",
+        //             "order_type": "LIMIT",
+        //             "reject_reason": "REJECT_REASON_UNSPECIFIED",
+        //             "settled": false,
+        //             "product_type": "SPOT",
+        //             "reject_message": "",
+        //             "cancel_message": ""
+        //         }
+        //     }
+        //
+        const order = this.safeValue (response, 'order', {});
+        return this.parseOrder (order, market);
+    }
+
+    async fetchOrders (symbol = undefined, since = undefined, limit = 100, params = {}) {
+        /**
+         * @method
+         * @name coinbase#fetchOrders
+         * @description fetches information on multiple orders made by the user
+         * @see https://docs.cloud.coinbase.com/advanced-trade-api/reference/retailbrokerageapi_gethistoricalorders
+         * @param {string|undefined} symbol unified market symbol that the orders were made in
+         * @param {int|undefined} since the earliest time in ms to fetch orders
+         * @param {int|undefined} limit the maximum number of order structures to retrieve
+         * @param {object} params extra parameters specific to the coinbase api endpoint
+         * @returns {[object]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
+         */
+        await this.loadMarkets ();
+        let market = undefined;
+        if (symbol !== undefined) {
+            market = this.market (symbol);
+        }
+        const request = {};
+        if (market !== undefined) {
+            request['product_id'] = market['id'];
+        }
+        if (limit !== undefined) {
+            request['limit'] = limit;
+        }
+        if (since !== undefined) {
+            request['start_date'] = this.parse8601 (since);
+        }
+        const response = await this.v3PrivateGetBrokerageOrdersHistoricalBatch (this.extend (request, params));
+        //
+        //     {
+        //         "orders": [
+        //             {
+        //                 "order_id": "813a53c5-3e39-47bb-863d-2faf685d22d8",
+        //                 "product_id": "BTC-USDT",
+        //                 "user_id": "1111111-1111-1111-1111-111111111111",
+        //                 "order_configuration": {
+        //                     "market_market_ioc": {
+        //                         "quote_size": "6.36"
+        //                     }
+        //                 },
+        //                 "side": "BUY",
+        //                 "client_order_id": "18eb9947-db49-4874-8e7b-39b8fe5f4317",
+        //                 "status": "FILLED",
+        //                 "time_in_force": "IMMEDIATE_OR_CANCEL",
+        //                 "created_time": "2023-01-18T01:37:37.975552Z",
+        //                 "completion_percentage": "100",
+        //                 "filled_size": "0.000297920684505",
+        //                 "average_filled_price": "21220.6399999973697697",
+        //                 "fee": "",
+        //                 "number_of_fills": "2",
+        //                 "filled_value": "6.3220675944333996",
+        //                 "pending_cancel": false,
+        //                 "size_in_quote": true,
+        //                 "total_fees": "0.0379324055666004",
+        //                 "size_inclusive_of_fees": true,
+        //                 "total_value_after_fees": "6.36",
+        //                 "trigger_status": "INVALID_ORDER_TYPE",
+        //                 "order_type": "MARKET",
+        //                 "reject_reason": "REJECT_REASON_UNSPECIFIED",
+        //                 "settled": true,
+        //                 "product_type": "SPOT",
+        //                 "reject_message": "",
+        //                 "cancel_message": "Internal error"
+        //             },
+        //         ],
+        //         "sequence": "0",
+        //         "has_next": false,
+        //         "cursor": ""
+        //     }
+        //
+        const orders = this.safeValue (response, 'orders', []);
+        return this.parseOrders (orders, market, since, limit);
+    }
+
+    async fetchOrdersByStatus (status, symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        await this.loadMarkets ();
+        let market = undefined;
+        if (symbol !== undefined) {
+            market = this.market (symbol);
+        }
+        const request = {
+            'order_status': status,
+        };
+        if (market !== undefined) {
+            request['product_id'] = market['id'];
+        }
+        if (limit === undefined) {
+            limit = 100;
+        }
+        request['limit'] = limit;
+        if (since !== undefined) {
+            request['start_date'] = this.parse8601 (since);
+        }
+        const response = await this.v3PrivateGetBrokerageOrdersHistoricalBatch (this.extend (request, params));
+        //
+        //     {
+        //         "orders": [
+        //             {
+        //                 "order_id": "813a53c5-3e39-47bb-863d-2faf685d22d8",
+        //                 "product_id": "BTC-USDT",
+        //                 "user_id": "1111111-1111-1111-1111-111111111111",
+        //                 "order_configuration": {
+        //                     "market_market_ioc": {
+        //                         "quote_size": "6.36"
+        //                     }
+        //                 },
+        //                 "side": "BUY",
+        //                 "client_order_id": "18eb9947-db49-4874-8e7b-39b8fe5f4317",
+        //                 "status": "FILLED",
+        //                 "time_in_force": "IMMEDIATE_OR_CANCEL",
+        //                 "created_time": "2023-01-18T01:37:37.975552Z",
+        //                 "completion_percentage": "100",
+        //                 "filled_size": "0.000297920684505",
+        //                 "average_filled_price": "21220.6399999973697697",
+        //                 "fee": "",
+        //                 "number_of_fills": "2",
+        //                 "filled_value": "6.3220675944333996",
+        //                 "pending_cancel": false,
+        //                 "size_in_quote": true,
+        //                 "total_fees": "0.0379324055666004",
+        //                 "size_inclusive_of_fees": true,
+        //                 "total_value_after_fees": "6.36",
+        //                 "trigger_status": "INVALID_ORDER_TYPE",
+        //                 "order_type": "MARKET",
+        //                 "reject_reason": "REJECT_REASON_UNSPECIFIED",
+        //                 "settled": true,
+        //                 "product_type": "SPOT",
+        //                 "reject_message": "",
+        //                 "cancel_message": "Internal error"
+        //             },
+        //         ],
+        //         "sequence": "0",
+        //         "has_next": false,
+        //         "cursor": ""
+        //     }
+        //
+        const orders = this.safeValue (response, 'orders', []);
+        return this.parseOrders (orders, market, since, limit);
+    }
+
+    async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        /**
+         * @method
+         * @name coinbase#fetchOpenOrders
+         * @description fetches information on all currently open orders
+         * @see https://docs.cloud.coinbase.com/advanced-trade-api/reference/retailbrokerageapi_gethistoricalorders
+         * @param {string|undefined} symbol unified market symbol of the orders
+         * @param {int|undefined} since timestamp in ms of the earliest order, default is undefined
+         * @param {int|undefined} limit the maximum number of open order structures to retrieve
+         * @param {object} params extra parameters specific to the coinbase api endpoint
+         * @returns {[object]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
+         */
+        return await this.fetchOrdersByStatus ('OPEN', symbol, since, limit, params);
+    }
+
+    async fetchClosedOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        /**
+         * @method
+         * @name coinbase#fetchClosedOrders
+         * @description fetches information on multiple closed orders made by the user
+         * @see https://docs.cloud.coinbase.com/advanced-trade-api/reference/retailbrokerageapi_gethistoricalorders
+         * @param {string|undefined} symbol unified market symbol of the orders
+         * @param {int|undefined} since timestamp in ms of the earliest order, default is undefined
+         * @param {int|undefined} limit the maximum number of closed order structures to retrieve
+         * @param {object} params extra parameters specific to the coinbase api endpoint
+         * @returns {[object]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
+         */
+        return await this.fetchOrdersByStatus ('FILLED', symbol, since, limit, params);
+    }
+
+    async fetchCanceledOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        /**
+         * @method
+         * @name coinbase#fetchCanceledOrders
+         * @description fetches information on multiple canceled orders made by the user
+         * @see https://docs.cloud.coinbase.com/advanced-trade-api/reference/retailbrokerageapi_gethistoricalorders
+         * @param {string} symbol unified market symbol of the orders
+         * @param {int|undefined} since timestamp in ms of the earliest order, default is undefined
+         * @param {int|undefined} limit the maximum number of canceled order structures to retrieve
+         * @param {object} params extra parameters specific to the coinbase api endpoint
+         * @returns {object} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
+         */
+        return await this.fetchOrdersByStatus ('CANCELLED', symbol, since, limit, params);
     }
 
     async fetchOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
