@@ -2024,11 +2024,11 @@ module.exports = class coinbase extends Exchange {
             market = this.market (symbol);
         }
         const orderConfiguration = this.safeValue (order, 'order_configuration', {});
-        const limitGTC = orderConfiguration['limit_limit_gtc'];
-        const limitGTD = orderConfiguration['limit_limit_gtd'];
-        const stopLimitGTC = orderConfiguration['stop_limit_stop_limit_gtc'];
-        const stopLimitGTD = orderConfiguration['stop_limit_stop_limit_gtd'];
-        const marketIOC = orderConfiguration['market_market_ioc'];
+        const limitGTC = this.safeValue (orderConfiguration, 'limit_limit_gtc', {});
+        const limitGTD = this.safeValue (orderConfiguration, 'limit_limit_gtd', {});
+        const stopLimitGTC = this.safeValue (orderConfiguration, 'stop_limit_stop_limit_gtc', {});
+        const stopLimitGTD = this.safeValue (orderConfiguration, 'stop_limit_stop_limit_gtd', {});
+        const marketIOC = this.safeValue (orderConfiguration, 'market_market_ioc', {});
         const isLimit = ((limitGTC !== undefined) || (limitGTD !== undefined));
         const isStop = ((stopLimitGTC !== undefined) || (stopLimitGTD !== undefined));
         let price = undefined;
@@ -2036,16 +2036,18 @@ module.exports = class coinbase extends Exchange {
         let postOnly = undefined;
         let triggerPrice = undefined;
         if (isLimit) {
-            price = (limitGTC !== undefined) ? this.safeNumber (limitGTC, 'limit_price') : this.safeNumber (limitGTD, 'limit_price');
-            amount = (limitGTC !== undefined) ? this.safeNumber (limitGTC, 'base_size') : this.safeNumber (limitGTD, 'base_size');
-            postOnly = (limitGTC !== undefined) ? this.safeValue (limitGTC, 'post_only') : this.safeValue (limitGTD, 'post_only');
+            const target = (limitGTC !== undefined) ? limitGTC : limitGTD;
+            price = this.safeString (target, 'limit_price');
+            amount = this.safeString (target, 'base_size');
+            postOnly = this.safeValue (target, 'post_only');
         } else if (isStop) {
-            price = (stopLimitGTC !== undefined) ? this.safeNumber (stopLimitGTC, 'limit_price') : this.safeNumber (stopLimitGTD, 'limit_price');
-            amount = (stopLimitGTC !== undefined) ? this.safeNumber (stopLimitGTC, 'base_size') : this.safeNumber (stopLimitGTD, 'base_size');
-            postOnly = (stopLimitGTC !== undefined) ? this.safeValue (stopLimitGTC, 'post_only') : this.safeValue (stopLimitGTD, 'post_only');
-            triggerPrice = (stopLimitGTC !== undefined) ? this.safeNumber (stopLimitGTC, 'stop_price') : this.safeNumber (stopLimitGTD, 'stop_price');
+            const stopTarget = (stopLimitGTC !== undefined) ? stopLimitGTC : stopLimitGTD;
+            price = this.safeString (stopTarget, 'limit_price');
+            amount = this.safeString (stopTarget, 'base_size');
+            postOnly = this.safeValue (stopTarget, 'post_only');
+            triggerPrice = this.safeString (stopTarget, 'stop_price');
         } else {
-            amount = this.safeNumber (marketIOC, 'base_size');
+            amount = this.safeString (marketIOC, 'base_size');
         }
         const datetime = this.safeString (order, 'created_time');
         return this.safeOrder ({
@@ -2064,13 +2066,13 @@ module.exports = class coinbase extends Exchange {
             'stopPrice': triggerPrice,
             'triggerPrice': triggerPrice,
             'amount': amount,
-            'filled': this.safeNumber (order, 'filled_size'),
+            'filled': this.safeString (order, 'filled_size'),
             'remaining': undefined,
             'cost': undefined,
-            'average': this.safeNumber (order, 'average_filled_price'),
+            'average': this.safeString (order, 'average_filled_price'),
             'status': this.parseOrderStatus (this.safeString (order, 'status')),
             'fee': {
-                'cost': this.safeNumber (order, 'total_fees'),
+                'cost': this.safeString (order, 'total_fees'),
             },
             'trades': undefined,
         }, market);
@@ -2089,12 +2091,14 @@ module.exports = class coinbase extends Exchange {
     }
 
     parseOrderType (type) {
+        if (type === 'UNKNOWN_ORDER_TYPE') {
+            return undefined;
+        }
         const types = {
             'MARKET': 'market',
             'LIMIT': 'limit',
             'STOP': 'limit',
             'STOP_LIMIT': 'limit',
-            'UNKNOWN_ORDER_TYPE': undefined,
         };
         return this.safeString (types, type, type);
     }
