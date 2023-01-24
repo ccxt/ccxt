@@ -2073,7 +2073,7 @@ module.exports = class coinbase extends Exchange {
             'status': this.parseOrderStatus (this.safeString (order, 'status')),
             'fee': {
                 'cost': this.safeString (order, 'total_fees'),
-                'current': undefined,
+                'currency': undefined,
             },
             'trades': undefined,
         }, market);
