@@ -240,6 +240,47 @@ module.exports = class bittrex extends Exchange {
                 },
             },
             'options': {
+                'networks': {
+                    'ERC20': 'ETH_CONTRACT',
+                    // 'ETH': 'ETH', // ETC also has this id, so we can't reliable determine
+                    'EOS': 'EOS',
+                    'CARDANO': 'ADA',
+                    'BITTREXPOOLED': 'BITTREXPOOLED',
+                    'BITTREXMEMO': 'BITTREXMEMO',
+                    'BITTREXPINGPONG': 'BITTREXPINGPONG',
+                    'STELLAR': 'STELLAR',
+                    // 'NXT': 'NXT',
+                    // 'ARK': 'ARK',
+                    // 'BITCOIN20': 'BITCOIN20',
+                    'KLAYTN': 'KLAYTN',
+                    'BITCOIN': 'BITCOIN',
+                    // 'BITCOIN16': 'BITCOIN16',
+                    'BYTOM': 'BYTOM',
+                    // 'BITSHAREX': 'BITSHAREX',
+                    // 'Award': 'Award',
+                    'CORTEX': 'CORTEX',
+                    // 'ETHEREUMV2': 'ETHEREUMV2',
+                    // 'FIAT': 'FIAT',
+                    // 'BYTEBALL': 'BYTEBALL',
+                    // 'BITCOINEX': 'BITCOINEX',
+                    'STEEM': 'STEEM',
+                    'HDAC': 'HDAC',
+                    'IOST': 'IOST',
+                    'LISK': 'LISK',
+                    'OMNI': 'OMNI',
+                    'WAVES': [ 'WAVES_ASSET', 'WAVES' ],
+                    // 'ANTSHARES': 'ANTSHARES',
+                    'ONTOLOGY': 'ONTOLOGY',
+                    // 'CRYPTO_NOTE_PAYMENTID': 'CRYPTO_NOTE_PAYMENTID',
+                    'QRL': 'QRL',
+                    'SIACOIN': 'SIA',
+                    'STRATIS': 'STRATIS',
+                    'VERIBLOCK': 'VERIBLOCK',
+                    'VECHAIN': 'VECHAIN',
+                    'VELAS': 'VELAS',
+                    'NEM': 'NEM',
+                    'ZILLIQA': 'ZIL',
+                },
                 'fetchTicker': {
                     'method': 'publicGetMarketsMarketSymbolTicker', // publicGetMarketsMarketSymbolSummary
                 },
@@ -467,7 +508,11 @@ module.exports = class bittrex extends Exchange {
          * @param {object} params extra parameters specific to the bittrex api endpoint
          * @returns {object} an associative dictionary of currencies
          */
-        const response = await this.publicGetCurrencies (params);
+        const currenciesPromise = this.publicGetCurrencies (params);
+        const statusesPromise = this.privateGetAccountPermissionsCurrencies (params);
+        const [ currencies, statuses ] = await Promise.all ([ currenciesPromise, statusesPromise ]);
+        //
+        // currencies
         //
         //     [
         //         {
@@ -485,33 +530,80 @@ module.exports = class bittrex extends Exchange {
         //         }
         //     ]
         //
+        // statuses
+        //
+        //     [
+        //      {
+        //         symbol: "1ECO",
+        //         view: true,
+        //         deposit: {
+        //           blockchain: true,
+        //         },
+        //         withdraw: {
+        //           blockchain: true,
+        //         },
+        //       },
+        //       ..
+        //     ]
+        //
+        const statusesIndexed = this.indexBy (statuses, 'symbol');
         const result = {};
-        for (let i = 0; i < response.length; i++) {
-            const currency = response[i];
+        for (let i = 0; i < currencies.length; i++) {
+            const currency = currencies[i];
             const id = this.safeString (currency, 'symbol');
+            const statusData = this.safeValue (statusesIndexed, id);
             const code = this.safeCurrencyCode (id);
             const precision = this.parseNumber ('1e-8'); // default precision, seems exchange has same amount-precision across all pairs in UI too. todo: fix "magic constants"
             const fee = this.safeNumber (currency, 'txFee'); // todo: redesign
-            const isActive = this.safeString (currency, 'status');
+            const isActive = (this.safeString (currency, 'status') === 'ONLINE');
+            const networks = {};
+            // currencies have only one network on this exchange
+            const networkId = this.safeString (currency, 'coinType');
+            const networkCode = this.networkIdToCode (networkId);
+            const withdrawData = this.safeValue (statusData, 'withdraw', {});
+            const withdraw = this.safeValue (withdrawData, 'blockchain');
+            const depositData = this.safeValue (statusData, 'deposit', {});
+            const deposit = this.safeValue (depositData, 'blockchain');
+            networks[networkCode] = {
+                'info': currency,
+                'id': networkId,
+                'network': networkCode,
+                'active': isActive,
+                'deposit': withdraw,
+                'withdraw': deposit,
+                'fee': fee,
+                'precision': precision,
+                // 'address': this.safeString (currency, 'baseAddress'),
+                'limits': {
+                    'withdraw': {
+                        'min': undefined,
+                        'max': undefined,
+                    },
+                    'deposit': {
+                        'min': undefined,
+                        'max': undefined,
+                    },
+                },
+            };
             result[code] = {
                 'id': id,
                 'code': code,
-                'address': this.safeString (currency, 'baseAddress'),
                 'info': currency,
-                'type': this.safeString (currency, 'coinType'),
+                'type': undefined,
                 'name': this.safeString (currency, 'name'),
-                'active': (isActive === 'ONLINE'),
-                'deposit': undefined,
-                'withdraw': undefined,
+                'withdraw': withdraw,
+                'deposit': deposit,
+                'active': isActive,
                 'fee': fee,
                 'precision': precision,
+                'networks': networks,
                 'limits': {
-                    'amount': {
-                        'min': precision,
+                    'withdraw': {
+                        'min': undefined,
                         'max': undefined,
                     },
-                    'withdraw': {
-                        'min': fee,
+                    'deposit': {
+                        'min': undefined,
                         'max': undefined,
                     },
                 },
