@@ -4,6 +4,7 @@
 
 const Exchange = require ('./base/Exchange');
 const { TICK_SIZE } = require ('./base/functions/number');
+const { BadSymbol } = require ('./base/errors');
 // const { AuthenticationError, BadRequest, DDoSProtection, ExchangeError, ExchangeNotAvailable, InsufficientFunds, InvalidOrder, OrderNotFound, PermissionDenied, ArgumentsRequired, BadSymbol } = require ('./base/errors');
 // const Precise = require ('./base/Precise');
 
@@ -132,6 +133,8 @@ module.exports = class derivadex extends Exchange {
                         'tx_logs': 1,
                         'aggregations/collateral': 1,
                         'aggregations/volume': 1,
+                        'aggregations/markets': 1,
+                        'aggregations/order_book/L2/{symbol}': 1,
                     },
                 },
                 'private': {
@@ -226,7 +229,7 @@ module.exports = class derivadex extends Exchange {
         return [
             {
                 'id': 'BTCPERP',
-                'symbol': 'BTC/USD',
+                'symbol': 'BTCPERP',
                 'base': 'BTC',
                 'quote': 'USD',
                 'settle': 'USDC',
@@ -272,7 +275,7 @@ module.exports = class derivadex extends Exchange {
             },
             {
                 'id': 'ETHPERP',
-                'symbol': 'ETH/USD',
+                'symbol': 'ETHPERP',
                 'base': 'ETH',
                 'quote': 'USD',
                 'settle': 'USDC',
@@ -369,6 +372,87 @@ module.exports = class derivadex extends Exchange {
                 'info': undefined,
             },
         ];
+    }
+
+    async fetchTicker (symbol, params = {}) {
+        /**
+         * @method
+         * @name derivadex#fetchTicker
+         * @description fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+         * @param {string} symbol unified symbol of the market to fetch the ticker for
+         * @param {object} params extra parameters specific to the derivadex api endpoint
+         * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
+         */
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const tickers = await this.fetchTickers ([ market['symbol'] ], params);
+        const ticker = this.safeValue (tickers, market['symbol']);
+        if (ticker === undefined) {
+            throw new BadSymbol (this.id + ' fetchTicker() symbol ' + symbol + ' not found');
+        }
+        return ticker;
+    }
+
+    async fetchTickers (symbols = undefined, params = {}) {
+        /**
+         * @method
+         * @name derivadex#fetchTickers
+         * @description fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
+         * @param {[string]|undefined} symbols unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
+         * @param {object} params extra parameters specific to the derivadex api endpoint
+         * @returns {object} an array of [ticker structures]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
+         */
+        await this.loadMarkets ();
+        symbols = this.marketSymbols (symbols);
+        const result = {};
+        for (let i = 0; i < symbols.length; i++) {
+            const ticker = await this.constructTicker (symbols[i]);
+            console.log ('TICKER RESULT', ticker);
+            if (ticker !== undefined) {
+                result[symbols[i]] = ticker;
+            }
+        }
+        return result;
+    }
+
+    async constructTicker (symbol) {
+        const params = {};
+        params['symbol'] = symbol;
+        const marketsResponse = await this.publicGetAggregationsMarkets (params); // aggregations/markets endpoint response is cached for 30 minutes
+        params['limit'] = 1;
+        params['priceAggregation'] = symbol === 'BTCPERP' ? 1 : 0.1; // set aggregation to minimum tick size for the market
+        const orderBookResponse = await this.publicGetAggregationsOrderBookL2Symbol (params); // aggregations/order_book endpoint response is cached for 30 minutes
+        const marketsValue = marketsResponse['value'];
+        const orderBookValue = orderBookResponse['value'];
+        const quoteVolume = this.safeString (marketsValue, 'volume');
+        const timestamp = this.safeString (marketsResponse, 'timestamp');
+        const close = this.safeString (marketsValue, 'price');
+        const bid = this.safeString (orderBookValue[0], 'price');
+        const bidVolume = this.safeString (orderBookValue[0], 'amount');
+        const ask = this.safeString (orderBookValue[1], 'price');
+        const askVolume = this.safeString (orderBookValue[1], 'amount');
+        return {
+            'symbol': symbol,
+            'timestamp': timestamp,
+            'datetime': undefined,
+            'high': undefined,
+            'low': undefined,
+            'bid': bid,
+            'bidVolume': bidVolume,
+            'ask': ask,
+            'askVolume': askVolume,
+            'vwap': undefined,
+            'open': undefined,
+            'close': close,
+            'last': close,
+            'previousClose': undefined,
+            'change': undefined,
+            'percentage': undefined,
+            'average': undefined,
+            'baseVolume': undefined,
+            'quoteVolume': quoteVolume,
+            'info': marketsResponse,
+        };
     }
 
     sign (path, api = 'stats', method = 'GET', params = {}, headers = undefined, body = undefined) {
