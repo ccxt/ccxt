@@ -2319,9 +2319,10 @@ module.exports = class coinbase extends Exchange {
         if (market !== undefined) {
             request['product_id'] = market['id'];
         }
-        if (limit !== undefined) {
-            request['limit'] = limit;
+        if (limit === undefined) {
+            limit = 100;
         }
+        request['limit'] = limit;
         if (since !== undefined) {
             request['start_date'] = this.parse8601 (since);
         }
@@ -2372,7 +2373,7 @@ module.exports = class coinbase extends Exchange {
         return this.parseOrders (orders, market, since, limit);
     }
 
-    async fetchOpenOrders (symbol = undefined, since = undefined, limit = 100, params = {}) {
+    async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         /**
          * @method
          * @name coinbase#fetchOpenOrders
@@ -2387,7 +2388,7 @@ module.exports = class coinbase extends Exchange {
         return await this.fetchOrdersByStatus ('OPEN', symbol, since, limit, params);
     }
 
-    async fetchClosedOrders (symbol = undefined, since = undefined, limit = 100, params = {}) {
+    async fetchClosedOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         /**
          * @method
          * @name coinbase#fetchClosedOrders
@@ -2402,7 +2403,7 @@ module.exports = class coinbase extends Exchange {
         return await this.fetchOrdersByStatus ('FILLED', symbol, since, limit, params);
     }
 
-    async fetchCanceledOrders (symbol = undefined, since = undefined, limit = 100, params = {}) {
+    async fetchCanceledOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         /**
          * @method
          * @name coinbase#fetchCanceledOrders
