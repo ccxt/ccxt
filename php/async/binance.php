@@ -2066,7 +2066,7 @@ class binance extends Exchange {
             for ($i = 0; $i < count($assets); $i++) {
                 $asset = $assets[$i];
                 $marketId = $this->safe_value($asset, 'symbol');
-                $symbol = $this->safe_symbol($marketId, null, null, 'margin');
+                $symbol = $this->safe_symbol($marketId, null, null, 'spot');
                 $base = $this->safe_value($asset, 'baseAsset', array());
                 $quote = $this->safe_value($asset, 'quoteAsset', array());
                 $baseCode = $this->safe_currency_code($this->safe_string($base, 'asset'));
@@ -2150,12 +2150,6 @@ class binance extends Exchange {
                 $fetchBalanceOptions = $this->safe_value($options, 'fetchBalance', array());
                 $method = $this->safe_string($fetchBalanceOptions, 'method', 'dapiPrivateGetAccount');
                 $type = 'inverse';
-            } elseif (($type === 'margin') || ($marginMode === 'cross')) {
-                $method = 'sapiGetMarginAccount';
-            } elseif ($type === 'savings') {
-                $method = 'sapiGetLendingUnionAccount';
-            } elseif ($type === 'funding') {
-                $method = 'sapiPostAssetGetFundingAsset';
             } elseif ($marginMode === 'isolated') {
                 $method = 'sapiGetMarginIsolatedAccount';
                 $paramSymbols = $this->safe_value($params, 'symbols');
@@ -2173,6 +2167,12 @@ class binance extends Exchange {
                     }
                     $request['symbols'] = $symbols;
                 }
+            } elseif (($type === 'margin') || ($marginMode === 'cross')) {
+                $method = 'sapiGetMarginAccount';
+            } elseif ($type === 'savings') {
+                $method = 'sapiGetLendingUnionAccount';
+            } elseif ($type === 'funding') {
+                $method = 'sapiPostAssetGetFundingAsset';
             }
             $requestParams = $this->omit($query, array( 'type', 'symbols' ));
             $response = Async\await($this->$method (array_merge($request, $requestParams)));
