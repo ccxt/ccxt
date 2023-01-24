@@ -560,7 +560,6 @@ declare module 'ccxt' {
     export class yobit extends Exchange {}
     export class zaif extends Exchange {}
     export class zb extends Exchange {}
-    export class zipmex extends ndax {}
     export class zonda extends Exchange {}
 
     
@@ -676,7 +675,6 @@ declare module 'ccxt' {
         | 'yobit'
         | 'zaif'
         | 'zb'
-        | 'zipmex'
         | 'zonda'
         
 
@@ -751,6 +749,5 @@ declare module 'ccxt' {
         class whitebit extends Exchange {}
         class woo extends Exchange {}
         class zb extends Exchange {}
-        class zipmex extends Exchange {}
     }
 }

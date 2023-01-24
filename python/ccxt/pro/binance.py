@@ -393,7 +393,7 @@ class binance(Exchange, ccxt.async_support.binance):
         }
         trades = await self.watch(url, messageHash, self.extend(request, query), messageHash, subscribe)
         if self.newUpdates:
-            limit = trades.getLimit(symbol, limit)
+            limit = trades.getLimit(market['symbol'], limit)
         return self.filter_by_since_limit(trades, since, limit, 'timestamp', True)
 
     def parse_trade(self, trade, market=None):

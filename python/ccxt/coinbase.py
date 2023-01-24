@@ -292,6 +292,7 @@ class coinbase(Exchange):
                 'fetchMarkets': 'fetchMarketsV3',  # 'fetchMarketsV3' or 'fetchMarketsV2'
                 'fetchTicker': 'fetchTickerV3',  # 'fetchTickerV3' or 'fetchTickerV2'
                 'fetchTickers': 'fetchTickersV3',  # 'fetchTickersV3' or 'fetchTickersV2'
+                'fetchAccounts': 'fetchAccountsV3',  # 'fetchAccountsV3' or 'fetchAccountsV2'
             },
         })
 
@@ -319,6 +320,12 @@ class coinbase(Exchange):
         :param dict params: extra parameters specific to the coinbase api endpoint
         :returns dict: a dictionary of `account structures <https://docs.ccxt.com/en/latest/manual.html#account-structure>` indexed by the account type
         """
+        method = self.safe_string(self.options, 'fetchAccounts', 'fetchAccountsV3')
+        if method == 'fetchAccountsV3':
+            return self.fetch_accounts_v3(params)
+        return self.fetch_accounts_v2(params)
+
+    def fetch_accounts_v2(self, params={}):
         self.load_markets()
         request = {
             'limit': 100,
@@ -326,38 +333,93 @@ class coinbase(Exchange):
         response = self.v2PrivateGetAccounts(self.extend(request, params))
         #
         #     {
-        #         "id": "XLM",
-        #         "name": "XLM Wallet",
-        #         "primary": False,
-        #         "type": "wallet",
-        #         "currency": {
-        #             "code": "XLM",
-        #             "name": "Stellar Lumens",
-        #             "color": "#000000",
-        #             "sort_index": 127,
-        #             "exponent": 7,
-        #             "type": "crypto",
-        #             "address_regex": "^G[A-Z2-7]{55}$",
-        #             "asset_id": "13b83335-5ede-595b-821e-5bcdfa80560f",
-        #             "destination_tag_name": "XLM Memo ID",
-        #             "destination_tag_regex": "^[-~]{1,28}$"
+        #         "pagination": {
+        #             "ending_before": null,
+        #             "starting_after": null,
+        #             "previous_ending_before": null,
+        #             "next_starting_after": null,
+        #             "limit": 244,
+        #             "order": "desc",
+        #             "previous_uri": null,
+        #             "next_uri": null
         #         },
-        #         "balance": {
-        #             "amount": "0.0000000",
-        #             "currency": "XLM"
-        #         },
-        #         "created_at": null,
-        #         "updated_at": null,
-        #         "resource": "account",
-        #         "resource_path": "/v2/accounts/XLM",
-        #         "allow_deposits": True,
-        #         "allow_withdrawals": True
+        #         "data": [
+        #             {
+        #                 "id": "XLM",
+        #                 "name": "XLM Wallet",
+        #                 "primary": False,
+        #                 "type": "wallet",
+        #                 "currency": {
+        #                     "code": "XLM",
+        #                     "name": "Stellar Lumens",
+        #                     "color": "#000000",
+        #                     "sort_index": 127,
+        #                     "exponent": 7,
+        #                     "type": "crypto",
+        #                     "address_regex": "^G[A-Z2-7]{55}$",
+        #                     "asset_id": "13b83335-5ede-595b-821e-5bcdfa80560f",
+        #                     "destination_tag_name": "XLM Memo ID",
+        #                     "destination_tag_regex": "^[-~]{1,28}$"
+        #                 },
+        #                 "balance": {
+        #                     "amount": "0.0000000",
+        #                     "currency": "XLM"
+        #                 },
+        #                 "created_at": null,
+        #                 "updated_at": null,
+        #                 "resource": "account",
+        #                 "resource_path": "/v2/accounts/XLM",
+        #                 "allow_deposits": True,
+        #                 "allow_withdrawals": True
+        #             },
+        #         ]
         #     }
         #
         data = self.safe_value(response, 'data', [])
         return self.parse_accounts(data, params)
 
+    def fetch_accounts_v3(self, params={}):
+        self.load_markets()
+        request = {
+            'limit': 100,
+        }
+        response = self.v3PrivateGetBrokerageAccounts(self.extend(request, params))
+        #
+        #     {
+        #         "accounts": [
+        #             {
+        #                 "uuid": "11111111-1111-1111-1111-111111111111",
+        #                 "name": "USDC Wallet",
+        #                 "currency": "USDC",
+        #                 "available_balance": {
+        #                     "value": "0.0000000000000000",
+        #                     "currency": "USDC"
+        #                 },
+        #                 "default": True,
+        #                 "active": True,
+        #                 "created_at": "2023-01-04T06:20:06.456Z",
+        #                 "updated_at": "2023-01-04T06:20:07.181Z",
+        #                 "deleted_at": null,
+        #                 "type": "ACCOUNT_TYPE_CRYPTO",
+        #                 "ready": False,
+        #                 "hold": {
+        #                     "value": "0.0000000000000000",
+        #                     "currency": "USDC"
+        #                 }
+        #             },
+        #             ...
+        #         ],
+        #         "has_next": False,
+        #         "cursor": "",
+        #         "size": 9
+        #     }
+        #
+        data = self.safe_value(response, 'accounts', [])
+        return self.parse_accounts(data, params)
+
     def parse_account(self, account):
+        #
+        # fetchAccountsV2
         #
         #     {
         #         "id": "XLM",
@@ -388,13 +450,40 @@ class coinbase(Exchange):
         #         "allow_withdrawals": True
         #     }
         #
+        # fetchAccountsV3
+        #
+        #     {
+        #         "uuid": "11111111-1111-1111-1111-111111111111",
+        #         "name": "USDC Wallet",
+        #         "currency": "USDC",
+        #         "available_balance": {
+        #             "value": "0.0000000000000000",
+        #             "currency": "USDC"
+        #         },
+        #         "default": True,
+        #         "active": True,
+        #         "created_at": "2023-01-04T06:20:06.456Z",
+        #         "updated_at": "2023-01-04T06:20:07.181Z",
+        #         "deleted_at": null,
+        #         "type": "ACCOUNT_TYPE_CRYPTO",
+        #         "ready": False,
+        #         "hold": {
+        #             "value": "0.0000000000000000",
+        #             "currency": "USDC"
+        #         }
+        #     }
+        #
+        active = self.safe_value(account, 'active')
+        currencyIdV3 = self.safe_string(account, 'currency')
         currency = self.safe_value(account, 'currency', {})
-        currencyId = self.safe_string(currency, 'code')
-        code = self.safe_currency_code(currencyId)
+        currencyId = self.safe_string(currency, 'code', currencyIdV3)
+        typeV3 = self.safe_string(account, 'name')
+        typeV2 = self.safe_string(account, 'type')
+        parts = typeV3.split(' ')
         return {
-            'id': self.safe_string(account, 'id'),
-            'type': self.safe_string(account, 'type'),
-            'code': code,
+            'id': self.safe_string_2(account, 'id', 'uuid'),
+            'type': self.safe_string_lower(parts, 1) if (active is not None) else typeV2,
+            'code': self.safe_currency_code(currencyId),
             'info': account,
         }
 
@@ -1880,8 +1969,7 @@ class coinbase(Exchange):
         symbol = self.safe_symbol(marketId, market, '-')
         if symbol is not None:
             market = self.market(symbol)
-        rawSide = self.safe_string(order, 'side')
-        side = rawSide.lower() if (rawSide is not None) else None
+        side = self.safe_string_lower(order, 'side')
         return self.safe_order({
             'info': order,
             'id': self.safe_string(order, 'order_id'),
@@ -1951,9 +2039,10 @@ class coinbase(Exchange):
         #     }
         #
         orders = self.safe_value(response, 'results', [])
-        success = self.safe_value(orders, 'success')
-        if success is not True:
-            raise BadRequest(self.id + ' cancelOrders() has failed, check your arguments and parameters')
+        for i in range(0, len(orders)):
+            success = self.safe_value(orders[i], 'success')
+            if success is not True:
+                raise BadRequest(self.id + ' cancelOrders() has failed, check your arguments and parameters')
         return self.parse_orders(orders, market)
 
     def fetch_ohlcv(self, symbol, timeframe='1m', since=None, limit=None, params={}):

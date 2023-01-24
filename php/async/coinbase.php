@@ -288,6 +288,7 @@ class coinbase extends Exchange {
                 'fetchMarkets' => 'fetchMarketsV3', // 'fetchMarketsV3' or 'fetchMarketsV2'
                 'fetchTicker' => 'fetchTickerV3', // 'fetchTickerV3' or 'fetchTickerV2'
                 'fetchTickers' => 'fetchTickersV3', // 'fetchTickersV3' or 'fetchTickersV2'
+                'fetchAccounts' => 'fetchAccountsV3', // 'fetchAccountsV3' or 'fetchAccountsV2'
             ),
         ));
     }
@@ -320,6 +321,16 @@ class coinbase extends Exchange {
              * @param {array} $params extra parameters specific to the coinbase api endpoint
              * @return {array} a dictionary of {@link https://docs.ccxt.com/en/latest/manual.html#account-structure account structures} indexed by the account type
              */
+            $method = $this->safe_string($this->options, 'fetchAccounts', 'fetchAccountsV3');
+            if ($method === 'fetchAccountsV3') {
+                return Async\await($this->fetch_accounts_v3($params));
+            }
+            return Async\await($this->fetch_accounts_v2($params));
+        }) ();
+    }
+
+    public function fetch_accounts_v2($params = array ()) {
+        return Async\async(function () use ($params) {
             Async\await($this->load_markets());
             $request = array(
                 'limit' => 100,
@@ -327,32 +338,46 @@ class coinbase extends Exchange {
             $response = Async\await($this->v2PrivateGetAccounts (array_merge($request, $params)));
             //
             //     {
-            //         "id" => "XLM",
-            //         "name" => "XLM Wallet",
-            //         "primary" => false,
-            //         "type" => "wallet",
-            //         "currency" => array(
-            //             "code" => "XLM",
-            //             "name" => "Stellar Lumens",
-            //             "color" => "#000000",
-            //             "sort_index" => 127,
-            //             "exponent" => 7,
-            //             "type" => "crypto",
-            //             "address_regex" => "^G[A-Z2-7]{55}$",
-            //             "asset_id" => "13b83335-5ede-595b-821e-5bcdfa80560f",
-            //             "destination_tag_name" => "XLM Memo ID",
-            //             "destination_tag_regex" => "^[ -~]array(1,28)$"
+            //         "pagination" => array(
+            //             "ending_before" => null,
+            //             "starting_after" => null,
+            //             "previous_ending_before" => null,
+            //             "next_starting_after" => null,
+            //             "limit" => 244,
+            //             "order" => "desc",
+            //             "previous_uri" => null,
+            //             "next_uri" => null
             //         ),
-            //         "balance" => array(
-            //             "amount" => "0.0000000",
-            //             "currency" => "XLM"
-            //         ),
-            //         "created_at" => null,
-            //         "updated_at" => null,
-            //         "resource" => "account",
-            //         "resource_path" => "/v2/accounts/XLM",
-            //         "allow_deposits" => true,
-            //         "allow_withdrawals" => true
+            //         "data" => [
+            //             array(
+            //                 "id" => "XLM",
+            //                 "name" => "XLM Wallet",
+            //                 "primary" => false,
+            //                 "type" => "wallet",
+            //                 "currency" => array(
+            //                     "code" => "XLM",
+            //                     "name" => "Stellar Lumens",
+            //                     "color" => "#000000",
+            //                     "sort_index" => 127,
+            //                     "exponent" => 7,
+            //                     "type" => "crypto",
+            //                     "address_regex" => "^G[A-Z2-7]{55}$",
+            //                     "asset_id" => "13b83335-5ede-595b-821e-5bcdfa80560f",
+            //                     "destination_tag_name" => "XLM Memo ID",
+            //                     "destination_tag_regex" => "^[ -~]array(1,28)$"
+            //                 ),
+            //                 "balance" => array(
+            //                     "amount" => "0.0000000",
+            //                     "currency" => "XLM"
+            //                 ),
+            //                 "created_at" => null,
+            //                 "updated_at" => null,
+            //                 "resource" => "account",
+            //                 "resource_path" => "/v2/accounts/XLM",
+            //                 "allow_deposits" => true,
+            //                 "allow_withdrawals" => true
+            //             ),
+            //         ]
             //     }
             //
             $data = $this->safe_value($response, 'data', array());
@@ -360,7 +385,51 @@ class coinbase extends Exchange {
         }) ();
     }
 
+    public function fetch_accounts_v3($params = array ()) {
+        return Async\async(function () use ($params) {
+            Async\await($this->load_markets());
+            $request = array(
+                'limit' => 100,
+            );
+            $response = Async\await($this->v3PrivateGetBrokerageAccounts (array_merge($request, $params)));
+            //
+            //     {
+            //         "accounts" => array(
+            //             {
+            //                 "uuid" => "11111111-1111-1111-1111-111111111111",
+            //                 "name" => "USDC Wallet",
+            //                 "currency" => "USDC",
+            //                 "available_balance" => array(
+            //                     "value" => "0.0000000000000000",
+            //                     "currency" => "USDC"
+            //                 ),
+            //                 "default" => true,
+            //                 "active" => true,
+            //                 "created_at" => "2023-01-04T06:20:06.456Z",
+            //                 "updated_at" => "2023-01-04T06:20:07.181Z",
+            //                 "deleted_at" => null,
+            //                 "type" => "ACCOUNT_TYPE_CRYPTO",
+            //                 "ready" => false,
+            //                 "hold" => array(
+            //                     "value" => "0.0000000000000000",
+            //                     "currency" => "USDC"
+            //                 }
+            //             ),
+            //             ...
+            //         ),
+            //         "has_next" => false,
+            //         "cursor" => "",
+            //         "size" => 9
+            //     }
+            //
+            $data = $this->safe_value($response, 'accounts', array());
+            return $this->parse_accounts($data, $params);
+        }) ();
+    }
+
     public function parse_account($account) {
+        //
+        // fetchAccountsV2
         //
         //     {
         //         "id" => "XLM",
@@ -391,13 +460,40 @@ class coinbase extends Exchange {
         //         "allow_withdrawals" => true
         //     }
         //
+        // fetchAccountsV3
+        //
+        //     {
+        //         "uuid" => "11111111-1111-1111-1111-111111111111",
+        //         "name" => "USDC Wallet",
+        //         "currency" => "USDC",
+        //         "available_balance" => array(
+        //             "value" => "0.0000000000000000",
+        //             "currency" => "USDC"
+        //         ),
+        //         "default" => true,
+        //         "active" => true,
+        //         "created_at" => "2023-01-04T06:20:06.456Z",
+        //         "updated_at" => "2023-01-04T06:20:07.181Z",
+        //         "deleted_at" => null,
+        //         "type" => "ACCOUNT_TYPE_CRYPTO",
+        //         "ready" => false,
+        //         "hold" => {
+        //             "value" => "0.0000000000000000",
+        //             "currency" => "USDC"
+        //         }
+        //     }
+        //
+        $active = $this->safe_value($account, 'active');
+        $currencyIdV3 = $this->safe_string($account, 'currency');
         $currency = $this->safe_value($account, 'currency', array());
-        $currencyId = $this->safe_string($currency, 'code');
-        $code = $this->safe_currency_code($currencyId);
+        $currencyId = $this->safe_string($currency, 'code', $currencyIdV3);
+        $typeV3 = $this->safe_string($account, 'name');
+        $typeV2 = $this->safe_string($account, 'type');
+        $parts = explode(' ', $typeV3);
         return array(
-            'id' => $this->safe_string($account, 'id'),
-            'type' => $this->safe_string($account, 'type'),
-            'code' => $code,
+            'id' => $this->safe_string_2($account, 'id', 'uuid'),
+            'type' => ($active !== null) ? $this->safe_string_lower($parts, 1) : $typeV2,
+            'code' => $this->safe_currency_code($currencyId),
             'info' => $account,
         );
     }
@@ -2009,8 +2105,7 @@ class coinbase extends Exchange {
         if ($symbol !== null) {
             $market = $this->market($symbol);
         }
-        $rawSide = $this->safe_string($order, 'side');
-        $side = ($rawSide !== null) ? strtolower($rawSide) : null;
+        $side = $this->safe_string_lower($order, 'side');
         return $this->safe_order(array(
             'info' => $order,
             'id' => $this->safe_string($order, 'order_id'),
@@ -2086,9 +2181,11 @@ class coinbase extends Exchange {
             //     }
             //
             $orders = $this->safe_value($response, 'results', array());
-            $success = $this->safe_value($orders, 'success');
-            if ($success !== true) {
-                throw new BadRequest($this->id . ' cancelOrders() has failed, check your arguments and parameters');
+            for ($i = 0; $i < count($orders); $i++) {
+                $success = $this->safe_value($orders[$i], 'success');
+                if ($success !== true) {
+                    throw new BadRequest($this->id . ' cancelOrders() has failed, check your arguments and parameters');
+                }
             }
             return $this->parse_orders($orders, $market);
         }) ();
