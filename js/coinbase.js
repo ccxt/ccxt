@@ -69,7 +69,7 @@ module.exports = class coinbase extends Exchange {
                 'fetchMarkOHLCV': false,
                 'fetchMyBuys': true,
                 'fetchMySells': true,
-                'fetchMyTrades': undefined,
+                'fetchMyTrades': true,
                 'fetchOHLCV': true,
                 'fetchOpenInterestHistory': false,
                 'fetchOpenOrders': true,
@@ -84,7 +84,7 @@ module.exports = class coinbase extends Exchange {
                 'fetchTicker': true,
                 'fetchTickers': true,
                 'fetchTime': true,
-                'fetchTrades': undefined,
+                'fetchTrades': true,
                 'fetchTradingFee': false,
                 'fetchTradingFees': false,
                 'fetchTransactions': undefined,
@@ -576,7 +576,7 @@ module.exports = class coinbase extends Exchange {
          * @param {object} params extra parameters specific to the coinbase api endpoint
          * @returns {object} a [list of order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
          */
-        // they don't have an endpoint for all historical trades
+        // v2 did't have an endpoint for all historical trades
         const request = this.prepareAccountRequest (limit, params);
         await this.loadMarkets ();
         const query = this.omit (params, [ 'account_id', 'accountId' ]);
@@ -595,7 +595,7 @@ module.exports = class coinbase extends Exchange {
          * @param {object} params extra parameters specific to the coinbase api endpoint
          * @returns {object} a list of  [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
          */
-        // they don't have an endpoint for all historical trades
+        // v2 did't have an endpoint for all historical trades
         const request = this.prepareAccountRequest (limit, params);
         await this.loadMarkets ();
         const query = this.omit (params, [ 'account_id', 'accountId' ]);
@@ -759,6 +759,8 @@ module.exports = class coinbase extends Exchange {
 
     parseTrade (trade, market = undefined) {
         //
+        // fetchMyBuys, fetchMySells
+        //
         //     {
         //         "id": "67e0eaec-07d7-54c4-a72c-2e92826897df",
         //         "status": "completed",
@@ -785,14 +787,48 @@ module.exports = class coinbase extends Exchange {
         //         "payout_at": "2015-02-18T16:54:00-08:00"
         //     }
         //
+        // fetchTrades
+        //
+        //     {
+        //         "trade_id": "10092327",
+        //         "product_id": "BTC-USDT",
+        //         "price": "17488.12",
+        //         "size": "0.0000623",
+        //         "time": "2023-01-11T00:52:37.557001Z",
+        //         "side": "BUY",
+        //         "bid": "",
+        //         "ask": ""
+        //     }
+        //
+        // fetchMyTrades
+        //
+        //     {
+        //         "entry_id": "b88b82cc89e326a2778874795102cbafd08dd979a2a7a3c69603fc4c23c2e010",
+        //         "trade_id": "cdc39e45-bbd3-44ec-bf02-61742dfb16a1",
+        //         "order_id": "813a53c5-3e39-47bb-863d-2faf685d22d8",
+        //         "trade_time": "2023-01-18T01:37:38.091377090Z",
+        //         "trade_type": "FILL",
+        //         "price": "21220.64",
+        //         "size": "0.0046830664333996",
+        //         "commission": "0.0000280983986004",
+        //         "product_id": "BTC-USDT",
+        //         "sequence_timestamp": "2023-01-18T01:37:38.092520Z",
+        //         "liquidity_indicator": "UNKNOWN_LIQUIDITY_INDICATOR",
+        //         "size_in_quote": true,
+        //         "user_id": "1111111-1111-1111-1111-111111111111",
+        //         "side": "BUY"
+        //     }
+        //
         let symbol = undefined;
         const totalObject = this.safeValue (trade, 'total', {});
         const amountObject = this.safeValue (trade, 'amount', {});
         const subtotalObject = this.safeValue (trade, 'subtotal', {});
         const feeObject = this.safeValue (trade, 'fee', {});
-        const id = this.safeString (trade, 'id');
-        const timestamp = this.parse8601 (this.safeValue (trade, 'created_at'));
-        if (market === undefined) {
+        const marketId = this.safeString (trade, 'product_id');
+        market = this.safeMarket (marketId, market, '-');
+        if (market !== undefined) {
+            symbol = market['symbol'];
+        } else {
             const baseId = this.safeString (amountObject, 'currency');
             const quoteId = this.safeString (totalObject, 'currency');
             if ((baseId !== undefined) && (quoteId !== undefined)) {
@@ -801,36 +837,47 @@ module.exports = class coinbase extends Exchange {
                 symbol = base + '/' + quote;
             }
         }
-        const orderId = undefined;
-        const side = this.safeString (trade, 'resource');
-        const type = undefined;
-        const costString = this.safeString (subtotalObject, 'amount');
-        const amountString = this.safeString (amountObject, 'amount');
-        const cost = this.parseNumber (costString);
-        const amount = this.parseNumber (amountString);
-        const price = this.parseNumber (Precise.stringDiv (costString, amountString));
-        const feeCost = this.safeNumber (feeObject, 'amount');
+        const sizeInQuote = this.safeValue (trade, 'size_in_quote');
+        const v3Price = this.safeString (trade, 'price');
+        const v3Amount = (sizeInQuote) ? undefined : this.safeString (trade, 'size');
+        const v3Cost = (sizeInQuote) ? this.safeString (trade, 'size') : undefined;
+        const v3FeeCost = this.safeString (trade, 'commission');
+        const amountString = this.safeString (amountObject, 'amount', v3Amount);
+        const costString = this.safeString (subtotalObject, 'amount', v3Cost);
+        let priceString = undefined;
+        let cost = undefined;
+        if ((costString !== undefined) && (amountString !== undefined)) {
+            priceString = Precise.stringDiv (costString, amountString);
+        } else {
+            priceString = v3Price;
+        }
+        if ((priceString !== undefined) && (amountString !== undefined)) {
+            cost = Precise.stringMul (priceString, amountString);
+        } else {
+            cost = costString;
+        }
         const feeCurrencyId = this.safeString (feeObject, 'currency');
-        const feeCurrency = this.safeCurrencyCode (feeCurrencyId);
-        const fee = {
-            'cost': feeCost,
-            'currency': feeCurrency,
-        };
-        return {
+        const datetime = this.safeStringN (trade, [ 'created_at', 'trade_time', 'time' ]);
+        const side = this.safeStringLower2 (trade, 'resource', 'side');
+        const takerOrMaker = this.safeStringLower (trade, 'liquidity_indicator');
+        return this.safeTrade ({
             'info': trade,
-            'id': id,
-            'order': orderId,
-            'timestamp': timestamp,
-            'datetime': this.iso8601 (timestamp),
+            'id': this.safeString2 (trade, 'id', 'trade_id'),
+            'order': this.safeString (trade, 'order_id'),
+            'timestamp': this.parse8601 (datetime),
+            'datetime': datetime,
             'symbol': symbol,
-            'type': type,
-            'side': side,
-            'takerOrMaker': undefined,
-            'price': price,
-            'amount': amount,
+            'type': undefined,
+            'side': (side === 'unknown_order_side') ? undefined : side,
+            'takerOrMaker': (takerOrMaker === 'unknown_liquidity_indicator') ? undefined : takerOrMaker,
+            'price': priceString,
+            'amount': amountString,
             'cost': cost,
-            'fee': fee,
-        };
+            'fee': {
+                'cost': this.safeNumber (feeObject, 'amount', v3FeeCost),
+                'currency': this.safeCurrencyCode (feeCurrencyId),
+            },
+        });
     }
 
     async fetchMarkets (params = {}) {
@@ -2580,6 +2627,102 @@ module.exports = class coinbase extends Exchange {
             this.safeNumber (ohlcv, 'close'),
             this.safeNumber (ohlcv, 'volume'),
         ];
+    }
+
+    async fetchTrades (symbol, since = undefined, limit = undefined, params = {}) {
+        /**
+         * @method
+         * @name coinbase#fetchTrades
+         * @description get the list of most recent trades for a particular symbol
+         * @see https://docs.cloud.coinbase.com/advanced-trade-api/reference/retailbrokerageapi_getmarkettrades
+         * @param {string} symbol unified market symbol of the trades
+         * @param {int|undefined} since not used by coinbase fetchTrades
+         * @param {int|undefined} limit the maximum number of trade structures to fetch
+         * @param {object} params extra parameters specific to the coinbase api endpoint
+         * @returns {[object]} a list of [trade structures]{@link https://docs.ccxt.com/en/latest/manual.html?#public-trades}
+         */
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const request = {
+            'product_id': market['id'],
+        };
+        if (limit !== undefined) {
+            request['limit'] = limit;
+        }
+        const response = await this.v3PrivateGetBrokerageProductsProductIdTicker (this.extend (request, params));
+        //
+        //     {
+        //         "trades": [
+        //             {
+        //                 "trade_id": "10092327",
+        //                 "product_id": "BTC-USDT",
+        //                 "price": "17488.12",
+        //                 "size": "0.0000623",
+        //                 "time": "2023-01-11T00:52:37.557001Z",
+        //                 "side": "BUY",
+        //                 "bid": "",
+        //                 "ask": ""
+        //             },
+        //         ]
+        //     }
+        //
+        const trades = this.safeValue (response, 'trades', []);
+        return this.parseTrades (trades, market, since, limit);
+    }
+
+    async fetchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        /**
+         * @method
+         * @name coinbase#fetchMyTrades
+         * @description fetch all trades made by the user
+         * @see https://docs.cloud.coinbase.com/advanced-trade-api/reference/retailbrokerageapi_getfills
+         * @param {string} symbol unified market symbol of the trades
+         * @param {int|undefined} since timestamp in ms of the earliest order, default is undefined
+         * @param {int|undefined} limit the maximum number of trade structures to fetch
+         * @param {object} params extra parameters specific to the coinbase api endpoint
+         * @returns {[object]} a list of [trade structures]{@link https://docs.ccxt.com/en/latest/manual.html#trade-structure}
+         */
+        await this.loadMarkets ();
+        let market = undefined;
+        if (symbol !== undefined) {
+            market = this.market (symbol);
+        }
+        const request = {};
+        if (market !== undefined) {
+            request['product_id'] = market['id'];
+        }
+        if (limit !== undefined) {
+            request['limit'] = limit;
+        }
+        if (since !== undefined) {
+            request['start_sequence_timestamp'] = this.parse8601 (since);
+        }
+        const response = await this.v3PrivateGetBrokerageOrdersHistoricalFills (this.extend (request, params));
+        //
+        //     {
+        //         "fills": [
+        //             {
+        //                 "entry_id": "b88b82cc89e326a2778874795102cbafd08dd979a2a7a3c69603fc4c23c2e010",
+        //                 "trade_id": "cdc39e45-bbd3-44ec-bf02-61742dfb16a1",
+        //                 "order_id": "813a53c5-3e39-47bb-863d-2faf685d22d8",
+        //                 "trade_time": "2023-01-18T01:37:38.091377090Z",
+        //                 "trade_type": "FILL",
+        //                 "price": "21220.64",
+        //                 "size": "0.0046830664333996",
+        //                 "commission": "0.0000280983986004",
+        //                 "product_id": "BTC-USDT",
+        //                 "sequence_timestamp": "2023-01-18T01:37:38.092520Z",
+        //                 "liquidity_indicator": "UNKNOWN_LIQUIDITY_INDICATOR",
+        //                 "size_in_quote": true,
+        //                 "user_id": "1111111-1111-1111-1111-111111111111",
+        //                 "side": "BUY"
+        //             },
+        //         ],
+        //         "cursor": ""
+        //     }
+        //
+        const trades = this.safeValue (response, 'fills', []);
+        return this.parseTrades (trades, market, since, limit);
     }
 
     sign (path, api = [], method = 'GET', params = {}, headers = undefined, body = undefined) {
