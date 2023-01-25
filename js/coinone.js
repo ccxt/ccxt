@@ -27,7 +27,7 @@ module.exports = class coinone extends Exchange {
                 'option': false,
                 'addMargin': false,
                 'cancelOrder': true,
-                'createMarketOrder': undefined,
+                'createMarketOrder': false,
                 'createOrder': true,
                 'createReduceOnlyOrder': false,
                 'createStopLimitOrder': false,
@@ -39,7 +39,7 @@ module.exports = class coinone extends Exchange {
                 'fetchBorrowRateHistory': false,
                 'fetchBorrowRates': false,
                 'fetchBorrowRatesPerSymbol': false,
-                'fetchClosedOrders': undefined, // the endpoint that should return closed orders actually returns trades, https://github.com/ccxt/ccxt/pull/7067
+                'fetchClosedOrders': false, // the endpoint that should return closed orders actually returns trades, https://github.com/ccxt/ccxt/pull/7067
                 'fetchDepositAddresses': true,
                 'fetchFundingHistory': false,
                 'fetchFundingRate': false,

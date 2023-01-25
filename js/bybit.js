@@ -72,7 +72,7 @@ module.exports = class bybit extends Exchange {
                 'fetchTrades': true,
                 'fetchTradingFee': true,
                 'fetchTradingFees': true,
-                'fetchTransactions': undefined,
+                'fetchTransactions': false,
                 'fetchTransfers': true,
                 'fetchWithdrawals': true,
                 'setLeverage': true,

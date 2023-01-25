@@ -43,7 +43,7 @@ module.exports = class hitbtc extends Exchange {
                 'fetchClosedOrders': true,
                 'fetchCurrencies': true,
                 'fetchDepositAddress': true,
-                'fetchDeposits': undefined,
+                'fetchDeposits': false,
                 'fetchFundingHistory': false,
                 'fetchFundingRate': false,
                 'fetchFundingRateHistory': false,
@@ -60,7 +60,7 @@ module.exports = class hitbtc extends Exchange {
                 'fetchOpenOrders': true,
                 'fetchOrder': true,
                 'fetchOrderBook': true,
-                'fetchOrders': undefined,
+                'fetchOrders': false,
                 'fetchOrderTrades': true,
                 'fetchPosition': false,
                 'fetchPositions': false,
@@ -72,7 +72,7 @@ module.exports = class hitbtc extends Exchange {
                 'fetchTradingFee': true,
                 'fetchTradingFees': false,
                 'fetchTransactions': true,
-                'fetchWithdrawals': undefined,
+                'fetchWithdrawals': false,
                 'reduceMargin': false,
                 'setLeverage': false,
                 'setMarginMode': false,
@@ -838,6 +838,7 @@ module.exports = class hitbtc extends Exchange {
          * @method
          * @name hitbtc#fetchTransactions
          * @description fetch history of deposits and withdrawals
+         * @see https://api.hitbtc.com/v2#get-transactions-history
          * @param {string|undefined} code unified currency code for the currency of the transactions, default is undefined
          * @param {int|undefined} since timestamp in ms of the earliest transaction, default is undefined
          * @param {int|undefined} limit max number of transactions to return, default is undefined

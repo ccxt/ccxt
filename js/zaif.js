@@ -26,7 +26,7 @@ module.exports = class zaif extends Exchange {
                 'future': false,
                 'option': false,
                 'cancelOrder': true,
-                'createMarketOrder': undefined,
+                'createMarketOrder': false,
                 'createOrder': true,
                 'fetchBalance': true,
                 'fetchClosedOrders': true,
