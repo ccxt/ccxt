@@ -138,13 +138,19 @@ module.exports = class ace extends Exchange {
             'precisionMode': TICK_SIZE,
             'exceptions': {
                 'exact': {
+                    '2003': InvalidOrder,
+                    '2004': InvalidOrder,
+                    '2005': InvalidOrder,
                     '2021': InsufficientFunds,
+                    '2036': InvalidOrder,
                     '2039': InvalidOrder,
+                    '2053': InvalidOrder,
                     '2061': BadRequest,
+                    '2063': InvalidOrder,
                     '9996': BadRequest,
+                    '10012': AuthenticationError,
                     '20182': AuthenticationError,
                     '20183': InvalidOrder,
-                    '10012': AuthenticationError,
                 },
                 'broad': {
                 },
