@@ -290,7 +290,7 @@ module.exports = class btcalpha extends Exchange {
         //        sell: '22521.11'
         //    }
         //
-        return this.parseTickers (response, market);
+        return this.parseTicker (response, market);
     }
 
     parseTicker (ticker, market = undefined) {
@@ -307,16 +307,13 @@ module.exports = class btcalpha extends Exchange {
         //        sell: '22521.11'
         //    }
         //
-        let timestamp = this.safeFloat (ticker, 'timestamp');
-        if (timestamp !== undefined) {
-            timestamp = timestamp * 1000000;
-        }
+        const timestamp = this.safeIntegerProduct (ticker, 'timestamp', 1000000);
         const marketId = this.safeString (ticker, 'pair');
-        market = this.safeMarket (marketId, market, '-');
+        market = this.safeMarket (marketId, market, '_');
         const last = this.safeString (ticker, 'last');
         return this.safeTicker ({
             'info': ticker,
-            'symbol': this.safeSymbol (marketId, market, '-'),
+            'symbol': market['symbol'],
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'high': this.safeString (ticker, 'high'),
@@ -330,7 +327,7 @@ module.exports = class btcalpha extends Exchange {
             'close': last,
             'last': last,
             'previousClose': undefined,
-            'change': undefined,
+            'change': this.safeString (ticker, 'diff'),
             'percentage': undefined,
             'average': undefined,
             'baseVolume': undefined,
