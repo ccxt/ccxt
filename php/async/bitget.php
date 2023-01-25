@@ -197,6 +197,7 @@ class bitget extends Exchange {
                             'account/account' => 2,
                             'account/accounts' => 2,
                             'account/accountBill' => 2,
+                            'account/accountBusinessBill' => 4,
                             'account/open-count' => 1,
                             'order/current' => 2,
                             'order/history' => 2,
