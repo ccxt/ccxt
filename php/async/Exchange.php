@@ -94,6 +94,7 @@ class Exchange extends \ccxt\Exchange {
             $this->lastRestRequestTimestamp = $this->milliseconds();
 
             try {
+                $body = $body ?? ''; // https://github.com/ccxt/ccxt/pull/16555
                 $result = React\Async\await($this->browser->request($method, $url, $headers, $body));
             } catch (Exception $e) {
                 $message = $e->getMessage();
