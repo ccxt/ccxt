@@ -17,7 +17,7 @@ module.exports = class btctradeua extends Exchange {
             'countries': [ 'UA' ], // Ukraine,
             'rateLimit': 3000,
             'has': {
-                'CORS': undefined,
+                'CORS': false,
                 'spot': true,
                 'margin': false,
                 'swap': false,

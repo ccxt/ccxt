@@ -17,7 +17,7 @@ module.exports = class bit2c extends Exchange {
             'countries': [ 'IL' ], // Israel
             'rateLimit': 3000,
             'has': {
-                'CORS': undefined,
+                'CORS': false,
                 'spot': true,
                 'margin': false,
                 'swap': false,

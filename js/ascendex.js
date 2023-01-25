@@ -22,7 +22,7 @@ module.exports = class ascendex extends Exchange {
             'pro': true,
             // new metainfo interface
             'has': {
-                'CORS': undefined,
+                'CORS': false,
                 'spot': true,
                 'margin': true,
                 'swap': true,

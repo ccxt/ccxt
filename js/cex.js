@@ -18,7 +18,7 @@ module.exports = class cex extends Exchange {
             'rateLimit': 1500,
             'pro': true,
             'has': {
-                'CORS': undefined,
+                'CORS': false,
                 'spot': true,
                 'margin': false, // has but not through api
                 'swap': false,

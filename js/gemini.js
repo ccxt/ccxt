@@ -21,7 +21,7 @@ module.exports = class gemini extends Exchange {
             'version': 'v1',
             'pro': true,
             'has': {
-                'CORS': undefined,
+                'CORS': false,
                 'spot': true,
                 'margin': false,
                 'swap': false,

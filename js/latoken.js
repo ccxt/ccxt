@@ -17,7 +17,7 @@ module.exports = class latoken extends Exchange {
             'version': 'v2',
             'rateLimit': 1000,
             'has': {
-                'CORS': undefined,
+                'CORS': false,
                 'spot': true,
                 'margin': false,
                 'swap': undefined, // has but unimplemented

@@ -19,7 +19,7 @@ module.exports = class coinone extends Exchange {
             'rateLimit': 667,
             'version': 'v2',
             'has': {
-                'CORS': undefined,
+                'CORS': false,
                 'spot': true,
                 'margin': false,
                 'swap': false,

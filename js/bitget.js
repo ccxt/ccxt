@@ -20,7 +20,7 @@ module.exports = class bitget extends Exchange {
             'certified': true,
             'pro': true,
             'has': {
-                'CORS': undefined,
+                'CORS': false,
                 'spot': true,
                 'margin': false,
                 'swap': true,

@@ -20,7 +20,7 @@ module.exports = class novadax extends Exchange {
             'version': 'v1',
             // new metainfo interface
             'has': {
-                'CORS': undefined,
+                'CORS': false,
                 'spot': true,
                 'margin': false,
                 'swap': false,

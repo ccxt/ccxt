@@ -16,7 +16,7 @@ module.exports = class coinspot extends Exchange {
             'countries': [ 'AU' ], // Australia
             'rateLimit': 1000,
             'has': {
-                'CORS': undefined,
+                'CORS': false,
                 'spot': true,
                 'margin': false,
                 'swap': false,

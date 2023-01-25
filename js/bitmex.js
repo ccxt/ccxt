@@ -24,7 +24,7 @@ module.exports = class bitmex extends Exchange {
             'rateLimit': 100,
             'pro': true,
             'has': {
-                'CORS': undefined,
+                'CORS': false,
                 'spot': true,
                 'margin': false,
                 'swap': true,

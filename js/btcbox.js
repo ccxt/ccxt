@@ -18,7 +18,7 @@ module.exports = class btcbox extends Exchange {
             'rateLimit': 1000,
             'version': 'v1',
             'has': {
-                'CORS': undefined,
+                'CORS': false,
                 'spot': true,
                 'margin': false,
                 'swap': false,

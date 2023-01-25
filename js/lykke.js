@@ -20,7 +20,7 @@ module.exports = class lykke extends Exchange {
             // 120 requests per minute per method => ( 60000ms / rateLimit ) / 120 = cost = 2.5 (/api/*)
             'rateLimit': 200, // TODO: optim\ize https://lykkecity.github.io/Trading-API/#request-rate-limits
             'has': {
-                'CORS': undefined,
+                'CORS': false,
                 'spot': true,
                 'margin': false,
                 'swap': false,

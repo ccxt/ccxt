@@ -22,7 +22,7 @@ module.exports = class hitbtc extends Exchange {
             'version': '2',
             'pro': true,
             'has': {
-                'CORS': undefined,
+                'CORS': false,
                 'spot': true,
                 'margin': false,
                 'swap': false,

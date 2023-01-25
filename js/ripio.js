@@ -19,7 +19,7 @@ module.exports = class ripio extends Exchange {
             'pro': true,
             // new metainfo interface
             'has': {
-                'CORS': undefined,
+                'CORS': false,
                 'spot': true,
                 'margin': false,
                 'swap': false,

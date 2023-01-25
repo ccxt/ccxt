@@ -19,7 +19,7 @@ module.exports = class therock extends Exchange {
             'rateLimit': 100,
             'version': 'v1',
             'has': {
-                'CORS': undefined,
+                'CORS': false,
                 'spot': true,
                 'margin': undefined, // has but unimplemented
                 'swap': false,

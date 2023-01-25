@@ -18,7 +18,7 @@ module.exports = class indodax extends Exchange {
             // 180 requests per minute (public endpoints) = 2 requests per second => cost = (1000ms / rateLimit) / 2 = 5
             'rateLimit': 100,
             'has': {
-                'CORS': undefined,
+                'CORS': false,
                 'spot': true,
                 'margin': false,
                 'swap': false,
