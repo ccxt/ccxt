@@ -39,16 +39,18 @@ class ArrayCacheBySymbolById extends ArrayCache {
         # this allows us to effectively pass by reference
         $this->deque[] = &$item;
         $this->index[] = $item['id'];
+        if ($this->clear_all_updates) {
+            $this->clear_all_updates = false;
+            $this->clear_updates_by_symbol = array();
+            $this->all_new_updates = 0;
+            $this->new_updates_by_symbol = array();
+        }
         if (!array_key_exists($item['symbol'], $this->new_updates_by_symbol)) {
             $this->new_updates_by_symbol[$item['symbol']] = array();
         }
         if ($this->clear_updates_by_symbol[$item['symbol']] ?? false) {
             $this->clear_updates_by_symbol[$item['symbol']] = false;
             $this->new_updates_by_symbol[$item['symbol']] = array();
-        }
-        if ($this->clear_all_updates) {
-            $this->clear_all_updates = false;
-            $this->all_new_updates = 0;
         }
         $id_set = &$this->new_updates_by_symbol[$item['symbol']];
         $before_length = count($id_set);

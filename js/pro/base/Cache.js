@@ -78,13 +78,15 @@ class ArrayCache extends BaseCache {
             this.shift ()
         }
         this.push (item)
+        if (this.clearAllUpdates) {
+            this.clearAllUpdates = false
+            this.clearUpdatesBySymbol = {}
+            this.allNewUpdates = 0
+            this.newUpdatesBySymbol = {}
+        }
         if (this.clearUpdatesBySymbol[item.symbol]) {
             this.clearUpdatesBySymbol[item.symbol] = false
             this.newUpdatesBySymbol[item.symbol] = 0
-        }
-        if (this.clearAllUpdates) {
-            this.clearAllUpdates = false
-            this.allNewUpdates = 0
         }
         this.newUpdatesBySymbol[item.symbol] = (this.newUpdatesBySymbol[item.symbol] || 0) + 1
         this.allNewUpdates = (this.allNewUpdates || 0) + 1
@@ -183,16 +185,18 @@ class ArrayCacheBySymbolById extends ArrayCache {
             delete this.hashmap[deleteReference.symbol][deleteReference.id]
         }
         this.push (item)
+        if (this.clearAllUpdates) {
+            this.clearAllUpdates = false
+            this.clearUpdatesBySymbol = {}
+            this.allNewUpdates = 0
+            this.newUpdatesBySymbol = {}
+        }
         if (this.newUpdatesBySymbol[item.symbol] === undefined) {
             this.newUpdatesBySymbol[item.symbol] = new Set ()
         }
         if (this.clearUpdatesBySymbol[item.symbol]) {
             this.clearUpdatesBySymbol[item.symbol] = false
             this.newUpdatesBySymbol[item.symbol].clear ()
-        }
-        if (this.clearAllUpdates) {
-            this.clearAllUpdates = false
-            this.allNewUpdates = 0
         }
         // in case an exchange updates the same order id twice
         const idSet = this.newUpdatesBySymbol[item.symbol]

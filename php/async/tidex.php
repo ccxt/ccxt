@@ -79,7 +79,7 @@ class tidex extends Exchange {
                 ),
                 'www' => 'https://tidex.com',
                 'doc' => 'https://tidex.com/exchange/public-api',
-                'referral' => 'https://tidex.com/exchange/?ref=57f5638d9cd7',
+                'referral' => 'https://tidex.com/exchange',
                 'fees' => array(
                     'https://tidex.com/exchange/assets-spec',
                     'https://tidex.com/exchange/pairs-spec',
@@ -772,6 +772,7 @@ class tidex extends Exchange {
             'side' => $this->safe_string($order, 'type'),
             'price' => $price,
             'stopPrice' => null,
+            'triggerPrice' => null,
             'cost' => null,
             'amount' => $amount,
             'remaining' => $remaining,

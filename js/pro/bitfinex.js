@@ -5,6 +5,7 @@
 const bitfinexRest = require ('../bitfinex.js');
 const { ExchangeError, AuthenticationError } = require ('../base/errors');
 const { ArrayCache, ArrayCacheBySymbolById } = require ('./base/Cache');
+const Precise = require ('../base/Precise');
 
 //  ---------------------------------------------------------------------------
 
@@ -55,6 +56,18 @@ module.exports = class bitfinex extends bitfinexRest {
     }
 
     async watchTrades (symbol, since = undefined, limit = undefined, params = {}) {
+        /**
+         * @method
+         * @name bitfinex#watchTrades
+         * @description get the list of most recent trades for a particular symbol
+         * @param {string} symbol unified symbol of the market to fetch trades for
+         * @param {int|undefined} since timestamp in ms of the earliest trade to fetch
+         * @param {int|undefined} limit the maximum amount of trades to fetch
+         * @param {object} params extra parameters specific to the bitfinex api endpoint
+         * @returns {[object]} a list of [trade structures]{@link https://docs.ccxt.com/en/latest/manual.html?#public-trades}
+         */
+        await this.loadMarkets ();
+        symbol = this.symbol (symbol);
         const trades = await this.subscribe ('trades', symbol, params);
         if (this.newUpdates) {
             limit = trades.getLimit (symbol, limit);
@@ -63,6 +76,14 @@ module.exports = class bitfinex extends bitfinexRest {
     }
 
     async watchTicker (symbol, params = {}) {
+        /**
+         * @method
+         * @name bitfinex#watchTicker
+         * @description watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+         * @param {string} symbol unified symbol of the market to fetch the ticker for
+         * @param {object} params extra parameters specific to the bitfinex api endpoint
+         * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
+         */
         return await this.subscribe ('ticker', symbol, params);
     }
 
@@ -93,30 +114,28 @@ module.exports = class bitfinex extends bitfinexRest {
         const marketId = this.safeString (subscription, 'pair');
         const messageHash = channel + ':' + marketId;
         const tradesLimit = this.safeInteger (this.options, 'tradesLimit', 1000);
-        if (marketId in this.markets_by_id) {
-            const market = this.markets_by_id[marketId];
-            const symbol = market['symbol'];
-            const data = this.safeValue (message, 1);
-            let stored = this.safeValue (this.trades, symbol);
-            if (stored === undefined) {
-                stored = new ArrayCache (tradesLimit);
-                this.trades[symbol] = stored;
-            }
-            if (Array.isArray (data)) {
-                const trades = this.parseTrades (data, market);
-                for (let i = 0; i < trades.length; i++) {
-                    stored.append (trades[i]);
-                }
-            } else {
-                const second = this.safeString (message, 1);
-                if (second !== 'tu') {
-                    return;
-                }
-                const trade = this.parseTrade (message, market);
-                stored.append (trade);
-            }
-            client.resolve (stored, messageHash);
+        const market = this.safeMarket (marketId);
+        const symbol = market['symbol'];
+        const data = this.safeValue (message, 1);
+        let stored = this.safeValue (this.trades, symbol);
+        if (stored === undefined) {
+            stored = new ArrayCache (tradesLimit);
+            this.trades[symbol] = stored;
         }
+        if (Array.isArray (data)) {
+            const trades = this.parseTrades (data, market);
+            for (let i = 0; i < trades.length; i++) {
+                stored.append (trades[i]);
+            }
+        } else {
+            const second = this.safeString (message, 1);
+            if (second !== 'tu') {
+                return;
+            }
+            const trade = this.parseTrade (message, market);
+            stored.append (trade);
+        }
+        client.resolve (stored, messageHash);
         return message;
     }
 
@@ -205,11 +224,11 @@ module.exports = class bitfinex extends bitfinexRest {
         const symbol = this.safeSymbol (marketId);
         const channel = 'ticker';
         const messageHash = channel + ':' + marketId;
-        const last = this.safeFloat (message, 7);
-        const change = this.safeFloat (message, 5);
+        const last = this.safeString (message, 7);
+        const change = this.safeString (message, 5);
         let open = undefined;
         if ((last !== undefined) && (change !== undefined)) {
-            open = last - change;
+            open = Precise.stringSub (last, change);
         }
         const result = {
             'symbol': symbol,
@@ -222,11 +241,11 @@ module.exports = class bitfinex extends bitfinexRest {
             'ask': this.safeFloat (message, 3),
             'askVolume': undefined,
             'vwap': undefined,
-            'open': open,
-            'close': last,
-            'last': last,
+            'open': this.parseNumber (open),
+            'close': this.parseNumber (last),
+            'last': this.parseNumber (last),
             'previousClose': undefined,
-            'change': change,
+            'change': this.parseNumber (change),
             'percentage': this.safeFloat (message, 6),
             'average': undefined,
             'baseVolume': this.safeFloat (message, 8),
@@ -238,6 +257,15 @@ module.exports = class bitfinex extends bitfinexRest {
     }
 
     async watchOrderBook (symbol, limit = undefined, params = {}) {
+        /**
+         * @method
+         * @name bitfinex#watchOrderBook
+         * @description watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+         * @param {string} symbol unified symbol of the market to fetch the order book for
+         * @param {int|undefined} limit the maximum amount of order book entries to return
+         * @param {object} params extra parameters specific to the bitfinex api endpoint
+         * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-book-structure} indexed by market symbols
+         */
         if (limit !== undefined) {
             if ((limit !== 25) && (limit !== 100)) {
                 throw new ExchangeError (this.id + ' watchOrderBook limit argument must be undefined, 25 or 100');
@@ -255,7 +283,7 @@ module.exports = class bitfinex extends bitfinexRest {
             'len': limit, // string, number of price points, '25', '100', default = '25'
         };
         const orderbook = await this.subscribe ('book', symbol, this.deepExtend (request, params));
-        return orderbook.limit (limit);
+        return orderbook.limit ();
     }
 
     handleOrderBook (client, message, subscription) {
@@ -438,8 +466,21 @@ module.exports = class bitfinex extends bitfinexRest {
     }
 
     async watchOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        /**
+         * @method
+         * @name bitfinex#watchOrders
+         * @description watches information on multiple orders made by the user
+         * @param {string|undefined} symbol unified market symbol of the market orders were made in
+         * @param {int|undefined} since the earliest time in ms to fetch orders for
+         * @param {int|undefined} limit the maximum number of  orde structures to retrieve
+         * @param {object} params extra parameters specific to the bitfinex api endpoint
+         * @returns {[object]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
+         */
         await this.loadMarkets ();
         await this.authenticate ();
+        if (symbol !== undefined) {
+            symbol = this.symbol (symbol);
+        }
         const url = this.urls['api']['ws']['private'];
         const orders = await this.watch (url, 'os', undefined, 1);
         if (this.newUpdates) {
@@ -533,12 +574,12 @@ module.exports = class bitfinex extends bitfinexRest {
         const id = this.safeString (order, 0);
         const marketId = this.safeString (order, 1);
         const symbol = this.safeSymbol (marketId);
-        let amount = this.safeFloat (order, 2);
-        let remaining = this.safeFloat (order, 3);
+        let amount = this.safeString (order, 2);
+        let remaining = this.safeString (order, 3);
         let side = 'buy';
-        if (amount < 0) {
-            amount = Math.abs (amount);
-            remaining = Math.abs (remaining);
+        if (Precise.stringLt (amount, '0')) {
+            amount = Precise.stringAbs (amount);
+            remaining = Precise.stringAbs (remaining);
             side = 'sell';
         }
         let type = this.safeString (order, 4);
@@ -548,10 +589,10 @@ module.exports = class bitfinex extends bitfinexRest {
             type = 'market';
         }
         const status = this.parseWsOrderStatus (this.safeString (order, 5));
-        const price = this.safeFloat (order, 6);
+        const price = this.safeString (order, 6);
         const rawDatetime = this.safeString (order, 8);
         const timestamp = this.parse8601 (rawDatetime);
-        const parsed = {
+        const parsed = this.safeOrder ({
             'info': order,
             'id': id,
             'clientOrderId': undefined,
@@ -563,15 +604,16 @@ module.exports = class bitfinex extends bitfinexRest {
             'side': side,
             'price': price,
             'stopPrice': undefined,
+            'triggerPrice': undefined,
             'average': undefined,
             'amount': amount,
             'remaining': remaining,
-            'filled': amount - remaining,
+            'filled': undefined,
             'status': status,
             'fee': undefined,
             'cost': undefined,
             'trades': undefined,
-        };
+        });
         if (this.orders === undefined) {
             const limit = this.safeInteger (this.options, 'ordersLimit', 1000);
             this.orders = new ArrayCacheBySymbolById (limit);

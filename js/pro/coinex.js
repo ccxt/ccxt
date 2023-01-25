@@ -32,6 +32,22 @@ module.exports = class coinex extends coinexRest {
                 },
             },
             'options': {
+                'watchOHLCVWarning': true,
+                'timeframes': {
+                    '1m': 60,
+                    '3m': 180,
+                    '5m': 300,
+                    '15m': 900,
+                    '30m': 1800,
+                    '1h': 3600,
+                    '2h': 7200,
+                    '4h': 14400,
+                    '6h': 21600,
+                    '12h': 43200,
+                    '1d': 86400,
+                    '3d': 259200,
+                    '1w': 604800,
+                },
                 'account': 'spot',
                 'watchOrderBook': {
                     'limits': [ 5, 10, 20, 50 ],
@@ -51,21 +67,6 @@ module.exports = class coinex extends coinexRest {
                     '5': RequestTimeout, // Service timeout
                     '6': AuthenticationError, // Permission denied
                 },
-            },
-            'timeframes': {
-                '1m': 60,
-                '3m': 180,
-                '5m': 300,
-                '15m': 900,
-                '30m': 1800,
-                '1h': 3600,
-                '2h': 7200,
-                '4h': 14400,
-                '6h': 21600,
-                '12h': 43200,
-                '1d': 86400,
-                '3d': 259200,
-                '1w': 604800,
             },
         });
     }
@@ -126,13 +127,14 @@ module.exports = class coinex extends coinexRest {
         //         }]
         //     }
         //
+        const defaultType = this.safeString (this.options, 'defaultType');
         const params = this.safeValue (message, 'params', []);
         const first = this.safeValue (params, 0, {});
         const keys = Object.keys (first);
         const marketId = this.safeString (keys, 0);
-        const symbol = this.safeSymbol (marketId);
+        const symbol = this.safeSymbol (marketId, undefined, undefined, defaultType);
         const ticker = this.safeValue (first, marketId, {});
-        const market = this.safeMarket (marketId);
+        const market = this.safeMarket (marketId, undefined, undefined, defaultType);
         const parsedTicker = this.parseWSTicker (ticker, market);
         const messageHash = 'ticker:' + symbol;
         this.tickers[symbol] = parsedTicker;
@@ -179,8 +181,9 @@ module.exports = class coinex extends coinexRest {
         //         buy_total: '25.7814'
         //     }
         //
+        const defaultType = this.safeString (this.options, 'defaultType');
         return this.safeTicker ({
-            'symbol': this.safeSymbol (undefined, market),
+            'symbol': this.safeSymbol (undefined, market, undefined, defaultType),
             'timestamp': undefined,
             'datetime': undefined,
             'high': this.safeString (ticker, 'high'),
@@ -208,8 +211,8 @@ module.exports = class coinex extends coinexRest {
          * @method
          * @name coinex#watchBalance
          * @description query for balance and get the amount of funds available for trading or funds locked in orders
-         * @param {dict} params extra parameters specific to the coinex api endpoint
-         * @returns {dict} a [balance structure]{@link https://docs.ccxt.com/en/latest/manual.html?#balance-structure}
+         * @param {object} params extra parameters specific to the coinex api endpoint
+         * @returns {object} a [balance structure]{@link https://docs.ccxt.com/en/latest/manual.html?#balance-structure}
          */
         await this.loadMarkets ();
         await this.authenticate (params);
@@ -282,8 +285,9 @@ module.exports = class coinex extends coinexRest {
         const params = this.safeValue (message, 'params', []);
         const marketId = this.safeString (params, 0);
         const trades = this.safeValue (params, 1, []);
-        const market = this.safeMarket (marketId);
-        const symbol = this.safeSymbol (marketId);
+        const defaultType = this.safeString (this.options, 'defaultType');
+        const market = this.safeMarket (marketId, undefined, undefined, defaultType);
+        const symbol = market['symbol'];
         const messageHash = 'trades:' + symbol;
         let stored = this.safeValue (this.trades, symbol);
         if (stored === undefined) {
@@ -311,12 +315,13 @@ module.exports = class coinex extends coinexRest {
         //     }
         //
         const timestamp = this.safeTimestamp (trade, 'time');
+        const defaultType = this.safeString (this.options, 'defaultType');
         return this.safeTrade ({
             'id': this.safeString (trade, 'id'),
             'info': trade,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'symbol': this.safeSymbol (undefined, market),
+            'symbol': this.safeSymbol (undefined, market, undefined, defaultType),
             'order': undefined,
             'type': undefined,
             'side': this.safeString (trade, 'type'),
@@ -365,9 +370,9 @@ module.exports = class coinex extends coinexRest {
          * @method
          * @name coinex#watchTicker
          * @description watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
-         * @param {str} symbol unified symbol of the market to fetch the ticker for
-         * @param {dict} params extra parameters specific to the coinex api endpoint
-         * @returns {dict} a [ticker structure]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
+         * @param {string} symbol unified symbol of the market to fetch the ticker for
+         * @param {object} params extra parameters specific to the coinex api endpoint
+         * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
@@ -391,14 +396,15 @@ module.exports = class coinex extends coinexRest {
          * @method
          * @name coinex#watchTrades
          * @description get the list of most recent trades for a particular symbol
-         * @param {str} symbol unified symbol of the market to fetch trades for
+         * @param {string} symbol unified symbol of the market to fetch trades for
          * @param {int|undefined} since timestamp in ms of the earliest trade to fetch
          * @param {int|undefined} limit the maximum amount of trades to fetch
-         * @param {dict} params extra parameters specific to the coinex api endpoint
-         * @returns {[dict]} a list of [trade structures]{@link https://docs.ccxt.com/en/latest/manual.html?#public-trades}
+         * @param {object} params extra parameters specific to the coinex api endpoint
+         * @returns {[object]} a list of [trade structures]{@link https://docs.ccxt.com/en/latest/manual.html?#public-trades}
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
+        symbol = market['symbol'];
         let type = undefined;
         [ type, params ] = this.handleMarketTypeAndParams ('watchTrades', market, params);
         const url = this.urls['api']['ws'][type];
@@ -420,13 +426,14 @@ module.exports = class coinex extends coinexRest {
          * @method
          * @name coinex#watchOrderBook
          * @description watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
-         * @param {str} symbol unified symbol of the market to fetch the order book for
+         * @param {string} symbol unified symbol of the market to fetch the order book for
          * @param {int|undefined} limit the maximum amount of order book entries to return
-         * @param {dict} params extra parameters specific to the coinex api endpoint
-         * @returns {dict} A dictionary of [order book structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-book-structure} indexed by market symbols
+         * @param {object} params extra parameters specific to the coinex api endpoint
+         * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-book-structure} indexed by market symbols
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
+        symbol = market['symbol'];
         let type = undefined;
         [ type, params ] = this.handleMarketTypeAndParams ('watchOrderBook', market, params);
         const url = this.urls['api']['ws'][type];
@@ -459,7 +466,7 @@ module.exports = class coinex extends coinexRest {
         };
         const request = this.deepExtend (subscribe, params);
         const orderbook = await this.watch (url, messageHash, request, messageHash);
-        return orderbook.limit (limit);
+        return orderbook.limit ();
     }
 
     async watchOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
@@ -467,32 +474,45 @@ module.exports = class coinex extends coinexRest {
          * @method
          * @name coinex#watchOHLCV
          * @description watches historical candlestick data containing the open, high, low, and close price, and the volume of a market
-         * @param {str} symbol unified symbol of the market to fetch OHLCV data for
-         * @param {str} timeframe the length of time each candle represents
+         * @param {string} symbol unified symbol of the market to fetch OHLCV data for
+         * @param {string} timeframe the length of time each candle represents
          * @param {int|undefined} since timestamp in ms of the earliest candle to fetch
          * @param {int|undefined} limit the maximum amount of candles to fetch
-         * @param {dict} params extra parameters specific to the coinex api endpoint
+         * @param {object} params extra parameters specific to the coinex api endpoint
          * @returns {[[int]]} A list of candles ordered as timestamp, open, high, low, close, volume
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const messageHash = 'ohlcv';
+        symbol = market['symbol'];
         let type = undefined;
         [ type, params ] = this.handleMarketTypeAndParams ('watchOHLCV', market, params);
         if (type !== 'swap') {
             throw new NotSupported (this.id + ' watchOHLCV() is only supported for swap markets');
         }
         const url = this.urls['api']['ws'][type];
+        const messageHash = 'ohlcv';
+        const watchOHLCVWarning = this.safeValue (this.options, 'watchOHLCVWarning', true);
+        const client = this.safeValue (this.clients, url, {});
+        const existingSubscription = this.safeValue (client.subscriptions, messageHash);
+        // due to nature of coinex response can only watch one symbol at a time
+        if (watchOHLCVWarning && existingSubscription !== undefined && (existingSubscription['symbol'] !== symbol || existingSubscription['timeframe'] !== timeframe)) {
+            throw new ExchangeError (this.id + ' watchOHLCV() can only watch one symbol and timeframe at a time. To supress this warning set watchOHLCVWarning to false in options');
+        }
+        const timeframes = this.safeValue (this.options, 'timeframes', {});
         const subscribe = {
             'method': 'kline.subscribe',
             'id': this.requestId (),
             'params': [
                 market['id'],
-                this.safeInteger (this.timeframes, timeframe, timeframe),
+                this.safeInteger (timeframes, timeframe, timeframe),
             ],
         };
+        const subscription = {
+            'symbol': symbol,
+            'timeframe': timeframe,
+        };
         const request = this.deepExtend (subscribe, params);
-        const ohlcvs = await this.watch (url, messageHash, request, messageHash);
+        const ohlcvs = await this.watch (url, messageHash, request, messageHash, subscription);
         if (this.newUpdates) {
             limit = ohlcvs.getLimit (symbol, limit);
         }
@@ -538,7 +558,8 @@ module.exports = class coinex extends coinexRest {
         const fullOrderBook = this.safeValue (params, 0);
         let orderBook = this.safeValue (params, 1);
         const marketId = this.safeString (params, 2);
-        const market = this.safeMarket (marketId);
+        const defaultType = this.safeString (this.options, 'defaultType');
+        const market = this.safeMarket (marketId, undefined, undefined, defaultType);
         const symbol = market['symbol'];
         const name = 'orderbook';
         const messageHash = name + ':' + symbol;
@@ -610,9 +631,7 @@ module.exports = class coinex extends coinexRest {
             message['params'] = [ market['id'] ];
             messageHash += ':' + symbol;
         } else {
-            // deprecated usage of markets_by_id...
-            const markets = Object.keys (this.markets_by_id);
-            message['params'] = markets;
+            message['params'] = this.ids;
         }
         const url = this.urls['api']['ws'][type];
         const request = this.deepExtend (message, query);
@@ -837,7 +856,8 @@ module.exports = class coinex extends coinexRest {
         const remaining = this.safeString (order, 'left');
         const amount = this.safeString (order, 'amount');
         const status = this.safeString (order, 'status');
-        const market = this.safeMarket (marketId);
+        const defaultType = this.safeString (this.options, 'defaultType');
+        const market = this.safeMarket (marketId, undefined, undefined, defaultType);
         let cost = this.safeString (order, 'deal_money');
         let filled = this.safeString (order, 'deal_stock');
         let average = undefined;
@@ -870,6 +890,7 @@ module.exports = class coinex extends coinexRest {
             'side': side,
             'price': this.safeString (order, 'price'),
             'stopPrice': this.safeString (order, 'stop_price'),
+            'triggerPrice': this.safeString (order, 'stop_price'),
             'amount': amount,
             'filled': filled,
             'remaining': remaining,

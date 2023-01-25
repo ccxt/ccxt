@@ -383,6 +383,7 @@ class btcbox(Exchange):
             'symbol': market['symbol'],
             'price': price,
             'stopPrice': None,
+            'triggerPrice': None,
             'cost': None,
             'trades': trades,
             'fee': None,

@@ -245,9 +245,7 @@ $limited = new OrderBook ($orderBookInput, 5);
 $orderBook->limit ();
 assert (equals ($orderBook, $orderBookTarget));
 
-$orderBook->limit (5);
 $limited->limit ();
-assert (equals ($orderBook, $limitedOrderBookTarget));
 assert (equals ($limited, $limitedOrderBookTarget));
 
 $orderBook->limit ();
@@ -271,11 +269,6 @@ $asks->store (15.5, 0);
 $limited->limit ();
 assert (equals ($limited, $limitedDeletedOrderBookTarget));
 
-$limited->limit (5);
-$asks->store (100, 1);
-$asks->store (101, 1);
-$asks->store (101, 3);
-
 // --------------------------------------------------------------------------------------------------------------------
 
 $indexedOrderBook = new IndexedOrderBook ($indexedOrderBookInput);
@@ -283,9 +276,7 @@ $limitedIndexedOrderBook = new IndexedOrderBook ($indexedOrderBookInput, 5);
 $indexedOrderBook->limit ();
 assert (equals ($indexedOrderBook, $indexedOrderBookTarget));
 
-$indexedOrderBook->limit (5);
 $limitedIndexedOrderBook->limit ();
-assert (equals ($indexedOrderBook, $limitedIndexedOrderBookTarget));
 assert (equals ($limitedIndexedOrderBook, $limitedIndexedOrderBookTarget));
 $indexedOrderBook->limit ();
 assert (equals ($indexedOrderBook, $indexedOrderBookTarget));
@@ -309,9 +300,7 @@ $limitedCountedOrderBook = new CountedOrderBook ($countedOrderBookInput, 5);
 $countedOrderBook->limit ();
 assert (equals ($countedOrderBook, $countedOrderBookTarget));
 
-$countedOrderBook->limit (5);
 $limitedCountedOrderBook->limit ();
-assert (equals ($countedOrderBook, $limitedCountedOrderBookTarget));
 assert (equals ($limitedCountedOrderBook, $limitedCountedOrderBookTarget));
 $countedOrderBook->limit ();
 assert (equals ($countedOrderBook, $countedOrderBookTarget));

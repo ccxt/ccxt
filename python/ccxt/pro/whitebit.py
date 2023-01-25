@@ -152,7 +152,7 @@ class whitebit(Exchange, ccxt.async_support.whitebit):
             True,  # True for allowing multiple subscriptions
         ]
         orderbook = await self.watch_public(messageHash, method, reqParams, params)
-        return orderbook.limit(limit)
+        return orderbook.limit()
 
     def handle_order_book(self, client, message):
         #
@@ -574,6 +574,7 @@ class whitebit(Exchange, ccxt.async_support.whitebit):
             'side': side,
             'price': price,
             'stopPrice': stopPrice,
+            'triggerPrice': stopPrice,
             'amount': amount,
             'cost': cost,
             'average': None,

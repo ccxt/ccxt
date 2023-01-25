@@ -130,6 +130,7 @@ module.exports = class lbank extends Exchange {
             'commonCurrencies': {
                 'GMT': 'GMT Token',
                 'PNT': 'Penta',
+                'SHINJA': 'SHINJA(1M)',
                 'VET_ERC20': 'VEN',
             },
             'options': {
@@ -365,7 +366,9 @@ module.exports = class lbank extends Exchange {
         const id = this.safeString (trade, 'tid');
         const type = undefined;
         let side = this.safeString (trade, 'type');
-        side = side.replace ('_market', '');
+        // remove type additions from i.e. buy_maker, sell_maker, buy_ioc, sell_ioc, buy_fok, sell_fok
+        const splited = side.split ('_');
+        side = splited[0];
         return {
             'id': id,
             'info': this.safeValue (trade, 'info', trade),
@@ -579,6 +582,7 @@ module.exports = class lbank extends Exchange {
             'side': side,
             'price': price,
             'stopPrice': undefined,
+            'triggerPrice': undefined,
             'cost': undefined,
             'amount': amount,
             'filled': filled,
@@ -832,8 +836,7 @@ module.exports = class lbank extends Exchange {
             } else {
                 pem = this.convertSecretToPem (this.secret);
             }
-            const sign = this.binaryToBase64 (this.rsa (message, this.encode (pem), 'RS256'));
-            query['sign'] = sign;
+            query['sign'] = this.rsa (message, pem, 'RS256');
             body = this.urlencode (query);
             headers = { 'Content-Type': 'application/x-www-form-urlencoded' };
         }

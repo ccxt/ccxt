@@ -55,6 +55,12 @@ class bitvavo(Exchange, ccxt.async_support.bitvavo):
         return await self.watch(url, messageHash, message, messageHash)
 
     async def watch_ticker(self, symbol, params={}):
+        """
+        watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+        :param str symbol: unified symbol of the market to fetch the ticker for
+        :param dict params: extra parameters specific to the bitvavo api endpoint
+        :returns dict: a `ticker structure <https://docs.ccxt.com/en/latest/manual.html#ticker-structure>`
+        """
         return await self.watch_public('ticker24h', symbol, params)
 
     def handle_ticker(self, client, message):
@@ -93,6 +99,16 @@ class bitvavo(Exchange, ccxt.async_support.bitvavo):
         return message
 
     async def watch_trades(self, symbol, since=None, limit=None, params={}):
+        """
+        get the list of most recent trades for a particular symbol
+        :param str symbol: unified symbol of the market to fetch trades for
+        :param int|None since: timestamp in ms of the earliest trade to fetch
+        :param int|None limit: the maximum amount of trades to fetch
+        :param dict params: extra parameters specific to the bitvavo api endpoint
+        :returns [dict]: a list of `trade structures <https://docs.ccxt.com/en/latest/manual.html?#public-trades>`
+        """
+        await self.load_markets()
+        symbol = self.symbol(symbol)
         trades = await self.watch_public('trades', symbol, params)
         if self.newUpdates:
             limit = trades.getLimit(symbol, limit)
@@ -125,8 +141,18 @@ class bitvavo(Exchange, ccxt.async_support.bitvavo):
         client.resolve(tradesArray, messageHash)
 
     async def watch_ohlcv(self, symbol, timeframe='1m', since=None, limit=None, params={}):
+        """
+        watches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+        :param str symbol: unified symbol of the market to fetch OHLCV data for
+        :param str timeframe: the length of time each candle represents
+        :param int|None since: timestamp in ms of the earliest candle to fetch
+        :param int|None limit: the maximum amount of candles to fetch
+        :param dict params: extra parameters specific to the bitvavo api endpoint
+        :returns [[int]]: A list of candles ordered as timestamp, open, high, low, close, volume
+        """
         await self.load_markets()
         market = self.market(symbol)
+        symbol = market['symbol']
         name = 'candles'
         marketId = market['id']
         interval = self.timeframes[timeframe]
@@ -188,8 +214,16 @@ class bitvavo(Exchange, ccxt.async_support.bitvavo):
         client.resolve(stored, messageHash)
 
     async def watch_order_book(self, symbol, limit=None, params={}):
+        """
+        watches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
+        :param str symbol: unified symbol of the market to fetch the order book for
+        :param int|None limit: the maximum amount of order book entries to return
+        :param dict params: extra parameters specific to the bitvavo api endpoint
+        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/en/latest/manual.html#order-book-structure>` indexed by market symbols
+        """
         await self.load_markets()
         market = self.market(symbol)
+        symbol = market['symbol']
         name = 'book'
         messageHash = name + '@' + market['id']
         url = self.urls['api']['ws']
@@ -215,7 +249,7 @@ class bitvavo(Exchange, ccxt.async_support.bitvavo):
         }
         message = self.extend(request, params)
         orderbook = await self.watch(url, messageHash, message, messageHash, subscription)
-        return orderbook.limit(limit)
+        return orderbook.limit()
 
     def handle_delta(self, bookside, delta):
         price = self.safe_float(delta, 0)
@@ -285,7 +319,6 @@ class bitvavo(Exchange, ccxt.async_support.bitvavo):
             client.resolve(orderbook, messageHash)
 
     async def watch_order_book_snapshot(self, client, message, subscription):
-        limit = self.safe_integer(subscription, 'limit')
         params = self.safe_value(subscription, 'params')
         marketId = self.safe_string(subscription, 'marketId')
         name = 'getBook'
@@ -296,7 +329,7 @@ class bitvavo(Exchange, ccxt.async_support.bitvavo):
             'market': marketId,
         }
         orderbook = await self.watch(url, messageHash, self.extend(request, params), messageHash, subscription)
-        return orderbook.limit(limit)
+        return orderbook.limit()
 
     def handle_order_book_snapshot(self, client, message):
         #
@@ -322,10 +355,7 @@ class bitvavo(Exchange, ccxt.async_support.bitvavo):
         if response is None:
             return message
         marketId = self.safe_string(response, 'market')
-        symbol = None
-        if marketId in self.markets_by_id:
-            market = self.markets_by_id[marketId]
-            symbol = market['symbol']
+        symbol = self.safe_symbol(marketId, None, '-')
         name = 'book'
         messageHash = name + '@' + marketId
         orderbook = self.orderbooks[symbol]
@@ -351,27 +381,33 @@ class bitvavo(Exchange, ccxt.async_support.bitvavo):
         name = 'book'
         for i in range(0, len(marketIds)):
             marketId = self.safe_string(marketIds, i)
-            if marketId in self.markets_by_id:
-                market = self.markets_by_id[marketId]
-                symbol = market['symbol']
-                messageHash = name + '@' + marketId
-                if not (symbol in self.orderbooks):
-                    subscription = self.safe_value(client.subscriptions, messageHash)
-                    method = self.safe_value(subscription, 'method')
-                    if method is not None:
-                        method(client, message, subscription)
+            symbol = self.safe_symbol(marketId, None, '-')
+            messageHash = name + '@' + marketId
+            if not (symbol in self.orderbooks):
+                subscription = self.safe_value(client.subscriptions, messageHash)
+                method = self.safe_value(subscription, 'method')
+                if method is not None:
+                    method(client, message, subscription)
 
     async def watch_orders(self, symbol=None, since=None, limit=None, params={}):
+        """
+        watches information on multiple orders made by the user
+        :param str|None symbol: unified market symbol of the market orders were made in
+        :param int|None since: the earliest time in ms to fetch orders for
+        :param int|None limit: the maximum number of  orde structures to retrieve
+        :param dict params: extra parameters specific to the bitvavo api endpoint
+        :returns [dict]: a list of `order structures <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
+        """
         if symbol is None:
             raise ArgumentsRequired(self.id + ' watchOrders requires a symbol argument')
         await self.load_markets()
         await self.authenticate()
         market = self.market(symbol)
+        symbol = market['symbol']
         marketId = market['id']
         url = self.urls['api']['ws']
         name = 'account'
-        subscriptionHash = name + '@' + marketId
-        messageHash = subscriptionHash + '_' + 'order'
+        messageHash = 'order:' + symbol
         request = {
             'action': 'subscribe',
             'channels': [
@@ -381,22 +417,30 @@ class bitvavo(Exchange, ccxt.async_support.bitvavo):
                 },
             ],
         }
-        orders = await self.watch(url, messageHash, request, subscriptionHash)
+        orders = await self.watch(url, messageHash, request, messageHash)
         if self.newUpdates:
             limit = orders.getLimit(symbol, limit)
         return self.filter_by_symbol_since_limit(orders, symbol, since, limit, True)
 
     async def watch_my_trades(self, symbol=None, since=None, limit=None, params={}):
+        """
+        watches information on multiple trades made by the user
+        :param str symbol: unified market symbol of the market orders were made in
+        :param int|None since: the earliest time in ms to fetch orders for
+        :param int|None limit: the maximum number of  orde structures to retrieve
+        :param dict params: extra parameters specific to the bitvavo api endpoint
+        :returns [dict]: a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure
+        """
         if symbol is None:
             raise ArgumentsRequired(self.id + ' watchMyTrades requires a symbol argument')
         await self.load_markets()
         await self.authenticate()
         market = self.market(symbol)
+        symbol = market['symbol']
         marketId = market['id']
         url = self.urls['api']['ws']
         name = 'account'
-        subscriptionHash = name + '@' + marketId
-        messageHash = subscriptionHash + '_' + 'fill'
+        messageHash = 'myTrades:' + symbol
         request = {
             'action': 'subscribe',
             'channels': [
@@ -406,7 +450,7 @@ class bitvavo(Exchange, ccxt.async_support.bitvavo):
                 },
             ],
         }
-        trades = await self.watch(url, messageHash, request, subscriptionHash)
+        trades = await self.watch(url, messageHash, request, messageHash)
         if self.newUpdates:
             limit = trades.getLimit(symbol, limit)
         return self.filter_by_symbol_since_limit(trades, symbol, since, limit, True)
@@ -433,19 +477,17 @@ class bitvavo(Exchange, ccxt.async_support.bitvavo):
         #         postOnly: False
         #     }
         #
-        name = 'account'
-        event = self.safe_string(message, 'event')
-        marketId = self.safe_string(message, 'market', '-')
-        messageHash = name + '@' + marketId + '_' + event
-        if marketId in self.markets_by_id:
-            market = self.markets_by_id[marketId]
-            order = self.parse_order(message, market)
-            if self.orders is None:
-                limit = self.safe_integer(self.options, 'ordersLimit', 1000)
-                self.orders = ArrayCacheBySymbolById(limit)
-            orders = self.orders
-            orders.append(order)
-            client.resolve(self.orders, messageHash)
+        marketId = self.safe_string(message, 'market')
+        market = self.safe_market(marketId, None, '-')
+        symbol = market['symbol']
+        messageHash = 'order:' + symbol
+        order = self.parse_order(message, market)
+        if self.orders is None:
+            limit = self.safe_integer(self.options, 'ordersLimit', 1000)
+            self.orders = ArrayCacheBySymbolById(limit)
+        orders = self.orders
+        orders.append(order)
+        client.resolve(self.orders, messageHash)
 
     def handle_my_trade(self, client, message):
         #
@@ -463,18 +505,16 @@ class bitvavo(Exchange, ccxt.async_support.bitvavo):
         #         feeCurrency: 'EUR'
         #     }
         #
-        name = 'account'
-        event = self.safe_string(message, 'event')
         marketId = self.safe_string(message, 'market')
-        messageHash = name + '@' + marketId + '_' + event
         market = self.safe_market(marketId, None, '-')
+        symbol = market['symbol']
+        messageHash = 'myTrades:' + symbol
         trade = self.parse_trade(message, market)
         if self.myTrades is None:
             limit = self.safe_integer(self.options, 'tradesLimit', 1000)
             self.myTrades = ArrayCache(limit)
         tradesArray = self.myTrades
         tradesArray.append(trade)
-        self.myTrades = tradesArray
         client.resolve(tradesArray, messageHash)
 
     def handle_subscription_status(self, client, message):
@@ -499,32 +539,27 @@ class bitvavo(Exchange, ccxt.async_support.bitvavo):
                 method(client, message, subscription)
         return message
 
-    async def authenticate(self, params={}):
+    def authenticate(self, params={}):
         url = self.urls['api']['ws']
         client = self.client(url)
-        future = client.future('authenticated')
-        action = 'authenticate'
-        authenticated = self.safe_value(client.subscriptions, action)
-        if authenticated is None:
-            try:
-                self.check_required_credentials()
-                timestamp = self.milliseconds()
-                stringTimestamp = str(timestamp)
-                auth = stringTimestamp + 'GET/' + self.version + '/websocket'
-                signature = self.hmac(self.encode(auth), self.encode(self.secret))
-                request = {
-                    'action': action,
-                    'key': self.apiKey,
-                    'signature': signature,
-                    'timestamp': timestamp,
-                }
-                self.spawn(self.watch, url, action, request, action)
-            except Exception as e:
-                client.reject(e, 'authenticated')
-                # allows further authentication attempts
-                if action in client.subscriptions:
-                    del client.subscriptions[action]
-        return await future
+        messageHash = 'authenticated'
+        future = self.safe_value(client.subscriptions, messageHash)
+        if future is None:
+            timestamp = self.milliseconds()
+            stringTimestamp = str(timestamp)
+            auth = stringTimestamp + 'GET/' + self.version + '/websocket'
+            signature = self.hmac(self.encode(auth), self.encode(self.secret))
+            action = 'authenticate'
+            request = {
+                'action': action,
+                'key': self.apiKey,
+                'signature': signature,
+                'timestamp': timestamp,
+            }
+            message = self.extend(request, params)
+            future = self.watch(url, messageHash, message)
+            client.subscriptions[messageHash] = future
+        return future
 
     def handle_authentication_message(self, client, message):
         #
@@ -533,18 +568,17 @@ class bitvavo(Exchange, ccxt.async_support.bitvavo):
         #         authenticated: True
         #     }
         #
+        messageHash = 'authenticated'
         authenticated = self.safe_value(message, 'authenticated', False)
         if authenticated:
             # we resolve the future here permanently so authentication only happens once
-            future = self.safe_value(client.futures, 'authenticated')
-            future.resolve(True)
+            client.resolve(message, messageHash)
         else:
             error = AuthenticationError(self.json(message))
-            client.reject(error, 'authenticated')
+            client.reject(error, messageHash)
             # allows further authentication attempts
-            event = self.safe_value(message, 'event')
-            if event in client.subscriptions:
-                del client.subscriptions[event]
+            if messageHash in client.subscriptions:
+                del client.subscriptions[messageHash]
 
     def handle_message(self, client, message):
         #

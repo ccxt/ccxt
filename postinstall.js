@@ -28,6 +28,8 @@ let ascii = [
     '                         ;hX32::::::,:,    i9X9i::::::,:.',
     '                         rG999GGGGGGGAS    iG99hGGGGGGGAr',
     '                         ;2S55SSSSSSS2r    r2555SSSSSSS2;',
+    '                                                         ',
+    '                                                         ',
     '                         ;2S5s    ;2S2r    r2SS555555SS2;',
     '                         rAh&2    sAhAS    SAGGh9999GGGAr',
     '                         .:,::rrrs::::,    ,:,,;9X3X:,,:.',
@@ -56,8 +58,9 @@ let footer = [
 ]
 
 async function getData () {
-    const collectiveData = await (await fetch ('https://opencollective.com/ccxt.json')).json ()
-    const githubData = await (await fetch ('https://api.github.com/repos/ccxt/ccxt')).json ()
+    const [collectiveData_result, githubData_result] = await Promise.all ([fetch ('https://opencollective.com/ccxt.json'), fetch ('https://api.github.com/repos/ccxt/ccxt')])
+    const collectiveData = await collectiveData_result.json()
+    const githubData = await githubData_result.json()
 
     return {
         contributors: collectiveData['contributorsCount'].toLocaleString (),

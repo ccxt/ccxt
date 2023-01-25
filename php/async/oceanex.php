@@ -851,6 +851,7 @@ class oceanex extends Exchange {
             'side' => $this->safe_value($order, 'side'),
             'price' => $price,
             'stopPrice' => null,
+            'triggerPrice' => null,
             'average' => $average,
             'amount' => $amount,
             'remaining' => $remaining,

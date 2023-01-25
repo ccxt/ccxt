@@ -30,10 +30,10 @@ $main = function() use ($argv) {
 
         $spot = count(array_filter($args, function ($option) { return strstr($option, '--spot') !== false; })) > 0;
         $args = array_values(array_filter($args, function ($option) { return strstr($option, '--spot') === false; }));
-    
+
         $swap = count(array_filter($args, function ($option) { return strstr($option, '--swap') !== false; })) > 0;
         $args = array_values(array_filter($args, function ($option) { return strstr($option, '--swap') === false; }));
-    
+
         $future = count(array_filter($args, function ($option) { return strstr($option, '--future') !== false; })) > 0;
         $args = array_values(array_filter($args, function ($option) { return strstr($option, '--future') === false; }));
 
@@ -63,7 +63,7 @@ $main = function() use ($argv) {
                 $exchange = '\\ccxt\\pro\\' . $id;
             } else {
                 $exchange = '\\ccxt\\async\\' . $id;
-            }        
+            }
             $exchange = new $exchange($config);
 
             if ($spot) {
@@ -118,7 +118,7 @@ $main = function() use ($argv) {
             }
 
             $exchange->verbose = $verbose;
-            
+
             echo $exchange->id . '->' . $member . '(' . @implode(', ', $args) . ")\n";
 
             $is_ws_method = false;
@@ -136,7 +136,8 @@ $main = function() use ($argv) {
                     echo print_r($result, true) . "\n";
 
                     if (!$is_ws_method) {
-                        exit(1);
+                        # make sure to exit with exit code zero here
+                        exit(0);
                     }
 
                 } catch (\ccxt\NetworkError $e) {

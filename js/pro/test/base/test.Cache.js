@@ -316,3 +316,40 @@ outsideLimit = 2; // if limit < newsUpdate that should be returned
 limited = cache.getLimit (undefined, outsideLimit);
 
 assert (outsideLimit === limited);
+
+
+// ----------------------------------------------------------------------------
+// test ArrayCacheBySymbolById, watch all orders, same symbol and order id gets updated
+
+cache = new ArrayCacheBySymbolById ();
+symbol = 'BTC/USDT';
+outsideLimit = 5;
+cache.append ({ 'symbol': symbol, 'id': 'oneId', 'i': 3 }); // create first order
+cache.getLimit (undefined, outsideLimit); // watch all orders
+cache.append ({ 'symbol': symbol, 'id': 'oneId', 'i': 4 }); // first order is closed
+cache.getLimit (undefined, outsideLimit); // watch all orders
+cache.append ({ 'symbol': symbol, 'id': 'twoId', 'i': 5 }); // create second order
+cache.getLimit (undefined, outsideLimit); // watch all orders
+cache.append ({ 'symbol': symbol, 'id': 'twoId', 'i': 6 }); // second order is closed
+limited = cache.getLimit (undefined, outsideLimit); // watch all orders
+assert (limited === 1); // one new update
+
+// ----------------------------------------------------------------------------
+// test ArrayCacheBySymbolById, watch all orders, and watchOrders (symbol) work independently
+
+cache = new ArrayCacheBySymbolById ();
+symbol = 'BTC/USDT';
+const symbol2 = 'ETH/USDT';
+
+outsideLimit = 5;
+cache.append ({ 'symbol': symbol, 'id': 'one', 'i': 1 }); // create first order
+cache.append ({ 'symbol': symbol2, 'id': 'two', 'i': 1 }); // create second order
+assert (cache.getLimit (undefined, outsideLimit) === 2); // watch all orders
+assert (cache.getLimit (symbol, outsideLimit) === 1); // watch by symbol
+cache.append ({ 'symbol': symbol, 'id': 'one', 'i': 2 }); // update first order
+cache.append ({ 'symbol': symbol2, 'id': 'two', 'i': 2 }); // update second order
+assert (cache.getLimit (symbol, outsideLimit) === 1); // watch by symbol
+assert (cache.getLimit (undefined, outsideLimit) === 2); // watch all orders
+cache.append ({ 'symbol': symbol2, 'id': 'two', 'i': 3 }); // update second order
+cache.append ({ 'symbol': symbol2, 'id': 'three', 'i': 3 }); // create third order
+assert (cache.getLimit (undefined, outsideLimit) === 2); // watch all orders

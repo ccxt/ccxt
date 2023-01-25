@@ -1,9 +1,9 @@
 language: python
 dist: jammy
 python:
-- '3.8.3'
+- 3.8.3
 git:
-  depth: 1
+  depth: 2
 cache:
   directories:
   - ".cache"
@@ -26,29 +26,18 @@ before_install:
 - php --version
 - composer install
 script:
-- if [ "$TRAVIS_PULL_REQUEST" = "false" ] && [ "$TRAVIS_BRANCH" = "master" ]; then
-  npm config set git-tag-version=false && NPM_VERSION=$(npm version patch); fi
-- cp package.json README.md LICENSE.txt keys.json python
 - npm run force-build
-- cd python
-- tox -e doc
-- cd ..
-- ls "$VIRTUAL_ENV/lib/python3.8/site-packages/"
 - npm run test-base
 - npm run test-base-ws
 - pip list
-- node run-tests --js --python-async --php-async 5 2>&1 &
-- rest_pid=$!
-- node run-tests-ws --js --python-async --php-async 5 2>&1 &
-- ws_pid=$!
-- wait $rest_pid
-- wait $ws_pid
+- ./tests-manager.sh 2>&1
 - git checkout master composer.json
 - if [ "$TRAVIS_PULL_REQUEST" = "false" ] && [ "$TRAVIS_BRANCH" = "master" ]; then
-  env COMMIT_MESSAGE=${NPM_VERSION:1} GITHUB_TOKEN=${GITHUB_TOKEN} ./build/push.sh;
+    npm config set git-tag-version=false && NPM_VERSION=$(npm version patch);
+    npm run vss && npm run copy-python-files;
+    env COMMIT_MESSAGE=${NPM_VERSION:1} GITHUB_TOKEN=${GITHUB_TOKEN} ./build/push.sh;
+    cd python && env PYPI_TOKEN=${PYPI_TOKEN} ./deploy.sh && cd ..;
   fi
-- if [ "$TRAVIS_PULL_REQUEST" = "false" ] && [ "$TRAVIS_BRANCH" = "master" ]; then
-  cd python && env PYPI_TOKEN=${PYPI_TOKEN} ./deploy.sh && cd ..; fi
 after_failure:
 - dmesg | grep -i kill
 deploy:
@@ -60,5 +49,7 @@ after_deploy:
 - cat ~/.npm/_logs/*-debug.log
 env:
   global:
-  - secure: CQBKPcipKTvfgBi8KXaJ6KyjJL5GcWPEW7WrKZcTeM2AaNqTX8w3yuqjsezxVnQWLG3TzEI0m1K31Fv9wfZHsMwRIr5py6AeAc4C2JgaKs3FSAFJ3m46a9hK7FIeC0xMdXszPJx7534XiuG8nMJRbwbNNswb35GekysKU87g5Sf6U7UFFeyyyQdchiPF85lYBt/AJSArNsfHMd0RKQY5pHdAHNNB70qFECIBeC6MYiUFBHydw2ist/bSWa9GYEh3LxUNMQ7bbxuzD6+sVMU2PW61gEpa3I9HB7NTQvPp+YbYWqBwS++SKCuqkalXdMPeCIINu64T1UtFGZNWvw9xfg8T8GwGHwZnNZ1o3WCXKo9/+FC70OAb76mblEXllhQs+gBL5g/bqdQBKfGrYIACHBRE3pzNPSRn7oY3hpk7NLoJRbB28OQ5ymJrDc8hctoXwgD3KrIM91+6YqycOifidLFHecg/VA2bjSx/ql69sVhNchaBJ8b7EMMIjo1DrFIv43XJ7DHX+2yZFJD8uv5eCGHkfXv6XfV5312TYzGYsxpfJ9my9tdTGxop2BXzaf1nYqrI+RPKIZrh6FgiXgRaetwRpWl4G+DqxKbKtfzYlZtYU2JeJ7Z5AMwLHyvxxcuOH3MrE+vk5nbU5gE9E3m5o7yH+d7Qj5liCyXk0zxijn0=
+  # PYPI_TOKEN
   - secure: QCQa8tn40loCqSx9tR7PFAa7h5Gucl9IaEARiskiPF3zlLoZTst6ThnFl1rQDKx2jIJsN1z8Vwd12I4kYGED+Tgd345kE+J/n2hVEpTwSB+oOUWlwgkTQbCQB0XxPJRPila9lt3Ogpbvrp//L7IkFM06gu+N+qwQEOjn7dkLrVAkg5vl9nouuzqHadaQ1oOMG/v3DgPq5NHaCEWK0285Oqs8dqecVRSFGAtRPTDHzO/nv4stsbnmEWO1pu/SYXyxum1CYv9glfFaRNWoQ9EWjl8ogCzBsH3lkFeNhwLOcSyMFmTpXH1soXcLzJTWoUgfx9hiiC8IqOxx4nGurOK6OyY9QO8aVwyRdYlbpdLFuEiGuadfI6Rbz41TewZ+r3OmFn4gy5oRIM0fE+2Osj3btmsdZYktXdErqhRm18bV/oO/IOteKEXdbC7+PJ5obnpbBKKfcSNOAF8F/en+qouAywghq8UBJ9zHtWSsDXOUeCdvXLGKA01pbdaDpmtHBU9u5iX+KnSbBP+iAb7+i/uymxFTJbseYllPa1IFUf4wNf6AFlfgLnZT064KF1oiIGnvpczqD+UV4fDIukKaBaC0gK2nUQUiSNPs1kFJbs7QiQO5I07RgpAACigDWlp6tKLSUoA4wUXIG1APF5Eh001FAQ01lCjsxhMh3OmtgEIaxkI=
+  # new new GITHUB_TOKEN
+  - secure: koZWVx9bBt1QZ43OUGH6DE0tQseqYxL+LGubjSndpCQfx1OLbUOjuxa4ka8S2mVTX61IQ+Pl7VambRahmXrSp/+cIYf2l/7BfE/vmaAxs+mM7+YbvAmIbmp3ohw2Ib+SnkCPUsQWBPdOedbuDXUkTvd6T22EwftFOBYrcBxmABpvNNRwaaK7fnNJQMnJo3yiaM0sCOjcyBJOzGhO2+aW7T7LaSa0CdmD/yBIAfqxmfFCf8gOTnRep8iCay/fMAhdDD/zzUNBJoKupMWHkwSik8BeKA/Ny4OO0zvR1ZF+t1PD4qXnK17bKf3kS+JKPCK8q7wGwJWTJFezKRG0JbIZRMxi4Dsawu+QvHs4+ekSCWLuPD0bnn6TMue+bOWaCnLVQAmzTbiykWF2tuHN0Zj/c8DJJKjA62EKPKJh/69OdEV6VIwy5m2o+ij6MWK0yaAcNNOfDRiM9sAJL8eUcncFVOOzyEkFTRuke/gerJEUknH/25tYCXbmRYRolSoFvSW8PaB2Q8RXizL9LtnyRcR02wxs12jpCTAJ9rpR0XIb3D4W8BWkWgJvHp9JZOAlzESz4moROv3C6EvPFX4uZAAx/RgdFicLB7tgP9EC6RAPs1yPJwjNcv7EPLsl5OPBsFkOa8Qq5guNbeX6XuBWsIRJL+XJBODw29kISxiWDh49Dlg=

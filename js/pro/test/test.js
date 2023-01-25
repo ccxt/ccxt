@@ -7,6 +7,7 @@ const fs = require ('fs')
 
 const [processPath, , exchangeId, exchangeSymbol] = process.argv.filter ((x) => !x.startsWith ('--'))
 const verbose = process.argv.includes ('--verbose') || false
+const HttpsProxyAgent = require ('https-proxy-agent')
 
 // ----------------------------------------------------------------------------
 
@@ -15,7 +16,8 @@ if (!exchangeId) {
     process.exit ()
 }
 
-const symbol = exchangeSymbol || 'all'
+const exchangeSymbols = require ('./pro-tests.json')
+const symbol = exchangeSymbol || exchangeSymbols[exchangeId] || 'BTC/USDT'
 log.bright ('\nTESTING', { exchangeId, symbol }, '\n')
 
 // ----------------------------------------------------------------------------
@@ -85,9 +87,16 @@ if (settings) {
 
 Object.assign (exchange, settings)
 
-if (settings && settings.skipWs) {
+if (settings && (settings.skip || settings.skipWs)) {
     log.error.bright ('[Skipped]', { exchangeId, symbol })
     process.exit ()
+}
+
+//-----------------------------------------------------------------------------
+
+if (settings && settings.httpProxy) {
+    const agent = new HttpsProxyAgent (settings.httpProxy)
+    exchange.agent = agent;
 }
 
 //-----------------------------------------------------------------------------
@@ -120,22 +129,6 @@ async function testPrivate (exchange, symbol, code) {
 }
 
 //-----------------------------------------------------------------------------
-
-function getTestSymbol (exchange, symbols) {
-    let symbol = undefined
-    for (let i = 0; i < symbols.length; i++) {
-        const s = symbols[i]
-        const market = exchange.safeValue (exchange.markets, s)
-        if (market !== undefined) {
-            const active = exchange.safeValue (market, 'active')
-            if (active || (active === undefined)) {
-                symbol = s
-                break;
-            }
-        }
-    }
-    return symbol
-}
 
 async function testExchange (exchange) {
 
@@ -176,48 +169,8 @@ async function testExchange (exchange) {
     for (let i = 0; i < codes.length; i++) {
         if (codes[i] in exchange.currencies) {
             code = codes[i]
+            break
         }
-    }
-
-    let symbol = getTestSymbol (exchange, [
-        'BTC/USD',
-        'BTC/USDT',
-        'BTC/CNY',
-        'BTC/EUR',
-        'BTC/ETH',
-        'ETH/BTC',
-        'ETH/USD',
-        'ETH/USDT',
-        'BTC/JPY',
-        'LTC/BTC',
-        'ZRX/WETH',
-    ])
-
-    if (symbol === undefined) {
-        for (let i = 0; i < codes.length; i++) {
-            const markets = Object.values (exchange.markets)
-            const activeMarkets = markets.filter ((market) => (market['base'] === codes[i]))
-            if (activeMarkets.length) {
-                const activeSymbols = activeMarkets.map (market => market['symbol'])
-                symbol = getTestSymbol (exchange, activeSymbols)
-                break;
-            }
-        }
-    }
-
-    if (symbol === undefined) {
-        const markets = Object.values (exchange.markets)
-        const activeMarkets = markets.filter ((market) => !exchange.safeValue (market, 'active', false))
-        const activeSymbols = activeMarkets.map (market => market['symbol'])
-        symbol = getTestSymbol (exchange, activeSymbols)
-    }
-
-    if (symbol === undefined) {
-        symbol = getTestSymbol (exchange, exchange.symbols)
-    }
-
-    if (symbol === undefined) {
-        symbol = exchange.symbols[0]
     }
 
     log.green ('CODE:', code)
@@ -232,7 +185,10 @@ async function testExchange (exchange) {
 //-----------------------------------------------------------------------------
 
 async function test () {
-
+    if (exchange.alias) {
+        console.log ('Skipped alias')
+        process.exit ()
+    }
     await exchange.loadMarkets ()
     exchange.verbose = verbose
     await testExchange (exchange, exchangeSymbol)

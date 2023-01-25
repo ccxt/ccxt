@@ -9,6 +9,7 @@ use Exception; // a common import
 use ccxt\ExchangeError;
 use ccxt\AuthenticationError;
 use ccxt\ArgumentsRequired;
+use ccxt\BadRequest;
 use ccxt\Precise;
 use React\Async;
 
@@ -21,7 +22,7 @@ class btcex extends Exchange {
             'countries' => array( 'CA' ), // Canada
             'version' => 'v1',
             'certified' => false,
-            'pro' => false,
+            'pro' => true,
             'requiredCredentials' => array(
                 'apiKey' => true,
                 'secret' => true,
@@ -64,7 +65,10 @@ class btcex extends Exchange {
                 'fetchFundingRateHistory' => false,
                 'fetchFundingRates' => false,
                 'fetchIndexOHLCV' => false,
+                'fetchLeverage' => true,
+                'fetchLeverageTiers' => true,
                 'fetchMarginMode' => false,
+                'fetchMarketLeverageTiers' => true,
                 'fetchMarkets' => true,
                 'fetchMarkOHLCV' => false,
                 'fetchMyTrades' => true,
@@ -91,17 +95,20 @@ class btcex extends Exchange {
                 'withdraw' => false,
             ),
             'timeframes' => array(
-                '15s' => '15',
-                '1m' => '60',
-                '5m' => '300',
-                '15m' => '900',
-                '1h' => '3600',
-                '4h' => '14400',
-                '1d' => '86400',
-                '3d' => '259200',
-                '1w' => '604800',
-                '2w' => '1209600',
-                '1M' => '2592000',
+                '1m' => '1',
+                '3m' => '3',
+                '5m' => '5',
+                '15m' => '15',
+                '30m' => '30',
+                '1h' => '60',
+                '2h' => '120',
+                '3h' => '180',
+                '4h' => '240',
+                '6h' => '360',
+                '12h' => '720',
+                '1d' => '1D',
+                '3d' => '3D',
+                '1M' => '30D',
             ),
             'api' => array(
                 'public' => array(
@@ -127,6 +134,8 @@ class btcex extends Exchange {
                         'coin_gecko_market_trades',
                         'coin_gecko_contracts',
                         'coin_gecko_contract_orderbook',
+                        'get_perpetual_leverage_bracket',
+                        'get_perpetual_leverage_bracket_all',
                     ),
                     'post' => array(
                         'auth',
@@ -148,6 +157,7 @@ class btcex extends Exchange {
                         'get_user_trades_by_currency',
                         'get_user_trades_by_instrument',
                         'get_user_trades_by_order',
+                        'get_perpetual_user_config',
                     ),
                     'post' => array(
                         // auth
@@ -280,6 +290,7 @@ class btcex extends Exchange {
                     '8105' => '\\ccxt\\BadRequest', // GOOGLE_CODE_CHECK_FAIL 2FA Code error!
                     '8106' => '\\ccxt\\DDoSProtection', // SMS_CODE_LIMIT Your message service is over limit today, please try tomorrow
                     '8107' => '\\ccxt\\ExchangeError', // REQUEST_FAILED Request failed
+                    '10000' => '\\ccxt\\AuthenticationError', // Authentication Failure
                     '11000' => '\\ccxt\\BadRequest', // CHANNEL_REGEX_ERROR channel regex not match
                 ),
                 'broad' => array(
@@ -478,8 +489,11 @@ class btcex extends Exchange {
         //     }
         //
         $marketId = $this->safe_string($ticker, 'instrument_name');
+        if (mb_strpos($marketId, 'PERPETUAL') === false) {
+            $marketId = $marketId . '-SPOT';
+        }
         $market = $this->safe_market($marketId, $market);
-        $symbol = $this->safe_symbol($marketId, $market);
+        $symbol = $this->safe_symbol($marketId, $market, '-');
         $timestamp = $this->safe_integer($ticker, 'timestamp');
         $stats = $this->safe_value($ticker, 'stats');
         return $this->safe_ticker(array(
@@ -552,6 +566,9 @@ class btcex extends Exchange {
             $request = array(
                 'instrument_name' => $market['id'],
             );
+            if ($limit !== null) {
+                $request['depth'] = $limit;
+            }
             $response = Async\await($this->publicGetGetOrderBook (array_merge($request, $params)));
             $result = $this->safe_value($response, 'result', array());
             //
@@ -570,7 +587,9 @@ class btcex extends Exchange {
             //     }
             //
             $timestamp = $this->safe_integer($result, 'timestamp');
-            return $this->parse_order_book($result, $market['symbol'], $timestamp);
+            $orderBook = $this->parse_order_book($result, $market['symbol'], $timestamp);
+            $orderBook['nonce'] = $this->safe_integer($result, 'version');
+            return $orderBook;
         }) ();
     }
 
@@ -587,7 +606,7 @@ class btcex extends Exchange {
         //     }
         //
         return array(
-            $this->safe_integer($ohlcv, 'tick'),
+            $this->safe_timestamp($ohlcv, 'tick'),
             $this->safe_number($ohlcv, 'open'),
             $this->safe_number($ohlcv, 'high'),
             $this->safe_number($ohlcv, 'low'),
@@ -1138,6 +1157,9 @@ class btcex extends Exchange {
         $lastUpdate = $this->safe_integer($order, 'last_update_timestamp');
         $id = $this->safe_string($order, 'order_id');
         $priceString = $this->safe_string($order, 'price');
+        if ($priceString === '-1') {
+            $priceString = null;
+        }
         $averageString = $this->safe_string($order, 'average_price');
         $amountString = $this->safe_string($order, 'amount');
         $filledString = $this->safe_string($order, 'filled_amount');
@@ -1164,9 +1186,6 @@ class btcex extends Exchange {
         $type = $this->safe_string($order, 'order_type');
         // injected in createOrder
         $trades = $this->safe_value($order, 'trades');
-        if ($trades !== null) {
-            $trades = $this->parse_trades($trades, $market);
-        }
         $timeInForce = $this->parse_time_in_force($this->safe_string($order, 'time_in_force'));
         $stopPrice = $this->safe_value($order, 'trigger_price');
         $postOnly = $this->safe_value($order, 'post_only');
@@ -1184,6 +1203,7 @@ class btcex extends Exchange {
             'side' => $side,
             'price' => $priceString,
             'stopPrice' => $stopPrice,
+            'triggerPrice' => $stopPrice,
             'amount' => $amountString,
             'cost' => null,
             'average' => $averageString,
@@ -1913,6 +1933,191 @@ class btcex extends Exchange {
             $record = $this->safe_value($records, 0);
             return $this->parse_transaction($record, $currency);
         }) ();
+    }
+
+    public function fetch_leverage($symbol, $params = array ()) {
+        return Async\async(function () use ($symbol, $params) {
+            /**
+             * @see https://docs.btcex.com/#get-perpetual-instrument-config
+             * fetch the set leverage for a $market
+             * @param {string} $symbol unified $market $symbol
+             * @param {array} $params extra parameters specific to the btcex api endpoint
+             * @return {array} a {@link https://docs.ccxt.com/en/latest/manual.html#leverage-structure leverage structure}
+             */
+            Async\await($this->sign_in());
+            Async\await($this->load_markets());
+            $market = $this->market($symbol);
+            $request = array(
+                'instrument_name' => $market['id'],
+            );
+            $response = Async\await($this->privateGetGetPerpetualUserConfig (array_merge($request, $params)));
+            //
+            //     {
+            //         "jsonrpc" => "2.0",
+            //         "usIn" => 1674182494283,
+            //         "usOut" => 1674182494294,
+            //         "usDiff" => 11,
+            //         "result" => {
+            //             "margin_type" => "cross",
+            //             "leverage" => "20",
+            //             "instrument_name" => "BTC-USDT-PERPETUAL",
+            //             "time" => "1674182494293"
+            //         }
+            //     }
+            //
+            $data = $this->safe_value($response, 'result', array());
+            return $this->safe_number($data, 'leverage');
+        }) ();
+    }
+
+    public function fetch_market_leverage_tiers($symbol, $params = array ()) {
+        return Async\async(function () use ($symbol, $params) {
+            /**
+             * @see https://docs.btcex.com/#get-perpetual-instrument-leverage-config
+             * retrieve information on the maximum leverage, for different trade sizes for a single $market
+             * @param {string} $symbol unified $market $symbol
+             * @param {array} $params extra parameters specific to the btcex api endpoint
+             * @return {array} a {@link https://docs.ccxt.com/en/latest/manual.html#leverage-tiers-structure leverage tiers structure}
+             */
+            Async\await($this->load_markets());
+            $market = $this->market($symbol);
+            if (!$market['swap']) {
+                throw new BadRequest($this->id . ' fetchMarketLeverageTiers() supports swap markets only');
+            }
+            $request = array(
+                'instrument_name' => $market['id'],
+            );
+            $response = Async\await($this->publicGetGetPerpetualLeverageBracket (array_merge($request, $params)));
+            //
+            //     {
+            //         "jsonrpc" => "2.0",
+            //         "usIn" => 1674184074454,
+            //         "usOut" => 1674184074457,
+            //         "usDiff" => 3,
+            //         "result" => array(
+            //             array(
+            //                 "bracket" => 1,
+            //                 "initialLeverage" => 125,
+            //                 "maintenanceMarginRate" => "0.004",
+            //                 "notionalCap" => "50000",
+            //                 "notionalFloor" => "0",
+            //                 "cum" => "0"
+            //             ),
+            //             ...
+            //         )
+            //     }
+            //
+            $data = $this->safe_value($response, 'result', array());
+            return $this->parse_market_leverage_tiers($data, $market);
+        }) ();
+    }
+
+    public function parse_market_leverage_tiers($info, $market) {
+        //
+        //     array(
+        //         array(
+        //             "bracket" => 1,
+        //             "initialLeverage" => 125,
+        //             "maintenanceMarginRate" => "0.004",
+        //             "notionalCap" => "50000",
+        //             "notionalFloor" => "0",
+        //             "cum" => "0"
+        //         ),
+        //         ...
+        //     )
+        //
+        $tiers = array();
+        $brackets = $info;
+        for ($i = 0; $i < count($brackets); $i++) {
+            $tier = $brackets[$i];
+            $tiers[] = array(
+                'tier' => $this->safe_integer($tier, 'bracket'),
+                'currency' => $market['settle'],
+                'minNotional' => $this->safe_number($tier, 'notionalFloor'),
+                'maxNotional' => $this->safe_number($tier, 'notionalCap'),
+                'maintenanceMarginRate' => $this->safe_number($tier, 'maintenanceMarginRate'),
+                'maxLeverage' => $this->safe_number($tier, 'initialLeverage'),
+                'info' => $tier,
+            );
+        }
+        return $tiers;
+    }
+
+    public function fetch_leverage_tiers($symbols = null, $params = array ()) {
+        return Async\async(function () use ($symbols, $params) {
+            /**
+             * @see https://docs.btcex.com/#get-all-perpetual-instrument-leverage-config
+             * retrieve information on the maximum leverage, for different trade sizes
+             * @param {[string]|null} $symbols a list of unified market $symbols
+             * @param {array} $params extra parameters specific to the btcex api endpoint
+             * @return {array} a dictionary of {@link https://docs.ccxt.com/en/latest/manual.html#leverage-tiers-structure leverage tiers structures}, indexed by market $symbols
+             */
+            Async\await($this->load_markets());
+            $response = Async\await($this->publicGetGetPerpetualLeverageBracketAll ($params));
+            //
+            //     {
+            //         "jsonrpc" => "2.0",
+            //         "usIn" => 1674183578745,
+            //         "usOut" => 1674183578752,
+            //         "usDiff" => 7,
+            //         "result" => {
+            //             "WAVES-USDT-PERPETUAL" => array(
+            //                 array(
+            //                     "bracket" => 1,
+            //                     "initialLeverage" => 50,
+            //                     "maintenanceMarginRate" => "0.01",
+            //                     "notionalCap" => "50000",
+            //                     "notionalFloor" => "0",
+            //                     "cum" => "0"
+            //                 ),
+            //                 ...
+            //             )
+            //         }
+            //     }
+            //
+            $data = $this->safe_value($response, 'result', array());
+            $symbols = $this->market_symbols($symbols);
+            return $this->parse_leverage_tiers($data, $symbols, 'symbol');
+        }) ();
+    }
+
+    public function parse_leverage_tiers($response, $symbols = null, $marketIdKey = null) {
+        //
+        //     {
+        //         "WAVES-USDT-PERPETUAL" => array(
+        //             array(
+        //                 "bracket" => 1,
+        //                 "initialLeverage" => 50,
+        //                 "maintenanceMarginRate" => "0.01",
+        //                 "notionalCap" => "50000",
+        //                 "notionalFloor" => "0",
+        //                 "cum" => "0"
+        //             ),
+        //             ...
+        //         )
+        //     }
+        //
+        $tiers = array();
+        $result = array();
+        $marketIds = is_array($response) ? array_keys($response) : array();
+        for ($i = 0; $i < count($marketIds); $i++) {
+            $marketId = $marketIds[$i];
+            $entry = $response[$marketId];
+            $market = $this->safe_market($marketId);
+            $symbol = $this->safe_symbol($marketId, $market);
+            $symbolsLength = 0;
+            $tiers[$symbol] = $this->parse_market_leverage_tiers($entry, $market);
+            if ($symbols !== null) {
+                $symbolsLength = count($symbols);
+                if ($this->in_array($symbol, $symbols)) {
+                    $result[$symbol] = $this->parse_market_leverage_tiers($entry, $market);
+                }
+            }
+            if ($symbol !== null && ($symbolsLength === 0 || $this->in_array($symbol, $symbols))) {
+                $result[$symbol] = $this->parse_market_leverage_tiers($entry, $market);
+            }
+        }
+        return $result;
     }
 
     public function sign($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
