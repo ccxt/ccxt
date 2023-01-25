@@ -134,6 +134,7 @@ module.exports = class ace extends Exchange {
                 },
             },
             'options': {
+                'brokerId': 'ccxt',
             },
             'precisionMode': TICK_SIZE,
             'exceptions': {
@@ -236,8 +237,8 @@ module.exports = class ace extends Exchange {
                     },
                 },
                 'precision': {
-                    'price': this.parseNumber (this.parsePrecision (this.safeString (market, 'basePrecision'))),
-                    'amount': this.parseNumber (this.parsePrecision (this.safeString (market, 'quotePrecision'))),
+                    'price': this.parseNumber (this.parsePrecision (this.safeString (market, 'quotePrecision'))),
+                    'amount': this.parseNumber (this.parsePrecision (this.safeString (market, 'basePrecision'))),
                 },
                 'active': undefined,
                 'info': market,
@@ -1024,6 +1025,12 @@ module.exports = class ace extends Exchange {
             headers = {
                 'Content-Type': 'application/x-www-form-urlencoded',
             };
+            if (method === 'POST') {
+                const brokerId = this.safeString (this.options, 'brokerId');
+                if (brokerId !== undefined) {
+                    headers['Referer'] = brokerId;
+                }
+            }
             body = this.urlencode (data);
         } else if (api === 'public' && method === 'GET') {
             if (Object.keys (query).length) {
