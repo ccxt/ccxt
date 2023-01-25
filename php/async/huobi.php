@@ -975,11 +975,6 @@ class huobi extends Exchange {
                 'broker' => array(
                     'id' => 'AA03022abc',
                 ),
-                'accountsByType' => array(
-                    'spot' => 'pro',
-                    'funding' => 'pro',
-                    'future' => 'futures',
-                ),
                 'accountsById' => array(
                     'spot' => 'spot',
                     'margin' => 'margin',
@@ -5155,30 +5150,67 @@ class huobi extends Exchange {
         return Async\async(function () use ($code, $amount, $fromAccount, $toAccount, $params) {
             /**
              * $transfer $currency internally between wallets on the same account
+             * @see https://huobiapi.github.io/docs/dm/v1/en/#$transfer-margin-between-spot-account-and-future-account
+             * @see https://huobiapi.github.io/docs/spot/v1/en/#$transfer-fund-between-spot-account-and-future-contract-account
+             * @see https://huobiapi.github.io/docs/usdt_swap/v1/en/#general-$transfer-margin-between-spot-account-and-usdt-margined-contracts-account
              * @param {string} $code unified $currency $code
              * @param {float} $amount amount to $transfer
-             * @param {string} $fromAccount account to $transfer from
-             * @param {string} $toAccount account to $transfer to
+             * @param {string} $fromAccount account to $transfer from 'spot', 'future', 'swap'
+             * @param {string} $toAccount account to $transfer to 'spot', 'future', 'swap'
              * @param {array} $params extra parameters specific to the huobi api endpoint
+             * @param {string|null} $params->symbol used for isolated margin $transfer
              * @return {array} a {@link https://docs.ccxt.com/en/latest/manual.html#$transfer-structure $transfer structure}
              */
             Async\await($this->load_markets());
             $currency = $this->currency($code);
-            $type = $this->safe_string($params, 'type');
-            if ($type === null) {
-                $accountsByType = $this->safe_value($this->options, 'accountsByType', array());
-                $fromAccount = strtolower($fromAccount); // pro, futures
-                $toAccount = strtolower($toAccount); // pro, futures
-                $fromId = $this->safe_string($accountsByType, $fromAccount, $fromAccount);
-                $toId = $this->safe_string($accountsByType, $toAccount, $toAccount);
-                $type = $fromId . '-to-' . $toId;
-            }
             $request = array(
                 'currency' => $currency['id'],
                 'amount' => floatval($this->currency_to_precision($code, $amount)),
-                'type' => $type,
             );
-            $response = Async\await($this->spotPrivatePostFuturesTransfer (array_merge($request, $params)));
+            $subType = null;
+            list($subType, $params) = $this->handle_sub_type_and_params('transfer', null, $params);
+            $method = null;
+            $fromAccount = strtolower($fromAccount);
+            $toAccount = strtolower($toAccount);
+            $futuresAccounts = array(
+                'future' => 'futures',
+                'spot' => 'pro',
+            );
+            $fromIdFuture = $this->safe_string($futuresAccounts, $fromAccount, $fromAccount);
+            $toIdFuture = $this->safe_string($futuresAccounts, $toAccount, $toAccount);
+            $isFromSpot = ($fromAccount === 'spot') || ($fromAccount === 'pro');
+            $isToSpot = ($toAccount === 'spot') || ($toAccount === 'pro');
+            if (!$isFromSpot && !$isToSpot) {
+                throw new BadRequest($this->id . ' $transfer() can only $transfer between spot and futures accounts or vice versa');
+            }
+            $fromOrToFuturesAccount = ($fromIdFuture === 'futures') || ($toIdFuture === 'futures');
+            if ($fromOrToFuturesAccount) {
+                $type = $fromIdFuture . '-to-' . $toIdFuture;
+                $type = $this->safe_string($params, 'type', $type);
+                $request['type'] = $type;
+                $method = 'spotPrivatePostV1FuturesTransfer';
+            } else {
+                $method = 'v2PrivatePostAccountTransfer';
+                if ($subType === 'linear') {
+                    if (($fromAccount === 'swap') || ($fromAccount === 'linear-swap')) {
+                        $fromAccount = 'linear-swap';
+                    } else {
+                        $toAccount = 'linear-swap';
+                    }
+                    // check if cross-margin or isolated
+                    $symbol = $this->safe_string($params, 'symbol');
+                    $params = $this->omit($params, 'symbol');
+                    if ($symbol !== null) {
+                        $symbol = $this->market_id($symbol);
+                        $request['margin-account'] = $symbol;
+                    } else {
+                        $request['margin-account'] = 'USDT'; // cross-margin
+                    }
+                }
+                $request['from'] = $fromAccount;
+                $request['to'] = $toAccount;
+            }
+            $response = Async\await($this->$method (array_merge($request, $params)));
             //
             //     {
             //         "data" => 12345,
