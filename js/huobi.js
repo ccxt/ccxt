@@ -966,12 +966,6 @@ module.exports = class huobi extends Exchange {
                 'broker': {
                     'id': 'AA03022abc',
                 },
-                'accountsByType': {
-                    'spot': 'pro',
-                    'funding': 'pro',
-                    'future': 'futures',
-                    'swap': 'swap',
-                },
                 'accountsById': {
                     'spot': 'spot',
                     'margin': 'margin',
