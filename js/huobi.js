@@ -5142,6 +5142,11 @@ module.exports = class huobi extends Exchange {
         };
         const fromIdFuture = this.safeString (futuresAccounts, fromAccount, fromAccount);
         const toIdFuture = this.safeString (futuresAccounts, toAccount, toAccount);
+        const isFromSpot = (fromAccount === 'spot') || (fromAccount === 'pro');
+        const isToSpot = (toAccount === 'spot') || (toAccount === 'pro');
+        if (!isFromSpot && !isToSpot) {
+            throw new BadRequest (this.id + ' transfer() can only transfer between spot and futures accounts or vice versa');
+        }
         const fromOrToFuturesAccount = (fromIdFuture === 'futures') || (toIdFuture === 'futures');
         if (fromOrToFuturesAccount) {
             let type = fromIdFuture + '-to-' + toIdFuture;
