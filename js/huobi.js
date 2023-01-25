@@ -970,6 +970,7 @@ module.exports = class huobi extends Exchange {
                     'spot': 'pro',
                     'funding': 'pro',
                     'future': 'futures',
+                    'swap': 'swap',
                 },
                 'accountsById': {
                     'spot': 'spot',
@@ -5119,30 +5120,62 @@ module.exports = class huobi extends Exchange {
          * @method
          * @name huobi#transfer
          * @description transfer currency internally between wallets on the same account
+         * @see https://huobiapi.github.io/docs/dm/v1/en/#transfer-margin-between-spot-account-and-future-account
+         * @see https://huobiapi.github.io/docs/spot/v1/en/#transfer-fund-between-spot-account-and-future-contract-account
+         * @see https://huobiapi.github.io/docs/usdt_swap/v1/en/#general-transfer-margin-between-spot-account-and-usdt-margined-contracts-account
          * @param {string} code unified currency code
          * @param {float} amount amount to transfer
-         * @param {string} fromAccount account to transfer from
-         * @param {string} toAccount account to transfer to
+         * @param {string} fromAccount account to transfer from 'spot', 'future', 'swap'
+         * @param {string} toAccount account to transfer to 'spot', 'future', 'swap'
          * @param {object} params extra parameters specific to the huobi api endpoint
+         * @param {string|undefined} params.symbol used for isolated margin transfer
          * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/en/latest/manual.html#transfer-structure}
          */
         await this.loadMarkets ();
         const currency = this.currency (code);
-        let type = this.safeString (params, 'type');
-        if (type === undefined) {
-            const accountsByType = this.safeValue (this.options, 'accountsByType', {});
-            fromAccount = fromAccount.toLowerCase (); // pro, futures
-            toAccount = toAccount.toLowerCase (); // pro, futures
-            const fromId = this.safeString (accountsByType, fromAccount, fromAccount);
-            const toId = this.safeString (accountsByType, toAccount, toAccount);
-            type = fromId + '-to-' + toId;
-        }
         const request = {
             'currency': currency['id'],
             'amount': parseFloat (this.currencyToPrecision (code, amount)),
-            'type': type,
         };
-        const response = await this.spotPrivatePostFuturesTransfer (this.extend (request, params));
+        let subType = undefined;
+        [ subType, params ] = this.handleSubTypeAndParams ('transfer', undefined, params);
+        let method = undefined;
+        fromAccount = fromAccount.toLowerCase ();
+        toAccount = toAccount.toLowerCase ();
+        const futuresAccounts = {
+            'future': 'futures',
+            'spot': 'pro',
+        };
+        const fromIdFuture = this.safeString (futuresAccounts, fromAccount, fromAccount);
+        const toIdFuture = this.safeString (futuresAccounts, toAccount, toAccount);
+        const fromOrToFuturesAccount = (fromIdFuture === 'futures') || (toIdFuture === 'futures');
+        if (fromOrToFuturesAccount) {
+            let type = fromIdFuture + '-to-' + toIdFuture;
+            type = this.safeString (params, 'type', type);
+            request['type'] = type;
+            method = 'spotPrivatePostV1FuturesTransfer';
+        } else {
+            method = 'v2PrivatePostAccountTransfer';
+            if (subType === 'linear') {
+                if ((fromAccount === 'swap') || (fromAccount === 'linear-swap')) {
+                    fromAccount = 'linear-swap';
+                } else {
+                    toAccount = 'linear-swap';
+                }
+                // check if cross-margin or isolated
+                let symbol = this.safeString (params, 'symbol');
+                params = this.omit (params, 'symbol');
+                if (symbol !== undefined) {
+                    symbol = this.marketId (symbol);
+                    request['margin-account'] = symbol;
+                } else {
+                    request['margin-account'] = 'USDT'; // cross-margin
+                }
+            }
+            request['from'] = fromAccount;
+            request['to'] = toAccount;
+        }
+        const response = await this[method] (this.extend (request, params));
         //
         //     {
         //         "data": 12345,
