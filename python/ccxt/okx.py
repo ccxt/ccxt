@@ -343,8 +343,8 @@ class okx(Exchange):
                         'users/subaccount/delete-apikey': 10,
                         'users/subaccount/modify-apikey': 10,
                         'users/subaccount/apikey': 10,
+                        'users/subaccount/set-transfer-out': 10,
                         'asset/subaccount/transfer': 10,
-                        'asset/subaccount/set-transfer-out': 10,
                         # broker
                         'broker/nd/create-subaccount': 10,
                         'broker/nd/delete-subaccount': 10,
