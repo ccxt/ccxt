@@ -9,6 +9,7 @@ from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import ArgumentsRequired
 from ccxt.base.errors import BadRequest
 from ccxt.base.errors import InvalidOrder
+from ccxt.base.errors import OrderNotFound
 from ccxt.base.errors import NotSupported
 from ccxt.base.errors import RateLimitExceeded
 from ccxt.base.errors import InvalidNonce
@@ -60,7 +61,8 @@ class coinbase(Exchange):
                 'fetchBorrowRateHistory': False,
                 'fetchBorrowRates': False,
                 'fetchBorrowRatesPerSymbol': False,
-                'fetchClosedOrders': None,
+                'fetchCanceledOrders': True,
+                'fetchClosedOrders': True,
                 'fetchCurrencies': True,
                 'fetchDepositAddress': None,
                 'fetchDeposits': True,
@@ -81,10 +83,10 @@ class coinbase(Exchange):
                 'fetchMyTrades': None,
                 'fetchOHLCV': True,
                 'fetchOpenInterestHistory': False,
-                'fetchOpenOrders': None,
-                'fetchOrder': None,
+                'fetchOpenOrders': True,
+                'fetchOrder': True,
                 'fetchOrderBook': False,
-                'fetchOrders': None,
+                'fetchOrders': True,
                 'fetchPosition': False,
                 'fetchPositionMode': False,
                 'fetchPositions': False,
@@ -263,6 +265,7 @@ class coinbase(Exchange):
                 },
                 'broad': {
                     'request timestamp expired': InvalidNonce,  # {"errors":[{"id":"authentication_error","message":"request timestamp expired"}]}
+                    'order with self orderID was not found': OrderNotFound,  # {"error":"unknown","error_details":"order with self orderID was not found","message":"order with self orderID was not found"}
                 },
             },
             'timeframes': {
@@ -1965,37 +1968,133 @@ class coinbase(Exchange):
         #         "order_id": "bb8851a3-4fda-4a2c-aa06-9048db0e0f0d"
         #     }
         #
+        # fetchOrder, fetchOrders, fetchOpenOrders, fetchClosedOrders, fetchCanceledOrders
+        #
+        #     {
+        #         "order_id": "9bc1eb3b-5b46-4b71-9628-ae2ed0cca75b",
+        #         "product_id": "LTC-BTC",
+        #         "user_id": "1111111-1111-1111-1111-111111111111",
+        #         "order_configuration": {
+        #             "limit_limit_gtc": {
+        #                 "base_size": "0.2",
+        #                 "limit_price": "0.006",
+        #                 "post_only": False
+        #             }
+        #         },
+        #         "side": "SELL",
+        #         "client_order_id": "e5fe8482-05bb-428f-ad4d-dbc8ce39239c",
+        #         "status": "OPEN",
+        #         "time_in_force": "GOOD_UNTIL_CANCELLED",
+        #         "created_time": "2023-01-16T23:37:23.947030Z",
+        #         "completion_percentage": "0",
+        #         "filled_size": "0",
+        #         "average_filled_price": "0",
+        #         "fee": "",
+        #         "number_of_fills": "0",
+        #         "filled_value": "0",
+        #         "pending_cancel": False,
+        #         "size_in_quote": False,
+        #         "total_fees": "0",
+        #         "size_inclusive_of_fees": False,
+        #         "total_value_after_fees": "0",
+        #         "trigger_status": "INVALID_ORDER_TYPE",
+        #         "order_type": "LIMIT",
+        #         "reject_reason": "REJECT_REASON_UNSPECIFIED",
+        #         "settled": False,
+        #         "product_type": "SPOT",
+        #         "reject_message": "",
+        #         "cancel_message": ""
+        #     }
+        #
         marketId = self.safe_string(order, 'product_id')
         symbol = self.safe_symbol(marketId, market, '-')
         if symbol is not None:
             market = self.market(symbol)
-        side = self.safe_string_lower(order, 'side')
+        orderConfiguration = self.safe_value(order, 'order_configuration', {})
+        limitGTC = self.safe_value(orderConfiguration, 'limit_limit_gtc', {})
+        limitGTD = self.safe_value(orderConfiguration, 'limit_limit_gtd', {})
+        stopLimitGTC = self.safe_value(orderConfiguration, 'stop_limit_stop_limit_gtc', {})
+        stopLimitGTD = self.safe_value(orderConfiguration, 'stop_limit_stop_limit_gtd', {})
+        marketIOC = self.safe_value(orderConfiguration, 'market_market_ioc', {})
+        isLimit = ((limitGTC is not None) or (limitGTD is not None))
+        isStop = ((stopLimitGTC is not None) or (stopLimitGTD is not None))
+        price = None
+        amount = None
+        postOnly = None
+        triggerPrice = None
+        if isLimit:
+            target = limitGTC if (limitGTC is not None) else limitGTD
+            price = self.safe_string(target, 'limit_price')
+            amount = self.safe_string(target, 'base_size')
+            postOnly = self.safe_value(target, 'post_only')
+        elif isStop:
+            stopTarget = stopLimitGTC if (stopLimitGTC is not None) else stopLimitGTD
+            price = self.safe_string(stopTarget, 'limit_price')
+            amount = self.safe_string(stopTarget, 'base_size')
+            postOnly = self.safe_value(stopTarget, 'post_only')
+            triggerPrice = self.safe_string(stopTarget, 'stop_price')
+        else:
+            amount = self.safe_string(marketIOC, 'base_size')
+        datetime = self.safe_string(order, 'created_time')
         return self.safe_order({
             'info': order,
             'id': self.safe_string(order, 'order_id'),
             'clientOrderId': self.safe_string(order, 'client_order_id'),
-            'timestamp': None,
-            'datetime': None,
+            'timestamp': self.parse8601(datetime),
+            'datetime': datetime,
             'lastTradeTimestamp': None,
             'symbol': symbol,
-            'type': None,
-            'timeInForce': None,
-            'postOnly': None,
-            'side': side,
-            'price': None,
-            'stopPrice': None,
-            'triggerPrice': None,
-            'amount': None,
-            'filled': None,
+            'type': self.parse_order_type(self.safe_string(order, 'order_type')),
+            'timeInForce': self.parse_time_in_force(self.safe_string(order, 'time_in_force')),
+            'postOnly': postOnly,
+            'side': self.safe_string_lower(order, 'side'),
+            'price': price,
+            'stopPrice': triggerPrice,
+            'triggerPrice': triggerPrice,
+            'amount': amount,
+            'filled': self.safe_string(order, 'filled_size'),
             'remaining': None,
             'cost': None,
-            'average': None,
-            'status': None,
+            'average': self.safe_string(order, 'average_filled_price'),
+            'status': self.parse_order_status(self.safe_string(order, 'status')),
             'fee': {
-                'cost': None,
+                'cost': self.safe_string(order, 'total_fees'),
+                'currency': None,
             },
             'trades': None,
         }, market)
+
+    def parse_order_status(self, status):
+        statuses = {
+            'OPEN': 'open',
+            'FILLED': 'closed',
+            'CANCELLED': 'canceled',
+            'EXPIRED': 'canceled',
+            'FAILED': 'canceled',
+            'UNKNOWN_ORDER_STATUS': None,
+        }
+        return self.safe_string(statuses, status, status)
+
+    def parse_order_type(self, type):
+        if type == 'UNKNOWN_ORDER_TYPE':
+            return None
+        types = {
+            'MARKET': 'market',
+            'LIMIT': 'limit',
+            'STOP': 'limit',
+            'STOP_LIMIT': 'limit',
+        }
+        return self.safe_string(types, type, type)
+
+    def parse_time_in_force(self, timeInForce):
+        timeInForces = {
+            'GOOD_UNTIL_CANCELLED': 'GTC',
+            'GOOD_UNTIL_DATE_TIME': 'GTD',
+            'IMMEDIATE_OR_CANCEL': 'IOC',
+            'FILL_OR_KILL': 'FOK',
+            'UNKNOWN_TIME_IN_FORCE': None,
+        }
+        return self.safe_string(timeInForces, timeInForce, timeInForce)
 
     def cancel_order(self, id, symbol=None, params={}):
         """
@@ -2044,6 +2143,229 @@ class coinbase(Exchange):
             if success is not True:
                 raise BadRequest(self.id + ' cancelOrders() has failed, check your arguments and parameters')
         return self.parse_orders(orders, market)
+
+    def fetch_order(self, id, symbol=None, params={}):
+        """
+        fetches information on an order made by the user
+        see https://docs.cloud.coinbase.com/advanced-trade-api/reference/retailbrokerageapi_gethistoricalorder
+        :param str id: the order id
+        :param str|None symbol: unified market symbol that the order was made in
+        :param dict params: extra parameters specific to the coinbase api endpoint
+        :returns dict: An `order structure <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
+        """
+        self.load_markets()
+        market = None
+        if symbol is not None:
+            market = self.market(symbol)
+        request = {
+            'order_id': id,
+        }
+        response = self.v3PrivateGetBrokerageOrdersHistoricalOrderId(self.extend(request, params))
+        #
+        #     {
+        #         "order": {
+        #             "order_id": "9bc1eb3b-5b46-4b71-9628-ae2ed0cca75b",
+        #             "product_id": "LTC-BTC",
+        #             "user_id": "1111111-1111-1111-1111-111111111111",
+        #             "order_configuration": {
+        #                 "limit_limit_gtc": {
+        #                     "base_size": "0.2",
+        #                     "limit_price": "0.006",
+        #                     "post_only": False
+        #                 }
+        #             },
+        #             "side": "SELL",
+        #             "client_order_id": "e5fe8482-05bb-428f-ad4d-dbc8ce39239c",
+        #             "status": "OPEN",
+        #             "time_in_force": "GOOD_UNTIL_CANCELLED",
+        #             "created_time": "2023-01-16T23:37:23.947030Z",
+        #             "completion_percentage": "0",
+        #             "filled_size": "0",
+        #             "average_filled_price": "0",
+        #             "fee": "",
+        #             "number_of_fills": "0",
+        #             "filled_value": "0",
+        #             "pending_cancel": False,
+        #             "size_in_quote": False,
+        #             "total_fees": "0",
+        #             "size_inclusive_of_fees": False,
+        #             "total_value_after_fees": "0",
+        #             "trigger_status": "INVALID_ORDER_TYPE",
+        #             "order_type": "LIMIT",
+        #             "reject_reason": "REJECT_REASON_UNSPECIFIED",
+        #             "settled": False,
+        #             "product_type": "SPOT",
+        #             "reject_message": "",
+        #             "cancel_message": ""
+        #         }
+        #     }
+        #
+        order = self.safe_value(response, 'order', {})
+        return self.parse_order(order, market)
+
+    def fetch_orders(self, symbol=None, since=None, limit=100, params={}):
+        """
+        fetches information on multiple orders made by the user
+        see https://docs.cloud.coinbase.com/advanced-trade-api/reference/retailbrokerageapi_gethistoricalorders
+        :param str|None symbol: unified market symbol that the orders were made in
+        :param int|None since: the earliest time in ms to fetch orders
+        :param int|None limit: the maximum number of order structures to retrieve
+        :param dict params: extra parameters specific to the coinbase api endpoint
+        :returns [dict]: a list of `order structures <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
+        """
+        self.load_markets()
+        market = None
+        if symbol is not None:
+            market = self.market(symbol)
+        request = {}
+        if market is not None:
+            request['product_id'] = market['id']
+        if limit is not None:
+            request['limit'] = limit
+        if since is not None:
+            request['start_date'] = self.parse8601(since)
+        response = self.v3PrivateGetBrokerageOrdersHistoricalBatch(self.extend(request, params))
+        #
+        #     {
+        #         "orders": [
+        #             {
+        #                 "order_id": "813a53c5-3e39-47bb-863d-2faf685d22d8",
+        #                 "product_id": "BTC-USDT",
+        #                 "user_id": "1111111-1111-1111-1111-111111111111",
+        #                 "order_configuration": {
+        #                     "market_market_ioc": {
+        #                         "quote_size": "6.36"
+        #                     }
+        #                 },
+        #                 "side": "BUY",
+        #                 "client_order_id": "18eb9947-db49-4874-8e7b-39b8fe5f4317",
+        #                 "status": "FILLED",
+        #                 "time_in_force": "IMMEDIATE_OR_CANCEL",
+        #                 "created_time": "2023-01-18T01:37:37.975552Z",
+        #                 "completion_percentage": "100",
+        #                 "filled_size": "0.000297920684505",
+        #                 "average_filled_price": "21220.6399999973697697",
+        #                 "fee": "",
+        #                 "number_of_fills": "2",
+        #                 "filled_value": "6.3220675944333996",
+        #                 "pending_cancel": False,
+        #                 "size_in_quote": True,
+        #                 "total_fees": "0.0379324055666004",
+        #                 "size_inclusive_of_fees": True,
+        #                 "total_value_after_fees": "6.36",
+        #                 "trigger_status": "INVALID_ORDER_TYPE",
+        #                 "order_type": "MARKET",
+        #                 "reject_reason": "REJECT_REASON_UNSPECIFIED",
+        #                 "settled": True,
+        #                 "product_type": "SPOT",
+        #                 "reject_message": "",
+        #                 "cancel_message": "Internal error"
+        #             },
+        #         ],
+        #         "sequence": "0",
+        #         "has_next": False,
+        #         "cursor": ""
+        #     }
+        #
+        orders = self.safe_value(response, 'orders', [])
+        return self.parse_orders(orders, market, since, limit)
+
+    def fetch_orders_by_status(self, status, symbol=None, since=None, limit=None, params={}):
+        self.load_markets()
+        market = None
+        if symbol is not None:
+            market = self.market(symbol)
+        request = {
+            'order_status': status,
+        }
+        if market is not None:
+            request['product_id'] = market['id']
+        if limit is None:
+            limit = 100
+        request['limit'] = limit
+        if since is not None:
+            request['start_date'] = self.parse8601(since)
+        response = self.v3PrivateGetBrokerageOrdersHistoricalBatch(self.extend(request, params))
+        #
+        #     {
+        #         "orders": [
+        #             {
+        #                 "order_id": "813a53c5-3e39-47bb-863d-2faf685d22d8",
+        #                 "product_id": "BTC-USDT",
+        #                 "user_id": "1111111-1111-1111-1111-111111111111",
+        #                 "order_configuration": {
+        #                     "market_market_ioc": {
+        #                         "quote_size": "6.36"
+        #                     }
+        #                 },
+        #                 "side": "BUY",
+        #                 "client_order_id": "18eb9947-db49-4874-8e7b-39b8fe5f4317",
+        #                 "status": "FILLED",
+        #                 "time_in_force": "IMMEDIATE_OR_CANCEL",
+        #                 "created_time": "2023-01-18T01:37:37.975552Z",
+        #                 "completion_percentage": "100",
+        #                 "filled_size": "0.000297920684505",
+        #                 "average_filled_price": "21220.6399999973697697",
+        #                 "fee": "",
+        #                 "number_of_fills": "2",
+        #                 "filled_value": "6.3220675944333996",
+        #                 "pending_cancel": False,
+        #                 "size_in_quote": True,
+        #                 "total_fees": "0.0379324055666004",
+        #                 "size_inclusive_of_fees": True,
+        #                 "total_value_after_fees": "6.36",
+        #                 "trigger_status": "INVALID_ORDER_TYPE",
+        #                 "order_type": "MARKET",
+        #                 "reject_reason": "REJECT_REASON_UNSPECIFIED",
+        #                 "settled": True,
+        #                 "product_type": "SPOT",
+        #                 "reject_message": "",
+        #                 "cancel_message": "Internal error"
+        #             },
+        #         ],
+        #         "sequence": "0",
+        #         "has_next": False,
+        #         "cursor": ""
+        #     }
+        #
+        orders = self.safe_value(response, 'orders', [])
+        return self.parse_orders(orders, market, since, limit)
+
+    def fetch_open_orders(self, symbol=None, since=None, limit=None, params={}):
+        """
+        fetches information on all currently open orders
+        see https://docs.cloud.coinbase.com/advanced-trade-api/reference/retailbrokerageapi_gethistoricalorders
+        :param str|None symbol: unified market symbol of the orders
+        :param int|None since: timestamp in ms of the earliest order, default is None
+        :param int|None limit: the maximum number of open order structures to retrieve
+        :param dict params: extra parameters specific to the coinbase api endpoint
+        :returns [dict]: a list of `order structures <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
+        """
+        return self.fetch_orders_by_status('OPEN', symbol, since, limit, params)
+
+    def fetch_closed_orders(self, symbol=None, since=None, limit=None, params={}):
+        """
+        fetches information on multiple closed orders made by the user
+        see https://docs.cloud.coinbase.com/advanced-trade-api/reference/retailbrokerageapi_gethistoricalorders
+        :param str|None symbol: unified market symbol of the orders
+        :param int|None since: timestamp in ms of the earliest order, default is None
+        :param int|None limit: the maximum number of closed order structures to retrieve
+        :param dict params: extra parameters specific to the coinbase api endpoint
+        :returns [dict]: a list of `order structures <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
+        """
+        return self.fetch_orders_by_status('FILLED', symbol, since, limit, params)
+
+    def fetch_canceled_orders(self, symbol=None, since=None, limit=None, params={}):
+        """
+        fetches information on multiple canceled orders made by the user
+        see https://docs.cloud.coinbase.com/advanced-trade-api/reference/retailbrokerageapi_gethistoricalorders
+        :param str symbol: unified market symbol of the orders
+        :param int|None since: timestamp in ms of the earliest order, default is None
+        :param int|None limit: the maximum number of canceled order structures to retrieve
+        :param dict params: extra parameters specific to the coinbase api endpoint
+        :returns dict: a list of `order structures <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
+        """
+        return self.fetch_orders_by_status('CANCELLED', symbol, since, limit, params)
 
     def fetch_ohlcv(self, symbol, timeframe='1m', since=None, limit=None, params={}):
         """

@@ -56,7 +56,8 @@ class coinbase extends Exchange {
                 'fetchBorrowRateHistory' => false,
                 'fetchBorrowRates' => false,
                 'fetchBorrowRatesPerSymbol' => false,
-                'fetchClosedOrders' => null,
+                'fetchCanceledOrders' => true,
+                'fetchClosedOrders' => true,
                 'fetchCurrencies' => true,
                 'fetchDepositAddress' => null,
                 'fetchDeposits' => true,
@@ -77,10 +78,10 @@ class coinbase extends Exchange {
                 'fetchMyTrades' => null,
                 'fetchOHLCV' => true,
                 'fetchOpenInterestHistory' => false,
-                'fetchOpenOrders' => null,
-                'fetchOrder' => null,
+                'fetchOpenOrders' => true,
+                'fetchOrder' => true,
                 'fetchOrderBook' => false,
-                'fetchOrders' => null,
+                'fetchOrders' => true,
                 'fetchPosition' => false,
                 'fetchPositionMode' => false,
                 'fetchPositions' => false,
@@ -259,6 +260,7 @@ class coinbase extends Exchange {
                 ),
                 'broad' => array(
                     'request timestamp expired' => '\\ccxt\\InvalidNonce', // array("errors":[array("id":"authentication_error","message":"request timestamp expired")])
+                    'order with this orderID was not found' => '\\ccxt\\OrderNotFound', // array("error":"unknown","error_details":"order with this orderID was not found","message":"order with this orderID was not found")
                 ),
             ),
             'timeframes' => array(
@@ -2100,38 +2102,139 @@ class coinbase extends Exchange {
         //         "order_id" => "bb8851a3-4fda-4a2c-aa06-9048db0e0f0d"
         //     }
         //
+        // fetchOrder, fetchOrders, fetchOpenOrders, fetchClosedOrders, fetchCanceledOrders
+        //
+        //     {
+        //         "order_id" => "9bc1eb3b-5b46-4b71-9628-ae2ed0cca75b",
+        //         "product_id" => "LTC-BTC",
+        //         "user_id" => "1111111-1111-1111-1111-111111111111",
+        //         "order_configuration" => {
+        //             "limit_limit_gtc" => array(
+        //                 "base_size" => "0.2",
+        //                 "limit_price" => "0.006",
+        //                 "post_only" => false
+        //             }
+        //         ),
+        //         "side" => "SELL",
+        //         "client_order_id" => "e5fe8482-05bb-428f-ad4d-dbc8ce39239c",
+        //         "status" => "OPEN",
+        //         "time_in_force" => "GOOD_UNTIL_CANCELLED",
+        //         "created_time" => "2023-01-16T23:37:23.947030Z",
+        //         "completion_percentage" => "0",
+        //         "filled_size" => "0",
+        //         "average_filled_price" => "0",
+        //         "fee" => "",
+        //         "number_of_fills" => "0",
+        //         "filled_value" => "0",
+        //         "pending_cancel" => false,
+        //         "size_in_quote" => false,
+        //         "total_fees" => "0",
+        //         "size_inclusive_of_fees" => false,
+        //         "total_value_after_fees" => "0",
+        //         "trigger_status" => "INVALID_ORDER_TYPE",
+        //         "order_type" => "LIMIT",
+        //         "reject_reason" => "REJECT_REASON_UNSPECIFIED",
+        //         "settled" => false,
+        //         "product_type" => "SPOT",
+        //         "reject_message" => "",
+        //         "cancel_message" => ""
+        //     }
+        //
         $marketId = $this->safe_string($order, 'product_id');
         $symbol = $this->safe_symbol($marketId, $market, '-');
         if ($symbol !== null) {
             $market = $this->market($symbol);
         }
-        $side = $this->safe_string_lower($order, 'side');
+        $orderConfiguration = $this->safe_value($order, 'order_configuration', array());
+        $limitGTC = $this->safe_value($orderConfiguration, 'limit_limit_gtc', array());
+        $limitGTD = $this->safe_value($orderConfiguration, 'limit_limit_gtd', array());
+        $stopLimitGTC = $this->safe_value($orderConfiguration, 'stop_limit_stop_limit_gtc', array());
+        $stopLimitGTD = $this->safe_value($orderConfiguration, 'stop_limit_stop_limit_gtd', array());
+        $marketIOC = $this->safe_value($orderConfiguration, 'market_market_ioc', array());
+        $isLimit = (($limitGTC !== null) || ($limitGTD !== null));
+        $isStop = (($stopLimitGTC !== null) || ($stopLimitGTD !== null));
+        $price = null;
+        $amount = null;
+        $postOnly = null;
+        $triggerPrice = null;
+        if ($isLimit) {
+            $target = ($limitGTC !== null) ? $limitGTC : $limitGTD;
+            $price = $this->safe_string($target, 'limit_price');
+            $amount = $this->safe_string($target, 'base_size');
+            $postOnly = $this->safe_value($target, 'post_only');
+        } elseif ($isStop) {
+            $stopTarget = ($stopLimitGTC !== null) ? $stopLimitGTC : $stopLimitGTD;
+            $price = $this->safe_string($stopTarget, 'limit_price');
+            $amount = $this->safe_string($stopTarget, 'base_size');
+            $postOnly = $this->safe_value($stopTarget, 'post_only');
+            $triggerPrice = $this->safe_string($stopTarget, 'stop_price');
+        } else {
+            $amount = $this->safe_string($marketIOC, 'base_size');
+        }
+        $datetime = $this->safe_string($order, 'created_time');
         return $this->safe_order(array(
             'info' => $order,
             'id' => $this->safe_string($order, 'order_id'),
             'clientOrderId' => $this->safe_string($order, 'client_order_id'),
-            'timestamp' => null,
-            'datetime' => null,
+            'timestamp' => $this->parse8601($datetime),
+            'datetime' => $datetime,
             'lastTradeTimestamp' => null,
             'symbol' => $symbol,
-            'type' => null,
-            'timeInForce' => null,
-            'postOnly' => null,
-            'side' => $side,
-            'price' => null,
-            'stopPrice' => null,
-            'triggerPrice' => null,
-            'amount' => null,
-            'filled' => null,
+            'type' => $this->parse_order_type($this->safe_string($order, 'order_type')),
+            'timeInForce' => $this->parse_time_in_force($this->safe_string($order, 'time_in_force')),
+            'postOnly' => $postOnly,
+            'side' => $this->safe_string_lower($order, 'side'),
+            'price' => $price,
+            'stopPrice' => $triggerPrice,
+            'triggerPrice' => $triggerPrice,
+            'amount' => $amount,
+            'filled' => $this->safe_string($order, 'filled_size'),
             'remaining' => null,
             'cost' => null,
-            'average' => null,
-            'status' => null,
+            'average' => $this->safe_string($order, 'average_filled_price'),
+            'status' => $this->parse_order_status($this->safe_string($order, 'status')),
             'fee' => array(
-                'cost' => null,
+                'cost' => $this->safe_string($order, 'total_fees'),
+                'currency' => null,
             ),
             'trades' => null,
         ), $market);
+    }
+
+    public function parse_order_status($status) {
+        $statuses = array(
+            'OPEN' => 'open',
+            'FILLED' => 'closed',
+            'CANCELLED' => 'canceled',
+            'EXPIRED' => 'canceled',
+            'FAILED' => 'canceled',
+            'UNKNOWN_ORDER_STATUS' => null,
+        );
+        return $this->safe_string($statuses, $status, $status);
+    }
+
+    public function parse_order_type($type) {
+        if ($type === 'UNKNOWN_ORDER_TYPE') {
+            return null;
+        }
+        $types = array(
+            'MARKET' => 'market',
+            'LIMIT' => 'limit',
+            'STOP' => 'limit',
+            'STOP_LIMIT' => 'limit',
+        );
+        return $this->safe_string($types, $type, $type);
+    }
+
+    public function parse_time_in_force($timeInForce) {
+        $timeInForces = array(
+            'GOOD_UNTIL_CANCELLED' => 'GTC',
+            'GOOD_UNTIL_DATE_TIME' => 'GTD',
+            'IMMEDIATE_OR_CANCEL' => 'IOC',
+            'FILL_OR_KILL' => 'FOK',
+            'UNKNOWN_TIME_IN_FORCE' => null,
+        );
+        return $this->safe_string($timeInForces, $timeInForce, $timeInForce);
     }
 
     public function cancel_order($id, $symbol = null, $params = array ()) {
@@ -2188,6 +2291,256 @@ class coinbase extends Exchange {
                 }
             }
             return $this->parse_orders($orders, $market);
+        }) ();
+    }
+
+    public function fetch_order($id, $symbol = null, $params = array ()) {
+        return Async\async(function () use ($id, $symbol, $params) {
+            /**
+             * fetches information on an $order made by the user
+             * @see https://docs.cloud.coinbase.com/advanced-trade-api/reference/retailbrokerageapi_gethistoricalorder
+             * @param {string} $id the $order $id
+             * @param {string|null} $symbol unified $market $symbol that the $order was made in
+             * @param {array} $params extra parameters specific to the coinbase api endpoint
+             * @return {array} An {@link https://docs.ccxt.com/en/latest/manual.html#$order-structure $order structure}
+             */
+            Async\await($this->load_markets());
+            $market = null;
+            if ($symbol !== null) {
+                $market = $this->market($symbol);
+            }
+            $request = array(
+                'order_id' => $id,
+            );
+            $response = Async\await($this->v3PrivateGetBrokerageOrdersHistoricalOrderId (array_merge($request, $params)));
+            //
+            //     {
+            //         "order" => {
+            //             "order_id" => "9bc1eb3b-5b46-4b71-9628-ae2ed0cca75b",
+            //             "product_id" => "LTC-BTC",
+            //             "user_id" => "1111111-1111-1111-1111-111111111111",
+            //             "order_configuration" => {
+            //                 "limit_limit_gtc" => array(
+            //                     "base_size" => "0.2",
+            //                     "limit_price" => "0.006",
+            //                     "post_only" => false
+            //                 }
+            //             ),
+            //             "side" => "SELL",
+            //             "client_order_id" => "e5fe8482-05bb-428f-ad4d-dbc8ce39239c",
+            //             "status" => "OPEN",
+            //             "time_in_force" => "GOOD_UNTIL_CANCELLED",
+            //             "created_time" => "2023-01-16T23:37:23.947030Z",
+            //             "completion_percentage" => "0",
+            //             "filled_size" => "0",
+            //             "average_filled_price" => "0",
+            //             "fee" => "",
+            //             "number_of_fills" => "0",
+            //             "filled_value" => "0",
+            //             "pending_cancel" => false,
+            //             "size_in_quote" => false,
+            //             "total_fees" => "0",
+            //             "size_inclusive_of_fees" => false,
+            //             "total_value_after_fees" => "0",
+            //             "trigger_status" => "INVALID_ORDER_TYPE",
+            //             "order_type" => "LIMIT",
+            //             "reject_reason" => "REJECT_REASON_UNSPECIFIED",
+            //             "settled" => false,
+            //             "product_type" => "SPOT",
+            //             "reject_message" => "",
+            //             "cancel_message" => ""
+            //         }
+            //     }
+            //
+            $order = $this->safe_value($response, 'order', array());
+            return $this->parse_order($order, $market);
+        }) ();
+    }
+
+    public function fetch_orders($symbol = null, $since = null, $limit = 100, $params = array ()) {
+        return Async\async(function () use ($symbol, $since, $limit, $params) {
+            /**
+             * fetches information on multiple $orders made by the user
+             * @see https://docs.cloud.coinbase.com/advanced-trade-api/reference/retailbrokerageapi_gethistoricalorders
+             * @param {string|null} $symbol unified $market $symbol that the $orders were made in
+             * @param {int|null} $since the earliest time in ms to fetch $orders
+             * @param {int|null} $limit the maximum number of order structures to retrieve
+             * @param {array} $params extra parameters specific to the coinbase api endpoint
+             * @return {[array]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structures}
+             */
+            Async\await($this->load_markets());
+            $market = null;
+            if ($symbol !== null) {
+                $market = $this->market($symbol);
+            }
+            $request = array();
+            if ($market !== null) {
+                $request['product_id'] = $market['id'];
+            }
+            if ($limit !== null) {
+                $request['limit'] = $limit;
+            }
+            if ($since !== null) {
+                $request['start_date'] = $this->parse8601($since);
+            }
+            $response = Async\await($this->v3PrivateGetBrokerageOrdersHistoricalBatch (array_merge($request, $params)));
+            //
+            //     {
+            //         "orders" => array(
+            //             {
+            //                 "order_id" => "813a53c5-3e39-47bb-863d-2faf685d22d8",
+            //                 "product_id" => "BTC-USDT",
+            //                 "user_id" => "1111111-1111-1111-1111-111111111111",
+            //                 "order_configuration" => array(
+            //                     "market_market_ioc" => array(
+            //                         "quote_size" => "6.36"
+            //                     }
+            //                 ),
+            //                 "side" => "BUY",
+            //                 "client_order_id" => "18eb9947-db49-4874-8e7b-39b8fe5f4317",
+            //                 "status" => "FILLED",
+            //                 "time_in_force" => "IMMEDIATE_OR_CANCEL",
+            //                 "created_time" => "2023-01-18T01:37:37.975552Z",
+            //                 "completion_percentage" => "100",
+            //                 "filled_size" => "0.000297920684505",
+            //                 "average_filled_price" => "21220.6399999973697697",
+            //                 "fee" => "",
+            //                 "number_of_fills" => "2",
+            //                 "filled_value" => "6.3220675944333996",
+            //                 "pending_cancel" => false,
+            //                 "size_in_quote" => true,
+            //                 "total_fees" => "0.0379324055666004",
+            //                 "size_inclusive_of_fees" => true,
+            //                 "total_value_after_fees" => "6.36",
+            //                 "trigger_status" => "INVALID_ORDER_TYPE",
+            //                 "order_type" => "MARKET",
+            //                 "reject_reason" => "REJECT_REASON_UNSPECIFIED",
+            //                 "settled" => true,
+            //                 "product_type" => "SPOT",
+            //                 "reject_message" => "",
+            //                 "cancel_message" => "Internal error"
+            //             ),
+            //         ),
+            //         "sequence" => "0",
+            //         "has_next" => false,
+            //         "cursor" => ""
+            //     }
+            //
+            $orders = $this->safe_value($response, 'orders', array());
+            return $this->parse_orders($orders, $market, $since, $limit);
+        }) ();
+    }
+
+    public function fetch_orders_by_status($status, $symbol = null, $since = null, $limit = null, $params = array ()) {
+        return Async\async(function () use ($status, $symbol, $since, $limit, $params) {
+            Async\await($this->load_markets());
+            $market = null;
+            if ($symbol !== null) {
+                $market = $this->market($symbol);
+            }
+            $request = array(
+                'order_status' => $status,
+            );
+            if ($market !== null) {
+                $request['product_id'] = $market['id'];
+            }
+            if ($limit === null) {
+                $limit = 100;
+            }
+            $request['limit'] = $limit;
+            if ($since !== null) {
+                $request['start_date'] = $this->parse8601($since);
+            }
+            $response = Async\await($this->v3PrivateGetBrokerageOrdersHistoricalBatch (array_merge($request, $params)));
+            //
+            //     {
+            //         "orders" => array(
+            //             {
+            //                 "order_id" => "813a53c5-3e39-47bb-863d-2faf685d22d8",
+            //                 "product_id" => "BTC-USDT",
+            //                 "user_id" => "1111111-1111-1111-1111-111111111111",
+            //                 "order_configuration" => array(
+            //                     "market_market_ioc" => array(
+            //                         "quote_size" => "6.36"
+            //                     }
+            //                 ),
+            //                 "side" => "BUY",
+            //                 "client_order_id" => "18eb9947-db49-4874-8e7b-39b8fe5f4317",
+            //                 "status" => "FILLED",
+            //                 "time_in_force" => "IMMEDIATE_OR_CANCEL",
+            //                 "created_time" => "2023-01-18T01:37:37.975552Z",
+            //                 "completion_percentage" => "100",
+            //                 "filled_size" => "0.000297920684505",
+            //                 "average_filled_price" => "21220.6399999973697697",
+            //                 "fee" => "",
+            //                 "number_of_fills" => "2",
+            //                 "filled_value" => "6.3220675944333996",
+            //                 "pending_cancel" => false,
+            //                 "size_in_quote" => true,
+            //                 "total_fees" => "0.0379324055666004",
+            //                 "size_inclusive_of_fees" => true,
+            //                 "total_value_after_fees" => "6.36",
+            //                 "trigger_status" => "INVALID_ORDER_TYPE",
+            //                 "order_type" => "MARKET",
+            //                 "reject_reason" => "REJECT_REASON_UNSPECIFIED",
+            //                 "settled" => true,
+            //                 "product_type" => "SPOT",
+            //                 "reject_message" => "",
+            //                 "cancel_message" => "Internal error"
+            //             ),
+            //         ),
+            //         "sequence" => "0",
+            //         "has_next" => false,
+            //         "cursor" => ""
+            //     }
+            //
+            $orders = $this->safe_value($response, 'orders', array());
+            return $this->parse_orders($orders, $market, $since, $limit);
+        }) ();
+    }
+
+    public function fetch_open_orders($symbol = null, $since = null, $limit = null, $params = array ()) {
+        return Async\async(function () use ($symbol, $since, $limit, $params) {
+            /**
+             * fetches information on all currently open orders
+             * @see https://docs.cloud.coinbase.com/advanced-trade-api/reference/retailbrokerageapi_gethistoricalorders
+             * @param {string|null} $symbol unified market $symbol of the orders
+             * @param {int|null} $since timestamp in ms of the earliest order, default is null
+             * @param {int|null} $limit the maximum number of open order structures to retrieve
+             * @param {array} $params extra parameters specific to the coinbase api endpoint
+             * @return {[array]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structures}
+             */
+            return Async\await($this->fetch_orders_by_status('OPEN', $symbol, $since, $limit, $params));
+        }) ();
+    }
+
+    public function fetch_closed_orders($symbol = null, $since = null, $limit = null, $params = array ()) {
+        return Async\async(function () use ($symbol, $since, $limit, $params) {
+            /**
+             * fetches information on multiple closed orders made by the user
+             * @see https://docs.cloud.coinbase.com/advanced-trade-api/reference/retailbrokerageapi_gethistoricalorders
+             * @param {string|null} $symbol unified market $symbol of the orders
+             * @param {int|null} $since timestamp in ms of the earliest order, default is null
+             * @param {int|null} $limit the maximum number of closed order structures to retrieve
+             * @param {array} $params extra parameters specific to the coinbase api endpoint
+             * @return {[array]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structures}
+             */
+            return Async\await($this->fetch_orders_by_status('FILLED', $symbol, $since, $limit, $params));
+        }) ();
+    }
+
+    public function fetch_canceled_orders($symbol = null, $since = null, $limit = null, $params = array ()) {
+        return Async\async(function () use ($symbol, $since, $limit, $params) {
+            /**
+             * fetches information on multiple canceled orders made by the user
+             * @see https://docs.cloud.coinbase.com/advanced-trade-api/reference/retailbrokerageapi_gethistoricalorders
+             * @param {string} $symbol unified market $symbol of the orders
+             * @param {int|null} $since timestamp in ms of the earliest order, default is null
+             * @param {int|null} $limit the maximum number of canceled order structures to retrieve
+             * @param {array} $params extra parameters specific to the coinbase api endpoint
+             * @return {array} a list of {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structures}
+             */
+            return Async\await($this->fetch_orders_by_status('CANCELLED', $symbol, $since, $limit, $params));
         }) ();
     }
 

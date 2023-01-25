@@ -2055,7 +2055,7 @@ module.exports = class binance extends Exchange {
             for (let i = 0; i < assets.length; i++) {
                 const asset = assets[i];
                 const marketId = this.safeValue (asset, 'symbol');
-                const symbol = this.safeSymbol (marketId, undefined, undefined, 'margin');
+                const symbol = this.safeSymbol (marketId, undefined, undefined, 'spot');
                 const base = this.safeValue (asset, 'baseAsset', {});
                 const quote = this.safeValue (asset, 'quoteAsset', {});
                 const baseCode = this.safeCurrencyCode (this.safeString (base, 'asset'));
@@ -2140,12 +2140,6 @@ module.exports = class binance extends Exchange {
             const fetchBalanceOptions = this.safeValue (options, 'fetchBalance', {});
             method = this.safeString (fetchBalanceOptions, 'method', 'dapiPrivateGetAccount');
             type = 'inverse';
-        } else if ((type === 'margin') || (marginMode === 'cross')) {
-            method = 'sapiGetMarginAccount';
-        } else if (type === 'savings') {
-            method = 'sapiGetLendingUnionAccount';
-        } else if (type === 'funding') {
-            method = 'sapiPostAssetGetFundingAsset';
         } else if (marginMode === 'isolated') {
             method = 'sapiGetMarginIsolatedAccount';
             const paramSymbols = this.safeValue (params, 'symbols');
@@ -2163,6 +2157,12 @@ module.exports = class binance extends Exchange {
                 }
                 request['symbols'] = symbols;
             }
+        } else if ((type === 'margin') || (marginMode === 'cross')) {
+            method = 'sapiGetMarginAccount';
+        } else if (type === 'savings') {
+            method = 'sapiGetLendingUnionAccount';
+        } else if (type === 'funding') {
+            method = 'sapiPostAssetGetFundingAsset';
         }
         const requestParams = this.omit (query, [ 'type', 'symbols' ]);
         const response = await this[method] (this.extend (request, requestParams));
@@ -5346,19 +5346,22 @@ module.exports = class binance extends Exchange {
             const symbols = Object.keys (this.markets);
             const result = {};
             const feeTier = this.safeInteger (response, 'feeTier');
-            const feeTiers = this.fees[type]['trading']['tiers'];
+            const feeTiers = this.fees['linear']['trading']['tiers'];
             const maker = feeTiers['maker'][feeTier][1];
             const taker = feeTiers['taker'][feeTier][1];
             for (let i = 0; i < symbols.length; i++) {
                 const symbol = symbols[i];
-                result[symbol] = {
-                    'info': {
-                        'feeTier': feeTier,
-                    },
-                    'symbol': symbol,
-                    'maker': maker,
-                    'taker': taker,
-                };
+                const market = this.markets[symbol];
+                if (market['linear']) {
+                    result[symbol] = {
+                        'info': {
+                            'feeTier': feeTier,
+                        },
+                        'symbol': symbol,
+                        'maker': maker,
+                        'taker': taker,
+                    };
+                }
             }
             return result;
         } else if (isInverse) {
@@ -5374,19 +5377,22 @@ module.exports = class binance extends Exchange {
             const symbols = Object.keys (this.markets);
             const result = {};
             const feeTier = this.safeInteger (response, 'feeTier');
-            const feeTiers = this.fees[type]['trading']['tiers'];
+            const feeTiers = this.fees['inverse']['trading']['tiers'];
             const maker = feeTiers['maker'][feeTier][1];
             const taker = feeTiers['taker'][feeTier][1];
             for (let i = 0; i < symbols.length; i++) {
                 const symbol = symbols[i];
-                result[symbol] = {
-                    'info': {
-                        'feeTier': feeTier,
-                    },
-                    'symbol': symbol,
-                    'maker': maker,
-                    'taker': taker,
-                };
+                const market = this.markets[symbol];
+                if (market['inverse']) {
+                    result[symbol] = {
+                        'info': {
+                            'feeTier': feeTier,
+                        },
+                        'symbol': symbol,
+                        'maker': maker,
+                        'taker': taker,
+                    };
+                }
             }
             return result;
         }
