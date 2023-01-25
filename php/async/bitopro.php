@@ -886,7 +886,6 @@ class bitopro extends Exchange {
             '2' => 'closed',
             '3' => 'closed',
             '4' => 'canceled',
-            '6' => 'canceled',
         );
         return $this->safe_string($statuses, $status, null);
     }
@@ -942,10 +941,6 @@ class bitopro extends Exchange {
         $filled = $this->safe_string($order, 'executedAmount');
         $remaining = $this->safe_string($order, 'remainingAmount');
         $timeInForce = $this->safe_string($order, 'timeInForce');
-        $postOnly = null;
-        if ($timeInForce === 'POST_ONLY') {
-            $postOnly = true;
-        }
         $fee = null;
         $feeAmount = $this->safe_string($order, 'fee');
         $feeSymbol = $this->safe_currency_code($this->safe_string($order, 'feeSymbol'));
@@ -964,7 +959,7 @@ class bitopro extends Exchange {
             'symbol' => $symbol,
             'type' => $type,
             'timeInForce' => $timeInForce,
-            'postOnly' => $postOnly,
+            'postOnly' => null,
             'side' => $side,
             'price' => $price,
             'stopPrice' => null,
@@ -1021,10 +1016,6 @@ class bitopro extends Exchange {
                 } else {
                     $request['condition'] = $condition;
                 }
-            }
-            $postOnly = $this->is_post_only($orderType === 'MARKET', null, $params);
-            if ($postOnly) {
-                $request['timeInForce'] = 'POST_ONLY';
             }
             $response = Async\await($this->privatePostOrdersPair (array_merge($request, $params), $params));
             //

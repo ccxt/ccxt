@@ -986,7 +986,7 @@ class zonda extends Exchange {
             'referenceAccount' => null,
             'type' => $this->parse_ledger_entry_type($this->safe_string($item, 'type')),
             'currency' => $this->safe_currency_code($currencyId),
-            'amount' => $this->parse_number($amount),
+            'amount' => $amount,
             'before' => $this->safe_number($fundsBefore, 'total'),
             'after' => $this->safe_number($fundsAfter, 'total'),
             'status' => 'ok',

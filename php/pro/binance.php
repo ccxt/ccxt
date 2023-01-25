@@ -439,7 +439,7 @@ class binance extends \ccxt\async\binance {
             );
             $trades = Async\await($this->watch($url, $messageHash, array_merge($request, $query), $messageHash, $subscribe));
             if ($this->newUpdates) {
-                $limit = $trades->getLimit ($market['symbol'], $limit);
+                $limit = $trades->getLimit ($symbol, $limit);
             }
             return $this->filter_by_since_limit($trades, $since, $limit, 'timestamp', true);
         }) ();
