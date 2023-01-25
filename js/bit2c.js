@@ -460,6 +460,7 @@ module.exports = class bit2c extends Exchange {
             'id': id,
         };
         const response = await this.privateGetOrderGetById (this.extend (request, params));
+        //
         //         {
         //             "pair": "BtcNis",
         //             "status": "Completed",
@@ -472,40 +473,41 @@ module.exports = class bit2c extends Exchange {
         //             "id": 10951473,
         //             "initialAmount": 2.00000000
         //         }
+        //
         return this.parseOrder (response, market);
     }
 
     parseOrder (order, market = undefined) {
-        //             createOrder
-        //             {
-        //                 "OrderResponse": {"pair": "BtcNis", "HasError": False, "Error": "", "Message": ""},
-        //                 "NewOrder": {
-        //                     "created": 1505531577,
-        //                     "type": 0,
-        //                     "order_type": 0,
-        //                     "status_type": 0,
-        //                     "amount": 0.01,
-        //                     "price": 10000,
-        //                     "stop": 0,
-        //                     "id": 9244416,
-        //                     "initialAmount": None,
-        //                 },
-        //             }
         //
-        //             fetchOrder, fetchOpenOrders
-        //             {
-        //                 "pair": "BtcNis",
-        //                 "status": "Completed",
-        //                 "created": 1535555837,
-        //                 "type": 0,
-        //                 "order_type": 0,
-        //                 "amount": 0.00000000,
-        //                 "price": 120000.00000000,
-        //                 "stop": 0,
-        //                 "id": 10555173,
-        //                 "initialAmount": 2.00000000
-        //             }
-        // order related responses differ in dict structure
+        //      createOrder
+        //      {
+        //          "OrderResponse": {"pair": "BtcNis", "HasError": False, "Error": "", "Message": ""},
+        //          "NewOrder": {
+        //              "created": 1505531577,
+        //              "type": 0,
+        //              "order_type": 0,
+        //              "status_type": 0,
+        //              "amount": 0.01,
+        //              "price": 10000,
+        //              "stop": 0,
+        //              "id": 9244416,
+        //              "initialAmount": None,
+        //          },
+        //      }
+        //      fetchOrder, fetchOpenOrders
+        //      {
+        //          "pair": "BtcNis",
+        //          "status": "Completed",
+        //          "created": 1535555837,
+        //          "type": 0,
+        //          "order_type": 0,
+        //          "amount": 0.00000000,
+        //          "price": 120000.00000000,
+        //          "stop": 0,
+        //          "id": 10555173,
+        //          "initialAmount": 2.00000000
+        //      }
+        //
         let orderUnified = undefined;
         let isNewOrder = false;
         if ('NewOrder' in order) {
@@ -516,11 +518,7 @@ module.exports = class bit2c extends Exchange {
         }
         const id = this.safeString (order, 'id');
         const symbol = this.safeSymbol (undefined, market);
-        // bit2c timestamp string unix epoch in seconds (standard is milliseconds)
-        let timestamp = this.safeInteger (order, 'created');
-        if (timestamp) {
-            timestamp = timestamp * 1000;
-        }
+        const timestamp = this.safeIntegerProduct (order, 'created', 1000);
         // status field vary between responses
         // bit2c status type:
         // 0 = New
@@ -558,24 +556,15 @@ module.exports = class bit2c extends Exchange {
         } else if (side === 1) {
             side = 'sell';
         }
-        const price = this.safeNumber (order, 'price');
+        const price = this.safeString (order, 'price');
         let amount = undefined;
-        let cost = undefined;
         let remaining = undefined;
-        let filled = undefined;
         if (isNewOrder) {
-            amount = this.safeNumber (orderUnified, 'amount');  // NOTE:'initialAmount' is currently not set on new order
-            remaining = this.safeNumber (orderUnified, 'amount');
-            filled = 0.0;
+            amount = this.safeString (orderUnified, 'amount');  // NOTE:'initialAmount' is currently not set on new order
+            remaining = this.safeString (orderUnified, 'amount');
         } else {
-            amount = this.safeNumber (order, 'initialAmount');
-            remaining = this.safeNumber (order, 'amount');
-            filled = amount - remaining;
-        }
-        if (price) {
-            if (amount) {
-                cost = price * amount;
-            }
+            amount = this.safeString (order, 'initialAmount');
+            remaining = this.safeString (order, 'amount');
         }
         return this.safeOrder ({
             'id': id,
@@ -592,9 +581,9 @@ module.exports = class bit2c extends Exchange {
             'price': price,
             'stopPrice': undefined,
             'amount': amount,
-            'filled': filled,
+            'filled': undefined,
             'remaining': remaining,
-            'cost': cost,
+            'cost': undefined,
             'trades': undefined,
             'fee': undefined,
             'info': order,
