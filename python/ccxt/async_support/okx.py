@@ -78,6 +78,8 @@ class okx(Exchange):
                 'fetchDepositAddresses': False,
                 'fetchDepositAddressesByNetwork': True,
                 'fetchDeposits': True,
+                'fetchDepositWithdrawFee': 'emulated',
+                'fetchDepositWithdrawFees': True,
                 'fetchFundingHistory': True,
                 'fetchFundingRate': True,
                 'fetchFundingRateHistory': True,
@@ -148,8 +150,6 @@ class okx(Exchange):
                 '1w': '1W',
                 '1M': '1M',
                 '3M': '3M',
-                '6M': '6M',
-                '1y': '1Y',
             },
             'hostname': 'www.okx.com',  # or aws.okx.com
             'urls': {
@@ -175,13 +175,13 @@ class okx(Exchange):
                         'market/books-lite': 1.66,
                         'market/candles': 0.5,
                         'market/history-candles': 1,
-                        'market/history-mark-price-candles': 120,
-                        'market/history-index-candles': 120,
+                        'market/history-mark-price-candles': 2,
+                        'market/history-index-candles': 2,
                         'market/index-candles': 1,
                         'market/mark-price-candles': 1,
                         'market/trades': 1,
                         'market/platform-24-volume': 10,
-                        'market/open-oracle': 100,
+                        'market/open-oracle': 40,
                         'market/index-components': 1,
                         'market/option/instrument-family-trades': 1,
                         # 'market/oracle',
@@ -197,6 +197,7 @@ class okx(Exchange):
                         'public/time': 2,
                         'public/liquidation-orders': 0.5,
                         'public/mark-price': 2,
+                        'public/option-trades': 1,
                         # 'public/tier',
                         'public/position-tiers': 2,
                         'public/underlying': 1,
@@ -249,6 +250,7 @@ class okx(Exchange):
                         'asset/transfer-state': 10,
                         'asset/deposit-history': 5 / 3,
                         'asset/withdrawal-history': 5 / 3,
+                        'asset/deposit-withdraw-status': 20,
                         'asset/currencies': 5 / 3,
                         'asset/bills': 5 / 3,
                         'asset/piggy-balance': 5 / 3,
@@ -296,6 +298,20 @@ class okx(Exchange):
                         'rfq/quotes': 10,
                         'rfq/trades': 4,
                         'rfq/public-trades': 4,
+                        # copytrading
+                        'copytrading/current-subpositions': 10,
+                        'copytrading/subpositions-history': 10,
+                        'copytrading/instruments': 10,
+                        'copytrading/profit-sharing-details': 10,
+                        'copytrading/total-profit-sharing': 10,
+                        'copytrading/unrealized-profit-sharing-details': 10,
+                        # grid trading
+                        'tradingBot/grid/orders-algo-pending': 1,
+                        'tradingBot/grid/orders-algo-history': 1,
+                        'tradingBot/grid/orders-algo-details': 1,
+                        'tradingBot/grid/sub-orders': 1,
+                        'tradingBot/grid/positions': 1,
+                        'tradingBot/grid/ai-param': 1,
                     },
                     'post': {
                         'account/set-position-mode': 4,
@@ -307,6 +323,7 @@ class okx(Exchange):
                         'account/simulated_margin': 10,
                         'account/borrow-repay': 5 / 3,
                         'account/quick-margin-borrow-repay': 4,
+                        'account/activate-option': 4,
                         'asset/transfer': 10,
                         'asset/withdrawal': 5 / 3,
                         'asset/purchase_redempt': 5 / 3,
@@ -354,6 +371,17 @@ class okx(Exchange):
                         'rfq/cancel-quote': 0.4,
                         'rfq/cancel-batch-quotes': 10,
                         'rfq/cancel-all-quotes': 10,
+                        # copytrading
+                        'copytrading/algo-order': 20,
+                        'copytrading/close-subposition': 10,
+                        'copytrading/set-instruments': 10,
+                        # grid trading
+                        'tradingBot/grid/order-algo': 1,
+                        'tradingBot/grid/amend-order-algo': 1,
+                        'tradingBot/grid/stop-order-algo': 1,
+                        'tradingBot/grid/withdraw-income': 1,
+                        'tradingBot/grid/compute-margin-balance': 1,
+                        'tradingBot/grid/margin-balance': 1,
                     },
                 },
             },
@@ -502,6 +530,11 @@ class okx(Exchange):
                     '51137': InvalidOrder,  # Your opening price has triggered the limit price, and the max buy price is {0}
                     '51138': InvalidOrder,  # Your opening price has triggered the limit price, and the min sell price is {0}
                     '51139': InvalidOrder,  # Reduce-only feature is unavailable for the spot transactions by simple account
+                    '51156': BadRequest,  # You're leading trades in long/short mode and can't use self API endpoint to close positions
+                    '51159': BadRequest,  # You're leading trades in buy/sell mode. If you want to place orders using self API endpoint, the orders must be in the same direction as your existing positions and open orders.
+                    '51162': InvalidOrder,  # You have {instrument} open orders. Cancel these orders and try again
+                    '51163': InvalidOrder,  # You hold {instrument} positions. Close these positions and try again
+                    '51166': InvalidOrder,  # Currently, we don't support leading trades with self instrument
                     '51201': InvalidOrder,  # Value of per market order cannot exceed 100,000 USDT
                     '51202': InvalidOrder,  # Market - order amount exceeds the max amount
                     '51203': InvalidOrder,  # Order amount exceeds the limit {0}
@@ -537,6 +570,11 @@ class okx(Exchange):
                     '51278': InvalidOrder,  # SL trigger price can not be lower than the last price
                     '51279': InvalidOrder,  # TP trigger price can not be lower than the last price
                     '51280': InvalidOrder,  # SL trigger price can not be higher than the last price
+                    '51321': InvalidOrder,  # You're leading trades. Currently, we don't support leading trades with arbitrage, iceberg, or TWAP bots
+                    '51322': InvalidOrder,  # You're leading trades that have been filled at market price. We've canceled your open stop orders to close your positions
+                    '51323': BadRequest,  # You're already leading trades with take profit or stop loss settings. Cancel your existing stop orders to proceed
+                    '51324': BadRequest,  # As a lead trader, you hold positions in {instrument}. To close your positions, place orders in the amount that equals the available amount for closing
+                    '51325': InvalidOrder,  # As a lead trader, you must use market price when placing stop orders
                     '51327': InvalidOrder,  # closeFraction is only available for futures and perpetual swaps
                     '51328': InvalidOrder,  # closeFraction is only available for reduceOnly orders
                     '51329': InvalidOrder,  # closeFraction is only available in NET mode
@@ -565,6 +603,11 @@ class okx(Exchange):
                     '51601': ExchangeError,  # Order status and order ID cannot exist at the same time
                     '51602': ExchangeError,  # Either order status or order ID is required
                     '51603': OrderNotFound,  # Order does not exist
+                    '51732': AuthenticationError,  # Required user KYC level not met
+                    '51733': AuthenticationError,  # User is under risk control
+                    '51734': AuthenticationError,  # User KYC Country is not supported
+                    '51735': ExchangeError,  # Sub-account is not supported
+                    '51736': InsufficientFunds,  # Insufficient {ccy} balance
                     # Data class
                     '52000': ExchangeError,  # No updates
                     # SPOT/MARGIN error codes 54000-54999
@@ -633,8 +676,10 @@ class okx(Exchange):
                     '59107': ExchangeError,  # You have pending orders under the service, please modify the leverage after canceling all pending orders
                     '59108': InsufficientFunds,  # Low leverage and insufficient margin, please adjust the leverage
                     '59109': ExchangeError,  # Account equity less than the required margin amount after adjustment. Please adjust the leverage
+                    '59128': InvalidOrder,  # As a lead trader, you can't lead trades in {instrument} with leverage higher than {num}
                     '59200': InsufficientFunds,  # Insufficient account balance
                     '59201': InsufficientFunds,  # Negative account balance
+                    '59216': BadRequest,  # The position doesn't exist. Please try again
                     '59300': ExchangeError,  # Margin call failed. Position does not exist
                     '59301': ExchangeError,  # Margin adjustment failed for exceeding the max limit
                     '59313': ExchangeError,  # Unable to repay. You haven't borrowed any {ccy} {ccyPair} in Quick margin mode.
@@ -685,13 +730,24 @@ class okx(Exchange):
             'options': {
                 'defaultNetwork': 'ERC20',
                 'networks': {
-                    'ETH': 'ERC20',
-                    'TRX': 'TRC20',
+                    'BTC': 'Bitcoin',
                     'OMNI': 'Omni',
-                    'SOLANA': 'Solana',
-                    'POLYGON': 'Polygon',
-                    'OEC': 'OEC',
-                    'ALGO': 'ALGO',  # temporarily unavailable
+                    'SOL': 'Solana',
+                    'LTC': 'Litecoin',
+                    'MATIC': 'Polygon',
+                    'OP': 'Optimism',
+                    'ARB': 'Arbitrum one',
+                    'AVAX': 'Avalanche C-Chain',
+                },
+                'networksById': {
+                    'Bitcoin': 'BTC',
+                    'Omni': 'OMNI',
+                    'Solana': 'SOL',
+                    'Litecoin': 'LTC',
+                    'Polygon': 'MATIC',
+                    'Optimism': 'OP',
+                    'Arbitrum one': 'ARB',
+                    'Avalanche C-Chain': 'AVAX',
                 },
                 'fetchOpenInterestHistory': {
                     'timeframes': {
@@ -1129,6 +1185,7 @@ class okx(Exchange):
     async def fetch_currencies(self, params={}):
         """
         fetches all available currencies on an exchange
+        see https://www.okx.com/docs-v5/en/#rest-api-funding-get-currencies
         :param dict params: extra parameters specific to the okx api endpoint
         :returns dict: an associative dictionary of currencies
         """
@@ -2411,6 +2468,7 @@ class okx(Exchange):
             'side': side,
             'price': price,
             'stopPrice': stopPrice,
+            'triggerPrice': stopPrice,
             'average': average,
             'cost': cost,
             'amount': amount,
@@ -3453,7 +3511,7 @@ class okx(Exchange):
         self.check_address(address)
         await self.load_markets()
         currency = self.currency(code)
-        if tag is not None:
+        if (tag is not None) and (len(tag) > 0):
             address = address + ':' + tag
         fee = self.safe_string(params, 'fee')
         if fee is None:
@@ -4048,18 +4106,27 @@ class okx(Exchange):
         marketId = self.safe_string(position, 'instId')
         market = self.safe_market(marketId, market)
         symbol = market['symbol']
-        contractsString = self.safe_string(position, 'pos')
-        contractsAbs = Precise.string_abs(contractsString)
-        contracts = None
+        pos = self.safe_string(position, 'pos')  # 'pos' field: One way mode: 0 if position is not open, 1 if open | Two way(hedge) mode: -1 if short, 1 if long, 0 if position is not open
+        contractsAbs = Precise.string_abs(pos)
         side = self.safe_string(position, 'posSide')
         hedged = side != 'net'
-        if contractsString is not None:
-            contracts = self.parse_number(contractsAbs)
+        contracts = self.parse_number(contractsAbs)
+        if market['margin']:
+            # margin position
             if side == 'net':
-                if Precise.string_gt(contractsString, '0'):
-                    side = 'long'
-                else:
-                    side = 'short'
+                posCcy = self.safe_string(position, 'posCcy')
+                parsedCurrency = self.safe_currency_code(posCcy)
+                if parsedCurrency is not None:
+                    side = 'long' if (market['base'] == parsedCurrency) else 'short'
+        else:
+            if pos is not None:
+                if side == 'net':
+                    if Precise.string_gt(pos, '0'):
+                        side = 'long'
+                    elif Precise.string_lt(pos, '0'):
+                        side = 'short'
+                    else:
+                        side = None
         contractSize = self.safe_value(market, 'contractSize')
         contractSizeString = self.number_to_string(contractSize)
         markPriceString = self.safe_string(position, 'markPx')
@@ -5306,6 +5373,119 @@ class okx(Exchange):
             self.headers['x-simulated-trading'] = '1'
         elif 'x-simulated-trading' in self.headers:
             self.headers = self.omit(self.headers, 'x-simulated-trading')
+
+    async def fetch_deposit_withdraw_fees(self, codes=None, params={}):
+        """
+        fetch deposit and withdraw fees
+        see https://www.okx.com/docs-v5/en/#rest-api-funding-get-currencies
+        :param [str]|None codes: list of unified currency codes
+        :param dict params: extra parameters specific to the okx api endpoint
+        :returns [dict]: a list of `fees structures <https://docs.ccxt.com/en/latest/manual.html#fee-structure>`
+        """
+        await self.load_markets()
+        response = await self.privateGetAssetCurrencies(params)
+        #
+        #    {
+        #        "code": "0",
+        #        "data": [
+        #            {
+        #                "canDep": True,
+        #                "canInternal": False,
+        #                "canWd": True,
+        #                "ccy": "USDT",
+        #                "chain": "USDT-TRC20",
+        #                "logoLink": "https://static.coinall.ltd/cdn/assets/imgs/221/5F74EB20302D7761.png",
+        #                "mainNet": False,
+        #                "maxFee": "1.6",
+        #                "maxWd": "8852150",
+        #                "minFee": "0.8",
+        #                "minWd": "2",
+        #                "name": "Tether",
+        #                "usedWdQuota": "0",
+        #                "wdQuota": "500",
+        #                "wdTickSz": "3"
+        #            },
+        #            {
+        #                "canDep": True,
+        #                "canInternal": False,
+        #                "canWd": True,
+        #                "ccy": "USDT",
+        #                "chain": "USDT-ERC20",
+        #                "logoLink": "https://static.coinall.ltd/cdn/assets/imgs/221/5F74EB20302D7761.png",
+        #                "mainNet": False,
+        #                "maxFee": "16",
+        #                "maxWd": "8852150",
+        #                "minFee": "8",
+        #                "minWd": "2",
+        #                "name": "Tether",
+        #                "usedWdQuota": "0",
+        #                "wdQuota": "500",
+        #                "wdTickSz": "3"
+        #            },
+        #            ...
+        #        ],
+        #        "msg": ""
+        #    }
+        #
+        data = self.safe_value(response, 'data')
+        return self.parse_deposit_withdraw_fees(data, codes)
+
+    def parse_deposit_withdraw_fees(self, response, codes=None, currencyIdKey=None):
+        #
+        # [
+        #   {
+        #       "canDep": True,
+        #       "canInternal": False,
+        #       "canWd": True,
+        #       "ccy": "USDT",
+        #       "chain": "USDT-TRC20",
+        #       "logoLink": "https://static.coinall.ltd/cdn/assets/imgs/221/5F74EB20302D7761.png",
+        #       "mainNet": False,
+        #       "maxFee": "1.6",
+        #       "maxWd": "8852150",
+        #       "minFee": "0.8",
+        #       "minWd": "2",
+        #       "name": "Tether",
+        #       "usedWdQuota": "0",
+        #       "wdQuota": "500",
+        #       "wdTickSz": "3"
+        #   }
+        # ]
+        #
+        depositWithdrawFees = {}
+        codes = self.market_codes(codes)
+        for i in range(0, len(response)):
+            feeInfo = response[i]
+            currencyId = self.safe_string(feeInfo, 'ccy')
+            code = self.safe_currency_code(currencyId)
+            if (codes is None) or (self.in_array(code, codes)):
+                depositWithdrawFee = self.safe_value(depositWithdrawFees, code)
+                if depositWithdrawFee is None:
+                    depositWithdrawFees[code] = self.deposit_withdraw_fee({})
+                depositWithdrawFees[code]['info'][currencyId] = feeInfo
+                chain = self.safe_string(feeInfo, 'chain')
+                chainSplit = chain.split('-')
+                networkId = self.safe_value(chainSplit, 1)
+                withdrawFee = self.safe_number(feeInfo, 'minFee')
+                withdrawResult = {
+                    'fee': withdrawFee,
+                    'percentage': False if (withdrawFee is not None) else None,
+                }
+                depositResult = {
+                    'fee': None,
+                    'percentage': None,
+                }
+                networkCode = self.network_id_to_code(networkId, code)
+                depositWithdrawFees[code]['networks'][networkCode] = {
+                    'withdraw': withdrawResult,
+                    'deposit': depositResult,
+                }
+        depositWithdrawCodes = list(depositWithdrawFees.keys())
+        for i in range(0, len(depositWithdrawCodes)):
+            code = depositWithdrawCodes[i]
+            currency = self.currency(code)
+            depositWithdrawFees[code] = self.assign_default_deposit_withdraw_fees(depositWithdrawFees[code], currency)
+        return depositWithdrawFees
 
     def handle_errors(self, httpCode, reason, url, method, headers, body, response, requestHeaders, requestBody):
         if not response:
