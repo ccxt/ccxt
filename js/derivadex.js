@@ -27,7 +27,7 @@ module.exports = class derivadex extends Exchange {
                 'future': false,
                 'option': false,
                 'addMargin': false,
-                'cancelAllOrders': false,
+                'cancelAllOrders': true,
                 'cancelOrder': true,
                 'cancelOrders': true,
                 'createOrder': true,
@@ -134,7 +134,7 @@ module.exports = class derivadex extends Exchange {
                         'aggregations/collateral': 1,
                         'aggregations/volume': 1,
                         'aggregations/markets': 1,
-                        'aggregations/order_book/L2/{symbol}': 1,
+                        'markets/order_book/L2/{symbol}': 1,
                     },
                 },
                 'private': {
@@ -226,14 +226,16 @@ module.exports = class derivadex extends Exchange {
         //         "success": true
         // }
         const markets = response['value'];
-        return [
-            {
-                'id': 'BTCPERP',
-                'symbol': 'BTCPERP',
-                'base': 'BTC',
+        return markets.map ((market) => {
+            const name = market['name'];
+            const base = name.slice (0, -4);
+            return {
+                'id': name,
+                'symbol': name,
+                'base': base,
                 'quote': 'USD',
                 'settle': 'USDC',
-                'baseId': 'btc',
+                'baseId': base.toLowerCase (),
                 'quoteId': 'usd',
                 'settleId': 'usdc',
                 'type': 'swap',
@@ -249,9 +251,9 @@ module.exports = class derivadex extends Exchange {
                 'taker': '0.002',
                 'maker': '0.000',
                 'precision': {
-                    'amount': '0.0001',
-                    'price': '0.1',
-                    'quote': '0.0001',
+                    'amount': 6,
+                    'price': 6,
+                    'quote': 6,
                 },
                 'limits': {
                     'leverage': {
@@ -259,67 +261,21 @@ module.exports = class derivadex extends Exchange {
                         'max': 3,
                     },
                     'amount': {
-                        'min': 0.00001,
+                        'min': market['value']['tickSize'],
                         'max': undefined,
                     },
                     'price': {
-                        'min': 1,
+                        'min': market['value']['tickSize'],
                         'max': undefined,
                     },
                     'cost': {
-                        'min': undefined,
-                        'max': 1000000,
+                        'min': market['value']['minOrderSize'],
+                        'max': market['value']['maxOrderNotional'],
                     },
                 },
-                'info': markets,
-            },
-            {
-                'id': 'ETHPERP',
-                'symbol': 'ETHPERP',
-                'base': 'ETH',
-                'quote': 'USD',
-                'settle': 'USDC',
-                'baseId': 'eth',
-                'quoteId': 'usd',
-                'settleId': 'usdc',
-                'type': 'swap',
-                'spot': 'false',
-                'margin': 'false',
-                'swap': 'true',
-                'future': 'false',
-                'option': 'swap',
-                'active': 'true',
-                'contract': 'true',
-                'linear': 'true',
-                'inverse': 'false',
-                'taker': '0.002',
-                'maker': '0.000',
-                'precision': {
-                    'amount': '0.0001',
-                    'price': '0.1',
-                    'quote': '0.0001',
-                },
-                'limits': {
-                    'leverage': {
-                        'min': 1,
-                        'max': 3,
-                    },
-                    'amount': {
-                        'min': 0.0001,
-                        'max': undefined,
-                    },
-                    'price': {
-                        'min': 0.1,
-                        'max': undefined,
-                    },
-                    'cost': {
-                        'min': undefined,
-                        'max': 1000000,
-                    },
-                },
-                'info': markets,
-            },
-        ];
+                'info': market,
+            };
+        });
     }
 
     async fetchCurrencies (params = {}) {
@@ -368,7 +324,7 @@ module.exports = class derivadex extends Exchange {
                 'precision': 2,
                 'deposit': true,
                 'withdraw': true,
-                'networks': networks,
+                'networks': networks, // TODO: has a min and max, fill in later
                 'info': undefined,
             },
         ];
@@ -419,11 +375,10 @@ module.exports = class derivadex extends Exchange {
         params['symbol'] = symbol;
         const marketsResponse = await this.publicGetAggregationsMarkets (params); // aggregations/markets endpoint response is cached for 30 minutes
         params['limit'] = 1;
-        params['priceAggregation'] = symbol === 'BTCPERP' ? 1 : 0.1; // set aggregation to minimum tick size for the market
         const request = {
             'symbol': symbol,
         };
-        const orderBookResponse = await this.publicGetAggregationsOrderBookL2Symbol (this.extend (request, params)); // aggregations/order_book endpoint response is cached for 30 minutes
+        const orderBookResponse = await this.publicGetMarketsOrderBookL2Symbol (this.extend (request, params)); // markets/order_book endpoint response is cached for 10 seconds
         const marketsValue = marketsResponse['value'][0];
         const orderBookValue = orderBookResponse['value'];
         const quoteVolume = this.safeString (marketsValue, 'volume');
