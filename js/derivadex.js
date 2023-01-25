@@ -419,6 +419,102 @@ module.exports = class derivadex extends Exchange {
         };
     }
 
+    async fetchTrades (symbol, since = undefined, limit = undefined, params = {}) {
+        /**
+         * @method
+         * @name derivadex#fetchTrades
+         * @description get the list of most recent trades for a particular symbol
+         * @param {string} symbol unified symbol of the market to fetch trades for
+         * @param {int|undefined} since timestamp in ms of the earliest trade to fetch
+         * @param {int|undefined} limit the maximum amount of trades to fetch
+         * @param {object} params extra parameters specific to the derivadex api endpoint
+         * @returns {[object]} a list of [trade structures]{@link https://docs.ccxt.com/en/latest/manual.html?#public-trades}
+         */
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const request = {
+            'symbol': market['id'],
+        };
+        if (limit !== undefined) {
+            request['limit'] = limit; // default 500
+        }
+        const response = await this.publicGetFills (this.extend (request, params));
+        // {
+        //     value: [
+        //       {
+        //         epochId: '27',
+        //         txOrdinal: '6',
+        //         ordinal: '0',
+        //         makerOrderHash: '0x87686e3ffa6b2e9c8a229a9b7fe948b504db94d376ce8e494f',
+        //         amount: '0.05',
+        //         symbol: 'BTCPERP',
+        //         price: '22790',
+        //         makerFee: '0',
+        //         makerFeeSymbol: 'USDC',
+        //         makerRealizedPnl: '0',
+        //         takerOrderHash: '0x08fd0fd22dd23f3550d4edea3e37cceab4b9612116c14d71c0',
+        //         takerFee: '2.279',
+        //         takerFeeSymbol: 'USDC',
+        //         takerRealizedPnl: '0',
+        //         reason: '0',
+        //         createdAt: '2023-01-25T20:13:12.574Z',
+        //         liquidatedTrader: null,
+        //         liquidatedStrategyIdHash: null
+        //       },
+        //       {
+        //         epochId: '27',
+        //         txOrdinal: '7',
+        //         ordinal: '0',
+        //         makerOrderHash: '0x87686e3ffa6b2e9c8a229a9b7fe948b504db94d376ce8e494f',
+        //         amount: '0.01',
+        //         symbol: 'BTCPERP',
+        //         price: '22790',
+        //         makerFee: '0',
+        //         makerFeeSymbol: 'USDC',
+        //         makerRealizedPnl: '0',
+        //         takerOrderHash: '0x80b89184c49b710455ec17948785a07f4bb357561490a3e683',
+        //         takerFee: '0.4558',
+        //         takerFeeSymbol: 'USDC',
+        //         takerRealizedPnl: '0',
+        //         reason: '0',
+        //         createdAt: '2023-01-25T20:13:18.578Z',
+        //         liquidatedTrader: null,
+        //         liquidatedStrategyIdHash: null
+        //       },
+        //     ]
+        // }
+        return this.parseTrades (response['value'], market, since, limit);
+    }
+
+    parseTrade (trade, market = undefined) {
+        const id = this.safeString (trade, 'takerOrderHash') + '_' + this.safeString (trade, 'epochId') + '_' + this.safeString (trade, 'txOrdinal');
+        const timestamp = this.parse8601 (this.safeString (trade, 'createdAt'));
+        const datetime = this.iso8601 (timestamp);
+        const symbol = this.safeString (trade, 'symbol');
+        const order = this.safeString (trade, 'takerOrderHash');
+        const price = this.safeString (trade, 'price');
+        const amount = this.safeString (trade, 'amount');
+        const fee = {
+            'cost': this.safeString (trade, 'takerFee'),
+            'currency': this.safeString (trade, 'takerFeeSymbol'),
+        };
+        return this.safeTrade ({
+            'info': trade,
+            'timestamp': timestamp,
+            'datetime': datetime,
+            'symbol': symbol,
+            'id': id,
+            'order': order,
+            'type': undefined,
+            'takerOrMaker': undefined,
+            'side': undefined,
+            'price': price,
+            'cost': undefined,
+            'amount': amount,
+            'fee': fee,
+        });
+    }
+
     sign (path, api = 'stats', method = 'GET', params = {}, headers = undefined, body = undefined) {
         const implodedPath = this.implodeParams (path, params);
         let query = '/api/' + this.version + '/' + implodedPath;
