@@ -225,7 +225,8 @@ module.exports = class derivadex extends Exchange {
         //         "timestamp": 1674260369,
         //         "success": true
         // }
-        const markets = response['value'];
+        let markets = response['value'];
+        markets = markets.filter ((market) => market['name'] !== 'DDXPERP');
         return markets.map ((market) => {
             const name = market['name'];
             const base = name.slice (0, -4);
@@ -324,7 +325,13 @@ module.exports = class derivadex extends Exchange {
                 'precision': 2,
                 'deposit': true,
                 'withdraw': true,
-                'networks': networks, // TODO: has a min and max, fill in later
+                'limits': {
+                    'deposit': {
+                        'min': 0.1,
+                        'max': undefined,
+                    },
+                },
+                'networks': networks,
                 'info': undefined,
             },
         ];
