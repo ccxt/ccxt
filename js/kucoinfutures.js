@@ -1074,10 +1074,10 @@ module.exports = class kucoinfutures extends kucoin {
             request['stopPriceType'] = 'MP';
         } else if (isStopLoss || isTakeProfit) {
             if (isStopLoss) {
-                request['stop'] = (side === 'buy') ? 'down' : 'up';
+                request['stop'] = (side === 'buy') ? 'up' : 'down';
                 request['stopPrice'] = this.priceToPrecision (symbol, stopLossPrice);
             } else {
-                request['stop'] = (side === 'buy') ? 'up' : 'down';
+                request['stop'] = (side === 'buy') ? 'down' : 'up';
                 request['stopPrice'] = this.priceToPrecision (symbol, takeProfitPrice);
             }
             request['reduceOnly'] = true;
