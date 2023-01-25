@@ -766,7 +766,7 @@ module.exports = class coinbase extends Exchange {
         const datetime = this.safeStringN (trade, [ 'created_at', 'trade_time', 'time' ]);
         const side = this.safeStringLower2 (trade, 'resource', 'side');
         const takerOrMaker = this.safeStringLower (trade, 'liquidity_indicator');
-        return {
+        return this.safeTrade ({
             'info': trade,
             'id': this.safeString2 (trade, 'id', 'trade_id'),
             'order': this.safeString (trade, 'order_id'),
@@ -776,14 +776,14 @@ module.exports = class coinbase extends Exchange {
             'type': undefined,
             'side': (side === 'unknown_order_side') ? undefined : side,
             'takerOrMaker': (takerOrMaker === 'unknown_liquidity_indicator') ? undefined : takerOrMaker,
-            'price': this.parseNumber (priceString),
-            'amount': this.parseNumber (amountString),
-            'cost': this.parseNumber (cost),
+            'price': priceString,
+            'amount': amountString,
+            'cost': cost,
             'fee': {
                 'cost': this.safeNumber (feeObject, 'amount', v3FeeCost),
                 'currency': this.safeCurrencyCode (feeCurrencyId),
             },
-        };
+        });
     }
 
     async fetchMarkets (params = {}) {
