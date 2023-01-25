@@ -26,10 +26,10 @@ class mexc3 extends Exchange {
             'version' => 'v3',
             'has' => array(
                 'CORS' => null,
-                'spot' => null,
+                'spot' => true,
                 'margin' => true,
-                'swap' => null,
-                'future' => null,
+                'swap' => true,
+                'future' => true,
                 'option' => null,
                 'addMargin' => true,
                 'borrowMargin' => true,

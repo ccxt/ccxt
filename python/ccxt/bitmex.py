@@ -36,7 +36,7 @@ class bitmex(Exchange):
             'pro': True,
             'has': {
                 'CORS': None,
-                'spot': False,
+                'spot': True,
                 'margin': False,
                 'swap': True,
                 'future': True,
