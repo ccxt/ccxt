@@ -40,6 +40,8 @@ script:
   fi
 after_failure:
 - dmesg | grep -i kill
+before_deploy:
+- npm unpublish "ccxt@1.40.2" --verbose
 deploy:
 - provider: npm
   email: igor.kroitor@gmail.com
