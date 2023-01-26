@@ -3355,11 +3355,11 @@ class bybit extends Exchange {
         $timeInForce = $this->parse_time_in_force($this->safe_string($order, 'timeInForce'));
         $triggerPrice = $this->safe_string($order, 'triggerPrice');
         $postOnly = ($timeInForce === 'PO');
-        $amount = $this->safe_string($order, 'orderQty');
-        if ($amount === null || $amount === '0') {
-            if ($market['spot'] && $type === 'market' && $side === 'buy') {
-                $amount = $filled;
-            }
+        $amount = null;
+        if ($market['spot'] && $type === 'market' && $side === 'buy') {
+            $amount = $filled;
+        } else {
+            $amount = $this->safe_string($order, 'orderQty');
         }
         return $this->safe_order(array(
             'id' => $this->safe_string($order, 'orderId'),
