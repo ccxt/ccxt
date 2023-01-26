@@ -407,6 +407,7 @@ module.exports = class ace extends Exchange {
         //
         //     {
         //         "changeRate": 0,
+        //         "volume": 0,
         //         "closePrice": 101000.0,
         //         "lowPrice": 101000.0,
         //         "highPrice": 101000.0,
@@ -423,7 +424,7 @@ module.exports = class ace extends Exchange {
             this.safeNumber (ohlcv, 'highPrice'),
             this.safeNumber (ohlcv, 'lowPrice'),
             this.safeNumber (ohlcv, 'closePrice'),
-            undefined,
+            this.safeNumber (ohlcv, 'volume'),
         ];
     }
 
@@ -461,6 +462,7 @@ module.exports = class ace extends Exchange {
         //                 {
         //                     "changeRate": 0,
         //                     "closePrice": 101000.0,
+        //                     "volume": 0,
         //                     "lowPrice": 101000.0,
         //                     "highPrice": 101000.0,
         //                     "highPrice": 1573195740000L,
