@@ -703,6 +703,7 @@ module.exports = class indodax extends Exchange {
          * @method
          * @name indodax#createOrder
          * @description create a trade order
+         * @see https://github.com/btcid/indodax-official-api-docs/blob/master/Private-RestAPI.md#trade-endpoints
          * @param {string} symbol unified symbol of the market to create an order in
          * @param {string} type 'market' or 'limit'
          * @param {string} side 'buy' or 'sell'
