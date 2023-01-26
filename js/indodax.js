@@ -29,7 +29,7 @@ module.exports = class indodax extends Exchange {
                 'cancelOrder': true,
                 'cancelOrders': false,
                 'createDepositAddress': false,
-                'createMarketOrder': undefined,
+                'createMarketOrder': true,
                 'createOrder': true,
                 'createReduceOnlyOrder': false,
                 'createStopLimitOrder': false,
@@ -711,15 +711,13 @@ module.exports = class indodax extends Exchange {
          * @param {object} params extra parameters specific to the indodax api endpoint
          * @returns {object} an [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
          */
-        if (type !== 'limit') {
-            throw new ExchangeError (this.id + ' createOrder() allows limit orders only');
-        }
         await this.loadMarkets ();
         const market = this.market (symbol);
         const request = {
             'pair': market['id'],
             'type': side,
             'price': price,
+            'order_type': type,
         };
         const currency = market['baseId'];
         if (side === 'buy') {
