@@ -458,7 +458,7 @@ export default class bit2c extends Exchange {
         const request = {
             'id': id,
         };
-        const response = await this.privateGetOrderGetById (this.extend (request, params));
+        const response = await (this as any).privateGetOrderGetById (this.extend (request, params));
         //
         //         {
         //             "pair": "BtcNis",
@@ -541,18 +541,18 @@ export default class bit2c extends Exchange {
         }
         // bit2c order type:
         // 0 = LMT,  1 = MKT
-        let type = this.safeInteger (orderUnified, 'order_type');
-        if (type === 0) {
+        let type = this.safeString (orderUnified, 'order_type');
+        if (type === '0') {
             type = 'limit';
-        } else if (type === 1) {
+        } else if (type === '1') {
             type = 'market';
         }
         // bit2c side:
         // 0 = buy, 1 = sell
-        let side = this.safeInteger (orderUnified, 'type');
-        if (side === 0) {
+        let side = this.safeString (orderUnified, 'type');
+        if (side === '0') {
             side = 'buy';
-        } else if (side === 1) {
+        } else if (side === '1') {
             side = 'sell';
         }
         const price = this.safeString (order, 'price');

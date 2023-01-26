@@ -873,7 +873,7 @@ export default class coinbase extends Exchange {
             'amount': amountString,
             'cost': cost,
             'fee': {
-                'cost': this.safeNumber (feeObject, 'amount', v3FeeCost),
+                'cost': this.safeNumber (feeObject, 'amount', this.parseNumber (v3FeeCost)),
                 'currency': this.safeCurrencyCode (feeCurrencyId),
             },
         });
@@ -2648,7 +2648,7 @@ export default class coinbase extends Exchange {
         if (limit !== undefined) {
             request['limit'] = limit;
         }
-        const response = await this.v3PrivateGetBrokerageProductsProductIdTicker (this.extend (request, params));
+        const response = await (this as any).v3PrivateGetBrokerageProductsProductIdTicker (this.extend (request, params));
         //
         //     {
         //         "trades": [
@@ -2696,7 +2696,7 @@ export default class coinbase extends Exchange {
         if (since !== undefined) {
             request['start_sequence_timestamp'] = this.parse8601 (since);
         }
-        const response = await this.v3PrivateGetBrokerageOrdersHistoricalFills (this.extend (request, params));
+        const response = await (this as any).v3PrivateGetBrokerageOrdersHistoricalFills (this.extend (request, params));
         //
         //     {
         //         "fills": [

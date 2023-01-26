@@ -240,7 +240,7 @@ export default class btcalpha extends Exchange {
          * @returns {object} an array of [ticker structures]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
          */
         await this.loadMarkets ();
-        const response = await this.publicGetTicker (params);
+        const response = await (this as any).publicGetTicker (params);
         //
         //    [
         //        {
@@ -275,7 +275,7 @@ export default class btcalpha extends Exchange {
         const request = {
             'pair': market['id'],
         };
-        const response = await this.publicGetTicker (this.extend (request, params));
+        const response = await (this as any).publicGetTicker (this.extend (request, params));
         //
         //    {
         //        timestamp: '1674658.445272',
