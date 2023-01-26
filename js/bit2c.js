@@ -678,7 +678,7 @@ module.exports = class bit2c extends Exchange {
         //         "ticks":1574767951,
         //         "created":"26/11/19 13:32",
         //         "action":1,
-        //         "price":"1000",
+        //         "price":"1,000",
         //         "pair":"EthNis",
         //         "reference":"EthNis|10867390|10867377",
         //         "fee":"0.5",
@@ -690,6 +690,7 @@ module.exports = class bit2c extends Exchange {
         //         "secondAmountBalance":"130,233.28",
         //         "firstCoin":"ETH",
         //         "secondCoin":"₪"
+        //         "isMaker": True,
         //     }
         //
         let timestamp = undefined;
@@ -699,17 +700,21 @@ module.exports = class bit2c extends Exchange {
         let orderId = undefined;
         let fee = undefined;
         let side = undefined;
+        let makerOrTaker = undefined;
         const reference = this.safeString (trade, 'reference');
         if (reference !== undefined) {
+            id = reference
             timestamp = this.safeTimestamp (trade, 'ticks');
             price = this.safeString (trade, 'price');
+            price = parseFloat(price.replace(/,/g, ''));
             amount = this.safeString (trade, 'firstAmount');
-            const reference_parts = reference.split ('|'); // reference contains 'pair|orderId|tradeId'
+            const reference_parts = reference.split ('|'); // reference contains 'pair|orderId_by_taker|orderId_by_maker'
             const marketId = this.safeString (trade, 'pair');
             market = this.safeMarket (marketId, market);
             market = this.safeMarket (reference_parts[0], market);
-            orderId = reference_parts[1];
-            id = reference_parts[2];
+            const isMaker = this.safeValue (trade, 'isMaker');
+            makerOrTaker = isMaker ? 'maker' : 'taker';
+            orderId = isMaker ? reference_parts[2] : reference_parts[1];
             side = this.safeInteger (trade, 'action');
             if (side === 0) {
                 side = 'buy';
@@ -747,7 +752,7 @@ module.exports = class bit2c extends Exchange {
             'order': orderId,
             'type': undefined,
             'side': side,
-            'takerOrMaker': undefined,
+            'takerOrMaker': makerOrTaker,
             'price': price,
             'amount': amount,
             'cost': undefined,
