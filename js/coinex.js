@@ -2616,7 +2616,8 @@ module.exports = class coinex extends Exchange {
     safeNetwork (networkId, currency = undefined) {
         const networks = this.safeValue (currency, 'networks', {});
         const networksCodes = Object.keys (networks);
-        if (networkId === undefined && networksCodes.length === 1) {
+        const networksCodesLength = networksCodes.length;
+        if (networkId === undefined && networksCodesLength === 1) {
             return networks[networksCodes[0]];
         }
         return {

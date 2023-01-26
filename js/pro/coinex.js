@@ -354,7 +354,8 @@ module.exports = class coinex extends coinexRest {
         const candles = this.safeValue (message, 'params', []);
         const messageHash = 'ohlcv';
         const ohlcvs = this.parseOHLCVs (candles);
-        if (Object.keys (this.ohlcvs).length === 0) {
+        const keysLength = Object.keys (this.ohlcvs).length;
+        if (keysLength === 0) {
             const limit = this.safeInteger (this.options, 'OHLCVLimit', 1000);
             this.ohlcvs = new ArrayCacheByTimestamp (limit);
         }
