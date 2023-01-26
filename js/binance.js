@@ -3613,9 +3613,18 @@ module.exports = class binance extends Exchange {
             request['timeInForce'] = 'GTX';
         }
         if (stopPriceIsRequired) {
-            if (stopPrice === undefined) {
-                throw new InvalidOrder (this.id + ' createOrder() requires a stopPrice extra param for a ' + type + ' order');
+            if (market['contract']) {
+                if (stopPrice === undefined) {
+                    throw new InvalidOrder (this.id + ' createOrder() requires a stopPrice extra param for a ' + type + ' order');
+                }
             } else {
+                // check for delta price as well
+                const trailingDelta = this.safeValue (params, 'trailingDelta');
+                if (trailingDelta === undefined && stopPrice === undefined) {
+                    throw new InvalidOrder (this.id + ' createOrder() requires a stopPrice or trailingDelta param for a ' + type + ' order');
+                }
+            }
+            if (stopPrice !== undefined) {
                 request['stopPrice'] = this.priceToPrecision (symbol, stopPrice);
             }
         }

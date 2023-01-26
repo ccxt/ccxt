@@ -3241,10 +3241,11 @@ class bybit(Exchange):
         timeInForce = self.parse_time_in_force(self.safe_string(order, 'timeInForce'))
         triggerPrice = self.safe_string(order, 'triggerPrice')
         postOnly = (timeInForce == 'PO')
-        amount = self.safe_string(order, 'orderQty')
-        if amount is None or amount == '0':
-            if market['spot'] and type == 'market' and side == 'buy':
-                amount = filled
+        amount = None
+        if market['spot'] and type == 'market' and side == 'buy':
+            amount = filled
+        else:
+            amount = self.safe_string(order, 'orderQty')
         return self.safe_order({
             'id': self.safe_string(order, 'orderId'),
             'clientOrderId': self.safe_string(order, 'orderLinkId'),
