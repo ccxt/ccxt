@@ -1005,18 +1005,18 @@ class kucoinfutures extends kucoin {
          * @param {float} $amount the $amount of currency to trade
          * @param {float} $price *ignored in "market" orders* the $price at which the order is to be fullfilled at in units of the quote currency
          * @param {array} $params  Extra parameters specific to the exchange API endpoint
-         * @param {float} $params->leverage Leverage size of the order
-         * @param {float} $params->stopPrice The $price a $stop order is triggered at
-         * @param {float} $params->triggerPrice $price to trigger $stop orders
-         * @param {float} $params->stopLossPrice $price to trigger $stop-loss orders
+         * @param {float} $params->triggerPrice The $price a trigger order is triggered at
+         * @param {float} $params->stopLossPrice $price to trigger stop-loss orders
          * @param {float} $params->takeProfitPrice $price to trigger take-profit orders
-         * @param {string} $params->stop 'up' or 'down', the direction the $stopPrice is triggered from, requires $stopPrice
-         * @param {string} $params->stopPriceType  TP, IP or MP, defaults to MP => Mark Price
          * @param {bool} $params->reduceOnly A mark to reduce the position size only. Set to false by default. Need to set the position size when reduceOnly is true.
          * @param {string} $params->timeInForce GTC, GTT, IOC, or FOK, default is GTC, limit orders only
          * @param {string} $params->postOnly Post only flag, invalid when $timeInForce is IOC or FOK
+         * ----------------- Exchange Specific Parameters -----------------
+         * @param {float} $params->leverage Leverage size of the order
          * @param {string} $params->clientOid client order id, defaults to uuid if not passed
          * @param {string} $params->remark remark for the order, length cannot exceed 100 utf8 characters
+         * @param {string} $params->stop 'up' or 'down', the direction the $stopPrice is triggered from, requires $stopPrice-> down => Triggers when the $price reaches or goes below the $stopPrice-> up => Triggers when the $price reaches or goes above the $stopPrice->
+         * @param {string} $params->stopPriceType  TP, IP or MP, defaults to MP => Mark Price
          * @param {bool} $params->closeOrder set to true to close position
          * @param {bool} $params->forceHold A mark to forcely hold the funds for an order, even though it's an order to reduce the position size. This helps the order stay on the order book and not get canceled when the position size changes. Set to false by default.
          * @return {array} an {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structure}
@@ -1043,28 +1043,20 @@ class kucoinfutures extends kucoin {
         $takeProfitPrice = $this->safe_value($params, 'takeProfitPrice');
         $isStopLoss = $stopLossPrice !== null;
         $isTakeProfit = $takeProfitPrice !== null;
-        $stop = $this->safe_string($params, 'stop');
-        $stopPriceType = $this->safe_string($params, 'stopPriceType', 'MP');
         if ($stopPrice) {
-            if ($stop === null) {
-                $request['stop'] = ($side === 'buy') ? 'down' : 'up';
-            }
+            $request['stop'] = ($side === 'buy') ? 'up' : 'down';
             $request['stopPrice'] = $this->price_to_precision($symbol, $stopPrice);
-            $request['stopPriceType'] = $stopPriceType;
+            $request['stopPriceType'] = 'MP';
         } elseif ($isStopLoss || $isTakeProfit) {
             if ($isStopLoss) {
-                if ($stop === null) {
-                    $request['stop'] = ($side === 'buy') ? 'up' : 'down';
-                }
+                $request['stop'] = ($side === 'buy') ? 'up' : 'down';
                 $request['stopPrice'] = $this->price_to_precision($symbol, $stopLossPrice);
             } else {
-                if ($stop === null) {
-                    $request['stop'] = ($side === 'buy') ? 'down' : 'up';
-                }
+                $request['stop'] = ($side === 'buy') ? 'down' : 'up';
                 $request['stopPrice'] = $this->price_to_precision($symbol, $takeProfitPrice);
             }
             $request['reduceOnly'] = true;
-            $request['stopPriceType'] = $stopPriceType;
+            $request['stopPriceType'] = 'MP';
         }
         $uppercaseType = strtoupper($type);
         $timeInForce = $this->safe_string_upper($params, 'timeInForce');
@@ -1090,7 +1082,7 @@ class kucoinfutures extends kucoin {
                 throw new ArgumentsRequired($this->id . ' createOrder() requires a $visibleSize parameter for $iceberg orders');
             }
         }
-        $params = $this->omit($params, array( 'timeInForce', 'stop', 'stopPrice', 'stopPriceType', 'triggerPrice', 'stopLossPrice', 'takeProfitPrice' )); // Time in force only valid for limit orders, exchange error when gtc for $market orders
+        $params = $this->omit($params, array( 'timeInForce', 'stopPrice', 'triggerPrice', 'stopLossPrice', 'takeProfitPrice' )); // Time in force only valid for limit orders, exchange error when gtc for $market orders
         $response = $this->futuresPrivatePostOrders (array_merge($request, $params));
         //
         //    {
