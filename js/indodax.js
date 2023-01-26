@@ -729,11 +729,7 @@ module.exports = class indodax extends Exchange {
         request[currency] = amount;
         const result = await this.privatePostTrade (this.extend (request, params));
         const data = this.safeValue (result, 'return', {});
-        const id = this.safeString (data, 'order_id');
-        return {
-            'info': result,
-            'id': id,
-        };
+        return this.parseOrder (data, market);
     }
 
     async cancelOrder (id, symbol = undefined, params = {}) {
