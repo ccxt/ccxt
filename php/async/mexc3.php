@@ -26,10 +26,10 @@ class mexc3 extends Exchange {
             'version' => 'v3',
             'has' => array(
                 'CORS' => null,
-                'spot' => null,
+                'spot' => true,
                 'margin' => true,
-                'swap' => null,
-                'future' => null,
+                'swap' => true,
+                'future' => true,
                 'option' => null,
                 'addMargin' => true,
                 'borrowMargin' => true,
@@ -2356,7 +2356,7 @@ class mexc3 extends Exchange {
                 throw new BadRequest($this->id . ' fetchOrdersByState() is not supported for ' . $marketType);
             } else {
                 $params['states'] = $state;
-                return $this->fetch_orders($symbol, $since, $limit, $params);
+                return Async\await($this->fetch_orders($symbol, $since, $limit, $params));
             }
         }) ();
     }

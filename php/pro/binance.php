@@ -439,7 +439,7 @@ class binance extends \ccxt\async\binance {
             );
             $trades = Async\await($this->watch($url, $messageHash, array_merge($request, $query), $messageHash, $subscribe));
             if ($this->newUpdates) {
-                $limit = $trades->getLimit ($symbol, $limit);
+                $limit = $trades->getLimit ($market['symbol'], $limit);
             }
             return $this->filter_by_since_limit($trades, $since, $limit, 'timestamp', true);
         }) ();
@@ -1419,28 +1419,13 @@ class binance extends \ccxt\async\binance {
                 'currency' => $feeCurrency,
             );
         }
-        $price = $this->safe_float($order, 'p');
-        $amount = $this->safe_float($order, 'q');
+        $price = $this->safe_string($order, 'p');
+        $amount = $this->safe_string($order, 'q');
         $side = $this->safe_string_lower($order, 'S');
         $type = $this->safe_string_lower($order, 'o');
-        $filled = $this->safe_float($order, 'z');
-        $cumulativeQuote = $this->safe_float($order, 'Z');
-        $remaining = $amount;
-        $average = $this->safe_float($order, 'ap');
-        $cost = $cumulativeQuote;
-        if ($filled !== null) {
-            if ($cost === null) {
-                if ($price !== null) {
-                    $cost = $filled * $price;
-                }
-            }
-            if ($amount !== null) {
-                $remaining = max ($amount - $filled, 0);
-            }
-            if (($average === null) && ($cumulativeQuote !== null) && ($filled > 0)) {
-                $average = $cumulativeQuote / $filled;
-            }
-        }
+        $filled = $this->safe_string($order, 'z');
+        $cost = $this->safe_string($order, 'Z');
+        $average = $this->safe_string($order, 'ap');
         $rawStatus = $this->safe_string($order, 'X');
         $status = $this->parse_order_status($rawStatus);
         $trades = null;
@@ -1448,13 +1433,13 @@ class binance extends \ccxt\async\binance {
         if (($clientOrderId === null) || (strlen($clientOrderId) === 0)) {
             $clientOrderId = $this->safe_string($order, 'c');
         }
-        $stopPrice = $this->safe_float_2($order, 'P', 'sp');
+        $stopPrice = $this->safe_string_2($order, 'P', 'sp');
         $timeInForce = $this->safe_string($order, 'f');
         if ($timeInForce === 'GTX') {
             // GTX means "Good Till Crossing" and is an equivalent way of saying Post Only
             $timeInForce = 'PO';
         }
-        return array(
+        return $this->safe_order(array(
             'info' => $order,
             'symbol' => $symbol,
             'id' => $orderId,
@@ -1473,11 +1458,11 @@ class binance extends \ccxt\async\binance {
             'cost' => $cost,
             'average' => $average,
             'filled' => $filled,
-            'remaining' => $remaining,
+            'remaining' => null,
             'status' => $status,
             'fee' => $fee,
             'trades' => $trades,
-        );
+        ));
     }
 
     public function handle_order_update($client, $message) {

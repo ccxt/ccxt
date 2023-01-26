@@ -133,6 +133,7 @@ module.exports = class binance extends Exchange {
                 'test': {
                     'dapiPublic': 'https://testnet.binancefuture.com/dapi/v1',
                     'dapiPrivate': 'https://testnet.binancefuture.com/dapi/v1',
+                    'dapiPrivateV2': 'https://testnet.binancefuture.com/dapi/v2',
                     'eapiPublic': 'https://testnet.binanceops.com/eapi/v1',
                     'eapiPrivate': 'https://testnet.binanceops.com/eapi/v1',
                     'fapiPublic': 'https://testnet.binancefuture.com/fapi/v1',
@@ -775,6 +776,7 @@ module.exports = class binance extends Exchange {
                         'account': 10,
                         'myTrades': 10,
                         'rateLimit/order': 20,
+                        'myPreventedMatches': 1,
                     },
                     'post': {
                         'order/oco': 1,
@@ -1861,155 +1863,157 @@ module.exports = class binance extends Exchange {
         }
         const result = [];
         for (let i = 0; i < markets.length; i++) {
-            let swap = false;
-            let future = false;
-            const market = markets[i];
-            const id = this.safeString (market, 'symbol');
-            const lowercaseId = this.safeStringLower (market, 'symbol');
-            const baseId = this.safeString (market, 'baseAsset');
-            const quoteId = this.safeString (market, 'quoteAsset');
-            const settleId = this.safeString (market, 'marginAsset');
-            const base = this.safeCurrencyCode (baseId);
-            const quote = this.safeCurrencyCode (quoteId);
-            const settle = this.safeCurrencyCode (settleId);
-            const contractType = this.safeString (market, 'contractType');
-            const contract = ('contractType' in market);
-            const spot = !contract;
-            let expiry = this.safeInteger (market, 'deliveryDate');
-            if ((contractType === 'PERPETUAL') || (expiry === 4133404800000)) { // some swap markets do not have contract type, eg: BTCST
-                expiry = undefined;
-                swap = true;
-            } else {
-                future = true;
-            }
-            const filters = this.safeValue (market, 'filters', []);
-            const filtersByType = this.indexBy (filters, 'filterType');
-            const status = this.safeString2 (market, 'status', 'contractStatus');
-            let contractSize = undefined;
-            let fees = this.fees;
-            let linear = undefined;
-            let inverse = undefined;
-            let symbol = base + '/' + quote;
-            if (contract) {
-                if (swap) {
-                    expiry = this.safeInteger (market, 'deliveryDate');
-                    symbol = symbol + ':' + settle;
-                } else if (future) {
-                    symbol = symbol + ':' + settle + '-' + this.yymmdd (expiry);
-                }
-                contractSize = this.safeNumber (market, 'contractSize', this.parseNumber ('1'));
-                linear = settle === quote;
-                inverse = settle === base;
-                const feesType = linear ? 'linear' : 'inverse';
-                fees = this.safeValue (this.fees, feesType, {});
-            }
-            let active = (status === 'TRADING');
-            if (spot) {
-                const permissions = this.safeValue (market, 'permissions', []);
-                for (let j = 0; j < permissions.length; j++) {
-                    if (permissions[j] === 'TRD_GRP_003') {
-                        active = false;
-                        break;
-                    }
-                }
-            }
-            const isMarginTradingAllowed = this.safeValue (market, 'isMarginTradingAllowed', false);
-            let unifiedType = undefined;
-            if (spot) {
-                unifiedType = 'spot';
-            } else if (swap) {
-                unifiedType = 'swap';
-            } else if (future) {
-                unifiedType = 'future';
-            }
-            const entry = {
-                'id': id,
-                'lowercaseId': lowercaseId,
-                'symbol': symbol,
-                'base': base,
-                'quote': quote,
-                'settle': settle,
-                'baseId': baseId,
-                'quoteId': quoteId,
-                'settleId': settleId,
-                'type': unifiedType,
-                'spot': spot,
-                'margin': spot && isMarginTradingAllowed,
-                'swap': swap,
-                'future': future,
-                'option': false,
-                'active': active,
-                'contract': contract,
-                'linear': linear,
-                'inverse': inverse,
-                'taker': fees['trading']['taker'],
-                'maker': fees['trading']['maker'],
-                'contractSize': contractSize,
-                'expiry': expiry,
-                'expiryDatetime': this.iso8601 (expiry),
-                'strike': undefined,
-                'optionType': undefined,
-                'precision': {
-                    'amount': this.safeInteger (market, 'quantityPrecision'),
-                    'price': this.safeInteger (market, 'pricePrecision'),
-                    'base': this.safeInteger (market, 'baseAssetPrecision'),
-                    'quote': this.safeInteger (market, 'quotePrecision'),
-                },
-                'limits': {
-                    'leverage': {
-                        'min': undefined,
-                        'max': undefined,
-                    },
-                    'amount': {
-                        'min': undefined,
-                        'max': undefined,
-                    },
-                    'price': {
-                        'min': undefined,
-                        'max': undefined,
-                    },
-                    'cost': {
-                        'min': undefined,
-                        'max': undefined,
-                    },
-                },
-                'info': market,
-            };
-            if ('PRICE_FILTER' in filtersByType) {
-                const filter = this.safeValue (filtersByType, 'PRICE_FILTER', {});
-                // PRICE_FILTER reports zero values for maxPrice
-                // since they updated filter types in November 2018
-                // https://github.com/ccxt/ccxt/issues/4286
-                // therefore limits['price']['max'] doesn't have any meaningful value except undefined
-                entry['limits']['price'] = {
-                    'min': this.safeNumber (filter, 'minPrice'),
-                    'max': this.safeNumber (filter, 'maxPrice'),
-                };
-                entry['precision']['price'] = this.precisionFromString (filter['tickSize']);
-            }
-            if ('LOT_SIZE' in filtersByType) {
-                const filter = this.safeValue (filtersByType, 'LOT_SIZE', {});
-                const stepSize = this.safeString (filter, 'stepSize');
-                entry['precision']['amount'] = this.precisionFromString (stepSize);
-                entry['limits']['amount'] = {
-                    'min': this.safeNumber (filter, 'minQty'),
-                    'max': this.safeNumber (filter, 'maxQty'),
-                };
-            }
-            if ('MARKET_LOT_SIZE' in filtersByType) {
-                const filter = this.safeValue (filtersByType, 'MARKET_LOT_SIZE', {});
-                entry['limits']['market'] = {
-                    'min': this.safeNumber (filter, 'minQty'),
-                    'max': this.safeNumber (filter, 'maxQty'),
-                };
-            }
-            if ('MIN_NOTIONAL' in filtersByType) {
-                const filter = this.safeValue (filtersByType, 'MIN_NOTIONAL', {});
-                entry['limits']['cost']['min'] = this.safeNumber2 (filter, 'minNotional', 'notional');
-            }
-            result.push (entry);
+            result.push (this.parseMarket (markets[i]));
         }
         return result;
+    }
+
+    parseMarket (market) {
+        let swap = false;
+        let future = false;
+        const id = this.safeString (market, 'symbol');
+        const lowercaseId = this.safeStringLower (market, 'symbol');
+        const baseId = this.safeString (market, 'baseAsset');
+        const quoteId = this.safeString (market, 'quoteAsset');
+        const settleId = this.safeString (market, 'marginAsset');
+        const base = this.safeCurrencyCode (baseId);
+        const quote = this.safeCurrencyCode (quoteId);
+        const settle = this.safeCurrencyCode (settleId);
+        const contractType = this.safeString (market, 'contractType');
+        const contract = ('contractType' in market);
+        const spot = !contract;
+        let expiry = this.safeInteger (market, 'deliveryDate');
+        if ((contractType === 'PERPETUAL') || (expiry === 4133404800000)) { // some swap markets do not have contract type, eg: BTCST
+            expiry = undefined;
+            swap = true;
+        } else {
+            future = true;
+        }
+        const filters = this.safeValue (market, 'filters', []);
+        const filtersByType = this.indexBy (filters, 'filterType');
+        const status = this.safeString2 (market, 'status', 'contractStatus');
+        let contractSize = undefined;
+        let fees = this.fees;
+        let linear = undefined;
+        let inverse = undefined;
+        let symbol = base + '/' + quote;
+        if (contract) {
+            if (swap) {
+                symbol = symbol + ':' + settle;
+            } else if (future) {
+                symbol = symbol + ':' + settle + '-' + this.yymmdd (expiry);
+            }
+            contractSize = this.safeNumber (market, 'contractSize', this.parseNumber ('1'));
+            linear = settle === quote;
+            inverse = settle === base;
+            const feesType = linear ? 'linear' : 'inverse';
+            fees = this.safeValue (this.fees, feesType, {});
+        }
+        let active = (status === 'TRADING');
+        if (spot) {
+            const permissions = this.safeValue (market, 'permissions', []);
+            for (let j = 0; j < permissions.length; j++) {
+                if (permissions[j] === 'TRD_GRP_003') {
+                    active = false;
+                    break;
+                }
+            }
+        }
+        const isMarginTradingAllowed = this.safeValue (market, 'isMarginTradingAllowed', false);
+        let unifiedType = undefined;
+        if (spot) {
+            unifiedType = 'spot';
+        } else if (swap) {
+            unifiedType = 'swap';
+        } else if (future) {
+            unifiedType = 'future';
+        }
+        const entry = {
+            'id': id,
+            'lowercaseId': lowercaseId,
+            'symbol': symbol,
+            'base': base,
+            'quote': quote,
+            'settle': settle,
+            'baseId': baseId,
+            'quoteId': quoteId,
+            'settleId': settleId,
+            'type': unifiedType,
+            'spot': spot,
+            'margin': spot && isMarginTradingAllowed,
+            'swap': swap,
+            'future': future,
+            'option': false,
+            'active': active,
+            'contract': contract,
+            'linear': linear,
+            'inverse': inverse,
+            'taker': fees['trading']['taker'],
+            'maker': fees['trading']['maker'],
+            'contractSize': contractSize,
+            'expiry': expiry,
+            'expiryDatetime': this.iso8601 (expiry),
+            'strike': undefined,
+            'optionType': undefined,
+            'precision': {
+                'amount': this.safeInteger (market, 'quantityPrecision'),
+                'price': this.safeInteger (market, 'pricePrecision'),
+                'base': this.safeInteger (market, 'baseAssetPrecision'),
+                'quote': this.safeInteger (market, 'quotePrecision'),
+            },
+            'limits': {
+                'leverage': {
+                    'min': undefined,
+                    'max': undefined,
+                },
+                'amount': {
+                    'min': undefined,
+                    'max': undefined,
+                },
+                'price': {
+                    'min': undefined,
+                    'max': undefined,
+                },
+                'cost': {
+                    'min': undefined,
+                    'max': undefined,
+                },
+            },
+            'info': market,
+        };
+        if ('PRICE_FILTER' in filtersByType) {
+            const filter = this.safeValue (filtersByType, 'PRICE_FILTER', {});
+            // PRICE_FILTER reports zero values for maxPrice
+            // since they updated filter types in November 2018
+            // https://github.com/ccxt/ccxt/issues/4286
+            // therefore limits['price']['max'] doesn't have any meaningful value except undefined
+            entry['limits']['price'] = {
+                'min': this.safeNumber (filter, 'minPrice'),
+                'max': this.safeNumber (filter, 'maxPrice'),
+            };
+            entry['precision']['price'] = this.precisionFromString (filter['tickSize']);
+        }
+        if ('LOT_SIZE' in filtersByType) {
+            const filter = this.safeValue (filtersByType, 'LOT_SIZE', {});
+            const stepSize = this.safeString (filter, 'stepSize');
+            entry['precision']['amount'] = this.precisionFromString (stepSize);
+            entry['limits']['amount'] = {
+                'min': this.safeNumber (filter, 'minQty'),
+                'max': this.safeNumber (filter, 'maxQty'),
+            };
+        }
+        if ('MARKET_LOT_SIZE' in filtersByType) {
+            const filter = this.safeValue (filtersByType, 'MARKET_LOT_SIZE', {});
+            entry['limits']['market'] = {
+                'min': this.safeNumber (filter, 'minQty'),
+                'max': this.safeNumber (filter, 'maxQty'),
+            };
+        }
+        if ('MIN_NOTIONAL' in filtersByType) {
+            const filter = this.safeValue (filtersByType, 'MIN_NOTIONAL', {});
+            entry['limits']['cost']['min'] = this.safeNumber2 (filter, 'minNotional', 'notional');
+        }
+        return entry;
     }
 
     parseBalanceHelper (entry) {
@@ -2051,7 +2055,7 @@ module.exports = class binance extends Exchange {
             for (let i = 0; i < assets.length; i++) {
                 const asset = assets[i];
                 const marketId = this.safeValue (asset, 'symbol');
-                const symbol = this.safeSymbol (marketId, undefined, undefined, 'margin');
+                const symbol = this.safeSymbol (marketId, undefined, undefined, 'spot');
                 const base = this.safeValue (asset, 'baseAsset', {});
                 const quote = this.safeValue (asset, 'quoteAsset', {});
                 const baseCode = this.safeCurrencyCode (this.safeString (base, 'asset'));
@@ -2136,12 +2140,6 @@ module.exports = class binance extends Exchange {
             const fetchBalanceOptions = this.safeValue (options, 'fetchBalance', {});
             method = this.safeString (fetchBalanceOptions, 'method', 'dapiPrivateGetAccount');
             type = 'inverse';
-        } else if ((type === 'margin') || (marginMode === 'cross')) {
-            method = 'sapiGetMarginAccount';
-        } else if (type === 'savings') {
-            method = 'sapiGetLendingUnionAccount';
-        } else if (type === 'funding') {
-            method = 'sapiPostAssetGetFundingAsset';
         } else if (marginMode === 'isolated') {
             method = 'sapiGetMarginIsolatedAccount';
             const paramSymbols = this.safeValue (params, 'symbols');
@@ -2159,6 +2157,12 @@ module.exports = class binance extends Exchange {
                 }
                 request['symbols'] = symbols;
             }
+        } else if ((type === 'margin') || (marginMode === 'cross')) {
+            method = 'sapiGetMarginAccount';
+        } else if (type === 'savings') {
+            method = 'sapiGetLendingUnionAccount';
+        } else if (type === 'funding') {
+            method = 'sapiPostAssetGetFundingAsset';
         }
         const requestParams = this.omit (query, [ 'type', 'symbols' ]);
         const response = await this[method] (this.extend (request, requestParams));
@@ -3069,12 +3073,12 @@ module.exports = class binance extends Exchange {
             // ALLOW_FAILURE - new order placement will be attempted even if cancel request fails.
         };
         const clientOrderId = this.safeString2 (params, 'newClientOrderId', 'clientOrderId');
-        const postOnly = this.safeValue (params, 'postOnly', false);
-        if (postOnly) {
-            type = 'LIMIT_MAKER';
-        }
         const initialUppercaseType = type.toUpperCase ();
         let uppercaseType = initialUppercaseType;
+        const postOnly = this.isPostOnly (initialUppercaseType === 'MARKET', initialUppercaseType === 'LIMIT_MAKER', params);
+        if (postOnly) {
+            uppercaseType = 'LIMIT_MAKER';
+        }
         request['type'] = uppercaseType;
         const stopPrice = this.safeNumber (params, 'stopPrice');
         if (stopPrice !== undefined) {
@@ -3213,6 +3217,7 @@ module.exports = class binance extends Exchange {
             'PENDING_CANCEL': 'canceling', // currently unused
             'REJECTED': 'rejected',
             'EXPIRED': 'expired',
+            'EXPIRED_IN_MATCH': 'expired',
         };
         return this.safeString (statuses, status, status);
     }
@@ -3462,7 +3467,7 @@ module.exports = class binance extends Exchange {
                 type = 'LIMIT_MAKER';
             }
         }
-        let uppercaseType = initialUppercaseType;
+        let uppercaseType = type.toUpperCase ();
         let stopPrice = undefined;
         if (isStopLoss) {
             stopPrice = stopLossPrice;
@@ -3608,9 +3613,18 @@ module.exports = class binance extends Exchange {
             request['timeInForce'] = 'GTX';
         }
         if (stopPriceIsRequired) {
-            if (stopPrice === undefined) {
-                throw new InvalidOrder (this.id + ' createOrder() requires a stopPrice extra param for a ' + type + ' order');
+            if (market['contract']) {
+                if (stopPrice === undefined) {
+                    throw new InvalidOrder (this.id + ' createOrder() requires a stopPrice extra param for a ' + type + ' order');
+                }
             } else {
+                // check for delta price as well
+                const trailingDelta = this.safeValue (params, 'trailingDelta');
+                if (trailingDelta === undefined && stopPrice === undefined) {
+                    throw new InvalidOrder (this.id + ' createOrder() requires a stopPrice or trailingDelta param for a ' + type + ' order');
+                }
+            }
+            if (stopPrice !== undefined) {
                 request['stopPrice'] = this.priceToPrecision (symbol, stopPrice);
             }
         }
@@ -5341,19 +5355,22 @@ module.exports = class binance extends Exchange {
             const symbols = Object.keys (this.markets);
             const result = {};
             const feeTier = this.safeInteger (response, 'feeTier');
-            const feeTiers = this.fees[type]['trading']['tiers'];
+            const feeTiers = this.fees['linear']['trading']['tiers'];
             const maker = feeTiers['maker'][feeTier][1];
             const taker = feeTiers['taker'][feeTier][1];
             for (let i = 0; i < symbols.length; i++) {
                 const symbol = symbols[i];
-                result[symbol] = {
-                    'info': {
-                        'feeTier': feeTier,
-                    },
-                    'symbol': symbol,
-                    'maker': maker,
-                    'taker': taker,
-                };
+                const market = this.markets[symbol];
+                if (market['linear']) {
+                    result[symbol] = {
+                        'info': {
+                            'feeTier': feeTier,
+                        },
+                        'symbol': symbol,
+                        'maker': maker,
+                        'taker': taker,
+                    };
+                }
             }
             return result;
         } else if (isInverse) {
@@ -5369,19 +5386,22 @@ module.exports = class binance extends Exchange {
             const symbols = Object.keys (this.markets);
             const result = {};
             const feeTier = this.safeInteger (response, 'feeTier');
-            const feeTiers = this.fees[type]['trading']['tiers'];
+            const feeTiers = this.fees['inverse']['trading']['tiers'];
             const maker = feeTiers['maker'][feeTier][1];
             const taker = feeTiers['taker'][feeTier][1];
             for (let i = 0; i < symbols.length; i++) {
                 const symbol = symbols[i];
-                result[symbol] = {
-                    'info': {
-                        'feeTier': feeTier,
-                    },
-                    'symbol': symbol,
-                    'maker': maker,
-                    'taker': taker,
-                };
+                const market = this.markets[symbol];
+                if (market['inverse']) {
+                    result[symbol] = {
+                        'info': {
+                            'feeTier': feeTier,
+                        },
+                        'symbol': symbol,
+                        'maker': maker,
+                        'taker': taker,
+                    };
+                }
             }
             return result;
         }
@@ -6534,8 +6554,8 @@ module.exports = class binance extends Exchange {
                 query = this.urlencode (extendedParams);
             }
             let signature = undefined;
-            if (this.secret.indexOf ('-----BEGIN RSA PRIVATE KEY-----') > -1) {
-                signature = this.rsa (this.encode (query), this.encode (this.secret));
+            if (this.secret.indexOf ('PRIVATE KEY') > -1) {
+                signature = this.rsa (query, this.secret);
             } else {
                 signature = this.hmac (this.encode (query), this.encode (this.secret));
             }

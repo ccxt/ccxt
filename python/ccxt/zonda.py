@@ -978,7 +978,7 @@ class zonda(Exchange):
             'referenceAccount': None,
             'type': self.parse_ledger_entry_type(self.safe_string(item, 'type')),
             'currency': self.safe_currency_code(currencyId),
-            'amount': amount,
+            'amount': self.parse_number(amount),
             'before': self.safe_number(fundsBefore, 'total'),
             'after': self.safe_number(fundsAfter, 'total'),
             'status': 'ok',

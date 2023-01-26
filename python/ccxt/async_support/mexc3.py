@@ -30,10 +30,10 @@ class mexc3(Exchange):
             'version': 'v3',
             'has': {
                 'CORS': None,
-                'spot': None,
+                'spot': True,
                 'margin': True,
-                'swap': None,
-                'future': None,
+                'swap': True,
+                'future': True,
                 'option': None,
                 'addMargin': True,
                 'borrowMargin': True,
@@ -2200,7 +2200,7 @@ class mexc3(Exchange):
             raise BadRequest(self.id + ' fetchOrdersByState() is not supported for ' + marketType)
         else:
             params['states'] = state
-            return self.fetch_orders(symbol, since, limit, params)
+            return await self.fetch_orders(symbol, since, limit, params)
 
     async def cancel_order(self, id, symbol=None, params={}):
         """

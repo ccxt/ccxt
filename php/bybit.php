@@ -30,6 +30,7 @@ class bybit extends Exchange {
                 'cancelAllOrders' => true,
                 'cancelOrder' => true,
                 'createOrder' => true,
+                'createPostOnlyOrder' => true,
                 'createStopLimitOrder' => true,
                 'createStopMarketOrder' => true,
                 'createStopOrder' => true,
@@ -94,7 +95,6 @@ class bybit extends Exchange {
                 '1d' => 'D',
                 '1w' => 'W',
                 '1M' => 'M',
-                '1y' => 'Y',
             ),
             'urls' => array(
                 'test' => array(
@@ -313,6 +313,7 @@ class bybit extends Exchange {
                         'asset/v2/private/exchange/exchange-order-all' => 1,
                         'unified/v3/private/account/borrow-history' => 1,
                         'unified/v3/private/account/borrow-rate' => 1,
+                        'unified/v3/private/account/info' => 1,
                         'user/v3/private/frozen-sub-member' => 10, // 5/s
                         'user/v3/private/query-sub-members' => 5, // 10/s
                         'user/v3/private/query-api' => 5, // 10/s
@@ -468,6 +469,7 @@ class bybit extends Exchange {
                         'unified/v3/private/position/set-risk-limit' => 2.5,
                         'unified/v3/private/position/trading-stop' => 2.5,
                         'unified/v3/private/account/upgrade-unified-account' => 2.5,
+                        'unified/v3/private/account/setMarginMode' => 2.5,
                         // tax
                         'fht/compliance/tax/v3/private/registertime' => 50,
                         'fht/compliance/tax/v3/private/create' => 50,
@@ -2132,7 +2134,8 @@ class bybit extends Exchange {
         $market = $this->market($symbol);
         $params['symbol'] = $market['id'];
         $symbols = [ $market['symbol'] ];
-        return $this->fetch_funding_rates($symbols, $params);
+        $fr = $this->fetch_funding_rates($symbols, $params);
+        return $this->safe_value($fr, $market['symbol']);
     }
 
     public function fetch_funding_rates($symbols = null, $params = array ()) {
@@ -3352,11 +3355,11 @@ class bybit extends Exchange {
         $timeInForce = $this->parse_time_in_force($this->safe_string($order, 'timeInForce'));
         $triggerPrice = $this->safe_string($order, 'triggerPrice');
         $postOnly = ($timeInForce === 'PO');
-        $amount = $this->safe_string($order, 'orderQty');
-        if ($amount === null || $amount === '0') {
-            if ($market['spot'] && $type === 'market' && $side === 'buy') {
-                $amount = $filled;
-            }
+        $amount = null;
+        if ($market['spot'] && $type === 'market' && $side === 'buy') {
+            $amount = $filled;
+        } else {
+            $amount = $this->safe_string($order, 'orderQty');
         }
         return $this->safe_order(array(
             'id' => $this->safe_string($order, 'orderId'),

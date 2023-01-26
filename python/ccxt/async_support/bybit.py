@@ -44,6 +44,7 @@ class bybit(Exchange):
                 'cancelAllOrders': True,
                 'cancelOrder': True,
                 'createOrder': True,
+                'createPostOnlyOrder': True,
                 'createStopLimitOrder': True,
                 'createStopMarketOrder': True,
                 'createStopOrder': True,
@@ -108,7 +109,6 @@ class bybit(Exchange):
                 '1d': 'D',
                 '1w': 'W',
                 '1M': 'M',
-                '1y': 'Y',
             },
             'urls': {
                 'test': {
@@ -327,6 +327,7 @@ class bybit(Exchange):
                         'asset/v2/private/exchange/exchange-order-all': 1,
                         'unified/v3/private/account/borrow-history': 1,
                         'unified/v3/private/account/borrow-rate': 1,
+                        'unified/v3/private/account/info': 1,
                         'user/v3/private/frozen-sub-member': 10,  # 5/s
                         'user/v3/private/query-sub-members': 5,  # 10/s
                         'user/v3/private/query-api': 5,  # 10/s
@@ -482,6 +483,7 @@ class bybit(Exchange):
                         'unified/v3/private/position/set-risk-limit': 2.5,
                         'unified/v3/private/position/trading-stop': 2.5,
                         'unified/v3/private/account/upgrade-unified-account': 2.5,
+                        'unified/v3/private/account/setMarginMode': 2.5,
                         # tax
                         'fht/compliance/tax/v3/private/registertime': 50,
                         'fht/compliance/tax/v3/private/create': 50,
@@ -2084,7 +2086,8 @@ class bybit(Exchange):
         market = self.market(symbol)
         params['symbol'] = market['id']
         symbols = [market['symbol']]
-        return await self.fetch_funding_rates(symbols, params)
+        fr = await self.fetch_funding_rates(symbols, params)
+        return self.safe_value(fr, market['symbol'])
 
     async def fetch_funding_rates(self, symbols=None, params={}):
         """
@@ -3238,10 +3241,11 @@ class bybit(Exchange):
         timeInForce = self.parse_time_in_force(self.safe_string(order, 'timeInForce'))
         triggerPrice = self.safe_string(order, 'triggerPrice')
         postOnly = (timeInForce == 'PO')
-        amount = self.safe_string(order, 'orderQty')
-        if amount is None or amount == '0':
-            if market['spot'] and type == 'market' and side == 'buy':
-                amount = filled
+        amount = None
+        if market['spot'] and type == 'market' and side == 'buy':
+            amount = filled
+        else:
+            amount = self.safe_string(order, 'orderQty')
         return self.safe_order({
             'id': self.safe_string(order, 'orderId'),
             'clientOrderId': self.safe_string(order, 'orderLinkId'),

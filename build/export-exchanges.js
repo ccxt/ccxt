@@ -496,7 +496,8 @@ function exportEverything () {
 
     exportExchangeIdsToExchangesJson (keys(exchanges), wsIds)
     exportWikiToGitHub (wikiPath, gitWikiPath)
-    exportKeywordsToPackageJson (exchanges)
+    // skip this step to reduce the size of the package metadata
+    // exportKeywordsToPackageJson (exchanges)
 
     log.bright.green ('Exported successfully.')
 }

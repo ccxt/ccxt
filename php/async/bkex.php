@@ -24,9 +24,9 @@ class bkex extends Exchange {
             'certified' => false,
             'has' => array(
                 'CORS' => null,
-                'spot' => null,
+                'spot' => true,
                 'margin' => null,
-                'swap' => null,
+                'swap' => true,
                 'future' => null,
                 'option' => null,
                 'addMargin' => null,
