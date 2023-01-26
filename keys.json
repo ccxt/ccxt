@@ -12,6 +12,7 @@
     "bitmex":        { "skipWs": true },
     "bitfinex":      { "skipWs": true },
     "bittrex":       { "skipWs": true },
+    "btcalpha":      { "skip": true },
     "cdax":          { "skipWs": true },
     "cex":           { "skipWs": true },
     "currencycom":   { "skipWs": true },

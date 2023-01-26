@@ -9,6 +9,7 @@ from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import PermissionDenied
 from ccxt.base.errors import ArgumentsRequired
+from ccxt.base.errors import OrderNotFound
 from ccxt.base.errors import NotSupported
 from ccxt.base.errors import InvalidNonce
 from ccxt.base.decimal_to_precision import TICK_SIZE
@@ -53,6 +54,7 @@ class bit2c(Exchange):
                 'fetchMyTrades': True,
                 'fetchOpenInterestHistory': False,
                 'fetchOpenOrders': True,
+                'fetchOrder': True,
                 'fetchOrderBook': True,
                 'fetchPosition': False,
                 'fetchPositionMode': False,
@@ -98,6 +100,7 @@ class bit2c(Exchange):
                         'Funds/AddCoinFundsRequest',
                         'Order/AddFund',
                         'Order/AddOrder',
+                        'Order/GetById',
                         'Order/AddOrderMarketPriceBuy',
                         'Order/AddOrderMarketPriceSell',
                         'Order/CancelOrder',
@@ -136,6 +139,7 @@ class bit2c(Exchange):
             'exceptions': {
                 'exact': {
                     'Please provide valid APIkey': AuthenticationError,  # {"error" : "Please provide valid APIkey"}
+                    'No order found.': OrderNotFound,  # {"Error" : "No order found."}
                 },
                 'broad': {
                     # {"error": "Please provide valid nonce in Request Nonce(1598218490) is not bigger than last nonce(1598218490)."}
@@ -377,10 +381,7 @@ class bit2c(Exchange):
             request['Total'] = amount * price
             request['IsBid'] = (side == 'buy')
         response = getattr(self, method)(self.extend(request, params))
-        return {
-            'info': response,
-            'id': response['NewOrder']['id'],
-        }
+        return self.parse_order(response, market)
 
     def cancel_order(self, id, symbol=None, params={}):
         """
@@ -417,18 +418,117 @@ class bit2c(Exchange):
         bids = self.safe_value(orders, 'bid', [])
         return self.parse_orders(self.array_concat(asks, bids), market, since, limit)
 
+    def fetch_order(self, id, symbol=None, params={}):
+        """
+        fetches information on an order made by the user
+        :param str symbol: unified market symbol
+        :param dict params: extra parameters specific to the bit2c api endpoint
+        :returns dict: An `order structure <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
+        """
+        self.load_markets()
+        market = self.market(symbol)
+        request = {
+            'id': id,
+        }
+        response = self.privateGetOrderGetById(self.extend(request, params))
+        #
+        #         {
+        #             "pair": "BtcNis",
+        #             "status": "Completed",
+        #             "created": 1666689837,
+        #             "type": 0,
+        #             "order_type": 0,
+        #             "amount": 0.00000000,
+        #             "price": 50000.00000000,
+        #             "stop": 0,
+        #             "id": 10951473,
+        #             "initialAmount": 2.00000000
+        #         }
+        #
+        return self.parse_order(response, market)
+
     def parse_order(self, order, market=None):
-        timestamp = self.safe_integer(order, 'created')
-        price = self.safe_string(order, 'price')
-        amount = self.safe_string(order, 'amount')
-        market = self.safe_market(None, market)
-        side = self.safe_value(order, 'type')
+        #
+        #      createOrder
+        #      {
+        #          "OrderResponse": {"pair": "BtcNis", "HasError": False, "Error": "", "Message": ""},
+        #          "NewOrder": {
+        #              "created": 1505531577,
+        #              "type": 0,
+        #              "order_type": 0,
+        #              "status_type": 0,
+        #              "amount": 0.01,
+        #              "price": 10000,
+        #              "stop": 0,
+        #              "id": 9244416,
+        #              "initialAmount": None,
+        #          },
+        #      }
+        #      fetchOrder, fetchOpenOrders
+        #      {
+        #          "pair": "BtcNis",
+        #          "status": "Completed",
+        #          "created": 1535555837,
+        #          "type": 0,
+        #          "order_type": 0,
+        #          "amount": 0.00000000,
+        #          "price": 120000.00000000,
+        #          "stop": 0,
+        #          "id": 10555173,
+        #          "initialAmount": 2.00000000
+        #      }
+        #
+        orderUnified = None
+        isNewOrder = False
+        if 'NewOrder' in order:
+            orderUnified = order['NewOrder']
+            isNewOrder = True
+        else:
+            orderUnified = order
+        id = self.safe_string(order, 'id')
+        symbol = self.safe_symbol(None, market)
+        timestamp = self.safe_integer_product(order, 'created', 1000)
+        # status field vary between responses
+        # bit2c status type:
+        # 0 = New
+        # 1 = Open
+        # 5 = Completed
+        status = None
+        if isNewOrder:
+            tempStatus = self.safe_integer(orderUnified, 'status_type')
+            if tempStatus == 0 or tempStatus == 1:
+                status = 'open'
+            elif tempStatus == 5:
+                status = 'closed'
+        else:
+            tempStatus = self.safe_string(order, 'status')
+            if tempStatus == 'New' or tempStatus == 'Open':
+                status = 'open'
+            elif tempStatus == 'Completed':
+                status = 'closed'
+        # bit2c order type:
+        # 0 = LMT,  1 = MKT
+        type = self.safe_integer(orderUnified, 'order_type')
+        if type == 0:
+            type = 'limit'
+        elif type == 1:
+            type = 'market'
+        # bit2c side:
+        # 0 = buy, 1 = sell
+        side = self.safe_integer(orderUnified, 'type')
         if side == 0:
             side = 'buy'
         elif side == 1:
             side = 'sell'
-        id = self.safe_string(order, 'id')
-        status = self.safe_string(order, 'status')
+        price = self.safe_string(order, 'price')
+        amount = None
+        remaining = None
+        if isNewOrder:
+            amount = self.safe_string(orderUnified, 'amount')  # NOTE:'initialAmount' is currently not set on new order
+            remaining = self.safe_string(orderUnified, 'amount')
+        else:
+            amount = self.safe_string(order, 'initialAmount')
+            remaining = self.safe_string(order, 'amount')
         return self.safe_order({
             'id': id,
             'clientOrderId': None,
@@ -436,8 +536,8 @@ class bit2c(Exchange):
             'datetime': self.iso8601(timestamp),
             'lastTradeTimestamp': None,
             'status': status,
-            'symbol': market['symbol'],
-            'type': None,
+            'symbol': symbol,
+            'type': type,
             'timeInForce': None,
             'postOnly': None,
             'side': side,
@@ -446,7 +546,7 @@ class bit2c(Exchange):
             'triggerPrice': None,
             'amount': amount,
             'filled': None,
-            'remaining': None,
+            'remaining': remaining,
             'cost': None,
             'trades': None,
             'fee': None,
@@ -682,8 +782,11 @@ class bit2c(Exchange):
         #
         #     {"error" : "please approve new terms of use on site."}
         #     {"error": "Please provide valid nonce in Request Nonce(1598218490) is not bigger than last nonce(1598218490)."}
+        #     {"Error" : "No order found."}
         #
         error = self.safe_string(response, 'error')
+        if error is None:
+            error = self.safe_string(response, 'Error')
         if error is not None:
             feedback = self.id + ' ' + body
             self.throw_exactly_matched_exception(self.exceptions['exact'], error, feedback)

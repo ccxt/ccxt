@@ -984,11 +984,6 @@ class huobi(Exchange):
                 'broker': {
                     'id': 'AA03022abc',
                 },
-                'accountsByType': {
-                    'spot': 'pro',
-                    'funding': 'pro',
-                    'future': 'futures',
-                },
                 'accountsById': {
                     'spot': 'spot',
                     'margin': 'margin',
@@ -4800,29 +4795,62 @@ class huobi(Exchange):
     def transfer(self, code, amount, fromAccount, toAccount, params={}):
         """
         transfer currency internally between wallets on the same account
+        see https://huobiapi.github.io/docs/dm/v1/en/#transfer-margin-between-spot-account-and-future-account
+        see https://huobiapi.github.io/docs/spot/v1/en/#transfer-fund-between-spot-account-and-future-contract-account
+        see https://huobiapi.github.io/docs/usdt_swap/v1/en/#general-transfer-margin-between-spot-account-and-usdt-margined-contracts-account
         :param str code: unified currency code
         :param float amount: amount to transfer
-        :param str fromAccount: account to transfer from
-        :param str toAccount: account to transfer to
+        :param str fromAccount: account to transfer from 'spot', 'future', 'swap'
+        :param str toAccount: account to transfer to 'spot', 'future', 'swap'
         :param dict params: extra parameters specific to the huobi api endpoint
+        :param str|None params['symbol']: used for isolated margin transfer
         :returns dict: a `transfer structure <https://docs.ccxt.com/en/latest/manual.html#transfer-structure>`
         """
         self.load_markets()
         currency = self.currency(code)
-        type = self.safe_string(params, 'type')
-        if type is None:
-            accountsByType = self.safe_value(self.options, 'accountsByType', {})
-            fromAccount = fromAccount.lower()  # pro, futures
-            toAccount = toAccount.lower()  # pro, futures
-            fromId = self.safe_string(accountsByType, fromAccount, fromAccount)
-            toId = self.safe_string(accountsByType, toAccount, toAccount)
-            type = fromId + '-to-' + toId
         request = {
             'currency': currency['id'],
             'amount': float(self.currency_to_precision(code, amount)),
-            'type': type,
         }
-        response = self.spotPrivatePostFuturesTransfer(self.extend(request, params))
+        subType = None
+        subType, params = self.handle_sub_type_and_params('transfer', None, params)
+        method = None
+        fromAccount = fromAccount.lower()
+        toAccount = toAccount.lower()
+        futuresAccounts = {
+            'future': 'futures',
+            'spot': 'pro',
+        }
+        fromIdFuture = self.safe_string(futuresAccounts, fromAccount, fromAccount)
+        toIdFuture = self.safe_string(futuresAccounts, toAccount, toAccount)
+        isFromSpot = (fromAccount == 'spot') or (fromAccount == 'pro')
+        isToSpot = (toAccount == 'spot') or (toAccount == 'pro')
+        if not isFromSpot and not isToSpot:
+            raise BadRequest(self.id + ' transfer() can only transfer between spot and futures accounts or vice versa')
+        fromOrToFuturesAccount = (fromIdFuture == 'futures') or (toIdFuture == 'futures')
+        if fromOrToFuturesAccount:
+            type = fromIdFuture + '-to-' + toIdFuture
+            type = self.safe_string(params, 'type', type)
+            request['type'] = type
+            method = 'spotPrivatePostV1FuturesTransfer'
+        else:
+            method = 'v2PrivatePostAccountTransfer'
+            if subType == 'linear':
+                if (fromAccount == 'swap') or (fromAccount == 'linear-swap'):
+                    fromAccount = 'linear-swap'
+                else:
+                    toAccount = 'linear-swap'
+                # check if cross-margin or isolated
+                symbol = self.safe_string(params, 'symbol')
+                params = self.omit(params, 'symbol')
+                if symbol is not None:
+                    symbol = self.market_id(symbol)
+                    request['margin-account'] = symbol
+                else:
+                    request['margin-account'] = 'USDT'  # cross-margin
+            request['from'] = fromAccount
+            request['to'] = toAccount
+        response = getattr(self, method)(self.extend(request, params))
         #
         #     {
         #         "data": 12345,

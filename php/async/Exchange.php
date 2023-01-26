@@ -36,11 +36,11 @@ use \ccxt\pro\ClientTrait;
 
 include 'Throttle.php';
 
-$version = '2.6.76';
+$version = '2.6.88';
 
 class Exchange extends \ccxt\Exchange {
 
-    const VERSION = '2.6.76';
+    const VERSION = '2.6.88';
 
     public $browser;
     public $marketsLoading = null;
@@ -105,6 +105,7 @@ class Exchange extends \ccxt\Exchange {
             $this->lastRestRequestTimestamp = $this->milliseconds();
 
             try {
+                $body = $body ?? ''; // https://github.com/ccxt/ccxt/pull/16555
                 $result = React\Async\await($this->browser->request($method, $url, $headers, $body));
             } catch (Exception $e) {
                 $message = $e->getMessage();

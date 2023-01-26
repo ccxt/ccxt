@@ -18,10 +18,10 @@ export default class mexc3 extends Exchange {
             'version': 'v3',
             'has': {
                 'CORS': undefined,
-                'spot': undefined,
+                'spot': true,
                 'margin': true,
-                'swap': undefined,
-                'future': undefined,
+                'swap': true,
+                'future': true,
                 'option': undefined,
                 'addMargin': true,
                 'borrowMargin': true,

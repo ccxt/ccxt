@@ -80,7 +80,7 @@ class coinbase(Exchange):
                 'fetchMarkOHLCV': False,
                 'fetchMyBuys': True,
                 'fetchMySells': True,
-                'fetchMyTrades': None,
+                'fetchMyTrades': True,
                 'fetchOHLCV': True,
                 'fetchOpenInterestHistory': False,
                 'fetchOpenOrders': True,
@@ -95,7 +95,7 @@ class coinbase(Exchange):
                 'fetchTicker': True,
                 'fetchTickers': True,
                 'fetchTime': True,
-                'fetchTrades': None,
+                'fetchTrades': True,
                 'fetchTradingFee': False,
                 'fetchTradingFees': False,
                 'fetchTransactions': None,
@@ -567,7 +567,7 @@ class coinbase(Exchange):
         :param dict params: extra parameters specific to the coinbase api endpoint
         :returns dict: a `list of order structures <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
         """
-        # they don't have an endpoint for all historical trades
+        # v2 did't have an endpoint for all historical trades
         request = self.prepare_account_request(limit, params)
         self.load_markets()
         query = self.omit(params, ['account_id', 'accountId'])
@@ -583,7 +583,7 @@ class coinbase(Exchange):
         :param dict params: extra parameters specific to the coinbase api endpoint
         :returns dict: a list of  `order structures <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
         """
-        # they don't have an endpoint for all historical trades
+        # v2 did't have an endpoint for all historical trades
         request = self.prepare_account_request(limit, params)
         self.load_markets()
         query = self.omit(params, ['account_id', 'accountId'])
@@ -736,6 +736,8 @@ class coinbase(Exchange):
 
     def parse_trade(self, trade, market=None):
         #
+        # fetchMyBuys, fetchMySells
+        #
         #     {
         #         "id": "67e0eaec-07d7-54c4-a72c-2e92826897df",
         #         "status": "completed",
@@ -762,50 +764,93 @@ class coinbase(Exchange):
         #         "payout_at": "2015-02-18T16:54:00-08:00"
         #     }
         #
+        # fetchTrades
+        #
+        #     {
+        #         "trade_id": "10092327",
+        #         "product_id": "BTC-USDT",
+        #         "price": "17488.12",
+        #         "size": "0.0000623",
+        #         "time": "2023-01-11T00:52:37.557001Z",
+        #         "side": "BUY",
+        #         "bid": "",
+        #         "ask": ""
+        #     }
+        #
+        # fetchMyTrades
+        #
+        #     {
+        #         "entry_id": "b88b82cc89e326a2778874795102cbafd08dd979a2a7a3c69603fc4c23c2e010",
+        #         "trade_id": "cdc39e45-bbd3-44ec-bf02-61742dfb16a1",
+        #         "order_id": "813a53c5-3e39-47bb-863d-2faf685d22d8",
+        #         "trade_time": "2023-01-18T01:37:38.091377090Z",
+        #         "trade_type": "FILL",
+        #         "price": "21220.64",
+        #         "size": "0.0046830664333996",
+        #         "commission": "0.0000280983986004",
+        #         "product_id": "BTC-USDT",
+        #         "sequence_timestamp": "2023-01-18T01:37:38.092520Z",
+        #         "liquidity_indicator": "UNKNOWN_LIQUIDITY_INDICATOR",
+        #         "size_in_quote": True,
+        #         "user_id": "1111111-1111-1111-1111-111111111111",
+        #         "side": "BUY"
+        #     }
+        #
         symbol = None
         totalObject = self.safe_value(trade, 'total', {})
         amountObject = self.safe_value(trade, 'amount', {})
         subtotalObject = self.safe_value(trade, 'subtotal', {})
         feeObject = self.safe_value(trade, 'fee', {})
-        id = self.safe_string(trade, 'id')
-        timestamp = self.parse8601(self.safe_value(trade, 'created_at'))
-        if market is None:
+        marketId = self.safe_string(trade, 'product_id')
+        market = self.safe_market(marketId, market, '-')
+        if market is not None:
+            symbol = market['symbol']
+        else:
             baseId = self.safe_string(amountObject, 'currency')
             quoteId = self.safe_string(totalObject, 'currency')
             if (baseId is not None) and (quoteId is not None):
                 base = self.safe_currency_code(baseId)
                 quote = self.safe_currency_code(quoteId)
                 symbol = base + '/' + quote
-        orderId = None
-        side = self.safe_string(trade, 'resource')
-        type = None
-        costString = self.safe_string(subtotalObject, 'amount')
-        amountString = self.safe_string(amountObject, 'amount')
-        cost = self.parse_number(costString)
-        amount = self.parse_number(amountString)
-        price = self.parse_number(Precise.string_div(costString, amountString))
-        feeCost = self.safe_number(feeObject, 'amount')
+        sizeInQuote = self.safe_value(trade, 'size_in_quote')
+        v3Price = self.safe_string(trade, 'price')
+        v3Amount = None if (sizeInQuote) else self.safe_string(trade, 'size')
+        v3Cost = self.safe_string(trade, 'size') if (sizeInQuote) else None
+        v3FeeCost = self.safe_string(trade, 'commission')
+        amountString = self.safe_string(amountObject, 'amount', v3Amount)
+        costString = self.safe_string(subtotalObject, 'amount', v3Cost)
+        priceString = None
+        cost = None
+        if (costString is not None) and (amountString is not None):
+            priceString = Precise.string_div(costString, amountString)
+        else:
+            priceString = v3Price
+        if (priceString is not None) and (amountString is not None):
+            cost = Precise.string_mul(priceString, amountString)
+        else:
+            cost = costString
         feeCurrencyId = self.safe_string(feeObject, 'currency')
-        feeCurrency = self.safe_currency_code(feeCurrencyId)
-        fee = {
-            'cost': feeCost,
-            'currency': feeCurrency,
-        }
-        return {
+        datetime = self.safe_string_n(trade, ['created_at', 'trade_time', 'time'])
+        side = self.safe_string_lower_2(trade, 'resource', 'side')
+        takerOrMaker = self.safe_string_lower(trade, 'liquidity_indicator')
+        return self.safe_trade({
             'info': trade,
-            'id': id,
-            'order': orderId,
-            'timestamp': timestamp,
-            'datetime': self.iso8601(timestamp),
+            'id': self.safe_string_2(trade, 'id', 'trade_id'),
+            'order': self.safe_string(trade, 'order_id'),
+            'timestamp': self.parse8601(datetime),
+            'datetime': datetime,
             'symbol': symbol,
-            'type': type,
-            'side': side,
-            'takerOrMaker': None,
-            'price': price,
-            'amount': amount,
+            'type': None,
+            'side': None if (side == 'unknown_order_side') else side,
+            'takerOrMaker': None if (takerOrMaker == 'unknown_liquidity_indicator') else takerOrMaker,
+            'price': priceString,
+            'amount': amountString,
             'cost': cost,
-            'fee': fee,
-        }
+            'fee': {
+                'cost': self.safe_number(feeObject, 'amount', v3FeeCost),
+                'currency': self.safe_currency_code(feeCurrencyId),
+            },
+        })
 
     def fetch_markets(self, params={}):
         """
@@ -2431,6 +2476,91 @@ class coinbase(Exchange):
             self.safe_number(ohlcv, 'close'),
             self.safe_number(ohlcv, 'volume'),
         ]
+
+    def fetch_trades(self, symbol, since=None, limit=None, params={}):
+        """
+        get the list of most recent trades for a particular symbol
+        see https://docs.cloud.coinbase.com/advanced-trade-api/reference/retailbrokerageapi_getmarkettrades
+        :param str symbol: unified market symbol of the trades
+        :param int|None since: not used by coinbase fetchTrades
+        :param int|None limit: the maximum number of trade structures to fetch
+        :param dict params: extra parameters specific to the coinbase api endpoint
+        :returns [dict]: a list of `trade structures <https://docs.ccxt.com/en/latest/manual.html?#public-trades>`
+        """
+        self.load_markets()
+        market = self.market(symbol)
+        request = {
+            'product_id': market['id'],
+        }
+        if limit is not None:
+            request['limit'] = limit
+        response = self.v3PrivateGetBrokerageProductsProductIdTicker(self.extend(request, params))
+        #
+        #     {
+        #         "trades": [
+        #             {
+        #                 "trade_id": "10092327",
+        #                 "product_id": "BTC-USDT",
+        #                 "price": "17488.12",
+        #                 "size": "0.0000623",
+        #                 "time": "2023-01-11T00:52:37.557001Z",
+        #                 "side": "BUY",
+        #                 "bid": "",
+        #                 "ask": ""
+        #             },
+        #         ]
+        #     }
+        #
+        trades = self.safe_value(response, 'trades', [])
+        return self.parse_trades(trades, market, since, limit)
+
+    def fetch_my_trades(self, symbol=None, since=None, limit=None, params={}):
+        """
+        fetch all trades made by the user
+        see https://docs.cloud.coinbase.com/advanced-trade-api/reference/retailbrokerageapi_getfills
+        :param str symbol: unified market symbol of the trades
+        :param int|None since: timestamp in ms of the earliest order, default is None
+        :param int|None limit: the maximum number of trade structures to fetch
+        :param dict params: extra parameters specific to the coinbase api endpoint
+        :returns [dict]: a list of `trade structures <https://docs.ccxt.com/en/latest/manual.html#trade-structure>`
+        """
+        self.load_markets()
+        market = None
+        if symbol is not None:
+            market = self.market(symbol)
+        request = {}
+        if market is not None:
+            request['product_id'] = market['id']
+        if limit is not None:
+            request['limit'] = limit
+        if since is not None:
+            request['start_sequence_timestamp'] = self.parse8601(since)
+        response = self.v3PrivateGetBrokerageOrdersHistoricalFills(self.extend(request, params))
+        #
+        #     {
+        #         "fills": [
+        #             {
+        #                 "entry_id": "b88b82cc89e326a2778874795102cbafd08dd979a2a7a3c69603fc4c23c2e010",
+        #                 "trade_id": "cdc39e45-bbd3-44ec-bf02-61742dfb16a1",
+        #                 "order_id": "813a53c5-3e39-47bb-863d-2faf685d22d8",
+        #                 "trade_time": "2023-01-18T01:37:38.091377090Z",
+        #                 "trade_type": "FILL",
+        #                 "price": "21220.64",
+        #                 "size": "0.0046830664333996",
+        #                 "commission": "0.0000280983986004",
+        #                 "product_id": "BTC-USDT",
+        #                 "sequence_timestamp": "2023-01-18T01:37:38.092520Z",
+        #                 "liquidity_indicator": "UNKNOWN_LIQUIDITY_INDICATOR",
+        #                 "size_in_quote": True,
+        #                 "user_id": "1111111-1111-1111-1111-111111111111",
+        #                 "side": "BUY"
+        #             },
+        #         ],
+        #         "cursor": ""
+        #     }
+        #
+        trades = self.safe_value(response, 'fills', [])
+        return self.parse_trades(trades, market, since, limit)
 
     def sign(self, path, api=[], method='GET', params={}, headers=None, body=None):
         version = api[0]

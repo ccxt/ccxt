@@ -75,7 +75,7 @@ class coinbase extends Exchange {
                 'fetchMarkOHLCV' => false,
                 'fetchMyBuys' => true,
                 'fetchMySells' => true,
-                'fetchMyTrades' => null,
+                'fetchMyTrades' => true,
                 'fetchOHLCV' => true,
                 'fetchOpenInterestHistory' => false,
                 'fetchOpenOrders' => true,
@@ -90,7 +90,7 @@ class coinbase extends Exchange {
                 'fetchTicker' => true,
                 'fetchTickers' => true,
                 'fetchTime' => true,
-                'fetchTrades' => null,
+                'fetchTrades' => true,
                 'fetchTradingFee' => false,
                 'fetchTradingFees' => false,
                 'fetchTransactions' => null,
@@ -585,7 +585,7 @@ class coinbase extends Exchange {
              * @param {array} $params extra parameters specific to the coinbase api endpoint
              * @return {array} a {@link https://docs.ccxt.com/en/latest/manual.html#order-structure list of order structures}
              */
-            // they don't have an endpoint for all historical trades
+            // v2 did't have an endpoint for all historical trades
             $request = $this->prepare_account_request($limit, $params);
             Async\await($this->load_markets());
             $query = $this->omit($params, array( 'account_id', 'accountId' ));
@@ -604,7 +604,7 @@ class coinbase extends Exchange {
              * @param {array} $params extra parameters specific to the coinbase api endpoint
              * @return {array} a list of  {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structures}
              */
-            // they don't have an endpoint for all historical trades
+            // v2 did't have an endpoint for all historical trades
             $request = $this->prepare_account_request($limit, $params);
             Async\await($this->load_markets());
             $query = $this->omit($params, array( 'account_id', 'accountId' ));
@@ -771,6 +771,8 @@ class coinbase extends Exchange {
 
     public function parse_trade($trade, $market = null) {
         //
+        // fetchMyBuys, fetchMySells
+        //
         //     {
         //         "id" => "67e0eaec-07d7-54c4-a72c-2e92826897df",
         //         "status" => "completed",
@@ -797,14 +799,48 @@ class coinbase extends Exchange {
         //         "payout_at" => "2015-02-18T16:54:00-08:00"
         //     }
         //
+        // fetchTrades
+        //
+        //     {
+        //         "trade_id" => "10092327",
+        //         "product_id" => "BTC-USDT",
+        //         "price" => "17488.12",
+        //         "size" => "0.0000623",
+        //         "time" => "2023-01-11T00:52:37.557001Z",
+        //         "side" => "BUY",
+        //         "bid" => "",
+        //         "ask" => ""
+        //     }
+        //
+        // fetchMyTrades
+        //
+        //     {
+        //         "entry_id" => "b88b82cc89e326a2778874795102cbafd08dd979a2a7a3c69603fc4c23c2e010",
+        //         "trade_id" => "cdc39e45-bbd3-44ec-bf02-61742dfb16a1",
+        //         "order_id" => "813a53c5-3e39-47bb-863d-2faf685d22d8",
+        //         "trade_time" => "2023-01-18T01:37:38.091377090Z",
+        //         "trade_type" => "FILL",
+        //         "price" => "21220.64",
+        //         "size" => "0.0046830664333996",
+        //         "commission" => "0.0000280983986004",
+        //         "product_id" => "BTC-USDT",
+        //         "sequence_timestamp" => "2023-01-18T01:37:38.092520Z",
+        //         "liquidity_indicator" => "UNKNOWN_LIQUIDITY_INDICATOR",
+        //         "size_in_quote" => true,
+        //         "user_id" => "1111111-1111-1111-1111-111111111111",
+        //         "side" => "BUY"
+        //     }
+        //
         $symbol = null;
         $totalObject = $this->safe_value($trade, 'total', array());
         $amountObject = $this->safe_value($trade, 'amount', array());
         $subtotalObject = $this->safe_value($trade, 'subtotal', array());
         $feeObject = $this->safe_value($trade, 'fee', array());
-        $id = $this->safe_string($trade, 'id');
-        $timestamp = $this->parse8601($this->safe_value($trade, 'created_at'));
-        if ($market === null) {
+        $marketId = $this->safe_string($trade, 'product_id');
+        $market = $this->safe_market($marketId, $market, '-');
+        if ($market !== null) {
+            $symbol = $market['symbol'];
+        } else {
             $baseId = $this->safe_string($amountObject, 'currency');
             $quoteId = $this->safe_string($totalObject, 'currency');
             if (($baseId !== null) && ($quoteId !== null)) {
@@ -813,36 +849,47 @@ class coinbase extends Exchange {
                 $symbol = $base . '/' . $quote;
             }
         }
-        $orderId = null;
-        $side = $this->safe_string($trade, 'resource');
-        $type = null;
-        $costString = $this->safe_string($subtotalObject, 'amount');
-        $amountString = $this->safe_string($amountObject, 'amount');
-        $cost = $this->parse_number($costString);
-        $amount = $this->parse_number($amountString);
-        $price = $this->parse_number(Precise::string_div($costString, $amountString));
-        $feeCost = $this->safe_number($feeObject, 'amount');
+        $sizeInQuote = $this->safe_value($trade, 'size_in_quote');
+        $v3Price = $this->safe_string($trade, 'price');
+        $v3Amount = ($sizeInQuote) ? null : $this->safe_string($trade, 'size');
+        $v3Cost = ($sizeInQuote) ? $this->safe_string($trade, 'size') : null;
+        $v3FeeCost = $this->safe_string($trade, 'commission');
+        $amountString = $this->safe_string($amountObject, 'amount', $v3Amount);
+        $costString = $this->safe_string($subtotalObject, 'amount', $v3Cost);
+        $priceString = null;
+        $cost = null;
+        if (($costString !== null) && ($amountString !== null)) {
+            $priceString = Precise::string_div($costString, $amountString);
+        } else {
+            $priceString = $v3Price;
+        }
+        if (($priceString !== null) && ($amountString !== null)) {
+            $cost = Precise::string_mul($priceString, $amountString);
+        } else {
+            $cost = $costString;
+        }
         $feeCurrencyId = $this->safe_string($feeObject, 'currency');
-        $feeCurrency = $this->safe_currency_code($feeCurrencyId);
-        $fee = array(
-            'cost' => $feeCost,
-            'currency' => $feeCurrency,
-        );
-        return array(
+        $datetime = $this->safe_string_n($trade, array( 'created_at', 'trade_time', 'time' ));
+        $side = $this->safe_string_lower_2($trade, 'resource', 'side');
+        $takerOrMaker = $this->safe_string_lower($trade, 'liquidity_indicator');
+        return $this->safe_trade(array(
             'info' => $trade,
-            'id' => $id,
-            'order' => $orderId,
-            'timestamp' => $timestamp,
-            'datetime' => $this->iso8601($timestamp),
+            'id' => $this->safe_string_2($trade, 'id', 'trade_id'),
+            'order' => $this->safe_string($trade, 'order_id'),
+            'timestamp' => $this->parse8601($datetime),
+            'datetime' => $datetime,
             'symbol' => $symbol,
-            'type' => $type,
-            'side' => $side,
-            'takerOrMaker' => null,
-            'price' => $price,
-            'amount' => $amount,
+            'type' => null,
+            'side' => ($side === 'unknown_order_side') ? null : $side,
+            'takerOrMaker' => ($takerOrMaker === 'unknown_liquidity_indicator') ? null : $takerOrMaker,
+            'price' => $priceString,
+            'amount' => $amountString,
             'cost' => $cost,
-            'fee' => $fee,
-        );
+            'fee' => array(
+                'cost' => $this->safe_number($feeObject, 'amount', $v3FeeCost),
+                'currency' => $this->safe_currency_code($feeCurrencyId),
+            ),
+        ));
     }
 
     public function fetch_markets($params = array ()) {
@@ -2612,6 +2659,102 @@ class coinbase extends Exchange {
             $this->safe_number($ohlcv, 'close'),
             $this->safe_number($ohlcv, 'volume'),
         );
+    }
+
+    public function fetch_trades($symbol, $since = null, $limit = null, $params = array ()) {
+        return Async\async(function () use ($symbol, $since, $limit, $params) {
+            /**
+             * get the list of most recent $trades for a particular $symbol
+             * @see https://docs.cloud.coinbase.com/advanced-trade-api/reference/retailbrokerageapi_getmarkettrades
+             * @param {string} $symbol unified $market $symbol of the $trades
+             * @param {int|null} $since not used by coinbase fetchTrades
+             * @param {int|null} $limit the maximum number of trade structures to fetch
+             * @param {array} $params extra parameters specific to the coinbase api endpoint
+             * @return {[array]} a list of ~@link https://docs.ccxt.com/en/latest/manual.html?#public-$trades trade structures~
+             */
+            Async\await($this->load_markets());
+            $market = $this->market($symbol);
+            $request = array(
+                'product_id' => $market['id'],
+            );
+            if ($limit !== null) {
+                $request['limit'] = $limit;
+            }
+            $response = Async\await($this->v3PrivateGetBrokerageProductsProductIdTicker (array_merge($request, $params)));
+            //
+            //     {
+            //         "trades" => array(
+            //             array(
+            //                 "trade_id" => "10092327",
+            //                 "product_id" => "BTC-USDT",
+            //                 "price" => "17488.12",
+            //                 "size" => "0.0000623",
+            //                 "time" => "2023-01-11T00:52:37.557001Z",
+            //                 "side" => "BUY",
+            //                 "bid" => "",
+            //                 "ask" => ""
+            //             ),
+            //         )
+            //     }
+            //
+            $trades = $this->safe_value($response, 'trades', array());
+            return $this->parse_trades($trades, $market, $since, $limit);
+        }) ();
+    }
+
+    public function fetch_my_trades($symbol = null, $since = null, $limit = null, $params = array ()) {
+        return Async\async(function () use ($symbol, $since, $limit, $params) {
+            /**
+             * fetch all $trades made by the user
+             * @see https://docs.cloud.coinbase.com/advanced-trade-api/reference/retailbrokerageapi_getfills
+             * @param {string} $symbol unified $market $symbol of the $trades
+             * @param {int|null} $since timestamp in ms of the earliest order, default is null
+             * @param {int|null} $limit the maximum number of trade structures to fetch
+             * @param {array} $params extra parameters specific to the coinbase api endpoint
+             * @return {[array]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#trade-structure trade structures}
+             */
+            Async\await($this->load_markets());
+            $market = null;
+            if ($symbol !== null) {
+                $market = $this->market($symbol);
+            }
+            $request = array();
+            if ($market !== null) {
+                $request['product_id'] = $market['id'];
+            }
+            if ($limit !== null) {
+                $request['limit'] = $limit;
+            }
+            if ($since !== null) {
+                $request['start_sequence_timestamp'] = $this->parse8601($since);
+            }
+            $response = Async\await($this->v3PrivateGetBrokerageOrdersHistoricalFills (array_merge($request, $params)));
+            //
+            //     {
+            //         "fills" => array(
+            //             array(
+            //                 "entry_id" => "b88b82cc89e326a2778874795102cbafd08dd979a2a7a3c69603fc4c23c2e010",
+            //                 "trade_id" => "cdc39e45-bbd3-44ec-bf02-61742dfb16a1",
+            //                 "order_id" => "813a53c5-3e39-47bb-863d-2faf685d22d8",
+            //                 "trade_time" => "2023-01-18T01:37:38.091377090Z",
+            //                 "trade_type" => "FILL",
+            //                 "price" => "21220.64",
+            //                 "size" => "0.0046830664333996",
+            //                 "commission" => "0.0000280983986004",
+            //                 "product_id" => "BTC-USDT",
+            //                 "sequence_timestamp" => "2023-01-18T01:37:38.092520Z",
+            //                 "liquidity_indicator" => "UNKNOWN_LIQUIDITY_INDICATOR",
+            //                 "size_in_quote" => true,
+            //                 "user_id" => "1111111-1111-1111-1111-111111111111",
+            //                 "side" => "BUY"
+            //             ),
+            //         ),
+            //         "cursor" => ""
+            //     }
+            //
+            $trades = $this->safe_value($response, 'fills', array());
+            return $this->parse_trades($trades, $market, $since, $limit);
+        }) ();
     }
 
     public function sign($path, $api = [], $method = 'GET', $params = array (), $headers = null, $body = null) {
