@@ -1861,7 +1861,8 @@ module.exports = class poloniex extends Exchange {
             if ((codes === undefined) || (this.inArray (code, codes))) {
                 depositWithdrawFees[code] = this.parseDepositWithdrawFee (feeInfo, code);
                 const childChains = this.safeValue (feeInfo, 'childChains');
-                if (childChains.length > 0) {
+                const chainsLength = childChains.length;
+                if (chainsLength > 0) {
                     for (let j = 0; j < childChains.length; j++) {
                         let networkId = childChains[j];
                         networkId = networkId.replace (code, '');

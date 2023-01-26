@@ -5988,7 +5988,8 @@ module.exports = class bybit extends Exchange {
         const request = {};
         let type = undefined;
         if (Array.isArray (symbols)) {
-            if (symbols.length > 1) {
+            const symbolsLength = symbols.length;
+            if (symbolsLength > 1) {
                 throw new ArgumentsRequired (this.id + ' fetchPositions() does not accept an array with more than one symbol');
             }
         } else if (symbols !== undefined) {
@@ -6133,10 +6134,11 @@ module.exports = class bybit extends Exchange {
         await this.loadMarkets ();
         const request = {};
         if (Array.isArray (symbols)) {
-            if (symbols.length > 1) {
+            const symbolsLength = symbols.length;
+            if (symbolsLength > 1) {
                 throw new ArgumentsRequired (this.id + ' fetchPositions() does not accept an array with more than one symbol');
             }
-            if (symbols.length === 1) {
+            if (symbolsLength === 1) {
                 request['symbol'] = this.marketId (symbols[0]);
             }
         } else if (symbols !== undefined) {
@@ -6227,7 +6229,8 @@ module.exports = class bybit extends Exchange {
          * @returns {[object]} a list of [position structure]{@link https://docs.ccxt.com/en/latest/manual.html#position-structure}
          */
         if (Array.isArray (symbols)) {
-            if (symbols.length > 1) {
+            const symbolsLength = symbols.length;
+            if (symbolsLength > 1) {
                 throw new ArgumentsRequired (this.id + ' fetchPositions() does not accept an array with more than one symbol');
             }
         } else if (symbols !== undefined) {

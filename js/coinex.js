@@ -2641,7 +2641,8 @@ module.exports = class coinex extends Exchange {
         const parts = coinAddress.split (':');
         let address = undefined;
         let tag = undefined;
-        if (parts.length > 1) {
+        const partsLength = parts.length;
+        if (partsLength > 1) {
             address = parts[0];
             tag = parts[1];
         } else {
