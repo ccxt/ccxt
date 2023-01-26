@@ -14,7 +14,7 @@ module.exports = class whitebit extends Exchange {
         return this.deepExtend (super.describe (), {
             'id': 'whitebit',
             'name': 'WhiteBit',
-            'version': 'v2',
+            'version': 'v4',
             'countries': [ 'EE' ],
             'rateLimit': 500,
             'has': {
@@ -218,6 +218,9 @@ module.exports = class whitebit extends Exchange {
             },
             'options': {
                 'fiatCurrencies': [ 'EUR', 'USD', 'RUB', 'UAH' ],
+                'fetchBalance': {
+                    'account': 'spot',
+                },
                 'accountsByType': {
                     'main': 'main',
                     'spot': 'spot',
@@ -228,6 +231,7 @@ module.exports = class whitebit extends Exchange {
                     'BEP20': 'BSC',
                 },
                 'defaultType': 'spot',
+                'brokerId': 'ccxt',
             },
             'precisionMode': TICK_SIZE,
             'exceptions': {
@@ -1168,6 +1172,16 @@ module.exports = class whitebit extends Exchange {
             'side': side,
             'amount': this.amountToPrecision (symbol, amount),
         };
+        const clientOrderId = this.safeString2 (params, 'clOrdId', 'clientOrderId');
+        if (clientOrderId === undefined) {
+            const brokerId = this.safeString (this.options, 'brokerId');
+            if (brokerId !== undefined) {
+                request['clientOrderId'] = brokerId + this.uuid16 ();
+            }
+        } else {
+            request['clientOrderId'] = clientOrderId;
+            params = this.omit (params, [ 'clientOrderId' ]);
+        }
         const marketType = this.safeString (market, 'type');
         const isLimitOrder = type === 'limit';
         const isMarketOrder = type === 'market';
@@ -1250,6 +1264,7 @@ module.exports = class whitebit extends Exchange {
                 const account = this.account ();
                 account['free'] = this.safeString (balance, 'available');
                 account['used'] = this.safeString (balance, 'freeze');
+                account['total'] = this.safeString (balance, 'main_balance');
                 result[code] = account;
             } else {
                 const account = this.account ();
@@ -1274,10 +1289,26 @@ module.exports = class whitebit extends Exchange {
         if (marketType === 'swap') {
             method = 'v4PrivatePostCollateralAccountBalance';
         } else {
-            method = 'v4PrivatePostTradeAccountBalance';
+            const options = this.safeValue (this.options, 'fetchBalance', {});
+            const defaultAccount = this.safeString (options, 'account');
+            const account = this.safeString (params, 'account', defaultAccount);
+            params = this.omit (params, 'account');
+            if (account === 'main') {
+                method = 'v4PrivatePostMainAccountBalance';
+            } else {
+                method = 'v4PrivatePostTradeAccountBalance';
+            }
         }
         const response = await this[method] (query);
-        // spot
+        //
+        // main account
+        //
+        //     {
+        //         "BTC":{"main_balance":"0.0013929494020316"},
+        //         "ETH":{"main_balance":"0.001398289308"},
+        //     }
+        //
+        // spot trade account
         //
         //     {
         //         "BTC": { "available": "0.123", "freeze": "1" },
@@ -1454,7 +1485,10 @@ module.exports = class whitebit extends Exchange {
         const side = this.safeString (order, 'side');
         const filled = this.safeString (order, 'dealStock');
         const remaining = this.safeString (order, 'left');
-        const clientOrderId = this.safeString (order, 'clientOrderId');
+        let clientOrderId = this.safeString (order, 'clientOrderId');
+        if (clientOrderId === '') {
+            clientOrderId = undefined;
+        }
         const price = this.safeString (order, 'price');
         const stopPrice = this.safeNumber (order, 'activation_price');
         const orderId = this.safeString2 (order, 'orderId', 'id');
@@ -1665,10 +1699,10 @@ module.exports = class whitebit extends Exchange {
         const accountsByType = this.safeValue (this.options, 'accountsByType');
         const fromAccountId = this.safeString (accountsByType, fromAccount, fromAccount);
         const toAccountId = this.safeString (accountsByType, toAccount, toAccount);
-        const amountString = amount.toString ();
+        const amountString = this.currencyToPrecision (code, amount);
         const request = {
             'ticker': currency['id'],
-            'amount': this.currencyToPrecision (code, amountString),
+            'amount': amountString,
             'from': fromAccountId,
             'to': toAccountId,
         };
@@ -1678,7 +1712,7 @@ module.exports = class whitebit extends Exchange {
         //
         const transfer = this.parseTransfer (response, currency);
         return this.extend (transfer, {
-            'amount': this.currencyToPrecision (code, amountString),
+            'amount': amount,
             'fromAccount': fromAccount,
             'toAccount': toAccount,
         });

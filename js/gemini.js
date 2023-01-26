@@ -245,6 +245,7 @@ module.exports = class gemini extends Exchange {
                     'fetchDetailsForAllSymbols': false,
                     'fetchDetailsForMarketIds': [],
                 },
+                'fetchUsdtMarkets': [ 'btcusdt', 'ethusdt' ], // keep this list updated (not available trough web api)
                 'fetchTickerMethod': 'fetchTickerV1', // fetchTickerV1, fetchTickerV2, fetchTickerV1AndV2
                 'networkIds': {
                     'bitcoin': 'BTC',
@@ -280,7 +281,12 @@ module.exports = class gemini extends Exchange {
          * @returns {[object]} an array of objects representing market data
          */
         const method = this.safeValue (this.options, 'fetchMarketsMethod', 'fetch_markets_from_api');
-        return await this[method] (params);
+        if (method === 'fetch_markets_from_web') {
+            const usdMarkets = await this.fetchMarketsFromWeb (params); // get usd markets
+            const usdtMarkets = await this.fetchUSDTMarkets (params); // get usdt markets
+            return this.arrayConcat (usdMarkets, usdtMarkets);
+        }
+        return await this.fetchMarketsFromAPI (params);
     }
 
     async fetchMarketsFromWeb (params = {}) {
@@ -409,6 +415,23 @@ module.exports = class gemini extends Exchange {
         return this.safeValue (statuses, status, true);
     }
 
+    async fetchUSDTMarkets (params = {}) {
+        // these markets can't be scrapped and fetchMarketsFrom api does an extra call
+        // to load market ids which we don't need here
+        const fetchUsdtMarkets = this.safeValue (this.options, 'fetchUsdtMarkets', []);
+        const result = [];
+        for (let i = 0; i < fetchUsdtMarkets.length; i++) {
+            const marketId = fetchUsdtMarkets[i];
+            const request = {
+                'symbol': marketId,
+            };
+            // don't use Promise.all here, for some reason the exchange can't handle it and crashes
+            const rawResponse = await this.publicGetV1SymbolsDetailsSymbol (this.extend (request, params));
+            result.push (this.parseMarket (rawResponse));
+        }
+        return result;
+    }
+
     async fetchMarketsFromAPI (params = {}) {
         const response = await this.publicGetV1Symbols (params);
         //
@@ -421,42 +444,10 @@ module.exports = class gemini extends Exchange {
         const result = {};
         for (let i = 0; i < response.length; i++) {
             const marketId = response[i];
-            const idLength = marketId.length - 0;
-            const baseId = marketId.slice (0, idLength - 3); // Not true for all markets
-            const quoteId = marketId.slice (idLength - 3, idLength);
-            const base = this.safeCurrencyCode (baseId);
-            const quote = this.safeCurrencyCode (quoteId);
-            result[marketId] = {
-                'id': marketId,
-                'symbol': base + '/' + quote,
-                'swap': false,
-                'future': false,
-                'option': false,
-                'active': undefined,
-                'contract': false,
-                'linear': undefined,
-                'inverse': undefined,
-                'strike': undefined,
-                'optionType': undefined,
-                'precision': {
-                    'price': undefined,
-                    'amount': undefined,
-                },
-                'limits': {
-                    'leverage': {
-                        'min': undefined,
-                        'max': undefined,
-                    },
-                    'amount': {
-                        'min': undefined,
-                        'max': undefined,
-                    },
-                    'price': {
-                        'max': undefined,
-                    },
-                },
-                'info': marketId,
+            const market = {
+                'symbol': marketId,
             };
+            result[marketId] = this.parseMarket (market);
         }
         const options = this.safeValue (this.options, 'fetchMarketsFromAPI', {});
         const fetchDetailsForAllSymbols = this.safeValue (options, 'fetchDetailsForAllSymbols', false);
@@ -492,61 +483,73 @@ module.exports = class gemini extends Exchange {
         for (let i = 0; i < promises.length; i++) {
             const response = promises[i];
             const marketId = this.safeStringLower (response, 'symbol');
-            const baseId = this.safeString (response, 'base_currency');
-            const base = this.safeCurrencyCode (baseId);
-            const quoteId = this.safeString (response, 'quote_currency');
-            const quote = this.safeCurrencyCode (quoteId);
-            const status = this.safeString (response, 'status');
-            result[marketId] = ({
-                'id': marketId,
-                'symbol': base + '/' + quote,
-                'base': base,
-                'quote': quote,
-                'settle': undefined,
-                'baseId': baseId,
-                'quoteId': quoteId,
-                'settleId': undefined,
-                'type': 'spot',
-                'spot': true,
-                'margin': false,
-                'swap': false,
-                'future': false,
-                'option': false,
-                'active': this.parseMarketActive (status),
-                'contract': false,
-                'linear': undefined,
-                'inverse': undefined,
-                'contractSize': undefined,
-                'expiry': undefined,
-                'expiryDatetime': undefined,
-                'strike': undefined,
-                'optionType': undefined,
-                'precision': {
-                    'price': this.safeNumber (response, 'quote_increment'),
-                    'amount': this.safeNumber (response, 'tick_size'),
-                },
-                'limits': {
-                    'leverage': {
-                        'min': undefined,
-                        'max': undefined,
-                    },
-                    'amount': {
-                        'min': this.safeNumber (response, 'min_order_size'),
-                        'max': undefined,
-                    },
-                    'price': {
-                        'min': undefined,
-                        'max': undefined,
-                    },
-                    'cost': {
-                        'min': undefined,
-                        'max': undefined,
-                    },
-                },
-                'info': response,
-            });
+            result[marketId] = this.parseMarket (response);
         }
         return this.toArray (result);
+    }
+
+    parseMarket (response) {
+        const marketId = this.safeStringLower (response, 'symbol');
+        let baseId = this.safeString (response, 'base_currency');
+        let quoteId = this.safeString (response, 'quote_currency');
+        if (baseId === undefined) {
+            const idLength = marketId.length - 0;
+            const isUSDT = marketId.indexOf ('usdt') !== -1;
+            const quoteSize = isUSDT ? 4 : 3;
+            baseId = marketId.slice (0, idLength - quoteSize); // Not true for all markets
+            quoteId = marketId.slice (idLength - quoteSize, idLength);
+        }
+        const base = this.safeCurrencyCode (baseId);
+        const quote = this.safeCurrencyCode (quoteId);
+        const status = this.safeString (response, 'status');
+        return {
+            'id': marketId,
+            'symbol': base + '/' + quote,
+            'base': base,
+            'quote': quote,
+            'settle': undefined,
+            'baseId': baseId,
+            'quoteId': quoteId,
+            'settleId': undefined,
+            'type': 'spot',
+            'spot': true,
+            'margin': false,
+            'swap': false,
+            'future': false,
+            'option': false,
+            'active': this.parseMarketActive (status),
+            'contract': false,
+            'linear': undefined,
+            'inverse': undefined,
+            'contractSize': undefined,
+            'expiry': undefined,
+            'expiryDatetime': undefined,
+            'strike': undefined,
+            'optionType': undefined,
+            'precision': {
+                'price': this.safeNumber (response, 'quote_increment'),
+                'amount': this.safeNumber (response, 'tick_size'),
+            },
+            'limits': {
+                'leverage': {
+                    'min': undefined,
+                    'max': undefined,
+                },
+                'amount': {
+                    'min': this.safeNumber (response, 'min_order_size'),
+                    'max': undefined,
+                },
+                'price': {
+                    'min': undefined,
+                    'max': undefined,
+                },
+                'cost': {
+                    'min': undefined,
+                    'max': undefined,
+                },
+            },
+            'info': response,
+        };
     }
 
     async fetchOrderBook (symbol, limit = undefined, params = {}) {
@@ -638,6 +641,7 @@ module.exports = class gemini extends Exchange {
          * @description fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
          * @param {string} symbol unified symbol of the market to fetch the ticker for
          * @param {object} params extra parameters specific to the gemini api endpoint
+         * @param {object} params.fetchTickerMethod 'fetchTickerV2', 'fetchTickerV1' or 'fetchTickerV1AndV2' - 'fetchTickerV1' for original ccxt.gemini.fetchTicker - 'fetchTickerV1AndV2' for 2 api calls to get the result of both fetchTicker methods - default = 'fetchTickerV1'
          * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
          */
         const method = this.safeValue (this.options, 'fetchTickerMethod', 'fetchTickerV1');

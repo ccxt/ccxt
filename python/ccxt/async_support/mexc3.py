@@ -636,7 +636,7 @@ class mexc3(Exchange):
                     'active': active,
                     'deposit': isDepositEnabled,
                     'withdraw': isWithdrawEnabled,
-                    'fee': self.safe_number(chain, 'fee'),
+                    'fee': fee,
                     'precision': None,
                     'limits': {
                         'withdraw': {
@@ -2200,7 +2200,7 @@ class mexc3(Exchange):
             raise BadRequest(self.id + ' fetchOrdersByState() is not supported for ' + marketType)
         else:
             params['states'] = state
-            return self.fetch_orders(symbol, since, limit, params)
+            return await self.fetch_orders(symbol, since, limit, params)
 
     async def cancel_order(self, id, symbol=None, params={}):
         """

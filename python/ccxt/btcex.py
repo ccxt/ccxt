@@ -72,7 +72,10 @@ class btcex(Exchange):
                 'fetchFundingRateHistory': False,
                 'fetchFundingRates': False,
                 'fetchIndexOHLCV': False,
+                'fetchLeverage': True,
+                'fetchLeverageTiers': True,
                 'fetchMarginMode': False,
+                'fetchMarketLeverageTiers': True,
                 'fetchMarkets': True,
                 'fetchMarkOHLCV': False,
                 'fetchMyTrades': True,
@@ -138,6 +141,8 @@ class btcex(Exchange):
                         'coin_gecko_market_trades',
                         'coin_gecko_contracts',
                         'coin_gecko_contract_orderbook',
+                        'get_perpetual_leverage_bracket',
+                        'get_perpetual_leverage_bracket_all',
                     ],
                     'post': [
                         'auth',
@@ -159,6 +164,7 @@ class btcex(Exchange):
                         'get_user_trades_by_currency',
                         'get_user_trades_by_instrument',
                         'get_user_trades_by_order',
+                        'get_perpetual_user_config',
                     ],
                     'post': [
                         # auth
@@ -1821,6 +1827,174 @@ class btcex(Exchange):
         records = self.filter_by(result, 'id', id)
         record = self.safe_value(records, 0)
         return self.parse_transaction(record, currency)
+
+    def fetch_leverage(self, symbol, params={}):
+        """
+        see https://docs.btcex.com/#get-perpetual-instrument-config
+        fetch the set leverage for a market
+        :param str symbol: unified market symbol
+        :param dict params: extra parameters specific to the btcex api endpoint
+        :returns dict: a `leverage structure <https://docs.ccxt.com/en/latest/manual.html#leverage-structure>`
+        """
+        self.sign_in()
+        self.load_markets()
+        market = self.market(symbol)
+        request = {
+            'instrument_name': market['id'],
+        }
+        response = self.privateGetGetPerpetualUserConfig(self.extend(request, params))
+        #
+        #     {
+        #         "jsonrpc": "2.0",
+        #         "usIn": 1674182494283,
+        #         "usOut": 1674182494294,
+        #         "usDiff": 11,
+        #         "result": {
+        #             "margin_type": "cross",
+        #             "leverage": "20",
+        #             "instrument_name": "BTC-USDT-PERPETUAL",
+        #             "time": "1674182494293"
+        #         }
+        #     }
+        #
+        data = self.safe_value(response, 'result', {})
+        return self.safe_number(data, 'leverage')
+
+    def fetch_market_leverage_tiers(self, symbol, params={}):
+        """
+        see https://docs.btcex.com/#get-perpetual-instrument-leverage-config
+        retrieve information on the maximum leverage, for different trade sizes for a single market
+        :param str symbol: unified market symbol
+        :param dict params: extra parameters specific to the btcex api endpoint
+        :returns dict: a `leverage tiers structure <https://docs.ccxt.com/en/latest/manual.html#leverage-tiers-structure>`
+        """
+        self.load_markets()
+        market = self.market(symbol)
+        if not market['swap']:
+            raise BadRequest(self.id + ' fetchMarketLeverageTiers() supports swap markets only')
+        request = {
+            'instrument_name': market['id'],
+        }
+        response = self.publicGetGetPerpetualLeverageBracket(self.extend(request, params))
+        #
+        #     {
+        #         "jsonrpc": "2.0",
+        #         "usIn": 1674184074454,
+        #         "usOut": 1674184074457,
+        #         "usDiff": 3,
+        #         "result": [
+        #             {
+        #                 "bracket": 1,
+        #                 "initialLeverage": 125,
+        #                 "maintenanceMarginRate": "0.004",
+        #                 "notionalCap": "50000",
+        #                 "notionalFloor": "0",
+        #                 "cum": "0"
+        #             },
+        #             ...
+        #         ]
+        #     }
+        #
+        data = self.safe_value(response, 'result', [])
+        return self.parse_market_leverage_tiers(data, market)
+
+    def parse_market_leverage_tiers(self, info, market):
+        #
+        #     [
+        #         {
+        #             "bracket": 1,
+        #             "initialLeverage": 125,
+        #             "maintenanceMarginRate": "0.004",
+        #             "notionalCap": "50000",
+        #             "notionalFloor": "0",
+        #             "cum": "0"
+        #         },
+        #         ...
+        #     ]
+        #
+        tiers = []
+        brackets = info
+        for i in range(0, len(brackets)):
+            tier = brackets[i]
+            tiers.append({
+                'tier': self.safe_integer(tier, 'bracket'),
+                'currency': market['settle'],
+                'minNotional': self.safe_number(tier, 'notionalFloor'),
+                'maxNotional': self.safe_number(tier, 'notionalCap'),
+                'maintenanceMarginRate': self.safe_number(tier, 'maintenanceMarginRate'),
+                'maxLeverage': self.safe_number(tier, 'initialLeverage'),
+                'info': tier,
+            })
+        return tiers
+
+    def fetch_leverage_tiers(self, symbols=None, params={}):
+        """
+        see https://docs.btcex.com/#get-all-perpetual-instrument-leverage-config
+        retrieve information on the maximum leverage, for different trade sizes
+        :param [str]|None symbols: a list of unified market symbols
+        :param dict params: extra parameters specific to the btcex api endpoint
+        :returns dict: a dictionary of `leverage tiers structures <https://docs.ccxt.com/en/latest/manual.html#leverage-tiers-structure>`, indexed by market symbols
+        """
+        self.load_markets()
+        response = self.publicGetGetPerpetualLeverageBracketAll(params)
+        #
+        #     {
+        #         "jsonrpc": "2.0",
+        #         "usIn": 1674183578745,
+        #         "usOut": 1674183578752,
+        #         "usDiff": 7,
+        #         "result": {
+        #             "WAVES-USDT-PERPETUAL": [
+        #                 {
+        #                     "bracket": 1,
+        #                     "initialLeverage": 50,
+        #                     "maintenanceMarginRate": "0.01",
+        #                     "notionalCap": "50000",
+        #                     "notionalFloor": "0",
+        #                     "cum": "0"
+        #                 },
+        #                 ...
+        #             ]
+        #         }
+        #     }
+        #
+        data = self.safe_value(response, 'result', {})
+        symbols = self.market_symbols(symbols)
+        return self.parse_leverage_tiers(data, symbols, 'symbol')
+
+    def parse_leverage_tiers(self, response, symbols=None, marketIdKey=None):
+        #
+        #     {
+        #         "WAVES-USDT-PERPETUAL": [
+        #             {
+        #                 "bracket": 1,
+        #                 "initialLeverage": 50,
+        #                 "maintenanceMarginRate": "0.01",
+        #                 "notionalCap": "50000",
+        #                 "notionalFloor": "0",
+        #                 "cum": "0"
+        #             },
+        #             ...
+        #         ]
+        #     }
+        #
+        tiers = {}
+        result = {}
+        marketIds = list(response.keys())
+        for i in range(0, len(marketIds)):
+            marketId = marketIds[i]
+            entry = response[marketId]
+            market = self.safe_market(marketId)
+            symbol = self.safe_symbol(marketId, market)
+            symbolsLength = 0
+            tiers[symbol] = self.parse_market_leverage_tiers(entry, market)
+            if symbols is not None:
+                symbolsLength = len(symbols)
+                if self.in_array(symbol, symbols):
+                    result[symbol] = self.parse_market_leverage_tiers(entry, market)
+            if symbol is not None and (symbolsLength == 0 or self.in_array(symbol, symbols)):
+                result[symbol] = self.parse_market_leverage_tiers(entry, market)
+        return result
 
     def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
         request = '/' + 'api/' + self.version + '/' + api + '/' + path

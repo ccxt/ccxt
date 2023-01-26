@@ -641,7 +641,7 @@ module.exports = class mexc3 extends Exchange {
                     'active': active,
                     'deposit': isDepositEnabled,
                     'withdraw': isWithdrawEnabled,
-                    'fee': this.safeNumber (chain, 'fee'),
+                    'fee': fee,
                     'precision': undefined,
                     'limits': {
                         'withdraw': {
@@ -2338,7 +2338,7 @@ module.exports = class mexc3 extends Exchange {
             throw new BadRequest (this.id + ' fetchOrdersByState() is not supported for ' + marketType);
         } else {
             params['states'] = state;
-            return this.fetchOrders (symbol, since, limit, params);
+            return await this.fetchOrders (symbol, since, limit, params);
         }
     }
 

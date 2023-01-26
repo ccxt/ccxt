@@ -188,12 +188,14 @@ class gate(Exchange, ccxt.async_support.gate):
         storedOrderBook = self.safe_value(self.orderbooks, symbol)
         nonce = self.safe_integer(storedOrderBook, 'nonce')
         if nonce is None:
-            cacheLength = len(storedOrderBook.cache)
+            cacheLength = 0
+            if storedOrderBook is not None:
+                cacheLength = len(storedOrderBook.cache)
             snapshotDelay = self.handle_option('watchOrderBook', 'snapshotDelay', 10)
             waitAmount = snapshotDelay if isSpot else 0
             if cacheLength == waitAmount:
                 # max limit is 100
-                subscription = client.subscriptions[channel]
+                subscription = client.subscriptions[messageHash]
                 limit = self.safe_integer(subscription, 'limit')
                 self.spawn(self.load_order_book, client, messageHash, symbol, limit)
             storedOrderBook.cache.append(delta)
@@ -471,28 +473,6 @@ class gate(Exchange, ccxt.async_support.gate):
             stored = self.safe_value(self.ohlcvs, symbol)
             client.resolve(stored, hash)
 
-    async def authenticate(self, params={}):
-        url = self.urls['api']['ws']
-        client = self.client(url)
-        future = client.future('authenticated')
-        method = 'server.sign'
-        authenticate = self.safe_value(client.subscriptions, method)
-        if authenticate is None:
-            requestId = self.milliseconds()
-            requestIdString = str(requestId)
-            signature = self.hmac(self.encode(requestIdString), self.encode(self.secret), hashlib.sha512, 'hex')
-            authenticateMessage = {
-                'id': requestId,
-                'method': method,
-                'params': [self.apiKey, signature, requestId],
-            }
-            subscribe = {
-                'id': requestId,
-                'method': self.handle_authentication_message,
-            }
-            self.spawn(self.watch, url, requestId, authenticateMessage, method, subscribe)
-        return await future
-
     async def watch_my_trades(self, symbol=None, since=None, limit=None, params={}):
         """
         watches information on multiple trades made by the user
@@ -599,7 +579,7 @@ class gate(Exchange, ccxt.async_support.gate):
             'option': 'options',
         })
         channel = channelType + '.balances'
-        messageHash = 'balance'
+        messageHash = type + '.balance'
         return await self.subscribe_private(url, messageHash, None, channel, params, requiresUid)
 
     def handle_balance(self, client, message):
@@ -672,8 +652,17 @@ class gate(Exchange, ccxt.async_support.gate):
             account['free'] = self.safe_string(rawBalance, 'available')
             account['total'] = self.safe_string_2(rawBalance, 'total', 'balance')
             self.balance[code] = account
+        channel = self.safe_string(message, 'channel')
+        parts = channel.split('.')
+        rawType = self.safe_string(parts, 0)
+        channelType = self.get_supported_mapping(rawType, {
+            'spot': 'spot',
+            'futures': 'swap',
+            'options': 'option',
+        })
+        messageHash = channelType + '.balance'
         self.balance = self.safe_balance(self.balance)
-        client.resolve(self.balance, 'balance')
+        client.resolve(self.balance, messageHash)
 
     async def watch_orders(self, symbol=None, since=None, limit=None, params={}):
         """
@@ -780,24 +769,6 @@ class gate(Exchange, ccxt.async_support.gate):
             client.resolve(self.orders, messageHash)
         client.resolve(self.orders, 'orders')
 
-    def handle_authentication_message(self, client, message, subscription):
-        result = self.safe_value(message, 'result')
-        status = self.safe_string(result, 'status')
-        if status == 'success':
-            # client.resolve(True, 'authenticated') will del the future
-            # we want to remember that we are authenticated in subsequent call to private methods
-            future = self.safe_value(client.futures, 'authenticated')
-            if future is not None:
-                future.resolve(True)
-        else:
-            # del authenticate subscribeHash to release the "subscribe lock"
-            # allows subsequent calls to subscribe to reauthenticate
-            # avoids sending two authentication messages before receiving a reply
-            error = AuthenticationError(self.id + ' handleAuthenticationMessage() error')
-            client.reject(error, 'authenticated')
-            if 'server.sign' in client.subscriptions:
-                del client.subscriptions['server.sign']
-
     def handle_error_message(self, client, message):
         # {
         #     time: 1647274664,
@@ -839,13 +810,16 @@ class gate(Exchange, ccxt.async_support.gate):
             'balance': self.handle_balance_subscription,
             'order_book': self.handle_order_book_subscription,
         }
-        keys = list(methods.keys())
-        for i in range(0, len(keys)):
-            key = keys[i]
-            if channel.find(key) >= 0:
-                method = methods[key]
-                subscription = client.subscriptions[channel]
-                method(client, message, subscription)
+        id = self.safe_integer(message, 'id')
+        subscriptionsById = self.index_by(client.subscriptions, 'id')
+        subscription = self.safe_value(subscriptionsById, id)
+        if subscription is not None:
+            keys = list(methods.keys())
+            for i in range(0, len(keys)):
+                key = keys[i]
+                if channel.find(key) >= 0:
+                    method = methods[key]
+                    method(client, message, subscription)
 
     def handle_message(self, client, message):
         #
@@ -1012,7 +986,7 @@ class gate(Exchange, ccxt.async_support.gate):
             'messageHash': messageHash,
         })
         message = self.extend(request, params)
-        return await self.watch(url, messageHash, message, subscriptionHash, subscription)
+        return await self.watch(url, messageHash, message, messageHash, subscription)
 
     async def subscribe_private(self, url, messageHash, payload, subscriptionHash, params, requiresUid=False):
         self.check_required_credentials()
@@ -1049,4 +1023,4 @@ class gate(Exchange, ccxt.async_support.gate):
             'id': requestId,
             'messageHash': messageHash,
         }
-        return await self.watch(url, messageHash, message, subscriptionHash, subscription)
+        return await self.watch(url, messageHash, message, messageHash, subscription)

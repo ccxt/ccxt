@@ -636,7 +636,7 @@ class mexc3(Exchange):
                     'active': active,
                     'deposit': isDepositEnabled,
                     'withdraw': isWithdrawEnabled,
-                    'fee': self.safe_number(chain, 'fee'),
+                    'fee': fee,
                     'precision': None,
                     'limits': {
                         'withdraw': {
