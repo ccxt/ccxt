@@ -3379,11 +3379,11 @@ module.exports = class bybit extends Exchange {
         const timeInForce = this.parseTimeInForce (this.safeString (order, 'timeInForce'));
         const triggerPrice = this.safeString (order, 'triggerPrice');
         const postOnly = (timeInForce === 'PO');
-        let amount = this.safeString (order, 'orderQty');
-        if (amount === undefined || amount === '0') {
-            if (market['spot'] && type === 'market' && side === 'buy') {
-                amount = filled;
-            }
+        let amount = undefined;
+        if (market['spot'] && type === 'market' && side === 'buy') {
+            amount = filled;
+        } else {
+            amount = this.safeString (order, 'orderQty');
         }
         return this.safeOrder ({
             'id': this.safeString (order, 'orderId'),
