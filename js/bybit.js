@@ -4905,7 +4905,22 @@ module.exports = class bybit extends Exchange {
         //     }
         //
         const result = this.safeValue (response, 'result', {});
-        const orders = this.safeValue (result, 'list', []);
+        let orders = this.safeValue (result, 'list', []);
+        let paginationCursor = this.safeString (result, 'nextPageCursor');
+        if (paginationCursor !== undefined) {
+            while (paginationCursor !== undefined) {
+                params['cursor'] = paginationCursor;
+                const response = await this.privateGetContractV3PrivateOrderUnfilledOrders (this.extend (request, params));
+                const result = this.safeValue (response, 'result', {});
+                const rawOrders = this.safeValue (result, 'list', []);
+                const rawOrdersLength = rawOrders.length;
+                if (rawOrdersLength === 0) {
+                    break;
+                }
+                orders = this.arrayConcat (rawOrders, orders);
+                paginationCursor = this.safeString (result, 'nextPageCursor');
+            }
+        }
         return this.parseOrders (orders, market, since, limit);
     }
 
