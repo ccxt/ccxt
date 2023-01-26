@@ -703,10 +703,10 @@ module.exports = class bit2c extends Exchange {
         let makerOrTaker = undefined;
         const reference = this.safeString (trade, 'reference');
         if (reference !== undefined) {
-            id = reference
+            id = reference;
             timestamp = this.safeTimestamp (trade, 'ticks');
             price = this.safeString (trade, 'price');
-            price = parseFloat(price.replace(/,/g, ''));
+            price = parseFloat (price.replace (/,/g, ''));
             amount = this.safeString (trade, 'firstAmount');
             const reference_parts = reference.split ('|'); // reference contains 'pair|orderId_by_taker|orderId_by_maker'
             const marketId = this.safeString (trade, 'pair');
