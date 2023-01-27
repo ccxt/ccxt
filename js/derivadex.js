@@ -419,6 +419,30 @@ module.exports = class derivadex extends Exchange {
         };
     }
 
+    async fetchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        /**
+         * @method
+         * @name derivadex#fetchMyTrades
+         * @description fetch all trades made by the user
+         * @param {string|undefined} symbol unified market symbol
+         * @param {int|undefined} since the earliest time in ms to fetch trades for
+         * @param {int|undefined} limit the maximum number of trades structures to retrieve
+         * @param {object} params extra parameters specific to the derivadex api endpoint
+         * @returns {[object]} a list of [trade structures]{@link https://docs.ccxt.com/en/latest/manual.html#trade-structure}
+         */
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const request = {
+            'symbol': market['id'],
+        };
+        if (limit !== undefined) {
+            request['limit'] = limit; // default 500
+        }
+        const response = await this.publicGetFills (this.extend (request, params));
+        response['traderAddress'] = ''; // TODO: supply the users trader address
+        return await this.parseTrades (response, market, since, limit);
+    }
+
     async fetchTrades (symbol, since = undefined, limit = undefined, params = {}) {
         /**
          * @method
@@ -483,23 +507,24 @@ module.exports = class derivadex extends Exchange {
         //       },
         //     ]
         // }
-        return await this.parseTrades (response['value'], market, since, limit);
+        return await this.parseTrades (response, market, since, limit);
     }
 
     async parseTrade (trade, market = undefined) {
-        const id = this.safeString (trade, 'takerOrderHash') + '_' + this.safeString (trade, 'epochId') + '_' + this.safeString (trade, 'txOrdinal');
-        const timestamp = this.parse8601 (this.safeString (trade, 'createdAt'));
+        const tradeValue = trade['value'];
+        const id = this.safeString (tradeValue, 'takerOrderHash') + '_' + this.safeString (tradeValue, 'epochId') + '_' + this.safeString (tradeValue, 'txOrdinal');
+        const timestamp = this.parse8601 (this.safeString (tradeValue, 'createdAt'));
         const datetime = this.iso8601 (timestamp);
-        const symbol = this.safeString (trade, 'symbol');
-        const order = this.safeString (trade, 'takerOrderHash');
-        const price = this.safeString (trade, 'price');
-        const amount = this.safeString (trade, 'amount');
+        const symbol = this.safeString (tradeValue, 'symbol');
+        const order = this.safeString (tradeValue, 'takerOrderHash');
+        const price = this.safeString (tradeValue, 'price');
+        const amount = this.safeString (tradeValue, 'amount');
         const fee = {
-            'cost': this.safeString (trade, 'takerFee'),
-            'currency': this.safeString (trade, 'takerFeeSymbol'),
+            'cost': this.safeString (tradeValue, 'takerFee'),
+            'currency': this.safeString (tradeValue, 'takerFeeSymbol'),
         };
         const params = {};
-        params['orderHash'] = this.safeString (trade, 'takerOrderHash');
+        params['orderHash'] = this.safeString (tradeValue, 'takerOrderHash');
         const orderIntentResponse = await this.publicGetOrderIntents (params);
         const sideNumber = this.safeInteger (orderIntentResponse['value'][0], 'side');
         const orderTypeNumber = this.safeInteger (orderIntentResponse['value'][0], 'orderType');
@@ -512,6 +537,10 @@ module.exports = class derivadex extends Exchange {
         } else if (orderTypeNumber === 2) {
             orderType = 'stop';
         }
+        let takerOrMaker = 'taker';
+        if (trade['traderAddress'] !== undefined && trade['traderAddress'] !== this.safeString (orderIntentResponse['value'][0], 'traderAddress')) {
+            takerOrMaker = 'maker';
+        }
         return this.safeTrade ({
             'info': trade,
             'timestamp': timestamp,
@@ -520,7 +549,7 @@ module.exports = class derivadex extends Exchange {
             'id': id,
             'order': order,
             'type': orderType,
-            'takerOrMaker': undefined, // TODO: provide 'taker' as default value for public trades, but determine if maker is appropriate if this is called with an account context i,e the makerOrderHash originates from the trader address
+            'takerOrMaker': takerOrMaker, // TODO: provide 'taker' as default value for public trades, but determine if maker is appropriate if this is called with an account context i,e the makerOrderHash originates from the trader address
             'side': side,
             'price': price,
             'cost': undefined,
