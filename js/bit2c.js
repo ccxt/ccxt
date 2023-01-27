@@ -660,6 +660,15 @@ module.exports = class bit2c extends Exchange {
         return this.parseTrades (response, market, since, limit);
     }
 
+    removeCommaFromValue (str) {
+        let newString = '';
+        const strParts = str.split (',');
+        for (let i = 0; i < strParts.length; i++) {
+            newString += strParts[i];
+        }
+        return newString;
+       }
+
     parseTrade (trade, market = undefined) {
         //
         // public fetchTrades
@@ -759,15 +768,6 @@ module.exports = class bit2c extends Exchange {
             'fee': fee,
         }, market);
     }
-
-    removeCommaFromValue (str)  {
-       let newString = '';
-       const strParts = str.split (',');
-       for (let i = 0; i < strParts.length; i++) {
-           newString += strParts[i];
-       }
-       return newString;
-      }
 
     isFiat (code) {
         return code === 'NIS';
