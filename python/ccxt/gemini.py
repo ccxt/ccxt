@@ -417,6 +417,8 @@ class gemini(Exchange):
     def fetch_usdt_markets(self, params={}):
         # these markets can't be scrapped and fetchMarketsFrom api does an extra call
         # to load market ids which we don't need here
+        if 'test' in self.urls:
+            return []  # sandbox does not have usdt markets
         fetchUsdtMarkets = self.safe_value(self.options, 'fetchUsdtMarkets', [])
         result = []
         for i in range(0, len(fetchUsdtMarkets)):
