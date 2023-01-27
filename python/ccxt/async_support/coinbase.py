@@ -2432,8 +2432,8 @@ class coinbase(Exchange):
             'end': end,
         }
         if since is not None:
-            since = str(since)
-            timeframeToSeconds = Precise.string_div(since, '1000')
+            sinceString = str(since)
+            timeframeToSeconds = Precise.string_div(sinceString, '1000')
             request['start'] = self.decimal_to_precision(timeframeToSeconds, TRUNCATE, 0, DECIMAL_PLACES)
         else:
             request['start'] = Precise.string_sub(end, '18000')  # default to 5h in seconds, max 300 candles

@@ -1742,7 +1742,8 @@ class poloniex(Exchange):
             if (codes is None) or (self.in_array(code, codes)):
                 depositWithdrawFees[code] = self.parse_deposit_withdraw_fee(feeInfo, code)
                 childChains = self.safe_value(feeInfo, 'childChains')
-                if len(childChains) > 0:
+                chainsLength = len(childChains)
+                if chainsLength > 0:
                     for j in range(0, len(childChains)):
                         networkId = childChains[j]
                         networkId = networkId.replace(code, '')

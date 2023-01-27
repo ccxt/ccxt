@@ -3251,6 +3251,7 @@ class bybit extends Exchange {
             'PENDING_CANCEL' => 'open',
             'PENDING_NEW' => 'open',
             'REJECTED' => 'rejected',
+            'PARTIALLY_FILLED_CANCELLED' => 'canceled',
             // v3 contract / unified margin
             'Created' => 'open',
             'New' => 'open',
@@ -3426,11 +3427,11 @@ class bybit extends Exchange {
         $timeInForce = $this->parse_time_in_force($this->safe_string($order, 'timeInForce'));
         $triggerPrice = $this->safe_string($order, 'triggerPrice');
         $postOnly = ($timeInForce === 'PO');
-        $amount = $this->safe_string($order, 'orderQty');
-        if ($amount === null || $amount === '0') {
-            if ($market['spot'] && $type === 'market' && $side === 'buy') {
-                $amount = $filled;
-            }
+        $amount = null;
+        if ($market['spot'] && $type === 'market' && $side === 'buy') {
+            $amount = $filled;
+        } else {
+            $amount = $this->safe_string($order, 'orderQty');
         }
         return $this->safe_order(array(
             'id' => $this->safe_string($order, 'orderId'),
@@ -6087,7 +6088,8 @@ class bybit extends Exchange {
             $request = array();
             $type = null;
             if (gettype($symbols) === 'array' && array_keys($symbols) === array_keys(array_keys($symbols))) {
-                if (strlen($symbols) > 1) {
+                $symbolsLength = count($symbols);
+                if ($symbolsLength > 1) {
                     throw new ArgumentsRequired($this->id . ' fetchPositions() does not accept an array with more than one symbol');
                 }
             } elseif ($symbols !== null) {
@@ -6236,10 +6238,11 @@ class bybit extends Exchange {
             Async\await($this->load_markets());
             $request = array();
             if (gettype($symbols) === 'array' && array_keys($symbols) === array_keys(array_keys($symbols))) {
-                if (strlen($symbols) > 1) {
+                $symbolsLength = count($symbols);
+                if ($symbolsLength > 1) {
                     throw new ArgumentsRequired($this->id . ' fetchPositions() does not accept an array with more than one symbol');
                 }
-                if (strlen($symbols) === 1) {
+                if ($symbolsLength === 1) {
                     $request['symbol'] = $this->market_id($symbols[0]);
                 }
             } elseif ($symbols !== null) {
@@ -6330,7 +6333,8 @@ class bybit extends Exchange {
              * @return {[array]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#position-structure position structure}
              */
             if (gettype($symbols) === 'array' && array_keys($symbols) === array_keys(array_keys($symbols))) {
-                if (strlen($symbols) > 1) {
+                $symbolsLength = count($symbols);
+                if ($symbolsLength > 1) {
                     throw new ArgumentsRequired($this->id . ' fetchPositions() does not accept an array with more than one symbol');
                 }
             } elseif ($symbols !== null) {

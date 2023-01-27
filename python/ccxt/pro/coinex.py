@@ -348,7 +348,8 @@ class coinex(Exchange, ccxt.async_support.coinex):
         candles = self.safe_value(message, 'params', [])
         messageHash = 'ohlcv'
         ohlcvs = self.parse_ohlcvs(candles)
-        if self.ohlcvs == 0:
+        keysLength = self.ohlcvs
+        if keysLength == 0:
             limit = self.safe_integer(self.options, 'OHLCVLimit', 1000)
             self.ohlcvs = ArrayCacheByTimestamp(limit)
         for i in range(0, len(ohlcvs)):

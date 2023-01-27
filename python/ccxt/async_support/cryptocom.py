@@ -1430,10 +1430,11 @@ class cryptocom(Exchange):
         # }
         data = self.safe_value(response, 'result', {})
         addresses = self.safe_value(data, 'deposit_address_list', [])
-        if len(addresses) == 0:
+        addressesLength = len(addresses)
+        if addressesLength == 0:
             raise ExchangeError(self.id + ' fetchDepositAddressesByNetwork() generating address...')
         result = {}
-        for i in range(0, len(addresses)):
+        for i in range(0, addressesLength):
             value = self.safe_value(addresses, i)
             addressString = self.safe_string(value, 'address')
             currencyId = self.safe_string(value, 'currency')

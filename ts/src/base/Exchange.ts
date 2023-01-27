@@ -3728,7 +3728,8 @@ export default class Exchange {
          * @param {[string]} options a list of options that the argument can be
          * @returns {undefined}
          */
-        if ((argument === undefined) || ((options.length > 0) && (!(this.inArray (argument, options))))) {
+        const optionsLength = options.length;
+        if ((argument === undefined) || ((optionsLength > 0) && (!(this.inArray (argument, options))))) {
             const messageOptions = options.join (', ');
             let message = this.id + ' ' + methodName + '() requires a ' + argumentName + ' argument';
             if (messageOptions !== '') {

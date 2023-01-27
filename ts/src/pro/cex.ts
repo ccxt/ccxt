@@ -857,7 +857,8 @@ export default class cex extends cexRest {
         }
         this.orders = myOrders;
         const messageHash = 'orders:' + symbol;
-        if (myOrders.length > 0) {
+        const ordersLength = myOrders.length;
+        if (ordersLength > 0) {
             client.resolve (myOrders, messageHash);
         }
     }
@@ -1133,7 +1134,8 @@ export default class cex extends cexRest {
             ];
             stored.append (ohlcv);
         }
-        if (data.length > 0) {
+        const dataLength = data.length;
+        if (dataLength > 0) {
             client.resolve (stored, messageHash);
         }
     }

@@ -3075,6 +3075,7 @@ class bybit(Exchange):
             'PENDING_CANCEL': 'open',
             'PENDING_NEW': 'open',
             'REJECTED': 'rejected',
+            'PARTIALLY_FILLED_CANCELLED': 'canceled',
             # v3 contract / unified margin
             'Created': 'open',
             'New': 'open',
@@ -3241,10 +3242,11 @@ class bybit(Exchange):
         timeInForce = self.parse_time_in_force(self.safe_string(order, 'timeInForce'))
         triggerPrice = self.safe_string(order, 'triggerPrice')
         postOnly = (timeInForce == 'PO')
-        amount = self.safe_string(order, 'orderQty')
-        if amount is None or amount == '0':
-            if market['spot'] and type == 'market' and side == 'buy':
-                amount = filled
+        amount = None
+        if market['spot'] and type == 'market' and side == 'buy':
+            amount = filled
+        else:
+            amount = self.safe_string(order, 'orderQty')
         return self.safe_order({
             'id': self.safe_string(order, 'orderId'),
             'clientOrderId': self.safe_string(order, 'orderLinkId'),
@@ -5627,7 +5629,8 @@ class bybit(Exchange):
         request = {}
         type = None
         if isinstance(symbols, list):
-            if len(symbols) > 1:
+            symbolsLength = len(symbols)
+            if symbolsLength > 1:
                 raise ArgumentsRequired(self.id + ' fetchPositions() does not accept an array with more than one symbol')
         elif symbols is not None:
             symbols = [symbols]
@@ -5761,9 +5764,10 @@ class bybit(Exchange):
         await self.load_markets()
         request = {}
         if isinstance(symbols, list):
-            if len(symbols) > 1:
+            symbolsLength = len(symbols)
+            if symbolsLength > 1:
                 raise ArgumentsRequired(self.id + ' fetchPositions() does not accept an array with more than one symbol')
-            if len(symbols) == 1:
+            if symbolsLength == 1:
                 request['symbol'] = self.market_id(symbols[0])
         elif symbols is not None:
             request['symbol'] = self.market_id(symbols)
@@ -5848,7 +5852,8 @@ class bybit(Exchange):
         :returns [dict]: a list of `position structure <https://docs.ccxt.com/en/latest/manual.html#position-structure>`
         """
         if isinstance(symbols, list):
-            if len(symbols) > 1:
+            symbolsLength = len(symbols)
+            if symbolsLength > 1:
                 raise ArgumentsRequired(self.id + ' fetchPositions() does not accept an array with more than one symbol')
         elif symbols is not None:
             symbols = [symbols]

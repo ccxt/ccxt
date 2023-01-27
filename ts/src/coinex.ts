@@ -2620,7 +2620,8 @@ export default class coinex extends Exchange {
     safeNetwork (networkId, currency = undefined) {
         const networks = this.safeValue (currency, 'networks', {});
         const networksCodes = Object.keys (networks);
-        if (networkId === undefined && networksCodes.length === 1) {
+        const networksCodesLength = networksCodes.length;
+        if (networkId === undefined && networksCodesLength === 1) {
             return networks[networksCodes[0]];
         }
         return {
@@ -2645,7 +2646,8 @@ export default class coinex extends Exchange {
         const parts = coinAddress.split (':');
         let address = undefined;
         let tag = undefined;
-        if (parts.length > 1) {
+        const partsLength = parts.length;
+        if (partsLength > 1) {
             address = parts[0];
             tag = parts[1];
         } else {

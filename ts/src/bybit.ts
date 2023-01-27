@@ -3205,6 +3205,7 @@ export default class bybit extends Exchange {
             'PENDING_CANCEL': 'open',
             'PENDING_NEW': 'open',
             'REJECTED': 'rejected',
+            'PARTIALLY_FILLED_CANCELLED': 'canceled',
             // v3 contract / unified margin
             'Created': 'open',
             'New': 'open',
@@ -3380,11 +3381,11 @@ export default class bybit extends Exchange {
         const timeInForce = this.parseTimeInForce (this.safeString (order, 'timeInForce'));
         const triggerPrice = this.safeString (order, 'triggerPrice');
         const postOnly = (timeInForce === 'PO');
-        let amount = this.safeString (order, 'orderQty');
-        if (amount === undefined || amount === '0') {
-            if (market['spot'] && type === 'market' && side === 'buy') {
-                amount = filled;
-            }
+        let amount = undefined;
+        if (market['spot'] && type === 'market' && side === 'buy') {
+            amount = filled;
+        } else {
+            amount = this.safeString (order, 'orderQty');
         }
         return this.safeOrder ({
             'id': this.safeString (order, 'orderId'),
@@ -5988,7 +5989,8 @@ export default class bybit extends Exchange {
         const request = {};
         let type = undefined;
         if (Array.isArray (symbols)) {
-            if (symbols.length > 1) {
+            const symbolsLength = symbols.length;
+            if (symbolsLength > 1) {
                 throw new ArgumentsRequired (this.id + ' fetchPositions() does not accept an array with more than one symbol');
             }
         } else if (symbols !== undefined) {
@@ -6133,10 +6135,11 @@ export default class bybit extends Exchange {
         await this.loadMarkets ();
         const request = {};
         if (Array.isArray (symbols)) {
-            if (symbols.length > 1) {
+            const symbolsLength = symbols.length;
+            if (symbolsLength > 1) {
                 throw new ArgumentsRequired (this.id + ' fetchPositions() does not accept an array with more than one symbol');
             }
-            if (symbols.length === 1) {
+            if (symbolsLength === 1) {
                 request['symbol'] = this.marketId (symbols[0]);
             }
         } else if (symbols !== undefined) {
@@ -6227,7 +6230,8 @@ export default class bybit extends Exchange {
          * @returns {[object]} a list of [position structure]{@link https://docs.ccxt.com/en/latest/manual.html#position-structure}
          */
         if (Array.isArray (symbols)) {
-            if (symbols.length > 1) {
+            const symbolsLength = symbols.length;
+            if (symbolsLength > 1) {
                 throw new ArgumentsRequired (this.id + ' fetchPositions() does not accept an array with more than one symbol');
             }
         } else if (symbols !== undefined) {

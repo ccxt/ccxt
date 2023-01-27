@@ -610,13 +610,15 @@ class woo(Exchange, ccxt.async_support.woo):
             if method is not None:
                 return method(client, message)
             splitTopic = topic.split('@')
-            if len(splitTopic) == 2:
+            splitLength = len(splitTopic)
+            if splitLength == 2:
                 name = self.safe_string(splitTopic, 1)
                 method = self.safe_value(methods, name)
                 if method is not None:
                     return method(client, message)
                 splitName = name.split('_')
-                if len(splitName) == 2:
+                splitNameLength = len(splitTopic)
+                if splitNameLength == 2:
                     method = self.safe_value(methods, self.safe_string(splitName, 0))
                     if method is not None:
                         return method(client, message)
