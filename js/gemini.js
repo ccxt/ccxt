@@ -418,6 +418,9 @@ module.exports = class gemini extends Exchange {
     async fetchUSDTMarkets (params = {}) {
         // these markets can't be scrapped and fetchMarketsFrom api does an extra call
         // to load market ids which we don't need here
+        if ('test' in this.urls) {
+            return []; // sandbox does not have usdt markets
+        }
         const fetchUsdtMarkets = this.safeValue (this.options, 'fetchUsdtMarkets', []);
         const result = [];
         for (let i = 0; i < fetchUsdtMarkets.length; i++) {
