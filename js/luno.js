@@ -20,7 +20,7 @@ module.exports = class luno extends Exchange {
             'version': '1',
             'pro': true,
             'has': {
-                'CORS': false,
+                'CORS': undefined,
                 'spot': true,
                 'margin': false,
                 'swap': false,

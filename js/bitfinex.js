@@ -21,7 +21,7 @@ module.exports = class bitfinex extends Exchange {
             'pro': true,
             // new metainfo interface
             'has': {
-                'CORS': false,
+                'CORS': undefined,
                 'spot': true,
                 'margin': undefined, // has but unimplemented
                 'swap': undefined, // has but unimplemented

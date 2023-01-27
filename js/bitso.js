@@ -18,7 +18,7 @@ module.exports = class bitso extends Exchange {
             'rateLimit': 2000, // 30 requests per minute
             'version': 'v3',
             'has': {
-                'CORS': false,
+                'CORS': undefined,
                 'spot': true,
                 'margin': false,
                 'swap': false,

@@ -20,7 +20,7 @@ module.exports = class hollaex extends Exchange {
             'version': 'v2',
             'pro': true,
             'has': {
-                'CORS': false,
+                'CORS': undefined,
                 'spot': true,
                 'margin': undefined,
                 'swap': false,

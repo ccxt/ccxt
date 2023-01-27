@@ -19,7 +19,7 @@ module.exports = class zaif extends Exchange {
             'rateLimit': 100,
             'version': '1',
             'has': {
-                'CORS': false,
+                'CORS': undefined,
                 'spot': true,
                 'margin': undefined, // has but unimplemented
                 'swap': false,

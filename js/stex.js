@@ -19,7 +19,7 @@ module.exports = class stex extends Exchange {
             'certified': false,
             // new metainfo interface
             'has': {
-                'CORS': false,
+                'CORS': undefined,
                 'spot': true,
                 'margin': false,
                 'swap': false,

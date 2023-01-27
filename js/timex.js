@@ -18,7 +18,7 @@ module.exports = class timex extends Exchange {
             'version': 'v1',
             'rateLimit': 1500,
             'has': {
-                'CORS': false,
+                'CORS': undefined,
                 'spot': true,
                 'margin': false,
                 'swap': false,

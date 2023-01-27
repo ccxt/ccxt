@@ -21,7 +21,7 @@ module.exports = class currencycom extends Exchange {
             'version': 'v2',
             // new metainfo interface
             'has': {
-                'CORS': false,
+                'CORS': undefined,
                 'spot': true,
                 'margin': true,
                 'swap': true,

@@ -20,7 +20,7 @@ module.exports = class kraken extends Exchange {
             'certified': false,
             'pro': true,
             'has': {
-                'CORS': false,
+                'CORS': undefined,
                 'spot': true,
                 'margin': true,
                 'swap': false,

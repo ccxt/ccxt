@@ -17,7 +17,7 @@ module.exports = class kuna extends Exchange {
             'rateLimit': 1000,
             'version': 'v2',
             'has': {
-                'CORS': false,
+                'CORS': undefined,
                 'spot': true,
                 'margin': undefined,
                 'swap': false,

@@ -26,7 +26,7 @@ module.exports = class zb extends Exchange {
             'version': 'v1',
             'pro': true,
             'has': {
-                'CORS': false,
+                'CORS': undefined,
                 'spot': true,
                 'margin': true,
                 'swap': true,
