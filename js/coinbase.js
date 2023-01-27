@@ -2581,8 +2581,8 @@ module.exports = class coinbase extends Exchange {
             'end': end,
         };
         if (since !== undefined) {
-            since = since.toString ();
-            const timeframeToSeconds = Precise.stringDiv (since, '1000');
+            const sinceString = since.toString ();
+            const timeframeToSeconds = Precise.stringDiv (sinceString, '1000');
             request['start'] = this.decimalToPrecision (timeframeToSeconds, TRUNCATE, 0, DECIMAL_PLACES);
         } else {
             request['start'] = Precise.stringSub (end, '18000'); // default to 5h in seconds, max 300 candles
