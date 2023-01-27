@@ -86,6 +86,7 @@ module.exports = class btcex extends Exchange {
                 'fetchTransactionFees': undefined,
                 'fetchWithdrawal': true,
                 'fetchWithdrawals': true,
+                'setLeverage': true,
                 'signIn': true,
                 'withdraw': false,
             },
@@ -167,6 +168,7 @@ module.exports = class btcex extends Exchange {
                         'cancel_all_by_currency',
                         'cancel_all_by_instrument',
                         'close_position',
+                        'adjust_perpetual_leverage',
                     ],
                     'delete': [],
                 },
@@ -2073,6 +2075,44 @@ module.exports = class btcex extends Exchange {
             }
         }
         return result;
+    }
+
+    async setLeverage (leverage, symbol = undefined, params = {}) {
+        /**
+         * @method
+         * @name btcex#setLeverage
+         * @description set the leverage amount for a market
+         * @see https://docs.btcex.com/#modify-perpetual-instrument-leverage
+         * @param {float} leverage the rate of leverage
+         * @param {string} symbol unified market symbol
+         * @param {object} params extra parameters specific to the btcex api endpoint
+         * @returns {object} response from the exchange
+         */
+        await this.signIn ();
+        await this.loadMarkets ();
+        this.checkRequiredSymbol ('setLeverage', symbol);
+        const market = this.market (symbol);
+        if (market['type'] !== 'swap') {
+            throw new BadRequest (this.id + ' setLeverage() supports swap contracts only');
+        }
+        if ((leverage < 1) || (leverage > 125)) {
+            throw new BadRequest (this.id + ' leverage should be between 1 and 125');
+        }
+        const request = {
+            'instrument_name': market['id'],
+            'leverage': leverage,
+        };
+        return await this.privatePostAdjustPerpetualLeverage (this.extend (request, params));
+        //
+        //     {
+        //         "id": "1674856410",
+        //         "jsonrpc": "2.0",
+        //         "usIn": 1674856410930,
+        //         "usOut": 1674856410988,
+        //         "usDiff": 58,
+        //         "result": "ok"
+        //     }
+        //
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
