@@ -483,10 +483,10 @@ module.exports = class derivadex extends Exchange {
         //       },
         //     ]
         // }
-        return this.parseTrades (response['value'], market, since, limit);
+        return await this.parseTrades (response['value'], market, since, limit);
     }
 
-    parseTrade (trade, market = undefined) {
+    async parseTrade (trade, market = undefined) {
         const id = this.safeString (trade, 'takerOrderHash') + '_' + this.safeString (trade, 'epochId') + '_' + this.safeString (trade, 'txOrdinal');
         const timestamp = this.parse8601 (this.safeString (trade, 'createdAt'));
         const datetime = this.iso8601 (timestamp);
@@ -498,6 +498,20 @@ module.exports = class derivadex extends Exchange {
             'cost': this.safeString (trade, 'takerFee'),
             'currency': this.safeString (trade, 'takerFeeSymbol'),
         };
+        const params = {};
+        params['orderHash'] = this.safeString (trade, 'takerOrderHash');
+        const orderIntentResponse = await this.publicGetOrderIntents (params);
+        const sideNumber = this.safeInteger (orderIntentResponse['value'][0], 'side');
+        const orderTypeNumber = this.safeInteger (orderIntentResponse['value'][0], 'orderType');
+        const side = sideNumber === 0 ? 'buy' : 'sell';
+        let orderType = undefined;
+        if (orderTypeNumber === 0) {
+            orderType = 'limit';
+        } else if (orderTypeNumber === 1) {
+            orderType = 'market';
+        } else if (orderTypeNumber === 2) {
+            orderType = 'stop';
+        }
         return this.safeTrade ({
             'info': trade,
             'timestamp': timestamp,
@@ -505,9 +519,9 @@ module.exports = class derivadex extends Exchange {
             'symbol': symbol,
             'id': id,
             'order': order,
-            'type': undefined,
-            'takerOrMaker': undefined,
-            'side': undefined,
+            'type': orderType,
+            'takerOrMaker': undefined, // TODO: provide 'taker' as default value for public trades, but determine if maker is appropriate if this is called with an account context i,e the makerOrderHash originates from the trader address
+            'side': side,
             'price': price,
             'cost': undefined,
             'amount': amount,
