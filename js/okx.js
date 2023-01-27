@@ -4246,7 +4246,8 @@ module.exports = class okx extends Exchange {
                 const market = this.market (entry);
                 marketIds.push (market['id']);
             }
-            if (marketIds.length > 0) {
+            const marketIdsLength = marketIds.length;
+            if (marketIdsLength > 0) {
                 request['instId'] = marketIds.join (',');
             }
         }
