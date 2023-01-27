@@ -706,7 +706,7 @@ module.exports = class bit2c extends Exchange {
             id = reference;
             timestamp = this.safeTimestamp (trade, 'ticks');
             price = this.safeString (trade, 'price');
-            price = parseFloat (price.replace (/,/g, ''));
+            price = removeCommaFromValue (price);
             amount = this.safeString (trade, 'firstAmount');
             const reference_parts = reference.split ('|'); // reference contains 'pair|orderId_by_taker|orderId_by_maker'
             const marketId = this.safeString (trade, 'pair');
@@ -759,6 +759,16 @@ module.exports = class bit2c extends Exchange {
             'fee': fee,
         }, market);
     }
+
+    removeCommaFromValue (str)  {
+        let newString = "";
+        for (let i = 0; i < str.length; i++) {
+          if (str[i] !== ",") {
+            newString += str[i];
+          }
+        }
+        return newString;
+      }
 
     isFiat (code) {
         return code === 'NIS';
