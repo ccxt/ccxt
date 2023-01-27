@@ -639,6 +639,15 @@ class bit2c extends Exchange {
         return $this->parse_trades($response, $market, $since, $limit);
     }
 
+    public function remove_comma_from_value($str) {
+        $newString = '';
+        $strParts = explode(',', $str);
+        for ($i = 0; $i < count($strParts); $i++) {
+            $newString .= $strParts[$i];
+        }
+        return $newString;
+    }
+
     public function parse_trade($trade, $market = null) {
         //
         // public fetchTrades
@@ -657,7 +666,7 @@ class bit2c extends Exchange {
         //         "ticks":1574767951,
         //         "created":"26/11/19 13:32",
         //         "action":1,
-        //         "price":"1000",
+        //         "price":"1,000",
         //         "pair":"EthNis",
         //         "reference":"EthNis|10867390|10867377",
         //         "fee":"0.5",
@@ -669,6 +678,7 @@ class bit2c extends Exchange {
         //         "secondAmountBalance":"130,233.28",
         //         "firstCoin":"ETH",
         //         "secondCoin":"₪"
+        //         "isMaker" => True,
         //     }
         //
         $timestamp = null;
@@ -678,17 +688,21 @@ class bit2c extends Exchange {
         $orderId = null;
         $fee = null;
         $side = null;
+        $makerOrTaker = null;
         $reference = $this->safe_string($trade, 'reference');
         if ($reference !== null) {
+            $id = $reference;
             $timestamp = $this->safe_timestamp($trade, 'ticks');
             $price = $this->safe_string($trade, 'price');
+            $price = $this->remove_comma_from_value($price);
             $amount = $this->safe_string($trade, 'firstAmount');
-            $reference_parts = explode('|', $reference); // $reference contains 'pair|$orderId|tradeId'
+            $reference_parts = explode('|', $reference); // $reference contains 'pair|orderId_by_taker|orderId_by_maker'
             $marketId = $this->safe_string($trade, 'pair');
             $market = $this->safe_market($marketId, $market);
             $market = $this->safe_market($reference_parts[0], $market);
-            $orderId = $reference_parts[1];
-            $id = $reference_parts[2];
+            $isMaker = $this->safe_value($trade, 'isMaker');
+            $makerOrTaker = $isMaker ? 'maker' : 'taker';
+            $orderId = $isMaker ? $reference_parts[2] : $reference_parts[1];
             $side = $this->safe_integer($trade, 'action');
             if ($side === 0) {
                 $side = 'buy';
@@ -726,7 +740,7 @@ class bit2c extends Exchange {
             'order' => $orderId,
             'type' => null,
             'side' => $side,
-            'takerOrMaker' => null,
+            'takerOrMaker' => $makerOrTaker,
             'price' => $price,
             'amount' => $amount,
             'cost' => null,
