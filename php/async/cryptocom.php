@@ -1521,11 +1521,12 @@ class cryptocom extends Exchange {
             // }
             $data = $this->safe_value($response, 'result', array());
             $addresses = $this->safe_value($data, 'deposit_address_list', array());
-            if (strlen($addresses) === 0) {
+            $addressesLength = count($addresses);
+            if ($addressesLength === 0) {
                 throw new ExchangeError($this->id . ' fetchDepositAddressesByNetwork() generating $address->..');
             }
             $result = array();
-            for ($i = 0; $i < count($addresses); $i++) {
+            for ($i = 0; $i < $addressesLength; $i++) {
                 $value = $this->safe_value($addresses, $i);
                 $addressString = $this->safe_string($value, 'address');
                 $currencyId = $this->safe_string($value, 'currency');

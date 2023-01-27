@@ -36,7 +36,7 @@ use Elliptic\EdDSA;
 use BN\BN;
 use Exception;
 
-$version = '2.6.95';
+$version = '2.6.96';
 
 // rounding mode
 const TRUNCATE = 0;
@@ -55,7 +55,7 @@ const PAD_WITH_ZERO = 1;
 
 class Exchange {
 
-    const VERSION = '2.6.95';
+    const VERSION = '2.6.96';
 
     private static $base58_alphabet = '123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz';
     private static $base58_encoder = null;
@@ -4719,7 +4719,8 @@ class Exchange {
          * @param {[string]} $options a list of $options that the $argument can be
          * @return {null}
          */
-        if (($argument === null) || ((strlen($options) > 0) && (!($this->in_array($argument, $options))))) {
+        $optionsLength = count($options);
+        if (($argument === null) || (($optionsLength > 0) && (!($this->in_array($argument, $options))))) {
             $messageOptions = implode(', ', $options);
             $message = $this->id . ' ' . $methodName . '() requires a ' . $argumentName . ' argument';
             if ($messageOptions !== '') {

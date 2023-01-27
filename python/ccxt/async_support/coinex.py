@@ -2484,7 +2484,8 @@ class coinex(Exchange):
     def safe_network(self, networkId, currency=None):
         networks = self.safe_value(currency, 'networks', {})
         networksCodes = list(networks.keys())
-        if networkId is None and len(networksCodes) == 1:
+        networksCodesLength = len(networksCodes)
+        if networkId is None and networksCodesLength == 1:
             return networks[networksCodes[0]]
         return {
             'id': networkId,
@@ -2506,7 +2507,8 @@ class coinex(Exchange):
         parts = coinAddress.split(':')
         address = None
         tag = None
-        if len(parts) > 1:
+        partsLength = len(parts)
+        if partsLength > 1:
             address = parts[0]
             tag = parts[1]
         else:

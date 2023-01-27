@@ -34,11 +34,11 @@ use Exception;
 
 include 'Throttle.php';
 
-$version = '2.6.95';
+$version = '2.6.96';
 
 class Exchange extends \ccxt\Exchange {
 
-    const VERSION = '2.6.95';
+    const VERSION = '2.6.96';
 
     public $browser;
     public $marketsLoading = null;
@@ -2562,7 +2562,8 @@ class Exchange extends \ccxt\Exchange {
          * @param {[string]} $options a list of $options that the $argument can be
          * @return {null}
          */
-        if (($argument === null) || ((strlen($options) > 0) && (!($this->in_array($argument, $options))))) {
+        $optionsLength = count($options);
+        if (($argument === null) || (($optionsLength > 0) && (!($this->in_array($argument, $options))))) {
             $messageOptions = implode(', ', $options);
             $message = $this->id . ' ' . $methodName . '() requires a ' . $argumentName . ' argument';
             if ($messageOptions !== '') {

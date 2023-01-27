@@ -669,14 +669,16 @@ class woo extends \ccxt\async\woo {
                 return $method($client, $message);
             }
             $splitTopic = explode('@', $topic);
-            if (strlen($splitTopic) === 2) {
+            $splitLength = count($splitTopic);
+            if ($splitLength === 2) {
                 $name = $this->safe_string($splitTopic, 1);
                 $method = $this->safe_value($methods, $name);
                 if ($method !== null) {
                     return $method($client, $message);
                 }
                 $splitName = explode('_', $name);
-                if (strlen($splitName) === 2) {
+                $splitNameLength = count($splitTopic);
+                if ($splitNameLength === 2) {
                     $method = $this->safe_value($methods, $this->safe_string($splitName, 0));
                     if ($method !== null) {
                         return $method($client, $message);

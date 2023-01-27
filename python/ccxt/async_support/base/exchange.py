@@ -2,7 +2,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '2.6.95'
+__version__ = '2.6.96'
 
 # -----------------------------------------------------------------------------
 
@@ -2118,7 +2118,8 @@ class Exchange(BaseExchange):
         :param [str] options: a list of options that the argument can be
         :returns None:
         """
-        if (argument is None) or ((len(options) > 0) and (not(self.in_array(argument, options)))):
+        optionsLength = len(options)
+        if (argument is None) or ((optionsLength > 0) and (not(self.in_array(argument, options)))):
             messageOptions = ', '.join(options)
             message = self.id + ' ' + methodName + '() requires a ' + argumentName + ' argument'
             if messageOptions != '':

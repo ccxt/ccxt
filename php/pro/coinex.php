@@ -359,7 +359,8 @@ class coinex extends \ccxt\async\coinex {
         $candles = $this->safe_value($message, 'params', array());
         $messageHash = 'ohlcv';
         $ohlcvs = $this->parse_ohlcvs($candles);
-        if ($this->ohlcvs === 0) {
+        $keysLength = $this->ohlcvs;
+        if ($keysLength === 0) {
             $limit = $this->safe_integer($this->options, 'OHLCVLimit', 1000);
             $this->ohlcvs = new ArrayCacheByTimestamp ($limit);
         }

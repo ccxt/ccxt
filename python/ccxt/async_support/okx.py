@@ -4006,7 +4006,8 @@ class okx(Exchange):
                 entry = symbols[i]
                 market = self.market(entry)
                 marketIds.append(market['id'])
-            if len(marketIds) > 0:
+            marketIdsLength = len(marketIds)
+            if marketIdsLength > 0:
                 request['instId'] = ','.join(marketIds)
         response = await self.privateGetAccountPositions(self.extend(request, params))
         #

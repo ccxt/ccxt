@@ -5931,7 +5931,8 @@ class bybit extends Exchange {
         $request = array();
         $type = null;
         if (gettype($symbols) === 'array' && array_keys($symbols) === array_keys(array_keys($symbols))) {
-            if (strlen($symbols) > 1) {
+            $symbolsLength = count($symbols);
+            if ($symbolsLength > 1) {
                 throw new ArgumentsRequired($this->id . ' fetchPositions() does not accept an array with more than one symbol');
             }
         } elseif ($symbols !== null) {
@@ -6076,10 +6077,11 @@ class bybit extends Exchange {
         $this->load_markets();
         $request = array();
         if (gettype($symbols) === 'array' && array_keys($symbols) === array_keys(array_keys($symbols))) {
-            if (strlen($symbols) > 1) {
+            $symbolsLength = count($symbols);
+            if ($symbolsLength > 1) {
                 throw new ArgumentsRequired($this->id . ' fetchPositions() does not accept an array with more than one symbol');
             }
-            if (strlen($symbols) === 1) {
+            if ($symbolsLength === 1) {
                 $request['symbol'] = $this->market_id($symbols[0]);
             }
         } elseif ($symbols !== null) {
@@ -6168,7 +6170,8 @@ class bybit extends Exchange {
          * @return {[array]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#position-structure position structure}
          */
         if (gettype($symbols) === 'array' && array_keys($symbols) === array_keys(array_keys($symbols))) {
-            if (strlen($symbols) > 1) {
+            $symbolsLength = count($symbols);
+            if ($symbolsLength > 1) {
                 throw new ArgumentsRequired($this->id . ' fetchPositions() does not accept an array with more than one symbol');
             }
         } elseif ($symbols !== null) {

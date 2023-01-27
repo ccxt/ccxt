@@ -1810,7 +1810,8 @@ class poloniex extends Exchange {
             if (($codes === null) || ($this->in_array($code, $codes))) {
                 $depositWithdrawFees[$code] = $this->parse_deposit_withdraw_fee($feeInfo, $code);
                 $childChains = $this->safe_value($feeInfo, 'childChains');
-                if (strlen($childChains) > 0) {
+                $chainsLength = count($childChains);
+                if ($chainsLength > 0) {
                     for ($j = 0; $j < count($childChains); $j++) {
                         $networkId = $childChains[$j];
                         $networkId = str_replace($code, '', $networkId);

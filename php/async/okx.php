@@ -4255,7 +4255,8 @@ class okx extends Exchange {
                     $market = $this->market($entry);
                     $marketIds[] = $market['id'];
                 }
-                if (strlen($marketIds) > 0) {
+                $marketIdsLength = count($marketIds);
+                if ($marketIdsLength > 0) {
                     $request['instId'] = implode(',', $marketIds);
                 }
             }

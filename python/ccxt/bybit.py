@@ -5626,7 +5626,8 @@ class bybit(Exchange):
         request = {}
         type = None
         if isinstance(symbols, list):
-            if len(symbols) > 1:
+            symbolsLength = len(symbols)
+            if symbolsLength > 1:
                 raise ArgumentsRequired(self.id + ' fetchPositions() does not accept an array with more than one symbol')
         elif symbols is not None:
             symbols = [symbols]
@@ -5760,9 +5761,10 @@ class bybit(Exchange):
         self.load_markets()
         request = {}
         if isinstance(symbols, list):
-            if len(symbols) > 1:
+            symbolsLength = len(symbols)
+            if symbolsLength > 1:
                 raise ArgumentsRequired(self.id + ' fetchPositions() does not accept an array with more than one symbol')
-            if len(symbols) == 1:
+            if symbolsLength == 1:
                 request['symbol'] = self.market_id(symbols[0])
         elif symbols is not None:
             request['symbol'] = self.market_id(symbols)
@@ -5847,7 +5849,8 @@ class bybit(Exchange):
         :returns [dict]: a list of `position structure <https://docs.ccxt.com/en/latest/manual.html#position-structure>`
         """
         if isinstance(symbols, list):
-            if len(symbols) > 1:
+            symbolsLength = len(symbols)
+            if symbolsLength > 1:
                 raise ArgumentsRequired(self.id + ' fetchPositions() does not accept an array with more than one symbol')
         elif symbols is not None:
             symbols = [symbols]

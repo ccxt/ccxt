@@ -2578,7 +2578,8 @@ class coinex extends Exchange {
     public function safe_network($networkId, $currency = null) {
         $networks = $this->safe_value($currency, 'networks', array());
         $networksCodes = is_array($networks) ? array_keys($networks) : array();
-        if ($networkId === null && strlen($networksCodes) === 1) {
+        $networksCodesLength = count($networksCodes);
+        if ($networkId === null && $networksCodesLength === 1) {
             return $networks[$networksCodes[0]];
         }
         return array(
@@ -2603,7 +2604,8 @@ class coinex extends Exchange {
         $parts = explode(':', $coinAddress);
         $address = null;
         $tag = null;
-        if (strlen($parts) > 1) {
+        $partsLength = count($parts);
+        if ($partsLength > 1) {
             $address = $parts[0];
             $tag = $parts[1];
         } else {
