@@ -761,13 +761,12 @@ module.exports = class bit2c extends Exchange {
     }
 
     removeCommaFromValue (str)  {
-        let newString = "";
-        for (let i = 0; i < str.length; i++) {
-          if (str[i] !== ",") {
-            newString += str[i];
-          }
-        }
-        return newString;
+       let newString = '';
+       const strParts = str.split (',');
+       for (let i = 0; i < strParts.length; i++) {
+           newString += strParts[i];
+       }
+       return newString;
       }
 
     isFiat (code) {
