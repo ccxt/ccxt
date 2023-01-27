@@ -3073,6 +3073,7 @@ class bybit(Exchange):
             'PENDING_CANCEL': 'open',
             'PENDING_NEW': 'open',
             'REJECTED': 'rejected',
+            'PARTIALLY_FILLED_CANCELLED': 'canceled',
             # v3 contract / unified margin
             'Created': 'open',
             'New': 'open',
