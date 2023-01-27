@@ -667,7 +667,7 @@ module.exports = class bit2c extends Exchange {
             newString += strParts[i];
         }
         return newString;
-       }
+    }
 
     parseTrade (trade, market = undefined) {
         //
@@ -715,7 +715,7 @@ module.exports = class bit2c extends Exchange {
             id = reference;
             timestamp = this.safeTimestamp (trade, 'ticks');
             price = this.safeString (trade, 'price');
-            price = removeCommaFromValue (price);
+            price = this.removeCommaFromValue (price);
             amount = this.safeString (trade, 'firstAmount');
             const reference_parts = reference.split ('|'); // reference contains 'pair|orderId_by_taker|orderId_by_maker'
             const marketId = this.safeString (trade, 'pair');
