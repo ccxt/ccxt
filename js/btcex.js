@@ -2088,11 +2088,14 @@ module.exports = class btcex extends Exchange {
          * @param {object} params extra parameters specific to the btcex api endpoint
          * @returns {object} response from the exchange
          */
+        if (symbol === undefined) {
+            throw new ArgumentsRequired (this.id + ' setLeverage() requires a symbol argument');
+        }
         await this.signIn ();
         await this.loadMarkets ();
         this.checkRequiredSymbol ('setLeverage', symbol);
         const market = this.market (symbol);
-        if (market['type'] !== 'swap') {
+        if (!market['swap']) {
             throw new BadRequest (this.id + ' setLeverage() supports swap contracts only');
         }
         if ((leverage < 1) || (leverage > 125)) {
@@ -2102,7 +2105,7 @@ module.exports = class btcex extends Exchange {
             'instrument_name': market['id'],
             'leverage': leverage,
         };
-        return await this.privatePostAdjustPerpetualLeverage (this.extend (request, params));
+        const response = await this.privatePostAdjustPerpetualLeverage (this.extend (request, params));
         //
         //     {
         //         "id": "1674856410",
@@ -2113,6 +2116,7 @@ module.exports = class btcex extends Exchange {
         //         "result": "ok"
         //     }
         //
+        return response;
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
