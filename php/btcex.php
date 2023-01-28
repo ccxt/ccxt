@@ -85,6 +85,7 @@ class btcex extends Exchange {
                 'fetchTransactionFees' => null,
                 'fetchWithdrawal' => true,
                 'fetchWithdrawals' => true,
+                'setLeverage' => true,
                 'setMarginMode' => true,
                 'signIn' => true,
                 'withdraw' => false,
@@ -167,6 +168,7 @@ class btcex extends Exchange {
                         'cancel_all_by_currency',
                         'cancel_all_by_instrument',
                         'close_position',
+                        'adjust_perpetual_leverage',
                         'adjust_perpetual_margin_type',
                     ),
                     'delete' => array(),
@@ -2094,7 +2096,7 @@ class btcex extends Exchange {
             'instrument_name' => $market['id'],
             'margin_type' => $marginMode,
         );
-        return $this->privatePostAdjustPerpetualMarginType (array_merge($request, $params));
+        $result = $this->privatePostAdjustPerpetualMarginType (array_merge($request, $params));
         //
         //     {
         //         "id" => "1674857919",
@@ -2105,6 +2107,47 @@ class btcex extends Exchange {
         //         "result" => "ok"
         //     }
         //
+        return $result;
+    }
+
+    public function set_leverage($leverage, $symbol = null, $params = array ()) {
+        /**
+         * set the $leverage amount for a $market
+         * @see https://docs.btcex.com/#modify-perpetual-instrument-$leverage
+         * @param {float} $leverage the rate of $leverage
+         * @param {string} $symbol unified $market $symbol
+         * @param {array} $params extra parameters specific to the btcex api endpoint
+         * @return {array} $response from the exchange
+         */
+        if ($symbol === null) {
+            throw new ArgumentsRequired($this->id . ' setLeverage() requires a $symbol argument');
+        }
+        $this->sign_in();
+        $this->load_markets();
+        $this->check_required_symbol('setLeverage', $symbol);
+        $market = $this->market($symbol);
+        if (!$market['swap']) {
+            throw new BadRequest($this->id . ' setLeverage() supports swap contracts only');
+        }
+        if (($leverage < 1) || ($leverage > 125)) {
+            throw new BadRequest($this->id . ' $leverage should be between 1 and 125');
+        }
+        $request = array(
+            'instrument_name' => $market['id'],
+            'leverage' => $leverage,
+        );
+        $response = $this->privatePostAdjustPerpetualLeverage (array_merge($request, $params));
+        //
+        //     {
+        //         "id" => "1674856410",
+        //         "jsonrpc" => "2.0",
+        //         "usIn" => 1674856410930,
+        //         "usOut" => 1674856410988,
+        //         "usDiff" => 58,
+        //         "result" => "ok"
+        //     }
+        //
+        return $response;
     }
 
     public function sign($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
