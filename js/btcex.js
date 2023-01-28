@@ -89,6 +89,7 @@ module.exports = class btcex extends Exchange {
                 'setLeverage': true,
                 'setMarginMode': true,
                 'signIn': true,
+                'transfer': true,
                 'withdraw': false,
             },
             'timeframes': {
@@ -171,6 +172,7 @@ module.exports = class btcex extends Exchange {
                         'close_position',
                         'adjust_perpetual_leverage',
                         'adjust_perpetual_margin_type',
+                        'submit_transfer',
                     ],
                     'delete': [],
                 },
@@ -2117,7 +2119,7 @@ module.exports = class btcex extends Exchange {
         //     }
         //
     }
-    
+
     async setLeverage (leverage, symbol = undefined, params = {}) {
         /**
          * @method
@@ -2158,6 +2160,69 @@ module.exports = class btcex extends Exchange {
         //     }
         //
         return response;
+    }
+
+    async transfer (code, amount, fromAccount, toAccount, params = {}) {
+        /**
+         * @method
+         * @name btcex#transfer
+         * @description transfer currency internally between wallets on the same account
+         * @see https://docs.btcex.com/#asset-transfer
+         * @param {string} code unified currency code
+         * @param {float} amount amount to transfer
+         * @param {string} fromAccount account to transfer from
+         * @param {string} toAccount account to transfer to
+         * @param {object} params extra parameters specific to the btcex api endpoint
+         * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/en/latest/manual.html#transfer-structure}
+         */
+        await this.signIn ();
+        await this.loadMarkets ();
+        const currency = this.currency (code);
+        const accountsByType = this.safeValue (this.options, 'accountsByType', {});
+        const fromId = this.safeString (accountsByType, fromAccount, fromAccount);
+        const toId = this.safeString (accountsByType, toAccount, toAccount);
+        const request = {
+            'coin_type': currency['id'],
+            'amount': this.currencyToPrecision (code, amount),
+            'from': fromId, // WALLET, SPOT, PERPETUAL
+            'to': toId, // WALLET, SPOT, PERPETUAL
+        };
+        const response = await this.privatePostSubmitTransfer (this.extend (request, params));
+        //
+        //     {
+        //         "id": "1674937273",
+        //         "jsonrpc": "2.0",
+        //         "usIn": 1674937274762,
+        //         "usOut": 1674937274774,
+        //         "usDiff": 12,
+        //         "result": "ok"
+        //     }
+        //
+        return this.parseTransfer (response, currency);
+    }
+
+    parseTransfer (transfer, currency = undefined) {
+        //
+        //     {
+        //         "id": "1674937273",
+        //         "jsonrpc": "2.0",
+        //         "usIn": 1674937274762,
+        //         "usOut": 1674937274774,
+        //         "usDiff": 12,
+        //         "result": "ok"
+        //     }
+        //
+        return {
+            'info': transfer,
+            'id': this.safeString (transfer, 'id'),
+            'timestamp': undefined,
+            'datetime': undefined,
+            'currency': undefined,
+            'amount': undefined,
+            'fromAccount': undefined,
+            'toAccount': undefined,
+            'status': undefined,
+        };
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
