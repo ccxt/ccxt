@@ -43,15 +43,20 @@ module.exports = class Exchange extends BaseExchange {
     client (url) {
         const wsOptions = this.safeValue (this.options, 'ws', {});
         // get ws rl config
-        const rateLimits =  this.safeValue (wsOptions, 'rateLimits', {});
+        const rateLimits = this.safeValue (wsOptions, 'rateLimits', {});
         // get ws rl config, if no rateLimit is defined in the WS implementation, we fallback to the ccxt one
-        let defaultRateLimitConfig = this.safeValue (rateLimits, 'default', this.tokenBucket);
-        defaultRateLimitConfig = this.calculateRateLimitConfig (defaultRateLimitConfig);
+        const defaultRateLimitConfig = this.safeValue (rateLimits, 'default', this);
+        const defaultTokenBucket = this.calculateRateLimitTokenBucket (defaultRateLimitConfig);
         if (!this.clients) {
             // get new connections rl config if not fallback to default
-            let newConnectionsRateLimitConfig = this.safeValue (rateLimits, 'newConnections', defaultRateLimitConfig);
-            newConnectionsRateLimitConfig = this.calculateRateLimitConfig (newConnectionsRateLimitConfig);
-            const throttleInstance = throttle (newConnectionsRateLimitConfig);
+            let newConnectionsRateLimitConfig = this.safeValue (rateLimits, 'newConnections');
+            if (newConnectionsRateLimitConfig === undefined) {
+                newConnectionsRateLimitConfig = {
+                    'tokenBucket': defaultTokenBucket,
+                }
+            }
+            const newConnectionsTockenBucket = this.calculateRateLimitTokenBucket (newConnectionsRateLimitConfig);
+            const throttleInstance = throttle (newConnectionsTockenBucket);
             this.clients = {
                 'throttle': throttleInstance
             };
@@ -63,13 +68,13 @@ module.exports = class Exchange extends BaseExchange {
             const onConnected = this.onConnected.bind (this);
             // decide client type here: ws / signalr / socketio
             // allowing specify rate limits per url, if not specified use default
-            let rateLimitConfig = this.safeValue (rateLimits, url, defaultRateLimitConfig)
-            rateLimitConfig = this.calculateRateLimitConfig (rateLimitConfig);
+            const rateLimitConfig = this.safeValue (rateLimits, url, defaultRateLimitConfig);
+            const rateLimitTokenBucket = this.calculateRateLimitTokenBucket (rateLimitConfig);
             const options = this.deepExtend (this.streaming, {
                 'log': this.log ? this.log.bind (this) : this.log,
                 'ping': this.ping ? this.ping.bind (this) : this.ping,
                 'verbose': this.verbose,
-                'throttle':  throttle (rateLimitConfig),
+                'throttle': throttle (rateLimitTokenBucket),
                 // add support for proxies
                 'options': {
                     'agent': this.agent || this.httpsAgent || this.httpAgent,
@@ -80,15 +85,15 @@ module.exports = class Exchange extends BaseExchange {
         return this.clients[url];
     }
 
-    spawn (method, ... args) {
+    spawn (method, ...args) {
         (method.apply (this, args)).catch ((e) => {
             // todo: handle spawned errors
         })
     }
 
-    delay (timeout, method, ... args) {
+    delay (timeout, method, ...args) {
         setTimeout (() => {
-            this.spawn (method, ... args)
+            this.spawn (method, ...args)
         }, timeout);
     }
 

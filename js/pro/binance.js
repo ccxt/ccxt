@@ -77,12 +77,9 @@ module.exports = class binance extends binanceRest {
                                 'delay': 0.001,
                                 'capacity': 1,
                                 'cost': 1,
-                                'maxCapacity': 1000,
+                                'maxCapacity': 5000,
                                 'refillRate': 0.003,
                             },
-                        },
-                        'newConnections': {
-                            'rateLimit': 50,
                         },
                     },
                 },

@@ -403,11 +403,8 @@ module.exports = class Exchange {
         return address
     }
 
-    calculateRateLimitConfig (rateLimitConfig) {
+    calculateRateLimitTokenBucket (rateLimitConfig) {
         const rateLimit = this.safeNumber (rateLimitConfig, 'rateLimit');
-        if (this.rateLimit === undefined) {
-            throw new Error (this.id + '.rateLimit property is not configured');
-        }
         const tokenBucket = this.safeValue (rateLimitConfig, 'tokenBucket', {});
         const config = this.extend ({
             'delay': 0.001,
@@ -420,7 +417,7 @@ module.exports = class Exchange {
     }
 
     initRestRateLimiter () {
-        this.tokenBucket = this.calculateRateLimitConfig (this);
+        this.tokenBucket = this.calculateRateLimitTokenBucket (this);
         this.throttle = throttle (this.tokenBucket);
         this.executeRestRequest = (url, method = 'GET', headers = undefined, body = undefined) => {
             // fetchImplementation cannot be called on this. in browsers:
