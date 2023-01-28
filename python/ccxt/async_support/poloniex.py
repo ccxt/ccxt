@@ -46,7 +46,6 @@ class poloniex(Exchange):
                 'cancelAllOrders': True,
                 'cancelOrder': True,
                 'createDepositAddress': True,
-                'createMarketOrder': None,
                 'createOrder': True,
                 'editOrder': True,
                 'fetchBalance': True,

@@ -93,7 +93,7 @@ class bittrex(Exchange):
                 'fetchTradingFee': True,
                 'fetchTradingFees': True,
                 'fetchTransactionFees': None,
-                'fetchTransactions': None,
+                'fetchTransactions': False,
                 'fetchWithdrawal': True,
                 'fetchWithdrawals': True,
                 'reduceMargin': False,
