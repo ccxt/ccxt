@@ -98,6 +98,7 @@ class btcex(Exchange):
                 'fetchTransactionFees': None,
                 'fetchWithdrawal': True,
                 'fetchWithdrawals': True,
+                'setMarginMode': True,
                 'signIn': True,
                 'withdraw': False,
             },
@@ -179,6 +180,7 @@ class btcex(Exchange):
                         'cancel_all_by_currency',
                         'cancel_all_by_instrument',
                         'close_position',
+                        'adjust_perpetual_margin_type',
                     ],
                     'delete': [],
                 },
@@ -1995,6 +1997,40 @@ class btcex(Exchange):
             if symbol is not None and (symbolsLength == 0 or self.in_array(symbol, symbols)):
                 result[symbol] = self.parse_market_leverage_tiers(entry, market)
         return result
+
+    def set_margin_mode(self, marginMode, symbol=None, params={}):
+        """
+        set margin mode to 'cross' or 'isolated'
+        see https://docs.btcex.com/#modify-perpetual-instrument-margin-type
+        :param str marginMode: 'cross' or 'isolated'
+        :param str|None symbol: unified market symbol
+        :param dict params: extra parameters specific to the btcex api endpoint
+        :returns dict: response from the exchange
+        """
+        self.check_required_symbol('setMarginMode', symbol)
+        self.sign_in()
+        self.load_markets()
+        market = self.market(symbol)
+        if not market['swap']:
+            raise BadRequest(self.id + ' setMarginMode() supports swap contracts only')
+        if (marginMode != 'isolated') and (marginMode != 'isolate') and (marginMode != 'cross'):
+            raise BadRequest(self.id + ' marginMode must be either isolated or cross')
+        marginMode = 'isolate' if (marginMode == 'isolated') else 'cross'
+        request = {
+            'instrument_name': market['id'],
+            'margin_type': marginMode,
+        }
+        return self.privatePostAdjustPerpetualMarginType(self.extend(request, params))
+        #
+        #     {
+        #         "id": "1674857919",
+        #         "jsonrpc": "2.0",
+        #         "usIn": 1674857920070,
+        #         "usOut": 1674857920079,
+        #         "usDiff": 9,
+        #         "result": "ok"
+        #     }
+        #
 
     def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
         request = '/' + 'api/' + self.version + '/' + api + '/' + path
