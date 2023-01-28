@@ -2088,12 +2088,15 @@ module.exports = class btcex extends Exchange {
          * @param {object} params extra parameters specific to the btcex api endpoint
          * @returns {object} response from the exchange
          */
+        this.checkRequiredSymbol ('setMarginMode', symbol);
         await this.signIn ();
         await this.loadMarkets ();
-        this.checkRequiredSymbol ('setMarginMode', symbol);
         const market = this.market (symbol);
-        if (market['type'] !== 'swap') {
+        if (!market['swap']) {
             throw new BadRequest (this.id + ' setMarginMode() supports swap contracts only');
+        }
+        if ((marginMode !== 'isolated') && (marginMode !== 'isolate') && (marginMode !== 'cross')) {
+            throw new BadRequest (this.id + ' marginMode must be either isolated or cross');
         }
         marginMode = (marginMode === 'isolated') ? 'isolate' : 'cross';
         const request = {
