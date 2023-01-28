@@ -57,7 +57,6 @@ class oceanex extends Exchange {
                 'fetchTrades' => true,
                 'fetchTradingFee' => false,
                 'fetchTradingFees' => true,
-                'fetchTradingLimits' => null,
                 'fetchTransactionFees' => null,
             ),
             'timeframes' => array(

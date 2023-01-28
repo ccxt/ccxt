@@ -59,7 +59,6 @@ class kuna(Exchange):
                 'reduceMargin': False,
                 'setLeverage': False,
                 'setPositionMode': False,
-                'withdraw': None,
             },
             'timeframes': None,
             'urls': {

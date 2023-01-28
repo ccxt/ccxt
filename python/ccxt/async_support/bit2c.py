@@ -128,8 +128,40 @@ class bit2c(Exchange):
             },
             'fees': {
                 'trading': {
-                    'maker': self.parse_number('0.005'),
-                    'taker': self.parse_number('0.005'),
+                    'tierBased': True,
+                    'percentage': True,
+                    'maker': self.parse_number('0.025'),
+                    'taker': self.parse_number('0.03'),
+                    'tiers': {
+                        'taker': [
+                            [self.parse_number('0'), self.parse_number('0.03')],
+                            [self.parse_number('20000'), self.parse_number('0.0275')],
+                            [self.parse_number('50000'), self.parse_number('0.025')],
+                            [self.parse_number('75000'), self.parse_number('0.0225')],
+                            [self.parse_number('100000'), self.parse_number('0.02')],
+                            [self.parse_number('250000'), self.parse_number('0.015')],
+                            [self.parse_number('500000'), self.parse_number('0.0125')],
+                            [self.parse_number('750000'), self.parse_number('0.01')],
+                            [self.parse_number('1000000'), self.parse_number('0.008')],
+                            [self.parse_number('2000000'), self.parse_number('0.006')],
+                            [self.parse_number('3000000'), self.parse_number('0.004')],
+                            [self.parse_number('4000000'), self.parse_number('0.002')],
+                        ],
+                        'maker': [
+                            [self.parse_number('0'), self.parse_number('0.025')],
+                            [self.parse_number('20000'), self.parse_number('0.0225')],
+                            [self.parse_number('50000'), self.parse_number('0.02')],
+                            [self.parse_number('75000'), self.parse_number('0.0175')],
+                            [self.parse_number('100000'), self.parse_number('0.015')],
+                            [self.parse_number('250000'), self.parse_number('0.01')],
+                            [self.parse_number('500000'), self.parse_number('0.0075')],
+                            [self.parse_number('750000'), self.parse_number('0.005')],
+                            [self.parse_number('1000000'), self.parse_number('0.004')],
+                            [self.parse_number('2000000'), self.parse_number('0.003')],
+                            [self.parse_number('3000000'), self.parse_number('0.002')],
+                            [self.parse_number('4000000'), self.parse_number('0.001')],
+                        ],
+                    },
                 },
             },
             'options': {
@@ -352,7 +384,7 @@ class bit2c(Exchange):
                 'taker': taker,
                 'maker': maker,
                 'percentage': True,
-                'tierBased': False,
+                'tierBased': True,
             }
         return result
 

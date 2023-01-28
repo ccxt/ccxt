@@ -30,7 +30,7 @@ class tidex extends Exchange {
                 'option' => false,
                 'addMargin' => false,
                 'cancelOrder' => true,
-                'createMarketOrder' => null,
+                'createMarketOrder' => false,
                 'createOrder' => true,
                 'createReduceOnlyOrder' => false,
                 'fetchBalance' => true,

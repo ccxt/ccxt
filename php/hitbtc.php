@@ -42,7 +42,7 @@ class hitbtc extends Exchange {
                 'fetchClosedOrders' => true,
                 'fetchCurrencies' => true,
                 'fetchDepositAddress' => true,
-                'fetchDeposits' => null,
+                'fetchDeposits' => false,
                 'fetchFundingHistory' => false,
                 'fetchFundingRate' => false,
                 'fetchFundingRateHistory' => false,
@@ -59,7 +59,7 @@ class hitbtc extends Exchange {
                 'fetchOpenOrders' => true,
                 'fetchOrder' => true,
                 'fetchOrderBook' => true,
-                'fetchOrders' => null,
+                'fetchOrders' => false,
                 'fetchOrderTrades' => true,
                 'fetchPosition' => false,
                 'fetchPositions' => false,
@@ -71,7 +71,7 @@ class hitbtc extends Exchange {
                 'fetchTradingFee' => true,
                 'fetchTradingFees' => false,
                 'fetchTransactions' => true,
-                'fetchWithdrawals' => null,
+                'fetchWithdrawals' => false,
                 'reduceMargin' => false,
                 'setLeverage' => false,
                 'setMarginMode' => false,
@@ -817,6 +817,7 @@ class hitbtc extends Exchange {
     public function fetch_transactions($code = null, $since = null, $limit = null, $params = array ()) {
         /**
          * fetch history of deposits and withdrawals
+         * @see https://api.hitbtc.com/v2#get-transactions-history
          * @param {string|null} $code unified $currency $code for the $currency of the transactions, default is null
          * @param {int|null} $since timestamp in ms of the earliest transaction, default is null
          * @param {int|null} $limit max number of transactions to return, default is null

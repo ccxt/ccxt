@@ -50,7 +50,7 @@ class bitstamp1 extends Exchange {
                 'fetchMarkOHLCV' => false,
                 'fetchMyTrades' => true,
                 'fetchOpenInterestHistory' => false,
-                'fetchOrder' => null,
+                'fetchOrder' => false,
                 'fetchOrderBook' => true,
                 'fetchPosition' => false,
                 'fetchPositionMode' => false,

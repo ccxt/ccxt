@@ -53,7 +53,7 @@ class lbank(Exchange):
                 'fetchMarkOHLCV': False,
                 'fetchOHLCV': True,
                 'fetchOpenInterestHistory': False,
-                'fetchOpenOrders': None,  # status 0 API doesn't work
+                'fetchOpenOrders': False,  # status 0 API doesn't work
                 'fetchOrder': True,
                 'fetchOrderBook': True,
                 'fetchOrders': True,

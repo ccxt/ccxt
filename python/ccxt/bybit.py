@@ -85,7 +85,7 @@ class bybit(Exchange):
                 'fetchTrades': True,
                 'fetchTradingFee': True,
                 'fetchTradingFees': True,
-                'fetchTransactions': None,
+                'fetchTransactions': False,
                 'fetchTransfers': True,
                 'fetchWithdrawals': True,
                 'setLeverage': True,
@@ -3330,6 +3330,8 @@ class bybit(Exchange):
             }
             result = self.fetch_orders(symbol, None, None, self.extend(request, params))
             length = len(result)
+            if length == 0:
+                raise OrderNotFound('Order ' + id + ' does not exist.')
             if length > 1:
                 raise InvalidOrder(self.id + ' returned more than one order')
             return self.safe_value(result, 0)

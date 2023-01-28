@@ -45,20 +45,19 @@ class gemini(Exchange):
                 'addMargin': False,
                 'cancelOrder': True,
                 'createDepositAddress': True,
-                'createMarketOrder': None,
+                'createMarketOrder': False,
                 'createOrder': True,
                 'createReduceOnlyOrder': False,
                 'fetchBalance': True,
-                'fetchBidsAsks': None,
+                'fetchBidsAsks': False,
                 'fetchBorrowRate': False,
                 'fetchBorrowRateHistories': False,
                 'fetchBorrowRateHistory': False,
                 'fetchBorrowRates': False,
                 'fetchBorrowRatesPerSymbol': False,
-                'fetchClosedOrders': None,
+                'fetchClosedOrders': False,
                 'fetchDepositAddress': None,  # TODO
                 'fetchDepositAddressesByNetwork': True,
-                'fetchDeposits': None,
                 'fetchFundingHistory': False,
                 'fetchFundingRate': False,
                 'fetchFundingRateHistory': False,
@@ -75,7 +74,7 @@ class gemini(Exchange):
                 'fetchOpenOrders': True,
                 'fetchOrder': True,
                 'fetchOrderBook': True,
-                'fetchOrders': None,
+                'fetchOrders': False,
                 'fetchPosition': False,
                 'fetchPositionMode': False,
                 'fetchPositions': False,
@@ -87,7 +86,6 @@ class gemini(Exchange):
                 'fetchTradingFee': False,
                 'fetchTradingFees': True,
                 'fetchTransactions': True,
-                'fetchWithdrawals': None,
                 'postOnly': True,
                 'reduceMargin': False,
                 'setLeverage': False,
@@ -1162,8 +1160,9 @@ class gemini(Exchange):
     async def create_order(self, symbol, type, side, amount, price=None, params={}):
         """
         create a trade order
+        see https://docs.gemini.com/rest-api/#new-order
         :param str symbol: unified symbol of the market to create an order in
-        :param str type: 'market' or 'limit'
+        :param str type: must be 'limit'
         :param str side: 'buy' or 'sell'
         :param float amount: how much of currency you want to trade in units of base currency
         :param float|None price: the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders

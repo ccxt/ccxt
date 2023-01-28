@@ -72,7 +72,7 @@ class bybit extends Exchange {
                 'fetchTrades' => true,
                 'fetchTradingFee' => true,
                 'fetchTradingFees' => true,
-                'fetchTransactions' => null,
+                'fetchTransactions' => false,
                 'fetchTransfers' => true,
                 'fetchWithdrawals' => true,
                 'setLeverage' => true,
@@ -3450,6 +3450,9 @@ class bybit extends Exchange {
             );
             $result = $this->fetch_orders($symbol, null, null, array_merge($request, $params));
             $length = count($result);
+            if ($length === 0) {
+                throw new OrderNotFound('Order ' . $id . ' does not exist.');
+            }
             if ($length > 1) {
                 throw new InvalidOrder($this->id . ' returned more than one order');
             }
