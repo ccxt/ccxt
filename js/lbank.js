@@ -49,7 +49,7 @@ module.exports = class lbank extends Exchange {
                 'fetchMarkOHLCV': false,
                 'fetchOHLCV': true,
                 'fetchOpenInterestHistory': false,
-                'fetchOpenOrders': undefined, // status 0 API doesn't work
+                'fetchOpenOrders': false, // status 0 API doesn't work
                 'fetchOrder': true,
                 'fetchOrderBook': true,
                 'fetchOrders': true,

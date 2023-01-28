@@ -59,7 +59,7 @@ module.exports = class mercado extends Exchange {
                 'fetchPositionsRisk': false,
                 'fetchPremiumIndexOHLCV': false,
                 'fetchTicker': true,
-                'fetchTickers': undefined,
+                'fetchTickers': false,
                 'fetchTrades': true,
                 'fetchTradingFee': false,
                 'fetchTradingFees': false,

@@ -55,7 +55,6 @@ module.exports = class kuna extends Exchange {
                 'reduceMargin': false,
                 'setLeverage': false,
                 'setPositionMode': false,
-                'withdraw': undefined,
             },
             'timeframes': undefined,
             'urls': {
