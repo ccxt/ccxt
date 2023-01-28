@@ -2117,7 +2117,7 @@ module.exports = class btcex extends Exchange {
         //     }
         //
     }
-    
+
     async setLeverage (leverage, symbol = undefined, params = {}) {
         /**
          * @method
