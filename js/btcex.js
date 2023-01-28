@@ -2105,7 +2105,7 @@ module.exports = class btcex extends Exchange {
             'instrument_name': market['id'],
             'margin_type': marginMode,
         };
-        return await this.privatePostAdjustPerpetualMarginType (this.extend (request, params));
+        const result = await this.privatePostAdjustPerpetualMarginType (this.extend (request, params));
         //
         //     {
         //         "id": "1674857919",
@@ -2116,6 +2116,7 @@ module.exports = class btcex extends Exchange {
         //         "result": "ok"
         //     }
         //
+        return result;
     }
 
     async setLeverage (leverage, symbol = undefined, params = {}) {
