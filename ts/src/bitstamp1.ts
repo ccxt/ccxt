@@ -46,7 +46,7 @@ export default class bitstamp1 extends Exchange {
                 'fetchMarkOHLCV': false,
                 'fetchMyTrades': true,
                 'fetchOpenInterestHistory': false,
-                'fetchOrder': undefined,
+                'fetchOrder': false,
                 'fetchOrderBook': true,
                 'fetchPosition': false,
                 'fetchPositionMode': false,

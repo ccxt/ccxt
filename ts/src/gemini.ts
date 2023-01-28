@@ -29,20 +29,19 @@ export default class gemini extends Exchange {
                 'addMargin': false,
                 'cancelOrder': true,
                 'createDepositAddress': true,
-                'createMarketOrder': undefined,
+                'createMarketOrder': false,
                 'createOrder': true,
                 'createReduceOnlyOrder': false,
                 'fetchBalance': true,
-                'fetchBidsAsks': undefined,
+                'fetchBidsAsks': false,
                 'fetchBorrowRate': false,
                 'fetchBorrowRateHistories': false,
                 'fetchBorrowRateHistory': false,
                 'fetchBorrowRates': false,
                 'fetchBorrowRatesPerSymbol': false,
-                'fetchClosedOrders': undefined,
+                'fetchClosedOrders': false,
                 'fetchDepositAddress': undefined, // TODO
                 'fetchDepositAddressesByNetwork': true,
-                'fetchDeposits': undefined,
                 'fetchFundingHistory': false,
                 'fetchFundingRate': false,
                 'fetchFundingRateHistory': false,
@@ -59,7 +58,7 @@ export default class gemini extends Exchange {
                 'fetchOpenOrders': true,
                 'fetchOrder': true,
                 'fetchOrderBook': true,
-                'fetchOrders': undefined,
+                'fetchOrders': false,
                 'fetchPosition': false,
                 'fetchPositionMode': false,
                 'fetchPositions': false,
@@ -71,7 +70,6 @@ export default class gemini extends Exchange {
                 'fetchTradingFee': false,
                 'fetchTradingFees': true,
                 'fetchTransactions': true,
-                'fetchWithdrawals': undefined,
                 'postOnly': true,
                 'reduceMargin': false,
                 'setLeverage': false,
@@ -1218,8 +1216,9 @@ export default class gemini extends Exchange {
          * @method
          * @name gemini#createOrder
          * @description create a trade order
+         * @see https://docs.gemini.com/rest-api/#new-order
          * @param {string} symbol unified symbol of the market to create an order in
-         * @param {string} type 'market' or 'limit'
+         * @param {string} type must be 'limit'
          * @param {string} side 'buy' or 'sell'
          * @param {float} amount how much of currency you want to trade in units of base currency
          * @param {float|undefined} price the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders

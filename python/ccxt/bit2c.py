@@ -616,6 +616,13 @@ class bit2c(Exchange):
         #
         return self.parse_trades(response, market, since, limit)
 
+    def remove_comma_from_value(self, str):
+        newString = ''
+        strParts = str.split(',')
+        for i in range(0, len(strParts)):
+            newString += strParts[i]
+        return newString
+
     def parse_trade(self, trade, market=None):
         #
         # public fetchTrades
@@ -634,7 +641,7 @@ class bit2c(Exchange):
         #         "ticks":1574767951,
         #         "created":"26/11/19 13:32",
         #         "action":1,
-        #         "price":"1000",
+        #         "price":"1,000",
         #         "pair":"EthNis",
         #         "reference":"EthNis|10867390|10867377",
         #         "fee":"0.5",
@@ -646,6 +653,7 @@ class bit2c(Exchange):
         #         "secondAmountBalance":"130,233.28",
         #         "firstCoin":"ETH",
         #         "secondCoin":"₪"
+        #         "isMaker": True,
         #     }
         #
         timestamp = None
@@ -655,17 +663,21 @@ class bit2c(Exchange):
         orderId = None
         fee = None
         side = None
+        makerOrTaker = None
         reference = self.safe_string(trade, 'reference')
         if reference is not None:
+            id = reference
             timestamp = self.safe_timestamp(trade, 'ticks')
             price = self.safe_string(trade, 'price')
+            price = self.remove_comma_from_value(price)
             amount = self.safe_string(trade, 'firstAmount')
-            reference_parts = reference.split('|')  # reference contains 'pair|orderId|tradeId'
+            reference_parts = reference.split('|')  # reference contains 'pair|orderId_by_taker|orderId_by_maker'
             marketId = self.safe_string(trade, 'pair')
             market = self.safe_market(marketId, market)
             market = self.safe_market(reference_parts[0], market)
-            orderId = reference_parts[1]
-            id = reference_parts[2]
+            isMaker = self.safe_value(trade, 'isMaker')
+            makerOrTaker = 'maker' if isMaker else 'taker'
+            orderId = reference_parts[2] if isMaker else reference_parts[1]
             side = self.safe_integer(trade, 'action')
             if side == 0:
                 side = 'buy'
@@ -698,7 +710,7 @@ class bit2c(Exchange):
             'order': orderId,
             'type': None,
             'side': side,
-            'takerOrMaker': None,
+            'takerOrMaker': makerOrTaker,
             'price': price,
             'amount': amount,
             'cost': None,

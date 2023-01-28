@@ -33,7 +33,6 @@ class poloniex extends Exchange {
                 'cancelAllOrders' => true,
                 'cancelOrder' => true,
                 'createDepositAddress' => true,
-                'createMarketOrder' => null,
                 'createOrder' => true,
                 'editOrder' => true,
                 'fetchBalance' => true,

@@ -53,7 +53,7 @@ class bitfinex2(Exchange):
                 'createStopLimitOrder': True,
                 'createStopMarketOrder': True,
                 'createStopOrder': True,
-                'editOrder': None,
+                'editOrder': False,
                 'fetchBalance': True,
                 'fetchClosedOrder': True,
                 'fetchClosedOrders': True,

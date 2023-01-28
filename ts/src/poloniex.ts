@@ -28,7 +28,6 @@ export default class poloniex extends Exchange {
                 'cancelAllOrders': true,
                 'cancelOrder': true,
                 'createDepositAddress': true,
-                'createMarketOrder': undefined,
                 'createOrder': true,
                 'editOrder': true,
                 'fetchBalance': true,

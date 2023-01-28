@@ -56,7 +56,6 @@ export default class oceanex extends Exchange {
                 'fetchTrades': true,
                 'fetchTradingFee': false,
                 'fetchTradingFees': true,
-                'fetchTradingLimits': undefined,
                 'fetchTransactionFees': undefined,
             },
             'timeframes': {

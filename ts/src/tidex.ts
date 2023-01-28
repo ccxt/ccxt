@@ -22,7 +22,7 @@ export default class tidex extends Exchange {
                 'option': false,
                 'addMargin': false,
                 'cancelOrder': true,
-                'createMarketOrder': undefined,
+                'createMarketOrder': false,
                 'createOrder': true,
                 'createReduceOnlyOrder': false,
                 'fetchBalance': true,

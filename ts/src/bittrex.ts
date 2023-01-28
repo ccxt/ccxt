@@ -76,7 +76,7 @@ export default class bittrex extends Exchange {
                 'fetchTradingFee': true,
                 'fetchTradingFees': true,
                 'fetchTransactionFees': undefined,
-                'fetchTransactions': undefined,
+                'fetchTransactions': false,
                 'fetchWithdrawal': true,
                 'fetchWithdrawals': true,
                 'reduceMargin': false,
