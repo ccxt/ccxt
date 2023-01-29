@@ -47,7 +47,6 @@ export default class binanceus extends binance {
                 'swap': undefined,
                 'future': undefined,
                 'option': undefined,
-                'fetchTickers': false,
             },
         });
     }

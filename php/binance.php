@@ -4368,6 +4368,7 @@ class binance extends Exchange {
             'deposit' => array(
                 '0' => 'pending',
                 '1' => 'ok',
+                '6' => 'ok',
                 // Fiat
                 // Processing, Failed, Successful, Finished, Refunding, Refunded, Refund Failed, Order Partial credit Stopped
                 'Processing' => 'pending',
@@ -4486,7 +4487,7 @@ class binance extends Exchange {
         $updated = $this->safe_integer_2($transaction, 'successTime', 'updateTime');
         $type = $this->safe_string($transaction, 'type');
         if ($type === null) {
-            $txType = $this->safe_string($transaction, 'transactionType');
+            $txType = $this->safe_string_2($transaction, 'transactionType', 'transferType');
             $type = ($txType === '0') ? 'deposit' : 'withdrawal';
             $legalMoneyCurrenciesById = $this->safe_value($this->options, 'legalMoneyCurrenciesById');
             $code = $this->safe_string($legalMoneyCurrenciesById, $code, $code);

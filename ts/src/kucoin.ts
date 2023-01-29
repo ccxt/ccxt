@@ -1894,10 +1894,13 @@ export default class kucoin extends Exchange {
         if (cancelExist) {
             status = 'canceled';
         }
+        if (status === undefined) {
+            status = 'closed';
+        }
         const stopPrice = this.safeNumber (order, 'stopPrice');
         return this.safeOrder ({
             'info': order,
-            'id': this.safeString (order, 'id'),
+            'id': this.safeString2 (order, 'id', 'orderId'),
             'clientOrderId': this.safeString (order, 'clientOid'),
             'symbol': this.safeSymbol (marketId, market, '-'),
             'type': this.safeString (order, 'type'),

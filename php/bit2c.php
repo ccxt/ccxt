@@ -119,8 +119,40 @@ class bit2c extends Exchange {
             ),
             'fees' => array(
                 'trading' => array(
-                    'maker' => $this->parse_number('0.005'),
-                    'taker' => $this->parse_number('0.005'),
+                    'tierBased' => true,
+                    'percentage' => true,
+                    'maker' => $this->parse_number('0.025'),
+                    'taker' => $this->parse_number('0.03'),
+                    'tiers' => array(
+                        'taker' => array(
+                            array( $this->parse_number('0'), $this->parse_number('0.03') ),
+                            array( $this->parse_number('20000'), $this->parse_number('0.0275') ),
+                            array( $this->parse_number('50000'), $this->parse_number('0.025') ),
+                            array( $this->parse_number('75000'), $this->parse_number('0.0225') ),
+                            array( $this->parse_number('100000'), $this->parse_number('0.02') ),
+                            array( $this->parse_number('250000'), $this->parse_number('0.015') ),
+                            array( $this->parse_number('500000'), $this->parse_number('0.0125') ),
+                            array( $this->parse_number('750000'), $this->parse_number('0.01') ),
+                            array( $this->parse_number('1000000'), $this->parse_number('0.008') ),
+                            array( $this->parse_number('2000000'), $this->parse_number('0.006') ),
+                            array( $this->parse_number('3000000'), $this->parse_number('0.004') ),
+                            array( $this->parse_number('4000000'), $this->parse_number('0.002') ),
+                        ),
+                        'maker' => array(
+                            array( $this->parse_number('0'), $this->parse_number('0.025') ),
+                            array( $this->parse_number('20000'), $this->parse_number('0.0225') ),
+                            array( $this->parse_number('50000'), $this->parse_number('0.02') ),
+                            array( $this->parse_number('75000'), $this->parse_number('0.0175') ),
+                            array( $this->parse_number('100000'), $this->parse_number('0.015') ),
+                            array( $this->parse_number('250000'), $this->parse_number('0.01') ),
+                            array( $this->parse_number('500000'), $this->parse_number('0.0075') ),
+                            array( $this->parse_number('750000'), $this->parse_number('0.005') ),
+                            array( $this->parse_number('1000000'), $this->parse_number('0.004') ),
+                            array( $this->parse_number('2000000'), $this->parse_number('0.003') ),
+                            array( $this->parse_number('3000000'), $this->parse_number('0.002') ),
+                            array( $this->parse_number('4000000'), $this->parse_number('0.001') ),
+                        ),
+                    ),
                 ),
             ),
             'options' => array(
@@ -355,7 +387,7 @@ class bit2c extends Exchange {
                 'taker' => $taker,
                 'maker' => $maker,
                 'percentage' => true,
-                'tierBased' => false,
+                'tierBased' => true,
             );
         }
         return $result;

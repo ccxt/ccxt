@@ -119,8 +119,40 @@ export default class bit2c extends Exchange {
             },
             'fees': {
                 'trading': {
-                    'maker': this.parseNumber ('0.005'),
-                    'taker': this.parseNumber ('0.005'),
+                    'tierBased': true,
+                    'percentage': true,
+                    'maker': this.parseNumber ('0.025'),
+                    'taker': this.parseNumber ('0.03'),
+                    'tiers': {
+                        'taker': [
+                            [ this.parseNumber ('0'), this.parseNumber ('0.03') ],
+                            [ this.parseNumber ('20000'), this.parseNumber ('0.0275') ],
+                            [ this.parseNumber ('50000'), this.parseNumber ('0.025') ],
+                            [ this.parseNumber ('75000'), this.parseNumber ('0.0225') ],
+                            [ this.parseNumber ('100000'), this.parseNumber ('0.02') ],
+                            [ this.parseNumber ('250000'), this.parseNumber ('0.015') ],
+                            [ this.parseNumber ('500000'), this.parseNumber ('0.0125') ],
+                            [ this.parseNumber ('750000'), this.parseNumber ('0.01') ],
+                            [ this.parseNumber ('1000000'), this.parseNumber ('0.008') ],
+                            [ this.parseNumber ('2000000'), this.parseNumber ('0.006') ],
+                            [ this.parseNumber ('3000000'), this.parseNumber ('0.004') ],
+                            [ this.parseNumber ('4000000'), this.parseNumber ('0.002') ],
+                        ],
+                        'maker': [
+                            [ this.parseNumber ('0'), this.parseNumber ('0.025') ],
+                            [ this.parseNumber ('20000'), this.parseNumber ('0.0225') ],
+                            [ this.parseNumber ('50000'), this.parseNumber ('0.02') ],
+                            [ this.parseNumber ('75000'), this.parseNumber ('0.0175') ],
+                            [ this.parseNumber ('100000'), this.parseNumber ('0.015') ],
+                            [ this.parseNumber ('250000'), this.parseNumber ('0.01') ],
+                            [ this.parseNumber ('500000'), this.parseNumber ('0.0075') ],
+                            [ this.parseNumber ('750000'), this.parseNumber ('0.005') ],
+                            [ this.parseNumber ('1000000'), this.parseNumber ('0.004') ],
+                            [ this.parseNumber ('2000000'), this.parseNumber ('0.003') ],
+                            [ this.parseNumber ('3000000'), this.parseNumber ('0.002') ],
+                            [ this.parseNumber ('4000000'), this.parseNumber ('0.001') ],
+                        ],
+                    },
                 },
             },
             'options': {
@@ -365,7 +397,7 @@ export default class bit2c extends Exchange {
                 'taker': taker,
                 'maker': maker,
                 'percentage': true,
-                'tierBased': false,
+                'tierBased': true,
             };
         }
         return result;

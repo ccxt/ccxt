@@ -4417,6 +4417,7 @@ export default class binance extends Exchange {
             'deposit': {
                 '0': 'pending',
                 '1': 'ok',
+                '6': 'ok',
                 // Fiat
                 // Processing, Failed, Successful, Finished, Refunding, Refunded, Refund Failed, Order Partial credit Stopped
                 'Processing': 'pending',
@@ -4535,7 +4536,7 @@ export default class binance extends Exchange {
         const updated = this.safeInteger2 (transaction, 'successTime', 'updateTime');
         let type = this.safeString (transaction, 'type');
         if (type === undefined) {
-            const txType = this.safeString (transaction, 'transactionType');
+            const txType = this.safeString2 (transaction, 'transactionType', 'transferType');
             type = (txType === '0') ? 'deposit' : 'withdrawal';
             const legalMoneyCurrenciesById = this.safeValue (this.options, 'legalMoneyCurrenciesById');
             code = this.safeString (legalMoneyCurrenciesById, code, code);

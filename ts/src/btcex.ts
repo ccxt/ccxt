@@ -82,6 +82,8 @@ export default class btcex extends Exchange {
                 'fetchTransactionFees': undefined,
                 'fetchWithdrawal': true,
                 'fetchWithdrawals': true,
+                'setLeverage': true,
+                'setMarginMode': true,
                 'signIn': true,
                 'withdraw': false,
             },
@@ -163,6 +165,8 @@ export default class btcex extends Exchange {
                         'cancel_all_by_currency',
                         'cancel_all_by_instrument',
                         'close_position',
+                        'adjust_perpetual_leverage',
+                        'adjust_perpetual_margin_type',
                     ],
                     'delete': [],
                 },
@@ -2069,6 +2073,88 @@ export default class btcex extends Exchange {
             }
         }
         return result;
+    }
+
+    async setMarginMode (marginMode, symbol = undefined, params = {}) {
+        /**
+         * @method
+         * @name btcex#setMarginMode
+         * @description set margin mode to 'cross' or 'isolated'
+         * @see https://docs.btcex.com/#modify-perpetual-instrument-margin-type
+         * @param {string} marginMode 'cross' or 'isolated'
+         * @param {string|undefined} symbol unified market symbol
+         * @param {object} params extra parameters specific to the btcex api endpoint
+         * @returns {object} response from the exchange
+         */
+        this.checkRequiredSymbol ('setMarginMode', symbol);
+        await this.signIn ();
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        if (!market['swap']) {
+            throw new BadRequest (this.id + ' setMarginMode() supports swap contracts only');
+        }
+        if ((marginMode !== 'isolated') && (marginMode !== 'isolate') && (marginMode !== 'cross')) {
+            throw new BadRequest (this.id + ' marginMode must be either isolated or cross');
+        }
+        marginMode = (marginMode === 'isolated') ? 'isolate' : 'cross';
+        const request = {
+            'instrument_name': market['id'],
+            'margin_type': marginMode,
+        };
+        const result = await this.privatePostAdjustPerpetualMarginType (this.extend (request, params));
+        //
+        //     {
+        //         "id": "1674857919",
+        //         "jsonrpc": "2.0",
+        //         "usIn": 1674857920070,
+        //         "usOut": 1674857920079,
+        //         "usDiff": 9,
+        //         "result": "ok"
+        //     }
+        //
+        return result;
+    }
+
+    async setLeverage (leverage, symbol = undefined, params = {}) {
+        /**
+         * @method
+         * @name btcex#setLeverage
+         * @description set the leverage amount for a market
+         * @see https://docs.btcex.com/#modify-perpetual-instrument-leverage
+         * @param {float} leverage the rate of leverage
+         * @param {string} symbol unified market symbol
+         * @param {object} params extra parameters specific to the btcex api endpoint
+         * @returns {object} response from the exchange
+         */
+        if (symbol === undefined) {
+            throw new ArgumentsRequired (this.id + ' setLeverage() requires a symbol argument');
+        }
+        await this.signIn ();
+        await this.loadMarkets ();
+        this.checkRequiredSymbol ('setLeverage', symbol);
+        const market = this.market (symbol);
+        if (!market['swap']) {
+            throw new BadRequest (this.id + ' setLeverage() supports swap contracts only');
+        }
+        if ((leverage < 1) || (leverage > 125)) {
+            throw new BadRequest (this.id + ' leverage should be between 1 and 125');
+        }
+        const request = {
+            'instrument_name': market['id'],
+            'leverage': leverage,
+        };
+        const response = await this.privatePostAdjustPerpetualLeverage (this.extend (request, params));
+        //
+        //     {
+        //         "id": "1674856410",
+        //         "jsonrpc": "2.0",
+        //         "usIn": 1674856410930,
+        //         "usOut": 1674856410988,
+        //         "usDiff": 58,
+        //         "result": "ok"
+        //     }
+        //
+        return response;
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
