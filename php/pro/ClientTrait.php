@@ -6,6 +6,8 @@ use ccxt\async\Throttle;
 use React\Async;
 use React\EventLoop\Loop;
 
+include '../async/Throttle.php';
+
 trait ClientTrait {
 
     public $clients = array();
@@ -49,14 +51,19 @@ trait ClientTrait {
         # get ws rl config
         $rate_limits = $this->safe_value($ws_options, 'rateLimits', array());
         # if no rateLimit is defined in the WS implementation, we fallback to the ccxt one
-        $default_rate_limit_config = $this->safe_value($rate_limits, 'default', $this->tokenBucket);
-        $default_rate_limit_config = $this->calculate_rate_limit_config($default_rate_limit_config);
-        if (!array_key_exists($this, 'clients')) {
+        $default_rate_limit_config = $this->safe_value($rate_limits, 'default', $this);
+        $default_rate_limit_token_bucket = $this->calculate_rate_limit_token_bucket($default_rate_limit_config);
+        if (!array_key_exists('throttle', $this->clients)) {
             # get new connections rl config if not fallback to default
-            $new_connections_limit_config = $this.safe_value($rate_limits, 'newConnections', $default_rate_limit_config);
-            $new_connections_limit_config = $this->calculate_rate_limit_config($new_connections_limit_config);
+            $new_connections_rate_limit_config = $this->safe_value($rate_limits, 'newConnections');
+            if (!$new_connections_rate_limit_config) {
+                $new_connections_rate_limit_config = array(
+                    'token_bucket' => $default_rate_limit_token_bucket,
+                );
+            }
+            $new_connections_token_bucket = $this->calculate_rate_limit_token_bucket($new_connections_rate_limit_config);
             $this->clients = array(
-                'throttle' => new Throttler($new_connections_limit_config, $this->asyncio_loop),
+                'throttle' => new Throttle($new_connections_token_bucket),
             );
         }
         if (!array_key_exists($url, $this->clients)) {
@@ -66,11 +73,11 @@ trait ClientTrait {
             $on_connected = array($this, 'on_connected');
             # allowing specify rate limits per url, if not specified use default
             $rate_limit_config = $this->safe_value($rate_limits, $url, $default_rate_limit_config);
-            $rate_limit_config = $this->calculate_rate_limit_config($rate_limit_config);
+            $rate_limit_token_bucket = $this->calculate_rate_limit_token_bucket($rate_limit_config);
             $options = array_replace_recursive(array(
                 'log' => array($this, 'log'),
                 'verbose' => $this->verbose,
-                'throttle' => new Throttle($rate_limit_config),
+                'throttle' => new Throttle($rate_limit_token_bucket),
             ), $this->streaming, $ws_options);
             $this->clients[$url] = new Client($url, $on_message, $on_error, $on_close, $on_connected, $options);
         }

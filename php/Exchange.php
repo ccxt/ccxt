@@ -256,7 +256,7 @@ class Exchange {
         'encodeURIComponent' => 'encode_uri_component',
         'checkRequiredVersion' => 'check_required_version',
         'checkAddress' => 'check_address',
-        'calculateRateLimitConfig' => 'calculate_rate_limit_config',
+        'calculateRateLimitTokenBucket' => 'calculate_rate_limit_token_bucket',
         'initRestRateLimiter' => 'init_rest_rate_limiter',
         'setSandboxMode' => 'set_sandbox_mode',
         'defineRestApiEndpoint' => 'define_rest_api_endpoint',
@@ -1393,6 +1393,7 @@ class Exchange {
         $this->restRequestQueue = null;
         $this->restPollerLoopIsRunning = false;
         $this->enableRateLimit = true;
+        $this->rateLimit = 0;
         $this->enableLastJsonResponse = true;
         $this->enableLastHttpResponse = true;
         $this->enableLastResponseHeaders = true;
@@ -1424,7 +1425,7 @@ class Exchange {
             }
         }
 
-        $this->tokenBucket = $this->calculate_rate_limit_config($this);
+        $this->tokenBucket = $this->calculate_rate_limit_token_bucket($this);
 
         if ($this->urlencode_glue !== '&') {
             if ($this->urlencode_glue_warning) {
@@ -1445,7 +1446,7 @@ class Exchange {
         }
     }
 
-    public function calculate_rate_limit_config($rate_limit_config) {
+    public function calculate_rate_limit_token_bucket($rate_limit_config) {
         $rate_limit = null;
         if ($this === $rate_limit_config) {
             $rate_limit = $this->rateLimit;
