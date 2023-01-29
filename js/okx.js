@@ -56,6 +56,8 @@ module.exports = class okx extends Exchange {
                 'fetchDepositAddresses': false,
                 'fetchDepositAddressesByNetwork': true,
                 'fetchDeposits': true,
+                'fetchDepositWithdrawFee': 'emulated',
+                'fetchDepositWithdrawFees': true,
                 'fetchFundingHistory': true,
                 'fetchFundingRate': true,
                 'fetchFundingRateHistory': true,
@@ -226,6 +228,7 @@ module.exports = class okx extends Exchange {
                         'asset/transfer-state': 10,
                         'asset/deposit-history': 5 / 3,
                         'asset/withdrawal-history': 5 / 3,
+                        'asset/deposit-withdraw-status': 20,
                         'asset/currencies': 5 / 3,
                         'asset/bills': 5 / 3,
                         'asset/piggy-balance': 5 / 3,
@@ -319,8 +322,8 @@ module.exports = class okx extends Exchange {
                         'users/subaccount/delete-apikey': 10,
                         'users/subaccount/modify-apikey': 10,
                         'users/subaccount/apikey': 10,
+                        'users/subaccount/set-transfer-out': 10,
                         'asset/subaccount/transfer': 10,
-                        'asset/subaccount/set-transfer-out': 10,
                         // broker
                         'broker/nd/create-subaccount': 10,
                         'broker/nd/delete-subaccount': 10,
@@ -705,16 +708,24 @@ module.exports = class okx extends Exchange {
             'options': {
                 'defaultNetwork': 'ERC20',
                 'networks': {
-                    'ETH': 'ERC20',
-                    'TRX': 'TRC20',
+                    'BTC': 'Bitcoin',
                     'OMNI': 'Omni',
-                    'SOLANA': 'Solana',
-                    'POLYGON': 'Polygon',
-                    'OEC': 'OEC',
-                    'ALGO': 'ALGO', // temporarily unavailable
-                    'OPTIMISM': 'Optimism',
-                    'ARBITRUM': 'Arbitrum one',
-                    'AVALANCHE': 'Avalanche C-Chain',
+                    'SOL': 'Solana',
+                    'LTC': 'Litecoin',
+                    'MATIC': 'Polygon',
+                    'OP': 'Optimism',
+                    'ARB': 'Arbitrum one',
+                    'AVAX': 'Avalanche C-Chain',
+                },
+                'networksById': {
+                    'Bitcoin': 'BTC',
+                    'Omni': 'OMNI',
+                    'Solana': 'SOL',
+                    'Litecoin': 'LTC',
+                    'Polygon': 'MATIC',
+                    'Optimism': 'OP',
+                    'Arbitrum one': 'ARB',
+                    'Avalanche C-Chain': 'AVAX',
                 },
                 'fetchOpenInterestHistory': {
                     'timeframes': {
@@ -1186,6 +1197,7 @@ module.exports = class okx extends Exchange {
          * @method
          * @name okx#fetchCurrencies
          * @description fetches all available currencies on an exchange
+         * @see https://www.okx.com/docs-v5/en/#rest-api-funding-get-currencies
          * @param {object} params extra parameters specific to the okx api endpoint
          * @returns {object} an associative dictionary of currencies
          */
@@ -3696,7 +3708,7 @@ module.exports = class okx extends Exchange {
         this.checkAddress (address);
         await this.loadMarkets ();
         const currency = this.currency (code);
-        if (tag !== undefined) {
+        if ((tag !== undefined) && (tag.length > 0)) {
             address = address + ':' + tag;
         }
         const fee = this.safeString (params, 'fee');
@@ -4234,7 +4246,8 @@ module.exports = class okx extends Exchange {
                 const market = this.market (entry);
                 marketIds.push (market['id']);
             }
-            if (marketIds.length > 0) {
+            const marketIdsLength = marketIds.length;
+            if (marketIdsLength > 0) {
                 request['instId'] = marketIds.join (',');
             }
         }
@@ -4340,18 +4353,28 @@ module.exports = class okx extends Exchange {
         const symbol = market['symbol'];
         const pos = this.safeString (position, 'pos'); // 'pos' field: One way mode: 0 if position is not open, 1 if open | Two way (hedge) mode: -1 if short, 1 if long, 0 if position is not open
         const contractsAbs = Precise.stringAbs (pos);
-        let contracts = undefined;
         let side = this.safeString (position, 'posSide');
         const hedged = side !== 'net';
-        if (pos !== undefined) {
-            contracts = this.parseNumber (contractsAbs);
+        const contracts = this.parseNumber (contractsAbs);
+        if (market['margin']) {
+            // margin position
             if (side === 'net') {
-                if (Precise.stringGt (pos, '0')) {
-                    side = 'long';
-                } else if (Precise.stringLt (pos, '0')) {
-                    side = 'short';
-                } else {
-                    side = undefined;
+                const posCcy = this.safeString (position, 'posCcy');
+                const parsedCurrency = this.safeCurrencyCode (posCcy);
+                if (parsedCurrency !== undefined) {
+                    side = (market['base'] === parsedCurrency) ? 'long' : 'short';
+                }
+            }
+        } else {
+            if (pos !== undefined) {
+                if (side === 'net') {
+                    if (Precise.stringGt (pos, '0')) {
+                        side = 'long';
+                    } else if (Precise.stringLt (pos, '0')) {
+                        side = 'short';
+                    } else {
+                        side = undefined;
+                    }
                 }
             }
         }
@@ -5723,6 +5746,127 @@ module.exports = class okx extends Exchange {
         } else if ('x-simulated-trading' in this.headers) {
             this.headers = this.omit (this.headers, 'x-simulated-trading');
         }
+    }
+
+    async fetchDepositWithdrawFees (codes = undefined, params = {}) {
+        /**
+         * @method
+         * @name okx#fetchDepositWithdrawFees
+         * @description fetch deposit and withdraw fees
+         * @see https://www.okx.com/docs-v5/en/#rest-api-funding-get-currencies
+         * @param {[string]|undefined} codes list of unified currency codes
+         * @param {object} params extra parameters specific to the okx api endpoint
+         * @returns {[object]} a list of [fees structures]{@link https://docs.ccxt.com/en/latest/manual.html#fee-structure}
+         */
+        await this.loadMarkets ();
+        const response = await this.privateGetAssetCurrencies (params);
+        //
+        //    {
+        //        "code": "0",
+        //        "data": [
+        //            {
+        //                "canDep": true,
+        //                "canInternal": false,
+        //                "canWd": true,
+        //                "ccy": "USDT",
+        //                "chain": "USDT-TRC20",
+        //                "logoLink": "https://static.coinall.ltd/cdn/assets/imgs/221/5F74EB20302D7761.png",
+        //                "mainNet": false,
+        //                "maxFee": "1.6",
+        //                "maxWd": "8852150",
+        //                "minFee": "0.8",
+        //                "minWd": "2",
+        //                "name": "Tether",
+        //                "usedWdQuota": "0",
+        //                "wdQuota": "500",
+        //                "wdTickSz": "3"
+        //            },
+        //            {
+        //                "canDep": true,
+        //                "canInternal": false,
+        //                "canWd": true,
+        //                "ccy": "USDT",
+        //                "chain": "USDT-ERC20",
+        //                "logoLink": "https://static.coinall.ltd/cdn/assets/imgs/221/5F74EB20302D7761.png",
+        //                "mainNet": false,
+        //                "maxFee": "16",
+        //                "maxWd": "8852150",
+        //                "minFee": "8",
+        //                "minWd": "2",
+        //                "name": "Tether",
+        //                "usedWdQuota": "0",
+        //                "wdQuota": "500",
+        //                "wdTickSz": "3"
+        //            },
+        //            ...
+        //        ],
+        //        "msg": ""
+        //    }
+        //
+        const data = this.safeValue (response, 'data');
+        return this.parseDepositWithdrawFees (data, codes);
+    }
+
+    parseDepositWithdrawFees (response, codes = undefined, currencyIdKey = undefined) {
+        //
+        // [
+        //   {
+        //       "canDep": true,
+        //       "canInternal": false,
+        //       "canWd": true,
+        //       "ccy": "USDT",
+        //       "chain": "USDT-TRC20",
+        //       "logoLink": "https://static.coinall.ltd/cdn/assets/imgs/221/5F74EB20302D7761.png",
+        //       "mainNet": false,
+        //       "maxFee": "1.6",
+        //       "maxWd": "8852150",
+        //       "minFee": "0.8",
+        //       "minWd": "2",
+        //       "name": "Tether",
+        //       "usedWdQuota": "0",
+        //       "wdQuota": "500",
+        //       "wdTickSz": "3"
+        //   }
+        // ]
+        //
+        const depositWithdrawFees = {};
+        codes = this.marketCodes (codes);
+        for (let i = 0; i < response.length; i++) {
+            const feeInfo = response[i];
+            const currencyId = this.safeString (feeInfo, 'ccy');
+            const code = this.safeCurrencyCode (currencyId);
+            if ((codes === undefined) || (this.inArray (code, codes))) {
+                const depositWithdrawFee = this.safeValue (depositWithdrawFees, code);
+                if (depositWithdrawFee === undefined) {
+                    depositWithdrawFees[code] = this.depositWithdrawFee ({});
+                }
+                depositWithdrawFees[code]['info'][currencyId] = feeInfo;
+                const chain = this.safeString (feeInfo, 'chain');
+                const chainSplit = chain.split ('-');
+                const networkId = this.safeValue (chainSplit, 1);
+                const withdrawFee = this.safeNumber (feeInfo, 'minFee');
+                const withdrawResult = {
+                    'fee': withdrawFee,
+                    'percentage': (withdrawFee !== undefined) ? false : undefined,
+                };
+                const depositResult = {
+                    'fee': undefined,
+                    'percentage': undefined,
+                };
+                const networkCode = this.networkIdToCode (networkId, code);
+                depositWithdrawFees[code]['networks'][networkCode] = {
+                    'withdraw': withdrawResult,
+                    'deposit': depositResult,
+                };
+            }
+        }
+        const depositWithdrawCodes = Object.keys (depositWithdrawFees);
+        for (let i = 0; i < depositWithdrawCodes.length; i++) {
+            const code = depositWithdrawCodes[i];
+            const currency = this.currency (code);
+            depositWithdrawFees[code] = this.assignDefaultDepositWithdrawFees (depositWithdrawFees[code], currency);
+        }
+        return depositWithdrawFees;
     }
 
     handleErrors (httpCode, reason, url, method, headers, body, response, requestHeaders, requestBody) {

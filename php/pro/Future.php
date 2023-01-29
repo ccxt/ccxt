@@ -4,13 +4,15 @@ namespace ccxt\pro;
 
 use React\EventLoop\Loop;
 use React\Promise\Deferred;
+use React\Promise\PromiseInterface;
 
-class Future extends Deferred {
+class Future extends Deferred implements PromiseInterface {
+    // implements PromiseInterface lets it be awaitable
     public function __construct() {
         parent::__construct();
     }
 
-    public function then($onFulfilled = null, $onRejected = null, $progressHandler = null) {
+    public function then($onFulfilled = null, $onRejected = null, $onProgress = null) {
         return $this->promise()->then($onFulfilled, $onRejected);
     }
 

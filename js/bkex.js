@@ -19,9 +19,9 @@ module.exports = class bkex extends Exchange {
             'certified': false,
             'has': {
                 'CORS': undefined,
-                'spot': undefined,
+                'spot': true,
                 'margin': undefined,
-                'swap': undefined,
+                'swap': true,
                 'future': undefined,
                 'option': undefined,
                 'addMargin': undefined,

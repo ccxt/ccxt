@@ -59,7 +59,6 @@ class kuna extends Exchange {
                 'reduceMargin' => false,
                 'setLeverage' => false,
                 'setPositionMode' => false,
-                'withdraw' => null,
             ),
             'timeframes' => null,
             'urls' => array(

@@ -22,7 +22,7 @@
 
 # ----------------------------------------------------------------------------
 
-__version__ = '2.5.12'
+__version__ = '2.7.8'
 
 # ----------------------------------------------------------------------------
 
@@ -166,6 +166,7 @@ from ccxt.okx import okx                                              # noqa: F4
 from ccxt.paymium import paymium                                      # noqa: F401
 from ccxt.phemex import phemex                                        # noqa: F401
 from ccxt.poloniex import poloniex                                    # noqa: F401
+from ccxt.poloniexfutures import poloniexfutures                      # noqa: F401
 from ccxt.probit import probit                                        # noqa: F401
 from ccxt.ripio import ripio                                          # noqa: F401
 from ccxt.stex import stex                                            # noqa: F401
@@ -181,7 +182,6 @@ from ccxt.woo import woo                                              # noqa: F4
 from ccxt.yobit import yobit                                          # noqa: F401
 from ccxt.zaif import zaif                                            # noqa: F401
 from ccxt.zb import zb                                                # noqa: F401
-from ccxt.zipmex import zipmex                                        # noqa: F401
 from ccxt.zonda import zonda                                          # noqa: F401
 
 exchanges = [
@@ -278,6 +278,7 @@ exchanges = [
     'paymium',
     'phemex',
     'poloniex',
+    'poloniexfutures',
     'probit',
     'ripio',
     'stex',
@@ -293,7 +294,6 @@ exchanges = [
     'yobit',
     'zaif',
     'zb',
-    'zipmex',
     'zonda',
 ]
 

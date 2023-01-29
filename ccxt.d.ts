@@ -544,6 +544,7 @@ declare module 'ccxt' {
     export class paymium extends Exchange {}
     export class phemex extends Exchange {}
     export class poloniex extends Exchange {}
+    export class poloniexfutures extends Exchange {}
     export class probit extends Exchange {}
     export class ripio extends Exchange {}
     export class stex extends Exchange {}
@@ -559,7 +560,6 @@ declare module 'ccxt' {
     export class yobit extends Exchange {}
     export class zaif extends Exchange {}
     export class zb extends Exchange {}
-    export class zipmex extends ndax {}
     export class zonda extends Exchange {}
 
     
@@ -659,6 +659,7 @@ declare module 'ccxt' {
         | 'paymium'
         | 'phemex'
         | 'poloniex'
+        | 'poloniexfutures'
         | 'probit'
         | 'ripio'
         | 'stex'
@@ -674,7 +675,6 @@ declare module 'ccxt' {
         | 'yobit'
         | 'zaif'
         | 'zb'
-        | 'zipmex'
         | 'zonda'
         
 
@@ -714,6 +714,7 @@ declare module 'ccxt' {
         class bitstamp extends Exchange {}
         class bittrex extends Exchange {}
         class bitvavo extends Exchange {}
+        class btcex extends Exchange {}
         class bybit extends Exchange {}
         class cex extends Exchange {}
         class coinbaseprime extends Exchange {}
@@ -725,6 +726,7 @@ declare module 'ccxt' {
         class exmo extends Exchange {}
         class gate extends Exchange {}
         class gateio extends Exchange {}
+        class gemini extends Exchange {}
         class hitbtc extends Exchange {}
         class hollaex extends Exchange {}
         class huobi extends Exchange {}
@@ -733,6 +735,7 @@ declare module 'ccxt' {
         class idex extends Exchange {}
         class kraken extends Exchange {}
         class kucoin extends Exchange {}
+        class kucoinfutures extends Exchange {}
         class luno extends Exchange {}
         class mexc extends Exchange {}
         class ndax extends Exchange {}
@@ -746,6 +749,5 @@ declare module 'ccxt' {
         class whitebit extends Exchange {}
         class woo extends Exchange {}
         class zb extends Exchange {}
-        class zipmex extends Exchange {}
     }
 }

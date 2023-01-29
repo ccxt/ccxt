@@ -401,7 +401,7 @@ class woo(Exchange, ccxt.async_support.woo):
                 return False
         return True
 
-    async def authenticate(self, params):
+    def authenticate(self, params={}):
         self.check_required_credentials()
         url = self.urls['api']['ws']['private'] + '/' + self.uid
         client = self.client(url)
@@ -409,10 +409,8 @@ class woo(Exchange, ccxt.async_support.woo):
         event = 'auth'
         future = self.safe_value(client.subscriptions, messageHash)
         if future is None:
-            future = client.future(messageHash)
             ts = str(self.nonce())
-            auth = self.urlencode(params)
-            auth += '|' + ts
+            auth = '|' + ts
             signature = self.hmac(self.encode(auth), self.encode(self.secret), hashlib.sha256)
             request = {
                 'event': event,
@@ -422,8 +420,10 @@ class woo(Exchange, ccxt.async_support.woo):
                     'timestamp': ts,
                 },
             }
-            self.spawn(self.watch, url, messageHash, request, messageHash, future)
-        return await future
+            message = self.extend(request, params)
+            future = self.watch(url, messageHash, message)
+            client.subscriptions[messageHash] = future
+        return future
 
     async def watch_private(self, messageHash, message, params={}):
         await self.authenticate(params)
@@ -610,13 +610,15 @@ class woo(Exchange, ccxt.async_support.woo):
             if method is not None:
                 return method(client, message)
             splitTopic = topic.split('@')
-            if len(splitTopic) == 2:
+            splitLength = len(splitTopic)
+            if splitLength == 2:
                 name = self.safe_string(splitTopic, 1)
                 method = self.safe_value(methods, name)
                 if method is not None:
                     return method(client, message)
                 splitName = name.split('_')
-                if len(splitName) == 2:
+                splitNameLength = len(splitTopic)
+                if splitNameLength == 2:
                     method = self.safe_value(methods, self.safe_string(splitName, 0))
                     if method is not None:
                         return method(client, message)
@@ -644,12 +646,6 @@ class woo(Exchange, ccxt.async_support.woo):
         #         ts: 1657117712212
         #     }
         #
-        id = self.safe_string(message, 'id')
-        subscriptionsById = self.index_by(client.subscriptions, 'id')
-        subscription = self.safe_value(subscriptionsById, id, {})
-        method = self.safe_value(subscription, 'method')
-        if method is not None:
-            method(client, message, subscription)
         return message
 
     def handle_auth(self, client, message):
@@ -660,12 +656,13 @@ class woo(Exchange, ccxt.async_support.woo):
         #         ts: 1657463158812
         #     }
         #
+        messageHash = 'authenticated'
         success = self.safe_value(message, 'success')
         if success:
-            future = self.safe_value(client.futures, 'authenticated')
-            future.resolve(True)
+            client.resolve(message, messageHash)
         else:
             error = AuthenticationError(self.json(message))
-            client.reject(error, 'authenticated')
+            client.reject(error, messageHash)
             # allows further authentication attempts
-            del client.subscriptions['authenticated']
+            if messageHash in client.subscriptions:
+                del client.subscriptions['authenticated']

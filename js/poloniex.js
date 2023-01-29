@@ -29,7 +29,6 @@ module.exports = class poloniex extends Exchange {
                 'cancelAllOrders': true,
                 'cancelOrder': true,
                 'createDepositAddress': true,
-                'createMarketOrder': undefined,
                 'createOrder': true,
                 'editOrder': true,
                 'fetchBalance': true,
@@ -37,6 +36,8 @@ module.exports = class poloniex extends Exchange {
                 'fetchCurrencies': true,
                 'fetchDepositAddress': true,
                 'fetchDeposits': true,
+                'fetchDepositWithdrawFee': 'emulated',
+                'fetchDepositWithdrawFees': true,
                 'fetchMarginMode': false,
                 'fetchMarkets': true,
                 'fetchMyTrades': true,
@@ -203,8 +204,12 @@ module.exports = class poloniex extends Exchange {
                 'networks': {
                     'BEP20': 'BSC',
                     'ERC20': 'ETH',
-                    'TRX': 'TRON',
                     'TRC20': 'TRON',
+                },
+                'networksById': {
+                    'BSC': 'BEP20',
+                    'ETH': 'ERC20',
+                    'TRON': 'TRC20',
                 },
                 'limits': {
                     'cost': {
@@ -1776,6 +1781,133 @@ module.exports = class poloniex extends Exchange {
         const withdrawals = this.safeValue (response, 'withdrawals', []);
         const transactions = this.parseTransactions (withdrawals, currency, since, limit);
         return this.filterByCurrencySinceLimit (transactions, code, since, limit);
+    }
+
+    async fetchDepositWithdrawFees (codes = undefined, params = {}) {
+        /**
+         * @method
+         * @name poloniex#fetchDepositWithdrawFees
+         * @description fetch deposit and withdraw fees
+         * @see https://docs.poloniex.com/#public-endpoints-reference-data-currency-information
+         * @param {[string]|undefined} codes list of unified currency codes
+         * @param {object} params extra parameters specific to the poloniex api endpoint
+         * @returns {[object]} a list of [fees structures]{@link https://docs.ccxt.com/en/latest/manual.html#fee-structure}
+         */
+        await this.loadMarkets ();
+        const response = await this.publicGetCurrencies (this.extend (params, { 'includeMultiChainCurrencies': true }));
+        //
+        //     [
+        //         {
+        //             "1CR": {
+        //                 "id": 1,
+        //                 "name": "1CRedit",
+        //                 "description": "BTC Clone",
+        //                 "type": "address",
+        //                 "withdrawalFee": "0.01000000",
+        //                 "minConf": 10000,
+        //                 "depositAddress": null,
+        //                 "blockchain": "1CR",
+        //                 "delisted": false,
+        //                 "tradingState": "NORMAL",
+        //                 "walletState": "DISABLED",
+        //                 "parentChain": null,
+        //                 "isMultiChain": false,
+        //                 "isChildChain": false,
+        //                 "childChains": []
+        //             }
+        //         }
+        //     ]
+        //
+        const data = {};
+        for (let i = 0; i < response.length; i++) {
+            const entry = response[i];
+            const currencies = Object.keys (entry);
+            const currencyId = this.safeString (currencies, 0);
+            data[currencyId] = entry[currencyId];
+        }
+        return this.parseDepositWithdrawFees (data, codes);
+    }
+
+    parseDepositWithdrawFees (response, codes = undefined, currencyIdKey = undefined) {
+        //
+        //         {
+        //             "1CR": {
+        //                 "id": 1,
+        //                 "name": "1CRedit",
+        //                 "description": "BTC Clone",
+        //                 "type": "address",
+        //                 "withdrawalFee": "0.01000000",
+        //                 "minConf": 10000,
+        //                 "depositAddress": null,
+        //                 "blockchain": "1CR",
+        //                 "delisted": false,
+        //                 "tradingState": "NORMAL",
+        //                 "walletState": "DISABLED",
+        //                 "parentChain": null,
+        //                 "isMultiChain": false,
+        //                 "isChildChain": false,
+        //                 "childChains": []
+        //             },
+        //         }
+        //
+        const depositWithdrawFees = {};
+        codes = this.marketCodes (codes);
+        const responseKeys = Object.keys (response);
+        for (let i = 0; i < responseKeys.length; i++) {
+            const currencyId = responseKeys[i];
+            const code = this.safeCurrencyCode (currencyId);
+            const feeInfo = response[currencyId];
+            if ((codes === undefined) || (this.inArray (code, codes))) {
+                depositWithdrawFees[code] = this.parseDepositWithdrawFee (feeInfo, code);
+                const childChains = this.safeValue (feeInfo, 'childChains');
+                const chainsLength = childChains.length;
+                if (chainsLength > 0) {
+                    for (let j = 0; j < childChains.length; j++) {
+                        let networkId = childChains[j];
+                        networkId = networkId.replace (code, '');
+                        const networkCode = this.networkIdToCode (networkId);
+                        const networkInfo = this.safeValue (response, networkId);
+                        const networkObject = {};
+                        const withdrawFee = this.safeNumber (networkInfo, 'withdrawalFee');
+                        networkObject[networkCode] = {
+                            'withdraw': {
+                                'fee': withdrawFee,
+                                'percentage': (withdrawFee !== undefined) ? false : undefined,
+                            },
+                            'deposit': {
+                                'fee': undefined,
+                                'percentage': undefined,
+                            },
+                        };
+                        depositWithdrawFees[code]['networks'] = this.extend (depositWithdrawFees[code]['networks'], networkObject);
+                    }
+                }
+            }
+        }
+        return depositWithdrawFees;
+    }
+
+    parseDepositWithdrawFee (fee, currency = undefined) {
+        const depositWithdrawFee = this.depositWithdrawFee ({});
+        depositWithdrawFee['info'][currency] = fee;
+        const networkId = this.safeString (fee, 'blockchain');
+        const withdrawFee = this.safeNumber (fee, 'withdrawalFee');
+        const withdrawResult = {
+            'fee': withdrawFee,
+            'percentage': (withdrawFee !== undefined) ? false : undefined,
+        };
+        const depositResult = {
+            'fee': undefined,
+            'percentage': undefined,
+        };
+        depositWithdrawFee['withdraw'] = withdrawResult;
+        depositWithdrawFee['deposit'] = depositResult;
+        const networkCode = this.networkIdToCode (networkId);
+        depositWithdrawFee['networks'][networkCode] = {
+            'withdraw': withdrawResult,
+            'deposit': depositResult,
+        };
+        return depositWithdrawFee;
     }
 
     async fetchDeposits (code = undefined, since = undefined, limit = undefined, params = {}) {

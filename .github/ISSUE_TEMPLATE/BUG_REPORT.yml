@@ -1,7 +1,7 @@
 name: New Issue
 description: Report bugs here
-labels: ["bug"]
-assignees: [ "carlosmiei", "frosty00" ]
+labels: []
+assignees: []
 body:
   - type: markdown
     attributes:

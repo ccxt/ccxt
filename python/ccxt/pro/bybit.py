@@ -420,6 +420,11 @@ class bybit(Exchange, ccxt.async_support.bybit):
                 limit = 40
             else:
                 limit = 200
+        else:
+            if not market['spot']:
+                # bybit only support limit 1, 50 , 200 for contract
+                if (limit != 1) and (limit != 50) and (limit != 200):
+                    raise BadRequest(self.id + ' watchOrderBook() can only use limit 1, 50 and 200.')
         topics = ['orderbook.' + str(limit) + '.' + market['id']]
         orderbook = await self.watch_topics(url, messageHash, topics, params)
         return orderbook.limit()
@@ -1259,13 +1264,12 @@ class bybit(Exchange, ccxt.async_support.bybit):
         message = self.extend(request, params)
         return await self.watch(url, messageHash, message, messageHash)
 
-    async def authenticate(self, url, params={}):
+    def authenticate(self, url, params={}):
         self.check_required_credentials()
-        messageHash = 'login'
+        messageHash = 'authenticated'
         client = self.client(url)
         future = self.safe_value(client.subscriptions, messageHash)
         if future is None:
-            future = client.future('authenticated')
             expires = self.milliseconds() + 10000
             expires = str(expires)
             path = 'GET/realtime'
@@ -1277,8 +1281,10 @@ class bybit(Exchange, ccxt.async_support.bybit):
                     self.apiKey, expires, signature,
                 ],
             }
-            self.spawn(self.watch, url, messageHash, request, messageHash, future)
-        return await future
+            message = self.extend(request, params)
+            future = self.watch(url, messageHash, message)
+            client.subscriptions[messageHash] = future
+        return future
 
     def handle_error_message(self, client, message):
         #
@@ -1306,7 +1312,7 @@ class bybit(Exchange, ccxt.async_support.bybit):
         #
         #   {code: '-10009', desc: 'Invalid period!'}
         #
-        code = self.safe_integer(message, 'code')
+        code = self.safe_string_2(message, 'code', 'ret_code')
         try:
             if code is not None:
                 feedback = self.id + ' ' + self.json(message)
@@ -1320,18 +1326,19 @@ class bybit(Exchange, ccxt.async_support.bybit):
                     raise AuthenticationError('Authentication failed: ' + ret_msg)
                 else:
                     raise ExchangeError(self.id + ' ' + ret_msg)
-        except Exception as e:
-            if isinstance(e, AuthenticationError):
-                client.reject(e, 'authenticated')
-                method = 'login'
-                if method in client.subscriptions:
-                    del client.subscriptions[method]
-                return False
-            raise e
-        return message
+            return False
+        except Exception as error:
+            if isinstance(error, AuthenticationError):
+                messageHash = 'authenticated'
+                client.reject(error, messageHash)
+                if messageHash in client.subscriptions:
+                    del client.subscriptions[messageHash]
+            else:
+                client.reject(error)
+            return True
 
     def handle_message(self, client, message):
-        if not self.handle_error_message(client, message):
+        if self.handle_error_message(client, message):
             return
         # contract pong
         ret_msg = self.safe_string(message, 'ret_msg')
@@ -1379,7 +1386,7 @@ class bybit(Exchange, ccxt.async_support.bybit):
         if (op == 'auth') or (type == 'AUTH_RESP'):
             self.handle_authenticate(client, message)
 
-    def ping(self):
+    def ping(self, client):
         return {
             'req_id': self.request_id(),
             'op': 'ping',
@@ -1409,11 +1416,14 @@ class bybit(Exchange, ccxt.async_support.bybit):
         #    }
         #
         success = self.safe_value(message, 'success')
+        messageHash = 'authenticated'
         if success:
-            client.resolve(message, 'authenticated')
+            client.resolve(message, messageHash)
         else:
             error = AuthenticationError(self.id + ' ' + self.json(message))
-            client.reject(error, 'authenticated')
+            client.reject(error, messageHash)
+            if messageHash in client.subscriptions:
+                del client.subscriptions[messageHash]
         return message
 
     def handle_subscription_status(self, client, message):

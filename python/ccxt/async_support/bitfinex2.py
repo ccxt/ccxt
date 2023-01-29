@@ -53,7 +53,7 @@ class bitfinex2(Exchange):
                 'createStopLimitOrder': True,
                 'createStopMarketOrder': True,
                 'createStopOrder': True,
-                'editOrder': None,
+                'editOrder': False,
                 'fetchBalance': True,
                 'fetchClosedOrder': True,
                 'fetchClosedOrders': True,
@@ -420,9 +420,11 @@ class bitfinex2(Exchange):
         # https://docs.bitfinex.com/docs/introduction#amount-precision
         # The amount field allows up to 8 decimals.
         # Anything exceeding self will be rounded to the 8th decimal.
+        symbol = self.safe_symbol(symbol)
         return self.decimal_to_precision(amount, TRUNCATE, self.markets[symbol]['precision']['amount'], DECIMAL_PLACES)
 
     def price_to_precision(self, symbol, price):
+        symbol = self.safe_symbol(symbol)
         price = self.decimal_to_precision(price, ROUND, self.markets[symbol]['precision']['price'], self.precisionMode)
         # https://docs.bitfinex.com/docs/introduction#price-precision
         # The precision level of all trading prices is based on significant figures.
@@ -1136,23 +1138,6 @@ class bitfinex2(Exchange):
         ticker = await self.publicGetTickerSymbol(self.extend(request, params))
         return self.parse_ticker(ticker, market)
 
-    def parse_symbol(self, marketId):
-        if marketId is None:
-            return marketId
-        marketId = marketId.replace('t', '')
-        baseId = None
-        quoteId = None
-        if marketId.find(':') >= 0:
-            parts = marketId.split(':')
-            baseId = parts[0]
-            quoteId = parts[1]
-        else:
-            baseId = marketId[0:3]
-            quoteId = marketId[3:6]
-        base = self.safe_currency_code(baseId)
-        quote = self.safe_currency_code(quoteId)
-        return base + '/' + quote
-
     def parse_trade(self, trade, market=None):
         #
         # fetchTrades(public)
@@ -1203,7 +1188,7 @@ class bitfinex2(Exchange):
         timestamp = self.safe_integer(trade, timestampIndex)
         if isPrivate:
             marketId = trade[1]
-            symbol = self.parse_symbol(marketId)
+            symbol = self.safe_symbol(marketId)
             orderId = self.safe_string(trade, 3)
             maker = self.safe_integer(trade, 8)
             takerOrMaker = 'maker' if (maker == 1) else 'taker'
@@ -1366,7 +1351,7 @@ class bitfinex2(Exchange):
     def parse_order(self, order, market=None):
         id = self.safe_string(order, 0)
         marketId = self.safe_string(order, 3)
-        symbol = self.parse_symbol(marketId)
+        symbol = self.safe_symbol(marketId)
         # https://github.com/ccxt/ccxt/issues/6686
         # timestamp = self.safe_timestamp(order, 5)
         timestamp = self.safe_integer(order, 5)
@@ -1448,7 +1433,11 @@ class bitfinex2(Exchange):
         # order types "limit" and "market" immediatley parsed "EXCHANGE LIMIT" and "EXCHANGE MARKET"
         # note: same order types exist for margin orders without the EXCHANGE prefix
         orderTypes = self.safe_value(self.options, 'orderTypes', {})
-        orderType = self.safe_string_upper(orderTypes, type, type)
+        orderType = type.upper()
+        if market['spot']:
+            # although they claim that type needs to be 'exchange limit' or 'exchange market'
+            # in fact that's not the case for swap markets
+            orderType = self.safe_string_upper(orderTypes, type, type)
         stopPrice = self.safe_string_2(params, 'stopPrice', 'triggerPrice')
         timeInForce = self.safe_string(params, 'timeInForce')
         postOnlyParam = self.safe_value(params, 'postOnly', False)

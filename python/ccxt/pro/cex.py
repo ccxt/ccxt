@@ -792,7 +792,8 @@ class cex(Exchange, ccxt.async_support.cex):
             myOrders.append(order)
         self.orders = myOrders
         messageHash = 'orders:' + symbol
-        if len(myOrders) > 0:
+        ordersLength = len(myOrders)
+        if ordersLength > 0:
             client.resolve(myOrders, messageHash)
 
     async def watch_order_book(self, symbol, limit=None, params={}):
@@ -1047,7 +1048,8 @@ class cex(Exchange, ccxt.async_support.cex):
                 self.safe_number(data[i], 5),
             ]
             stored.append(ohlcv)
-        if len(data) > 0:
+        dataLength = len(data)
+        if dataLength > 0:
             client.resolve(stored, messageHash)
 
     def handle_connected(self, client, message):

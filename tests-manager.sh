@@ -28,7 +28,7 @@ else
   slug="$TRAVIS_PULL_REQUEST_SLUG"
   branch="$TRAVIS_PULL_REQUEST_BRANCH"
 fi
-cache_file_name="$(cut -d '/' -f1 <<< "$slug"):$branch"
+cache_file_name="$(cut -d '/' -f1 <<< "$slug"):$(tr '/' '|' <<< "$branch")"
 
 mkdir "$timestamps_path" 2> /dev/null
 mkdir "$urls_path" 2> /dev/null
@@ -89,7 +89,7 @@ function run_tests {
   wait $rest_pid && wait $ws_pid && echo "$TRAVIS_BUILD_WEB_URL" > "$cached_url_file"
 }
 
-if [ "$delta" -gt $six_hours ] || grep -q -E 'Exchange.php|/test|/base|^build|static_dependencies|^run-tests' <<< "$diff"; then
+if [ "$delta" -gt $six_hours ] || grep -q -E 'Client(Trait)?\.php$|Exchange\.php$|/test|/base|^build|static_dependencies|^run-tests|package(-lock)?\.json$' <<< "$diff"; then
   # shellcheck disable=SC2155
   run_tests && date +%s > "$cached_timestamp_file"
 else

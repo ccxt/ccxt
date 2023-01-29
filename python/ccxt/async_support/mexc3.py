@@ -30,10 +30,10 @@ class mexc3(Exchange):
             'version': 'v3',
             'has': {
                 'CORS': None,
-                'spot': None,
+                'spot': True,
                 'margin': True,
-                'swap': None,
-                'future': None,
+                'swap': True,
+                'future': True,
                 'option': None,
                 'addMargin': True,
                 'borrowMargin': True,
@@ -636,7 +636,7 @@ class mexc3(Exchange):
                     'active': active,
                     'deposit': isDepositEnabled,
                     'withdraw': isWithdrawEnabled,
-                    'fee': self.safe_number(chain, 'fee'),
+                    'fee': fee,
                     'precision': None,
                     'limits': {
                         'withdraw': {
@@ -1441,7 +1441,7 @@ class mexc3(Exchange):
             #
             ticker = self.safe_value(response, 'data', {})
         # when it's single symbol request, the returned structure is different(singular object) for both spot & swap, thus we need to wrap inside array
-        return self.parse_ticker(ticker, symbol)
+        return self.parse_ticker(ticker, market)
 
     def parse_ticker(self, ticker, market=None):
         marketId = self.safe_string(ticker, 'symbol')
@@ -2200,7 +2200,7 @@ class mexc3(Exchange):
             raise BadRequest(self.id + ' fetchOrdersByState() is not supported for ' + marketType)
         else:
             params['states'] = state
-            return self.fetch_orders(symbol, since, limit, params)
+            return await self.fetch_orders(symbol, since, limit, params)
 
     async def cancel_order(self, id, symbol=None, params={}):
         """
@@ -4517,6 +4517,7 @@ class mexc3(Exchange):
                     'ApiKey': self.apiKey,
                     'Request-Time': timestamp,
                     'Content-Type': 'application/json',
+                    'source': self.safe_string(self.options, 'broker', 'CCXT'),
                 }
                 if method == 'POST':
                     auth = self.json(params)

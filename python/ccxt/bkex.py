@@ -25,9 +25,9 @@ class bkex(Exchange):
             'certified': False,
             'has': {
                 'CORS': None,
-                'spot': None,
+                'spot': True,
                 'margin': None,
-                'swap': None,
+                'swap': True,
                 'future': None,
                 'option': None,
                 'addMargin': None,
