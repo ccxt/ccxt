@@ -1789,10 +1789,12 @@ class kucoin(Exchange):
                 status = 'cancelled'
         if cancelExist:
             status = 'canceled'
+        if status is None:
+            status = 'closed'
         stopPrice = self.safe_number(order, 'stopPrice')
         return self.safe_order({
             'info': order,
-            'id': self.safe_string(order, 'id'),
+            'id': self.safe_string_2(order, 'id', 'orderId'),
             'clientOrderId': self.safe_string(order, 'clientOid'),
             'symbol': self.safe_symbol(marketId, market, '-'),
             'type': self.safe_string(order, 'type'),

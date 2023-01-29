@@ -1852,10 +1852,13 @@ class kucoin extends Exchange {
         if ($cancelExist) {
             $status = 'canceled';
         }
+        if ($status === null) {
+            $status = 'closed';
+        }
         $stopPrice = $this->safe_number($order, 'stopPrice');
         return $this->safe_order(array(
             'info' => $order,
-            'id' => $this->safe_string($order, 'id'),
+            'id' => $this->safe_string_2($order, 'id', 'orderId'),
             'clientOrderId' => $this->safe_string($order, 'clientOid'),
             'symbol' => $this->safe_symbol($marketId, $market, '-'),
             'type' => $this->safe_string($order, 'type'),
