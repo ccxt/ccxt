@@ -4165,6 +4165,7 @@ class binance(Exchange):
             'deposit': {
                 '0': 'pending',
                 '1': 'ok',
+                '6': 'ok',
                 # Fiat
                 # Processing, Failed, Successful, Finished, Refunding, Refunded, Refund Failed, Order Partial credit Stopped
                 'Processing': 'pending',
@@ -4278,7 +4279,7 @@ class binance(Exchange):
         updated = self.safe_integer_2(transaction, 'successTime', 'updateTime')
         type = self.safe_string(transaction, 'type')
         if type is None:
-            txType = self.safe_string(transaction, 'transactionType')
+            txType = self.safe_string_2(transaction, 'transactionType', 'transferType')
             type = 'deposit' if (txType == '0') else 'withdrawal'
             legalMoneyCurrenciesById = self.safe_value(self.options, 'legalMoneyCurrenciesById')
             code = self.safe_string(legalMoneyCurrenciesById, code, code)
