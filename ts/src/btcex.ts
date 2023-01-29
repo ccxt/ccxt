@@ -2101,7 +2101,7 @@ export default class btcex extends Exchange {
             'instrument_name': market['id'],
             'margin_type': marginMode,
         };
-        const result = await this.privatePostAdjustPerpetualMarginType (this.extend (request, params));
+        const result = await (this as any).privatePostAdjustPerpetualMarginType (this.extend (request, params));
         //
         //     {
         //         "id": "1674857919",
@@ -2143,7 +2143,7 @@ export default class btcex extends Exchange {
             'instrument_name': market['id'],
             'leverage': leverage,
         };
-        const response = await this.privatePostAdjustPerpetualLeverage (this.extend (request, params));
+        const response = await (this as any).privatePostAdjustPerpetualLeverage (this.extend (request, params));
         //
         //     {
         //         "id": "1674856410",
