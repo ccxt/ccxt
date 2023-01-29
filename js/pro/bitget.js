@@ -39,6 +39,7 @@ module.exports = class bitget extends bitgetRest {
                     '30m': '30m',
                     '1h': '1H',
                     '4h': '4H',
+                    '6h': '6H',
                     '12h': '12H',
                     '1d': '1D',
                     '1w': '1W',
