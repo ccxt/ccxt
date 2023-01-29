@@ -990,7 +990,7 @@ module.exports = class bitmex extends bitmexRest {
         await this.loadMarkets ();
         const market = this.market (symbol);
         symbol = market['symbol'];
-        const table = 'tradeBin' + this.timeframes[timeframe];
+        const table = 'tradeBin' + this.safeString (this.timeframes, timeframe, timeframe);
         const messageHash = table + ':' + market['id'];
         const url = this.urls['api']['ws'];
         const request = {

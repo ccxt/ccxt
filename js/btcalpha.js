@@ -600,7 +600,7 @@ module.exports = class btcalpha extends Exchange {
         const market = this.market (symbol);
         const request = {
             'pair': market['id'],
-            'type': this.timeframes[timeframe],
+            'type': this.safeString (this.timeframes, timeframe, timeframe),
         };
         if (limit !== undefined) {
             request['limit'] = limit;

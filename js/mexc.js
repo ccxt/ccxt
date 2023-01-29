@@ -255,7 +255,7 @@ module.exports = class mexc extends Exchange {
                         '1M': 'Month1',
                     },
                 },
-                'defaultType': 'spot', // spot, swap
+                'defaultType': 'swap', // spot, swap
                 'networks': {
                     'TRX': 'TRC20',
                     'ETH': 'ERC20',

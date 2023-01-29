@@ -931,7 +931,7 @@ module.exports = class bittrex extends Exchange {
         const market = this.market (symbol);
         const reverseId = market['baseId'] + '-' + market['quoteId'];
         const request = {
-            'candleInterval': this.timeframes[timeframe],
+            'candleInterval': this.safeString (this.timeframes, timeframe, timeframe),
             'marketSymbol': reverseId,
         };
         let method = 'publicGetMarketsMarketSymbolCandlesCandleIntervalRecent';

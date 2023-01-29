@@ -516,7 +516,7 @@ module.exports = class bithumb extends Exchange {
         const market = this.market (symbol);
         const request = {
             'currency': market['base'],
-            'interval': this.timeframes[timeframe],
+            'interval': this.safeString (this.timeframes, timeframe, timeframe),
         };
         const response = await this.publicGetCandlestickCurrencyInterval (this.extend (request, params));
         //

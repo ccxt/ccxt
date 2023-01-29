@@ -894,7 +894,7 @@ module.exports = class coinbasepro extends Exchange {
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const granularity = this.timeframes[timeframe];
+        const granularity = this.safeInteger (this.timeframes, timeframe, timeframe);
         const request = {
             'id': market['id'],
             'granularity': granularity,

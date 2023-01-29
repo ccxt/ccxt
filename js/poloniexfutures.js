@@ -690,7 +690,7 @@ module.exports = class poloniexfutures extends Exchange {
         const marketId = market['id'];
         const request = {
             'symbol': marketId,
-            'granularity': this.timeframes[timeframe],
+            'granularity': this.safeNumber (this.timeframes, timeframe, timeframe),
         };
         const duration = this.parseTimeframe (timeframe) * 1000;
         let endAt = this.milliseconds ();
