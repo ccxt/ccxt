@@ -422,7 +422,7 @@ class Exchange(object):
                     setattr(cls, camelcase, getattr(cls, name))
                 else:
                     setattr(self, camelcase, attr)
-        self.tokenBucket = self.calculate_rate_limit_config(self)
+        self.tokenBucket = self.calculate_rate_limit_token_bucket(self)
 
         if not self.session and self.synchronous:
             self.session = Session()
@@ -456,9 +456,9 @@ class Exchange(object):
             self.urls['api'] = self.urls['apiBackup']
             del self.urls['apiBackup']
 
-    def calculate_rate_limit_config(self, rate_limit_config):
-        rate_limit = self.safe_number(rate_limit_config, 'rateLimit')
-        token_bucket = self.safe_value(rate_limit_config, 'tokenBucket', {})
+    def calculate_rate_limit_token_bucket(self, rate_limit_config):
+        rate_limit = getattr (rate_limit_config, 'rateLimit', -1)
+        token_bucket = getattr (rate_limit_config, 'tokenBucket', {})
         config = self.extend({
             'delay': 0.001,
             'capacity': 1,
