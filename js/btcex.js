@@ -56,7 +56,7 @@ module.exports = class btcex extends Exchange {
                 'fetchDepositAddress': false,
                 'fetchDeposits': true,
                 'fetchFundingHistory': false,
-                'fetchFundingRate': false,
+                'fetchFundingRate': true,
                 'fetchFundingRateHistory': false,
                 'fetchFundingRates': false,
                 'fetchIndexOHLCV': false,
@@ -2159,6 +2159,112 @@ module.exports = class btcex extends Exchange {
         //     }
         //
         return response;
+    }
+
+    async fetchFundingRate (symbol, params = {}) {
+        /**
+         * @method
+         * @name btcex#fetchFundingRate
+         * @description fetch the current funding rate
+         * @see https://docs.btcex.com/#contracts
+         * @param {string} symbol unified market symbol
+         * @param {object} params extra parameters specific to the btcex api endpoint
+         * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/en/latest/manual.html#funding-rate-structure}
+         */
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const response = await this.publicGetCoinGeckoContracts (params);
+        //
+        //     {
+        //         "jsonrpc": "2.0",
+        //         "usIn": 1674803585896,
+        //         "usOut": 1674803585943,
+        //         "usDiff": 47,
+        //         "result": [
+        //             {
+        //                 "ticker_id": "BTC-USDT-PERPETUAL",
+        //                 "base_currency": "BTC",
+        //                 "target_currency": "USDT",
+        //                 "last_price": "23685",
+        //                 "base_volume": "167011.37199999999999989",
+        //                 "target_volume": "3837763191.33800288010388613",
+        //                 "bid": "23684.5",
+        //                 "ask": "23685",
+        //                 "high": "23971.5",
+        //                 "low": "23156",
+        //                 "product_type": "perpetual",
+        //                 "open_interest": "24242.36",
+        //                 "index_price": "23686.4",
+        //                 "index_name": "BTC-USDT",
+        //                 "index_currency": "BTC",
+        //                 "start_timestamp": 1631004005882,
+        //                 "funding_rate": "0.000187",
+        //                 "next_funding_rate_timestamp": 1675065600000,
+        //                 "contract_type": "Quanto",
+        //                 "contract_price": "23685",
+        //                 "contract_price_currency": "USDT"
+        //             },
+        //         ]
+        //     }
+        //
+        const data = this.safeValue (response, 'result', []);
+        for (let i = 0; i < data.length; i++) {
+            const entry = data[i];
+            const marketId = this.safeString (entry, 'ticker_id');
+            if (marketId === market['id']) {
+                return this.parseFundingRate (entry, market);
+            }
+        }
+        return this.parseFundingRate (data, market);
+    }
+
+    parseFundingRate (contract, market = undefined) {
+        //
+        //     {
+        //         "ticker_id": "BTC-USDT-PERPETUAL",
+        //         "base_currency": "BTC",
+        //         "target_currency": "USDT",
+        //         "last_price": "23685",
+        //         "base_volume": "167011.37199999999999989",
+        //         "target_volume": "3837763191.33800288010388613",
+        //         "bid": "23684.5",
+        //         "ask": "23685",
+        //         "high": "23971.5",
+        //         "low": "23156",
+        //         "product_type": "perpetual",
+        //         "open_interest": "24242.36",
+        //         "index_price": "23686.4",
+        //         "index_name": "BTC-USDT",
+        //         "index_currency": "BTC",
+        //         "start_timestamp": 1631004005882,
+        //         "funding_rate": "0.000187",
+        //         "next_funding_rate_timestamp": 1675065600000,
+        //         "contract_type": "Quanto",
+        //         "contract_price": "23685",
+        //         "contract_price_currency": "USDT"
+        //     }
+        //
+        const marketId = this.safeString (contract, 'ticker_id');
+        const fundingTimestamp = this.safeInteger (contract, 'next_funding_rate_timestamp');
+        return {
+            'info': contract,
+            'symbol': this.safeSymbol (marketId, market),
+            'markPrice': undefined,
+            'indexPrice': this.safeNumber (contract, 'index_price'),
+            'interestRate': undefined,
+            'estimatedSettlePrice': undefined,
+            'timestamp': undefined,
+            'datetime': undefined,
+            'fundingRate': this.safeNumber (contract, 'funding_rate'),
+            'fundingTimestamp': fundingTimestamp,
+            'fundingDatetime': this.iso8601 (fundingTimestamp),
+            'nextFundingRate': undefined,
+            'nextFundingTimestamp': undefined,
+            'nextFundingDatetime': undefined,
+            'previousFundingRate': undefined,
+            'previousFundingTimestamp': undefined,
+            'previousFundingDatetime': undefined,
+        };
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
