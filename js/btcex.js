@@ -2175,7 +2175,6 @@ module.exports = class btcex extends Exchange {
          */
         await this.loadMarkets ();
         symbols = this.marketSymbols (symbols);
-        let market = undefined;
         const response = await this.publicGetCoinGeckoContracts (params);
         //
         //     {
@@ -2215,8 +2214,8 @@ module.exports = class btcex extends Exchange {
         for (let i = 0; i < data.length; i++) {
             const entry = data[i];
             const marketId = this.safeString (entry, 'ticker_id');
-            market = this.safeMarket (marketId);
-            const symbol = this.safeSymbol (marketId, market);
+            const market = this.safeMarket (marketId);
+            const symbol = market['symbol'];
             if (symbols !== undefined) {
                 if (this.inArray (symbol, symbols)) {
                     result[symbol] = this.parseFundingRate (entry, market);
