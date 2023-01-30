@@ -56,11 +56,14 @@ module.exports = class btcex extends Exchange {
                 'fetchDepositAddress': false,
                 'fetchDeposits': true,
                 'fetchFundingHistory': false,
-                'fetchFundingRate': false,
+                'fetchFundingRate': true,
                 'fetchFundingRateHistory': false,
-                'fetchFundingRates': false,
+                'fetchFundingRates': true,
                 'fetchIndexOHLCV': false,
+                'fetchLeverage': true,
+                'fetchLeverageTiers': true,
                 'fetchMarginMode': false,
+                'fetchMarketLeverageTiers': true,
                 'fetchMarkets': true,
                 'fetchMarkOHLCV': false,
                 'fetchMyTrades': true,
@@ -83,7 +86,10 @@ module.exports = class btcex extends Exchange {
                 'fetchTransactionFees': undefined,
                 'fetchWithdrawal': true,
                 'fetchWithdrawals': true,
+                'setLeverage': true,
+                'setMarginMode': true,
                 'signIn': true,
+                'transfer': true,
                 'withdraw': false,
             },
             'timeframes': {
@@ -126,6 +132,8 @@ module.exports = class btcex extends Exchange {
                         'coin_gecko_market_trades',
                         'coin_gecko_contracts',
                         'coin_gecko_contract_orderbook',
+                        'get_perpetual_leverage_bracket',
+                        'get_perpetual_leverage_bracket_all',
                     ],
                     'post': [
                         'auth',
@@ -147,6 +155,7 @@ module.exports = class btcex extends Exchange {
                         'get_user_trades_by_currency',
                         'get_user_trades_by_instrument',
                         'get_user_trades_by_order',
+                        'get_perpetual_user_config',
                     ],
                     'post': [
                         // auth
@@ -161,6 +170,9 @@ module.exports = class btcex extends Exchange {
                         'cancel_all_by_currency',
                         'cancel_all_by_instrument',
                         'close_position',
+                        'adjust_perpetual_leverage',
+                        'adjust_perpetual_margin_type',
+                        'submit_transfer',
                     ],
                     'delete': [],
                 },
@@ -1882,6 +1894,506 @@ module.exports = class btcex extends Exchange {
         const records = this.filterBy (result, 'id', id);
         const record = this.safeValue (records, 0);
         return this.parseTransaction (record, currency);
+    }
+
+    async fetchLeverage (symbol, params = {}) {
+        /**
+         * @method
+         * @name btcex#fetchLeverage
+         * @see https://docs.btcex.com/#get-perpetual-instrument-config
+         * @description fetch the set leverage for a market
+         * @param {string} symbol unified market symbol
+         * @param {object} params extra parameters specific to the btcex api endpoint
+         * @returns {object} a [leverage structure]{@link https://docs.ccxt.com/en/latest/manual.html#leverage-structure}
+         */
+        await this.signIn ();
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const request = {
+            'instrument_name': market['id'],
+        };
+        const response = await this.privateGetGetPerpetualUserConfig (this.extend (request, params));
+        //
+        //     {
+        //         "jsonrpc": "2.0",
+        //         "usIn": 1674182494283,
+        //         "usOut": 1674182494294,
+        //         "usDiff": 11,
+        //         "result": {
+        //             "margin_type": "cross",
+        //             "leverage": "20",
+        //             "instrument_name": "BTC-USDT-PERPETUAL",
+        //             "time": "1674182494293"
+        //         }
+        //     }
+        //
+        const data = this.safeValue (response, 'result', {});
+        return this.safeNumber (data, 'leverage');
+    }
+
+    async fetchMarketLeverageTiers (symbol, params = {}) {
+        /**
+         * @method
+         * @name btcex#fetchMarketLeverageTiers
+         * @see https://docs.btcex.com/#get-perpetual-instrument-leverage-config
+         * @description retrieve information on the maximum leverage, for different trade sizes for a single market
+         * @param {string} symbol unified market symbol
+         * @param {object} params extra parameters specific to the btcex api endpoint
+         * @returns {object} a [leverage tiers structure]{@link https://docs.ccxt.com/en/latest/manual.html#leverage-tiers-structure}
+         */
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        if (!market['swap']) {
+            throw new BadRequest (this.id + ' fetchMarketLeverageTiers() supports swap markets only');
+        }
+        const request = {
+            'instrument_name': market['id'],
+        };
+        const response = await this.publicGetGetPerpetualLeverageBracket (this.extend (request, params));
+        //
+        //     {
+        //         "jsonrpc": "2.0",
+        //         "usIn": 1674184074454,
+        //         "usOut": 1674184074457,
+        //         "usDiff": 3,
+        //         "result": [
+        //             {
+        //                 "bracket": 1,
+        //                 "initialLeverage": 125,
+        //                 "maintenanceMarginRate": "0.004",
+        //                 "notionalCap": "50000",
+        //                 "notionalFloor": "0",
+        //                 "cum": "0"
+        //             },
+        //             ...
+        //         ]
+        //     }
+        //
+        const data = this.safeValue (response, 'result', []);
+        return this.parseMarketLeverageTiers (data, market);
+    }
+
+    parseMarketLeverageTiers (info, market) {
+        //
+        //     [
+        //         {
+        //             "bracket": 1,
+        //             "initialLeverage": 125,
+        //             "maintenanceMarginRate": "0.004",
+        //             "notionalCap": "50000",
+        //             "notionalFloor": "0",
+        //             "cum": "0"
+        //         },
+        //         ...
+        //     ]
+        //
+        const tiers = [];
+        const brackets = info;
+        for (let i = 0; i < brackets.length; i++) {
+            const tier = brackets[i];
+            tiers.push ({
+                'tier': this.safeInteger (tier, 'bracket'),
+                'currency': market['settle'],
+                'minNotional': this.safeNumber (tier, 'notionalFloor'),
+                'maxNotional': this.safeNumber (tier, 'notionalCap'),
+                'maintenanceMarginRate': this.safeNumber (tier, 'maintenanceMarginRate'),
+                'maxLeverage': this.safeNumber (tier, 'initialLeverage'),
+                'info': tier,
+            });
+        }
+        return tiers;
+    }
+
+    async fetchLeverageTiers (symbols = undefined, params = {}) {
+        /**
+         * @method
+         * @name btcex#fetchLeverageTiers
+         * @see https://docs.btcex.com/#get-all-perpetual-instrument-leverage-config
+         * @description retrieve information on the maximum leverage, for different trade sizes
+         * @param {[string]|undefined} symbols a list of unified market symbols
+         * @param {object} params extra parameters specific to the btcex api endpoint
+         * @returns {object} a dictionary of [leverage tiers structures]{@link https://docs.ccxt.com/en/latest/manual.html#leverage-tiers-structure}, indexed by market symbols
+         */
+        await this.loadMarkets ();
+        const response = await this.publicGetGetPerpetualLeverageBracketAll (params);
+        //
+        //     {
+        //         "jsonrpc": "2.0",
+        //         "usIn": 1674183578745,
+        //         "usOut": 1674183578752,
+        //         "usDiff": 7,
+        //         "result": {
+        //             "WAVES-USDT-PERPETUAL": [
+        //                 {
+        //                     "bracket": 1,
+        //                     "initialLeverage": 50,
+        //                     "maintenanceMarginRate": "0.01",
+        //                     "notionalCap": "50000",
+        //                     "notionalFloor": "0",
+        //                     "cum": "0"
+        //                 },
+        //                 ...
+        //             ]
+        //         }
+        //     }
+        //
+        const data = this.safeValue (response, 'result', {});
+        symbols = this.marketSymbols (symbols);
+        return this.parseLeverageTiers (data, symbols, 'symbol');
+    }
+
+    parseLeverageTiers (response, symbols = undefined, marketIdKey = undefined) {
+        //
+        //     {
+        //         "WAVES-USDT-PERPETUAL": [
+        //             {
+        //                 "bracket": 1,
+        //                 "initialLeverage": 50,
+        //                 "maintenanceMarginRate": "0.01",
+        //                 "notionalCap": "50000",
+        //                 "notionalFloor": "0",
+        //                 "cum": "0"
+        //             },
+        //             ...
+        //         ]
+        //     }
+        //
+        const tiers = {};
+        const result = {};
+        const marketIds = Object.keys (response);
+        for (let i = 0; i < marketIds.length; i++) {
+            const marketId = marketIds[i];
+            const entry = response[marketId];
+            const market = this.safeMarket (marketId);
+            const symbol = this.safeSymbol (marketId, market);
+            let symbolsLength = 0;
+            tiers[symbol] = this.parseMarketLeverageTiers (entry, market);
+            if (symbols !== undefined) {
+                symbolsLength = symbols.length;
+                if (this.inArray (symbol, symbols)) {
+                    result[symbol] = this.parseMarketLeverageTiers (entry, market);
+                }
+            }
+            if (symbol !== undefined && (symbolsLength === 0 || this.inArray (symbol, symbols))) {
+                result[symbol] = this.parseMarketLeverageTiers (entry, market);
+            }
+        }
+        return result;
+    }
+
+    async setMarginMode (marginMode, symbol = undefined, params = {}) {
+        /**
+         * @method
+         * @name btcex#setMarginMode
+         * @description set margin mode to 'cross' or 'isolated'
+         * @see https://docs.btcex.com/#modify-perpetual-instrument-margin-type
+         * @param {string} marginMode 'cross' or 'isolated'
+         * @param {string|undefined} symbol unified market symbol
+         * @param {object} params extra parameters specific to the btcex api endpoint
+         * @returns {object} response from the exchange
+         */
+        this.checkRequiredSymbol ('setMarginMode', symbol);
+        await this.signIn ();
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        if (!market['swap']) {
+            throw new BadRequest (this.id + ' setMarginMode() supports swap contracts only');
+        }
+        if ((marginMode !== 'isolated') && (marginMode !== 'isolate') && (marginMode !== 'cross')) {
+            throw new BadRequest (this.id + ' marginMode must be either isolated or cross');
+        }
+        marginMode = (marginMode === 'isolated') ? 'isolate' : 'cross';
+        const request = {
+            'instrument_name': market['id'],
+            'margin_type': marginMode,
+        };
+        const result = await this.privatePostAdjustPerpetualMarginType (this.extend (request, params));
+        //
+        //     {
+        //         "id": "1674857919",
+        //         "jsonrpc": "2.0",
+        //         "usIn": 1674857920070,
+        //         "usOut": 1674857920079,
+        //         "usDiff": 9,
+        //         "result": "ok"
+        //     }
+        //
+        return result;
+    }
+
+    async setLeverage (leverage, symbol = undefined, params = {}) {
+        /**
+         * @method
+         * @name btcex#setLeverage
+         * @description set the leverage amount for a market
+         * @see https://docs.btcex.com/#modify-perpetual-instrument-leverage
+         * @param {float} leverage the rate of leverage
+         * @param {string} symbol unified market symbol
+         * @param {object} params extra parameters specific to the btcex api endpoint
+         * @returns {object} response from the exchange
+         */
+        if (symbol === undefined) {
+            throw new ArgumentsRequired (this.id + ' setLeverage() requires a symbol argument');
+        }
+        await this.signIn ();
+        await this.loadMarkets ();
+        this.checkRequiredSymbol ('setLeverage', symbol);
+        const market = this.market (symbol);
+        if (!market['swap']) {
+            throw new BadRequest (this.id + ' setLeverage() supports swap contracts only');
+        }
+        if ((leverage < 1) || (leverage > 125)) {
+            throw new BadRequest (this.id + ' leverage should be between 1 and 125');
+        }
+        const request = {
+            'instrument_name': market['id'],
+            'leverage': leverage,
+        };
+        const response = await this.privatePostAdjustPerpetualLeverage (this.extend (request, params));
+        //
+        //     {
+        //         "id": "1674856410",
+        //         "jsonrpc": "2.0",
+        //         "usIn": 1674856410930,
+        //         "usOut": 1674856410988,
+        //         "usDiff": 58,
+        //         "result": "ok"
+        //     }
+        //
+        return response;
+    }
+
+    async fetchFundingRates (symbols = undefined, params = {}) {
+        /**
+         * @method
+         * @name btcex#fetchFundingRates
+         * @description fetch the current funding rates
+         * @see https://docs.btcex.com/#contracts
+         * @param {array} symbols unified market symbols
+         * @param {object} params extra parameters specific to the btcex api endpoint
+         * @returns {array} an array of [funding rate structures]{@link https://docs.ccxt.com/en/latest/manual.html#funding-rate-structure}
+         */
+        await this.loadMarkets ();
+        symbols = this.marketSymbols (symbols);
+        const response = await this.publicGetCoinGeckoContracts (params);
+        //
+        //     {
+        //         "jsonrpc": "2.0",
+        //         "usIn": 1674803585896,
+        //         "usOut": 1674803585943,
+        //         "usDiff": 47,
+        //         "result": [
+        //             {
+        //                 "ticker_id": "BTC-USDT-PERPETUAL",
+        //                 "base_currency": "BTC",
+        //                 "target_currency": "USDT",
+        //                 "last_price": "23685",
+        //                 "base_volume": "167011.37199999999999989",
+        //                 "target_volume": "3837763191.33800288010388613",
+        //                 "bid": "23684.5",
+        //                 "ask": "23685",
+        //                 "high": "23971.5",
+        //                 "low": "23156",
+        //                 "product_type": "perpetual",
+        //                 "open_interest": "24242.36",
+        //                 "index_price": "23686.4",
+        //                 "index_name": "BTC-USDT",
+        //                 "index_currency": "BTC",
+        //                 "start_timestamp": 1631004005882,
+        //                 "funding_rate": "0.000187",
+        //                 "next_funding_rate_timestamp": 1675065600000,
+        //                 "contract_type": "Quanto",
+        //                 "contract_price": "23685",
+        //                 "contract_price_currency": "USDT"
+        //             },
+        //         ]
+        //     }
+        //
+        const data = this.safeValue (response, 'result', []);
+        const result = {};
+        for (let i = 0; i < data.length; i++) {
+            const entry = data[i];
+            const marketId = this.safeString (entry, 'ticker_id');
+            const market = this.safeMarket (marketId);
+            const symbol = market['symbol'];
+            if (symbols !== undefined) {
+                if (this.inArray (symbol, symbols)) {
+                    result[symbol] = this.parseFundingRate (entry, market);
+                }
+            } else {
+                result[symbol] = this.parseFundingRate (entry, market);
+            }
+        }
+        return this.filterByArray (result, 'symbol', symbols);
+    }
+
+    async fetchFundingRate (symbol, params = {}) {
+        /**
+         * @method
+         * @name btcex#fetchFundingRate
+         * @description fetch the current funding rate
+         * @see https://docs.btcex.com/#contracts
+         * @param {string} symbol unified market symbol
+         * @param {object} params extra parameters specific to the btcex api endpoint
+         * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/en/latest/manual.html#funding-rate-structure}
+         */
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const response = await this.publicGetCoinGeckoContracts (params);
+        //
+        //     {
+        //         "jsonrpc": "2.0",
+        //         "usIn": 1674803585896,
+        //         "usOut": 1674803585943,
+        //         "usDiff": 47,
+        //         "result": [
+        //             {
+        //                 "ticker_id": "BTC-USDT-PERPETUAL",
+        //                 "base_currency": "BTC",
+        //                 "target_currency": "USDT",
+        //                 "last_price": "23685",
+        //                 "base_volume": "167011.37199999999999989",
+        //                 "target_volume": "3837763191.33800288010388613",
+        //                 "bid": "23684.5",
+        //                 "ask": "23685",
+        //                 "high": "23971.5",
+        //                 "low": "23156",
+        //                 "product_type": "perpetual",
+        //                 "open_interest": "24242.36",
+        //                 "index_price": "23686.4",
+        //                 "index_name": "BTC-USDT",
+        //                 "index_currency": "BTC",
+        //                 "start_timestamp": 1631004005882,
+        //                 "funding_rate": "0.000187",
+        //                 "next_funding_rate_timestamp": 1675065600000,
+        //                 "contract_type": "Quanto",
+        //                 "contract_price": "23685",
+        //                 "contract_price_currency": "USDT"
+        //             },
+        //         ]
+        //     }
+        //
+        const data = this.safeValue (response, 'result', []);
+        for (let i = 0; i < data.length; i++) {
+            const entry = data[i];
+            const marketId = this.safeString (entry, 'ticker_id');
+            if (marketId === market['id']) {
+                return this.parseFundingRate (entry, market);
+            }
+        }
+        return this.parseFundingRate (data, market);
+    }
+
+    parseFundingRate (contract, market = undefined) {
+        //
+        //     {
+        //         "ticker_id": "BTC-USDT-PERPETUAL",
+        //         "base_currency": "BTC",
+        //         "target_currency": "USDT",
+        //         "last_price": "23685",
+        //         "base_volume": "167011.37199999999999989",
+        //         "target_volume": "3837763191.33800288010388613",
+        //         "bid": "23684.5",
+        //         "ask": "23685",
+        //         "high": "23971.5",
+        //         "low": "23156",
+        //         "product_type": "perpetual",
+        //         "open_interest": "24242.36",
+        //         "index_price": "23686.4",
+        //         "index_name": "BTC-USDT",
+        //         "index_currency": "BTC",
+        //         "start_timestamp": 1631004005882,
+        //         "funding_rate": "0.000187",
+        //         "next_funding_rate_timestamp": 1675065600000,
+        //         "contract_type": "Quanto",
+        //         "contract_price": "23685",
+        //         "contract_price_currency": "USDT"
+        //     }
+        //
+        const marketId = this.safeString (contract, 'ticker_id');
+        const fundingTimestamp = this.safeInteger (contract, 'next_funding_rate_timestamp');
+        return {
+            'info': contract,
+            'symbol': this.safeSymbol (marketId, market),
+            'markPrice': undefined,
+            'indexPrice': this.safeNumber (contract, 'index_price'),
+            'interestRate': undefined,
+            'estimatedSettlePrice': undefined,
+            'timestamp': undefined,
+            'datetime': undefined,
+            'fundingRate': this.safeNumber (contract, 'funding_rate'),
+            'fundingTimestamp': fundingTimestamp,
+            'fundingDatetime': this.iso8601 (fundingTimestamp),
+            'nextFundingRate': undefined,
+            'nextFundingTimestamp': undefined,
+            'nextFundingDatetime': undefined,
+            'previousFundingRate': undefined,
+            'previousFundingTimestamp': undefined,
+            'previousFundingDatetime': undefined,
+        };
+    }
+
+    async transfer (code, amount, fromAccount, toAccount, params = {}) {
+        /**
+         * @method
+         * @name btcex#transfer
+         * @description transfer currency internally between wallets on the same account
+         * @see https://docs.btcex.com/#asset-transfer
+         * @param {string} code unified currency code
+         * @param {float} amount amount to transfer
+         * @param {string} fromAccount account to transfer from
+         * @param {string} toAccount account to transfer to
+         * @param {object} params extra parameters specific to the btcex api endpoint
+         * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/en/latest/manual.html#transfer-structure}
+         */
+        await this.signIn ();
+        await this.loadMarkets ();
+        const currency = this.currency (code);
+        const accountsByType = this.safeValue (this.options, 'accountsByType', {});
+        const fromId = this.safeString (accountsByType, fromAccount, fromAccount);
+        const toId = this.safeString (accountsByType, toAccount, toAccount);
+        const request = {
+            'coin_type': currency['id'],
+            'amount': this.currencyToPrecision (code, amount),
+            'from': fromId, // WALLET, SPOT, PERPETUAL
+            'to': toId, // WALLET, SPOT, PERPETUAL
+        };
+        const response = await this.privatePostSubmitTransfer (this.extend (request, params));
+        //
+        //     {
+        //         "id": "1674937273",
+        //         "jsonrpc": "2.0",
+        //         "usIn": 1674937274762,
+        //         "usOut": 1674937274774,
+        //         "usDiff": 12,
+        //         "result": "ok"
+        //     }
+        //
+        return this.parseTransfer (response, currency);
+    }
+
+    parseTransfer (transfer, currency = undefined) {
+        //
+        //     {
+        //         "id": "1674937273",
+        //         "jsonrpc": "2.0",
+        //         "usIn": 1674937274762,
+        //         "usOut": 1674937274774,
+        //         "usDiff": 12,
+        //         "result": "ok"
+        //     }
+        //
+        return {
+            'info': transfer,
+            'id': this.safeString (transfer, 'id'),
+            'timestamp': undefined,
+            'datetime': undefined,
+            'currency': undefined,
+            'amount': undefined,
+            'fromAccount': undefined,
+            'toAccount': undefined,
+            'status': undefined,
+        };
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {

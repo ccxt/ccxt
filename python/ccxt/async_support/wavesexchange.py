@@ -744,17 +744,31 @@ class wavesexchange(Exchange):
         #           "timestamp":1640232379124
         #       }
         #
+        #  fetch ticker
+        #
+        #       {
+        #           firstPrice: '21749',
+        #           lastPrice: '22000',
+        #           volume: '0.73747149',
+        #           quoteVolume: '16409.44564928645471',
+        #           high: '23589.999941',
+        #           low: '21010.000845',
+        #           weightedAveragePrice: '22250.955964',
+        #           txsCount: '148',
+        #           volumeWaves: '0.0000000000680511203072'
+        #       }
+        #
         timestamp = self.safe_integer(ticker, 'timestamp')
         marketId = self.safe_string(ticker, 'symbol')
         market = self.safe_market(marketId, market, '/')
         symbol = market['symbol']
-        last = self.safe_string(ticker, '24h_close')
-        low = self.safe_string(ticker, '24h_low')
-        high = self.safe_string(ticker, '24h_high')
-        vwap = self.safe_string(ticker, '24h_vwap')
-        baseVolume = self.safe_string(ticker, '24h_volume')
-        quoteVolume = self.safe_string(ticker, '24h_priceVolume')
-        open = self.safe_string(ticker, '24h_open')
+        last = self.safe_string_2(ticker, '24h_close', 'lastPrice')
+        low = self.safe_string_2(ticker, '24h_low', 'low')
+        high = self.safe_string_2(ticker, '24h_high', 'high')
+        vwap = self.safe_string_2(ticker, '24h_vwap', 'weightedAveragePrice')
+        baseVolume = self.safe_string_2(ticker, '24h_volume', 'volume')
+        quoteVolume = self.safe_string_2(ticker, '24h_priceVolume', 'quoteVolume')
+        open = self.safe_string_2(ticker, '24h_open', 'firstPrice')
         return self.safe_ticker({
             'symbol': symbol,
             'timestamp': timestamp,
@@ -816,7 +830,8 @@ class wavesexchange(Exchange):
         #
         data = self.safe_value(response, 'data', [])
         ticker = self.safe_value(data, 0, {})
-        return self.parse_ticker(ticker, market)
+        dataTicker = self.safe_value(ticker, 'data', {})
+        return self.parse_ticker(dataTicker, market)
 
     async def fetch_tickers(self, symbols=None, params={}):
         """

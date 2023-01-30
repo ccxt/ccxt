@@ -66,7 +66,8 @@ class btcalpha(Exchange):
                 'fetchPositions': False,
                 'fetchPositionsRisk': False,
                 'fetchPremiumIndexOHLCV': False,
-                'fetchTicker': None,
+                'fetchTicker': True,
+                'fetchTickers': True,
                 'fetchTrades': True,
                 'fetchTradingFee': False,
                 'fetchTradingFees': False,
@@ -107,6 +108,7 @@ class btcalpha(Exchange):
                         'orderbook/{pair_name}',
                         'exchanges/',
                         'charts/{pair}/{type}/chart/',
+                        'ticker/',
                     ],
                 },
                 'private': {
@@ -227,6 +229,104 @@ class btcalpha(Exchange):
                 'info': market,
             })
         return result
+
+    async def fetch_tickers(self, symbols=None, params={}):
+        """
+        see https://btc-alpha.github.io/api-docs/#tickers
+        fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
+        :param [str]|None symbols: unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
+        :param dict params: extra parameters specific to the btcalpha api endpoint
+        :returns dict: an array of `ticker structures <https://docs.ccxt.com/en/latest/manual.html#ticker-structure>`
+        """
+        await self.load_markets()
+        response = await self.publicGetTicker(params)
+        #
+        #    [
+        #        {
+        #            timestamp: '1674658.445272',
+        #            pair: 'BTC_USDT',
+        #            last: '22476.85',
+        #            diff: '458.96',
+        #            vol: '6660.847784',
+        #            high: '23106.08',
+        #            low: '22348.29',
+        #            buy: '22508.46',
+        #            sell: '22521.11'
+        #        },
+        #        ...
+        #    ]
+        #
+        return self.parse_tickers(response, symbols)
+
+    async def fetch_ticker(self, symbol, params={}):
+        """
+        see https://btc-alpha.github.io/api-docs/#tickers
+        fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+        :param str symbol: unified symbol of the market to fetch the ticker for
+        :param dict params: extra parameters specific to the btcalpha api endpoint
+        :returns dict: a `ticker structure <https://docs.ccxt.com/en/latest/manual.html#ticker-structure>`
+        """
+        await self.load_markets()
+        market = self.market(symbol)
+        request = {
+            'pair': market['id'],
+        }
+        response = await self.publicGetTicker(self.extend(request, params))
+        #
+        #    {
+        #        timestamp: '1674658.445272',
+        #        pair: 'BTC_USDT',
+        #        last: '22476.85',
+        #        diff: '458.96',
+        #        vol: '6660.847784',
+        #        high: '23106.08',
+        #        low: '22348.29',
+        #        buy: '22508.46',
+        #        sell: '22521.11'
+        #    }
+        #
+        return self.parse_ticker(response, market)
+
+    def parse_ticker(self, ticker, market=None):
+        #
+        #    {
+        #        timestamp: '1674658.445272',
+        #        pair: 'BTC_USDT',
+        #        last: '22476.85',
+        #        diff: '458.96',
+        #        vol: '6660.847784',
+        #        high: '23106.08',
+        #        low: '22348.29',
+        #        buy: '22508.46',
+        #        sell: '22521.11'
+        #    }
+        #
+        timestamp = self.safe_integer_product(ticker, 'timestamp', 1000000)
+        marketId = self.safe_string(ticker, 'pair')
+        market = self.safe_market(marketId, market, '_')
+        last = self.safe_string(ticker, 'last')
+        return self.safe_ticker({
+            'info': ticker,
+            'symbol': market['symbol'],
+            'timestamp': timestamp,
+            'datetime': self.iso8601(timestamp),
+            'high': self.safe_string(ticker, 'high'),
+            'low': self.safe_string(ticker, 'low'),
+            'bid': self.safe_string(ticker, 'buy'),
+            'bidVolume': None,
+            'ask': self.safe_string(ticker, 'sell'),
+            'askVolume': None,
+            'vwap': None,
+            'open': None,
+            'close': last,
+            'last': last,
+            'previousClose': None,
+            'change': self.safe_string(ticker, 'diff'),
+            'percentage': None,
+            'average': None,
+            'baseVolume': None,
+            'quoteVolume': self.safe_string(ticker, 'vol'),
+        }, market)
 
     async def fetch_order_book(self, symbol, limit=None, params={}):
         """

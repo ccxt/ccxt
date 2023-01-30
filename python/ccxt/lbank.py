@@ -53,7 +53,7 @@ class lbank(Exchange):
                 'fetchMarkOHLCV': False,
                 'fetchOHLCV': True,
                 'fetchOpenInterestHistory': False,
-                'fetchOpenOrders': None,  # status 0 API doesn't work
+                'fetchOpenOrders': False,  # status 0 API doesn't work
                 'fetchOrder': True,
                 'fetchOrderBook': True,
                 'fetchOrders': True,
@@ -774,8 +774,7 @@ class lbank(Exchange):
                     self.options['pem'] = pem
             else:
                 pem = self.convert_secret_to_pem(self.secret)
-            sign = self.binary_to_base64(self.rsa(message, self.encode(pem), 'RS256'))
-            query['sign'] = sign
+            query['sign'] = self.rsa(message, pem, 'RS256')
             body = self.urlencode(query)
             headers = {'Content-Type': 'application/x-www-form-urlencoded'}
         return {'url': url, 'method': method, 'body': body, 'headers': headers}

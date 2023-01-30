@@ -58,6 +58,7 @@ Exchange::$exchanges = array(
     'idex',
     'kraken',
     'kucoin',
+    'kucoinfutures',
     'luno',
     'mexc',
     'ndax',
@@ -71,6 +72,5 @@ Exchange::$exchanges = array(
     'whitebit',
     'woo',
     'zb',
-    'zipmex',
 );
 

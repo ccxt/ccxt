@@ -30,10 +30,10 @@ class mexc3(Exchange):
             'version': 'v3',
             'has': {
                 'CORS': None,
-                'spot': None,
+                'spot': True,
                 'margin': True,
-                'swap': None,
-                'future': None,
+                'swap': True,
+                'future': True,
                 'option': None,
                 'addMargin': True,
                 'borrowMargin': True,
@@ -636,7 +636,7 @@ class mexc3(Exchange):
                     'active': active,
                     'deposit': isDepositEnabled,
                     'withdraw': isWithdrawEnabled,
-                    'fee': self.safe_number(chain, 'fee'),
+                    'fee': fee,
                     'precision': None,
                     'limits': {
                         'withdraw': {

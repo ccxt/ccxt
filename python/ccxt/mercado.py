@@ -63,7 +63,7 @@ class mercado(Exchange):
                 'fetchPositionsRisk': False,
                 'fetchPremiumIndexOHLCV': False,
                 'fetchTicker': True,
-                'fetchTickers': None,
+                'fetchTickers': False,
                 'fetchTrades': True,
                 'fetchTradingFee': False,
                 'fetchTradingFees': False,
@@ -93,7 +93,6 @@ class mercado(Exchange):
                 'doc': [
                     'https://www.mercadobitcoin.com.br/api-doc',
                     'https://www.mercadobitcoin.com.br/trade-api',
-                    'https://api.mercadobitcoin.net/api/v4/docs/',
                 ],
             },
             'api': {

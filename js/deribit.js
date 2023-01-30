@@ -58,7 +58,7 @@ module.exports = class deribit extends Exchange {
                 'fetchOpenOrders': true,
                 'fetchOrder': true,
                 'fetchOrderBook': true,
-                'fetchOrders': undefined,
+                'fetchOrders': false,
                 'fetchOrderTrades': true,
                 'fetchPosition': true,
                 'fetchPositionMode': false,
@@ -71,7 +71,7 @@ module.exports = class deribit extends Exchange {
                 'fetchTrades': true,
                 'fetchTradingFee': false,
                 'fetchTradingFees': true,
-                'fetchTransactions': undefined,
+                'fetchTransactions': false,
                 'fetchTransfer': false,
                 'fetchTransfers': true,
                 'fetchWithdrawal': false,
@@ -1693,7 +1693,7 @@ module.exports = class deribit extends Exchange {
             request['type'] = 'market';
         }
         if (isStopOrder) {
-            const triggerPrice = stopLossPrice !== undefined ? stopLossPrice : takeProfitPrice;
+            const triggerPrice = (stopLossPrice !== undefined) ? stopLossPrice : takeProfitPrice;
             request['trigger_price'] = this.priceToPrecision (symbol, triggerPrice);
             request['trigger'] = 'last_price'; // required
             if (isStopLossOrder) {

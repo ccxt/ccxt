@@ -789,10 +789,10 @@ class wazirx extends \ccxt\async\wazirx {
             $messageHash = 'authenticated';
             $now = $this->milliseconds();
             $subscription = $this->safe_value($client->subscriptions, $messageHash);
-            $expires = $this->safe_number($subscription, 'expires');
+            $expires = $this->safe_integer($subscription, 'expires');
             if ($subscription === null || $now > $expires) {
                 $subscription = Async\await($this->privatePostCreateAuthToken ());
-                $subscription['expires'] = $now . $this->safe_number($subscription, 'timeout_duration') * 1000;
+                $subscription['expires'] = $now . $this->safe_integer($subscription, 'timeout_duration') * 1000;
                 //
                 //     {
                 //         "auth_key" => "Xx***dM",

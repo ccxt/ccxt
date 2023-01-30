@@ -57,7 +57,7 @@ module.exports = class coinex extends Exchange {
                 'fetchFundingHistory': true,
                 'fetchFundingRate': true,
                 'fetchFundingRateHistory': true,
-                'fetchFundingRates': false,
+                'fetchFundingRates': true,
                 'fetchIndexOHLCV': false,
                 'fetchLeverage': false,
                 'fetchLeverageTiers': true,
@@ -392,16 +392,14 @@ module.exports = class coinex extends Exchange {
          * @param {object} params extra parameters specific to the exchange api endpoint
          * @returns {[object]} an array of objects representing market data
          */
-        let result = [];
-        const [ type, query ] = this.handleMarketTypeAndParams ('fetchMarkets', undefined, params);
-        if (type === 'spot' || type === 'margin') {
-            result = await this.fetchSpotMarkets (query);
-        } else if (type === 'swap') {
-            result = await this.fetchContractMarkets (query);
-        } else {
-            throw new ExchangeError (this.id + " does not support the '" + type + "' market type, set exchange.options['defaultType'] to 'spot', 'margin' or 'swap'");
-        }
-        return result;
+        let promises = [
+            this.fetchSpotMarkets (params),
+            this.fetchContractMarkets (params),
+        ];
+        promises = await Promise.all (promises);
+        const spotMarkets = promises[0];
+        const swapMarkets = promises[1];
+        return this.arrayConcat (spotMarkets, swapMarkets);
     }
 
     async fetchSpotMarkets (params) {
@@ -535,6 +533,7 @@ module.exports = class coinex extends Exchange {
             const settleId = (subType === 1) ? 'USDT' : baseId;
             const settle = this.safeCurrencyCode (settleId);
             const symbol = base + '/' + quote + ':' + settle;
+            const leveragesLength = leverages.length;
             result.push ({
                 'id': id,
                 'symbol': symbol,
@@ -568,7 +567,7 @@ module.exports = class coinex extends Exchange {
                 'limits': {
                     'leverage': {
                         'min': this.safeString (leverages, 0),
-                        'max': this.safeString (leverages, leverages.length - 1),
+                        'max': this.safeString (leverages, leveragesLength - 1),
                     },
                     'amount': {
                         'min': this.safeString (entry, 'amount_min'),
@@ -817,7 +816,7 @@ module.exports = class coinex extends Exchange {
         const result = {};
         for (let i = 0; i < marketIds.length; i++) {
             const marketId = marketIds[i];
-            const market = this.safeMarket (marketId);
+            const market = this.safeMarket (marketId, undefined, undefined, marketType);
             const symbol = market['symbol'];
             const ticker = this.parseTicker ({
                 'date': timestamp,
@@ -995,7 +994,8 @@ module.exports = class coinex extends Exchange {
         const priceString = this.safeString (trade, 'price');
         const amountString = this.safeString (trade, 'amount');
         const marketId = this.safeString (trade, 'market');
-        market = this.safeMarket (marketId, market);
+        const defaultType = this.safeString (this.options, 'defaultType');
+        market = this.safeMarket (marketId, market, undefined, defaultType);
         const symbol = this.safeSymbol (marketId, market);
         const costString = this.safeString (trade, 'deal_money');
         let fee = undefined;
@@ -1667,7 +1667,8 @@ module.exports = class coinex extends Exchange {
         const averageString = this.safeString (order, 'avg_price');
         const remainingString = this.safeString (order, 'left');
         const marketId = this.safeString (order, 'market');
-        market = this.safeMarket (marketId, market);
+        const defaultType = this.safeString (this.options, 'defaultType');
+        market = this.safeMarket (marketId, market, undefined, defaultType);
         const feeCurrencyId = this.safeString (order, 'fee_asset');
         let feeCurrency = this.safeCurrencyCode (feeCurrencyId);
         if (feeCurrency === undefined) {
@@ -2615,7 +2616,8 @@ module.exports = class coinex extends Exchange {
     safeNetwork (networkId, currency = undefined) {
         const networks = this.safeValue (currency, 'networks', {});
         const networksCodes = Object.keys (networks);
-        if (networkId === undefined && networksCodes.length === 1) {
+        const networksCodesLength = networksCodes.length;
+        if (networkId === undefined && networksCodesLength === 1) {
             return networks[networksCodes[0]];
         }
         return {
@@ -2640,7 +2642,8 @@ module.exports = class coinex extends Exchange {
         const parts = coinAddress.split (':');
         let address = undefined;
         let tag = undefined;
-        if (parts.length > 1) {
+        const partsLength = parts.length;
+        if (partsLength > 1) {
             address = parts[0];
             tag = parts[1];
         } else {
@@ -3021,7 +3024,8 @@ module.exports = class coinex extends Exchange {
         //     }
         //
         const marketId = this.safeString (position, 'market');
-        market = this.safeMarket (marketId, market);
+        const defaultType = this.safeString (this.options, 'defaultType');
+        market = this.safeMarket (marketId, market, undefined, defaultType);
         const symbol = market['symbol'];
         const positionId = this.safeInteger (position, 'position_id');
         const marginModeInteger = this.safeInteger (position, 'type');
@@ -3203,7 +3207,7 @@ module.exports = class coinex extends Exchange {
         const marketIds = Object.keys (response);
         for (let i = 0; i < marketIds.length; i++) {
             const marketId = marketIds[i];
-            const market = this.safeMarket (marketId);
+            const market = this.safeMarket (marketId, undefined, undefined, 'spot');
             const symbol = this.safeString (market, 'symbol');
             let symbolsLength = 0;
             if (symbols !== undefined) {
@@ -3476,6 +3480,8 @@ module.exports = class coinex extends Exchange {
         //
         const data = this.safeValue (response, 'data', {});
         const ticker = this.safeValue (data, 'ticker', {});
+        const timestamp = this.safeInteger (data, 'date');
+        ticker['timestamp'] = timestamp; // avoid changing parseFundingRate signature
         return this.parseFundingRate (ticker, market);
     }
 
@@ -3506,25 +3512,100 @@ module.exports = class coinex extends Exchange {
         //         "sell_amount": "0.9388"
         //     }
         //
+        const timestamp = this.safeInteger (contract, 'timestamp');
+        contract = this.omit (contract, 'timestamp');
+        const fundingDelta = this.safeInteger (contract, 'funding_time') * 60 * 1000;
+        const fundingHour = (timestamp + fundingDelta) / 3600000;
+        const fundingTimestamp = Math.round (fundingHour) * 3600000;
         return {
             'info': contract,
             'symbol': this.safeSymbol (undefined, market),
-            'markPrice': this.safeString (contract, 'sign_price'),
-            'indexPrice': this.safeString (contract, 'index_price'),
+            'markPrice': this.safeNumber (contract, 'sign_price'),
+            'indexPrice': this.safeNumber (contract, 'index_price'),
             'interestRate': undefined,
             'estimatedSettlePrice': undefined,
-            'timestamp': undefined,
-            'datetime': undefined,
-            'fundingRate': this.safeString (contract, 'funding_rate_next'),
-            'fundingTimestamp': undefined,
-            'fundingDatetime': undefined,
-            'nextFundingRate': this.safeString (contract, 'funding_rate_predict'),
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'fundingRate': this.safeNumber (contract, 'funding_rate_next'),
+            'fundingTimestamp': fundingTimestamp,
+            'fundingDatetime': this.iso8601 (fundingTimestamp),
+            'nextFundingRate': this.safeNumber (contract, 'funding_rate_predict'),
             'nextFundingTimestamp': undefined,
             'nextFundingDatetime': undefined,
-            'previousFundingRate': this.safeString (contract, 'funding_rate_last'),
+            'previousFundingRate': this.safeNumber (contract, 'funding_rate_last'),
             'previousFundingTimestamp': undefined,
             'previousFundingDatetime': undefined,
         };
+    }
+
+    async fetchFundingRates (symbols = undefined, params = {}) {
+        /**
+         *  @method
+         * @name coinex#fetchFundingRates
+         * @description fetch the current funding rates
+         * @param {array} symbols unified market symbols
+         * @param {object} params extra parameters specific to the coinex api endpoint
+         * @returns {array} an array of [funding rate structures]{@link https://docs.ccxt.com/en/latest/manual.html#funding-rate-structure}
+         */
+        await this.loadMarkets ();
+        symbols = this.marketSymbols (symbols);
+        let market = undefined;
+        if (symbols !== undefined) {
+            const symbol = this.safeValue (symbols, 0);
+            market = this.market (symbol);
+            if (!market['swap']) {
+                throw new BadSymbol (this.id + ' fetchFundingRates() supports swap contracts only');
+            }
+        }
+        const response = await this.perpetualPublicGetMarketTickerAll (params);
+        //
+        //     {
+        //         "code": 0,
+        //         "data":
+        //         {
+        //             "date": 1650678472474,
+        //             "ticker": {
+        //                 "BTCUSDT": {
+        //                     "vol": "6090.9430",
+        //                     "low": "39180.30",
+        //                     "open": "40474.97",
+        //                     "high": "40798.01",
+        //                     "last": "39659.30",
+        //                     "buy": "39663.79",
+        //                     "period": 86400,
+        //                     "funding_time": 372,
+        //                     "position_amount": "270.1956",
+        //                     "funding_rate_last": "0.00022913",
+        //                     "funding_rate_next": "0.00013158",
+        //                     "funding_rate_predict": "0.00016552",
+        //                     "insurance": "16045554.83969682659674035672",
+        //                     "sign_price": "39652.48",
+        //                     "index_price": "39648.44250000",
+        //                     "sell_total": "22.3913",
+        //                     "buy_total": "19.4498",
+        //                     "buy_amount": "12.8942",
+        //                     "sell": "39663.80",
+        //                     "sell_amount": "0.9388"
+        //                 }
+        //             }
+        //         },
+        //         "message": "OK"
+        //     }
+        const data = this.safeValue (response, 'data', {});
+        const tickers = this.safeValue (data, 'ticker', {});
+        const timestamp = this.safeInteger (data, 'date');
+        const result = [];
+        const marketIds = Object.keys (tickers);
+        for (let i = 0; i < marketIds.length; i++) {
+            const marketId = marketIds[i];
+            if (marketId.indexOf ('_') === -1) { // skip _signprice and _indexprice
+                const market = this.safeMarket (marketId, undefined, undefined, 'swap');
+                const ticker = tickers[marketId];
+                ticker['timestamp'] = timestamp;
+                result.push (this.parseFundingRate (ticker, market));
+            }
+        }
+        return this.filterByArray (result, 'symbol', symbols);
     }
 
     async withdraw (code, amount, address, tag = undefined, params = {}) {
@@ -4208,7 +4289,7 @@ module.exports = class coinex extends Exchange {
         for (let i = 0; i < data.length; i++) {
             const entry = data[i];
             const symbol = this.safeString (entry, 'market');
-            const market = this.safeMarket (symbol);
+            const market = this.safeMarket (symbol, undefined, undefined, 'spot');
             const currencyData = this.safeValue (entry, market['base']);
             rates.push ({
                 'currency': market['base'],
@@ -4287,7 +4368,7 @@ module.exports = class coinex extends Exchange {
         //     }
         //
         const marketId = this.safeString (info, 'market_type');
-        market = this.safeMarket (marketId, market);
+        market = this.safeMarket (marketId, market, undefined, 'spot');
         const symbol = this.safeString (market, 'symbol');
         const timestamp = this.safeTimestamp (info, 'expire_time');
         const unflatAmount = this.safeString (info, 'unflat_amount');

@@ -1003,7 +1003,7 @@ module.exports = class zonda extends Exchange {
             'referenceAccount': undefined,
             'type': this.parseLedgerEntryType (this.safeString (item, 'type')),
             'currency': this.safeCurrencyCode (currencyId),
-            'amount': amount,
+            'amount': this.parseNumber (amount),
             'before': this.safeNumber (fundsBefore, 'total'),
             'after': this.safeNumber (fundsAfter, 'total'),
             'status': 'ok',
