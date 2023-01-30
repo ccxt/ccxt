@@ -49,17 +49,21 @@ trait ClientTrait {
 
     public function client($url) {
         if (!array_key_exists($url, $this->clients)) {
+            $on_message = array($this, 'handle_message');	
+            $on_error = array($this, 'on_error');	
+            $on_close = array($this, 'on_close');	
+            $on_connected = array($this, 'on_connected');
             $ws_options = $this->safe_value($this->options, 'ws', array());
-            // # get ws rl config
-            // $rate_limits = $this->safe_value($ws_options, 'rateLimits', array());
-            // # if no rateLimit is defined in the WS implementation, we fallback to the ccxt one
-            // $default_rate_limit_config = $this->safe_value($rate_limits, 'default', array(
-            //     'rateLimit' => $this->rateLimit,
-            //     'tokenBucket' => $this->tokenBucket,
-            // ));
-            // $default_rate_limit_token_bucket = $this->calculate_rate_limit_token_bucket($default_rate_limit_config);
-            // $rate_limit_config = $this->safe_value($rate_limits, $url, $default_rate_limit_config);
-            // $rate_limit_token_bucket = $this->calculate_rate_limit_token_bucket($rate_limit_config);
+            # get ws rl config
+            $rate_limits = $this->safe_value($ws_options, 'rateLimits', array());
+            # if no rateLimit is defined in the WS implementation, we fallback to the ccxt one
+            $default_rate_limit_config = $this->safe_value($rate_limits, 'default', array(
+                'rateLimit' => $this->rateLimit,
+                'tokenBucket' => $this->tokenBucket,
+            ));
+            $default_rate_limit_token_bucket = $this->calculate_rate_limit_token_bucket($default_rate_limit_config);
+            $rate_limit_config = $this->safe_value($rate_limits, $url, $default_rate_limit_config);
+            $rate_limit_token_bucket = $this->calculate_rate_limit_token_bucket($rate_limit_config);
             $this->lastNewConnectionTimestamp = $this->milliseconds ();
             $options = array_replace_recursive(array(
                 'log' => array($this, 'log'),
@@ -116,7 +120,7 @@ trait ClientTrait {
         $connected;
         if ($this->enableRateLimit) {
             $this->throttleNewWsConnections ();
-            return $client->connect($backoff_delay);
+            $connected = $client->connect($backoff_delay);
         } else {
             $connected = $client->connect($backoff_delay);
         }
