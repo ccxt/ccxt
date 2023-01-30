@@ -299,11 +299,17 @@ module.exports = class hitbtc3 extends Exchange {
                 'broad': {},
             },
             'options': {
+                'defaultNetwork': 'ERC20',
+                'defaultNetworks': {
+                    'USDT': 'TRC20',
+                },
+                'networksAreIncludedInCurrencyIds': true,
                 'networks': {
+                    // mainnet network ids are in lowercase for BTC & ETH
                     'BTC': 'btc',
-                    'OMNI': 'BTC', // yeap, this is
-                    'ERC20': 'ETH',
+                    'OMNI': 'BTC',
                     'ETH': 'eth',
+                    'ERC20': 'ETH',
                     'ETC': 'ETC',
                     'BEP20': 'BSC',
                     'TRC20': 'TRX',
@@ -549,6 +555,36 @@ module.exports = class hitbtc3 extends Exchange {
                     'ZILLIQA': 'ZIL',
                     // '': 'ZYN',
                 },
+                // as listed at /billing/convertible-currencies
+                'currencyMappings': {
+                    'USDT': [ 'USDT', 'OMNI' ],
+                    'USDTBSC': [ 'USDT', 'BEP20' ],
+                    'USDT20': [ 'USDT', 'ERC20' ],
+                    'USDTRX': [ 'USDT', 'TRC20' ],
+                    'USDTSOL': [ 'USDT', 'SOLANA' ],
+                    'USDTAVAC': [ 'USDT', 'AVALANCHE_C' ],
+                    'AVAX': [ 'AVAX', 'AVALANCHE_X' ],
+                    'AVAC': [ 'AVAX', 'AVALANCHE_C' ],
+                    'MATICPOLY': [ 'MATIC', 'POLYGON' ],
+                    'MATIC': [ 'MATIC', 'ERC20' ],
+                    'USDC': [ 'USDC', 'ERC20' ],
+                    'USDCBSC': [ 'USDC', 'BEP20' ],
+                    'USDCSOL': [ 'USDC', 'SOLANA' ],
+                    'USDCAVAC': [ 'USDC', 'AVALANCE_C' ],
+                    'USDCTRX': [ 'USDC', 'TRC20' ],
+                    'USDCXLM': [ 'USDC', 'STELLAR' ],
+                    'BUSD': [ 'BUSD', 'ERC20' ],
+                    'BUSDBSC': [ 'BUSD', 'BEP20' ],
+                    'BUSDBNB': [ 'BUSD', 'BEP2' ],
+                    'BNB': [ 'BNB', 'BEP2' ],
+                    'BNBBSC': [ 'BNB', 'BEP20' ],
+                    'NEAR': [ 'NEAR', 'NEAR' ],
+                    'NEARBSC': [ 'NEAR', 'BEP20' ],
+                    'GMT': [ 'GMT', 'BEP20' ],
+                    'GMTSOL': [ 'GMT', 'SOLANA' ],
+                    'POA': [ 'POA', 'POA' ],
+                    'POA20': [ 'POA', 'ERC20' ],
+                },
                 'accountsByType': {
                     'spot': 'spot',
                     'funding': 'wallet',
@@ -761,51 +797,37 @@ module.exports = class hitbtc3 extends Exchange {
         //            ]
         //        },
         //
+        // Note, exchange has same currenceis with different IDs, i.e. `USDTBSC, USDTRX,` etc.., so we use specific approach
+        //
         const result = {};
-        const currencies = Object.keys (response);
-        for (let i = 0; i < currencies.length; i++) {
-            const currencyId = currencies[i];
-            const code = this.safeCurrencyCode (currencyId);
+        const currencyMappings = this.safeValue (this.options, 'currencyMappings', {});
+        const keys = Object.keys (response);
+        for (let i = 0; i < keys.length; i++) {
+            const currencyId = keys[i];
             const entry = response[currencyId];
-            const precision = this.safeNumber (entry, 'precision_transfer');
-            const payinEnabled = this.safeValue (entry, 'payin_enabled', false);
-            const payoutEnabled = this.safeValue (entry, 'payout_enabled', false);
-            const transferEnabled = this.safeValue (entry, 'transfer_enabled', false);
-            const active = payinEnabled && payoutEnabled && transferEnabled;
-            const rawNetworks = this.safeValue (entry, 'networks', []);
-            const networks = {};
-            let fee = undefined;
-            let depositEnabled = undefined;
-            let withdrawEnabled = undefined;
-            for (let j = 0; j < rawNetworks.length; j++) {
-                const rawNetwork = rawNetworks[j];
-                const networkId = this.safeString (rawNetwork, 'network');
-                const networkCode = this.networkIdToCode (networkId);
-                fee = this.safeNumber (rawNetwork, 'payout_fee');
-                const networkPrecision = this.safeNumber (rawNetwork, 'precision_payout');
-                const payinEnabledNetwork = this.safeValue (entry, 'payin_enabled', false);
-                const payoutEnabledNetwork = this.safeValue (entry, 'payout_enabled', false);
-                const activeNetwork = payinEnabledNetwork && payoutEnabledNetwork;
-                if (payinEnabledNetwork && !depositEnabled) {
-                    depositEnabled = true;
-                } else if (!payinEnabledNetwork) {
-                    depositEnabled = false;
-                }
-                if (payoutEnabledNetwork && !withdrawEnabled) {
-                    withdrawEnabled = true;
-                } else if (!payoutEnabledNetwork) {
-                    withdrawEnabled = false;
-                }
-                networks[networkCode] = {
-                    'info': rawNetwork,
-                    'id': networkId,
-                    'network': networkCode,
-                    'fee': fee,
-                    'active': activeNetwork,
-                    'deposit': payinEnabledNetwork,
-                    'withdraw': payoutEnabledNetwork,
-                    'precision': networkPrecision,
+            const currencyIdArray = this.safeValue (currencyMappings, currencyId);
+            const currencyIdPrimary = this.safeString (currencyIdArray, 0, currencyId);
+            const code = this.safeCurrencyCode (currencyIdPrimary);
+            const type = this.safeString (entry, 'crypto', false) ? 'crypto' : 'fiat';
+            if (!(code in result)) {
+                result[code] = {
+                    'info': {},
+                    'id': currencyIdPrimary,
+                    'code': code,
+                    'name': undefined,
+                    'type': type,
+                    'margin': undefined,
+                    'active': undefined,
+                    'deposit': undefined,
+                    'withdraw': undefined,
+                    'fee': undefined,
+                    'precision': undefined,
+                    'networks': {},
                     'limits': {
+                        'deposit': {
+                            'min': undefined,
+                            'max': undefined,
+                        },
                         'withdraw': {
                             'min': undefined,
                             'max': undefined,
@@ -813,38 +835,60 @@ module.exports = class hitbtc3 extends Exchange {
                     },
                 };
             }
-            const networksKeys = Object.keys (networks);
-            const networksLength = networksKeys.length;
-            const type = this.safeString (entry, 'crypto') ? 'crypto' : 'fiat';
-            result[code] = {
-                'info': entry,
-                'code': code,
-                'id': currencyId,
-                'type': type,
-                'precision': precision,
-                'name': this.safeString (entry, 'full_name'),
-                'active': active,
-                'deposit': depositEnabled,
-                'withdraw': withdrawEnabled,
-                'networks': networks,
-                'fee': (networksLength <= 1) ? fee : undefined,
+            // this exchange has only one network for each currency, even though it is array
+            const rawNetworks = this.safeValue (entry, 'networks', []);
+            const rawNetwork = this.safeValue (rawNetworks, 0, {});
+            const networkId = this.safeString (rawNetwork, 'network');
+            const networkCode = this.networkIdToCode (networkId);
+            this.defineNetworkCodeNameIdMappings (code, currencyId, networkCode, networkId);
+            const fee = this.safeNumber (rawNetwork, 'payout_fee');
+            const networkPrecision = this.safeNumber (rawNetwork, 'precision_payout');
+            const deposit = this.safeValue (rawNetwork, 'payin_enabled');
+            const withdraw = this.safeValue (rawNetwork, 'payout_enabled');
+            result[code]['networks'][networkCode] = {
+                'info': rawNetwork,
+                'id': networkId,
+                'network': networkCode,
+                'fee': fee,
+                'active': undefined,
+                'deposit': deposit,
+                'withdraw': withdraw,
+                'precision': networkPrecision,
                 'limits': {
-                    'amount': {
+                    'deposit': {
+                        'min': undefined,
+                        'max': undefined,
+                    },
+                    'withdraw': {
                         'min': undefined,
                         'max': undefined,
                     },
                 },
             };
+            if (result[code]['precision'] === undefined || networkPrecision < result[code]['precision']) {
+                result[code]['precision'] = networkPrecision;
+            }
+            if (deposit) {
+                result[code]['deposit'] = deposit;
+            }
+            if (withdraw) {
+                result[code]['withdraw'] = withdraw;
+            }
+            result[code]['info'][currencyId] = entry;
         }
         return result;
     }
 
-    safeNetwork (networkId) {
-        if (networkId === undefined) {
-            return undefined;
-        } else {
-            return networkId.toUpperCase ();
-        }
+    getCurrencyPartFromCurrencyJunction (currencyIdWithNetworkId, currencyCode = undefined) {
+        const currencyMappings = this.safeValue (this.options, 'currencyMappings', {});
+        const currencyIdArray = this.safeValue (currencyMappings, currencyIdWithNetworkId);
+        return this.safeString (currencyIdArray, 0, currencyIdWithNetworkId);
+    }
+
+    getNetworkPartFromCurrencyJunction (currencyIdWithNetworkId, currencyCode = undefined) {
+        const currencyMappings = this.safeValue (this.options, 'currencyMappings', {});
+        const currencyIdArray = this.safeValue (currencyMappings, currencyIdWithNetworkId);
+        return this.safeString (currencyIdArray, 1, currencyIdWithNetworkId);
     }
 
     async createDepositAddress (code, params = {}) {
@@ -858,28 +902,24 @@ module.exports = class hitbtc3 extends Exchange {
          */
         await this.loadMarkets ();
         const currency = this.currency (code);
-        const request = {
-            'currency': currency['id'],
-        };
-        const network = this.safeStringUpper (params, 'network');
-        if ((network !== undefined) && (code === 'USDT')) {
-            const networks = this.safeValue (this.options, 'networks');
-            const parsedNetwork = this.safeString (networks, network);
-            if (parsedNetwork !== undefined) {
-                request['currency'] = parsedNetwork;
-            }
-            params = this.omit (params, 'network');
+        const [ networkCode, query ] = this.handleNetworkCodeAndParams (params);
+        if (networkCode === undefined) {
+            throw new ArgumentsRequired (this.id + ' createDepositAddress() requires a "network" parameter');
         }
-        const response = await this.privatePostWalletCryptoAddress (this.extend (request, params));
+        const currencyIdWithNetwork = this.networkCodeToCurrencyId (networkCode, currency['code']);
+        const request = {
+            'currency': currencyIdWithNetwork,
+        };
+        const response = await this.privatePostWalletCryptoAddress (this.extend (request, query));
         //
         //  {"currency":"ETH","address":"0xd0d9aea60c41988c3e68417e2616065617b7afd3"}
         //
         const currencyId = this.safeString (response, 'currency');
         return {
-            'currency': this.safeCurrencyCode (currencyId),
+            'currency': this.safeCurrencyCode (this.getCurrencyPartFromCurrencyJunction (currencyId)),
             'address': this.safeString (response, 'address'),
             'tag': this.safeString (response, 'payment_id'),
-            'network': undefined,
+            'network': this.networkIdToCode (this.getNetworkPartFromCurrencyJunction (currencyId)),
             'info': response,
         };
     }
@@ -895,19 +935,15 @@ module.exports = class hitbtc3 extends Exchange {
          */
         await this.loadMarkets ();
         const currency = this.currency (code);
-        const request = {
-            'currency': currency['id'],
-        };
-        const network = this.safeStringUpper (params, 'network');
-        if ((network !== undefined) && (code === 'USDT')) {
-            const networks = this.safeValue (this.options, 'networks');
-            const parsedNetwork = this.safeString (networks, network);
-            if (parsedNetwork !== undefined) {
-                request['currency'] = parsedNetwork;
-            }
-            params = this.omit (params, 'network');
+        const [ networkCode, query ] = this.handleNetworkCodeAndParams (params);
+        if (networkCode === undefined) {
+            throw new ArgumentsRequired (this.id + ' fetchDepositAddress() requires a "network" parameter');
         }
-        const response = await this.privateGetWalletCryptoAddress (this.extend (request, params));
+        const currencyIdWithNetwork = this.networkCodeToCurrencyId (networkCode, currency['code']);
+        const request = {
+            'currency': currencyIdWithNetwork,
+        };
+        const response = await this.privateGetWalletCryptoAddress (this.extend (request, query));
         //
         //  [{"currency":"ETH","address":"0xd0d9aea60c41988c3e68417e2616065617b7afd3"}]
         //
@@ -915,14 +951,12 @@ module.exports = class hitbtc3 extends Exchange {
         const address = this.safeString (firstAddress, 'address');
         const currencyId = this.safeString (firstAddress, 'currency');
         const tag = this.safeString (firstAddress, 'payment_id');
-        const parsedCode = this.safeCurrencyCode (currencyId);
         return {
-            'info': response,
+            'info': firstAddress,
             'address': address,
             'tag': tag,
-            'code': parsedCode, // kept here for backward-compatibility, but will be removed soon
-            'currency': parsedCode,
-            'network': undefined,
+            'currency': this.safeCurrencyCode (this.getCurrencyPartFromCurrencyJunction (currencyId)),
+            'network': this.networkIdToCode (this.getNetworkPartFromCurrencyJunction (currencyId)),
         };
     }
 
@@ -2350,26 +2384,22 @@ module.exports = class hitbtc3 extends Exchange {
          */
         [ tag, params ] = this.handleWithdrawTagAndParams (tag, params);
         await this.loadMarkets ();
-        this.checkAddress (address);
         const currency = this.currency (code);
+        const [ networkCode, query ] = this.handleNetworkCodeAndParams (params);
+        if (networkCode === undefined) {
+            throw new ArgumentsRequired (this.id + ' withdraw() requires a "network" parameter');
+        }
+        const currencyIdWithNetwork = this.networkCodeToCurrencyId (networkCode, currency['code']);
+        this.checkAddress (address);
         const request = {
-            'currency': currency['id'],
+            'currency': currencyIdWithNetwork,
             'amount': amount,
             'address': address,
         };
         if (tag !== undefined) {
             request['payment_id'] = tag;
         }
-        const networks = this.safeValue (this.options, 'networks', {});
-        const network = this.safeStringUpper (params, 'network');
-        if ((network !== undefined) && (code === 'USDT')) {
-            const parsedNetwork = this.safeString (networks, network);
-            if (parsedNetwork !== undefined) {
-                request['currency'] = parsedNetwork;
-            }
-            params = this.omit (params, 'network');
-        }
-        const response = await this.privatePostWalletCryptoWithdraw (this.extend (request, params));
+        const response = await this.privatePostWalletCryptoWithdraw (this.extend (request, query));
         //
         //     {
         //         "id":"084cfcd5-06b9-4826-882e-fdb75ec3625d"
