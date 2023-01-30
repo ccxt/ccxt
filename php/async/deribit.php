@@ -1698,7 +1698,7 @@ class deribit extends Exchange {
                 $request['type'] = 'market';
             }
             if ($isStopOrder) {
-                $triggerPrice = $stopLossPrice !== null ? $stopLossPrice : $takeProfitPrice;
+                $triggerPrice = ($stopLossPrice !== null) ? $stopLossPrice : $takeProfitPrice;
                 $request['trigger_price'] = $this->price_to_precision($symbol, $triggerPrice);
                 $request['trigger'] = 'last_price'; // required
                 if ($isStopLossOrder) {
