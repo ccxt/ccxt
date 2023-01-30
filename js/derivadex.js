@@ -558,6 +558,70 @@ module.exports = class derivadex extends Exchange {
         });
     }
 
+    async fetchOrderBook (symbol, limit = undefined, params = {}) {
+        /**
+         * @method
+         * @name derivadex#fetchOrderBook
+         * @description fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+         * @param {string} symbol unified symbol of the market to fetch the order book for
+         * @param {int|undefined} limit the maximum amount of order book entries to return
+         * @param {object} params extra parameters specific to the derivadex api endpoint
+         * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-book-structure} indexed by market symbols
+         */
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const request = {
+            'symbol': market['id'],
+        };
+        if (limit !== undefined) {
+            request['limit'] = limit;
+        }
+        const response = await this.publicGetOrderBook (this.extend (request, params));
+        // value: [
+        //     {
+        //       traderAddress: '0x004404ac8bd8f9618d27ad2f1485aa1b2cfd82482d',
+        //       strategyId: 'main',
+        //       orderHash: '0x2e401956ae605a3a222bd92533260103a23a963e6e55b066a0',
+        //       symbol: 'BTCPERP',
+        //       amount: '0.035',
+        //       price: '23000',
+        //       side: '0',
+        //       originalAmount: '0.04',
+        //       bookOrdinal: '0'
+        //     },
+        //     {
+        //       traderAddress: '0x004404ac8bd8f9618d27ad2f1485aa1b2cfd82482d',
+        //       strategyId: 'main',
+        //       orderHash: '0x746be891d408f6e415760241c86d9c852a17514d59299a78de',
+        //       symbol: 'BTCPERP',
+        //       amount: '0.08',
+        //       price: '24000',
+        //       side: '1',
+        //       originalAmount: '0.08',
+        //       bookOrdinal: '1'
+        //     }
+        //   ]
+        const responseValue = response['value'];
+        const timestamp = this.safeInteger (response, 'timestamp');
+        const result = {
+            'symbol': symbol,
+            'bids': [],
+            'asks': [],
+            'timestamp': timestamp,
+            'datetime': undefined,
+            'nonce': undefined,
+        };
+        for (let i = 0; i < responseValue.length; i++) {
+            const order = responseValue[i];
+            const side = (order['side'] === '0') ? 'bids' : 'asks';
+            const amount = this.safeNumber (order, 'amount');
+            const price = this.safeNumber (order, 'price');
+            result[side].push ([ price, amount ]);
+        }
+        result['bids'].reverse ();
+        return result;
+    }
+
     sign (path, api = 'stats', method = 'GET', params = {}, headers = undefined, body = undefined) {
         const implodedPath = this.implodeParams (path, params);
         let query = '/api/' + this.version + '/' + implodedPath;
