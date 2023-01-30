@@ -2210,7 +2210,7 @@ module.exports = class btcex extends Exchange {
         //     }
         //
         const data = this.safeValue (response, 'result', []);
-        const result = [];
+        const result = {};
         for (let i = 0; i < data.length; i++) {
             const entry = data[i];
             const marketId = this.safeString (entry, 'ticker_id');
