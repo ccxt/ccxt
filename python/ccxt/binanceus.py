@@ -46,6 +46,8 @@ class binanceus(binance):
                 'CORS': None,
                 'spot': True,
                 'margin': None,
+                'fetc
+                'fetchPositions': None,
                 'swap': None,
                 'future': None,
                 'option': None,
