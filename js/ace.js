@@ -418,8 +418,13 @@ module.exports = class ace extends Exchange {
         //         "createTime": "2019-11-08 14:49:00"
         //     }
         //
+        const dateTime = this.safeString (ohlcv, 'createTime');
+        let timestamp = this.parse8601 (dateTime);
+        if (timestamp !== undefined) {
+            timestamp = timestamp - 28800000; // 8 hours
+        }
         return [
-            this.parse8601 (this.safeString (ohlcv, 'createTime')),
+            timestamp,
             this.safeNumber (ohlcv, 'openPrice'),
             this.safeNumber (ohlcv, 'highPrice'),
             this.safeNumber (ohlcv, 'lowPrice'),
@@ -517,7 +522,6 @@ module.exports = class ace extends Exchange {
         //
         let id = undefined;
         let timestamp = undefined;
-        let orderTime = undefined;
         let symbol = undefined;
         let price = undefined;
         let amount = undefined;
@@ -531,8 +535,14 @@ module.exports = class ace extends Exchange {
             id = order;
         } else {
             id = this.safeString (order, 'orderNo');
-            orderTime = this.safeString (order, 'orderTime');
-            timestamp = this.parse8601 (orderTime);
+            timestamp = this.safeInteger (order, 'orderTimeStamp');
+            if (timestamp === undefined) {
+                const dateTime = this.safeString (order, 'orderTime');
+                if (dateTime !== undefined) {
+                    timestamp = this.parse8601 (dateTime);
+                    timestamp = timestamp - 28800000; // 8 hours
+                }
+            }
             const orderSide = this.safeNumber (order, 'buyOrSell');
             if (orderSide !== undefined) {
                 side = (orderSide === 1) ? 'buy' : 'sell';
@@ -557,7 +567,7 @@ module.exports = class ace extends Exchange {
             'id': id,
             'clientOrderId': undefined,
             'timestamp': timestamp,
-            'datetime': orderTime,
+            'datetime': this.iso8601 (timestamp),
             'lastTradeTimestamp': undefined,
             'symbol': symbol,
             'type': type,
@@ -783,7 +793,12 @@ module.exports = class ace extends Exchange {
         const id = this.safeString (trade, 'tradeNo');
         const price = this.safeString (trade, 'price');
         const amount = this.safeString (trade, 'num');
-        const datetime = this.safeString2 (trade, 'time', 'tradeTime');
+        let timestamp = this.safeInteger (trade, 'tradeTimestamp');
+        if (timestamp === undefined) {
+            const datetime = this.safeString2 (trade, 'time', 'tradeTime');
+            timestamp = this.parse8601 (datetime);
+            timestamp = timestamp - 28800000; // 8 hours normalize timestamp
+        }
         let symbol = market['symbol'];
         const quoteId = this.safeString (trade, 'quoteCurrencyName');
         const baseId = this.safeString (trade, 'baseCurrencyName');
@@ -816,8 +831,8 @@ module.exports = class ace extends Exchange {
             'amount': amount,
             'cost': undefined,
             'fee': fee,
-            'timestamp': this.parse8601 (datetime),
-            'datetime': datetime,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
         }, market);
     }
 
