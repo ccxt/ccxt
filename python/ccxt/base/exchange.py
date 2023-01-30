@@ -425,7 +425,12 @@ class Exchange(object):
                     setattr(cls, camelcase, getattr(cls, name))
                 else:
                     setattr(self, camelcase, attr)
-        self.tokenBucket = self.calculate_rate_limit_token_bucket(self)
+        self.tokenBucket = self.extend({
+            'refillRate': 1.0 / self.rateLimit if self.rateLimit > 0 else float('inf'),
+            'delay': 0.001,
+            'capacity': 1.0,
+            'defaultCost': 1.0,
+        }, getattr(self, 'tokenBucket', {}))
 
         if not self.session and self.synchronous:
             self.session = Session()
@@ -458,18 +463,6 @@ class Exchange(object):
         elif 'apiBackup' in self.urls:
             self.urls['api'] = self.urls['apiBackup']
             del self.urls['apiBackup']
-
-    def calculate_rate_limit_token_bucket(self, rate_limit_config):
-        rate_limit = getattr (rate_limit_config, 'rateLimit', -1)
-        token_bucket = getattr (rate_limit_config, 'tokenBucket', {})
-        config = self.extend({
-            'delay': 0.001,
-            'capacity': 1,
-            'cost': 1,
-            'maxCapacity': 1000,
-            'refillRate': 1 / rate_limit if rate_limit > 0 else float('inf'),
-        }, token_bucket)
-        return config
 
     def define_rest_api_endpoint(self, method_name, uppercase_method, lowercase_method, camelcase_method, path, paths, config={}):
         cls = type(self)
@@ -1813,6 +1806,19 @@ class Exchange(object):
                 'CRO': {'CRC20': 'CRONOS'},
             },
         }
+
+    def calculate_rate_limit_token_bucket(self, rateLimitConfig):
+        rateLimit = self.safe_number(rateLimitConfig, 'rateLimit')
+        refillRate = (1 / rateLimit) if (rateLimit is not None) else float('inf')
+        tokenBucket = self.safe_value(rateLimitConfig, 'tokenBucket', {})
+        config = self.extend({
+            'delay': 0.001,
+            'capacity': 1,
+            'cost': 1,
+            'maxCapacity': 1000,
+            'refillRate': refillRate,
+        }, tokenBucket)
+        return config
 
     def safe_ledger_entry(self, entry, currency=None):
         currency = self.safe_currency(None, currency)
