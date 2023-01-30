@@ -101,6 +101,7 @@ class btcex(Exchange):
                 'setLeverage': True,
                 'setMarginMode': True,
                 'signIn': True,
+                'transfer': True,
                 'withdraw': False,
             },
             'timeframes': {
@@ -183,6 +184,7 @@ class btcex(Exchange):
                         'close_position',
                         'adjust_perpetual_leverage',
                         'adjust_perpetual_margin_type',
+                        'submit_transfer',
                     ],
                     'delete': [],
                 },
@@ -2070,6 +2072,65 @@ class btcex(Exchange):
         #     }
         #
         return response
+
+    def transfer(self, code, amount, fromAccount, toAccount, params={}):
+        """
+        transfer currency internally between wallets on the same account
+        see https://docs.btcex.com/#asset-transfer
+        :param str code: unified currency code
+        :param float amount: amount to transfer
+        :param str fromAccount: account to transfer from
+        :param str toAccount: account to transfer to
+        :param dict params: extra parameters specific to the btcex api endpoint
+        :returns dict: a `transfer structure <https://docs.ccxt.com/en/latest/manual.html#transfer-structure>`
+        """
+        self.sign_in()
+        self.load_markets()
+        currency = self.currency(code)
+        accountsByType = self.safe_value(self.options, 'accountsByType', {})
+        fromId = self.safe_string(accountsByType, fromAccount, fromAccount)
+        toId = self.safe_string(accountsByType, toAccount, toAccount)
+        request = {
+            'coin_type': currency['id'],
+            'amount': self.currency_to_precision(code, amount),
+            'from': fromId,  # WALLET, SPOT, PERPETUAL
+            'to': toId,  # WALLET, SPOT, PERPETUAL
+        }
+        response = self.privatePostSubmitTransfer(self.extend(request, params))
+        #
+        #     {
+        #         "id": "1674937273",
+        #         "jsonrpc": "2.0",
+        #         "usIn": 1674937274762,
+        #         "usOut": 1674937274774,
+        #         "usDiff": 12,
+        #         "result": "ok"
+        #     }
+        #
+        return self.parse_transfer(response, currency)
+
+    def parse_transfer(self, transfer, currency=None):
+        #
+        #     {
+        #         "id": "1674937273",
+        #         "jsonrpc": "2.0",
+        #         "usIn": 1674937274762,
+        #         "usOut": 1674937274774,
+        #         "usDiff": 12,
+        #         "result": "ok"
+        #     }
+        #
+        return {
+            'info': transfer,
+            'id': self.safe_string(transfer, 'id'),
+            'timestamp': None,
+            'datetime': None,
+            'currency': None,
+            'amount': None,
+            'fromAccount': None,
+            'toAccount': None,
+            'status': None,
+        }
 
     def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
         request = '/' + 'api/' + self.version + '/' + api + '/' + path

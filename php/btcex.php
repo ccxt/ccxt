@@ -88,6 +88,7 @@ class btcex extends Exchange {
                 'setLeverage' => true,
                 'setMarginMode' => true,
                 'signIn' => true,
+                'transfer' => true,
                 'withdraw' => false,
             ),
             'timeframes' => array(
@@ -170,6 +171,7 @@ class btcex extends Exchange {
                         'close_position',
                         'adjust_perpetual_leverage',
                         'adjust_perpetual_margin_type',
+                        'submit_transfer',
                     ),
                     'delete' => array(),
                 ),
@@ -2148,6 +2150,67 @@ class btcex extends Exchange {
         //     }
         //
         return $response;
+    }
+
+    public function transfer($code, $amount, $fromAccount, $toAccount, $params = array ()) {
+        /**
+         * transfer $currency internally between wallets on the same account
+         * @see https://docs.btcex.com/#asset-transfer
+         * @param {string} $code unified $currency $code
+         * @param {float} $amount amount to transfer
+         * @param {string} $fromAccount account to transfer from
+         * @param {string} $toAccount account to transfer to
+         * @param {array} $params extra parameters specific to the btcex api endpoint
+         * @return {array} a {@link https://docs.ccxt.com/en/latest/manual.html#transfer-structure transfer structure}
+         */
+        $this->sign_in();
+        $this->load_markets();
+        $currency = $this->currency($code);
+        $accountsByType = $this->safe_value($this->options, 'accountsByType', array());
+        $fromId = $this->safe_string($accountsByType, $fromAccount, $fromAccount);
+        $toId = $this->safe_string($accountsByType, $toAccount, $toAccount);
+        $request = array(
+            'coin_type' => $currency['id'],
+            'amount' => $this->currency_to_precision($code, $amount),
+            'from' => $fromId, // WALLET, SPOT, PERPETUAL
+            'to' => $toId, // WALLET, SPOT, PERPETUAL
+        );
+        $response = $this->privatePostSubmitTransfer (array_merge($request, $params));
+        //
+        //     {
+        //         "id" => "1674937273",
+        //         "jsonrpc" => "2.0",
+        //         "usIn" => 1674937274762,
+        //         "usOut" => 1674937274774,
+        //         "usDiff" => 12,
+        //         "result" => "ok"
+        //     }
+        //
+        return $this->parse_transfer($response, $currency);
+    }
+
+    public function parse_transfer($transfer, $currency = null) {
+        //
+        //     {
+        //         "id" => "1674937273",
+        //         "jsonrpc" => "2.0",
+        //         "usIn" => 1674937274762,
+        //         "usOut" => 1674937274774,
+        //         "usDiff" => 12,
+        //         "result" => "ok"
+        //     }
+        //
+        return array(
+            'info' => $transfer,
+            'id' => $this->safe_string($transfer, 'id'),
+            'timestamp' => null,
+            'datetime' => null,
+            'currency' => null,
+            'amount' => null,
+            'fromAccount' => null,
+            'toAccount' => null,
+            'status' => null,
+        );
     }
 
     public function sign($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
