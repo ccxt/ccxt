@@ -876,10 +876,10 @@ module.exports = class bitmart extends Exchange {
             const code = this.safeCurrencyCode (currencyPart);
             if (!(code in result)) {
                 result[code] = {
+                    'info': {},
                     'id': currencyPart, // not 'currencyId', because it holds `USDT-BEP20, USDT,` etc..
                     'code': code,
                     'name': this.safeString (currency, 'name'),
-                    'info': undefined,
                     'type': undefined,
                     'margin': undefined,
                     'active': undefined,
@@ -900,6 +900,7 @@ module.exports = class bitmart extends Exchange {
                     },
                 };
             }
+            result[code]['info'][currencyId] = currency;
             const networkId = this.safeString (currency, 'network');
             const networkCode = this.networkIdToCode (networkId);
             this.defineNetworkCodeNameIdMappings (code, currencyId, networkCode, networkId);
