@@ -58,7 +58,7 @@ module.exports = class btcex extends Exchange {
                 'fetchFundingHistory': false,
                 'fetchFundingRate': true,
                 'fetchFundingRateHistory': false,
-                'fetchFundingRates': false,
+                'fetchFundingRates': true,
                 'fetchIndexOHLCV': false,
                 'fetchLeverage': true,
                 'fetchLeverageTiers': true,
@@ -2159,6 +2159,71 @@ module.exports = class btcex extends Exchange {
         //     }
         //
         return response;
+    }
+
+    async fetchFundingRates (symbols = undefined, params = {}) {
+        /**
+         * @method
+         * @name btcex#fetchFundingRates
+         * @description fetch the current funding rates
+         * @see https://docs.btcex.com/#contracts
+         * @param {array} symbols unified market symbols
+         * @param {object} params extra parameters specific to the btcex api endpoint
+         * @returns {array} an array of [funding rate structures]{@link https://docs.ccxt.com/en/latest/manual.html#funding-rate-structure}
+         */
+        await this.loadMarkets ();
+        symbols = this.marketSymbols (symbols);
+        let market = undefined;
+        const response = await this.publicGetCoinGeckoContracts (params);
+        //
+        //     {
+        //         "jsonrpc": "2.0",
+        //         "usIn": 1674803585896,
+        //         "usOut": 1674803585943,
+        //         "usDiff": 47,
+        //         "result": [
+        //             {
+        //                 "ticker_id": "BTC-USDT-PERPETUAL",
+        //                 "base_currency": "BTC",
+        //                 "target_currency": "USDT",
+        //                 "last_price": "23685",
+        //                 "base_volume": "167011.37199999999999989",
+        //                 "target_volume": "3837763191.33800288010388613",
+        //                 "bid": "23684.5",
+        //                 "ask": "23685",
+        //                 "high": "23971.5",
+        //                 "low": "23156",
+        //                 "product_type": "perpetual",
+        //                 "open_interest": "24242.36",
+        //                 "index_price": "23686.4",
+        //                 "index_name": "BTC-USDT",
+        //                 "index_currency": "BTC",
+        //                 "start_timestamp": 1631004005882,
+        //                 "funding_rate": "0.000187",
+        //                 "next_funding_rate_timestamp": 1675065600000,
+        //                 "contract_type": "Quanto",
+        //                 "contract_price": "23685",
+        //                 "contract_price_currency": "USDT"
+        //             },
+        //         ]
+        //     }
+        //
+        const data = this.safeValue (response, 'result', []);
+        const result = [];
+        for (let i = 0; i < data.length; i++) {
+            const entry = data[i];
+            const marketId = this.safeString (entry, 'ticker_id');
+            market = this.safeMarket (marketId);
+            const symbol = this.safeSymbol (marketId, market);
+            if (symbols !== undefined) {
+                if (this.inArray (symbol, symbols)) {
+                    result[symbol] = this.parseFundingRate (entry, market);
+                }
+            } else {
+                result[symbol] = this.parseFundingRate (entry, market);
+            }
+        }
+        return this.filterByArray (result, 'symbol', symbols);
     }
 
     async fetchFundingRate (symbol, params = {}) {
