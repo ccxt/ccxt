@@ -813,6 +813,12 @@ module.exports = class bitget extends Exchange {
                     'contract': 'CONTRACT',
                     'mix': 'USD_MIX',
                 },
+                'accountsById': {
+                    'EXCHANGE': 'spot',
+                    'USDT_MIX': 'future',
+                    'CONTRACT': 'swap',
+                    'USD_MIX': 'swap',
+                },
                 'sandboxMode': false,
             },
         });
@@ -3975,27 +3981,37 @@ module.exports = class bitget extends Exchange {
         //         "billId":"1291"
         //     }
         //
-        let timestamp = this.safeInteger (transfer, 'requestTime');
+        let timestamp = this.safeInteger2 (transfer, 'requestTime', 'tradeTime');
         if (timestamp === undefined) {
             timestamp = this.safeTimestamp (transfer, 'cTime');
         }
-        const msg = this.safeString (transfer, 'msg');
+        const msg = this.safeStringLowerN (transfer, [ 'msg', 'status' ]);
+        let currencyId = this.safeString2 (transfer, 'code', 'coinName');
+        if (currencyId === '00000') {
+            currencyId = undefined;
+        }
+        const fromAccountRaw = this.safeString (transfer, 'fromType');
+        const accountsById = this.safeValue (this.options, 'accountsById', {});
+        const fromAccount = this.safeString (accountsById, fromAccountRaw, fromAccountRaw);
+        const toAccountRaw = this.safeString (transfer, 'toType');
+        const toAccount = this.safeString (accountsById, toAccountRaw, toAccountRaw);
         return {
             'info': transfer,
             'id': this.safeString2 (transfer, 'id', 'billId'),
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'currency': this.safeString2 (currency, 'code', 'coinName'),
-            'amount': this.safeNumber2 (transfer, 'size', 'quantity'),
-            'fromAccount': undefined,
-            'toAccount': undefined,
-            'status': (msg === 'success') ? 'ok' : msg,
+            'currency': this.safeCurrencyCode (currencyId),
+            'amount': this.safeNumberN (transfer, [ 'size', 'quantity', 'amount' ]),
+            'fromAccount': fromAccount,
+            'toAccount': toAccount,
+            'status': this.parseTransferStatus (msg),
         };
     }
 
     parseTransferStatus (status) {
         const statuses = {
             'success': 'ok',
+            'successful': 'ok',
         };
         return this.safeString (statuses, status, status);
     }
