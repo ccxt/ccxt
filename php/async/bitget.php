@@ -2051,7 +2051,8 @@ class bitget extends Exchange {
                 $limit = 100;
             }
             if ($market['type'] === 'spot') {
-                $request['period'] = $this->options['timeframes']['spot'][$timeframe];
+                $timeframes = $this->options['timeframes']['spot'];
+                $request['period'] = $this->safe_string($timeframes, $timeframe, $timeframe);
                 $request['limit'] = $limit;
                 if ($since !== null) {
                     $request['after'] = $since;
@@ -2064,7 +2065,8 @@ class bitget extends Exchange {
                     $request['before'] = $until;
                 }
             } elseif ($market['type'] === 'swap') {
-                $request['granularity'] = $this->options['timeframes']['swap'][$timeframe];
+                $timeframes = $this->options['timeframes']['swap'];
+                $request['granularity'] = $this->safe_string($timeframes, $timeframe, $timeframe);
                 $duration = $this->parse_timeframe($timeframe);
                 $now = $this->milliseconds();
                 if ($since === null) {

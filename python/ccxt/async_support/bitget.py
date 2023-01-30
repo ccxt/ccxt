@@ -1980,7 +1980,8 @@ class bitget(Exchange):
         if limit is None:
             limit = 100
         if market['type'] == 'spot':
-            request['period'] = self.options['timeframes']['spot'][timeframe]
+            timeframes = self.options['timeframes']['spot']
+            request['period'] = self.safe_string(timeframes, timeframe, timeframe)
             request['limit'] = limit
             if since is not None:
                 request['after'] = since
@@ -1990,7 +1991,8 @@ class bitget(Exchange):
             if until is not None:
                 request['before'] = until
         elif market['type'] == 'swap':
-            request['granularity'] = self.options['timeframes']['swap'][timeframe]
+            timeframes = self.options['timeframes']['swap']
+            request['granularity'] = self.safe_string(timeframes, timeframe, timeframe)
             duration = self.parse_timeframe(timeframe)
             now = self.milliseconds()
             if since is None:
