@@ -77,7 +77,7 @@ module.exports = class bitget extends Exchange {
                 'fetchTradingFee': true,
                 'fetchTradingFees': true,
                 'fetchTransfer': false,
-                'fetchTransfers': undefined,
+                'fetchTransfers': true,
                 'fetchWithdrawal': false,
                 'fetchWithdrawals': true,
                 'reduceMargin': true,
@@ -805,6 +805,13 @@ module.exports = class bitget extends Exchange {
                 'broker': 'p4sve',
                 'withdraw': {
                     'fillResponseFromRequest': true,
+                },
+                'accountsByType': {
+                    'main': 'EXCHANGE',
+                    'spot': 'EXCHANGE',
+                    'future': 'USDT_MIX',
+                    'contract': 'CONTRACT',
+                    'mix': 'USD_MIX',
                 },
                 'sandboxMode': false,
             },
@@ -3844,6 +3851,62 @@ module.exports = class bitget extends Exchange {
         return this.parseOpenInterest (data, market);
     }
 
+    async fetchTransfers (code = undefined, since = undefined, limit = undefined, params = {}) {
+        /**
+         * @method
+         * @name bitget#fetchTransfers
+         * @description fetch a history of internal transfers made on an account
+         * @see https://bitgetlimited.github.io/apidoc/en/spot/#get-transfer-list
+         * @param {string|undefined} code unified currency code of the currency transferred
+         * @param {int|undefined} since the earliest time in ms to fetch transfers for
+         * @param {int|undefined} limit the maximum number of  transfers structures to retrieve
+         * @param {object} params extra parameters specific to the bitget api endpoint
+         * @returns {[object]} a list of [transfer structures]{@link https://docs.ccxt.com/en/latest/manual.html#transfer-structure}
+         */
+        await this.loadMarkets ();
+        const defaultType = this.safeString2 (this.options, 'fetchTransfers', 'defaultType', 'EXCHANGE');
+        const fromAccount = this.safeString (params, 'fromAccount', defaultType);
+        let type = this.safeString (params, 'type');
+        if (type === undefined) {
+            const accountsByType = this.safeValue (this.options, 'accountsByType', {});
+            type = this.safeString (accountsByType, fromAccount);
+        }
+        const request = {
+            'fromType': type,
+        };
+        let currency = undefined;
+        if (code !== undefined) {
+            currency = this.currency (code);
+            request['coinId'] = currency['id'];
+        }
+        if (since !== undefined) {
+            request['before'] = since;
+        }
+        if (limit !== undefined) {
+            request['limit'] = limit;
+        }
+        const response = await this.privateSpotGetAccountTransferRecords (this.extend (request, params));
+        //
+        //     {
+        //         "code":"00000",
+        //         "message":"success",
+        //         "data":[{
+        //             "cTime":"1622697148",
+        //             "coinId":"22",
+        //             "coinName":"usdt",
+        //             "groupType":"deposit",
+        //             "bizType":"transfer-in",
+        //             "quantity":"1",
+        //             "balance": "1",
+        //             "fees":"0",
+        //             "billId":"1291"
+        //         }]
+        //     }
+        //
+        const data = this.safeValue (response, 'data', []);
+        return this.parseTransfers (data, currency, since, limit);
+    }
+
     async transfer (code, amount, fromAccount, toAccount, params = {}) {
         /**
          * @method
@@ -3890,6 +3953,8 @@ module.exports = class bitget extends Exchange {
 
     parseTransfer (transfer, currency = undefined) {
         //
+        // transfer
+        //
         //    {
         //        "code": "00000",
         //        "msg": "success",
@@ -3897,15 +3962,32 @@ module.exports = class bitget extends Exchange {
         //        "data": "SUCCESS"
         //    }
         //
-        const timestamp = this.safeInteger (transfer, 'requestTime');
+        // fetchTransfers
+        //
+        //     {
+        //         "cTime":"1622697148",
+        //         "coinId":"22",
+        //         "coinName":"usdt",
+        //         "groupType":"deposit",
+        //         "bizType":"transfer-in",
+        //         "quantity":"1",
+        //         "balance": "1",
+        //         "fees":"0",
+        //         "billId":"1291"
+        //     }
+        //
+        let timestamp = this.safeInteger (transfer, 'requestTime');
+        if (timestamp === undefined) {
+            timestamp = this.safeTimestamp (transfer, 'cTime');
+        }
         const msg = this.safeString (transfer, 'msg');
         return {
             'info': transfer,
-            'id': this.safeString (transfer, 'id'),
+            'id': this.safeString2 (transfer, 'id', 'billId'),
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'currency': this.safeString (currency, 'code'),
-            'amount': this.safeNumber (transfer, 'size'),
+            'currency': this.safeString2 (currency, 'code', 'coinName'),
+            'amount': this.safeNumber2 (transfer, 'size', 'quantity'),
             'fromAccount': undefined,
             'toAccount': undefined,
             'status': (msg === 'success') ? 'ok' : msg,
