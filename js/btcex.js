@@ -68,6 +68,8 @@ module.exports = class btcex extends Exchange {
                 'fetchMarkOHLCV': false,
                 'fetchMyTrades': true,
                 'fetchOHLCV': true,
+                'fetchOpenInterest': true,
+                'fetchOpenInterestHistory': false,
                 'fetchOpenOrders': true,
                 'fetchOrder': true,
                 'fetchOrderBook': true,
@@ -2393,6 +2395,106 @@ module.exports = class btcex extends Exchange {
             'fromAccount': undefined,
             'toAccount': undefined,
             'status': undefined,
+        };
+    }
+
+    async fetchOpenInterest (symbol, params = {}) {
+        /**
+         * @method
+         * @name btcex#fetchOpenInterest
+         * @description fetch the open interest of a market
+         * @see https://docs.btcex.com/#contracts
+         * @param {string} symbol unified CCXT market symbol
+         * @param {object} params extra parameters specific to the btcex api endpoint
+         * @returns {object} an open interest structure{@link https://docs.ccxt.com/en/latest/manual.html#interest-history-structure}
+         */
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        if (!market['contract']) {
+            throw new BadRequest (this.id + ' fetchOpenInterest() supports contract markets only');
+        }
+        const response = await this.publicGetCoinGeckoContracts (params);
+        //
+        //     {
+        //         "jsonrpc": "2.0",
+        //         "usIn": 1674803585896,
+        //         "usOut": 1674803585943,
+        //         "usDiff": 47,
+        //         "result": [
+        //             {
+        //                 "ticker_id": "BTC-USDT-PERPETUAL",
+        //                 "base_currency": "BTC",
+        //                 "target_currency": "USDT",
+        //                 "last_price": "23685",
+        //                 "base_volume": "167011.37199999999999989",
+        //                 "target_volume": "3837763191.33800288010388613",
+        //                 "bid": "23684.5",
+        //                 "ask": "23685",
+        //                 "high": "23971.5",
+        //                 "low": "23156",
+        //                 "product_type": "perpetual",
+        //                 "open_interest": "24242.36",
+        //                 "index_price": "23686.4",
+        //                 "index_name": "BTC-USDT",
+        //                 "index_currency": "BTC",
+        //                 "start_timestamp": 1631004005882,
+        //                 "funding_rate": "0.000187",
+        //                 "next_funding_rate_timestamp": 1675065600000,
+        //                 "contract_type": "Quanto",
+        //                 "contract_price": "23685",
+        //                 "contract_price_currency": "USDT"
+        //             },
+        //         ]
+        //     }
+        //
+        const data = this.safeValue (response, 'result', []);
+        for (let i = 0; i < data.length; i++) {
+            const entry = data[i];
+            const marketId = this.safeString (entry, 'ticker_id');
+            if (marketId === market['id']) {
+                return this.parseOpenInterest (entry, market);
+            }
+        }
+        return this.parseOpenInterest (data, market);
+    }
+
+    parseOpenInterest (interest, market = undefined) {
+        //
+        //     {
+        //         "ticker_id": "BTC-USDT-PERPETUAL",
+        //         "base_currency": "BTC",
+        //         "target_currency": "USDT",
+        //         "last_price": "23685",
+        //         "base_volume": "167011.37199999999999989",
+        //         "target_volume": "3837763191.33800288010388613",
+        //         "bid": "23684.5",
+        //         "ask": "23685",
+        //         "high": "23971.5",
+        //         "low": "23156",
+        //         "product_type": "perpetual",
+        //         "open_interest": "24242.36",
+        //         "index_price": "23686.4",
+        //         "index_name": "BTC-USDT",
+        //         "index_currency": "BTC",
+        //         "start_timestamp": 1631004005882,
+        //         "funding_rate": "0.000187",
+        //         "next_funding_rate_timestamp": 1675065600000,
+        //         "contract_type": "Quanto",
+        //         "contract_price": "23685",
+        //         "contract_price_currency": "USDT"
+        //     }
+        //
+        const marketId = this.safeString (interest, 'ticker_id');
+        market = this.safeMarket (marketId, market);
+        return {
+            'info': interest,
+            'symbol': market['symbol'],
+            'baseVolume': this.safeNumber (interest, 'open_interest'),
+            'quoteVolume': undefined,
+            'openInterestAmount': this.safeNumber (interest, 'open_interest'), // in base currency
+            'openInterestValue': undefined,
+            'timestamp': undefined,
+            'datetime': undefined,
         };
     }
 
