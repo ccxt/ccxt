@@ -873,7 +873,7 @@ module.exports = class gate extends gateRest {
         }
     }
 
-    handleBalanceSubscription (client, message) {
+    handleBalanceSubscription (client, message, subscription = undefined) {
         this.balance = {};
     }
 
