@@ -3864,13 +3864,12 @@ module.exports = class bitget extends Exchange {
          * @returns {[object]} a list of [transfer structures]{@link https://docs.ccxt.com/en/latest/manual.html#transfer-structure}
          */
         await this.loadMarkets ();
-        const defaultType = this.safeString2 (this.options, 'fetchTransfers', 'defaultType', 'EXCHANGE');
-        const fromAccount = this.safeString (params, 'fromAccount', defaultType);
-        let type = this.safeString (params, 'type');
-        if (type === undefined) {
-            const accountsByType = this.safeValue (this.options, 'accountsByType', {});
-            type = this.safeString (accountsByType, fromAccount);
-        }
+        let type = undefined;
+        [ type, params ] = this.handleMarketTypeAndParams ('fetchTransfers', undefined, params);
+        const fromAccount = this.safeString (params, 'fromAccount', type);
+        params = this.omit (params, 'fromAccount');
+        const accountsByType = this.safeValue (this.options, 'accountsByType', {});
+        type = this.safeString (accountsByType, fromAccount);
         const request = {
             'fromType': type,
         };
