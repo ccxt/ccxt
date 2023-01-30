@@ -882,6 +882,7 @@ module.exports = class bitopro extends Exchange {
             '2': 'closed',
             '3': 'closed',
             '4': 'canceled',
+            '6': 'canceled',
         };
         return this.safeString (statuses, status, undefined);
     }
@@ -937,6 +938,10 @@ module.exports = class bitopro extends Exchange {
         const filled = this.safeString (order, 'executedAmount');
         const remaining = this.safeString (order, 'remainingAmount');
         const timeInForce = this.safeString (order, 'timeInForce');
+        let postOnly = undefined;
+        if (timeInForce === 'POST_ONLY') {
+            postOnly = true;
+        }
         let fee = undefined;
         const feeAmount = this.safeString (order, 'fee');
         const feeSymbol = this.safeCurrencyCode (this.safeString (order, 'feeSymbol'));
@@ -955,7 +960,7 @@ module.exports = class bitopro extends Exchange {
             'symbol': symbol,
             'type': type,
             'timeInForce': timeInForce,
-            'postOnly': undefined,
+            'postOnly': postOnly,
             'side': side,
             'price': price,
             'stopPrice': undefined,
@@ -1013,6 +1018,10 @@ module.exports = class bitopro extends Exchange {
             } else {
                 request['condition'] = condition;
             }
+        }
+        const postOnly = this.isPostOnly (orderType === 'MARKET', undefined, params);
+        if (postOnly) {
+            request['timeInForce'] = 'POST_ONLY';
         }
         const response = await this.privatePostOrdersPair (this.extend (request, params), params);
         //

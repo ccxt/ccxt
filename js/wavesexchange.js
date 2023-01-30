@@ -770,17 +770,31 @@ module.exports = class wavesexchange extends Exchange {
         //           "timestamp":1640232379124
         //       }
         //
+        //  fetch ticker
+        //
+        //       {
+        //           firstPrice: '21749',
+        //           lastPrice: '22000',
+        //           volume: '0.73747149',
+        //           quoteVolume: '16409.44564928645471',
+        //           high: '23589.999941',
+        //           low: '21010.000845',
+        //           weightedAveragePrice: '22250.955964',
+        //           txsCount: '148',
+        //           volumeWaves: '0.0000000000680511203072'
+        //       }
+        //
         const timestamp = this.safeInteger (ticker, 'timestamp');
         const marketId = this.safeString (ticker, 'symbol');
         market = this.safeMarket (marketId, market, '/');
         const symbol = market['symbol'];
-        const last = this.safeString (ticker, '24h_close');
-        const low = this.safeString (ticker, '24h_low');
-        const high = this.safeString (ticker, '24h_high');
-        const vwap = this.safeString (ticker, '24h_vwap');
-        const baseVolume = this.safeString (ticker, '24h_volume');
-        const quoteVolume = this.safeString (ticker, '24h_priceVolume');
-        const open = this.safeString (ticker, '24h_open');
+        const last = this.safeString2 (ticker, '24h_close', 'lastPrice');
+        const low = this.safeString2 (ticker, '24h_low', 'low');
+        const high = this.safeString2 (ticker, '24h_high', 'high');
+        const vwap = this.safeString2 (ticker, '24h_vwap', 'weightedAveragePrice');
+        const baseVolume = this.safeString2 (ticker, '24h_volume', 'volume');
+        const quoteVolume = this.safeString2 (ticker, '24h_priceVolume', 'quoteVolume');
+        const open = this.safeString2 (ticker, '24h_open', 'firstPrice');
         return this.safeTicker ({
             'symbol': symbol,
             'timestamp': timestamp,
@@ -845,7 +859,8 @@ module.exports = class wavesexchange extends Exchange {
         //
         const data = this.safeValue (response, 'data', []);
         const ticker = this.safeValue (data, 0, {});
-        return this.parseTicker (ticker, market);
+        const dataTicker = this.safeValue (ticker, 'data', {});
+        return this.parseTicker (dataTicker, market);
     }
 
     async fetchTickers (symbols = undefined, params = {}) {

@@ -18,10 +18,10 @@ class mexc3 extends Exchange {
             'version' => 'v3',
             'has' => array(
                 'CORS' => null,
-                'spot' => null,
+                'spot' => true,
                 'margin' => true,
-                'swap' => null,
-                'future' => null,
+                'swap' => true,
+                'future' => true,
                 'option' => null,
                 'addMargin' => true,
                 'borrowMargin' => true,
@@ -634,7 +634,7 @@ class mexc3 extends Exchange {
                     'active' => $active,
                     'deposit' => $isDepositEnabled,
                     'withdraw' => $isWithdrawEnabled,
-                    'fee' => $this->safe_number($chain, 'fee'),
+                    'fee' => $fee,
                     'precision' => null,
                     'limits' => array(
                         'withdraw' => array(

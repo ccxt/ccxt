@@ -65,7 +65,6 @@ class oceanex(Exchange):
                 'fetchTrades': True,
                 'fetchTradingFee': False,
                 'fetchTradingFees': True,
-                'fetchTradingLimits': None,
                 'fetchTransactionFees': None,
             },
             'timeframes': {

@@ -1411,7 +1411,12 @@ module.exports = class bitvavo extends Exchange {
         const amount = this.safeString (order, 'amount');
         const remaining = this.safeString (order, 'amountRemaining');
         const filled = this.safeString (order, 'filledAmount');
-        const cost = this.safeString (order, 'filledAmountQuote');
+        let cost = this.safeString (order, 'filledAmountQuote');
+        if (cost === undefined) {
+            const amountQuote = this.safeString (order, 'amountQuote');
+            const amountQuoteRemaining = this.safeString (order, 'amountQuoteRemaining');
+            cost = Precise.stringSub (amountQuote, amountQuoteRemaining);
+        }
         let fee = undefined;
         const feeCost = this.safeNumber (order, 'feePaid');
         if (feeCost !== undefined) {

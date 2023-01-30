@@ -27,7 +27,7 @@ class whitebit(Exchange):
         return self.deep_extend(super(whitebit, self).describe(), {
             'id': 'whitebit',
             'name': 'WhiteBit',
-            'version': 'v2',
+            'version': 'v4',
             'countries': ['EE'],
             'rateLimit': 500,
             'has': {
@@ -41,16 +41,12 @@ class whitebit(Exchange):
                 'cancelAllOrders': False,
                 'cancelOrder': True,
                 'cancelOrders': False,
-                'createDepositAddress': None,
-                'createLimitOrder': None,
-                'createMarketOrder': None,
                 'createOrder': True,
                 'createStopLimitOrder': True,
                 'createStopMarketOrder': True,
                 'createStopOrder': True,
-                'editOrder': None,
+                'editOrder': False,
                 'fetchBalance': True,
-                'fetchBidsAsks': None,
                 'fetchBorrowRate': False,
                 'fetchBorrowRateHistories': False,
                 'fetchBorrowRateHistory': False,
@@ -231,6 +227,9 @@ class whitebit(Exchange):
             },
             'options': {
                 'fiatCurrencies': ['EUR', 'USD', 'RUB', 'UAH'],
+                'fetchBalance': {
+                    'account': 'spot',
+                },
                 'accountsByType': {
                     'main': 'main',
                     'spot': 'spot',
@@ -241,6 +240,7 @@ class whitebit(Exchange):
                     'BEP20': 'BSC',
                 },
                 'defaultType': 'spot',
+                'brokerId': 'ccxt',
             },
             'precisionMode': TICK_SIZE,
             'exceptions': {
@@ -1115,6 +1115,14 @@ class whitebit(Exchange):
             'side': side,
             'amount': self.amount_to_precision(symbol, amount),
         }
+        clientOrderId = self.safe_string_2(params, 'clOrdId', 'clientOrderId')
+        if clientOrderId is None:
+            brokerId = self.safe_string(self.options, 'brokerId')
+            if brokerId is not None:
+                request['clientOrderId'] = brokerId + self.uuid16()
+        else:
+            request['clientOrderId'] = clientOrderId
+            params = self.omit(params, ['clientOrderId'])
         marketType = self.safe_string(market, 'type')
         isLimitOrder = type == 'limit'
         isMarketOrder = type == 'market'
@@ -1184,6 +1192,7 @@ class whitebit(Exchange):
                 account = self.account()
                 account['free'] = self.safe_string(balance, 'available')
                 account['used'] = self.safe_string(balance, 'freeze')
+                account['total'] = self.safe_string(balance, 'main_balance')
                 result[code] = account
             else:
                 account = self.account()
@@ -1203,9 +1212,24 @@ class whitebit(Exchange):
         if marketType == 'swap':
             method = 'v4PrivatePostCollateralAccountBalance'
         else:
-            method = 'v4PrivatePostTradeAccountBalance'
+            options = self.safe_value(self.options, 'fetchBalance', {})
+            defaultAccount = self.safe_string(options, 'account')
+            account = self.safe_string(params, 'account', defaultAccount)
+            params = self.omit(params, 'account')
+            if account == 'main':
+                method = 'v4PrivatePostMainAccountBalance'
+            else:
+                method = 'v4PrivatePostTradeAccountBalance'
         response = await getattr(self, method)(query)
-        # spot
+        #
+        # main account
+        #
+        #     {
+        #         "BTC":{"main_balance":"0.0013929494020316"},
+        #         "ETH":{"main_balance":"0.001398289308"},
+        #     }
+        #
+        # spot trade account
         #
         #     {
         #         "BTC": {"available": "0.123", "freeze": "1"},
@@ -1369,6 +1393,8 @@ class whitebit(Exchange):
         filled = self.safe_string(order, 'dealStock')
         remaining = self.safe_string(order, 'left')
         clientOrderId = self.safe_string(order, 'clientOrderId')
+        if clientOrderId == '':
+            clientOrderId = None
         price = self.safe_string(order, 'price')
         stopPrice = self.safe_number(order, 'activation_price')
         orderId = self.safe_string_2(order, 'orderId', 'id')
@@ -1557,10 +1583,10 @@ class whitebit(Exchange):
         accountsByType = self.safe_value(self.options, 'accountsByType')
         fromAccountId = self.safe_string(accountsByType, fromAccount, fromAccount)
         toAccountId = self.safe_string(accountsByType, toAccount, toAccount)
-        amountString = str(amount)
+        amountString = self.currency_to_precision(code, amount)
         request = {
             'ticker': currency['id'],
-            'amount': self.currency_to_precision(code, amountString),
+            'amount': amountString,
             'from': fromAccountId,
             'to': toAccountId,
         }
@@ -1570,7 +1596,7 @@ class whitebit(Exchange):
         #
         transfer = self.parse_transfer(response, currency)
         return self.extend(transfer, {
-            'amount': self.currency_to_precision(code, amountString),
+            'amount': amount,
             'fromAccount': fromAccount,
             'toAccount': toAccount,
         })

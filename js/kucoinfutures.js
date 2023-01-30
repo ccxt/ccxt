@@ -18,7 +18,7 @@ module.exports = class kucoinfutures extends kucoin {
             'rateLimit': 75,
             'version': 'v1',
             'certified': false,
-            'pro': false,
+            'pro': true,
             'comment': 'Platform 2.0',
             'quoteJsonNumbers': false,
             'has': {
@@ -1030,18 +1030,18 @@ module.exports = class kucoinfutures extends kucoin {
          * @param {float} amount the amount of currency to trade
          * @param {float} price *ignored in "market" orders* the price at which the order is to be fullfilled at in units of the quote currency
          * @param {object} params  Extra parameters specific to the exchange API endpoint
-         * @param {float} params.leverage Leverage size of the order
-         * @param {float} params.stopPrice The price a stop order is triggered at
-         * @param {float} params.triggerPrice price to trigger stop orders
+         * @param {float} params.triggerPrice The price a trigger order is triggered at
          * @param {float} params.stopLossPrice price to trigger stop-loss orders
          * @param {float} params.takeProfitPrice price to trigger take-profit orders
-         * @param {string} params.stop 'up' or 'down', the direction the stopPrice is triggered from, requires stopPrice
-         * @param {string} params.stopPriceType  TP, IP or MP, defaults to MP: Mark Price
          * @param {bool} params.reduceOnly A mark to reduce the position size only. Set to false by default. Need to set the position size when reduceOnly is true.
          * @param {string} params.timeInForce GTC, GTT, IOC, or FOK, default is GTC, limit orders only
          * @param {string} params.postOnly Post only flag, invalid when timeInForce is IOC or FOK
+         * ----------------- Exchange Specific Parameters -----------------
+         * @param {float} params.leverage Leverage size of the order
          * @param {string} params.clientOid client order id, defaults to uuid if not passed
          * @param {string} params.remark remark for the order, length cannot exceed 100 utf8 characters
+         * @param {string} params.stop 'up' or 'down', the direction the stopPrice is triggered from, requires stopPrice. down: Triggers when the price reaches or goes below the stopPrice. up: Triggers when the price reaches or goes above the stopPrice.
+         * @param {string} params.stopPriceType  TP, IP or MP, defaults to MP: Mark Price
          * @param {bool} params.closeOrder set to true to close position
          * @param {bool} params.forceHold A mark to forcely hold the funds for an order, even though it's an order to reduce the position size. This helps the order stay on the order book and not get canceled when the position size changes. Set to false by default.
          * @returns {object} an [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
@@ -1068,28 +1068,20 @@ module.exports = class kucoinfutures extends kucoin {
         const takeProfitPrice = this.safeValue (params, 'takeProfitPrice');
         const isStopLoss = stopLossPrice !== undefined;
         const isTakeProfit = takeProfitPrice !== undefined;
-        const stop = this.safeString (params, 'stop');
-        const stopPriceType = this.safeString (params, 'stopPriceType', 'MP');
         if (stopPrice) {
-            if (stop === undefined) {
-                request['stop'] = (side === 'buy') ? 'down' : 'up';
-            }
+            request['stop'] = (side === 'buy') ? 'up' : 'down';
             request['stopPrice'] = this.priceToPrecision (symbol, stopPrice);
-            request['stopPriceType'] = stopPriceType;
+            request['stopPriceType'] = 'MP';
         } else if (isStopLoss || isTakeProfit) {
             if (isStopLoss) {
-                if (stop === undefined) {
-                    request['stop'] = (side === 'buy') ? 'up' : 'down';
-                }
+                request['stop'] = (side === 'buy') ? 'up' : 'down';
                 request['stopPrice'] = this.priceToPrecision (symbol, stopLossPrice);
             } else {
-                if (stop === undefined) {
-                    request['stop'] = (side === 'buy') ? 'down' : 'up';
-                }
+                request['stop'] = (side === 'buy') ? 'down' : 'up';
                 request['stopPrice'] = this.priceToPrecision (symbol, takeProfitPrice);
             }
             request['reduceOnly'] = true;
-            request['stopPriceType'] = stopPriceType;
+            request['stopPriceType'] = 'MP';
         }
         const uppercaseType = type.toUpperCase ();
         const timeInForce = this.safeStringUpper (params, 'timeInForce');
@@ -1115,7 +1107,7 @@ module.exports = class kucoinfutures extends kucoin {
                 throw new ArgumentsRequired (this.id + ' createOrder() requires a visibleSize parameter for iceberg orders');
             }
         }
-        params = this.omit (params, [ 'timeInForce', 'stop', 'stopPrice', 'stopPriceType', 'triggerPrice', 'stopLossPrice', 'takeProfitPrice' ]); // Time in force only valid for limit orders, exchange error when gtc for market orders
+        params = this.omit (params, [ 'timeInForce', 'stopPrice', 'triggerPrice', 'stopLossPrice', 'takeProfitPrice' ]); // Time in force only valid for limit orders, exchange error when gtc for market orders
         const response = await this.futuresPrivatePostOrders (this.extend (request, params));
         //
         //    {
@@ -1830,27 +1822,43 @@ module.exports = class kucoinfutures extends kucoin {
         //
         // fetchMyTrades (private) v1
         //
-        //      {
-        //          "symbol":"DOGEUSDTM",
-        //          "tradeId":"620ec41a96bab27b5f4ced56",
-        //          "orderId":"620ec41a0d1d8a0001560bd0",
-        //          "side":"sell",
-        //          "liquidity":"taker",
-        //          "forceTaker":true,
-        //          "price":"0.13969",
-        //          "size":1,
-        //          "value":"13.969",
-        //          "feeRate":"0.0006",
-        //          "fixFee":"0",
-        //          "feeCurrency":"USDT",
-        //          "stop":"",
-        //          "tradeTime":1645134874858018058,
-        //          "fee":"0.0083814",
-        //          "settleCurrency":"USDT",
-        //          "orderType":"market",
-        //          "tradeType":"trade",
-        //          "createdAt":1645134874858
-        //      }
+        //    {
+        //        "symbol":"DOGEUSDTM",
+        //        "tradeId":"620ec41a96bab27b5f4ced56",
+        //        "orderId":"620ec41a0d1d8a0001560bd0",
+        //        "side":"sell",
+        //        "liquidity":"taker",
+        //        "forceTaker":true,
+        //        "price":"0.13969",
+        //        "size":1,
+        //        "value":"13.969",
+        //        "feeRate":"0.0006",
+        //        "fixFee":"0",
+        //        "feeCurrency":"USDT",
+        //        "stop":"",
+        //        "tradeTime":1645134874858018058,
+        //        "fee":"0.0083814",
+        //        "settleCurrency":"USDT",
+        //        "orderType":"market",
+        //        "tradeType":"trade",
+        //        "createdAt":1645134874858
+        //    }
+        //
+        // watchTrades
+        //
+        //    {
+        //        makerUserId: '62286a4d720edf0001e81961',
+        //        symbol: 'ADAUSDTM',
+        //        sequence: 41320766,
+        //        side: 'sell',
+        //        size: 2,
+        //        price: 0.35904,
+        //        takerOrderId: '636dd9da9857ba00010cfa44',
+        //        makerOrderId: '636dd9c8df149d0001e62bc8',
+        //        takerUserId: '6180be22b6ab210001fa3371',
+        //        tradeId: '636dd9da0000d400d477eca7',
+        //        ts: 1668143578987357700
+        //    }
         //
         const marketId = this.safeString (trade, 'symbol');
         market = this.safeMarket (marketId, market, '-');

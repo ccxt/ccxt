@@ -481,21 +481,21 @@ class okx(Exchange, ccxt.async_support.okx):
                 client.resolve(orderbook, messageHash)
         return message
 
-    async def authenticate(self, params={}):
+    def authenticate(self, params={}):
         self.check_required_credentials()
         url = self.urls['api']['ws']['private']
-        messageHash = 'login'
+        messageHash = 'authenticated'
         client = self.client(url)
         future = self.safe_value(client.subscriptions, messageHash)
         if future is None:
-            future = client.future('authenticated')
             timestamp = str(self.seconds())
             method = 'GET'
             path = '/users/self/verify'
             auth = timestamp + method + path
             signature = self.hmac(self.encode(auth), self.encode(self.secret), hashlib.sha256, 'base64')
+            operation = 'login'
             request = {
-                'op': messageHash,
+                'op': operation,
                 'args': [
                     {
                         'apiKey': self.apiKey,
@@ -505,8 +505,10 @@ class okx(Exchange, ccxt.async_support.okx):
                     },
                 ],
             }
-            self.spawn(self.watch, url, messageHash, request, messageHash, future)
-        return await future
+            message = self.extend(request, params)
+            future = self.watch(url, messageHash, message)
+            client.subscriptions[messageHash] = future
+        return future
 
     async def watch_balance(self, params={}):
         """
@@ -709,7 +711,6 @@ class okx(Exchange, ccxt.async_support.okx):
         #     {event: 'login', success: True}
         #
         client.resolve(message, 'authenticated')
-        return message
 
     def ping(self, client):
         # okex does not support built-in ws protocol-level ping-pong
@@ -725,9 +726,9 @@ class okx(Exchange, ccxt.async_support.okx):
         #     {event: 'error', msg: 'Illegal request: {"op":"subscribe","args":["spot/ticker:BTC-USDT"]}', code: '60012'}
         #     {event: 'error', msg: "channel:ticker,instId:BTC-USDT doesn't exist", code: '60018'}
         #
-        errorCode = self.safe_string(message, 'errorCode')
+        errorCode = self.safe_integer(message, 'code')
         try:
-            if errorCode is not None:
+            if errorCode:
                 feedback = self.id + ' ' + self.json(message)
                 self.throw_exactly_matched_exception(self.exceptions['exact'], errorCode, feedback)
                 messageString = self.safe_value(message, 'message')
@@ -735,10 +736,10 @@ class okx(Exchange, ccxt.async_support.okx):
                     self.throw_broadly_matched_exception(self.exceptions['broad'], messageString, feedback)
         except Exception as e:
             if isinstance(e, AuthenticationError):
-                client.reject(e, 'authenticated')
-                method = 'login'
-                if method in client.subscriptions:
-                    del client.subscriptions[method]
+                messageHash = 'authenticated'
+                client.reject(e, messageHash)
+                if messageHash in client.subscriptions:
+                    del client.subscriptions[messageHash]
                 return False
         return message
 

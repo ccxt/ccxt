@@ -500,30 +500,32 @@ module.exports = class bitmart extends bitmartRest {
         return message;
     }
 
-    async authenticate (params = {}) {
+    authenticate (params = {}) {
         this.checkRequiredCredentials ();
         const url = this.implodeHostname (this.urls['api']['ws']['private']);
-        const messageHash = 'login';
+        const messageHash = 'authenticated';
         const client = this.client (url);
         let future = this.safeValue (client.subscriptions, messageHash);
         if (future === undefined) {
-            future = client.future ('authenticated');
             const timestamp = this.milliseconds ().toString ();
             const memo = this.uid;
             const path = 'bitmart.WebSocket';
             const auth = timestamp + '#' + memo + '#' + path;
             const signature = this.hmac (this.encode (auth), this.encode (this.secret), 'sha256');
+            const operation = 'login';
             const request = {
-                'op': messageHash,
+                'op': operation,
                 'args': [
                     this.apiKey,
                     timestamp,
                     signature,
                 ],
             };
-            this.spawn (this.watch, url, messageHash, request, messageHash, future);
+            const message = this.extend (request, params);
+            future = this.watch (url, messageHash, message);
+            client.subscriptions[messageHash] = future;
         }
-        return await future;
+        return future;
     }
 
     handleSubscriptionStatus (client, message) {
@@ -535,10 +537,10 @@ module.exports = class bitmart extends bitmartRest {
 
     handleAuthenticate (client, message) {
         //
-        //     { event: 'login', success: true }
+        //     { event: 'login' }
         //
-        client.resolve (message, 'authenticated');
-        return message;
+        const messageHash = 'authenticated';
+        client.resolve (message, messageHash);
     }
 
     handleErrorMessage (client, message) {
@@ -556,21 +558,21 @@ module.exports = class bitmart extends bitmartRest {
                     this.throwBroadlyMatchedException (this.exceptions['broad'], messageString, feedback);
                 }
             }
+            return false;
         } catch (e) {
             if (e instanceof AuthenticationError) {
-                client.reject (e, 'authenticated');
-                const method = 'login';
-                if (method in client.subscriptions) {
-                    delete client.subscriptions[method];
+                const messageHash = 'authenticated';
+                client.reject (e, messageHash);
+                if (messageHash in client.subscriptions) {
+                    delete client.subscriptions[messageHash];
                 }
-                return false;
             }
+            return true;
         }
-        return message;
     }
 
     handleMessage (client, message) {
-        if (!this.handleErrorMessage (client, message)) {
+        if (this.handleErrorMessage (client, message)) {
             return;
         }
         //

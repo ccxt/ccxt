@@ -120,7 +120,7 @@ function initializeAllExchanges () {
     const exchanges = initializeAllExchanges ()
     console.log (exchanges.map (exchange => exchange.id))
     let results = []
-    const priceOracle = new ccxt.bitfinex ()
+    const priceOracle = new ccxt.gate ()
     const tickers = await priceOracle.fetchTickers ()
     await Promise.all (exchanges.map ((exchange) => (async function () {
 

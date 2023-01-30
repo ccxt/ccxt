@@ -33,7 +33,7 @@ class bitmex extends Exchange {
             'pro' => true,
             'has' => array(
                 'CORS' => null,
-                'spot' => false,
+                'spot' => true,
                 'margin' => false,
                 'swap' => true,
                 'future' => true,

@@ -849,42 +849,41 @@ class bitfinex2 extends \ccxt\async\bitfinex2 {
     }
 
     public function authenticate($params = array ()) {
-        return Async\async(function () use ($params) {
-            $url = $this->urls['api']['ws']['private'];
-            $client = $this->client($url);
-            $future = $client->future ('authenticated');
-            $method = 'auth';
-            $authenticated = $this->safe_value($client->subscriptions, $method);
-            if ($authenticated === null) {
-                $nonce = $this->milliseconds();
-                $payload = 'AUTH' . (string) $nonce;
-                $signature = $this->hmac($this->encode($payload), $this->encode($this->secret), 'sha384', 'hex');
-                $request = array(
-                    'apiKey' => $this->apiKey,
-                    'authSig' => $signature,
-                    'authNonce' => $nonce,
-                    'authPayload' => $payload,
-                    'event' => $method,
-                );
-                $this->spawn(array($this, 'watch'), $url, $method, $request, 1);
-            }
-            return Async\await($future);
-        }) ();
+        $url = $this->urls['api']['ws']['private'];
+        $client = $this->client($url);
+        $messageHash = 'authenticate';
+        $future = $this->safe_value($client->subscriptions, $messageHash);
+        if ($future === null) {
+            $nonce = $this->milliseconds();
+            $payload = 'AUTH' . (string) $nonce;
+            $signature = $this->hmac($this->encode($payload), $this->encode($this->secret), 'sha384', 'hex');
+            $event = 'auth';
+            $request = array(
+                'apiKey' => $this->apiKey,
+                'authSig' => $signature,
+                'authNonce' => $nonce,
+                'authPayload' => $payload,
+                'event' => $event,
+            );
+            $message = array_merge($request, $params);
+            $future = $this->watch($url, $messageHash, $message);
+            $client->subscriptions[$messageHash] = $future;
+        }
+        return $future;
     }
 
     public function handle_authentication_message($client, $message) {
+        $messageHash = 'authenticated';
         $status = $this->safe_string($message, 'status');
         if ($status === 'OK') {
-            // we resolve the $future here permanently so authentication only happens once
-            $future = $this->safe_value($client->futures, 'authenticated');
-            $future->resolve (true);
+            // we resolve the future here permanently so authentication only happens once
+            $client->resolve ($message, $messageHash);
         } else {
             $error = new AuthenticationError ($this->json($message));
-            $client->reject ($error, 'authenticated');
+            $client->reject ($error, $messageHash);
             // allows further authentication attempts
-            $method = $this->safe_string($message, 'event');
-            if (is_array($client->subscriptions) && array_key_exists($method, $client->subscriptions)) {
-                unset($client->subscriptions[$method]);
+            if (is_array($client->subscriptions) && array_key_exists($messageHash, $client->subscriptions)) {
+                unset($client->subscriptions[$messageHash]);
             }
         }
     }

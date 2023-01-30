@@ -58,6 +58,8 @@ class huobi extends Exchange {
                 'fetchDepositAddresses' => null,
                 'fetchDepositAddressesByNetwork' => true,
                 'fetchDeposits' => true,
+                'fetchDepositWithdrawFee' => 'emulated',
+                'fetchDepositWithdrawFees' => true,
                 'fetchFundingHistory' => true,
                 'fetchFundingRate' => true,
                 'fetchFundingRateHistory' => true,
@@ -164,11 +166,10 @@ class huobi extends Exchange {
                     'discount' => 0.15,
                 ),
                 'doc' => array(
-                    'https://huobiapi.github.io/docs/spot/v1/cn/',
-                    'https://huobiapi.github.io/docs/dm/v1/cn/',
-                    'https://huobiapi.github.io/docs/coin_margined_swap/v1/cn/',
-                    'https://huobiapi.github.io/docs/usdt_swap/v1/cn/',
-                    'https://huobiapi.github.io/docs/option/v1/cn/',
+                    'https://huobiapi.github.io/docs/spot/v1/en/',
+                    'https://huobiapi.github.io/docs/dm/v1/en/',
+                    'https://huobiapi.github.io/docs/coin_margined_swap/v1/en/',
+                    'https://huobiapi.github.io/docs/usdt_swap/v1/en/',
                 ),
                 'fees' => 'https://www.huobi.com/about/fee/',
             ),
@@ -782,6 +783,8 @@ class huobi extends Exchange {
                             'linear-swap-api/v3/swap_cross_hisorders' => 1,
                             'linear-swap-api/v3/swap_hisorders_exact' => 1,
                             'linear-swap-api/v3/swap_cross_hisorders_exact' => 1,
+                            'linear-swap-api/v3/swap_unified_account_type' => 1,
+                            'linear-swap-api/v3/swap_switch_account_type' => 1,
                             // Swap Strategy Order Interface
                             'linear-swap-api/v1/swap_trigger_order' => 1,
                             'linear-swap-api/v1/swap_cross_trigger_order' => 1,
@@ -866,6 +869,7 @@ class huobi extends Exchange {
                     'order-marketorder-amount-min-error' => '\\ccxt\\InvalidOrder', // market order amount error, min => `0.01`
                     'order-limitorder-price-min-error' => '\\ccxt\\InvalidOrder', // limit order price error
                     'order-limitorder-price-max-error' => '\\ccxt\\InvalidOrder', // limit order price error
+                    'order-stop-order-hit-trigger' => '\\ccxt\\InvalidOrder', // array("status":"error","err-code":"order-stop-order-hit-trigger","err-msg":"Orders that are triggered immediately are not supported.","data":null)
                     'order-value-min-error' => '\\ccxt\\InvalidOrder', // array("status":"error","err-code":"order-value-min-error","err-msg":"Order total cannot be lower than => 1 USDT","data":null)
                     'order-invalid-price' => '\\ccxt\\InvalidOrder', // array("status":"error","err-code":"order-invalid-price","err-msg":"invalid price","data":null)
                     'order-holding-limit-failed' => '\\ccxt\\InvalidOrder', // array("status":"error","err-code":"order-holding-limit-failed","err-msg":"Order failed, exceeded the holding limit of this currency","data":null)
@@ -962,11 +966,6 @@ class huobi extends Exchange {
                 'language' => 'en-US',
                 'broker' => array(
                     'id' => 'AA03022abc',
-                ),
-                'accountsByType' => array(
-                    'spot' => 'pro',
-                    'funding' => 'pro',
-                    'future' => 'futures',
                 ),
                 'accountsById' => array(
                     'spot' => 'spot',
@@ -5061,30 +5060,67 @@ class huobi extends Exchange {
     public function transfer($code, $amount, $fromAccount, $toAccount, $params = array ()) {
         /**
          * $transfer $currency internally between wallets on the same account
+         * @see https://huobiapi.github.io/docs/dm/v1/en/#$transfer-margin-between-spot-account-and-future-account
+         * @see https://huobiapi.github.io/docs/spot/v1/en/#$transfer-fund-between-spot-account-and-future-contract-account
+         * @see https://huobiapi.github.io/docs/usdt_swap/v1/en/#general-$transfer-margin-between-spot-account-and-usdt-margined-contracts-account
          * @param {string} $code unified $currency $code
          * @param {float} $amount amount to $transfer
-         * @param {string} $fromAccount account to $transfer from
-         * @param {string} $toAccount account to $transfer to
+         * @param {string} $fromAccount account to $transfer from 'spot', 'future', 'swap'
+         * @param {string} $toAccount account to $transfer to 'spot', 'future', 'swap'
          * @param {array} $params extra parameters specific to the huobi api endpoint
+         * @param {string|null} $params->symbol used for isolated margin $transfer
          * @return {array} a {@link https://docs.ccxt.com/en/latest/manual.html#$transfer-structure $transfer structure}
          */
         $this->load_markets();
         $currency = $this->currency($code);
-        $type = $this->safe_string($params, 'type');
-        if ($type === null) {
-            $accountsByType = $this->safe_value($this->options, 'accountsByType', array());
-            $fromAccount = strtolower($fromAccount); // pro, futures
-            $toAccount = strtolower($toAccount); // pro, futures
-            $fromId = $this->safe_string($accountsByType, $fromAccount, $fromAccount);
-            $toId = $this->safe_string($accountsByType, $toAccount, $toAccount);
-            $type = $fromId . '-to-' . $toId;
-        }
         $request = array(
             'currency' => $currency['id'],
             'amount' => floatval($this->currency_to_precision($code, $amount)),
-            'type' => $type,
         );
-        $response = $this->spotPrivatePostFuturesTransfer (array_merge($request, $params));
+        $subType = null;
+        list($subType, $params) = $this->handle_sub_type_and_params('transfer', null, $params);
+        $method = null;
+        $fromAccount = strtolower($fromAccount);
+        $toAccount = strtolower($toAccount);
+        $futuresAccounts = array(
+            'future' => 'futures',
+            'spot' => 'pro',
+        );
+        $fromIdFuture = $this->safe_string($futuresAccounts, $fromAccount, $fromAccount);
+        $toIdFuture = $this->safe_string($futuresAccounts, $toAccount, $toAccount);
+        $isFromSpot = ($fromAccount === 'spot') || ($fromAccount === 'pro');
+        $isToSpot = ($toAccount === 'spot') || ($toAccount === 'pro');
+        if (!$isFromSpot && !$isToSpot) {
+            throw new BadRequest($this->id . ' $transfer() can only $transfer between spot and futures accounts or vice versa');
+        }
+        $fromOrToFuturesAccount = ($fromIdFuture === 'futures') || ($toIdFuture === 'futures');
+        if ($fromOrToFuturesAccount) {
+            $type = $fromIdFuture . '-to-' . $toIdFuture;
+            $type = $this->safe_string($params, 'type', $type);
+            $request['type'] = $type;
+            $method = 'spotPrivatePostV1FuturesTransfer';
+        } else {
+            $method = 'v2PrivatePostAccountTransfer';
+            if ($subType === 'linear') {
+                if (($fromAccount === 'swap') || ($fromAccount === 'linear-swap')) {
+                    $fromAccount = 'linear-swap';
+                } else {
+                    $toAccount = 'linear-swap';
+                }
+                // check if cross-margin or isolated
+                $symbol = $this->safe_string($params, 'symbol');
+                $params = $this->omit($params, 'symbol');
+                if ($symbol !== null) {
+                    $symbol = $this->market_id($symbol);
+                    $request['margin-account'] = $symbol;
+                } else {
+                    $request['margin-account'] = 'USDT'; // cross-margin
+                }
+            }
+            $request['from'] = $fromAccount;
+            $request['to'] = $toAccount;
+        }
+        $response = $this->$method (array_merge($request, $params));
         //
         //     {
         //         "data" => 12345,
@@ -7112,6 +7148,122 @@ class huobi extends Exchange {
         $settlementRecord = $this->safe_value($data, 'settlement_record');
         $settlements = $this->parse_settlements($settlementRecord, $market);
         return $this->sort_by($settlements, 'timestamp');
+    }
+
+    public function fetch_deposit_withdraw_fees($codes = null, $params = array ()) {
+        /**
+         * fetch deposit and withdraw fees
+         * @see https://huobiapi.github.io/docs/spot/v1/en/#get-all-supported-currencies-v2
+         * @param {[string]|null} $codes list of unified currency $codes
+         * @param {array} $params extra parameters specific to the huobi api endpoint
+         * @return {[array]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#fee-structure fees structures}
+         */
+        $this->load_markets();
+        $response = $this->spotPublicGetV2ReferenceCurrencies ($params);
+        //
+        //    {
+        //        "code" => 200,
+        //        "data" => array(
+        //            {
+        //                "currency" => "sxp",
+        //                "assetType" => "1",
+        //                "chains" => array(
+        //                    {
+        //                        "chain" => "sxp",
+        //                        "displayName" => "ERC20",
+        //                        "baseChain" => "ETH",
+        //                        "baseChainProtocol" => "ERC20",
+        //                        "isDynamic" => true,
+        //                        "numOfConfirmations" => "12",
+        //                        "numOfFastConfirmations" => "12",
+        //                        "depositStatus" => "allowed",
+        //                        "minDepositAmt" => "0.23",
+        //                        "withdrawStatus" => "allowed",
+        //                        "minWithdrawAmt" => "0.23",
+        //                        "withdrawPrecision" => "8",
+        //                        "maxWithdrawAmt" => "227000.000000000000000000",
+        //                        "withdrawQuotaPerDay" => "227000.000000000000000000",
+        //                        "withdrawQuotaPerYear" => null,
+        //                        "withdrawQuotaTotal" => null,
+        //                        "withdrawFeeType" => "fixed",
+        //                        "transactFeeWithdraw" => "11.1653",
+        //                        "addrWithTag" => false,
+        //                        "addrDepositTag" => false
+        //                    }
+        //                ),
+        //                "instStatus" => "normal"
+        //            }
+        //        )
+        //    }
+        //
+        $data = $this->safe_value($response, 'data');
+        return $this->parse_deposit_withdraw_fees($data, $codes, 'currency');
+    }
+
+    public function parse_deposit_withdraw_fee($fee, $currency = null) {
+        //
+        //            {
+        //              "currency" => "sxp",
+        //              "assetType" => "1",
+        //              "chains" => array(
+        //                  {
+        //                      "chain" => "sxp",
+        //                      "displayName" => "ERC20",
+        //                      "baseChain" => "ETH",
+        //                      "baseChainProtocol" => "ERC20",
+        //                      "isDynamic" => true,
+        //                      "numOfConfirmations" => "12",
+        //                      "numOfFastConfirmations" => "12",
+        //                      "depositStatus" => "allowed",
+        //                      "minDepositAmt" => "0.23",
+        //                      "withdrawStatus" => "allowed",
+        //                      "minWithdrawAmt" => "0.23",
+        //                      "withdrawPrecision" => "8",
+        //                      "maxWithdrawAmt" => "227000.000000000000000000",
+        //                      "withdrawQuotaPerDay" => "227000.000000000000000000",
+        //                      "withdrawQuotaPerYear" => null,
+        //                      "withdrawQuotaTotal" => null,
+        //                      "withdrawFeeType" => "fixed",
+        //                      "transactFeeWithdraw" => "11.1653",
+        //                      "addrWithTag" => false,
+        //                      "addrDepositTag" => false
+        //                  }
+        //              ),
+        //              "instStatus" => "normal"
+        //          }
+        //
+        $chains = $this->safe_value($fee, 'chains', array());
+        $result = $this->deposit_withdraw_fee($fee);
+        for ($j = 0; $j < count($chains); $j++) {
+            $chainEntry = $chains[$j];
+            $networkId = $this->safe_string($chainEntry, 'chain');
+            $withdrawFeeType = $this->safe_string($chainEntry, 'withdrawFeeType');
+            $networkCode = $this->network_id_to_code($networkId);
+            $withdrawFee = null;
+            $withdrawResult = null;
+            if ($withdrawFeeType === 'fixed') {
+                $withdrawFee = $this->safe_number($chainEntry, 'transactFeeWithdraw');
+                $withdrawResult = array(
+                    'fee' => $withdrawFee,
+                    'percentage' => false,
+                );
+            } else {
+                $withdrawFee = $this->safe_number($chainEntry, 'transactFeeRateWithdraw');
+                $withdrawResult = array(
+                    'fee' => $withdrawFee,
+                    'percentage' => true,
+                );
+            }
+            $result['networks'][$networkCode] = array(
+                'withdraw' => $withdrawResult,
+                'deposit' => array(
+                    'fee' => null,
+                    'percentage' => null,
+                ),
+            );
+            $result = $this->assign_default_deposit_withdraw_fees($result, $currency);
+        }
+        return $result;
     }
 
     public function parse_settlements($settlements, $market) {

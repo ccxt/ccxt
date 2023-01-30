@@ -3,7 +3,7 @@
 //  ---------------------------------------------------------------------------
 
 const kucoinRest = require ('../kucoin.js');
-const { ExchangeError, InvalidNonce, NetworkError } = require ('../base/errors');
+const { ExchangeError } = require ('../base/errors');
 const { ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById } = require ('./base/Cache');
 
 //  ---------------------------------------------------------------------------
@@ -24,13 +24,11 @@ module.exports = class kucoin extends kucoinRest {
             },
             'options': {
                 'tradesLimit': 1000,
-                'watchOrderBookRate': 100, // get updates every 100ms or 1000ms
-                'fetchOrderBookSnapshot': {
-                    'maxAttempts': 3, // default number of sync attempts
-                    'delay': 1000, // warmup delay in ms before synchronizing
-                },
                 'watchTicker': {
                     'name': 'market/snapshot', // market/ticker
+                },
+                'watchOrderBook': {
+                    'snapshotDelay': 5,
                 },
             },
             'streaming': {
@@ -42,45 +40,59 @@ module.exports = class kucoin extends kucoinRest {
         });
     }
 
-    async negotiate (params = {}) {
-        const client = this.client ('ws');
-        const messageHash = 'negotiate';
-        let future = this.safeValue (client.subscriptions, messageHash);
-        if (future === undefined) {
-            future = client.future (messageHash);
-            client.subscriptions[messageHash] = future;
-            let response = undefined;
-            const throwException = false;
-            if (this.checkRequiredCredentials (throwException)) {
-                response = await this.privatePostBulletPrivate ();
-                //
-                //     {
-                //         code: "200000",
-                //         data: {
-                //             instanceServers: [
-                //                 {
-                //                     pingInterval:  50000,
-                //                     endpoint: "wss://push-private.kucoin.com/endpoint",
-                //                     protocol: "websocket",
-                //                     encrypt: true,
-                //                     pingTimeout: 10000
-                //                 }
-                //             ],
-                //             token: "2neAiuYvAU61ZDXANAGAsiL4-iAExhsBXZxftpOeh_55i3Ysy2q2LEsEWU64mdzUOPusi34M_wGoSf7iNyEWJ1UQy47YbpY4zVdzilNP-Bj3iXzrjjGlWtiYB9J6i9GjsxUuhPw3BlrzazF6ghq4Lzf7scStOz3KkxjwpsOBCH4=.WNQmhZQeUKIkh97KYgU0Lg=="
-                //         }
-                //     }
-                //
-            } else {
-                response = await this.publicPostBulletPublic ();
-            }
-            client.resolve (response, messageHash);
-            // const data = this.safeValue (response, 'data', {});
-            // const instanceServers = this.safeValue (data, 'instanceServers', []);
-            // const firstServer = this.safeValue (instanceServers, 0, {});
-            // const endpoint = this.safeString (firstServer, 'endpoint');
-            // const token = this.safeString (data, 'token');
+    negotiate (privateChannel, params = {}) {
+        const connectId = privateChannel ? 'private' : 'public';
+        const urls = this.safeValue (this.options, 'urls', {});
+        if (connectId in urls) {
+            return urls[connectId];
         }
-        return await future;
+        // we store an awaitable to the url
+        // so that multiple calls don't asynchronously
+        // fetch different urls and overwrite each other
+        urls[connectId] = this.spawn (this.negotiateHelper, privateChannel, params);
+        this.options['urls'] = urls;
+        return urls[connectId];
+    }
+
+    async negotiateHelper (privateChannel, params = {}) {
+        let response = undefined;
+        const connectId = privateChannel ? 'private' : 'public';
+        if (privateChannel) {
+            response = await this.privatePostBulletPrivate (params);
+            //
+            //     {
+            //         code: "200000",
+            //         data: {
+            //             instanceServers: [
+            //                 {
+            //                     pingInterval:  50000,
+            //                     endpoint: "wss://push-private.kucoin.com/endpoint",
+            //                     protocol: "websocket",
+            //                     encrypt: true,
+            //                     pingTimeout: 10000
+            //                 }
+            //             ],
+            //             token: "2neAiuYvAU61ZDXANAGAsiL4-iAExhsBXZxftpOeh_55i3Ysy2q2LEsEWU64mdzUOPusi34M_wGoSf7iNyEWJ1UQy47YbpY4zVdzilNP-Bj3iXzrjjGlWtiYB9J6i9GjsxUuhPw3BlrzazF6ghq4Lzf7scStOz3KkxjwpsOBCH4=.WNQmhZQeUKIkh97KYgU0Lg=="
+            //         }
+            //     }
+            //
+        } else {
+            response = await this.publicPostBulletPublic (params);
+        }
+        const data = this.safeValue (response, 'data', {});
+        const instanceServers = this.safeValue (data, 'instanceServers', []);
+        const firstInstanceServer = this.safeValue (instanceServers, 0);
+        const pingInterval = this.safeInteger (firstInstanceServer, 'pingInterval');
+        const endpoint = this.safeString (firstInstanceServer, 'endpoint');
+        const token = this.safeString (data, 'token');
+        const result = endpoint + '?' + this.urlencode ({
+            'token': token,
+            'privateChannel': privateChannel,
+            'connectId': connectId,
+        });
+        const client = this.client (result);
+        client.keepAlive = pingInterval;
+        return result;
     }
 
     requestId () {
@@ -89,39 +101,24 @@ module.exports = class kucoin extends kucoinRest {
         return requestId;
     }
 
-    async subscribe (negotiation, topic, messageHash, method, symbol, params = {}) {
-        await this.loadMarkets ();
-        // const market = this.market (symbol);
-        const data = this.safeValue (negotiation, 'data', {});
-        const instanceServers = this.safeValue (data, 'instanceServers', []);
-        const firstServer = this.safeValue (instanceServers, 0, {});
-        const endpoint = this.safeString (firstServer, 'endpoint');
-        const token = this.safeString (data, 'token');
-        const nonce = this.requestId ();
-        const query = {
-            'token': token,
-            'acceptUserMessage': 'true',
-            // 'connectId': nonce, // user-defined id is supported, received by handleSystemStatus
-        };
-        const url = endpoint + '?' + this.urlencode (query);
-        // const topic = '/market/snapshot'; // '/market/ticker';
-        // const messageHash = topic + ':' + market['id'];
-        const subscribe = {
-            'id': nonce,
+    async subscribe (url, messageHash, subscriptionHash, subscription, params = {}) {
+        const requestId = this.requestId ().toString ();
+        const request = {
+            'id': requestId,
             'type': 'subscribe',
-            'topic': topic,
+            'topic': subscriptionHash,
             'response': true,
         };
-        const subscription = {
-            'id': nonce.toString (),
-            'symbol': symbol,
-            'topic': topic,
-            'messageHash': messageHash,
-            'method': method,
+        const message = this.extend (request, params);
+        const subscriptionRequest = {
+            'id': requestId,
         };
-        const request = this.extend (subscribe, params);
-        const subscriptionHash = topic;
-        return await this.watch (url, messageHash, request, subscriptionHash, subscription);
+        if (subscription === undefined) {
+            subscription = subscriptionRequest;
+        } else {
+            subscription = this.extend (subscriptionRequest, subscription);
+        }
+        return await this.watch (url, messageHash, message, subscriptionHash, subscription);
     }
 
     async watchTicker (symbol, params = {}) {
@@ -136,12 +133,11 @@ module.exports = class kucoin extends kucoinRest {
         await this.loadMarkets ();
         const market = this.market (symbol);
         symbol = market['symbol'];
-        const negotiation = await this.negotiate ();
-        const options = this.safeValue (this.options, 'watchTicker', {});
-        const channel = this.safeString2 (options, 'name', 'topic', 'market/snapshot'); // topic option is deprecated use name instead
-        const topic = '/' + channel + ':' + market['id'];
-        const messageHash = topic;
-        return await this.subscribe (negotiation, topic, messageHash, undefined, symbol, params);
+        const url = await this.negotiate (false);
+        const [ method, query ] = this.handleOptionAndParams (params, 'watchTicker', 'method', '/market/snapshot');
+        const topic = method + ':' + market['id'];
+        const messageHash = 'ticker:' + symbol;
+        return await this.subscribe (url, messageHash, topic, undefined, query);
     }
 
     handleTicker (client, message) {
@@ -211,11 +207,8 @@ module.exports = class kucoin extends kucoinRest {
         const ticker = this.parseTicker (rawTicker, market);
         const symbol = ticker['symbol'];
         this.tickers[symbol] = ticker;
-        const messageHash = this.safeString (message, 'topic');
-        if (messageHash !== undefined) {
-            client.resolve (ticker, messageHash);
-        }
-        return message;
+        const messageHash = 'ticker:' + symbol;
+        client.resolve (ticker, messageHash);
     }
 
     async watchOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
@@ -231,13 +224,13 @@ module.exports = class kucoin extends kucoinRest {
          * @returns {[[int]]} A list of candles ordered as timestamp, open, high, low, close, volume
          */
         await this.loadMarkets ();
-        const negotiation = await this.negotiate ();
+        const url = await this.negotiate (false);
         const market = this.market (symbol);
         symbol = market['symbol'];
         const period = this.timeframes[timeframe];
         const topic = '/market/candles:' + market['id'] + '_' + period;
-        const messageHash = topic;
-        const ohlcv = await this.subscribe (negotiation, topic, messageHash, undefined, symbol, params);
+        const messageHash = 'candles:' + symbol + ':' + timeframe;
+        const ohlcv = await this.subscribe (url, messageHash, topic, undefined, params);
         if (this.newUpdates) {
             limit = ohlcv.getLimit (symbol, limit);
         }
@@ -273,8 +266,9 @@ module.exports = class kucoin extends kucoinRest {
         const interval = this.safeString (parts, 1);
         // use a reverse lookup in a static map instead
         const timeframe = this.findTimeframe (interval);
-        const symbol = this.safeSymbol (marketId);
-        const market = this.market (symbol);
+        const market = this.safeMarket (marketId);
+        const symbol = market['symbol'];
+        const messageHash = 'candles:' + symbol + ':' + timeframe;
         this.ohlcvs[symbol] = this.safeValue (this.ohlcvs, symbol, {});
         let stored = this.safeValue (this.ohlcvs[symbol], timeframe);
         if (stored === undefined) {
@@ -284,7 +278,7 @@ module.exports = class kucoin extends kucoinRest {
         }
         const ohlcv = this.parseOHLCV (candles, market);
         stored.append (ohlcv);
-        client.resolve (stored, topic);
+        client.resolve (stored, messageHash);
     }
 
     async watchTrades (symbol, since = undefined, limit = undefined, params = {}) {
@@ -299,12 +293,12 @@ module.exports = class kucoin extends kucoinRest {
          * @returns {[object]} a list of [trade structures]{@link https://docs.ccxt.com/en/latest/manual.html?#public-trades}
          */
         await this.loadMarkets ();
-        const negotiation = await this.negotiate ();
+        const url = await this.negotiate (false);
         const market = this.market (symbol);
         symbol = market['symbol'];
         const topic = '/market/match:' + market['id'];
-        const messageHash = topic;
-        const trades = await this.subscribe (negotiation, topic, messageHash, undefined, symbol, params);
+        const messageHash = 'trades:' + symbol;
+        const trades = await this.subscribe (url, messageHash, topic, undefined, params);
         if (this.newUpdates) {
             limit = trades.getLimit (symbol, limit);
         }
@@ -333,8 +327,8 @@ module.exports = class kucoin extends kucoinRest {
         //
         const data = this.safeValue (message, 'data', {});
         const trade = this.parseTrade (data);
-        const messageHash = this.safeString (message, 'topic');
         const symbol = trade['symbol'];
+        const messageHash = 'trades:' + symbol;
         let trades = this.safeValue (this.trades, symbol);
         if (trades === undefined) {
             const limit = this.safeInteger (this.options, 'tradesLimit', 1000);
@@ -343,7 +337,6 @@ module.exports = class kucoin extends kucoinRest {
         }
         trades.append (trade);
         client.resolve (trades, messageHash);
-        return message;
     }
 
     async watchOrderBook (symbol, limit = undefined, params = {}) {
@@ -369,7 +362,7 @@ module.exports = class kucoin extends kucoinRest {
         // 5. Update the level2 full data based on sequence according to the
         // size. If the price is 0, ignore the messages and update the sequence.
         // If the size=0, update the sequence and remove the price of which the
-        // size is 0 out of level 2. For other cases, please update the price.
+        // size is 0 out of level 2. Fr other cases, please update the price.
         //
         if (limit !== undefined) {
             if ((limit !== 20) && (limit !== 100)) {
@@ -377,148 +370,18 @@ module.exports = class kucoin extends kucoinRest {
             }
         }
         await this.loadMarkets ();
-        const negotiation = await this.negotiate ();
+        const url = await this.negotiate (false);
         const market = this.market (symbol);
         symbol = market['symbol'];
         const topic = '/market/level2:' + market['id'];
-        const messageHash = topic;
-        const orderbook = await this.subscribe (negotiation, topic, messageHash, this.handleOrderBookSubscription, symbol, params);
+        const messageHash = 'orderbook:' + symbol;
+        const subscription = {
+            'method': this.handleOrderBookSubscription,
+            'symbol': symbol,
+            'limit': limit,
+        };
+        const orderbook = await this.subscribe (url, messageHash, topic, subscription, params);
         return orderbook.limit ();
-    }
-
-    retryFetchOrderBookSnapshot (client, message, subscription) {
-        const symbol = this.safeString (subscription, 'symbol');
-        const messageHash = this.safeString (subscription, 'messageHash');
-        // console.log ('fetchOrderBookSnapshot', nonce, previousSequence, nonce >= previousSequence);
-        const options = this.safeValue (this.options, 'fetchOrderBookSnapshot', {});
-        const maxAttempts = this.safeInteger (options, 'maxAttempts', 3);
-        let numAttempts = this.safeInteger (subscription, 'numAttempts', 0);
-        // retry to syncrhonize if we haven't reached maxAttempts yet
-        if (numAttempts < maxAttempts) {
-            // safety guard
-            if (messageHash in client.subscriptions) {
-                numAttempts = this.sum (numAttempts, 1);
-                subscription['numAttempts'] = numAttempts;
-                client.subscriptions[messageHash] = subscription;
-                this.spawn (this.fetchOrderBookSnapshot, client, message, subscription);
-            }
-        } else {
-            if (messageHash in client.subscriptions) {
-                subscription['fetchingOrderBookSnapshot'] = false;
-                subscription['numAttempts'] = 0;
-                client.subscriptions[messageHash] = subscription;
-            }
-            const e = new InvalidNonce (this.id + ' failed to synchronize WebSocket feed with the snapshot for symbol ' + symbol + ' in ' + maxAttempts.toString () + ' attempts');
-            client.reject (e, messageHash);
-        }
-    }
-
-    async fetchOrderBookSnapshot (client, message, subscription) {
-        const symbol = this.safeString (subscription, 'symbol');
-        const limit = this.safeInteger (subscription, 'limit');
-        const messageHash = this.safeString (subscription, 'messageHash');
-        try {
-            // 2. Initiate a REST request to get the snapshot data of Level 2 order book.
-            // todo: this is a synch blocking call in ccxt.php - make it async
-            const snapshot = await this.fetchOrderBook (symbol, limit);
-            const orderbook = this.orderbooks[symbol];
-            const messages = orderbook.cache;
-            // make sure we have at least one delta before fetching the snapshot
-            // otherwise we cannot synchronize the feed with the snapshot
-            // and that will lead to a bidask cross as reported here
-            // https://github.com/ccxt/ccxt/issues/6762
-            const firstMessage = this.safeValue (messages, 0, {});
-            const data = this.safeValue (firstMessage, 'data', {});
-            const sequenceStart = this.safeInteger (data, 'sequenceStart');
-            const nonce = this.safeInteger (snapshot, 'nonce');
-            const previousSequence = sequenceStart - 1;
-            // if the received snapshot is earlier than the first cached delta
-            // then we cannot align it with the cached deltas and we need to
-            // retry synchronizing in maxAttempts
-            if (nonce < previousSequence) {
-                this.retryFetchOrderBookSnapshot (client, message, subscription);
-            } else {
-                orderbook.reset (snapshot);
-                // unroll the accumulated deltas
-                // 3. Playback the cached Level 2 data flow.
-                for (let i = 0; i < messages.length; i++) {
-                    const message = messages[i];
-                    this.handleOrderBookMessage (client, message, orderbook);
-                }
-                this.orderbooks[symbol] = orderbook;
-                client.resolve (orderbook, messageHash);
-            }
-        } catch (e) {
-            if (e instanceof NetworkError) {
-                this.retryFetchOrderBookSnapshot (client, message, subscription);
-            } else {
-                client.reject (e, messageHash);
-            }
-        }
-    }
-
-    handleDelta (bookside, delta, nonce) {
-        const price = this.safeFloat (delta, 0);
-        if (price > 0) {
-            const sequence = this.safeInteger (delta, 2);
-            if (sequence > nonce) {
-                const amount = this.safeFloat (delta, 1);
-                bookside.store (price, amount);
-            }
-        }
-    }
-
-    handleDeltas (bookside, deltas, nonce) {
-        for (let i = 0; i < deltas.length; i++) {
-            this.handleDelta (bookside, deltas[i], nonce);
-        }
-    }
-
-    handleOrderBookMessage (client, message, orderbook) {
-        //
-        //     {
-        //         "type":"message",
-        //         "topic":"/market/level2:BTC-USDT",
-        //         "subject":"trade.l2update",
-        //         "data":{
-        //             "sequenceStart":1545896669105,
-        //             "sequenceEnd":1545896669106,
-        //             "symbol":"BTC-USDT",
-        //             "changes": {
-        //                 "asks": [["6","1","1545896669105"]], // price, size, sequence
-        //                 "bids": [["4","1","1545896669106"]]
-        //             }
-        //         }
-        //     }
-        //
-        const data = this.safeValue (message, 'data', {});
-        const sequenceEnd = this.safeInteger (data, 'sequenceEnd');
-        // 4. Apply the new Level 2 data flow to the local snapshot to ensure that
-        // the sequence of the new Level 2 update lines up with the sequence of
-        // the previous Level 2 data. Discard all the message prior to that
-        // sequence, and then playback the change to snapshot.
-        if (sequenceEnd > orderbook['nonce']) {
-            const sequenceStart = this.safeInteger (message, 'sequenceStart');
-            if ((sequenceStart !== undefined) && ((sequenceStart - 1) > orderbook['nonce'])) {
-                // todo: client.reject from handleOrderBookMessage properly
-                throw new ExchangeError (this.id + ' handleOrderBook received an out-of-order nonce');
-            }
-            const changes = this.safeValue (data, 'changes', {});
-            let asks = this.safeValue (changes, 'asks', []);
-            let bids = this.safeValue (changes, 'bids', []);
-            asks = this.sortBy (asks, 2); // sort by sequence
-            bids = this.sortBy (bids, 2);
-            // 5. Update the level2 full data based on sequence according to the
-            // size. If the price is 0, ignore the messages and update the sequence.
-            // If the size=0, update the sequence and remove the price of which the
-            // size is 0 out of level 2. For other cases, please update the price.
-            this.handleDeltas (orderbook['asks'], asks, orderbook['nonce']);
-            this.handleDeltas (orderbook['bids'], bids, orderbook['nonce']);
-            orderbook['nonce'] = sequenceEnd;
-            orderbook['timestamp'] = undefined;
-            orderbook['datetime'] = undefined;
-        }
-        return orderbook;
     }
 
     handleOrderBook (client, message) {
@@ -541,36 +404,73 @@ module.exports = class kucoin extends kucoinRest {
         //         }
         //     }
         //
-        const messageHash = this.safeString (message, 'topic');
         const data = this.safeValue (message, 'data');
         const marketId = this.safeString (data, 'symbol');
         const symbol = this.safeSymbol (marketId, undefined, '-');
-        const orderbook = this.orderbooks[symbol];
-        if (orderbook['nonce'] === undefined) {
-            const subscription = this.safeValue (client.subscriptions, messageHash);
-            const fetchingOrderBookSnapshot = this.safeValue (subscription, 'fetchingOrderBookSnapshot');
-            if (fetchingOrderBookSnapshot === undefined) {
-                subscription['fetchingOrderBookSnapshot'] = true;
-                client.subscriptions[messageHash] = subscription;
-                const options = this.safeValue (this.options, 'fetchOrderBookSnapshot', {});
-                const delay = this.safeInteger (options, 'delay', this.rateLimit);
-                // fetch the snapshot in a separate async call after a warmup delay
-                this.delay (delay, this.fetchOrderBookSnapshot, client, message, subscription);
+        const messageHash = 'orderbook:' + symbol;
+        const storedOrderBook = this.orderbooks[symbol];
+        const nonce = this.safeInteger (storedOrderBook, 'nonce');
+        const deltaEnd = this.safeInteger (data, 'sequenceEnd');
+        if (nonce === undefined) {
+            const cacheLength = storedOrderBook.cache.length;
+            const topic = this.safeString (message, 'topic');
+            const subscription = client.subscriptions[topic];
+            const limit = this.safeInteger (subscription, 'limit');
+            const snapshotDelay = this.handleOption ('watchOrderBook', 'snapshotDelay', 5);
+            if (cacheLength === snapshotDelay) {
+                this.spawn (this.loadOrderBook, client, messageHash, symbol, limit);
             }
-            // 1. After receiving the websocket Level 2 data flow, cache the data.
-            orderbook.cache.push (message);
-        } else {
-            this.handleOrderBookMessage (client, message, orderbook);
-            client.resolve (orderbook, messageHash);
+            storedOrderBook.cache.push (data);
+            return;
+        } else if (nonce >= deltaEnd) {
+            return;
+        }
+        this.handleDelta (storedOrderBook, data);
+        client.resolve (storedOrderBook, messageHash);
+    }
+
+    getCacheIndex (orderbook, cache) {
+        const firstDelta = this.safeValue (cache, 0);
+        const nonce = this.safeInteger (orderbook, 'nonce');
+        const firstDeltaStart = this.safeInteger (firstDelta, 'sequenceStart');
+        if (nonce < firstDeltaStart - 1) {
+            return -1;
+        }
+        for (let i = 0; i < cache.length; i++) {
+            const delta = cache[i];
+            const deltaStart = this.safeInteger (delta, 'sequenceStart');
+            const deltaEnd = this.safeInteger (delta, 'sequenceEnd');
+            if ((nonce >= deltaStart - 1) && (nonce < deltaEnd)) {
+                return i;
+            }
+        }
+        return cache.length;
+    }
+
+    handleDelta (orderbook, delta) {
+        orderbook['nonce'] = this.safeInteger (delta, 'sequenceEnd');
+        const timestamp = this.safeInteger (delta, 'time');
+        orderbook['timestamp'] = timestamp;
+        orderbook['datetime'] = this.iso8601 (timestamp);
+        const changes = this.safeValue (delta, 'changes');
+        const bids = this.safeValue (changes, 'bids', []);
+        const asks = this.safeValue (changes, 'asks', []);
+        const storedBids = orderbook['bids'];
+        const storedAsks = orderbook['asks'];
+        this.handleBidAsks (storedBids, bids);
+        this.handleBidAsks (storedAsks, asks);
+    }
+
+    handleBidAsks (bookSide, bidAsks) {
+        for (let i = 0; i < bidAsks.length; i++) {
+            const bidAsk = this.parseBidAsk (bidAsks[i]);
+            bookSide.storeArray (bidAsk);
         }
     }
 
     handleOrderBookSubscription (client, message, subscription) {
         const symbol = this.safeString (subscription, 'symbol');
-        const limit = this.safeString (subscription, 'limit');
-        if (symbol in this.orderbooks) {
-            delete this.orderbooks[symbol];
-        }
+        const limit = this.safeInteger (subscription, 'limit');
         this.orderbooks[symbol] = this.orderBook ({}, limit);
         // moved snapshot initialization to handleOrderBook to fix
         // https://github.com/ccxt/ccxt/issues/6820
@@ -621,18 +521,18 @@ module.exports = class kucoin extends kucoinRest {
          * @returns {[object]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
          */
         await this.loadMarkets ();
-        const negotiation = await this.negotiate ();
+        const url = await this.negotiate (true);
         const topic = '/spotMarket/tradeOrders';
         const request = {
             'privateChannel': true,
         };
-        let messageHash = topic;
+        let messageHash = 'orders';
         if (symbol !== undefined) {
             const market = this.market (symbol);
             symbol = market['symbol'];
-            messageHash = messageHash + ':' + market['symbol'];
+            messageHash = messageHash + ':' + symbol;
         }
-        const orders = await this.subscribe (negotiation, topic, messageHash, undefined, undefined, this.extend (request, params));
+        const orders = await this.subscribe (url, messageHash, topic, undefined, this.extend (request, params));
         if (this.newUpdates) {
             limit = orders.getLimit (symbol, limit);
         }
@@ -708,34 +608,32 @@ module.exports = class kucoin extends kucoinRest {
     }
 
     handleOrder (client, message) {
-        const messageHash = '/spotMarket/tradeOrders';
+        const messageHash = 'orders';
         const data = this.safeValue (message, 'data');
         const parsed = this.parseWsOrder (data);
         const symbol = this.safeString (parsed, 'symbol');
         const orderId = this.safeString (parsed, 'id');
-        if (symbol !== undefined) {
-            if (this.orders === undefined) {
-                const limit = this.safeInteger (this.options, 'ordersLimit', 1000);
-                this.orders = new ArrayCacheBySymbolById (limit);
-            }
-            const cachedOrders = this.orders;
-            const orders = this.safeValue (cachedOrders.hashmap, symbol, {});
-            const order = this.safeValue (orders, orderId);
-            if (order !== undefined) {
-                // todo add others to calculate average etc
-                const stopPrice = this.safeValue (order, 'stopPrice');
-                if (stopPrice !== undefined) {
-                    parsed['stopPrice'] = stopPrice;
-                }
-                if (order['status'] === 'closed') {
-                    parsed['status'] = 'closed';
-                }
-            }
-            cachedOrders.append (parsed);
-            client.resolve (this.orders, messageHash);
-            const symbolSpecificMessageHash = messageHash + ':' + symbol;
-            client.resolve (this.orders, symbolSpecificMessageHash);
+        if (this.orders === undefined) {
+            const limit = this.safeInteger (this.options, 'ordersLimit', 1000);
+            this.orders = new ArrayCacheBySymbolById (limit);
         }
+        const cachedOrders = this.orders;
+        const orders = this.safeValue (cachedOrders.hashmap, symbol, {});
+        const order = this.safeValue (orders, orderId);
+        if (order !== undefined) {
+            // todo add others to calculate average etc
+            const stopPrice = this.safeValue (order, 'stopPrice');
+            if (stopPrice !== undefined) {
+                parsed['stopPrice'] = stopPrice;
+            }
+            if (order['status'] === 'closed') {
+                parsed['status'] = 'closed';
+            }
+        }
+        cachedOrders.append (parsed);
+        client.resolve (this.orders, messageHash);
+        const symbolSpecificMessageHash = messageHash + ':' + symbol;
+        client.resolve (this.orders, symbolSpecificMessageHash);
     }
 
     async watchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
@@ -750,18 +648,18 @@ module.exports = class kucoin extends kucoinRest {
          * @returns {[object]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure
          */
         await this.loadMarkets ();
-        const negotiation = await this.negotiate ();
+        const url = await this.negotiate (true);
         const topic = '/spot/tradeFills';
         const request = {
             'privateChannel': true,
         };
-        let messageHash = topic;
+        let messageHash = 'myTrades';
         if (symbol !== undefined) {
             const market = this.market (symbol);
             symbol = market['symbol'];
             messageHash = messageHash + ':' + market['symbol'];
         }
-        const trades = await this.subscribe (negotiation, topic, messageHash, undefined, undefined, this.extend (request, params));
+        const trades = await this.subscribe (url, messageHash, topic, undefined, this.extend (request, params));
         if (this.newUpdates) {
             limit = trades.getLimit (symbol, limit);
         }
@@ -777,7 +675,7 @@ module.exports = class kucoin extends kucoinRest {
         const data = this.safeValue (message, 'data');
         const parsed = this.parseWsTrade (data);
         trades.append (parsed);
-        const messageHash = '/spot/tradeFills';
+        const messageHash = 'myTrades';
         client.resolve (trades, messageHash);
         const symbolSpecificMessageHash = messageHash + ':' + parsed['symbol'];
         client.resolve (trades, symbolSpecificMessageHash);
@@ -811,8 +709,9 @@ module.exports = class kucoin extends kucoinRest {
         const timestamp = this.safeIntegerProduct (trade, 'time', 0.000001);
         const feeCurrency = market['quote'];
         const feeRate = this.safeString (trade, 'feeRate');
+        const feeCost = this.safeString (trade, 'fee');
         const fee = {
-            'cost': undefined,
+            'cost': feeCost,
             'rate': feeRate,
             'currency': feeCurrency,
         };
@@ -842,13 +741,13 @@ module.exports = class kucoin extends kucoinRest {
          * @returns {object} a [balance structure]{@link https://docs.ccxt.com/en/latest/manual.html?#balance-structure}
          */
         await this.loadMarkets ();
-        const negotiation = await this.negotiate ();
+        const url = await this.negotiate (true);
         const topic = '/account/balance';
         const request = {
             'privateChannel': true,
         };
-        const messageHash = topic;
-        return await this.subscribe (negotiation, topic, messageHash, this.handleBalanceSubscription, undefined, this.extend (request, params));
+        const messageHash = 'balance';
+        return await this.subscribe (url, messageHash, topic, undefined, this.extend (request, params));
     }
 
     handleBalance (client, message) {
@@ -876,7 +775,7 @@ module.exports = class kucoin extends kucoinRest {
         //     }
         //
         const data = this.safeValue (message, 'data', {});
-        const messageHash = this.safeString (message, 'topic');
+        const messageHash = 'balance';
         const currencyId = this.safeString (data, 'currency');
         const relationEvent = this.safeString (data, 'relationEvent');
         let requestAccountType = undefined;
@@ -899,74 +798,6 @@ module.exports = class kucoin extends kucoinRest {
         this.balance[uniformType] = this.safeBalance (this.balance[uniformType]);
         if (uniformType === selectedType) {
             client.resolve (this.balance[uniformType], messageHash);
-        }
-    }
-
-    handleBalanceSubscription (client, message, subscription) {
-        this.spawn (this.fetchBalanceSnapshot, client, message);
-    }
-
-    async fetchBalanceSnapshot (client, message) {
-        await this.loadMarkets ();
-        this.checkRequiredCredentials ();
-        const messageHash = '/account/balance';
-        const selectedType = this.safeString2 (this.options, 'watchBalance', 'defaultType', 'spot'); // spot, margin, main, funding, future, mining, trade, contract, pool
-        const params = {
-            'type': selectedType,
-        };
-        const snapshot = await this.fetchBalance (params);
-        //
-        // {
-        //     "info":{
-        //        "code":"200000",
-        //        "data":[
-        //           {
-        //              "id":"6217a451cbe8910001ed3aa8",
-        //              "currency":"USDT",
-        //              "type":"trade",
-        //              "balance":"10",
-        //              "available":"4.995",
-        //              "holds":"5.005"
-        //           }
-        //        ]
-        //     },
-        //     "USDT":{
-        //        "free":4.995,
-        //        "used":5.005,
-        //        "total":10
-        //     },
-        //     "free":{
-        //        "USDT":4.995
-        //     },
-        //     "used":{
-        //        "USDT":5.005
-        //     },
-        //     "total":{
-        //        "USDT":10
-        //     }
-        //  }
-        //
-        const data = this.safeValue (snapshot['info'], 'data', []);
-        if (data.length > 0) {
-            const selectedType = this.safeString2 (this.options, 'watchBalance', 'defaultType', 'trade'); // trade, main, margin or other
-            for (let i = 0; i < data.length; i++) {
-                const balance = data[i];
-                const type = this.safeString (balance, 'type');
-                const accountsByType = this.safeValue (this.options, 'accountsByType');
-                const uniformType = this.safeString (accountsByType, type, 'trade');
-                if (!(uniformType in this.balance)) {
-                    this.balance[uniformType] = {};
-                }
-                const currencyId = this.safeString (balance, 'currency');
-                const code = this.safeCurrencyCode (currencyId);
-                const account = this.account ();
-                account['free'] = this.safeString (balance, 'available');
-                account['used'] = this.safeString (balance, 'holds');
-                account['total'] = this.safeString (balance, 'total');
-                this.balance[selectedType][code] = account;
-                this.balance[selectedType] = this.safeBalance (this.balance[selectedType]);
-            }
-            client.resolve (this.balance[selectedType], messageHash);
         }
     }
 
@@ -1020,7 +851,6 @@ module.exports = class kucoin extends kucoinRest {
     handlePong (client, message) {
         // https://docs.kucoin.com/#ping
         client.lastPong = this.milliseconds ();
-        return message;
     }
 
     handleErrorMessage (client, message) {
@@ -1028,21 +858,17 @@ module.exports = class kucoin extends kucoinRest {
     }
 
     handleMessage (client, message) {
-        if (this.handleErrorMessage (client, message)) {
-            const type = this.safeString (message, 'type');
-            const methods = {
-                // 'heartbeat': this.handleHeartbeat,
-                'welcome': this.handleSystemStatus,
-                'ack': this.handleSubscriptionStatus,
-                'message': this.handleSubject,
-                'pong': this.handlePong,
-            };
-            const method = this.safeValue (methods, type);
-            if (method === undefined) {
-                return message;
-            } else {
-                return method.call (this, client, message);
-            }
+        const type = this.safeString (message, 'type');
+        const methods = {
+            // 'heartbeat': this.handleHeartbeat,
+            'welcome': this.handleSystemStatus,
+            'ack': this.handleSubscriptionStatus,
+            'message': this.handleSubject,
+            'pong': this.handlePong,
+        };
+        const method = this.safeValue (methods, type);
+        if (method !== undefined) {
+            return method.call (this, client, message);
         }
     }
 };

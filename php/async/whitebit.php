@@ -20,7 +20,7 @@ class whitebit extends Exchange {
         return $this->deep_extend(parent::describe(), array(
             'id' => 'whitebit',
             'name' => 'WhiteBit',
-            'version' => 'v2',
+            'version' => 'v4',
             'countries' => array( 'EE' ),
             'rateLimit' => 500,
             'has' => array(
@@ -34,16 +34,12 @@ class whitebit extends Exchange {
                 'cancelAllOrders' => false,
                 'cancelOrder' => true,
                 'cancelOrders' => false,
-                'createDepositAddress' => null,
-                'createLimitOrder' => null,
-                'createMarketOrder' => null,
                 'createOrder' => true,
                 'createStopLimitOrder' => true,
                 'createStopMarketOrder' => true,
                 'createStopOrder' => true,
-                'editOrder' => null,
+                'editOrder' => false,
                 'fetchBalance' => true,
-                'fetchBidsAsks' => null,
                 'fetchBorrowRate' => false,
                 'fetchBorrowRateHistories' => false,
                 'fetchBorrowRateHistory' => false,
@@ -224,6 +220,9 @@ class whitebit extends Exchange {
             ),
             'options' => array(
                 'fiatCurrencies' => array( 'EUR', 'USD', 'RUB', 'UAH' ),
+                'fetchBalance' => array(
+                    'account' => 'spot',
+                ),
                 'accountsByType' => array(
                     'main' => 'main',
                     'spot' => 'spot',
@@ -234,6 +233,7 @@ class whitebit extends Exchange {
                     'BEP20' => 'BSC',
                 ),
                 'defaultType' => 'spot',
+                'brokerId' => 'ccxt',
             ),
             'precisionMode' => TICK_SIZE,
             'exceptions' => array(
@@ -1173,6 +1173,16 @@ class whitebit extends Exchange {
                 'side' => $side,
                 'amount' => $this->amount_to_precision($symbol, $amount),
             );
+            $clientOrderId = $this->safe_string_2($params, 'clOrdId', 'clientOrderId');
+            if ($clientOrderId === null) {
+                $brokerId = $this->safe_string($this->options, 'brokerId');
+                if ($brokerId !== null) {
+                    $request['clientOrderId'] = $brokerId . $this->uuid16();
+                }
+            } else {
+                $request['clientOrderId'] = $clientOrderId;
+                $params = $this->omit($params, array( 'clientOrderId' ));
+            }
             $marketType = $this->safe_string($market, 'type');
             $isLimitOrder = $type === 'limit';
             $isMarketOrder = $type === 'market';
@@ -1256,6 +1266,7 @@ class whitebit extends Exchange {
                 $account = $this->account();
                 $account['free'] = $this->safe_string($balance, 'available');
                 $account['used'] = $this->safe_string($balance, 'freeze');
+                $account['total'] = $this->safe_string($balance, 'main_balance');
                 $result[$code] = $account;
             } else {
                 $account = $this->account();
@@ -1279,10 +1290,26 @@ class whitebit extends Exchange {
             if ($marketType === 'swap') {
                 $method = 'v4PrivatePostCollateralAccountBalance';
             } else {
-                $method = 'v4PrivatePostTradeAccountBalance';
+                $options = $this->safe_value($this->options, 'fetchBalance', array());
+                $defaultAccount = $this->safe_string($options, 'account');
+                $account = $this->safe_string($params, 'account', $defaultAccount);
+                $params = $this->omit($params, 'account');
+                if ($account === 'main') {
+                    $method = 'v4PrivatePostMainAccountBalance';
+                } else {
+                    $method = 'v4PrivatePostTradeAccountBalance';
+                }
             }
             $response = Async\await($this->$method ($query));
-            // spot
+            //
+            // main $account
+            //
+            //     {
+            //         "BTC":array("main_balance":"0.0013929494020316"),
+            //         "ETH":array("main_balance":"0.001398289308"),
+            //     }
+            //
+            // spot trade $account
             //
             //     {
             //         "BTC" => array( "available" => "0.123", "freeze" => "1" ),
@@ -1461,6 +1488,9 @@ class whitebit extends Exchange {
         $filled = $this->safe_string($order, 'dealStock');
         $remaining = $this->safe_string($order, 'left');
         $clientOrderId = $this->safe_string($order, 'clientOrderId');
+        if ($clientOrderId === '') {
+            $clientOrderId = null;
+        }
         $price = $this->safe_string($order, 'price');
         $stopPrice = $this->safe_number($order, 'activation_price');
         $orderId = $this->safe_string_2($order, 'orderId', 'id');
@@ -1670,10 +1700,10 @@ class whitebit extends Exchange {
             $accountsByType = $this->safe_value($this->options, 'accountsByType');
             $fromAccountId = $this->safe_string($accountsByType, $fromAccount, $fromAccount);
             $toAccountId = $this->safe_string($accountsByType, $toAccount, $toAccount);
-            $amountString = (string) $amount;
+            $amountString = $this->currency_to_precision($code, $amount);
             $request = array(
                 'ticker' => $currency['id'],
-                'amount' => $this->currency_to_precision($code, $amountString),
+                'amount' => $amountString,
                 'from' => $fromAccountId,
                 'to' => $toAccountId,
             );
@@ -1683,7 +1713,7 @@ class whitebit extends Exchange {
             //
             $transfer = $this->parse_transfer($response, $currency);
             return array_merge($transfer, array(
-                'amount' => $this->currency_to_precision($code, $amountString),
+                'amount' => $amount,
                 'fromAccount' => $fromAccount,
                 'toAccount' => $toAccount,
             ));

@@ -73,7 +73,7 @@ class deribit(Exchange):
                 'fetchOpenOrders': True,
                 'fetchOrder': True,
                 'fetchOrderBook': True,
-                'fetchOrders': None,
+                'fetchOrders': False,
                 'fetchOrderTrades': True,
                 'fetchPosition': True,
                 'fetchPositionMode': False,
@@ -86,7 +86,7 @@ class deribit(Exchange):
                 'fetchTrades': True,
                 'fetchTradingFee': False,
                 'fetchTradingFees': True,
-                'fetchTransactions': None,
+                'fetchTransactions': False,
                 'fetchTransfer': False,
                 'fetchTransfers': True,
                 'fetchWithdrawal': False,
@@ -1626,7 +1626,7 @@ class deribit(Exchange):
         else:
             request['type'] = 'market'
         if isStopOrder:
-            triggerPrice = stopLossPrice is not stopLossPrice if None else takeProfitPrice
+            triggerPrice = stopLossPrice if (stopLossPrice is not None) else takeProfitPrice
             request['trigger_price'] = self.price_to_precision(symbol, triggerPrice)
             request['trigger'] = 'last_price'  # required
             if isStopLossOrder:
