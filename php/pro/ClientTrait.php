@@ -9,8 +9,6 @@ use React\Async;
 use React\EventLoop\Loop;
 use function React\Promise\resolve;
 
-include '../async/Throttle.php';
-
 trait ClientTrait {
 
     public $clients = array();
@@ -50,37 +48,23 @@ trait ClientTrait {
     }
 
     public function client($url) {
-        $ws_options = $this->safe_value($this->options, 'ws', array());
-        # get ws rl config
-        $rate_limits = $this->safe_value($ws_options, 'rateLimits', array());
-        # if no rateLimit is defined in the WS implementation, we fallback to the ccxt one
-        $default_rate_limit_config = $this->safe_value($rate_limits, 'default', $this);
-        $default_rate_limit_token_bucket = $this->calculate_rate_limit_token_bucket($default_rate_limit_config);
-        if (!array_key_exists('throttle', $this->clients)) {
-            # get new connections rl config if not fallback to default
-            $new_connections_rate_limit_config = $this->safe_value($rate_limits, 'newConnections');
-            if (!$new_connections_rate_limit_config) {
-                $new_connections_rate_limit_config = array(
-                    'token_bucket' => $default_rate_limit_token_bucket,
-                );
-            }
-            $new_connections_token_bucket = $this->calculate_rate_limit_token_bucket($new_connections_rate_limit_config);
-            $this->clients = array(
-                'throttle' => new Throttle($new_connections_token_bucket),
-            );
-        }
         if (!array_key_exists($url, $this->clients)) {
-            $on_message = array($this, 'handle_message');
-            $on_error = array($this, 'on_error');
-            $on_close = array($this, 'on_close');
-            $on_connected = array($this, 'on_connected');
-            # allowing specify rate limits per url, if not specified use default
-            $rate_limit_config = $this->safe_value($rate_limits, $url, $default_rate_limit_config);
-            $rate_limit_token_bucket = $this->calculate_rate_limit_token_bucket($rate_limit_config);
+            $ws_options = $this->safe_value($this->options, 'ws', array());
+            // # get ws rl config
+            // $rate_limits = $this->safe_value($ws_options, 'rateLimits', array());
+            // # if no rateLimit is defined in the WS implementation, we fallback to the ccxt one
+            // $default_rate_limit_config = $this->safe_value($rate_limits, 'default', array(
+            //     'rateLimit' => $this->rateLimit,
+            //     'tokenBucket' => $this->tokenBucket,
+            // ));
+            // $default_rate_limit_token_bucket = $this->calculate_rate_limit_token_bucket($default_rate_limit_config);
+            // $rate_limit_config = $this->safe_value($rate_limits, $url, $default_rate_limit_config);
+            // $rate_limit_token_bucket = $this->calculate_rate_limit_token_bucket($rate_limit_config);
+            $this->lastNewConnectionTimestamp = $this->milliseconds ();
             $options = array_replace_recursive(array(
                 'log' => array($this, 'log'),
                 'verbose' => $this->verbose,
-                'throttle' => new Throttle($rate_limit_token_bucket),
+                'throttle' => new Throttle($this->tokenBucket),
             ), $this->streaming, $ws_options);
             $this->clients[$url] = new Client($url, $on_message, $on_error, $on_close, $on_connected, $options);
         }
@@ -107,6 +91,23 @@ trait ClientTrait {
         });
     }
 
+    public function throttleNewWsConnections() {
+        $ws_options = $this->safe_value($this->options, 'ws', array());
+        # get ws rl config
+        $rate_limits = $this->safe_value($ws_options, 'rateLimits', array());
+        # if no rateLimit is defined in the WS implementation, we fallback to ws default one if not we default to ccxt one
+        $default_rate_limit_config = $this->safe_value($rate_limits, 'default');
+        $new_connections_rate_limit_config = $this->safe_value($rate_limits, 'newConnections');
+        $rate_limit = $this->safe_number($new_connections_rate_limit_config, 'rateLimit', $this->safe_number($default_rate_limit_config, 'rateLimit', $this->rateLimit));
+        $now = $this->milliseconds();
+        $elapsed = $now - $this->lastNewConnectionTimestamp;
+        $sleep_time = $rate_limit;
+        if ($elapsed < $sleep_time) {
+            $delay = $sleep_time - $elapsed;
+            usleep((int) ($delay * 1000.0));
+        }
+    }
+
     public function watch($url, $message_hash, $message = null, $subscribe_hash = null, $subscription = null) {
         $client = $this->client($url);
         // todo: calculate the backoff delay in php
@@ -114,11 +115,8 @@ trait ClientTrait {
         $future = $client->future($message_hash);
         $connected;
         if ($this->enableRateLimit) {
-            $connected = $this->clients->throttle()->then(
-                function () use ($client, $backoff_delay) {
-                    return $client->connect($backoff_delay);
-                }
-            );
+            $this->throttleNewWsConnections ();
+            return $client->connect($backoff_delay);
         } else {
             $connected = $client->connect($backoff_delay);
         }

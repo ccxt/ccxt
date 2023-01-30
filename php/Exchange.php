@@ -256,7 +256,6 @@ class Exchange {
         'encodeURIComponent' => 'encode_uri_component',
         'checkRequiredVersion' => 'check_required_version',
         'checkAddress' => 'check_address',
-        'calculateRateLimitTokenBucket' => 'calculate_rate_limit_token_bucket',
         'initRestRateLimiter' => 'init_rest_rate_limiter',
         'setSandboxMode' => 'set_sandbox_mode',
         'defineRestApiEndpoint' => 'define_rest_api_endpoint',
@@ -282,6 +281,7 @@ class Exchange {
         'checkOrderArguments' => 'check_order_arguments',
         'handleHttpStatusCode' => 'handle_http_status_code',
         'getDefaultOptions' => 'get_default_options',
+        'calculateRateLimitTokenBucket' => 'calculate_rate_limit_token_bucket',
         'safeLedgerEntry' => 'safe_ledger_entry',
         'setMarkets' => 'set_markets',
         'safeBalance' => 'safe_balance',
@@ -1390,6 +1390,7 @@ class Exchange {
         $this->handleContentTypeApplicationZip = false;
 
         $this->lastRestRequestTimestamp = 0;
+        $this->lastNewConnectionTimestamp = 0;
         $this->lastRestPollTimestamp = 0;
         $this->restRequestQueue = null;
         $this->restPollerLoopIsRunning = false;
@@ -1426,7 +1427,13 @@ class Exchange {
             }
         }
 
-        $this->tokenBucket = $this->calculate_rate_limit_token_bucket($this);
+        $this->tokenBucket = array(
+            'delay' => 0.001,
+            'capacity' => 1.0,
+            'cost' => 1.0,
+            'maxCapacity' => 1000,
+            'refillRate' => ($this->rateLimit > 0) ? 1.0 / $this->rateLimit : PHP_INT_MAX,
+        );
 
         if ($this->urlencode_glue !== '&') {
             if ($this->urlencode_glue_warning) {
@@ -1447,23 +1454,6 @@ class Exchange {
         }
     }
 
-    public function calculate_rate_limit_token_bucket($rate_limit_config) {
-        $rate_limit = null;
-        if ($this === $rate_limit_config) {
-            $rate_limit = $this->rateLimit;
-        } else {
-            $rate_limit = $this->safe_number($rate_limit_config, 'rateLimit');
-        }
-        $token_bucket = $this->safe_value($rate_limit_config, 'tokenBucket', array());
-        $config = $this->deep_extend(array(
-            'delay' => 0.001,
-            'capacity' => 1,
-            'cost' => 1,
-            'maxCapacity' => 1000,
-            'refillRate' => ($this->rateLimit > 0) ? 1.0 / $this->rateLimit : PHP_INT_MAX,
-        ), $token_bucket);
-        return $config;
-    }
 
     public function set_sandbox_mode($enabled) {
         if ($enabled) {
@@ -2507,6 +2497,20 @@ class Exchange {
                 'CRO' => array( 'CRC20' => 'CRONOS' ),
             ),
         );
+    }
+
+    public function calculate_rate_limit_token_bucket($rateLimitConfig) {
+        $rateLimit = $this->safe_number($rateLimitConfig, 'rateLimit');
+        $refillRate = ($rateLimit !== null) ? (1 / $rateLimit) : PHP_INT_MAX;
+        $tokenBucket = $this->safe_value($rateLimitConfig, 'tokenBucket', array());
+        $config = array_merge(array(
+            'delay' => 0.001,
+            'capacity' => 1,
+            'cost' => 1,
+            'maxCapacity' => 1000,
+            'refillRate' => $refillRate,
+        ), $tokenBucket);
+        return $config;
     }
 
     public function safe_ledger_entry($entry, $currency = null) {
