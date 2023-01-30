@@ -98,7 +98,7 @@ class bitget(Exchange):
                 'fetchTradingFee': True,
                 'fetchTradingFees': True,
                 'fetchTransfer': False,
-                'fetchTransfers': None,
+                'fetchTransfers': True,
                 'fetchWithdrawal': False,
                 'fetchWithdrawals': True,
                 'reduceMargin': True,
@@ -826,6 +826,19 @@ class bitget(Exchange):
                 'broker': 'p4sve',
                 'withdraw': {
                     'fillResponseFromRequest': True,
+                },
+                'accountsByType': {
+                    'main': 'EXCHANGE',
+                    'spot': 'EXCHANGE',
+                    'future': 'USDT_MIX',
+                    'contract': 'CONTRACT',
+                    'mix': 'USD_MIX',
+                },
+                'accountsById': {
+                    'EXCHANGE': 'spot',
+                    'USDT_MIX': 'future',
+                    'CONTRACT': 'swap',
+                    'USD_MIX': 'swap',
                 },
                 'sandboxMode': False,
             },
@@ -1967,7 +1980,8 @@ class bitget(Exchange):
         if limit is None:
             limit = 100
         if market['type'] == 'spot':
-            request['period'] = self.options['timeframes']['spot'][timeframe]
+            timeframes = self.options['timeframes']['spot']
+            request['period'] = self.safe_string(timeframes, timeframe, timeframe)
             request['limit'] = limit
             if since is not None:
                 request['after'] = since
@@ -1977,7 +1991,8 @@ class bitget(Exchange):
             if until is not None:
                 request['before'] = until
         elif market['type'] == 'swap':
-            request['granularity'] = self.options['timeframes']['swap'][timeframe]
+            timeframes = self.options['timeframes']['swap']
+            request['granularity'] = self.safe_string(timeframes, timeframe, timeframe)
             duration = self.parse_timeframe(timeframe)
             now = self.milliseconds()
             if since is None:
@@ -3617,6 +3632,55 @@ class bitget(Exchange):
         data = self.safe_value(response, 'data', {})
         return self.parse_open_interest(data, market)
 
+    async def fetch_transfers(self, code=None, since=None, limit=None, params={}):
+        """
+        fetch a history of internal transfers made on an account
+        see https://bitgetlimited.github.io/apidoc/en/spot/#get-transfer-list
+        :param str|None code: unified currency code of the currency transferred
+        :param int|None since: the earliest time in ms to fetch transfers for
+        :param int|None limit: the maximum number of  transfers structures to retrieve
+        :param dict params: extra parameters specific to the bitget api endpoint
+        :returns [dict]: a list of `transfer structures <https://docs.ccxt.com/en/latest/manual.html#transfer-structure>`
+        """
+        await self.load_markets()
+        type = None
+        type, params = self.handle_market_type_and_params('fetchTransfers', None, params)
+        fromAccount = self.safe_string(params, 'fromAccount', type)
+        params = self.omit(params, 'fromAccount')
+        accountsByType = self.safe_value(self.options, 'accountsByType', {})
+        type = self.safe_string(accountsByType, fromAccount)
+        request = {
+            'fromType': type,
+        }
+        currency = None
+        if code is not None:
+            currency = self.currency(code)
+            request['coinId'] = currency['id']
+        if since is not None:
+            request['before'] = since
+        if limit is not None:
+            request['limit'] = limit
+        response = await self.privateSpotGetAccountTransferRecords(self.extend(request, params))
+        #
+        #     {
+        #         "code":"00000",
+        #         "message":"success",
+        #         "data":[{
+        #             "cTime":"1622697148",
+        #             "coinId":"22",
+        #             "coinName":"usdt",
+        #             "groupType":"deposit",
+        #             "bizType":"transfer-in",
+        #             "quantity":"1",
+        #             "balance": "1",
+        #             "fees":"0",
+        #             "billId":"1291"
+        #         }]
+        #     }
+        #
+        data = self.safe_value(response, 'data', [])
+        return self.parse_transfers(data, currency, since, limit)
+
     async def transfer(self, code, amount, fromAccount, toAccount, params={}):
         """
         see https://bitgetlimited.github.io/apidoc/en/spot/#transfer
@@ -3659,6 +3723,8 @@ class bitget(Exchange):
 
     def parse_transfer(self, transfer, currency=None):
         #
+        # transfer
+        #
         #    {
         #        "code": "00000",
         #        "msg": "success",
@@ -3666,23 +3732,48 @@ class bitget(Exchange):
         #        "data": "SUCCESS"
         #    }
         #
-        timestamp = self.safe_integer(transfer, 'requestTime')
-        msg = self.safe_string(transfer, 'msg')
+        # fetchTransfers
+        #
+        #     {
+        #         "cTime":"1622697148",
+        #         "coinId":"22",
+        #         "coinName":"usdt",
+        #         "groupType":"deposit",
+        #         "bizType":"transfer-in",
+        #         "quantity":"1",
+        #         "balance": "1",
+        #         "fees":"0",
+        #         "billId":"1291"
+        #     }
+        #
+        timestamp = self.safe_integer_2(transfer, 'requestTime', 'tradeTime')
+        if timestamp is None:
+            timestamp = self.safe_timestamp(transfer, 'cTime')
+        msg = self.safe_string_lower_n(transfer, ['msg', 'status'])
+        currencyId = self.safe_string_2(transfer, 'code', 'coinName')
+        if currencyId == '00000':
+            currencyId = None
+        fromAccountRaw = self.safe_string(transfer, 'fromType')
+        accountsById = self.safe_value(self.options, 'accountsById', {})
+        fromAccount = self.safe_string(accountsById, fromAccountRaw, fromAccountRaw)
+        toAccountRaw = self.safe_string(transfer, 'toType')
+        toAccount = self.safe_string(accountsById, toAccountRaw, toAccountRaw)
         return {
             'info': transfer,
-            'id': self.safe_string(transfer, 'id'),
+            'id': self.safe_string_2(transfer, 'id', 'billId'),
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
-            'currency': self.safe_string(currency, 'code'),
-            'amount': self.safe_number(transfer, 'size'),
-            'fromAccount': None,
-            'toAccount': None,
-            'status': 'ok' if (msg == 'success') else msg,
+            'currency': self.safe_currency_code(currencyId),
+            'amount': self.safe_number_n(transfer, ['size', 'quantity', 'amount']),
+            'fromAccount': fromAccount,
+            'toAccount': toAccount,
+            'status': self.parse_transfer_status(msg),
         }
 
     def parse_transfer_status(self, status):
         statuses = {
             'success': 'ok',
+            'successful': 'ok',
         }
         return self.safe_string(statuses, status, status)
 

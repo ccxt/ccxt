@@ -4,7 +4,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '2.7.14'
+__version__ = '2.7.18'
 
 # -----------------------------------------------------------------------------
 
@@ -405,6 +405,8 @@ class Exchange(object):
                 setattr(self, key, self.deep_extend(getattr(self, key), settings[key]))
             else:
                 setattr(self, key, settings[key])
+
+        self.generate_network_data()
 
         if self.api:
             self.define_rest_api(self.api, 'request')

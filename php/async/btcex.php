@@ -61,9 +61,9 @@ class btcex extends Exchange {
                 'fetchDepositAddress' => false,
                 'fetchDeposits' => true,
                 'fetchFundingHistory' => false,
-                'fetchFundingRate' => false,
+                'fetchFundingRate' => true,
                 'fetchFundingRateHistory' => false,
-                'fetchFundingRates' => false,
+                'fetchFundingRates' => true,
                 'fetchIndexOHLCV' => false,
                 'fetchLeverage' => true,
                 'fetchLeverageTiers' => true,
@@ -94,6 +94,7 @@ class btcex extends Exchange {
                 'setLeverage' => true,
                 'setMarginMode' => true,
                 'signIn' => true,
+                'transfer' => true,
                 'withdraw' => false,
             ),
             'timeframes' => array(
@@ -176,6 +177,7 @@ class btcex extends Exchange {
                         'close_position',
                         'adjust_perpetual_leverage',
                         'adjust_perpetual_margin_type',
+                        'submit_transfer',
                     ),
                     'delete' => array(),
                 ),
@@ -2204,6 +2206,239 @@ class btcex extends Exchange {
             //
             return $response;
         }) ();
+    }
+
+    public function fetch_funding_rates($symbols = null, $params = array ()) {
+        return Async\async(function () use ($symbols, $params) {
+            /**
+             * fetch the current funding rates
+             * @see https://docs.btcex.com/#contracts
+             * @param {array} $symbols unified $market $symbols
+             * @param {array} $params extra parameters specific to the btcex api endpoint
+             * @return {array} an array of {@link https://docs.ccxt.com/en/latest/manual.html#funding-rate-structure funding rate structures}
+             */
+            Async\await($this->load_markets());
+            $symbols = $this->market_symbols($symbols);
+            $response = Async\await($this->publicGetCoinGeckoContracts ($params));
+            //
+            //     {
+            //         "jsonrpc" => "2.0",
+            //         "usIn" => 1674803585896,
+            //         "usOut" => 1674803585943,
+            //         "usDiff" => 47,
+            //         "result" => array(
+            //             array(
+            //                 "ticker_id" => "BTC-USDT-PERPETUAL",
+            //                 "base_currency" => "BTC",
+            //                 "target_currency" => "USDT",
+            //                 "last_price" => "23685",
+            //                 "base_volume" => "167011.37199999999999989",
+            //                 "target_volume" => "3837763191.33800288010388613",
+            //                 "bid" => "23684.5",
+            //                 "ask" => "23685",
+            //                 "high" => "23971.5",
+            //                 "low" => "23156",
+            //                 "product_type" => "perpetual",
+            //                 "open_interest" => "24242.36",
+            //                 "index_price" => "23686.4",
+            //                 "index_name" => "BTC-USDT",
+            //                 "index_currency" => "BTC",
+            //                 "start_timestamp" => 1631004005882,
+            //                 "funding_rate" => "0.000187",
+            //                 "next_funding_rate_timestamp" => 1675065600000,
+            //                 "contract_type" => "Quanto",
+            //                 "contract_price" => "23685",
+            //                 "contract_price_currency" => "USDT"
+            //             ),
+            //         )
+            //     }
+            //
+            $data = $this->safe_value($response, 'result', array());
+            $result = array();
+            for ($i = 0; $i < count($data); $i++) {
+                $entry = $data[$i];
+                $marketId = $this->safe_string($entry, 'ticker_id');
+                $market = $this->safe_market($marketId);
+                $symbol = $market['symbol'];
+                if ($symbols !== null) {
+                    if ($this->in_array($symbol, $symbols)) {
+                        $result[$symbol] = $this->parse_funding_rate($entry, $market);
+                    }
+                } else {
+                    $result[$symbol] = $this->parse_funding_rate($entry, $market);
+                }
+            }
+            return $this->filter_by_array($result, 'symbol', $symbols);
+        }) ();
+    }
+
+    public function fetch_funding_rate($symbol, $params = array ()) {
+        return Async\async(function () use ($symbol, $params) {
+            /**
+             * fetch the current funding rate
+             * @see https://docs.btcex.com/#contracts
+             * @param {string} $symbol unified $market $symbol
+             * @param {array} $params extra parameters specific to the btcex api endpoint
+             * @return {array} a {@link https://docs.ccxt.com/en/latest/manual.html#funding-rate-structure funding rate structure}
+             */
+            Async\await($this->load_markets());
+            $market = $this->market($symbol);
+            $response = Async\await($this->publicGetCoinGeckoContracts ($params));
+            //
+            //     {
+            //         "jsonrpc" => "2.0",
+            //         "usIn" => 1674803585896,
+            //         "usOut" => 1674803585943,
+            //         "usDiff" => 47,
+            //         "result" => array(
+            //             array(
+            //                 "ticker_id" => "BTC-USDT-PERPETUAL",
+            //                 "base_currency" => "BTC",
+            //                 "target_currency" => "USDT",
+            //                 "last_price" => "23685",
+            //                 "base_volume" => "167011.37199999999999989",
+            //                 "target_volume" => "3837763191.33800288010388613",
+            //                 "bid" => "23684.5",
+            //                 "ask" => "23685",
+            //                 "high" => "23971.5",
+            //                 "low" => "23156",
+            //                 "product_type" => "perpetual",
+            //                 "open_interest" => "24242.36",
+            //                 "index_price" => "23686.4",
+            //                 "index_name" => "BTC-USDT",
+            //                 "index_currency" => "BTC",
+            //                 "start_timestamp" => 1631004005882,
+            //                 "funding_rate" => "0.000187",
+            //                 "next_funding_rate_timestamp" => 1675065600000,
+            //                 "contract_type" => "Quanto",
+            //                 "contract_price" => "23685",
+            //                 "contract_price_currency" => "USDT"
+            //             ),
+            //         )
+            //     }
+            //
+            $data = $this->safe_value($response, 'result', array());
+            for ($i = 0; $i < count($data); $i++) {
+                $entry = $data[$i];
+                $marketId = $this->safe_string($entry, 'ticker_id');
+                if ($marketId === $market['id']) {
+                    return $this->parse_funding_rate($entry, $market);
+                }
+            }
+            return $this->parse_funding_rate($data, $market);
+        }) ();
+    }
+
+    public function parse_funding_rate($contract, $market = null) {
+        //
+        //     {
+        //         "ticker_id" => "BTC-USDT-PERPETUAL",
+        //         "base_currency" => "BTC",
+        //         "target_currency" => "USDT",
+        //         "last_price" => "23685",
+        //         "base_volume" => "167011.37199999999999989",
+        //         "target_volume" => "3837763191.33800288010388613",
+        //         "bid" => "23684.5",
+        //         "ask" => "23685",
+        //         "high" => "23971.5",
+        //         "low" => "23156",
+        //         "product_type" => "perpetual",
+        //         "open_interest" => "24242.36",
+        //         "index_price" => "23686.4",
+        //         "index_name" => "BTC-USDT",
+        //         "index_currency" => "BTC",
+        //         "start_timestamp" => 1631004005882,
+        //         "funding_rate" => "0.000187",
+        //         "next_funding_rate_timestamp" => 1675065600000,
+        //         "contract_type" => "Quanto",
+        //         "contract_price" => "23685",
+        //         "contract_price_currency" => "USDT"
+        //     }
+        //
+        $marketId = $this->safe_string($contract, 'ticker_id');
+        $fundingTimestamp = $this->safe_integer($contract, 'next_funding_rate_timestamp');
+        return array(
+            'info' => $contract,
+            'symbol' => $this->safe_symbol($marketId, $market),
+            'markPrice' => null,
+            'indexPrice' => $this->safe_number($contract, 'index_price'),
+            'interestRate' => null,
+            'estimatedSettlePrice' => null,
+            'timestamp' => null,
+            'datetime' => null,
+            'fundingRate' => $this->safe_number($contract, 'funding_rate'),
+            'fundingTimestamp' => $fundingTimestamp,
+            'fundingDatetime' => $this->iso8601($fundingTimestamp),
+            'nextFundingRate' => null,
+            'nextFundingTimestamp' => null,
+            'nextFundingDatetime' => null,
+            'previousFundingRate' => null,
+            'previousFundingTimestamp' => null,
+            'previousFundingDatetime' => null,
+        );
+    }
+
+    public function transfer($code, $amount, $fromAccount, $toAccount, $params = array ()) {
+        return Async\async(function () use ($code, $amount, $fromAccount, $toAccount, $params) {
+            /**
+             * transfer $currency internally between wallets on the same account
+             * @see https://docs.btcex.com/#asset-transfer
+             * @param {string} $code unified $currency $code
+             * @param {float} $amount amount to transfer
+             * @param {string} $fromAccount account to transfer from
+             * @param {string} $toAccount account to transfer to
+             * @param {array} $params extra parameters specific to the btcex api endpoint
+             * @return {array} a {@link https://docs.ccxt.com/en/latest/manual.html#transfer-structure transfer structure}
+             */
+            Async\await($this->sign_in());
+            Async\await($this->load_markets());
+            $currency = $this->currency($code);
+            $accountsByType = $this->safe_value($this->options, 'accountsByType', array());
+            $fromId = $this->safe_string($accountsByType, $fromAccount, $fromAccount);
+            $toId = $this->safe_string($accountsByType, $toAccount, $toAccount);
+            $request = array(
+                'coin_type' => $currency['id'],
+                'amount' => $this->currency_to_precision($code, $amount),
+                'from' => $fromId, // WALLET, SPOT, PERPETUAL
+                'to' => $toId, // WALLET, SPOT, PERPETUAL
+            );
+            $response = Async\await($this->privatePostSubmitTransfer (array_merge($request, $params)));
+            //
+            //     {
+            //         "id" => "1674937273",
+            //         "jsonrpc" => "2.0",
+            //         "usIn" => 1674937274762,
+            //         "usOut" => 1674937274774,
+            //         "usDiff" => 12,
+            //         "result" => "ok"
+            //     }
+            //
+            return $this->parse_transfer($response, $currency);
+        }) ();
+    }
+
+    public function parse_transfer($transfer, $currency = null) {
+        //
+        //     {
+        //         "id" => "1674937273",
+        //         "jsonrpc" => "2.0",
+        //         "usIn" => 1674937274762,
+        //         "usOut" => 1674937274774,
+        //         "usDiff" => 12,
+        //         "result" => "ok"
+        //     }
+        //
+        return array(
+            'info' => $transfer,
+            'id' => $this->safe_string($transfer, 'id'),
+            'timestamp' => null,
+            'datetime' => null,
+            'currency' => null,
+            'amount' => null,
+            'fromAccount' => null,
+            'toAccount' => null,
+            'status' => null,
+        );
     }
 
     public function sign($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {

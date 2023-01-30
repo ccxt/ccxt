@@ -36,7 +36,7 @@ use Elliptic\EdDSA;
 use BN\BN;
 use Exception;
 
-$version = '2.7.14';
+$version = '2.7.18';
 
 // rounding mode
 const TRUNCATE = 0;
@@ -55,7 +55,7 @@ const PAD_WITH_ZERO = 1;
 
 class Exchange {
 
-    const VERSION = '2.7.14';
+    const VERSION = '2.7.18';
 
     private static $base58_alphabet = '123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz';
     private static $base58_encoder = null;
@@ -1441,6 +1441,8 @@ class Exchange {
                     " 'urlencode_glue_warning' => false or 'urlencode_glue' => '&' with exchange constructor params");
             }
         }
+
+        $this->generate_network_data();
 
         if ($this->api) {
             $this->define_rest_api($this->api, 'request');

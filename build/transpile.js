@@ -239,6 +239,17 @@ class Transpiler {
             [ /\.isPostOnly\s/g, '.is_post_only'],
             [ /\.reduceFeesByCurrency\s/g, '.reduce_fees_by_currency'],
             [ /\.omitZero\s/g, '.omit_zero'],
+            [ /\.checkIfMainnetReplacementNeeded\s/g, '.check_if_mainnet_replacement_needed'],
+            [ /\.networkCodeToId\s/g, '.network_code_to_id'],
+            [ /\.networkIdToCode\s/g, '.network_id_to_code'],
+            [ /\.networkCodeToCurrencyId\s/g, '.network_code_to_currency_id'],
+            [ /\.generateNetworkData\s/g, '.generate_network_data'],
+            [ /\.getCurrencyPartFromCurrencyJunction\s/g, '.get_currency_part_from_currency_junction'],
+            [ /\.getNetworkPartFromCurrencyJunction\s/g, '.get_network_part_from_currency_junction'],
+            [ /\.networkIdIsDefined\s/g, '.network_id_is_defined'],
+            [ /\.defaultNetworkCode\s/g, '.default_network_code'],
+            [ /\.selectNetworkKeyFromNetworks\s/g, '.select_network_key_from_networks'],
+            [ /\.invertStringDictionary\s/g, '.invert_string_dictionary'],
         ]
     }
 
