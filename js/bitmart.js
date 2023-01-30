@@ -889,7 +889,7 @@ module.exports = class bitmart extends Exchange {
                     'precision': undefined,
                     'networks': {},
                     'limits': {
-                        'amount': {
+                        'deposit': {
                             'min': undefined,
                             'max': undefined,
                         },
