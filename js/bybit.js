@@ -2043,9 +2043,19 @@ module.exports = class bybit extends Exchange {
             request['limit'] = limit; // max 200, default 200
         }
         request['interval'] = duration;
+        let method = undefined;
         if (market['spot']) {
             request['category'] = 'spot';
+            method = 'publicGetV5MarketKline';
         } else {
+            const price = this.safeString (params, 'price');
+            params = this.omit (params, 'price');
+            const methods = {
+                'mark': 'publicGetV5MarketMarkPriceKline',
+                'index': 'publicGetV5MarketIndexPriceKline',
+                'premiumIndex': 'publicGetV5MarketPremiumIndexPriceKline',
+            };
+            method = this.safeValue (methods, price, 'publicGetV5MarketKline');
             if (market['linear']) {
                 request['category'] = 'linear';
             } else if (market['inverse']) {
@@ -2054,7 +2064,7 @@ module.exports = class bybit extends Exchange {
                 throw new NotSupported (this.id + ' fetchOHLCV() is not supported for option markets');
             }
         }
-        const response = await this.publicGetV5MarketKline (this.extend (request, params));
+        const response = await this[method] (this.extend (request, params));
         //
         //     {
         //         "retCode": 0,
