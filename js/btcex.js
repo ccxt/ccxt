@@ -619,7 +619,7 @@ module.exports = class btcex extends Exchange {
             limit = 10;
         }
         const request = {
-            'resolution': this.timeframes[timeframe],
+            'resolution': this.safeString (this.timeframes, timeframe, timeframe),
             // 'start_timestamp': 0,
             // 'end_timestamp': 0,
         };

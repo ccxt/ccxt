@@ -1157,7 +1157,7 @@ module.exports = class kucoin extends Exchange {
         const marketId = market['id'];
         const request = {
             'symbol': marketId,
-            'type': this.timeframes[timeframe],
+            'type': this.safeString (this.timeframes, timeframe, timeframe),
         };
         const duration = this.parseTimeframe (timeframe) * 1000;
         let endAt = this.milliseconds (); // required param

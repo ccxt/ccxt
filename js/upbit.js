@@ -959,7 +959,7 @@ module.exports = class upbit extends Exchange {
         await this.loadMarkets ();
         const market = this.market (symbol);
         const timeframePeriod = this.parseTimeframe (timeframe);
-        const timeframeValue = this.timeframes[timeframe];
+        const timeframeValue = this.safeString (this.timeframes, timeframe, timeframe);
         if (limit === undefined) {
             limit = 200;
         }

@@ -2025,7 +2025,7 @@ module.exports = class bybit extends Exchange {
         }
         request['start'] = since;
         request['end'] = end;
-        request['interval'] = this.timeframes[timeframe];
+        request['interval'] = this.safeString (this.timeframes, timeframe, timeframe);
         const price = this.safeString (params, 'price');
         params = this.omit (params, 'price');
         const methods = {

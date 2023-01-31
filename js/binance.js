@@ -2746,7 +2746,7 @@ module.exports = class binance extends Exchange {
         params = this.omit (params, [ 'price', 'until' ]);
         limit = (limit === undefined) ? defaultLimit : Math.min (limit, maxLimit);
         const request = {
-            'interval': this.timeframes[timeframe],
+            'interval': this.safeString (this.timeframes, timeframe, timeframe),
             'limit': limit,
         };
         if (price === 'index') {
@@ -7135,7 +7135,7 @@ module.exports = class binance extends Exchange {
         await this.loadMarkets ();
         const market = this.market (symbol);
         const request = {
-            'period': this.timeframes[timeframe],
+            'period': this.safeString (this.timeframes, timeframe, timeframe),
         };
         if (limit !== undefined) {
             request['limit'] = limit;

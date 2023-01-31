@@ -638,7 +638,7 @@ module.exports = class binance extends binanceRest {
         await this.loadMarkets ();
         const market = this.market (symbol);
         const marketId = market['lowercaseId'];
-        const interval = this.timeframes[timeframe];
+        const interval = this.safeString (this.timeframes, timeframe, timeframe);
         const name = 'kline';
         const messageHash = marketId + '@' + name + '_' + interval;
         let type = market['type'];

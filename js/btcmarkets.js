@@ -522,7 +522,7 @@ module.exports = class btcmarkets extends Exchange {
         const market = this.market (symbol);
         const request = {
             'marketId': market['id'],
-            'timeWindow': this.timeframes[timeframe],
+            'timeWindow': this.safeString (this.timeframes, timeframe, timeframe),
             // 'from': this.iso8601 (since),
             // 'to': this.iso8601 (this.milliseconds ()),
             // 'before': 1234567890123,

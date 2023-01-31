@@ -758,7 +758,7 @@ module.exports = class hollaex extends Exchange {
         const market = this.market (symbol);
         const request = {
             'symbol': market['id'],
-            'resolution': this.timeframes[timeframe],
+            'resolution': this.safeString (this.timeframes, timeframe, timeframe),
         };
         const duration = this.parseTimeframe (timeframe);
         if (since === undefined) {
