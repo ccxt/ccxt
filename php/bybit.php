@@ -4675,7 +4675,7 @@ class bybit extends Exchange {
         if ($enableUnifiedMargin) {
             $request['orderStatus'] = 'Canceled';
         } else {
-            $request['orderStatus'] = array( 'Filled', 'Canceled' );
+            $request['orderStatus'] = 'Filled,Canceled';
         }
         return $this->fetch_orders($symbol, $since, $limit, array_merge($request, $params));
     }
