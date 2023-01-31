@@ -656,6 +656,160 @@ module.exports = class phemex extends Exchange {
         };
     }
 
+    parsePerpMarket (market) {
+        //
+        // {
+        //     "symbol": "BTCUSDT",
+        //     "code": 41541,
+        //     "type": "PerpetualV2",
+        //     "displaySymbol": "BTC / USDT",
+        //     "indexSymbol": ".BTCUSDT",
+        //     "markSymbol": ".MBTCUSDT",
+        //     "fundingRateSymbol": ".BTCUSDTFR",
+        //     "fundingRate8hSymbol": ".BTCUSDTFR8H",
+        //     "contractUnderlyingAssets": "BTC",
+        //     "settleCurrency": "USDT",
+        //     "quoteCurrency": "USDT",
+        //     "tickSize": "0.1",
+        //     "priceScale": 0,
+        //     "ratioScale": 0,
+        //     "pricePrecision": 1,
+        //     "baseCurrency": "BTC",
+        //     "description": "BTC/USDT perpetual contracts are priced on the .BTCUSDT Index. Each contract is worth 1 BTC. Funding fees are paid and received every 8 hours at UTC time: 00:00, 08:00 and 16:00.",
+        //     "status": "Listed",
+        //     "tipOrderQty": 0,
+        //     "listTime": 1668225600000,
+        //     "majorSymbol": true,
+        //     "defaultLeverage": "-10",
+        //     "fundingInterval": 28800,
+        //     "maxOrderQtyRq": "100000",
+        //     "maxPriceRp": "2000000000",
+        //     "minOrderValueRv": "1",
+        //     "minPriceRp": "1000.0",
+        //     "qtyPrecision": 3,
+        //     "qtyStepSize": "0.001",
+        //     "tipOrderQtyRq": "20000"
+        // }
+        //
+        const id = this.safeString (market, 'symbol');
+        const baseId = this.safeString2 (market, 'baseCurrency', 'contractUnderlyingAssets');
+        const quoteId = this.safeString (market, 'quoteCurrency');
+        const settleId = this.safeString (market, 'settleCurrency');
+        const base = this.safeCurrencyCode (baseId);
+        const quote = this.safeCurrencyCode (quoteId);
+        const settle = this.safeCurrencyCode (settleId);
+        let inverse = false;
+        if (settleId !== quoteId) {
+            inverse = true;
+        }
+        const priceScale = this.safeInteger (market, 'priceScale');
+        const ratioScale = this.safeInteger (market, 'ratioScale');
+        const minPriceRp = this.safeString (market, 'minPriceRp');
+        const maxPriceRp = this.safeString (market, 'maxPriceRp');
+        const makerFeeRateEr = this.safeString (market, 'makerFeeRateEr');
+        const takerFeeRateEr = this.safeString (market, 'takerFeeRateEr');
+        const status = this.safeString (market, 'status');
+        const contractSizeString = this.safeString (market, 'contractSize', ' ');
+        let contractSize = undefined;
+        if (contractSizeString.indexOf (' ')) {
+            // "1 USD"
+            // "0.005 ETH"
+            const parts = contractSizeString.split (' ');
+            contractSize = this.parseNumber (parts[0]);
+        } else {
+            // "1.0"
+            contractSize = this.parseNumber (contractSizeString);
+        }
+        return {
+            'id': id,
+            'symbol': base + '/' + quote + ':' + settle,
+            'base': base,
+            'quote': quote,
+            'settle': settle,
+            'baseId': baseId,
+            'quoteId': quoteId,
+            'settleId': settleId,
+            'type': 'swap',
+            'spot': false,
+            'margin': false,
+            'swap': true,
+            'future': false,
+            'option': false,
+            'active': status === 'Listed',
+            'contract': true,
+            'linear': inverse,
+            'inverse': !inverse,
+            'taker': this.parseNumber (this.fromEn (takerFeeRateEr, ratioScale)),
+            'maker': this.parseNumber (this.fromEn (makerFeeRateEr, ratioScale)),
+            'contractSize': contractSize,
+            'expiry': undefined,
+            'expiryDatetime': undefined,
+            'strike': undefined,
+            'optionType': undefined,
+            'priceScale': priceScale,
+            'ratioScale': ratioScale,
+            'precision': {
+                'amount': this.safeNumber (market, 'qtyPrecision'),
+                'price': this.safeNumber (market, 'tickSize'),
+            },
+            'limits': {
+                'leverage': {
+                    'min': this.parseNumber ('1'),
+                    'max': this.safeNumber (market, 'maxLeverage'),
+                },
+                'amount': {
+                    'min': undefined,
+                    'max': undefined,
+                },
+                'price': {
+                    'min': this.parseNumber (this.fromEn (minPriceRp, priceScale)),
+                    'max': this.parseNumber (this.fromEn (maxPriceRp, priceScale)),
+                },
+                'cost': {
+                    'min': undefined,
+                    'max': this.parseNumber (this.safeString (market, 'maxOrderQty')),
+                },
+            },
+            'info': market,
+        };
+    }
+
+    parseProducts (v1ProductsData, v2ProductsData, riskLimitsById) {
+        const products = this.safeValue (v2ProductsData, 'products', []);
+        const v1ProductsById = this.indexBy (v1ProductsData, 'symbol');
+        const result = [];
+        for (let i = 0; i < products.length; i++) {
+            let market = products[i];
+            const type = this.safeStringLower (market, 'type');
+            if (type === 'perpetual') {
+                const id = this.safeString (market, 'symbol');
+                const riskLimitValues = this.safeValue (riskLimitsById, id, {});
+                market = this.extend (market, riskLimitValues);
+                const v1ProductsValues = this.safeValue (v1ProductsById, id, {});
+                market = this.extend (market, v1ProductsValues);
+                market = this.parseSwapMarket (market);
+            } else {
+                market = this.parseSpotMarket (market);
+            }
+            result.push (market);
+        }
+        return result;
+    }
+
+    parsePerpProducts (productsData, riskLimitsById) {
+        const perpProducts = this.safeValue (productsData, 'perpProductsV2', []);
+        const result = [];
+        for (let i = 0; i < perpProducts.length; i++) {
+            let market = perpProducts[i];
+            const id = this.safeString (market, 'symbol');
+            const riskLimitValues = this.safeValue (riskLimitsById, id, {});
+            market = this.extend (market, riskLimitValues);
+            market = this.parsePerpMarket (market);
+            result.push (market);
+        }
+        return result;
+    }
+
     async fetchMarkets (params = {}) {
         /**
          * @method
@@ -723,6 +877,39 @@ module.exports = class phemex extends Exchange {
         //                     "quoteQtyPrecision":2
         //                 },
         //             ],
+        //              "perpProductsV2": [
+        //                {
+        //                    "symbol": "BTCUSDT",
+        //                    "code": 41541,
+        //                    "type": "PerpetualV2",
+        //                    "displaySymbol": "BTC / USDT",
+        //                    "indexSymbol": ".BTCUSDT",
+        //                    "markSymbol": ".MBTCUSDT",
+        //                    "fundingRateSymbol": ".BTCUSDTFR",
+        //                    "fundingRate8hSymbol": ".BTCUSDTFR8H",
+        //                    "contractUnderlyingAssets": "BTC",
+        //                    "settleCurrency": "USDT",
+        //                    "quoteCurrency": "USDT",
+        //                    "tickSize": "0.1",
+        //                    "priceScale": 0,
+        //                    "ratioScale": 0,
+        //                    "pricePrecision": 1,
+        //                    "baseCurrency": "BTC",
+        //                    "description": "BTC/USDT perpetual contracts are priced on the .BTCUSDT Index. Each contract is worth 1 BTC. Funding fees are paid and received every 8 hours at UTC time: 00:00, 08:00 and 16:00.",
+        //                    "status": "Listed",
+        //                    "tipOrderQty": 0,
+        //                    "listTime": 1668225600000,
+        //                    "majorSymbol": true,
+        //                    "defaultLeverage": "-10",
+        //                    "fundingInterval": 28800,
+        //                    "maxOrderQtyRq": "100000",
+        //                    "maxPriceRp": "2000000000",
+        //                    "minOrderValueRv": "1",
+        //                    "minPriceRp": "1000.0",
+        //                    "qtyPrecision": 3,
+        //                    "qtyStepSize": "0.001",
+        //                    "tipOrderQtyRq": "20000"
+        //                    },
         //             "riskLimits":[
         //                 {
         //                     "symbol":"BTCUSD",
@@ -780,27 +967,11 @@ module.exports = class phemex extends Exchange {
         //     }
         //
         const v2ProductsData = this.safeValue (v2Products, 'data', {});
-        const products = this.safeValue (v2ProductsData, 'products', []);
         const riskLimits = this.safeValue (v2ProductsData, 'riskLimits', []);
         const riskLimitsById = this.indexBy (riskLimits, 'symbol');
-        const v1ProductsById = this.indexBy (v1ProductsData, 'symbol');
-        const result = [];
-        for (let i = 0; i < products.length; i++) {
-            let market = products[i];
-            const type = this.safeStringLower (market, 'type');
-            if ((type === 'perpetual') || (type === 'perpetualv2')) {
-                const id = this.safeString (market, 'symbol');
-                const riskLimitValues = this.safeValue (riskLimitsById, id, {});
-                market = this.extend (market, riskLimitValues);
-                const v1ProductsValues = this.safeValue (v1ProductsById, id, {});
-                market = this.extend (market, v1ProductsValues);
-                market = this.parseSwapMarket (market);
-            } else {
-                market = this.parseSpotMarket (market);
-            }
-            result.push (market);
-        }
-        return result;
+        const products = this.parseProducts (v1ProductsData, v2ProductsData, riskLimitsById);
+        const perpProducts = this.parsePerpProducts (v2ProductsData, riskLimitsById);
+        return products.concat (perpProducts);
     }
 
     async fetchCurrencies (params = {}) {
