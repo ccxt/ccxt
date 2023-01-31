@@ -3515,7 +3515,7 @@ module.exports = class kucoin extends Exchange {
         params = this.omit (params, 'version');
         let endpoint = '/api/' + version + '/' + this.implodeParams (path, params);
         if (api === 'webFront') {
-            endpoint = '/' + this.implodeParams (path, params)
+            endpoint = '/' + this.implodeParams (path, params);
         }
         const query = this.omit (params, this.extractParams (path));
         let endpart = '';
