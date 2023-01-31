@@ -14,7 +14,7 @@ module.exports = class bybit extends Exchange {
             'id': 'bybit',
             'name': 'Bybit',
             'countries': [ 'VG' ], // British Virgin Islands
-            'version': 'v3',
+            'version': 'v5',
             'userAgent': undefined,
             'rateLimit': 20,
             'hostname': 'bybit.com', // bybit.com, bytick.com
@@ -210,6 +210,24 @@ module.exports = class bybit extends Exchange {
                         'derivatives/v3/public/recent-trade': 1,
                         'derivatives/v3/public/open-interest': 1,
                         'derivatives/v3/public/insurance': 1,
+                        // v5
+                        'v5/market/kline': 1,
+                        'v5/market/mark-price-kline': 1,
+                        'v5/market/index-price-kline': 1,
+                        'v5/market/premium-index-price-kline': 1,
+                        'v5/market/instruments-info': 1,
+                        'v5/market/orderbook': 1,
+                        'v5/market/tickers': 1,
+                        'v5/market/funding/history': 1,
+                        'v5/market/recent-trade': 1,
+                        'v5/market/open-interest': 1,
+                        'v5/market/historical-volatility': 1,
+                        'v5/market/insurance': 1,
+                        'v5/market/risk-limit': 1,
+                        'v5/market/delivery-price': 1,
+                        'v5/order/realtime': 1,
+                        'v5/spot-lever-token/info': 1,
+                        'v5/spot-lever-token/reference': 1,
                     },
                 },
                 'private': {
@@ -323,6 +341,35 @@ module.exports = class bybit extends Exchange {
                         'asset/v3/public/deposit/allowed-deposit-list/query': 0.17, // 300/s
                         'asset/v3/private/deposit/record/query': 0.17, // 300/s
                         'asset/v3/private/withdraw/record/query': 0.17, // 300/s
+                        // v5
+                        'v5/order/history': 2.5,
+                        'v5/order/spot-borrow-check': 2.5,
+                        'v5/position/list': 2.5,
+                        'v5/execution/list': 2.5,
+                        'v5/position/closed-pnl': 2.5,
+                        'v5/account/wallet-balance': 2.5,
+                        'v5/account/borrow-history': 2.5,
+                        'v5/account/collateral-info': 2.5,
+                        'v5/asset/coin-greeks': 2.5,
+                        'v5/account/info': 2.5,
+                        'v5/account/transaction-log': 2.5,
+                        'v5/asset/exchange/order-record': 2.5,
+                        'v5/asset/delivery-record': 2.5,
+                        'v5/asset/settlement-record': 2.5,
+                        'v5/asset/transfer/query-asset-info': 2.5,
+                        'v5/asset/transfer/query-account-coin-balance': 2.5,
+                        'v5/asset/transfer/query-transfer-coin-list': 2.5,
+                        'v5/asset/transfer/query-inter-transfer-list': 2.5,
+                        'v5/asset/transfer/query-sub-member-list': 2.5,
+                        'v5/asset/transfer/query-universal-transfer-list': 2.5,
+                        'v5/asset/deposit/query-allowed-list': 2.5,
+                        'v5/asset/deposit/query-record': 2.5,
+                        'v5/asset/deposit/query-sub-member-record': 2.5,
+                        'v5/asset/deposit/query-address': 2.5,
+                        'v5/asset/deposit/query-sub-member-address': 2.5,
+                        'v5/asset/coin/query-info': 2.5,
+                        'v5/asset/withdraw/query-record': 2.5,
+
                     },
                     'post': {
                         // inverse swap
@@ -475,6 +522,30 @@ module.exports = class bybit extends Exchange {
                         'fht/compliance/tax/v3/private/create': 50,
                         'fht/compliance/tax/v3/private/status': 50,
                         'fht/compliance/tax/v3/private/url': 50,
+                        // v5
+                        'v5/order/create': 2.5,
+                        'v5/order/amend': 2.5,
+                        'v5/order/cancel': 2.5,
+                        'v5/order/cancel-all': 2.5,
+                        'v5/order/create-batch': 2.5,
+                        'v5/order/amend-batch': 2.5,
+                        'v5/order/cancel-batch': 2.5,
+                        'v5/position/set-leverage': 2.5,
+                        'v5/position/set-tpsl-mode': 2.5,
+                        'v5/position/set-risk-limit': 2.5,
+                        'v5/position/trading-stop': 2.5,
+                        'v5/account/upgrade-to-uta': 2.5,
+                        'v5/account/set-margin-mode': 2.5,
+                        'v5/asset/transfer/inter-transfer': 2.5,
+                        'v5/asset/transfer/save-transfer-sub-member': 2.5,
+                        'v5/asset/transfer/universal-transfer': 2.5,
+                        'v5/asset/withdraw/create': 2.5,
+                        'v5/asset/withdraw/cancel': 2.5,
+                        'v5/spot-lever-token/purchase': 2.5,
+                        'v5/spot-lever-token/redeem': 2.5,
+                        'v5/spot-lever-token/order-record': 2.5,
+                        'v5/spot-margin-trade/switch-mode': 2.5,
+                        'v5/spot-margin-trade/set-leverage': 2.5,
                     },
                     'delete': {
                         // spot
@@ -1944,123 +2015,6 @@ module.exports = class bybit extends Exchange {
         ];
     }
 
-    async fetchSpotOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets ();
-        const market = this.market (symbol);
-        const request = {
-            'symbol': market['id'],
-        };
-        const duration = this.parseTimeframe (timeframe);
-        const now = this.seconds ();
-        let sinceTimestamp = undefined;
-        if (limit === undefined) {
-            limit = 200; // default is 200 when requested with `since`
-        }
-        if (since === undefined) {
-            sinceTimestamp = now - limit * duration;
-        } else {
-            sinceTimestamp = parseInt (since / 1000);
-        }
-        if (limit !== undefined) {
-            request['limit'] = limit; // max 200, default 200
-        }
-        request['interval'] = timeframe;
-        request['from'] = sinceTimestamp;
-        const response = await this.publicGetSpotV3PublicQuoteKline (this.extend (request, params));
-        //
-        //     {
-        //         "retCode": 0,
-        //         "retMsg": "OK",
-        //         "result": {
-        //         "list": [
-        //             {
-        //             "t": 1659430380000,
-        //             "s": "BTCUSDT",
-        //             "sn": "BTCUSDT",
-        //             "c": "21170.14",
-        //             "h": "21170.14",
-        //             "l": "21127.86",
-        //             "o": "21127.86",
-        //             "v": "0.907276"
-        //             }
-        //         ]
-        //         },
-        //         "retExtInfo": {},
-        //         "time": 1659430400353
-        //     }
-        //
-        const result = this.safeValue (response, 'result', {});
-        const ohlcvs = this.safeValue (result, 'list', []);
-        return this.parseOHLCVs (ohlcvs, market, timeframe, since, limit);
-    }
-
-    async fetchDerivativesOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets ();
-        const market = this.market (symbol);
-        if (market['option']) {
-            throw new NotSupported (this.id + ' fetchOHLCV() is not supported for option markets');
-        }
-        const request = {
-            'symbol': market['id'],
-        };
-        const duration = this.parseTimeframe (timeframe);
-        const now = this.milliseconds ();
-        if (limit === undefined) {
-            limit = 200; // default is 200 when requested with `since`
-        } else {
-            request['limit'] = limit;
-        }
-        if (since === undefined) {
-            since = now - (limit * duration * 1000);
-        }
-        // end is required parameter
-        let end = this.safeInteger (params, 'end');
-        if (end === undefined) {
-            end = this.sum (since, limit * duration * 1000);
-        }
-        if (market['linear']) {
-            request['category'] = 'linear';
-        } else if (market['inverse']) {
-            request['category'] = 'inverse';
-        }
-        request['start'] = since;
-        request['end'] = end;
-        request['interval'] = this.timeframes[timeframe];
-        const price = this.safeString (params, 'price');
-        params = this.omit (params, 'price');
-        const methods = {
-            'mark': 'publicGetDerivativesV3PublicMarkPriceKline',
-            'index': 'publicGetDerivativesV3PublicIndexPriceKline',
-        };
-        const method = this.safeValue (methods, price, 'publicGetDerivativesV3PublicKline');
-        const response = await this[method] (this.extend (request, params));
-        //
-        //     {
-        //         "retCode": 0,
-        //         "retMsg":"success",
-        //         "result":{
-        //             "category":"linear",
-        //             "symbol":"BTCUSDT",
-        //             "interval":"1",
-        //             "list":[
-        //                 [
-        //                     "1621162800",
-        //                     "49592.43",
-        //                     "49644.91",
-        //                     "49342.37",
-        //                     "49349.42",
-        //                     "1451.59",
-        //                     "2.4343353100000003"
-        //                 ]
-        //             ]
-        //         }
-        //     }
-        //
-        const result = this.safeValue (response, 'result', {});
-        const ohlcvs = this.safeValue (result, 'list', []);
-        return this.parseOHLCVs (ohlcvs, market, timeframe, since, limit);
-    }
-
     async fetchOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
         /**
          * @method
@@ -2075,11 +2029,76 @@ module.exports = class bybit extends Exchange {
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
-        if (market['spot']) {
-            return await this.fetchSpotOHLCV (symbol, timeframe, since, limit, params);
-        } else {
-            return await this.fetchDerivativesOHLCV (symbol, timeframe, since, limit, params);
+        const request = {
+            'symbol': market['id'],
+        };
+        const duration = this.parseTimeframe (timeframe);
+        if (limit === undefined) {
+            limit = 200; // default is 200 when requested with `since`
         }
+        if (since === undefined) {
+            request['start'] = since;
+        }
+        if (limit !== undefined) {
+            request['limit'] = limit; // max 200, default 200
+        }
+        request['interval'] = duration;
+        if (market['spot']) {
+            request['category'] = 'spot';
+        } else {
+            if (market['linear']) {
+                request['category'] = 'linear';
+            } else if (market['inverse']) {
+                request['category'] = 'inverse';
+            } else {
+                throw new NotSupported (this.id + ' fetchOHLCV() is not supported for option markets');
+            }
+        }
+        const response = await this.publicGetV5MarketKline (this.extend (request, params));
+        //
+        //     {
+        //         "retCode": 0,
+        //         "retMsg": "OK",
+        //         "result": {
+        //             "symbol": "BTCUSD",
+        //             "category": "inverse",
+        //             "list": [
+        //                 [
+        //                     "1670608800000",
+        //                     "17071",
+        //                     "17073",
+        //                     "17027",
+        //                     "17055.5",
+        //                     "268611",
+        //                     "15.74462667"
+        //                 ],
+        //                 [
+        //                     "1670605200000",
+        //                     "17071.5",
+        //                     "17071.5",
+        //                     "17061",
+        //                     "17071",
+        //                     "4177",
+        //                     "0.24469757"
+        //                 ],
+        //                 [
+        //                     "1670601600000",
+        //                     "17086.5",
+        //                     "17088",
+        //                     "16978",
+        //                     "17071.5",
+        //                     "6356",
+        //                     "0.37288112"
+        //                 ]
+        //             ]
+        //         },
+        //         "retExtInfo": {},
+        //         "time": 1672025956592
+        //     }
+        //
+        const result = this.safeValue (response, 'result', {});
+        const ohlcvs = this.safeValue (result, 'list', []);
+        return this.parseOHLCVs (ohlcvs, market, timeframe, since, limit);
     }
 
     parseFundingRate (ticker, market = undefined) {
