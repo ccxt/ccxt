@@ -83,7 +83,8 @@ module.exports = class derivadex extends Exchange {
                     'public': 'https://beta.derivadex.io',
                     'private': 'https://beta.derivadex.io',
                     'stats': 'https://beta.derivadex.io/stats',
-                    'v2': 'https://beta.derivadex.io/v2',
+                    // 'v2': 'https://beta.derivadex.io/v2',
+                    'v2': 'http://op1.ddx.one:15080/v2', // TODO: DELETE THIS
                     'op1': 'http://op1.ddx.one:15080/stats', // TODO: delete this before submitting
                 },
                 'logo': 'https://gitlab.com/dexlabs/assets/-/raw/main/light-round.png',
@@ -135,6 +136,11 @@ module.exports = class derivadex extends Exchange {
                         'aggregations/volume': 1,
                         'aggregations/markets': 1,
                         'markets/order_book/L2/{symbol}': 1,
+                    },
+                },
+                'v2': {
+                    'get': {
+                        'rest/ohlcv': 1,
                     },
                 },
                 'private': {
@@ -381,7 +387,7 @@ module.exports = class derivadex extends Exchange {
         const params = {};
         params['symbol'] = symbol;
         const marketsResponse = await this.publicGetAggregationsMarkets (params); // aggregations/markets endpoint response is cached for 30 minutes
-        params['limit'] = 1;
+        params['depth'] = 1;
         const request = {
             'symbol': symbol,
         };
@@ -574,7 +580,7 @@ module.exports = class derivadex extends Exchange {
             'symbol': market['id'],
         };
         if (limit !== undefined) {
-            request['limit'] = limit;
+            request['depth'] = limit;
         }
         const response = await this.publicGetOrderBook (this.extend (request, params));
         // value: [
@@ -622,9 +628,57 @@ module.exports = class derivadex extends Exchange {
         return result;
     }
 
+    async fetchOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
+        /**
+         * @method
+         * @name derivadex#fetchOHLCV
+         * @description fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+         * @param {string} symbol unified symbol of the market to fetch OHLCV data for
+         * @param {string} timeframe the length of time each candle represents
+         * @param {int|undefined} since timestamp in ms of the earliest candle to fetch
+         * @param {int|undefined} limit the maximum amount of candles to fetch
+         * @param {object} params extra parameters specific to the derivadex api endpoint
+         * @returns {[[int]]} A list of candles ordered as timestamp, open, high, low, close, volume
+         */
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const request = {
+            'symbol': market['id'],
+            'interval': this.timeframes[timeframe],
+            'from': this.getTimeForOhlcvRequest (this.timeframes[timeframe], since) / 1000,
+        };
+        const response = await this.v2GetRestOhlcv (this.extend (request, params));
+        return this.parseOHLCVs (response['ohlcv'], market, timeframe, since, limit);
+    }
+
+    parseOHLCV (ohlcv, market = undefined) {
+        const timestamp = this.safeInteger (ohlcv, 'timestamp');
+        const open = this.safeNumber (ohlcv, 'open');
+        const high = this.safeNumber (ohlcv, 'high');
+        const low = this.safeNumber (ohlcv, 'low');
+        const close = this.safeNumber (ohlcv, 'close');
+        const volume = this.safeNumber (ohlcv, 'volume');
+        return [ timestamp, open, high, low, close, volume ];
+    }
+
+    getTimeForOhlcvRequest (interval, time) {
+        const msInMinute = 60 * 1000;
+        const msInHour = 60 * 1000 * 60;
+        const msInDay = 60 * 1000 * 60 * 24;
+        if (interval === '1m') {
+            return Math.ceil (time / msInMinute) * msInMinute;
+        }
+        if (interval === '1h') {
+            return Math.ceil (time / msInHour) * msInHour;
+        }
+        if (interval === '1d') {
+            return Math.ceil (time / msInDay) * msInDay;
+        }
+    }
+
     sign (path, api = 'stats', method = 'GET', params = {}, headers = undefined, body = undefined) {
         const implodedPath = this.implodeParams (path, params);
-        let query = '/api/' + this.version + '/' + implodedPath;
+        let query = (api === 'v2' ? '' : '/api/') + (api === 'v2' ? '' : this.version) + '/' + implodedPath;
         if (method === 'GET') {
             if (Object.keys (params).length) {
                 query += '?' + this.urlencode (params);
@@ -636,7 +690,8 @@ module.exports = class derivadex extends Exchange {
                 params = this.omit (params, '_format');
             }
         }
-        const url = this.urls['test']['op1'] + query; // TODO: SWITCH TO MAINNET URL
+        const testApi = api === 'v2' ? 'v2' : 'op1'; // TODO: SWITCH TO MAINNET URL
+        const url = this.urls['test'][testApi] + query; // TODO: SWITCH TO MAINNET URL
         const isAuthenticated = this.checkRequiredCredentials (false);
         if (api === 'private' || (api === 'public' && isAuthenticated)) {
             this.checkRequiredCredentials ();
