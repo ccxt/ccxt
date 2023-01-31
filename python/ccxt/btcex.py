@@ -80,6 +80,8 @@ class btcex(Exchange):
                 'fetchMarkOHLCV': False,
                 'fetchMyTrades': True,
                 'fetchOHLCV': True,
+                'fetchOpenInterest': True,
+                'fetchOpenInterestHistory': False,
                 'fetchOpenOrders': True,
                 'fetchOrder': True,
                 'fetchOrderBook': True,
@@ -2288,6 +2290,100 @@ class btcex(Exchange):
             'fromAccount': None,
             'toAccount': None,
             'status': None,
+        }
+
+    def fetch_open_interest(self, symbol, params={}):
+        """
+        fetch the open interest of a market
+        see https://docs.btcex.com/#contracts
+        :param str symbol: unified CCXT market symbol
+        :param dict params: extra parameters specific to the btcex api endpoint
+        :returns dict} an open interest structure{@link https://docs.ccxt.com/en/latest/manual.html#interest-history-structure:
+        """
+        self.load_markets()
+        market = self.market(symbol)
+        if not market['contract']:
+            raise BadRequest(self.id + ' fetchOpenInterest() supports contract markets only')
+        response = self.publicGetCoinGeckoContracts(params)
+        #
+        #     {
+        #         "jsonrpc": "2.0",
+        #         "usIn": 1674803585896,
+        #         "usOut": 1674803585943,
+        #         "usDiff": 47,
+        #         "result": [
+        #             {
+        #                 "ticker_id": "BTC-USDT-PERPETUAL",
+        #                 "base_currency": "BTC",
+        #                 "target_currency": "USDT",
+        #                 "last_price": "23685",
+        #                 "base_volume": "167011.37199999999999989",
+        #                 "target_volume": "3837763191.33800288010388613",
+        #                 "bid": "23684.5",
+        #                 "ask": "23685",
+        #                 "high": "23971.5",
+        #                 "low": "23156",
+        #                 "product_type": "perpetual",
+        #                 "open_interest": "24242.36",
+        #                 "index_price": "23686.4",
+        #                 "index_name": "BTC-USDT",
+        #                 "index_currency": "BTC",
+        #                 "start_timestamp": 1631004005882,
+        #                 "funding_rate": "0.000187",
+        #                 "next_funding_rate_timestamp": 1675065600000,
+        #                 "contract_type": "Quanto",
+        #                 "contract_price": "23685",
+        #                 "contract_price_currency": "USDT"
+        #             },
+        #         ]
+        #     }
+        #
+        data = self.safe_value(response, 'result', [])
+        for i in range(0, len(data)):
+            entry = data[i]
+            marketId = self.safe_string(entry, 'ticker_id')
+            if marketId == market['id']:
+                return self.parse_open_interest(entry, market)
+        return self.parse_open_interest(data, market)
+
+    def parse_open_interest(self, interest, market=None):
+        #
+        #     {
+        #         "ticker_id": "BTC-USDT-PERPETUAL",
+        #         "base_currency": "BTC",
+        #         "target_currency": "USDT",
+        #         "last_price": "23685",
+        #         "base_volume": "167011.37199999999999989",
+        #         "target_volume": "3837763191.33800288010388613",
+        #         "bid": "23684.5",
+        #         "ask": "23685",
+        #         "high": "23971.5",
+        #         "low": "23156",
+        #         "product_type": "perpetual",
+        #         "open_interest": "24242.36",
+        #         "index_price": "23686.4",
+        #         "index_name": "BTC-USDT",
+        #         "index_currency": "BTC",
+        #         "start_timestamp": 1631004005882,
+        #         "funding_rate": "0.000187",
+        #         "next_funding_rate_timestamp": 1675065600000,
+        #         "contract_type": "Quanto",
+        #         "contract_price": "23685",
+        #         "contract_price_currency": "USDT"
+        #     }
+        #
+        marketId = self.safe_string(interest, 'ticker_id')
+        market = self.safe_market(marketId, market)
+        openInterest = self.safe_number(interest, 'open_interest')
+        return {
+            'info': interest,
+            'symbol': market['symbol'],
+            'baseVolume': openInterest,
+            'quoteVolume': None,
+            'openInterestAmount': openInterest,  # in base currency
+            'openInterestValue': None,
+            'timestamp': None,
+            'datetime': None,
         }
 
     def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
