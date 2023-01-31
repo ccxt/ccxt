@@ -2486,12 +2486,13 @@ module.exports = class btcex extends Exchange {
         //
         const marketId = this.safeString (interest, 'ticker_id');
         market = this.safeMarket (marketId, market);
+        const openInterest = this.safeNumber (interest, 'open_interest');
         return {
             'info': interest,
             'symbol': market['symbol'],
-            'baseVolume': this.safeNumber (interest, 'open_interest'),
+            'baseVolume': openInterest,
             'quoteVolume': undefined,
-            'openInterestAmount': this.safeNumber (interest, 'open_interest'), // in base currency
+            'openInterestAmount': openInterest, // in base currency
             'openInterestValue': undefined,
             'timestamp': undefined,
             'datetime': undefined,
