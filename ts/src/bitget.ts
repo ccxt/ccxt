@@ -3891,7 +3891,7 @@ export default class bitget extends Exchange {
         if (limit !== undefined) {
             request['limit'] = limit;
         }
-        const response = await this.privateSpotGetAccountTransferRecords (this.extend (request, params));
+        const response = await (this as any).privateSpotGetAccountTransferRecords (this.extend (request, params));
         //
         //     {
         //         "code":"00000",

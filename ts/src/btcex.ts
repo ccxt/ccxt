@@ -2173,7 +2173,7 @@ export default class btcex extends Exchange {
          */
         await this.loadMarkets ();
         symbols = this.marketSymbols (symbols);
-        const response = await this.publicGetCoinGeckoContracts (params);
+        const response = await (this as any).publicGetCoinGeckoContracts (params);
         //
         //     {
         //         "jsonrpc": "2.0",
@@ -2237,7 +2237,7 @@ export default class btcex extends Exchange {
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const response = await this.publicGetCoinGeckoContracts (params);
+        const response = await (this as any).publicGetCoinGeckoContracts (params);
         //
         //     {
         //         "jsonrpc": "2.0",
@@ -2356,7 +2356,7 @@ export default class btcex extends Exchange {
             'from': fromId, // WALLET, SPOT, PERPETUAL
             'to': toId, // WALLET, SPOT, PERPETUAL
         };
-        const response = await this.privatePostSubmitTransfer (this.extend (request, params));
+        const response = await (this as any).privatePostSubmitTransfer (this.extend (request, params));
         //
         //     {
         //         "id": "1674937273",
@@ -2409,7 +2409,7 @@ export default class btcex extends Exchange {
         if (!market['contract']) {
             throw new BadRequest (this.id + ' fetchOpenInterest() supports contract markets only');
         }
-        const response = await this.publicGetCoinGeckoContracts (params);
+        const response = await (this as any).publicGetCoinGeckoContracts (params);
         //
         //     {
         //         "jsonrpc": "2.0",
