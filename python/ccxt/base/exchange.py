@@ -959,8 +959,7 @@ class Exchange(object):
                 for key in arg:
                     result[key] = Exchange.deep_extend(result[key] if key in result else None, arg[key])
             else:
-                if arg is not None:
-                    result = arg
+                result = arg
         return result
 
     @staticmethod

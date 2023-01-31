@@ -889,9 +889,7 @@ class Exchange {
                     $out[$k] = static::deep_extend(isset($out[$k]) ? $out[$k] : array(), $v);
                 }
             } else {
-                if ($arg !== null) {
-                    $out = $arg;
-                }
+                $out = $arg;
             }
         }
         return $out;
