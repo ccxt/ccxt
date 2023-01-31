@@ -173,8 +173,8 @@ module.exports = class coinbasepro extends Exchange {
                 'trading': {
                     'tierBased': true, // complicated tier system per coin
                     'percentage': true,
-                    'maker': 0.4 / 100, // highest fee of all tiers
-                    'taker': 0.6 / 100, // highest fee of all tiers
+                    'maker': this.parseNumber ('0.004'), // highest fee of all tiers
+                    'taker': this.parseNumber ('0.006'), // highest fee of all tiers
                 },
                 'funding': {
                     'tierBased': false,
