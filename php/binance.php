@@ -6465,7 +6465,7 @@ class binance extends Exchange {
             }
             $signature = null;
             if (mb_strpos($this->secret, 'PRIVATE KEY') > -1) {
-                $signature = $this->rsa($query, $this->secret);
+                $signature = $this->encode_uri_component($this->rsa($query, $this->secret));
             } else {
                 $signature = $this->hmac($this->encode($query), $this->encode($this->secret));
             }
