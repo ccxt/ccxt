@@ -893,11 +893,15 @@ export default class coinbasepro extends Exchange {
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const granularity = this.timeframes[timeframe];
+        const parsedTimeframe = this.safeInteger (this.timeframes, timeframe);
         const request = {
             'id': market['id'],
-            'granularity': granularity,
         };
+        if (parsedTimeframe !== undefined) {
+            request['granularity'] = parsedTimeframe;
+        } else {
+            request['granularity'] = timeframe;
+        }
         if (since !== undefined) {
             request['start'] = this.iso8601 (since);
             if (limit === undefined) {
@@ -906,7 +910,7 @@ export default class coinbasepro extends Exchange {
             } else {
                 limit = Math.min (300, limit);
             }
-            request['end'] = this.iso8601 (this.sum ((limit - 1) * granularity * 1000, since));
+            request['end'] = this.iso8601 (this.sum ((limit - 1) * parsedTimeframe * 1000, since));
         }
         const response = await (this as any).publicGetProductsIdCandles (this.extend (request, params));
         //

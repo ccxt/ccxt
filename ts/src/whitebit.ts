@@ -1051,7 +1051,7 @@ export default class whitebit extends Exchange {
         const market = this.market (symbol);
         const request = {
             'market': market['id'],
-            'interval': this.timeframes[timeframe],
+            'interval': this.safeString (this.timeframes, timeframe, timeframe),
         };
         if (since !== undefined) {
             const maxLimit = 1440;

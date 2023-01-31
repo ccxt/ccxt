@@ -536,7 +536,7 @@ class kucoinfutures extends kucoin {
         $marketId = $market['id'];
         $request = array(
             'symbol' => $marketId,
-            'granularity' => $this->timeframes[$timeframe],
+            'granularity' => $this->safe_number($this->timeframes, $timeframe, $timeframe),
         );
         $duration = $this->parse_timeframe($timeframe) * 1000;
         $endAt = $this->milliseconds();

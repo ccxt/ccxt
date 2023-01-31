@@ -395,7 +395,6 @@ export default class Exchange {
     inflate64 = inflate64
     gunzip = gunzip
 
-    cntx;
     describe () {
         return {
             'id': undefined,
@@ -718,6 +717,9 @@ export default class Exchange {
         if (this.markets) {
             this.setMarkets (this.markets)
         }
+
+        this.newUpdates = ((this.options as any).newUpdates !== undefined) ? (this.options as any).newUpdates : true;
+        
     }
 
     encodeURIComponent (...args) {

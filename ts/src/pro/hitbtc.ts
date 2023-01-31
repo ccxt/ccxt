@@ -291,7 +291,7 @@ export default class hitbtc extends hitbtcRest {
         // if (limit === undefined) {
         //     limit = 100;
         // }
-        const period = this.timeframes[timeframe];
+        const period = this.safeString (this.timeframes, timeframe, timeframe);
         const request = {
             'params': {
                 'period': period,

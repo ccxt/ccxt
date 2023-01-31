@@ -907,7 +907,7 @@ class bittrex extends Exchange {
         $market = $this->market($symbol);
         $reverseId = $market['baseId'] . '-' . $market['quoteId'];
         $request = array(
-            'candleInterval' => $this->timeframes[$timeframe],
+            'candleInterval' => $this->safe_string($this->timeframes, $timeframe, $timeframe),
             'marketSymbol' => $reverseId,
         );
         $method = 'publicGetMarketsMarketSymbolCandlesCandleIntervalRecent';

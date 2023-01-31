@@ -921,7 +921,7 @@ export default class wavesexchange extends Exchange {
         const request = {
             'baseId': market['baseId'],
             'quoteId': market['quoteId'],
-            'interval': this.timeframes[timeframe],
+            'interval': this.safeString (this.timeframes, timeframe, timeframe),
         };
         const allowedCandles = this.safeInteger (this.options, 'allowedCandles', 1440);
         if (limit === undefined) {

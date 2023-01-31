@@ -1162,7 +1162,7 @@ export default class woo extends Exchange {
         const market = this.market (symbol);
         const request = {
             'symbol': market['id'],
-            'type': this.timeframes[timeframe],
+            'type': this.safeString (this.timeframes, timeframe, timeframe),
         };
         if (limit !== undefined) {
             request['limit'] = Math.min (limit, 1000);

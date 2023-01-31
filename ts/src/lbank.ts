@@ -456,7 +456,7 @@ export default class lbank extends Exchange {
         }
         const request = {
             'symbol': market['id'],
-            'type': this.timeframes[timeframe],
+            'type': this.safeString (this.timeframes, timeframe, timeframe),
             'size': limit,
             'time': this.parseToInt (since / 1000),
         };

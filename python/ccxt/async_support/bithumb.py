@@ -495,7 +495,7 @@ class bithumb(Exchange):
         market = self.market(symbol)
         request = {
             'currency': market['base'],
-            'interval': self.timeframes[timeframe],
+            'interval': self.safe_string(self.timeframes, timeframe, timeframe),
         }
         response = await self.publicGetCandlestickCurrencyInterval(self.extend(request, params))
         #

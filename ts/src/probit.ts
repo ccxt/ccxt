@@ -888,7 +888,7 @@ export default class probit extends Exchange {
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const interval = this.timeframes[timeframe];
+        const interval = this.safeString (this.timeframes, timeframe, timeframe);
         limit = (limit === undefined) ? 100 : limit;
         let requestLimit = this.sum (limit, 1);
         requestLimit = Math.min (1000, requestLimit); // max 1000

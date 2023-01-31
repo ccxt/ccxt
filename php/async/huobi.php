@@ -2616,7 +2616,7 @@ class huobi extends Exchange {
             Async\await($this->load_markets());
             $market = $this->market($symbol);
             $request = array(
-                'period' => $this->timeframes[$timeframe],
+                'period' => $this->safe_string($this->timeframes, $timeframe, $timeframe),
                 // 'symbol' => $market['id'], // spot, future
                 // 'contract_code' => $market['id'], // swap
                 // 'size' => 1000, // max 1000 for spot, 2000 for contracts

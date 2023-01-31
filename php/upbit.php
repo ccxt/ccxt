@@ -940,7 +940,7 @@ class upbit extends Exchange {
         $this->load_markets();
         $market = $this->market($symbol);
         $timeframePeriod = $this->parse_timeframe($timeframe);
-        $timeframeValue = $this->timeframes[$timeframe];
+        $timeframeValue = $this->safe_string($this->timeframes, $timeframe, $timeframe);
         if ($limit === null) {
             $limit = 200;
         }

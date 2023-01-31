@@ -857,10 +857,15 @@ export default class kraken extends Exchange {
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
+        const parsedTimeframe = this.safeInteger (this.timeframes, timeframe);
         const request = {
             'pair': market['id'],
-            'interval': this.timeframes[timeframe],
         };
+        if (parsedTimeframe !== undefined) {
+            request['interval'] = parsedTimeframe;
+        } else {
+            request['interval'] = timeframe;
+        }
         if (since !== undefined) {
             request['since'] = this.parseToInt ((since - 1) / 1000);
         }

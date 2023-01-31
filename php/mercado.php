@@ -732,7 +732,7 @@ class mercado extends Exchange {
         $this->load_markets();
         $market = $this->market($symbol);
         $request = array(
-            'resolution' => $this->timeframes[$timeframe],
+            'resolution' => $this->safe_string($this->timeframes, $timeframe, $timeframe),
             'symbol' => $market['base'] . '-' . $market['quote'], // exceptional endpoint, that needs custom $symbol syntax
         );
         if ($limit === null) {

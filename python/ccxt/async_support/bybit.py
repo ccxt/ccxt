@@ -1970,7 +1970,7 @@ class bybit(Exchange):
             request['category'] = 'inverse'
         request['start'] = since
         request['end'] = end
-        request['interval'] = self.timeframes[timeframe]
+        request['interval'] = self.safe_string(self.timeframes, timeframe, timeframe)
         price = self.safe_string(params, 'price')
         params = self.omit(params, 'price')
         methods = {

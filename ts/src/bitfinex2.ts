@@ -1324,7 +1324,7 @@ export default class bitfinex2 extends Exchange {
         }
         const request = {
             'symbol': market['id'],
-            'timeframe': this.timeframes[timeframe],
+            'timeframe': this.safeString (this.timeframes, timeframe, timeframe),
             'sort': 1,
             'start': since,
             'limit': limit,

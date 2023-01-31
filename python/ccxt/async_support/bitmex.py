@@ -1401,7 +1401,7 @@ class bitmex(Exchange):
         market = self.market(symbol)
         request = {
             'symbol': market['id'],
-            'binSize': self.timeframes[timeframe],
+            'binSize': self.safe_string(self.timeframes, timeframe, timeframe),
             'partial': True,     # True == include yet-incomplete current bins
             # 'filter': filter,  # filter by individual fields and do advanced queries
             # 'columns': [],    # will return all columns if omitted

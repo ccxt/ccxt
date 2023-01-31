@@ -631,7 +631,7 @@ class btcex extends Exchange {
                 $limit = 10;
             }
             $request = array(
-                'resolution' => $this->timeframes[$timeframe],
+                'resolution' => $this->safe_string($this->timeframes, $timeframe, $timeframe),
                 // 'start_timestamp' => 0,
                 // 'end_timestamp' => 0,
             );

@@ -533,10 +533,15 @@ export default class kucoinfutures extends kucoin {
         await this.loadMarkets ();
         const market = this.market (symbol);
         const marketId = market['id'];
+        const parsedTimeframe = this.safeInteger (this.timeframes, timeframe);
         const request = {
             'symbol': marketId,
-            'granularity': this.timeframes[timeframe],
         };
+        if (parsedTimeframe !== undefined) {
+            request['granularity'] = parsedTimeframe;
+        } else {
+            request['granularity'] = timeframe;
+        }
         const duration = this.parseTimeframe (timeframe) * 1000;
         let endAt = this.milliseconds ();
         if (since !== undefined) {

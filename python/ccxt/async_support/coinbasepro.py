@@ -856,7 +856,7 @@ class coinbasepro(Exchange):
         """
         await self.load_markets()
         market = self.market(symbol)
-        granularity = self.timeframes[timeframe]
+        granularity = self.safe_integer(self.timeframes, timeframe, timeframe)
         request = {
             'id': market['id'],
             'granularity': granularity,

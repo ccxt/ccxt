@@ -918,7 +918,7 @@ class upbit(Exchange):
         await self.load_markets()
         market = self.market(symbol)
         timeframePeriod = self.parse_timeframe(timeframe)
-        timeframeValue = self.timeframes[timeframe]
+        timeframeValue = self.safe_string(self.timeframes, timeframe, timeframe)
         if limit is None:
             limit = 200
         request = {

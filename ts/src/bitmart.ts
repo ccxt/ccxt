@@ -1270,10 +1270,15 @@ export default class bitmart extends Exchange {
         const market = this.market (symbol);
         const type = market['type'];
         const duration = this.parseTimeframe (timeframe);
+        const parsedTimeframe = this.safeInteger (this.timeframes, timeframe);
         const request = {
             'symbol': market['id'],
-            'step': this.timeframes[timeframe],
         };
+        if (parsedTimeframe !== undefined) {
+            request['step'] = parsedTimeframe;
+        } else {
+            request['step'] = timeframe;
+        }
         const maxLimit = 500;
         if (limit === undefined) {
             limit = maxLimit;

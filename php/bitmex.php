@@ -1440,7 +1440,7 @@ class bitmex extends Exchange {
         $market = $this->market($symbol);
         $request = array(
             'symbol' => $market['id'],
-            'binSize' => $this->timeframes[$timeframe],
+            'binSize' => $this->safe_string($this->timeframes, $timeframe, $timeframe),
             'partial' => true,     // true == include yet-incomplete current bins
             // 'filter' => $filter, // $filter by individual fields and do advanced queries
             // 'columns' => array(),    // will return all columns if omitted

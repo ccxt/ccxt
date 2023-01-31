@@ -1160,7 +1160,7 @@ class kucoin extends Exchange {
             $marketId = $market['id'];
             $request = array(
                 'symbol' => $marketId,
-                'type' => $this->timeframes[$timeframe],
+                'type' => $this->safe_string($this->timeframes, $timeframe, $timeframe),
             );
             $duration = $this->parse_timeframe($timeframe) * 1000;
             $endAt = $this->milliseconds(); // required param

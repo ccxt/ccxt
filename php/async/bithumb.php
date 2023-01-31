@@ -519,7 +519,7 @@ class bithumb extends Exchange {
             $market = $this->market($symbol);
             $request = array(
                 'currency' => $market['base'],
-                'interval' => $this->timeframes[$timeframe],
+                'interval' => $this->safe_string($this->timeframes, $timeframe, $timeframe),
             );
             $response = Async\await($this->publicGetCandlestickCurrencyInterval (array_merge($request, $params)));
             //

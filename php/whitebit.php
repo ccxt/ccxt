@@ -1029,7 +1029,7 @@ class whitebit extends Exchange {
         $market = $this->market($symbol);
         $request = array(
             'market' => $market['id'],
-            'interval' => $this->timeframes[$timeframe],
+            'interval' => $this->safe_string($this->timeframes, $timeframe, $timeframe),
         );
         if ($since !== null) {
             $maxLimit = 1440;

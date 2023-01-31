@@ -316,7 +316,7 @@ export default class kraken extends krakenRest {
             ],
             'subscription': {
                 'name': name,
-                'interval': this.timeframes[timeframe],
+                'interval': this.safeString (this.timeframes, timeframe, timeframe),
             },
         };
         const request = this.deepExtend (subscribe, params);

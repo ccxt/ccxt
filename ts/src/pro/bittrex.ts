@@ -422,7 +422,7 @@ export default class bittrex extends bittrexRest {
     async subscribeToOHLCV (negotiation, symbol, timeframe = '1m', params = {}) {
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const interval = this.timeframes[timeframe];
+        const interval = this.safeString (this.timeframes, timeframe, timeframe);
         const name = 'candle';
         const messageHash = name + '_' + market['id'] + '_' + interval;
         const subscription = {

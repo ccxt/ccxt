@@ -1466,7 +1466,7 @@ export default class bitmex extends Exchange {
         const market = this.market (symbol);
         const request = {
             'symbol': market['id'],
-            'binSize': this.timeframes[timeframe],
+            'binSize': this.safeString (this.timeframes, timeframe, timeframe),
             'partial': true,     // true == include yet-incomplete current bins
             // 'filter': filter, // filter by individual fields and do advanced queries
             // 'columns': [],    // will return all columns if omitted

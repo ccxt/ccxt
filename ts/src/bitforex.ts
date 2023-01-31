@@ -452,7 +452,7 @@ export default class bitforex extends Exchange {
         const market = this.market (symbol);
         const request = {
             'symbol': market['id'],
-            'ktype': this.timeframes[timeframe],
+            'ktype': this.safeString (this.timeframes, timeframe, timeframe),
         };
         if (limit !== undefined) {
             request['size'] = limit; // default 1, max 600

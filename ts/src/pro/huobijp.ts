@@ -204,7 +204,7 @@ export default class huobijp extends huobijpRest {
         await this.loadMarkets ();
         const market = this.market (symbol);
         symbol = market['symbol'];
-        const interval = this.timeframes[timeframe];
+        const interval = this.safeString (this.timeframes, timeframe, timeframe);
         const messageHash = 'market.' + market['id'] + '.kline.' + interval;
         const api = this.safeString (this.options, 'api', 'api');
         const hostname = { 'hostname': this.hostname };

@@ -651,7 +651,7 @@ class buda extends Exchange {
             }
             $request = array(
                 'symbol' => $market['id'],
-                'resolution' => $this->timeframes[$timeframe],
+                'resolution' => $this->safe_string($this->timeframes, $timeframe, $timeframe),
                 'from' => $since / 1000,
                 'to' => $this->seconds(),
             );

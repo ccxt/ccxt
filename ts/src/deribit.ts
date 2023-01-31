@@ -1081,7 +1081,7 @@ export default class deribit extends Exchange {
         const market = this.market (symbol);
         const request = {
             'instrument_name': market['id'],
-            'resolution': this.timeframes[timeframe],
+            'resolution': this.safeString (this.timeframes, timeframe, timeframe),
         };
         const duration = this.parseTimeframe (timeframe);
         const now = this.milliseconds ();

@@ -2500,7 +2500,7 @@ class huobi(Exchange):
         await self.load_markets()
         market = self.market(symbol)
         request = {
-            'period': self.timeframes[timeframe],
+            'period': self.safe_string(self.timeframes, timeframe, timeframe),
             # 'symbol': market['id'],  # spot, future
             # 'contract_code': market['id'],  # swap
             # 'size': 1000,  # max 1000 for spot, 2000 for contracts

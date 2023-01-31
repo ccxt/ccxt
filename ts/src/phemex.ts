@@ -1058,7 +1058,7 @@ export default class phemex extends Exchange {
          */
         const request = {
             // 'symbol': market['id'],
-            'resolution': this.timeframes[timeframe],
+            'resolution': this.safeString (this.timeframes, timeframe, timeframe),
             // 'from': 1588830682, // seconds
             // 'to': this.seconds (),
         };

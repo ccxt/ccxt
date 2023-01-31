@@ -824,7 +824,7 @@ class cryptocom extends Exchange {
         $market = $this->market($symbol);
         $request = array(
             'instrument_name' => $market['id'],
-            'timeframe' => $this->timeframes[$timeframe],
+            'timeframe' => $this->safe_string($this->timeframes, $timeframe, $timeframe),
         );
         list($marketType, $query) = $this->handle_market_type_and_params('fetchOHLCV', $market, $params);
         $method = $this->get_supported_mapping($marketType, array(

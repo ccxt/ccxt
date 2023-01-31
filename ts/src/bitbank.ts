@@ -469,7 +469,7 @@ export default class bitbank extends Exchange {
         const market = this.market (symbol);
         const request = {
             'pair': market['id'],
-            'candletype': this.timeframes[timeframe],
+            'candletype': this.safeString (this.timeframes, timeframe, timeframe),
             'yyyymmdd': this.yyyymmdd (since, ''),
         };
         const response = await (this as any).publicGetPairCandlestickCandletypeYyyymmdd (this.extend (request, params));

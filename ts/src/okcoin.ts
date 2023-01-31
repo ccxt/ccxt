@@ -1560,7 +1560,7 @@ export default class okcoin extends Exchange {
         const duration = this.parseTimeframe (timeframe);
         const request = {
             'instrument_id': market['id'],
-            'granularity': this.timeframes[timeframe],
+            'granularity': this.safeString (this.timeframes, timeframe, timeframe),
         };
         const options = this.safeValue (this.options, 'fetchOHLCV', {});
         const defaultType = this.safeString (options, 'type', 'Candles'); // Candles or HistoryCandles

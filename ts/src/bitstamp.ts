@@ -986,7 +986,7 @@ export default class bitstamp extends Exchange {
         const market = this.market (symbol);
         const request = {
             'pair': market['id'],
-            'step': this.timeframes[timeframe],
+            'step': this.safeString (this.timeframes, timeframe, timeframe),
         };
         const duration = this.parseTimeframe (timeframe);
         if (limit === undefined) {

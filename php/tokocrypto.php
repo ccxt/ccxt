@@ -1224,7 +1224,7 @@ class tokocrypto extends Exchange {
         $params = $this->omit($params, array( 'price', 'until' ));
         $limit = ($limit === null) ? $defaultLimit : min ($limit, $maxLimit);
         $request = array(
-            'interval' => $this->timeframes[$timeframe],
+            'interval' => $this->safe_string($this->timeframes, $timeframe, $timeframe),
             'limit' => $limit,
         );
         if ($price === 'index') {

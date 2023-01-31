@@ -835,7 +835,7 @@ export default class cryptocom extends Exchange {
         const market = this.market (symbol);
         const request = {
             'instrument_name': market['id'],
-            'timeframe': this.timeframes[timeframe],
+            'timeframe': this.safeString (this.timeframes, timeframe, timeframe),
         };
         const [ marketType, query ] = this.handleMarketTypeAndParams ('fetchOHLCV', market, params);
         const method = this.getSupportedMapping (marketType, {

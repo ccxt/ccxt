@@ -786,7 +786,7 @@ export default class oceanex extends Exchange {
         const market = this.market (symbol);
         const request = {
             'market': market['id'],
-            'period': this.timeframes[timeframe],
+            'period': this.safeString (this.timeframes, timeframe, timeframe),
         };
         if (since !== undefined) {
             request['timestamp'] = since;

@@ -2404,7 +2404,7 @@ export default class gate extends Exchange {
         const price = this.safeString (params, 'price');
         let request = {};
         [ request, params ] = this.prepareRequest (market, undefined, params);
-        request['interval'] = this.timeframes[timeframe];
+        request['interval'] = this.safeString (this.timeframes, timeframe, timeframe);
         let method = 'publicSpotGetCandlesticks';
         let maxLimit = 1000;
         if (market['contract']) {
@@ -5052,7 +5052,7 @@ export default class gate extends Exchange {
         const request = {
             'contract': market['id'],
             'settle': market['settleId'],
-            'interval': this.timeframes[timeframe],
+            'interval': this.safeString (this.timeframes, timeframe, timeframe),
         };
         if (limit !== undefined) {
             request['limit'] = limit;

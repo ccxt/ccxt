@@ -2597,7 +2597,7 @@ export default class huobi extends Exchange {
         await this.loadMarkets ();
         const market = this.market (symbol);
         const request = {
-            'period': this.timeframes[timeframe],
+            'period': this.safeString (this.timeframes, timeframe, timeframe),
             // 'symbol': market['id'], // spot, future
             // 'contract_code': market['id'], // swap
             // 'size': 1000, // max 1000 for spot, 2000 for contracts

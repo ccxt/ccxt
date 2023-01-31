@@ -815,7 +815,7 @@ class cryptocom(Exchange):
         market = self.market(symbol)
         request = {
             'instrument_name': market['id'],
-            'timeframe': self.timeframes[timeframe],
+            'timeframe': self.safe_string(self.timeframes, timeframe, timeframe),
         }
         marketType, query = self.handle_market_type_and_params('fetchOHLCV', market, params)
         method = self.get_supported_mapping(marketType, {

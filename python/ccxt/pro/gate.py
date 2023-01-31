@@ -412,7 +412,7 @@ class gate(Exchange, ccxt.async_support.gate):
         market = self.market(symbol)
         symbol = market['symbol']
         marketId = market['id']
-        interval = self.timeframes[timeframe]
+        interval = self.safe_string(self.timeframes, timeframe, timeframe)
         messageType = self.get_type_by_market(market)
         channel = messageType + '.candlesticks'
         messageHash = 'candles:' + interval + ':' + market['symbol']

@@ -226,7 +226,7 @@ export default class kucoin extends kucoinRest {
         const url = await this.negotiate (false);
         const market = this.market (symbol);
         symbol = market['symbol'];
-        const period = this.timeframes[timeframe];
+        const period = this.safeString (this.timeframes, timeframe, timeframe);
         const topic = '/market/candles:' + market['id'] + '_' + period;
         const messageHash = 'candles:' + symbol + ':' + timeframe;
         const ohlcv = await this.subscribe (url, messageHash, topic, undefined, params);

@@ -155,7 +155,7 @@ class bitvavo(Exchange, ccxt.async_support.bitvavo):
         symbol = market['symbol']
         name = 'candles'
         marketId = market['id']
-        interval = self.timeframes[timeframe]
+        interval = self.safe_string(self.timeframes, timeframe, timeframe)
         messageHash = name + '@' + marketId + '_' + interval
         url = self.urls['api']['ws']
         request = {

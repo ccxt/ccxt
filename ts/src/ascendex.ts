@@ -1085,7 +1085,7 @@ export default class ascendex extends Exchange {
         const market = this.market (symbol);
         const request = {
             'symbol': market['id'],
-            'interval': this.timeframes[timeframe],
+            'interval': this.safeString (this.timeframes, timeframe, timeframe),
         };
         // if since and limit are not specified
         // the exchange will return just 1 last candle by default

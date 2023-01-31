@@ -1496,7 +1496,7 @@ export default class digifinex extends Exchange {
             }
         } else {
             request['symbol'] = market['id'];
-            request['period'] = this.timeframes[timeframe];
+            request['period'] = this.safeString (this.timeframes, timeframe, timeframe);
             if (since !== undefined) {
                 const startTime = this.parseToInt (since / 1000);
                 request['start_time'] = startTime;

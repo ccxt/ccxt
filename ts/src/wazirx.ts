@@ -277,7 +277,7 @@ export default class wazirx extends Exchange {
         const market = this.market (symbol);
         const request = {
             'symbol': market['id'],
-            'interval': this.timeframes[timeframe],
+            'interval': this.safeString (this.timeframes, timeframe, timeframe),
         };
         if (limit !== undefined) {
             request['limit'] = limit;

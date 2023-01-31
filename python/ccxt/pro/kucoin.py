@@ -214,7 +214,7 @@ class kucoin(Exchange, ccxt.async_support.kucoin):
         url = await self.negotiate(False)
         market = self.market(symbol)
         symbol = market['symbol']
-        period = self.timeframes[timeframe]
+        period = self.safe_string(self.timeframes, timeframe, timeframe)
         topic = '/market/candles:' + market['id'] + '_' + period
         messageHash = 'candles:' + symbol + ':' + timeframe
         ohlcv = await self.subscribe(url, messageHash, topic, None, params)

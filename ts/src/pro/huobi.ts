@@ -270,7 +270,7 @@ export default class huobi extends huobiRest {
         await this.loadMarkets ();
         const market = this.market (symbol);
         symbol = market['symbol'];
-        const interval = this.timeframes[timeframe];
+        const interval = this.safeString (this.timeframes, timeframe, timeframe);
         const messageHash = 'market.' + market['id'] + '.kline.' + interval;
         const url = this.getUrlByMarketType (market['type'], market['linear']);
         const ohlcv = await this.subscribePublic (url, symbol, messageHash, undefined, params);
