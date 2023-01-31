@@ -871,7 +871,7 @@ class coinbasepro extends Exchange {
          */
         $this->load_markets();
         $market = $this->market($symbol);
-        $granularity = $this->timeframes[$timeframe];
+        $granularity = $this->safe_integer($this->timeframes, $timeframe, $timeframe);
         $request = array(
             'id' => $market['id'],
             'granularity' => $granularity,

@@ -1128,7 +1128,7 @@ class kucoin(Exchange):
         marketId = market['id']
         request = {
             'symbol': marketId,
-            'type': self.timeframes[timeframe],
+            'type': self.safe_string(self.timeframes, timeframe, timeframe),
         }
         duration = self.parse_timeframe(timeframe) * 1000
         endAt = self.milliseconds()  # required param

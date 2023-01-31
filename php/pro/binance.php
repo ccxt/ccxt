@@ -644,7 +644,7 @@ class binance extends \ccxt\async\binance {
             Async\await($this->load_markets());
             $market = $this->market($symbol);
             $marketId = $market['lowercaseId'];
-            $interval = $this->timeframes[$timeframe];
+            $interval = $this->safe_string($this->timeframes, $timeframe, $timeframe);
             $name = 'kline';
             $messageHash = $marketId . '@' . $name . '_' . $interval;
             $type = $market['type'];

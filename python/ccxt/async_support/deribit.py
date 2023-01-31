@@ -1056,7 +1056,7 @@ class deribit(Exchange):
         market = self.market(symbol)
         request = {
             'instrument_name': market['id'],
-            'resolution': self.timeframes[timeframe],
+            'resolution': self.safe_string(self.timeframes, timeframe, timeframe),
         }
         duration = self.parse_timeframe(timeframe)
         now = self.milliseconds()

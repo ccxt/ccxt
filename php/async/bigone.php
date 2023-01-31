@@ -705,7 +705,7 @@ class bigone extends Exchange {
             }
             $request = array(
                 'asset_pair_name' => $market['id'],
-                'period' => $this->timeframes[$timeframe],
+                'period' => $this->safe_string($this->timeframes, $timeframe, $timeframe),
                 'limit' => $limit,
             );
             if ($since !== null) {

@@ -625,7 +625,7 @@ class timex extends Exchange {
         $market = $this->market($symbol);
         $request = array(
             'market' => $market['id'],
-            'period' => $this->timeframes[$timeframe],
+            'period' => $this->safe_string($this->timeframes, $timeframe, $timeframe),
         );
         // if $since and $limit are not specified
         $duration = $this->parse_timeframe($timeframe);

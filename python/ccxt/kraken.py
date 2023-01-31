@@ -835,7 +835,7 @@ class kraken(Exchange):
         market = self.market(symbol)
         request = {
             'pair': market['id'],
-            'interval': self.timeframes[timeframe],
+            'interval': self.safe_number(self.timeframes, timeframe, timeframe),
         }
         if since is not None:
             request['since'] = int((since - 1) / 1000)

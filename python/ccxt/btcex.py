@@ -613,7 +613,7 @@ class btcex(Exchange):
         if limit is None:
             limit = 10
         request = {
-            'resolution': self.timeframes[timeframe],
+            'resolution': self.safe_string(self.timeframes, timeframe, timeframe),
             # 'start_timestamp': 0,
             # 'end_timestamp': 0,
         }

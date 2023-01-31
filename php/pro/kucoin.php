@@ -234,7 +234,7 @@ class kucoin extends \ccxt\async\kucoin {
             $url = Async\await($this->negotiate(false));
             $market = $this->market($symbol);
             $symbol = $market['symbol'];
-            $period = $this->timeframes[$timeframe];
+            $period = $this->safe_string($this->timeframes, $timeframe, $timeframe);
             $topic = '/market/candles:' . $market['id'] . '_' . $period;
             $messageHash = 'candles:' . $symbol . ':' . $timeframe;
             $ohlcv = Async\await($this->subscribe($url, $messageHash, $topic, null, $params));

@@ -173,7 +173,7 @@ class bitvavo extends \ccxt\async\bitvavo {
             $symbol = $market['symbol'];
             $name = 'candles';
             $marketId = $market['id'];
-            $interval = $this->timeframes[$timeframe];
+            $interval = $this->safe_string($this->timeframes, $timeframe, $timeframe);
             $messageHash = $name . '@' . $marketId . '_' . $interval;
             $url = $this->urls['api']['ws'];
             $request = array(

@@ -2756,7 +2756,7 @@ class binance extends Exchange {
             $params = $this->omit($params, array( 'price', 'until' ));
             $limit = ($limit === null) ? $defaultLimit : min ($limit, $maxLimit);
             $request = array(
-                'interval' => $this->timeframes[$timeframe],
+                'interval' => $this->safe_string($this->timeframes, $timeframe, $timeframe),
                 'limit' => $limit,
             );
             if ($price === 'index') {
@@ -7150,7 +7150,7 @@ class binance extends Exchange {
             Async\await($this->load_markets());
             $market = $this->market($symbol);
             $request = array(
-                'period' => $this->timeframes[$timeframe],
+                'period' => $this->safe_string($this->timeframes, $timeframe, $timeframe),
             );
             if ($limit !== null) {
                 $request['limit'] = $limit;

@@ -539,7 +539,7 @@ class kucoinfutures(kucoin):
         marketId = market['id']
         request = {
             'symbol': marketId,
-            'granularity': self.timeframes[timeframe],
+            'granularity': self.safe_number(self.timeframes, timeframe, timeframe),
         }
         duration = self.parse_timeframe(timeframe) * 1000
         endAt = self.milliseconds()

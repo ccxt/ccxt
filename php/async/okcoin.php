@@ -1571,7 +1571,7 @@ class okcoin extends Exchange {
             $duration = $this->parse_timeframe($timeframe);
             $request = array(
                 'instrument_id' => $market['id'],
-                'granularity' => $this->timeframes[$timeframe],
+                'granularity' => $this->safe_string($this->timeframes, $timeframe, $timeframe),
             );
             $options = $this->safe_value($this->options, 'fetchOHLCV', array());
             $defaultType = $this->safe_string($options, 'type', 'Candles'); // Candles or HistoryCandles

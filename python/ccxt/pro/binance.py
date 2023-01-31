@@ -584,7 +584,7 @@ class binance(Exchange, ccxt.async_support.binance):
         await self.load_markets()
         market = self.market(symbol)
         marketId = market['lowercaseId']
-        interval = self.timeframes[timeframe]
+        interval = self.safe_string(self.timeframes, timeframe, timeframe)
         name = 'kline'
         messageHash = marketId + '@' + name + '_' + interval
         type = market['type']

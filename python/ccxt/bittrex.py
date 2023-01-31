@@ -893,7 +893,7 @@ class bittrex(Exchange):
         market = self.market(symbol)
         reverseId = market['baseId'] + '-' + market['quoteId']
         request = {
-            'candleInterval': self.timeframes[timeframe],
+            'candleInterval': self.safe_string(self.timeframes, timeframe, timeframe),
             'marketSymbol': reverseId,
         }
         method = 'publicGetMarketsMarketSymbolCandlesCandleIntervalRecent'

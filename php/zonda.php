@@ -1056,7 +1056,7 @@ class zonda extends Exchange {
         $tradingSymbol = $market['baseId'] . '-' . $market['quoteId'];
         $request = array(
             'symbol' => $tradingSymbol,
-            'resolution' => $this->timeframes[$timeframe],
+            'resolution' => $this->safe_string($this->timeframes, $timeframe, $timeframe),
             // 'from' => 1574709092000, // unix timestamp in milliseconds, required
             // 'to' => 1574709092000, // unix timestamp in milliseconds, required
         );

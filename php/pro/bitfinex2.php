@@ -97,7 +97,7 @@ class bitfinex2 extends \ccxt\async\bitfinex2 {
             Async\await($this->load_markets());
             $market = $this->market($symbol);
             $symbol = $market['symbol'];
-            $interval = $this->timeframes[$timeframe];
+            $interval = $this->safe_string($this->timeframes, $timeframe, $timeframe);
             $channel = 'candles';
             $key = 'trade:' . $interval . ':' . $market['id'];
             $messageHash = $channel . ':' . $interval . ':' . $market['id'];

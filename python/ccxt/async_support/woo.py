@@ -1096,7 +1096,7 @@ class woo(Exchange):
         market = self.market(symbol)
         request = {
             'symbol': market['id'],
-            'type': self.timeframes[timeframe],
+            'type': self.safe_string(self.timeframes, timeframe, timeframe),
         }
         if limit is not None:
             request['limit'] = min(limit, 1000)

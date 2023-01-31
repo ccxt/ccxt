@@ -942,7 +942,7 @@ class bitmex(Exchange, ccxt.async_support.bitmex):
         await self.load_markets()
         market = self.market(symbol)
         symbol = market['symbol']
-        table = 'tradeBin' + self.timeframes[timeframe]
+        table = 'tradeBin' + self.safe_string(self.timeframes, timeframe, timeframe)
         messageHash = table + ':' + market['id']
         url = self.urls['api']['ws']
         request = {

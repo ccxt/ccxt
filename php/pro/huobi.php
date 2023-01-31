@@ -271,7 +271,7 @@ class huobi extends \ccxt\async\huobi {
             Async\await($this->load_markets());
             $market = $this->market($symbol);
             $symbol = $market['symbol'];
-            $interval = $this->timeframes[$timeframe];
+            $interval = $this->safe_string($this->timeframes, $timeframe, $timeframe);
             $messageHash = 'market.' . $market['id'] . '.kline.' . $interval;
             $url = $this->get_url_by_market_type($market['type'], $market['linear']);
             $ohlcv = Async\await($this->subscribe_public($url, $symbol, $messageHash, null, $params));
