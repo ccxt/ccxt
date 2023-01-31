@@ -1284,6 +1284,7 @@ module.exports = class bitmex extends Exchange {
         const fee = {
             'cost': this.parseNumber (feeCostString),
             'currency': currency['code'],
+            'rate': undefined,
         };
         const status = this.parseTransactionStatus (this.safeString (transaction, 'transactStatus'));
         const networkId = this.safeString (transaction, 'network');
@@ -1306,11 +1307,7 @@ module.exports = class bitmex extends Exchange {
             'tagTo': undefined,
             'updated': timestamp,
             'comment': undefined,
-            'fee': {
-                'currency': currency['code'],
-                'cost': this.parseNumber (feeCostString),
-                'rate': undefined,
-            },
+            'fee': fee,
         };
     }
 
@@ -1784,7 +1781,7 @@ module.exports = class bitmex extends Exchange {
         const timestamp = this.parse8601 (this.safeString (order, 'timestamp'));
         const lastTradeTimestamp = this.parse8601 (this.safeString (order, 'transactTime'));
         const price = this.safeString (order, 'price');
-        const baseCurrency = this.currency (market['base']);
+        const baseCurrency = this.safeCurrency (market['baseId']);
         const basePrecision = this.safeString (baseCurrency, 'precision');
         const amountString = this.safeString (order, 'orderQty');
         const amount = Precise.stringMul (amountString, basePrecision);
