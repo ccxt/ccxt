@@ -4443,7 +4443,7 @@ class bybit(Exchange):
         if enableUnifiedMargin:
             request['orderStatus'] = 'Canceled'
         else:
-            request['orderStatus'] = ['Filled', 'Canceled']
+            request['orderStatus'] = 'Filled,Canceled'
         return await self.fetch_orders(symbol, since, limit, self.extend(request, params))
 
     async def fetch_spot_open_orders(self, symbol=None, since=None, limit=None, params={}):

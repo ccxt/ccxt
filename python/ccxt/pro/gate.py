@@ -801,7 +801,7 @@ class gate(Exchange, ccxt.async_support.gate):
                     if id in client.subscriptions:
                         del client.subscriptions[id]
 
-    def handle_balance_subscription(self, client, message):
+    def handle_balance_subscription(self, client, message, subscription=None):
         self.balance = {}
 
     def handle_subscription_status(self, client, message):

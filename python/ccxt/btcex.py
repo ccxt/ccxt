@@ -68,9 +68,9 @@ class btcex(Exchange):
                 'fetchDepositAddress': False,
                 'fetchDeposits': True,
                 'fetchFundingHistory': False,
-                'fetchFundingRate': False,
+                'fetchFundingRate': True,
                 'fetchFundingRateHistory': False,
-                'fetchFundingRates': False,
+                'fetchFundingRates': True,
                 'fetchIndexOHLCV': False,
                 'fetchLeverage': True,
                 'fetchLeverageTiers': True,
@@ -80,6 +80,8 @@ class btcex(Exchange):
                 'fetchMarkOHLCV': False,
                 'fetchMyTrades': True,
                 'fetchOHLCV': True,
+                'fetchOpenInterest': True,
+                'fetchOpenInterestHistory': False,
                 'fetchOpenOrders': True,
                 'fetchOrder': True,
                 'fetchOrderBook': True,
@@ -101,6 +103,7 @@ class btcex(Exchange):
                 'setLeverage': True,
                 'setMarginMode': True,
                 'signIn': True,
+                'transfer': True,
                 'withdraw': False,
             },
             'timeframes': {
@@ -183,6 +186,7 @@ class btcex(Exchange):
                         'close_position',
                         'adjust_perpetual_leverage',
                         'adjust_perpetual_margin_type',
+                        'submit_transfer',
                     ],
                     'delete': [],
                 },
@@ -2070,6 +2074,317 @@ class btcex(Exchange):
         #     }
         #
         return response
+
+    def fetch_funding_rates(self, symbols=None, params={}):
+        """
+        fetch the current funding rates
+        see https://docs.btcex.com/#contracts
+        :param array symbols: unified market symbols
+        :param dict params: extra parameters specific to the btcex api endpoint
+        :returns array: an array of `funding rate structures <https://docs.ccxt.com/en/latest/manual.html#funding-rate-structure>`
+        """
+        self.load_markets()
+        symbols = self.market_symbols(symbols)
+        response = self.publicGetCoinGeckoContracts(params)
+        #
+        #     {
+        #         "jsonrpc": "2.0",
+        #         "usIn": 1674803585896,
+        #         "usOut": 1674803585943,
+        #         "usDiff": 47,
+        #         "result": [
+        #             {
+        #                 "ticker_id": "BTC-USDT-PERPETUAL",
+        #                 "base_currency": "BTC",
+        #                 "target_currency": "USDT",
+        #                 "last_price": "23685",
+        #                 "base_volume": "167011.37199999999999989",
+        #                 "target_volume": "3837763191.33800288010388613",
+        #                 "bid": "23684.5",
+        #                 "ask": "23685",
+        #                 "high": "23971.5",
+        #                 "low": "23156",
+        #                 "product_type": "perpetual",
+        #                 "open_interest": "24242.36",
+        #                 "index_price": "23686.4",
+        #                 "index_name": "BTC-USDT",
+        #                 "index_currency": "BTC",
+        #                 "start_timestamp": 1631004005882,
+        #                 "funding_rate": "0.000187",
+        #                 "next_funding_rate_timestamp": 1675065600000,
+        #                 "contract_type": "Quanto",
+        #                 "contract_price": "23685",
+        #                 "contract_price_currency": "USDT"
+        #             },
+        #         ]
+        #     }
+        #
+        data = self.safe_value(response, 'result', [])
+        result = {}
+        for i in range(0, len(data)):
+            entry = data[i]
+            marketId = self.safe_string(entry, 'ticker_id')
+            market = self.safe_market(marketId)
+            symbol = market['symbol']
+            if symbols is not None:
+                if self.in_array(symbol, symbols):
+                    result[symbol] = self.parse_funding_rate(entry, market)
+            else:
+                result[symbol] = self.parse_funding_rate(entry, market)
+        return self.filter_by_array(result, 'symbol', symbols)
+
+    def fetch_funding_rate(self, symbol, params={}):
+        """
+        fetch the current funding rate
+        see https://docs.btcex.com/#contracts
+        :param str symbol: unified market symbol
+        :param dict params: extra parameters specific to the btcex api endpoint
+        :returns dict: a `funding rate structure <https://docs.ccxt.com/en/latest/manual.html#funding-rate-structure>`
+        """
+        self.load_markets()
+        market = self.market(symbol)
+        response = self.publicGetCoinGeckoContracts(params)
+        #
+        #     {
+        #         "jsonrpc": "2.0",
+        #         "usIn": 1674803585896,
+        #         "usOut": 1674803585943,
+        #         "usDiff": 47,
+        #         "result": [
+        #             {
+        #                 "ticker_id": "BTC-USDT-PERPETUAL",
+        #                 "base_currency": "BTC",
+        #                 "target_currency": "USDT",
+        #                 "last_price": "23685",
+        #                 "base_volume": "167011.37199999999999989",
+        #                 "target_volume": "3837763191.33800288010388613",
+        #                 "bid": "23684.5",
+        #                 "ask": "23685",
+        #                 "high": "23971.5",
+        #                 "low": "23156",
+        #                 "product_type": "perpetual",
+        #                 "open_interest": "24242.36",
+        #                 "index_price": "23686.4",
+        #                 "index_name": "BTC-USDT",
+        #                 "index_currency": "BTC",
+        #                 "start_timestamp": 1631004005882,
+        #                 "funding_rate": "0.000187",
+        #                 "next_funding_rate_timestamp": 1675065600000,
+        #                 "contract_type": "Quanto",
+        #                 "contract_price": "23685",
+        #                 "contract_price_currency": "USDT"
+        #             },
+        #         ]
+        #     }
+        #
+        data = self.safe_value(response, 'result', [])
+        for i in range(0, len(data)):
+            entry = data[i]
+            marketId = self.safe_string(entry, 'ticker_id')
+            if marketId == market['id']:
+                return self.parse_funding_rate(entry, market)
+        return self.parse_funding_rate(data, market)
+
+    def parse_funding_rate(self, contract, market=None):
+        #
+        #     {
+        #         "ticker_id": "BTC-USDT-PERPETUAL",
+        #         "base_currency": "BTC",
+        #         "target_currency": "USDT",
+        #         "last_price": "23685",
+        #         "base_volume": "167011.37199999999999989",
+        #         "target_volume": "3837763191.33800288010388613",
+        #         "bid": "23684.5",
+        #         "ask": "23685",
+        #         "high": "23971.5",
+        #         "low": "23156",
+        #         "product_type": "perpetual",
+        #         "open_interest": "24242.36",
+        #         "index_price": "23686.4",
+        #         "index_name": "BTC-USDT",
+        #         "index_currency": "BTC",
+        #         "start_timestamp": 1631004005882,
+        #         "funding_rate": "0.000187",
+        #         "next_funding_rate_timestamp": 1675065600000,
+        #         "contract_type": "Quanto",
+        #         "contract_price": "23685",
+        #         "contract_price_currency": "USDT"
+        #     }
+        #
+        marketId = self.safe_string(contract, 'ticker_id')
+        fundingTimestamp = self.safe_integer(contract, 'next_funding_rate_timestamp')
+        return {
+            'info': contract,
+            'symbol': self.safe_symbol(marketId, market),
+            'markPrice': None,
+            'indexPrice': self.safe_number(contract, 'index_price'),
+            'interestRate': None,
+            'estimatedSettlePrice': None,
+            'timestamp': None,
+            'datetime': None,
+            'fundingRate': self.safe_number(contract, 'funding_rate'),
+            'fundingTimestamp': fundingTimestamp,
+            'fundingDatetime': self.iso8601(fundingTimestamp),
+            'nextFundingRate': None,
+            'nextFundingTimestamp': None,
+            'nextFundingDatetime': None,
+            'previousFundingRate': None,
+            'previousFundingTimestamp': None,
+            'previousFundingDatetime': None,
+        }
+
+    def transfer(self, code, amount, fromAccount, toAccount, params={}):
+        """
+        transfer currency internally between wallets on the same account
+        see https://docs.btcex.com/#asset-transfer
+        :param str code: unified currency code
+        :param float amount: amount to transfer
+        :param str fromAccount: account to transfer from
+        :param str toAccount: account to transfer to
+        :param dict params: extra parameters specific to the btcex api endpoint
+        :returns dict: a `transfer structure <https://docs.ccxt.com/en/latest/manual.html#transfer-structure>`
+        """
+        self.sign_in()
+        self.load_markets()
+        currency = self.currency(code)
+        accountsByType = self.safe_value(self.options, 'accountsByType', {})
+        fromId = self.safe_string(accountsByType, fromAccount, fromAccount)
+        toId = self.safe_string(accountsByType, toAccount, toAccount)
+        request = {
+            'coin_type': currency['id'],
+            'amount': self.currency_to_precision(code, amount),
+            'from': fromId,  # WALLET, SPOT, PERPETUAL
+            'to': toId,  # WALLET, SPOT, PERPETUAL
+        }
+        response = self.privatePostSubmitTransfer(self.extend(request, params))
+        #
+        #     {
+        #         "id": "1674937273",
+        #         "jsonrpc": "2.0",
+        #         "usIn": 1674937274762,
+        #         "usOut": 1674937274774,
+        #         "usDiff": 12,
+        #         "result": "ok"
+        #     }
+        #
+        return self.parse_transfer(response, currency)
+
+    def parse_transfer(self, transfer, currency=None):
+        #
+        #     {
+        #         "id": "1674937273",
+        #         "jsonrpc": "2.0",
+        #         "usIn": 1674937274762,
+        #         "usOut": 1674937274774,
+        #         "usDiff": 12,
+        #         "result": "ok"
+        #     }
+        #
+        return {
+            'info': transfer,
+            'id': self.safe_string(transfer, 'id'),
+            'timestamp': None,
+            'datetime': None,
+            'currency': None,
+            'amount': None,
+            'fromAccount': None,
+            'toAccount': None,
+            'status': None,
+        }
+
+    def fetch_open_interest(self, symbol, params={}):
+        """
+        fetch the open interest of a market
+        see https://docs.btcex.com/#contracts
+        :param str symbol: unified CCXT market symbol
+        :param dict params: extra parameters specific to the btcex api endpoint
+        :returns dict} an open interest structure{@link https://docs.ccxt.com/en/latest/manual.html#interest-history-structure:
+        """
+        self.load_markets()
+        market = self.market(symbol)
+        if not market['contract']:
+            raise BadRequest(self.id + ' fetchOpenInterest() supports contract markets only')
+        response = self.publicGetCoinGeckoContracts(params)
+        #
+        #     {
+        #         "jsonrpc": "2.0",
+        #         "usIn": 1674803585896,
+        #         "usOut": 1674803585943,
+        #         "usDiff": 47,
+        #         "result": [
+        #             {
+        #                 "ticker_id": "BTC-USDT-PERPETUAL",
+        #                 "base_currency": "BTC",
+        #                 "target_currency": "USDT",
+        #                 "last_price": "23685",
+        #                 "base_volume": "167011.37199999999999989",
+        #                 "target_volume": "3837763191.33800288010388613",
+        #                 "bid": "23684.5",
+        #                 "ask": "23685",
+        #                 "high": "23971.5",
+        #                 "low": "23156",
+        #                 "product_type": "perpetual",
+        #                 "open_interest": "24242.36",
+        #                 "index_price": "23686.4",
+        #                 "index_name": "BTC-USDT",
+        #                 "index_currency": "BTC",
+        #                 "start_timestamp": 1631004005882,
+        #                 "funding_rate": "0.000187",
+        #                 "next_funding_rate_timestamp": 1675065600000,
+        #                 "contract_type": "Quanto",
+        #                 "contract_price": "23685",
+        #                 "contract_price_currency": "USDT"
+        #             },
+        #         ]
+        #     }
+        #
+        data = self.safe_value(response, 'result', [])
+        for i in range(0, len(data)):
+            entry = data[i]
+            marketId = self.safe_string(entry, 'ticker_id')
+            if marketId == market['id']:
+                return self.parse_open_interest(entry, market)
+        return self.parse_open_interest(data, market)
+
+    def parse_open_interest(self, interest, market=None):
+        #
+        #     {
+        #         "ticker_id": "BTC-USDT-PERPETUAL",
+        #         "base_currency": "BTC",
+        #         "target_currency": "USDT",
+        #         "last_price": "23685",
+        #         "base_volume": "167011.37199999999999989",
+        #         "target_volume": "3837763191.33800288010388613",
+        #         "bid": "23684.5",
+        #         "ask": "23685",
+        #         "high": "23971.5",
+        #         "low": "23156",
+        #         "product_type": "perpetual",
+        #         "open_interest": "24242.36",
+        #         "index_price": "23686.4",
+        #         "index_name": "BTC-USDT",
+        #         "index_currency": "BTC",
+        #         "start_timestamp": 1631004005882,
+        #         "funding_rate": "0.000187",
+        #         "next_funding_rate_timestamp": 1675065600000,
+        #         "contract_type": "Quanto",
+        #         "contract_price": "23685",
+        #         "contract_price_currency": "USDT"
+        #     }
+        #
+        marketId = self.safe_string(interest, 'ticker_id')
+        market = self.safe_market(marketId, market)
+        openInterest = self.safe_number(interest, 'open_interest')
+        return {
+            'info': interest,
+            'symbol': market['symbol'],
+            'baseVolume': openInterest,
+            'quoteVolume': None,
+            'openInterestAmount': openInterest,  # in base currency
+            'openInterestValue': None,
+            'timestamp': None,
+            'datetime': None,
+        }
 
     def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
         request = '/' + 'api/' + self.version + '/' + api + '/' + path

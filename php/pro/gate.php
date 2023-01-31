@@ -879,7 +879,7 @@ class gate extends \ccxt\async\gate {
         }
     }
 
-    public function handle_balance_subscription($client, $message) {
+    public function handle_balance_subscription($client, $message, $subscription = null) {
         $this->balance = array();
     }
 

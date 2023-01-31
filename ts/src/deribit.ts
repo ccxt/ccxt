@@ -1692,7 +1692,7 @@ export default class deribit extends Exchange {
             request['type'] = 'market';
         }
         if (isStopOrder) {
-            const triggerPrice = stopLossPrice !== undefined ? stopLossPrice : takeProfitPrice;
+            const triggerPrice = (stopLossPrice !== undefined) ? stopLossPrice : takeProfitPrice;
             request['trigger_price'] = this.priceToPrecision (symbol, triggerPrice);
             request['trigger'] = 'last_price'; // required
             if (isStopLossOrder) {
