@@ -550,15 +550,15 @@ module.exports = class binance extends binanceRest {
         }
         const id = this.safeString2 (trade, 't', 'a');
         const timestamp = this.safeInteger (trade, 'T');
-        const price = this.safeFloat2 (trade, 'L', 'p');
-        let amount = this.safeFloat (trade, 'q');
+        const price = this.safeString2 (trade, 'L', 'p');
+        let amount = this.safeString (trade, 'q');
         if (isTradeExecution) {
-            amount = this.safeFloat (trade, 'l', amount);
+            amount = this.safeString (trade, 'l', amount);
         }
-        let cost = this.safeFloat (trade, 'Y');
+        let cost = this.safeString (trade, 'Y');
         if (cost === undefined) {
             if ((price !== undefined) && (amount !== undefined)) {
-                cost = price * amount;
+                cost = Precise.stringMul (price, amount);
             }
         }
         const marketId = this.safeString (trade, 's');
