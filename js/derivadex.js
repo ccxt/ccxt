@@ -445,7 +445,7 @@ module.exports = class derivadex extends Exchange {
             request['limit'] = limit; // default 500
         }
         const response = await this.publicGetFills (this.extend (request, params));
-        response['traderAddress'] = ''; // TODO: supply the users trader address
+        response['traderAddress'] = ''; // TODO: supply the users trader address in parseTradesCustom
         return await this.parseTrades (response, market, since, limit);
     }
 
@@ -513,27 +513,54 @@ module.exports = class derivadex extends Exchange {
         //       },
         //     ]
         // }
-        return await this.parseTrades (response, market, since, limit);
+        return await this.parseTradesCustom (response, market, since, limit);
     }
 
-    async parseTrade (trade, market = undefined) {
-        const tradeValue = trade['value'];
-        const id = this.safeString (tradeValue, 'takerOrderHash') + '_' + this.safeString (tradeValue, 'epochId') + '_' + this.safeString (tradeValue, 'txOrdinal');
-        const timestamp = this.parse8601 (this.safeString (tradeValue, 'createdAt'));
-        const datetime = this.iso8601 (timestamp);
-        const symbol = this.safeString (tradeValue, 'symbol');
-        const order = this.safeString (tradeValue, 'takerOrderHash');
-        const price = this.safeString (tradeValue, 'price');
-        const amount = this.safeString (tradeValue, 'amount');
-        const fee = {
-            'cost': this.safeString (tradeValue, 'takerFee'),
-            'currency': this.safeString (tradeValue, 'takerFeeSymbol'),
+    async getOrderIntents (trades) {
+        const result = {};
+        const params = {
+            'orderHash': [],
         };
-        const params = {};
-        params['orderHash'] = this.safeString (tradeValue, 'takerOrderHash');
+        for (let i = 0; i < trades.length; i++) {
+            params['orderHash'].push (trades[i]['takerOrderHash']);
+        }
         const orderIntentResponse = await this.publicGetOrderIntents (params);
-        const sideNumber = this.safeInteger (orderIntentResponse['value'][0], 'side');
-        const orderTypeNumber = this.safeInteger (orderIntentResponse['value'][0], 'orderType');
+        const orderIntentResponseValue = orderIntentResponse['value'];
+        for (let i = 0; i < orderIntentResponseValue.length; i++) {
+            result[orderIntentResponseValue[i]['orderHash']] = orderIntentResponseValue[i];
+        }
+        return result;
+    }
+
+    async parseTradesCustom (trades, market = undefined, since = undefined, limit = undefined, params = {}) {
+        trades = this.toArray (trades);
+        let result = [];
+        const orderIntents = await this.getOrderIntents (trades[0]);
+        for (let i = 0; i < trades.length; i++) {
+            const trade = this.extend (this.parseTradeCustom (trades[0][i], orderIntents, market), params);
+            result.push (trade);
+        }
+        result = this.sortBy2 (result, 'timestamp', 'id');
+        const symbol = (market !== undefined) ? market['symbol'] : undefined;
+        const tail = (since === undefined);
+        return this.filterBySymbolSinceLimit (result, symbol, since, limit, tail);
+    }
+
+    async parseTradeCustom (trade, orderIntents, market = undefined) {
+        const id = this.safeString (trade, 'takerOrderHash') + '_' + this.safeString (trade, 'epochId') + '_' + this.safeString (trade, 'txOrdinal');
+        const timestamp = this.parse8601 (this.safeString (trade, 'createdAt'));
+        const datetime = this.iso8601 (timestamp);
+        const symbol = this.safeString (trade, 'symbol');
+        const order = this.safeString (trade, 'takerOrderHash');
+        const price = this.safeString (trade, 'price');
+        const amount = this.safeString (trade, 'amount');
+        const fee = {
+            'cost': this.safeString (trade, 'takerFee'),
+            'currency': this.safeString (trade, 'takerFeeSymbol'),
+        };
+        const takerOrderHash = this.safeString (trade, 'takerOrderHash');
+        const sideNumber = this.safeInteger (orderIntents[takerOrderHash], 'side');
+        const orderTypeNumber = this.safeInteger (orderIntents[takerOrderHash], 'orderType');
         const side = sideNumber === 0 ? 'buy' : 'sell';
         let orderType = undefined;
         if (orderTypeNumber === 0) {
@@ -544,7 +571,7 @@ module.exports = class derivadex extends Exchange {
             orderType = 'stop';
         }
         let takerOrMaker = 'taker';
-        if (trade['traderAddress'] !== undefined && trade['traderAddress'] !== this.safeString (orderIntentResponse['value'][0], 'traderAddress')) {
+        if (trade['traderAddress'] !== undefined && trade['traderAddress'] !== this.safeString (trade['order_intents'][takerOrderHash], 'traderAddress')) {
             takerOrMaker = 'maker';
         }
         return this.safeTrade ({
@@ -681,7 +708,15 @@ module.exports = class derivadex extends Exchange {
         let query = (api === 'v2' ? '' : '/api/') + (api === 'v2' ? '' : this.version) + '/' + implodedPath;
         if (method === 'GET') {
             if (Object.keys (params).length) {
-                query += '?' + this.urlencode (params);
+                if (params['orderHash'] !== undefined) {
+                    let orderHashParam = '';
+                    for (let i = 0; i < params['orderHash'].length; i++) {
+                        orderHashParam += (i > 0 ? '&' : '') + 'orderHash=' + params['orderHash'][i];
+                    }
+                    query += '?' + orderHashParam;
+                } else {
+                    query += '?' + this.urlencode (params);
+                }
             }
         } else {
             const format = this.safeString (params, '_format');
