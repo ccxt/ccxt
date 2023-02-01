@@ -4,7 +4,7 @@
 
 const Exchange = require ('./base/Exchange');
 const { TICK_SIZE } = require ('./base/functions/number');
-const { BadSymbol } = require ('./base/errors');
+const { BadSymbol, BadRequest } = require ('./base/errors');
 // const { AuthenticationError, BadRequest, DDoSProtection, ExchangeError, ExchangeNotAvailable, InsufficientFunds, InvalidOrder, OrderNotFound, PermissionDenied, ArgumentsRequired, BadSymbol } = require ('./base/errors');
 // const Precise = require ('./base/Precise');
 
@@ -440,11 +440,16 @@ module.exports = class derivadex extends Exchange {
         const market = this.market (symbol);
         const request = {
             'symbol': market['id'],
+            'wallet': this.walletAddress,
         };
         if (limit !== undefined) {
             request['limit'] = limit; // default 500
         }
-        const response = await this.publicGetFills (this.extend (request, params));
+        const extendedRequest = this.extend (request, params);
+        if (extendedRequest['wallet'] === undefined) {
+            throw new BadRequest (this.id + ' fetchMyTrades() walletAddress is undefined, set this.walletAddress or "address" in params');
+        }
+        const response = await this.publicGetFills (extendedRequest);
         response['traderAddress'] = ''; // TODO: supply the users trader address in parseTradesCustom
         return await this.parseTrades (response, market, since, limit);
     }
@@ -669,11 +674,15 @@ module.exports = class derivadex extends Exchange {
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
+        const fromTimestamp = this.getTimeForOhlcvRequest (this.timeframes[timeframe], since);
         const request = {
             'symbol': market['id'],
             'interval': this.timeframes[timeframe],
-            'from': this.getTimeForOhlcvRequest (this.timeframes[timeframe], since) / 1000,
+            'from': fromTimestamp / 1000,
         };
+        if (limit !== undefined) {
+            request['to'] = this.getToParamForOhlcvRequest (this.timeframes[timeframe], fromTimestamp, limit) / 1000;
+        }
         const response = await this.v2GetRestOhlcv (this.extend (request, params));
         return this.parseOHLCVs (response['ohlcv'], market, timeframe, since, limit);
     }
@@ -700,6 +709,21 @@ module.exports = class derivadex extends Exchange {
         }
         if (interval === '1d') {
             return Math.ceil (time / msInDay) * msInDay;
+        }
+    }
+
+    getToParamForOhlcvRequest (interval, from, limit) {
+        const msInMinute = 60 * 1000;
+        const msInHour = 60 * 1000 * 60;
+        const msInDay = 60 * 1000 * 60 * 24;
+        if (interval === '1m') {
+            return from + (msInMinute * limit);
+        }
+        if (interval === '1h') {
+            return from + (msInHour * limit);
+        }
+        if (interval === '1d') {
+            return from + (msInDay * limit);
         }
     }
 
