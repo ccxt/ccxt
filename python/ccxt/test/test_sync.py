@@ -366,7 +366,7 @@ def test_balance(exchange):
 # ------------------------------------------------------------------------------
 
 
-def test_symbol(exchange, symbol, code = None):
+def test_symbol(exchange, symbol, code=None):
     if not argv.privateOnly:
         run_public_tests(exchange, symbol, code)
 
@@ -432,6 +432,7 @@ def get_test_symbol(exchange, symbols):
                 break
     return symbol
 
+
 def get_exchange_code(exchange):
     codes = [
         'BTC',
@@ -471,6 +472,7 @@ def get_exchange_code(exchange):
         if codes[i] in exchange.currencies:
             code = codes[i]
     return code
+
 
 def test_exchange(exchange, symbol=None):
 

@@ -461,6 +461,7 @@ def get_test_symbol(exchange, symbols):
                 break
     return symbol
 
+
 def get_exchange_code(exchange):
     codes = [
         'BTC',
@@ -500,6 +501,7 @@ def get_exchange_code(exchange):
         if codes[i] in exchange.currencies:
             code = codes[i]
     return code
+
 
 async def test_exchange(exchange, symbol=None):
 
