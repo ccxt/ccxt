@@ -882,6 +882,14 @@ module.exports = class bybit extends Exchange {
                 'defaultNetworks': {
                     'USDT': 'TRC20',
                 },
+                'intervals': {
+                    '5m': '5min',
+                    '15m': '15min',
+                    '30m': '30min',
+                    '1h': '1h',
+                    '4h': '4h',
+                    '1d': '1d',
+                },
             },
             'fees': {
                 'trading': {
@@ -6269,34 +6277,40 @@ module.exports = class bybit extends Exchange {
             throw new BadRequest (this.id + ' fetchOpenInterest() supports contract markets only');
         }
         const timeframe = this.safeString (params, 'interval', '1h');
-        if (timeframe === '1m') {
-            throw new BadRequest (this.id + ' fetchOpenInterest() cannot use the 1m timeframe');
+        const intervals = this.safeValue (this.options, 'intervals');
+        const interval = this.safeString (intervals, timeframe); // 5min,15min,30min,1h,4h,1d
+        if (interval === undefined) {
+            throw new BadRequest (this.id + ' fetchOpenInterest() cannot use the ' + timeframe + ' timeframe');
         }
         const subType = market['linear'] ? 'linear' : 'inverse';
         const category = this.safeString (params, 'category', subType);
         const request = {
             'symbol': market['id'],
-            'interval': timeframe,
+            'intervalTime': interval,
             'category': category,
         };
-        const response = await this.publicGetDerivativesV3PublicOpenInterest (this.extend (request, params));
+        const response = await this.publicGetV5MarketOpenInterest (this.extend (request, params));
         //
         //     {
         //         "retCode": 0,
         //         "retMsg": "OK",
         //         "result": {
-        //             "symbol": "BTCUSDT",
-        //             "category": "linear",
+        //             "symbol": "BTCUSD",
+        //             "category": "inverse",
         //             "list": [
         //                 {
-        //                     "openInterest": "64757.62400000",
-        //                     "timestamp": "1665784800000"
+        //                     "openInterest": "461134384.00000000",
+        //                     "timestamp": "1669571400000"
         //                 },
-        //                 ...
-        //             ]
+        //                 {
+        //                     "openInterest": "461134292.00000000",
+        //                     "timestamp": "1669571100000"
+        //                 }
+        //             ],
+        //             "nextPageCursor": ""
         //         },
-        //         "retExtInfo": null,
-        //         "time": 1665784849646
+        //         "retExtInfo": {},
+        //         "time": 1672053548579
         //     }
         //
         const result = this.safeValue (response, 'result', {});
