@@ -462,9 +462,9 @@ def get_test_symbol(exchange, symbols):
     return symbol
 
 
-def get_exchange_code(exchange, codes = None):
+def get_exchange_code(exchange, codes=None):
     if codes is None:
-        codes = ['BTC','ETH','XRP','LTC','BCH','EOS','BNB','BSV','USDT']
+        codes = ['BTC', 'ETH', 'XRP', 'LTC', 'BCH', 'EOS', 'BNB', 'BSV', 'USDT']
     code = codes[0]
     for i in range(0, len(codes)):
         if codes[i] in exchange.currencies:
