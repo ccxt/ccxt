@@ -1960,40 +1960,6 @@ module.exports = class bybit extends Exchange {
     }
 
     parseOHLCV (ohlcv, market = undefined) {
-        if ('t' in ohlcv) {
-            return this.parseSpotOHLCV (ohlcv, market);
-        } else {
-            return this.parseContractOHLCV (ohlcv, market);
-        }
-    }
-
-    parseSpotOHLCV (ohlcv, market = undefined) {
-        //
-        // spot
-        //     {
-        //         "t": "1666759020000",
-        //         "s": "AAVEUSDT",
-        //         "sn": "AAVEUSDT",
-        //         "c": "83",
-        //         "h": "83.4",
-        //         "l": "82.9",
-        //         "o": "83.4",
-        //         "v": "149.368"
-        //     }
-        //
-        return [
-            this.safeInteger (ohlcv, 't'),
-            this.safeNumber (ohlcv, 'o'),
-            this.safeNumber (ohlcv, 'h'),
-            this.safeNumber (ohlcv, 'l'),
-            this.safeNumber (ohlcv, 'c'),
-            this.safeNumber (ohlcv, 'v'),
-        ];
-    }
-
-    parseContractOHLCV (ohlcv, market = undefined) {
-        //
-        // Unified Margin
         //
         //     [
         //         "1621162800",
