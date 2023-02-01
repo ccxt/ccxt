@@ -4,7 +4,7 @@
 
 const Exchange = require ('./base/Exchange');
 const { TICK_SIZE } = require ('./base/functions/number');
-const { BadSymbol, BadRequest } = require ('./base/errors');
+const { BadSymbol, BadRequest, ArgumentsRequired } = require ('./base/errors');
 // const { AuthenticationError, BadRequest, DDoSProtection, ExchangeError, ExchangeNotAvailable, InsufficientFunds, InvalidOrder, OrderNotFound, PermissionDenied, ArgumentsRequired, BadSymbol } = require ('./base/errors');
 // const Precise = require ('./base/Precise');
 
@@ -445,6 +445,9 @@ module.exports = class derivadex extends Exchange {
         if (limit !== undefined) {
             request['limit'] = limit; // default 500
         }
+        if (since !== undefined) {
+            request['since'] = since;
+        }
         const extendedRequest = this.extend (request, params);
         if (extendedRequest['wallet'] === undefined) {
             throw new BadRequest (this.id + ' fetchMyTrades() walletAddress is undefined, set this.walletAddress or "address" in params');
@@ -472,6 +475,9 @@ module.exports = class derivadex extends Exchange {
         };
         if (limit !== undefined) {
             request['limit'] = limit; // default 500
+        }
+        if (since !== undefined) {
+            request['since'] = since;
         }
         const response = await this.publicGetFills (this.extend (request, params));
         // {
@@ -683,6 +689,9 @@ module.exports = class derivadex extends Exchange {
         if (limit !== undefined) {
             request['to'] = this.getToParamForOhlcvRequest (this.timeframes[timeframe], fromTimestamp, limit) / 1000;
         }
+        if (since !== undefined) {
+            request['since'] = since;
+        }
         const response = await this.v2GetRestOhlcv (this.extend (request, params));
         return this.parseOHLCVs (response['ohlcv'], market, timeframe, since, limit);
     }
@@ -725,6 +734,39 @@ module.exports = class derivadex extends Exchange {
         if (interval === '1d') {
             return from + (msInDay * limit);
         }
+    }
+
+    async fetchOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        /**
+         * @method
+         * @name derivadex#fetchOrders
+         * @description fetches information on multiple orders made by the user
+         * @param {string|undefined} symbol unified market symbol of the market orders were made in
+         * @param {int|undefined} since the earliest time in ms to fetch orders for
+         * @param {int|undefined} limit the maximum number of  orde structures to retrieve
+         * @param {object} params extra parameters specific to the derivadex api endpoint
+         * @returns {[object]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
+         */
+         if (symbol === undefined) {
+            throw new ArgumentsRequired (this.id + ' fetchOrders() requires a symbol argument');
+        }
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const request = {
+            'symbol': market['id'],
+        };
+        if (limit !== undefined) {
+            request['limit'] = limit;
+        }
+        if (since !== undefined) {
+            request['since'] = since;
+        }
+        const response = await this.publicGetOrderIntents (this.extend (request, query));
+        return this.parseOrders (response, market, since, limit);
+    }
+
+    parseOrder (order, market = undefined) {
+        
     }
 
     sign (path, api = 'stats', method = 'GET', params = {}, headers = undefined, body = undefined) {
