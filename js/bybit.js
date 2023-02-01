@@ -2267,7 +2267,7 @@ module.exports = class bybit extends Exchange {
         //
         const id = this.safeStringN (trade, [ 'execId', 'id', 'tradeId' ]);
         const marketId = this.safeString (trade, 'symbol');
-        market = this.safeMarket (marketId, market, undefined, 'contract');
+        market = this.safeMarket (marketId, market, undefined, market['type']);
         const symbol = market['symbol'];
         const amountString = this.safeStringN (trade, [ 'execQty', 'orderQty', 'size' ]);
         const priceString = this.safeStringN (trade, [ 'execPrice', 'orderPrice', 'price' ]);
@@ -2332,100 +2332,6 @@ module.exports = class bybit extends Exchange {
         }, market);
     }
 
-    async fetchSpotTrades (symbol, since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets ();
-        const market = this.market (symbol);
-        const request = {
-            'symbol': market['id'],
-        };
-        if (limit !== undefined) {
-            request['limit'] = limit; // Default value is 60, max 60
-        }
-        const response = await this.publicGetSpotV3PublicQuoteTrades (this.extend (request, params));
-        //
-        // spot
-        //
-        //    {
-        //         "retCode": "0",
-        //         "retMsg": "OK",
-        //         "result": {
-        //             "list": [
-        //                 {
-        //                     "price": "84",
-        //                     "time": "1666768241806",
-        //                     "qty": "0.122",
-        //                     "isBuyerMaker": "1"
-        //                 },
-        //             ]
-        //         },
-        //         "retExtInfo": {},
-        //         "time": "1666770562956"
-        //     }
-        //
-        //
-        //     {
-        //         ret_code: 0,
-        //         ret_msg: 'OK',
-        //         ext_code: '',
-        //         ext_info: '',
-        //         result: [
-        //             {
-        //                 "price": "50005.12",
-        //                 "time": 1620822657672,
-        //                 "qty": "0.0001",
-        //                 "isBuyerMaker": true
-        //             },
-        //         ],
-        //         time_now: '1583954313.393362'
-        //     }
-        //
-        const result = this.safeValue (response, 'result', {});
-        const trades = this.safeValue (result, 'list', []);
-        return this.parseTrades (trades, market, since, limit);
-    }
-
-    async fetchDerivativesTrades (symbol, since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets ();
-        const market = this.market (symbol);
-        const request = {
-            'symbol': market['id'],
-        };
-        if (limit !== undefined) {
-            request['limit'] = limit; // Limit for data size per page, max size is 1000. Default as showing 500 pieces of data per page
-        }
-        if (market['option']) {
-            request['category'] = 'option';
-        } else if (market['linear']) {
-            request['category'] = 'linear';
-        } else if (market['inverse']) {
-            request['category'] = 'inverse';
-        }
-        const response = await this.publicGetDerivativesV3PublicRecentTrade (this.extend (request, params));
-        //
-        //     {
-        //         "retCode": 0,
-        //         "retMsg": "OK",
-        //         "result": {
-        //             "category": "linear",
-        //             "list": [
-        //                 {
-        //                     "execId": "da66abbc-f358-5864-8d34-84ef7274d853",
-        //                     "symbol": "BTCUSDT",
-        //                     "price": "20802.50",
-        //                     "size": "0.200",
-        //                     "side": "Sell",
-        //                     "time": "1657870316630"
-        //                 }
-        //             ]
-        //         },
-        //         "time": 1657870326247
-        //     }
-        //
-        const result = this.safeValue (response, 'result', {});
-        const trades = this.safeValue (result, 'list', []);
-        return this.parseTrades (trades, market, since, limit);
-    }
-
     async fetchTrades (symbol, since = undefined, limit = undefined, params = {}) {
         /**
          * @method
@@ -2439,11 +2345,53 @@ module.exports = class bybit extends Exchange {
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
-        if (market['type'] === 'spot') {
-            return await this.fetchSpotTrades (symbol, since, limit, params);
-        } else {
-            return await this.fetchDerivativesTrades (symbol, since, limit, params);
+        const request = {
+            'symbol': market['id'],
+            // 'baseCoin': '', // Base coin. For option only. If not passed, return BTC data by default
+            // 'optionType': 'Call', // Option type. Call or Put. For option only
+        };
+        if (limit !== undefined) {
+            // spot: [1,60], default: 60.
+            // others: [1,1000], default: 500
+            request['limit'] = limit;
         }
+        if (market['type'] === 'spot') {
+            request['category'] = 'spot';
+        } else {
+            if (market['option']) {
+                request['category'] = 'option';
+            } else if (market['linear']) {
+                request['category'] = 'linear';
+            } else if (market['inverse']) {
+                request['category'] = 'inverse';
+            }
+        }
+        const response = await this.publicGetV5MarketRecentTrade (this.extend (request, params));
+        //
+        //     {
+        //         "retCode": 0,
+        //         "retMsg": "OK",
+        //         "result": {
+        //             "category": "spot",
+        //             "list": [
+        //                 {
+        //                     "execId": "2100000000007764263",
+        //                     "symbol": "BTCUSDT",
+        //                     "price": "16618.49",
+        //                     "size": "0.00012",
+        //                     "side": "Buy",
+        //                     "time": "1672052955758",
+        //                     "isBlockTrade": false
+        //                 }
+        //             ]
+        //         },
+        //         "retExtInfo": {},
+        //         "time": 1672053054358
+        //     }
+        //
+        const result = this.safeValue (response, 'result', {});
+        const trades = this.safeValue (result, 'list', []);
+        return this.parseTrades (trades, market, since, limit);
     }
 
     async fetchOrderBook (symbol, limit = undefined, params = {}) {
