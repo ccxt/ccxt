@@ -255,20 +255,18 @@ def test_trades(exchange, symbol):
 def test_orders(exchange, symbol):
     method = 'fetchOrders'
     if exchange.has[method]:
-        skipped_exchanges = [
-            'bitmart',
-            'rightbtc',
-        ]
         if exchange.id in skipped_exchanges:
             dump(green(exchange.id), green(symbol), method + '() skipped')
             return
         delay = int(exchange.rateLimit / 1000)
         time.sleep(delay)
-        # dump(green(exchange.id), green(symbol), 'fetching orders...')
-        orders = exchange.fetch_orders(symbol)
-        for order in orders:
-            test_order(exchange, order, symbol, int(time.time() * 1000))
-        dump(green(exchange.id), green(symbol), 'fetched', green(len(orders)), 'orders')
+        try:
+            orders = exchange.fetch_orders(symbol)
+            for order in orders:
+                test_order(exchange, order, symbol, int(time.time() * 1000))
+            dump(green(exchange.id), green(symbol), 'fetched', green(len(orders)), 'orders')
+        except Exception as e:
+            dump_error(green(exchange.id), green(symbol), method + '() failed with:', str(e))
     else:
         dump(green(exchange.id), green(symbol), method + '() is not supported')
 

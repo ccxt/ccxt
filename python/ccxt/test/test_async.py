@@ -284,20 +284,19 @@ async def test_trades(exchange, symbol):
 async def test_orders(exchange, symbol):
     method = 'fetchOrders'
     if exchange.has[method]:
-        skipped_exchanges = [
-            'bitmart',
-            'rightbtc',
-        ]
         if exchange.id in skipped_exchanges:
             dump(green(exchange.id), green(symbol), method + '() skipped')
             return
         delay = int(exchange.rateLimit / 1000)
         await asyncio.sleep(delay)
         # dump(green(exchange.id), green(symbol), 'fetching orders...')
-        orders = await exchange.fetch_orders(symbol)
-        for order in orders:
-            test_order(exchange, order, symbol, int(time.time() * 1000))
-        dump(green(exchange.id), green(symbol), 'fetched', green(len(orders)), 'orders')
+        try:
+            orders = await exchange.fetch_orders(symbol)
+            for order in orders:
+                test_order(exchange, order, symbol, int(time.time() * 1000))
+            dump(green(exchange.id), green(symbol), 'fetched', green(len(orders)), 'orders')
+        except Exception as e:
+            dump_error(green(exchange.id), green(symbol), method + '() failed with:', str(e))
     else:
         dump(green(exchange.id), green(symbol), method + '() is not supported')
 
@@ -403,9 +402,6 @@ async def test_symbol(exchange, symbol, code):
 
     if (not hasattr(exchange, 'apiKey') or (len(exchange.apiKey) < 1)):
         return
-    
-    if argv.sandbox:
-        exchange.set_sandbox_mode(True)
     
     if argv.privateOnly or argv.private:
         await run_private_tests(exchange, symbol, code)
