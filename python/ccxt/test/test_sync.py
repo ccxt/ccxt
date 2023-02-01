@@ -433,7 +433,21 @@ def get_test_symbol(exchange, symbols):
     return symbol
 
 
-def get_exchange_code(exchange):
+def get_exchange_code(codes, exchange):
+    code = codes[0]
+    for i in range(0, len(codes)):
+        if codes[i] in exchange.currencies:
+            code = codes[i]
+    return code
+
+
+def test_exchange(exchange, symbol=None):
+
+    dump(green('EXCHANGE: ' + exchange.id))
+    # delay = 2
+
+    # ..........................................................................
+    # public API
     codes = [
         'BTC',
         'ETH',
@@ -466,21 +480,6 @@ def get_exchange_code(exchange):
         'ZEC',
         'ZRX',
     ]
-
-    code = codes[0]
-    for i in range(0, len(codes)):
-        if codes[i] in exchange.currencies:
-            code = codes[i]
-    return code
-
-
-def test_exchange(exchange, symbol=None):
-
-    dump(green('EXCHANGE: ' + exchange.id))
-    # delay = 2
-
-    # ..........................................................................
-    # public API
     code = get_exchange_code(exchange)
 
     if not symbol:
