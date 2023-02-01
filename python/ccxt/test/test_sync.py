@@ -366,7 +366,7 @@ def test_balance(exchange):
 # ------------------------------------------------------------------------------
 
 
-def test_symbol(exchange, symbol, code):
+def test_symbol(exchange, symbol, code=None):
     if not argv.privateOnly:
         run_public_tests(exchange, symbol, code)
 
@@ -433,6 +433,16 @@ def get_test_symbol(exchange, symbols):
     return symbol
 
 
+def get_exchange_code(exchange, codes=None):
+    if codes is None:
+        codes = ['BTC', 'ETH', 'XRP', 'LTC', 'BCH', 'EOS', 'BNB', 'BSV', 'USDT']
+    code = codes[0]
+    for i in range(0, len(codes)):
+        if codes[i] in exchange.currencies:
+            code = codes[i]
+    return code
+
+
 def test_exchange(exchange, symbol=None):
 
     dump(green('EXCHANGE: ' + exchange.id))
@@ -440,7 +450,6 @@ def test_exchange(exchange, symbol=None):
 
     # ..........................................................................
     # public API
-
     codes = [
         'BTC',
         'ETH',
@@ -473,11 +482,7 @@ def test_exchange(exchange, symbol=None):
         'ZEC',
         'ZRX',
     ]
-
-    code = codes[0]
-    for i in range(0, len(codes)):
-        if codes[i] in exchange.currencies:
-            code = codes[i]
+    code = get_exchange_code(exchange, codes)
 
     if not symbol:
         symbol = get_test_symbol(exchange, [
@@ -646,8 +651,9 @@ def main():
                 exchange.set_sandbox_mode(True)
 
             if symbol:
+                code = get_exchange_code(exchange)
                 load_exchange(exchange)
-                test_symbol(exchange, symbol)
+                test_symbol(exchange, symbol, code)
             else:
                 try_all_proxies(exchange, proxies)
 

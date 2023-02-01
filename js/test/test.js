@@ -222,10 +222,6 @@ function getTestSymbol (exchange, symbols) {
 
 async function testExchange (exchange) {
 
-    if (sandbox || exchange.sandbox) {
-        exchange.setSandboxMode (true);
-    }
-
     await loadExchange (exchange);
 
     const codes = [
@@ -423,6 +419,10 @@ async function tryAllProxies (exchange, proxies) {
 //-----------------------------------------------------------------------------
 
 async function main () {
+
+    if (sandbox || exchange.sandbox) {
+        exchange.setSandboxMode (true);
+    }
 
     if (exchangeSymbol) {
 

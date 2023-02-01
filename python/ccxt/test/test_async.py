@@ -462,6 +462,16 @@ def get_test_symbol(exchange, symbols):
     return symbol
 
 
+def get_exchange_code(exchange, codes=None):
+    if codes is None:
+        codes = ['BTC', 'ETH', 'XRP', 'LTC', 'BCH', 'EOS', 'BNB', 'BSV', 'USDT']
+    code = codes[0]
+    for i in range(0, len(codes)):
+        if codes[i] in exchange.currencies:
+            code = codes[i]
+    return code
+
+
 async def test_exchange(exchange, symbol=None):
 
     dump(green('EXCHANGE: ' + exchange.id))
@@ -469,7 +479,6 @@ async def test_exchange(exchange, symbol=None):
 
     # ..........................................................................
     # public API
-
     codes = [
         'BTC',
         'ETH',
@@ -503,10 +512,7 @@ async def test_exchange(exchange, symbol=None):
         'ZRX',
     ]
 
-    code = codes[0]
-    for i in range(0, len(codes)):
-        if codes[i] in exchange.currencies:
-            code = codes[i]
+    code = get_exchange_code(exchange, codes)
 
     if not symbol:
         symbol = get_test_symbol(exchange, [
@@ -675,8 +681,9 @@ async def main():
                 exchange.set_sandbox_mode(True)
 
             if symbol:
+                code = get_exchange_code(exchange)
                 await load_exchange(exchange)
-                await test_symbol(exchange, symbol)
+                await test_symbol(exchange, symbol, code)
             else:
                 await try_all_proxies(exchange, proxies)
 
