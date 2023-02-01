@@ -574,7 +574,7 @@ module.exports = class binance extends binanceRest {
             takerOrMaker = trade['m'] ? 'maker' : 'taker';
         }
         let fee = undefined;
-        const feeCost = this.safeFloat (trade, 'n');
+        const feeCost = this.safeString (trade, 'n');
         if (feeCost !== undefined) {
             const feeCurrencyId = this.safeString (trade, 'N');
             const feeCurrencyCode = this.safeCurrencyCode (feeCurrencyId);
@@ -584,7 +584,7 @@ module.exports = class binance extends binanceRest {
             };
         }
         const type = this.safeStringLower (trade, 'o');
-        return {
+        return this.safeTrade ({
             'info': trade,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
@@ -598,7 +598,7 @@ module.exports = class binance extends binanceRest {
             'amount': amount,
             'cost': cost,
             'fee': fee,
-        };
+        });
     }
 
     handleTrade (client, message) {
