@@ -222,7 +222,7 @@ function getTestSymbol (exchange, symbols) {
 
 async function testExchange (exchange) {
 
-    if (sandbox) {
+    if (sandbox || exchange.sandbox) {
         exchange.setSandboxMode (true);
     }
 

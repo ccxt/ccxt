@@ -640,7 +640,7 @@ def main():
             if hasattr(exchange, 'httpProxy'):
                 exchange.aiohttp_proxy = exchange.httpProxy
 
-            if argv.sandbox:
+            if argv.sandbox or exchange.sandbox:
                 exchange.set_sandbox_mode(True)
 
             if symbol:
