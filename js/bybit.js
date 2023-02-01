@@ -6932,35 +6932,28 @@ module.exports = class bybit extends Exchange {
         } else if (market['inverse']) {
             request['category'] = 'inverse';
         }
-        const response = await this.publicGetDerivativesV3PublicRiskLimitList (this.extend (request, params));
+        const response = await this.publicGetV5MarketRiskLimit (this.extend (request, params));
         //
         //     {
         //         "retCode": 0,
         //         "retMsg": "OK",
         //         "result": {
-        //             "category": "linear",
+        //             "category": "inverse",
         //             "list": [
         //                 {
         //                     "id": 1,
-        //                     "symbol": "BTCUSDT",
-        //                     "limit": "2000000",
-        //                     "maintainMargin": "0.005",
-        //                     "initialMargin": "0.01",
-        //                     "section": [
-        //                         "1",
-        //                         "3",
-        //                         "5",
-        //                         "10",
-        //                         "25",
-        //                         "50",
-        //                         "80"
-        //                     ],
+        //                     "symbol": "BTCUSD",
+        //                     "riskLimitValue": "150",
+        //                     "maintenanceMargin": "0.5",
+        //                     "initialMargin": "1",
         //                     "isLowestRisk": 1,
         //                     "maxLeverage": "100.00"
-        //                 }
+        //                 },
+        //             ....
         //             ]
         //         },
-        //         "time": 1657797260220
+        //         "retExtInfo": {},
+        //         "time": 1672054488010
         //     }
         //
         const result = this.safeValue (response, 'result');
@@ -6973,6 +6966,7 @@ module.exports = class bybit extends Exchange {
          * @method
          * @name bybit#fetchMarketLeverageTiers
          * @description retrieve information on the maximum leverage, and maintenance margin for trades of varying trade sizes for a single market
+         * @see https://bybit-exchange.github.io/docs-v2/v5/market/risk-limit
          * @param {string} symbol unified market symbol
          * @param {object} params extra parameters specific to the bybit api endpoint
          * @returns {object} a [leverage tiers structure]{@link https://docs.ccxt.com/en/latest/manual.html#leverage-tiers-structure}
