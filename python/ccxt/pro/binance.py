@@ -507,14 +507,14 @@ class binance(Exchange, ccxt.async_support.binance):
             return super(binance, self).parse_trade(trade, market)
         id = self.safe_string_2(trade, 't', 'a')
         timestamp = self.safe_integer(trade, 'T')
-        price = self.safe_float_2(trade, 'L', 'p')
-        amount = self.safe_float(trade, 'q')
+        price = self.safe_string_2(trade, 'L', 'p')
+        amount = self.safe_string(trade, 'q')
         if isTradeExecution:
-            amount = self.safe_float(trade, 'l', amount)
-        cost = self.safe_float(trade, 'Y')
+            amount = self.safe_string(trade, 'l', amount)
+        cost = self.safe_string(trade, 'Y')
         if cost is None:
             if (price is not None) and (amount is not None):
-                cost = price * amount
+                cost = Precise.string_mul(price, amount)
         marketId = self.safe_string(trade, 's')
         marketType = 'contract' if ('ps' in trade) else 'spot'
         symbol = self.safe_symbol(marketId, None, None, marketType)
@@ -526,7 +526,7 @@ class binance(Exchange, ccxt.async_support.binance):
                 side = 'sell' if trade['m'] else 'buy'  # self is reversed intentionally
             takerOrMaker = 'maker' if trade['m'] else 'taker'
         fee = None
-        feeCost = self.safe_float(trade, 'n')
+        feeCost = self.safe_string(trade, 'n')
         if feeCost is not None:
             feeCurrencyId = self.safe_string(trade, 'N')
             feeCurrencyCode = self.safe_currency_code(feeCurrencyId)
@@ -535,7 +535,7 @@ class binance(Exchange, ccxt.async_support.binance):
                 'currency': feeCurrencyCode,
             }
         type = self.safe_string_lower(trade, 'o')
-        return {
+        return self.safe_trade({
             'info': trade,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
@@ -549,7 +549,7 @@ class binance(Exchange, ccxt.async_support.binance):
             'amount': amount,
             'cost': cost,
             'fee': fee,
-        }
+        })
 
     def handle_trade(self, client, message):
         # the trade streams push raw trade information in real-time
