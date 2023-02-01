@@ -311,7 +311,7 @@ module.exports = class btcex extends Exchange {
                     'BTC': 'BTC',
                     'ETH': 'ETH',
                 },
-                'createMarketBuyOrderRequiresPrice': false, // swap only
+                'createMarketBuyOrderRequiresPrice': true,
             },
             'commonCurrencies': {
             },
@@ -1258,6 +1258,7 @@ module.exports = class btcex extends Exchange {
          * @param {float|undefined} price the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
          * @param {object} params extra parameters specific to the btcex api endpoint
          * ----------------- Exchange Specific Parameters -----------------
+         * @param {float|undefined} params.cost amount in USDT to spend for market orders
          * @param {float|undefined} params.triggerPrice price to trigger stop orders
          * @param {float|undefined} params.stopPrice price to trigger stop orders
          * @param {float|undefined} params.stopLossPrice price to trigger stop-loss orders (only for perpetuals)
@@ -1285,6 +1286,31 @@ module.exports = class btcex extends Exchange {
         };
         if (type === 'limit') {
             request['price'] = this.priceToPrecision (symbol, price);
+        } else {
+            const costParam = this.safeNumber (params, 'cost');
+            const amountString = this.numberToString (amount);
+            const priceString = this.numberToString (price);
+            const cost = this.parseNumber (Precise.stringMul (amountString, priceString), costParam);
+            if (market['swap']) {
+                if (cost !== undefined) {
+                    request['amount'] = this.priceToPrecision (symbol, cost);
+                    request['market_amount_order'] = true;
+                } else {
+                    request['market_amount_order'] = false;
+                }
+            } else {
+                if (side === 'buy') {
+                    const createMarketBuyOrderRequiresPrice = this.safeValue (this.options, 'createMarketBuyOrderRequiresPrice', true);
+                    if (createMarketBuyOrderRequiresPrice) {
+                        if (cost === undefined) {
+                            throw new InvalidOrder (this.id + ' createOrder() requires a price argument for market buy orders on spot markets to calculate the total amount to spend (amount * price), alternatively set the createMarketBuyOrderRequiresPrice option to false and pass in the cost to spend into the amount parameter');
+                        } else {
+                            request['amount'] = this.priceToPrecision (symbol, cost);
+                        }
+                    }
+                }
+            }
+            params = this.omit (params, 'cost');
         }
         if (market['swap']) {
             const timeInForce = this.safeStringUpper (params, 'timeInForce');
@@ -1339,24 +1365,6 @@ module.exports = class btcex extends Exchange {
                     takeProfitPrice = this.safeNumber (isTakeProfit, 'price');
                     request['take_profit_price'] = this.priceToPrecision (symbol, takeProfitPrice);
                     request['take_profit_type'] = 1;
-                }
-            }
-            if (type === 'market') {
-                if (side === 'buy') {
-                    const createMarketBuyOrderRequiresPrice = this.safeValue (this.options, 'createMarketBuyOrderRequiresPrice', false);
-                    if (createMarketBuyOrderRequiresPrice) {
-                        if (price === undefined) {
-                            throw new InvalidOrder (this.id + ' createOrder() requires a price argument for market buy orders on swap markets to calculate the total amount to spend (amount * price), alternatively set the createMarketBuyOrderRequiresPrice option to false and pass in the cost to spend into the amount parameter');
-                        } else {
-                            const amountString = this.numberToString (amount);
-                            const priceString = this.numberToString (price);
-                            const cost = this.parseNumber (Precise.stringMul (amountString, priceString));
-                            request['amount'] = this.priceToPrecision (symbol, cost);
-                            request['market_amount_order'] = true;
-                        }
-                    } else {
-                        request['amount'] = this.amountToPrecision (symbol, amount);
-                    }
                 }
             }
             params = this.omit (params, [ 'timeInForce', 'postOnly', 'reduceOnly', 'stopPrice', 'triggerPrice', 'stopLossPrice', 'takeProfitPrice', 'stopLoss', 'takeProfit' ]);
