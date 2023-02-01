@@ -366,7 +366,7 @@ def test_balance(exchange):
 # ------------------------------------------------------------------------------
 
 
-def test_symbol(exchange, symbol, code=None):
+def test_symbol(exchange, symbol, code):
     if not argv.privateOnly:
         run_public_tests(exchange, symbol, code)
 
@@ -482,6 +482,7 @@ def test_exchange(exchange, symbol=None):
         'ZEC',
         'ZRX',
     ]
+
     code = get_exchange_code(exchange, codes)
 
     if not symbol:
