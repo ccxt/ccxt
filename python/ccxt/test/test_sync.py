@@ -30,9 +30,9 @@ from test_transaction import test_transaction  # noqa: E402
 class Argv(object):
 
     sandbox = False
-    verbose = False
     privateOnly = False
     private = False
+    verbose = False
     nonce = None
     exchange = None
     symbol = None
@@ -43,10 +43,10 @@ argv = Argv()
 
 parser = argparse.ArgumentParser()
 
-parser.add_argument('--verbose', action='store_true', help='enable verbose output')
 parser.add_argument('--sandbox', action='store_true', help='enable sandbox mode')
 parser.add_argument('--privateOnly', action='store_true', help='run private tests only')
 parser.add_argument('--private', action='store_true', help='run private tests')
+parser.add_argument('--verbose', action='store_true', help='enable verbose output')
 parser.add_argument('--nonce', type=int, help='integer')
 parser.add_argument('exchange', type=str, help='exchange id in lowercase', nargs='?')
 parser.add_argument('symbol', type=str, help='symbol in uppercase', nargs='?')
@@ -260,8 +260,8 @@ def test_orders(exchange, symbol):
             return
         delay = int(exchange.rateLimit / 1000)
         time.sleep(delay)
+        # dump(green(exchange.id), green(symbol), 'fetching orders...')
         try:
-            orders = exchange.fetch_orders(symbol)
             for order in orders:
                 test_order(exchange, order, symbol, int(time.time() * 1000))
             dump(green(exchange.id), green(symbol), 'fetched', green(len(orders)), 'orders')
@@ -368,7 +368,7 @@ def test_balance(exchange):
 
 def test_symbol(exchange, symbol, code):
     if not argv.privateOnly:
-        run_public_tests(exchange, symbols, codes)
+        run_public_tests(exchange, symbol, code)
 
     if argv.privateOnly or argv.private:
         if (not hasattr(exchange, 'apiKey') or (len(exchange.apiKey) < 1)):
@@ -393,8 +393,8 @@ def run_public_tests(exchange, symbol, code):
     dump('Testing fetch_trades:' + symbol)
     test_trades(exchange, symbol)
 
-
 # ------------------------------------------------------------------------------
+
 
 def run_private_tests(exchange, symbol, code):
     method = 'signIn'
@@ -413,6 +413,8 @@ def run_private_tests(exchange, symbol, code):
     test_balance(exchange)
     dump('Testing fetch_positions:' + symbol)
     test_positions(exchange, symbol)
+
+# ------------------------------------------------------------------------------
 
 
 def load_exchange(exchange):
@@ -579,8 +581,8 @@ def try_all_proxies(exchange, proxies=['']):
     # exception
     return False
 
-# ------------------------------------------------------------------------------
 
+# ------------------------------------------------------------------------------
 
 def read_credentials_from_env(exchange):
     requiredCredentials = exchange.requiredCredentials
@@ -619,6 +621,7 @@ for id in ccxt.exchanges:
         exchange_config = ccxt.Exchange.deep_extend(exchange_config, config[id])
     exchanges[id] = exchange(exchange_config)
 
+    # check auth keys in env var
     read_credentials_from_env(exchanges[id])
 
 # ------------------------------------------------------------------------------
@@ -630,7 +633,6 @@ def main():
 
         exchange = exchanges[argv.exchange]
         symbol = argv.symbol
-
         if hasattr(exchange, 'skip') and exchange.skip:
             dump(green(exchange.id), 'skipped')
         elif hasattr(exchange, 'alias') and exchange.alias:
