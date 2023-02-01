@@ -1817,15 +1817,14 @@ export default class bitmex extends Exchange {
                 throw new InvalidOrder (this.id + ' createOrder() does not support reduceOnly for ' + market['type'] + ' orders, reduceOnly orders are supported for swap and future markets only');
             }
         }
+        const brokerId = this.safeString (this.options, 'brokerId', 'CCXT');
         const request = {
             'symbol': market['id'],
             'side': this.capitalize (side),
             'orderQty': parseFloat (this.amountToPrecision (symbol, amount)), // lot size multiplied by the number of contracts
             'ordType': orderType,
+            'text': brokerId,
         };
-        if (reduceOnly) {
-            request['execInst'] = 'ReduceOnly';
-        }
         if ((orderType === 'Stop') || (orderType === 'StopLimit') || (orderType === 'MarketIfTouched') || (orderType === 'LimitIfTouched')) {
             const stopPrice = this.safeNumber2 (params, 'stopPx', 'stopPrice');
             if (stopPrice === undefined) {
@@ -1867,6 +1866,8 @@ export default class bitmex extends Exchange {
         if (price !== undefined) {
             request['price'] = price;
         }
+        const brokerId = this.safeString (this.options, 'brokerId', 'CCXT');
+        request['text'] = brokerId;
         const response = await (this as any).privatePutOrder (this.extend (request, params));
         return this.parseOrder (response);
     }

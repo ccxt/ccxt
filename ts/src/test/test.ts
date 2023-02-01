@@ -15,7 +15,9 @@ import HttpsProxyAgent from 'https-proxy-agent'
 const [ processPath, , exchangeId = null, exchangeSymbol = null ] = process.argv.filter ((x) => !x.startsWith ('--'));
 const verbose = process.argv.includes ('--verbose') || false;
 const debug = process.argv.includes ('--debug') || false;
-
+const sandbox = process.argv.includes ('--sandbox') || false;
+const privateTest = process.argv.includes ('--private') || false;
+const privateOnly = process.argv.includes ('--privateOnly') || false;
 // ----------------------------------------------------------------------------
 
 process.on ('uncaughtException', (e) => {
@@ -290,20 +292,26 @@ async function testExchange (exchange) {
         symbol = exchange.symbols[0];
     }
     console.log ('SYMBOL:', symbol);
-    if ((symbol.indexOf ('.d') < 0)) {
+    if ((symbol.indexOf ('.d') < 0) && !privateOnly) {
         await testSymbol (exchange, symbol);
     }
-    if (!exchange.privateKey && (!exchange.apiKey || (exchange.apiKey.length < 1))) {
-        return true;
+
+    if (privateTest || privateOnly) {
+        if (!exchange.privateKey && (!exchange.apiKey || (exchange.apiKey.length < 1))) {
+            console.log ('[Skipped]', 'Keys not found, skipping private tests');
+            return true;
+        }
+        await runPrivateTests (exchange, symbol);
     }
+}
+
+//-----------------------------------------------------------------------------
+
+async function runPrivateTests(exchange, symbol) {
     exchange.checkRequiredCredentials ();
     if (exchange['has']['signIn']) {
         await exchange.signIn ();
     }
-
-    // move to testnet/sandbox if possible before accessing the balance
-    // if (exchange.urls['test'])
-    //    exchange.urls['api'] = exchange.urls['test']
 
     const balance = await test ('fetchBalance', exchange);
 
@@ -387,6 +395,11 @@ async function tryAllProxies (exchange, proxies) {
 //-----------------------------------------------------------------------------
 
 async function main () {
+
+    if (sandbox || exchange.sandbox) {
+        exchange.setSandboxMode (true);
+    }
+
     if (exchangeSymbol) {
         await loadExchange (exchange);
         await testSymbol (exchange, exchangeSymbol);

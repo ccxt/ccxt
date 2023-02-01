@@ -30,17 +30,33 @@ const keys = {
     '--php-async': false,    // run php async tests only
 }
 
+const exchangeSpecificFlags = {
+    '--sandbox': false,
+    '--verbose': false,
+    '--private': false,
+    '--privateOnly': false,
+}
+
 let exchanges = []
 let symbol = 'all'
 let maxConcurrency = 5 // Number.MAX_VALUE // no limit
 
 for (const arg of args) {
-    if (arg.startsWith ('--'))               { keys[arg] = true }
+    if (arg in exchangeSpecificFlags) { exchangeSpecificFlags[arg] = true }
+    else if (arg.startsWith ('--'))               { keys[arg] = true }
     else if (arg.includes ('/'))             { symbol = arg }
     else if (Number.isFinite (Number (arg))) { maxConcurrency = Number (arg) }
     else                                     { exchanges.push (arg) }
 }
 
+/*  --------------------------------------------------------------------------- */
+
+const exchangeOptions = []
+for (const key of Object.keys (exchangeSpecificFlags)) {
+    if (exchangeSpecificFlags[key]) {
+        exchangeOptions.push (key)
+    }
+}
 /*  --------------------------------------------------------------------------- */
 
 if (!exchanges.length) {
@@ -145,9 +161,12 @@ const sequentialMap = async (input, fn) => {
 const testExchange = async (exchange) => {
 
 /*  Run tests for all/selected languages (in parallel)     */
-
-    const args = [exchange, ...symbol === 'all' ? [] : symbol]
-        , allTests = [
+    let args = [exchange];
+    if (symbol !== undefined && symbol !== 'all') {
+        args.push(symbol);
+    }
+    args = args.concat(exchangeOptions)
+    const allTests = [
 
             { language: 'JavaScript',     key: '--js',           exec: ['node',      'js/src/test/test.js',           ...args] },
             { language: 'Python 3',       key: '--python',       exec: ['python3',   'python/ccxt/test/test_sync.py',  ...args] },

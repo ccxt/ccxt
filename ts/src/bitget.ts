@@ -2152,7 +2152,7 @@ export default class bitget extends Exchange {
         //
         for (let i = 0; i < balance.length; i++) {
             const entry = balance[i];
-            const currencyId = this.safeString2 (entry, 'coinId', 'marginCoin');
+            const currencyId = this.safeString2 (entry, 'coinName', 'marginCoin');
             const code = this.safeCurrencyCode (currencyId);
             const account = this.account ();
             const frozen = this.safeString (entry, 'frozen');
@@ -2235,7 +2235,7 @@ export default class bitget extends Exchange {
         //     }
         //
         const marketId = this.safeString (order, 'symbol');
-        market = this.safeMarket (marketId);
+        market = this.safeMarket (marketId, market);
         const symbol = market['symbol'];
         const id = this.safeString (order, 'orderId');
         const price = this.safeString2 (order, 'price', 'executePrice');

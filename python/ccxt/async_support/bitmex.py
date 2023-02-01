@@ -1730,14 +1730,14 @@ class bitmex(Exchange):
         if reduceOnly is not None:
             if (market['type'] != 'swap') and (market['type'] != 'future'):
                 raise InvalidOrder(self.id + ' createOrder() does not support reduceOnly for ' + market['type'] + ' orders, reduceOnly orders are supported for swap and future markets only')
+        brokerId = self.safe_string(self.options, 'brokerId', 'CCXT')
         request = {
             'symbol': market['id'],
             'side': self.capitalize(side),
             'orderQty': float(self.amount_to_precision(symbol, amount)),  # lot size multiplied by the number of contracts
             'ordType': orderType,
+            'text': brokerId,
         }
-        if reduceOnly:
-            request['execInst'] = 'ReduceOnly'
         if (orderType == 'Stop') or (orderType == 'StopLimit') or (orderType == 'MarketIfTouched') or (orderType == 'LimitIfTouched'):
             stopPrice = self.safe_number_2(params, 'stopPx', 'stopPrice')
             if stopPrice is None:
@@ -1770,6 +1770,8 @@ class bitmex(Exchange):
             request['orderQty'] = amount
         if price is not None:
             request['price'] = price
+        brokerId = self.safe_string(self.options, 'brokerId', 'CCXT')
+        request['text'] = brokerId
         response = await self.privatePutOrder(self.extend(request, params))
         return self.parse_order(response)
 
