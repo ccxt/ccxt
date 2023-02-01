@@ -31,7 +31,7 @@ class Argv(object):
 
     sandbox = False
     verbose = False
-    private_only = False
+    privateOnly = False
     private = False
     nonce = None
     exchange = None
@@ -369,13 +369,13 @@ def test_balance(exchange):
 
 
 def test_symbol(exchange, symbol, code):
-    if not argv.private_only:
+    if not argv.privateOnly:
         run_public_tests(exchange, symbols, codes)
 
     if (not hasattr(exchange, 'apiKey') or (len(exchange.apiKey) < 1)):
         return
     
-    if argv.private_only or argv.private:
+    if argv.privateOnly or argv.private:
         run_private_tests(exchange, symbol, code)
 
 # ------------------------------------------------------------------------------

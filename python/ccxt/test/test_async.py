@@ -31,7 +31,7 @@ from test_transaction import test_transaction  # noqa: E402
 class Argv(object):
     token_bucket = False
     sandbox = False
-    private_only = False
+    privateOnly = False
     private = False
     verbose = False
     nonce = None
@@ -398,8 +398,7 @@ async def test_balance(exchange):
 
 
 async def test_symbol(exchange, symbol, code):
-
-    if not argv.private_only:
+    if not argv.privateOnly:
         await run_public_tests(exchange, symbol, code)
 
     if (not hasattr(exchange, 'apiKey') or (len(exchange.apiKey) < 1)):
@@ -408,7 +407,7 @@ async def test_symbol(exchange, symbol, code):
     if argv.sandbox:
         exchange.set_sandbox_mode(True)
     
-    if argv.private_only or argv.private:
+    if argv.privateOnly or argv.private:
         await run_private_tests(exchange, symbol, code)
 
 # ------------------------------------------------------------------------------
