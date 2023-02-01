@@ -2704,95 +2704,6 @@ module.exports = class bybit extends Exchange {
         }
     }
 
-    async fetchSpotOrderBook (symbol, limit = undefined, params = {}) {
-        await this.loadMarkets ();
-        const market = this.market (symbol);
-        const request = {
-            'symbol': market['id'],
-        };
-        if (limit !== undefined) {
-            request['limit'] = limit;
-        }
-        const response = await this.publicGetSpotV3PublicQuoteDepth (this.extend (request, params));
-        //
-        // spot
-        //
-        //    {
-        //         "retCode": "0",
-        //         "retMsg": "OK",
-        //         "result": {
-        //             "time": "1620886105740",
-        //             "bids": [
-        //                 [ "84", "7.323" ],
-        //                 [ "83.9", "101.711" ],
-        //             ],
-        //             "asks": [
-        //                 [ "84.1", "5.898" ],
-        //                 [ "84.2", "350.31" ],
-        //             ]
-        //         },
-        //         "retExtInfo": {},
-        //         "time": "1666771624950"
-        //     }
-        //
-        const result = this.safeValue (response, 'result', []);
-        const timestamp = this.safeInteger (result, 'time');
-        return this.parseOrderBook (result, symbol, timestamp);
-    }
-
-    async fetchDerivativesOrderBook (symbol, limit = undefined, params = {}) {
-        await this.loadMarkets ();
-        const market = this.market (symbol);
-        const request = {
-            'symbol': market['id'],
-        };
-        if (limit !== undefined) {
-            request['limit'] = limit;
-        }
-        if (market['option']) {
-            request['category'] = 'option';
-        } else if (market['linear']) {
-            request['category'] = 'linear';
-        } else if (market['inverse']) {
-            request['category'] = 'inverse';
-        }
-        const response = await this.publicGetDerivativesV3PublicOrderBookL2 (this.extend (request, params));
-        //
-        //     {
-        //         "retCode": 0,
-        //         "retMsg": "success",
-        //         "result": {
-        //             "s": "BTCUSDT",
-        //             "b": [
-        //                 [
-        //                     "28806",
-        //                     "0.06"
-        //                 ],
-        //                 [
-        //                     "28807",
-        //                     "5.005"
-        //                 ]
-        //             ],
-        //             "a": [
-        //                 [
-        //                     "29004",
-        //                     "0.001"
-        //                 ],
-        //                 [
-        //                     "29012",
-        //                     "0.017"
-        //                 ]
-        //             ],
-        //             "ts": 1653638043149,
-        //             "u": 4912426
-        //         }
-        //     }
-        //
-        const result = this.safeValue (response, 'result', []);
-        const timestamp = this.safeInteger (result, 'ts');
-        return this.parseOrderBook (result, symbol, timestamp, 'b', 'a');
-    }
-
     async fetchOrderBook (symbol, limit = undefined, params = {}) {
         /**
          * @method
@@ -2805,11 +2716,56 @@ module.exports = class bybit extends Exchange {
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
+        const request = {
+            'symbol': market['id'],
+        };
         if (market['spot']) {
-            return await this.fetchSpotOrderBook (symbol, limit, params);
+            // limit: [1, 50]. Default: 1
+            request['category'] = 'spot';
         } else {
-            return await this.fetchDerivativesOrderBook (symbol, limit, params);
+            if (market['option']) {
+                // limit: [1, 25]. Default: 1
+                request['category'] = 'option';
+            } else if (market['linear']) {
+                // limit: [1, 200]. Default: 25
+                request['category'] = 'linear';
+            } else if (market['inverse']) {
+                // limit: [1, 200]. Default: 25
+                request['category'] = 'inverse';
+            }
         }
+        if (limit !== undefined) {
+            request['limit'] = limit;
+        }
+        const response = await this.publicGetV5MarketOrderbook (this.extend (request, params));
+        //
+        //     {
+        //         "retCode": 0,
+        //         "retMsg": "OK",
+        //         "result": {
+        //             "s": "BTCUSDT",
+        //             "a": [
+        //                 [
+        //                     "16638.64",
+        //                     "0.008479"
+        //                 ]
+        //             ],
+        //             "b": [
+        //                 [
+        //                     "16638.27",
+        //                     "0.305749"
+        //                 ]
+        //             ],
+        //             "ts": 1672765737733,
+        //             "u": 5277055
+        //         },
+        //         "retExtInfo": {},
+        //         "time": 1672765737734
+        //     }
+        //
+        const result = this.safeValue (response, 'result', []);
+        const timestamp = this.safeInteger (result, 'ts');
+        return this.parseOrderBook (result, symbol, timestamp, 'b', 'a');
     }
 
     parseBalance (response) {
