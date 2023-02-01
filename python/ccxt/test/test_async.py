@@ -642,8 +642,6 @@ with open(keys_file, encoding='utf8') as file:
 
 # instantiate all exchanges
 for id in ccxt.exchanges:
-    if id == 'theocean':
-        continue
     exchange = getattr(ccxt, id)
     exchange_config = {'verbose': argv.verbose}
     if sys.version_info[0] < 3:
