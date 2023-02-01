@@ -1513,7 +1513,8 @@ module.exports = class bybit extends Exchange {
         //
         const timestamp = this.safeInteger (ticker, 'time');
         const marketId = this.safeString (ticker, 'symbol');
-        const symbol = this.safeSymbol (marketId, market, undefined, 'contract');
+        market = this.safeMarket (marketId, market, undefined, market['type']);
+        const symbol = this.safeSymbol (marketId, market, undefined, market['type']);
         const last = this.safeString (ticker, 'lastPrice');
         const open = this.safeString (ticker, 'prevPrice24h');
         let percentage = this.safeString (ticker, 'price24hPcnt');
@@ -1621,111 +1622,12 @@ module.exports = class bybit extends Exchange {
         return this.parseTicker (rawTicker, market);
     }
 
-    async fetchSpotTickers (symbols = undefined, params = {}) {
-        await this.loadMarkets ();
-        symbols = this.marketSymbols (symbols);
-        const response = await this.publicGetSpotV3PublicQuoteTicker24hr (params);
-        //
-        //     {
-        //         "ret_code":0,
-        //         "ret_msg":null,
-        //         "result":[
-        //             {
-        //                 "time":1667198103209,
-        //                 "symbol":"XDCUSDT",
-        //                 "bestBidPrice":"0.03092",
-        //                 "bestAskPrice":"0.03093",
-        //                 "volume":"393311",
-        //                 "quoteVolume":"12189.678747",
-        //                 "lastPrice":"0.03092",
-        //                 "highPrice":"0.03111",
-        //                 "lowPrice":"0.0309",
-        //                 "openPrice":"0.0309"
-        //             }
-        //         ],
-        //         "ext_code": null,
-        //         "ext_info": null
-        //     }
-        //
-        const list = this.safeValue (response, 'result', []);
-        const tickerList = this.safeValue (list, 'list');
-        const tickers = {};
-        for (let i = 0; i < tickerList.length; i++) {
-            const ticker = this.parseTicker (tickerList[i]);
-            const symbol = ticker['symbol'];
-            tickers[symbol] = ticker;
-        }
-        return this.filterByArray (tickers, 'symbol', symbols);
-    }
-
-    async fetchDerivativesTickers (symbols = undefined, params = {}) {
-        await this.loadMarkets ();
-        symbols = this.marketSymbols (symbols);
-        const request = {};
-        const [ subType, query ] = this.handleSubTypeAndParams ('fetchTickers', undefined, params, 'linear');
-        if (subType === 'option') {
-            // bybit requires a symbol when query tockers for options markets
-            throw new NotSupported (this.id + ' fetchTickers() is not supported for option markets');
-        } else {
-            request['category'] = subType;
-        }
-        const response = await this.publicGetDerivativesV3PublicTickers (this.extend (request, query));
-        //
-        //     {
-        //         "retCode": 0,
-        //         "retMsg": "OK",
-        //         "result": {
-        //             "category": "linear",
-        //             "list": [
-        //                 {
-        //                     "symbol": "BTCUSDT",
-        //                     "bidPrice": "19255",
-        //                     "askPrice": "19255.5",
-        //                     "lastPrice": "19255.50",
-        //                     "lastTickDirection": "ZeroPlusTick",
-        //                     "prevPrice24h": "18634.50",
-        //                     "price24hPcnt": "0.033325",
-        //                     "highPrice24h": "19675.00",
-        //                     "lowPrice24h": "18610.00",
-        //                     "prevPrice1h": "19278.00",
-        //                     "markPrice": "19255.00",
-        //                     "indexPrice": "19260.68",
-        //                     "openInterest": "48069.549",
-        //                     "turnover24h": "4686694853.047006",
-        //                     "volume24h": "243730.252",
-        //                     "fundingRate": "0.0001",
-        //                     "nextFundingTime": "1663689600000",
-        //                     "predictedDeliveryPrice": "",
-        //                     "basisRate": "",
-        //                     "deliveryFeeRate": "",
-        //                     "deliveryTime": "0"
-        //                 }
-        //             ]
-        //         },
-        //         "retExtInfo": null,
-        //         "time": 1663670053454
-        //     }
-        //
-        let tickerList = this.safeValue (response, 'result', []);
-        if (!Array.isArray (tickerList)) {
-            tickerList = this.safeValue (tickerList, 'list');
-        }
-        const tickers = {};
-        for (let i = 0; i < tickerList.length; i++) {
-            const ticker = this.parseTicker (tickerList[i]);
-            const symbol = ticker['symbol'];
-            tickers[symbol] = ticker;
-        }
-        return this.filterByArray (tickers, 'symbol', symbols);
-    }
-
     async fetchTickers (symbols = undefined, params = {}) {
         /**
          * @method
          * @name bybit#fetchTickers
          * @description fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
-         * @see https://bybit-exchange.github.io/docs/futuresV2/linear/#t-latestsymbolinfo
-         * @see https://bybit-exchange.github.io/docs/spot/v3/#t-spot_latestsymbolinfo
+         * @see https://bybit-exchange.github.io/docs-v2/v5/market/tickers
          * @param {[string]|undefined} symbols unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
          * @param {object} params extra parameters specific to the bybit api endpoint
          * @returns {object} an array of [ticker structures]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
@@ -1737,11 +1639,70 @@ module.exports = class bybit extends Exchange {
             market = this.market (symbols[0]);
         }
         const [ type, query ] = this.handleMarketTypeAndParams ('fetchTickers', market, params);
+        const request = {
+            // 'symbol': market['id'],
+            // 'baseCoin': '', Base coin. For option only
+            // 'expDate': '', Expiry date. e.g., 25DEC22. For option only
+        };
         if (type === 'spot') {
-            return await this.fetchSpotTickers (symbols, query);
+            request['category'] = 'spot';
         } else {
-            return await this.fetchDerivativesTickers (symbols, query);
+            if (market['option']) {
+                request['category'] = 'option';
+            } else if (market['linear']) {
+                request['category'] = 'linear';
+            } else if (market['inverse']) {
+                request['category'] = 'inverse';
+            }
         }
+        const response = await this.publicGetV5MarketTickers (this.extend (request, query));
+        //
+        //     {
+        //         "retCode": 0,
+        //         "retMsg": "OK",
+        //         "result": {
+        //             "category": "inverse",
+        //             "list": [
+        //                 {
+        //                     "symbol": "BTCUSD",
+        //                     "lastPrice": "16597.00",
+        //                     "indexPrice": "16598.54",
+        //                     "markPrice": "16596.00",
+        //                     "prevPrice24h": "16464.50",
+        //                     "price24hPcnt": "0.008047",
+        //                     "highPrice24h": "30912.50",
+        //                     "lowPrice24h": "15700.00",
+        //                     "prevPrice1h": "16595.50",
+        //                     "openInterest": "373504107",
+        //                     "openInterestValue": "22505.67",
+        //                     "turnover24h": "2352.94950046",
+        //                     "volume24h": "49337318",
+        //                     "fundingRate": "-0.001034",
+        //                     "nextFundingTime": "1672387200000",
+        //                     "predictedDeliveryPrice": "",
+        //                     "basisRate": "",
+        //                     "deliveryFeeRate": "",
+        //                     "deliveryTime": "0",
+        //                     "ask1Size": "1",
+        //                     "bid1Price": "16596.00",
+        //                     "ask1Price": "16597.50",
+        //                     "bid1Size": "1"
+        //                 }
+        //             ]
+        //         },
+        //         "retExtInfo": {},
+        //         "time": 1672376496682
+        //     }
+        //
+        const result = this.safeValue (response, 'result', {});
+        const tickerList = this.safeValue (result, 'list', []);
+        const tickers = {};
+        for (let i = 0; i < tickerList.length; i++) {
+            const ticker = this.parseTicker (tickerList[i], market);
+            const symbol = ticker['symbol'];
+            tickers[symbol] = ticker;
+        }
+        return this.filterByArray (tickers, 'symbol', symbols);
     }
 
     parseOHLCV (ohlcv, market = undefined) {
