@@ -2158,7 +2158,7 @@ class bitget(Exchange):
         #     }
         #
         marketId = self.safe_string(order, 'symbol')
-        market = self.safe_market(marketId)
+        market = self.safe_market(marketId, market)
         symbol = market['symbol']
         id = self.safe_string(order, 'orderId')
         price = self.safe_string_2(order, 'price', 'executePrice')

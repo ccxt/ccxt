@@ -2204,7 +2204,7 @@ class bitget extends Exchange {
         //     }
         //
         $marketId = $this->safe_string($order, 'symbol');
-        $market = $this->safe_market($marketId);
+        $market = $this->safe_market($marketId, $market);
         $symbol = $market['symbol'];
         $id = $this->safe_string($order, 'orderId');
         $price = $this->safe_string_2($order, 'price', 'executePrice');
