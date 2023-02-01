@@ -5,6 +5,10 @@
 const [processPath, , exchangeId = null, exchangeSymbol = null] = process.argv.filter ((x) => !x.startsWith ('--'));
 const verbose = process.argv.includes ('--verbose') || false;
 const debug = process.argv.includes ('--debug') || false;
+const sandbox = process.argv.includes ('--sandbox') || false;
+const privateTest = process.argv.includes ('--private') || false;
+const privateOnly = process.argv.includes ('--privateOnly') || false;
+
 const HttpsProxyAgent = require ('https-proxy-agent')
 
 // ----------------------------------------------------------------------------
@@ -218,6 +222,10 @@ function getTestSymbol (exchange, symbols) {
 
 async function testExchange (exchange) {
 
+    if (sandbox || exchange.sandbox) {
+        exchange.setSandboxMode (true);
+    }
+
     await loadExchange (exchange);
 
     const codes = [
@@ -303,21 +311,25 @@ async function testExchange (exchange) {
     }
 
     console.log ('SYMBOL:', symbol);
-    if ((symbol.indexOf ('.d') < 0)) {
+    if ((symbol.indexOf ('.d') < 0) && !privateOnly) {
         await testSymbol (exchange, symbol);
     }
 
-    if (!exchange.privateKey && (!exchange.apiKey || (exchange.apiKey.length < 1))) {
-        return true;
+    if (privateTest || privateOnly) {
+        if (!exchange.privateKey && (!exchange.apiKey || (exchange.apiKey.length < 1))) {
+            console.log ('[Skipped]', 'Keys not found, skipping private tests');
+            return true;
+        }
+        await runPrivateTests (exchange, symbol);
     }
+}
 
+//-----------------------------------------------------------------------------
+
+async function runPrivateTests(exchange, symbol) {
     exchange.checkRequiredCredentials ();
 
     await test ('signIn', exchange);
-
-    // move to testnet/sandbox if possible before accessing the balance
-    // if (exchange.urls['test'])
-    //    exchange.urls['api'] = exchange.urls['test']
 
     const balance = await test ('fetchBalance', exchange);
 
