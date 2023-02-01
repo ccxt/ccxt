@@ -869,7 +869,7 @@ class probit extends Exchange {
          */
         $this->load_markets();
         $market = $this->market($symbol);
-        $interval = $this->timeframes[$timeframe];
+        $interval = $this->safe_string($this->timeframes, $timeframe, $timeframe);
         $limit = ($limit === null) ? 100 : $limit;
         $requestLimit = $this->sum($limit, 1);
         $requestLimit = min (1000, $requestLimit); // max 1000
@@ -1090,6 +1090,7 @@ class probit extends Exchange {
             'status' => $status,
             'price' => $price,
             'stopPrice' => null,
+            'triggerPrice' => null,
             'amount' => $amount,
             'filled' => $filled,
             'remaining' => $remaining,

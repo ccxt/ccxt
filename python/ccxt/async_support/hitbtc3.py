@@ -35,7 +35,7 @@ class hitbtc3(Exchange):
             # 20 requests per second =>( 1000ms / rateLimit ) / 20 = cost = 15(All Other)
             'rateLimit': 3.333,  # TODO: optimize https://api.hitbtc.com/#rate-limiting
             'version': '3',
-            'pro': True,
+            'pro': False,
             'has': {
                 'CORS': False,
                 'spot': True,
@@ -62,6 +62,8 @@ class hitbtc3(Exchange):
                 'fetchCurrencies': True,
                 'fetchDepositAddress': True,
                 'fetchDeposits': True,
+                'fetchDepositWithdrawFee': 'emulated',
+                'fetchDepositWithdrawFees': True,
                 'fetchFundingHistory': None,
                 'fetchFundingRate': True,
                 'fetchFundingRateHistory': True,
@@ -102,8 +104,8 @@ class hitbtc3(Exchange):
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/27766555-8eaec20e-5edc-11e7-9c5b-6dc69fc42f5e.jpg',
                 'test': {
-                    'public': 'https://api.demo.hitbtc.com',
-                    'private': 'https://api.demo.hitbtc.com',
+                    'public': 'https://api.demo.hitbtc.com/api/3',
+                    'private': 'https://api.demo.hitbtc.com/api/3',
                 },
                 'api': {
                     'public': 'https://api.hitbtc.com/api/3',
@@ -952,7 +954,7 @@ class hitbtc3(Exchange):
         # we use clientOrderId as the order id with self exchange intentionally
         # because most of their endpoints will require clientOrderId
         # explained here: https://github.com/ccxt/ccxt/issues/5674
-        orderId = self.safe_string(trade, 'clientOrderId')
+        orderId = self.safe_string_2(trade, 'clientOrderId', 'client_order_id')
         priceString = self.safe_string(trade, 'price')
         amountString = self.safe_string_2(trade, 'quantity', 'qty')
         side = self.safe_string(trade, 'side')
@@ -1076,32 +1078,35 @@ class hitbtc3(Exchange):
         sender = self.safe_value(native, 'senders')
         addressFrom = self.safe_string(sender, 0)
         amount = self.safe_number(native, 'amount')
-        fee = None
+        fee = {
+            'currency': None,
+            'cost': None,
+            'rate': None,
+        }
         feeCost = self.safe_number(native, 'fee')
         if feeCost is not None:
-            fee = {
-                'currency': code,
-                'cost': feeCost,
-            }
+            fee['currency'] = code
+            fee['cost'] = feeCost
         return {
             'info': transaction,
             'id': id,
             'txid': txhash,
+            'type': type,
             'code': code,  # kept here for backward-compatibility, but will be removed soon
             'currency': code,
-            'amount': amount,
             'network': None,
+            'amount': amount,
+            'status': status,
+            'timestamp': timestamp,
+            'datetime': self.iso8601(timestamp),
             'address': address,
             'addressFrom': addressFrom,
             'addressTo': addressTo,
             'tag': tag,
             'tagFrom': None,
             'tagTo': tagTo,
-            'timestamp': timestamp,
-            'datetime': self.iso8601(timestamp),
             'updated': updated,
-            'status': status,
-            'type': type,
+            'comment': None,
             'fee': fee,
         }
 
@@ -1262,7 +1267,7 @@ class hitbtc3(Exchange):
         market = self.market(symbol)
         request = {
             'symbols': market['id'],
-            'period': self.timeframes[timeframe],
+            'period': self.safe_string(self.timeframes, timeframe, timeframe),
         }
         if since is not None:
             request['from'] = self.iso8601(since)
@@ -2479,7 +2484,91 @@ class hitbtc3(Exchange):
         }
         return await self.privatePutFuturesAccountIsolatedSymbol(self.extend(request, params))
 
-    def handle_margin_mode_and_params(self, methodName, params={}):
+    async def fetch_deposit_withdraw_fees(self, codes=None, params={}):
+        """
+        fetch deposit and withdraw fees
+        see https://api.hitbtc.com/#currencies
+        :param [str]|None codes: list of unified currency codes
+        :param dict params: extra parameters specific to the hitbtc3 api endpoint
+        :returns [dict]: a list of `fees structures <https://docs.ccxt.com/en/latest/manual.html#fee-structure>`
+        """
+        await self.load_markets()
+        response = await self.publicGetPublicCurrency(params)
+        #
+        #     {
+        #       "WEALTH": {
+        #         "full_name": "ConnectWealth",
+        #         "payin_enabled": False,
+        #         "payout_enabled": False,
+        #         "transfer_enabled": True,
+        #         "precision_transfer": "0.001",
+        #         "networks": [
+        #           {
+        #             "network": "ETH",
+        #             "protocol": "ERC20",
+        #             "default": True,
+        #             "payin_enabled": False,
+        #             "payout_enabled": False,
+        #             "precision_payout": "0.001",
+        #             "payout_fee": "0.016800000000",
+        #             "payout_is_payment_id": False,
+        #             "payin_payment_id": False,
+        #             "payin_confirmations": "2"
+        #           }
+        #         ]
+        #       }
+        #     }
+        #
+        return self.parse_deposit_withdraw_fees(response, codes)
+
+    def parse_deposit_withdraw_fee(self, fee, currency=None):
+        #
+        #    {
+        #         "full_name": "ConnectWealth",
+        #         "payin_enabled": False,
+        #         "payout_enabled": False,
+        #         "transfer_enabled": True,
+        #         "precision_transfer": "0.001",
+        #         "networks": [
+        #           {
+        #             "network": "ETH",
+        #             "protocol": "ERC20",
+        #             "default": True,
+        #             "payin_enabled": False,
+        #             "payout_enabled": False,
+        #             "precision_payout": "0.001",
+        #             "payout_fee": "0.016800000000",
+        #             "payout_is_payment_id": False,
+        #             "payin_payment_id": False,
+        #             "payin_confirmations": "2"
+        #           }
+        #         ]
+        #    }
+        #
+        networks = self.safe_value(fee, 'networks', [])
+        result = self.deposit_withdraw_fee(fee)
+        for j in range(0, len(networks)):
+            networkEntry = networks[j]
+            networkId = self.safe_string(networkEntry, 'network')
+            networkCode = self.network_id_to_code(networkId)
+            withdrawFee = self.safe_number(networkEntry, 'payout_fee')
+            isDefault = self.safe_value(networkEntry, 'default')
+            withdrawResult = {
+                'fee': withdrawFee,
+                'percentage': False if (withdrawFee is not None) else None,
+            }
+            if isDefault is True:
+                result['withdraw'] = withdrawResult
+            result['networks'][networkCode] = {
+                'withdraw': withdrawResult,
+                'deposit': {
+                    'fee': None,
+                    'percentage': None,
+                },
+            }
+        return result
+
+    def handle_margin_mode_and_params(self, methodName, params={}, defaultValue=None):
         """
          * @ignore
         marginMode specified by params["marginMode"], self.options["marginMode"], self.options["defaultMarginMode"], params["margin"] = True or self.options["defaultType"] = 'margin'
@@ -2489,7 +2578,7 @@ class hitbtc3(Exchange):
         defaultType = self.safe_string(self.options, 'defaultType')
         isMargin = self.safe_value(params, 'margin', False)
         marginMode = None
-        marginMode, params = super(hitbtc3, self).handle_margin_mode_and_params(methodName, params)
+        marginMode, params = super(hitbtc3, self).handle_margin_mode_and_params(methodName, params, defaultValue)
         if marginMode is not None:
             if marginMode != 'isolated':
                 raise NotSupported(self.id + ' only isolated margin is supported')

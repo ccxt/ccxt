@@ -1,43 +1,43 @@
 'use strict';
 
-const { ROUND_UP, ROUND_DOWN } = require ('./number')
-const { NotSupported } = require ('../errors')
+const { ROUND_UP, ROUND_DOWN } = require ('./number');
+const { NotSupported } = require ('../errors');
 
 //-------------------------------------------------------------------------
 // converts timeframe to seconds
 const parseTimeframe = (timeframe) => {
 
-    const amount = timeframe.slice (0, -1)
-    const unit = timeframe.slice (-1)
+    const amount = timeframe.slice (0, -1);
+    const unit = timeframe.slice (-1);
     let scale = undefined;
 
     if (unit === 'y') {
-        scale = 60 * 60 * 24 * 365
+        scale = 60 * 60 * 24 * 365;
     } else if (unit === 'M') {
-        scale = 60 * 60 * 24 * 30
+        scale = 60 * 60 * 24 * 30;
     } else if (unit === 'w') {
-        scale = 60 * 60 * 24 * 7
+        scale = 60 * 60 * 24 * 7;
     } else if (unit === 'd') {
-        scale = 60 * 60 * 24
+        scale = 60 * 60 * 24;
     } else if (unit === 'h') {
-        scale = 60 * 60
+        scale = 60 * 60;
     } else if (unit === 'm') {
-        scale = 60
+        scale = 60;
     } else if (unit === 's') {
-        scale = 1
+        scale = 1;
     } else {
-        throw new NotSupported ('timeframe unit ' + unit + ' is not supported')
+        throw new NotSupported ('timeframe unit ' + unit + ' is not supported');
     }
 
-    return amount * scale
-}
+    return amount * scale;
+};
 
 const roundTimeframe = (timeframe, timestamp, direction = ROUND_DOWN) => {
-    const ms = parseTimeframe (timeframe) * 1000
+    const ms = parseTimeframe (timeframe) * 1000;
     // Get offset based on timeframe in milliseconds
-    const offset = timestamp % ms
+    const offset = timestamp % ms;
     return timestamp - offset + ((direction === ROUND_UP) ? ms : 0);
-}
+};
 
 // given a sorted arrays of trades (recent last) and a timeframe builds an array of OHLCV candles
 const buildOHLCVC = (trades, timeframe = '1m', since = -Infinity, limit = Infinity) => {
@@ -75,34 +75,34 @@ const buildOHLCVC = (trades, timeframe = '1m', since = -Infinity, limit = Infini
         } // if
     } // for
     return ohlcvs;
-}
+};
 
 const extractParams = (string) => {
-    const re = /{([\w-]+)}/g
-    const matches = []
-    let match = re.exec (string)
+    const re = /{([\w-]+)}/g;
+    const matches = [];
+    let match = re.exec (string);
     while (match) {
-        matches.push (match[1])
-        match = re.exec (string)
+        matches.push (match[1]);
+        match = re.exec (string);
     }
-    return matches
-}
+    return matches;
+};
 
 const implodeParams = (string, params) => {
     if (!Array.isArray (params)) {
-        const keys = Object.keys (params)
+        const keys = Object.keys (params);
         for (let i = 0; i < keys.length; i++) {
-            const key = keys[i]
+            const key = keys[i];
             if (!Array.isArray (params[key])) {
-                string = string.replace ('{' + key + '}', params[key])
+                string = string.replace ('{' + key + '}', params[key]);
             }
         }
     }
-    return string
-}
+    return string;
+};
 
 function vwap (baseVolume, quoteVolume) {
-    return ((baseVolume !== undefined) && (quoteVolume !== undefined) && (baseVolume > 0)) ? (quoteVolume / baseVolume) : undefined
+    return ((baseVolume !== undefined) && (quoteVolume !== undefined) && (baseVolume > 0)) ? (quoteVolume / baseVolume) : undefined;
 }
 
 /*  ------------------------------------------------------------------------ */

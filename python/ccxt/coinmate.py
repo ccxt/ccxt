@@ -811,6 +811,7 @@ class coinmate(Exchange):
             'side': side,
             'price': priceString,
             'stopPrice': stopPrice,
+            'triggerPrice': stopPrice,
             'amount': amountString,
             'cost': None,
             'average': averageString,

@@ -48,7 +48,7 @@ class hitbtc extends Exchange {
                 'fetchClosedOrders' => true,
                 'fetchCurrencies' => true,
                 'fetchDepositAddress' => true,
-                'fetchDeposits' => null,
+                'fetchDeposits' => false,
                 'fetchFundingHistory' => false,
                 'fetchFundingRate' => false,
                 'fetchFundingRateHistory' => false,
@@ -65,7 +65,7 @@ class hitbtc extends Exchange {
                 'fetchOpenOrders' => true,
                 'fetchOrder' => true,
                 'fetchOrderBook' => true,
-                'fetchOrders' => null,
+                'fetchOrders' => false,
                 'fetchOrderTrades' => true,
                 'fetchPosition' => false,
                 'fetchPositions' => false,
@@ -77,7 +77,7 @@ class hitbtc extends Exchange {
                 'fetchTradingFee' => true,
                 'fetchTradingFees' => false,
                 'fetchTransactions' => true,
-                'fetchWithdrawals' => null,
+                'fetchWithdrawals' => false,
                 'reduceMargin' => false,
                 'setLeverage' => false,
                 'setMarginMode' => false,
@@ -641,7 +641,7 @@ class hitbtc extends Exchange {
             $market = $this->market($symbol);
             $request = array(
                 'symbol' => $market['id'],
-                'period' => $this->timeframes[$timeframe],
+                'period' => $this->safe_string($this->timeframes, $timeframe, $timeframe),
             );
             if ($since !== null) {
                 $request['from'] = $this->iso8601($since);
@@ -842,6 +842,7 @@ class hitbtc extends Exchange {
         return Async\async(function () use ($code, $since, $limit, $params) {
             /**
              * fetch history of deposits and withdrawals
+             * @see https://api.hitbtc.com/v2#get-transactions-history
              * @param {string|null} $code unified $currency $code for the $currency of the transactions, default is null
              * @param {int|null} $since timestamp in ms of the earliest transaction, default is null
              * @param {int|null} $limit max number of transactions to return, default is null
@@ -906,33 +907,36 @@ class hitbtc extends Exchange {
         $amount = $this->safe_number($transaction, 'amount');
         $address = $this->safe_string($transaction, 'address');
         $txid = $this->safe_string($transaction, 'hash');
-        $fee = null;
+        $fee = array(
+            'currency' => null,
+            'cost' => null,
+            'rate' => null,
+        );
         $feeCost = $this->safe_number($transaction, 'fee');
         if ($feeCost !== null) {
-            $fee = array(
-                'cost' => $feeCost,
-                'currency' => $code,
-            );
+            $fee['cost'] = $feeCost;
+            $fee['currency'] = $code;
         }
         $type = $this->parse_transaction_type($this->safe_string($transaction, 'type'));
         return array(
             'info' => $transaction,
             'id' => $id,
             'txid' => $txid,
+            'type' => $type,
+            'currency' => $code,
+            'network' => null,
+            'amount' => $amount,
+            'status' => $status,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
-            'network' => null,
             'address' => $address,
-            'addressTo' => null,
             'addressFrom' => null,
+            'addressTo' => null,
             'tag' => null,
-            'tagTo' => null,
             'tagFrom' => null,
-            'type' => $type,
-            'amount' => $amount,
-            'currency' => $code,
-            'status' => $status,
+            'tagTo' => null,
             'updated' => $updated,
+            'comment' => null,
             'fee' => $fee,
         );
     }
@@ -1161,6 +1165,7 @@ class hitbtc extends Exchange {
             'side' => $side,
             'price' => $price,
             'stopPrice' => null,
+            'triggerPrice' => null,
             'average' => $average,
             'amount' => $amount,
             'cost' => null,

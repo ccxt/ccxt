@@ -36,6 +36,7 @@ class bitrue(Exchange):
             'rateLimit': 1000,
             'certified': False,
             'version': 'v1',
+            'pro': True,
             # new metainfo interface
             'has': {
                 'CORS': None,
@@ -864,7 +865,7 @@ class bitrue(Exchange):
         market = self.market(symbol)
         request = {
             'symbol': market['id'],
-            'scale': self.timeframes[timeframe],
+            'scale': self.safe_string(self.timeframes, timeframe, timeframe),
         }
         if limit is not None:
             request['limit'] = limit
@@ -1213,6 +1214,7 @@ class bitrue(Exchange):
             'side': side,
             'price': price,
             'stopPrice': stopPrice,
+            'triggerPrice': stopPrice,
             'amount': amount,
             'cost': cost,
             'average': average,
@@ -1653,10 +1655,11 @@ class bitrue(Exchange):
         #         "fee": 1,
         #         "ctime": null,
         #         "coin": "usdt_erc20",
+        #         "withdrawId": 1156423,
         #         "addressTo": "0x2edfae3878d7b6db70ce4abed177ab2636f60c83"
         #     }
         #
-        id = self.safe_string(transaction, 'id')
+        id = self.safe_string_2(transaction, 'id', 'withdrawId')
         tagType = self.safe_string(transaction, 'tagType')
         addressTo = self.safe_string(transaction, 'addressTo')
         addressFrom = self.safe_string(transaction, 'addressFrom')
@@ -1680,7 +1683,7 @@ class bitrue(Exchange):
         status = self.parse_transaction_status_by_type(self.safe_string(transaction, 'status'), type)
         amount = self.safe_number(transaction, 'amount')
         network = None
-        currencyId = self.safe_string(transaction, 'symbol')
+        currencyId = self.safe_string_2(transaction, 'symbol', 'coin')
         if currencyId is not None:
             parts = currencyId.split('_')
             currencyId = self.safe_string(parts, 0)
@@ -1751,8 +1754,23 @@ class bitrue(Exchange):
         if tag is not None:
             request['tag'] = tag
         response = await self.v1PrivatePostWithdrawCommit(self.extend(request, params))
-        #     {id: '9a67628b16ba4988ae20d329333f16bc'}
-        return self.parse_transaction(response, currency)
+        #
+        #     {
+        #         "code": 200,
+        #         "msg": "succ",
+        #         "data": {
+        #             "msg": null,
+        #             "amount": 1000,
+        #             "fee": 1,
+        #             "ctime": null,
+        #             "coin": "usdt_erc20",
+        #             "withdrawId": 1156423,
+        #             "addressTo": "0x2edfae3878d7b6db70ce4abed177ab2636f60c83"
+        #         }
+        #     }
+        #
+        data = self.safe_value(response, 'data')
+        return self.parse_transaction(data, currency)
 
     def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
         version, access = api

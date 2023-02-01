@@ -2,14 +2,15 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '2.1.69'
+__version__ = '2.7.27'
 
 # -----------------------------------------------------------------------------
 
 from ccxt.pro.base.functions import inflate, inflate64, gunzip
 from ccxt.pro.base.fast_client import FastClient
+from ccxt.pro.base.future import Future
 from ccxt.async_support.base.exchange import Exchange as BaseExchange
-from ccxt import NotSupported
+from ccxt import NotSupported, ExchangeError, BaseError
 from ccxt.pro.base.order_book import OrderBook, IndexedOrderBook, CountedOrderBook
 from ccxt.async_support.base.throttler import Throttler
 import asyncio
@@ -77,26 +78,20 @@ class Exchange(BaseExchange):
             self.clients[url] = FastClient(url, on_message, on_error, on_close, on_connected, options)
         return self.clients[url]
 
-    async def spawn_async(self, method, *args):
-        try:
-            await method(*args)
-        except Exception:
-            # todo: handle spawned errors
-            pass
-
-    async def delay_async(self, timeout, method, *args):
-        await self.sleep(timeout)
-        try:
-            await method(*args)
-        except Exception:
-            # todo: handle spawned errors
-            pass
-
     def spawn(self, method, *args):
-        asyncio.ensure_future(self.spawn_async(method, *args))
+        def callback(asyncio_future):
+            exception = asyncio_future.exception()
+            if exception is None:
+                future.resolve(asyncio_future.result())
+            else:
+                future.reject(exception)
+        future = Future()
+        task = self.asyncio_loop.create_task(method(*args))
+        task.add_done_callback(callback)
+        return future
 
     def delay(self, timeout, method, *args):
-        asyncio.ensure_future(self.delay_async(timeout, method, *args))
+        return self.asyncio_loop.call_later(timeout, self.spawn, method, *args)
 
     def handle_message(self, client, message):
         always = True
@@ -166,10 +161,37 @@ class Exchange(BaseExchange):
                 return key
         return None
 
-    def format_scientific_notation_ftx(self, n):
-        if n == 0:
-            return '0e-00'
-        return format(n, 'g')
+    async def load_order_book(self, client, messageHash, symbol, limit=None, params={}):
+        if symbol not in self.orderbooks:
+            client.reject(ExchangeError(self.id + ' loadOrderBook() orderbook is not initiated'), messageHash)
+            return
+        try:
+            maxRetries = self.handle_option('watchOrderBook', 'maxRetries', 3)
+            tries = 0
+            stored = self.orderbooks[symbol]
+            while tries < maxRetries:
+                cache = stored.cache
+                order_book = await self.fetch_order_book(symbol, limit, params)
+                index = self.get_cache_index(order_book, cache)
+                if index >= 0:
+                    stored.reset(order_book)
+                    self.handle_deltas(stored, cache[index:])
+                    cache.clear()
+                    client.resolve(stored, messageHash)
+                    return
+                tries += 1
+            client.reject(ExchangeError(self.id + ' nonce is behind cache after ' + str(maxRetries) + ' tries.'), messageHash)
+            del self.clients[client.url]
+        except BaseError as e:
+            client.reject(e, messageHash)
+            await self.load_order_book(client, messageHash, symbol, limit, params)
+
+    def handle_deltas(self, orderbook, deltas):
+        for delta in deltas:
+            self.handle_delta(orderbook, delta)
+
+    def handle_delta(self, orderbook, delta):
+        raise NotSupported(self.id + ' handleDelta() is not supported')
 
     async def watch_ticker(self, symbol, params={}):
         raise NotSupported(self.id + '.watch_ticker() not implemented yet')

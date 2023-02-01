@@ -50,7 +50,7 @@ class lbank extends Exchange {
                 'fetchMarkOHLCV' => false,
                 'fetchOHLCV' => true,
                 'fetchOpenInterestHistory' => false,
-                'fetchOpenOrders' => null, // status 0 API doesn't work
+                'fetchOpenOrders' => false, // status 0 API doesn't work
                 'fetchOrder' => true,
                 'fetchOrderBook' => true,
                 'fetchOrders' => true,
@@ -457,7 +457,7 @@ class lbank extends Exchange {
             }
             $request = array(
                 'symbol' => $market['id'],
-                'type' => $this->timeframes[$timeframe],
+                'type' => $this->safe_string($this->timeframes, $timeframe, $timeframe),
                 'size' => $limit,
                 'time' => intval($since / 1000),
             );
@@ -583,6 +583,7 @@ class lbank extends Exchange {
             'side' => $side,
             'price' => $price,
             'stopPrice' => null,
+            'triggerPrice' => null,
             'cost' => null,
             'amount' => $amount,
             'filled' => $filled,
@@ -836,8 +837,7 @@ class lbank extends Exchange {
             } else {
                 $pem = $this->convert_secret_to_pem($this->secret);
             }
-            $sign = $this->binary_to_base64($this->rsa($message, $this->encode($pem), 'RS256'));
-            $query['sign'] = $sign;
+            $query['sign'] = $this->rsa($message, $pem, 'RS256');
             $body = $this->urlencode($query);
             $headers = array( 'Content-Type' => 'application/x-www-form-urlencoded' );
         }

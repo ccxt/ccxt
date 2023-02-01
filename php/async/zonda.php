@@ -446,6 +446,7 @@ class zonda extends Exchange {
             'side' => $this->safe_string_lower($order, 'offerType'),
             'price' => $this->safe_string($order, 'rate'),
             'stopPrice' => null,
+            'triggerPrice' => null,
             'amount' => $amount,
             'cost' => null,
             'filled' => null,
@@ -1004,7 +1005,7 @@ class zonda extends Exchange {
             'referenceAccount' => null,
             'type' => $this->parse_ledger_entry_type($this->safe_string($item, 'type')),
             'currency' => $this->safe_currency_code($currencyId),
-            'amount' => $amount,
+            'amount' => $this->parse_number($amount),
             'before' => $this->safe_number($fundsBefore, 'total'),
             'after' => $this->safe_number($fundsAfter, 'total'),
             'status' => 'ok',
@@ -1075,7 +1076,7 @@ class zonda extends Exchange {
             $tradingSymbol = $market['baseId'] . '-' . $market['quoteId'];
             $request = array(
                 'symbol' => $tradingSymbol,
-                'resolution' => $this->timeframes[$timeframe],
+                'resolution' => $this->safe_string($this->timeframes, $timeframe, $timeframe),
                 // 'from' => 1574709092000, // unix timestamp in milliseconds, required
                 // 'to' => 1574709092000, // unix timestamp in milliseconds, required
             );

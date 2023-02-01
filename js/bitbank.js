@@ -470,7 +470,7 @@ module.exports = class bitbank extends Exchange {
         const market = this.market (symbol);
         const request = {
             'pair': market['id'],
-            'candletype': this.timeframes[timeframe],
+            'candletype': this.safeString (this.timeframes, timeframe, timeframe),
             'yyyymmdd': this.yyyymmdd (since, ''),
         };
         const response = await this.publicGetPairCandlestickCandletypeYyyymmdd (this.extend (request, params));
@@ -604,6 +604,7 @@ module.exports = class bitbank extends Exchange {
             'side': side,
             'price': price,
             'stopPrice': undefined,
+            'triggerPrice': undefined,
             'cost': undefined,
             'average': average,
             'amount': amount,

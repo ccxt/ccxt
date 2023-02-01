@@ -448,6 +448,7 @@ class zonda(Exchange):
             'side': self.safe_string_lower(order, 'offerType'),
             'price': self.safe_string(order, 'rate'),
             'stopPrice': None,
+            'triggerPrice': None,
             'amount': amount,
             'cost': None,
             'filled': None,
@@ -977,7 +978,7 @@ class zonda(Exchange):
             'referenceAccount': None,
             'type': self.parse_ledger_entry_type(self.safe_string(item, 'type')),
             'currency': self.safe_currency_code(currencyId),
-            'amount': amount,
+            'amount': self.parse_number(amount),
             'before': self.safe_number(fundsBefore, 'total'),
             'after': self.safe_number(fundsAfter, 'total'),
             'status': 'ok',
@@ -1044,7 +1045,7 @@ class zonda(Exchange):
         tradingSymbol = market['baseId'] + '-' + market['quoteId']
         request = {
             'symbol': tradingSymbol,
-            'resolution': self.timeframes[timeframe],
+            'resolution': self.safe_string(self.timeframes, timeframe, timeframe),
             # 'from': 1574709092000,  # unix timestamp in milliseconds, required
             # 'to': 1574709092000,  # unix timestamp in milliseconds, required
         }

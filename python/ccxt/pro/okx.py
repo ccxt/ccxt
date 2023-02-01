@@ -207,7 +207,7 @@ class okx(Exchange, ccxt.async_support.okx):
         """
         await self.load_markets()
         symbol = self.symbol(symbol)
-        interval = self.timeframes[timeframe]
+        interval = self.safe_string(self.timeframes, timeframe, timeframe)
         name = 'candle' + interval
         ohlcv = await self.subscribe('public', name, symbol, params)
         if self.newUpdates:
@@ -458,6 +458,7 @@ class okx(Exchange, ccxt.async_support.okx):
                 update = data[i]
                 orderbook = self.order_book({}, limit)
                 self.orderbooks[symbol] = orderbook
+                orderbook['symbol'] = symbol
                 self.handle_order_book_message(client, update, orderbook, messageHash)
                 client.resolve(orderbook, messageHash)
         elif action == 'update':
@@ -480,21 +481,21 @@ class okx(Exchange, ccxt.async_support.okx):
                 client.resolve(orderbook, messageHash)
         return message
 
-    async def authenticate(self, params={}):
+    def authenticate(self, params={}):
         self.check_required_credentials()
         url = self.urls['api']['ws']['private']
-        messageHash = 'login'
+        messageHash = 'authenticated'
         client = self.client(url)
         future = self.safe_value(client.subscriptions, messageHash)
         if future is None:
-            future = client.future('authenticated')
             timestamp = str(self.seconds())
             method = 'GET'
             path = '/users/self/verify'
             auth = timestamp + method + path
             signature = self.hmac(self.encode(auth), self.encode(self.secret), hashlib.sha256, 'base64')
+            operation = 'login'
             request = {
-                'op': messageHash,
+                'op': operation,
                 'args': [
                     {
                         'apiKey': self.apiKey,
@@ -504,8 +505,10 @@ class okx(Exchange, ccxt.async_support.okx):
                     },
                 ],
             }
-            self.spawn(self.watch, url, messageHash, request, messageHash, future)
-        return await future
+            message = self.extend(request, params)
+            future = self.watch(url, messageHash, message)
+            client.subscriptions[messageHash] = future
+        return future
 
     async def watch_balance(self, params={}):
         """
@@ -577,6 +580,7 @@ class okx(Exchange, ccxt.async_support.okx):
         :param int|None since: the earliest time in ms to fetch orders for
         :param int|None limit: the maximum number of  orde structures to retrieve
         :param dict params: extra parameters specific to the okx api endpoint
+        :param bool params['stop']: True if fetching trigger or conditional orders
         :returns [dict]: a list of `order structures <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
         """
         await self.load_markets()
@@ -598,7 +602,8 @@ class okx(Exchange, ccxt.async_support.okx):
         # By default, receive order updates from any instrument type
         type = self.safe_string(options, 'type', 'ANY')
         type = self.safe_string(params, 'type', type)
-        params = self.omit(params, 'type')
+        isStop = self.safe_value(params, 'stop', False)
+        params = self.omit(params, ['type', 'stop'])
         market = None
         if symbol is not None:
             market = self.market(symbol)
@@ -610,7 +615,8 @@ class okx(Exchange, ccxt.async_support.okx):
         request = {
             'instType': uppercaseType,
         }
-        orders = await self.subscribe('private', 'orders', symbol, self.extend(request, params))
+        channel = 'orders-algo' if isStop else 'orders'
+        orders = await self.subscribe('private', channel, symbol, self.extend(request, params))
         if self.newUpdates:
             limit = orders.getLimit(symbol, limit)
         return self.filter_by_symbol_since_limit(orders, symbol, since, limit, True)
@@ -705,7 +711,6 @@ class okx(Exchange, ccxt.async_support.okx):
         #     {event: 'login', success: True}
         #
         client.resolve(message, 'authenticated')
-        return message
 
     def ping(self, client):
         # okex does not support built-in ws protocol-level ping-pong
@@ -721,9 +726,9 @@ class okx(Exchange, ccxt.async_support.okx):
         #     {event: 'error', msg: 'Illegal request: {"op":"subscribe","args":["spot/ticker:BTC-USDT"]}', code: '60012'}
         #     {event: 'error', msg: "channel:ticker,instId:BTC-USDT doesn't exist", code: '60018'}
         #
-        errorCode = self.safe_string(message, 'errorCode')
+        errorCode = self.safe_integer(message, 'code')
         try:
-            if errorCode is not None:
+            if errorCode:
                 feedback = self.id + ' ' + self.json(message)
                 self.throw_exactly_matched_exception(self.exceptions['exact'], errorCode, feedback)
                 messageString = self.safe_value(message, 'message')
@@ -731,10 +736,10 @@ class okx(Exchange, ccxt.async_support.okx):
                     self.throw_broadly_matched_exception(self.exceptions['broad'], messageString, feedback)
         except Exception as e:
             if isinstance(e, AuthenticationError):
-                client.reject(e, 'authenticated')
-                method = 'login'
-                if method in client.subscriptions:
-                    del client.subscriptions[method]
+                messageHash = 'authenticated'
+                client.reject(e, messageHash)
+                if messageHash in client.subscriptions:
+                    del client.subscriptions[messageHash]
                 return False
         return message
 
@@ -811,6 +816,7 @@ class okx(Exchange, ccxt.async_support.okx):
                 'account': self.handle_balance,
                 # 'margin_account': self.handle_balance,
                 'orders': self.handle_orders,
+                'orders-algo': self.handle_orders,
             }
             method = self.safe_value(methods, channel)
             if method is None:

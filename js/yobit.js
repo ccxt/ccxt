@@ -27,7 +27,7 @@ module.exports = class yobit extends Exchange {
                 'addMargin': false,
                 'cancelOrder': true,
                 'createDepositAddress': true,
-                'createMarketOrder': undefined,
+                'createMarketOrder': false,
                 'createOrder': true,
                 'createReduceOnlyOrder': false,
                 'createStopLimitOrder': false,
@@ -40,7 +40,7 @@ module.exports = class yobit extends Exchange {
                 'fetchBorrowRates': false,
                 'fetchBorrowRatesPerSymbol': false,
                 'fetchDepositAddress': true,
-                'fetchDeposits': undefined,
+                'fetchDeposits': false,
                 'fetchFundingHistory': false,
                 'fetchFundingRate': false,
                 'fetchFundingRateHistory': false,
@@ -67,10 +67,10 @@ module.exports = class yobit extends Exchange {
                 'fetchTrades': true,
                 'fetchTradingFee': false,
                 'fetchTradingFees': true,
-                'fetchTransactions': undefined,
+                'fetchTransactions': false,
                 'fetchTransfer': false,
                 'fetchTransfers': false,
-                'fetchWithdrawals': undefined,
+                'fetchWithdrawals': false,
                 'reduceMargin': false,
                 'setLeverage': false,
                 'setMarginMode': false,
@@ -772,7 +772,7 @@ module.exports = class yobit extends Exchange {
          * @name yobit#createOrder
          * @description create a trade order
          * @param {string} symbol unified symbol of the market to create an order in
-         * @param {string} type 'market' or 'limit'
+         * @param {string} type must be 'limit'
          * @param {string} side 'buy' or 'sell'
          * @param {float} amount how much of currency you want to trade in units of base currency
          * @param {float|undefined} price the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
@@ -956,6 +956,7 @@ module.exports = class yobit extends Exchange {
             'side': side,
             'price': price,
             'stopPrice': undefined,
+            'triggerPrice': undefined,
             'cost': undefined,
             'amount': amount,
             'remaining': remaining,

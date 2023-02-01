@@ -12,6 +12,7 @@ from ccxt.base.errors import ArgumentsRequired
 from ccxt.base.errors import BadRequest
 from ccxt.base.errors import BadSymbol
 from ccxt.base.errors import InsufficientFunds
+from ccxt.base.errors import InvalidOrder
 from ccxt.base.errors import NotSupported
 from ccxt.base.errors import DDoSProtection
 from ccxt.base.errors import OnMaintenance
@@ -99,18 +100,70 @@ class cryptocom(Exchange):
             },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/147792121-38ed5e36-c229-48d6-b49a-48d05fc19ed4.jpeg',
-                'test': 'https://uat-api.3ona.co/v2',
+                'test': {
+                    'v1': 'https://uat-api.3ona.co/exchange/v1',
+                    'v2': 'https://uat-api.3ona.co/v2',
+                    'derivatives': 'https://uat-api.3ona.co/v2',
+                },
                 'api': {
-                    'spot': 'https://api.crypto.com/v2',
+                    'v1': 'https://api.crypto.com/exchange/v1',
+                    'v2': 'https://api.crypto.com/v2',
                     'derivatives': 'https://deriv-api.crypto.com/v1',
                 },
                 'www': 'https://crypto.com/',
                 'referral': 'https://crypto.com/exch/5835vstech',
-                'doc': 'https://exchange-docs.crypto.com/',
+                'doc': [
+                    'https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html',
+                    'https://exchange-docs.crypto.com/spot/index.html',
+                    'https://exchange-docs.crypto.com/derivatives/index.html',
+                ],
                 'fees': 'https://crypto.com/exchange/document/fees-limits',
             },
             'api': {
-                'spot': {
+                'v1': {
+                    'public': {
+                        'get': {
+                            'public/auth': 10 / 3,
+                            'public/get-instruments': 10 / 3,
+                            'public/get-book': 1,
+                            'public/get-candlestick': 1,
+                            'public/get-trades': 1,
+                            'public/get-tickers': 1,
+                            'public/get-valuations': 1,
+                            'public/get-expired-settlement-price': 10 / 3,
+                            'public/get-insurance': 1,
+                        },
+                    },
+                    'private': {
+                        'post': {
+                            'private/set-cancel-on-disconnect': 10 / 3,
+                            'private/get-cancel-on-disconnect': 10 / 3,
+                            'private/user-balance': 10 / 3,
+                            'private/user-balance-history': 10 / 3,
+                            'private/get-positions': 10 / 3,
+                            'private/create-order': 2 / 3,
+                            'private/create-order-list': 10 / 3,
+                            'private/cancel-order': 2 / 3,
+                            'private/cancel-order-list': 10 / 3,
+                            'private/cancel-all-orders': 2 / 3,
+                            'private/close-position': 10 / 3,
+                            'private/get-order-history': 100,
+                            'private/get-open-orders': 10 / 3,
+                            'private/get-order-detail': 1 / 3,
+                            'private/get-trades': 100,
+                            'private/change-account-leverage': 10 / 3,
+                            'private/get-transactions': 10 / 3,
+                            'private/create-subaccount-transfer': 10 / 3,
+                            'private/get-subaccount-balances': 10 / 3,
+                            'private/get-order-list': 10 / 3,
+                            'private/create-withdrawal': 10 / 3,
+                            'private/get-currency-networks': 10 / 3,
+                            'private/get-deposit-address': 10 / 3,
+                            'private/get-accounts': 10 / 3,
+                        },
+                    },
+                },
+                'v2': {
                     'public': {
                         'get': {
                             'public/auth': 1,
@@ -137,6 +190,7 @@ class cryptocom(Exchange):
                             'private/create-order': 2 / 3,
                             'private/cancel-order': 2 / 3,
                             'private/cancel-all-orders': 2 / 3,
+                            'private/create-order-list': 10 / 3,
                             'private/get-order-history': 10 / 3,
                             'private/get-open-orders': 10 / 3,
                             'private/get-order-detail': 1 / 3,
@@ -161,9 +215,9 @@ class cryptocom(Exchange):
                             'private/margin/get-trades': 100,
                             'private/deriv/transfer': 10 / 3,
                             'private/deriv/get-transfer-history': 10 / 3,
-                            'private/subaccount/get-sub-accounts': 10 / 3,
-                            'private/subaccount/get-transfer-history': 10 / 3,
-                            'private/subaccount/transfer': 10 / 3,
+                            'private/get-accounts': 10 / 3,
+                            'private/get-subaccount-balances': 10 / 3,
+                            'private/create-subaccount-transfer': 10 / 3,
                             'private/otc/get-otc-user': 10 / 3,
                             'private/otc/get-instruments': 10 / 3,
                             'private/otc/request-quote': 100,
@@ -195,7 +249,9 @@ class cryptocom(Exchange):
                             'private/user-balance-history': 10 / 3,
                             'private/get-positions': 10 / 3,
                             'private/create-order': 2 / 3,
+                            'private/create-order-list': 10 / 3,
                             'private/cancel-order': 2 / 3,
+                            'private/cancel-order-list': 10 / 3,
                             'private/cancel-all-orders': 2 / 3,
                             'private/close-position': 10 / 3,
                             'private/convert-collateral': 10 / 3,
@@ -205,6 +261,9 @@ class cryptocom(Exchange):
                             'private/get-trades': 100,
                             'private/change-account-leverage': 10 / 3,
                             'private/get-transactions': 10 / 3,
+                            'private/create-subaccount-transfer': 10 / 3,
+                            'private/get-subaccount-balances': 10 / 3,
+                            'private/get-order-list': 10 / 3,
                         },
                     },
                 },
@@ -272,18 +331,18 @@ class cryptocom(Exchange):
                     '30003': BadSymbol,
                     '30004': BadRequest,
                     '30005': BadRequest,
-                    '30006': BadRequest,
-                    '30007': BadRequest,
-                    '30008': BadRequest,
-                    '30009': BadRequest,
+                    '30006': InvalidOrder,
+                    '30007': InvalidOrder,
+                    '30008': InvalidOrder,
+                    '30009': InvalidOrder,
                     '30010': BadRequest,
-                    '30013': BadRequest,
-                    '30014': BadRequest,
-                    '30016': BadRequest,
-                    '30017': BadRequest,
-                    '30023': BadRequest,
-                    '30024': BadRequest,
-                    '30025': BadRequest,
+                    '30013': InvalidOrder,
+                    '30014': InvalidOrder,
+                    '30016': InvalidOrder,
+                    '30017': InvalidOrder,
+                    '30023': InvalidOrder,
+                    '30024': InvalidOrder,
+                    '30025': InvalidOrder,
                     '40001': BadRequest,
                     '40002': BadRequest,
                     '40003': BadRequest,
@@ -313,7 +372,7 @@ class cryptocom(Exchange):
         return markets
 
     def fetch_spot_markets(self, params={}):
-        response = self.spotPublicGetPublicGetInstruments(params)
+        response = self.v2PublicGetPublicGetInstruments(params)
         #
         #    {
         #        id: 11,
@@ -331,7 +390,12 @@ class cryptocom(Exchange):
         #                    margin_trading_enabled_5x: True,
         #                    margin_trading_enabled_10x: True,
         #                    max_quantity: '100000000',
-        #                    min_quantity: '0.01'
+        #                    min_quantity: '0.01',
+        #                    max_price:'1',
+        #                    min_price:'0.00000001',
+        #                    last_update_date:1667263094857,
+        #                    quantity_tick_size:'0.1',
+        #                    price_tick_size:'0.00000001'
         #               },
         #            ]
         #        }
@@ -347,8 +411,7 @@ class cryptocom(Exchange):
             quoteId = self.safe_string(market, 'quote_currency')
             base = self.safe_currency_code(baseId)
             quote = self.safe_currency_code(quoteId)
-            priceDecimals = self.safe_string(market, 'price_decimals')
-            minPrice = self.parse_precision(priceDecimals)
+            minPrice = self.safe_string(market, 'min_price')
             minQuantity = self.safe_string(market, 'min_quantity')
             maxLeverage = self.parse_number('1')
             margin_trading_enabled_5x = self.safe_value(market, 'margin_trading_enabled_5x')
@@ -382,8 +445,8 @@ class cryptocom(Exchange):
                 'strike': None,
                 'optionType': None,
                 'precision': {
-                    'amount': self.parse_number(self.parse_precision(self.safe_string(market, 'quantity_decimals'))),
-                    'price': self.parse_number(self.parse_precision(priceDecimals)),
+                    'amount': self.safe_number(market, 'quantity_tick_size'),
+                    'price': self.safe_number(market, 'price_tick_size'),
                 },
                 'limits': {
                     'leverage': {
@@ -396,7 +459,7 @@ class cryptocom(Exchange):
                     },
                     'price': {
                         'min': self.parse_number(minPrice),
-                        'max': None,
+                        'max': self.safe_number(market, 'max_price'),
                     },
                     'cost': {
                         'min': self.parse_number(Precise.string_mul(minQuantity, minPrice)),
@@ -515,15 +578,21 @@ class cryptocom(Exchange):
     def fetch_tickers(self, symbols=None, params={}):
         """
         fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
+        see https://exchange-docs.crypto.com/spot/index.html#public-get-ticker
+        see https://exchange-docs.crypto.com/derivatives/index.html#public-get-tickers
         :param [str]|None symbols: unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
         :param dict params: extra parameters specific to the cryptocom api endpoint
         :returns dict: an array of `ticker structures <https://docs.ccxt.com/en/latest/manual.html#ticker-structure>`
         """
         self.load_markets()
         symbols = self.market_symbols(symbols)
-        marketType, query = self.handle_market_type_and_params('fetchTickers', None, params)
+        market = None
+        if symbols is not None:
+            symbol = self.safe_value(symbols, 0)
+            market = self.market(symbol)
+        marketType, query = self.handle_market_type_and_params('fetchTickers', market, params)
         method = self.get_supported_mapping(marketType, {
-            'spot': 'spotPublicGetPublicGetTicker',
+            'spot': 'v2PublicGetPublicGetTicker',
             'future': 'derivativesPublicGetPublicGetTickers',
             'swap': 'derivativesPublicGetPublicGetTickers',
         })
@@ -562,7 +631,7 @@ class cryptocom(Exchange):
         marketType, query = self.handle_market_type_and_params('fetchTicker', market, params)
         if marketType != 'spot':
             raise NotSupported(self.id + ' fetchTicker() only supports spot markets')
-        response = self.spotPublicGetPublicGetTicker(self.extend(request, query))
+        response = self.v2PublicGetPublicGetTicker(self.extend(request, query))
         #
         #   {
         #       "id":"-1",
@@ -602,14 +671,14 @@ class cryptocom(Exchange):
             request['page_size'] = limit
         marketType, marketTypeQuery = self.handle_market_type_and_params('fetchOrders', market, params)
         method = self.get_supported_mapping(marketType, {
-            'spot': 'spotPrivatePostPrivateGetOrderHistory',
-            'margin': 'spotPrivatePostPrivateMarginGetOrderHistory',
+            'spot': 'v2PrivatePostPrivateGetOrderHistory',
+            'margin': 'v2PrivatePostPrivateMarginGetOrderHistory',
             'future': 'derivativesPrivatePostPrivateGetOrderHistory',
             'swap': 'derivativesPrivatePostPrivateGetOrderHistory',
         })
         marginMode, query = self.custom_handle_margin_mode_and_params('fetchOrders', marketTypeQuery)
         if marginMode is not None:
-            method = 'spotPrivatePostPrivateMarginGetOrderHistory'
+            method = 'v2PrivatePostPrivateMarginGetOrderHistory'
         response = getattr(self, method)(self.extend(request, query))
         #
         # spot and margin
@@ -705,7 +774,7 @@ class cryptocom(Exchange):
             request['page_size'] = limit
         marketType, query = self.handle_market_type_and_params('fetchTrades', market, params)
         method = self.get_supported_mapping(marketType, {
-            'spot': 'spotPublicGetPublicGetTrades',
+            'spot': 'v2PublicGetPublicGetTrades',
             'future': 'derivativesPublicGetPublicGetTrades',
             'swap': 'derivativesPublicGetPublicGetTrades',
         })
@@ -746,14 +815,19 @@ class cryptocom(Exchange):
         market = self.market(symbol)
         request = {
             'instrument_name': market['id'],
-            'timeframe': self.timeframes[timeframe],
+            'timeframe': self.safe_string(self.timeframes, timeframe, timeframe),
         }
         marketType, query = self.handle_market_type_and_params('fetchOHLCV', market, params)
         method = self.get_supported_mapping(marketType, {
-            'spot': 'spotPublicGetPublicGetCandlestick',
+            'spot': 'v2PublicGetPublicGetCandlestick',
             'future': 'derivativesPublicGetPublicGetCandlestick',
             'swap': 'derivativesPublicGetPublicGetCandlestick',
         })
+        if marketType != 'spot':
+            reqLimit = 100
+            if limit is not None:
+                reqLimit = limit
+            request['count'] = reqLimit
         response = getattr(self, method)(self.extend(request, query))
         # {
         #     "code":0,
@@ -790,7 +864,7 @@ class cryptocom(Exchange):
             request['depth'] = limit
         marketType, query = self.handle_market_type_and_params('fetchOrderBook', market, params)
         method = self.get_supported_mapping(marketType, {
-            'spot': 'spotPublicGetPublicGetBook',
+            'spot': 'v2PublicGetPublicGetBook',
             'future': 'derivativesPublicGetPublicGetBook',
             'swap': 'derivativesPublicGetPublicGetBook',
         })
@@ -848,14 +922,14 @@ class cryptocom(Exchange):
         self.load_markets()
         marketType, marketTypeQuery = self.handle_market_type_and_params('fetchBalance', None, params)
         method = self.get_supported_mapping(marketType, {
-            'spot': 'spotPrivatePostPrivateGetAccountSummary',
-            'margin': 'spotPrivatePostPrivateMarginGetAccountSummary',
+            'spot': 'v2PrivatePostPrivateGetAccountSummary',
+            'margin': 'v2PrivatePostPrivateMarginGetAccountSummary',
             'future': 'derivativesPrivatePostPrivateUserBalance',
             'swap': 'derivativesPrivatePostPrivateUserBalance',
         })
         marginMode, query = self.custom_handle_margin_mode_and_params('fetchBalance', marketTypeQuery)
         if marginMode is not None:
-            method = 'spotPrivatePostPrivateMarginGetAccountSummary'
+            method = 'v2PrivatePostPrivateMarginGetAccountSummary'
         response = getattr(self, method)(query)
         # spot
         #     {
@@ -971,13 +1045,13 @@ class cryptocom(Exchange):
         else:
             request['order_id'] = int(id)
         method = self.get_supported_mapping(marketType, {
-            'spot': 'spotPrivatePostPrivateGetOrderDetail',
-            'margin': 'spotPrivatePostPrivateMarginGetOrderDetail',
+            'spot': 'v2PrivatePostPrivateGetOrderDetail',
+            'margin': 'v2PrivatePostPrivateMarginGetOrderDetail',
             'future': 'derivativesPrivatePostPrivateGetOrderDetail',
             'swap': 'derivativesPrivatePostPrivateGetOrderDetail',
         })
         if marginMode is not None:
-            method = 'spotPrivatePostPrivateMarginGetOrderDetail'
+            method = 'v2PrivatePostPrivateMarginGetOrderDetail'
         response = getattr(self, method)(self.extend(request, query))
         # {
         #     "id": 11,
@@ -1047,14 +1121,14 @@ class cryptocom(Exchange):
             params = self.omit(params, ['postOnly'])
         marketType, marketTypeQuery = self.handle_market_type_and_params('createOrder', market, params)
         method = self.get_supported_mapping(marketType, {
-            'spot': 'spotPrivatePostPrivateCreateOrder',
-            'margin': 'spotPrivatePostPrivateMarginCreateOrder',
+            'spot': 'v2PrivatePostPrivateCreateOrder',
+            'margin': 'v2PrivatePostPrivateMarginCreateOrder',
             'future': 'derivativesPrivatePostPrivateCreateOrder',
             'swap': 'derivativesPrivatePostPrivateCreateOrder',
         })
         marginMode, query = self.custom_handle_margin_mode_and_params('createOrder', marketTypeQuery)
         if marginMode is not None:
-            method = 'spotPrivatePostPrivateMarginCreateOrder'
+            method = 'v2PrivatePostPrivateMarginCreateOrder'
         response = getattr(self, method)(self.extend(request, query))
         # {
         #     "id": 11,
@@ -1086,13 +1160,13 @@ class cryptocom(Exchange):
                 raise ArgumentsRequired(self.id + ' cancelAllOrders() requires a symbol argument for ' + marketType + ' orders')
             request['instrument_name'] = market['id']
         method = self.get_supported_mapping(marketType, {
-            'spot': 'spotPrivatePostPrivateCancelAllOrders',
-            'margin': 'spotPrivatePostPrivateMarginCancelAllOrders',
+            'spot': 'v2PrivatePostPrivateCancelAllOrders',
+            'margin': 'v2PrivatePostPrivateMarginCancelAllOrders',
             'future': 'derivativesPrivatePostPrivateCancelAllOrders',
             'swap': 'derivativesPrivatePostPrivateCancelAllOrders',
         })
         if marginMode is not None:
-            method = 'spotPrivatePostPrivateMarginCancelAllOrders'
+            method = 'v2PrivatePostPrivateMarginCancelAllOrders'
         return getattr(self, method)(self.extend(request, query))
 
     def cancel_order(self, id, symbol=None, params={}):
@@ -1118,13 +1192,13 @@ class cryptocom(Exchange):
         else:
             request['order_id'] = int(id)
         method = self.get_supported_mapping(marketType, {
-            'spot': 'spotPrivatePostPrivateCancelOrder',
-            'margin': 'spotPrivatePostPrivateMarginCancelOrder',
+            'spot': 'v2PrivatePostPrivateCancelOrder',
+            'margin': 'v2PrivatePostPrivateMarginCancelOrder',
             'future': 'derivativesPrivatePostPrivateCancelOrder',
             'swap': 'derivativesPrivatePostPrivateCancelOrder',
         })
         if marginMode is not None:
-            method = 'spotPrivatePostPrivateMarginCancelOrder'
+            method = 'v2PrivatePostPrivateMarginCancelOrder'
         response = getattr(self, method)(self.extend(request, query))
         result = self.safe_value(response, 'result', response)
         return self.parse_order(result)
@@ -1148,14 +1222,14 @@ class cryptocom(Exchange):
             request['page_size'] = limit
         marketType, marketTypeQuery = self.handle_market_type_and_params('fetchOpenOrders', market, params)
         method = self.get_supported_mapping(marketType, {
-            'spot': 'spotPrivatePostPrivateGetOpenOrders',
-            'margin': 'spotPrivatePostPrivateMarginGetOpenOrders',
+            'spot': 'v2PrivatePostPrivateGetOpenOrders',
+            'margin': 'v2PrivatePostPrivateMarginGetOpenOrders',
             'future': 'derivativesPrivatePostPrivateGetOpenOrders',
             'swap': 'derivativesPrivatePostPrivateGetOpenOrders',
         })
         marginMode, query = self.custom_handle_margin_mode_and_params('fetchOpenOrders', marketTypeQuery)
         if marginMode is not None:
-            method = 'spotPrivatePostPrivateMarginGetOpenOrders'
+            method = 'v2PrivatePostPrivateMarginGetOpenOrders'
         response = getattr(self, method)(self.extend(request, query))
         # {
         #     "id": 11,
@@ -1229,14 +1303,14 @@ class cryptocom(Exchange):
             request['page_size'] = limit
         marketType, marketTypeQuery = self.handle_market_type_and_params('fetchMyTrades', market, params)
         method = self.get_supported_mapping(marketType, {
-            'spot': 'spotPrivatePostPrivateGetTrades',
-            'margin': 'spotPrivatePostPrivateMarginGetTrades',
+            'spot': 'v2PrivatePostPrivateGetTrades',
+            'margin': 'v2PrivatePostPrivateMarginGetTrades',
             'future': 'derivativesPrivatePostPrivateGetTrades',
             'swap': 'derivativesPrivatePostPrivateGetTrades',
         })
         marginMode, query = self.custom_handle_margin_mode_and_params('fetchMyTrades', marketTypeQuery)
         if marginMode is not None:
-            method = 'spotPrivatePostPrivateMarginGetTrades'
+            method = 'v2PrivatePostPrivateMarginGetTrades'
         response = getattr(self, method)(self.extend(request, query))
         # {
         #     "id": 11,
@@ -1294,7 +1368,7 @@ class cryptocom(Exchange):
         }
         if tag is not None:
             request['address_tag'] = tag
-        response = self.spotPrivatePostPrivateCreateWithdrawal(self.extend(request, params))
+        response = self.v2PrivatePostPrivateCreateWithdrawal(self.extend(request, params))
         #
         #    {
         #        "id":-1,
@@ -1326,7 +1400,7 @@ class cryptocom(Exchange):
         request = {
             'currency': currency['id'],
         }
-        response = self.spotPrivatePostPrivateGetDepositAddress(self.extend(request, params))
+        response = self.v2PrivatePostPrivateGetDepositAddress(self.extend(request, params))
         # {
         #     "id": 11,
         #     "method": "private/get-deposit-address",
@@ -1354,10 +1428,11 @@ class cryptocom(Exchange):
         # }
         data = self.safe_value(response, 'result', {})
         addresses = self.safe_value(data, 'deposit_address_list', [])
-        if len(addresses) == 0:
+        addressesLength = len(addresses)
+        if addressesLength == 0:
             raise ExchangeError(self.id + ' fetchDepositAddressesByNetwork() generating address...')
         result = {}
-        for i in range(0, len(addresses)):
+        for i in range(0, addressesLength):
             value = self.safe_value(addresses, i)
             addressString = self.safe_string(value, 'address')
             currencyId = self.safe_string(value, 'currency')
@@ -1423,7 +1498,7 @@ class cryptocom(Exchange):
             request['start_ts'] = since
         if limit is not None:
             request['page_size'] = limit
-        response = self.spotPrivatePostPrivateGetDepositHistory(self.extend(request, params))
+        response = self.v2PrivatePostPrivateGetDepositHistory(self.extend(request, params))
         # {
         #     "id": 11,
         #     "method": "private/get-deposit-history",
@@ -1467,7 +1542,7 @@ class cryptocom(Exchange):
             request['start_ts'] = since
         if limit is not None:
             request['page_size'] = limit
-        response = self.spotPrivatePostPrivateGetWithdrawalHistory(self.extend(request, params))
+        response = self.v2PrivatePostPrivateGetWithdrawalHistory(self.extend(request, params))
         #
         #     {
         #       id: 1640704829096,
@@ -1518,9 +1593,9 @@ class cryptocom(Exchange):
             'from': fromId,
             'to': toId,
         }
-        method = 'spotPrivatePostPrivateDerivTransfer'
+        method = 'v2PrivatePostPrivateDerivTransfer'
         if (fromAccount == 'margin') or (toAccount == 'margin'):
-            method = 'spotPrivatePostPrivateMarginTransfer'
+            method = 'v2PrivatePostPrivateMarginTransfer'
         response = getattr(self, method)(self.extend(request, params))
         #
         #     {
@@ -1554,10 +1629,10 @@ class cryptocom(Exchange):
             request['start_ts'] = since
         if limit is not None:
             request['page_size'] = limit
-        method = 'spotPrivatePostPrivateDerivGetTransferHistory'
+        method = 'v2PrivatePostPrivateDerivGetTransferHistory'
         marginMode, query = self.custom_handle_margin_mode_and_params('fetchTransfers', params)
         if marginMode is not None:
-            method = 'spotPrivatePostPrivateMarginGetTransferHistory'
+            method = 'v2PrivatePostPrivateMarginGetTransferHistory'
         response = getattr(self, method)(self.extend(request, query))
         #
         #     {
@@ -2020,7 +2095,7 @@ class cryptocom(Exchange):
             'currency': currency['id'],
             'amount': self.currency_to_precision(code, amount),
         }
-        response = self.spotPrivatePostPrivateMarginRepay(self.extend(request, params))
+        response = self.v2PrivatePostPrivateMarginRepay(self.extend(request, params))
         #
         #     {
         #         "id": 1656620104211,
@@ -2052,7 +2127,7 @@ class cryptocom(Exchange):
             'currency': currency['id'],
             'amount': self.currency_to_precision(code, amount),
         }
-        response = self.spotPrivatePostPrivateMarginBorrow(self.extend(request, params))
+        response = self.v2PrivatePostPrivateMarginBorrow(self.extend(request, params))
         #
         #     {
         #         "id": 1656619578559,
@@ -2110,7 +2185,7 @@ class cryptocom(Exchange):
             request['start_ts'] = since
         if limit is not None:
             request['page_size'] = limit
-        response = self.spotPrivatePostPrivateMarginGetInterestHistory(self.extend(request, params))
+        response = self.v2PrivatePostPrivateMarginGetInterestHistory(self.extend(request, params))
         #
         #     {
         #         "id": 1656705829020,
@@ -2171,7 +2246,7 @@ class cryptocom(Exchange):
         :returns dict: a list of `borrow rate structures <https://docs.ccxt.com/en/latest/manual.html#borrow-rate-structure>`
         """
         self.load_markets()
-        response = self.spotPrivatePostPrivateMarginGetUserConfig(params)
+        response = self.v2PrivatePostPrivateMarginGetUserConfig(params)
         #
         #     {
         #         "id": 1656707947456,

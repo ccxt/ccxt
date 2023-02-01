@@ -77,7 +77,7 @@ module.exports = class hollaex extends Exchange {
                 'fetchTrades': true,
                 'fetchTradingFee': false,
                 'fetchTradingFees': true,
-                'fetchTransactions': undefined,
+                'fetchTransactions': false,
                 'fetchTransfer': false,
                 'fetchTransfers': false,
                 'fetchWithdrawal': true,
@@ -758,7 +758,7 @@ module.exports = class hollaex extends Exchange {
         const market = this.market (symbol);
         const request = {
             'symbol': market['id'],
-            'resolution': this.timeframes[timeframe],
+            'resolution': this.safeString (this.timeframes, timeframe, timeframe),
         };
         const duration = this.parseTimeframe (timeframe);
         if (since === undefined) {
@@ -1116,6 +1116,7 @@ module.exports = class hollaex extends Exchange {
             'side': side,
             'price': price,
             'stopPrice': stopPrice,
+            'triggerPrice': stopPrice,
             'amount': amount,
             'filled': filled,
             'remaining': undefined,

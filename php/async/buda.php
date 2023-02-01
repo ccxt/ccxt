@@ -53,7 +53,7 @@ class buda extends Exchange {
                 'fetchMarginMode' => false,
                 'fetchMarkets' => true,
                 'fetchMarkOHLCV' => false,
-                'fetchMyTrades' => null,
+                'fetchMyTrades' => false,
                 'fetchOHLCV' => true,
                 'fetchOpenInterestHistory' => false,
                 'fetchOpenOrders' => true,
@@ -651,7 +651,7 @@ class buda extends Exchange {
             }
             $request = array(
                 'symbol' => $market['id'],
-                'resolution' => $this->timeframes[$timeframe],
+                'resolution' => $this->safe_string($this->timeframes, $timeframe, $timeframe),
                 'from' => $since / 1000,
                 'to' => $this->seconds(),
             );
@@ -895,6 +895,7 @@ class buda extends Exchange {
             'side' => $side,
             'price' => $price,
             'stopPrice' => null,
+            'triggerPrice' => null,
             'average' => null,
             'cost' => $cost,
             'amount' => $amount,

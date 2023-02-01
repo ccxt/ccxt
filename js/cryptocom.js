@@ -3,7 +3,7 @@
 //  ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
-const { AuthenticationError, ArgumentsRequired, ExchangeError, InsufficientFunds, DDoSProtection, InvalidNonce, PermissionDenied, BadRequest, BadSymbol, NotSupported, AccountNotEnabled, OnMaintenance } = require ('./base/errors');
+const { AuthenticationError, ArgumentsRequired, ExchangeError, InsufficientFunds, DDoSProtection, InvalidNonce, PermissionDenied, BadRequest, BadSymbol, NotSupported, AccountNotEnabled, OnMaintenance, InvalidOrder } = require ('./base/errors');
 const { TICK_SIZE } = require ('./base/functions/number');
 const Precise = require ('./base/Precise');
 
@@ -85,18 +85,70 @@ module.exports = class cryptocom extends Exchange {
             },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/147792121-38ed5e36-c229-48d6-b49a-48d05fc19ed4.jpeg',
-                'test': 'https://uat-api.3ona.co/v2',
+                'test': {
+                    'v1': 'https://uat-api.3ona.co/exchange/v1',
+                    'v2': 'https://uat-api.3ona.co/v2',
+                    'derivatives': 'https://uat-api.3ona.co/v2',
+                },
                 'api': {
-                    'spot': 'https://api.crypto.com/v2',
+                    'v1': 'https://api.crypto.com/exchange/v1',
+                    'v2': 'https://api.crypto.com/v2',
                     'derivatives': 'https://deriv-api.crypto.com/v1',
                 },
                 'www': 'https://crypto.com/',
                 'referral': 'https://crypto.com/exch/5835vstech',
-                'doc': 'https://exchange-docs.crypto.com/',
+                'doc': [
+                    'https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html',
+                    'https://exchange-docs.crypto.com/spot/index.html',
+                    'https://exchange-docs.crypto.com/derivatives/index.html',
+                ],
                 'fees': 'https://crypto.com/exchange/document/fees-limits',
             },
             'api': {
-                'spot': {
+                'v1': {
+                    'public': {
+                        'get': {
+                            'public/auth': 10 / 3,
+                            'public/get-instruments': 10 / 3,
+                            'public/get-book': 1,
+                            'public/get-candlestick': 1,
+                            'public/get-trades': 1,
+                            'public/get-tickers': 1,
+                            'public/get-valuations': 1,
+                            'public/get-expired-settlement-price': 10 / 3,
+                            'public/get-insurance': 1,
+                        },
+                    },
+                    'private': {
+                        'post': {
+                            'private/set-cancel-on-disconnect': 10 / 3,
+                            'private/get-cancel-on-disconnect': 10 / 3,
+                            'private/user-balance': 10 / 3,
+                            'private/user-balance-history': 10 / 3,
+                            'private/get-positions': 10 / 3,
+                            'private/create-order': 2 / 3,
+                            'private/create-order-list': 10 / 3,
+                            'private/cancel-order': 2 / 3,
+                            'private/cancel-order-list': 10 / 3,
+                            'private/cancel-all-orders': 2 / 3,
+                            'private/close-position': 10 / 3,
+                            'private/get-order-history': 100,
+                            'private/get-open-orders': 10 / 3,
+                            'private/get-order-detail': 1 / 3,
+                            'private/get-trades': 100,
+                            'private/change-account-leverage': 10 / 3,
+                            'private/get-transactions': 10 / 3,
+                            'private/create-subaccount-transfer': 10 / 3,
+                            'private/get-subaccount-balances': 10 / 3,
+                            'private/get-order-list': 10 / 3,
+                            'private/create-withdrawal': 10 / 3,
+                            'private/get-currency-networks': 10 / 3,
+                            'private/get-deposit-address': 10 / 3,
+                            'private/get-accounts': 10 / 3,
+                        },
+                    },
+                },
+                'v2': {
                     'public': {
                         'get': {
                             'public/auth': 1,
@@ -123,6 +175,7 @@ module.exports = class cryptocom extends Exchange {
                             'private/create-order': 2 / 3,
                             'private/cancel-order': 2 / 3,
                             'private/cancel-all-orders': 2 / 3,
+                            'private/create-order-list': 10 / 3,
                             'private/get-order-history': 10 / 3,
                             'private/get-open-orders': 10 / 3,
                             'private/get-order-detail': 1 / 3,
@@ -147,9 +200,9 @@ module.exports = class cryptocom extends Exchange {
                             'private/margin/get-trades': 100,
                             'private/deriv/transfer': 10 / 3,
                             'private/deriv/get-transfer-history': 10 / 3,
-                            'private/subaccount/get-sub-accounts': 10 / 3,
-                            'private/subaccount/get-transfer-history': 10 / 3,
-                            'private/subaccount/transfer': 10 / 3,
+                            'private/get-accounts': 10 / 3,
+                            'private/get-subaccount-balances': 10 / 3,
+                            'private/create-subaccount-transfer': 10 / 3,
                             'private/otc/get-otc-user': 10 / 3,
                             'private/otc/get-instruments': 10 / 3,
                             'private/otc/request-quote': 100,
@@ -181,7 +234,9 @@ module.exports = class cryptocom extends Exchange {
                             'private/user-balance-history': 10 / 3,
                             'private/get-positions': 10 / 3,
                             'private/create-order': 2 / 3,
+                            'private/create-order-list': 10 / 3,
                             'private/cancel-order': 2 / 3,
+                            'private/cancel-order-list': 10 / 3,
                             'private/cancel-all-orders': 2 / 3,
                             'private/close-position': 10 / 3,
                             'private/convert-collateral': 10 / 3,
@@ -191,6 +246,9 @@ module.exports = class cryptocom extends Exchange {
                             'private/get-trades': 100,
                             'private/change-account-leverage': 10 / 3,
                             'private/get-transactions': 10 / 3,
+                            'private/create-subaccount-transfer': 10 / 3,
+                            'private/get-subaccount-balances': 10 / 3,
+                            'private/get-order-list': 10 / 3,
                         },
                     },
                 },
@@ -258,18 +316,18 @@ module.exports = class cryptocom extends Exchange {
                     '30003': BadSymbol,
                     '30004': BadRequest,
                     '30005': BadRequest,
-                    '30006': BadRequest,
-                    '30007': BadRequest,
-                    '30008': BadRequest,
-                    '30009': BadRequest,
+                    '30006': InvalidOrder,
+                    '30007': InvalidOrder,
+                    '30008': InvalidOrder,
+                    '30009': InvalidOrder,
                     '30010': BadRequest,
-                    '30013': BadRequest,
-                    '30014': BadRequest,
-                    '30016': BadRequest,
-                    '30017': BadRequest,
-                    '30023': BadRequest,
-                    '30024': BadRequest,
-                    '30025': BadRequest,
+                    '30013': InvalidOrder,
+                    '30014': InvalidOrder,
+                    '30016': InvalidOrder,
+                    '30017': InvalidOrder,
+                    '30023': InvalidOrder,
+                    '30024': InvalidOrder,
+                    '30025': InvalidOrder,
                     '40001': BadRequest,
                     '40002': BadRequest,
                     '40003': BadRequest,
@@ -304,7 +362,7 @@ module.exports = class cryptocom extends Exchange {
     }
 
     async fetchSpotMarkets (params = {}) {
-        const response = await this.spotPublicGetPublicGetInstruments (params);
+        const response = await this.v2PublicGetPublicGetInstruments (params);
         //
         //    {
         //        id: 11,
@@ -322,7 +380,12 @@ module.exports = class cryptocom extends Exchange {
         //                    margin_trading_enabled_5x: true,
         //                    margin_trading_enabled_10x: true,
         //                    max_quantity: '100000000',
-        //                    min_quantity: '0.01'
+        //                    min_quantity: '0.01',
+        //                    max_price:'1',
+        //                    min_price:'0.00000001',
+        //                    last_update_date:1667263094857,
+        //                    quantity_tick_size:'0.1',
+        //                    price_tick_size:'0.00000001'
         //               },
         //            ]
         //        }
@@ -338,8 +401,7 @@ module.exports = class cryptocom extends Exchange {
             const quoteId = this.safeString (market, 'quote_currency');
             const base = this.safeCurrencyCode (baseId);
             const quote = this.safeCurrencyCode (quoteId);
-            const priceDecimals = this.safeString (market, 'price_decimals');
-            const minPrice = this.parsePrecision (priceDecimals);
+            const minPrice = this.safeString (market, 'min_price');
             const minQuantity = this.safeString (market, 'min_quantity');
             let maxLeverage = this.parseNumber ('1');
             const margin_trading_enabled_5x = this.safeValue (market, 'margin_trading_enabled_5x');
@@ -375,8 +437,8 @@ module.exports = class cryptocom extends Exchange {
                 'strike': undefined,
                 'optionType': undefined,
                 'precision': {
-                    'amount': this.parseNumber (this.parsePrecision (this.safeString (market, 'quantity_decimals'))),
-                    'price': this.parseNumber (this.parsePrecision (priceDecimals)),
+                    'amount': this.safeNumber (market, 'quantity_tick_size'),
+                    'price': this.safeNumber (market, 'price_tick_size'),
                 },
                 'limits': {
                     'leverage': {
@@ -389,7 +451,7 @@ module.exports = class cryptocom extends Exchange {
                     },
                     'price': {
                         'min': this.parseNumber (minPrice),
-                        'max': undefined,
+                        'max': this.safeNumber (market, 'max_price'),
                     },
                     'cost': {
                         'min': this.parseNumber (Precise.stringMul (minQuantity, minPrice)),
@@ -517,15 +579,22 @@ module.exports = class cryptocom extends Exchange {
          * @method
          * @name cryptocom#fetchTickers
          * @description fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
+         * @see https://exchange-docs.crypto.com/spot/index.html#public-get-ticker
+         * @see https://exchange-docs.crypto.com/derivatives/index.html#public-get-tickers
          * @param {[string]|undefined} symbols unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
          * @param {object} params extra parameters specific to the cryptocom api endpoint
          * @returns {object} an array of [ticker structures]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
          */
         await this.loadMarkets ();
         symbols = this.marketSymbols (symbols);
-        const [ marketType, query ] = this.handleMarketTypeAndParams ('fetchTickers', undefined, params);
+        let market = undefined;
+        if (symbols !== undefined) {
+            const symbol = this.safeValue (symbols, 0);
+            market = this.market (symbol);
+        }
+        const [ marketType, query ] = this.handleMarketTypeAndParams ('fetchTickers', market, params);
         const method = this.getSupportedMapping (marketType, {
-            'spot': 'spotPublicGetPublicGetTicker',
+            'spot': 'v2PublicGetPublicGetTicker',
             'future': 'derivativesPublicGetPublicGetTickers',
             'swap': 'derivativesPublicGetPublicGetTickers',
         });
@@ -568,7 +637,7 @@ module.exports = class cryptocom extends Exchange {
         if (marketType !== 'spot') {
             throw new NotSupported (this.id + ' fetchTicker() only supports spot markets');
         }
-        const response = await this.spotPublicGetPublicGetTicker (this.extend (request, query));
+        const response = await this.v2PublicGetPublicGetTicker (this.extend (request, query));
         //
         //   {
         //       "id":"-1",
@@ -614,14 +683,14 @@ module.exports = class cryptocom extends Exchange {
         }
         const [ marketType, marketTypeQuery ] = this.handleMarketTypeAndParams ('fetchOrders', market, params);
         let method = this.getSupportedMapping (marketType, {
-            'spot': 'spotPrivatePostPrivateGetOrderHistory',
-            'margin': 'spotPrivatePostPrivateMarginGetOrderHistory',
+            'spot': 'v2PrivatePostPrivateGetOrderHistory',
+            'margin': 'v2PrivatePostPrivateMarginGetOrderHistory',
             'future': 'derivativesPrivatePostPrivateGetOrderHistory',
             'swap': 'derivativesPrivatePostPrivateGetOrderHistory',
         });
         const [ marginMode, query ] = this.customHandleMarginModeAndParams ('fetchOrders', marketTypeQuery);
         if (marginMode !== undefined) {
-            method = 'spotPrivatePostPrivateMarginGetOrderHistory';
+            method = 'v2PrivatePostPrivateMarginGetOrderHistory';
         }
         const response = await this[method] (this.extend (request, query));
         //
@@ -723,7 +792,7 @@ module.exports = class cryptocom extends Exchange {
         }
         const [ marketType, query ] = this.handleMarketTypeAndParams ('fetchTrades', market, params);
         const method = this.getSupportedMapping (marketType, {
-            'spot': 'spotPublicGetPublicGetTrades',
+            'spot': 'v2PublicGetPublicGetTrades',
             'future': 'derivativesPublicGetPublicGetTrades',
             'swap': 'derivativesPublicGetPublicGetTrades',
         });
@@ -767,14 +836,21 @@ module.exports = class cryptocom extends Exchange {
         const market = this.market (symbol);
         const request = {
             'instrument_name': market['id'],
-            'timeframe': this.timeframes[timeframe],
+            'timeframe': this.safeString (this.timeframes, timeframe, timeframe),
         };
         const [ marketType, query ] = this.handleMarketTypeAndParams ('fetchOHLCV', market, params);
         const method = this.getSupportedMapping (marketType, {
-            'spot': 'spotPublicGetPublicGetCandlestick',
+            'spot': 'v2PublicGetPublicGetCandlestick',
             'future': 'derivativesPublicGetPublicGetCandlestick',
             'swap': 'derivativesPublicGetPublicGetCandlestick',
         });
+        if (marketType !== 'spot') {
+            let reqLimit = 100;
+            if (limit !== undefined) {
+                reqLimit = limit;
+            }
+            request['count'] = reqLimit;
+        }
         const response = await this[method] (this.extend (request, query));
         // {
         //     "code":0,
@@ -815,7 +891,7 @@ module.exports = class cryptocom extends Exchange {
         }
         const [ marketType, query ] = this.handleMarketTypeAndParams ('fetchOrderBook', market, params);
         const method = this.getSupportedMapping (marketType, {
-            'spot': 'spotPublicGetPublicGetBook',
+            'spot': 'v2PublicGetPublicGetBook',
             'future': 'derivativesPublicGetPublicGetBook',
             'swap': 'derivativesPublicGetPublicGetBook',
         });
@@ -880,14 +956,14 @@ module.exports = class cryptocom extends Exchange {
         await this.loadMarkets ();
         const [ marketType, marketTypeQuery ] = this.handleMarketTypeAndParams ('fetchBalance', undefined, params);
         let method = this.getSupportedMapping (marketType, {
-            'spot': 'spotPrivatePostPrivateGetAccountSummary',
-            'margin': 'spotPrivatePostPrivateMarginGetAccountSummary',
+            'spot': 'v2PrivatePostPrivateGetAccountSummary',
+            'margin': 'v2PrivatePostPrivateMarginGetAccountSummary',
             'future': 'derivativesPrivatePostPrivateUserBalance',
             'swap': 'derivativesPrivatePostPrivateUserBalance',
         });
         const [ marginMode, query ] = this.customHandleMarginModeAndParams ('fetchBalance', marketTypeQuery);
         if (marginMode !== undefined) {
-            method = 'spotPrivatePostPrivateMarginGetAccountSummary';
+            method = 'v2PrivatePostPrivateMarginGetAccountSummary';
         }
         const response = await this[method] (query);
         // spot
@@ -1009,13 +1085,13 @@ module.exports = class cryptocom extends Exchange {
             request['order_id'] = parseInt (id);
         }
         let method = this.getSupportedMapping (marketType, {
-            'spot': 'spotPrivatePostPrivateGetOrderDetail',
-            'margin': 'spotPrivatePostPrivateMarginGetOrderDetail',
+            'spot': 'v2PrivatePostPrivateGetOrderDetail',
+            'margin': 'v2PrivatePostPrivateMarginGetOrderDetail',
             'future': 'derivativesPrivatePostPrivateGetOrderDetail',
             'swap': 'derivativesPrivatePostPrivateGetOrderDetail',
         });
         if (marginMode !== undefined) {
-            method = 'spotPrivatePostPrivateMarginGetOrderDetail';
+            method = 'v2PrivatePostPrivateMarginGetOrderDetail';
         }
         const response = await this[method] (this.extend (request, query));
         // {
@@ -1091,14 +1167,14 @@ module.exports = class cryptocom extends Exchange {
         }
         const [ marketType, marketTypeQuery ] = this.handleMarketTypeAndParams ('createOrder', market, params);
         let method = this.getSupportedMapping (marketType, {
-            'spot': 'spotPrivatePostPrivateCreateOrder',
-            'margin': 'spotPrivatePostPrivateMarginCreateOrder',
+            'spot': 'v2PrivatePostPrivateCreateOrder',
+            'margin': 'v2PrivatePostPrivateMarginCreateOrder',
             'future': 'derivativesPrivatePostPrivateCreateOrder',
             'swap': 'derivativesPrivatePostPrivateCreateOrder',
         });
         const [ marginMode, query ] = this.customHandleMarginModeAndParams ('createOrder', marketTypeQuery);
         if (marginMode !== undefined) {
-            method = 'spotPrivatePostPrivateMarginCreateOrder';
+            method = 'v2PrivatePostPrivateMarginCreateOrder';
         }
         const response = await this[method] (this.extend (request, query));
         // {
@@ -1137,13 +1213,13 @@ module.exports = class cryptocom extends Exchange {
             request['instrument_name'] = market['id'];
         }
         let method = this.getSupportedMapping (marketType, {
-            'spot': 'spotPrivatePostPrivateCancelAllOrders',
-            'margin': 'spotPrivatePostPrivateMarginCancelAllOrders',
+            'spot': 'v2PrivatePostPrivateCancelAllOrders',
+            'margin': 'v2PrivatePostPrivateMarginCancelAllOrders',
             'future': 'derivativesPrivatePostPrivateCancelAllOrders',
             'swap': 'derivativesPrivatePostPrivateCancelAllOrders',
         });
         if (marginMode !== undefined) {
-            method = 'spotPrivatePostPrivateMarginCancelAllOrders';
+            method = 'v2PrivatePostPrivateMarginCancelAllOrders';
         }
         return await this[method] (this.extend (request, query));
     }
@@ -1176,13 +1252,13 @@ module.exports = class cryptocom extends Exchange {
             request['order_id'] = parseInt (id);
         }
         let method = this.getSupportedMapping (marketType, {
-            'spot': 'spotPrivatePostPrivateCancelOrder',
-            'margin': 'spotPrivatePostPrivateMarginCancelOrder',
+            'spot': 'v2PrivatePostPrivateCancelOrder',
+            'margin': 'v2PrivatePostPrivateMarginCancelOrder',
             'future': 'derivativesPrivatePostPrivateCancelOrder',
             'swap': 'derivativesPrivatePostPrivateCancelOrder',
         });
         if (marginMode !== undefined) {
-            method = 'spotPrivatePostPrivateMarginCancelOrder';
+            method = 'v2PrivatePostPrivateMarginCancelOrder';
         }
         const response = await this[method] (this.extend (request, query));
         const result = this.safeValue (response, 'result', response);
@@ -1212,14 +1288,14 @@ module.exports = class cryptocom extends Exchange {
         }
         const [ marketType, marketTypeQuery ] = this.handleMarketTypeAndParams ('fetchOpenOrders', market, params);
         let method = this.getSupportedMapping (marketType, {
-            'spot': 'spotPrivatePostPrivateGetOpenOrders',
-            'margin': 'spotPrivatePostPrivateMarginGetOpenOrders',
+            'spot': 'v2PrivatePostPrivateGetOpenOrders',
+            'margin': 'v2PrivatePostPrivateMarginGetOpenOrders',
             'future': 'derivativesPrivatePostPrivateGetOpenOrders',
             'swap': 'derivativesPrivatePostPrivateGetOpenOrders',
         });
         const [ marginMode, query ] = this.customHandleMarginModeAndParams ('fetchOpenOrders', marketTypeQuery);
         if (marginMode !== undefined) {
-            method = 'spotPrivatePostPrivateMarginGetOpenOrders';
+            method = 'v2PrivatePostPrivateMarginGetOpenOrders';
         }
         const response = await this[method] (this.extend (request, query));
         // {
@@ -1300,14 +1376,14 @@ module.exports = class cryptocom extends Exchange {
         }
         const [ marketType, marketTypeQuery ] = this.handleMarketTypeAndParams ('fetchMyTrades', market, params);
         let method = this.getSupportedMapping (marketType, {
-            'spot': 'spotPrivatePostPrivateGetTrades',
-            'margin': 'spotPrivatePostPrivateMarginGetTrades',
+            'spot': 'v2PrivatePostPrivateGetTrades',
+            'margin': 'v2PrivatePostPrivateMarginGetTrades',
             'future': 'derivativesPrivatePostPrivateGetTrades',
             'swap': 'derivativesPrivatePostPrivateGetTrades',
         });
         const [ marginMode, query ] = this.customHandleMarginModeAndParams ('fetchMyTrades', marketTypeQuery);
         if (marginMode !== undefined) {
-            method = 'spotPrivatePostPrivateMarginGetTrades';
+            method = 'v2PrivatePostPrivateMarginGetTrades';
         }
         const response = await this[method] (this.extend (request, query));
         // {
@@ -1372,7 +1448,7 @@ module.exports = class cryptocom extends Exchange {
         if (tag !== undefined) {
             request['address_tag'] = tag;
         }
-        const response = await this.spotPrivatePostPrivateCreateWithdrawal (this.extend (request, params));
+        const response = await this.v2PrivatePostPrivateCreateWithdrawal (this.extend (request, params));
         //
         //    {
         //        "id":-1,
@@ -1407,7 +1483,7 @@ module.exports = class cryptocom extends Exchange {
         const request = {
             'currency': currency['id'],
         };
-        const response = await this.spotPrivatePostPrivateGetDepositAddress (this.extend (request, params));
+        const response = await this.v2PrivatePostPrivateGetDepositAddress (this.extend (request, params));
         // {
         //     "id": 11,
         //     "method": "private/get-deposit-address",
@@ -1435,11 +1511,12 @@ module.exports = class cryptocom extends Exchange {
         // }
         const data = this.safeValue (response, 'result', {});
         const addresses = this.safeValue (data, 'deposit_address_list', []);
-        if (addresses.length === 0) {
+        const addressesLength = addresses.length;
+        if (addressesLength === 0) {
             throw new ExchangeError (this.id + ' fetchDepositAddressesByNetwork() generating address...');
         }
         const result = {};
-        for (let i = 0; i < addresses.length; i++) {
+        for (let i = 0; i < addressesLength; i++) {
             const value = this.safeValue (addresses, i);
             const addressString = this.safeString (value, 'address');
             const currencyId = this.safeString (value, 'currency');
@@ -1517,7 +1594,7 @@ module.exports = class cryptocom extends Exchange {
         if (limit !== undefined) {
             request['page_size'] = limit;
         }
-        const response = await this.spotPrivatePostPrivateGetDepositHistory (this.extend (request, params));
+        const response = await this.v2PrivatePostPrivateGetDepositHistory (this.extend (request, params));
         // {
         //     "id": 11,
         //     "method": "private/get-deposit-history",
@@ -1567,7 +1644,7 @@ module.exports = class cryptocom extends Exchange {
         if (limit !== undefined) {
             request['page_size'] = limit;
         }
-        const response = await this.spotPrivatePostPrivateGetWithdrawalHistory (this.extend (request, params));
+        const response = await this.v2PrivatePostPrivateGetWithdrawalHistory (this.extend (request, params));
         //
         //     {
         //       id: 1640704829096,
@@ -1621,9 +1698,9 @@ module.exports = class cryptocom extends Exchange {
             'from': fromId,
             'to': toId,
         };
-        let method = 'spotPrivatePostPrivateDerivTransfer';
+        let method = 'v2PrivatePostPrivateDerivTransfer';
         if ((fromAccount === 'margin') || (toAccount === 'margin')) {
-            method = 'spotPrivatePostPrivateMarginTransfer';
+            method = 'v2PrivatePostPrivateMarginTransfer';
         }
         const response = await this[method] (this.extend (request, params));
         //
@@ -1665,10 +1742,10 @@ module.exports = class cryptocom extends Exchange {
         if (limit !== undefined) {
             request['page_size'] = limit;
         }
-        let method = 'spotPrivatePostPrivateDerivGetTransferHistory';
+        let method = 'v2PrivatePostPrivateDerivGetTransferHistory';
         const [ marginMode, query ] = this.customHandleMarginModeAndParams ('fetchTransfers', params);
         if (marginMode !== undefined) {
-            method = 'spotPrivatePostPrivateMarginGetTransferHistory';
+            method = 'v2PrivatePostPrivateMarginGetTransferHistory';
         }
         const response = await this[method] (this.extend (request, query));
         //
@@ -2159,7 +2236,7 @@ module.exports = class cryptocom extends Exchange {
             'currency': currency['id'],
             'amount': this.currencyToPrecision (code, amount),
         };
-        const response = await this.spotPrivatePostPrivateMarginRepay (this.extend (request, params));
+        const response = await this.v2PrivatePostPrivateMarginRepay (this.extend (request, params));
         //
         //     {
         //         "id": 1656620104211,
@@ -2194,7 +2271,7 @@ module.exports = class cryptocom extends Exchange {
             'currency': currency['id'],
             'amount': this.currencyToPrecision (code, amount),
         };
-        const response = await this.spotPrivatePostPrivateMarginBorrow (this.extend (request, params));
+        const response = await this.v2PrivatePostPrivateMarginBorrow (this.extend (request, params));
         //
         //     {
         //         "id": 1656619578559,
@@ -2258,7 +2335,7 @@ module.exports = class cryptocom extends Exchange {
         if (limit !== undefined) {
             request['page_size'] = limit;
         }
-        const response = await this.spotPrivatePostPrivateMarginGetInterestHistory (this.extend (request, params));
+        const response = await this.v2PrivatePostPrivateMarginGetInterestHistory (this.extend (request, params));
         //
         //     {
         //         "id": 1656705829020,
@@ -2325,7 +2402,7 @@ module.exports = class cryptocom extends Exchange {
          * @returns {object} a list of [borrow rate structures]{@link https://docs.ccxt.com/en/latest/manual.html#borrow-rate-structure}
          */
         await this.loadMarkets ();
-        const response = await this.spotPrivatePostPrivateMarginGetUserConfig (params);
+        const response = await this.v2PrivatePostPrivateMarginGetUserConfig (params);
         //
         //     {
         //         "id": 1656707947456,

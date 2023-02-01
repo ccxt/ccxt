@@ -49,7 +49,7 @@ module.exports = class lbank extends Exchange {
                 'fetchMarkOHLCV': false,
                 'fetchOHLCV': true,
                 'fetchOpenInterestHistory': false,
-                'fetchOpenOrders': undefined, // status 0 API doesn't work
+                'fetchOpenOrders': false, // status 0 API doesn't work
                 'fetchOrder': true,
                 'fetchOrderBook': true,
                 'fetchOrders': true,
@@ -457,7 +457,7 @@ module.exports = class lbank extends Exchange {
         }
         const request = {
             'symbol': market['id'],
-            'type': this.timeframes[timeframe],
+            'type': this.safeString (this.timeframes, timeframe, timeframe),
             'size': limit,
             'time': parseInt (since / 1000),
         };
@@ -582,6 +582,7 @@ module.exports = class lbank extends Exchange {
             'side': side,
             'price': price,
             'stopPrice': undefined,
+            'triggerPrice': undefined,
             'cost': undefined,
             'amount': amount,
             'filled': filled,
@@ -835,8 +836,7 @@ module.exports = class lbank extends Exchange {
             } else {
                 pem = this.convertSecretToPem (this.secret);
             }
-            const sign = this.binaryToBase64 (this.rsa (message, this.encode (pem), 'RS256'));
-            query['sign'] = sign;
+            query['sign'] = this.rsa (message, pem, 'RS256');
             body = this.urlencode (query);
             headers = { 'Content-Type': 'application/x-www-form-urlencoded' };
         }

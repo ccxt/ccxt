@@ -30,7 +30,7 @@ class coinone extends Exchange {
                 'option' => false,
                 'addMargin' => false,
                 'cancelOrder' => true,
-                'createMarketOrder' => null,
+                'createMarketOrder' => false,
                 'createOrder' => true,
                 'createReduceOnlyOrder' => false,
                 'createStopLimitOrder' => false,
@@ -42,7 +42,7 @@ class coinone extends Exchange {
                 'fetchBorrowRateHistory' => false,
                 'fetchBorrowRates' => false,
                 'fetchBorrowRatesPerSymbol' => false,
-                'fetchClosedOrders' => null, // the endpoint that should return closed orders actually returns trades, https://github.com/ccxt/ccxt/pull/7067
+                'fetchClosedOrders' => false, // the endpoint that should return closed orders actually returns trades, https://github.com/ccxt/ccxt/pull/7067
                 'fetchDepositAddresses' => true,
                 'fetchFundingHistory' => false,
                 'fetchFundingRate' => false,
@@ -122,11 +122,6 @@ class coinone extends Exchange {
                     'taker' => 0.002,
                     'maker' => 0.002,
                 ),
-            ),
-            'precision' => array(
-                'price' => $this->parse_number('0.0001'),
-                'amount' => $this->parse_number('0.0001'),
-                'cost' => $this->parse_number('0.00000001'),
             ),
             'precisionMode' => TICK_SIZE,
             'exceptions' => array(
@@ -210,8 +205,9 @@ class coinone extends Exchange {
                     'strike' => null,
                     'optionType' => null,
                     'precision' => array(
-                        'amount' => null,
-                        'price' => null,
+                        'amount' => $this->parse_number('1e-4'),
+                        'price' => $this->parse_number('1e-4'),
+                        'cost' => $this->parse_number('1e-8'),
                     ),
                     'limits' => array(
                         'leverage' => array(
@@ -501,8 +497,10 @@ class coinone extends Exchange {
         return Async\async(function () use ($symbol, $type, $side, $amount, $price, $params) {
             /**
              * create a trade order
+             * @see https://doc.coinone.co.kr/#tag/Order-V2/operation/v2_order_limit_buy
+             * @see https://doc.coinone.co.kr/#tag/Order-V2/operation/v2_order_limit_sell
              * @param {string} $symbol unified $symbol of the $market to create an order in
-             * @param {string} $type 'market' or 'limit'
+             * @param {string} $type must be 'limit'
              * @param {string} $side 'buy' or 'sell'
              * @param {float} $amount how much of currency you want to trade in units of base currency
              * @param {float|null} $price the $price at which the order is to be fullfilled, in units of the quote currency, ignored in $market orders
@@ -669,6 +667,7 @@ class coinone extends Exchange {
             'side' => $side,
             'price' => $priceString,
             'stopPrice' => null,
+            'triggerPrice' => null,
             'cost' => null,
             'average' => null,
             'amount' => $amountString,

@@ -253,7 +253,7 @@ class cryptocom(Exchange, ccxt.async_support.cryptocom):
         symbol = market['symbol']
         if not market['spot']:
             raise NotSupported(self.id + ' watchOHLCV() supports spot markets only')
-        interval = self.timeframes[timeframe]
+        interval = self.safe_string(self.timeframes, timeframe, timeframe)
         messageHash = 'candlestick' + '.' + interval + '.' + market['id']
         ohlcv = await self.watch_public(messageHash, params)
         if self.newUpdates:
@@ -437,21 +437,22 @@ class cryptocom(Exchange, ccxt.async_support.cryptocom):
         # }
         errorCode = self.safe_integer(message, 'code')
         try:
-            if errorCode is not None and errorCode != 0:
+            if errorCode:
                 feedback = self.id + ' ' + self.json(message)
                 self.throw_exactly_matched_exception(self.exceptions['exact'], errorCode, feedback)
                 messageString = self.safe_value(message, 'message')
                 if messageString is not None:
                     self.throw_broadly_matched_exception(self.exceptions['broad'], messageString, feedback)
+            return False
         except Exception as e:
             if isinstance(e, AuthenticationError):
-                client.reject(e, 'authenticated')
-                if 'public/auth' in client.subscriptions:
-                    del client.subscriptions['public/auth']
-                return False
+                messageHash = 'authenticated'
+                client.reject(e, messageHash)
+                if messageHash in client.subscriptions:
+                    del client.subscriptions[messageHash]
             else:
                 client.reject(e)
-        return message
+            return True
 
     def handle_message(self, client, message):
         # ping
@@ -483,7 +484,7 @@ class cryptocom(Exchange, ccxt.async_support.cryptocom):
         #        "channel":"ticker",
         #        "data":[{}]
         #
-        if not self.handle_error_message(client, message):
+        if self.handle_error_message(client, message):
             return
         subject = self.safe_string(message, 'method')
         if subject == 'public/heartbeat':
@@ -510,26 +511,28 @@ class cryptocom(Exchange, ccxt.async_support.cryptocom):
         if method is not None:
             method(client, result)
 
-    async def authenticate(self, params={}):
-        url = self.urls['api']['ws']['private']
+    def authenticate(self, params={}):
         self.check_required_credentials()
+        url = self.urls['api']['ws']['private']
         client = self.client(url)
-        future = client.future('authenticated')
-        messageHash = 'public/auth'
-        authenticated = self.safe_value(client.subscriptions, messageHash)
-        if authenticated is None:
+        messageHash = 'authenticated'
+        future = self.safe_value(client.subscriptions, messageHash)
+        if future is None:
+            method = 'public/auth'
             nonce = str(self.nonce())
-            auth = messageHash + nonce + self.apiKey + nonce
+            auth = method + nonce + self.apiKey + nonce
             signature = self.hmac(self.encode(auth), self.encode(self.secret), hashlib.sha256)
             request = {
                 'id': nonce,
                 'nonce': nonce,
-                'method': messageHash,
+                'method': method,
                 'api_key': self.apiKey,
                 'sig': signature,
             }
-            self.spawn(self.watch, url, messageHash, self.extend(request, params), messageHash)
-        return await future
+            message = self.extend(request, params)
+            future = self.watch(url, messageHash, message)
+            client.subscriptions[messageHash] = future
+        return future
 
     def handle_ping(self, client, message):
         self.spawn(self.pong, client, message)
@@ -538,7 +541,4 @@ class cryptocom(Exchange, ccxt.async_support.cryptocom):
         #
         #  {id: 1648132625434, method: 'public/auth', code: 0}
         #
-        future = client.futures['authenticated']
-        future.resolve(1)
-        client.resolve(1, 'public/auth')
-        return message
+        client.resolve(message, 'authenticated')

@@ -11,6 +11,7 @@ from ccxt.base.errors import BadRequest
 from ccxt.base.errors import BadSymbol
 from ccxt.base.errors import NotSupported
 from ccxt.base.errors import InvalidNonce
+from ccxt.base.precise import Precise
 
 
 class kraken(Exchange, ccxt.async_support.kraken):
@@ -296,7 +297,7 @@ class kraken(Exchange, ccxt.async_support.kraken):
             ],
             'subscription': {
                 'name': name,
-                'interval': self.timeframes[timeframe],
+                'interval': self.safe_string(self.timeframes, timeframe, timeframe),
             },
         }
         request = self.deep_extend(subscribe, params)
@@ -874,34 +875,31 @@ class kraken(Exchange, ccxt.async_support.kraken):
         if orderDescription is not None:
             parts = orderDescription.split(' ')
             side = self.safe_string(parts, 0)
-            amount = self.safe_float(parts, 1)
+            amount = self.safe_string(parts, 1)
             wsName = self.safe_string(parts, 2)
             type = self.safe_string(parts, 4)
-            price = self.safe_float(parts, 5)
+            price = self.safe_string(parts, 5)
         side = self.safe_string(description, 'type', side)
         type = self.safe_string(description, 'ordertype', type)
         wsName = self.safe_string(description, 'pair', wsName)
         market = self.safe_value(self.options['marketsByWsName'], wsName, market)
         symbol = None
         timestamp = self.safe_timestamp(order, 'opentm')
-        amount = self.safe_float(order, 'vol', amount)
-        filled = self.safe_float(order, 'vol_exec')
-        remaining = None
-        if (amount is not None) and (filled is not None):
-            remaining = amount - filled
+        amount = self.safe_string(order, 'vol', amount)
+        filled = self.safe_string(order, 'vol_exec')
         fee = None
-        cost = self.safe_float(order, 'cost')
-        price = self.safe_float(description, 'price', price)
-        if (price is None) or (price == 0.0):
-            price = self.safe_float(description, 'price2')
-        if (price is None) or (price == 0.0):
-            price = self.safe_float(order, 'price', price)
-        average = self.safe_float_2(order, 'avg_price', 'price')
+        cost = self.safe_string(order, 'cost')
+        price = self.safe_string(description, 'price', price)
+        if (price is None) or (Precise.string_eq(price, '0.0')):
+            price = self.safe_string(description, 'price2')
+        if (price is None) or (Precise.string_eq(price, '0.0')):
+            price = self.safe_string(order, 'price', price)
+        average = self.safe_string_2(order, 'avg_price', 'price')
         if market is not None:
             symbol = market['symbol']
             if 'fee' in order:
                 flags = order['oflags']
-                feeCost = self.safe_float(order, 'fee')
+                feeCost = self.safe_string(order, 'fee')
                 fee = {
                     'cost': feeCost,
                     'rate': None,
@@ -920,8 +918,8 @@ class kraken(Exchange, ccxt.async_support.kraken):
         trades = None
         if rawTrades is not None:
             trades = self.parse_trades(rawTrades, market, None, None, {'order': id})
-        stopPrice = self.safe_float(order, 'stopprice')
-        return {
+        stopPrice = self.safe_number(order, 'stopprice')
+        return self.safe_order({
             'id': id,
             'clientOrderId': clientOrderId,
             'info': order,
@@ -936,14 +934,15 @@ class kraken(Exchange, ccxt.async_support.kraken):
             'side': side,
             'price': price,
             'stopPrice': stopPrice,
+            'triggerPrice': stopPrice,
             'cost': cost,
             'amount': amount,
             'filled': filled,
             'average': average,
-            'remaining': remaining,
+            'remaining': None,
             'fee': fee,
             'trades': trades,
-        }
+        })
 
     def handle_subscription_status(self, client, message):
         #

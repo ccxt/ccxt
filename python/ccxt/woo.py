@@ -25,6 +25,7 @@ class woo(Exchange):
             'rateLimit': 100,
             'version': 'v1',
             'certified': False,
+            'pro': True,
             'hostname': 'woo.org',
             'has': {
                 'CORS': None,
@@ -91,7 +92,7 @@ class woo(Exchange):
                 'setLeverage': True,
                 'setMargin': False,
                 'transfer': True,
-                'withdraw': False,  # exchange have that endpoint disabled atm, but was once implemented in ccxt per old docs: https://kronosresearch.github.io/wootrade-documents/#token-withdraw
+                'withdraw': True,  # exchange have that endpoint disabled atm, but was once implemented in ccxt per old docs: https://kronosresearch.github.io/wootrade-documents/#token-withdraw
             },
             'timeframes': {
                 '1m': '1m',
@@ -132,6 +133,7 @@ class woo(Exchange):
                     'pub': {
                         'get': {
                             'hist/kline': 10,
+                            'hist/trades': 1,
                         },
                     },
                     'public': {
@@ -161,7 +163,7 @@ class woo(Exchange):
                             'order/{oid}/trades': 1,
                             'client/trades': 1,
                             'client/info': 60,
-                            'asset/deposit': 120,
+                            'asset/deposit': 10,
                             'asset/history': 60,
                             'sub_account/all': 60,
                             'sub_account/assets': 60,
@@ -176,7 +178,7 @@ class woo(Exchange):
                         'post': {
                             'order': 5,  # 2 requests per 1 second per symbol
                             'asset/main_sub_transfer': 30,  # 20 requests per 60 seconds
-                            'asset/withdraw': 120,  # implemented in ccxt, disabled on the exchange side https://kronosresearch.github.io/wootrade-documents/#token-withdraw
+                            'asset/withdraw': 30,  # implemented in ccxt, disabled on the exchange side https://kronosresearch.github.io/wootrade-documents/#token-withdraw
                             'interest/repay': 60,
                             'client/account_mode': 120,
                             'client/leverage': 120,
@@ -205,6 +207,12 @@ class woo(Exchange):
                         'post': {
                             'algo/order': 5,
                         },
+                        'put': {
+                            'order/{oid}': 2,
+                            'order/client/{oid}': 2,
+                            'algo/order/{oid}': 2,
+                            'algo/order/client/{oid}': 2,
+                        },
                         'delete': {
                             'algo/order/{oid}': 1,
                             'algo/orders/pending': 1,
@@ -230,6 +238,12 @@ class woo(Exchange):
                     'OMG': 'ERC20',
                     'UATOM': 'ATOM',
                     'ZRX': 'ZRX',
+                },
+                'networks': {
+                    'TRX': 'TRON',
+                    'TRC20': 'TRON',
+                    'ERC20': 'ETH',
+                    'BEP20': 'BSC',
                 },
                 # override defaultNetworkCodePriorities for a specific currency
                 'defaultNetworkCodeForCurrencies': {
@@ -657,6 +671,8 @@ class woo(Exchange):
                 'active': None,
                 'fee': None,
                 'networks': resultingNetworks,
+                'deposit': None,
+                'withdraw': None,
                 'limits': {
                     'deposit': {
                         'min': None,
@@ -695,11 +711,20 @@ class woo(Exchange):
             'order_type': orderType,  # LIMIT/MARKET/IOC/FOK/POST_ONLY/ASK/BID
             'side': orderSide,
         }
+        isMarket = orderType == 'MARKET'
+        timeInForce = self.safe_string_lower(params, 'timeInForce')
+        postOnly = self.is_post_only(isMarket, None, params)
+        if postOnly:
+            request['order_type'] = 'POST_ONLY'
+        elif timeInForce == 'fok':
+            request['order_type'] = 'FOK'
+        elif timeInForce == 'ioc':
+            request['order_type'] = 'IOC'
         if reduceOnly:
             request['reduce_only'] = reduceOnly
         if price is not None:
             request['order_price'] = self.price_to_precision(symbol, price)
-        if orderType == 'MARKET':
+        if isMarket:
             # for market buy it requires the amount of quote currency to spend
             if orderSide == 'BUY':
                 cost = self.safe_number(params, 'cost')
@@ -721,7 +746,7 @@ class woo(Exchange):
         clientOrderId = self.safe_string_2(params, 'clOrdID', 'clientOrderId')
         if clientOrderId is not None:
             request['client_order_id'] = clientOrderId
-        params = self.omit(params, ['clOrdID', 'clientOrderId'])
+        params = self.omit(params, ['clOrdID', 'clientOrderId', 'postOnly', 'timeInForce'])
         response = self.v1PrivatePostOrder(self.extend(request, params))
         # {
         #     success: True,
@@ -737,6 +762,45 @@ class woo(Exchange):
             self.parse_order(response, market),
             {'type': type}
         )
+
+    def edit_order(self, id, symbol, type, side, amount, price=None, params={}):
+        """
+        edit a trade order
+        :param str id: order id
+        :param str symbol: unified symbol of the market to create an order in
+        :param str type: 'market' or 'limit'
+        :param str side: 'buy' or 'sell'
+        :param float amount: how much of currency you want to trade in units of base currency
+        :param float|None price: the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+        :param dict params: extra parameters specific to the woo api endpoint
+        :returns dict: an `order structure <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
+        """
+        self.load_markets()
+        market = self.market(symbol)
+        request = {
+            'oid': id,
+            # 'quantity': self.amount_to_precision(symbol, amount),
+            # 'price': self.price_to_precision(symbol, price),
+        }
+        if price is not None:
+            request['price'] = self.price_to_precision(symbol, price)
+        if amount is not None:
+            request['quantity'] = self.amount_to_precision(symbol, amount)
+        response = self.v3PrivatePutOrderOid(self.extend(request, params))
+        #
+        #     {
+        #         "code": 0,
+        #         "data": {
+        #             "status": "string",
+        #             "success": True
+        #         },
+        #         "message": "string",
+        #         "success": True,
+        #         "timestamp": 0
+        #     }
+        #
+        data = self.safe_value(response, 'data', {})
+        return self.parse_order(data, market)
 
     def cancel_order(self, id, symbol=None, params={}):
         """
@@ -904,6 +968,14 @@ class woo(Exchange):
         data = self.safe_value(response, 'rows')
         return self.parse_orders(data, market, since, limit, params)
 
+    def parse_time_in_force(self, timeInForce):
+        timeInForces = {
+            'ioc': 'IOC',
+            'fok': 'FOK',
+            'post_only': 'PO',
+        }
+        return self.safe_string(timeInForces, timeInForce, None)
+
     def parse_order(self, order, market=None):
         #
         # Possible input functions:
@@ -938,12 +1010,13 @@ class woo(Exchange):
             'status': self.parse_order_status(status),
             'symbol': symbol,
             'type': orderType,
-            'timeInForce': None,
+            'timeInForce': self.parse_time_in_force(orderType),
             'postOnly': None,  # TO_DO
             'reduceOnly': self.safe_value(order, 'reduce_only'),
             'side': side,
             'price': price,
             'stopPrice': None,
+            'triggerPrice': None,
             'average': None,
             'amount': amount,
             'filled': filled,
@@ -1023,7 +1096,7 @@ class woo(Exchange):
         market = self.market(symbol)
         request = {
             'symbol': market['id'],
-            'type': self.timeframes[timeframe],
+            'type': self.safe_string(self.timeframes, timeframe, timeframe),
         }
         if limit is not None:
             request['limit'] = min(limit, 1000)
@@ -1454,12 +1527,11 @@ class woo(Exchange):
         if movementDirection == 'withdraw':
             movementDirection = 'withdrawal'
         fee = self.parse_token_and_fee_temp(transaction, 'fee_token', 'fee_amount')
-        fee['rate'] = None
         addressTo = self.safe_string(transaction, 'target_address')
         addressFrom = self.safe_string(transaction, 'source_address')
         timestamp = self.safe_timestamp(transaction, 'created_time')
         return {
-            'id': self.safe_string(transaction, 'id'),
+            'id': self.safe_string_2(transaction, 'id', 'withdraw_id'),
             'txid': self.safe_string(transaction, 'tx_id'),
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
@@ -1604,6 +1676,44 @@ class woo(Exchange):
         }
         return self.safe_string(statuses, status, status)
 
+    def withdraw(self, code, amount, address, tag=None, params={}):
+        """
+        make a withdrawal
+        :param str code: unified currency code
+        :param float amount: the amount to withdraw
+        :param str address: the address to withdraw to
+        :param str|None tag:
+        :param dict params: extra parameters specific to the woo api endpoint
+        :returns dict: a `transaction structure <https://docs.ccxt.com/en/latest/manual.html#transaction-structure>`
+        """
+        tag, params = self.handle_withdraw_tag_and_params(tag, params)
+        self.load_markets()
+        self.check_address(address)
+        currency = self.currency(code)
+        request = {
+            'amount': amount,
+            'address': address,
+        }
+        if tag is not None:
+            request['extra'] = tag
+        networks = self.safe_value(self.options, 'networks', {})
+        currencyNetworks = self.safe_value(currency, 'networks', {})
+        network = self.safe_string_upper(params, 'network')
+        networkId = self.safe_string(networks, network, network)
+        coinNetwork = self.safe_value(currencyNetworks, networkId, {})
+        coinNetworkId = self.safe_string(coinNetwork, 'id')
+        if coinNetworkId is None:
+            raise BadRequest(self.id + ' withdraw() require network parameter')
+        request['token'] = coinNetworkId
+        response = self.v1PrivatePostAssetWithdraw(self.extend(request, params))
+        #
+        #     {
+        #         "success": True,
+        #         "withdraw_id": "20200119145703654"
+        #     }
+        #
+        return self.parse_transaction(response, currency)
+
     def repay_margin(self, code, amount, symbol=None, params={}):
         """
         repay borrowed margin and interest
@@ -1658,36 +1768,38 @@ class woo(Exchange):
     def sign(self, path, section='public', method='GET', params={}, headers=None, body=None):
         version = section[0]
         access = section[1]
+        pathWithParams = self.implode_params(path, params)
         url = self.implode_hostname(self.urls['api'][access])
         url += '/' + version + '/'
-        path = self.implode_params(path, params)
         params = self.omit(params, self.extract_params(path))
         params = self.keysort(params)
         if access == 'public':
-            url += access + '/' + path
+            url += access + '/' + pathWithParams
             if params:
                 url += '?' + self.urlencode(params)
         else:
             self.check_required_credentials()
-            url += path
+            auth = ''
             ts = str(self.nonce())
-            auth = self.urlencode(params)
-            if version == 'v3' and (method == 'POST'):
+            url += pathWithParams
+            headers = {
+                'x-api-key': self.apiKey,
+                'x-api-timestamp': ts,
+            }
+            if version == 'v3' and (method == 'POST' or method == 'PUT' or method == 'DELETE'):
+                auth = self.json(params)
                 body = auth
-                auth = ts + method + '/' + version + '/' + path + body
+                auth = ts + method + '/' + version + '/' + pathWithParams + body
+                headers['content-type'] = 'application/json'
             else:
-                if method == 'POST' or method == 'DELETE':
+                auth = self.urlencode(params)
+                if method == 'POST' or method == 'PUT' or method == 'DELETE':
                     body = auth
                 else:
                     url += '?' + auth
                 auth += '|' + ts
-            signature = self.hmac(self.encode(auth), self.encode(self.secret), hashlib.sha256)
-            headers = {
-                'x-api-key': self.apiKey,
-                'x-api-signature': signature,
-                'x-api-timestamp': ts,
-                'Content-Type': 'application/x-www-form-urlencoded',
-            }
+                headers['content-type'] = 'application/x-www-form-urlencoded'
+            headers['x-api-signature'] = self.hmac(self.encode(auth), self.encode(self.secret), hashlib.sha256)
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
     def handle_errors(self, httpCode, reason, url, method, headers, body, response, requestHeaders, requestBody):
@@ -1838,7 +1950,7 @@ class woo(Exchange):
         #
         return self.parse_funding_rate(response, market)
 
-    def fetch_funding_rates(self, symbols, params={}):
+    def fetch_funding_rates(self, symbols=None, params={}):
         self.load_markets()
         symbols = self.market_symbols(symbols)
         response = self.v1PublicGetFundingRates(params)

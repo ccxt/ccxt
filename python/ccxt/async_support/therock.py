@@ -1051,77 +1051,49 @@ class therock(Exchange):
         #         "position_id": null,
         #         "trades": [
         #             {
-        #                 "id":237338,
-        #                 "fund_id":"BTCEUR",
-        #                 "amount":50,
-        #                 "price":0.0102,
-        #                 "side":"buy",
-        #                 "dark":false,
-        #                 "date":"2015-06-03T00:49:49.000Z"
+        #                 "id": 237338,
+        #                 "fund_id": "BTCEUR",
+        #                 "amount": 50,
+        #                 "price": 0.0102,
+        #                 "side": "buy",
+        #                 "dark": False,
+        #                 "date": "2015-06-03T00:49:49.000Z"
         #             }
         #         ]
         #     }
         #
         id = self.safe_string(order, 'id')
         marketId = self.safe_string(order, 'fund_id')
-        symbol = self.safe_symbol(marketId, market)
-        status = self.parse_order_status(self.safe_string(order, 'status'))
         timestamp = self.parse8601(self.safe_string(order, 'date'))
-        type = self.safe_string(order, 'type')
-        side = self.safe_string(order, 'side')
-        amount = self.safe_number(order, 'amount')
-        remaining = self.safe_number(order, 'amount_unfilled')
-        filled = None
-        if amount is not None:
-            if remaining is not None:
-                filled = amount - remaining
-        price = self.safe_number(order, 'price')
+        amount = self.safe_string(order, 'amount')
+        remaining = self.safe_string(order, 'amount_unfilled')
+        price = self.safe_string(order, 'price')
         trades = self.safe_value(order, 'trades')
-        cost = None
-        average = None
-        lastTradeTimestamp = None
-        if trades is not None:
-            numTrades = len(trades)
-            if numTrades > 0:
-                trades = self.parse_trades(trades, market, None, None, {
-                    'orderId': id,
-                })
-                # todo: determine the cost and the average price from trades
-                cost = 0
-                filled = 0
-                for i in range(0, numTrades):
-                    trade = trades[i]
-                    cost = self.sum(cost, trade['cost'])
-                    filled = self.sum(filled, trade['amount'])
-                if filled > 0:
-                    average = cost / filled
-                lastTradeTimestamp = trades[numTrades - 1]['timestamp']
-            else:
-                cost = 0
-        stopPrice = self.safe_number(order, 'conditional_price')
-        return {
+        stopPrice = self.safe_string(order, 'conditional_price')
+        return self.safe_order({
             'id': id,
             'clientOrderId': None,
             'info': order,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
-            'lastTradeTimestamp': lastTradeTimestamp,
-            'status': status,
-            'symbol': symbol,
-            'type': type,
+            'lastTradeTimestamp': None,
+            'status': self.parse_order_status(self.safe_string(order, 'status')),
+            'symbol': self.safe_symbol(marketId, market),
+            'type': self.safe_string(order, 'type'),
             'timeInForce': None,
             'postOnly': None,
-            'side': side,
+            'side': self.safe_string(order, 'side'),
             'price': price,
             'stopPrice': stopPrice,
-            'cost': cost,
+            'triggerPrice': stopPrice,
+            'cost': None,
             'amount': amount,
-            'filled': filled,
-            'average': average,
+            'filled': None,
+            'average': None,
             'remaining': remaining,
             'fee': None,
             'trades': trades,
-        }
+        }, market)
 
     async def fetch_open_orders(self, symbol=None, since=None, limit=None, params={}):
         """
