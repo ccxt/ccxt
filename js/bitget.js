@@ -2236,7 +2236,7 @@ module.exports = class bitget extends Exchange {
         //     }
         //
         const marketId = this.safeString (order, 'symbol');
-        market = this.safeMarket (marketId);
+        market = this.safeMarket (marketId, market);
         const symbol = market['symbol'];
         const id = this.safeString (order, 'orderId');
         const price = this.safeString2 (order, 'price', 'executePrice');
