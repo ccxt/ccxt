@@ -372,11 +372,12 @@ def test_symbol(exchange, symbol, code):
 
     if (not hasattr(exchange, 'apiKey') or (len(exchange.apiKey) < 1)):
         return
-    
+
     if argv.privateOnly or argv.private:
         run_private_tests(exchange, symbol, code)
 
 # ------------------------------------------------------------------------------
+
 
 def run_public_tests(exchange, symbol, code):
     dump(green('SYMBOL: ' + symbol))
@@ -391,6 +392,8 @@ def run_public_tests(exchange, symbol, code):
     test_order_book(exchange, symbol)
     dump('Testing fetch_trades:' + symbol)
     test_trades(exchange, symbol)
+
+
 # ------------------------------------------------------------------------------
 
 def run_private_tests(exchange, symbol, code):
@@ -410,6 +413,7 @@ def run_private_tests(exchange, symbol, code):
     test_balance(exchange)
     dump('Testing fetch_positions:' + symbol)
     test_positions(exchange, symbol)
+
 
 def load_exchange(exchange):
     exchange.load_markets()
@@ -577,6 +581,7 @@ def try_all_proxies(exchange, proxies=['']):
 
 # ------------------------------------------------------------------------------
 
+
 def read_credentials_from_env(exchange):
     requiredCredentials = exchange.requiredCredentials
     for credential, isRequired in requiredCredentials.items():
@@ -585,6 +590,8 @@ def read_credentials_from_env(exchange):
             if credentialEnvName in os.environ:
                 credentialValue = os.environ[credentialEnvName]
                 setattr(exchange, credential, credentialValue)
+
+
 # ------------------------------------------------------------------------------
 
 proxies = [
@@ -621,7 +628,6 @@ def main():
 
     if argv.exchange:
 
-
         exchange = exchanges[argv.exchange]
         symbol = argv.symbol
 
@@ -633,7 +639,7 @@ def main():
             # add http proxy if any
             if hasattr(exchange, 'httpProxy'):
                 exchange.aiohttp_proxy = exchange.httpProxy
-                
+
             if argv.sandbox:
                 exchange.set_sandbox_mode(True)
 

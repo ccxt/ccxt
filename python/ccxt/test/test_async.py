@@ -291,7 +291,6 @@ async def test_orders(exchange, symbol):
         await asyncio.sleep(delay)
         # dump(green(exchange.id), green(symbol), 'fetching orders...')
         try:
-            orders = await exchange.fetch_orders(symbol)
             for order in orders:
                 test_order(exchange, order, symbol, int(time.time() * 1000))
             dump(green(exchange.id), green(symbol), 'fetched', green(len(orders)), 'orders')
@@ -402,13 +401,14 @@ async def test_symbol(exchange, symbol, code):
 
     if (not hasattr(exchange, 'apiKey') or (len(exchange.apiKey) < 1)):
         return
-    
+
     if argv.privateOnly or argv.private:
         await run_private_tests(exchange, symbol, code)
 
 # ------------------------------------------------------------------------------
 
-async def run_public_tests(exchange,symbol, code):
+
+async def run_public_tests(exchange, symbol, code):
     dump(green('SYMBOL: ' + symbol))
     dump(green('CODE: ' + code))
     dump('Testing fetch_ticker:' + symbol)
@@ -424,7 +424,8 @@ async def run_public_tests(exchange,symbol, code):
 
 # ------------------------------------------------------------------------------
 
-async def run_private_tests(exchange,symbol, code):
+
+async def run_private_tests(exchange, symbol, code):
     method = 'signIn'
     if exchange.has[method]:
         dump('Testing ' + method + '()')
@@ -443,6 +444,7 @@ async def run_private_tests(exchange,symbol, code):
     await test_positions(exchange, symbol)
 
 # ------------------------------------------------------------------------------
+
 
 async def load_exchange(exchange):
     await exchange.load_markets()
@@ -619,6 +621,8 @@ def read_credentials_from_env(exchange):
             if credentialEnvName in os.environ:
                 credentialValue = os.environ[credentialEnvName]
                 setattr(exchange, credential, credentialValue)
+
+
 # ------------------------------------------------------------------------------
 
 proxies = [
