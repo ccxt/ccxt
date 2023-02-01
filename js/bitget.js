@@ -2153,7 +2153,7 @@ module.exports = class bitget extends Exchange {
         //
         for (let i = 0; i < balance.length; i++) {
             const entry = balance[i];
-            const currencyId = this.safeString2 (entry, 'coinId', 'marginCoin');
+            const currencyId = this.safeString2 (entry, 'coinName', 'marginCoin');
             const code = this.safeCurrencyCode (currencyId);
             const account = this.account ();
             const frozen = this.safeString (entry, 'frozen');
