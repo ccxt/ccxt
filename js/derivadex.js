@@ -762,11 +762,75 @@ module.exports = class derivadex extends Exchange {
             request['since'] = since;
         }
         const response = await this.publicGetOrderIntents (this.extend (request, query));
-        return this.parseOrders (response, market, since, limit);
+        return await this.parseOrders (response['value'], market, since, limit);
     }
 
-    parseOrder (order, market = undefined) {
-        
+    async parseOrder (order, market = undefined) {
+        // { 
+        //     "epochId":"1",
+        //     "txOrdinal":"7",
+        //     "orderHash":"0x2e401956ae605a3a222bd92533260103a23a963e6e55b066a0",
+        //     "symbol":"BTCPERP",
+        //     "amount":"0.04",
+        //     "price":"23000",
+        //     "side":0,
+        //     "orderType":0,
+        //     "stopPrice":"0",
+        //     "nonce":"0x00000000000000000000000000000000000000000000000000000185f46343ae",
+        //     "signature":"0xe5de522ee59134005016dd9e1f59b625052551c2f722261c3a31060c792384ba0152361624013a46685adf163335e4cc8006bfedfadb3896c2f5910d1391fc131b",
+        //     "createdAt":"2023-01-27T18:00:26.960Z",
+        //     "traderAddress":"0x004404ac8bd8f9618d27ad2f1485aa1b2cfd82482d",
+        //     "strategyId":"main"
+        // }
+        const id = this.safeString (order, 'orderHash');
+        const timestamp = this.parse8601 (this.safeString (order, 'createdAt'));
+        const datetime = this.iso8601 (timestamp);
+        const lastTradeTimestamp = undefined;
+        const status = undefined;
+        const symbol = this.safeString (order, 'symbol');
+        const orderHash = this.safeString (order, 'orderHash');
+        const sideNumber = this.safeInteger (order, 'side');
+        const orderTypeNumber = this.safeInteger (order, 'orderType');
+        const side = sideNumber === 0 ? 'buy' : 'sell';
+        const price = this.safeString (order, 'price');
+        const amount = this.safeString (order, 'amount');
+        const params = {
+            'orderHash': [orderHash],
+        };
+        const fillsResponse = await this.publicGetFills (params);
+        const average = undefined;
+        const cost = undefined;
+        const trades = undefined;
+        const fee = undefined;
+        let orderType = undefined;
+        if (orderTypeNumber === 0) {
+            orderType = 'limit';
+        } else if (orderTypeNumber === 1) {
+            orderType = 'market';
+        } else if (orderTypeNumber === 2) {
+            orderType = 'stop';
+        }
+        return this.safeOrder ({
+            'id': id,
+            'clientOrderId': undefined,
+            'timestamp': timestamp,
+            'datetime': datetime,
+            'lastTradeTimestamp': lastTradeTimestamp,
+            'status': status,
+            'symbol': symbol,
+            'type': orderType,
+            'timeInForce': 'GTC',
+            'side': side,
+            'price': price,
+            'average': undefined,
+            'amount': amount,
+            'filled': undefined,
+            'remaining': undefined,
+            'cost': undefined,
+            'trades': undefined,
+            'fee': undefined,
+            'info': order,
+        }, market);
     }
 
     sign (path, api = 'stats', method = 'GET', params = {}, headers = undefined, body = undefined) {
