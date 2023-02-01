@@ -2012,7 +2012,7 @@ module.exports = class bybit extends Exchange {
         if (limit !== undefined) {
             request['limit'] = limit;
         }
-        const response = await this.publicGetDerivativesV3PublicFundingHistoryFundingRate (this.extend (request, params));
+        const response = await this.publicGetV5MarketFundingHistory (this.extend (request, params));
         //
         //     {
         //         "retCode": 0,
@@ -2021,18 +2021,14 @@ module.exports = class bybit extends Exchange {
         //             "category": "linear",
         //             "list": [
         //                 {
-        //                     "symbol": "BTCUSDT",
+        //                     "symbol": "ETHPERP",
         //                     "fundingRate": "0.0001",
-        //                     "fundingRateTimestamp": "1657728000000"
-        //                 },
-        //                 {
-        //                     "symbol": "BTCUSDT",
-        //                     "fundingRate": "0.0001",
-        //                     "fundingRateTimestamp": "1657699200000"
+        //                     "fundingRateTimestamp": "1672041600000"
         //                 }
         //             ]
         //         },
-        //         "time": 1657782323371
+        //         "retExtInfo": {},
+        //         "time": 1672051897447
         //     }
         //
         const rates = [];
