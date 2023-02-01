@@ -433,13 +433,14 @@ def get_test_symbol(exchange, symbols):
     return symbol
 
 
-def get_exchange_code(codes, exchange):
+def get_exchange_code(exchange, codes = None):
+    if codes is None:
+        codes = ['BTC','ETH','XRP','LTC','BCH','EOS','BNB','BSV','USDT']
     code = codes[0]
     for i in range(0, len(codes)):
         if codes[i] in exchange.currencies:
             code = codes[i]
     return code
-
 
 def test_exchange(exchange, symbol=None):
 
@@ -480,7 +481,7 @@ def test_exchange(exchange, symbol=None):
         'ZEC',
         'ZRX',
     ]
-    code = get_exchange_code(exchange)
+    code = get_exchange_code(exchange, codes)
 
     if not symbol:
         symbol = get_test_symbol(exchange, [
