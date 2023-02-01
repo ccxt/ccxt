@@ -6221,35 +6221,44 @@ module.exports = class bybit extends Exchange {
         let market = this.market (symbol);
         const subType = market['linear'] ? 'linear' : 'inverse';
         const category = this.safeString (params, 'category', subType);
+        const intervals = this.safeValue (this.options, 'intervals');
+        const interval = this.safeString (intervals, timeframe); // 5min,15min,30min,1h,4h,1d
+        if (interval === undefined) {
+            throw new BadRequest (this.id + ' fetchOpenInterestHistory() cannot use the ' + timeframe + ' timeframe');
+        }
         const request = {
             'symbol': market['id'],
-            'interval': timeframe,
+            'intervalTime': interval,
             'category': category,
         };
         if (since !== undefined) {
-            request['since'] = since;
+            request['startTime'] = since;
         }
         if (limit !== undefined) {
             request['limit'] = limit;
         }
-        const response = await this.publicGetDerivativesV3PublicOpenInterest (this.extend (request, params));
+        const response = await this.publicGetV5MarketOpenInterest (this.extend (request, params));
         //
         //     {
         //         "retCode": 0,
         //         "retMsg": "OK",
         //         "result": {
-        //             "symbol": "BTCUSDT",
-        //             "category": "linear",
+        //             "symbol": "BTCUSD",
+        //             "category": "inverse",
         //             "list": [
         //                 {
-        //                     "openInterest": "64757.62400000",
-        //                     "timestamp": "1665784800000"
+        //                     "openInterest": "461134384.00000000",
+        //                     "timestamp": "1669571400000"
         //                 },
-        //                 ...
-        //             ]
+        //                 {
+        //                     "openInterest": "461134292.00000000",
+        //                     "timestamp": "1669571100000"
+        //                 }
+        //             ],
+        //             "nextPageCursor": ""
         //         },
-        //         "retExtInfo": null,
-        //         "time": 1665784849646
+        //         "retExtInfo": {},
+        //         "time": 1672053548579
         //     }
         //
         const result = this.safeValue (response, 'result', {});
@@ -6264,7 +6273,7 @@ module.exports = class bybit extends Exchange {
          * @method
          * @name bybit#fetchOpenInterest
          * @description Retrieves the open interest of a derivative trading pair
-         * @see https://bybit-exchange.github.io/docs/derivativesV3/contract/#t-dv_marketopeninterest
+         * @see https://bybit-exchange.github.io/docs-v2/v5/market/open-interest
          * @param {string} symbol Unified CCXT market symbol
          * @param {object} params exchange specific parameters
          * @param {string|undefined} params.interval 5m, 15m, 30m, 1h, 4h, 1d
@@ -6325,6 +6334,7 @@ module.exports = class bybit extends Exchange {
          * @method
          * @name bybit#fetchOpenInterestHistory
          * @description Gets the total amount of unsettled contracts. In other words, the total number of contracts held in open positions
+         * @see https://bybit-exchange.github.io/docs-v2/v5/market/open-interest
          * @param {string} symbol Unified market symbol
          * @param {string} timeframe "5m", 15m, 30m, 1h, 4h, 1d
          * @param {int} since Not used by Bybit
