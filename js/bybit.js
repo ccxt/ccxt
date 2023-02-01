@@ -1145,35 +1145,40 @@ module.exports = class bybit extends Exchange {
     }
 
     async fetchSpotMarkets (params) {
-        const response = await this.publicGetSpotV3PublicSymbols (params);
+        const request = {
+            'category': 'spot',
+        };
+        const response = await this.publicGetV5MarketInstrumentsInfo (this.extend (request, params));
         //
-        //    {
-        //        "retCode": "0",
-        //        "retMsg": "OK",
-        //        "result": {
-        //            "list": [
-        //                {
-        //                    "name": "BTCUSDT",
-        //                    "alias": "BTCUSDT",
-        //                    "baseCoin": "BTC",
-        //                    "quoteCoin": "USDT",
-        //                    "basePrecision": "0.000001",
-        //                    "quotePrecision": "0.00000001",
-        //                    "minTradeQty": "0.00004",
-        //                    "minTradeAmt": "1",
-        //                    "maxTradeQty": "46.13",
-        //                    "maxTradeAmt": "938901",
-        //                    "minPricePrecision": "0.01",
-        //                    "category": "1",
-        //                    "showStatus": "1",
-        //                    "innovation": "0"
-        //                },
-        //            ]
-        //        },
-        //        "retExtMap": {},
-        //        "retExtInfo": null,
-        //        "time": "1666729450457"
-        //    }
+        //     {
+        //         "retCode": 0,
+        //         "retMsg": "OK",
+        //         "result": {
+        //             "category": "spot",
+        //             "list": [
+        //                 {
+        //                     "symbol": "BTCUSDT",
+        //                     "baseCoin": "BTC",
+        //                     "quoteCoin": "USDT",
+        //                     "innovation": "0",
+        //                     "status": "1",
+        //                     "lotSizeFilter": {
+        //                         "basePrecision": "0.000001",
+        //                         "quotePrecision": "0.00000001",
+        //                         "minOrderQty": "0.00004",
+        //                         "maxOrderQty": "63.01197227",
+        //                         "minOrderAmt": "1",
+        //                         "maxOrderAmt": "100000"
+        //                     },
+        //                     "priceFilter": {
+        //                         "tickSize": "0.01"
+        //                     }
+        //                 }
+        //             ]
+        //         },
+        //         "retExtInfo": {},
+        //         "time": 1672712468011
+        //     }
         //
         const responseResult = this.safeValue (response, 'result', {});
         const markets = this.safeValue (responseResult, 'list', []);
@@ -1182,14 +1187,16 @@ module.exports = class bybit extends Exchange {
         const makerFee = this.parseNumber ('0.001');
         for (let i = 0; i < markets.length; i++) {
             const market = markets[i];
-            const id = this.safeString (market, 'name');
+            const id = this.safeString (market, 'symbol');
             const baseId = this.safeString (market, 'baseCoin');
             const quoteId = this.safeString (market, 'quoteCoin');
             const base = this.safeCurrencyCode (baseId);
             const quote = this.safeCurrencyCode (quoteId);
             const symbol = base + '/' + quote;
-            const active = this.safeInteger (market, 'showStatus') === 1;
-            const quotePrecision = this.safeNumber (market, 'quotePrecision');
+            const active = this.safeInteger (market, 'status') === 1;
+            const lotSizeFilter = this.safeValue (market, 'lotSizeFilter');
+            const priceFilter = this.safeValue (market, 'priceFilter');
+            const quotePrecision = this.safeNumber (lotSizeFilter, 'quotePrecision');
             result.push ({
                 'id': id,
                 'symbol': symbol,
@@ -1217,8 +1224,8 @@ module.exports = class bybit extends Exchange {
                 'strike': undefined,
                 'optionType': undefined,
                 'precision': {
-                    'amount': this.safeNumber (market, 'basePrecision'),
-                    'price': this.safeNumber (market, 'minPricePrecision', quotePrecision),
+                    'amount': this.safeNumber (lotSizeFilter, 'basePrecision'),
+                    'price': this.safeNumber (priceFilter, 'tickSize', quotePrecision),
                 },
                 'limits': {
                     'leverage': {
@@ -1226,16 +1233,16 @@ module.exports = class bybit extends Exchange {
                         'max': undefined,
                     },
                     'amount': {
-                        'min': this.safeNumber (market, 'minTradeQty'),
-                        'max': this.safeNumber (market, 'maxTradeQty'),
+                        'min': this.safeNumber (lotSizeFilter, 'minOrderQty'),
+                        'max': this.safeNumber (lotSizeFilter, 'maxOrderQty'),
                     },
                     'price': {
                         'min': undefined,
                         'max': undefined,
                     },
                     'cost': {
-                        'min': this.safeNumber (market, 'minTradeAmt'),
-                        'max': this.safeNumber (market, 'maxTradeAmt'),
+                        'min': this.safeNumber (lotSizeFilter, 'minOrderAmt'),
+                        'max': this.safeNumber (lotSizeFilter, 'maxOrderAmt'),
                     },
                 },
                 'info': market,
@@ -1246,7 +1253,7 @@ module.exports = class bybit extends Exchange {
 
     async fetchDerivativesMarkets (params) {
         params['limit'] = 1000; // minimize number of requests
-        const response = await this.publicGetDerivativesV3PublicInstrumentsInfo (params);
+        const response = await this.publicGetV5MarketInstrumentsInfo (params);
         const data = this.safeValue (response, 'result', {});
         let markets = this.safeValue (data, 'list', []);
         let paginationCursor = this.safeString (data, 'nextPageCursor');
@@ -1265,6 +1272,8 @@ module.exports = class bybit extends Exchange {
             }
         }
         //
+        // linear response
+        //
         //     {
         //         "retCode": 0,
         //         "retMsg": "OK",
@@ -1277,13 +1286,13 @@ module.exports = class bybit extends Exchange {
         //                     "status": "Trading",
         //                     "baseCoin": "BTC",
         //                     "quoteCoin": "USDT",
-        //                     "launchTime": "1584230400000",
+        //                     "launchTime": "1585526400000",
         //                     "deliveryTime": "0",
         //                     "deliveryFeeRate": "",
         //                     "priceScale": "2",
         //                     "leverageFilter": {
         //                         "minLeverage": "1",
-        //                         "maxLeverage": "100",
+        //                         "maxLeverage": "100.00",
         //                         "leverageStep": "0.01"
         //                     },
         //                     "priceFilter": {
@@ -1292,80 +1301,57 @@ module.exports = class bybit extends Exchange {
         //                         "tickSize": "0.50"
         //                     },
         //                     "lotSizeFilter": {
-        //                         "maxTradingQty": "420.000",
-        //                         "minTradingQty": "0.001",
-        //                         "qtyStep": "0.001"
-        //                     }
+        //                         "maxOrderQty": "100.000",
+        //                         "minOrderQty": "0.001",
+        //                         "qtyStep": "0.001",
+        //                         "postOnlyMaxOrderQty": "1000.000"
+        //                     },
+        //                     "unifiedMarginTrade": true,
+        //                     "fundingInterval": 480,
+        //                     "settleCoin": "USDT"
         //                 }
         //             ],
         //             "nextPageCursor": ""
         //         },
         //         "retExtInfo": {},
-        //         "time": 1667533491916
+        //         "time": 1672712495660
         //     }
         //
         // option response
         //
         //     {
         //         "retCode": 0,
-        //         "retMsg": "success",
+        //         "retMsg": "OK",
         //         "result": {
+        //             "category": "option",
         //             "nextPageCursor": "",
         //             "list": [
         //                 {
         //                     "category": "option",
-        //                     "symbol": "BTC-30SEP22-35000-P",
+        //                     "symbol": "ETH-3JAN23-1250-P",
         //                     "status": "ONLINE",
-        //                     "baseCoin": "BTC",
+        //                     "baseCoin": "ETH",
         //                     "quoteCoin": "USD",
         //                     "settleCoin": "USDC",
         //                     "optionsType": "Put",
-        //                     "launchTime": "1649923200000",
-        //                     "deliveryTime": "1664524800000",
+        //                     "launchTime": "1672560000000",
+        //                     "deliveryTime": "1672732800000",
         //                     "deliveryFeeRate": "0.00015",
         //                     "priceFilter": {
-        //                         "minPrice": "5",
+        //                         "minPrice": "0.1",
         //                         "maxPrice": "10000000",
-        //                         "tickSize": "5"
+        //                         "tickSize": "0.1"
         //                     },
         //                     "lotSizeFilter": {
-        //                         "maxOrderQty": "200",
-        //                         "minOrderQty": "0.01",
-        //                         "qtyStep": "0.01"
+        //                         "maxOrderQty": "1500",
+        //                         "minOrderQty": "0.1",
+        //                         "qtyStep": "0.1"
         //                     }
         //                 }
         //             ]
         //         },
-        //         "time": 1657777124431
-        //     }
-        //
-        // inverse response
-        //
-        //     {
-        //         "symbol": "ETHUSDZ22",
-        //         "contractType": "InverseFutures",
-        //         "status": "Trading",
-        //         "baseCoin": "ETH",
-        //         "quoteCoin": "USD",
-        //         "launchTime": "1654848000000",
-        //         "deliveryTime": "1672387200000",
-        //         "deliveryFeeRate": "",
-        //         "priceScale": "2",
-        //         "leverageFilter": {
-        //             "minLeverage": "1",
-        //             "maxLeverage": "50",
-        //             "leverageStep": "0.01"
-        //         },
-        //         "priceFilter": {
-        //             "minPrice": "0.05",
-        //             "maxPrice": "99999.90",
-        //             "tickSize": "0.05"
-        //         },
-        //         "lotSizeFilter": {
-        //             "maxTradingQty": "1000000",
-        //             "minTradingQty": "1",
-        //             "qtyStep": "1"
-        //         }
+        //         "retExtInfo": {},
+        //         "time": 1672712537130
         //     }
         //
         const result = [];
