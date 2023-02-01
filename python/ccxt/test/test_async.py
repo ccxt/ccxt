@@ -399,10 +399,10 @@ async def test_symbol(exchange, symbol, code):
     if not argv.privateOnly:
         await run_public_tests(exchange, symbol, code)
 
-    if (not hasattr(exchange, 'apiKey') or (len(exchange.apiKey) < 1)):
-        return
-
     if argv.privateOnly or argv.private:
+        if (not hasattr(exchange, 'apiKey') or (len(exchange.apiKey) < 1)):
+            dump(yellow(exchange.id), 'keys not found, skipping private API tests')
+            return
         await run_private_tests(exchange, symbol, code)
 
 # ------------------------------------------------------------------------------

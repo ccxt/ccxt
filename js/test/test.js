@@ -315,11 +315,11 @@ async function testExchange (exchange) {
         await testSymbol (exchange, symbol);
     }
 
-    if (!exchange.privateKey && (!exchange.apiKey || (exchange.apiKey.length < 1))) {
-        return true;
-    }
-
     if (privateTest || privateOnly) {
+        if (!exchange.privateKey && (!exchange.apiKey || (exchange.apiKey.length < 1))) {
+            console.log ('[Skipped]', 'Keys not found, skipping private tests');
+            return true;
+        }
         await runPrivateTests (exchange, symbol);
     }
 }
