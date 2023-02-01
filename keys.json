@@ -38,6 +38,5 @@
     "crex24":        { "skip": true },
     "btcex":         { "skip": true },
     "wazirx":        { "skipWs": true },
-    "deribit":       { "skipWs": true },
-    "theocean":      { "skip": true }
+    "deribit":       { "skipWs": true }
 }
