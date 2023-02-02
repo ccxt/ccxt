@@ -6721,7 +6721,7 @@ module.exports = class bybit extends Exchange {
         let method = undefined;
         [ method, params ] = this.handleOptionAndParams (params, 'transfer', 'method', 'privatePostAssetV1PrivateTransfer'); // v1 preferred atm, because it supports funding
         let request = undefined;
-        if (method === 'privatePostAssetV3PrivateTransferInterTransfer') {
+        if (method === 'privatePostAssetV3PrivateTransferInterTransfer' || method === 'privatePostV5AssetTransferInterTransfer') {
             request = {
                 'transferId': transferId,
                 'fromAccountType': fromId,
