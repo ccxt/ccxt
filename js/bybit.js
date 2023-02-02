@@ -917,7 +917,7 @@ module.exports = class bybit extends Exchange {
     }
 
     async isUnifiedMarginEnabled (params = {}) {
-        //  The API key of user id must own one of permissions will be allowed to call following API endpoints.
+        // The API key of user id must own one of permissions will be allowed to call following API endpoints.
         // SUB UID: "Account Transfer"
         // MASTER UID: "Account Transfer", "Subaccount Transfer", "Withdrawal"
         const enableUnifiedMargin = this.safeValue (this.options, 'enableUnifiedMargin');
@@ -949,7 +949,8 @@ module.exports = class bybit extends Exchange {
             //             "deadlineDay":27,
             //             "expiredAt":"",
             //             "createdAt":"",
-            //             "unified":1
+            //             "unified":1,
+            //             "uta": 1
             //         },
             //         "retExtInfo":null,
             //         "time":1669735171649
@@ -957,8 +958,12 @@ module.exports = class bybit extends Exchange {
             //
             const result = this.safeValue (response, 'result', {});
             this.options['enableUnifiedMargin'] = this.safeInteger (result, 'unified') === 1;
+            this.options['enableUnifiedAccount'] = this.safeInteger (result, 'uta') === 1;
         }
-        return this.options['enableUnifiedMargin'];
+        return {
+            'enableUnifiedMargin': this.options['enableUnifiedMargin'],
+            'enableUnifiedAccount': this.options['enableUnifiedAccount'],
+        };
     }
 
     async upgradeUnifiedAccount (params = {}) {
@@ -967,6 +972,10 @@ module.exports = class bybit extends Exchange {
             throw new NotSupported (this.id + ' upgradeUnifiedAccount() warning this method can only be called once, it is not reverseable and you will be stuck with a unified margin account, you also need at least 5000 USDT in your bybit account to do this. If you want to disable this warning set exchange.options["createUnifiedMarginAccount"]=true.');
         }
         return await this.privatePostUnifiedV3PrivateAccountUpgradeUnifiedAccount (params);
+    }
+
+    async upgradeUnifiedTradeAccount (params = {}) {
+        return await this.privatePostV5AccountUpgradeToUta (params);
     }
 
     async fetchTime (params = {}) {
@@ -2821,7 +2830,7 @@ module.exports = class bybit extends Exchange {
         if (type === 'spot') {
             return await this.fetchSpotBalance (params);
         }
-        const enableUnifiedMargin = await this.isUnifiedMarginEnabled ();
+        const { enableUnifiedMargin } = await this.isUnifiedMarginEnabled ();
         if (enableUnifiedMargin) {
             return await this.fetchUnifiedMarginBalance (params);
         } else {
@@ -3138,7 +3147,7 @@ module.exports = class bybit extends Exchange {
         await this.loadMarkets ();
         const market = this.market (symbol);
         symbol = market['symbol'];
-        const enableUnifiedMargin = await this.isUnifiedMarginEnabled ();
+        const { enableUnifiedMargin } = await this.isUnifiedMarginEnabled ();
         const isUSDCSettled = market['settle'] === 'USDC';
         if (market['spot']) {
             return await this.createSpotOrder (symbol, type, side, amount, price, params);
@@ -3657,7 +3666,7 @@ module.exports = class bybit extends Exchange {
         }
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const enableUnifiedMargin = await this.isUnifiedMarginEnabled ();
+        const { enableUnifiedMargin } = await this.isUnifiedMarginEnabled ();
         if (market['spot']) {
             throw new NotSupported (this.id + ' editOrder() does not support spot markets');
         } else if (enableUnifiedMargin && !market['inverse']) {
@@ -3832,7 +3841,7 @@ module.exports = class bybit extends Exchange {
         }
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const enableUnifiedMargin = await this.isUnifiedMarginEnabled ();
+        const { enableUnifiedMargin } = await this.isUnifiedMarginEnabled ();
         const isUsdcSettled = market['settle'] === 'USDC';
         if (market['spot']) {
             return await this.cancelSpotOrder (id, symbol, params);
@@ -4046,7 +4055,7 @@ module.exports = class bybit extends Exchange {
             throw new ArgumentsRequired (this.id + ' cancelAllOrders with inverse subType requires settle to not be USDT or USDC');
         }
         const [ type, query ] = this.handleMarketTypeAndParams ('cancelAllOrders', market, params);
-        const enableUnifiedMargin = await this.isUnifiedMarginEnabled ();
+        const { enableUnifiedMargin } = await this.isUnifiedMarginEnabled ();
         if (type === 'spot') {
             return await this.cancelAllSpotOrders (symbol, query);
         } else if (enableUnifiedMargin && !isInverse) {
@@ -4256,7 +4265,7 @@ module.exports = class bybit extends Exchange {
             throw new ArgumentsRequired (this.id + ' fetchOrders with inverse subType requires settle to not be USDT or USDC');
         }
         const [ type, query ] = this.handleMarketTypeAndParams ('fetchOpenOrders', market, params);
-        const enableUnifiedMargin = await this.isUnifiedMarginEnabled ();
+        const { enableUnifiedMargin } = await this.isUnifiedMarginEnabled ();
         if (type === 'spot') {
             throw new NotSupported (this.id + ' fetchOrders() does not support ' + market['type'] + ' markets, use exchange.fetchOpenOrders () and exchange.fetchClosedOrders () instead');
         } else if (enableUnifiedMargin && !isInverse) {
@@ -4343,7 +4352,7 @@ module.exports = class bybit extends Exchange {
             return await this.fetchSpotClosedOrders (symbol, since, limit, params);
         }
         const request = {};
-        const enableUnifiedMargin = await this.isUnifiedMarginEnabled ();
+        const { enableUnifiedMargin } = await this.isUnifiedMarginEnabled ();
         if (enableUnifiedMargin) {
             request['orderStatus'] = 'Canceled';
         } else {
@@ -4621,7 +4630,7 @@ module.exports = class bybit extends Exchange {
             throw new ArgumentsRequired (this.id + ' fetchOpenOrders with inverse subType requires settle to not be USDT or USDC');
         }
         const [ type, query ] = this.handleMarketTypeAndParams ('fetchOpenOrders', market, params);
-        const enableUnifiedMargin = await this.isUnifiedMarginEnabled ();
+        const { enableUnifiedMargin } = await this.isUnifiedMarginEnabled ();
         if (type === 'spot') {
             return await this.fetchSpotOpenOrders (symbol, since, limit, query);
         } else if (enableUnifiedMargin && !isInverse) {
@@ -4649,6 +4658,89 @@ module.exports = class bybit extends Exchange {
             'orderId': id,
         };
         return await this.fetchMyTrades (symbol, since, limit, this.extend (request, params));
+    }
+
+    async fetchMyUnifiedTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        await this.loadMarkets ();
+        let market = undefined;
+        const request = {
+            // 'symbol': market['id'],
+            // 'category': '', // Product type. spot,linear,option
+            // 'orderId': '', // Order ID
+            // 'orderLinkId': '', // User customised order ID
+            // 'baseCoin': '', // Base coin
+            // 'startTime': 0, // The start timestamp (ms)
+            // 'endTime': 0, // The end timestamp (ms)
+            // 'execType': '', // Execution type
+            // 'limit': 0, // Limit for data size per page. [1, 100]. Default: 50
+            // 'cursor': '', // Cursor. Used for pagination
+        };
+        if (symbol !== undefined) {
+            market = this.market (symbol);
+            request['symbol'] = market['id'];
+        }
+        const [ type, query ] = this.handleMarketTypeAndParams ('fetchMyTrades', market, params);
+        let subQuery = query;
+        if (type === 'spot') {
+            request['category'] = 'spot';
+        } else {
+            let subType = undefined;
+            [ subType, subQuery ] = this.handleSubTypeAndParams ('fetchMyTrades', market, subQuery);
+            if (subType === 'inverse') {
+                throw new NotSupported (this.id + ' fetchMyTrades() does not support ' + subType + ' markets.');
+            }
+            request['category'] = subType;
+        }
+        if (since !== undefined) {
+            request['startTime'] = since;
+        }
+        if (limit !== undefined) {
+            request['limit'] = limit; // default 20, max 50
+        }
+        const response = await this.privateGetV5ExecutionList (this.extend (request, subQuery));
+        //
+        //     {
+        //         "retCode": 0,
+        //         "retMsg": "OK",
+        //         "result": {
+        //             "nextPageCursor": "132766%3A2%2C132766%3A2",
+        //             "category": "linear",
+        //             "list": [
+        //                 {
+        //                     "symbol": "ETHPERP",
+        //                     "orderType": "Market",
+        //                     "underlyingPrice": "",
+        //                     "orderLinkId": "",
+        //                     "side": "Buy",
+        //                     "indexPrice": "",
+        //                     "orderId": "8c065341-7b52-4ca9-ac2c-37e31ac55c94",
+        //                     "stopOrderType": "UNKNOWN",
+        //                     "leavesQty": "0",
+        //                     "execTime": "1672282722429",
+        //                     "isMaker": false,
+        //                     "execFee": "0.071409",
+        //                     "feeRate": "0.0006",
+        //                     "execId": "e0cbe81d-0f18-5866-9415-cf319b5dab3b",
+        //                     "tradeIv": "",
+        //                     "blockTradeId": "",
+        //                     "markPrice": "1183.54",
+        //                     "execPrice": "1190.15",
+        //                     "markIv": "",
+        //                     "orderQty": "0.1",
+        //                     "orderPrice": "1236.9",
+        //                     "execValue": "119.015",
+        //                     "execType": "Trade",
+        //                     "execQty": "0.1"
+        //                 }
+        //             ]
+        //         },
+        //         "retExtInfo": {},
+        //         "time": 1672283754510
+        //     }
+        //
+        const result = this.safeValue (response, 'result', {});
+        const trades = this.safeValue (result, 'list', []);
+        return this.parseTrades (trades, market, since, limit);
     }
 
     async fetchMySpotTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
@@ -4933,8 +5025,10 @@ module.exports = class bybit extends Exchange {
             throw new ArgumentsRequired (this.id + ' fetchMyTrades with inverse subType requires settle to not be USDT or USDC');
         }
         const [ type, query ] = this.handleMarketTypeAndParams ('fetchMyTrades', market, params);
-        const enableUnifiedMargin = await this.isUnifiedMarginEnabled ();
-        if (type === 'spot') {
+        const { enableUnifiedMargin, enableUnifiedAccount } = await this.isUnifiedMarginEnabled ();
+        if (enableUnifiedAccount) {
+            return await this.fetchMyUnifiedTrades (symbol, since, limit, query);
+        } else if (type === 'spot') {
             return await this.fetchMySpotTrades (symbol, since, limit, query);
         } else if (enableUnifiedMargin && !isInverse) {
             return await this.fetchMyUnifiedMarginTrades (symbol, since, limit, query);
@@ -5491,7 +5585,7 @@ module.exports = class bybit extends Exchange {
             'symbol': market['id'],
         };
         let method = undefined;
-        const enableUnifiedMargin = await this.isUnifiedMarginEnabled ();
+        const { enableUnifiedMargin } = await this.isUnifiedMarginEnabled ();
         const isUsdcSettled = market['settle'] === 'USDC';
         if (enableUnifiedMargin) {
             method = 'privateGetUnifiedV3PrivatePositionList';
@@ -5877,7 +5971,7 @@ module.exports = class bybit extends Exchange {
         }
         await this.loadMarkets ();
         symbols = this.marketSymbols (symbols);
-        const enableUnifiedMargin = await this.isUnifiedMarginEnabled ();
+        const { enableUnifiedMargin } = await this.isUnifiedMarginEnabled ();
         let settle = this.safeString (params, 'settleCoin');
         if (settle === undefined) {
             [ settle, params ] = this.handleOptionAndParams (params, 'fetchPositions', 'settle', settle);
@@ -6135,7 +6229,7 @@ module.exports = class bybit extends Exchange {
         // WARNING: THIS WILL INCREASE LIQUIDATION PRICE FOR OPEN ISOLATED LONG POSITIONS
         // AND DECREASE LIQUIDATION PRICE FOR OPEN ISOLATED SHORT POSITIONS
         const isUsdcSettled = market['settle'] === 'USDC';
-        const enableUnifiedMargin = await this.isUnifiedMarginEnabled ();
+        const { enableUnifiedMargin } = await this.isUnifiedMarginEnabled ();
         // engage in leverage setting
         // we reuse the code here instead of having two methods
         leverage = this.numberToString (leverage);
