@@ -747,7 +747,7 @@ module.exports = class derivadex extends Exchange {
          * @param {object} params extra parameters specific to the derivadex api endpoint
          * @returns {[object]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
          */
-         if (symbol === undefined) {
+        if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' fetchOrders() requires a symbol argument');
         }
         await this.loadMarkets ();
@@ -761,12 +761,12 @@ module.exports = class derivadex extends Exchange {
         if (since !== undefined) {
             request['since'] = since;
         }
-        const response = await this.publicGetOrderIntents (this.extend (request, query));
+        const response = await this.publicGetOrderIntents (request);
         return await this.parseOrders (response['value'], market, since, limit);
     }
 
     async parseOrder (order, market = undefined) {
-        // { 
+        // {
         //     "epochId":"1",
         //     "txOrdinal":"7",
         //     "orderHash":"0x2e401956ae605a3a222bd92533260103a23a963e6e55b066a0",
@@ -788,20 +788,20 @@ module.exports = class derivadex extends Exchange {
         const lastTradeTimestamp = undefined;
         const status = undefined;
         const symbol = this.safeString (order, 'symbol');
-        const orderHash = this.safeString (order, 'orderHash');
+        // const orderHash = this.safeString (order, 'orderHash');
         const sideNumber = this.safeInteger (order, 'side');
         const orderTypeNumber = this.safeInteger (order, 'orderType');
         const side = sideNumber === 0 ? 'buy' : 'sell';
         const price = this.safeString (order, 'price');
         const amount = this.safeString (order, 'amount');
-        const params = {
-            'orderHash': [orderHash],
-        };
-        const fillsResponse = await this.publicGetFills (params);
-        const average = undefined;
-        const cost = undefined;
-        const trades = undefined;
-        const fee = undefined;
+        // const params = {
+        //     'orderHash': [orderHash],
+        // };
+        // const fillsResponse = await this.publicGetFills (params);
+        // const average = undefined;
+        // const cost = undefined;
+        // const trades = undefined;
+        // const fee = undefined;
         let orderType = undefined;
         if (orderTypeNumber === 0) {
             orderType = 'limit';
