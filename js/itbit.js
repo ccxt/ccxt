@@ -283,20 +283,18 @@ module.exports = class itbit extends Exchange {
         const timestamp = this.parse8601 (this.safeString (trade, 'timestamp'));
         const side = this.safeString (trade, 'direction');
         const orderId = this.safeString (trade, 'orderId');
-        let feeCost = this.safeNumber (trade, 'commissionPaid');
+        let feeCost = this.safeString (trade, 'commissionPaid');
         const feeCurrencyId = this.safeString (trade, 'commissionCurrency');
         const feeCurrency = this.safeCurrencyCode (feeCurrencyId);
-        let rebatesApplied = this.safeNumber (trade, 'rebatesApplied');
+        let rebatesApplied = this.safeString (trade, 'rebatesApplied');
         if (rebatesApplied !== undefined) {
-            rebatesApplied = -rebatesApplied;
+            rebatesApplied = Precise.stringNeg (rebatesApplied);
         }
         const rebateCurrencyId = this.safeString (trade, 'rebateCurrency');
         const rebateCurrency = this.safeCurrencyCode (rebateCurrencyId);
-        const priceString = this.safeString2 (trade, 'price', 'rate');
-        const amountString = this.safeString2 (trade, 'currency1Amount', 'amount');
-        const price = this.parseNumber (priceString);
-        const amount = this.parseNumber (amountString);
-        const cost = this.parseNumber (Precise.stringMul (priceString, amountString));
+        const price = this.safeString2 (trade, 'price', 'rate');
+        const amount = this.safeString2 (trade, 'currency1Amount', 'amount');
+        const cost = Precise.stringMul (price, amount);
         let symbol = undefined;
         const marketId = this.safeString (trade, 'instrument');
         if (marketId !== undefined) {
@@ -305,8 +303,39 @@ module.exports = class itbit extends Exchange {
             const base = this.safeCurrencyCode (baseId);
             const quote = this.safeCurrencyCode (quoteId);
             symbol = base + '/' + quote;
+        } else {
+            symbol = this.safeString (market, 'symbol');
         }
-        const result = {
+        let fee = undefined;
+        let fees = undefined;
+        if (feeCost !== undefined) {
+            if (rebatesApplied !== undefined) {
+                if (feeCurrency === rebateCurrency) {
+                    feeCost = Precise.stringAdd (feeCost, rebatesApplied);
+                    fee = {
+                        'cost': feeCost,
+                        'currency': feeCurrency,
+                    };
+                } else {
+                    fees = [
+                        {
+                            'cost': feeCost,
+                            'currency': feeCurrency,
+                        },
+                        {
+                            'cost': rebatesApplied,
+                            'currency': rebateCurrency,
+                        },
+                    ];
+                }
+            } else {
+                fee = {
+                    'cost': feeCost,
+                    'currency': feeCurrency,
+                };
+            }
+        }
+        return this.safeTrade ({
             'info': trade,
             'id': id,
             'timestamp': timestamp,
@@ -319,41 +348,9 @@ module.exports = class itbit extends Exchange {
             'price': price,
             'amount': amount,
             'cost': cost,
-            'fee': undefined,
-        };
-        if (feeCost !== undefined) {
-            if (rebatesApplied !== undefined) {
-                if (feeCurrency === rebateCurrency) {
-                    feeCost = this.sum (feeCost, rebatesApplied);
-                    result['fee'] = {
-                        'cost': feeCost,
-                        'currency': feeCurrency,
-                    };
-                } else {
-                    result['fees'] = [
-                        {
-                            'cost': feeCost,
-                            'currency': feeCurrency,
-                        },
-                        {
-                            'cost': rebatesApplied,
-                            'currency': rebateCurrency,
-                        },
-                    ];
-                }
-            } else {
-                result['fee'] = {
-                    'cost': feeCost,
-                    'currency': feeCurrency,
-                };
-            }
-        }
-        if (!('fee' in result)) {
-            if (!('fees' in result)) {
-                result['fee'] = undefined;
-            }
-        }
-        return result;
+            'fee': fee,
+            'fees': fees,
+        }, market);
     }
 
     async fetchTransactions (code = undefined, since = undefined, limit = undefined, params = {}) {
