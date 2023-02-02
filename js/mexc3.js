@@ -1528,23 +1528,23 @@ module.exports = class mexc3 extends Exchange {
         if (isSwap || ('timestamp' in ticker)) {
             //
             //     {
-            //         "symbol":"ETH_USDT",
-            //         "lastPrice":3581.3,
-            //         "bid1":3581.25,
-            //         "ask1":3581.5,
-            //         "volume24":4045530,
-            //         "amount24":141331823.5755,
-            //         "holdVol":5832946,
-            //         "lower24Price":3413.4,
-            //         "high24Price":3588.7,
-            //         "riseFallRate":0.0275,
-            //         "riseFallValue":95.95,
-            //         "indexPrice":3580.7852,
-            //         "fairPrice":3581.08,
-            //         "fundingRate":0.000063,
-            //         "maxBidPrice":3938.85,
-            //         "minAskPrice":3222.7,
-            //         "timestamp":1634162885016
+            //         "symbol": "ETH_USDT",
+            //         "lastPrice": 3581.3,
+            //         "bid1": 3581.25,
+            //         "ask1": 3581.5,
+            //         "volume24": 4045530,
+            //         "amount24": 141331823.5755,
+            //         "holdVol": 5832946,
+            //         "lower24Price": 3413.4,
+            //         "high24Price": 3588.7,
+            //         "riseFallRate": 0.0275,
+            //         "riseFallValue": 95.95,
+            //         "indexPrice": 3580.7852,
+            //         "fairPrice": 3581.08,
+            //         "fundingRate": 0.000063,
+            //         "maxBidPrice": 3938.85,
+            //         "minAskPrice": 3222.7,
+            //         "timestamp": 1634162885016
             //     }
             //
             timestamp = this.safeInteger (ticker, 'timestamp');
