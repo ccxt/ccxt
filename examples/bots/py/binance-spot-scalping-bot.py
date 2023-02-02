@@ -7,7 +7,7 @@ print('CCXT Version:', ccxt.__version__)
 ####################################################################################
 # Simple implementation of a trading bot using a scalping strategy. Periodically  ##
 # buys a product using a market buy for the minimum amount allowed by the         ##
-# exchange on the selected market pair and immidietaly places a limit sell order  ##
+# exchange on the selected market pair and immediately places a limit sell order  ##
 # for a slightly higher price.                                                    ##
 #                                                                                 ##
 # Disclaimer: this bot is for educational purposes only. Use at your own risk.    ##
