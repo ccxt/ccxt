@@ -254,25 +254,6 @@ module.exports = class bittrex extends Exchange {
                 },
                 'parseOrderStatus': false,
                 'hasAlreadyAuthenticatedSuccessfully': false, // a workaround for APIKEY_INVALID
-                // With certain currencies, like
-                // AEON, BTS, GXS, NXT, SBD, STEEM, STR, XEM, XLM, XMR, XRP
-                // an additional tag / memo / payment id is usually required by exchanges.
-                // With Bittrex some currencies imply the "base address + tag" logic.
-                // The base address for depositing is stored on this.currencies[code]
-                // The base address identifies the exchange as the recipient
-                // while the tag identifies the user account within the exchange
-                // and the tag is retrieved with fetchDepositAddress.
-                'tag': {
-                    'NXT': true, // NXT, BURST
-                    'CRYPTO_NOTE_PAYMENTID': true, // AEON, XMR
-                    'BITSHAREX': true, // BTS
-                    'RIPPLE': true, // XRP
-                    'NEM': true, // XEM
-                    'STELLAR': true, // XLM
-                    'STEEM': true, // SBD, GOLOS
-                    // https://github.com/ccxt/ccxt/issues/4794
-                    // 'LISK': true, // LSK
-                },
                 'subaccountId': undefined,
                 // see the implementation of fetchClosedOrdersV3 below
                 // 'fetchClosedOrdersMethod': 'fetch_closed_orders_v3',
@@ -2017,21 +1998,17 @@ module.exports = class bittrex extends Exchange {
         //         "cryptoAddressTag":"392034158"
         //     }
         //
-        let address = this.safeString (response, 'cryptoAddress');
+        const address = this.safeString (response, 'cryptoAddress');
         const message = this.safeString (response, 'status');
         if (!address || message === 'REQUESTED') {
             throw new AddressPending (this.id + ' the address for ' + code + ' is being generated (pending, not ready yet, retry again later)');
-        }
-        let tag = this.safeString (response, 'cryptoAddressTag');
-        if ((tag === undefined) && (currency['type'] in this.options['tag'])) {
-            tag = address;
-            address = currency['info']['baseAddress'];
         }
         this.checkAddress (address);
         return {
             'currency': code,
             'address': address,
-            'tag': tag,
+            'tag': this.safeString (response, 'cryptoAddressTag'),
+            'network': undefined,
             'info': response,
         };
     }
@@ -2059,21 +2036,16 @@ module.exports = class bittrex extends Exchange {
         //         "cryptoAddressTag":"392034158"
         //     }
         //
-        let address = this.safeString (response, 'cryptoAddress');
+        const address = this.safeString (response, 'cryptoAddress');
         const message = this.safeString (response, 'status');
         if (!address || message === 'REQUESTED') {
             throw new AddressPending (this.id + ' the address for ' + code + ' is being generated (pending, not ready yet, retry again later)');
-        }
-        let tag = this.safeString (response, 'cryptoAddressTag');
-        if ((tag === undefined) && (currency['type'] in this.options['tag'])) {
-            tag = address;
-            address = currency['info']['baseAddress'];
         }
         this.checkAddress (address);
         return {
             'currency': code,
             'address': address,
-            'tag': tag,
+            'tag': this.safeString (response, 'cryptoAddressTag'),
             'network': undefined,
             'info': response,
         };
