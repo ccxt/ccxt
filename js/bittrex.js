@@ -496,7 +496,6 @@ module.exports = class bittrex extends Exchange {
             result[code] = {
                 'id': id,
                 'code': code,
-                'address': this.safeString (currency, 'baseAddress'),
                 'info': currency,
                 'type': this.safeString (currency, 'coinType'),
                 'name': this.safeString (currency, 'name'),
@@ -2026,7 +2025,7 @@ module.exports = class bittrex extends Exchange {
         let tag = this.safeString (response, 'cryptoAddressTag');
         if ((tag === undefined) && (currency['type'] in this.options['tag'])) {
             tag = address;
-            address = currency['address'];
+            address = currency['info']['baseAddress'];
         }
         this.checkAddress (address);
         return {
@@ -2068,7 +2067,7 @@ module.exports = class bittrex extends Exchange {
         let tag = this.safeString (response, 'cryptoAddressTag');
         if ((tag === undefined) && (currency['type'] in this.options['tag'])) {
             tag = address;
-            address = currency['address'];
+            address = currency['info']['baseAddress'];
         }
         this.checkAddress (address);
         return {
