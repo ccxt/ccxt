@@ -1548,15 +1548,15 @@ module.exports = class mexc3 extends Exchange {
             //     }
             //
             timestamp = this.safeInteger (ticker, 'timestamp');
-            bid = this.safeNumber (ticker, 'bid1');
-            ask = this.safeNumber (ticker, 'ask1');
+            bid = this.safeString (ticker, 'bid1');
+            ask = this.safeString (ticker, 'ask1');
             baseVolume = this.safeString (ticker, 'volume24');
             quoteVolume = this.safeString (ticker, 'amount24');
-            high = this.safeNumber (ticker, 'high24Price');
-            low = this.safeNumber (ticker, 'lower24Price');
+            high = this.safeString (ticker, 'high24Price');
+            low = this.safeString (ticker, 'lower24Price');
             changeValue = this.safeString (ticker, 'riseFallValue');
             changePcnt = this.safeString (ticker, 'riseFallRate');
-            changePcnt = this.parseNumber (Precise.stringMul (changePcnt, '100'));
+            changePcnt = Precise.stringMul (changePcnt, '100');
         } else {
             //
             //     {
@@ -1581,25 +1581,25 @@ module.exports = class mexc3 extends Exchange {
             //     }
             //
             timestamp = this.safeInteger (ticker, 'closeTime');
-            bid = this.safeNumber (ticker, 'bidPrice');
-            ask = this.safeNumber (ticker, 'askPrice');
-            bidVolume = this.safeNumber (ticker, 'bidQty');
-            askVolume = this.safeNumber (ticker, 'askQty');
-            if (bidVolume === 0) {
+            bid = this.safeString (ticker, 'bidPrice');
+            ask = this.safeString (ticker, 'askPrice');
+            bidVolume = this.safeString (ticker, 'bidQty');
+            askVolume = this.safeString (ticker, 'askQty');
+            if (Precise.stringEq (bidVolume, '0')) {
                 bidVolume = undefined;
             }
-            if (askVolume === 0) {
+            if (Precise.stringEq (askVolume, '0')) {
                 askVolume = undefined;
             }
             baseVolume = this.safeString (ticker, 'volume');
             quoteVolume = this.safeString (ticker, 'quoteVolume');
             open = this.safeString (ticker, 'openPrice');
-            high = this.safeNumber (ticker, 'highPrice');
-            low = this.safeNumber (ticker, 'lowPrice');
+            high = this.safeString (ticker, 'highPrice');
+            low = this.safeString (ticker, 'lowPrice');
             prevClose = this.safeString (ticker, 'prevClosePrice');
             changeValue = this.safeString (ticker, 'priceChange');
             changePcnt = this.safeString (ticker, 'priceChangePercent');
-            changePcnt = this.parseNumber (Precise.stringMul (changePcnt, '100'));
+            changePcnt = Precise.stringMul (changePcnt, '100');
         }
         return this.safeTicker ({
             'symbol': market['symbol'],
