@@ -4176,7 +4176,7 @@ class okx extends Exchange {
             if ($type !== null) {
                 $request['instType'] = $this->convert_to_instrument_type($type);
             }
-            $response = Async\await($this->privateGetAccountPositions ($query));
+            $response = Async\await($this->privateGetAccountPositions (array_merge($request, $query)));
             //
             //     {
             //         "code" => "0",

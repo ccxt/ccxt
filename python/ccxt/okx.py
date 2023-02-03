@@ -3930,7 +3930,7 @@ class okx(Exchange):
         }
         if type is not None:
             request['instType'] = self.convert_to_instrument_type(type)
-        response = self.privateGetAccountPositions(query)
+        response = self.privateGetAccountPositions(self.extend(request, query))
         #
         #     {
         #         "code": "0",
