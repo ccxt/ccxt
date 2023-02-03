@@ -5839,7 +5839,7 @@ module.exports = class bybit extends Exchange {
         return this.parseTransaction (result, currency);
     }
 
-    async fetchPosition (symbol = undefined, params = {}) {
+    async fetchPosition (symbol, params = {}) {
         /**
          * @method
          * @name bybit#fetchPosition
