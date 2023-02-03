@@ -2942,7 +2942,7 @@ module.exports = class huobi extends Exchange {
         params = this.omit (params, [ 'defaultSubType', 'subType' ]);
         const isolated = (marginMode === 'isolated');
         const cross = (marginMode === 'cross');
-        const margin = (type === 'margin') || cross || isolated;
+        const margin = (type === 'margin') || (spot && (cross || isolated));
         if (spot || margin) {
             if (margin) {
                 if (isolated) {
