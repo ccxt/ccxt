@@ -1068,31 +1068,33 @@ module.exports = class phemex extends Exchange {
         };
         const duration = this.parseTimeframe (timeframe);
         const now = this.seconds ();
-        const maxLimit = 2000; // maximum limit, we shouldn't sent request of more than it
+        const possibleLimitValues = [ 5, 10, 50, 100, 500, 1000 ];
+        const maxLimit = 1000; // maximum limit, we shouldn't sent request of more than it
         if (limit === undefined) {
             limit = 100; // set default, as exchange doesn't have any defaults and needs something to be set
-        } else {
-            limit = Math.min (limit, maxLimit);
         }
-        if (since !== undefined) {
-            limit = Math.min (limit, maxLimit);
+        limit = Math.min (limit, maxLimit);
+        if (since !== undefined) { // phemex also provides kline query with from/to, however, this interface is NOT recommended.
             since = parseInt (since / 1000);
             request['from'] = since;
             // time ranges ending in the future are not accepted
             // https://github.com/ccxt/ccxt/issues/8050
             request['to'] = Math.min (now, this.sum (since, duration * limit));
         } else {
-            if (limit < maxLimit) {
-                // whenever making a request with `now`, that expects current latest bar to be included, the exchange does not return the last 1m candle and thus excludes one bar. So, we have to add `1` to user's set `limit` amount to get that amount of bars back
-                limit = limit + 1;
+            if (!this.inArray (limit, possibleLimitValues)) {
+                limit = 100;
             }
-            request['from'] = now - duration * limit;
-            request['to'] = now;
+            request['limit'] = limit;
         }
         await this.loadMarkets ();
         const market = this.market (symbol);
         request['symbol'] = market['id'];
-        const response = await this.publicGetMdKline (this.extend (request, params));
+        let response = undefined;
+        if (market['linear']) {
+            response = await this.publicGetMdV2KlineLast (this.extend (request, params));
+        } else {
+            response = await this.publicGetMdKline (this.extend (request, params));
+        }
         //
         //     {
         //         "code":0,
