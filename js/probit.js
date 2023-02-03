@@ -1561,7 +1561,7 @@ module.exports = class probit extends Exchange {
         for (let i = 0; i < platforms.length; i++) {
             const network = platforms[i];
             const networkId = this.safeString (network, 'id');
-            const networkCode = this.networkIdToCode (networkId);
+            const networkCode = this.networkIdToCode (networkId, currency);
             const withdrawalFees = this.safeValue (network, 'withdrawal_fee', {});
             const withdrawFee = this.safeNumber (withdrawalFees[0], 'amount');
             if (withdrawalFees.length > 0) {
