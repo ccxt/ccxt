@@ -2929,7 +2929,6 @@ module.exports = class huobi extends Exchange {
         const options = this.safeValue (this.options, 'fetchBalance', {});
         const request = {};
         let method = undefined;
-        const margin = (type === 'margin');
         const spot = (type === 'spot');
         const future = (type === 'future');
         const swap = (type === 'swap');
@@ -2943,11 +2942,14 @@ module.exports = class huobi extends Exchange {
         params = this.omit (params, [ 'defaultSubType', 'subType' ]);
         const isolated = (marginMode === 'isolated');
         const cross = (marginMode === 'cross');
+        const margin = (type === 'margin') || cross || isolated;
         if (spot || margin) {
-            if (isolated) {
-                method = 'spotPrivateGetV1MarginAccountsBalance';
-            } else if (cross) {
-                method = 'spotPrivateGetV1CrossMarginAccountsBalance';
+            if (margin) {
+                if (isolated) {
+                    method = 'spotPrivateGetV1MarginAccountsBalance';
+                } else {
+                    method = 'spotPrivateGetV1CrossMarginAccountsBalance';
+                }
             } else {
                 await this.loadAccounts ();
                 const accountId = await this.fetchAccountIdByType (type, params);
@@ -3125,7 +3127,7 @@ module.exports = class huobi extends Exchange {
         //
         // TODO add balance parsing for linear swap
         //
-        const result = { 'info': response };
+        let result = { 'info': response };
         const data = this.safeValue (response, 'data');
         if (spot || margin) {
             if (isolated) {
@@ -3150,6 +3152,7 @@ module.exports = class huobi extends Exchange {
                     const code = this.safeCurrencyCode (currencyId);
                     result[code] = this.parseMarginBalanceHelper (balance, code, result);
                 }
+                result = this.safeBalance (result);
             }
         } else if (linear) {
             const first = this.safeValue (data, 0, {});
@@ -3181,6 +3184,7 @@ module.exports = class huobi extends Exchange {
                 const currencyId = this.safeString2 (first, 'margin_asset', 'symbol');
                 const code = this.safeCurrencyCode (currencyId);
                 result[code] = account;
+                result = this.safeBalance (result);
             }
         } else if (inverse) {
             for (let i = 0; i < data.length; i++) {
@@ -3192,9 +3196,9 @@ module.exports = class huobi extends Exchange {
                 account['used'] = this.safeString (balance, 'margin_frozen');
                 result[code] = account;
             }
+            result = this.safeBalance (result);
         }
-        const isolatedMargin = isolated && (spot || margin || linear);
-        return isolatedMargin ? result : this.safeBalance (result);
+        return result;
     }
 
     async fetchOrder (id, symbol = undefined, params = {}) {
