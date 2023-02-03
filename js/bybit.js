@@ -1896,7 +1896,6 @@ module.exports = class bybit extends Exchange {
 
     parseSpotOHLCV (ohlcv, market = undefined) {
         //
-        // spot
         //     {
         //         "t": "1666759020000",
         //         "s": "AAVEUSDT",
@@ -1951,15 +1950,15 @@ module.exports = class bybit extends Exchange {
         };
         let limitString = undefined;
         if (limit !== undefined) {
-            limitString = limit.toString ();
+            limitString = this.numberToString (limit);
         } else {
             limitString = '1000';
         }
         if (since !== undefined) {
             // request['startTime'] = since;
             // startTime isn't working, emulated since using endTime
-            since = since.toString ();
-            const duration = this.parseTimeframe (timeframe).toString ();
+            since = this.numberToString (since);
+            const duration = this.numberToString (this.parseTimeframe (timeframe));
             const millisecondDuration = Precise.stringMul (duration, '1000');
             const timeFromSince = Precise.stringMul (limitString, millisecondDuration);
             const emulatedSince = Precise.stringAdd (since, timeFromSince);
@@ -1975,19 +1974,19 @@ module.exports = class bybit extends Exchange {
         //         "retCode": 0,
         //         "retMsg": "OK",
         //         "result": {
-        //         "list": [
-        //             {
-        //             "t": 1659430380000,
-        //             "s": "BTCUSDT",
-        //             "sn": "BTCUSDT",
-        //             "c": "21170.14",
-        //             "h": "21170.14",
-        //             "l": "21127.86",
-        //             "o": "21127.86",
-        //             "v": "0.907276"
-        //             }
-        //         ]
-        //         },
+        //             "list": [
+        //                 {
+        //                     "t": 1659430380000,
+        //                     "s": "BTCUSDT",
+        //                     "sn": "BTCUSDT",
+        //                     "c": "21170.14",
+        //                     "h": "21170.14",
+        //                     "l": "21127.86",
+        //                     "o": "21127.86",
+        //                     "v": "0.907276"
+        //                 },
+        //             ]
+        //         }
         //         "retExtInfo": {},
         //         "time": 1659430400353
         //     }
