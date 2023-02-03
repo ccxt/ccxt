@@ -72,7 +72,7 @@ export default class gemini extends Exchange {
                 'fetchTradingFee': false,
                 'fetchTradingFees': true,
                 'fetchTransactions': true,
-                'fetchDepositWithdrawals': true,
+                'fetchDepositsWithdrawals': true,
                 'postOnly': true,
                 'reduceMargin': false,
                 'setLeverage': false,
