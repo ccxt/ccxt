@@ -925,7 +925,12 @@ module.exports = class phemex extends Exchange {
             'symbol': market['id'],
             // 'id': 123456789, // optional request id
         };
-        const response = await this.v1GetMdOrderbook (this.extend (request, params));
+        let response = undefined;
+        if (market['linear']) {
+            response = await this.v2GetMdV2Orderbook (this.extend (request, params));
+        } else {
+            response = await this.v1GetMdOrderbook (this.extend (request, params));
+        }
         //
         //     {
         //         "error": null,
@@ -952,7 +957,7 @@ module.exports = class phemex extends Exchange {
         //     }
         //
         const result = this.safeValue (response, 'result', {});
-        const book = this.safeValue (result, 'book', {});
+        const book = this.safeValue2 (result, 'book', 'orderbook_p', {});
         const timestamp = this.safeIntegerProduct (result, 'timestamp', 0.000001);
         const orderbook = this.parseOrderBook (book, symbol, timestamp, 'bids', 'asks', 0, 1, market);
         orderbook['nonce'] = this.safeInteger (result, 'sequence');
