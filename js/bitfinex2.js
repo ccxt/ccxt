@@ -59,7 +59,7 @@ module.exports = class bitfinex2 extends Exchange {
                 'fetchTradingFees': true,
                 'fetchTransactionFees': undefined,
                 'fetchTransactions': true,
-                'fetchDepositWithdrawals': true,
+                'fetchDepositsWithdrawals': true,
                 'withdraw': true,
             },
             'timeframes': {
@@ -2264,7 +2264,7 @@ module.exports = class bitfinex2 extends Exchange {
         /**
          * @method
          * @name bitfinex2#fetchTransactions
-         * @description *DEPRECATED* use fetchDepositWithdrawals instead
+         * @description *DEPRECATED* use fetchDepositsWithdrawals instead
          * @param {string|undefined} code unified currency code for the currency of the transactions, default is undefined
          * @param {int|undefined} since timestamp in ms of the earliest transaction, default is undefined
          * @param {int|undefined} limit max number of transactions to return, default is undefined

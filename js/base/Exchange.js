@@ -88,7 +88,7 @@ module.exports = class Exchange {
                 'fetchDepositAddresses': undefined,
                 'fetchDepositAddressesByNetwork': undefined,
                 'fetchDeposits': undefined,
-                'fetchDepositWithdrawals': undefined,
+                'fetchDepositsWithdrawals': undefined,
                 'fetchTransactionFee': undefined,
                 'fetchTransactionFees': undefined,
                 'fetchFundingHistory': undefined,
@@ -3161,10 +3161,10 @@ module.exports = class Exchange {
         return fee;
     }
 
-    async fetchDepositWithdrawals (code = undefined, since = undefined, limit = undefined, params = {}) {
+    async fetchDepositsWithdrawals (code = undefined, since = undefined, limit = undefined, params = {}) {
         /**
          * @method
-         * @name exchange#fetchDepositWithdrawals
+         * @name exchange#fetchDepositsWithdrawals
          * @description fetch history of deposits and withdrawals
          * @param {string|undefined} code unified currency code for the currency of the deposit/withdrawals, default is undefined
          * @param {int|undefined} since timestamp in ms of the earliest deposit/withdrawal, default is undefined
@@ -3175,7 +3175,7 @@ module.exports = class Exchange {
         if (this.has['fetchTransactions']) {
             return await this.fetchTransactions (code, since, limit, params);
         } else {
-            throw new NotSupported (this.id + ' fetchDepositWithdrawals () is not supported yet');
+            throw new NotSupported (this.id + ' fetchDepositsWithdrawals () is not supported yet');
         }
     }
 };

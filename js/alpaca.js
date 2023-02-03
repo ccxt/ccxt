@@ -75,7 +75,7 @@ module.exports = class alpaca extends Exchange {
                 'fetchTradingFees': false,
                 'fetchTransactionFees': false,
                 'fetchTransactions': false,
-                'fetchDepositWithdrawals': false,
+                'fetchDepositsWithdrawals': false,
                 'fetchTransfers': false,
                 'fetchWithdrawals': false,
                 'setLeverage': false,

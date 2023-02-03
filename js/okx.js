@@ -98,7 +98,7 @@ module.exports = class okx extends Exchange {
                 'fetchTransactionFee': false,
                 'fetchTransactionFees': false,
                 'fetchTransactions': false,
-                'fetchDepositWithdrawals': false,
+                'fetchDepositsWithdrawals': false,
                 'fetchTransfer': true,
                 'fetchTransfers': false,
                 'fetchWithdrawal': true,
