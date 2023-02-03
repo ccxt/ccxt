@@ -2943,7 +2943,7 @@ module.exports = class huobi extends Exchange {
         params = this.omit (params, [ 'defaultSubType', 'subType' ]);
         const isolated = (marginMode === 'isolated');
         const cross = (marginMode === 'cross');
-        if (spot) {
+        if (spot || margin) {
             if (isolated) {
                 method = 'spotPrivateGetV1MarginAccountsBalance';
             } else if (cross) {
@@ -2953,12 +2953,6 @@ module.exports = class huobi extends Exchange {
                 const accountId = await this.fetchAccountIdByType (type, params);
                 request['account-id'] = accountId;
                 method = 'spotPrivateGetV1AccountAccountsAccountIdBalance';
-            }
-        } else if (margin) {
-            if (isolated) {
-                method = 'spotPrivateGetV1MarginAccountsBalance';
-            } else {
-                method = 'spotPrivateGetV1CrossMarginAccountsBalance';
             }
         } else if (linear) {
             if (isolated) {
@@ -3159,14 +3153,7 @@ module.exports = class huobi extends Exchange {
             }
         } else if (linear) {
             const first = this.safeValue (data, 0, {});
-            if (cross) {
-                const account = this.account ();
-                account['free'] = this.safeString (first, 'margin_balance', 'margin_available');
-                account['used'] = this.safeString (first, 'margin_frozen');
-                const currencyId = this.safeString2 (first, 'margin_asset', 'symbol');
-                const code = this.safeCurrencyCode (currencyId);
-                result[code] = account;
-            } else if (isolated) {
+            if (isolated) {
                 for (let i = 0; i < data.length; i++) {
                     const balance = data[i];
                     const marketId = this.safeString2 (balance, 'contract_code', 'margin_account');
@@ -3187,7 +3174,13 @@ module.exports = class huobi extends Exchange {
                         result[symbol] = this.safeBalance (accountsByCode);
                     }
                 }
-                return result;
+            } else {
+                const account = this.account ();
+                account['free'] = this.safeString (first, 'margin_balance', 'margin_available');
+                account['used'] = this.safeString (first, 'margin_frozen');
+                const currencyId = this.safeString2 (first, 'margin_asset', 'symbol');
+                const code = this.safeCurrencyCode (currencyId);
+                result[code] = account;
             }
         } else if (inverse) {
             for (let i = 0; i < data.length; i++) {
@@ -3201,7 +3194,8 @@ module.exports = class huobi extends Exchange {
             }
         }
         const isolatedMargin = isolated && (spot || margin);
-        return isolatedMargin ? result : this.safeBalance (result);
+        const isolatedLinear = isolated && linear;
+        return (isolatedMargin || isolatedLinear) ? result : this.safeBalance (result);
     }
 
     async fetchOrder (id, symbol = undefined, params = {}) {
