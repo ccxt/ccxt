@@ -67,7 +67,7 @@ export default class itbit extends Exchange {
                 'fetchTradingFee': false,
                 'fetchTradingFees': false,
                 'fetchTransactions': true,
-                'fetchDepositWithdrawals': true,
+                'fetchDepositsWithdrawals': true,
                 'reduceMargin': false,
                 'setLeverage': false,
                 'setMarginMode': false,
@@ -361,7 +361,7 @@ export default class itbit extends Exchange {
         /**
          * @method
          * @name itbit#fetchTransactions
-         * @description *DEPRECATED* use fetchDepositWithdrawals instead
+         * @description *DEPRECATED* use fetchDepositsWithdrawals instead
          * @param {string|undefined} code not used by itbit fetchTransactions ()
          * @param {int|undefined} since not used by itbit fetchTransactions ()
          * @param {int|undefined} limit max number of transactions to return, default is undefined

@@ -74,7 +74,7 @@ export default class bitstamp extends Exchange {
                 'fetchTradingFees': true,
                 'fetchTransactionFees': true,
                 'fetchTransactions': true,
-                'fetchDepositWithdrawals': true,
+                'fetchDepositsWithdrawals': true,
                 'fetchWithdrawals': true,
                 'reduceMargin': false,
                 'setLeverage': false,
@@ -1503,7 +1503,7 @@ export default class bitstamp extends Exchange {
         /**
          * @method
          * @name bitstamp#fetchTransactions
-         * @description *DEPRECATED* use fetchDepositWithdrawals instead
+         * @description *DEPRECATED* use fetchDepositsWithdrawals instead
          * @param {string|undefined} code unified currency code for the currency of the transactions, default is undefined
          * @param {int|undefined} since timestamp in ms of the earliest transaction, default is undefined
          * @param {int|undefined} limit max number of transactions to return, default is undefined

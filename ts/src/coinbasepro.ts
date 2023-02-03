@@ -57,7 +57,7 @@ export default class coinbasepro extends Exchange {
                 'fetchTradingFee': false,
                 'fetchTradingFees': true,
                 'fetchTransactions': true,
-                'fetchDepositWithdrawals': true,
+                'fetchDepositsWithdrawals': true,
                 'fetchWithdrawals': true,
                 'withdraw': true,
             },
