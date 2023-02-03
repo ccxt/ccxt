@@ -5436,23 +5436,21 @@ module.exports = class bybit extends Exchange {
          * @method
          * @name bybit#fetchDeposits
          * @description fetch all deposits made to an account
+         * @see https://bybit-exchange.github.io/docs/account_asset/v3/#t-depositsrecordquery
          * @param {string|undefined} code unified currency code
-         * @param {int|undefined} since the earliest time in ms to fetch deposits for
-         * @param {int|undefined} limit the maximum number of deposits structures to retrieve
+         * @param {int|undefined} since the earliest time in ms to fetch deposits for, default = 30 days before the current time
+         * @param {int|undefined} limit the maximum number of deposits structures to retrieve, default = 50, max = 50
          * @param {object} params extra parameters specific to the bybit api endpoint
+         * @param {int|undefined} params.until the latest time in ms to fetch deposits for, default = 30 days after since
+         *
+         * EXCHANGE SPECIFIC PARAMETERS
+         * @param {string|undefined} params.cursor used for pagination
          * @returns {[object]} a list of [transaction structures]{@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure}
-         */
+        */
         await this.loadMarkets ();
-        const request = {
-            // 'coin': currency['id'],
-            // 'currency': currency['id'], // alias
-            // 'start_date': this.iso8601 (since),
-            // 'end_date': this.iso8601 (till),
-            'wallet_fund_type': 'Deposit', // Deposit, Withdraw, RealisedPNL, Commission, Refund, Prize, ExchangeOrderWithdraw, ExchangeOrderDeposit
-            // 'page': 1,
-            // 'limit': 20, // max 50
-        };
+        const request = {};
         let currency = undefined;
+        const until = this.safeInteger (params, 'until');
         if (code !== undefined) {
             currency = this.currency (code);
             request['coin'] = currency['id'];
@@ -5463,8 +5461,11 @@ module.exports = class bybit extends Exchange {
         if (limit !== undefined) {
             request['limit'] = limit;
         }
-        // Currently only works for deposits prior to 2021-07-15
-        // will be updated soon
+        if (until !== undefined) {
+            request['endTime'] = until;
+        } else if (since !== undefined) {
+            request['endTime'] = since + (86400000 * 30);
+        }
         const response = await this.privateGetAssetV3PrivateDepositRecordQuery (this.extend (request, params));
         //
         //    {
