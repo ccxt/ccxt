@@ -887,7 +887,7 @@ class wavesexchange(Exchange):
         request = {
             'baseId': market['baseId'],
             'quoteId': market['quoteId'],
-            'interval': self.timeframes[timeframe],
+            'interval': self.safe_string(self.timeframes, timeframe, timeframe),
         }
         allowedCandles = self.safe_integer(self.options, 'allowedCandles', 1440)
         if limit is None:

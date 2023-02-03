@@ -2746,7 +2746,7 @@ module.exports = class binance extends Exchange {
         params = this.omit (params, [ 'price', 'until' ]);
         limit = (limit === undefined) ? defaultLimit : Math.min (limit, maxLimit);
         const request = {
-            'interval': this.timeframes[timeframe],
+            'interval': this.safeString (this.timeframes, timeframe, timeframe),
             'limit': limit,
         };
         if (price === 'index') {
@@ -4418,6 +4418,7 @@ module.exports = class binance extends Exchange {
             'deposit': {
                 '0': 'pending',
                 '1': 'ok',
+                '6': 'ok',
                 // Fiat
                 // Processing, Failed, Successful, Finished, Refunding, Refunded, Refund Failed, Order Partial credit Stopped
                 'Processing': 'pending',
@@ -4536,7 +4537,7 @@ module.exports = class binance extends Exchange {
         const updated = this.safeInteger2 (transaction, 'successTime', 'updateTime');
         let type = this.safeString (transaction, 'type');
         if (type === undefined) {
-            const txType = this.safeString (transaction, 'transactionType');
+            const txType = this.safeString2 (transaction, 'transactionType', 'transferType');
             type = (txType === '0') ? 'deposit' : 'withdrawal';
             const legalMoneyCurrenciesById = this.safeValue (this.options, 'legalMoneyCurrenciesById');
             code = this.safeString (legalMoneyCurrenciesById, code, code);
@@ -6555,7 +6556,7 @@ module.exports = class binance extends Exchange {
             }
             let signature = undefined;
             if (this.secret.indexOf ('PRIVATE KEY') > -1) {
-                signature = this.rsa (query, this.secret);
+                signature = this.encodeURIComponent (this.rsa (query, this.secret));
             } else {
                 signature = this.hmac (this.encode (query), this.encode (this.secret));
             }
@@ -7134,7 +7135,7 @@ module.exports = class binance extends Exchange {
         await this.loadMarkets ();
         const market = this.market (symbol);
         const request = {
-            'period': this.timeframes[timeframe],
+            'period': this.safeString (this.timeframes, timeframe, timeframe),
         };
         if (limit !== undefined) {
             request['limit'] = limit;

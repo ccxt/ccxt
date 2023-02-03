@@ -268,7 +268,7 @@ module.exports = class woo extends wooRest {
             throw new ExchangeError (this.id + ' watchOHLCV timeframe argument must be 1m, 5m, 15m, 30m, 1h, 1d, 1w, 1M');
         }
         const market = this.market (symbol);
-        const interval = this.timeframes[timeframe];
+        const interval = this.safeString (this.timeframes, timeframe, timeframe);
         const name = 'kline';
         const topic = market['id'] + '@' + name + '_' + interval;
         const request = {

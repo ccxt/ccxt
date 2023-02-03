@@ -1330,7 +1330,7 @@ class bitfinex extends Exchange {
             $v2id = 't' . $market['id'];
             $request = array(
                 'symbol' => $v2id,
-                'timeframe' => $this->timeframes[$timeframe],
+                'timeframe' => $this->safe_string($this->timeframes, $timeframe, $timeframe),
                 'sort' => 1,
                 'limit' => $limit,
             );

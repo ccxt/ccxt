@@ -2301,7 +2301,7 @@ class gate(Exchange):
         price = self.safe_string(params, 'price')
         request = {}
         request, params = self.prepare_request(market, None, params)
-        request['interval'] = self.timeframes[timeframe]
+        request['interval'] = self.safe_string(self.timeframes, timeframe, timeframe)
         method = 'publicSpotGetCandlesticks'
         maxLimit = 1000
         if market['contract']:
@@ -4747,7 +4747,7 @@ class gate(Exchange):
         request = {
             'contract': market['id'],
             'settle': market['settleId'],
-            'interval': self.timeframes[timeframe],
+            'interval': self.safe_string(self.timeframes, timeframe, timeframe),
         }
         if limit is not None:
             request['limit'] = limit

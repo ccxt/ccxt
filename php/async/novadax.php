@@ -602,7 +602,7 @@ class novadax extends Exchange {
             $market = $this->market($symbol);
             $request = array(
                 'symbol' => $market['id'],
-                'unit' => $this->timeframes[$timeframe],
+                'unit' => $this->safe_string($this->timeframes, $timeframe, $timeframe),
             );
             $duration = $this->parse_timeframe($timeframe);
             $now = $this->seconds();

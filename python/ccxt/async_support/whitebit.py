@@ -1012,7 +1012,7 @@ class whitebit(Exchange):
         market = self.market(symbol)
         request = {
             'market': market['id'],
-            'interval': self.timeframes[timeframe],
+            'interval': self.safe_string(self.timeframes, timeframe, timeframe),
         }
         if since is not None:
             maxLimit = 1440

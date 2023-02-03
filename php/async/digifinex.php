@@ -1508,7 +1508,7 @@ class digifinex extends Exchange {
                 }
             } else {
                 $request['symbol'] = $market['id'];
-                $request['period'] = $this->timeframes[$timeframe];
+                $request['period'] = $this->safe_string($this->timeframes, $timeframe, $timeframe);
                 if ($since !== null) {
                     $startTime = intval($since / 1000);
                     $request['start_time'] = $startTime;

@@ -529,9 +529,9 @@ class bit2c extends Exchange {
         } else {
             $orderUnified = $order;
         }
-        $id = $this->safe_string($order, 'id');
+        $id = $this->safe_string($orderUnified, 'id');
         $symbol = $this->safe_symbol(null, $market);
-        $timestamp = $this->safe_integer_product($order, 'created', 1000);
+        $timestamp = $this->safe_integer_product($orderUnified, 'created', 1000);
         // $status field vary between responses
         // bit2c $status $type:
         // 0 = New
@@ -546,7 +546,7 @@ class bit2c extends Exchange {
                 $status = 'closed';
             }
         } else {
-            $tempStatus = $this->safe_string($order, 'status');
+            $tempStatus = $this->safe_string($orderUnified, 'status');
             if ($tempStatus === 'New' || $tempStatus === 'Open') {
                 $status = 'open';
             } elseif ($tempStatus === 'Completed') {
@@ -569,15 +569,15 @@ class bit2c extends Exchange {
         } elseif ($side === 1) {
             $side = 'sell';
         }
-        $price = $this->safe_string($order, 'price');
+        $price = $this->safe_string($orderUnified, 'price');
         $amount = null;
         $remaining = null;
         if ($isNewOrder) {
             $amount = $this->safe_string($orderUnified, 'amount');  // NOTE:'initialAmount' is currently not set on new $order
             $remaining = $this->safe_string($orderUnified, 'amount');
         } else {
-            $amount = $this->safe_string($order, 'initialAmount');
-            $remaining = $this->safe_string($order, 'amount');
+            $amount = $this->safe_string($orderUnified, 'initialAmount');
+            $remaining = $this->safe_string($orderUnified, 'amount');
         }
         return $this->safe_order(array(
             'id' => $id,

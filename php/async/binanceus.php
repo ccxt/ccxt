@@ -50,7 +50,6 @@ class binanceus extends binance {
                 'swap' => null,
                 'future' => null,
                 'option' => null,
-                'fetchTickers' => false,
             ),
         ));
     }

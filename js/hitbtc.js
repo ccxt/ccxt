@@ -637,7 +637,7 @@ module.exports = class hitbtc extends Exchange {
         const market = this.market (symbol);
         const request = {
             'symbol': market['id'],
-            'period': this.timeframes[timeframe],
+            'period': this.safeString (this.timeframes, timeframe, timeframe),
         };
         if (since !== undefined) {
             request['from'] = this.iso8601 (since);

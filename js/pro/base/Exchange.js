@@ -15,7 +15,7 @@ const BaseExchange = require ("../../base/Exchange")
 module.exports = class Exchange extends BaseExchange {
     constructor (options = {}) {
         super (options);
-        this.newUpdates = options.newUpdates || true;
+        this.newUpdates = (options.newUpdates !== undefined) ? options.newUpdates : true;
     }
 
     inflate (data) {

@@ -541,7 +541,7 @@ class cex(Exchange):
             #         "data1m":"[[1591403940,0.024972,0.024972,0.024969,0.024969,0.49999900]]",
             #     }
             #
-            key = 'data' + self.timeframes[timeframe]
+            key = 'data' + self.safe_string(self.timeframes, timeframe, timeframe)
             data = self.safe_string(response, key)
             ohlcvs = json.loads(data)
             return self.parse_ohlcvs(ohlcvs, market, timeframe, since, limit)

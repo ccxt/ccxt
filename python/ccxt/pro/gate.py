@@ -412,7 +412,7 @@ class gate(Exchange, ccxt.async_support.gate):
         market = self.market(symbol)
         symbol = market['symbol']
         marketId = market['id']
-        interval = self.timeframes[timeframe]
+        interval = self.safe_string(self.timeframes, timeframe, timeframe)
         messageType = self.get_type_by_market(market)
         channel = messageType + '.candlesticks'
         messageHash = 'candles:' + interval + ':' + market['symbol']
@@ -801,7 +801,7 @@ class gate(Exchange, ccxt.async_support.gate):
                     if id in client.subscriptions:
                         del client.subscriptions[id]
 
-    def handle_balance_subscription(self, client, message):
+    def handle_balance_subscription(self, client, message, subscription=None):
         self.balance = {}
 
     def handle_subscription_status(self, client, message):

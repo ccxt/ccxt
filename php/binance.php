@@ -2724,7 +2724,7 @@ class binance extends Exchange {
         $params = $this->omit($params, array( 'price', 'until' ));
         $limit = ($limit === null) ? $defaultLimit : min ($limit, $maxLimit);
         $request = array(
-            'interval' => $this->timeframes[$timeframe],
+            'interval' => $this->safe_string($this->timeframes, $timeframe, $timeframe),
             'limit' => $limit,
         );
         if ($price === 'index') {
@@ -4368,6 +4368,7 @@ class binance extends Exchange {
             'deposit' => array(
                 '0' => 'pending',
                 '1' => 'ok',
+                '6' => 'ok',
                 // Fiat
                 // Processing, Failed, Successful, Finished, Refunding, Refunded, Refund Failed, Order Partial credit Stopped
                 'Processing' => 'pending',
@@ -4486,7 +4487,7 @@ class binance extends Exchange {
         $updated = $this->safe_integer_2($transaction, 'successTime', 'updateTime');
         $type = $this->safe_string($transaction, 'type');
         if ($type === null) {
-            $txType = $this->safe_string($transaction, 'transactionType');
+            $txType = $this->safe_string_2($transaction, 'transactionType', 'transferType');
             $type = ($txType === '0') ? 'deposit' : 'withdrawal';
             $legalMoneyCurrenciesById = $this->safe_value($this->options, 'legalMoneyCurrenciesById');
             $code = $this->safe_string($legalMoneyCurrenciesById, $code, $code);
@@ -6464,7 +6465,7 @@ class binance extends Exchange {
             }
             $signature = null;
             if (mb_strpos($this->secret, 'PRIVATE KEY') > -1) {
-                $signature = $this->rsa($query, $this->secret);
+                $signature = $this->encode_uri_component($this->rsa($query, $this->secret));
             } else {
                 $signature = $this->hmac($this->encode($query), $this->encode($this->secret));
             }
@@ -7021,7 +7022,7 @@ class binance extends Exchange {
         $this->load_markets();
         $market = $this->market($symbol);
         $request = array(
-            'period' => $this->timeframes[$timeframe],
+            'period' => $this->safe_string($this->timeframes, $timeframe, $timeframe),
         );
         if ($limit !== null) {
             $request['limit'] = $limit;

@@ -2049,7 +2049,7 @@ class bybit extends Exchange {
             }
             $request['start'] = $since;
             $request['end'] = $end;
-            $request['interval'] = $this->timeframes[$timeframe];
+            $request['interval'] = $this->safe_string($this->timeframes, $timeframe, $timeframe);
             $price = $this->safe_string($params, 'price');
             $params = $this->omit($params, 'price');
             $methods = array(
@@ -4794,7 +4794,7 @@ class bybit extends Exchange {
             if ($enableUnifiedMargin) {
                 $request['orderStatus'] = 'Canceled';
             } else {
-                $request['orderStatus'] = array( 'Filled', 'Canceled' );
+                $request['orderStatus'] = 'Filled,Canceled';
             }
             return Async\await($this->fetch_orders($symbol, $since, $limit, array_merge($request, $params)));
         }) ();

@@ -1028,7 +1028,7 @@ class phemex(Exchange):
         """
         request = {
             # 'symbol': market['id'],
-            'resolution': self.timeframes[timeframe],
+            'resolution': self.safe_string(self.timeframes, timeframe, timeframe),
             # 'from': 1588830682,  # seconds
             # 'to': self.seconds(),
         }

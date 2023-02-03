@@ -701,7 +701,7 @@ module.exports = class bigone extends Exchange {
         }
         const request = {
             'asset_pair_name': market['id'],
-            'period': this.timeframes[timeframe],
+            'period': this.safeString (this.timeframes, timeframe, timeframe),
             'limit': limit,
         };
         if (since !== undefined) {

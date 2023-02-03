@@ -2669,7 +2669,7 @@ class binance(Exchange):
         params = self.omit(params, ['price', 'until'])
         limit = defaultLimit if (limit is None) else min(limit, maxLimit)
         request = {
-            'interval': self.timeframes[timeframe],
+            'interval': self.safe_string(self.timeframes, timeframe, timeframe),
             'limit': limit,
         }
         if price == 'index':
@@ -4165,6 +4165,7 @@ class binance(Exchange):
             'deposit': {
                 '0': 'pending',
                 '1': 'ok',
+                '6': 'ok',
                 # Fiat
                 # Processing, Failed, Successful, Finished, Refunding, Refunded, Refund Failed, Order Partial credit Stopped
                 'Processing': 'pending',
@@ -4278,7 +4279,7 @@ class binance(Exchange):
         updated = self.safe_integer_2(transaction, 'successTime', 'updateTime')
         type = self.safe_string(transaction, 'type')
         if type is None:
-            txType = self.safe_string(transaction, 'transactionType')
+            txType = self.safe_string_2(transaction, 'transactionType', 'transferType')
             type = 'deposit' if (txType == '0') else 'withdrawal'
             legalMoneyCurrenciesById = self.safe_value(self.options, 'legalMoneyCurrenciesById')
             code = self.safe_string(legalMoneyCurrenciesById, code, code)
@@ -6105,7 +6106,7 @@ class binance(Exchange):
                 query = self.urlencode(extendedParams)
             signature = None
             if self.secret.find('PRIVATE KEY') > -1:
-                signature = self.rsa(query, self.secret)
+                signature = self.encode_uri_component(self.rsa(query, self.secret))
             else:
                 signature = self.hmac(self.encode(query), self.encode(self.secret))
             query += '&' + 'signature=' + signature
@@ -6605,7 +6606,7 @@ class binance(Exchange):
         self.load_markets()
         market = self.market(symbol)
         request = {
-            'period': self.timeframes[timeframe],
+            'period': self.safe_string(self.timeframes, timeframe, timeframe),
         }
         if limit is not None:
             request['limit'] = limit

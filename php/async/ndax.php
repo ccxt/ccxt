@@ -743,7 +743,7 @@ class ndax extends Exchange {
             $request = array(
                 'omsId' => $omsId,
                 'InstrumentId' => $market['id'],
-                'Interval' => $this->timeframes[$timeframe],
+                'Interval' => $this->safe_string($this->timeframes, $timeframe, $timeframe),
             );
             $duration = $this->parse_timeframe($timeframe);
             $now = $this->milliseconds();

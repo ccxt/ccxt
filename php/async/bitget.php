@@ -85,7 +85,7 @@ class bitget extends Exchange {
                 'fetchTradingFee' => true,
                 'fetchTradingFees' => true,
                 'fetchTransfer' => false,
-                'fetchTransfers' => null,
+                'fetchTransfers' => true,
                 'fetchWithdrawal' => false,
                 'fetchWithdrawals' => true,
                 'reduceMargin' => true,
@@ -813,6 +813,19 @@ class bitget extends Exchange {
                 'broker' => 'p4sve',
                 'withdraw' => array(
                     'fillResponseFromRequest' => true,
+                ),
+                'accountsByType' => array(
+                    'main' => 'EXCHANGE',
+                    'spot' => 'EXCHANGE',
+                    'future' => 'USDT_MIX',
+                    'contract' => 'CONTRACT',
+                    'mix' => 'USD_MIX',
+                ),
+                'accountsById' => array(
+                    'EXCHANGE' => 'spot',
+                    'USDT_MIX' => 'future',
+                    'CONTRACT' => 'swap',
+                    'USD_MIX' => 'swap',
                 ),
                 'sandboxMode' => false,
             ),
@@ -2038,7 +2051,8 @@ class bitget extends Exchange {
                 $limit = 100;
             }
             if ($market['type'] === 'spot') {
-                $request['period'] = $this->options['timeframes']['spot'][$timeframe];
+                $timeframes = $this->options['timeframes']['spot'];
+                $request['period'] = $this->safe_string($timeframes, $timeframe, $timeframe);
                 $request['limit'] = $limit;
                 if ($since !== null) {
                     $request['after'] = $since;
@@ -2051,7 +2065,8 @@ class bitget extends Exchange {
                     $request['before'] = $until;
                 }
             } elseif ($market['type'] === 'swap') {
-                $request['granularity'] = $this->options['timeframes']['swap'][$timeframe];
+                $timeframes = $this->options['timeframes']['swap'];
+                $request['granularity'] = $this->safe_string($timeframes, $timeframe, $timeframe);
                 $duration = $this->parse_timeframe($timeframe);
                 $now = $this->milliseconds();
                 if ($since === null) {
@@ -2148,7 +2163,7 @@ class bitget extends Exchange {
         //
         for ($i = 0; $i < count($balance); $i++) {
             $entry = $balance[$i];
-            $currencyId = $this->safe_string_2($entry, 'coinId', 'marginCoin');
+            $currencyId = $this->safe_string_2($entry, 'coinName', 'marginCoin');
             $code = $this->safe_currency_code($currencyId);
             $account = $this->account();
             $frozen = $this->safe_string($entry, 'frozen');
@@ -2231,7 +2246,7 @@ class bitget extends Exchange {
         //     }
         //
         $marketId = $this->safe_string($order, 'symbol');
-        $market = $this->safe_market($marketId);
+        $market = $this->safe_market($marketId, $market);
         $symbol = $market['symbol'];
         $id = $this->safe_string($order, 'orderId');
         $price = $this->safe_string_2($order, 'price', 'executePrice');
@@ -3856,6 +3871,61 @@ class bitget extends Exchange {
         }) ();
     }
 
+    public function fetch_transfers($code = null, $since = null, $limit = null, $params = array ()) {
+        return Async\async(function () use ($code, $since, $limit, $params) {
+            /**
+             * fetch a history of internal transfers made on an account
+             * @see https://bitgetlimited.github.io/apidoc/en/spot/#get-transfer-list
+             * @param {string|null} $code unified $currency $code of the $currency transferred
+             * @param {int|null} $since the earliest time in ms to fetch transfers for
+             * @param {int|null} $limit the maximum number of  transfers structures to retrieve
+             * @param {array} $params extra parameters specific to the bitget api endpoint
+             * @return {[array]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#transfer-structure transfer structures}
+             */
+            Async\await($this->load_markets());
+            $type = null;
+            list($type, $params) = $this->handle_market_type_and_params('fetchTransfers', null, $params);
+            $fromAccount = $this->safe_string($params, 'fromAccount', $type);
+            $params = $this->omit($params, 'fromAccount');
+            $accountsByType = $this->safe_value($this->options, 'accountsByType', array());
+            $type = $this->safe_string($accountsByType, $fromAccount);
+            $request = array(
+                'fromType' => $type,
+            );
+            $currency = null;
+            if ($code !== null) {
+                $currency = $this->currency($code);
+                $request['coinId'] = $currency['id'];
+            }
+            if ($since !== null) {
+                $request['before'] = $since;
+            }
+            if ($limit !== null) {
+                $request['limit'] = $limit;
+            }
+            $response = Async\await($this->privateSpotGetAccountTransferRecords (array_merge($request, $params)));
+            //
+            //     {
+            //         "code":"00000",
+            //         "message":"success",
+            //         "data":[array(
+            //             "cTime":"1622697148",
+            //             "coinId":"22",
+            //             "coinName":"usdt",
+            //             "groupType":"deposit",
+            //             "bizType":"transfer-in",
+            //             "quantity":"1",
+            //             "balance" => "1",
+            //             "fees":"0",
+            //             "billId":"1291"
+            //         )]
+            //     }
+            //
+            $data = $this->safe_value($response, 'data', array());
+            return $this->parse_transfers($data, $currency, $since, $limit);
+        }) ();
+    }
+
     public function transfer($code, $amount, $fromAccount, $toAccount, $params = array ()) {
         return Async\async(function () use ($code, $amount, $fromAccount, $toAccount, $params) {
             /**
@@ -3902,6 +3972,8 @@ class bitget extends Exchange {
 
     public function parse_transfer($transfer, $currency = null) {
         //
+        // $transfer
+        //
         //    {
         //        "code" => "00000",
         //        "msg" => "success",
@@ -3909,24 +3981,51 @@ class bitget extends Exchange {
         //        "data" => "SUCCESS"
         //    }
         //
-        $timestamp = $this->safe_integer($transfer, 'requestTime');
-        $msg = $this->safe_string($transfer, 'msg');
+        // fetchTransfers
+        //
+        //     {
+        //         "cTime":"1622697148",
+        //         "coinId":"22",
+        //         "coinName":"usdt",
+        //         "groupType":"deposit",
+        //         "bizType":"transfer-in",
+        //         "quantity":"1",
+        //         "balance" => "1",
+        //         "fees":"0",
+        //         "billId":"1291"
+        //     }
+        //
+        $timestamp = $this->safe_integer_2($transfer, 'requestTime', 'tradeTime');
+        if ($timestamp === null) {
+            $timestamp = $this->safe_timestamp($transfer, 'cTime');
+        }
+        $msg = $this->safe_string_lower_n($transfer, array( 'msg', 'status' ));
+        $currencyId = $this->safe_string_2($transfer, 'code', 'coinName');
+        if ($currencyId === '00000') {
+            $currencyId = null;
+        }
+        $fromAccountRaw = $this->safe_string($transfer, 'fromType');
+        $accountsById = $this->safe_value($this->options, 'accountsById', array());
+        $fromAccount = $this->safe_string($accountsById, $fromAccountRaw, $fromAccountRaw);
+        $toAccountRaw = $this->safe_string($transfer, 'toType');
+        $toAccount = $this->safe_string($accountsById, $toAccountRaw, $toAccountRaw);
         return array(
             'info' => $transfer,
-            'id' => $this->safe_string($transfer, 'id'),
+            'id' => $this->safe_string_2($transfer, 'id', 'billId'),
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
-            'currency' => $this->safe_string($currency, 'code'),
-            'amount' => $this->safe_number($transfer, 'size'),
-            'fromAccount' => null,
-            'toAccount' => null,
-            'status' => ($msg === 'success') ? 'ok' : $msg,
+            'currency' => $this->safe_currency_code($currencyId),
+            'amount' => $this->safe_number_n($transfer, array( 'size', 'quantity', 'amount' )),
+            'fromAccount' => $fromAccount,
+            'toAccount' => $toAccount,
+            'status' => $this->parse_transfer_status($msg),
         );
     }
 
     public function parse_transfer_status($status) {
         $statuses = array(
             'success' => 'ok',
+            'successful' => 'ok',
         );
         return $this->safe_string($statuses, $status, $status);
     }

@@ -780,7 +780,7 @@ class stex(Exchange):
         market = self.market(symbol)
         request = {
             'currencyPairId': market['id'],
-            'candlesType': self.timeframes[timeframe],  # default 1d
+            'candlesType': self.safe_string(self.timeframes, timeframe, timeframe),  # default 1d
             # 'timeStart': 1574709092,  # unix timestamp in seconds, required
             # 'timeEnd': 1574709092,  # unix timestamp in seconds, required
             # 'limit': 100,  # default 100, optional

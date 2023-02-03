@@ -1082,7 +1082,7 @@ module.exports = class deribit extends Exchange {
         const market = this.market (symbol);
         const request = {
             'instrument_name': market['id'],
-            'resolution': this.timeframes[timeframe],
+            'resolution': this.safeString (this.timeframes, timeframe, timeframe),
         };
         const duration = this.parseTimeframe (timeframe);
         const now = this.milliseconds ();
@@ -1693,7 +1693,7 @@ module.exports = class deribit extends Exchange {
             request['type'] = 'market';
         }
         if (isStopOrder) {
-            const triggerPrice = stopLossPrice !== undefined ? stopLossPrice : takeProfitPrice;
+            const triggerPrice = (stopLossPrice !== undefined) ? stopLossPrice : takeProfitPrice;
             request['trigger_price'] = this.priceToPrecision (symbol, triggerPrice);
             request['trigger'] = 'last_price'; // required
             if (isStopLossOrder) {

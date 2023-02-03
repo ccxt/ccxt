@@ -701,7 +701,7 @@ class mercado(Exchange):
         self.load_markets()
         market = self.market(symbol)
         request = {
-            'resolution': self.timeframes[timeframe],
+            'resolution': self.safe_string(self.timeframes, timeframe, timeframe),
             'symbol': market['base'] + '-' + market['quote'],  # exceptional endpoint, that needs custom symbol syntax
         }
         if limit is None:

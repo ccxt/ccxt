@@ -1056,7 +1056,7 @@ class deribit(Exchange):
         market = self.market(symbol)
         request = {
             'instrument_name': market['id'],
-            'resolution': self.timeframes[timeframe],
+            'resolution': self.safe_string(self.timeframes, timeframe, timeframe),
         }
         duration = self.parse_timeframe(timeframe)
         now = self.milliseconds()
@@ -1626,7 +1626,7 @@ class deribit(Exchange):
         else:
             request['type'] = 'market'
         if isStopOrder:
-            triggerPrice = stopLossPrice is not stopLossPrice if None else takeProfitPrice
+            triggerPrice = stopLossPrice if (stopLossPrice is not None) else takeProfitPrice
             request['trigger_price'] = self.price_to_precision(symbol, triggerPrice)
             request['trigger'] = 'last_price'  # required
             if isStopLossOrder:

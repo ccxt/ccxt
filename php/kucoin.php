@@ -1136,7 +1136,7 @@ class kucoin extends Exchange {
         $marketId = $market['id'];
         $request = array(
             'symbol' => $marketId,
-            'type' => $this->timeframes[$timeframe],
+            'type' => $this->safe_string($this->timeframes, $timeframe, $timeframe),
         );
         $duration = $this->parse_timeframe($timeframe) * 1000;
         $endAt = $this->milliseconds(); // required param
@@ -1852,10 +1852,13 @@ class kucoin extends Exchange {
         if ($cancelExist) {
             $status = 'canceled';
         }
+        if ($status === null) {
+            $status = 'closed';
+        }
         $stopPrice = $this->safe_number($order, 'stopPrice');
         return $this->safe_order(array(
             'info' => $order,
-            'id' => $this->safe_string($order, 'id'),
+            'id' => $this->safe_string_2($order, 'id', 'orderId'),
             'clientOrderId' => $this->safe_string($order, 'clientOid'),
             'symbol' => $this->safe_symbol($marketId, $market, '-'),
             'type' => $this->safe_string($order, 'type'),

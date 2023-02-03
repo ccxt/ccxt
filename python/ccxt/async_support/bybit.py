@@ -1970,7 +1970,7 @@ class bybit(Exchange):
             request['category'] = 'inverse'
         request['start'] = since
         request['end'] = end
-        request['interval'] = self.timeframes[timeframe]
+        request['interval'] = self.safe_string(self.timeframes, timeframe, timeframe)
         price = self.safe_string(params, 'price')
         params = self.omit(params, 'price')
         methods = {
@@ -4443,7 +4443,7 @@ class bybit(Exchange):
         if enableUnifiedMargin:
             request['orderStatus'] = 'Canceled'
         else:
-            request['orderStatus'] = ['Filled', 'Canceled']
+            request['orderStatus'] = 'Filled,Canceled'
         return await self.fetch_orders(symbol, since, limit, self.extend(request, params))
 
     async def fetch_spot_open_orders(self, symbol=None, since=None, limit=None, params={}):

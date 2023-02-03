@@ -192,7 +192,7 @@ class huobijp(Exchange, ccxt.async_support.huobijp):
         await self.load_markets()
         market = self.market(symbol)
         symbol = market['symbol']
-        interval = self.timeframes[timeframe]
+        interval = self.safe_string(self.timeframes, timeframe, timeframe)
         messageHash = 'market.' + market['id'] + '.kline.' + interval
         api = self.safe_string(self.options, 'api', 'api')
         hostname = {'hostname': self.hostname}

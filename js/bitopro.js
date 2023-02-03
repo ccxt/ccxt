@@ -739,7 +739,7 @@ module.exports = class bitopro extends Exchange {
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const resolution = this.timeframes[timeframe];
+        const resolution = this.safeString (this.timeframes, timeframe, timeframe);
         const request = {
             'pair': market['id'],
             'resolution': resolution,

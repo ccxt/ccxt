@@ -297,7 +297,7 @@ class kraken(Exchange, ccxt.async_support.kraken):
             ],
             'subscription': {
                 'name': name,
-                'interval': self.timeframes[timeframe],
+                'interval': self.safe_string(self.timeframes, timeframe, timeframe),
             },
         }
         request = self.deep_extend(subscribe, params)

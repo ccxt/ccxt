@@ -450,7 +450,7 @@ class gate extends \ccxt\async\gate {
             $market = $this->market($symbol);
             $symbol = $market['symbol'];
             $marketId = $market['id'];
-            $interval = $this->timeframes[$timeframe];
+            $interval = $this->safe_string($this->timeframes, $timeframe, $timeframe);
             $messageType = $this->get_type_by_market($market);
             $channel = $messageType . '.candlesticks';
             $messageHash = 'candles:' . $interval . ':' . $market['symbol'];
@@ -879,7 +879,7 @@ class gate extends \ccxt\async\gate {
         }
     }
 
-    public function handle_balance_subscription($client, $message) {
+    public function handle_balance_subscription($client, $message, $subscription = null) {
         $this->balance = array();
     }
 

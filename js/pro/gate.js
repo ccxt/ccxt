@@ -445,7 +445,7 @@ module.exports = class gate extends gateRest {
         const market = this.market (symbol);
         symbol = market['symbol'];
         const marketId = market['id'];
-        const interval = this.timeframes[timeframe];
+        const interval = this.safeString (this.timeframes, timeframe, timeframe);
         const messageType = this.getTypeByMarket (market);
         const channel = messageType + '.candlesticks';
         const messageHash = 'candles:' + interval + ':' + market['symbol'];
@@ -873,7 +873,7 @@ module.exports = class gate extends gateRest {
         }
     }
 
-    handleBalanceSubscription (client, message) {
+    handleBalanceSubscription (client, message, subscription = undefined) {
         this.balance = {};
     }
 

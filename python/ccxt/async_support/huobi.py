@@ -614,6 +614,8 @@ class huobi(Exchange):
                             'swap-api/v1/swap_api_trading_status': 1,
                             # Swap Account Interface
                             'linear-swap-api/v1/swap_api_trading_status': 1,
+                            'linear-swap-api/v3/unified_account_info': 1,
+                            'linear-swap-api/v3/swap_unified_account_type': 1,
                         },
                         'post': {
                             # Future Account Interface
@@ -803,7 +805,6 @@ class huobi(Exchange):
                             'linear-swap-api/v3/swap_cross_hisorders': 1,
                             'linear-swap-api/v3/swap_hisorders_exact': 1,
                             'linear-swap-api/v3/swap_cross_hisorders_exact': 1,
-                            'linear-swap-api/v3/swap_unified_account_type': 1,
                             'linear-swap-api/v3/swap_switch_account_type': 1,
                             # Swap Strategy Order Interface
                             'linear-swap-api/v1/swap_trigger_order': 1,
@@ -2500,7 +2501,7 @@ class huobi(Exchange):
         await self.load_markets()
         market = self.market(symbol)
         request = {
-            'period': self.timeframes[timeframe],
+            'period': self.safe_string(self.timeframes, timeframe, timeframe),
             # 'symbol': market['id'],  # spot, future
             # 'contract_code': market['id'],  # swap
             # 'size': 1000,  # max 1000 for spot, 2000 for contracts
