@@ -43,6 +43,7 @@ module.exports = class bybit extends Exchange {
                 'fetchBorrowRates': false,
                 'fetchClosedOrders': true,
                 'fetchCurrencies': true,
+                'fetchDeposit': false,
                 'fetchDepositAddress': true,
                 'fetchDepositAddresses': false,
                 'fetchDepositAddressesByNetwork': true,
