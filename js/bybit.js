@@ -4185,6 +4185,59 @@ module.exports = class bybit extends Exchange {
         return await this.cancelDerivativesOrder (id, symbol, params);
     }
 
+    async cancelAllUnifiedAccountOrders (symbol = undefined, params = {}) {
+        await this.loadMarkets ();
+        let market = undefined;
+        let settle = undefined;
+        const request = {};
+        if (symbol !== undefined) {
+            market = this.market (symbol);
+            settle = market['settle'];
+            request['symbol'] = market['id'];
+            if (market['spot']) {
+                request['category'] = 'spot';
+            } else if (market['option']) {
+                request['category'] = 'option';
+            } else if (market['linear']) {
+                request['category'] = 'linear';
+            } else {
+                throw new NotSupported (this.id + ' cancelAllOrders() does not allow inverse market orders for ' + symbol + ' markets');
+            }
+        }
+        [ settle, params ] = this.handleOptionAndParams (params, 'cancelAllOrders', 'settle', settle);
+        if (settle !== undefined) {
+            request['settleCoin'] = settle;
+        }
+        const isStop = this.safeValue (params, 'stop', false);
+        params = this.omit (params, [ 'stop' ]);
+        if (isStop) {
+            request['orderFilter'] = 'tpslOrder';
+        }
+        const response = await this.privatePostV5OrderCancelAll (this.extend (request, params));
+        //
+        //     {
+        //         "retCode": 0,
+        //         "retMsg": "OK",
+        //         "result": {
+        //             "list": [
+        //                 {
+        //                     "orderId": "f6a73e1f-39b5-4dee-af21-1460b2e3b27c",
+        //                     "orderLinkId": "a001"
+        //                 }
+        //             ]
+        //         },
+        //         "retExtInfo": {},
+        //         "time": 1672219780463
+        //     }
+        //
+        const result = this.safeValue (response, 'result', []);
+        const orders = this.safeValue (result, 'list');
+        if (!Array.isArray (orders)) {
+            return response;
+        }
+        return this.parseOrders (orders, market);
+    }
+
     async cancelAllSpotOrders (symbol = undefined, params = {}) {
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' cancelAllSpotOrders() requires a symbol argument');
@@ -4387,8 +4440,10 @@ module.exports = class bybit extends Exchange {
             throw new ArgumentsRequired (this.id + ' cancelAllOrders with inverse subType requires settle to not be USDT or USDC');
         }
         const [ type, query ] = this.handleMarketTypeAndParams ('cancelAllOrders', market, params);
-        const { enableUnifiedMargin } = await this.isUnifiedMarginEnabled ();
-        if (type === 'spot') {
+        const { enableUnifiedMargin, enableUnifiedAccount } = await this.isUnifiedMarginEnabled ();
+        if (enableUnifiedAccount) {
+            return await this.cancelAllUnifiedAccountOrders (symbol, query);
+        } else if (type === 'spot') {
             return await this.cancelAllSpotOrders (symbol, query);
         } else if (enableUnifiedMargin && !isInverse) {
             return await this.cancelAllUnifiedMarginOrders (symbol, query);
