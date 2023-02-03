@@ -2901,7 +2901,6 @@ class huobi extends Exchange {
         $options = $this->safe_value($this->options, 'fetchBalance', array());
         $request = array();
         $method = null;
-        $margin = ($type === 'margin');
         $spot = ($type === 'spot');
         $future = ($type === 'future');
         $swap = ($type === 'swap');
@@ -2915,22 +2914,19 @@ class huobi extends Exchange {
         $params = $this->omit($params, array( 'defaultSubType', 'subType' ));
         $isolated = ($marginMode === 'isolated');
         $cross = ($marginMode === 'cross');
-        if ($spot) {
-            if ($isolated) {
-                $method = 'spotPrivateGetV1MarginAccountsBalance';
-            } elseif ($cross) {
-                $method = 'spotPrivateGetV1CrossMarginAccountsBalance';
+        $margin = ($type === 'margin') || ($spot && ($cross || $isolated));
+        if ($spot || $margin) {
+            if ($margin) {
+                if ($isolated) {
+                    $method = 'spotPrivateGetV1MarginAccountsBalance';
+                } else {
+                    $method = 'spotPrivateGetV1CrossMarginAccountsBalance';
+                }
             } else {
                 $this->load_accounts();
                 $accountId = $this->fetch_account_id_by_type($type, $params);
                 $request['account-id'] = $accountId;
                 $method = 'spotPrivateGetV1AccountAccountsAccountIdBalance';
-            }
-        } elseif ($margin) {
-            if ($isolated) {
-                $method = 'spotPrivateGetV1MarginAccountsBalance';
-            } else {
-                $method = 'spotPrivateGetV1CrossMarginAccountsBalance';
             }
         } elseif ($linear) {
             if ($isolated) {
@@ -3128,17 +3124,11 @@ class huobi extends Exchange {
                     $code = $this->safe_currency_code($currencyId);
                     $result[$code] = $this->parse_margin_balance_helper($balance, $code, $result);
                 }
+                $result = $this->safe_balance($result);
             }
         } elseif ($linear) {
             $first = $this->safe_value($data, 0, array());
-            if ($cross) {
-                $account = $this->account();
-                $account['free'] = $this->safe_string($first, 'margin_balance', 'margin_available');
-                $account['used'] = $this->safe_string($first, 'margin_frozen');
-                $currencyId = $this->safe_string_2($first, 'margin_asset', 'symbol');
-                $code = $this->safe_currency_code($currencyId);
-                $result[$code] = $account;
-            } elseif ($isolated) {
+            if ($isolated) {
                 for ($i = 0; $i < count($data); $i++) {
                     $balance = $data[$i];
                     $marketId = $this->safe_string_2($balance, 'contract_code', 'margin_account');
@@ -3159,7 +3149,14 @@ class huobi extends Exchange {
                         $result[$symbol] = $this->safe_balance($accountsByCode);
                     }
                 }
-                return $result;
+            } else {
+                $account = $this->account();
+                $account['free'] = $this->safe_string($first, 'margin_balance', 'margin_available');
+                $account['used'] = $this->safe_string($first, 'margin_frozen');
+                $currencyId = $this->safe_string_2($first, 'margin_asset', 'symbol');
+                $code = $this->safe_currency_code($currencyId);
+                $result[$code] = $account;
+                $result = $this->safe_balance($result);
             }
         } elseif ($inverse) {
             for ($i = 0; $i < count($data); $i++) {
@@ -3171,9 +3168,9 @@ class huobi extends Exchange {
                 $account['used'] = $this->safe_string($balance, 'margin_frozen');
                 $result[$code] = $account;
             }
+            $result = $this->safe_balance($result);
         }
-        $isolatedMargin = $isolated && ($spot || $margin);
-        return $isolatedMargin ? $result : $this->safe_balance($result);
+        return $result;
     }
 
     public function fetch_order($id, $symbol = null, $params = array ()) {
