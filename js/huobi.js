@@ -3193,9 +3193,8 @@ module.exports = class huobi extends Exchange {
                 result[code] = account;
             }
         }
-        const isolatedMargin = isolated && (spot || margin);
-        const isolatedLinear = isolated && linear;
-        return (isolatedMargin || isolatedLinear) ? result : this.safeBalance (result);
+        const isolatedMargin = isolated && (spot || margin || linear);
+        return isolatedMargin ? result : this.safeBalance (result);
     }
 
     async fetchOrder (id, symbol = undefined, params = {}) {
