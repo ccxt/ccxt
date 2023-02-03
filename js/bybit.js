@@ -3750,6 +3750,60 @@ module.exports = class bybit extends Exchange {
         return this.parseOrder (order);
     }
 
+    async editUnifiedAccountOrder (id, symbol, type, side, amount = undefined, price = undefined, params = {}) {
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        if (!market['linear'] && !market['option']) {
+            throw new NotSupported (this.id + ' editOrder does not allow inverse market orders for ' + symbol + ' markets');
+        }
+        const request = {
+            'symbol': market['id'],
+            'orderId': id,
+            'qty': this.amountToPrecision (symbol, amount),
+        };
+        if (market['linear']) {
+            request['category'] = 'linear';
+        } else {
+            request['category'] = 'option';
+        }
+        if (price !== undefined) {
+            request['price'] = this.priceToPrecision (symbol, price);
+        }
+        const triggerPrice = this.safeValue2 (params, 'stopPrice', 'triggerPrice');
+        const stopLossPrice = this.safeValue (params, 'stopLossPrice');
+        const isStopLossOrder = stopLossPrice !== undefined;
+        const takeProfitPrice = this.safeValue (params, 'takeProfitPrice');
+        const isTakeProfitOrder = takeProfitPrice !== undefined;
+        if (isStopLossOrder) {
+            request['stopLoss'] = this.priceToPrecision (symbol, stopLossPrice);
+        }
+        if (isTakeProfitOrder) {
+            request['takeProfit'] = this.priceToPrecision (symbol, takeProfitPrice);
+        }
+        if (triggerPrice !== undefined) {
+            request['triggerPrice'] = this.priceToPrecision (symbol, triggerPrice);
+        }
+        params = this.omit (params, [ 'stopPrice', 'triggerPrice', 'stopLossPrice', 'takeProfitPrice' ]);
+        const response = await this.privatePostV5OrderAmend (this.extend (request, params));
+        //
+        //     {
+        //         "retCode": 0,
+        //         "retMsg": "OK",
+        //         "result": {
+        //             "orderId": "c6f055d9-7f21-4079-913d-e6523a9cfffa",
+        //             "orderLinkId": "linear-004"
+        //         },
+        //         "retExtInfo": {},
+        //         "time": 1672217093461
+        //     }
+        //
+        const result = this.safeValue (response, 'result', {});
+        return {
+            'info': response,
+            'id': this.safeString (result, 'orderId'),
+        };
+    }
+
     async editUnifiedMarginOrder (id, symbol, type, side, amount, price = undefined, params = {}) {
         await this.loadMarkets ();
         const market = this.market (symbol);
@@ -3887,8 +3941,10 @@ module.exports = class bybit extends Exchange {
         }
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const { enableUnifiedMargin } = await this.isUnifiedMarginEnabled ();
-        if (market['spot']) {
+        const { enableUnifiedMargin, enableUnifiedAccount } = await this.isUnifiedMarginEnabled ();
+        if (enableUnifiedAccount) {
+            return await this.editUnifiedAccountOrder (id, symbol, type, side, amount, price, params);
+        } else if (market['spot']) {
             throw new NotSupported (this.id + ' editOrder() does not support spot markets');
         } else if (enableUnifiedMargin && !market['inverse']) {
             return await this.editUnifiedMarginOrder (id, symbol, type, side, amount, price, params);
