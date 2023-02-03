@@ -5117,6 +5117,26 @@ module.exports = class gate extends Exchange {
         };
     }
 
+    async setPositionMode (hedged, symbol = undefined, params = {}) {
+        /**
+         * @method
+         * @name gate#setPositionMode
+         * @description set dual/hedged mode to true or false for a swap market, make sure all positions are closed and no orders are open before setting dual mode
+         * @param {bool} hedged set to true to enable dual mode
+         * @param {string|undefined} symbol if passed, dual mode is set for all markets with the same settle currency
+         * @param {object} params extra parameters specific to the gate api endpoint
+         * @param {string} params.settle settle currency
+         * @returns {object} response from the exchange
+         */
+        const defaultType = this.safeString (this.options, 'defaultType', 'swap');
+        const type = this.safeString (params, 'type', defaultType);
+        const market = (symbol !== undefined) ? this.market (symbol) : undefined;
+        params = this.omit (params, [ 'type' ]);
+        const [ request, query ] = this.prepareRequest (market, type, params);
+        request['dual_mode'] = hedged;
+        return await this.privateFuturesPostSettleDualMode (this.extend (request, query));
+    }
+
     handleErrors (code, reason, url, method, headers, body, response, requestHeaders, requestBody) {
         if (response === undefined) {
             return;
