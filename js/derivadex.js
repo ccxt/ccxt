@@ -136,6 +136,7 @@ module.exports = class derivadex extends Exchange {
                         'aggregations/volume': 1,
                         'aggregations/markets': 1,
                         'markets/order_book/L2/{symbol}': 1,
+                        'markets/ticker/{symbol}': 1,
                     },
                 },
                 'v2': {
@@ -392,35 +393,41 @@ module.exports = class derivadex extends Exchange {
             'symbol': symbol,
         };
         const orderBookResponse = await this.publicGetMarketsOrderBookL2Symbol (this.extend (request, params)); // markets/order_book endpoint response is cached for 10 seconds
-        const marketsValue = marketsResponse['value'][0];
         const orderBookValue = orderBookResponse['value'];
-        const quoteVolume = this.safeString (marketsValue, 'volume');
         const timestamp = this.safeString (marketsResponse, 'timestamp');
-        const close = this.safeString (marketsValue, 'price');
         const bid = this.safeString (orderBookValue[0], 'price');
         const bidVolume = this.safeString (orderBookValue[0], 'amount');
         const ask = this.safeString (orderBookValue[1], 'price');
         const askVolume = this.safeString (orderBookValue[1], 'amount');
+        const volumeParams = {};
+        volumeParams['symbol'] = symbol;
+        volumeParams['lookbackCount'] = 1;
+        volumeParams['aggregationPeriod'] = 'day';
+        const volumeAggregationResponse = await this.publicGetAggregationsVolume (volumeParams);
+        const volumeValue = volumeAggregationResponse['value'][0];
+        const volumeKey = 'volume_' + symbol;
+        const tickerResponse = await this.publicGetMarketsTickerSymbol ({ 'symbol': symbol });
+        const ticker = tickerResponse['value'][0];
         return {
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': undefined,
-            'high': undefined,
-            'low': undefined,
+            'high': this.safeString (ticker, 'high'),
+            'low': this.safeString (ticker, 'low'),
             'bid': bid,
             'bidVolume': bidVolume,
             'ask': ask,
             'askVolume': askVolume,
-            'vwap': undefined,
-            'open': undefined,
-            'close': close,
-            'last': close,
-            'previousClose': undefined,
-            'change': undefined,
-            'percentage': undefined,
-            'average': undefined,
+            'vwap': this.safeString (ticker, 'vwap'),
+            'open': this.safeString (ticker, 'open'),
+            'close': this.safeString (ticker, 'close'),
+            'last': this.safeString (ticker, 'close'),
+            'previousClose': this.safeString (ticker, 'previousClose'),
+            'change': this.safeString (ticker, 'change'),
+            'percentage': this.safeString (ticker, 'percentage'),
+            'average': this.safeString (ticker, 'average'),
             'baseVolume': undefined,
-            'quoteVolume': quoteVolume,
+            'quoteVolume': volumeValue[volumeKey],
             'info': marketsResponse,
         };
     }
