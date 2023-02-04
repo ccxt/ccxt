@@ -7359,6 +7359,7 @@ module.exports = class bybit extends Exchange {
             this.checkRequiredCredentials ();
             const isOpenapi = url.indexOf ('openapi') >= 0;
             const isV3UnifiedMargin = url.indexOf ('unified/v3') >= 0;
+            const isV5UnifiedAccount = url.indexOf ('v5') >= 0;
             const timestamp = this.nonce ().toString ();
             if (isOpenapi) {
                 if (Object.keys (params).length) {
@@ -7376,14 +7377,16 @@ module.exports = class bybit extends Exchange {
                     'X-BAPI-TIMESTAMP': timestamp,
                     'X-BAPI-SIGN': signature,
                 };
-            } else if (isV3UnifiedMargin) {
+            } else if (isV3UnifiedMargin || isV5UnifiedAccount) {
                 headers = {
                     'Content-Type': 'application/json',
                     'X-BAPI-API-KEY': this.apiKey,
-                    'X-BAPI-SIGN-TYPE': '2',
                     'X-BAPI-TIMESTAMP': timestamp,
                     'X-BAPI-RECV-WINDOW': this.options['recvWindow'].toString (),
                 };
+                if (isV3UnifiedMargin) {
+                    headers['X-BAPI-SIGN-TYPE'] = '2';
+                }
                 const query = params;
                 const queryEncoded = this.rawencode (query);
                 const auth_base = timestamp.toString () + this.apiKey + this.options['recvWindow'].toString ();
