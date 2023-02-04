@@ -644,7 +644,7 @@ module.exports = class timex extends Exchange {
         const market = this.market (symbol);
         const request = {
             'market': market['id'],
-            'period': this.timeframes[timeframe],
+            'period': this.safeString (this.timeframes, timeframe, timeframe),
         };
         // if since and limit are not specified
         const duration = this.parseTimeframe (timeframe);

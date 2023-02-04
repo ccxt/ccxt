@@ -34,7 +34,7 @@ class bitfinex2 extends Exchange {
                 'createStopLimitOrder' => true,
                 'createStopMarketOrder' => true,
                 'createStopOrder' => true,
-                'editOrder' => null,
+                'editOrder' => false,
                 'fetchBalance' => true,
                 'fetchClosedOrder' => true,
                 'fetchClosedOrders' => true,
@@ -406,10 +406,12 @@ class bitfinex2 extends Exchange {
         // https://docs.bitfinex.com/docs/introduction#$amount-precision
         // The $amount field allows up to 8 decimals.
         // Anything exceeding this will be rounded to the 8th decimal.
+        $symbol = $this->safe_symbol($symbol);
         return $this->decimal_to_precision($amount, TRUNCATE, $this->markets[$symbol]['precision']['amount'], DECIMAL_PLACES);
     }
 
     public function price_to_precision($symbol, $price) {
+        $symbol = $this->safe_symbol($symbol);
         $price = $this->decimal_to_precision($price, ROUND, $this->markets[$symbol]['precision']['price'], $this->precisionMode);
         // https://docs.bitfinex.com/docs/introduction#$price-precision
         // The precision level of all trading prices is based on significant figures.
@@ -1160,26 +1162,6 @@ class bitfinex2 extends Exchange {
         return $this->parse_ticker($ticker, $market);
     }
 
-    public function parse_symbol($marketId) {
-        if ($marketId === null) {
-            return $marketId;
-        }
-        $marketId = str_replace('t', '', $marketId);
-        $baseId = null;
-        $quoteId = null;
-        if (mb_strpos($marketId, ':') !== false) {
-            $parts = explode(':', $marketId);
-            $baseId = $parts[0];
-            $quoteId = $parts[1];
-        } else {
-            $baseId = mb_substr($marketId, 0, 3 - 0);
-            $quoteId = mb_substr($marketId, 3, 6 - 3);
-        }
-        $base = $this->safe_currency_code($baseId);
-        $quote = $this->safe_currency_code($quoteId);
-        return $base . '/' . $quote;
-    }
-
     public function parse_trade($trade, $market = null) {
         //
         // fetchTrades (public)
@@ -1231,7 +1213,7 @@ class bitfinex2 extends Exchange {
         $timestamp = $this->safe_integer($trade, $timestampIndex);
         if ($isPrivate) {
             $marketId = $trade[1];
-            $symbol = $this->parse_symbol($marketId);
+            $symbol = $this->safe_symbol($marketId);
             $orderId = $this->safe_string($trade, 3);
             $maker = $this->safe_integer($trade, 8);
             $takerOrMaker = ($maker === 1) ? 'maker' : 'taker';
@@ -1322,7 +1304,7 @@ class bitfinex2 extends Exchange {
         }
         $request = array(
             'symbol' => $market['id'],
-            'timeframe' => $this->timeframes[$timeframe],
+            'timeframe' => $this->safe_string($this->timeframes, $timeframe, $timeframe),
             'sort' => 1,
             'start' => $since,
             'limit' => $limit,
@@ -1407,7 +1389,7 @@ class bitfinex2 extends Exchange {
     public function parse_order($order, $market = null) {
         $id = $this->safe_string($order, 0);
         $marketId = $this->safe_string($order, 3);
-        $symbol = $this->parse_symbol($marketId);
+        $symbol = $this->safe_symbol($marketId);
         // https://github.com/ccxt/ccxt/issues/6686
         // $timestamp = $this->safe_timestamp($order, 5);
         $timestamp = $this->safe_integer($order, 5);
@@ -1496,7 +1478,12 @@ class bitfinex2 extends Exchange {
         // $order types "limit" and "market" immediatley parsed "EXCHANGE LIMIT" and "EXCHANGE MARKET"
         // note => same $order types exist for margin $orders without the EXCHANGE prefix
         $orderTypes = $this->safe_value($this->options, 'orderTypes', array());
-        $orderType = $this->safe_string_upper($orderTypes, $type, $type);
+        $orderType = strtoupper($type);
+        if ($market['spot']) {
+            // although they claim that $type needs to be 'exchange limit' or 'exchange market'
+            // in fact that's not the case for swap markets
+            $orderType = $this->safe_string_upper($orderTypes, $type, $type);
+        }
         $stopPrice = $this->safe_string_2($params, 'stopPrice', 'triggerPrice');
         $timeInForce = $this->safe_string($params, 'timeInForce');
         $postOnlyParam = $this->safe_value($params, 'postOnly', false);

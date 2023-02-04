@@ -52,7 +52,7 @@ class btcbox extends Exchange {
                 'fetchPositionsRisk' => false,
                 'fetchPremiumIndexOHLCV' => false,
                 'fetchTicker' => true,
-                'fetchTickers' => null,
+                'fetchTickers' => false,
                 'fetchTrades' => true,
                 'fetchTransfer' => false,
                 'fetchTransfers' => false,

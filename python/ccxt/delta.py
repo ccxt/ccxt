@@ -14,6 +14,7 @@ from ccxt.base.errors import InvalidOrder
 from ccxt.base.errors import OrderNotFound
 from ccxt.base.errors import ExchangeNotAvailable
 from ccxt.base.decimal_to_precision import TICK_SIZE
+from ccxt.base.precise import Precise
 
 
 class delta(Exchange):
@@ -172,6 +173,18 @@ class delta(Exchange):
                             [20000, 0.05 / 100],
                         ],
                     },
+                },
+            },
+            'options': {
+                'networks': {
+                    'TRC20': 'TRC20(TRON)',
+                    'TRX': 'TRC20(TRON)',
+                    'BEP20': 'BEP20(BSC)',
+                    'BSC': 'BEP20(BSC)',
+                },
+                'networksById': {
+                    'BEP20(BSC)': 'BSC',
+                    'TRC20(TRON)': 'TRC20',
                 },
             },
             'precisionMode': TICK_SIZE,
@@ -990,7 +1003,7 @@ class delta(Exchange):
         market = self.market(symbol)
         request = {
             'symbol': market['id'],
-            'resolution': self.timeframes[timeframe],
+            'resolution': self.safe_string(self.timeframes, timeframe, timeframe),
         }
         duration = self.parse_timeframe(timeframe)
         limit = limit if limit else 2000  # max 2000
@@ -1636,10 +1649,10 @@ class delta(Exchange):
         currenciesByNumericId = self.safe_value(self.options, 'currenciesByNumericId')
         currency = self.safe_value(currenciesByNumericId, currencyId, currency)
         code = None if (currency is None) else currency['code']
-        amount = self.safe_number(item, 'amount')
+        amount = self.safe_string(item, 'amount')
         timestamp = self.parse8601(self.safe_string(item, 'created_at'))
-        after = self.safe_number(item, 'balance')
-        before = max(0, after - amount)
+        after = self.safe_string(item, 'balance')
+        before = Precise.string_max('0', Precise.string_sub(after, amount))
         status = 'ok'
         return {
             'info': item,
@@ -1650,9 +1663,9 @@ class delta(Exchange):
             'referenceAccount': referenceAccount,
             'type': type,
             'currency': code,
-            'amount': amount,
-            'before': before,
-            'after': after,
+            'amount': self.parse_number(amount),
+            'before': self.parse_number(before),
+            'after': self.parse_number(after),
             'status': status,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
@@ -1664,6 +1677,7 @@ class delta(Exchange):
         fetch the deposit address for a currency associated with self account
         :param str code: unified currency code
         :param dict params: extra parameters specific to the delta api endpoint
+        :param str params['network']: unified network code
         :returns dict: an `address structure <https://docs.ccxt.com/en/latest/manual.html#address-structure>`
         """
         self.load_markets()
@@ -1671,31 +1685,56 @@ class delta(Exchange):
         request = {
             'asset_symbol': currency['id'],
         }
+        networkCode = self.safe_string_upper(params, 'network')
+        if networkCode is not None:
+            request['network'] = self.network_code_to_id(networkCode, code)
+            params = self.omit(params, 'network')
         response = self.privateGetDepositsAddress(self.extend(request, params))
         #
-        #     {
-        #         "success":true,
-        #         "result":{
-        #             "id":19628,
-        #             "user_id":22142,
-        #             "address":"0x0eda26523397534f814d553a065d8e46b4188e9a",
-        #             "status":"active",
-        #             "updated_at":"2020-11-15T20:25:53.000Z",
-        #             "created_at":"2020-11-15T20:25:53.000Z",
-        #             "asset_symbol":"USDT",
-        #             "custodian":"onc"
-        #         }
-        #     }
+        #    {
+        #        "success": True,
+        #        "result": {
+        #            "id": 1915615,
+        #            "user_id": 27854758,
+        #            "address": "TXYB4GdKsXKEWbeSNPsmGZu4ZVCkhVh1Zz",
+        #            "memo": "",
+        #            "status": "active",
+        #            "updated_at": "2023-01-12T06:03:46.000Z",
+        #            "created_at": "2023-01-12T06:03:46.000Z",
+        #            "asset_symbol": "USDT",
+        #            "network": "TRC20(TRON)",
+        #            "custodian": "fireblocks"
+        #        }
+        #    }
         #
         result = self.safe_value(response, 'result', {})
-        address = self.safe_string(result, 'address')
+        return self.parse_deposit_address(result, currency)
+
+    def parse_deposit_address(self, depositAddress, currency=None):
+        #
+        #    {
+        #        "id": 1915615,
+        #        "user_id": 27854758,
+        #        "address": "TXYB4GdKsXKEWbeSNPsmGZu4ZVCkhVh1Zz",
+        #        "memo": "",
+        #        "status": "active",
+        #        "updated_at": "2023-01-12T06:03:46.000Z",
+        #        "created_at": "2023-01-12T06:03:46.000Z",
+        #        "asset_symbol": "USDT",
+        #        "network": "TRC20(TRON)",
+        #        "custodian": "fireblocks"
+        #    }
+        #
+        address = self.safe_string(depositAddress, 'address')
+        marketId = self.safe_string(depositAddress, 'asset_symbol')
+        networkId = self.safe_string(depositAddress, 'network')
         self.check_address(address)
         return {
-            'currency': code,
+            'currency': self.safe_currency_code(marketId, currency),
             'address': address,
-            'tag': None,
-            'network': None,
-            'info': response,
+            'tag': self.safe_string(depositAddress, 'memo'),
+            'network': self.network_id_to_code(networkId),
+            'info': depositAddress,
         }
 
     def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):

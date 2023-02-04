@@ -860,7 +860,7 @@ module.exports = class kraken extends Exchange {
         const market = this.market (symbol);
         const request = {
             'pair': market['id'],
-            'interval': this.timeframes[timeframe],
+            'interval': this.safeNumber (this.timeframes, timeframe, timeframe),
         };
         if (since !== undefined) {
             request['since'] = parseInt ((since - 1) / 1000);
@@ -1426,7 +1426,7 @@ module.exports = class kraken extends Exchange {
         }
         const status = this.parseOrderStatus (this.safeString (order, 'status'));
         let id = this.safeString2 (order, 'id', 'txid');
-        if (id === undefined) {
+        if ((id === undefined) || (id.slice (0, 1) === '[')) {
             const txid = this.safeValue (order, 'txid');
             id = this.safeString (txid, 0);
         }

@@ -48,14 +48,14 @@ class upbit extends Exchange {
                 'fetchMarginMode' => false,
                 'fetchMarkets' => true,
                 'fetchMarkOHLCV' => false,
-                'fetchMyTrades' => null,
+                'fetchMyTrades' => false,
                 'fetchOHLCV' => true,
                 'fetchOpenInterestHistory' => false,
                 'fetchOpenOrders' => true,
                 'fetchOrder' => true,
                 'fetchOrderBook' => true,
                 'fetchOrderBooks' => true,
-                'fetchOrders' => null,
+                'fetchOrders' => false,
                 'fetchPositionMode' => false,
                 'fetchPremiumIndexOHLCV' => false,
                 'fetchTicker' => true,
@@ -63,7 +63,7 @@ class upbit extends Exchange {
                 'fetchTrades' => true,
                 'fetchTradingFee' => true,
                 'fetchTradingFees' => false,
-                'fetchTransactions' => null,
+                'fetchTransactions' => false,
                 'fetchWithdrawals' => true,
                 'transfer' => false,
                 'withdraw' => true,
@@ -970,7 +970,7 @@ class upbit extends Exchange {
             Async\await($this->load_markets());
             $market = $this->market($symbol);
             $timeframePeriod = $this->parse_timeframe($timeframe);
-            $timeframeValue = $this->timeframes[$timeframe];
+            $timeframeValue = $this->safe_string($this->timeframes, $timeframe, $timeframe);
             if ($limit === null) {
                 $limit = 200;
             }

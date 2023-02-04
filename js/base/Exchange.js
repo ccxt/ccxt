@@ -987,7 +987,7 @@ module.exports = class Exchange {
 
     safeOrder (order, market = undefined) {
         // parses numbers as strings
-        // it is important pass the trades as unparsed rawTrades
+        // * it is important pass the trades as unparsed rawTrades
         let amount = this.omitZero (this.safeString (order, 'amount'));
         let remaining = this.safeString (order, 'remaining');
         let filled = this.safeString (order, 'filled');
@@ -1194,8 +1194,22 @@ module.exports = class Exchange {
             // timeInForce is not undefined here
             postOnly = timeInForce === 'PO';
         }
+        let timestamp = this.safeInteger (order, 'timestamp');
+        let datetime = this.safeString (order, 'datetime');
+        if (timestamp === undefined) {
+            timestamp = this.parse8601 (timestamp);
+        }
+        if (datetime === undefined) {
+            datetime = this.iso8601 (timestamp);
+        }
+        const triggerPrice = this.parseNumber (this.safeString2 (order, 'triggerPrice', 'stopPrice'));
         return this.extend (order, {
+            'id': this.safeString (order, 'id'),
+            'clientOrderId': this.safeString (order, 'clientOrderId'),
+            'timestamp': timestamp,
+            'datetime': datetime,
             'symbol': symbol,
+            'type': this.safeString (order, 'type'),
             'side': side,
             'lastTradeTimestamp': lastTradeTimeTimestamp,
             'price': this.parseNumber (price),
@@ -1207,6 +1221,11 @@ module.exports = class Exchange {
             'timeInForce': timeInForce,
             'postOnly': postOnly,
             'trades': trades,
+            'reduceOnly': this.safeValue (order, 'reduceOnly'),
+            'stopPrice': triggerPrice,  // ! deprecated, use triggerPrice instead
+            'triggerPrice': triggerPrice,
+            'status': this.safeString (order, 'status'),
+            'fee': this.safeValue (order, 'fee'),
         });
     }
 
@@ -2167,8 +2186,8 @@ module.exports = class Exchange {
         if (marketId !== undefined) {
             if ((this.markets_by_id !== undefined) && (marketId in this.markets_by_id)) {
                 const markets = this.markets_by_id[marketId];
-                const length = markets.length;
-                if (length === 1) {
+                const numMarkets = markets.length;
+                if (numMarkets === 1) {
                     return markets[0];
                 } else {
                     if (marketType === undefined) {
@@ -3034,7 +3053,8 @@ module.exports = class Exchange {
          * @param {[string]} options a list of options that the argument can be
          * @returns {undefined}
          */
-        if ((argument === undefined) || ((options.length > 0) && (!(this.inArray (argument, options))))) {
+        const optionsLength = options.length;
+        if ((argument === undefined) || ((optionsLength > 0) && (!(this.inArray (argument, options))))) {
             const messageOptions = options.join (', ');
             let message = this.id + ' ' + methodName + '() requires a ' + argumentName + ' argument';
             if (messageOptions !== '') {

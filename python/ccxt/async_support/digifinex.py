@@ -1445,7 +1445,7 @@ class digifinex(Exchange):
                 request['limit'] = limit
         else:
             request['symbol'] = market['id']
-            request['period'] = self.timeframes[timeframe]
+            request['period'] = self.safe_string(self.timeframes, timeframe, timeframe)
             if since is not None:
                 startTime = int(since / 1000)
                 request['start_time'] = startTime

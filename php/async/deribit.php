@@ -64,7 +64,7 @@ class deribit extends Exchange {
                 'fetchOpenOrders' => true,
                 'fetchOrder' => true,
                 'fetchOrderBook' => true,
-                'fetchOrders' => null,
+                'fetchOrders' => false,
                 'fetchOrderTrades' => true,
                 'fetchPosition' => true,
                 'fetchPositionMode' => false,
@@ -77,7 +77,7 @@ class deribit extends Exchange {
                 'fetchTrades' => true,
                 'fetchTradingFee' => false,
                 'fetchTradingFees' => true,
-                'fetchTransactions' => null,
+                'fetchTransactions' => false,
                 'fetchTransfer' => false,
                 'fetchTransfers' => true,
                 'fetchWithdrawal' => false,
@@ -1087,7 +1087,7 @@ class deribit extends Exchange {
             $market = $this->market($symbol);
             $request = array(
                 'instrument_name' => $market['id'],
-                'resolution' => $this->timeframes[$timeframe],
+                'resolution' => $this->safe_string($this->timeframes, $timeframe, $timeframe),
             );
             $duration = $this->parse_timeframe($timeframe);
             $now = $this->milliseconds();
@@ -1698,7 +1698,7 @@ class deribit extends Exchange {
                 $request['type'] = 'market';
             }
             if ($isStopOrder) {
-                $triggerPrice = $stopLossPrice !== null ? $stopLossPrice : $takeProfitPrice;
+                $triggerPrice = ($stopLossPrice !== null) ? $stopLossPrice : $takeProfitPrice;
                 $request['trigger_price'] = $this->price_to_precision($symbol, $triggerPrice);
                 $request['trigger'] = 'last_price'; // required
                 if ($isStopLossOrder) {

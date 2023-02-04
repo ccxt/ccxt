@@ -282,7 +282,7 @@ class wazirx(Exchange):
         market = self.market(symbol)
         request = {
             'symbol': market['id'],
-            'interval': self.timeframes[timeframe],
+            'interval': self.safe_string(self.timeframes, timeframe, timeframe),
         }
         if limit is not None:
             request['limit'] = limit

@@ -1057,7 +1057,7 @@ module.exports = class phemex extends Exchange {
          */
         const request = {
             // 'symbol': market['id'],
-            'resolution': this.timeframes[timeframe],
+            'resolution': this.safeString (this.timeframes, timeframe, timeframe),
             // 'from': 1588830682, // seconds
             // 'to': this.seconds (),
         };
@@ -1213,7 +1213,7 @@ module.exports = class phemex extends Exchange {
         };
         let method = 'v1GetMdSpotTicker24hr';
         if (market['swap']) {
-            if (!market['linear']) {
+            if (market['inverse'] || market['settle'] === 'USD') {
                 method = 'v1GetMdTicker24hr';
             } else {
                 method = 'v2GetMdV2Ticker24hr';

@@ -865,7 +865,7 @@ class bitrue(Exchange):
         market = self.market(symbol)
         request = {
             'symbol': market['id'],
-            'scale': self.timeframes[timeframe],
+            'scale': self.safe_string(self.timeframes, timeframe, timeframe),
         }
         if limit is not None:
             request['limit'] = limit

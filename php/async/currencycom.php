@@ -359,7 +359,6 @@ class currencycom extends Exchange {
                 $result[$code] = array(
                     'id' => $id,
                     'code' => $code,
-                    'address' => $this->safe_string($currency, 'baseAddress'),
                     'type' => $this->safe_string_lower($currency, 'type'),
                     'name' => $this->safe_string($currency, 'name'),
                     'active' => null,
@@ -978,7 +977,7 @@ class currencycom extends Exchange {
             $market = $this->market($symbol);
             $request = array(
                 'symbol' => $market['id'],
-                'interval' => $this->timeframes[$timeframe],
+                'interval' => $this->safe_string($this->timeframes, $timeframe, $timeframe),
             );
             if ($since !== null) {
                 $request['startTime'] = $since;

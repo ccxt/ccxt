@@ -48,7 +48,7 @@ class coinbasepro(Exchange):
                 'fetchBalance': True,
                 'fetchClosedOrders': True,
                 'fetchCurrencies': True,
-                'fetchDepositAddress': None,  # the exchange does not have self method, only createDepositAddress, see https://github.com/ccxt/ccxt/pull/7405
+                'fetchDepositAddress': False,  # the exchange does not have self method, only createDepositAddress, see https://github.com/ccxt/ccxt/pull/7405
                 'fetchDeposits': True,
                 'fetchLedger': True,
                 'fetchMarginMode': False,
@@ -185,8 +185,8 @@ class coinbasepro(Exchange):
                 'trading': {
                     'tierBased': True,  # complicated tier system per coin
                     'percentage': True,
-                    'maker': 0.4 / 100,  # highest fee of all tiers
-                    'taker': 0.6 / 100,  # highest fee of all tiers
+                    'maker': self.parse_number('0.004'),  # highest fee of all tiers
+                    'taker': self.parse_number('0.006'),  # highest fee of all tiers
                 },
                 'funding': {
                     'tierBased': False,
@@ -856,7 +856,7 @@ class coinbasepro(Exchange):
         """
         await self.load_markets()
         market = self.market(symbol)
-        granularity = self.timeframes[timeframe]
+        granularity = self.safe_integer(self.timeframes, timeframe, timeframe)
         request = {
             'id': market['id'],
             'granularity': granularity,

@@ -84,7 +84,7 @@ class hollaex(Exchange):
                 'fetchTrades': True,
                 'fetchTradingFee': False,
                 'fetchTradingFees': True,
-                'fetchTransactions': None,
+                'fetchTransactions': False,
                 'fetchTransfer': False,
                 'fetchTransfers': False,
                 'fetchWithdrawal': True,
@@ -729,7 +729,7 @@ class hollaex(Exchange):
         market = self.market(symbol)
         request = {
             'symbol': market['id'],
-            'resolution': self.timeframes[timeframe],
+            'resolution': self.safe_string(self.timeframes, timeframe, timeframe),
         }
         duration = self.parse_timeframe(timeframe)
         if since is None:

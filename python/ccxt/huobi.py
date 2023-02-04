@@ -77,6 +77,8 @@ class huobi(Exchange):
                 'fetchDepositAddresses': None,
                 'fetchDepositAddressesByNetwork': True,
                 'fetchDeposits': True,
+                'fetchDepositWithdrawFee': 'emulated',
+                'fetchDepositWithdrawFees': True,
                 'fetchFundingHistory': True,
                 'fetchFundingRate': True,
                 'fetchFundingRateHistory': True,
@@ -183,11 +185,10 @@ class huobi(Exchange):
                     'discount': 0.15,
                 },
                 'doc': [
-                    'https://huobiapi.github.io/docs/spot/v1/cn/',
-                    'https://huobiapi.github.io/docs/dm/v1/cn/',
-                    'https://huobiapi.github.io/docs/coin_margined_swap/v1/cn/',
-                    'https://huobiapi.github.io/docs/usdt_swap/v1/cn/',
-                    'https://huobiapi.github.io/docs/option/v1/cn/',
+                    'https://huobiapi.github.io/docs/spot/v1/en/',
+                    'https://huobiapi.github.io/docs/dm/v1/en/',
+                    'https://huobiapi.github.io/docs/coin_margined_swap/v1/en/',
+                    'https://huobiapi.github.io/docs/usdt_swap/v1/en/',
                 ],
                 'fees': 'https://www.huobi.com/about/fee/',
             },
@@ -612,6 +613,8 @@ class huobi(Exchange):
                             'swap-api/v1/swap_api_trading_status': 1,
                             # Swap Account Interface
                             'linear-swap-api/v1/swap_api_trading_status': 1,
+                            'linear-swap-api/v3/unified_account_info': 1,
+                            'linear-swap-api/v3/swap_unified_account_type': 1,
                         },
                         'post': {
                             # Future Account Interface
@@ -801,6 +804,7 @@ class huobi(Exchange):
                             'linear-swap-api/v3/swap_cross_hisorders': 1,
                             'linear-swap-api/v3/swap_hisorders_exact': 1,
                             'linear-swap-api/v3/swap_cross_hisorders_exact': 1,
+                            'linear-swap-api/v3/swap_switch_account_type': 1,
                             # Swap Strategy Order Interface
                             'linear-swap-api/v1/swap_trigger_order': 1,
                             'linear-swap-api/v1/swap_cross_trigger_order': 1,
@@ -885,6 +889,7 @@ class huobi(Exchange):
                     'order-marketorder-amount-min-error': InvalidOrder,  # market order amount error, min: `0.01`
                     'order-limitorder-price-min-error': InvalidOrder,  # limit order price error
                     'order-limitorder-price-max-error': InvalidOrder,  # limit order price error
+                    'order-stop-order-hit-trigger': InvalidOrder,  # {"status":"error","err-code":"order-stop-order-hit-trigger","err-msg":"Orders that are triggered immediately are not supported.","data":null}
                     'order-value-min-error': InvalidOrder,  # {"status":"error","err-code":"order-value-min-error","err-msg":"Order total cannot be lower than: 1 USDT","data":null}
                     'order-invalid-price': InvalidOrder,  # {"status":"error","err-code":"order-invalid-price","err-msg":"invalid price","data":null}
                     'order-holding-limit-failed': InvalidOrder,  # {"status":"error","err-code":"order-holding-limit-failed","err-msg":"Order failed, exceeded the holding limit of self currency","data":null}
@@ -981,11 +986,6 @@ class huobi(Exchange):
                 'language': 'en-US',
                 'broker': {
                     'id': 'AA03022abc',
-                },
-                'accountsByType': {
-                    'spot': 'pro',
-                    'funding': 'pro',
-                    'future': 'futures',
                 },
                 'accountsById': {
                     'spot': 'spot',
@@ -2499,7 +2499,7 @@ class huobi(Exchange):
         self.load_markets()
         market = self.market(symbol)
         request = {
-            'period': self.timeframes[timeframe],
+            'period': self.safe_string(self.timeframes, timeframe, timeframe),
             # 'symbol': market['id'],  # spot, future
             # 'contract_code': market['id'],  # swap
             # 'size': 1000,  # max 1000 for spot, 2000 for contracts
@@ -2794,7 +2794,6 @@ class huobi(Exchange):
         options = self.safe_value(self.options, 'fetchBalance', {})
         request = {}
         method = None
-        margin = (type == 'margin')
         spot = (type == 'spot')
         future = (type == 'future')
         swap = (type == 'swap')
@@ -2808,21 +2807,18 @@ class huobi(Exchange):
         params = self.omit(params, ['defaultSubType', 'subType'])
         isolated = (marginMode == 'isolated')
         cross = (marginMode == 'cross')
-        if spot:
-            if isolated:
-                method = 'spotPrivateGetV1MarginAccountsBalance'
-            elif cross:
-                method = 'spotPrivateGetV1CrossMarginAccountsBalance'
+        margin = (type == 'margin') or (spot and (cross or isolated))
+        if spot or margin:
+            if margin:
+                if isolated:
+                    method = 'spotPrivateGetV1MarginAccountsBalance'
+                else:
+                    method = 'spotPrivateGetV1CrossMarginAccountsBalance'
             else:
                 self.load_accounts()
                 accountId = self.fetch_account_id_by_type(type, params)
                 request['account-id'] = accountId
                 method = 'spotPrivateGetV1AccountAccountsAccountIdBalance'
-        elif margin:
-            if isolated:
-                method = 'spotPrivateGetV1MarginAccountsBalance'
-            else:
-                method = 'spotPrivateGetV1CrossMarginAccountsBalance'
         elif linear:
             if isolated:
                 method = 'contractPrivatePostLinearSwapApiV1SwapAccountInfo'
@@ -3013,16 +3009,10 @@ class huobi(Exchange):
                     currencyId = self.safe_string(balance, 'currency')
                     code = self.safe_currency_code(currencyId)
                     result[code] = self.parse_margin_balance_helper(balance, code, result)
+                result = self.safe_balance(result)
         elif linear:
             first = self.safe_value(data, 0, {})
-            if cross:
-                account = self.account()
-                account['free'] = self.safe_string(first, 'margin_balance', 'margin_available')
-                account['used'] = self.safe_string(first, 'margin_frozen')
-                currencyId = self.safe_string_2(first, 'margin_asset', 'symbol')
-                code = self.safe_currency_code(currencyId)
-                result[code] = account
-            elif isolated:
+            if isolated:
                 for i in range(0, len(data)):
                     balance = data[i]
                     marketId = self.safe_string_2(balance, 'contract_code', 'margin_account')
@@ -3041,7 +3031,14 @@ class huobi(Exchange):
                         accountsByCode[code] = account
                         symbol = market['symbol']
                         result[symbol] = self.safe_balance(accountsByCode)
-                return result
+            else:
+                account = self.account()
+                account['free'] = self.safe_string(first, 'margin_balance', 'margin_available')
+                account['used'] = self.safe_string(first, 'margin_frozen')
+                currencyId = self.safe_string_2(first, 'margin_asset', 'symbol')
+                code = self.safe_currency_code(currencyId)
+                result[code] = account
+                result = self.safe_balance(result)
         elif inverse:
             for i in range(0, len(data)):
                 balance = data[i]
@@ -3051,8 +3048,8 @@ class huobi(Exchange):
                 account['free'] = self.safe_string(balance, 'margin_available')
                 account['used'] = self.safe_string(balance, 'margin_frozen')
                 result[code] = account
-        isolatedMargin = isolated and (spot or margin)
-        return result if isolatedMargin else self.safe_balance(result)
+            result = self.safe_balance(result)
+        return result
 
     def fetch_order(self, id, symbol=None, params={}):
         """
@@ -4798,29 +4795,62 @@ class huobi(Exchange):
     def transfer(self, code, amount, fromAccount, toAccount, params={}):
         """
         transfer currency internally between wallets on the same account
+        see https://huobiapi.github.io/docs/dm/v1/en/#transfer-margin-between-spot-account-and-future-account
+        see https://huobiapi.github.io/docs/spot/v1/en/#transfer-fund-between-spot-account-and-future-contract-account
+        see https://huobiapi.github.io/docs/usdt_swap/v1/en/#general-transfer-margin-between-spot-account-and-usdt-margined-contracts-account
         :param str code: unified currency code
         :param float amount: amount to transfer
-        :param str fromAccount: account to transfer from
-        :param str toAccount: account to transfer to
+        :param str fromAccount: account to transfer from 'spot', 'future', 'swap'
+        :param str toAccount: account to transfer to 'spot', 'future', 'swap'
         :param dict params: extra parameters specific to the huobi api endpoint
+        :param str|None params['symbol']: used for isolated margin transfer
         :returns dict: a `transfer structure <https://docs.ccxt.com/en/latest/manual.html#transfer-structure>`
         """
         self.load_markets()
         currency = self.currency(code)
-        type = self.safe_string(params, 'type')
-        if type is None:
-            accountsByType = self.safe_value(self.options, 'accountsByType', {})
-            fromAccount = fromAccount.lower()  # pro, futures
-            toAccount = toAccount.lower()  # pro, futures
-            fromId = self.safe_string(accountsByType, fromAccount, fromAccount)
-            toId = self.safe_string(accountsByType, toAccount, toAccount)
-            type = fromId + '-to-' + toId
         request = {
             'currency': currency['id'],
             'amount': float(self.currency_to_precision(code, amount)),
-            'type': type,
         }
-        response = self.spotPrivatePostFuturesTransfer(self.extend(request, params))
+        subType = None
+        subType, params = self.handle_sub_type_and_params('transfer', None, params)
+        method = None
+        fromAccount = fromAccount.lower()
+        toAccount = toAccount.lower()
+        futuresAccounts = {
+            'future': 'futures',
+            'spot': 'pro',
+        }
+        fromIdFuture = self.safe_string(futuresAccounts, fromAccount, fromAccount)
+        toIdFuture = self.safe_string(futuresAccounts, toAccount, toAccount)
+        isFromSpot = (fromAccount == 'spot') or (fromAccount == 'pro')
+        isToSpot = (toAccount == 'spot') or (toAccount == 'pro')
+        if not isFromSpot and not isToSpot:
+            raise BadRequest(self.id + ' transfer() can only transfer between spot and futures accounts or vice versa')
+        fromOrToFuturesAccount = (fromIdFuture == 'futures') or (toIdFuture == 'futures')
+        if fromOrToFuturesAccount:
+            type = fromIdFuture + '-to-' + toIdFuture
+            type = self.safe_string(params, 'type', type)
+            request['type'] = type
+            method = 'spotPrivatePostV1FuturesTransfer'
+        else:
+            method = 'v2PrivatePostAccountTransfer'
+            if subType == 'linear':
+                if (fromAccount == 'swap') or (fromAccount == 'linear-swap'):
+                    fromAccount = 'linear-swap'
+                else:
+                    toAccount = 'linear-swap'
+                # check if cross-margin or isolated
+                symbol = self.safe_string(params, 'symbol')
+                params = self.omit(params, 'symbol')
+                if symbol is not None:
+                    symbol = self.market_id(symbol)
+                    request['margin-account'] = symbol
+                else:
+                    request['margin-account'] = 'USDT'  # cross-margin
+            request['from'] = fromAccount
+            request['to'] = toAccount
+        response = getattr(self, method)(self.extend(request, params))
         #
         #     {
         #         "data": 12345,
@@ -6743,6 +6773,118 @@ class huobi(Exchange):
         settlementRecord = self.safe_value(data, 'settlement_record')
         settlements = self.parse_settlements(settlementRecord, market)
         return self.sort_by(settlements, 'timestamp')
+
+    def fetch_deposit_withdraw_fees(self, codes=None, params={}):
+        """
+        fetch deposit and withdraw fees
+        see https://huobiapi.github.io/docs/spot/v1/en/#get-all-supported-currencies-v2
+        :param [str]|None codes: list of unified currency codes
+        :param dict params: extra parameters specific to the huobi api endpoint
+        :returns [dict]: a list of `fees structures <https://docs.ccxt.com/en/latest/manual.html#fee-structure>`
+        """
+        self.load_markets()
+        response = self.spotPublicGetV2ReferenceCurrencies(params)
+        #
+        #    {
+        #        "code": 200,
+        #        "data": [
+        #            {
+        #                "currency": "sxp",
+        #                "assetType": "1",
+        #                "chains": [
+        #                    {
+        #                        "chain": "sxp",
+        #                        "displayName": "ERC20",
+        #                        "baseChain": "ETH",
+        #                        "baseChainProtocol": "ERC20",
+        #                        "isDynamic": True,
+        #                        "numOfConfirmations": "12",
+        #                        "numOfFastConfirmations": "12",
+        #                        "depositStatus": "allowed",
+        #                        "minDepositAmt": "0.23",
+        #                        "withdrawStatus": "allowed",
+        #                        "minWithdrawAmt": "0.23",
+        #                        "withdrawPrecision": "8",
+        #                        "maxWithdrawAmt": "227000.000000000000000000",
+        #                        "withdrawQuotaPerDay": "227000.000000000000000000",
+        #                        "withdrawQuotaPerYear": null,
+        #                        "withdrawQuotaTotal": null,
+        #                        "withdrawFeeType": "fixed",
+        #                        "transactFeeWithdraw": "11.1653",
+        #                        "addrWithTag": False,
+        #                        "addrDepositTag": False
+        #                    }
+        #                ],
+        #                "instStatus": "normal"
+        #            }
+        #        ]
+        #    }
+        #
+        data = self.safe_value(response, 'data')
+        return self.parse_deposit_withdraw_fees(data, codes, 'currency')
+
+    def parse_deposit_withdraw_fee(self, fee, currency=None):
+        #
+        #            {
+        #              "currency": "sxp",
+        #              "assetType": "1",
+        #              "chains": [
+        #                  {
+        #                      "chain": "sxp",
+        #                      "displayName": "ERC20",
+        #                      "baseChain": "ETH",
+        #                      "baseChainProtocol": "ERC20",
+        #                      "isDynamic": True,
+        #                      "numOfConfirmations": "12",
+        #                      "numOfFastConfirmations": "12",
+        #                      "depositStatus": "allowed",
+        #                      "minDepositAmt": "0.23",
+        #                      "withdrawStatus": "allowed",
+        #                      "minWithdrawAmt": "0.23",
+        #                      "withdrawPrecision": "8",
+        #                      "maxWithdrawAmt": "227000.000000000000000000",
+        #                      "withdrawQuotaPerDay": "227000.000000000000000000",
+        #                      "withdrawQuotaPerYear": null,
+        #                      "withdrawQuotaTotal": null,
+        #                      "withdrawFeeType": "fixed",
+        #                      "transactFeeWithdraw": "11.1653",
+        #                      "addrWithTag": False,
+        #                      "addrDepositTag": False
+        #                  }
+        #              ],
+        #              "instStatus": "normal"
+        #          }
+        #
+        chains = self.safe_value(fee, 'chains', [])
+        result = self.deposit_withdraw_fee(fee)
+        for j in range(0, len(chains)):
+            chainEntry = chains[j]
+            networkId = self.safe_string(chainEntry, 'chain')
+            withdrawFeeType = self.safe_string(chainEntry, 'withdrawFeeType')
+            networkCode = self.network_id_to_code(networkId)
+            withdrawFee = None
+            withdrawResult = None
+            if withdrawFeeType == 'fixed':
+                withdrawFee = self.safe_number(chainEntry, 'transactFeeWithdraw')
+                withdrawResult = {
+                    'fee': withdrawFee,
+                    'percentage': False,
+                }
+            else:
+                withdrawFee = self.safe_number(chainEntry, 'transactFeeRateWithdraw')
+                withdrawResult = {
+                    'fee': withdrawFee,
+                    'percentage': True,
+                }
+            result['networks'][networkCode] = {
+                'withdraw': withdrawResult,
+                'deposit': {
+                    'fee': None,
+                    'percentage': None,
+                },
+            }
+            result = self.assign_default_deposit_withdraw_fees(result, currency)
+        return result
 
     def parse_settlements(self, settlements, market):
         #

@@ -41,7 +41,7 @@ module.exports = class bitbns extends Exchange {
                 'fetchMarkets': true,
                 'fetchMarkOHLCV': false,
                 'fetchMyTrades': true,
-                'fetchOHLCV': undefined,
+                'fetchOHLCV': false,
                 'fetchOpenOrders': true,
                 'fetchOrder': true,
                 'fetchOrderBook': true,
@@ -59,8 +59,6 @@ module.exports = class bitbns extends Exchange {
                 'fetchWithdrawals': true,
                 'transfer': false,
                 'withdraw': false,
-            },
-            'timeframes': {
             },
             'hostname': 'bitbns.com',
             'urls': {

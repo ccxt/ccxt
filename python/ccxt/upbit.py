@@ -52,14 +52,14 @@ class upbit(Exchange):
                 'fetchMarginMode': False,
                 'fetchMarkets': True,
                 'fetchMarkOHLCV': False,
-                'fetchMyTrades': None,
+                'fetchMyTrades': False,
                 'fetchOHLCV': True,
                 'fetchOpenInterestHistory': False,
                 'fetchOpenOrders': True,
                 'fetchOrder': True,
                 'fetchOrderBook': True,
                 'fetchOrderBooks': True,
-                'fetchOrders': None,
+                'fetchOrders': False,
                 'fetchPositionMode': False,
                 'fetchPremiumIndexOHLCV': False,
                 'fetchTicker': True,
@@ -67,7 +67,7 @@ class upbit(Exchange):
                 'fetchTrades': True,
                 'fetchTradingFee': True,
                 'fetchTradingFees': False,
-                'fetchTransactions': None,
+                'fetchTransactions': False,
                 'fetchWithdrawals': True,
                 'transfer': False,
                 'withdraw': True,
@@ -918,7 +918,7 @@ class upbit(Exchange):
         self.load_markets()
         market = self.market(symbol)
         timeframePeriod = self.parse_timeframe(timeframe)
-        timeframeValue = self.timeframes[timeframe]
+        timeframeValue = self.safe_string(self.timeframes, timeframe, timeframe)
         if limit is None:
             limit = 200
         request = {

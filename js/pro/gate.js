@@ -188,12 +188,15 @@ module.exports = class gate extends gateRest {
         const storedOrderBook = this.safeValue (this.orderbooks, symbol);
         const nonce = this.safeInteger (storedOrderBook, 'nonce');
         if (nonce === undefined) {
-            const cacheLength = storedOrderBook.cache.length;
+            let cacheLength = 0;
+            if (storedOrderBook !== undefined) {
+                cacheLength = storedOrderBook.cache.length;
+            }
             const snapshotDelay = this.handleOption ('watchOrderBook', 'snapshotDelay', 10);
             const waitAmount = isSpot ? snapshotDelay : 0;
             if (cacheLength === waitAmount) {
                 // max limit is 100
-                const subscription = client.subscriptions[channel];
+                const subscription = client.subscriptions[messageHash];
                 const limit = this.safeInteger (subscription, 'limit');
                 this.spawn (this.loadOrderBook, client, messageHash, symbol, limit);
             }
@@ -442,7 +445,7 @@ module.exports = class gate extends gateRest {
         const market = this.market (symbol);
         symbol = market['symbol'];
         const marketId = market['id'];
-        const interval = this.timeframes[timeframe];
+        const interval = this.safeString (this.timeframes, timeframe, timeframe);
         const messageType = this.getTypeByMarket (market);
         const channel = messageType + '.candlesticks';
         const messageHash = 'candles:' + interval + ':' + market['symbol'];
@@ -508,30 +511,6 @@ module.exports = class gate extends gateRest {
             const stored = this.safeValue (this.ohlcvs, symbol);
             client.resolve (stored, hash);
         }
-    }
-
-    async authenticate (params = {}) {
-        const url = this.urls['api']['ws'];
-        const client = this.client (url);
-        const future = client.future ('authenticated');
-        const method = 'server.sign';
-        const authenticate = this.safeValue (client.subscriptions, method);
-        if (authenticate === undefined) {
-            const requestId = this.milliseconds ();
-            const requestIdString = requestId.toString ();
-            const signature = this.hmac (this.encode (requestIdString), this.encode (this.secret), 'sha512', 'hex');
-            const authenticateMessage = {
-                'id': requestId,
-                'method': method,
-                'params': [ this.apiKey, signature, requestId ],
-            };
-            const subscribe = {
-                'id': requestId,
-                'method': this.handleAuthenticationMessage,
-            };
-            this.spawn (this.watch, url, requestId, authenticateMessage, method, subscribe);
-        }
-        return await future;
     }
 
     async watchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
@@ -653,7 +632,7 @@ module.exports = class gate extends gateRest {
             'option': 'options',
         });
         const channel = channelType + '.balances';
-        const messageHash = 'balance';
+        const messageHash = type + '.balance';
         return await this.subscribePrivate (url, messageHash, undefined, channel, params, requiresUid);
     }
 
@@ -728,8 +707,17 @@ module.exports = class gate extends gateRest {
             account['total'] = this.safeString2 (rawBalance, 'total', 'balance');
             this.balance[code] = account;
         }
+        const channel = this.safeString (message, 'channel');
+        const parts = channel.split ('.');
+        const rawType = this.safeString (parts, 0);
+        const channelType = this.getSupportedMapping (rawType, {
+            'spot': 'spot',
+            'futures': 'swap',
+            'options': 'option',
+        });
+        const messageHash = channelType + '.balance';
         this.balance = this.safeBalance (this.balance);
-        client.resolve (this.balance, 'balance');
+        client.resolve (this.balance, messageHash);
     }
 
     async watchOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
@@ -848,28 +836,6 @@ module.exports = class gate extends gateRest {
         client.resolve (this.orders, 'orders');
     }
 
-    handleAuthenticationMessage (client, message, subscription) {
-        const result = this.safeValue (message, 'result');
-        const status = this.safeString (result, 'status');
-        if (status === 'success') {
-            // client.resolve (true, 'authenticated') will delete the future
-            // we want to remember that we are authenticated in subsequent call to private methods
-            const future = this.safeValue (client.futures, 'authenticated');
-            if (future !== undefined) {
-                future.resolve (true);
-            }
-        } else {
-            // delete authenticate subscribeHash to release the "subscribe lock"
-            // allows subsequent calls to subscribe to reauthenticate
-            // avoids sending two authentication messages before receiving a reply
-            const error = new AuthenticationError (this.id + ' handleAuthenticationMessage() error');
-            client.reject (error, 'authenticated');
-            if ('server.sign' in client.subscriptions) {
-                delete client.subscriptions['server.sign'];
-            }
-        }
-    }
-
     handleErrorMessage (client, message) {
         // {
         //     time: 1647274664,
@@ -907,7 +873,7 @@ module.exports = class gate extends gateRest {
         }
     }
 
-    handleBalanceSubscription (client, message) {
+    handleBalanceSubscription (client, message, subscription = undefined) {
         this.balance = {};
     }
 
@@ -917,13 +883,17 @@ module.exports = class gate extends gateRest {
             'balance': this.handleBalanceSubscription,
             'order_book': this.handleOrderBookSubscription,
         };
-        const keys = Object.keys (methods);
-        for (let i = 0; i < keys.length; i++) {
-            const key = keys[i];
-            if (channel.indexOf (key) >= 0) {
-                const method = methods[key];
-                const subscription = client.subscriptions[channel];
-                method.call (this, client, message, subscription);
+        const id = this.safeInteger (message, 'id');
+        const subscriptionsById = this.indexBy (client.subscriptions, 'id');
+        const subscription = this.safeValue (subscriptionsById, id);
+        if (subscription !== undefined) {
+            const keys = Object.keys (methods);
+            for (let i = 0; i < keys.length; i++) {
+                const key = keys[i];
+                if (channel.indexOf (key) >= 0) {
+                    const method = methods[key];
+                    method.call (this, client, message, subscription);
+                }
             }
         }
     }
@@ -1105,7 +1075,7 @@ module.exports = class gate extends gateRest {
             'messageHash': messageHash,
         });
         const message = this.extend (request, params);
-        return await this.watch (url, messageHash, message, subscriptionHash, subscription);
+        return await this.watch (url, messageHash, message, messageHash, subscription);
     }
 
     async subscribePrivate (url, messageHash, payload, subscriptionHash, params, requiresUid = false) {
@@ -1147,6 +1117,6 @@ module.exports = class gate extends gateRest {
             'id': requestId,
             'messageHash': messageHash,
         };
-        return await this.watch (url, messageHash, message, subscriptionHash, subscription);
+        return await this.watch (url, messageHash, message, messageHash, subscription);
     }
 };

@@ -65,7 +65,6 @@ class oceanex(Exchange):
                 'fetchTrades': True,
                 'fetchTradingFee': False,
                 'fetchTradingFees': True,
-                'fetchTradingLimits': None,
                 'fetchTransactionFees': None,
             },
             'timeframes': {
@@ -725,7 +724,7 @@ class oceanex(Exchange):
         market = self.market(symbol)
         request = {
             'market': market['id'],
-            'period': self.timeframes[timeframe],
+            'period': self.safe_string(self.timeframes, timeframe, timeframe),
         }
         if since is not None:
             request['timestamp'] = since

@@ -864,7 +864,8 @@ class cex extends \ccxt\async\cex {
         }
         $this->orders = $myOrders;
         $messageHash = 'orders:' . $symbol;
-        if (strlen($myOrders) > 0) {
+        $ordersLength = count($myOrders);
+        if ($ordersLength > 0) {
             $client->resolve ($myOrders, $messageHash);
         }
     }
@@ -1140,7 +1141,8 @@ class cex extends \ccxt\async\cex {
             ];
             $stored->append ($ohlcv);
         }
-        if (strlen($data) > 0) {
+        $dataLength = count($data);
+        if ($dataLength > 0) {
             $client->resolve ($stored, $messageHash);
         }
     }

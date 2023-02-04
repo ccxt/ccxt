@@ -1048,7 +1048,7 @@ class phemex extends Exchange {
          */
         $request = array(
             // 'symbol' => $market['id'],
-            'resolution' => $this->timeframes[$timeframe],
+            'resolution' => $this->safe_string($this->timeframes, $timeframe, $timeframe),
             // 'from' => 1588830682, // seconds
             // 'to' => $this->seconds(),
         );
@@ -1202,7 +1202,7 @@ class phemex extends Exchange {
         );
         $method = 'v1GetMdSpotTicker24hr';
         if ($market['swap']) {
-            if (!$market['linear']) {
+            if ($market['inverse'] || $market['settle'] === 'USD') {
                 $method = 'v1GetMdTicker24hr';
             } else {
                 $method = 'v2GetMdV2Ticker24hr';

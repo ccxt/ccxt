@@ -1250,7 +1250,7 @@ class bitmart extends Exchange {
         $duration = $this->parse_timeframe($timeframe);
         $request = array(
             'symbol' => $market['id'],
-            'step' => $this->timeframes[$timeframe],
+            'step' => $this->safe_integer($this->timeframes, $timeframe, $timeframe),
         );
         $maxLimit = 500;
         if ($limit === null) {

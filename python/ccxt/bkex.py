@@ -25,9 +25,9 @@ class bkex(Exchange):
             'certified': False,
             'has': {
                 'CORS': None,
-                'spot': None,
+                'spot': True,
                 'margin': None,
-                'swap': None,
+                'swap': True,
                 'future': None,
                 'option': None,
                 'addMargin': None,
@@ -514,13 +514,13 @@ class bkex(Exchange):
         if swap:
             swapTimeframes = self.safe_value(timeframes, 'swap')
             method = 'publicSwapGetMarketCandle'
-            request['period'] = swapTimeframes[timeframe]
+            request['period'] = self.safe_string(swapTimeframes, timeframe, timeframe)
             if limit is not None:
                 request['count'] = limit
         else:
             spotTimeframes = self.safe_value(timeframes, 'spot')
             request['symbol'] = market['id']
-            request['period'] = spotTimeframes[timeframe]
+            request['period'] = self.safe_string(spotTimeframes, timeframe, timeframe)
         if limit is not None:
             limitRequest = 'count' if swap else 'size'
             request[limitRequest] = limit

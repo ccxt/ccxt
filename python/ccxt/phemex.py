@@ -1028,7 +1028,7 @@ class phemex(Exchange):
         """
         request = {
             # 'symbol': market['id'],
-            'resolution': self.timeframes[timeframe],
+            'resolution': self.safe_string(self.timeframes, timeframe, timeframe),
             # 'from': 1588830682,  # seconds
             # 'to': self.seconds(),
         }
@@ -1176,7 +1176,7 @@ class phemex(Exchange):
         }
         method = 'v1GetMdSpotTicker24hr'
         if market['swap']:
-            if not market['linear']:
+            if market['inverse'] or market['settle'] == 'USD':
                 method = 'v1GetMdTicker24hr'
             else:
                 method = 'v2GetMdV2Ticker24hr'

@@ -678,7 +678,7 @@ class lbank2 extends Exchange {
         }
         $request = array(
             'symbol' => $market['id'],
-            'type' => $this->timeframes[$timeframe],
+            'type' => $this->safe_string($this->timeframes, $timeframe, $timeframe),
             'time' => intval($since / 1000),
             'size' => $limit, // max 2000
         );
@@ -2279,8 +2279,7 @@ class lbank2 extends Exchange {
                 } else {
                     $pem = $this->convert_secret_to_pem($this->encode($this->secret));
                 }
-                $encodedPem = $this->encode($pem);
-                $sign = $this->binary_to_base64($this->rsa($uppercaseHash, $encodedPem, 'RS256'));
+                $sign = $this->rsa($uppercaseHash, $pem);
             } elseif ($signatureMethod === 'HmacSHA256') {
                 $sign = $this->hmac($this->encode($uppercaseHash), $this->encode($this->secret));
             }

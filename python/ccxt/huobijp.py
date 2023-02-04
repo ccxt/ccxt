@@ -921,7 +921,7 @@ class huobijp(Exchange):
         market = self.market(symbol)
         request = {
             'symbol': market['id'],
-            'period': self.timeframes[timeframe],
+            'period': self.safe_string(self.timeframes, timeframe, timeframe),
         }
         if limit is not None:
             request['size'] = limit

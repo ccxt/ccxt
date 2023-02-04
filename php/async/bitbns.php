@@ -44,7 +44,7 @@ class bitbns extends Exchange {
                 'fetchMarkets' => true,
                 'fetchMarkOHLCV' => false,
                 'fetchMyTrades' => true,
-                'fetchOHLCV' => null,
+                'fetchOHLCV' => false,
                 'fetchOpenOrders' => true,
                 'fetchOrder' => true,
                 'fetchOrderBook' => true,
@@ -62,8 +62,6 @@ class bitbns extends Exchange {
                 'fetchWithdrawals' => true,
                 'transfer' => false,
                 'withdraw' => false,
-            ),
-            'timeframes' => array(
             ),
             'hostname' => 'bitbns.com',
             'urls' => array(

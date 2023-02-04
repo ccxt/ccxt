@@ -25,7 +25,7 @@ module.exports = class bitmex extends Exchange {
             'pro': true,
             'has': {
                 'CORS': undefined,
-                'spot': false,
+                'spot': true,
                 'margin': false,
                 'swap': true,
                 'future': true,
@@ -1770,7 +1770,7 @@ module.exports = class bitmex extends Exchange {
         const market = this.market (symbol);
         const request = {
             'symbol': market['id'],
-            'binSize': this.timeframes[timeframe],
+            'binSize': this.safeString (this.timeframes, timeframe, timeframe),
             'partial': true,     // true == include yet-incomplete current bins
             // 'filter': filter, // filter by individual fields and do advanced queries
             // 'columns': [],    // will return all columns if omitted
@@ -2190,15 +2190,14 @@ module.exports = class bitmex extends Exchange {
         } else {
             orderQty = this.convertIntoQuantity (market, amount);
         }
+        const brokerId = this.safeString (this.options, 'brokerId', 'CCXT');
         const request = {
             'symbol': market['id'],
             'side': this.capitalize (side),
             'orderQty': orderQty,
             'ordType': orderType,
+            'text': brokerId,
         };
-        if (reduceOnly) {
-            request['execInst'] = 'ReduceOnly';
-        }
         if ((orderType === 'Stop') || (orderType === 'StopLimit') || (orderType === 'MarketIfTouched') || (orderType === 'LimitIfTouched')) {
             const stopPrice = this.safeNumber2 (params, 'stopPx', 'stopPrice');
             if (stopPrice === undefined) {
@@ -2250,6 +2249,8 @@ module.exports = class bitmex extends Exchange {
         if (price !== undefined) {
             request['price'] = price;
         }
+        const brokerId = this.safeString (this.options, 'brokerId', 'CCXT');
+        request['text'] = brokerId;
         const response = await this.privatePutOrder (this.extend (request, params));
         return this.parseOrder (response);
     }

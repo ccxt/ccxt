@@ -80,7 +80,7 @@ class hollaex extends Exchange {
                 'fetchTrades' => true,
                 'fetchTradingFee' => false,
                 'fetchTradingFees' => true,
-                'fetchTransactions' => null,
+                'fetchTransactions' => false,
                 'fetchTransfer' => false,
                 'fetchTransfers' => false,
                 'fetchWithdrawal' => true,
@@ -760,7 +760,7 @@ class hollaex extends Exchange {
             $market = $this->market($symbol);
             $request = array(
                 'symbol' => $market['id'],
-                'resolution' => $this->timeframes[$timeframe],
+                'resolution' => $this->safe_string($this->timeframes, $timeframe, $timeframe),
             );
             $duration = $this->parse_timeframe($timeframe);
             if ($since === null) {

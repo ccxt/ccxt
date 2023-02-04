@@ -664,7 +664,7 @@ class lbank2(Exchange):
             since = self.milliseconds() - duration * 1000 * limit
         request = {
             'symbol': market['id'],
-            'type': self.timeframes[timeframe],
+            'type': self.safe_string(self.timeframes, timeframe, timeframe),
             'time': int(since / 1000),
             'size': limit,  # max 2000
         }
@@ -2157,8 +2157,7 @@ class lbank2(Exchange):
                         self.options['pem'] = pem
                 else:
                     pem = self.convert_secret_to_pem(self.encode(self.secret))
-                encodedPem = self.encode(pem)
-                sign = self.binary_to_base64(self.rsa(uppercaseHash, encodedPem, 'RS256'))
+                sign = self.rsa(uppercaseHash, pem)
             elif signatureMethod == 'HmacSHA256':
                 sign = self.hmac(self.encode(uppercaseHash), self.encode(self.secret))
             query['sign'] = sign

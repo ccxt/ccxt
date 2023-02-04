@@ -841,7 +841,7 @@ class bitvavo extends Exchange {
             $market = $this->market($symbol);
             $request = array(
                 'market' => $market['id'],
-                'interval' => $this->timeframes[$timeframe],
+                'interval' => $this->safe_string($this->timeframes, $timeframe, $timeframe),
                 // 'limit' => 1440, // default 1440, max 1440
                 // 'start' => $since,
                 // 'end' => $this->milliseconds(),
@@ -1419,6 +1419,11 @@ class bitvavo extends Exchange {
         $remaining = $this->safe_string($order, 'amountRemaining');
         $filled = $this->safe_string($order, 'filledAmount');
         $cost = $this->safe_string($order, 'filledAmountQuote');
+        if ($cost === null) {
+            $amountQuote = $this->safe_string($order, 'amountQuote');
+            $amountQuoteRemaining = $this->safe_string($order, 'amountQuoteRemaining');
+            $cost = Precise::string_sub($amountQuote, $amountQuoteRemaining);
+        }
         $fee = null;
         $feeCost = $this->safe_number($order, 'feePaid');
         if ($feeCost !== null) {
