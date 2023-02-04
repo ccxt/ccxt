@@ -30,7 +30,10 @@ module.exports = class idex extends Exchange {
                 'future': false,
                 'option': false,
                 'addMargin': false,
+                'cancelAllOrders': true,
                 'cancelOrder': true,
+                'cancelOrders': false,
+                'createDepositAddress': false,
                 'createOrder': true,
                 'createReduceOnlyOrder': false,
                 'createStopLimitOrder': true,
@@ -44,6 +47,7 @@ module.exports = class idex extends Exchange {
                 'fetchBorrowRatesPerSymbol': false,
                 'fetchClosedOrders': true,
                 'fetchCurrencies': true,
+                'fetchDeposit': true,
                 'fetchDeposits': true,
                 'fetchFundingHistory': false,
                 'fetchFundingRate': false,
@@ -52,6 +56,7 @@ module.exports = class idex extends Exchange {
                 'fetchIndexOHLCV': false,
                 'fetchLeverage': false,
                 'fetchLeverageTiers': false,
+                'fetchMarginMode': false,
                 'fetchMarkets': true,
                 'fetchMarkOHLCV': false,
                 'fetchMyTrades': true,
@@ -60,8 +65,9 @@ module.exports = class idex extends Exchange {
                 'fetchOpenOrders': true,
                 'fetchOrder': true,
                 'fetchOrderBook': true,
-                'fetchOrders': undefined,
+                'fetchOrders': false,
                 'fetchPosition': false,
+                'fetchPositionMode': false,
                 'fetchPositions': false,
                 'fetchPositionsRisk': false,
                 'fetchPremiumIndexOHLCV': false,
@@ -70,7 +76,8 @@ module.exports = class idex extends Exchange {
                 'fetchTrades': true,
                 'fetchTradingFee': false,
                 'fetchTradingFees': true,
-                'fetchTransactions': undefined,
+                'fetchTransactions': false,
+                'fetchWithdrawal': true,
                 'fetchWithdrawals': true,
                 'reduceMargin': false,
                 'setLeverage': false,
@@ -181,8 +188,8 @@ module.exports = class idex extends Exchange {
          * @method
          * @name idex#fetchMarkets
          * @description retrieves data on all markets for idex
-         * @param {dict} params extra parameters specific to the exchange api endpoint
-         * @returns {[dict]} an array of objects representing market data
+         * @param {object} params extra parameters specific to the exchange api endpoint
+         * @returns {[object]} an array of objects representing market data
          */
         const response = await this.publicGetMarkets (params);
         //
@@ -247,7 +254,6 @@ module.exports = class idex extends Exchange {
             const quote = this.safeCurrencyCode (quoteId);
             const basePrecision = this.parseNumber (this.parsePrecision (this.safeString (entry, 'baseAssetPrecision')));
             const quotePrecision = this.parseNumber (this.parsePrecision (this.safeString (entry, 'quoteAssetPrecision')));
-            const pricePrecision = this.safeNumber (entry, 'tickSize');
             const status = this.safeString (entry, 'status');
             let minCost = undefined;
             if (quote === 'ETH') {
@@ -281,7 +287,7 @@ module.exports = class idex extends Exchange {
                 'optionType': undefined,
                 'precision': {
                     'amount': basePrecision,
-                    'price': pricePrecision,
+                    'price': this.safeNumber (entry, 'tickSize'),
                 },
                 'limits': {
                     'leverage': {
@@ -312,9 +318,9 @@ module.exports = class idex extends Exchange {
          * @method
          * @name idex#fetchTicker
          * @description fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
-         * @param {str} symbol unified symbol of the market to fetch the ticker for
-         * @param {dict} params extra parameters specific to the idex api endpoint
-         * @returns {dict} a [ticker structure]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
+         * @param {string} symbol unified symbol of the market to fetch the ticker for
+         * @param {object} params extra parameters specific to the idex api endpoint
+         * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
@@ -349,9 +355,9 @@ module.exports = class idex extends Exchange {
          * @method
          * @name idex#fetchTickers
          * @description fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
-         * @param {[str]|undefined} symbols unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
-         * @param {dict} params extra parameters specific to the idex api endpoint
-         * @returns {dict} an array of [ticker structures]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
+         * @param {[string]|undefined} symbols unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
+         * @param {object} params extra parameters specific to the idex api endpoint
+         * @returns {object} an array of [ticker structures]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
          */
         await this.loadMarkets ();
         // [
@@ -427,11 +433,11 @@ module.exports = class idex extends Exchange {
          * @method
          * @name idex#fetchOHLCV
          * @description fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
-         * @param {str} symbol unified symbol of the market to fetch OHLCV data for
-         * @param {str} timeframe the length of time each candle represents
+         * @param {string} symbol unified symbol of the market to fetch OHLCV data for
+         * @param {string} timeframe the length of time each candle represents
          * @param {int|undefined} since timestamp in ms of the earliest candle to fetch
          * @param {int|undefined} limit the maximum amount of candles to fetch
-         * @param {dict} params extra parameters specific to the idex api endpoint
+         * @param {object} params extra parameters specific to the idex api endpoint
          * @returns {[[int]]} A list of candles ordered as timestamp, open, high, low, close, volume
          */
         await this.loadMarkets ();
@@ -490,11 +496,11 @@ module.exports = class idex extends Exchange {
          * @method
          * @name idex#fetchTrades
          * @description get the list of most recent trades for a particular symbol
-         * @param {str} symbol unified symbol of the market to fetch trades for
+         * @param {string} symbol unified symbol of the market to fetch trades for
          * @param {int|undefined} since timestamp in ms of the earliest trade to fetch
          * @param {int|undefined} limit the maximum amount of trades to fetch
-         * @param {dict} params extra parameters specific to the idex api endpoint
-         * @returns {[dict]} a list of [trade structures]{@link https://docs.ccxt.com/en/latest/manual.html?#public-trades}
+         * @param {object} params extra parameters specific to the idex api endpoint
+         * @returns {[object]} a list of [trade structures]{@link https://docs.ccxt.com/en/latest/manual.html?#public-trades}
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
@@ -605,8 +611,8 @@ module.exports = class idex extends Exchange {
          * @method
          * @name idex#fetchTradingFees
          * @description fetch the trading fees for multiple markets
-         * @param {dict} params extra parameters specific to the idex api endpoint
-         * @returns {dict} a dictionary of [fee structures]{@link https://docs.ccxt.com/en/latest/manual.html#fee-structure} indexed by market symbols
+         * @param {object} params extra parameters specific to the idex api endpoint
+         * @returns {object} a dictionary of [fee structures]{@link https://docs.ccxt.com/en/latest/manual.html#fee-structure} indexed by market symbols
          */
         this.checkRequiredCredentials ();
         await this.loadMarkets ();
@@ -651,10 +657,10 @@ module.exports = class idex extends Exchange {
          * @method
          * @name idex#fetchOrderBook
          * @description fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
-         * @param {str} symbol unified symbol of the market to fetch the order book for
+         * @param {string} symbol unified symbol of the market to fetch the order book for
          * @param {int|undefined} limit the maximum amount of order book entries to return
-         * @param {dict} params extra parameters specific to the idex api endpoint
-         * @returns {dict} A dictionary of [order book structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-book-structure} indexed by market symbols
+         * @param {object} params extra parameters specific to the idex api endpoint
+         * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-book-structure} indexed by market symbols
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
@@ -716,8 +722,8 @@ module.exports = class idex extends Exchange {
          * @method
          * @name idex#fetchCurrencies
          * @description fetches all available currencies on an exchange
-         * @param {dict} params extra parameters specific to the idex api endpoint
-         * @returns {dict} an associative dictionary of currencies
+         * @param {object} params extra parameters specific to the idex api endpoint
+         * @returns {object} an associative dictionary of currencies
          */
         const response = await this.publicGetAssets (params);
         //
@@ -783,8 +789,8 @@ module.exports = class idex extends Exchange {
          * @method
          * @name idex#fetchBalance
          * @description query for balance and get the amount of funds available for trading or funds locked in orders
-         * @param {dict} params extra parameters specific to the idex api endpoint
-         * @returns {dict} a [balance structure]{@link https://docs.ccxt.com/en/latest/manual.html?#balance-structure}
+         * @param {object} params extra parameters specific to the idex api endpoint
+         * @returns {object} a [balance structure]{@link https://docs.ccxt.com/en/latest/manual.html?#balance-structure}
          */
         this.checkRequiredCredentials ();
         await this.loadMarkets ();
@@ -826,11 +832,11 @@ module.exports = class idex extends Exchange {
          * @method
          * @name idex#fetchMyTrades
          * @description fetch all trades made by the user
-         * @param {str|undefined} symbol unified market symbol
+         * @param {string|undefined} symbol unified market symbol
          * @param {int|undefined} since the earliest time in ms to fetch trades for
          * @param {int|undefined} limit the maximum number of trades structures to retrieve
-         * @param {dict} params extra parameters specific to the idex api endpoint
-         * @returns {[dict]} a list of [trade structures]{@link https://docs.ccxt.com/en/latest/manual.html#trade-structure}
+         * @param {object} params extra parameters specific to the idex api endpoint
+         * @returns {[object]} a list of [trade structures]{@link https://docs.ccxt.com/en/latest/manual.html#trade-structure}
          */
         this.checkRequiredCredentials ();
         await this.loadMarkets ();
@@ -893,9 +899,9 @@ module.exports = class idex extends Exchange {
          * @method
          * @name idex#fetchOrder
          * @description fetches information on an order made by the user
-         * @param {str|undefined} symbol unified symbol of the market the order was made in
-         * @param {dict} params extra parameters specific to the idex api endpoint
-         * @returns {dict} An [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
+         * @param {string|undefined} symbol unified symbol of the market the order was made in
+         * @param {object} params extra parameters specific to the idex api endpoint
+         * @returns {object} An [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
          */
         const request = {
             'orderId': id,
@@ -908,11 +914,11 @@ module.exports = class idex extends Exchange {
          * @method
          * @name idex#fetchOpenOrders
          * @description fetch all unfilled currently open orders
-         * @param {str|undefined} symbol unified market symbol
+         * @param {string|undefined} symbol unified market symbol
          * @param {int|undefined} since the earliest time in ms to fetch open orders for
          * @param {int|undefined} limit the maximum number of  open orders structures to retrieve
-         * @param {dict} params extra parameters specific to the idex api endpoint
-         * @returns {[dict]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
+         * @param {object} params extra parameters specific to the idex api endpoint
+         * @returns {[object]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
          */
         const request = {
             'closed': false,
@@ -925,11 +931,11 @@ module.exports = class idex extends Exchange {
          * @method
          * @name idex#fetchClosedOrders
          * @description fetches information on multiple closed orders made by the user
-         * @param {str|undefined} symbol unified market symbol of the market orders were made in
+         * @param {string|undefined} symbol unified market symbol of the market orders were made in
          * @param {int|undefined} since the earliest time in ms to fetch orders for
          * @param {int|undefined} limit the maximum number of  orde structures to retrieve
-         * @param {dict} params extra parameters specific to the idex api endpoint
-         * @returns {[dict]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure
+         * @param {object} params extra parameters specific to the idex api endpoint
+         * @returns {[object]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
          */
         const request = {
             'closed': true,
@@ -1097,6 +1103,7 @@ module.exports = class idex extends Exchange {
             'side': side,
             'price': price,
             'stopPrice': undefined,
+            'triggerPrice': undefined,
             'amount': amount,
             'cost': undefined,
             'average': average,
@@ -1139,13 +1146,13 @@ module.exports = class idex extends Exchange {
          * @method
          * @name idex#createOrder
          * @description create a trade order, https://docs.idex.io/#create-order
-         * @param {str} symbol unified symbol of the market to create an order in
-         * @param {str} type 'market' or 'limit'
-         * @param {str} side 'buy' or 'sell'
+         * @param {string} symbol unified symbol of the market to create an order in
+         * @param {string} type 'market' or 'limit'
+         * @param {string} side 'buy' or 'sell'
          * @param {float} amount how much of currency you want to trade in units of base currency
          * @param {float|undefined} price the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
-         * @param {dict} params extra parameters specific to the idex api endpoint
-         * @returns {dict} an [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
+         * @param {object} params extra parameters specific to the idex api endpoint
+         * @returns {object} an [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
          */
         this.checkRequiredCredentials ();
         await this.loadMarkets ();
@@ -1332,12 +1339,12 @@ module.exports = class idex extends Exchange {
          * @method
          * @name idex#withdraw
          * @description make a withdrawal
-         * @param {str} code unified currency code
+         * @param {string} code unified currency code
          * @param {float} amount the amount to withdraw
-         * @param {str} address the address to withdraw to
-         * @param {str|undefined} tag
-         * @param {dict} params extra parameters specific to the idex api endpoint
-         * @returns {dict} a [transaction structure]{@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure}
+         * @param {string} address the address to withdraw to
+         * @param {string|undefined} tag
+         * @param {object} params extra parameters specific to the idex api endpoint
+         * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure}
          */
         [ tag, params ] = this.handleWithdrawTagAndParams (tag, params);
         this.checkRequiredCredentials ();
@@ -1381,15 +1388,55 @@ module.exports = class idex extends Exchange {
         return this.parseTransaction (response, currency);
     }
 
+    async cancelAllOrders (symbol = undefined, params = {}) {
+        /**
+         * @method
+         * @name idex#cancelAllOrders
+         * @description cancel all open orders
+         * @param {string|undefined} symbol unified market symbol, only orders in the market of this symbol are cancelled when symbol is not undefined
+         * @param {object} params extra parameters specific to the idex api endpoint
+         * @returns {[object]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
+         */
+        this.checkRequiredCredentials ();
+        await this.loadMarkets ();
+        let market = undefined;
+        if (symbol !== undefined) {
+            market = this.market (symbol);
+        }
+        const nonce = this.uuidv1 ();
+        const request = {
+            'parameters': {
+                'nonce': nonce,
+                'wallet': this.walletAddress,
+            },
+        };
+        const walletBytes = this.remove0xPrefix (this.walletAddress);
+        const byteArray = [
+            this.base16ToBinary (nonce),
+            this.base16ToBinary (walletBytes),
+        ];
+        if (market !== undefined) {
+            byteArray.push (this.stringToBinary (this.encode (market['id'])));
+            request['parameters']['market'] = market['id'];
+        }
+        const binary = this.binaryConcatArray (byteArray);
+        const hash = this.hash (binary, 'keccak', 'hex');
+        const signature = this.signMessageString (hash, this.privateKey);
+        request['signature'] = signature;
+        // [ { orderId: '688336f0-ec50-11ea-9842-b332f8a34d0e' } ]
+        const response = await this.privateDeleteOrders (this.extend (request, params));
+        return this.parseOrders (response, market);
+    }
+
     async cancelOrder (id, symbol = undefined, params = {}) {
         /**
          * @method
          * @name idex#cancelOrder
          * @description cancels an open order
-         * @param {str} id order id
-         * @param {str|undefined} symbol unified symbol of the market the order was made in
-         * @param {dict} params extra parameters specific to the idex api endpoint
-         * @returns {dict} An [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
+         * @param {string} id order id
+         * @param {string|undefined} symbol unified symbol of the market the order was made in
+         * @param {object} params extra parameters specific to the idex api endpoint
+         * @returns {object} An [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
          */
         this.checkRequiredCredentials ();
         await this.loadMarkets ();
@@ -1433,16 +1480,37 @@ module.exports = class idex extends Exchange {
         }
     }
 
+    async fetchDeposit (id, code = undefined, params = {}) {
+        /**
+         * @method
+         * @name idex#fetchDeposit
+         * @description fetch information on a deposit
+         * @param {string} id deposit id
+         * @param {string|undefined} code not used by idex fetchDeposit ()
+         * @param {object} params extra parameters specific to the idex api endpoint
+         * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure}
+         */
+        await this.loadMarkets ();
+        const nonce = this.uuidv1 ();
+        const request = {
+            'nonce': nonce,
+            'wallet': this.walletAddress,
+            'depositId': id,
+        };
+        const response = await this.privateGetDeposits (this.extend (request, params));
+        return this.parseTransaction (response, code);
+    }
+
     async fetchDeposits (code = undefined, since = undefined, limit = undefined, params = {}) {
         /**
          * @method
          * @name idex#fetchDeposits
          * @description fetch all deposits made to an account
-         * @param {str|undefined} code unified currency code
+         * @param {string|undefined} code unified currency code
          * @param {int|undefined} since the earliest time in ms to fetch deposits for
          * @param {int|undefined} limit the maximum number of deposits structures to retrieve
-         * @param {dict} params extra parameters specific to the idex api endpoint
-         * @returns {[dict]} a list of [transaction structures]{@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure}
+         * @param {object} params extra parameters specific to the idex api endpoint
+         * @returns {[object]} a list of [transaction structures]{@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure}
          */
         params = this.extend ({
             'method': 'privateGetDeposits',
@@ -1450,16 +1518,52 @@ module.exports = class idex extends Exchange {
         return this.fetchTransactionsHelper (code, since, limit, params);
     }
 
+    async fetchTime (params = {}) {
+        /**
+         * @method
+         * @name idex#fetchTime
+         * @description fetches the current integer timestamp in milliseconds from the exchange server
+         * @param {object} params extra parameters specific to the idex api endpoint
+         * @returns {int} the current integer timestamp in milliseconds from the exchange server
+         */
+        const response = await this.publicGetTime (params);
+        //
+        //    { serverTime: '1655258263236' }
+        //
+        return this.safeNumber (response, 'serverTime');
+    }
+
+    async fetchWithdrawal (id, code = undefined, params = {}) {
+        /**
+         * @method
+         * @name idex#fetchWithdrawal
+         * @description fetch data on a currency withdrawal via the withdrawal id
+         * @param {string} id withdrawal id
+         * @param {string|undefined} code not used by idex.fetchWithdrawal
+         * @param {object} params extra parameters specific to the idex api endpoint
+         * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure}
+         */
+        await this.loadMarkets ();
+        const nonce = this.uuidv1 ();
+        const request = {
+            'nonce': nonce,
+            'wallet': this.walletAddress,
+            'withdrawalId': id,
+        };
+        const response = await this.privateGetWithdrawals (this.extend (request, params));
+        return this.parseTransaction (response, code);
+    }
+
     async fetchWithdrawals (code = undefined, since = undefined, limit = undefined, params = {}) {
         /**
          * @method
          * @name idex#fetchWithdrawals
          * @description fetch all withdrawals made from an account
-         * @param {str|undefined} code unified currency code
+         * @param {string|undefined} code unified currency code
          * @param {int|undefined} since the earliest time in ms to fetch withdrawals for
          * @param {int|undefined} limit the maximum number of withdrawals structures to retrieve
-         * @param {dict} params extra parameters specific to the idex api endpoint
-         * @returns {[dict]} a list of [transaction structures]{@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure}
+         * @param {object} params extra parameters specific to the idex api endpoint
+         * @returns {[object]} a list of [transaction structures]{@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure}
          */
         params = this.extend ({
             'method': 'privateGetWithdrawals',
@@ -1558,7 +1662,7 @@ module.exports = class idex extends Exchange {
         const code = this.safeCurrencyCode (this.safeString (transaction, 'asset'), currency);
         const amount = this.safeNumber (transaction, 'quantity');
         const txid = this.safeString (transaction, 'txId');
-        const timestamp = this.safeInteger (transaction, 'txTime');
+        const timestamp = this.safeInteger2 (transaction, 'txTime', 'time');
         let fee = undefined;
         if ('fee' in transaction) {
             fee = {

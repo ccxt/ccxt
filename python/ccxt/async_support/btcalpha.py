@@ -32,6 +32,9 @@ class btcalpha(Exchange):
                 'cancelOrder': True,
                 'createOrder': True,
                 'createReduceOnlyOrder': False,
+                'createStopLimitOrder': False,
+                'createStopMarketOrder': False,
+                'createStopOrder': False,
                 'fetchBalance': True,
                 'fetchBorrowRate': False,
                 'fetchBorrowRateHistories': False,
@@ -46,7 +49,9 @@ class btcalpha(Exchange):
                 'fetchFundingRateHistory': False,
                 'fetchFundingRates': False,
                 'fetchIndexOHLCV': False,
+                'fetchL2OrderBook': True,
                 'fetchLeverage': False,
+                'fetchMarginMode': False,
                 'fetchMarkets': True,
                 'fetchMarkOHLCV': False,
                 'fetchMyTrades': True,
@@ -57,10 +62,12 @@ class btcalpha(Exchange):
                 'fetchOrderBook': True,
                 'fetchOrders': True,
                 'fetchPosition': False,
+                'fetchPositionMode': False,
                 'fetchPositions': False,
                 'fetchPositionsRisk': False,
                 'fetchPremiumIndexOHLCV': False,
-                'fetchTicker': None,
+                'fetchTicker': True,
+                'fetchTickers': True,
                 'fetchTrades': True,
                 'fetchTradingFee': False,
                 'fetchTradingFees': False,
@@ -76,7 +83,6 @@ class btcalpha(Exchange):
                 'withdraw': False,
             },
             'timeframes': {
-                '1m': '1',
                 '5m': '5',
                 '15m': '15',
                 '30m': '30',
@@ -86,7 +92,9 @@ class btcalpha(Exchange):
             },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/42625213-dabaa5da-85cf-11e8-8f99-aa8f8f7699f0.jpg',
-                'api': 'https://btc-alpha.com/api',
+                'api': {
+                    'rest': 'https://btc-alpha.com/api',
+                },
                 'www': 'https://btc-alpha.com',
                 'doc': 'https://btc-alpha.github.io/api-docs',
                 'fees': 'https://btc-alpha.com/fees/',
@@ -97,9 +105,10 @@ class btcalpha(Exchange):
                     'get': [
                         'currencies/',
                         'pairs/',
-                        'orderbook/{pair_name}/',
+                        'orderbook/{pair_name}',
                         'exchanges/',
                         'charts/{pair}/{type}/chart/',
+                        'ticker/',
                     ],
                 },
                 'private': {
@@ -221,6 +230,104 @@ class btcalpha(Exchange):
             })
         return result
 
+    async def fetch_tickers(self, symbols=None, params={}):
+        """
+        see https://btc-alpha.github.io/api-docs/#tickers
+        fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
+        :param [str]|None symbols: unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
+        :param dict params: extra parameters specific to the btcalpha api endpoint
+        :returns dict: an array of `ticker structures <https://docs.ccxt.com/en/latest/manual.html#ticker-structure>`
+        """
+        await self.load_markets()
+        response = await self.publicGetTicker(params)
+        #
+        #    [
+        #        {
+        #            timestamp: '1674658.445272',
+        #            pair: 'BTC_USDT',
+        #            last: '22476.85',
+        #            diff: '458.96',
+        #            vol: '6660.847784',
+        #            high: '23106.08',
+        #            low: '22348.29',
+        #            buy: '22508.46',
+        #            sell: '22521.11'
+        #        },
+        #        ...
+        #    ]
+        #
+        return self.parse_tickers(response, symbols)
+
+    async def fetch_ticker(self, symbol, params={}):
+        """
+        see https://btc-alpha.github.io/api-docs/#tickers
+        fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+        :param str symbol: unified symbol of the market to fetch the ticker for
+        :param dict params: extra parameters specific to the btcalpha api endpoint
+        :returns dict: a `ticker structure <https://docs.ccxt.com/en/latest/manual.html#ticker-structure>`
+        """
+        await self.load_markets()
+        market = self.market(symbol)
+        request = {
+            'pair': market['id'],
+        }
+        response = await self.publicGetTicker(self.extend(request, params))
+        #
+        #    {
+        #        timestamp: '1674658.445272',
+        #        pair: 'BTC_USDT',
+        #        last: '22476.85',
+        #        diff: '458.96',
+        #        vol: '6660.847784',
+        #        high: '23106.08',
+        #        low: '22348.29',
+        #        buy: '22508.46',
+        #        sell: '22521.11'
+        #    }
+        #
+        return self.parse_ticker(response, market)
+
+    def parse_ticker(self, ticker, market=None):
+        #
+        #    {
+        #        timestamp: '1674658.445272',
+        #        pair: 'BTC_USDT',
+        #        last: '22476.85',
+        #        diff: '458.96',
+        #        vol: '6660.847784',
+        #        high: '23106.08',
+        #        low: '22348.29',
+        #        buy: '22508.46',
+        #        sell: '22521.11'
+        #    }
+        #
+        timestamp = self.safe_integer_product(ticker, 'timestamp', 1000000)
+        marketId = self.safe_string(ticker, 'pair')
+        market = self.safe_market(marketId, market, '_')
+        last = self.safe_string(ticker, 'last')
+        return self.safe_ticker({
+            'info': ticker,
+            'symbol': market['symbol'],
+            'timestamp': timestamp,
+            'datetime': self.iso8601(timestamp),
+            'high': self.safe_string(ticker, 'high'),
+            'low': self.safe_string(ticker, 'low'),
+            'bid': self.safe_string(ticker, 'buy'),
+            'bidVolume': None,
+            'ask': self.safe_string(ticker, 'sell'),
+            'askVolume': None,
+            'vwap': None,
+            'open': None,
+            'close': last,
+            'last': last,
+            'previousClose': None,
+            'change': self.safe_string(ticker, 'diff'),
+            'percentage': None,
+            'average': None,
+            'baseVolume': None,
+            'quoteVolume': self.safe_string(ticker, 'vol'),
+        }, market)
+
     async def fetch_order_book(self, symbol, limit=None, params={}):
         """
         fetches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
@@ -230,14 +337,15 @@ class btcalpha(Exchange):
         :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/en/latest/manual.html#order-book-structure>` indexed by market symbols
         """
         await self.load_markets()
+        market = self.market(symbol)
         request = {
-            'pair_name': self.market_id(symbol),
+            'pair_name': market['id'],
         }
         if limit:
             request['limit_sell'] = limit
             request['limit_buy'] = limit
         response = await self.publicGetOrderbookPairName(self.extend(request, params))
-        return self.parse_order_book(response, symbol, None, 'buy', 'sell', 'price', 'amount')
+        return self.parse_order_book(response, market['symbol'], None, 'buy', 'sell', 'price', 'amount')
 
     def parse_bids_asks(self, bidasks, priceKey=0, amountKey=1):
         result = []
@@ -274,7 +382,8 @@ class btcalpha(Exchange):
         #
         marketId = self.safe_string(trade, 'pair')
         market = self.safe_market(marketId, market, '_')
-        timestamp = self.safe_timestamp(trade, 'timestamp')
+        timestampRaw = self.safe_string(trade, 'timestamp')
+        timestamp = self.parse_number(Precise.string_mul(timestampRaw, '1000000'))
         priceString = self.safe_string(trade, 'price')
         amountString = self.safe_string(trade, 'amount')
         id = self.safe_string(trade, 'id')
@@ -325,6 +434,9 @@ class btcalpha(Exchange):
         :returns [dict]: a list of `transaction structures <https://docs.ccxt.com/en/latest/manual.html#transaction-structure>`
         """
         await self.load_markets()
+        currency = None
+        if code is not None:
+            currency = self.currency(code)
         response = await self.privateGetDeposits(params)
         #
         #     [
@@ -336,7 +448,7 @@ class btcalpha(Exchange):
         #         }
         #     ]
         #
-        return self.parse_transactions(response, code, since, limit, {'type': 'deposit'})
+        return self.parse_transactions(response, currency, since, limit, {'type': 'deposit'})
 
     async def fetch_withdrawals(self, code=None, since=None, limit=None, params={}):
         """
@@ -365,7 +477,7 @@ class btcalpha(Exchange):
         #         }
         #     ]
         #
-        return self.parse_transactions(response, code, since, limit, {'type': 'withdrawal'})
+        return self.parse_transactions(response, currency, since, limit, {'type': 'withdrawal'})
 
     def parse_transaction(self, transaction, currency=None):
         #
@@ -386,14 +498,13 @@ class btcalpha(Exchange):
         #          "status": 20
         #      }
         #
-        timestamp = self.safe_string(transaction, 'timestamp')
-        timestamp = Precise.string_mul(timestamp, '1000')
+        timestamp = self.safe_timestamp(transaction, 'timestamp')
         currencyId = self.safe_string(transaction, 'currency')
         statusId = self.safe_string(transaction, 'status')
         return {
             'id': self.safe_string(transaction, 'id'),
             'info': transaction,
-            'timestamp': self.parse_number(timestamp),
+            'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
             'network': None,
             'address': None,
@@ -456,7 +567,7 @@ class btcalpha(Exchange):
         market = self.market(symbol)
         request = {
             'pair': market['id'],
-            'type': self.timeframes[timeframe],
+            'type': self.safe_string(self.timeframes, timeframe, timeframe),
         }
         if limit is not None:
             request['limit'] = limit
@@ -561,6 +672,7 @@ class btcalpha(Exchange):
             'side': side,
             'price': price,
             'stopPrice': None,
+            'triggerPrice': None,
             'cost': None,
             'amount': amount,
             'filled': filled,
@@ -595,9 +707,10 @@ class btcalpha(Exchange):
         if not response['success']:
             raise InvalidOrder(self.id + ' ' + self.json(response))
         order = self.parse_order(response, market)
-        amount = order['amount'] if (order['amount'] > 0) else amount
+        orderAmount = str(order['amount'])
+        amount = order['amount'] if Precise.string_gt(orderAmount, '0') else amount
         return self.extend(order, {
-            'amount': amount,
+            'amount': self.parse_number(amount),
         })
 
     async def cancel_order(self, id, symbol=None, params={}):
@@ -635,7 +748,7 @@ class btcalpha(Exchange):
         :param int|None since: the earliest time in ms to fetch orders for
         :param int|None limit: the maximum number of  orde structures to retrieve
         :param dict params: extra parameters specific to the btcalpha api endpoint
-        :returns [dict]: a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure
+        :returns [dict]: a list of `order structures <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
         """
         await self.load_markets()
         request = {}
@@ -669,7 +782,7 @@ class btcalpha(Exchange):
         :param int|None since: the earliest time in ms to fetch orders for
         :param int|None limit: the maximum number of  orde structures to retrieve
         :param dict params: extra parameters specific to the btcalpha api endpoint
-        :returns [dict]: a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure
+        :returns [dict]: a list of `order structures <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
         """
         request = {
             'status': '3',
@@ -700,7 +813,7 @@ class btcalpha(Exchange):
 
     def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
         query = self.urlencode(self.keysort(self.omit(params, self.extract_params(path))))
-        url = self.urls['api'] + '/'
+        url = self.urls['api']['rest'] + '/'
         if path != 'charts/{pair}/{type}/chart/':
             url += 'v1/'
         url += self.implode_params(path, params)

@@ -52,9 +52,10 @@ class buda(Exchange):
                 'fetchFundingRates': False,
                 'fetchIndexOHLCV': False,
                 'fetchLeverage': False,
+                'fetchMarginMode': False,
                 'fetchMarkets': True,
                 'fetchMarkOHLCV': False,
-                'fetchMyTrades': None,
+                'fetchMyTrades': False,
                 'fetchOHLCV': True,
                 'fetchOpenInterestHistory': False,
                 'fetchOpenOrders': True,
@@ -62,6 +63,7 @@ class buda(Exchange):
                 'fetchOrderBook': True,
                 'fetchOrders': True,
                 'fetchPosition': False,
+                'fetchPositionMode': False,
                 'fetchPositions': False,
                 'fetchPositionsRisk': False,
                 'fetchPremiumIndexOHLCV': False,
@@ -83,7 +85,9 @@ class buda(Exchange):
             },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/47380619-8a029200-d706-11e8-91e0-8a391fe48de3.jpg',
-                'api': 'https://www.buda.com/api',
+                'api': {
+                    'rest': 'https://www.buda.com/api',
+                },
                 'www': 'https://www.buda.com',
                 'doc': 'https://api.buda.com',
                 'fees': 'https://www.buda.com/comisiones',
@@ -262,7 +266,6 @@ class buda(Exchange):
             quote = self.safe_currency_code(quoteId)
             baseInfo = self.fetch_currency_info(baseId, currencies)
             quoteInfo = self.fetch_currency_info(quoteId, currencies)
-            pricePrecisionString = self.safe_string(quoteInfo, 'input_decimals')
             minimumOrderAmount = self.safe_value(market, 'minimum_order_amount', [])
             taker_fee = self.safe_string(market, 'taker_fee')
             maker_fee = self.safe_string(market, 'maker_fee')
@@ -294,7 +297,7 @@ class buda(Exchange):
                 'maker': self.parse_number(Precise.string_div(maker_fee, '1000')),
                 'precision': {
                     'amount': self.parse_number(self.parse_precision(self.safe_string(baseInfo, 'input_decimals'))),
-                    'price': self.parse_number(self.parse_precision(pricePrecisionString)),
+                    'price': self.parse_number(self.parse_precision(self.safe_string(quoteInfo, 'input_decimals'))),
                 },
                 'limits': {
                     'leverage': {
@@ -407,8 +410,8 @@ class buda(Exchange):
             request = {'currency': currency['id']}
             withdrawResponse = self.publicGetCurrenciesCurrencyFeesWithdrawal(request)
             depositResponse = self.publicGetCurrenciesCurrencyFeesDeposit(request)
-            withdrawFees[code] = self.parse_funding_fee(withdrawResponse['fee'])
-            depositFees[code] = self.parse_funding_fee(depositResponse['fee'])
+            withdrawFees[code] = self.parse_transaction_fee(withdrawResponse['fee'])
+            depositFees[code] = self.parse_transaction_fee(depositResponse['fee'])
             info[code] = {
                 'withdraw': withdrawResponse,
                 'deposit': depositResponse,
@@ -419,7 +422,7 @@ class buda(Exchange):
             'info': info,
         }
 
-    def parse_funding_fee(self, fee, type=None):
+    def parse_transaction_fee(self, fee, type=None):
         if type is None:
             type = fee['name']
         if type == 'withdrawal':
@@ -592,7 +595,7 @@ class buda(Exchange):
         }
         response = self.publicGetMarketsMarketOrderBook(self.extend(request, params))
         orderbook = self.safe_value(response, 'order_book')
-        return self.parse_order_book(orderbook, symbol)
+        return self.parse_order_book(orderbook, market['symbol'])
 
     def fetch_ohlcv(self, symbol, timeframe='1m', since=None, limit=None, params={}):
         """
@@ -610,7 +613,7 @@ class buda(Exchange):
             since = self.milliseconds() - 86400000
         request = {
             'symbol': market['id'],
-            'resolution': self.timeframes[timeframe],
+            'resolution': self.safe_string(self.timeframes, timeframe, timeframe),
             'from': since / 1000,
             'to': self.seconds(),
         }
@@ -662,7 +665,7 @@ class buda(Exchange):
         :param int|None since: the earliest time in ms to fetch orders for
         :param int|None limit: the maximum number of  orde structures to retrieve
         :param dict params: extra parameters specific to the buda api endpoint
-        :returns [dict]: a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure
+        :returns [dict]: a list of `order structures <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
         """
         self.load_markets()
         market = None
@@ -697,7 +700,7 @@ class buda(Exchange):
         :param int|None since: the earliest time in ms to fetch orders for
         :param int|None limit: the maximum number of  orde structures to retrieve
         :param dict params: extra parameters specific to the buda api endpoint
-        :returns [dict]: a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure
+        :returns [dict]: a list of `order structures <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
         """
         request = {
             'state': 'traded',
@@ -717,8 +720,9 @@ class buda(Exchange):
         """
         self.load_markets()
         side = 'Bid' if (side == 'buy') else 'Ask'
+        market = self.market(symbol)
         request = {
-            'market': self.market_id(symbol),
+            'market': market['id'],
             'price_type': type,
             'type': side,
             'amount': self.amount_to_precision(symbol, amount),
@@ -789,7 +793,7 @@ class buda(Exchange):
         remaining = self.safe_string(remainingAmount, 0)
         tradedAmount = self.safe_value(order, 'traded_amount', [])
         filled = self.safe_string(tradedAmount, 0)
-        totalExchanged = self.safe_value(order, 'totalExchanged', [])
+        totalExchanged = self.safe_value(order, 'total_exchanged', [])
         cost = self.safe_string(totalExchanged, 0)
         limitPrice = self.safe_value(order, 'limit', [])
         price = self.safe_string(limitPrice, 0)
@@ -804,7 +808,8 @@ class buda(Exchange):
             feeCurrencyCode = self.safe_currency_code(feeCurrencyId)
             fee = {
                 'cost': feeCost,
-                'code': feeCurrencyCode,
+                'code': feeCurrencyCode,  # kept here for backward-compatibility, but will be removed soon
+                'currency': feeCurrencyCode,
             }
         return self.safe_order({
             'info': order,
@@ -821,6 +826,7 @@ class buda(Exchange):
             'side': side,
             'price': price,
             'stopPrice': None,
+            'triggerPrice': None,
             'average': None,
             'cost': cost,
             'amount': amount,
@@ -1023,7 +1029,7 @@ class buda(Exchange):
                 request += '?' + self.urlencode(query)
             else:
                 body = self.json(query)
-        url = self.urls['api'] + '/' + self.version + '/' + request
+        url = self.urls['api']['rest'] + '/' + self.version + '/' + request
         if api == 'private':
             self.check_required_credentials()
             nonce = str(self.nonce())

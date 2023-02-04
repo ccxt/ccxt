@@ -42,6 +42,7 @@ class therock(Exchange):
                 'fetchFundingRates': False,
                 'fetchIndexOHLCV': False,
                 'fetchLedger': True,
+                'fetchMarginMode': False,
                 'fetchMarkets': True,
                 'fetchMarkOHLCV': False,
                 'fetchMyTrades': True,
@@ -51,6 +52,7 @@ class therock(Exchange):
                 'fetchOrder': True,
                 'fetchOrderBook': True,
                 'fetchOrders': True,
+                'fetchPositionMode': False,
                 'fetchPremiumIndexOHLCV': False,
                 'fetchTicker': True,
                 'fetchTickers': True,
@@ -66,7 +68,9 @@ class therock(Exchange):
             },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/27766869-75057fa2-5ee9-11e7-9a6f-13e641fa4707.jpg',
-                'api': 'https://api.therocktrading.com',
+                'api': {
+                    'rest': 'https://api.therocktrading.com',
+                },
                 'www': 'https://therocktrading.com',
                 'doc': [
                     'https://api.therocktrading.com/doc/v1/index.html',
@@ -288,12 +292,13 @@ class therock(Exchange):
         :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/en/latest/manual.html#order-book-structure>` indexed by market symbols
         """
         self.load_markets()
+        market = self.market(symbol)
         request = {
-            'id': self.market_id(symbol),
+            'id': market['id'],
         }
         orderbook = self.publicGetFundsIdOrderbook(self.extend(request, params))
         timestamp = self.parse8601(self.safe_string(orderbook, 'date'))
-        return self.parse_order_book(orderbook, symbol, timestamp, 'bids', 'asks', 'price', 'amount')
+        return self.parse_order_book(orderbook, market['symbol'], timestamp, 'bids', 'asks', 'price', 'amount')
 
     def parse_ticker(self, ticker, market=None):
         #
@@ -345,6 +350,7 @@ class therock(Exchange):
         :returns dict: an array of `ticker structures <https://docs.ccxt.com/en/latest/manual.html#ticker-structure>`
         """
         self.load_markets()
+        symbols = self.market_symbols(symbols)
         response = self.publicGetFundsTickers(params)
         tickers = self.index_by(response['tickers'], 'fund_id')
         ids = list(tickers.keys())
@@ -1045,77 +1051,49 @@ class therock(Exchange):
         #         "position_id": null,
         #         "trades": [
         #             {
-        #                 "id":237338,
-        #                 "fund_id":"BTCEUR",
-        #                 "amount":50,
-        #                 "price":0.0102,
-        #                 "side":"buy",
-        #                 "dark":false,
-        #                 "date":"2015-06-03T00:49:49.000Z"
+        #                 "id": 237338,
+        #                 "fund_id": "BTCEUR",
+        #                 "amount": 50,
+        #                 "price": 0.0102,
+        #                 "side": "buy",
+        #                 "dark": False,
+        #                 "date": "2015-06-03T00:49:49.000Z"
         #             }
         #         ]
         #     }
         #
         id = self.safe_string(order, 'id')
         marketId = self.safe_string(order, 'fund_id')
-        symbol = self.safe_symbol(marketId, market)
-        status = self.parse_order_status(self.safe_string(order, 'status'))
         timestamp = self.parse8601(self.safe_string(order, 'date'))
-        type = self.safe_string(order, 'type')
-        side = self.safe_string(order, 'side')
-        amount = self.safe_number(order, 'amount')
-        remaining = self.safe_number(order, 'amount_unfilled')
-        filled = None
-        if amount is not None:
-            if remaining is not None:
-                filled = amount - remaining
-        price = self.safe_number(order, 'price')
+        amount = self.safe_string(order, 'amount')
+        remaining = self.safe_string(order, 'amount_unfilled')
+        price = self.safe_string(order, 'price')
         trades = self.safe_value(order, 'trades')
-        cost = None
-        average = None
-        lastTradeTimestamp = None
-        if trades is not None:
-            numTrades = len(trades)
-            if numTrades > 0:
-                trades = self.parse_trades(trades, market, None, None, {
-                    'orderId': id,
-                })
-                # todo: determine the cost and the average price from trades
-                cost = 0
-                filled = 0
-                for i in range(0, numTrades):
-                    trade = trades[i]
-                    cost = self.sum(cost, trade['cost'])
-                    filled = self.sum(filled, trade['amount'])
-                if filled > 0:
-                    average = cost / filled
-                lastTradeTimestamp = trades[numTrades - 1]['timestamp']
-            else:
-                cost = 0
-        stopPrice = self.safe_number(order, 'conditional_price')
-        return {
+        stopPrice = self.safe_string(order, 'conditional_price')
+        return self.safe_order({
             'id': id,
             'clientOrderId': None,
             'info': order,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
-            'lastTradeTimestamp': lastTradeTimestamp,
-            'status': status,
-            'symbol': symbol,
-            'type': type,
+            'lastTradeTimestamp': None,
+            'status': self.parse_order_status(self.safe_string(order, 'status')),
+            'symbol': self.safe_symbol(marketId, market),
+            'type': self.safe_string(order, 'type'),
             'timeInForce': None,
             'postOnly': None,
-            'side': side,
+            'side': self.safe_string(order, 'side'),
             'price': price,
             'stopPrice': stopPrice,
-            'cost': cost,
+            'triggerPrice': stopPrice,
+            'cost': None,
             'amount': amount,
-            'filled': filled,
-            'average': average,
+            'filled': None,
+            'average': None,
             'remaining': remaining,
             'fee': None,
             'trades': trades,
-        }
+        }, market)
 
     def fetch_open_orders(self, symbol=None, since=None, limit=None, params={}):
         """
@@ -1138,7 +1116,7 @@ class therock(Exchange):
         :param int|None since: the earliest time in ms to fetch orders for
         :param int|None limit: the maximum number of  orde structures to retrieve
         :param dict params: extra parameters specific to the therock api endpoint
-        :returns [dict]: a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure
+        :returns [dict]: a list of `order structures <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
         """
         request = {
             'status': 'executed',
@@ -1152,7 +1130,7 @@ class therock(Exchange):
         :param int|None since: the earliest time in ms to fetch orders for
         :param int|None limit: the maximum number of  orde structures to retrieve
         :param dict params: extra parameters specific to the therock api endpoint
-        :returns [dict]: a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure
+        :returns [dict]: a list of `order structures <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
         """
         if symbol is None:
             raise ArgumentsRequired(self.id + ' fetchOrders() requires a symbol argument')
@@ -1256,8 +1234,9 @@ class therock(Exchange):
         self.load_markets()
         if type == 'market':
             price = 0
+        market = self.market(symbol)
         request = {
-            'fund_id': self.market_id(symbol),
+            'fund_id': market['id'],
             'side': side,
             'amount': amount,
             'price': price,
@@ -1575,7 +1554,7 @@ class therock(Exchange):
         }
 
     def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
-        url = self.urls['api'] + '/' + self.version + '/' + self.implode_params(path, params)
+        url = self.urls['api']['rest'] + '/' + self.version + '/' + self.implode_params(path, params)
         query = self.omit(params, self.extract_params(path))
         headers = {} if (headers is None) else headers
         if api == 'private':

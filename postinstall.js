@@ -28,6 +28,8 @@ let ascii = [
     '                         ;hX32::::::,:,    i9X9i::::::,:.',
     '                         rG999GGGGGGGAS    iG99hGGGGGGGAr',
     '                         ;2S55SSSSSSS2r    r2555SSSSSSS2;',
+    '                                                         ',
+    '                                                         ',
     '                         ;2S5s    ;2S2r    r2SS555555SS2;',
     '                         rAh&2    sAhAS    SAGGh9999GGGAr',
     '                         .:,::rrrs::::,    ,:,,;9X3X:,,:.',
@@ -38,26 +40,10 @@ let ascii = [
     '                                                         ',
 ]
 
-let footer = [
-    '                                                                 ',
-    '              ---------------------------------------------------',
-    '                                                                 ',
-    '                     You can contribute in crypto directly:      ',
-    '                                                                 ',
-    '                 ETH 0x26a3CB49578F07000575405a57888681249c35Fd  ',
-    '                 BTC 33RmVRfhK2WZVQR1R83h2e9yXoqRNDvJva          ',
-    '                 BCH 1GN9p233TvNcNQFthCgfiHUnj5JRKEc2Ze          ',
-    '                 LTC LbT8mkAqQBphc4yxLXEDgYDfEax74et3bP          ',
-    '                                                                 ',
-    '              ---------------------------------------------------',
-    '                                                                 ',
-    '                                   Thank you!                    ',
-    '                                                                 ',
-]
-
 async function getData () {
-    const collectiveData = await (await fetch ('https://opencollective.com/ccxt.json')).json ()
-    const githubData = await (await fetch ('https://api.github.com/repos/ccxt/ccxt')).json ()
+    const [collectiveData_result, githubData_result] = await Promise.all ([fetch ('https://opencollective.com/ccxt.json'), fetch ('https://api.github.com/repos/ccxt/ccxt')])
+    const collectiveData = await collectiveData_result.json()
+    const githubData = await githubData_result.json()
 
     return {
         contributors: collectiveData['contributorsCount'].toLocaleString (),
@@ -85,14 +71,11 @@ async function main () {
         colorFunctions['blue'] (ascii.join ('\n'))
         colorFunctions['red'] (pad (`Stars: ${data.stars}`))
         colorFunctions['red'] (pad (`Forks: ${data.forks}`))
-        colorFunctions['red'] (pad (`Contributors: ${data.contributors}`))
         colorFunctions['red'] (pad (`Size: ${data.size}MB`))
         colorFunctions['yellow'] ('\n' + pad ('Thanks for installing ccxt 🙏'))
         colorFunctions['gray'] (pad ('Please consider donating to our open collective'))
         colorFunctions['gray'] (pad ('to help us maintain this package.'))
         colorFunctions['yellow'] (pad ('👉 Donate: https://opencollective.com/ccxt/donate 🎉'))
-        colorFunctions['white'] (pad (`Thanks to our ${data.backers} backers we are operating on an annual budget of $${data.budget}`))
-        colorFunctions['yellow'] (footer.join ('\n'))
 
     } catch (e) {
 

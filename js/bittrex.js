@@ -37,6 +37,7 @@ module.exports = class bittrex extends Exchange {
                 'createStopMarketOrder': true,
                 'createStopOrder': true,
                 'fetchBalance': true,
+                'fetchBidsAsks': true,
                 'fetchBorrowRate': false,
                 'fetchBorrowRateHistories': false,
                 'fetchBorrowRateHistory': false,
@@ -44,6 +45,7 @@ module.exports = class bittrex extends Exchange {
                 'fetchBorrowRatesPerSymbol': false,
                 'fetchClosedOrders': true,
                 'fetchCurrencies': true,
+                'fetchDeposit': true,
                 'fetchDepositAddress': true,
                 'fetchDeposits': true,
                 'fetchFundingHistory': false,
@@ -53,6 +55,7 @@ module.exports = class bittrex extends Exchange {
                 'fetchIndexOHLCV': false,
                 'fetchLeverage': false,
                 'fetchLeverageTiers': false,
+                'fetchMarginMode': false,
                 'fetchMarkets': true,
                 'fetchMarkOHLCV': false,
                 'fetchMyTrades': true,
@@ -63,6 +66,7 @@ module.exports = class bittrex extends Exchange {
                 'fetchOrderBook': true,
                 'fetchOrderTrades': true,
                 'fetchPosition': false,
+                'fetchPositionMode': false,
                 'fetchPositions': false,
                 'fetchPositionsRisk': false,
                 'fetchPremiumIndexOHLCV': false,
@@ -73,7 +77,8 @@ module.exports = class bittrex extends Exchange {
                 'fetchTradingFee': true,
                 'fetchTradingFees': true,
                 'fetchTransactionFees': undefined,
-                'fetchTransactions': undefined,
+                'fetchTransactions': false,
+                'fetchWithdrawal': true,
                 'fetchWithdrawals': true,
                 'reduceMargin': false,
                 'setLeverage': false,
@@ -132,6 +137,10 @@ module.exports = class bittrex extends Exchange {
                         'account/fees/trading',
                         'account/fees/trading/{marketSymbol}',
                         'account/volume',
+                        'account/permissions/markets',
+                        'account/permissions/markets/{marketSymbol}',
+                        'account/permissions/currencies',
+                        'account/permissions/currencies/{currencySymbol}',
                         'addresses',
                         'addresses/{currencySymbol}',
                         'balances',
@@ -141,6 +150,8 @@ module.exports = class bittrex extends Exchange {
                         'deposits/ByTxId/{txId}',
                         'deposits/{depositId}',
                         'executions',
+                        'executions/last-id',
+                        'executions/{executionId}',
                         'orders/closed',
                         'orders/open',
                         'orders/{orderId}',
@@ -148,17 +159,22 @@ module.exports = class bittrex extends Exchange {
                         'ping',
                         'subaccounts/{subaccountId}',
                         'subaccounts',
+                        'subaccounts/withdrawals/open',
+                        'subaccounts/withdrawals/closed',
+                        'subaccounts/deposits/open',
+                        'subaccounts/deposits/closed',
                         'withdrawals/open',
                         'withdrawals/closed',
                         'withdrawals/ByTxId/{txId}',
                         'withdrawals/{withdrawalId}',
-                        'withdrawals/whitelistAddresses',
+                        'withdrawals/allowed-addresses',
                         'conditional-orders/{conditionalOrderId}',
                         'conditional-orders/closed',
                         'conditional-orders/open',
                         'transfers/sent',
                         'transfers/received',
                         'transfers/{transferId}',
+                        'funds-transfer-methods/{fundsTransferMethodId}',
                     ],
                     'post': [
                         'addresses',
@@ -167,6 +183,7 @@ module.exports = class bittrex extends Exchange {
                         'withdrawals',
                         'conditional-orders',
                         'transfers',
+                        'batch',
                     ],
                     'delete': [
                         'orders/open',
@@ -229,27 +246,14 @@ module.exports = class bittrex extends Exchange {
                 'fetchTickers': {
                     'method': 'publicGetMarketsTickers', // publicGetMarketsSummaries
                 },
+                'fetchDeposits': {
+                    'status': 'ok',
+                },
+                'fetchWithdrawals': {
+                    'status': 'ok',
+                },
                 'parseOrderStatus': false,
                 'hasAlreadyAuthenticatedSuccessfully': false, // a workaround for APIKEY_INVALID
-                // With certain currencies, like
-                // AEON, BTS, GXS, NXT, SBD, STEEM, STR, XEM, XLM, XMR, XRP
-                // an additional tag / memo / payment id is usually required by exchanges.
-                // With Bittrex some currencies imply the "base address + tag" logic.
-                // The base address for depositing is stored on this.currencies[code]
-                // The base address identifies the exchange as the recipient
-                // while the tag identifies the user account within the exchange
-                // and the tag is retrieved with fetchDepositAddress.
-                'tag': {
-                    'NXT': true, // NXT, BURST
-                    'CRYPTO_NOTE_PAYMENTID': true, // AEON, XMR
-                    'BITSHAREX': true, // BTS
-                    'RIPPLE': true, // XRP
-                    'NEM': true, // XEM
-                    'STELLAR': true, // XLM
-                    'STEEM': true, // SBD, GOLOS
-                    // https://github.com/ccxt/ccxt/issues/4794
-                    // 'LISK': true, // LSK
-                },
                 'subaccountId': undefined,
                 // see the implementation of fetchClosedOrdersV3 below
                 // 'fetchClosedOrdersMethod': 'fetch_closed_orders_v3',
@@ -278,8 +282,8 @@ module.exports = class bittrex extends Exchange {
          * @method
          * @name bittrex#fetchMarkets
          * @description retrieves data on all markets for bittrex
-         * @param {dict} params extra parameters specific to the exchange api endpoint
-         * @returns {[dict]} an array of objects representing market data
+         * @param {object} params extra parameters specific to the exchange api endpoint
+         * @returns {[object]} an array of objects representing market data
          */
         const response = await this.publicGetMarkets (params);
         //
@@ -338,8 +342,8 @@ module.exports = class bittrex extends Exchange {
                 'strike': undefined,
                 'optionType': undefined,
                 'precision': {
-                    'amount': this.parseNumber ('0.00000001'),
-                    'price': this.parseNumber (this.parsePrecision (this.safeString (market, 'precision', '8'))),
+                    'amount': this.parseNumber ('1e-8'), // seems exchange has same amount-precision across all pairs in UI too. This is same as 'minTradeSize' digits after dot
+                    'price': this.parseNumber (this.parsePrecision (this.safeString (market, 'precision'))),
                 },
                 'limits': {
                     'leverage': {
@@ -386,8 +390,8 @@ module.exports = class bittrex extends Exchange {
          * @method
          * @name bittrex#fetchBalance
          * @description query for balance and get the amount of funds available for trading or funds locked in orders
-         * @param {dict} params extra parameters specific to the bittrex api endpoint
-         * @returns {dict} a [balance structure]{@link https://docs.ccxt.com/en/latest/manual.html?#balance-structure}
+         * @param {object} params extra parameters specific to the bittrex api endpoint
+         * @returns {object} a [balance structure]{@link https://docs.ccxt.com/en/latest/manual.html?#balance-structure}
          */
         await this.loadMarkets ();
         const response = await this.privateGetBalances (params);
@@ -399,14 +403,15 @@ module.exports = class bittrex extends Exchange {
          * @method
          * @name bittrex#fetchOrderBook
          * @description fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
-         * @param {str} symbol unified symbol of the market to fetch the order book for
+         * @param {string} symbol unified symbol of the market to fetch the order book for
          * @param {int|undefined} limit the maximum amount of order book entries to return
-         * @param {dict} params extra parameters specific to the bittrex api endpoint
-         * @returns {dict} A dictionary of [order book structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-book-structure} indexed by market symbols
+         * @param {object} params extra parameters specific to the bittrex api endpoint
+         * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-book-structure} indexed by market symbols
          */
         await this.loadMarkets ();
+        const market = this.market (symbol);
         const request = {
-            'marketSymbol': this.marketId (symbol),
+            'marketSymbol': market['id'],
         };
         if (limit !== undefined) {
             if ((limit !== 1) && (limit !== 25) && (limit !== 500)) {
@@ -430,7 +435,7 @@ module.exports = class bittrex extends Exchange {
         //     }
         //
         const sequence = this.safeInteger (this.last_response_headers, 'Sequence');
-        const orderbook = this.parseOrderBook (response, symbol, undefined, 'bid', 'ask', 'rate', 'quantity');
+        const orderbook = this.parseOrderBook (response, market['symbol'], undefined, 'bid', 'ask', 'rate', 'quantity');
         orderbook['nonce'] = sequence;
         return orderbook;
     }
@@ -440,8 +445,8 @@ module.exports = class bittrex extends Exchange {
          * @method
          * @name bittrex#fetchCurrencies
          * @description fetches all available currencies on an exchange
-         * @param {dict} params extra parameters specific to the bittrex api endpoint
-         * @returns {dict} an associative dictionary of currencies
+         * @param {object} params extra parameters specific to the bittrex api endpoint
+         * @returns {object} an associative dictionary of currencies
          */
         const response = await this.publicGetCurrencies (params);
         //
@@ -466,13 +471,12 @@ module.exports = class bittrex extends Exchange {
             const currency = response[i];
             const id = this.safeString (currency, 'symbol');
             const code = this.safeCurrencyCode (id);
-            const precision = this.parseNumber ('0.00000001'); // default precision, todo: fix "magic constants"
+            const precision = this.parseNumber ('1e-8'); // default precision, seems exchange has same amount-precision across all pairs in UI too. todo: fix "magic constants"
             const fee = this.safeNumber (currency, 'txFee'); // todo: redesign
             const isActive = this.safeString (currency, 'status');
             result[code] = {
                 'id': id,
                 'code': code,
-                'address': this.safeString (currency, 'baseAddress'),
                 'info': currency,
                 'type': this.safeString (currency, 'coinType'),
                 'name': this.safeString (currency, 'name'),
@@ -554,11 +558,12 @@ module.exports = class bittrex extends Exchange {
          * @method
          * @name bittrex#fetchTickers
          * @description fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
-         * @param {[str]|undefined} symbols unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
-         * @param {dict} params extra parameters specific to the bittrex api endpoint
-         * @returns {dict} an array of [ticker structures]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
+         * @param {[string]|undefined} symbols unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
+         * @param {object} params extra parameters specific to the bittrex api endpoint
+         * @returns {object} an array of [ticker structures]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
          */
         await this.loadMarkets ();
+        symbols = this.marketSymbols (symbols);
         const options = this.safeValue (this.options, 'fetchTickers', {});
         const defaultMethod = this.safeString (options, 'method', 'publicGetMarketsTickers');
         const method = this.safeString (params, 'method', defaultMethod);
@@ -603,9 +608,9 @@ module.exports = class bittrex extends Exchange {
          * @method
          * @name bittrex#fetchTicker
          * @description fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
-         * @param {str} symbol unified symbol of the market to fetch the ticker for
-         * @param {dict} params extra parameters specific to the bittrex api endpoint
-         * @returns {dict} a [ticker structure]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
+         * @param {string} symbol unified symbol of the market to fetch the ticker for
+         * @param {object} params extra parameters specific to the bittrex api endpoint
+         * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
@@ -643,6 +648,30 @@ module.exports = class bittrex extends Exchange {
         return this.parseTicker (response, market);
     }
 
+    async fetchBidsAsks (symbols = undefined, params = {}) {
+        /**
+         * @method
+         * @name bittrex#fetchBidsAsks
+         * @description fetches the bid and ask price and volume for multiple markets
+         * @param {[string]|undefined} symbols unified symbols of the markets to fetch the bids and asks for, all markets are returned if not assigned
+         * @param {object} params extra parameters specific to the binance api endpoint
+         * @returns {object} an array of [ticker structures]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
+         */
+        await this.loadMarkets ();
+        const response = await this.publicGetMarketsTickers (params);
+        //
+        //     [
+        //       {
+        //         "symbol":"ETH-BTC",
+        //         "lastTradeRate":"0.03284496",
+        //         "bidRate":"0.03284523",
+        //         "askRate":"0.03286857"
+        //       }
+        //     ]
+        //
+        return this.parseTickers (response, symbols);
+    }
+
     parseTrade (trade, market = undefined) {
         //
         // public fetchTrades
@@ -667,6 +696,19 @@ module.exports = class bittrex extends Exchange {
         //          "isTaker":  true
         //      }
         //
+        // private fetchMyTrades
+        //      {
+        //          "id":"7e6488c9-294f-4137-b0f2-9f86578186fe",
+        //          "marketSymbol":"DOGE-USDT",
+        //          "executedAt":"2022-08-12T21:27:37.92Z",
+        //          "quantity":"100.00000000",
+        //          "rate":"0.071584100000",
+        //          "orderId":"2d53f11a-fb22-4820-b04d-80e5f48e6005",
+        //          "commission":"0.05368807",
+        //          "isTaker":true,
+        //          "direction":"BUY"
+        //      }
+        //
         const timestamp = this.parse8601 (this.safeString (trade, 'executedAt'));
         const id = this.safeString (trade, 'id');
         const order = this.safeString (trade, 'orderId');
@@ -675,9 +717,17 @@ module.exports = class bittrex extends Exchange {
         const priceString = this.safeString (trade, 'rate');
         const amountString = this.safeString (trade, 'quantity');
         let takerOrMaker = undefined;
+        let side = this.safeStringLower2 (trade, 'takerSide', 'direction');
         const isTaker = this.safeValue (trade, 'isTaker');
         if (isTaker !== undefined) {
             takerOrMaker = isTaker ? 'taker' : 'maker';
+            if (!isTaker) { // as noted in PR #15655 this API provides confusing value - when it's 'maker' trade, then side value should reversed
+                if (side === 'buy') {
+                    side = 'sell';
+                } else if (side === 'sell') {
+                    side = 'buy';
+                }
+            }
         }
         let fee = undefined;
         const feeCostString = this.safeString (trade, 'commission');
@@ -687,7 +737,6 @@ module.exports = class bittrex extends Exchange {
                 'currency': market['quote'],
             };
         }
-        const side = this.safeStringLower (trade, 'takerSide');
         return this.safeTrade ({
             'info': trade,
             'timestamp': timestamp,
@@ -710,7 +759,7 @@ module.exports = class bittrex extends Exchange {
          * @method
          * @name bittrex#fetchTime
          * @description fetches the current integer timestamp in milliseconds from the exchange server
-         * @param {dict} params extra parameters specific to the bittrex api endpoint
+         * @param {object} params extra parameters specific to the bittrex api endpoint
          * @returns {int} the current integer timestamp in milliseconds from the exchange server
          */
         const response = await this.publicGetPing (params);
@@ -727,16 +776,16 @@ module.exports = class bittrex extends Exchange {
          * @method
          * @name bittrex#fetchTrades
          * @description get the list of most recent trades for a particular symbol
-         * @param {str} symbol unified symbol of the market to fetch trades for
+         * @param {string} symbol unified symbol of the market to fetch trades for
          * @param {int|undefined} since timestamp in ms of the earliest trade to fetch
          * @param {int|undefined} limit the maximum amount of trades to fetch
-         * @param {dict} params extra parameters specific to the bittrex api endpoint
-         * @returns {[dict]} a list of [trade structures]{@link https://docs.ccxt.com/en/latest/manual.html?#public-trades}
+         * @param {object} params extra parameters specific to the bittrex api endpoint
+         * @returns {[object]} a list of [trade structures]{@link https://docs.ccxt.com/en/latest/manual.html?#public-trades}
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
         const request = {
-            'marketSymbol': this.marketId (symbol),
+            'marketSymbol': market['id'],
         };
         const response = await this.publicGetMarketsMarketSymbolTrades (this.extend (request, params));
         //
@@ -758,9 +807,9 @@ module.exports = class bittrex extends Exchange {
          * @method
          * @name bittrex#fetchTradingFee
          * @description fetch the trading fees for a market
-         * @param {str} symbol unified market symbol
-         * @param {dict} params extra parameters specific to the bittrex api endpoint
-         * @returns {dict} a [fee structure]{@link https://docs.ccxt.com/en/latest/manual.html#fee-structure}
+         * @param {string} symbol unified market symbol
+         * @param {object} params extra parameters specific to the bittrex api endpoint
+         * @returns {object} a [fee structure]{@link https://docs.ccxt.com/en/latest/manual.html#fee-structure}
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
@@ -783,8 +832,8 @@ module.exports = class bittrex extends Exchange {
          * @method
          * @name bittrex#fetchTradingFees
          * @description fetch the trading fees for multiple markets
-         * @param {dict} params extra parameters specific to the bittrex api endpoint
-         * @returns {dict} a dictionary of [fee structures]{@link https://docs.ccxt.com/en/latest/manual.html#fee-structure} indexed by market symbols
+         * @param {object} params extra parameters specific to the bittrex api endpoint
+         * @returns {object} a dictionary of [fee structures]{@link https://docs.ccxt.com/en/latest/manual.html#fee-structure} indexed by market symbols
          */
         await this.loadMarkets ();
         const response = await this.privateGetAccountFeesTrading (params);
@@ -851,18 +900,18 @@ module.exports = class bittrex extends Exchange {
          * @method
          * @name bittrex#fetchOHLCV
          * @description fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
-         * @param {str} symbol unified symbol of the market to fetch OHLCV data for
-         * @param {str} timeframe the length of time each candle represents
+         * @param {string} symbol unified symbol of the market to fetch OHLCV data for
+         * @param {string} timeframe the length of time each candle represents
          * @param {int|undefined} since timestamp in ms of the earliest candle to fetch
          * @param {int|undefined} limit the maximum amount of candles to fetch
-         * @param {dict} params extra parameters specific to the bittrex api endpoint
+         * @param {object} params extra parameters specific to the bittrex api endpoint
          * @returns {[[int]]} A list of candles ordered as timestamp, open, high, low, close, volume
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
         const reverseId = market['baseId'] + '-' + market['quoteId'];
         const request = {
-            'candleInterval': this.timeframes[timeframe],
+            'candleInterval': this.safeString (this.timeframes, timeframe, timeframe),
             'marketSymbol': reverseId,
         };
         let method = 'publicGetMarketsMarketSymbolCandlesCandleIntervalRecent';
@@ -914,11 +963,11 @@ module.exports = class bittrex extends Exchange {
          * @method
          * @name bittrex#fetchOpenOrders
          * @description fetch all unfilled currently open orders
-         * @param {str|undefined} symbol unified market symbol
+         * @param {string|undefined} symbol unified market symbol
          * @param {int|undefined} since the earliest time in ms to fetch open orders for
          * @param {int|undefined} limit the maximum number of  open orders structures to retrieve
-         * @param {dict} params extra parameters specific to the bittrex api endpoint
-         * @returns {[dict]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
+         * @param {object} params extra parameters specific to the bittrex api endpoint
+         * @returns {[object]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
          */
         await this.loadMarkets ();
         const request = {};
@@ -985,12 +1034,12 @@ module.exports = class bittrex extends Exchange {
          * @method
          * @name bittrex#fetchOrderTrades
          * @description fetch all the trades made from a single order
-         * @param {str} id order id
-         * @param {str|undefined} symbol unified market symbol
+         * @param {string} id order id
+         * @param {string|undefined} symbol unified market symbol
          * @param {int|undefined} since the earliest time in ms to fetch trades for
          * @param {int|undefined} limit the maximum number of trades to retrieve
-         * @param {dict} params extra parameters specific to the bittrex api endpoint
-         * @returns {[dict]} a list of [trade structures]{@link https://docs.ccxt.com/en/latest/manual.html#trade-structure}
+         * @param {object} params extra parameters specific to the bittrex api endpoint
+         * @returns {[object]} a list of [trade structures]{@link https://docs.ccxt.com/en/latest/manual.html#trade-structure}
          */
         await this.loadMarkets ();
         const request = {
@@ -1009,13 +1058,13 @@ module.exports = class bittrex extends Exchange {
          * @method
          * @name bittrex#createOrder
          * @description create a trade order
-         * @param {str} symbol unified symbol of the market to create an order in
-         * @param {str} type 'market' or 'limit'
-         * @param {str} side 'buy' or 'sell'
+         * @param {string} symbol unified symbol of the market to create an order in
+         * @param {string} type 'market' or 'limit'
+         * @param {string} side 'buy' or 'sell'
          * @param {float} amount how much of currency you want to trade in units of base currency
          * @param {float|undefined} price the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
-         * @param {dict} params extra parameters specific to the bittrex api endpoint
-         * @returns {dict} an [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
+         * @param {object} params extra parameters specific to the bittrex api endpoint
+         * @returns {object} an [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
          */
         // A ceiling order is a market or limit order that allows you to specify
         // the amount of quote currency you want to spend (or receive, if selling)
@@ -1194,10 +1243,10 @@ module.exports = class bittrex extends Exchange {
          * @method
          * @name bittrex#cancelOrder
          * @description cancels an open order
-         * @param {str} id order id
-         * @param {str|undefined} symbol unified symbol of the market the order was made in
-         * @param {dict} params extra parameters specific to the bittrex api endpoint
-         * @returns {dict} An [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
+         * @param {string} id order id
+         * @param {string|undefined} symbol unified symbol of the market the order was made in
+         * @param {object} params extra parameters specific to the bittrex api endpoint
+         * @returns {object} An [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
          */
         await this.loadMarkets ();
         const stop = this.safeValue (params, 'stop');
@@ -1276,9 +1325,9 @@ module.exports = class bittrex extends Exchange {
          * @method
          * @name bittrex#cancelAllOrders
          * @description cancel all open orders
-         * @param {str|undefined} symbol unified market symbol, only orders in the market of this symbol are cancelled when symbol is not undefined
-         * @param {dict} params extra parameters specific to the bittrex api endpoint
-         * @returns {[dict]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
+         * @param {string|undefined} symbol unified market symbol, only orders in the market of this symbol are cancelled when symbol is not undefined
+         * @param {object} params extra parameters specific to the bittrex api endpoint
+         * @returns {[object]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
          */
         await this.loadMarkets ();
         const request = {};
@@ -1320,16 +1369,42 @@ module.exports = class bittrex extends Exchange {
         return this.parseOrders (orders, market);
     }
 
+    async fetchDeposit (id, code = undefined, params = {}) {
+        /**
+         * @method
+         * @name bittrex#fetchDeposit
+         * @description fetch data on a currency deposit via the deposit id
+         * @param {string} id deposit id
+         * @param {string|undefined} code filter by currency code
+         * @param {object} params extra parameters specific to the bittrex api endpoint
+         * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure}
+         */
+        await this.loadMarkets ();
+        const request = {
+            'txId': id,
+        };
+        let currency = undefined;
+        if (code !== undefined) {
+            currency = this.currency (code);
+        }
+        const response = await this.privateGetDepositsByTxIdTxId (this.extend (request, params));
+        const transactions = this.parseTransactions (response, currency, undefined, undefined);
+        return this.safeValue (transactions, 0);
+    }
+
     async fetchDeposits (code = undefined, since = undefined, limit = undefined, params = {}) {
         /**
          * @method
          * @name bittrex#fetchDeposits
          * @description fetch all deposits made to an account
-         * @param {str|undefined} code unified currency code
+         * @param {string|undefined} code unified currency code
          * @param {int|undefined} since the earliest time in ms to fetch deposits for
          * @param {int|undefined} limit the maximum number of deposits structures to retrieve
-         * @param {dict} params extra parameters specific to the bittrex api endpoint
-         * @returns {[dict]} a list of [transaction structures]{@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure}
+         * @param {object} params extra parameters specific to the bittrex api endpoint
+         * @param {int|undefined} params.endDate Filters out result after this timestamp. Uses ISO-8602 format.
+         * @param {string|undefined} params.nextPageToken The unique identifier of the item that the resulting query result should start after, in the sort order of the given endpoint. Used for traversing a paginated set in the forward direction.
+         * @param {string|undefined} params.previousPageToken The unique identifier of the item that the resulting query result should end before, in the sort order of the given endpoint. Used for traversing a paginated set in the reverse direction.
+         * @returns {[object]} a list of [transaction structures]{@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure}
          */
         await this.loadMarkets ();
         // https://support.bittrex.com/hc/en-us/articles/115003723911
@@ -1339,11 +1414,69 @@ module.exports = class bittrex extends Exchange {
             currency = this.currency (code);
             request['currencySymbol'] = currency['id'];
         }
-        const response = await this.privateGetDepositsClosed (this.extend (request, params));
+        if (since !== undefined) {
+            const startDate = parseInt (since / 1000) * 1000;
+            request['startDate'] = this.iso8601 (startDate);
+        }
+        if (limit !== undefined) {
+            request['pageSize'] = limit;
+        }
+        let method = undefined;
+        const options = this.safeValue (this.options, 'fetchDeposits', {});
+        const defaultStatus = this.safeString (options, 'status', 'ok');
+        const status = this.safeString (params, 'status', defaultStatus);
+        if (status === 'pending') {
+            method = 'privateGetDepositsOpen';
+        } else {
+            method = 'privateGetDepositsClosed';
+        }
+        params = this.omit (params, 'status');
+        const response = await this[method] (this.extend (request, params));
         // we cannot filter by `since` timestamp, as it isn't set by Bittrex
         // see https://github.com/ccxt/ccxt/issues/4067
         // return this.parseTransactions (response, currency, since, limit);
         return this.parseTransactions (response, currency, undefined, limit);
+    }
+
+    async fetchPendingDeposits (code = undefined, since = undefined, limit = undefined, params = {}) {
+        /**
+         * @method
+         * @name bittrex#fetchPendingDeposits
+         * @description fetch all pending deposits made from an account
+         * @param {string|undefined} code unified currency code
+         * @param {int|undefined} since the earliest time in ms to fetch withdrawals for
+         * @param {int|undefined} limit the maximum number of withdrawals structures to retrieve
+         * @param {object} params extra parameters specific to the bittrex api endpoint
+         * @param {int|undefined} params.endDate Filters out result after this timestamp. Uses ISO-8602 format.
+         * @param {string|undefined} params.nextPageToken The unique identifier of the item that the resulting query result should start after, in the sort order of the given endpoint. Used for traversing a paginated set in the forward direction.
+         * @param {string|undefined} params.previousPageToken The unique identifier of the item that the resulting query result should end before, in the sort order of the given endpoint. Used for traversing a paginated set in the reverse direction.
+         * @returns {[object]} a list of [transaction structures]{@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure}
+         */
+        await this.loadMarkets ();
+        return this.fetchDeposits (code, since, limit, this.extend (params, { 'status': 'pending' }));
+    }
+
+    async fetchWithdrawal (id, code = undefined, params = {}) {
+        /**
+         * @method
+         * @name bittrex#fetchWithdrawal
+         * @description fetch data on a currency withdrawal via the withdrawal id
+         * @param {string} id withdrawal id
+         * @param {string|undefined} code filter by currency code
+         * @param {object} params extra parameters specific to the bittrex api endpoint
+         * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure}
+         */
+        await this.loadMarkets ();
+        const request = {
+            'txId': id,
+        };
+        let currency = undefined;
+        if (code !== undefined) {
+            currency = this.currency (code);
+        }
+        const response = await this.privateGetWithdrawalsByTxIdTxId (this.extend (request, params));
+        const transactions = this.parseTransactions (response, currency, undefined, undefined);
+        return this.safeValue (transactions, 0);
     }
 
     async fetchWithdrawals (code = undefined, since = undefined, limit = undefined, params = {}) {
@@ -1351,11 +1484,14 @@ module.exports = class bittrex extends Exchange {
          * @method
          * @name bittrex#fetchWithdrawals
          * @description fetch all withdrawals made from an account
-         * @param {str|undefined} code unified currency code
+         * @param {string|undefined} code unified currency code
          * @param {int|undefined} since the earliest time in ms to fetch withdrawals for
          * @param {int|undefined} limit the maximum number of withdrawals structures to retrieve
-         * @param {dict} params extra parameters specific to the bittrex api endpoint
-         * @returns {[dict]} a list of [transaction structures]{@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure}
+         * @param {object} params extra parameters specific to the bittrex api endpoint
+         * @param {int|undefined} params.endDate Filters out result after this timestamp. Uses ISO-8602 format.
+         * @param {string|undefined} params.nextPageToken The unique identifier of the item that the resulting query result should start after, in the sort order of the given endpoint. Used for traversing a paginated set in the forward direction.
+         * @param {string|undefined} params.previousPageToken The unique identifier of the item that the resulting query result should end before, in the sort order of the given endpoint. Used for traversing a paginated set in the reverse direction.
+         * @returns {[object]} a list of [transaction structures]{@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure}
          */
         await this.loadMarkets ();
         // https://support.bittrex.com/hc/en-us/articles/115003723911
@@ -1365,42 +1501,77 @@ module.exports = class bittrex extends Exchange {
             currency = this.currency (code);
             request['currencySymbol'] = currency['id'];
         }
-        const response = await this.privateGetWithdrawalsClosed (this.extend (request, params));
+        if (since !== undefined) {
+            const startDate = parseInt (since / 1000) * 1000;
+            request['startDate'] = this.iso8601 (startDate);
+        }
+        if (limit !== undefined) {
+            request['pageSize'] = limit;
+        }
+        let method = undefined;
+        const options = this.safeValue (this.options, 'fetchWithdrawals', {});
+        const defaultStatus = this.safeString (options, 'status', 'ok');
+        const status = this.safeString (params, 'status', defaultStatus);
+        if (status === 'pending') {
+            method = 'privateGetWithdrawalsOpen';
+        } else {
+            method = 'privateGetWithdrawalsClosed';
+        }
+        params = this.omit (params, 'status');
+        const response = await this[method] (this.extend (request, params));
         return this.parseTransactions (response, currency, since, limit);
+    }
+
+    async fetchPendingWithdrawals (code = undefined, since = undefined, limit = undefined, params = {}) {
+        /**
+         * @method
+         * @name bittrex#fetchPendingWithdrawals
+         * @description fetch all pending withdrawals made from an account
+         * @param {string|undefined} code unified currency code
+         * @param {int|undefined} since the earliest time in ms to fetch withdrawals for
+         * @param {int|undefined} limit the maximum number of withdrawals structures to retrieve
+         * @param {object} params extra parameters specific to the bittrex api endpoint
+         * @param {int|undefined} params.endDate Filters out result after this timestamp. Uses ISO-8602 format.
+         * @param {string|undefined} params.nextPageToken The unique identifier of the item that the resulting query result should start after, in the sort order of the given endpoint. Used for traversing a paginated set in the forward direction.
+         * @param {string|undefined} params.previousPageToken The unique identifier of the item that the resulting query result should end before, in the sort order of the given endpoint. Used for traversing a paginated set in the reverse direction.
+         * @returns {[object]} a list of [transaction structures]{@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure}
+         */
+        await this.loadMarkets ();
+        return this.fetchWithdrawals (code, since, limit, this.extend (params, { 'status': 'pending' }));
     }
 
     parseTransaction (transaction, currency = undefined) {
         //
         // fetchDeposits
         //
-        //     {
-        //         "id": "d00fdf2e-df9e-48f1-....",
-        //         "currencySymbol": "BTC",
-        //         "quantity": "0.00550000",
-        //         "cryptoAddress": "1PhmYjnJPZH5NUwV8AU...",
-        //         "txId": "d1f1afffe1b9b6614eaee7e8133c85d98...",
-        //         "confirmations": 2,
-        //         "updatedAt": "2020-01-12T16:49:30.41Z",
-        //         "completedAt": "2020-01-12T16:49:30.41Z",
-        //         "status": "COMPLETED",
-        //         "source": "BLOCKCHAIN"
-        //     }
+        //      {
+        //          "id": "77f2e4f0-a33d-4285-9140-ed5b20533a17",
+        //          "currencySymbol": "ETH",
+        //          "quantity": "0.36487773",
+        //          "cryptoAddress": "0xeee7cff0f587706acdddfc1ff65968936fcf621e",
+        //          "txId": "0x059fd3279452a245b308a944a0ee341ff9d17652a8a1bc663e6006282128c782",
+        //          "confirmations": 44,
+        //          "updatedAt": "2017-12-28T13:57:42.753Z",
+        //          "completedAt": "2017-12-28T13:57:42.753Z",
+        //          "status": "COMPLETED",
+        //          "source": "BLOCKCHAIN"
+        //      }
         //
         // fetchWithdrawals
         //
-        //     {
-        //         "PaymentUuid" : "e293da98-788c-4188-a8f9-8ec2c33fdfcf",
-        //         "Currency" : "XC",
-        //         "Amount" : 7513.75121715,
-        //         "Address" : "EVnSMgAd7EonF2Dgc4c9K14L12RBaW5S5J",
-        //         "Opened" : "2014-07-08T23:13:31.83",
-        //         "Authorized" : true,
-        //         "PendingPayment" : false,
-        //         "TxCost" : 0.00002000,
-        //         "TxId" : "b4a575c2a71c7e56d02ab8e26bb1ef0a2f6cf2094f6ca2116476a569c1e84f6e",
-        //         "Canceled" : false,
-        //         "InvalidAddress" : false
-        //     }
+        //      {
+        //          "id":"d20d556c-59ac-4480-95d8-268f8d4adedb",
+        //          "currencySymbol":"OMG",
+        //          "quantity":"2.67000000",
+        //          "cryptoAddress":"0xa7daa9acdb41c0c476966ee23d388d6f2a1448cd",
+        //          "cryptoAddressTag":"",
+        //          "txCost":"0.10000000",
+        //          "txId":"0xb54b8c5fb889aa9f9154e013cc5dd67b3048a3e0ae58ba845868225cda154bf5",
+        //          "status":"COMPLETED",
+        //          "createdAt":"2017-12-16T20:46:22.5Z",
+        //          "completedAt":"2017-12-16T20:48:03.887Z",
+        //          "target":"BLOCKCHAIN"
+        //      }
         //
         // withdraw
         //
@@ -1416,6 +1587,14 @@ module.exports = class bittrex extends Exchange {
         const id = this.safeString2 (transaction, 'id', 'clientWithdrawalId');
         const amount = this.safeNumber (transaction, 'quantity');
         const address = this.safeString (transaction, 'cryptoAddress');
+        let addressTo = undefined;
+        let addressFrom = undefined;
+        const isDeposit = this.safeString (transaction, 'source') === 'BLOCKCHAIN';
+        if (isDeposit) {
+            addressFrom = address;
+        } else {
+            addressTo = address;
+        }
         const txid = this.safeString (transaction, 'txId');
         const updated = this.parse8601 (this.safeString (transaction, 'updatedAt'));
         const opened = this.parse8601 (this.safeString (transaction, 'createdAt'));
@@ -1464,8 +1643,8 @@ module.exports = class bittrex extends Exchange {
             'amount': amount,
             'network': undefined,
             'address': address,
-            'addressTo': undefined,
-            'addressFrom': undefined,
+            'addressTo': addressTo,
+            'addressFrom': addressFrom,
             'tag': undefined,
             'tagTo': undefined,
             'tagFrom': undefined,
@@ -1608,6 +1787,7 @@ module.exports = class bittrex extends Exchange {
             'side': direction,
             'price': limit,
             'stopPrice': this.safeString (order, 'triggerPrice'),
+            'triggerPrice': this.safeString (order, 'triggerPrice'),
             'cost': proceeds,
             'average': undefined,
             'amount': quantity,
@@ -1646,9 +1826,9 @@ module.exports = class bittrex extends Exchange {
          * @method
          * @name bittrex#fetchOrder
          * @description fetches information on an order made by the user
-         * @param {str|undefined} symbol unified symbol of the market the order was made in
-         * @param {dict} params extra parameters specific to the bittrex api endpoint
-         * @returns {dict} An [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
+         * @param {string|undefined} symbol unified symbol of the market the order was made in
+         * @param {object} params extra parameters specific to the bittrex api endpoint
+         * @returns {object} An [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
          */
         await this.loadMarkets ();
         const stop = this.safeValue (params, 'stop');
@@ -1686,11 +1866,11 @@ module.exports = class bittrex extends Exchange {
          * @method
          * @name bittrex#fetchMyTrades
          * @description fetch all trades made by the user
-         * @param {str|undefined} symbol unified market symbol
+         * @param {string|undefined} symbol unified market symbol
          * @param {int|undefined} since the earliest time in ms to fetch trades for
          * @param {int|undefined} limit the maximum number of trades structures to retrieve
-         * @param {dict} params extra parameters specific to the bittrex api endpoint
-         * @returns {[dict]} a list of [trade structures]{@link https://docs.ccxt.com/en/latest/manual.html#trade-structure}
+         * @param {object} params extra parameters specific to the bittrex api endpoint
+         * @returns {[object]} a list of [trade structures]{@link https://docs.ccxt.com/en/latest/manual.html#trade-structure}
          */
         await this.loadMarkets ();
         const request = {};
@@ -1716,11 +1896,11 @@ module.exports = class bittrex extends Exchange {
          * @method
          * @name bittrex#fetchClosedOrders
          * @description fetches information on multiple closed orders made by the user
-         * @param {str|undefined} symbol unified market symbol of the market orders were made in
+         * @param {string|undefined} symbol unified market symbol of the market orders were made in
          * @param {int|undefined} since the earliest time in ms to fetch orders for
          * @param {int|undefined} limit the maximum number of  orde structures to retrieve
-         * @param {dict} params extra parameters specific to the bittrex api endpoint
-         * @returns {[dict]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure
+         * @param {object} params extra parameters specific to the bittrex api endpoint
+         * @returns {[object]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
          */
         await this.loadMarkets ();
         const stop = this.safeValue (params, 'stop');
@@ -1800,9 +1980,9 @@ module.exports = class bittrex extends Exchange {
          * @method
          * @name bittrex#createDepositAddress
          * @description create a currency deposit address
-         * @param {str} code unified currency code of the currency for the deposit address
-         * @param {dict} params extra parameters specific to the bittrex api endpoint
-         * @returns {dict} an [address structure]{@link https://docs.ccxt.com/en/latest/manual.html#address-structure}
+         * @param {string} code unified currency code of the currency for the deposit address
+         * @param {object} params extra parameters specific to the bittrex api endpoint
+         * @returns {object} an [address structure]{@link https://docs.ccxt.com/en/latest/manual.html#address-structure}
          */
         await this.loadMarkets ();
         const currency = this.currency (code);
@@ -1818,21 +1998,17 @@ module.exports = class bittrex extends Exchange {
         //         "cryptoAddressTag":"392034158"
         //     }
         //
-        let address = this.safeString (response, 'cryptoAddress');
+        const address = this.safeString (response, 'cryptoAddress');
         const message = this.safeString (response, 'status');
         if (!address || message === 'REQUESTED') {
             throw new AddressPending (this.id + ' the address for ' + code + ' is being generated (pending, not ready yet, retry again later)');
-        }
-        let tag = this.safeString (response, 'cryptoAddressTag');
-        if ((tag === undefined) && (currency['type'] in this.options['tag'])) {
-            tag = address;
-            address = currency['address'];
         }
         this.checkAddress (address);
         return {
             'currency': code,
             'address': address,
-            'tag': tag,
+            'tag': this.safeString (response, 'cryptoAddressTag'),
+            'network': undefined,
             'info': response,
         };
     }
@@ -1842,9 +2018,9 @@ module.exports = class bittrex extends Exchange {
          * @method
          * @name bittrex#fetchDepositAddress
          * @description fetch the deposit address for a currency associated with this account
-         * @param {str} code unified currency code
-         * @param {dict} params extra parameters specific to the bittrex api endpoint
-         * @returns {dict} an [address structure]{@link https://docs.ccxt.com/en/latest/manual.html#address-structure}
+         * @param {string} code unified currency code
+         * @param {object} params extra parameters specific to the bittrex api endpoint
+         * @returns {object} an [address structure]{@link https://docs.ccxt.com/en/latest/manual.html#address-structure}
          */
         await this.loadMarkets ();
         const currency = this.currency (code);
@@ -1860,21 +2036,16 @@ module.exports = class bittrex extends Exchange {
         //         "cryptoAddressTag":"392034158"
         //     }
         //
-        let address = this.safeString (response, 'cryptoAddress');
+        const address = this.safeString (response, 'cryptoAddress');
         const message = this.safeString (response, 'status');
         if (!address || message === 'REQUESTED') {
             throw new AddressPending (this.id + ' the address for ' + code + ' is being generated (pending, not ready yet, retry again later)');
-        }
-        let tag = this.safeString (response, 'cryptoAddressTag');
-        if ((tag === undefined) && (currency['type'] in this.options['tag'])) {
-            tag = address;
-            address = currency['address'];
         }
         this.checkAddress (address);
         return {
             'currency': code,
             'address': address,
-            'tag': tag,
+            'tag': this.safeString (response, 'cryptoAddressTag'),
             'network': undefined,
             'info': response,
         };
@@ -1885,12 +2056,12 @@ module.exports = class bittrex extends Exchange {
          * @method
          * @name bittrex#withdraw
          * @description make a withdrawal
-         * @param {str} code unified currency code
+         * @param {string} code unified currency code
          * @param {float} amount the amount to withdraw
-         * @param {str} address the address to withdraw to
-         * @param {str|undefined} tag
-         * @param {dict} params extra parameters specific to the bittrex api endpoint
-         * @returns {dict} a [transaction structure]{@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure}
+         * @param {string} address the address to withdraw to
+         * @param {string|undefined} tag
+         * @param {object} params extra parameters specific to the bittrex api endpoint
+         * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure}
          */
         [ tag, params ] = this.handleWithdrawTagAndParams (tag, params);
         this.checkAddress (address);

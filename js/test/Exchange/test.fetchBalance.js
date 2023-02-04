@@ -21,5 +21,7 @@ module.exports = async (exchange) => {
 
     testBalance (exchange, response)
 
+    console.log ('fetched balance items:', Object.keys(response).length)
+
     return response
 }

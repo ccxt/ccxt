@@ -7,7 +7,6 @@ from ccxt.base.exchange import Exchange
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import PermissionDenied
-from ccxt.base.errors import ArgumentsRequired
 from ccxt.base.errors import InsufficientFunds
 from ccxt.base.errors import InvalidOrder
 from ccxt.base.errors import OrderNotFound
@@ -48,6 +47,7 @@ class bitbank(Exchange):
                 'fetchIndexOHLCV': False,
                 'fetchLeverage': False,
                 'fetchLeverageTiers': False,
+                'fetchMarginMode': False,
                 'fetchMarkOHLCV': False,
                 'fetchMyTrades': True,
                 'fetchOHLCV': True,
@@ -56,6 +56,7 @@ class bitbank(Exchange):
                 'fetchOrder': True,
                 'fetchOrderBook': True,
                 'fetchPosition': False,
+                'fetchPositionMode': False,
                 'fetchPositions': False,
                 'fetchPositionsRisk': False,
                 'fetchPremiumIndexOHLCV': False,
@@ -296,13 +297,14 @@ class bitbank(Exchange):
         :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/en/latest/manual.html#order-book-structure>` indexed by market symbols
         """
         self.load_markets()
+        market = self.market(symbol)
         request = {
-            'pair': self.market_id(symbol),
+            'pair': market['id'],
         }
         response = self.publicGetPairDepth(self.extend(request, params))
         orderbook = self.safe_value(response, 'data', {})
         timestamp = self.safe_integer(orderbook, 'timestamp')
-        return self.parse_order_book(orderbook, symbol, timestamp)
+        return self.parse_order_book(orderbook, market['symbol'], timestamp)
 
     def parse_trade(self, trade, market=None):
         timestamp = self.safe_integer(trade, 'executed_at')
@@ -430,7 +432,7 @@ class bitbank(Exchange):
             self.safe_number(ohlcv, 4),
         ]
 
-    def fetch_ohlcv(self, symbol, timeframe='5m', since=None, limit=None, params={}):
+    def fetch_ohlcv(self, symbol, timeframe='1m', since=None, limit=None, params={}):
         """
         fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
         :param str symbol: unified symbol of the market to fetch OHLCV data for
@@ -441,12 +443,15 @@ class bitbank(Exchange):
         :returns [[int]]: A list of candles ordered as timestamp, open, high, low, close, volume
         """
         if since is None:
-            raise ArgumentsRequired(self.id + ' fetchOHLCV() requires a since argument')
+            if limit is None:
+                limit = 1000  # it doesn't have any defaults, might return 200, might 2000(i.e. https://public.bitbank.cc/btc_jpy/candlestick/4hour/2020)
+            duration = self.parse_timeframe(timeframe)
+            since = self.milliseconds() - duration * 1000 * limit
         self.load_markets()
         market = self.market(symbol)
         request = {
             'pair': market['id'],
-            'candletype': self.timeframes[timeframe],
+            'candletype': self.safe_string(self.timeframes, timeframe, timeframe),
             'yyyymmdd': self.yyyymmdd(since, ''),
         }
         response = self.publicGetPairCandlestickCandletypeYyyymmdd(self.extend(request, params))
@@ -573,6 +578,7 @@ class bitbank(Exchange):
             'side': side,
             'price': price,
             'stopPrice': None,
+            'triggerPrice': None,
             'cost': None,
             'average': average,
             'amount': amount,
@@ -679,8 +685,8 @@ class bitbank(Exchange):
         request = {}
         market = None
         if symbol is not None:
-            request['pair'] = market['id']
             market = self.market(symbol)
+            request['pair'] = market['id']
         if limit is not None:
             request['count'] = limit
         if since is not None:

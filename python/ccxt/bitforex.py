@@ -7,6 +7,7 @@ from ccxt.base.exchange import Exchange
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import PermissionDenied
+from ccxt.base.errors import ArgumentsRequired
 from ccxt.base.errors import BadSymbol
 from ccxt.base.errors import InsufficientFunds
 from ccxt.base.errors import InvalidOrder
@@ -33,6 +34,9 @@ class bitforex(Exchange):
                 'option': False,
                 'cancelOrder': True,
                 'createOrder': True,
+                'createStopLimitOrder': False,
+                'createStopMarketOrder': False,
+                'createStopOrder': False,
                 'fetchBalance': True,
                 'fetchBorrowRate': False,
                 'fetchBorrowRateHistories': False,
@@ -40,16 +44,18 @@ class bitforex(Exchange):
                 'fetchBorrowRates': False,
                 'fetchBorrowRatesPerSymbol': False,
                 'fetchClosedOrders': True,
+                'fetchMarginMode': False,
                 'fetchMarkets': True,
-                'fetchMyTrades': None,
+                'fetchMyTrades': False,
                 'fetchOHLCV': True,
                 'fetchOpenOrders': True,
                 'fetchOrder': True,
                 'fetchOrderBook': True,
-                'fetchOrders': None,
+                'fetchPositionMode': False,
                 'fetchTicker': True,
-                'fetchTickers': None,
+                'fetchTickers': False,
                 'fetchTrades': True,
+                'fetchTransactionFees': False,
                 'fetchTransfer': False,
                 'fetchTransfers': False,
                 'fetchWithdrawal': False,
@@ -72,7 +78,9 @@ class bitforex(Exchange):
             },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/51840849/87295553-1160ec00-c50e-11ea-8ea0-df79276a9646.jpg',
-                'api': 'https://api.bitforex.com',
+                'api': {
+                    'rest': 'https://api.bitforex.com',
+                },
                 'www': 'https://www.bitforex.com',
                 'doc': 'https://github.com/githubdev2020/API_Doc_en/wiki',
                 'fees': 'https://help.bitforex.com/en_us/?cat=13',
@@ -432,7 +440,7 @@ class bitforex(Exchange):
         market = self.market(symbol)
         request = {
             'symbol': market['id'],
-            'ktype': self.timeframes[timeframe],
+            'ktype': self.safe_string(self.timeframes, timeframe, timeframe),
         }
         if limit is not None:
             request['size'] = limit  # default 1, max 600
@@ -460,16 +468,16 @@ class bitforex(Exchange):
         :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/en/latest/manual.html#order-book-structure>` indexed by market symbols
         """
         self.load_markets()
-        marketId = self.market_id(symbol)
+        market = self.market(symbol)
         request = {
-            'symbol': marketId,
+            'symbol': market['id'],
         }
         if limit is not None:
             request['size'] = limit
         response = self.publicGetApiV1MarketDepthAll(self.extend(request, params))
         data = self.safe_value(response, 'data')
         timestamp = self.safe_integer(response, 'time')
-        return self.parse_order_book(data, symbol, timestamp, 'bids', 'asks', 'price', 'amount')
+        return self.parse_order_book(data, market['symbol'], timestamp, 'bids', 'asks', 'price', 'amount')
 
     def parse_order_status(self, status):
         statuses = {
@@ -522,6 +530,7 @@ class bitforex(Exchange):
             'side': side,
             'price': price,
             'stopPrice': None,
+            'triggerPrice': None,
             'cost': None,
             'average': average,
             'amount': amount,
@@ -552,12 +561,14 @@ class bitforex(Exchange):
     def fetch_open_orders(self, symbol=None, since=None, limit=None, params={}):
         """
         fetch all unfilled currently open orders
-        :param str|None symbol: unified market symbol
+        :param str symbol: unified market symbol
         :param int|None since: the earliest time in ms to fetch open orders for
         :param int|None limit: the maximum number of  open orders structures to retrieve
         :param dict params: extra parameters specific to the bitforex api endpoint
         :returns [dict]: a list of `order structures <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
         """
+        if symbol is None:
+            raise ArgumentsRequired(self.id + ' fetchMyTrades() requires a symbol argument')
         self.load_markets()
         market = self.market(symbol)
         request = {
@@ -574,8 +585,10 @@ class bitforex(Exchange):
         :param int|None since: the earliest time in ms to fetch orders for
         :param int|None limit: the maximum number of  orde structures to retrieve
         :param dict params: extra parameters specific to the bitforex api endpoint
-        :returns [dict]: a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure
+        :returns [dict]: a list of `order structures <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
         """
+        if symbol is None:
+            raise ArgumentsRequired(self.id + ' fetchMyTrades() requires a symbol argument')
         self.load_markets()
         market = self.market(symbol)
         request = {
@@ -602,8 +615,9 @@ class bitforex(Exchange):
             sideId = 1
         elif side == 'sell':
             sideId = 2
+        market = self.market(symbol)
         request = {
-            'symbol': self.market_id(symbol),
+            'symbol': market['id'],
             'price': price,
             'amount': amount,
             'tradeType': sideId,
@@ -635,7 +649,7 @@ class bitforex(Exchange):
         return returnVal
 
     def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
-        url = self.urls['api'] + '/' + self.implode_params(path, params)
+        url = self.urls['api']['rest'] + '/' + self.implode_params(path, params)
         query = self.omit(params, self.extract_params(path))
         if api == 'public':
             if query:

@@ -4,6 +4,16 @@ const assert = require ('assert')
 
 module.exports = async (exchange) => {
     const method = 'fetchStatus';
+
+    const skippedExchanges = [
+        'binanceus',
+    ];
+
+    if (skippedExchanges.includes (exchange.id)) {
+        console.log (exchange.id, 'found in ignored exchanges, skipping ' + method + '...');
+        return;
+    }
+
     if (exchange.has[method]) {
         const status = await exchange[method] ();
         const sampleStatus = {

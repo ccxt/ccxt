@@ -37,8 +37,17 @@ module.exports = class binanceus extends binance {
                 },
             },
             'options': {
-                'fetchCurrencies': false,
+                'fetchMarkets': [ 'spot' ],
+                'defaultType': 'spot',
                 'quoteOrderQty': false,
+            },
+            'has': {
+                'CORS': undefined,
+                'spot': true,
+                'margin': undefined,
+                'swap': undefined,
+                'future': undefined,
+                'option': undefined,
             },
         });
     }

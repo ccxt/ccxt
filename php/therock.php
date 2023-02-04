@@ -6,13 +6,11 @@ namespace ccxt;
 // https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 use Exception; // a common import
-use \ccxt\ExchangeError;
-use \ccxt\ArgumentsRequired;
 
 class therock extends Exchange {
 
     public function describe() {
-        return $this->deep_extend(parent::describe (), array(
+        return $this->deep_extend(parent::describe(), array(
             'id' => 'therock',
             'name' => 'TheRockTrading',
             'countries' => array( 'MT' ),
@@ -37,6 +35,7 @@ class therock extends Exchange {
                 'fetchFundingRates' => false,
                 'fetchIndexOHLCV' => false,
                 'fetchLedger' => true,
+                'fetchMarginMode' => false,
                 'fetchMarkets' => true,
                 'fetchMarkOHLCV' => false,
                 'fetchMyTrades' => true,
@@ -46,6 +45,7 @@ class therock extends Exchange {
                 'fetchOrder' => true,
                 'fetchOrderBook' => true,
                 'fetchOrders' => true,
+                'fetchPositionMode' => false,
                 'fetchPremiumIndexOHLCV' => false,
                 'fetchTicker' => true,
                 'fetchTickers' => true,
@@ -61,7 +61,9 @@ class therock extends Exchange {
             ),
             'urls' => array(
                 'logo' => 'https://user-images.githubusercontent.com/1294454/27766869-75057fa2-5ee9-11e7-9a6f-13e641fa4707.jpg',
-                'api' => 'https://api.therocktrading.com',
+                'api' => array(
+                    'rest' => 'https://api.therocktrading.com',
+                ),
                 'www' => 'https://therocktrading.com',
                 'doc' => array(
                     'https://api.therocktrading.com/doc/v1/index.html',
@@ -157,8 +159,8 @@ class therock extends Exchange {
     public function fetch_markets($params = array ()) {
         /**
          * retrieves data on all $markets for therock
-         * @param {dict} $params extra parameters specific to the exchange api endpoint
-         * @return {[dict]} an array of objects representing $market data
+         * @param {array} $params extra parameters specific to the exchange api endpoint
+         * @return {[array]} an array of objects representing $market data
          */
         $response = $this->publicGetFunds ($params);
         //
@@ -199,7 +201,7 @@ class therock extends Exchange {
                 $taker = Precise::string_max($buy_fee, $sell_fee);
                 $taker = $this->parse_number(Precise::string_div($taker, '100'));
                 $leverages = $this->safe_value($market, 'leverages');
-                $leveragesLength = is_array($leverages) ? count($leverages) : 0;
+                $leveragesLength = count($leverages);
                 $result[] = array(
                     'id' => $id,
                     'symbol' => $base . '/' . $quote,
@@ -273,8 +275,8 @@ class therock extends Exchange {
     public function fetch_balance($params = array ()) {
         /**
          * query for balance and get the amount of funds available for trading or funds locked in orders
-         * @param {dict} $params extra parameters specific to the therock api endpoint
-         * @return {dict} a ~@link https://docs.ccxt.com/en/latest/manual.html?#balance-structure balance structure~
+         * @param {array} $params extra parameters specific to the therock api endpoint
+         * @return {array} a ~@link https://docs.ccxt.com/en/latest/manual.html?#balance-structure balance structure~
          */
         $this->load_markets();
         $response = $this->privateGetBalances ($params);
@@ -284,18 +286,19 @@ class therock extends Exchange {
     public function fetch_order_book($symbol, $limit = null, $params = array ()) {
         /**
          * fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
-         * @param {str} $symbol unified $symbol of the market to fetch the order book for
+         * @param {string} $symbol unified $symbol of the $market to fetch the order book for
          * @param {int|null} $limit the maximum amount of order book entries to return
-         * @param {dict} $params extra parameters specific to the therock api endpoint
-         * @return {dict} A dictionary of {@link https://docs.ccxt.com/en/latest/manual.html#order-book-structure order book structures} indexed by market symbols
+         * @param {array} $params extra parameters specific to the therock api endpoint
+         * @return {array} A dictionary of {@link https://docs.ccxt.com/en/latest/manual.html#order-book-structure order book structures} indexed by $market symbols
          */
         $this->load_markets();
+        $market = $this->market($symbol);
         $request = array(
-            'id' => $this->market_id($symbol),
+            'id' => $market['id'],
         );
         $orderbook = $this->publicGetFundsIdOrderbook (array_merge($request, $params));
         $timestamp = $this->parse8601($this->safe_string($orderbook, 'date'));
-        return $this->parse_order_book($orderbook, $symbol, $timestamp, 'bids', 'asks', 'price', 'amount');
+        return $this->parse_order_book($orderbook, $market['symbol'], $timestamp, 'bids', 'asks', 'price', 'amount');
     }
 
     public function parse_ticker($ticker, $market = null) {
@@ -344,11 +347,12 @@ class therock extends Exchange {
     public function fetch_tickers($symbols = null, $params = array ()) {
         /**
          * fetches price $tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each $market
-         * @param {[str]|null} $symbols unified $symbols of the markets to fetch the $ticker for, all $market $tickers are returned if not assigned
-         * @param {dict} $params extra parameters specific to the therock api endpoint
-         * @return {dict} an array of {@link https://docs.ccxt.com/en/latest/manual.html#$ticker-structure $ticker structures}
+         * @param {[string]|null} $symbols unified $symbols of the markets to fetch the $ticker for, all $market $tickers are returned if not assigned
+         * @param {array} $params extra parameters specific to the therock api endpoint
+         * @return {array} an array of {@link https://docs.ccxt.com/en/latest/manual.html#$ticker-structure $ticker structures}
          */
         $this->load_markets();
+        $symbols = $this->market_symbols($symbols);
         $response = $this->publicGetFundsTickers ($params);
         $tickers = $this->index_by($response['tickers'], 'fund_id');
         $ids = is_array($tickers) ? array_keys($tickers) : array();
@@ -366,9 +370,9 @@ class therock extends Exchange {
     public function fetch_ticker($symbol, $params = array ()) {
         /**
          * fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific $market
-         * @param {str} $symbol unified $symbol of the $market to fetch the ticker for
-         * @param {dict} $params extra parameters specific to the therock api endpoint
-         * @return {dict} a {@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure ticker structure}
+         * @param {string} $symbol unified $symbol of the $market to fetch the ticker for
+         * @param {array} $params extra parameters specific to the therock api endpoint
+         * @return {array} a {@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure ticker structure}
          */
         $this->load_markets();
         $market = $this->market($symbol);
@@ -630,11 +634,11 @@ class therock extends Exchange {
     public function fetch_ledger($code = null, $since = null, $limit = null, $params = array ()) {
         /**
          * fetch the history of changes, actions done by the user or operations that altered balance of the user
-         * @param {str|null} $code unified $currency $code, default is null
+         * @param {string|null} $code unified $currency $code, default is null
          * @param {int|null} $since timestamp in ms of the earliest ledger entry, default is null
          * @param {int|null} $limit max number of ledger entrys to return, default is null
-         * @param {dict} $params extra parameters specific to the therock api endpoint
-         * @return {dict} a {@link https://docs.ccxt.com/en/latest/manual.html#ledger-structure ledger structure}
+         * @param {array} $params extra parameters specific to the therock api endpoint
+         * @return {array} a {@link https://docs.ccxt.com/en/latest/manual.html#ledger-structure ledger structure}
          */
         $this->load_markets();
         $request = array(
@@ -878,11 +882,11 @@ class therock extends Exchange {
     public function fetch_withdrawals($code = null, $since = null, $limit = null, $params = array ()) {
         /**
          * fetch all withdrawals made from an account
-         * @param {str|null} $code unified currency $code
+         * @param {string|null} $code unified currency $code
          * @param {int|null} $since the earliest time in ms to fetch withdrawals for
          * @param {int|null} $limit the maximum number of withdrawals structures to retrieve
-         * @param {dict} $params extra parameters specific to the therock api endpoint
-         * @return {[dict]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure transaction structures}
+         * @param {array} $params extra parameters specific to the therock api endpoint
+         * @return {[array]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure transaction structures}
          */
         $request = array(
             'type' => 'withdraw',
@@ -893,11 +897,11 @@ class therock extends Exchange {
     public function fetch_deposits($code = null, $since = null, $limit = null, $params = array ()) {
         /**
          * fetch all deposits made to an account
-         * @param {str|null} $code unified currency $code
+         * @param {string|null} $code unified currency $code
          * @param {int|null} $since the earliest time in ms to fetch deposits for
          * @param {int|null} $limit the maximum number of deposits structures to retrieve
-         * @param {dict} $params extra parameters specific to the therock api endpoint
-         * @return {[dict]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure transaction structures}
+         * @param {array} $params extra parameters specific to the therock api endpoint
+         * @return {[array]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure transaction structures}
          */
         $request = array(
             'type' => 'atm_payment',
@@ -908,11 +912,11 @@ class therock extends Exchange {
     public function fetch_transactions($code = null, $since = null, $limit = null, $params = array ()) {
         /**
          * fetch history of deposits and withdrawals
-         * @param {str|null} $code unified $currency $code for the $currency of the $transactions, default is null
+         * @param {string|null} $code unified $currency $code for the $currency of the $transactions, default is null
          * @param {int|null} $since timestamp in ms of the earliest transaction, default is null
          * @param {int|null} $limit max number of $transactions to return, default is null
-         * @param {dict} $params extra parameters specific to the therock api endpoint
-         * @return {dict} a list of {@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure transaction structure}
+         * @param {array} $params extra parameters specific to the therock api endpoint
+         * @return {array} a list of {@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure transaction structure}
          */
         $this->load_markets();
         $request = array(
@@ -1004,12 +1008,12 @@ class therock extends Exchange {
     public function withdraw($code, $amount, $address, $tag = null, $params = array ()) {
         /**
          * make a withdrawal
-         * @param {str} $code unified $currency $code
+         * @param {string} $code unified $currency $code
          * @param {float} $amount the $amount to withdraw
-         * @param {str} $address the $address to withdraw to
-         * @param {str|null} $tag
-         * @param {dict} $params extra parameters specific to the therock api endpoint
-         * @return {dict} a {@link https://docs.ccxt.com/en/latest/manual.html#$transaction-structure $transaction structure}
+         * @param {string} $address the $address to withdraw to
+         * @param {string|null} $tag
+         * @param {array} $params extra parameters specific to the therock api endpoint
+         * @return {array} a {@link https://docs.ccxt.com/en/latest/manual.html#$transaction-structure $transaction structure}
          */
         list($tag, $params) = $this->handle_withdraw_tag_and_params($tag, $params);
         $this->load_markets();
@@ -1081,93 +1085,59 @@ class therock extends Exchange {
         //         "position_id" => null,
         //         "trades" => array(
         //             {
-        //                 "id":237338,
-        //                 "fund_id":"BTCEUR",
-        //                 "amount":50,
-        //                 "price":0.0102,
-        //                 "side":"buy",
-        //                 "dark":false,
-        //                 "date":"2015-06-03T00:49:49.000Z"
+        //                 "id" => 237338,
+        //                 "fund_id" => "BTCEUR",
+        //                 "amount" => 50,
+        //                 "price" => 0.0102,
+        //                 "side" => "buy",
+        //                 "dark" => false,
+        //                 "date" => "2015-06-03T00:49:49.000Z"
         //             }
         //         )
         //     }
         //
         $id = $this->safe_string($order, 'id');
         $marketId = $this->safe_string($order, 'fund_id');
-        $symbol = $this->safe_symbol($marketId, $market);
-        $status = $this->parse_order_status($this->safe_string($order, 'status'));
         $timestamp = $this->parse8601($this->safe_string($order, 'date'));
-        $type = $this->safe_string($order, 'type');
-        $side = $this->safe_string($order, 'side');
-        $amount = $this->safe_number($order, 'amount');
-        $remaining = $this->safe_number($order, 'amount_unfilled');
-        $filled = null;
-        if ($amount !== null) {
-            if ($remaining !== null) {
-                $filled = $amount - $remaining;
-            }
-        }
-        $price = $this->safe_number($order, 'price');
+        $amount = $this->safe_string($order, 'amount');
+        $remaining = $this->safe_string($order, 'amount_unfilled');
+        $price = $this->safe_string($order, 'price');
         $trades = $this->safe_value($order, 'trades');
-        $cost = null;
-        $average = null;
-        $lastTradeTimestamp = null;
-        if ($trades !== null) {
-            $numTrades = is_array($trades) ? count($trades) : 0;
-            if ($numTrades > 0) {
-                $trades = $this->parse_trades($trades, $market, null, null, array(
-                    'orderId' => $id,
-                ));
-                // todo => determine the $cost and the $average $price from $trades
-                $cost = 0;
-                $filled = 0;
-                for ($i = 0; $i < $numTrades; $i++) {
-                    $trade = $trades[$i];
-                    $cost = $this->sum($cost, $trade['cost']);
-                    $filled = $this->sum($filled, $trade['amount']);
-                }
-                if ($filled > 0) {
-                    $average = $cost / $filled;
-                }
-                $lastTradeTimestamp = $trades[$numTrades - 1]['timestamp'];
-            } else {
-                $cost = 0;
-            }
-        }
-        $stopPrice = $this->safe_number($order, 'conditional_price');
-        return array(
+        $stopPrice = $this->safe_string($order, 'conditional_price');
+        return $this->safe_order(array(
             'id' => $id,
             'clientOrderId' => null,
             'info' => $order,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
-            'lastTradeTimestamp' => $lastTradeTimestamp,
-            'status' => $status,
-            'symbol' => $symbol,
-            'type' => $type,
+            'lastTradeTimestamp' => null,
+            'status' => $this->parse_order_status($this->safe_string($order, 'status')),
+            'symbol' => $this->safe_symbol($marketId, $market),
+            'type' => $this->safe_string($order, 'type'),
             'timeInForce' => null,
             'postOnly' => null,
-            'side' => $side,
+            'side' => $this->safe_string($order, 'side'),
             'price' => $price,
             'stopPrice' => $stopPrice,
-            'cost' => $cost,
+            'triggerPrice' => $stopPrice,
+            'cost' => null,
             'amount' => $amount,
-            'filled' => $filled,
-            'average' => $average,
+            'filled' => null,
+            'average' => null,
             'remaining' => $remaining,
             'fee' => null,
             'trades' => $trades,
-        );
+        ), $market);
     }
 
     public function fetch_open_orders($symbol = null, $since = null, $limit = null, $params = array ()) {
         /**
          * fetch all unfilled currently open orders
-         * @param {str} $symbol unified market $symbol
+         * @param {string} $symbol unified market $symbol
          * @param {int|null} $since the earliest time in ms to fetch open orders for
          * @param {int|null} $limit the maximum number of  open orders structures to retrieve
-         * @param {dict} $params extra parameters specific to the therock api endpoint
-         * @return {[dict]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structures}
+         * @param {array} $params extra parameters specific to the therock api endpoint
+         * @return {[array]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structures}
          */
         $request = array(
             'status' => 'active',
@@ -1178,11 +1148,11 @@ class therock extends Exchange {
     public function fetch_closed_orders($symbol = null, $since = null, $limit = null, $params = array ()) {
         /**
          * fetches information on multiple closed orders made by the user
-         * @param {str} $symbol unified market $symbol of the market orders were made in
+         * @param {string} $symbol unified market $symbol of the market orders were made in
          * @param {int|null} $since the earliest time in ms to fetch orders for
          * @param {int|null} $limit the maximum number of  orde structures to retrieve
-         * @param {dict} $params extra parameters specific to the therock api endpoint
-         * @return {[dict]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure
+         * @param {array} $params extra parameters specific to the therock api endpoint
+         * @return {[array]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structures}
          */
         $request = array(
             'status' => 'executed',
@@ -1193,11 +1163,11 @@ class therock extends Exchange {
     public function fetch_orders($symbol = null, $since = null, $limit = null, $params = array ()) {
         /**
          * fetches information on multiple $orders made by the user
-         * @param {str} $symbol unified $market $symbol of the $market $orders were made in
+         * @param {string} $symbol unified $market $symbol of the $market $orders were made in
          * @param {int|null} $since the earliest time in ms to fetch $orders for
          * @param {int|null} $limit the maximum number of  orde structures to retrieve
-         * @param {dict} $params extra parameters specific to the therock api endpoint
-         * @return {[dict]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure
+         * @param {array} $params extra parameters specific to the therock api endpoint
+         * @return {[array]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structures}
          */
         if ($symbol === null) {
             throw new ArgumentsRequired($this->id . ' fetchOrders() requires a $symbol argument');
@@ -1247,8 +1217,8 @@ class therock extends Exchange {
         /**
          * fetches information on an order made by the user
          * @param {strs} $symbol unified $symbol of the $market the order was made in
-         * @param {dict} $params extra parameters specific to the therock api endpoint
-         * @return {dict} An {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structure}
+         * @param {array} $params extra parameters specific to the therock api endpoint
+         * @return {array} An {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structure}
          */
         if ($symbol === null) {
             throw new ArgumentsRequired($this->id . ' fetchOrder() requires a $symbol argument');
@@ -1295,20 +1265,21 @@ class therock extends Exchange {
     public function create_order($symbol, $type, $side, $amount, $price = null, $params = array ()) {
         /**
          * create a trade order
-         * @param {str} $symbol unified $symbol of the market to create an order in
-         * @param {str} $type 'market' or 'limit'
-         * @param {str} $side 'buy' or 'sell'
+         * @param {string} $symbol unified $symbol of the $market to create an order in
+         * @param {string} $type 'market' or 'limit'
+         * @param {string} $side 'buy' or 'sell'
          * @param {float} $amount how much of currency you want to trade in units of base currency
-         * @param {float|null} $price the $price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
-         * @param {dict} $params extra parameters specific to the therock api endpoint
-         * @return {dict} an {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structure}
+         * @param {float|null} $price the $price at which the order is to be fullfilled, in units of the quote currency, ignored in $market orders
+         * @param {array} $params extra parameters specific to the therock api endpoint
+         * @return {array} an {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structure}
          */
         $this->load_markets();
         if ($type === 'market') {
             $price = 0;
         }
+        $market = $this->market($symbol);
         $request = array(
-            'fund_id' => $this->market_id($symbol),
+            'fund_id' => $market['id'],
             'side' => $side,
             'amount' => $amount,
             'price' => $price,
@@ -1320,10 +1291,10 @@ class therock extends Exchange {
     public function cancel_order($id, $symbol = null, $params = array ()) {
         /**
          * cancels an open order
-         * @param {str} $id order $id
-         * @param {str} $symbol unified $symbol of the market the order was made in
-         * @param {dict} $params extra parameters specific to the therock api endpoint
-         * @return {dict} An {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structure}
+         * @param {string} $id order $id
+         * @param {string} $symbol unified $symbol of the market the order was made in
+         * @param {array} $params extra parameters specific to the therock api endpoint
+         * @return {array} An {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structure}
          */
         $this->load_markets();
         $request = array(
@@ -1337,11 +1308,11 @@ class therock extends Exchange {
     public function fetch_ohlcv($symbol, $timeframe = '1m', $since = null, $limit = null, $params = array ()) {
         /**
          * fetches historical candlestick data containing the open, high, low, and close price, and the volume of a $market
-         * @param {str} $symbol unified $symbol of the $market to fetch OHLCV data for
-         * @param {str} $timeframe the length of time each candle represents in minutes
+         * @param {string} $symbol unified $symbol of the $market to fetch OHLCV data for
+         * @param {string} $timeframe the length of time each candle represents in minutes
          * @param {int|null} $since timestamp in ms of the earliest candle to fetch
          * @param {int|null} $limit the maximum amount of candles to fetch
-         * @param {dict} $params extra parameters specific to the exmo api endpoint
+         * @param {array} $params extra parameters specific to the exmo api endpoint
          * @return {[[int]]} A list of candles ordered as timestamp, open, high, low, close, volume
          */
         $this->load_markets();
@@ -1407,11 +1378,11 @@ class therock extends Exchange {
     public function fetch_my_trades($symbol = null, $since = null, $limit = null, $params = array ()) {
         /**
          * fetch all $trades made by the user
-         * @param {str} $symbol unified $market $symbol
+         * @param {string} $symbol unified $market $symbol
          * @param {int|null} $since the earliest time in ms to fetch $trades for
          * @param {int|null} $limit the maximum number of $trades structures to retrieve
-         * @param {dict} $params extra parameters specific to the therock api endpoint
-         * @return {[dict]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#trade-structure trade structures}
+         * @param {array} $params extra parameters specific to the therock api endpoint
+         * @return {[array]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#trade-structure trade structures}
          */
         if ($symbol === null) {
             throw new ArgumentsRequired($this->id . ' fetchMyTrades() requires a $symbol argument');
@@ -1464,11 +1435,11 @@ class therock extends Exchange {
     public function fetch_trades($symbol, $since = null, $limit = null, $params = array ()) {
         /**
          * get the list of most recent trades for a particular $symbol
-         * @param {str} $symbol unified $symbol of the $market to fetch trades for
+         * @param {string} $symbol unified $symbol of the $market to fetch trades for
          * @param {int|null} $since timestamp in ms of the earliest trade to fetch
          * @param {int|null} $limit the maximum amount of trades to fetch
-         * @param {dict} $params extra parameters specific to the therock api endpoint
-         * @return {[dict]} a list of ~@link https://docs.ccxt.com/en/latest/manual.html?#public-trades trade structures~
+         * @param {array} $params extra parameters specific to the therock api endpoint
+         * @return {[array]} a list of ~@link https://docs.ccxt.com/en/latest/manual.html?#public-trades trade structures~
          */
         $this->load_markets();
         $market = $this->market($symbol);
@@ -1520,9 +1491,9 @@ class therock extends Exchange {
     public function fetch_trading_fee($symbol, $params = array ()) {
         /**
          * fetch the trading fees for a $market
-         * @param {str} $symbol unified $market $symbol
-         * @param {dict} $params extra parameters specific to the therock api endpoint
-         * @return {dict} a {@link https://docs.ccxt.com/en/latest/manual.html#fee-structure fee structure}
+         * @param {string} $symbol unified $market $symbol
+         * @param {array} $params extra parameters specific to the therock api endpoint
+         * @return {array} a {@link https://docs.ccxt.com/en/latest/manual.html#fee-structure fee structure}
          */
         $this->load_markets();
         $market = $this->market($symbol);
@@ -1566,8 +1537,8 @@ class therock extends Exchange {
     public function fetch_trading_fees($params = array ()) {
         /**
          * fetch the trading fees for multiple markets
-         * @param {dict} $params extra parameters specific to the therock api endpoint
-         * @return {dict} a dictionary of {@link https://docs.ccxt.com/en/latest/manual.html#$fee-structure $fee structures} indexed by $market symbols
+         * @param {array} $params extra parameters specific to the therock api endpoint
+         * @return {array} a dictionary of {@link https://docs.ccxt.com/en/latest/manual.html#$fee-structure $fee structures} indexed by $market symbols
          */
         $this->load_markets();
         $response = $this->publicGetFunds ($params);
@@ -1642,7 +1613,7 @@ class therock extends Exchange {
     }
 
     public function sign($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
-        $url = $this->urls['api'] . '/' . $this->version . '/' . $this->implode_params($path, $params);
+        $url = $this->urls['api']['rest'] . '/' . $this->version . '/' . $this->implode_params($path, $params);
         $query = $this->omit($params, $this->extract_params($path));
         $headers = ($headers === null) ? array() : $headers;
         if ($api === 'private') {
@@ -1687,7 +1658,7 @@ class therock extends Exchange {
         //     }
         //
         $errors = $this->safe_value($response, 'errors', array());
-        $numErrors = is_array($errors) ? count($errors) : 0;
+        $numErrors = count($errors);
         if ($numErrors > 0) {
             $feedback = $this->id . ' ' . $body;
             // here we throw the first $error we can identify

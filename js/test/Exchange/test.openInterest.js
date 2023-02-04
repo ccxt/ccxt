@@ -35,7 +35,7 @@ module.exports = (exchange, openInterest, method) => {
         assert (openInterest['timestamp'] > 1199145600000); // Timestamp for Jan 1 2008
         assert (openInterest['timestamp'] < 7258118400000); // Timestamp for Jan 1 2200
     }
-    assert (typeof openInterest['symbol'] === 'string' || typeof openInterest['symbol'] === undefined);
-    assert (typeof openInterest['datetime'] === 'string' || typeof openInterest['datetime'] === undefined);
+    assert (typeof openInterest['symbol'] === 'string' || openInterest['symbol'] === undefined);
+    assert (typeof openInterest['datetime'] === 'string' || openInterest['datetime'] === undefined);
     return openInterest;
 }

@@ -49,23 +49,25 @@ class upbit(Exchange):
                 'fetchFundingRateHistory': False,
                 'fetchFundingRates': False,
                 'fetchIndexOHLCV': False,
+                'fetchMarginMode': False,
                 'fetchMarkets': True,
                 'fetchMarkOHLCV': False,
-                'fetchMyTrades': None,
+                'fetchMyTrades': False,
                 'fetchOHLCV': True,
                 'fetchOpenInterestHistory': False,
                 'fetchOpenOrders': True,
                 'fetchOrder': True,
                 'fetchOrderBook': True,
                 'fetchOrderBooks': True,
-                'fetchOrders': None,
+                'fetchOrders': False,
+                'fetchPositionMode': False,
                 'fetchPremiumIndexOHLCV': False,
                 'fetchTicker': True,
                 'fetchTickers': True,
                 'fetchTrades': True,
                 'fetchTradingFee': True,
                 'fetchTradingFees': False,
-                'fetchTransactions': None,
+                'fetchTransactions': False,
                 'fetchWithdrawals': True,
                 'transfer': False,
                 'withdraw': True,
@@ -366,8 +368,8 @@ class upbit(Exchange):
             'strike': None,
             'optionType': None,
             'precision': {
-                'amount': self.parse_number('0.00000001'),
-                'price': self.parse_number('0.00000001'),
+                'amount': self.parse_number('1e-8'),
+                'price': self.parse_number('1e-8'),
             },
             'limits': {
                 'leverage': {
@@ -441,8 +443,8 @@ class upbit(Exchange):
                 'strike': None,
                 'optionType': None,
                 'precision': {
-                    'price': self.parse_number('0.00000001'),
-                    'amount': self.parse_number('0.00000001'),
+                    'price': self.parse_number('1e-8'),
+                    'amount': self.parse_number('1e-8'),
                 },
                 'limits': {
                     'leverage': {
@@ -646,6 +648,7 @@ class upbit(Exchange):
         :returns dict: an array of `ticker structures <https://docs.ccxt.com/en/latest/manual.html#ticker-structure>`
         """
         await self.load_markets()
+        symbols = self.market_symbols(symbols)
         ids = None
         if symbols is None:
             ids = ','.join(self.ids)
@@ -915,7 +918,7 @@ class upbit(Exchange):
         await self.load_markets()
         market = self.market(symbol)
         timeframePeriod = self.parse_timeframe(timeframe)
-        timeframeValue = self.timeframes[timeframe]
+        timeframeValue = self.safe_string(self.timeframes, timeframe, timeframe)
         if limit is None:
             limit = 200
         request = {
@@ -1195,8 +1198,9 @@ class upbit(Exchange):
         address = None  # not present in the data structure received from the exchange
         tag = None  # not present in the data structure received from the exchange
         txid = self.safe_string(transaction, 'txid')
-        updated = self.parse8601(self.safe_string(transaction, 'done_at'))
-        timestamp = self.parse8601(self.safe_string(transaction, 'created_at', updated))
+        updatedRaw = self.safe_string(transaction, 'done_at')
+        updated = self.parse8601(updatedRaw)
+        timestamp = self.parse8601(self.safe_string(transaction, 'created_at', updatedRaw))
         type = self.safe_string(transaction, 'type')
         if type == 'withdraw':
             type = 'withdrawal'
@@ -1346,6 +1350,7 @@ class upbit(Exchange):
             'side': side,
             'price': price,
             'stopPrice': None,
+            'triggerPrice': None,
             'cost': cost,
             'average': average,
             'amount': amount,
@@ -1411,7 +1416,7 @@ class upbit(Exchange):
         :param int|None since: the earliest time in ms to fetch orders for
         :param int|None limit: the maximum number of  orde structures to retrieve
         :param dict params: extra parameters specific to the upbit api endpoint
-        :returns [dict]: a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure
+        :returns [dict]: a list of `order structures <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
         """
         return await self.fetch_orders_by_state('done', symbol, since, limit, params)
 

@@ -20,7 +20,7 @@ function test_margin_modification($exchange, $marginModification) {
     );
     $keys = is_array($format) ? array_keys($format) : array();
     for ($i = 0; $i < count($keys); $i++) {
-        assert (is_array(margin) && array_key_exists($keys[$i], margin));
+        assert (is_array($marginModification) && array_key_exists($keys[$i], $marginModification));
     }
     assert (gettype($marginModification['info']) === 'array');
     if ($marginModification['type'] !== null) {

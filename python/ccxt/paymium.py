@@ -48,7 +48,9 @@ class paymium(Exchange):
             },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/51840849/87153930-f0f02200-c2c0-11ea-9c0a-40337375ae89.jpg',
-                'api': 'https://paymium.com/api',
+                'api': {
+                    'rest': 'https://paymium.com/api',
+                },
                 'www': 'https://www.paymium.com',
                 'fees': 'https://www.paymium.com/page/help/fees',
                 'doc': [
@@ -142,11 +144,12 @@ class paymium(Exchange):
         :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/en/latest/manual.html#order-book-structure>` indexed by market symbols
         """
         self.load_markets()
+        market = self.market(symbol)
         request = {
-            'currency': self.market_id(symbol),
+            'currency': market['id'],
         }
         response = self.publicGetDataCurrencyDepth(self.extend(request, params))
-        return self.parse_order_book(response, symbol, None, 'bids', 'asks', 'price', 'amount')
+        return self.parse_order_book(response, market['symbol'], None, 'bids', 'asks', 'price', 'amount')
 
     def parse_ticker(self, ticker, market=None):
         #
@@ -363,9 +366,10 @@ class paymium(Exchange):
         :returns dict: an `order structure <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
         """
         self.load_markets()
+        market = self.market(symbol)
         request = {
             'type': self.capitalize(type) + 'Order',
-            'currency': self.market_id(symbol),
+            'currency': market['id'],
             'direction': side,
             'amount': amount,
         }
@@ -506,7 +510,7 @@ class paymium(Exchange):
         return self.safe_string(statuses, status, status)
 
     def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
-        url = self.urls['api'] + '/' + self.version + '/' + self.implode_params(path, params)
+        url = self.urls['api']['rest'] + '/' + self.version + '/' + self.implode_params(path, params)
         query = self.omit(params, self.extract_params(path))
         if api == 'public':
             if query:

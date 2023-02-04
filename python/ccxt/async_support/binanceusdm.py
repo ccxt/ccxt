@@ -21,15 +21,16 @@ class binanceusdm(binance):
             },
             'has': {
                 'CORS': None,
-                'spot': True,
-                'margin': None,
-                'swap': None,
-                'future': None,
+                'spot': False,
+                'margin': False,
+                'swap': True,
+                'future': True,
                 'option': None,
                 'createStopMarketOrder': True,
             },
             'options': {
-                'defaultType': 'future',
+                'fetchMarkets': ['linear'],
+                'defaultSubType': 'linear',
                 # https://www.binance.com/en/support/faq/360033162192
                 # tier amount, maintenance margin, initial margin
                 'leverageBrackets': None,

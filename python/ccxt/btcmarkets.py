@@ -13,6 +13,7 @@ from ccxt.base.errors import InvalidOrder
 from ccxt.base.errors import OrderNotFound
 from ccxt.base.errors import DDoSProtection
 from ccxt.base.decimal_to_precision import TICK_SIZE
+from ccxt.base.precise import Precise
 
 
 class btcmarkets(Exchange):
@@ -50,6 +51,7 @@ class btcmarkets(Exchange):
                 'fetchFundingRates': False,
                 'fetchIndexOHLCV': False,
                 'fetchLeverage': False,
+                'fetchMarginMode': False,
                 'fetchMarkets': True,
                 'fetchMarkOHLCV': False,
                 'fetchMyTrades': True,
@@ -60,6 +62,7 @@ class btcmarkets(Exchange):
                 'fetchOrderBook': True,
                 'fetchOrders': True,
                 'fetchPosition': False,
+                'fetchPositionMode': False,
                 'fetchPositions': False,
                 'fetchPositionsRisk': False,
                 'fetchPremiumIndexOHLCV': False,
@@ -164,8 +167,8 @@ class btcmarkets(Exchange):
             'options': {
                 'fees': {
                     'AUD': {
-                        'maker': 0.85 / 100,
-                        'taker': 0.85 / 100,
+                        'maker': self.parse_number('0.0085'),
+                        'taker': self.parse_number('0.0085'),
                     },
                 },
             },
@@ -323,9 +326,11 @@ class btcmarkets(Exchange):
             'currency': code,
             'status': status,
             'updated': lastUpdate,
+            'comment': None,
             'fee': {
                 'currency': code,
                 'cost': fee,
+                'rate': None,
             },
             'info': transaction,
         }
@@ -361,7 +366,6 @@ class btcmarkets(Exchange):
             symbol = base + '/' + quote
             fees = self.safe_value(self.safe_value(self.options, 'fees', {}), quote, self.fees)
             pricePrecision = self.parse_number(self.parse_precision(self.safe_string(market, 'priceDecimals')))
-            amountPrecision = self.parse_number(self.parse_precision(self.safe_string(market, 'amountDecimals')))
             minAmount = self.safe_number(market, 'minOrderAmount')
             maxAmount = self.safe_number(market, 'maxOrderAmount')
             minPrice = None
@@ -394,7 +398,7 @@ class btcmarkets(Exchange):
                 'strike': None,
                 'optionType': None,
                 'precision': {
-                    'amount': amountPrecision,
+                    'amount': self.parse_number(self.parse_precision(self.safe_string(market, 'amountDecimals'))),
                     'price': pricePrecision,
                 },
                 'limits': {
@@ -489,7 +493,7 @@ class btcmarkets(Exchange):
         market = self.market(symbol)
         request = {
             'marketId': market['id'],
-            'timeWindow': self.timeframes[timeframe],
+            'timeWindow': self.safe_string(self.timeframes, timeframe, timeframe),
             # 'from': self.iso8601(since),
             # 'to': self.iso8601(self.milliseconds()),
             # 'before': 1234567890123,
@@ -842,20 +846,24 @@ class btcmarkets(Exchange):
 
     def calculate_fee(self, symbol, type, side, amount, price, takerOrMaker='taker', params={}):
         market = self.markets[symbol]
-        rate = market[takerOrMaker]
         currency = None
         cost = None
         if market['quote'] == 'AUD':
             currency = market['quote']
-            cost = float(self.cost_to_precision(symbol, amount * price))
+            amountString = self.number_to_string(amount)
+            priceString = self.number_to_string(price)
+            otherUnitsAmount = Precise.string_mul(amountString, priceString)
+            cost = self.cost_to_precision(symbol, otherUnitsAmount)
         else:
             currency = market['base']
-            cost = float(self.amount_to_precision(symbol, amount))
+            cost = self.amount_to_precision(symbol, amount)
+        rate = market[takerOrMaker]
+        rateCost = Precise.string_mul(self.number_to_string(rate), cost)
         return {
             'type': takerOrMaker,
             'currency': currency,
             'rate': rate,
-            'cost': float(self.fee_to_precision(symbol, rate * cost)),
+            'cost': float(self.fee_to_precision(symbol, rateCost)),
         }
 
     def parse_order_status(self, status):
@@ -924,6 +932,7 @@ class btcmarkets(Exchange):
             'side': side,
             'price': price,
             'stopPrice': stopPrice,
+            'triggerPrice': stopPrice,
             'cost': None,
             'amount': amount,
             'filled': None,
@@ -955,7 +964,7 @@ class btcmarkets(Exchange):
         :param int|None since: the earliest time in ms to fetch orders for
         :param int|None limit: the maximum number of  orde structures to retrieve
         :param dict params: extra parameters specific to the btcmarkets api endpoint
-        :returns [dict]: a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure
+        :returns [dict]: a list of `order structures <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
         """
         self.load_markets()
         request = {
@@ -991,7 +1000,7 @@ class btcmarkets(Exchange):
         :param int|None since: the earliest time in ms to fetch orders for
         :param int|None limit: the maximum number of  orde structures to retrieve
         :param dict params: extra parameters specific to the btcmarkets api endpoint
-        :returns [dict]: a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure
+        :returns [dict]: a list of `order structures <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
         """
         orders = self.fetch_orders(symbol, since, limit, params)
         return self.filter_by(orders, 'status', 'closed')

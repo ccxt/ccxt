@@ -27,7 +27,7 @@ class btctradeua(Exchange):
                 'option': False,
                 'addMargin': False,
                 'cancelOrder': True,
-                'createMarketOrder': None,
+                'createMarketOrder': False,
                 'createOrder': True,
                 'createReduceOnlyOrder': False,
                 'fetchBalance': True,
@@ -42,11 +42,13 @@ class btctradeua(Exchange):
                 'fetchFundingRates': False,
                 'fetchIndexOHLCV': False,
                 'fetchLeverage': False,
+                'fetchMarginMode': False,
                 'fetchMarkOHLCV': False,
                 'fetchOpenInterestHistory': False,
                 'fetchOpenOrders': True,
                 'fetchOrderBook': True,
                 'fetchPosition': False,
+                'fetchPositionMode': False,
                 'fetchPositions': False,
                 'fetchPositionsRisk': False,
                 'fetchPremiumIndexOHLCV': False,
@@ -63,7 +65,9 @@ class btctradeua(Exchange):
             'urls': {
                 'referral': 'https://btc-trade.com.ua/registration/22689',
                 'logo': 'https://user-images.githubusercontent.com/1294454/27941483-79fc7350-62d9-11e7-9f61-ac47f28fcd96.jpg',
-                'api': 'https://btc-trade.com.ua/api',
+                'api': {
+                    'rest': 'https://btc-trade.com.ua/api',
+                },
                 'www': 'https://btc-trade.com.ua',
                 'doc': 'https://docs.google.com/document/d/1ocYA0yMy_RXd561sfG3qEPZ80kyll36HUxvCRe5GbhE/edit',
             },
@@ -93,7 +97,7 @@ class btctradeua(Exchange):
             'precisionMode': TICK_SIZE,
             'markets': {
                 'BCH/UAH': {'id': 'bch_uah', 'symbol': 'BCH/UAH', 'base': 'BCH', 'quote': 'UAH', 'baseId': 'bch', 'quoteId': 'uah', 'type': 'spot', 'spot': True},
-                'BTC/UAH': {'id': 'btc_uah', 'symbol': 'BTC/UAH', 'base': 'BTC', 'quote': 'UAH', 'baseId': 'btc', 'quoteId': 'uah', 'precision': {'price': 0.1}, 'limits': {'amount': {'min': 0.0000000001}}, 'type': 'spot', 'spot': True},
+                'BTC/UAH': {'id': 'btc_uah', 'symbol': 'BTC/UAH', 'base': 'BTC', 'quote': 'UAH', 'baseId': 'btc', 'quoteId': 'uah', 'precision': {'price': self.parse_number('1e-1')}, 'limits': {'amount': {'min': self.parse_number('1e-10')}}, 'type': 'spot', 'spot': True},
                 'DASH/BTC': {'id': 'dash_btc', 'symbol': 'DASH/BTC', 'base': 'DASH', 'quote': 'BTC', 'baseId': 'dash', 'quoteId': 'btc', 'type': 'spot', 'spot': True},
                 'DASH/UAH': {'id': 'dash_uah', 'symbol': 'DASH/UAH', 'base': 'DASH', 'quote': 'UAH', 'baseId': 'dash', 'quoteId': 'uah', 'type': 'spot', 'spot': True},
                 'DOGE/BTC': {'id': 'doge_btc', 'symbol': 'DOGE/BTC', 'base': 'DOGE', 'quote': 'BTC', 'baseId': 'doge', 'quoteId': 'btc', 'type': 'spot', 'spot': True},
@@ -112,16 +116,8 @@ class btctradeua(Exchange):
             },
             'fees': {
                 'trading': {
-                    'maker': 0.1 / 100,
-                    'taker': 0.1 / 100,
-                },
-                'funding': {
-                    'withdraw': {
-                        'BTC': 0.0006,
-                        'LTC': 0.01,
-                        'NVC': 0.01,
-                        'DOGE': 10,
-                    },
+                    'maker': self.parse_number('0.001'),
+                    'taker': self.parse_number('0.001'),
                 },
             },
         })
@@ -181,7 +177,7 @@ class btctradeua(Exchange):
         if asks:
             if 'list' in asks:
                 orderbook['asks'] = asks['list']
-        return self.parse_order_book(orderbook, symbol, None, 'bids', 'asks', 'price', 'currency_trade')
+        return self.parse_order_book(orderbook, market['symbol'], None, 'bids', 'asks', 'price', 'currency_trade')
 
     def parse_ticker(self, ticker, market=None):
         #
@@ -375,7 +371,7 @@ class btctradeua(Exchange):
         """
         create a trade order
         :param str symbol: unified symbol of the market to create an order in
-        :param str type: 'market' or 'limit'
+        :param str type: must be 'limit'
         :param str side: 'buy' or 'sell'
         :param float amount: how much of currency you want to trade in units of base currency
         :param float|None price: the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
@@ -429,6 +425,7 @@ class btctradeua(Exchange):
             'side': side,
             'price': price,
             'stopPrice': None,
+            'triggerPrice': None,
             'amount': amount,
             'filled': None,
             'remaining': remaining,
@@ -463,7 +460,7 @@ class btctradeua(Exchange):
         return self.milliseconds()
 
     def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
-        url = self.urls['api'] + '/' + self.implode_params(path, params)
+        url = self.urls['api']['rest'] + '/' + self.implode_params(path, params)
         query = self.omit(params, self.extract_params(path))
         if api == 'public':
             if query:

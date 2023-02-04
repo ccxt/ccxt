@@ -32,6 +32,9 @@ class mercado(Exchange):
                 'createMarketOrder': True,
                 'createOrder': True,
                 'createReduceOnlyOrder': False,
+                'createStopLimitOrder': False,
+                'createStopMarketOrder': False,
+                'createStopOrder': False,
                 'fetchBalance': True,
                 'fetchBorrowRate': False,
                 'fetchBorrowRateHistory': False,
@@ -44,6 +47,7 @@ class mercado(Exchange):
                 'fetchIndexOHLCV': False,
                 'fetchLeverage': False,
                 'fetchLeverageTiers': False,
+                'fetchMarginMode': False,
                 'fetchMarkets': True,
                 'fetchMarkOHLCV': False,
                 'fetchMyTrades': 'emulated',
@@ -54,11 +58,12 @@ class mercado(Exchange):
                 'fetchOrderBook': True,
                 'fetchOrders': True,
                 'fetchPosition': False,
+                'fetchPositionMode': False,
                 'fetchPositions': False,
                 'fetchPositionsRisk': False,
                 'fetchPremiumIndexOHLCV': False,
                 'fetchTicker': True,
-                'fetchTickers': None,
+                'fetchTickers': False,
                 'fetchTrades': True,
                 'fetchTradingFee': False,
                 'fetchTradingFees': False,
@@ -69,17 +74,12 @@ class mercado(Exchange):
                 'withdraw': True,
             },
             'timeframes': {
-                '1m': '1m',
-                '5m': '5m',
                 '15m': '15m',
-                '30m': '30m',
                 '1h': '1h',
-                '6h': '6h',
-                '12h': '12h',
+                '3h': '3h',
                 '1d': '1d',
-                '3d': '3d',
                 '1w': '1w',
-                '2w': '2w',
+                '1M': '1M',
             },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/27837060-e7c58714-60ea-11e7-9192-f05e86adb83f.jpg',
@@ -87,6 +87,7 @@ class mercado(Exchange):
                     'public': 'https://www.mercadobitcoin.net/api',
                     'private': 'https://www.mercadobitcoin.net/tapi',
                     'v4Public': 'https://www.mercadobitcoin.com.br/v4',
+                    'v4PublicNet': 'https://api.mercadobitcoin.net/api/v4',
                 },
                 'www': 'https://www.mercadobitcoin.com.br',
                 'doc': [
@@ -125,6 +126,11 @@ class mercado(Exchange):
                 'v4Public': {
                     'get': [
                         '{coin}/candle/',
+                    ],
+                },
+                'v4PublicNet': {
+                    'get': [
+                        'candles',
                     ],
                 },
             },
@@ -183,7 +189,6 @@ class mercado(Exchange):
             base = self.safe_currency_code(baseId)
             quote = self.safe_currency_code(quoteId)
             id = quote + base
-            priceLimit = '1e-5'
             result.append({
                 'id': id,
                 'symbol': base + '/' + quote,
@@ -209,8 +214,8 @@ class mercado(Exchange):
                 'strike': None,
                 'optionType': None,
                 'precision': {
-                    'amount': self.parse_number('0.00000001'),
-                    'price': self.parse_number('0.00001'),
+                    'amount': self.parse_number('1e-8'),
+                    'price': self.parse_number('1e-5'),
                 },
                 'limits': {
                     'leverage': {
@@ -222,7 +227,7 @@ class mercado(Exchange):
                         'max': None,
                     },
                     'price': {
-                        'min': self.parse_number(priceLimit),
+                        'min': self.parse_number('1e-5'),
                         'max': None,
                     },
                     'cost': {
@@ -248,7 +253,7 @@ class mercado(Exchange):
             'coin': market['base'],
         }
         response = await self.publicGetCoinOrderbook(self.extend(request, params))
-        return self.parse_order_book(response, symbol)
+        return self.parse_order_book(response, market['symbol'])
 
     def parse_ticker(self, ticker, market=None):
         #
@@ -412,22 +417,23 @@ class mercado(Exchange):
         :returns dict: an `order structure <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
         """
         await self.load_markets()
+        market = self.market(symbol)
         request = {
-            'coin_pair': self.market_id(symbol),
+            'coin_pair': market['id'],
         }
         method = self.capitalize(side) + 'Order'
         if type == 'limit':
             method = 'privatePostPlace' + method
-            request['limit_price'] = self.price_to_precision(symbol, price)
-            request['quantity'] = self.amount_to_precision(symbol, amount)
+            request['limit_price'] = self.price_to_precision(market['symbol'], price)
+            request['quantity'] = self.amount_to_precision(market['symbol'], amount)
         else:
             method = 'privatePostPlaceMarket' + method
             if side == 'buy':
                 if price is None:
                     raise InvalidOrder(self.id + ' createOrder() requires the price argument with market buy orders to calculate total order cost(amount to spend), where cost = amount * price. Supply a price argument to createOrder() call if you want the cost to be calculated for you from price and amount')
-                request['cost'] = self.price_to_precision(symbol, amount * price)
+                request['cost'] = self.price_to_precision(market['symbol'], amount * price)
             else:
-                request['quantity'] = self.amount_to_precision(symbol, amount)
+                request['quantity'] = self.amount_to_precision(market['symbol'], amount)
         response = await getattr(self, method)(self.extend(request, params))
         # TODO: replace self with a call to parseOrder for unification
         return {
@@ -547,6 +553,7 @@ class mercado(Exchange):
             'side': side,
             'price': price,
             'stopPrice': None,
+            'triggerPrice': None,
             'cost': None,
             'average': average,
             'amount': amount,
@@ -593,7 +600,7 @@ class mercado(Exchange):
         currency = self.currency(code)
         request = {
             'coin': currency['id'],
-            'quantity': '{:.10f}'.format(amount),
+            'quantity': format(amount, '.10f'),
             'address': address,
         }
         if code == 'BRL':
@@ -673,15 +680,15 @@ class mercado(Exchange):
 
     def parse_ohlcv(self, ohlcv, market=None):
         return [
-            self.safe_timestamp(ohlcv, 'timestamp'),
-            self.safe_number(ohlcv, 'open'),
-            self.safe_number(ohlcv, 'high'),
-            self.safe_number(ohlcv, 'low'),
-            self.safe_number(ohlcv, 'close'),
-            self.safe_number(ohlcv, 'volume'),
+            self.safe_integer(ohlcv, 0),
+            self.safe_number(ohlcv, 1),
+            self.safe_number(ohlcv, 2),
+            self.safe_number(ohlcv, 3),
+            self.safe_number(ohlcv, 4),
+            self.safe_number(ohlcv, 5),
         ]
 
-    async def fetch_ohlcv(self, symbol, timeframe='5m', since=None, limit=None, params={}):
+    async def fetch_ohlcv(self, symbol, timeframe='15m', since=None, limit=None, params={}):
         """
         fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
         :param str symbol: unified symbol of the market to fetch OHLCV data for
@@ -694,20 +701,19 @@ class mercado(Exchange):
         await self.load_markets()
         market = self.market(symbol)
         request = {
-            'precision': self.timeframes[timeframe],
-            'coin': market['id'].lower(),
+            'resolution': self.safe_string(self.timeframes, timeframe, timeframe),
+            'symbol': market['base'] + '-' + market['quote'],  # exceptional endpoint, that needs custom symbol syntax
         }
-        if limit is not None and since is not None:
+        if limit is None:
+            limit = 100  # set some default limit, as it's required if user doesn't provide it
+        if since is not None:
             request['from'] = int(since / 1000)
             request['to'] = self.sum(request['from'], limit * self.parse_timeframe(timeframe))
-        elif since is not None:
-            request['from'] = int(since / 1000)
-            request['to'] = self.sum(self.seconds(), 1)
-        elif limit is not None:
+        else:
             request['to'] = self.seconds()
             request['from'] = request['to'] - (limit * self.parse_timeframe(timeframe))
-        response = await self.v4PublicGetCoinCandle(self.extend(request, params))
-        candles = self.safe_value(response, 'candles', [])
+        response = await self.v4PublicNetGetCandles(self.extend(request, params))
+        candles = self.convert_trading_view_to_ohlcv(response, 't', 'o', 'h', 'l', 'c', 'v')
         return self.parse_ohlcvs(candles, market, timeframe, since, limit)
 
     async def fetch_orders(self, symbol=None, since=None, limit=None, params={}):
@@ -717,7 +723,7 @@ class mercado(Exchange):
         :param int|None since: the earliest time in ms to fetch orders for
         :param int|None limit: the maximum number of  orde structures to retrieve
         :param dict params: extra parameters specific to the mercado api endpoint
-        :returns [dict]: a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure
+        :returns [dict]: a list of `order structures <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
         """
         if symbol is None:
             raise ArgumentsRequired(self.id + ' fetchOrders() requires a symbol argument')
@@ -788,7 +794,7 @@ class mercado(Exchange):
     def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
         url = self.urls['api'][api] + '/'
         query = self.omit(params, self.extract_params(path))
-        if api == 'public' or (api == 'v4Public'):
+        if (api == 'public') or (api == 'v4Public') or (api == 'v4PublicNet'):
             url += self.implode_params(path, params)
             if query:
                 url += '?' + self.urlencode(query)

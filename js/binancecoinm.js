@@ -20,15 +20,16 @@ module.exports = class binancecoinm extends binance {
             },
             'has': {
                 'CORS': undefined,
-                'spot': true,
-                'margin': undefined,
-                'swap': undefined,
-                'future': undefined,
+                'spot': false,
+                'margin': false,
+                'swap': true,
+                'future': true,
                 'option': undefined,
                 'createStopMarketOrder': true,
             },
             'options': {
-                'defaultType': 'delivery',
+                'fetchMarkets': [ 'inverse' ],
+                'defaultSubType': 'inverse',
                 'leverageBrackets': undefined,
             },
         });
