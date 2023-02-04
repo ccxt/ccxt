@@ -250,6 +250,8 @@ class binance(Exchange):
                         'margin/rateLimit/order': 2,
                         'margin/dribblet': 0.1,
                         'margin/crossMarginCollateralRatio': 10,
+                        'margin/exchange-small-liability': 0.6667,
+                        'margin/exchange-small-liability-history': 0.6667,
                         'loan/income': 40,  # Weight(UID): 6000 => cost = 0.006667 * 6000 = 40
                         'loan/ongoing/orders': 40,  # Weight(IP): 400 => cost = 0.1 * 400 = 40
                         'loan/ltv/adjustment/history': 40,  # Weight(IP): 400 => cost = 0.1 * 400 = 40
@@ -412,6 +414,7 @@ class binance(Exchange):
                         'margin/repay': 20.001,
                         'margin/order': 0.040002,  # Weight(UID): 6 => cost = 0.006667 * 6 = 0.040002
                         'margin/order/oco': 0.040002,
+                        'margin/exchange-small-liability': 20.001,
                         # 'margin/isolated/create': 1, discontinued
                         'margin/isolated/transfer': 4.0002,  # Weight(UID): 600 => cost = 0.006667 * 600 = 4.0002
                         'margin/isolated/account': 2.0001,  # Weight(UID): 300 => cost = 0.006667 * 300 = 2.0001
@@ -744,7 +747,6 @@ class binance(Exchange):
                         'order': 1,
                     },
                     'post': {
-                        'transfer': 1,
                         'order': 1,
                         'batchOrders': 5,
                         'listenKey': 1,
