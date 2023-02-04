@@ -857,9 +857,6 @@ module.exports = class coinex extends Exchange {
          * @param {object} params extra parameters specific to the coinex api endpoint
          * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-book-structure} indexed by market symbols
          */
-        if (symbol === undefined) {
-            throw new ArgumentsRequired (this.id + ' fetchOrderBook() requires a symbol argument');
-        }
         await this.loadMarkets ();
         const market = this.market (symbol);
         if (limit === undefined) {
@@ -1430,7 +1427,7 @@ module.exports = class coinex extends Exchange {
     parseOrderStatus (status) {
         const statuses = {
             'not_deal': 'open',
-            'part_deal': 'closed',
+            'part_deal': 'open',
             'done': 'closed',
             'cancel': 'canceled',
         };
@@ -1878,7 +1875,7 @@ module.exports = class coinex extends Exchange {
         }
         const [ marginMode, query ] = this.handleMarginModeAndParams ('createOrder', params);
         if (marginMode !== undefined) {
-            const accountId = this.safeInteger (params, 'account_id');
+            const accountId = this.safeInteger (query, 'account_id');
             if (accountId === undefined) {
                 throw new ArgumentsRequired (this.id + ' createOrder() requires an account_id parameter for margin orders');
             }
@@ -1998,7 +1995,7 @@ module.exports = class coinex extends Exchange {
         }
         const [ marginMode, query ] = this.handleMarginModeAndParams ('cancelOrder', params);
         if (marginMode !== undefined) {
-            const accountId = this.safeInteger (params, 'account_id');
+            const accountId = this.safeInteger (query, 'account_id');
             if (accountId === undefined) {
                 throw new ArgumentsRequired (this.id + ' cancelOrder() requires an account_id parameter for margin orders');
             }
@@ -2125,9 +2122,7 @@ module.exports = class coinex extends Exchange {
          * @param {object} params extra parameters specific to the coinex api endpoint
          * @returns {[object]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
          */
-        if (symbol === undefined) {
-            throw new ArgumentsRequired (this.id + ' cancellAllOrders() requires a symbol argument');
-        }
+        this.checkRequiredSymbol ('cancelAllOrders', symbol);
         await this.loadMarkets ();
         const market = this.market (symbol);
         const marketId = market['id'];
@@ -2175,9 +2170,7 @@ module.exports = class coinex extends Exchange {
          * @param {object} params extra parameters specific to the coinex api endpoint
          * @returns {object} An [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
          */
-        if (symbol === undefined) {
-            throw new ArgumentsRequired (this.id + ' fetchOrder() requires a symbol argument');
-        }
+        this.checkRequiredSymbol ('fetchOrder', symbol);
         await this.loadMarkets ();
         const market = this.market (symbol);
         const swap = market['swap'];
@@ -2319,9 +2312,7 @@ module.exports = class coinex extends Exchange {
         const [ marketType, marketTypeQuery ] = this.handleMarketTypeAndParams ('fetchOrdersByStatus', market, params);
         let method = undefined;
         if (marketType === 'swap') {
-            if (symbol === undefined) {
-                throw new ArgumentsRequired (this.id + ' fetchOrdersByStatus() requires a symbol argument for swap markets');
-            }
+            this.checkRequiredSymbol ('fetchOrdersByStatus', symbol);
             method = 'perpetualPrivateGetOrder' + this.capitalize (status);
             if (stop) {
                 method = 'perpetualPrivateGetOrderStopPending';
@@ -2341,7 +2332,7 @@ module.exports = class coinex extends Exchange {
         }
         const [ marginMode, query ] = this.handleMarginModeAndParams ('fetchOrdersByStatus', marketTypeQuery);
         if (marginMode !== undefined) {
-            const accountId = this.safeInteger (params, 'account_id');
+            const accountId = this.safeInteger (query, 'account_id');
             if (accountId === undefined) {
                 throw new ArgumentsRequired (this.id + ' fetchOpenOrders() and fetchClosedOrders() require an account_id parameter for margin orders');
             }
@@ -2698,8 +2689,8 @@ module.exports = class coinex extends Exchange {
         }
         let type = undefined;
         [ type, params ] = this.handleMarketTypeAndParams ('fetchMyTrades', market, params);
-        if (type !== 'spot' && symbol === undefined) {
-            throw new ArgumentsRequired (this.id + ' fetchMyTrades() requires a symbol argument for non-spot markets');
+        if (type !== 'spot') {
+            this.checkRequiredSymbol ('fetchMyTrades', symbol);
         }
         const swap = (type === 'swap');
         let method = undefined;
@@ -2720,7 +2711,7 @@ module.exports = class coinex extends Exchange {
         }
         const [ marginMode, query ] = this.handleMarginModeAndParams ('fetchMyTrades', params);
         if (marginMode !== undefined) {
-            const accountId = this.safeInteger (params, 'account_id');
+            const accountId = this.safeInteger (query, 'account_id');
             if (accountId === undefined) {
                 throw new ArgumentsRequired (this.id + ' fetchMyTrades() requires an account_id parameter for margin trades');
             }
@@ -3087,9 +3078,7 @@ module.exports = class coinex extends Exchange {
          * @param {object} params extra parameters specific to the coinex api endpoint
          * @returns {object} response from the exchange
          */
-        if (symbol === undefined) {
-            throw new ArgumentsRequired (this.id + ' setMarginMode() requires a symbol argument');
-        }
+        this.checkRequiredSymbol ('setMarginMode', symbol);
         marginMode = marginMode.toLowerCase ();
         if (marginMode !== 'isolated' && marginMode !== 'cross') {
             throw new BadRequest (this.id + ' setMarginMode() marginMode argument should be isolated or cross');
@@ -3135,9 +3124,7 @@ module.exports = class coinex extends Exchange {
          * @param {object} params extra parameters specific to the coinex api endpoint
          * @returns {object} response from the exchange
          */
-        if (symbol === undefined) {
-            throw new ArgumentsRequired (this.id + ' setLeverage() requires a symbol argument');
-        }
+        this.checkRequiredSymbol ('setLeverage', symbol);
         await this.loadMarkets ();
         const defaultMarginMode = this.safeString2 (this.options, 'defaultMarginMode', 'marginMode');
         let defaultPositionType = undefined;
@@ -3372,9 +3359,7 @@ module.exports = class coinex extends Exchange {
          * @param {object} params extra parameters specific to the coinex api endpoint
          * @returns {object} a [funding history structure]{@link https://docs.ccxt.com/en/latest/manual.html#funding-history-structure}
          */
-        if (symbol === undefined) {
-            throw new ArgumentsRequired (this.id + ' fetchFundingHistory() requires a symbol argument');
-        }
+        this.checkRequiredSymbol ('fetchFundingHistory', symbol);
         limit = (limit === undefined) ? 100 : limit;
         await this.loadMarkets ();
         const market = this.market (symbol);
@@ -3690,9 +3675,7 @@ module.exports = class coinex extends Exchange {
          * @param {object} params extra parameters specific to the coinex api endpoint
          * @returns {[object]} a list of [funding rate structures]{@link https://docs.ccxt.com/en/latest/manual.html?#funding-rate-history-structure}
          */
-        if (symbol === undefined) {
-            throw new ArgumentsRequired (this.id + ' fetchFundingRateHistory() requires a symbol argument');
-        }
+        this.checkRequiredSymbol ('fetchFundingRateHistory', symbol);
         await this.loadMarkets ();
         const market = this.market (symbol);
         const request = {
@@ -4414,9 +4397,7 @@ module.exports = class coinex extends Exchange {
          * @param {object} params extra parameters specific to the coinex api endpoint
          * @returns {object} a [margin loan structure]{@link https://docs.ccxt.com/en/latest/manual.html#margin-loan-structure}
          */
-        if (symbol === undefined) {
-            throw new ArgumentsRequired (this.id + ' borrowMargin() requires a symbol argument');
-        }
+        this.checkRequiredSymbol ('borrowMargin', symbol);
         await this.loadMarkets ();
         const market = this.market (symbol);
         const currency = this.currency (code);
@@ -4456,9 +4437,7 @@ module.exports = class coinex extends Exchange {
          * @param {string|undefined} params.loan_id extra parameter that is not required
          * @returns {object} a [margin loan structure]{@link https://docs.ccxt.com/en/latest/manual.html#margin-loan-structure}
          */
-        if (symbol === undefined) {
-            throw new ArgumentsRequired (this.id + ' repayMargin() requires a symbol argument');
-        }
+        this.checkRequiredSymbol ('repayMargin', symbol);
         await this.loadMarkets ();
         const market = this.market (symbol);
         const currency = this.currency (code);
