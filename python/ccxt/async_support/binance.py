@@ -4281,8 +4281,9 @@ class binance(Exchange):
         updated = self.safe_integer_2(transaction, 'successTime', 'updateTime')
         type = self.safe_string(transaction, 'type')
         if type is None:
-            txType = self.safe_string_2(transaction, 'transactionType', 'transferType')
-            type = 'deposit' if (txType == '0') else 'withdrawal'
+            txType = self.safe_string(transaction, 'transactionType')
+            if txType is not None:
+                type = 'deposit' if (txType == '0') else 'withdrawal'
             legalMoneyCurrenciesById = self.safe_value(self.options, 'legalMoneyCurrenciesById')
             code = self.safe_string(legalMoneyCurrenciesById, code, code)
         status = self.parse_transaction_status_by_type(self.safe_string(transaction, 'status'), type)
