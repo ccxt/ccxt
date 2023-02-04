@@ -724,7 +724,6 @@ module.exports = class binance extends Exchange {
                         'order': 1,
                     },
                     'post': {
-                        'transfer': 1,
                         'order': 1,
                         'batchOrders': 5,
                         'listenKey': 1,
