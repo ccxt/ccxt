@@ -57,6 +57,7 @@ class bybit(Exchange):
                 'fetchBorrowRates': False,
                 'fetchClosedOrders': True,
                 'fetchCurrencies': True,
+                'fetchDeposit': False,
                 'fetchDepositAddress': True,
                 'fetchDepositAddresses': False,
                 'fetchDepositAddressesByNetwork': True,
@@ -5108,23 +5109,21 @@ class bybit(Exchange):
     def fetch_deposits(self, code=None, since=None, limit=None, params={}):
         """
         fetch all deposits made to an account
+        see https://bybit-exchange.github.io/docs/account_asset/v3/#t-depositsrecordquery
         :param str|None code: unified currency code
-        :param int|None since: the earliest time in ms to fetch deposits for
-        :param int|None limit: the maximum number of deposits structures to retrieve
+        :param int|None since: the earliest time in ms to fetch deposits for, default = 30 days before the current time
+        :param int|None limit: the maximum number of deposits structures to retrieve, default = 50, max = 50
         :param dict params: extra parameters specific to the bybit api endpoint
+        :param int|None params['until']: the latest time in ms to fetch deposits for, default = 30 days after since
+         *
+         * EXCHANGE SPECIFIC PARAMETERS
+        :param str|None params['cursor']: used for pagination
         :returns [dict]: a list of `transaction structures <https://docs.ccxt.com/en/latest/manual.html#transaction-structure>`
-        """
+       """
         self.load_markets()
-        request = {
-            # 'coin': currency['id'],
-            # 'currency': currency['id'],  # alias
-            # 'start_date': self.iso8601(since),
-            # 'end_date': self.iso8601(till),
-            'wallet_fund_type': 'Deposit',  # Deposit, Withdraw, RealisedPNL, Commission, Refund, Prize, ExchangeOrderWithdraw, ExchangeOrderDeposit
-            # 'page': 1,
-            # 'limit': 20,  # max 50
-        }
+        request = {}
         currency = None
+        until = self.safe_integer(params, 'until')
         if code is not None:
             currency = self.currency(code)
             request['coin'] = currency['id']
@@ -5132,8 +5131,10 @@ class bybit(Exchange):
             request['startTime'] = since
         if limit is not None:
             request['limit'] = limit
-        # Currently only works for deposits prior to 2021-07-15
-        # will be updated soon
+        if until is not None:
+            request['endTime'] = until
+        elif since is not None:
+            request['endTime'] = since + (86400000 * 30)
         response = self.privateGetAssetV3PrivateDepositRecordQuery(self.extend(request, params))
         #
         #    {

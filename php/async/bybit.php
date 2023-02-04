@@ -52,6 +52,7 @@ class bybit extends Exchange {
                 'fetchBorrowRates' => false,
                 'fetchClosedOrders' => true,
                 'fetchCurrencies' => true,
+                'fetchDeposit' => false,
                 'fetchDepositAddress' => true,
                 'fetchDepositAddresses' => false,
                 'fetchDepositAddressesByNetwork' => true,
@@ -5534,23 +5535,21 @@ class bybit extends Exchange {
         return Async\async(function () use ($code, $since, $limit, $params) {
             /**
              * fetch all deposits made to an account
+             * @see https://bybit-exchange.github.io/docs/account_asset/v3/#t-depositsrecordquery
              * @param {string|null} $code unified $currency $code
-             * @param {int|null} $since the earliest time in ms to fetch deposits for
-             * @param {int|null} $limit the maximum number of deposits structures to retrieve
+             * @param {int|null} $since the earliest time in ms to fetch deposits for, default = 30 days before the current time
+             * @param {int|null} $limit the maximum number of deposits structures to retrieve, default = 50, max = 50
              * @param {array} $params extra parameters specific to the bybit api endpoint
+             * @param {int|null} $params->until the latest time in ms to fetch deposits for, default = 30 days after $since
+             *
+             * EXCHANGE SPECIFIC PARAMETERS
+             * @param {string|null} $params->cursor used for pagination
              * @return {[array]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure transaction structures}
-             */
+            */
             Async\await($this->load_markets());
-            $request = array(
-                // 'coin' => $currency['id'],
-                // 'currency' => $currency['id'], // alias
-                // 'start_date' => $this->iso8601($since),
-                // 'end_date' => $this->iso8601(till),
-                'wallet_fund_type' => 'Deposit', // Deposit, Withdraw, RealisedPNL, Commission, Refund, Prize, ExchangeOrderWithdraw, ExchangeOrderDeposit
-                // 'page' => 1,
-                // 'limit' => 20, // max 50
-            );
+            $request = array();
             $currency = null;
+            $until = $this->safe_integer($params, 'until');
             if ($code !== null) {
                 $currency = $this->currency($code);
                 $request['coin'] = $currency['id'];
@@ -5561,8 +5560,11 @@ class bybit extends Exchange {
             if ($limit !== null) {
                 $request['limit'] = $limit;
             }
-            // Currently only works for deposits prior to 2021-07-15
-            // will be updated soon
+            if ($until !== null) {
+                $request['endTime'] = $until;
+            } elseif ($since !== null) {
+                $request['endTime'] = $since . (86400000 * 30);
+            }
             $response = Async\await($this->privateGetAssetV3PrivateDepositRecordQuery (array_merge($request, $params)));
             //
             //    {
