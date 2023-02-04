@@ -6,9 +6,6 @@ namespace ccxt;
 // https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 use Exception; // a common import
-use \ccxt\ExchangeError;
-use \ccxt\ArgumentsRequired;
-use \ccxt\InvalidOrder;
 
 class bithumb extends Exchange {
 
@@ -167,6 +164,14 @@ class bithumb extends Exchange {
                 'SOC' => 'Soda Coin',
             ),
         ));
+    }
+
+    public function safe_market($marketId = null, $market = null, $delimiter = null, $marketType = null) {
+        // bithumb has a different type of conflict in markets, because
+        // their ids are the base currency (BTC for instance), so we can have
+        // multiple "BTC" ids representing the different markets (BTC/ETH, "BTC/DOGE", etc)
+        // since they're the same we just need to return one
+        return parent::safe_market($marketId, $market, $delimiter, 'spot');
     }
 
     public function amount_to_precision($symbol, $amount) {
@@ -415,12 +420,8 @@ class bithumb extends Exchange {
         $ids = is_array($tickers) ? array_keys($tickers) : array();
         for ($i = 0; $i < count($ids); $i++) {
             $id = $ids[$i];
-            $symbol = $id;
-            $market = null;
-            if (is_array($this->markets_by_id) && array_key_exists($id, $this->markets_by_id)) {
-                $market = $this->markets_by_id[$id];
-                $symbol = $market['symbol'];
-            }
+            $market = $this->safe_market($id);
+            $symbol = $market['symbol'];
             $ticker = $tickers[$id];
             $isArray = gettype($ticker) === 'array' && array_keys($ticker) === array_keys(array_keys($ticker));
             if (!$isArray) {
@@ -502,7 +503,7 @@ class bithumb extends Exchange {
         $market = $this->market($symbol);
         $request = array(
             'currency' => $market['base'],
-            'interval' => $this->timeframes[$timeframe],
+            'interval' => $this->safe_string($this->timeframes, $timeframe, $timeframe),
         );
         $response = $this->publicGetCandlestickCurrencyInterval (array_merge($request, $params));
         //
@@ -624,7 +625,7 @@ class bithumb extends Exchange {
         $request = array(
             'currency' => $market['base'],
         );
-        if ($limit === null) {
+        if ($limit !== null) {
             $request['count'] = $limit; // default 20, max 100
         }
         $response = $this->publicGetTransactionHistoryCurrency (array_merge($request, $params));
@@ -831,6 +832,7 @@ class bithumb extends Exchange {
             'side' => $side,
             'price' => $price,
             'stopPrice' => null,
+            'triggerPrice' => null,
             'amount' => $amount,
             'cost' => null,
             'average' => null,

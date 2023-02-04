@@ -22,15 +22,16 @@ class binancecoinm extends binance {
             ),
             'has' => array(
                 'CORS' => null,
-                'spot' => true,
-                'margin' => null,
-                'swap' => null,
-                'future' => null,
+                'spot' => false,
+                'margin' => false,
+                'swap' => true,
+                'future' => true,
                 'option' => null,
                 'createStopMarketOrder' => true,
             ),
             'options' => array(
-                'defaultType' => 'delivery',
+                'fetchMarkets' => array( 'inverse' ),
+                'defaultSubType' => 'inverse',
                 'leverageBrackets' => null,
             ),
         ));

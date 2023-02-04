@@ -585,7 +585,7 @@ class novadax(Exchange):
         market = self.market(symbol)
         request = {
             'symbol': market['id'],
-            'unit': self.timeframes[timeframe],
+            'unit': self.safe_string(self.timeframes, timeframe, timeframe),
         }
         duration = self.parse_timeframe(timeframe)
         now = self.seconds()
@@ -1030,6 +1030,7 @@ class novadax(Exchange):
             'side': side,
             'price': price,
             'stopPrice': stopPrice,
+            'triggerPrice': stopPrice,
             'amount': amount,
             'cost': cost,
             'average': average,
@@ -1090,11 +1091,13 @@ class novadax(Exchange):
         #
         id = self.safe_string(transfer, 'data')
         status = self.safe_string(transfer, 'message')
+        currencyCode = self.safe_currency_code(None, currency)
         return {
             'info': transfer,
             'id': id,
             'amount': None,
-            'code': self.safe_currency_code(None, currency),
+            'code': currencyCode,  # kept here for backward-compatibility, but will be removed soon
+            'currency': currencyCode,
             'fromAccount': None,
             'toAccount': None,
             'timestamp': None,

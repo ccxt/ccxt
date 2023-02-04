@@ -5,7 +5,7 @@ console.log ('CCXT Version:', ccxt.version);
 function getMaxLeverage (market, positionSize) {
     /**
      * @description Equation taken from https://www.delta.exchange/contracts/
-     * @param {dict} market CCXT market
+     * @param {object} market CCXT market
      * @param {float} positionSize The value of the position in quote currency
      * @returns The maximum leverage available for the market for the given position size
      */
@@ -27,7 +27,7 @@ function getMaxLeverage (market, positionSize) {
 function getMaintenanceMarginRate (market, positionSize) {
     /**
      * @description Equation taken from https://www.delta.exchange/contracts/
-     * @param {dict} market CCXT market
+     * @param {object} market CCXT market
      * @param {float} positionSize The value of the position in quote currency
      * @returns The maintenance margin rate as a percentage for the market with the given position size
      */

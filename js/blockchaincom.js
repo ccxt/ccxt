@@ -974,8 +974,12 @@ module.exports = class blockchaincom extends Exchange {
         if (since !== undefined) {
             request['from'] = since;
         }
+        let currency = undefined;
+        if (code !== undefined) {
+            currency = this.currency (code);
+        }
         const response = await this.privateGetWithdrawals (this.extend (request, params));
-        return this.parseTransactions (response, code, since, limit);
+        return this.parseTransactions (response, currency, since, limit);
     }
 
     async fetchWithdrawal (id, code = undefined, params = {}) {
@@ -1015,8 +1019,12 @@ module.exports = class blockchaincom extends Exchange {
         if (since !== undefined) {
             request['from'] = since;
         }
+        let currency = undefined;
+        if (code !== undefined) {
+            currency = this.currency (code);
+        }
         const response = await this.privateGetDeposits (this.extend (request, params));
-        return this.parseTransactions (response, code, since, limit);
+        return this.parseTransactions (response, currency, since, limit);
     }
 
     async fetchDeposit (id, code = undefined, params = {}) {

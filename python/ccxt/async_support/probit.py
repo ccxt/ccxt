@@ -851,7 +851,7 @@ class probit(Exchange):
         """
         await self.load_markets()
         market = self.market(symbol)
-        interval = self.timeframes[timeframe]
+        interval = self.safe_string(self.timeframes, timeframe, timeframe)
         limit = 100 if (limit is None) else limit
         requestLimit = self.sum(limit, 1)
         requestLimit = min(1000, requestLimit)  # max 1000
@@ -867,9 +867,8 @@ class probit(Exchange):
         endTime = now
         if since is None:
             if limit is None:
-                raise ArgumentsRequired(self.id + ' fetchOHLCV() requires either a since argument or a limit argument')
-            else:
-                startTime = now - limit * duration * 1000
+                limit = requestLimit
+            startTime = now - limit * duration * 1000
         else:
             if limit is None:
                 endTime = now
@@ -1056,6 +1055,7 @@ class probit(Exchange):
             'status': status,
             'price': price,
             'stopPrice': None,
+            'triggerPrice': None,
             'amount': amount,
             'filled': filled,
             'remaining': remaining,

@@ -55,7 +55,7 @@ class buda(Exchange):
                 'fetchMarginMode': False,
                 'fetchMarkets': True,
                 'fetchMarkOHLCV': False,
-                'fetchMyTrades': None,
+                'fetchMyTrades': False,
                 'fetchOHLCV': True,
                 'fetchOpenInterestHistory': False,
                 'fetchOpenOrders': True,
@@ -613,7 +613,7 @@ class buda(Exchange):
             since = self.milliseconds() - 86400000
         request = {
             'symbol': market['id'],
-            'resolution': self.timeframes[timeframe],
+            'resolution': self.safe_string(self.timeframes, timeframe, timeframe),
             'from': since / 1000,
             'to': self.seconds(),
         }
@@ -808,7 +808,8 @@ class buda(Exchange):
             feeCurrencyCode = self.safe_currency_code(feeCurrencyId)
             fee = {
                 'cost': feeCost,
-                'code': feeCurrencyCode,
+                'code': feeCurrencyCode,  # kept here for backward-compatibility, but will be removed soon
+                'currency': feeCurrencyCode,
             }
         return self.safe_order({
             'info': order,
@@ -825,6 +826,7 @@ class buda(Exchange):
             'side': side,
             'price': price,
             'stopPrice': None,
+            'triggerPrice': None,
             'average': None,
             'cost': cost,
             'amount': amount,

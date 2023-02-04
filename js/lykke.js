@@ -385,7 +385,7 @@ module.exports = class lykke extends Exchange {
         //         "timestamp":1643305510990
         //     }
         //
-        const timestamp = this.safeInteger (ticker, 'timestamp');
+        const timestamp = undefined; // temporary bug in lykke api, returns unrealistic numbers
         const marketId = this.safeString (ticker, 'assetPairId');
         market = this.safeMarket (marketId, market);
         const close = this.safeString (ticker, 'lastPrice');
@@ -757,6 +757,7 @@ module.exports = class lykke extends Exchange {
             'side': side,
             'price': price,
             'stopPrice': undefined,
+            'triggerPrice': undefined,
             'amount': amount,
             'cost': cost,
             'average': undefined,
