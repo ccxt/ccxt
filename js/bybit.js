@@ -4832,12 +4832,13 @@ module.exports = class bybit extends Exchange {
         }
         let type = undefined;
         [ type, params ] = this.handleMarketTypeAndParams ('fetchClosedOrders', market, params);
-        if (type === 'spot') {
-            return await this.fetchSpotClosedOrders (symbol, since, limit, params);
-        }
         const request = {};
-        const { enableUnifiedMargin } = await this.isUnifiedMarginEnabled ();
-        if (enableUnifiedMargin) {
+        const { enableUnifiedMargin, enableUnifiedAccount } = await this.isUnifiedMarginEnabled ();
+        if (enableUnifiedAccount) {
+            request['openOnly'] = 1;
+        } else if (type === 'spot') {
+            return await this.fetchSpotClosedOrders (symbol, since, limit, params);
+        } else if (enableUnifiedMargin) {
             request['orderStatus'] = 'Canceled';
         } else {
             request['orderStatus'] = 'Filled,Canceled';
