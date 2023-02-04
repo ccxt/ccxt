@@ -1,9 +1,9 @@
-import ccxtpro
+import ccxt.pro
 from asyncio import run
 
 
 async def main():
-    exchange = ccxtpro.binance({
+    exchange = ccxt.pro.binance({
         'options': {
             'defaultType': 'future',
         },

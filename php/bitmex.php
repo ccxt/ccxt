@@ -6,18 +6,11 @@ namespace ccxt;
 // https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 use Exception; // a common import
-use \ccxt\ExchangeError;
-use \ccxt\ArgumentsRequired;
-use \ccxt\BadRequest;
-use \ccxt\BadSymbol;
-use \ccxt\InvalidOrder;
-use \ccxt\OrderNotFound;
-use \ccxt\DDoSProtection;
 
 class bitmex extends Exchange {
 
     public function describe() {
-        return $this->deep_extend(parent::describe (), array(
+        return $this->deep_extend(parent::describe(), array(
             'id' => 'bitmex',
             'name' => 'BitMEX',
             'countries' => array( 'SC' ), // Seychelles
@@ -31,7 +24,7 @@ class bitmex extends Exchange {
             'pro' => true,
             'has' => array(
                 'CORS' => null,
-                'spot' => false,
+                'spot' => true,
                 'margin' => false,
                 'swap' => true,
                 'future' => true,
@@ -45,6 +38,9 @@ class bitmex extends Exchange {
                 'editOrder' => true,
                 'fetchBalance' => true,
                 'fetchClosedOrders' => true,
+                'fetchDepositAddress' => true,
+                'fetchDepositAddresses' => false,
+                'fetchDepositAddressesByNetwork' => false,
                 'fetchFundingHistory' => false,
                 'fetchFundingRate' => false,
                 'fetchFundingRateHistory' => true,
@@ -130,6 +126,8 @@ class bitmex extends Exchange {
                         'stats/history' => 5,
                         'trade' => 5,
                         'trade/bucketed' => 5,
+                        'wallet/assets' => 5,
+                        'wallet/networks' => 5,
                     ),
                 ),
                 'private' => array(
@@ -154,6 +152,9 @@ class bitmex extends Exchange {
                         'user/wallet' => 5,
                         'user/walletHistory' => 5,
                         'user/walletSummary' => 5,
+                        'wallet/assets' => 5,
+                        'wallet/networks' => 5,
+                        'userEvent' => 5,
                     ),
                     'post' => array(
                         'apiKey' => 5,
@@ -217,11 +218,42 @@ class bitmex extends Exchange {
                 // https://github.com/ccxt/ccxt/issues/4789
                 'api-expires' => 5, // in seconds
                 'fetchOHLCVOpenTimestamp' => true,
+                'networks' => array(
+                    'BTC' => 'btc',
+                    'ETH' => 'eth',
+                    'BSC' => 'bsc',
+                    'BNB' => 'bsc',
+                    'TRON' => 'tron',
+                    'ERC20' => 'eth',
+                    'BEP20' => 'bsc',
+                    'TRC20' => 'tron',
+                    'TRX' => 'tron',
+                    'AVAX' => 'avax',
+                    'NEAR' => 'near',
+                    'XTZ' => 'xtz',
+                    'DOT' => 'dot',
+                    'SOL' => 'sol',
+                ),
+                'networksById' => array(
+                    'btc' => 'BTC',
+                    'eth' => 'ERC20',
+                    'bsc' => 'BSC',
+                    'tron' => 'TRX',
+                    'avax' => 'AVAX',
+                    'near' => 'NEAR',
+                    'xtz' => 'XTZ',
+                    'dot' => 'DOT',
+                    'sol' => 'SOL',
+                ),
             ),
             'commonCurrencies' => array(
                 'USDt' => 'USDT',
                 'XBt' => 'BTC',
                 'XBT' => 'BTC',
+                'Gwei' => 'ETH',
+                'GWEI' => 'ETH',
+                'LAMP' => 'SOL',
+                'LAMp' => 'SOL',
             ),
         ));
     }
@@ -389,6 +421,7 @@ class bitmex extends Exchange {
             $contract = !$index;
             $initMargin = $this->safe_string($market, 'initMargin', '1');
             $maxLeverage = $this->parse_number(Precise::string_div('1', $initMargin));
+            $multiplierString = Precise::string_abs($this->safe_string($market, 'multiplier'));
             $result[] = array(
                 'id' => $id,
                 'symbol' => $symbol,
@@ -412,7 +445,7 @@ class bitmex extends Exchange {
                 'inverse' => $contract ? $inverse : null,
                 'taker' => $this->safe_number($market, 'takerFee'),
                 'maker' => $this->safe_number($market, 'makerFee'),
-                'contractSize' => $this->safe_number($market, 'multiplier'),
+                'contractSize' => $this->parse_number($multiplierString),
                 'expiry' => $expiry,
                 'expiryDatetime' => $expiryDatetime,
                 'strike' => $this->safe_number($market, 'optionStrikePrice'),
@@ -420,6 +453,8 @@ class bitmex extends Exchange {
                 'precision' => array(
                     'amount' => $this->safe_number($market, 'lotSize'),
                     'price' => $this->safe_number($market, 'tickSize'),
+                    'quote' => $this->safe_number($market, 'tickSize'),
+                    'base' => $this->safe_number($market, 'tickSize'),
                 ),
                 'limits' => array(
                     'leverage' => array(
@@ -502,8 +537,19 @@ class bitmex extends Exchange {
             $free = $this->safe_string($balance, 'availableMargin');
             $total = $this->safe_string($balance, 'marginBalance');
             if ($code !== 'USDT') {
-                $free = Precise::string_div($free, '1e8');
-                $total = Precise::string_div($total, '1e8');
+                // tmp fix until this PR gets merged
+                // https://github.com/ccxt/ccxt/pull/15311
+                $symbol = $code . '_USDT';
+                $market = $this->safe_market($symbol);
+                $info = $this->safe_value($market, 'info', array());
+                $multiplier = $this->safe_string($info, 'underlyingToPositionMultiplier');
+                if ($multiplier !== null) {
+                    $free = Precise::string_div($free, $multiplier);
+                    $total = Precise::string_div($total, $multiplier);
+                } else {
+                    $free = Precise::string_div($free, '1e8');
+                    $total = Precise::string_div($total, '1e8');
+                }
             } else {
                 $free = Precise::string_div($free, '1e6');
                 $total = Precise::string_div($total, '1e6');
@@ -991,24 +1037,24 @@ class bitmex extends Exchange {
 
     public function parse_transaction($transaction, $currency = null) {
         //
-        //   {
-        //      'transactID' => 'ffe699c2-95ee-4c13-91f9-0faf41daec25',
-        //      'account' => 123456,
-        //      'currency' => 'XBt',
-        //      'transactType' => 'Withdrawal',
-        //      'amount' => -100100000,
-        //      'fee' => 100000,
-        //      'transactStatus' => 'Completed',
-        //      'address' => '385cR5DM96n1HvBDMzLHPYcw89fZAXULJP',
-        //      'tx' => '3BMEXabcdefghijklmnopqrstuvwxyz123',
-        //      'text' => '',
-        //      'transactTime' => '2019-01-02T01:00:00.000Z',
-        //      'walletBalance' => 99900000,
-        //      'marginBalance' => None,
-        //      'timestamp' => '2019-01-02T13:00:00.000Z'
-        //   }
+        //    {
+        //        'transactID' => 'ffe699c2-95ee-4c13-91f9-0faf41daec25',
+        //        'account' => 123456,
+        //        'currency' => 'XBt',
+        //        'network':'',
+        //        'transactType' => 'Withdrawal',
+        //        'amount' => -100100000,
+        //        'fee' => 100000,
+        //        'transactStatus' => 'Completed',
+        //        'address' => '385cR5DM96n1HvBDMzLHPYcw89fZAXULJP',
+        //        'tx' => '3BMEXabcdefghijklmnopqrstuvwxyz123',
+        //        'text' => '',
+        //        'transactTime' => '2019-01-02T01:00:00.000Z',
+        //        'walletBalance' => 99900000,
+        //        'marginBalance' => None,
+        //        'timestamp' => '2019-01-02T13:00:00.000Z'
+        //    }
         //
-        $id = $this->safe_string($transaction, 'transactID');
         $currencyId = $this->safe_string($transaction, 'currency');
         $currency = $this->safe_currency($currencyId, $currency);
         // For deposits, $transactTime == $timestamp
@@ -1030,34 +1076,34 @@ class bitmex extends Exchange {
         $amountString = Precise::string_div(Precise::string_abs($amountString), $scale);
         $feeCostString = $this->safe_string($transaction, 'fee');
         $feeCostString = Precise::string_div($feeCostString, $scale);
-        $fee = array(
-            'cost' => $this->parse_number($feeCostString),
-            'currency' => $currency['code'],
-        );
         $status = $this->safe_string($transaction, 'transactStatus');
         if ($status !== null) {
             $status = $this->parse_transaction_status($status);
         }
         return array(
             'info' => $transaction,
-            'id' => $id,
-            'txid' => null,
+            'id' => $this->safe_string($transaction, 'transactID'),
+            'txid' => $this->safe_string($transaction, 'tx'),
+            'type' => $type,
+            'currency' => $currency['code'],
+            'network' => $this->safe_string($transaction, 'status'),
+            'amount' => $this->parse_number($amountString),
+            'status' => $status,
             'timestamp' => $transactTime,
             'datetime' => $this->iso8601($transactTime),
-            'network' => null,
-            'addressFrom' => $addressFrom,
             'address' => $address,
+            'addressFrom' => $addressFrom,
             'addressTo' => $addressTo,
-            'tagFrom' => null,
             'tag' => null,
+            'tagFrom' => null,
             'tagTo' => null,
-            'type' => $type,
-            'amount' => $this->parse_number($amountString),
-            'currency' => $currency['code'],
-            'status' => $status,
             'updated' => $timestamp,
             'comment' => null,
-            'fee' => $fee,
+            'fee' => array(
+                'currency' => $currency['code'],
+                'cost' => $this->parse_number($feeCostString),
+                'rate' => null,
+            ),
         );
     }
 
@@ -1394,7 +1440,7 @@ class bitmex extends Exchange {
         $market = $this->market($symbol);
         $request = array(
             'symbol' => $market['id'],
-            'binSize' => $this->timeframes[$timeframe],
+            'binSize' => $this->safe_string($this->timeframes, $timeframe, $timeframe),
             'partial' => true,     // true == include yet-incomplete current bins
             // 'filter' => $filter, // $filter by individual fields and do advanced queries
             // 'columns' => array(),    // will return all columns if omitted
@@ -1654,6 +1700,7 @@ class bitmex extends Exchange {
             'side' => $side,
             'price' => $price,
             'stopPrice' => $stopPrice,
+            'triggerPrice' => $stopPrice,
             'amount' => $amount,
             'cost' => null,
             'average' => $average,
@@ -1740,15 +1787,14 @@ class bitmex extends Exchange {
                 throw new InvalidOrder($this->id . ' createOrder() does not support $reduceOnly for ' . $market['type'] . ' orders, $reduceOnly orders are supported for swap and future markets only');
             }
         }
+        $brokerId = $this->safe_string($this->options, 'brokerId', 'CCXT');
         $request = array(
             'symbol' => $market['id'],
             'side' => $this->capitalize($side),
             'orderQty' => floatval($this->amount_to_precision($symbol, $amount)), // lot size multiplied by the number of contracts
             'ordType' => $orderType,
+            'text' => $brokerId,
         );
-        if ($reduceOnly) {
-            $request['execInst'] = 'ReduceOnly';
-        }
         if (($orderType === 'Stop') || ($orderType === 'StopLimit') || ($orderType === 'MarketIfTouched') || ($orderType === 'LimitIfTouched')) {
             $stopPrice = $this->safe_number_2($params, 'stopPx', 'stopPrice');
             if ($stopPrice === null) {
@@ -1790,6 +1836,8 @@ class bitmex extends Exchange {
         if ($price !== null) {
             $request['price'] = $price;
         }
+        $brokerId = $this->safe_string($this->options, 'brokerId', 'CCXT');
+        $request['text'] = $brokerId;
         $response = $this->privatePutOrder (array_merge($request, $params));
         return $this->parse_order($response);
     }
@@ -2114,8 +2162,10 @@ class bitmex extends Exchange {
         $crossMargin = $this->safe_value($position, 'crossMargin');
         $marginMode = ($crossMargin === true) ? 'cross' : 'isolated';
         $notional = null;
-        if ($market['quote'] === 'USDT') {
+        if ($market['quote'] === 'USDT' || $market['quote'] === 'USD' || $market['quote'] === 'EUR') {
             $notional = Precise::string_mul($this->safe_string($position, 'foreignNotional'), '-1');
+        } else {
+            $notional = $this->safe_string($position, 'homeNotional');
         }
         $maintenanceMargin = $this->safe_number($position, 'maintMargin');
         $unrealisedPnl = $this->safe_number($position, 'unrealisedPnl');
@@ -2135,10 +2185,10 @@ class bitmex extends Exchange {
             'notional' => $notional,
             'leverage' => $this->safe_number($position, 'leverage'),
             'collateral' => null,
-            'initialMargin' => null,
+            'initialMargin' => $this->safe_number($position, 'initMargin'),
             'initialMarginPercentage' => $this->safe_number($position, 'initMarginReq'),
             'maintenanceMargin' => $this->convert_value($maintenanceMargin, $market),
-            'maintenanceMarginPercentage' => null,
+            'maintenanceMarginPercentage' => $this->safe_number($position, 'maintMarginReq'),
             'unrealizedPnl' => $this->convert_value($unrealisedPnl, $market),
             'liquidationPrice' => $this->safe_number($position, 'liquidationPrice'),
             'marginMode' => $marginMode,
@@ -2155,11 +2205,20 @@ class bitmex extends Exchange {
         $value = $this->number_to_string($value);
         if (($market['quote'] === 'USD') || ($market['quote'] === 'EUR')) {
             $resultValue = Precise::string_mul($value, '0.00000001');
-        }
-        if ($market['quote'] === 'USDT') {
+        } elseif ($market['quote'] === 'USDT') {
             $resultValue = Precise::string_mul($value, '0.000001');
+        } else {
+            $currency = null;
+            $quote = $market['quote'];
+            if ($quote !== null) {
+                $currency = $this->currency($market['quote']);
+            }
+            if ($currency !== null) {
+                $resultValue = Precise::string_mul($value, $this->number_to_string($currency['precision']));
+            }
         }
-        return floatval($resultValue);
+        $resultValue = ($resultValue !== null) ? floatval($resultValue) : null;
+        return $resultValue;
     }
 
     public function is_fiat($currency) {
@@ -2600,6 +2659,43 @@ class bitmex extends Exchange {
             'enabled' => $enabled,
         );
         return $this->privatePostPositionIsolate (array_merge($request, $params));
+    }
+
+    public function fetch_deposit_address($code, $params = array ()) {
+        /**
+         * fetch the deposit address for a $currency associated with this account
+         * @see https://www.bitmex.com/api/explorer/#!/User/User_getDepositAddress
+         * @param {string} $code unified $currency $code
+         * @param {array} $params extra parameters specific to the bitmex api endpoint
+         * @param {string} $params->network deposit chain, can view all chains via $this->publicGetWalletAssets, default is eth, unless the $currency has a default chain within $this->options['networks']
+         * @return {array} an {@link https://docs.ccxt.com/en/latest/manual.html#address-structure address structure}
+         */
+        $this->load_markets();
+        $networkCode = $this->safe_string_upper($params, 'network');
+        if ($networkCode === null) {
+            throw new ArgumentsRequired($this->id . ' fetchDepositAddress requires $params["network"]');
+        }
+        $currency = $this->currency($code);
+        $currencyId = $currency['id'];
+        $networkId = $this->network_code_to_id($networkCode, $currency['code']);
+        $idLength = count($currencyId);
+        $currencyId = strtolower(mb_substr($currencyId, 0, $idLength - 1 - 0) . mb_substr($currencyId, $idLength - 1, $idLength - $idLength - 1));  // make the last letter lowercase
+        $params = $this->omit($params, 'network');
+        $request = array(
+            'currency' => $currencyId,
+            'network' => $networkId,
+        );
+        $response = $this->privateGetUserDepositAddress (array_merge($request, $params));
+        //
+        //    '"bc1qmex3puyrzn2gduqcnlu70c2uscpyaa9nm2l2j9le2lt2wkgmw33sy7ndjg"'
+        //
+        return array(
+            'currency' => $code,
+            'address' => str_replace('"', '', $response->replace ('"', '')),  // Done twice because some languages only replace the first instance
+            'tag' => null,
+            'network' => strtoupper($this->network_id_to_code($networkId)),
+            'info' => $response,
+        );
     }
 
     public function calculate_rate_limiter_cost($api, $method, $path, $params, $config = array (), $context = array ()) {

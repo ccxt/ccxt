@@ -6,13 +6,11 @@ namespace ccxt;
 // https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 use Exception; // a common import
-use \ccxt\ExchangeError;
-use \ccxt\ArgumentsRequired;
 
 class indodax extends Exchange {
 
     public function describe() {
-        return $this->deep_extend(parent::describe (), array(
+        return $this->deep_extend(parent::describe(), array(
             'id' => 'indodax',
             'name' => 'INDODAX',
             'countries' => array( 'ID' ), // Indonesia
@@ -31,7 +29,6 @@ class indodax extends Exchange {
                 'cancelOrder' => true,
                 'cancelOrders' => false,
                 'createDepositAddress' => false,
-                'createMarketOrder' => null,
                 'createOrder' => true,
                 'createReduceOnlyOrder' => false,
                 'createStopLimitOrder' => false,
@@ -56,19 +53,17 @@ class indodax extends Exchange {
                 'fetchMarginMode' => false,
                 'fetchMarkets' => true,
                 'fetchMarkOHLCV' => false,
-                'fetchMyTrades' => null,
                 'fetchOpenInterestHistory' => false,
                 'fetchOpenOrders' => true,
                 'fetchOrder' => true,
                 'fetchOrderBook' => true,
-                'fetchOrders' => null,
+                'fetchOrders' => false,
                 'fetchPosition' => false,
                 'fetchPositionMode' => false,
                 'fetchPositions' => false,
                 'fetchPositionsRisk' => false,
                 'fetchPremiumIndexOHLCV' => false,
                 'fetchTicker' => true,
-                'fetchTickers' => null,
                 'fetchTime' => true,
                 'fetchTrades' => true,
                 'fetchTradingFee' => false,
@@ -257,7 +252,7 @@ class indodax extends Exchange {
                 'optionType' => null,
                 'percentage' => true,
                 'precision' => array(
-                    'amount' => $this->parse_number($this->parse_precision('8')),
+                    'amount' => $this->parse_number('1e-8'),
                     'price' => $this->parse_number($this->parse_precision($this->safe_string($market, 'price_round'))),
                     'cost' => $this->parse_number($this->parse_precision($this->safe_string($market, 'volume_precision'))),
                 ),
@@ -438,6 +433,36 @@ class indodax extends Exchange {
         return $this->parse_ticker($ticker, $market);
     }
 
+    public function fetch_tickers($symbols = null, $params = array ()) {
+        /**
+         * fetches price $tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
+         * @see https://github.com/btcid/indodax-official-api-docs/blob/master/Public-RestAPI.md#ticker-all
+         * @param {[string]|null} $symbols unified $symbols of the markets to fetch the ticker for, all market $tickers are returned if not assigned
+         * @param {array} $params extra parameters specific to the indodax api endpoint
+         * @return {array} an array of {@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure ticker structures}
+         */
+        $this->load_markets();
+        //
+        // {
+        //     "tickers" => {
+        //         "btc_idr" => {
+        //             "high" => "120009000",
+        //             "low" => "116735000",
+        //             "vol_btc" => "218.13777777",
+        //             "vol_idr" => "25800033297",
+        //             "last" => "117088000",
+        //             "buy" => "117002000",
+        //             "sell" => "117078000",
+        //             "server_time" => 1571207881
+        //         }
+        //     }
+        // }
+        //
+        $response = $this->publicGetTickerAll ($params);
+        $tickers = $this->safe_value($response, 'tickers');
+        return $this->parse_tickers($tickers, $symbols);
+    }
+
     public function parse_trade($trade, $market = null) {
         $timestamp = $this->safe_timestamp($trade, 'date');
         return $this->safe_trade(array(
@@ -551,6 +576,7 @@ class indodax extends Exchange {
             'side' => $side,
             'price' => $price,
             'stopPrice' => null,
+            'triggerPrice' => null,
             'cost' => $cost,
             'average' => null,
             'amount' => $amount,
@@ -616,7 +642,7 @@ class indodax extends Exchange {
         for ($i = 0; $i < count($marketIds); $i++) {
             $marketId = $marketIds[$i];
             $marketOrders = $rawOrders[$marketId];
-            $market = $this->markets_by_id[$marketId];
+            $market = $this->safe_market($marketId);
             $parsedOrders = $this->parse_orders($marketOrders, $market, $since, $limit);
             $exchangeOrders = $this->array_concat($exchangeOrders, $parsedOrders);
         }
@@ -942,6 +968,7 @@ class indodax extends Exchange {
             $fee = array(
                 'currency' => $this->safe_currency_code(null, $currency),
                 'cost' => $feeCost,
+                'rate' => null,
             );
         }
         return array(

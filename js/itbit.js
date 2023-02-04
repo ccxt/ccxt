@@ -26,7 +26,7 @@ module.exports = class itbit extends Exchange {
                 'option': false,
                 'addMargin': false,
                 'cancelOrder': true,
-                'createMarketOrder': undefined,
+                'createMarketOrder': false,
                 'createOrder': true,
                 'createReduceOnlyOrder': false,
                 'createStopLimitOrder': false,
@@ -124,8 +124,8 @@ module.exports = class itbit extends Exchange {
             },
             'fees': {
                 'trading': {
-                    'maker': -0.03 / 100,
-                    'taker': 0.35 / 100,
+                    'maker': this.parseNumber ('-0.0003'),
+                    'taker': this.parseNumber ('0.0035'),
                 },
             },
             'commonCurrencies': {
@@ -300,20 +300,11 @@ module.exports = class itbit extends Exchange {
         let symbol = undefined;
         const marketId = this.safeString (trade, 'instrument');
         if (marketId !== undefined) {
-            if (marketId in this.markets_by_id) {
-                market = this.markets_by_id[marketId];
-            } else {
-                const baseId = this.safeString (trade, 'currency1');
-                const quoteId = this.safeString (trade, 'currency2');
-                const base = this.safeCurrencyCode (baseId);
-                const quote = this.safeCurrencyCode (quoteId);
-                symbol = base + '/' + quote;
-            }
-        }
-        if (symbol === undefined) {
-            if (market !== undefined) {
-                symbol = market['symbol'];
-            }
+            const baseId = this.safeString (trade, 'currency1');
+            const quoteId = this.safeString (trade, 'currency2');
+            const base = this.safeCurrencyCode (baseId);
+            const quote = this.safeCurrencyCode (quoteId);
+            symbol = base + '/' + quote;
         }
         const result = {
             'info': trade,
@@ -682,8 +673,10 @@ module.exports = class itbit extends Exchange {
         //
         const side = this.safeString (order, 'side');
         const type = this.safeString (order, 'type');
-        const symbol = this.markets_by_id[order['instrument']]['symbol'];
-        const timestamp = this.parse8601 (order['createdTime']);
+        const marketId = this.safeString (order, 'instrument');
+        const symbol = this.safeSymbol (marketId, market);
+        const datetime = this.safeString (order, 'createdTime');
+        const timestamp = this.parse8601 (datetime);
         const amount = this.safeString (order, 'amount');
         const filled = this.safeString (order, 'amountFilled');
         const fee = undefined;
@@ -708,6 +701,7 @@ module.exports = class itbit extends Exchange {
             'side': side,
             'price': price,
             'stopPrice': undefined,
+            'triggerPrice': undefined,
             'cost': undefined,
             'average': average,
             'amount': amount,
@@ -728,8 +722,9 @@ module.exports = class itbit extends Exchange {
          * @method
          * @name itbit#createOrder
          * @description create a trade order
+         * @see https://api.itbit.com/docs#trading-new-order-post
          * @param {string} symbol unified symbol of the market to create an order in
-         * @param {string} type 'market' or 'limit'
+         * @param {string} type must be 'limit'
          * @param {string} side 'buy' or 'sell'
          * @param {float} amount how much of currency you want to trade in units of base currency
          * @param {float|undefined} price the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders

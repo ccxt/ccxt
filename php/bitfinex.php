@@ -6,14 +6,11 @@ namespace ccxt;
 // https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 use Exception; // a common import
-use \ccxt\ExchangeError;
-use \ccxt\ArgumentsRequired;
-use \ccxt\NotSupported;
 
 class bitfinex extends Exchange {
 
     public function describe() {
-        return $this->deep_extend(parent::describe (), array(
+        return $this->deep_extend(parent::describe(), array(
             'id' => 'bitfinex',
             'name' => 'Bitfinex',
             'countries' => array( 'VG' ),
@@ -37,7 +34,9 @@ class bitfinex extends Exchange {
                 'fetchBalance' => true,
                 'fetchClosedOrders' => true,
                 'fetchDepositAddress' => true,
-                'fetchDeposits' => null,
+                'fetchDeposits' => false,
+                'fetchDepositWithdrawFee' => 'emulated',
+                'fetchDepositWithdrawFees' => true,
                 'fetchIndexOHLCV' => false,
                 'fetchLeverageTiers' => false,
                 'fetchMarginMode' => false,
@@ -59,7 +58,7 @@ class bitfinex extends Exchange {
                 'fetchTradingFees' => true,
                 'fetchTransactionFees' => true,
                 'fetchTransactions' => true,
-                'fetchWithdrawals' => null,
+                'fetchWithdrawals' => false,
                 'transfer' => true,
                 'withdraw' => true,
             ),
@@ -393,25 +392,76 @@ class bitfinex extends Exchange {
 
     public function fetch_transaction_fees($codes = null, $params = array ()) {
         /**
-         * fetch transaction $fees
-         * @param {[string]|null} $codes not used by bitfinex2 fetchTransactionFees ()
+         * *DEPRECATED* please use fetchDepositWithdrawFees instead
+         * @see https://docs.bitfinex.com/v1/reference/rest-auth-$fees
+         * @param {[string]|null} $codes list of unified currency $codes
          * @param {array} $params extra parameters specific to the bitfinex api endpoint
          * @return {[array]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#fee-structure $fees structures}
          */
         $this->load_markets();
+        $result = array();
         $response = $this->privatePostAccountFees ($params);
-        $fees = $response['withdraw'];
-        $withdraw = array();
+        //
+        // {
+        //     'withdraw' => {
+        //         'BTC' => '0.0004',
+        //     }
+        // }
+        //
+        $fees = $this->safe_value($response, 'withdraw');
         $ids = is_array($fees) ? array_keys($fees) : array();
         for ($i = 0; $i < count($ids); $i++) {
             $id = $ids[$i];
             $code = $this->safe_currency_code($id);
-            $withdraw[$code] = $this->safe_number($fees, $id);
+            if (($codes !== null) && !$this->in_array($code, $codes)) {
+                continue;
+            }
+            $result[$code] = array(
+                'withdraw' => $this->safe_number($fees, $id),
+                'deposit' => array(),
+                'info' => $this->safe_number($fees, $id),
+            );
         }
+        return $result;
+    }
+
+    public function fetch_deposit_withdraw_fees($codes = null, $params = array ()) {
+        /**
+         * fetch deposit and $withdraw fees
+         * @see https://docs.bitfinex.com/v1/reference/rest-auth-fees
+         * @param {[string]|null} $codes list of unified currency $codes
+         * @param {array} $params extra parameters specific to the bitfinex api endpoint
+         * @return {[array]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#fee-structure fees structures}
+         */
+        $this->load_markets();
+        $response = $this->privatePostAccountFees ($params);
+        //
+        //    {
+        //        'withdraw' => {
+        //            'BTC' => '0.0004',
+        //            ...
+        //        }
+        //    }
+        //
+        $withdraw = $this->safe_value($response, 'withdraw');
+        return $this->parse_deposit_withdraw_fees($withdraw, $codes);
+    }
+
+    public function parse_deposit_withdraw_fee($fee, $currency = null) {
+        //
+        //    '0.0004'
+        //
         return array(
-            'info' => $response,
-            'withdraw' => $withdraw,
-            'deposit' => $withdraw,  // only for deposits of less than $1000
+            'withdraw' => array(
+                'fee' => $this->parse_number($fee),
+                'percentage' => null,
+            ),
+            'deposit' => array(
+                'fee' => null,
+                'percentage' => null,
+            ),
+            'networks' => array(),
+            'info' => $fee,
         );
     }
 
@@ -539,23 +589,28 @@ class bitfinex extends Exchange {
             }
             $base = $this->safe_currency_code($baseId);
             $quote = $this->safe_currency_code($quoteId);
+            $symbol = $base . '/' . $quote;
+            $type = 'spot';
+            if (mb_strpos($id, 'F0') > -1) {
+                $type = 'swap';
+            }
             $result[] = array(
                 'id' => $id,
-                'symbol' => $base . '/' . $quote,
+                'symbol' => $symbol,
                 'base' => $base,
                 'quote' => $quote,
                 'settle' => null,
                 'baseId' => $baseId,
                 'quoteId' => $quoteId,
                 'settleId' => null,
-                'type' => 'spot',
-                'spot' => true,
+                'type' => $type,
+                'spot' => ($type === 'spot'),
                 'margin' => $this->safe_value($market, 'margin'),
-                'swap' => false,
+                'swap' => ($type === 'swap'),
                 'future' => false,
                 'option' => false,
                 'active' => true,
-                'contract' => false,
+                'contract' => ($type === 'swap'),
                 'linear' => null,
                 'inverse' => null,
                 'contractSize' => null,
@@ -598,10 +653,12 @@ class bitfinex extends Exchange {
         // https://docs.bitfinex.com/docs/introduction#$amount-precision
         // The $amount field allows up to 8 decimals.
         // Anything exceeding this will be rounded to the 8th decimal.
+        $symbol = $this->safe_symbol($symbol);
         return $this->decimal_to_precision($amount, TRUNCATE, $this->markets[$symbol]['precision']['amount'], DECIMAL_PLACES);
     }
 
     public function price_to_precision($symbol, $price) {
+        $symbol = $this->safe_symbol($symbol);
         $price = $this->decimal_to_precision($price, ROUND, $this->markets[$symbol]['precision']['price'], $this->precisionMode);
         // https://docs.bitfinex.com/docs/introduction#$price-precision
         // The precision level of all trading prices is based on significant figures.
@@ -811,24 +868,9 @@ class bitfinex extends Exchange {
 
     public function parse_ticker($ticker, $market = null) {
         $timestamp = $this->safe_timestamp($ticker, 'timestamp');
-        $symbol = null;
-        if ($market !== null) {
-            $symbol = $market['symbol'];
-        } elseif (is_array($ticker) && array_key_exists('pair', $ticker)) {
-            $marketId = $this->safe_string($ticker, 'pair');
-            if ($marketId !== null) {
-                if (is_array($this->markets_by_id) && array_key_exists($marketId, $this->markets_by_id)) {
-                    $market = $this->markets_by_id[$marketId];
-                    $symbol = $market['symbol'];
-                } else {
-                    $baseId = mb_substr($marketId, 0, 3 - 0);
-                    $quoteId = mb_substr($marketId, 3, 6 - 3);
-                    $base = $this->safe_currency_code($baseId);
-                    $quote = $this->safe_currency_code($quoteId);
-                    $symbol = $base . '/' . $quote;
-                }
-            }
-        }
+        $marketId = $this->safe_string($market, 'pair');
+        $market = $this->safe_market($marketId, $market);
+        $symbol = $market['symbol'];
         $last = $this->safe_string($ticker, 'last_price');
         return $this->safe_ticker(array(
             'symbol' => $symbol,
@@ -996,17 +1038,23 @@ class bitfinex extends Exchange {
         $this->load_markets();
         $market = $this->market($symbol);
         $postOnly = $this->safe_value($params, 'postOnly', false);
+        $type = strtolower($type);
         $params = $this->omit($params, array( 'postOnly' ));
+        if ($market['spot']) {
+            // although they claim that $type needs to be 'exchange limit' or 'exchange market'
+            // in fact that's not the case for swap markets
+            $type = $this->safe_string_lower($this->options['orderTypes'], $type, $type);
+        }
         $request = array(
             'symbol' => $market['id'],
             'side' => $side,
             'amount' => $this->amount_to_precision($symbol, $amount),
-            'type' => $this->safe_string($this->options['orderTypes'], $type, $type),
+            'type' => $type,
             'ocoorder' => false,
             'buy_price_oco' => 0,
             'sell_price_oco' => 0,
         );
-        if ($type === 'market') {
+        if (mb_strpos($type, 'market') > -1) {
             $request['price'] = (string) $this->nonce();
         } else {
             $request['price'] = $this->price_to_precision($symbol, $price);
@@ -1127,6 +1175,7 @@ class bitfinex extends Exchange {
             'side' => $side,
             'price' => $this->safe_string($order, 'price'),
             'stopPrice' => null,
+            'triggerPrice' => null,
             'average' => $this->safe_string($order, 'avg_execution_price'),
             'amount' => $this->safe_string($order, 'original_amount'),
             'remaining' => $this->safe_string($order, 'remaining_amount'),
@@ -1239,7 +1288,7 @@ class bitfinex extends Exchange {
         $v2id = 't' . $market['id'];
         $request = array(
             'symbol' => $v2id,
-            'timeframe' => $this->timeframes[$timeframe],
+            'timeframe' => $this->safe_string($this->timeframes, $timeframe, $timeframe),
             'sort' => 1,
             'limit' => $limit,
         );
@@ -1403,34 +1452,31 @@ class bitfinex extends Exchange {
         //     }
         //
         $timestamp = $this->safe_timestamp($transaction, 'timestamp_created');
-        $updated = $this->safe_timestamp($transaction, 'timestamp');
         $currencyId = $this->safe_string($transaction, 'currency');
         $code = $this->safe_currency_code($currencyId, $currency);
-        $type = $this->safe_string_lower($transaction, 'type'); // DEPOSIT or WITHDRAWAL
-        $status = $this->parse_transaction_status($this->safe_string($transaction, 'status'));
         $feeCost = $this->safe_string($transaction, 'fee');
         if ($feeCost !== null) {
             $feeCost = Precise::string_abs($feeCost);
         }
-        $tag = $this->safe_string($transaction, 'description');
         return array(
             'info' => $transaction,
             'id' => $this->safe_string_2($transaction, 'id', 'withdrawal_id'),
             'txid' => $this->safe_string($transaction, 'txid'),
+            'type' => $this->safe_string_lower($transaction, 'type'), // DEPOSIT or WITHDRAWAL,
+            'currency' => $code,
+            'network' => null,
+            'amount' => $this->safe_number($transaction, 'amount'),
+            'status' => $this->parse_transaction_status($this->safe_string($transaction, 'status')),
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
-            'network' => null,
-            'address' => $this->safe_string($transaction, 'address'), // todo => this is actually the $tag for XRP transfers (the address is missing)
-            'addressTo' => null,
+            'address' => $this->safe_string($transaction, 'address'), // todo => this is actually the tag for XRP transfers (the address is missing)
             'addressFrom' => null,
-            'tag' => $tag,
-            'tagTo' => null,
+            'addressTo' => null,
+            'tag' => $this->safe_string($transaction, 'description'),
             'tagFrom' => null,
-            'type' => $type,
-            'amount' => $this->safe_number($transaction, 'amount'),
-            'currency' => $code,
-            'status' => $status,
-            'updated' => $updated,
+            'tagTo' => null,
+            'updated' => $this->safe_timestamp($transaction, 'timestamp'),
+            'comment' => null,
             'fee' => array(
                 'currency' => $code,
                 'cost' => $this->parse_number($feeCost),
@@ -1572,8 +1618,7 @@ class bitfinex extends Exchange {
         }
         $throwError = false;
         if ($code >= 400) {
-            $firstChar = $this->safe_string($body, 0);
-            if ($firstChar === '{') {
+            if ($body[0] === '{') {
                 $throwError = true;
             }
         } else {

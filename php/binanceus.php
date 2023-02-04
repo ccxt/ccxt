@@ -10,7 +10,7 @@ use Exception; // a common import
 class binanceus extends binance {
 
     public function describe() {
-        return $this->deep_extend(parent::describe (), array(
+        return $this->deep_extend(parent::describe(), array(
             'id' => 'binanceus',
             'name' => 'Binance US',
             'countries' => array( 'US' ), // US
@@ -39,7 +39,17 @@ class binanceus extends binance {
                 ),
             ),
             'options' => array(
+                'fetchMarkets' => array( 'spot' ),
+                'defaultType' => 'spot',
                 'quoteOrderQty' => false,
+            ),
+            'has' => array(
+                'CORS' => null,
+                'spot' => true,
+                'margin' => null,
+                'swap' => null,
+                'future' => null,
+                'option' => null,
             ),
         ));
     }

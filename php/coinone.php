@@ -6,13 +6,11 @@ namespace ccxt;
 // https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 use Exception; // a common import
-use \ccxt\ExchangeError;
-use \ccxt\ArgumentsRequired;
 
 class coinone extends Exchange {
 
     public function describe() {
-        return $this->deep_extend(parent::describe (), array(
+        return $this->deep_extend(parent::describe(), array(
             'id' => 'coinone',
             'name' => 'CoinOne',
             'countries' => array( 'KR' ), // Korea
@@ -28,7 +26,7 @@ class coinone extends Exchange {
                 'option' => false,
                 'addMargin' => false,
                 'cancelOrder' => true,
-                'createMarketOrder' => null,
+                'createMarketOrder' => false,
                 'createOrder' => true,
                 'createReduceOnlyOrder' => false,
                 'createStopLimitOrder' => false,
@@ -40,7 +38,7 @@ class coinone extends Exchange {
                 'fetchBorrowRateHistory' => false,
                 'fetchBorrowRates' => false,
                 'fetchBorrowRatesPerSymbol' => false,
-                'fetchClosedOrders' => null, // the endpoint that should return closed orders actually returns trades, https://github.com/ccxt/ccxt/pull/7067
+                'fetchClosedOrders' => false, // the endpoint that should return closed orders actually returns trades, https://github.com/ccxt/ccxt/pull/7067
                 'fetchDepositAddresses' => true,
                 'fetchFundingHistory' => false,
                 'fetchFundingRate' => false,
@@ -120,11 +118,6 @@ class coinone extends Exchange {
                     'taker' => 0.002,
                     'maker' => 0.002,
                 ),
-            ),
-            'precision' => array(
-                'price' => $this->parse_number('0.0001'),
-                'amount' => $this->parse_number('0.0001'),
-                'cost' => $this->parse_number('0.00000001'),
             ),
             'precisionMode' => TICK_SIZE,
             'exceptions' => array(
@@ -207,8 +200,9 @@ class coinone extends Exchange {
                 'strike' => null,
                 'optionType' => null,
                 'precision' => array(
-                    'amount' => null,
-                    'price' => null,
+                    'amount' => $this->parse_number('1e-4'),
+                    'price' => $this->parse_number('1e-4'),
+                    'cost' => $this->parse_number('1e-8'),
                 ),
                 'limits' => array(
                     'leverage' => array(
@@ -303,15 +297,11 @@ class coinone extends Exchange {
         $timestamp = $this->safe_timestamp($response, 'timestamp');
         for ($i = 0; $i < count($ids); $i++) {
             $id = $ids[$i];
-            $symbol = $id;
-            $market = null;
-            if (is_array($this->markets_by_id) && array_key_exists($id, $this->markets_by_id)) {
-                $market = $this->markets_by_id[$id];
-                $symbol = $market['symbol'];
-                $ticker = $response[$id];
-                $result[$symbol] = $this->parse_ticker($ticker, $market);
-                $result[$symbol]['timestamp'] = $timestamp;
-            }
+            $market = $this->safe_market($id);
+            $symbol = $market['symbol'];
+            $ticker = $response[$id];
+            $result[$symbol] = $this->parse_ticker($ticker, $market);
+            $result[$symbol]['timestamp'] = $timestamp;
         }
         return $this->filter_by_array($result, 'symbol', $symbols);
     }
@@ -490,8 +480,10 @@ class coinone extends Exchange {
     public function create_order($symbol, $type, $side, $amount, $price = null, $params = array ()) {
         /**
          * create a trade order
+         * @see https://doc.coinone.co.kr/#tag/Order-V2/operation/v2_order_limit_buy
+         * @see https://doc.coinone.co.kr/#tag/Order-V2/operation/v2_order_limit_sell
          * @param {string} $symbol unified $symbol of the $market to create an order in
-         * @param {string} $type 'market' or 'limit'
+         * @param {string} $type must be 'limit'
          * @param {string} $side 'buy' or 'sell'
          * @param {float} $amount how much of currency you want to trade in units of base currency
          * @param {float|null} $price the $price at which the order is to be fullfilled, in units of the quote currency, ignored in $market orders
@@ -517,7 +509,7 @@ class coinone extends Exchange {
         //         "orderId" => "8a82c561-40b4-4cb3-9bc0-9ac9ffc1d63b"
         //     }
         //
-        return $this->parse_order($response);
+        return $this->parse_order($response, $market);
     }
 
     public function fetch_order($id, $symbol = null, $params = array ()) {
@@ -628,24 +620,9 @@ class coinone extends Exchange {
             }
         }
         $status = $this->parse_order_status($status);
-        $symbol = null;
-        $base = null;
-        $quote = null;
-        $marketId = $this->safe_string_lower($order, 'currency');
-        if ($marketId !== null) {
-            if (is_array($this->markets_by_id) && array_key_exists($marketId, $this->markets_by_id)) {
-                $market = $this->markets_by_id[$marketId];
-            } else {
-                $base = $this->safe_currency_code($marketId);
-                $quote = 'KRW';
-                $symbol = $base . '/' . $quote;
-            }
-        }
-        if (($symbol === null) && ($market !== null)) {
-            $symbol = $market['symbol'];
-            $base = $market['base'];
-            $quote = $market['quote'];
-        }
+        $symbol = $market['symbol'];
+        $base = $market['base'];
+        $quote = $market['quote'];
         $fee = null;
         $feeCostString = $this->safe_string($order, 'fee');
         if ($feeCostString !== null) {
@@ -670,6 +647,7 @@ class coinone extends Exchange {
             'side' => $side,
             'price' => $priceString,
             'stopPrice' => null,
+            'triggerPrice' => null,
             'cost' => null,
             'average' => null,
             'amount' => $amountString,

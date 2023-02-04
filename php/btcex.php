@@ -6,20 +6,17 @@ namespace ccxt;
 // https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 use Exception; // a common import
-use \ccxt\ExchangeError;
-use \ccxt\AuthenticationError;
-use \ccxt\ArgumentsRequired;
 
 class btcex extends Exchange {
 
     public function describe() {
-        return $this->deep_extend(parent::describe (), array(
+        return $this->deep_extend(parent::describe(), array(
             'id' => 'btcex',
             'name' => 'BTCEX',
             'countries' => array( 'CA' ), // Canada
             'version' => 'v1',
             'certified' => false,
-            'pro' => false,
+            'pro' => true,
             'requiredCredentials' => array(
                 'apiKey' => true,
                 'secret' => true,
@@ -58,15 +55,20 @@ class btcex extends Exchange {
                 'fetchDepositAddress' => false,
                 'fetchDeposits' => true,
                 'fetchFundingHistory' => false,
-                'fetchFundingRate' => false,
+                'fetchFundingRate' => true,
                 'fetchFundingRateHistory' => false,
-                'fetchFundingRates' => false,
+                'fetchFundingRates' => true,
                 'fetchIndexOHLCV' => false,
+                'fetchLeverage' => true,
+                'fetchLeverageTiers' => true,
                 'fetchMarginMode' => false,
+                'fetchMarketLeverageTiers' => true,
                 'fetchMarkets' => true,
                 'fetchMarkOHLCV' => false,
                 'fetchMyTrades' => true,
                 'fetchOHLCV' => true,
+                'fetchOpenInterest' => true,
+                'fetchOpenInterestHistory' => false,
                 'fetchOpenOrders' => true,
                 'fetchOrder' => true,
                 'fetchOrderBook' => true,
@@ -85,21 +87,27 @@ class btcex extends Exchange {
                 'fetchTransactionFees' => null,
                 'fetchWithdrawal' => true,
                 'fetchWithdrawals' => true,
+                'setLeverage' => true,
+                'setMarginMode' => true,
                 'signIn' => true,
+                'transfer' => true,
                 'withdraw' => false,
             ),
             'timeframes' => array(
-                '15s' => '15',
-                '1m' => '60',
-                '5m' => '300',
-                '15m' => '900',
-                '1h' => '3600',
-                '4h' => '14400',
-                '1d' => '86400',
-                '3d' => '259200',
-                '1w' => '604800',
-                '2w' => '1209600',
-                '1M' => '2592000',
+                '1m' => '1',
+                '3m' => '3',
+                '5m' => '5',
+                '15m' => '15',
+                '30m' => '30',
+                '1h' => '60',
+                '2h' => '120',
+                '3h' => '180',
+                '4h' => '240',
+                '6h' => '360',
+                '12h' => '720',
+                '1d' => '1D',
+                '3d' => '3D',
+                '1M' => '30D',
             ),
             'api' => array(
                 'public' => array(
@@ -125,6 +133,8 @@ class btcex extends Exchange {
                         'coin_gecko_market_trades',
                         'coin_gecko_contracts',
                         'coin_gecko_contract_orderbook',
+                        'get_perpetual_leverage_bracket',
+                        'get_perpetual_leverage_bracket_all',
                     ),
                     'post' => array(
                         'auth',
@@ -146,6 +156,7 @@ class btcex extends Exchange {
                         'get_user_trades_by_currency',
                         'get_user_trades_by_instrument',
                         'get_user_trades_by_order',
+                        'get_perpetual_user_config',
                     ),
                     'post' => array(
                         // auth
@@ -160,6 +171,9 @@ class btcex extends Exchange {
                         'cancel_all_by_currency',
                         'cancel_all_by_instrument',
                         'close_position',
+                        'adjust_perpetual_leverage',
+                        'adjust_perpetual_margin_type',
+                        'submit_transfer',
                     ),
                     'delete' => array(),
                 ),
@@ -278,6 +292,7 @@ class btcex extends Exchange {
                     '8105' => '\\ccxt\\BadRequest', // GOOGLE_CODE_CHECK_FAIL 2FA Code error!
                     '8106' => '\\ccxt\\DDoSProtection', // SMS_CODE_LIMIT Your message service is over limit today, please try tomorrow
                     '8107' => '\\ccxt\\ExchangeError', // REQUEST_FAILED Request failed
+                    '10000' => '\\ccxt\\AuthenticationError', // Authentication Failure
                     '11000' => '\\ccxt\\BadRequest', // CHANNEL_REGEX_ERROR channel regex not match
                 ),
                 'broad' => array(
@@ -474,8 +489,11 @@ class btcex extends Exchange {
         //     }
         //
         $marketId = $this->safe_string($ticker, 'instrument_name');
+        if (mb_strpos($marketId, 'PERPETUAL') === false) {
+            $marketId = $marketId . '-SPOT';
+        }
         $market = $this->safe_market($marketId, $market);
-        $symbol = $this->safe_symbol($marketId, $market);
+        $symbol = $this->safe_symbol($marketId, $market, '-');
         $timestamp = $this->safe_integer($ticker, 'timestamp');
         $stats = $this->safe_value($ticker, 'stats');
         return $this->safe_ticker(array(
@@ -545,6 +563,9 @@ class btcex extends Exchange {
         $request = array(
             'instrument_name' => $market['id'],
         );
+        if ($limit !== null) {
+            $request['depth'] = $limit;
+        }
         $response = $this->publicGetGetOrderBook (array_merge($request, $params));
         $result = $this->safe_value($response, 'result', array());
         //
@@ -563,7 +584,9 @@ class btcex extends Exchange {
         //     }
         //
         $timestamp = $this->safe_integer($result, 'timestamp');
-        return $this->parse_order_book($result, $market['symbol'], $timestamp);
+        $orderBook = $this->parse_order_book($result, $market['symbol'], $timestamp);
+        $orderBook['nonce'] = $this->safe_integer($result, 'version');
+        return $orderBook;
     }
 
     public function parse_ohlcv($ohlcv, $market = null) {
@@ -579,7 +602,7 @@ class btcex extends Exchange {
         //     }
         //
         return array(
-            $this->safe_integer($ohlcv, 'tick'),
+            $this->safe_timestamp($ohlcv, 'tick'),
             $this->safe_number($ohlcv, 'open'),
             $this->safe_number($ohlcv, 'high'),
             $this->safe_number($ohlcv, 'low'),
@@ -595,7 +618,7 @@ class btcex extends Exchange {
             $limit = 10;
         }
         $request = array(
-            'resolution' => $this->timeframes[$timeframe],
+            'resolution' => $this->safe_string($this->timeframes, $timeframe, $timeframe),
             // 'start_timestamp' => 0,
             // 'end_timestamp' => 0,
         );
@@ -1122,6 +1145,9 @@ class btcex extends Exchange {
         $lastUpdate = $this->safe_integer($order, 'last_update_timestamp');
         $id = $this->safe_string($order, 'order_id');
         $priceString = $this->safe_string($order, 'price');
+        if ($priceString === '-1') {
+            $priceString = null;
+        }
         $averageString = $this->safe_string($order, 'average_price');
         $amountString = $this->safe_string($order, 'amount');
         $filledString = $this->safe_string($order, 'filled_amount');
@@ -1148,9 +1174,6 @@ class btcex extends Exchange {
         $type = $this->safe_string($order, 'order_type');
         // injected in createOrder
         $trades = $this->safe_value($order, 'trades');
-        if ($trades !== null) {
-            $trades = $this->parse_trades($trades, $market);
-        }
         $timeInForce = $this->parse_time_in_force($this->safe_string($order, 'time_in_force'));
         $stopPrice = $this->safe_value($order, 'trigger_price');
         $postOnly = $this->safe_value($order, 'post_only');
@@ -1168,6 +1191,7 @@ class btcex extends Exchange {
             'side' => $side,
             'price' => $priceString,
             'stopPrice' => $stopPrice,
+            'triggerPrice' => $stopPrice,
             'amount' => $amountString,
             'cost' => null,
             'average' => $averageString,
@@ -1575,6 +1599,7 @@ class btcex extends Exchange {
         $marginType = $this->safe_string($position, 'margin_type');
         return array(
             'info' => $position,
+            'id' => null,
             'symbol' => $this->safe_string($market, 'symbol'),
             'timestamp' => null,
             'datetime' => null,
@@ -1870,6 +1895,589 @@ class btcex extends Exchange {
         $records = $this->filter_by($result, 'id', $id);
         $record = $this->safe_value($records, 0);
         return $this->parse_transaction($record, $currency);
+    }
+
+    public function fetch_leverage($symbol, $params = array ()) {
+        /**
+         * @see https://docs.btcex.com/#get-perpetual-instrument-config
+         * fetch the set leverage for a $market
+         * @param {string} $symbol unified $market $symbol
+         * @param {array} $params extra parameters specific to the btcex api endpoint
+         * @return {array} a {@link https://docs.ccxt.com/en/latest/manual.html#leverage-structure leverage structure}
+         */
+        $this->sign_in();
+        $this->load_markets();
+        $market = $this->market($symbol);
+        $request = array(
+            'instrument_name' => $market['id'],
+        );
+        $response = $this->privateGetGetPerpetualUserConfig (array_merge($request, $params));
+        //
+        //     {
+        //         "jsonrpc" => "2.0",
+        //         "usIn" => 1674182494283,
+        //         "usOut" => 1674182494294,
+        //         "usDiff" => 11,
+        //         "result" => {
+        //             "margin_type" => "cross",
+        //             "leverage" => "20",
+        //             "instrument_name" => "BTC-USDT-PERPETUAL",
+        //             "time" => "1674182494293"
+        //         }
+        //     }
+        //
+        $data = $this->safe_value($response, 'result', array());
+        return $this->safe_number($data, 'leverage');
+    }
+
+    public function fetch_market_leverage_tiers($symbol, $params = array ()) {
+        /**
+         * @see https://docs.btcex.com/#get-perpetual-instrument-leverage-config
+         * retrieve information on the maximum leverage, for different trade sizes for a single $market
+         * @param {string} $symbol unified $market $symbol
+         * @param {array} $params extra parameters specific to the btcex api endpoint
+         * @return {array} a {@link https://docs.ccxt.com/en/latest/manual.html#leverage-tiers-structure leverage tiers structure}
+         */
+        $this->load_markets();
+        $market = $this->market($symbol);
+        if (!$market['swap']) {
+            throw new BadRequest($this->id . ' fetchMarketLeverageTiers() supports swap markets only');
+        }
+        $request = array(
+            'instrument_name' => $market['id'],
+        );
+        $response = $this->publicGetGetPerpetualLeverageBracket (array_merge($request, $params));
+        //
+        //     {
+        //         "jsonrpc" => "2.0",
+        //         "usIn" => 1674184074454,
+        //         "usOut" => 1674184074457,
+        //         "usDiff" => 3,
+        //         "result" => array(
+        //             array(
+        //                 "bracket" => 1,
+        //                 "initialLeverage" => 125,
+        //                 "maintenanceMarginRate" => "0.004",
+        //                 "notionalCap" => "50000",
+        //                 "notionalFloor" => "0",
+        //                 "cum" => "0"
+        //             ),
+        //             ...
+        //         )
+        //     }
+        //
+        $data = $this->safe_value($response, 'result', array());
+        return $this->parse_market_leverage_tiers($data, $market);
+    }
+
+    public function parse_market_leverage_tiers($info, $market) {
+        //
+        //     array(
+        //         array(
+        //             "bracket" => 1,
+        //             "initialLeverage" => 125,
+        //             "maintenanceMarginRate" => "0.004",
+        //             "notionalCap" => "50000",
+        //             "notionalFloor" => "0",
+        //             "cum" => "0"
+        //         ),
+        //         ...
+        //     )
+        //
+        $tiers = array();
+        $brackets = $info;
+        for ($i = 0; $i < count($brackets); $i++) {
+            $tier = $brackets[$i];
+            $tiers[] = array(
+                'tier' => $this->safe_integer($tier, 'bracket'),
+                'currency' => $market['settle'],
+                'minNotional' => $this->safe_number($tier, 'notionalFloor'),
+                'maxNotional' => $this->safe_number($tier, 'notionalCap'),
+                'maintenanceMarginRate' => $this->safe_number($tier, 'maintenanceMarginRate'),
+                'maxLeverage' => $this->safe_number($tier, 'initialLeverage'),
+                'info' => $tier,
+            );
+        }
+        return $tiers;
+    }
+
+    public function fetch_leverage_tiers($symbols = null, $params = array ()) {
+        /**
+         * @see https://docs.btcex.com/#get-all-perpetual-instrument-leverage-config
+         * retrieve information on the maximum leverage, for different trade sizes
+         * @param {[string]|null} $symbols a list of unified market $symbols
+         * @param {array} $params extra parameters specific to the btcex api endpoint
+         * @return {array} a dictionary of {@link https://docs.ccxt.com/en/latest/manual.html#leverage-tiers-structure leverage tiers structures}, indexed by market $symbols
+         */
+        $this->load_markets();
+        $response = $this->publicGetGetPerpetualLeverageBracketAll ($params);
+        //
+        //     {
+        //         "jsonrpc" => "2.0",
+        //         "usIn" => 1674183578745,
+        //         "usOut" => 1674183578752,
+        //         "usDiff" => 7,
+        //         "result" => {
+        //             "WAVES-USDT-PERPETUAL" => array(
+        //                 array(
+        //                     "bracket" => 1,
+        //                     "initialLeverage" => 50,
+        //                     "maintenanceMarginRate" => "0.01",
+        //                     "notionalCap" => "50000",
+        //                     "notionalFloor" => "0",
+        //                     "cum" => "0"
+        //                 ),
+        //                 ...
+        //             )
+        //         }
+        //     }
+        //
+        $data = $this->safe_value($response, 'result', array());
+        $symbols = $this->market_symbols($symbols);
+        return $this->parse_leverage_tiers($data, $symbols, 'symbol');
+    }
+
+    public function parse_leverage_tiers($response, $symbols = null, $marketIdKey = null) {
+        //
+        //     {
+        //         "WAVES-USDT-PERPETUAL" => array(
+        //             array(
+        //                 "bracket" => 1,
+        //                 "initialLeverage" => 50,
+        //                 "maintenanceMarginRate" => "0.01",
+        //                 "notionalCap" => "50000",
+        //                 "notionalFloor" => "0",
+        //                 "cum" => "0"
+        //             ),
+        //             ...
+        //         )
+        //     }
+        //
+        $tiers = array();
+        $result = array();
+        $marketIds = is_array($response) ? array_keys($response) : array();
+        for ($i = 0; $i < count($marketIds); $i++) {
+            $marketId = $marketIds[$i];
+            $entry = $response[$marketId];
+            $market = $this->safe_market($marketId);
+            $symbol = $this->safe_symbol($marketId, $market);
+            $symbolsLength = 0;
+            $tiers[$symbol] = $this->parse_market_leverage_tiers($entry, $market);
+            if ($symbols !== null) {
+                $symbolsLength = count($symbols);
+                if ($this->in_array($symbol, $symbols)) {
+                    $result[$symbol] = $this->parse_market_leverage_tiers($entry, $market);
+                }
+            }
+            if ($symbol !== null && ($symbolsLength === 0 || $this->in_array($symbol, $symbols))) {
+                $result[$symbol] = $this->parse_market_leverage_tiers($entry, $market);
+            }
+        }
+        return $result;
+    }
+
+    public function set_margin_mode($marginMode, $symbol = null, $params = array ()) {
+        /**
+         * set margin mode to 'cross' or 'isolated'
+         * @see https://docs.btcex.com/#modify-perpetual-instrument-margin-type
+         * @param {string} $marginMode 'cross' or 'isolated'
+         * @param {string|null} $symbol unified $market $symbol
+         * @param {array} $params extra parameters specific to the btcex api endpoint
+         * @return {array} response from the exchange
+         */
+        $this->check_required_symbol('setMarginMode', $symbol);
+        $this->sign_in();
+        $this->load_markets();
+        $market = $this->market($symbol);
+        if (!$market['swap']) {
+            throw new BadRequest($this->id . ' setMarginMode() supports swap contracts only');
+        }
+        if (($marginMode !== 'isolated') && ($marginMode !== 'isolate') && ($marginMode !== 'cross')) {
+            throw new BadRequest($this->id . ' $marginMode must be either isolated or cross');
+        }
+        $marginMode = ($marginMode === 'isolated') ? 'isolate' : 'cross';
+        $request = array(
+            'instrument_name' => $market['id'],
+            'margin_type' => $marginMode,
+        );
+        $result = $this->privatePostAdjustPerpetualMarginType (array_merge($request, $params));
+        //
+        //     {
+        //         "id" => "1674857919",
+        //         "jsonrpc" => "2.0",
+        //         "usIn" => 1674857920070,
+        //         "usOut" => 1674857920079,
+        //         "usDiff" => 9,
+        //         "result" => "ok"
+        //     }
+        //
+        return $result;
+    }
+
+    public function set_leverage($leverage, $symbol = null, $params = array ()) {
+        /**
+         * set the $leverage amount for a $market
+         * @see https://docs.btcex.com/#modify-perpetual-instrument-$leverage
+         * @param {float} $leverage the rate of $leverage
+         * @param {string} $symbol unified $market $symbol
+         * @param {array} $params extra parameters specific to the btcex api endpoint
+         * @return {array} $response from the exchange
+         */
+        if ($symbol === null) {
+            throw new ArgumentsRequired($this->id . ' setLeverage() requires a $symbol argument');
+        }
+        $this->sign_in();
+        $this->load_markets();
+        $this->check_required_symbol('setLeverage', $symbol);
+        $market = $this->market($symbol);
+        if (!$market['swap']) {
+            throw new BadRequest($this->id . ' setLeverage() supports swap contracts only');
+        }
+        if (($leverage < 1) || ($leverage > 125)) {
+            throw new BadRequest($this->id . ' $leverage should be between 1 and 125');
+        }
+        $request = array(
+            'instrument_name' => $market['id'],
+            'leverage' => $leverage,
+        );
+        $response = $this->privatePostAdjustPerpetualLeverage (array_merge($request, $params));
+        //
+        //     {
+        //         "id" => "1674856410",
+        //         "jsonrpc" => "2.0",
+        //         "usIn" => 1674856410930,
+        //         "usOut" => 1674856410988,
+        //         "usDiff" => 58,
+        //         "result" => "ok"
+        //     }
+        //
+        return $response;
+    }
+
+    public function fetch_funding_rates($symbols = null, $params = array ()) {
+        /**
+         * fetch the current funding rates
+         * @see https://docs.btcex.com/#contracts
+         * @param {array} $symbols unified $market $symbols
+         * @param {array} $params extra parameters specific to the btcex api endpoint
+         * @return {array} an array of {@link https://docs.ccxt.com/en/latest/manual.html#funding-rate-structure funding rate structures}
+         */
+        $this->load_markets();
+        $symbols = $this->market_symbols($symbols);
+        $response = $this->publicGetCoinGeckoContracts ($params);
+        //
+        //     {
+        //         "jsonrpc" => "2.0",
+        //         "usIn" => 1674803585896,
+        //         "usOut" => 1674803585943,
+        //         "usDiff" => 47,
+        //         "result" => array(
+        //             array(
+        //                 "ticker_id" => "BTC-USDT-PERPETUAL",
+        //                 "base_currency" => "BTC",
+        //                 "target_currency" => "USDT",
+        //                 "last_price" => "23685",
+        //                 "base_volume" => "167011.37199999999999989",
+        //                 "target_volume" => "3837763191.33800288010388613",
+        //                 "bid" => "23684.5",
+        //                 "ask" => "23685",
+        //                 "high" => "23971.5",
+        //                 "low" => "23156",
+        //                 "product_type" => "perpetual",
+        //                 "open_interest" => "24242.36",
+        //                 "index_price" => "23686.4",
+        //                 "index_name" => "BTC-USDT",
+        //                 "index_currency" => "BTC",
+        //                 "start_timestamp" => 1631004005882,
+        //                 "funding_rate" => "0.000187",
+        //                 "next_funding_rate_timestamp" => 1675065600000,
+        //                 "contract_type" => "Quanto",
+        //                 "contract_price" => "23685",
+        //                 "contract_price_currency" => "USDT"
+        //             ),
+        //         )
+        //     }
+        //
+        $data = $this->safe_value($response, 'result', array());
+        $result = array();
+        for ($i = 0; $i < count($data); $i++) {
+            $entry = $data[$i];
+            $marketId = $this->safe_string($entry, 'ticker_id');
+            $market = $this->safe_market($marketId);
+            $symbol = $market['symbol'];
+            if ($symbols !== null) {
+                if ($this->in_array($symbol, $symbols)) {
+                    $result[$symbol] = $this->parse_funding_rate($entry, $market);
+                }
+            } else {
+                $result[$symbol] = $this->parse_funding_rate($entry, $market);
+            }
+        }
+        return $this->filter_by_array($result, 'symbol', $symbols);
+    }
+
+    public function fetch_funding_rate($symbol, $params = array ()) {
+        /**
+         * fetch the current funding rate
+         * @see https://docs.btcex.com/#contracts
+         * @param {string} $symbol unified $market $symbol
+         * @param {array} $params extra parameters specific to the btcex api endpoint
+         * @return {array} a {@link https://docs.ccxt.com/en/latest/manual.html#funding-rate-structure funding rate structure}
+         */
+        $this->load_markets();
+        $market = $this->market($symbol);
+        $response = $this->publicGetCoinGeckoContracts ($params);
+        //
+        //     {
+        //         "jsonrpc" => "2.0",
+        //         "usIn" => 1674803585896,
+        //         "usOut" => 1674803585943,
+        //         "usDiff" => 47,
+        //         "result" => array(
+        //             array(
+        //                 "ticker_id" => "BTC-USDT-PERPETUAL",
+        //                 "base_currency" => "BTC",
+        //                 "target_currency" => "USDT",
+        //                 "last_price" => "23685",
+        //                 "base_volume" => "167011.37199999999999989",
+        //                 "target_volume" => "3837763191.33800288010388613",
+        //                 "bid" => "23684.5",
+        //                 "ask" => "23685",
+        //                 "high" => "23971.5",
+        //                 "low" => "23156",
+        //                 "product_type" => "perpetual",
+        //                 "open_interest" => "24242.36",
+        //                 "index_price" => "23686.4",
+        //                 "index_name" => "BTC-USDT",
+        //                 "index_currency" => "BTC",
+        //                 "start_timestamp" => 1631004005882,
+        //                 "funding_rate" => "0.000187",
+        //                 "next_funding_rate_timestamp" => 1675065600000,
+        //                 "contract_type" => "Quanto",
+        //                 "contract_price" => "23685",
+        //                 "contract_price_currency" => "USDT"
+        //             ),
+        //         )
+        //     }
+        //
+        $data = $this->safe_value($response, 'result', array());
+        for ($i = 0; $i < count($data); $i++) {
+            $entry = $data[$i];
+            $marketId = $this->safe_string($entry, 'ticker_id');
+            if ($marketId === $market['id']) {
+                return $this->parse_funding_rate($entry, $market);
+            }
+        }
+        return $this->parse_funding_rate($data, $market);
+    }
+
+    public function parse_funding_rate($contract, $market = null) {
+        //
+        //     {
+        //         "ticker_id" => "BTC-USDT-PERPETUAL",
+        //         "base_currency" => "BTC",
+        //         "target_currency" => "USDT",
+        //         "last_price" => "23685",
+        //         "base_volume" => "167011.37199999999999989",
+        //         "target_volume" => "3837763191.33800288010388613",
+        //         "bid" => "23684.5",
+        //         "ask" => "23685",
+        //         "high" => "23971.5",
+        //         "low" => "23156",
+        //         "product_type" => "perpetual",
+        //         "open_interest" => "24242.36",
+        //         "index_price" => "23686.4",
+        //         "index_name" => "BTC-USDT",
+        //         "index_currency" => "BTC",
+        //         "start_timestamp" => 1631004005882,
+        //         "funding_rate" => "0.000187",
+        //         "next_funding_rate_timestamp" => 1675065600000,
+        //         "contract_type" => "Quanto",
+        //         "contract_price" => "23685",
+        //         "contract_price_currency" => "USDT"
+        //     }
+        //
+        $marketId = $this->safe_string($contract, 'ticker_id');
+        $fundingTimestamp = $this->safe_integer($contract, 'next_funding_rate_timestamp');
+        return array(
+            'info' => $contract,
+            'symbol' => $this->safe_symbol($marketId, $market),
+            'markPrice' => null,
+            'indexPrice' => $this->safe_number($contract, 'index_price'),
+            'interestRate' => null,
+            'estimatedSettlePrice' => null,
+            'timestamp' => null,
+            'datetime' => null,
+            'fundingRate' => $this->safe_number($contract, 'funding_rate'),
+            'fundingTimestamp' => $fundingTimestamp,
+            'fundingDatetime' => $this->iso8601($fundingTimestamp),
+            'nextFundingRate' => null,
+            'nextFundingTimestamp' => null,
+            'nextFundingDatetime' => null,
+            'previousFundingRate' => null,
+            'previousFundingTimestamp' => null,
+            'previousFundingDatetime' => null,
+        );
+    }
+
+    public function transfer($code, $amount, $fromAccount, $toAccount, $params = array ()) {
+        /**
+         * transfer $currency internally between wallets on the same account
+         * @see https://docs.btcex.com/#asset-transfer
+         * @param {string} $code unified $currency $code
+         * @param {float} $amount amount to transfer
+         * @param {string} $fromAccount account to transfer from
+         * @param {string} $toAccount account to transfer to
+         * @param {array} $params extra parameters specific to the btcex api endpoint
+         * @return {array} a {@link https://docs.ccxt.com/en/latest/manual.html#transfer-structure transfer structure}
+         */
+        $this->sign_in();
+        $this->load_markets();
+        $currency = $this->currency($code);
+        $accountsByType = $this->safe_value($this->options, 'accountsByType', array());
+        $fromId = $this->safe_string($accountsByType, $fromAccount, $fromAccount);
+        $toId = $this->safe_string($accountsByType, $toAccount, $toAccount);
+        $request = array(
+            'coin_type' => $currency['id'],
+            'amount' => $this->currency_to_precision($code, $amount),
+            'from' => $fromId, // WALLET, SPOT, PERPETUAL
+            'to' => $toId, // WALLET, SPOT, PERPETUAL
+        );
+        $response = $this->privatePostSubmitTransfer (array_merge($request, $params));
+        //
+        //     {
+        //         "id" => "1674937273",
+        //         "jsonrpc" => "2.0",
+        //         "usIn" => 1674937274762,
+        //         "usOut" => 1674937274774,
+        //         "usDiff" => 12,
+        //         "result" => "ok"
+        //     }
+        //
+        return $this->parse_transfer($response, $currency);
+    }
+
+    public function parse_transfer($transfer, $currency = null) {
+        //
+        //     {
+        //         "id" => "1674937273",
+        //         "jsonrpc" => "2.0",
+        //         "usIn" => 1674937274762,
+        //         "usOut" => 1674937274774,
+        //         "usDiff" => 12,
+        //         "result" => "ok"
+        //     }
+        //
+        return array(
+            'info' => $transfer,
+            'id' => $this->safe_string($transfer, 'id'),
+            'timestamp' => null,
+            'datetime' => null,
+            'currency' => null,
+            'amount' => null,
+            'fromAccount' => null,
+            'toAccount' => null,
+            'status' => null,
+        );
+    }
+
+    public function fetch_open_interest($symbol, $params = array ()) {
+        /**
+         * fetch the open interest of a $market
+         * @see https://docs.btcex.com/#contracts
+         * @param {string} $symbol unified CCXT $market $symbol
+         * @param {array} $params extra parameters specific to the btcex api endpoint
+         * @return {array} an open interest structurearray(@link https://docs.ccxt.com/en/latest/manual.html#interest-history-structure)
+         */
+        $this->load_markets();
+        $market = $this->market($symbol);
+        if (!$market['contract']) {
+            throw new BadRequest($this->id . ' fetchOpenInterest() supports contract markets only');
+        }
+        $response = $this->publicGetCoinGeckoContracts ($params);
+        //
+        //     {
+        //         "jsonrpc" => "2.0",
+        //         "usIn" => 1674803585896,
+        //         "usOut" => 1674803585943,
+        //         "usDiff" => 47,
+        //         "result" => array(
+        //             array(
+        //                 "ticker_id" => "BTC-USDT-PERPETUAL",
+        //                 "base_currency" => "BTC",
+        //                 "target_currency" => "USDT",
+        //                 "last_price" => "23685",
+        //                 "base_volume" => "167011.37199999999999989",
+        //                 "target_volume" => "3837763191.33800288010388613",
+        //                 "bid" => "23684.5",
+        //                 "ask" => "23685",
+        //                 "high" => "23971.5",
+        //                 "low" => "23156",
+        //                 "product_type" => "perpetual",
+        //                 "open_interest" => "24242.36",
+        //                 "index_price" => "23686.4",
+        //                 "index_name" => "BTC-USDT",
+        //                 "index_currency" => "BTC",
+        //                 "start_timestamp" => 1631004005882,
+        //                 "funding_rate" => "0.000187",
+        //                 "next_funding_rate_timestamp" => 1675065600000,
+        //                 "contract_type" => "Quanto",
+        //                 "contract_price" => "23685",
+        //                 "contract_price_currency" => "USDT"
+        //             ),
+        //         )
+        //     }
+        //
+        $data = $this->safe_value($response, 'result', array());
+        for ($i = 0; $i < count($data); $i++) {
+            $entry = $data[$i];
+            $marketId = $this->safe_string($entry, 'ticker_id');
+            if ($marketId === $market['id']) {
+                return $this->parse_open_interest($entry, $market);
+            }
+        }
+        return $this->parse_open_interest($data, $market);
+    }
+
+    public function parse_open_interest($interest, $market = null) {
+        //
+        //     {
+        //         "ticker_id" => "BTC-USDT-PERPETUAL",
+        //         "base_currency" => "BTC",
+        //         "target_currency" => "USDT",
+        //         "last_price" => "23685",
+        //         "base_volume" => "167011.37199999999999989",
+        //         "target_volume" => "3837763191.33800288010388613",
+        //         "bid" => "23684.5",
+        //         "ask" => "23685",
+        //         "high" => "23971.5",
+        //         "low" => "23156",
+        //         "product_type" => "perpetual",
+        //         "open_interest" => "24242.36",
+        //         "index_price" => "23686.4",
+        //         "index_name" => "BTC-USDT",
+        //         "index_currency" => "BTC",
+        //         "start_timestamp" => 1631004005882,
+        //         "funding_rate" => "0.000187",
+        //         "next_funding_rate_timestamp" => 1675065600000,
+        //         "contract_type" => "Quanto",
+        //         "contract_price" => "23685",
+        //         "contract_price_currency" => "USDT"
+        //     }
+        //
+        $marketId = $this->safe_string($interest, 'ticker_id');
+        $market = $this->safe_market($marketId, $market);
+        $openInterest = $this->safe_number($interest, 'open_interest');
+        return array(
+            'info' => $interest,
+            'symbol' => $market['symbol'],
+            'baseVolume' => $openInterest,
+            'quoteVolume' => null,
+            'openInterestAmount' => $openInterest, // in base currency
+            'openInterestValue' => null,
+            'timestamp' => null,
+            'datetime' => null,
+        );
     }
 
     public function sign($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {

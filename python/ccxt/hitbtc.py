@@ -4,7 +4,6 @@
 # https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 from ccxt.base.exchange import Exchange
-import math
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import PermissionDenied
@@ -54,7 +53,7 @@ class hitbtc(Exchange):
                 'fetchClosedOrders': True,
                 'fetchCurrencies': True,
                 'fetchDepositAddress': True,
-                'fetchDeposits': None,
+                'fetchDeposits': False,
                 'fetchFundingHistory': False,
                 'fetchFundingRate': False,
                 'fetchFundingRateHistory': False,
@@ -71,7 +70,7 @@ class hitbtc(Exchange):
                 'fetchOpenOrders': True,
                 'fetchOrder': True,
                 'fetchOrderBook': True,
-                'fetchOrders': None,
+                'fetchOrders': False,
                 'fetchOrderTrades': True,
                 'fetchPosition': False,
                 'fetchPositions': False,
@@ -83,7 +82,7 @@ class hitbtc(Exchange):
                 'fetchTradingFee': True,
                 'fetchTradingFees': False,
                 'fetchTransactions': True,
-                'fetchWithdrawals': None,
+                'fetchWithdrawals': False,
                 'reduceMargin': False,
                 'setLeverage': False,
                 'setMarginMode': False,
@@ -210,8 +209,8 @@ class hitbtc(Exchange):
                 'trading': {
                     'tierBased': False,
                     'percentage': True,
-                    'maker': 0.1 / 100,
-                    'taker': 0.2 / 100,
+                    'maker': self.parse_number('0.001'),
+                    'taker': self.parse_number('0.002'),
                 },
             },
             'options': {
@@ -463,7 +462,6 @@ class hitbtc(Exchange):
             # to add support for multiple withdrawal/deposit methods and
             # differentiated fees for each particular method
             precision = self.safe_string(currency, 'precisionTransfer', '8')
-            decimals = self.parse_number(precision)
             code = self.safe_currency_code(id)
             payin = self.safe_value(currency, 'payinEnabled')
             payout = self.safe_value(currency, 'payoutEnabled')
@@ -492,7 +490,7 @@ class hitbtc(Exchange):
                 'precision': self.parse_number(self.parse_precision(precision)),
                 'limits': {
                     'amount': {
-                        'min': 1 / math.pow(10, decimals),
+                        'min': None,
                         'max': None,
                     },
                     'withdraw': {
@@ -616,7 +614,7 @@ class hitbtc(Exchange):
         market = self.market(symbol)
         request = {
             'symbol': market['id'],
-            'period': self.timeframes[timeframe],
+            'period': self.safe_string(self.timeframes, timeframe, timeframe),
         }
         if since is not None:
             request['from'] = self.iso8601(since)
@@ -797,6 +795,7 @@ class hitbtc(Exchange):
     def fetch_transactions(self, code=None, since=None, limit=None, params={}):
         """
         fetch history of deposits and withdrawals
+        see https://api.hitbtc.com/v2#get-transactions-history
         :param str|None code: unified currency code for the currency of the transactions, default is None
         :param int|None since: timestamp in ms of the earliest transaction, default is None
         :param int|None limit: max number of transactions to return, default is None
@@ -857,32 +856,35 @@ class hitbtc(Exchange):
         amount = self.safe_number(transaction, 'amount')
         address = self.safe_string(transaction, 'address')
         txid = self.safe_string(transaction, 'hash')
-        fee = None
+        fee = {
+            'currency': None,
+            'cost': None,
+            'rate': None,
+        }
         feeCost = self.safe_number(transaction, 'fee')
         if feeCost is not None:
-            fee = {
-                'cost': feeCost,
-                'currency': code,
-            }
+            fee['cost'] = feeCost
+            fee['currency'] = code
         type = self.parse_transaction_type(self.safe_string(transaction, 'type'))
         return {
             'info': transaction,
             'id': id,
             'txid': txid,
+            'type': type,
+            'currency': code,
+            'network': None,
+            'amount': amount,
+            'status': status,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
-            'network': None,
             'address': address,
-            'addressTo': None,
             'addressFrom': None,
+            'addressTo': None,
             'tag': None,
-            'tagTo': None,
             'tagFrom': None,
-            'type': type,
-            'amount': amount,
-            'currency': code,
-            'status': status,
+            'tagTo': None,
             'updated': updated,
+            'comment': None,
             'fee': fee,
         }
 
@@ -1089,6 +1091,7 @@ class hitbtc(Exchange):
             'side': side,
             'price': price,
             'stopPrice': None,
+            'triggerPrice': None,
             'average': average,
             'amount': amount,
             'cost': None,

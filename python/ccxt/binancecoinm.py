@@ -21,15 +21,16 @@ class binancecoinm(binance):
             },
             'has': {
                 'CORS': None,
-                'spot': True,
-                'margin': None,
-                'swap': None,
-                'future': None,
+                'spot': False,
+                'margin': False,
+                'swap': True,
+                'future': True,
                 'option': None,
                 'createStopMarketOrder': True,
             },
             'options': {
-                'defaultType': 'delivery',
+                'fetchMarkets': ['inverse'],
+                'defaultSubType': 'inverse',
                 'leverageBrackets': None,
             },
         })

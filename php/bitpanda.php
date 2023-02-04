@@ -6,13 +6,11 @@ namespace ccxt;
 // https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 use Exception; // a common import
-use \ccxt\ExchangeError;
-use \ccxt\ArgumentsRequired;
 
 class bitpanda extends Exchange {
 
     public function describe() {
-        return $this->deep_extend(parent::describe (), array(
+        return $this->deep_extend(parent::describe(), array(
             'id' => 'bitpanda',
             'name' => 'Bitpanda Pro',
             'countries' => array( 'AT' ), // Austria
@@ -336,6 +334,8 @@ class bitpanda extends Exchange {
                 'active' => null,
                 'fee' => null,
                 'precision' => $this->parse_number($this->parse_precision($this->safe_string($currency, 'precision'))),
+                'withdraw' => null,
+                'deposit' => null,
                 'limits' => array(
                     'amount' => array( 'min' => null, 'max' => null ),
                     'withdraw' => array( 'min' => null, 'max' => null ),
@@ -1452,6 +1452,7 @@ class bitpanda extends Exchange {
             'side' => $side,
             'price' => $price,
             'stopPrice' => $stopPrice,
+            'triggerPrice' => $stopPrice,
             'amount' => $amount,
             'cost' => null,
             'average' => null,

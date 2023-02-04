@@ -84,7 +84,7 @@ class hollaex(Exchange):
                 'fetchTrades': True,
                 'fetchTradingFee': False,
                 'fetchTradingFees': True,
-                'fetchTransactions': None,
+                'fetchTransactions': False,
                 'fetchTransfer': False,
                 'fetchTransfers': False,
                 'fetchWithdrawal': True,
@@ -715,7 +715,7 @@ class hollaex(Exchange):
             }
         return result
 
-    async def fetch_ohlcv(self, symbol, timeframe='1h', since=None, limit=None, params={}):
+    async def fetch_ohlcv(self, symbol, timeframe='1m', since=None, limit=None, params={}):
         """
         fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
         :param str symbol: unified symbol of the market to fetch OHLCV data for
@@ -729,17 +729,16 @@ class hollaex(Exchange):
         market = self.market(symbol)
         request = {
             'symbol': market['id'],
-            'resolution': self.timeframes[timeframe],
+            'resolution': self.safe_string(self.timeframes, timeframe, timeframe),
         }
         duration = self.parse_timeframe(timeframe)
         if since is None:
             if limit is None:
-                raise ArgumentsRequired(self.id + " fetchOHLCV() requires a 'since' or a 'limit' argument")
-            else:
-                end = self.seconds()
-                start = end - duration * limit
-                request['to'] = end
-                request['from'] = start
+                limit = 1000  # they have no defaults and can actually provide tens of thousands of bars in one request, but we should cap "default" at generous amount
+            end = self.seconds()
+            start = end - duration * limit
+            request['to'] = end
+            request['from'] = start
         else:
             if limit is None:
                 request['from'] = int(since / 1000)
@@ -1058,6 +1057,7 @@ class hollaex(Exchange):
             'side': side,
             'price': price,
             'stopPrice': stopPrice,
+            'triggerPrice': stopPrice,
             'amount': amount,
             'filled': filled,
             'remaining': None,
@@ -1081,20 +1081,20 @@ class hollaex(Exchange):
         """
         await self.load_markets()
         market = self.market(symbol)
+        convertedAmount = float(self.amount_to_precision(symbol, amount))
         request = {
             'symbol': market['id'],
             'side': side,
-            'size': self.normalize_number_if_needed(amount),
+            'size': self.normalize_number_if_needed(convertedAmount),
             'type': type,
             # 'stop': float(self.price_to_precision(symbol, stopPrice)),
             # 'meta': {},  # other options such as post_only
         }
-        stopPrice = self.safe_number_2(params, 'stopPrice', 'stop')
+        stopPrice = self.safe_number_n(params, ['triggerPrice', 'stopPrice', 'stop'])
         meta = self.safe_value(params, 'meta', {})
         exchangeSpecificParam = self.safe_value(meta, 'post_only', False)
         isMarketOrder = type == 'market'
         postOnly = self.is_post_only(isMarketOrder, exchangeSpecificParam, params)
-        params = self.omit(params, ['stopPrice', 'stop', 'meta', 'postOnly'])
         if not isMarketOrder:
             convertedPrice = float(self.price_to_precision(symbol, price))
             request['price'] = self.normalize_number_if_needed(convertedPrice)
@@ -1102,6 +1102,7 @@ class hollaex(Exchange):
             request['stop'] = self.normalize_number_if_needed(float(self.price_to_precision(symbol, stopPrice)))
         if postOnly:
             request['meta'] = {'post_only': True}
+        params = self.omit(params, ['postOnly', 'timeInForce', 'stopPrice', 'triggerPrice', 'stop'])
         response = await self.privatePostOrder(self.extend(request, params))
         #
         #     {

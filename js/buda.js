@@ -48,7 +48,7 @@ module.exports = class buda extends Exchange {
                 'fetchMarginMode': false,
                 'fetchMarkets': true,
                 'fetchMarkOHLCV': false,
-                'fetchMyTrades': undefined,
+                'fetchMyTrades': false,
                 'fetchOHLCV': true,
                 'fetchOpenInterestHistory': false,
                 'fetchOpenOrders': true,
@@ -645,7 +645,7 @@ module.exports = class buda extends Exchange {
         }
         const request = {
             'symbol': market['id'],
-            'resolution': this.timeframes[timeframe],
+            'resolution': this.safeString (this.timeframes, timeframe, timeframe),
             'from': since / 1000,
             'to': this.seconds (),
         };
@@ -869,7 +869,8 @@ module.exports = class buda extends Exchange {
             const feeCurrencyCode = this.safeCurrencyCode (feeCurrencyId);
             fee = {
                 'cost': feeCost,
-                'code': feeCurrencyCode,
+                'code': feeCurrencyCode, // kept here for backward-compatibility, but will be removed soon
+                'currency': feeCurrencyCode,
             };
         }
         return this.safeOrder ({
@@ -887,6 +888,7 @@ module.exports = class buda extends Exchange {
             'side': side,
             'price': price,
             'stopPrice': undefined,
+            'triggerPrice': undefined,
             'average': undefined,
             'cost': cost,
             'amount': amount,

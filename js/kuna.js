@@ -55,7 +55,6 @@ module.exports = class kuna extends Exchange {
                 'reduceMargin': false,
                 'setLeverage': false,
                 'setPositionMode': false,
-                'withdraw': undefined,
             },
             'timeframes': undefined,
             'urls': {
@@ -473,20 +472,8 @@ module.exports = class kuna extends Exchange {
         const result = {};
         for (let i = 0; i < ids.length; i++) {
             const id = ids[i];
-            let market = undefined;
-            let symbol = id;
-            if (id in this.markets_by_id) {
-                market = this.markets_by_id[id];
-                symbol = market['symbol'];
-            } else {
-                let base = id.slice (0, 3);
-                let quote = id.slice (3, 6);
-                base = base.toUpperCase ();
-                quote = quote.toUpperCase ();
-                base = this.safeCurrencyCode (base);
-                quote = this.safeCurrencyCode (quote);
-                symbol = base + '/' + quote;
-            }
+            const market = this.safeMarket (id);
+            const symbol = market['symbol'];
             result[symbol] = this.parseTicker (response[id], market);
         }
         return this.filterByArray (result, 'symbol', symbols);
@@ -761,6 +748,7 @@ module.exports = class kuna extends Exchange {
             'side': side,
             'price': this.safeString (order, 'price'),
             'stopPrice': undefined,
+            'triggerPrice': undefined,
             'amount': this.safeString (order, 'volume'),
             'filled': this.safeString (order, 'executed_volume'),
             'remaining': this.safeString (order, 'remaining_volume'),

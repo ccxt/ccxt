@@ -29,7 +29,7 @@ class zaif(Exchange):
                 'future': False,
                 'option': False,
                 'cancelOrder': True,
-                'createMarketOrder': None,
+                'createMarketOrder': False,
                 'createOrder': True,
                 'fetchBalance': True,
                 'fetchClosedOrders': True,
@@ -131,11 +131,11 @@ class zaif(Exchange):
             'options': {
                 # zaif schedule defines several market-specific fees
                 'fees': {
-                    'BTC/JPY': {'maker': 0, 'taker': 0.1 / 100},
-                    'BCH/JPY': {'maker': 0, 'taker': 0.3 / 100},
-                    'BCH/BTC': {'maker': 0, 'taker': 0.3 / 100},
-                    'PEPECASH/JPY': {'maker': 0, 'taker': 0.01 / 100},
-                    'PEPECASH/BT': {'maker': 0, 'taker': 0.01 / 100},
+                    'BTC/JPY': {'maker': self.parse_number('0'), 'taker': self.parse_number('0.001')},
+                    'BCH/JPY': {'maker': self.parse_number('0'), 'taker': self.parse_number('0.003')},
+                    'BCH/BTC': {'maker': self.parse_number('0'), 'taker': self.parse_number('0.003')},
+                    'PEPECASH/JPY': {'maker': self.parse_number('0'), 'taker': self.parse_number('0.0001')},
+                    'PEPECASH/BT': {'maker': self.parse_number('0'), 'taker': self.parse_number('0.0001')},
                 },
             },
             'precisionMode': TICK_SIZE,
@@ -429,7 +429,7 @@ class zaif(Exchange):
         """
         create a trade order
         :param str symbol: unified symbol of the market to create an order in
-        :param str type: 'market' or 'limit'
+        :param str type: must be 'limit'
         :param str side: 'buy' or 'sell'
         :param float amount: how much of currency you want to trade in units of base currency
         :param float|None price: the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
@@ -498,6 +498,7 @@ class zaif(Exchange):
             'side': side,
             'price': price,
             'stopPrice': None,
+            'triggerPrice': None,
             'cost': None,
             'amount': amount,
             'filled': None,

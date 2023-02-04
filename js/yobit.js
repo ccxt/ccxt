@@ -27,7 +27,7 @@ module.exports = class yobit extends Exchange {
                 'addMargin': false,
                 'cancelOrder': true,
                 'createDepositAddress': true,
-                'createMarketOrder': undefined,
+                'createMarketOrder': false,
                 'createOrder': true,
                 'createReduceOnlyOrder': false,
                 'createStopLimitOrder': false,
@@ -40,7 +40,7 @@ module.exports = class yobit extends Exchange {
                 'fetchBorrowRates': false,
                 'fetchBorrowRatesPerSymbol': false,
                 'fetchDepositAddress': true,
-                'fetchDeposits': undefined,
+                'fetchDeposits': false,
                 'fetchFundingHistory': false,
                 'fetchFundingRate': false,
                 'fetchFundingRateHistory': false,
@@ -67,10 +67,10 @@ module.exports = class yobit extends Exchange {
                 'fetchTrades': true,
                 'fetchTradingFee': false,
                 'fetchTradingFees': true,
-                'fetchTransactions': undefined,
+                'fetchTransactions': false,
                 'fetchTransfer': false,
                 'fetchTransfers': false,
-                'fetchWithdrawals': undefined,
+                'fetchWithdrawals': false,
                 'reduceMargin': false,
                 'setLeverage': false,
                 'setMarginMode': false,
@@ -216,6 +216,7 @@ module.exports = class yobit extends Exchange {
                 'SBTC': 'Super Bitcoin',
                 'SMC': 'SmartCoin',
                 'SOLO': 'SoloCoin',
+                'SOUL': 'SoulCoin',
                 'STAR': 'StarCoin',
                 'SUPER': 'SuperCoin',
                 'TNS': 'Transcodium',
@@ -231,6 +232,11 @@ module.exports = class yobit extends Exchange {
                 // 'fetchTickersMaxLength': 2048,
                 'fetchOrdersRequiresSymbol': true,
                 'fetchTickersMaxLength': 512,
+                'networks': {
+                    'ETH': 'ERC20',
+                    'TRX': 'TRC20',
+                    'BSC': 'BEP20',
+                },
             },
             'precisionMode': TICK_SIZE,
             'exceptions': {
@@ -766,7 +772,7 @@ module.exports = class yobit extends Exchange {
          * @name yobit#createOrder
          * @description create a trade order
          * @param {string} symbol unified symbol of the market to create an order in
-         * @param {string} type 'market' or 'limit'
+         * @param {string} type must be 'limit'
          * @param {string} side 'buy' or 'sell'
          * @param {float} amount how much of currency you want to trade in units of base currency
          * @param {float|undefined} price the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
@@ -950,6 +956,7 @@ module.exports = class yobit extends Exchange {
             'side': side,
             'price': price,
             'stopPrice': undefined,
+            'triggerPrice': undefined,
             'cost': undefined,
             'amount': amount,
             'remaining': remaining,
@@ -1142,8 +1149,18 @@ module.exports = class yobit extends Exchange {
          */
         await this.loadMarkets ();
         const currency = this.currency (code);
+        let currencyId = currency['id'];
+        const networks = this.safeValue (this.options, 'networks', {});
+        let network = this.safeStringUpper (params, 'network'); // this line allows the user to specify either ERC20 or ETH
+        network = this.safeString (networks, network, network); // handle ERC20>ETH alias
+        if (network !== undefined) {
+            if (network !== 'ERC20') {
+                currencyId = currencyId + network.toLowerCase ();
+            }
+            params = this.omit (params, 'network');
+        }
         const request = {
-            'coinName': currency['id'],
+            'coinName': currencyId,
             'need_new': 0,
         };
         const response = await this.privatePostGetDepositAddress (this.extend (request, params));
