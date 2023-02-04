@@ -5115,8 +5115,10 @@ module.exports = class bybit extends Exchange {
             throw new ArgumentsRequired (this.id + ' fetchOpenOrders with inverse subType requires settle to not be USDT or USDC');
         }
         const [ type, query ] = this.handleMarketTypeAndParams ('fetchOpenOrders', market, params);
-        const { enableUnifiedMargin } = await this.isUnifiedMarginEnabled ();
-        if (type === 'spot') {
+        const { enableUnifiedMargin, enableUnifiedAccount } = await this.isUnifiedMarginEnabled ();
+        if (enableUnifiedAccount) {
+            return await this.fetchOrders (symbol, since, limit, query);
+        } else if (type === 'spot') {
             return await this.fetchSpotOpenOrders (symbol, since, limit, query);
         } else if (enableUnifiedMargin && !isInverse) {
             return await this.fetchUnifiedMarginOpenOrders (symbol, since, limit, query);
