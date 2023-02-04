@@ -181,7 +181,7 @@ module.exports = class delta extends Exchange {
             'precisionMode': TICK_SIZE,
             'requiredCredentials': {
                 'apiKey': true,
-                'secret': false,
+                'secret': true,
             },
             'exceptions': {
                 'exact': {
