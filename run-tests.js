@@ -271,7 +271,7 @@ async function testAllExchanges () {
 (async function () {
 
     log.bright.magenta.noPretty ('Testing'.white, Object.assign (
-                                                            { exchanges, symbol, keys },
+                                                            { exchanges, symbol, keys, exchangeSpecificFlags },
                                                             maxConcurrency >= Number.MAX_VALUE ? {} : { maxConcurrency }))
 
     const tested    = await testAllExchanges ()

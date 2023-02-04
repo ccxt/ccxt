@@ -284,9 +284,6 @@ async def test_trades(exchange, symbol):
 async def test_orders(exchange, symbol):
     method = 'fetchOrders'
     if exchange.has[method]:
-        if exchange.id in skipped_exchanges:
-            dump(green(exchange.id), green(symbol), method + '() skipped')
-            return
         delay = int(exchange.rateLimit / 1000)
         await asyncio.sleep(delay)
         # dump(green(exchange.id), green(symbol), 'fetching orders...')

@@ -2794,7 +2794,6 @@ class huobi(Exchange):
         options = self.safe_value(self.options, 'fetchBalance', {})
         request = {}
         method = None
-        margin = (type == 'margin')
         spot = (type == 'spot')
         future = (type == 'future')
         swap = (type == 'swap')
@@ -2808,21 +2807,18 @@ class huobi(Exchange):
         params = self.omit(params, ['defaultSubType', 'subType'])
         isolated = (marginMode == 'isolated')
         cross = (marginMode == 'cross')
-        if spot:
-            if isolated:
-                method = 'spotPrivateGetV1MarginAccountsBalance'
-            elif cross:
-                method = 'spotPrivateGetV1CrossMarginAccountsBalance'
+        margin = (type == 'margin') or (spot and (cross or isolated))
+        if spot or margin:
+            if margin:
+                if isolated:
+                    method = 'spotPrivateGetV1MarginAccountsBalance'
+                else:
+                    method = 'spotPrivateGetV1CrossMarginAccountsBalance'
             else:
                 self.load_accounts()
                 accountId = self.fetch_account_id_by_type(type, params)
                 request['account-id'] = accountId
                 method = 'spotPrivateGetV1AccountAccountsAccountIdBalance'
-        elif margin:
-            if isolated:
-                method = 'spotPrivateGetV1MarginAccountsBalance'
-            else:
-                method = 'spotPrivateGetV1CrossMarginAccountsBalance'
         elif linear:
             if isolated:
                 method = 'contractPrivatePostLinearSwapApiV1SwapAccountInfo'
@@ -3013,16 +3009,10 @@ class huobi(Exchange):
                     currencyId = self.safe_string(balance, 'currency')
                     code = self.safe_currency_code(currencyId)
                     result[code] = self.parse_margin_balance_helper(balance, code, result)
+                result = self.safe_balance(result)
         elif linear:
             first = self.safe_value(data, 0, {})
-            if cross:
-                account = self.account()
-                account['free'] = self.safe_string(first, 'margin_balance', 'margin_available')
-                account['used'] = self.safe_string(first, 'margin_frozen')
-                currencyId = self.safe_string_2(first, 'margin_asset', 'symbol')
-                code = self.safe_currency_code(currencyId)
-                result[code] = account
-            elif isolated:
+            if isolated:
                 for i in range(0, len(data)):
                     balance = data[i]
                     marketId = self.safe_string_2(balance, 'contract_code', 'margin_account')
@@ -3041,7 +3031,14 @@ class huobi(Exchange):
                         accountsByCode[code] = account
                         symbol = market['symbol']
                         result[symbol] = self.safe_balance(accountsByCode)
-                return result
+            else:
+                account = self.account()
+                account['free'] = self.safe_string(first, 'margin_balance', 'margin_available')
+                account['used'] = self.safe_string(first, 'margin_frozen')
+                currencyId = self.safe_string_2(first, 'margin_asset', 'symbol')
+                code = self.safe_currency_code(currencyId)
+                result[code] = account
+                result = self.safe_balance(result)
         elif inverse:
             for i in range(0, len(data)):
                 balance = data[i]
@@ -3051,8 +3048,8 @@ class huobi(Exchange):
                 account['free'] = self.safe_string(balance, 'margin_available')
                 account['used'] = self.safe_string(balance, 'margin_frozen')
                 result[code] = account
-        isolatedMargin = isolated and (spot or margin)
-        return result if isolatedMargin else self.safe_balance(result)
+            result = self.safe_balance(result)
+        return result
 
     def fetch_order(self, id, symbol=None, params={}):
         """

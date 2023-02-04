@@ -4167,7 +4167,7 @@ export default class okx extends Exchange {
         if (type !== undefined) {
             request['instType'] = this.convertToInstrumentType (type);
         }
-        const response = await (this as any).privateGetAccountPositions (query);
+        const response = await (this as any).privateGetAccountPositions (this.extend (request, query));
         //
         //     {
         //         "code": "0",
@@ -4378,7 +4378,7 @@ export default class okx extends Exchange {
                 }
             }
         }
-        const contractSize = this.safeValue (market, 'contractSize');
+        const contractSize = this.safeNumber (market, 'contractSize');
         const contractSizeString = this.numberToString (contractSize);
         const markPriceString = this.safeString (position, 'markPx');
         let notionalString = this.safeString (position, 'notionalUsd');

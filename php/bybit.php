@@ -43,6 +43,7 @@ class bybit extends Exchange {
                 'fetchBorrowRates' => false,
                 'fetchClosedOrders' => true,
                 'fetchCurrencies' => true,
+                'fetchDeposit' => false,
                 'fetchDepositAddress' => true,
                 'fetchDepositAddresses' => false,
                 'fetchDepositAddressesByNetwork' => true,
@@ -755,6 +756,7 @@ class bybit extends Exchange {
                     '3200300' => '\\ccxt\\InsufficientFunds', // array("retCode":3200300,"retMsg":"Insufficient margin balance.","result":null,"retExtMap":array())
                 ),
                 'broad' => array(
+                    'Request timeout' => '\\ccxt\\RequestTimeout', // array("retCode":10016,"retMsg":"Request timeout, please try again later","result":array(),"retExtInfo":array(),"time":1675307914985)
                     'unknown orderInfo' => '\\ccxt\\OrderNotFound', // array("ret_code":-1,"ret_msg":"unknown orderInfo","ext_code":"","ext_info":"","result":null,"time_now":"1584030414.005545","rate_limit_status":99,"rate_limit_reset_ms":1584030414003,"rate_limit":100)
                     'invalid api_key' => '\\ccxt\\AuthenticationError', // array("ret_code":10003,"ret_msg":"invalid api_key","ext_code":"","ext_info":"","result":null,"time_now":"1599547085.415797")
                     // the below two issues are caused as described => issues/9149#issuecomment-1146559498, when response is such =>  array("ret_code":130021,"ret_msg":"oc_diff[1707966351], new_oc[1707966351] with ob[....]+AB[....]","ext_code":"","ext_info":"","result":null,"time_now":"1658395300.872766","rate_limit_status":99,"rate_limit_reset_ms":1658395300855,"rate_limit":100)
@@ -5386,23 +5388,21 @@ class bybit extends Exchange {
     public function fetch_deposits($code = null, $since = null, $limit = null, $params = array ()) {
         /**
          * fetch all deposits made to an account
+         * @see https://bybit-exchange.github.io/docs/account_asset/v3/#t-depositsrecordquery
          * @param {string|null} $code unified $currency $code
-         * @param {int|null} $since the earliest time in ms to fetch deposits for
-         * @param {int|null} $limit the maximum number of deposits structures to retrieve
+         * @param {int|null} $since the earliest time in ms to fetch deposits for, default = 30 days before the current time
+         * @param {int|null} $limit the maximum number of deposits structures to retrieve, default = 50, max = 50
          * @param {array} $params extra parameters specific to the bybit api endpoint
+         * @param {int|null} $params->until the latest time in ms to fetch deposits for, default = 30 days after $since
+         *
+         * EXCHANGE SPECIFIC PARAMETERS
+         * @param {string|null} $params->cursor used for pagination
          * @return {[array]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure transaction structures}
-         */
+        */
         $this->load_markets();
-        $request = array(
-            // 'coin' => $currency['id'],
-            // 'currency' => $currency['id'], // alias
-            // 'start_date' => $this->iso8601($since),
-            // 'end_date' => $this->iso8601(till),
-            'wallet_fund_type' => 'Deposit', // Deposit, Withdraw, RealisedPNL, Commission, Refund, Prize, ExchangeOrderWithdraw, ExchangeOrderDeposit
-            // 'page' => 1,
-            // 'limit' => 20, // max 50
-        );
+        $request = array();
         $currency = null;
+        $until = $this->safe_integer($params, 'until');
         if ($code !== null) {
             $currency = $this->currency($code);
             $request['coin'] = $currency['id'];
@@ -5413,8 +5413,11 @@ class bybit extends Exchange {
         if ($limit !== null) {
             $request['limit'] = $limit;
         }
-        // Currently only works for deposits prior to 2021-07-15
-        // will be updated soon
+        if ($until !== null) {
+            $request['endTime'] = $until;
+        } elseif ($since !== null) {
+            $request['endTime'] = $since . (86400000 * 30);
+        }
         $response = $this->privateGetAssetV3PrivateDepositRecordQuery (array_merge($request, $params));
         //
         //    {
@@ -5783,7 +5786,7 @@ class bybit extends Exchange {
         return $this->parse_transaction($result, $currency);
     }
 
-    public function fetch_position($symbol = null, $params = array ()) {
+    public function fetch_position($symbol, $params = array ()) {
         /**
          * fetch data on a single open contract trade $position
          * @param {string} $symbol unified $market $symbol of the $market the $position is held in, default is null
@@ -5923,7 +5926,7 @@ class bybit extends Exchange {
         $positions = $this->safe_value_2($result, 'list', 'dataList', array());
         $timestamp = $this->safe_integer($response, 'time');
         $first = $this->safe_value($positions, 0);
-        $position = $this->parse_position($first);
+        $position = $this->parse_position($first, $market);
         return array_merge($position, array(
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),

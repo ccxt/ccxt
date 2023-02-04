@@ -180,7 +180,7 @@ export default class delta extends Exchange {
             'precisionMode': TICK_SIZE,
             'requiredCredentials': {
                 'apiKey': true,
-                'secret': false,
+                'secret': true,
             },
             'exceptions': {
                 'exact': {
@@ -1144,7 +1144,7 @@ export default class delta extends Exchange {
         //     }
         //
         const result = this.safeValue (response, 'result', {});
-        return result;
+        return this.parsePosition (result, market);
     }
 
     async fetchPositions (symbols = undefined, params = {}) {
@@ -1162,21 +1162,93 @@ export default class delta extends Exchange {
         //     {
         //         "success": true,
         //         "result": [
-        //             {
-        //                 "user_id": 0,
-        //                 "size": 0,
-        //                 "entry_price": "string",
-        //                 "margin": "string",
-        //                 "liquidation_price": "string",
-        //                 "bankruptcy_price": "string",
-        //                 "adl_level": 0,
-        //                 "product_id": 0
-        //             }
+        //           {
+        //             "user_id": 0,
+        //             "size": 0,
+        //             "entry_price": "string",
+        //             "margin": "string",
+        //             "liquidation_price": "string",
+        //             "bankruptcy_price": "string",
+        //             "adl_level": 0,
+        //             "product_id": 0,
+        //             "product_symbol": "string",
+        //             "commission": "string",
+        //             "realized_pnl": "string",
+        //             "realized_funding": "string"
+        //           }
         //         ]
         //     }
         //
         const result = this.safeValue (response, 'result', []);
-        return result;
+        return this.parsePositions (result, symbols);
+    }
+
+    parsePosition (position, market = undefined) {
+        //
+        // fetchPosition
+        //
+        //     {
+        //         "entry_price":null,
+        //         "size":0,
+        //         "timestamp":1605454074268079
+        //     }
+        //
+        //
+        // fetchPositions
+        //
+        //     {
+        //         "user_id": 0,
+        //         "size": 0,
+        //         "entry_price": "string",
+        //         "margin": "string",
+        //         "liquidation_price": "string",
+        //         "bankruptcy_price": "string",
+        //         "adl_level": 0,
+        //         "product_id": 0,
+        //         "product_symbol": "string",
+        //         "commission": "string",
+        //         "realized_pnl": "string",
+        //         "realized_funding": "string"
+        //     }
+        //
+        const marketId = this.safeString (position, 'product_symbol');
+        market = this.safeMarket (marketId, market);
+        const symbol = market['symbol'];
+        const timestamp = this.safeIntegerProduct (position, 'timestamp', 0.0001);
+        const sizeString = this.safeString (position, 'size');
+        let side = undefined;
+        if (sizeString !== undefined) {
+            if (Precise.stringGt (sizeString, '0')) {
+                side = 'buy';
+            } else if (Precise.stringLt (sizeString, '0')) {
+                side = 'sell';
+            }
+        }
+        return {
+            'info': position,
+            'id': undefined,
+            'symbol': symbol,
+            'notional': undefined,
+            'marginMode': undefined,
+            'liquidationPrice': this.safeNumber (position, 'liquidation_price'),
+            'entryPrice': this.safeNumber (position, 'entry_price'),
+            'unrealizedPnl': undefined, // todo - realized_pnl ?
+            'percentage': undefined,
+            'contracts': this.parseNumber (sizeString),
+            'contractSize': this.safeNumber (market, 'contractSize'),
+            'markPrice': undefined,
+            'side': side,
+            'hedged': undefined,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'maintenanceMargin': undefined,
+            'maintenanceMarginPercentage': undefined,
+            'collateral': undefined,
+            'initialMargin': undefined,
+            'initialMarginPercentage': undefined,
+            'leverage': undefined,
+            'marginRatio': undefined,
+        };
     }
 
     parseOrderStatus (status) {

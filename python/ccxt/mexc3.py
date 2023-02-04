@@ -1464,35 +1464,35 @@ class mexc3(Exchange):
         if isSwap or ('timestamp' in ticker):
             #
             #     {
-            #         "symbol":"ETH_USDT",
-            #         "lastPrice":3581.3,
-            #         "bid1":3581.25,
-            #         "ask1":3581.5,
-            #         "volume24":4045530,
-            #         "amount24":141331823.5755,
-            #         "holdVol":5832946,
-            #         "lower24Price":3413.4,
-            #         "high24Price":3588.7,
-            #         "riseFallRate":0.0275,
-            #         "riseFallValue":95.95,
-            #         "indexPrice":3580.7852,
-            #         "fairPrice":3581.08,
-            #         "fundingRate":0.000063,
-            #         "maxBidPrice":3938.85,
-            #         "minAskPrice":3222.7,
-            #         "timestamp":1634162885016
+            #         "symbol": "ETH_USDT",
+            #         "lastPrice": 3581.3,
+            #         "bid1": 3581.25,
+            #         "ask1": 3581.5,
+            #         "volume24": 4045530,
+            #         "amount24": 141331823.5755,
+            #         "holdVol": 5832946,
+            #         "lower24Price": 3413.4,
+            #         "high24Price": 3588.7,
+            #         "riseFallRate": 0.0275,
+            #         "riseFallValue": 95.95,
+            #         "indexPrice": 3580.7852,
+            #         "fairPrice": 3581.08,
+            #         "fundingRate": 0.000063,
+            #         "maxBidPrice": 3938.85,
+            #         "minAskPrice": 3222.7,
+            #         "timestamp": 1634162885016
             #     }
             #
             timestamp = self.safe_integer(ticker, 'timestamp')
-            bid = self.safe_number(ticker, 'bid1')
-            ask = self.safe_number(ticker, 'ask1')
+            bid = self.safe_string(ticker, 'bid1')
+            ask = self.safe_string(ticker, 'ask1')
             baseVolume = self.safe_string(ticker, 'volume24')
             quoteVolume = self.safe_string(ticker, 'amount24')
-            high = self.safe_number(ticker, 'high24Price')
-            low = self.safe_number(ticker, 'lower24Price')
+            high = self.safe_string(ticker, 'high24Price')
+            low = self.safe_string(ticker, 'lower24Price')
             changeValue = self.safe_string(ticker, 'riseFallValue')
             changePcnt = self.safe_string(ticker, 'riseFallRate')
-            changePcnt = self.parse_number(Precise.string_mul(changePcnt, '100'))
+            changePcnt = Precise.string_mul(changePcnt, '100')
         else:
             #
             #     {
@@ -1517,23 +1517,23 @@ class mexc3(Exchange):
             #     }
             #
             timestamp = self.safe_integer(ticker, 'closeTime')
-            bid = self.safe_number(ticker, 'bidPrice')
-            ask = self.safe_number(ticker, 'askPrice')
-            bidVolume = self.safe_number(ticker, 'bidQty')
-            askVolume = self.safe_number(ticker, 'askQty')
-            if bidVolume == 0:
+            bid = self.safe_string(ticker, 'bidPrice')
+            ask = self.safe_string(ticker, 'askPrice')
+            bidVolume = self.safe_string(ticker, 'bidQty')
+            askVolume = self.safe_string(ticker, 'askQty')
+            if Precise.string_eq(bidVolume, '0'):
                 bidVolume = None
-            if askVolume == 0:
+            if Precise.string_eq(askVolume, '0'):
                 askVolume = None
             baseVolume = self.safe_string(ticker, 'volume')
             quoteVolume = self.safe_string(ticker, 'quoteVolume')
             open = self.safe_string(ticker, 'openPrice')
-            high = self.safe_number(ticker, 'highPrice')
-            low = self.safe_number(ticker, 'lowPrice')
+            high = self.safe_string(ticker, 'highPrice')
+            low = self.safe_string(ticker, 'lowPrice')
             prevClose = self.safe_string(ticker, 'prevClosePrice')
             changeValue = self.safe_string(ticker, 'priceChange')
             changePcnt = self.safe_string(ticker, 'priceChangePercent')
-            changePcnt = self.parse_number(Precise.string_mul(changePcnt, '100'))
+            changePcnt = Precise.string_mul(changePcnt, '100')
         return self.safe_ticker({
             'symbol': market['symbol'],
             'timestamp': timestamp,

@@ -92,6 +92,7 @@ export default class kucoinfutures extends kucoin {
                     'private': 'https://openapi-v2.kucoin.com',
                     'futuresPrivate': 'https://api-futures.kucoin.com',
                     'futuresPublic': 'https://api-futures.kucoin.com',
+                    'webFront': 'https://futures.kucoin.com/_api/web-front',
                 },
                 'test': {
                     'public': 'https://openapi-sandbox.kucoin.com',
@@ -166,6 +167,11 @@ export default class kucoinfutures extends kucoin {
                         'orders/{orderId}': 1,
                         'orders': 4.44,
                         'stopOrders': 1,
+                    },
+                },
+                'webFront': {
+                    'get': {
+                        'contract/{symbol}/funding-rates': 1,
                     },
                 },
             },
@@ -2113,5 +2119,65 @@ export default class kucoinfutures extends kucoin {
             });
         }
         return tiers;
+    }
+
+    async fetchFundingRateHistory (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        /**
+         * @method
+         * @name okx#fetchFundingRateHistory
+         * @description fetches historical funding rate prices
+         * @param {string|undefined} symbol unified symbol of the market to fetch the funding rate history for
+         * @param {int|undefined} since not used by kucuoinfutures
+         * @param {int|undefined} limit the maximum amount of [funding rate structures]{@link https://docs.ccxt.com/en/latest/manual.html?#funding-rate-history-structure} to fetch
+         * @param {object} params extra parameters specific to the okx api endpoint
+         * @returns {[object]} a list of [funding rate structures]{@link https://docs.ccxt.com/en/latest/manual.html?#funding-rate-history-structure}
+         */
+        if (symbol === undefined) {
+            throw new ArgumentsRequired (this.id + ' fetchFundingRateHistory() requires a symbol argument');
+        }
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const request = {
+            'symbol': market['id'],
+        };
+        if (limit !== undefined) {
+            request['maxCount'] = limit;
+        }
+        const response = await (this as any).webFrontGetContractSymbolFundingRates (this.extend (request, params));
+        //
+        //    {
+        //        success: true,
+        //        code: '200',
+        //        msg: 'success',
+        //        retry: false,
+        //        data: {
+        //            dataList: [
+        //                {
+        //                    symbol: 'XBTUSDTM',
+        //                    granularity: 28800000,
+        //                    timePoint: 1675108800000,
+        //                    value: 0.0001
+        //                },
+        //                ...
+        //            ],
+        //            hasMore: true
+        //        }
+        //    }
+        //
+        const data = this.safeValue (response, 'data');
+        const dataList = this.safeValue (data, 'dataList');
+        return this.parseFundingRateHistories (dataList, market, since, limit);
+    }
+
+    parseFundingRateHistory (info, market = undefined) {
+        const timestamp = this.safeNumber (info, 'timePoint');
+        const marketId = this.safeString (info, 'symbol');
+        return {
+            'info': info,
+            'symbol': this.safeSymbol (marketId, market),
+            'fundingRate': this.safeNumber (info, 'value'),
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+        };
     }
 }
