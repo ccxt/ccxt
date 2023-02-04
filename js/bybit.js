@@ -5117,7 +5117,7 @@ module.exports = class bybit extends Exchange {
         const [ type, query ] = this.handleMarketTypeAndParams ('fetchOpenOrders', market, params);
         const { enableUnifiedMargin, enableUnifiedAccount } = await this.isUnifiedMarginEnabled ();
         if (enableUnifiedAccount) {
-            return await this.fetchOrders (symbol, since, limit, query);
+            return await this.fetchUnifiedAccountOrders (symbol, since, limit, query);
         } else if (type === 'spot') {
             return await this.fetchSpotOpenOrders (symbol, since, limit, query);
         } else if (enableUnifiedMargin && !isInverse) {
