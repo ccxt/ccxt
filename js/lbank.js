@@ -3,7 +3,7 @@
 //  ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
-const { ExchangeError, DDoSProtection, AuthenticationError, InvalidOrder, ArgumentsRequired } = require ('./base/errors');
+const { ExchangeError, DDoSProtection, AuthenticationError, InvalidOrder } = require ('./base/errors');
 const { TICK_SIZE } = require ('./base/functions/number');
 const Precise = require ('./base/Precise');
 
@@ -49,7 +49,7 @@ module.exports = class lbank extends Exchange {
                 'fetchMarkOHLCV': false,
                 'fetchOHLCV': true,
                 'fetchOpenInterestHistory': false,
-                'fetchOpenOrders': undefined, // status 0 API doesn't work
+                'fetchOpenOrders': false, // status 0 API doesn't work
                 'fetchOrder': true,
                 'fetchOrderBook': true,
                 'fetchOrders': true,
@@ -130,6 +130,7 @@ module.exports = class lbank extends Exchange {
             'commonCurrencies': {
                 'GMT': 'GMT Token',
                 'PNT': 'Penta',
+                'SHINJA': 'SHINJA(1M)',
                 'VET_ERC20': 'VEN',
             },
             'options': {
@@ -365,7 +366,9 @@ module.exports = class lbank extends Exchange {
         const id = this.safeString (trade, 'tid');
         const type = undefined;
         let side = this.safeString (trade, 'type');
-        side = side.replace ('_market', '');
+        // remove type additions from i.e. buy_maker, sell_maker, buy_ioc, sell_ioc, buy_fok, sell_fok
+        const splited = side.split ('_');
+        side = splited[0];
         return {
             'id': id,
             'info': this.safeValue (trade, 'info', trade),
@@ -431,7 +434,7 @@ module.exports = class lbank extends Exchange {
         ];
     }
 
-    async fetchOHLCV (symbol, timeframe = '5m', since = undefined, limit = 1000, params = {}) {
+    async fetchOHLCV (symbol, timeframe = '1m', since = undefined, limit = 1000, params = {}) {
         /**
          * @method
          * @name lbank#fetchOHLCV
@@ -445,15 +448,16 @@ module.exports = class lbank extends Exchange {
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
-        if (since === undefined) {
-            throw new ArgumentsRequired (this.id + ' fetchOHLCV() requires a `since` argument');
-        }
         if (limit === undefined) {
-            throw new ArgumentsRequired (this.id + ' fetchOHLCV() requires a `limit` argument');
+            limit = 100; // as it's defined in lbank2
+        }
+        if (since === undefined) {
+            const duration = this.parseTimeframe (timeframe);
+            since = this.milliseconds () - duration * 1000 * limit;
         }
         const request = {
             'symbol': market['id'],
-            'type': this.timeframes[timeframe],
+            'type': this.safeString (this.timeframes, timeframe, timeframe),
             'size': limit,
             'time': parseInt (since / 1000),
         };
@@ -578,6 +582,7 @@ module.exports = class lbank extends Exchange {
             'side': side,
             'price': price,
             'stopPrice': undefined,
+            'triggerPrice': undefined,
             'cost': undefined,
             'amount': amount,
             'filled': filled,
@@ -831,8 +836,7 @@ module.exports = class lbank extends Exchange {
             } else {
                 pem = this.convertSecretToPem (this.secret);
             }
-            const sign = this.binaryToBase64 (this.rsa (message, this.encode (pem), 'RS256'));
-            query['sign'] = sign;
+            query['sign'] = this.rsa (message, pem, 'RS256');
             body = this.urlencode (query);
             headers = { 'Content-Type': 'application/x-www-form-urlencoded' };
         }

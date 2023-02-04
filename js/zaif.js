@@ -26,7 +26,7 @@ module.exports = class zaif extends Exchange {
                 'future': false,
                 'option': false,
                 'cancelOrder': true,
-                'createMarketOrder': undefined,
+                'createMarketOrder': false,
                 'createOrder': true,
                 'fetchBalance': true,
                 'fetchClosedOrders': true,
@@ -128,11 +128,11 @@ module.exports = class zaif extends Exchange {
             'options': {
                 // zaif schedule defines several market-specific fees
                 'fees': {
-                    'BTC/JPY': { 'maker': 0, 'taker': 0.1 / 100 },
-                    'BCH/JPY': { 'maker': 0, 'taker': 0.3 / 100 },
-                    'BCH/BTC': { 'maker': 0, 'taker': 0.3 / 100 },
-                    'PEPECASH/JPY': { 'maker': 0, 'taker': 0.01 / 100 },
-                    'PEPECASH/BT': { 'maker': 0, 'taker': 0.01 / 100 },
+                    'BTC/JPY': { 'maker': this.parseNumber ('0'), 'taker': this.parseNumber ('0.001') },
+                    'BCH/JPY': { 'maker': this.parseNumber ('0'), 'taker': this.parseNumber ('0.003') },
+                    'BCH/BTC': { 'maker': this.parseNumber ('0'), 'taker': this.parseNumber ('0.003') },
+                    'PEPECASH/JPY': { 'maker': this.parseNumber ('0'), 'taker': this.parseNumber ('0.0001') },
+                    'PEPECASH/BT': { 'maker': this.parseNumber ('0'), 'taker': this.parseNumber ('0.0001') },
                 },
             },
             'precisionMode': TICK_SIZE,
@@ -453,7 +453,7 @@ module.exports = class zaif extends Exchange {
          * @name zaif#createOrder
          * @description create a trade order
          * @param {string} symbol unified symbol of the market to create an order in
-         * @param {string} type 'market' or 'limit'
+         * @param {string} type must be 'limit'
          * @param {string} side 'buy' or 'sell'
          * @param {float} amount how much of currency you want to trade in units of base currency
          * @param {float|undefined} price the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
@@ -527,6 +527,7 @@ module.exports = class zaif extends Exchange {
             'side': side,
             'price': price,
             'stopPrice': undefined,
+            'triggerPrice': undefined,
             'cost': undefined,
             'amount': amount,
             'filled': undefined,

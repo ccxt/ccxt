@@ -93,7 +93,7 @@ class bittrex(Exchange):
                 'fetchTradingFee': True,
                 'fetchTradingFees': True,
                 'fetchTransactionFees': None,
-                'fetchTransactions': None,
+                'fetchTransactions': False,
                 'fetchWithdrawal': True,
                 'fetchWithdrawals': True,
                 'reduceMargin': False,
@@ -270,25 +270,6 @@ class bittrex(Exchange):
                 },
                 'parseOrderStatus': False,
                 'hasAlreadyAuthenticatedSuccessfully': False,  # a workaround for APIKEY_INVALID
-                # With certain currencies, like
-                # AEON, BTS, GXS, NXT, SBD, STEEM, STR, XEM, XLM, XMR, XRP
-                # an additional tag / memo / payment id is usually required by exchanges.
-                # With Bittrex some currencies imply the "base address + tag" logic.
-                # The base address for depositing is stored on self.currencies[code]
-                # The base address identifies the exchange as the recipient
-                # while the tag identifies the user account within the exchange
-                # and the tag is retrieved with fetchDepositAddress.
-                'tag': {
-                    'NXT': True,  # NXT, BURST
-                    'CRYPTO_NOTE_PAYMENTID': True,  # AEON, XMR
-                    'BITSHAREX': True,  # BTS
-                    'RIPPLE': True,  # XRP
-                    'NEM': True,  # XEM
-                    'STELLAR': True,  # XLM
-                    'STEEM': True,  # SBD, GOLOS
-                    # https://github.com/ccxt/ccxt/issues/4794
-                    # 'LISK': True,  # LSK
-                },
                 'subaccountId': None,
                 # see the implementation of fetchClosedOrdersV3 below
                 # 'fetchClosedOrdersMethod': 'fetch_closed_orders_v3',
@@ -373,8 +354,8 @@ class bittrex(Exchange):
                 'strike': None,
                 'optionType': None,
                 'precision': {
-                    'amount': self.parse_number('0.00000001'),
-                    'price': self.parse_number(self.parse_precision(self.safe_string(market, 'precision', '8'))),
+                    'amount': self.parse_number('1e-8'),  # seems exchange has same amount-precision across all pairs in UI too. This is same as 'minTradeSize' digits after dot
+                    'price': self.parse_number(self.parse_precision(self.safe_string(market, 'precision'))),
                 },
                 'limits': {
                     'leverage': {
@@ -488,13 +469,12 @@ class bittrex(Exchange):
             currency = response[i]
             id = self.safe_string(currency, 'symbol')
             code = self.safe_currency_code(id)
-            precision = self.parse_number('0.00000001')  # default precision, todo: fix "magic constants"
+            precision = self.parse_number('1e-8')  # default precision, seems exchange has same amount-precision across all pairs in UI too. todo: fix "magic constants"
             fee = self.safe_number(currency, 'txFee')  # todo: redesign
             isActive = self.safe_string(currency, 'status')
             result[code] = {
                 'id': id,
                 'code': code,
-                'address': self.safe_string(currency, 'baseAddress'),
                 'info': currency,
                 'type': self.safe_string(currency, 'coinType'),
                 'name': self.safe_string(currency, 'name'),
@@ -722,9 +702,15 @@ class bittrex(Exchange):
         priceString = self.safe_string(trade, 'rate')
         amountString = self.safe_string(trade, 'quantity')
         takerOrMaker = None
+        side = self.safe_string_lower_2(trade, 'takerSide', 'direction')
         isTaker = self.safe_value(trade, 'isTaker')
         if isTaker is not None:
             takerOrMaker = 'taker' if isTaker else 'maker'
+            if not isTaker:  # as noted in PR  #15655 self API provides confusing value - when it's 'maker' trade, then side value should reversed
+                if side == 'buy':
+                    side = 'sell'
+                elif side == 'sell':
+                    side = 'buy'
         fee = None
         feeCostString = self.safe_string(trade, 'commission')
         if feeCostString is not None:
@@ -732,7 +718,6 @@ class bittrex(Exchange):
                 'cost': feeCostString,
                 'currency': market['quote'],
             }
-        side = self.safe_string_lower_2(trade, 'takerSide', 'direction')
         return self.safe_trade({
             'info': trade,
             'timestamp': timestamp,
@@ -888,7 +873,7 @@ class bittrex(Exchange):
         market = self.market(symbol)
         reverseId = market['baseId'] + '-' + market['quoteId']
         request = {
-            'candleInterval': self.timeframes[timeframe],
+            'candleInterval': self.safe_string(self.timeframes, timeframe, timeframe),
             'marketSymbol': reverseId,
         }
         method = 'publicGetMarketsMarketSymbolCandlesCandleIntervalRecent'
@@ -1313,8 +1298,11 @@ class bittrex(Exchange):
         request = {
             'txId': id,
         }
+        currency = None
+        if code is not None:
+            currency = self.currency(code)
         response = await self.privateGetDepositsByTxIdTxId(self.extend(request, params))
-        transactions = self.parse_transactions(response, code, None, None)
+        transactions = self.parse_transactions(response, currency, None, None)
         return self.safe_value(transactions, 0)
 
     async def fetch_deposits(self, code=None, since=None, limit=None, params={}):
@@ -1383,8 +1371,11 @@ class bittrex(Exchange):
         request = {
             'txId': id,
         }
+        currency = None
+        if code is not None:
+            currency = self.currency(code)
         response = await self.privateGetWithdrawalsByTxIdTxId(self.extend(request, params))
-        transactions = self.parse_transactions(response, code, None, None)
+        transactions = self.parse_transactions(response, currency, None, None)
         return self.safe_value(transactions, 0)
 
     async def fetch_withdrawals(self, code=None, since=None, limit=None, params={}):
@@ -1667,6 +1658,7 @@ class bittrex(Exchange):
             'side': direction,
             'price': limit,
             'stopPrice': self.safe_string(order, 'triggerPrice'),
+            'triggerPrice': self.safe_string(order, 'triggerPrice'),
             'cost': proceeds,
             'average': None,
             'amount': quantity,
@@ -1854,15 +1846,12 @@ class bittrex(Exchange):
         message = self.safe_string(response, 'status')
         if not address or message == 'REQUESTED':
             raise AddressPending(self.id + ' the address for ' + code + ' is being generated(pending, not ready yet, retry again later)')
-        tag = self.safe_string(response, 'cryptoAddressTag')
-        if (tag is None) and (currency['type'] in self.options['tag']):
-            tag = address
-            address = currency['address']
         self.check_address(address)
         return {
             'currency': code,
             'address': address,
-            'tag': tag,
+            'tag': self.safe_string(response, 'cryptoAddressTag'),
+            'network': None,
             'info': response,
         }
 
@@ -1891,15 +1880,11 @@ class bittrex(Exchange):
         message = self.safe_string(response, 'status')
         if not address or message == 'REQUESTED':
             raise AddressPending(self.id + ' the address for ' + code + ' is being generated(pending, not ready yet, retry again later)')
-        tag = self.safe_string(response, 'cryptoAddressTag')
-        if (tag is None) and (currency['type'] in self.options['tag']):
-            tag = address
-            address = currency['address']
         self.check_address(address)
         return {
             'currency': code,
             'address': address,
-            'tag': tag,
+            'tag': self.safe_string(response, 'cryptoAddressTag'),
             'network': None,
             'info': response,
         }

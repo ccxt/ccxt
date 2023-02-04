@@ -6,9 +6,6 @@ namespace ccxt;
 // https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 use Exception; // a common import
-use \ccxt\ExchangeError;
-use \ccxt\ArgumentsRequired;
-use \ccxt\InvalidOrder;
 
 class novadax extends Exchange {
 
@@ -588,7 +585,7 @@ class novadax extends Exchange {
         $market = $this->market($symbol);
         $request = array(
             'symbol' => $market['id'],
-            'unit' => $this->timeframes[$timeframe],
+            'unit' => $this->safe_string($this->timeframes, $timeframe, $timeframe),
         );
         $duration = $this->parse_timeframe($timeframe);
         $now = $this->seconds();
@@ -1061,6 +1058,7 @@ class novadax extends Exchange {
             'side' => $side,
             'price' => $price,
             'stopPrice' => $stopPrice,
+            'triggerPrice' => $stopPrice,
             'amount' => $amount,
             'cost' => $cost,
             'average' => $average,
@@ -1125,11 +1123,13 @@ class novadax extends Exchange {
         //
         $id = $this->safe_string($transfer, 'data');
         $status = $this->safe_string($transfer, 'message');
+        $currencyCode = $this->safe_currency_code(null, $currency);
         return array(
             'info' => $transfer,
             'id' => $id,
             'amount' => null,
-            'code' => $this->safe_currency_code(null, $currency),
+            'code' => $currencyCode, // kept here for backward-compatibility, but will be removed soon
+            'currency' => $currencyCode,
             'fromAccount' => null,
             'toAccount' => null,
             'timestamp' => null,

@@ -12,6 +12,8 @@ include_once 'test_position.php';
 include_once 'test_transaction.php';
 include_once 'test_account.php';
 
+use React\Async;
+
 function style($s, $style) {
     return $style . $s . "\033[0m";
 }
@@ -254,7 +256,8 @@ function test_ohlcvs($exchange, $symbol) {
     $method = 'fetchOHLCV';
     if ($exchange->has[$method]) {
         $timeframes = $exchange->timeframes ? $exchange->timeframes : array('1d' => '1d');
-        $timeframe = array_keys($timeframes)[0];
+        $exchange_has_one_minute_timeframe = array_key_exists('1m', $timeframes);
+        $timeframe = $exchange_has_one_minute_timeframe ? '1m' : array_keys($timeframes)[0];
         $limit = 10;
         $duration = $exchange->parse_timeframe($timeframe);
         $since = $exchange->milliseconds() - $duration * $limit * 1000 - 1000;
@@ -276,23 +279,19 @@ function test_symbol($exchange, $symbol, $code) {
     if ($exchange->has[$method]) {
         test_ticker($exchange, $symbol);
     }
-    if ($exchange->id === 'coinmarketcap') {
-        dump(var_export($exchange->fetchGlobal()));
-    } else {
-        test_order_book($exchange, $symbol);
-        test_trades($exchange, $symbol);
-        test_ohlcvs($exchange, $symbol);
-        if ($exchange->check_required_credentials(false)) {
-            if ($exchange->has['signIn']) {
-                $exchange->sign_in();
-            }
-            test_orders($exchange, $symbol);
-            test_closed_orders($exchange, $symbol);
-            test_open_orders($exchange, $symbol);
-            test_transactions($exchange, $code);
-            $balance = $exchange->fetch_balance();
-            var_dump($balance);
+    test_order_book($exchange, $symbol);
+    test_trades($exchange, $symbol);
+    test_ohlcvs($exchange, $symbol);
+    if ($exchange->check_required_credentials(false)) {
+        if ($exchange->has['signIn']) {
+            $exchange->sign_in();
         }
+        test_orders($exchange, $symbol);
+        test_closed_orders($exchange, $symbol);
+        test_open_orders($exchange, $symbol);
+        test_transactions($exchange, $code);
+        $balance = $exchange->fetch_balance();
+        var_dump($balance);
     }
 }
 
@@ -509,6 +508,11 @@ $main = function() use ($args, $exchanges, $proxies, $config, $common_codes) {
                 dump(red('[Skipped] ' . $id));
                 exit();
             }
+            $alias = $exchange->alias;
+            if ($alias) {
+                dump(red('[Skipped alias] ' . $id));
+                exit();
+            }
 
             dump(green('EXCHANGE:'), green($exchange->id));
 
@@ -529,4 +533,5 @@ $main = function() use ($args, $exchanges, $proxies, $config, $common_codes) {
     }
 };
 
-$main();
+$promise = $main();
+$promise;

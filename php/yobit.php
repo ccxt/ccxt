@@ -6,8 +6,6 @@ namespace ccxt;
 // https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 use Exception; // a common import
-use \ccxt\ExchangeError;
-use \ccxt\ArgumentsRequired;
 
 class yobit extends Exchange {
 
@@ -28,7 +26,7 @@ class yobit extends Exchange {
                 'addMargin' => false,
                 'cancelOrder' => true,
                 'createDepositAddress' => true,
-                'createMarketOrder' => null,
+                'createMarketOrder' => false,
                 'createOrder' => true,
                 'createReduceOnlyOrder' => false,
                 'createStopLimitOrder' => false,
@@ -41,7 +39,7 @@ class yobit extends Exchange {
                 'fetchBorrowRates' => false,
                 'fetchBorrowRatesPerSymbol' => false,
                 'fetchDepositAddress' => true,
-                'fetchDeposits' => null,
+                'fetchDeposits' => false,
                 'fetchFundingHistory' => false,
                 'fetchFundingRate' => false,
                 'fetchFundingRateHistory' => false,
@@ -68,10 +66,10 @@ class yobit extends Exchange {
                 'fetchTrades' => true,
                 'fetchTradingFee' => false,
                 'fetchTradingFees' => true,
-                'fetchTransactions' => null,
+                'fetchTransactions' => false,
                 'fetchTransfer' => false,
                 'fetchTransfers' => false,
-                'fetchWithdrawals' => null,
+                'fetchWithdrawals' => false,
                 'reduceMargin' => false,
                 'setLeverage' => false,
                 'setMarginMode' => false,
@@ -217,6 +215,7 @@ class yobit extends Exchange {
                 'SBTC' => 'Super Bitcoin',
                 'SMC' => 'SmartCoin',
                 'SOLO' => 'SoloCoin',
+                'SOUL' => 'SoulCoin',
                 'STAR' => 'StarCoin',
                 'SUPER' => 'SuperCoin',
                 'TNS' => 'Transcodium',
@@ -232,6 +231,11 @@ class yobit extends Exchange {
                 // 'fetchTickersMaxLength' => 2048,
                 'fetchOrdersRequiresSymbol' => true,
                 'fetchTickersMaxLength' => 512,
+                'networks' => array(
+                    'ETH' => 'ERC20',
+                    'TRX' => 'TRC20',
+                    'BSC' => 'BEP20',
+                ),
             ),
             'precisionMode' => TICK_SIZE,
             'exceptions' => array(
@@ -749,7 +753,7 @@ class yobit extends Exchange {
         /**
          * create a trade order
          * @param {string} $symbol unified $symbol of the $market to create an order in
-         * @param {string} $type 'market' or 'limit'
+         * @param {string} $type must be 'limit'
          * @param {string} $side 'buy' or 'sell'
          * @param {float} $amount how much of currency you want to trade in units of base currency
          * @param {float|null} $price the $price at which the order is to be fullfilled, in units of the quote currency, ignored in $market orders
@@ -931,6 +935,7 @@ class yobit extends Exchange {
             'side' => $side,
             'price' => $price,
             'stopPrice' => null,
+            'triggerPrice' => null,
             'cost' => null,
             'amount' => $amount,
             'remaining' => $remaining,
@@ -1113,8 +1118,18 @@ class yobit extends Exchange {
          */
         $this->load_markets();
         $currency = $this->currency($code);
+        $currencyId = $currency['id'];
+        $networks = $this->safe_value($this->options, 'networks', array());
+        $network = $this->safe_string_upper($params, 'network'); // this line allows the user to specify either ERC20 or ETH
+        $network = $this->safe_string($networks, $network, $network); // handle ERC20>ETH alias
+        if ($network !== null) {
+            if ($network !== 'ERC20') {
+                $currencyId = $currencyId . strtolower($network);
+            }
+            $params = $this->omit($params, 'network');
+        }
         $request = array(
-            'coinName' => $currency['id'],
+            'coinName' => $currencyId,
             'need_new' => 0,
         );
         $response = $this->privatePostGetDepositAddress (array_merge($request, $params));

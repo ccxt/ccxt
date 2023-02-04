@@ -77,7 +77,7 @@ module.exports = class hollaex extends Exchange {
                 'fetchTrades': true,
                 'fetchTradingFee': false,
                 'fetchTradingFees': true,
-                'fetchTransactions': undefined,
+                'fetchTransactions': false,
                 'fetchTransfer': false,
                 'fetchTransfers': false,
                 'fetchWithdrawal': true,
@@ -742,7 +742,7 @@ module.exports = class hollaex extends Exchange {
         return result;
     }
 
-    async fetchOHLCV (symbol, timeframe = '1h', since = undefined, limit = undefined, params = {}) {
+    async fetchOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
         /**
          * @method
          * @name hollaex#fetchOHLCV
@@ -758,18 +758,17 @@ module.exports = class hollaex extends Exchange {
         const market = this.market (symbol);
         const request = {
             'symbol': market['id'],
-            'resolution': this.timeframes[timeframe],
+            'resolution': this.safeString (this.timeframes, timeframe, timeframe),
         };
         const duration = this.parseTimeframe (timeframe);
         if (since === undefined) {
             if (limit === undefined) {
-                throw new ArgumentsRequired (this.id + " fetchOHLCV() requires a 'since' or a 'limit' argument");
-            } else {
-                const end = this.seconds ();
-                const start = end - duration * limit;
-                request['to'] = end;
-                request['from'] = start;
+                limit = 1000; // they have no defaults and can actually provide tens of thousands of bars in one request, but we should cap "default" at generous amount
             }
+            const end = this.seconds ();
+            const start = end - duration * limit;
+            request['to'] = end;
+            request['from'] = start;
         } else {
             if (limit === undefined) {
                 request['from'] = parseInt (since / 1000);
@@ -1117,6 +1116,7 @@ module.exports = class hollaex extends Exchange {
             'side': side,
             'price': price,
             'stopPrice': stopPrice,
+            'triggerPrice': stopPrice,
             'amount': amount,
             'filled': filled,
             'remaining': undefined,
@@ -1152,12 +1152,11 @@ module.exports = class hollaex extends Exchange {
             // 'stop': parseFloat (this.priceToPrecision (symbol, stopPrice)),
             // 'meta': {}, // other options such as post_only
         };
-        const stopPrice = this.safeNumber2 (params, 'stopPrice', 'stop');
+        const stopPrice = this.safeNumberN (params, [ 'triggerPrice', 'stopPrice', 'stop' ]);
         const meta = this.safeValue (params, 'meta', {});
         const exchangeSpecificParam = this.safeValue (meta, 'post_only', false);
         const isMarketOrder = type === 'market';
         const postOnly = this.isPostOnly (isMarketOrder, exchangeSpecificParam, params);
-        params = this.omit (params, [ 'stopPrice', 'stop', 'meta', 'postOnly' ]);
         if (!isMarketOrder) {
             const convertedPrice = parseFloat (this.priceToPrecision (symbol, price));
             request['price'] = this.normalizeNumberIfNeeded (convertedPrice);
@@ -1168,6 +1167,7 @@ module.exports = class hollaex extends Exchange {
         if (postOnly) {
             request['meta'] = { 'post_only': true };
         }
+        params = this.omit (params, [ 'postOnly', 'timeInForce', 'stopPrice', 'triggerPrice', 'stop' ]);
         const response = await this.privatePostOrder (this.extend (request, params));
         //
         //     {

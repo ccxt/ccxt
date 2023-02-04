@@ -16,6 +16,7 @@ module.exports = class alpaca extends Exchange {
             'countries': [ 'US' ],
             'rateLimit': 333, // 3 req per second
             'hostname': 'alpaca.markets',
+            'pro': true,
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/187234005-b864db3d-f1e3-447a-aaf9-a9fc7b955d07.jpg',
                 'www': 'https://alpaca.markets',
@@ -58,7 +59,7 @@ module.exports = class alpaca extends Exchange {
                 'fetchL2OrderBook': false,
                 'fetchMarkets': true,
                 'fetchMyTrades': false,
-                'fetchOHLCV': false,
+                'fetchOHLCV': true,
                 'fetchOpenOrder': false,
                 'fetchOpenOrders': true,
                 'fetchOrder': true,
@@ -167,6 +168,9 @@ module.exports = class alpaca extends Exchange {
                     },
                 },
             },
+            'headers': {
+                'APCA-PARTNER-ID': 'ccxt',
+            },
             'options': {
                 'fetchTradesMethod': 'cryptoPublicGetCryptoTrades', // or cryptoPublicGetCryptoLatestTrades
                 'fetchOHLCVMethod': 'cryptoPublicGetCryptoBars', // or cryptoPublicGetCryptoLatestBars
@@ -183,7 +187,7 @@ module.exports = class alpaca extends Exchange {
                     'GNSS', // Genesis
                     'ERSX', // ErisX
                 ],
-                'defaultTimeInForce': 'day', // fok, gtc, ioc
+                'defaultTimeInForce': 'gtc', // fok, gtc, ioc
                 'clientOrderId': 'ccxt_{id}',
             },
             'exceptions': {
@@ -424,13 +428,13 @@ module.exports = class alpaca extends Exchange {
         const market = this.market (symbol);
         const request = {
             'symbols': market['id'],
-            'timeframe': this.timeframes[timeframe],
+            'timeframe': this.safeString (this.timeframes, timeframe, timeframe),
         };
         if (limit !== undefined) {
             request['limit'] = limit;
         }
         if (since !== undefined) {
-            request['start'] = parseInt (since / 1000);
+            request['start'] = this.yyyymmdd (since);
         }
         const method = this.safeString (this.options, 'fetchOHLCVMethod', 'cryptoPublicGetCryptoBars');
         const response = await this[method] (this.extend (request, params));
@@ -531,8 +535,7 @@ module.exports = class alpaca extends Exchange {
             request['limit_price'] = this.priceToPrecision (symbol, price);
         }
         const defaultTIF = this.safeString (this.options, 'defaultTimeInForce');
-        const timeInForce = this.safeString (params, 'timeInForce', defaultTIF);
-        request['time_in_force'] = timeInForce;
+        request['time_in_force'] = this.safeString (params, 'timeInForce', defaultTIF);
         params = this.omit (params, [ 'timeInForce', 'triggerPrice' ]);
         const clientOrderIdprefix = this.safeString (this.options, 'clientOrderId');
         const uuid = this.uuid ();
@@ -717,6 +720,7 @@ module.exports = class alpaca extends Exchange {
             'side': this.safeString (order, 'side'),
             'price': this.safeNumber (order, 'limit_price'),
             'stopPrice': this.safeNumber (order, 'stop_price'),
+            'triggerPrice': this.safeNumber (order, 'stop_price'),
             'cost': undefined,
             'average': this.safeNumber (order, 'filled_avg_price'),
             'amount': this.safeNumber (order, 'qty'),
@@ -758,7 +762,8 @@ module.exports = class alpaca extends Exchange {
         //       "i":"355681339"
         //   }
         //
-        const symbol = this.safeSymbol (undefined, market);
+        const marketId = this.safeString (trade, 'S');
+        const symbol = this.safeSymbol (marketId, market);
         const datetime = this.safeString (trade, 't');
         const timestamp = this.parse8601 (datetime);
         const alpacaSide = this.safeString (trade, 'tks');

@@ -6,9 +6,6 @@ namespace ccxt;
 // https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 use Exception; // a common import
-use \ccxt\ExchangeError;
-use \ccxt\ArgumentsRequired;
-use \ccxt\NotSupported;
 
 class cryptocom extends Exchange {
 
@@ -89,18 +86,70 @@ class cryptocom extends Exchange {
             ),
             'urls' => array(
                 'logo' => 'https://user-images.githubusercontent.com/1294454/147792121-38ed5e36-c229-48d6-b49a-48d05fc19ed4.jpeg',
-                'test' => 'https://uat-api.3ona.co/v2',
+                'test' => array(
+                    'v1' => 'https://uat-api.3ona.co/exchange/v1',
+                    'v2' => 'https://uat-api.3ona.co/v2',
+                    'derivatives' => 'https://uat-api.3ona.co/v2',
+                ),
                 'api' => array(
-                    'spot' => 'https://api.crypto.com/v2',
+                    'v1' => 'https://api.crypto.com/exchange/v1',
+                    'v2' => 'https://api.crypto.com/v2',
                     'derivatives' => 'https://deriv-api.crypto.com/v1',
                 ),
                 'www' => 'https://crypto.com/',
                 'referral' => 'https://crypto.com/exch/5835vstech',
-                'doc' => 'https://exchange-docs.crypto.com/',
+                'doc' => array(
+                    'https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html',
+                    'https://exchange-docs.crypto.com/spot/index.html',
+                    'https://exchange-docs.crypto.com/derivatives/index.html',
+                ),
                 'fees' => 'https://crypto.com/exchange/document/fees-limits',
             ),
             'api' => array(
-                'spot' => array(
+                'v1' => array(
+                    'public' => array(
+                        'get' => array(
+                            'public/auth' => 10 / 3,
+                            'public/get-instruments' => 10 / 3,
+                            'public/get-book' => 1,
+                            'public/get-candlestick' => 1,
+                            'public/get-trades' => 1,
+                            'public/get-tickers' => 1,
+                            'public/get-valuations' => 1,
+                            'public/get-expired-settlement-price' => 10 / 3,
+                            'public/get-insurance' => 1,
+                        ),
+                    ),
+                    'private' => array(
+                        'post' => array(
+                            'private/set-cancel-on-disconnect' => 10 / 3,
+                            'private/get-cancel-on-disconnect' => 10 / 3,
+                            'private/user-balance' => 10 / 3,
+                            'private/user-balance-history' => 10 / 3,
+                            'private/get-positions' => 10 / 3,
+                            'private/create-order' => 2 / 3,
+                            'private/create-order-list' => 10 / 3,
+                            'private/cancel-order' => 2 / 3,
+                            'private/cancel-order-list' => 10 / 3,
+                            'private/cancel-all-orders' => 2 / 3,
+                            'private/close-position' => 10 / 3,
+                            'private/get-order-history' => 100,
+                            'private/get-open-orders' => 10 / 3,
+                            'private/get-order-detail' => 1 / 3,
+                            'private/get-trades' => 100,
+                            'private/change-account-leverage' => 10 / 3,
+                            'private/get-transactions' => 10 / 3,
+                            'private/create-subaccount-transfer' => 10 / 3,
+                            'private/get-subaccount-balances' => 10 / 3,
+                            'private/get-order-list' => 10 / 3,
+                            'private/create-withdrawal' => 10 / 3,
+                            'private/get-currency-networks' => 10 / 3,
+                            'private/get-deposit-address' => 10 / 3,
+                            'private/get-accounts' => 10 / 3,
+                        ),
+                    ),
+                ),
+                'v2' => array(
                     'public' => array(
                         'get' => array(
                             'public/auth' => 1,
@@ -127,6 +176,7 @@ class cryptocom extends Exchange {
                             'private/create-order' => 2 / 3,
                             'private/cancel-order' => 2 / 3,
                             'private/cancel-all-orders' => 2 / 3,
+                            'private/create-order-list' => 10 / 3,
                             'private/get-order-history' => 10 / 3,
                             'private/get-open-orders' => 10 / 3,
                             'private/get-order-detail' => 1 / 3,
@@ -151,9 +201,9 @@ class cryptocom extends Exchange {
                             'private/margin/get-trades' => 100,
                             'private/deriv/transfer' => 10 / 3,
                             'private/deriv/get-transfer-history' => 10 / 3,
-                            'private/subaccount/get-sub-accounts' => 10 / 3,
-                            'private/subaccount/get-transfer-history' => 10 / 3,
-                            'private/subaccount/transfer' => 10 / 3,
+                            'private/get-accounts' => 10 / 3,
+                            'private/get-subaccount-balances' => 10 / 3,
+                            'private/create-subaccount-transfer' => 10 / 3,
                             'private/otc/get-otc-user' => 10 / 3,
                             'private/otc/get-instruments' => 10 / 3,
                             'private/otc/request-quote' => 100,
@@ -185,7 +235,9 @@ class cryptocom extends Exchange {
                             'private/user-balance-history' => 10 / 3,
                             'private/get-positions' => 10 / 3,
                             'private/create-order' => 2 / 3,
+                            'private/create-order-list' => 10 / 3,
                             'private/cancel-order' => 2 / 3,
+                            'private/cancel-order-list' => 10 / 3,
                             'private/cancel-all-orders' => 2 / 3,
                             'private/close-position' => 10 / 3,
                             'private/convert-collateral' => 10 / 3,
@@ -195,6 +247,9 @@ class cryptocom extends Exchange {
                             'private/get-trades' => 100,
                             'private/change-account-leverage' => 10 / 3,
                             'private/get-transactions' => 10 / 3,
+                            'private/create-subaccount-transfer' => 10 / 3,
+                            'private/get-subaccount-balances' => 10 / 3,
+                            'private/get-order-list' => 10 / 3,
                         ),
                     ),
                 ),
@@ -262,18 +317,18 @@ class cryptocom extends Exchange {
                     '30003' => '\\ccxt\\BadSymbol',
                     '30004' => '\\ccxt\\BadRequest',
                     '30005' => '\\ccxt\\BadRequest',
-                    '30006' => '\\ccxt\\BadRequest',
-                    '30007' => '\\ccxt\\BadRequest',
-                    '30008' => '\\ccxt\\BadRequest',
-                    '30009' => '\\ccxt\\BadRequest',
+                    '30006' => '\\ccxt\\InvalidOrder',
+                    '30007' => '\\ccxt\\InvalidOrder',
+                    '30008' => '\\ccxt\\InvalidOrder',
+                    '30009' => '\\ccxt\\InvalidOrder',
                     '30010' => '\\ccxt\\BadRequest',
-                    '30013' => '\\ccxt\\BadRequest',
-                    '30014' => '\\ccxt\\BadRequest',
-                    '30016' => '\\ccxt\\BadRequest',
-                    '30017' => '\\ccxt\\BadRequest',
-                    '30023' => '\\ccxt\\BadRequest',
-                    '30024' => '\\ccxt\\BadRequest',
-                    '30025' => '\\ccxt\\BadRequest',
+                    '30013' => '\\ccxt\\InvalidOrder',
+                    '30014' => '\\ccxt\\InvalidOrder',
+                    '30016' => '\\ccxt\\InvalidOrder',
+                    '30017' => '\\ccxt\\InvalidOrder',
+                    '30023' => '\\ccxt\\InvalidOrder',
+                    '30024' => '\\ccxt\\InvalidOrder',
+                    '30025' => '\\ccxt\\InvalidOrder',
                     '40001' => '\\ccxt\\BadRequest',
                     '40002' => '\\ccxt\\BadRequest',
                     '40003' => '\\ccxt\\BadRequest',
@@ -283,6 +338,7 @@ class cryptocom extends Exchange {
                     '40007' => '\\ccxt\\BadRequest',
                     '40101' => '\\ccxt\\AuthenticationError',
                     '50001' => '\\ccxt\\BadRequest',
+                    '9010001' => '\\ccxt\\OnMaintenance', // array("code":9010001,"message":"SYSTEM_MAINTENANCE","details":"Crypto.com Exchange is currently under maintenance. Please refer to https://status.crypto.com for more details.")
                 ),
             ),
         ));
@@ -290,10 +346,21 @@ class cryptocom extends Exchange {
 
     public function fetch_markets($params = array ()) {
         /**
-         * retrieves $data on all $markets for cryptocom
+         * @see https://exchange-docs.crypto.com/spot/index.html#public-get-instruments
+         * @see https://exchange-docs.crypto.com/derivatives/index.html#public-get-instruments
+         * retrieves data on all $markets for cryptocom
          * @param {array} $params extra parameters specific to the exchange api endpoint
-         * @return {[array]} an array of objects representing $market $data
+         * @return {[array]} an array of objects representing market data
          */
+        $promises = array( $this->fetch_spot_markets($params), $this->fetch_derivatives_markets($params) );
+        $spotMarkets = $promises[0];
+        $derivativeMarkets = $promises[1];
+        $markets = $this->array_concat($spotMarkets, $derivativeMarkets);
+        return $markets;
+    }
+
+    public function fetch_spot_markets($params = array ()) {
+        $response = $this->v2PublicGetPublicGetInstruments ($params);
         //
         //    {
         //        $id => 11,
@@ -311,13 +378,17 @@ class cryptocom extends Exchange {
         //                    $margin_trading_enabled_5x => true,
         //                    $margin_trading_enabled_10x => true,
         //                    max_quantity => '100000000',
-        //                    min_quantity => '0.01'
+        //                    min_quantity => '0.01',
+        //                    max_price:'1',
+        //                    min_price:'0.00000001',
+        //                    last_update_date:1667263094857,
+        //                    quantity_tick_size:'0.1',
+        //                    price_tick_size:'0.00000001'
         //               ),
         //            )
         //        }
         //    }
         //
-        $response = $this->spotPublicGetPublicGetInstruments ($params);
         $resultResponse = $this->safe_value($response, 'result', array());
         $markets = $this->safe_value($resultResponse, 'instruments', array());
         $result = array();
@@ -328,8 +399,7 @@ class cryptocom extends Exchange {
             $quoteId = $this->safe_string($market, 'quote_currency');
             $base = $this->safe_currency_code($baseId);
             $quote = $this->safe_currency_code($quoteId);
-            $priceDecimals = $this->safe_string($market, 'price_decimals');
-            $minPrice = $this->parse_precision($priceDecimals);
+            $minPrice = $this->safe_string($market, 'min_price');
             $minQuantity = $this->safe_string($market, 'min_quantity');
             $maxLeverage = $this->parse_number('1');
             $margin_trading_enabled_5x = $this->safe_value($market, 'margin_trading_enabled_5x');
@@ -365,8 +435,8 @@ class cryptocom extends Exchange {
                 'strike' => null,
                 'optionType' => null,
                 'precision' => array(
-                    'amount' => $this->parse_number($this->parse_precision($this->safe_string($market, 'quantity_decimals'))),
-                    'price' => $this->parse_number($this->parse_precision($priceDecimals)),
+                    'amount' => $this->safe_number($market, 'quantity_tick_size'),
+                    'price' => $this->safe_number($market, 'price_tick_size'),
                 ),
                 'limits' => array(
                     'leverage' => array(
@@ -379,7 +449,7 @@ class cryptocom extends Exchange {
                     ),
                     'price' => array(
                         'min' => $this->parse_number($minPrice),
-                        'max' => null,
+                        'max' => $this->safe_number($market, 'max_price'),
                     ),
                     'cost' => array(
                         'min' => $this->parse_number(Precise::string_mul($minQuantity, $minPrice)),
@@ -389,10 +459,15 @@ class cryptocom extends Exchange {
                 'info' => $market,
             );
         }
+        return $result;
+    }
+
+    public function fetch_derivatives_markets($params = array ()) {
+        $result = array();
         $futuresResponse = $this->derivativesPublicGetPublicGetInstruments ();
         //
         //     {
-        //       $id => -1,
+        //       id => -1,
         //       method => 'public/get-instruments',
         //       code => 0,
         //       $result => {
@@ -427,6 +502,9 @@ class cryptocom extends Exchange {
             $inst_type = $this->safe_string($market, 'inst_type');
             $swap = $inst_type === 'PERPETUAL_SWAP';
             $future = $inst_type === 'FUTURE';
+            if ($inst_type === 'CCY_PAIR') {
+                continue; // Found some inconsistencies between spot and derivatives api so use spot api for currency pairs.
+            }
             $baseId = $this->safe_string($market, 'base_ccy');
             $quoteId = $this->safe_string($market, 'quote_ccy');
             $base = $this->safe_currency_code($baseId);
@@ -496,16 +574,23 @@ class cryptocom extends Exchange {
 
     public function fetch_tickers($symbols = null, $params = array ()) {
         /**
-         * fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
-         * @param {[string]|null} $symbols unified $symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
+         * fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each $market
+         * @see https://exchange-docs.crypto.com/spot/index.html#public-get-ticker
+         * @see https://exchange-docs.crypto.com/derivatives/index.html#public-get-tickers
+         * @param {[string]|null} $symbols unified $symbols of the markets to fetch the ticker for, all $market tickers are returned if not assigned
          * @param {array} $params extra parameters specific to the cryptocom api endpoint
          * @return {array} an array of {@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure ticker structures}
          */
         $this->load_markets();
         $symbols = $this->market_symbols($symbols);
-        list($marketType, $query) = $this->handle_market_type_and_params('fetchTickers', null, $params);
+        $market = null;
+        if ($symbols !== null) {
+            $symbol = $this->safe_value($symbols, 0);
+            $market = $this->market($symbol);
+        }
+        list($marketType, $query) = $this->handle_market_type_and_params('fetchTickers', $market, $params);
         $method = $this->get_supported_mapping($marketType, array(
-            'spot' => 'spotPublicGetPublicGetTicker',
+            'spot' => 'v2PublicGetPublicGetTicker',
             'future' => 'derivativesPublicGetPublicGetTickers',
             'swap' => 'derivativesPublicGetPublicGetTickers',
         ));
@@ -546,17 +631,22 @@ class cryptocom extends Exchange {
         if ($marketType !== 'spot') {
             throw new NotSupported($this->id . ' fetchTicker() only supports spot markets');
         }
-        $response = $this->spotPublicGetPublicGetTicker (array_merge($request, $query));
-        // {
-        //     "code":0,
-        //     "method":"public/get-ticker",
-        //     "result":{
-        //       "data" => array("i":"CRO_BTC","b":0.00000890,"k":0.00001179,"a":0.00001042,"t":1591770793901,"v":14905879.59,"h":0.00,"l":0.00,"c":0.00)
-        //     }
-        // }
+        $response = $this->v2PublicGetPublicGetTicker (array_merge($request, $query));
+        //
+        //   {
+        //       "id":"-1",
+        //       "method":"public/get-tickers",
+        //       "code":"0",
+        //       "result":{
+        //          "data":array(
+        //             array( "i":"BTC_USDT", "h":"20567.16", "l":"20341.39", "a":"20394.23", "v":"2236.3762", "vv":"45739074.30", "c":"-0.0036", "b":"20394.01", "k":"20394.02", "t":"1667406085934" )
+        //          )
+        //   }
+        //
         $resultResponse = $this->safe_value($response, 'result', array());
         $data = $this->safe_value($resultResponse, 'data', array());
-        return $this->parse_ticker($data, $market);
+        $first = $this->safe_value($data, 0, array());
+        return $this->parse_ticker($first, $market);
     }
 
     public function fetch_orders($symbol = null, $since = null, $limit = null, $params = array ()) {
@@ -585,14 +675,14 @@ class cryptocom extends Exchange {
         }
         list($marketType, $marketTypeQuery) = $this->handle_market_type_and_params('fetchOrders', $market, $params);
         $method = $this->get_supported_mapping($marketType, array(
-            'spot' => 'spotPrivatePostPrivateGetOrderHistory',
-            'margin' => 'spotPrivatePostPrivateMarginGetOrderHistory',
+            'spot' => 'v2PrivatePostPrivateGetOrderHistory',
+            'margin' => 'v2PrivatePostPrivateMarginGetOrderHistory',
             'future' => 'derivativesPrivatePostPrivateGetOrderHistory',
             'swap' => 'derivativesPrivatePostPrivateGetOrderHistory',
         ));
         list($marginMode, $query) = $this->custom_handle_margin_mode_and_params('fetchOrders', $marketTypeQuery);
         if ($marginMode !== null) {
-            $method = 'spotPrivatePostPrivateMarginGetOrderHistory';
+            $method = 'v2PrivatePostPrivateMarginGetOrderHistory';
         }
         $response = $this->$method (array_merge($request, $query));
         //
@@ -692,7 +782,7 @@ class cryptocom extends Exchange {
         }
         list($marketType, $query) = $this->handle_market_type_and_params('fetchTrades', $market, $params);
         $method = $this->get_supported_mapping($marketType, array(
-            'spot' => 'spotPublicGetPublicGetTrades',
+            'spot' => 'v2PublicGetPublicGetTrades',
             'future' => 'derivativesPublicGetPublicGetTrades',
             'swap' => 'derivativesPublicGetPublicGetTrades',
         ));
@@ -734,14 +824,21 @@ class cryptocom extends Exchange {
         $market = $this->market($symbol);
         $request = array(
             'instrument_name' => $market['id'],
-            'timeframe' => $this->timeframes[$timeframe],
+            'timeframe' => $this->safe_string($this->timeframes, $timeframe, $timeframe),
         );
         list($marketType, $query) = $this->handle_market_type_and_params('fetchOHLCV', $market, $params);
         $method = $this->get_supported_mapping($marketType, array(
-            'spot' => 'spotPublicGetPublicGetCandlestick',
+            'spot' => 'v2PublicGetPublicGetCandlestick',
             'future' => 'derivativesPublicGetPublicGetCandlestick',
             'swap' => 'derivativesPublicGetPublicGetCandlestick',
         ));
+        if ($marketType !== 'spot') {
+            $reqLimit = 100;
+            if ($limit !== null) {
+                $reqLimit = $limit;
+            }
+            $request['count'] = $reqLimit;
+        }
         $response = $this->$method (array_merge($request, $query));
         // {
         //     "code":0,
@@ -780,7 +877,7 @@ class cryptocom extends Exchange {
         }
         list($marketType, $query) = $this->handle_market_type_and_params('fetchOrderBook', $market, $params);
         $method = $this->get_supported_mapping($marketType, array(
-            'spot' => 'spotPublicGetPublicGetBook',
+            'spot' => 'v2PublicGetPublicGetBook',
             'future' => 'derivativesPublicGetPublicGetBook',
             'swap' => 'derivativesPublicGetPublicGetBook',
         ));
@@ -843,14 +940,14 @@ class cryptocom extends Exchange {
         $this->load_markets();
         list($marketType, $marketTypeQuery) = $this->handle_market_type_and_params('fetchBalance', null, $params);
         $method = $this->get_supported_mapping($marketType, array(
-            'spot' => 'spotPrivatePostPrivateGetAccountSummary',
-            'margin' => 'spotPrivatePostPrivateMarginGetAccountSummary',
+            'spot' => 'v2PrivatePostPrivateGetAccountSummary',
+            'margin' => 'v2PrivatePostPrivateMarginGetAccountSummary',
             'future' => 'derivativesPrivatePostPrivateUserBalance',
             'swap' => 'derivativesPrivatePostPrivateUserBalance',
         ));
         list($marginMode, $query) = $this->custom_handle_margin_mode_and_params('fetchBalance', $marketTypeQuery);
         if ($marginMode !== null) {
-            $method = 'spotPrivatePostPrivateMarginGetAccountSummary';
+            $method = 'v2PrivatePostPrivateMarginGetAccountSummary';
         }
         $response = $this->$method ($query);
         // spot
@@ -970,13 +1067,13 @@ class cryptocom extends Exchange {
             $request['order_id'] = intval($id);
         }
         $method = $this->get_supported_mapping($marketType, array(
-            'spot' => 'spotPrivatePostPrivateGetOrderDetail',
-            'margin' => 'spotPrivatePostPrivateMarginGetOrderDetail',
+            'spot' => 'v2PrivatePostPrivateGetOrderDetail',
+            'margin' => 'v2PrivatePostPrivateMarginGetOrderDetail',
             'future' => 'derivativesPrivatePostPrivateGetOrderDetail',
             'swap' => 'derivativesPrivatePostPrivateGetOrderDetail',
         ));
         if ($marginMode !== null) {
-            $method = 'spotPrivatePostPrivateMarginGetOrderDetail';
+            $method = 'v2PrivatePostPrivateMarginGetOrderDetail';
         }
         $response = $this->$method (array_merge($request, $query));
         // {
@@ -1050,14 +1147,14 @@ class cryptocom extends Exchange {
         }
         list($marketType, $marketTypeQuery) = $this->handle_market_type_and_params('createOrder', $market, $params);
         $method = $this->get_supported_mapping($marketType, array(
-            'spot' => 'spotPrivatePostPrivateCreateOrder',
-            'margin' => 'spotPrivatePostPrivateMarginCreateOrder',
+            'spot' => 'v2PrivatePostPrivateCreateOrder',
+            'margin' => 'v2PrivatePostPrivateMarginCreateOrder',
             'future' => 'derivativesPrivatePostPrivateCreateOrder',
             'swap' => 'derivativesPrivatePostPrivateCreateOrder',
         ));
         list($marginMode, $query) = $this->custom_handle_margin_mode_and_params('createOrder', $marketTypeQuery);
         if ($marginMode !== null) {
-            $method = 'spotPrivatePostPrivateMarginCreateOrder';
+            $method = 'v2PrivatePostPrivateMarginCreateOrder';
         }
         $response = $this->$method (array_merge($request, $query));
         // {
@@ -1094,13 +1191,13 @@ class cryptocom extends Exchange {
             $request['instrument_name'] = $market['id'];
         }
         $method = $this->get_supported_mapping($marketType, array(
-            'spot' => 'spotPrivatePostPrivateCancelAllOrders',
-            'margin' => 'spotPrivatePostPrivateMarginCancelAllOrders',
+            'spot' => 'v2PrivatePostPrivateCancelAllOrders',
+            'margin' => 'v2PrivatePostPrivateMarginCancelAllOrders',
             'future' => 'derivativesPrivatePostPrivateCancelAllOrders',
             'swap' => 'derivativesPrivatePostPrivateCancelAllOrders',
         ));
         if ($marginMode !== null) {
-            $method = 'spotPrivatePostPrivateMarginCancelAllOrders';
+            $method = 'v2PrivatePostPrivateMarginCancelAllOrders';
         }
         return $this->$method (array_merge($request, $query));
     }
@@ -1131,13 +1228,13 @@ class cryptocom extends Exchange {
             $request['order_id'] = intval($id);
         }
         $method = $this->get_supported_mapping($marketType, array(
-            'spot' => 'spotPrivatePostPrivateCancelOrder',
-            'margin' => 'spotPrivatePostPrivateMarginCancelOrder',
+            'spot' => 'v2PrivatePostPrivateCancelOrder',
+            'margin' => 'v2PrivatePostPrivateMarginCancelOrder',
             'future' => 'derivativesPrivatePostPrivateCancelOrder',
             'swap' => 'derivativesPrivatePostPrivateCancelOrder',
         ));
         if ($marginMode !== null) {
-            $method = 'spotPrivatePostPrivateMarginCancelOrder';
+            $method = 'v2PrivatePostPrivateMarginCancelOrder';
         }
         $response = $this->$method (array_merge($request, $query));
         $result = $this->safe_value($response, 'result', $response);
@@ -1165,14 +1262,14 @@ class cryptocom extends Exchange {
         }
         list($marketType, $marketTypeQuery) = $this->handle_market_type_and_params('fetchOpenOrders', $market, $params);
         $method = $this->get_supported_mapping($marketType, array(
-            'spot' => 'spotPrivatePostPrivateGetOpenOrders',
-            'margin' => 'spotPrivatePostPrivateMarginGetOpenOrders',
+            'spot' => 'v2PrivatePostPrivateGetOpenOrders',
+            'margin' => 'v2PrivatePostPrivateMarginGetOpenOrders',
             'future' => 'derivativesPrivatePostPrivateGetOpenOrders',
             'swap' => 'derivativesPrivatePostPrivateGetOpenOrders',
         ));
         list($marginMode, $query) = $this->custom_handle_margin_mode_and_params('fetchOpenOrders', $marketTypeQuery);
         if ($marginMode !== null) {
-            $method = 'spotPrivatePostPrivateMarginGetOpenOrders';
+            $method = 'v2PrivatePostPrivateMarginGetOpenOrders';
         }
         $response = $this->$method (array_merge($request, $query));
         // {
@@ -1251,14 +1348,14 @@ class cryptocom extends Exchange {
         }
         list($marketType, $marketTypeQuery) = $this->handle_market_type_and_params('fetchMyTrades', $market, $params);
         $method = $this->get_supported_mapping($marketType, array(
-            'spot' => 'spotPrivatePostPrivateGetTrades',
-            'margin' => 'spotPrivatePostPrivateMarginGetTrades',
+            'spot' => 'v2PrivatePostPrivateGetTrades',
+            'margin' => 'v2PrivatePostPrivateMarginGetTrades',
             'future' => 'derivativesPrivatePostPrivateGetTrades',
             'swap' => 'derivativesPrivatePostPrivateGetTrades',
         ));
         list($marginMode, $query) = $this->custom_handle_margin_mode_and_params('fetchMyTrades', $marketTypeQuery);
         if ($marginMode !== null) {
-            $method = 'spotPrivatePostPrivateMarginGetTrades';
+            $method = 'v2PrivatePostPrivateMarginGetTrades';
         }
         $response = $this->$method (array_merge($request, $query));
         // {
@@ -1321,7 +1418,7 @@ class cryptocom extends Exchange {
         if ($tag !== null) {
             $request['address_tag'] = $tag;
         }
-        $response = $this->spotPrivatePostPrivateCreateWithdrawal (array_merge($request, $params));
+        $response = $this->v2PrivatePostPrivateCreateWithdrawal (array_merge($request, $params));
         //
         //    {
         //        "id":-1,
@@ -1354,7 +1451,7 @@ class cryptocom extends Exchange {
         $request = array(
             'currency' => $currency['id'],
         );
-        $response = $this->spotPrivatePostPrivateGetDepositAddress (array_merge($request, $params));
+        $response = $this->v2PrivatePostPrivateGetDepositAddress (array_merge($request, $params));
         // {
         //     "id" => 11,
         //     "method" => "private/get-deposit-$address",
@@ -1382,11 +1479,12 @@ class cryptocom extends Exchange {
         // }
         $data = $this->safe_value($response, 'result', array());
         $addresses = $this->safe_value($data, 'deposit_address_list', array());
-        if (strlen($addresses) === 0) {
+        $addressesLength = count($addresses);
+        if ($addressesLength === 0) {
             throw new ExchangeError($this->id . ' fetchDepositAddressesByNetwork() generating $address->..');
         }
         $result = array();
-        for ($i = 0; $i < count($addresses); $i++) {
+        for ($i = 0; $i < $addressesLength; $i++) {
             $value = $this->safe_value($addresses, $i);
             $addressString = $this->safe_string($value, 'address');
             $currencyId = $this->safe_string($value, 'currency');
@@ -1460,7 +1558,7 @@ class cryptocom extends Exchange {
         if ($limit !== null) {
             $request['page_size'] = $limit;
         }
-        $response = $this->spotPrivatePostPrivateGetDepositHistory (array_merge($request, $params));
+        $response = $this->v2PrivatePostPrivateGetDepositHistory (array_merge($request, $params));
         // {
         //     "id" => 11,
         //     "method" => "private/get-deposit-history",
@@ -1508,7 +1606,7 @@ class cryptocom extends Exchange {
         if ($limit !== null) {
             $request['page_size'] = $limit;
         }
-        $response = $this->spotPrivatePostPrivateGetWithdrawalHistory (array_merge($request, $params));
+        $response = $this->v2PrivatePostPrivateGetWithdrawalHistory (array_merge($request, $params));
         //
         //     {
         //       id => 1640704829096,
@@ -1560,9 +1658,9 @@ class cryptocom extends Exchange {
             'from' => $fromId,
             'to' => $toId,
         );
-        $method = 'spotPrivatePostPrivateDerivTransfer';
+        $method = 'v2PrivatePostPrivateDerivTransfer';
         if (($fromAccount === 'margin') || ($toAccount === 'margin')) {
-            $method = 'spotPrivatePostPrivateMarginTransfer';
+            $method = 'v2PrivatePostPrivateMarginTransfer';
         }
         $response = $this->$method (array_merge($request, $params));
         //
@@ -1602,10 +1700,10 @@ class cryptocom extends Exchange {
         if ($limit !== null) {
             $request['page_size'] = $limit;
         }
-        $method = 'spotPrivatePostPrivateDerivGetTransferHistory';
+        $method = 'v2PrivatePostPrivateDerivGetTransferHistory';
         list($marginMode, $query) = $this->custom_handle_margin_mode_and_params('fetchTransfers', $params);
         if ($marginMode !== null) {
-            $method = 'spotPrivatePostPrivateMarginGetTransferHistory';
+            $method = 'v2PrivatePostPrivateMarginGetTransferHistory';
         }
         $response = $this->$method (array_merge($request, $query));
         //
@@ -2094,7 +2192,7 @@ class cryptocom extends Exchange {
             'currency' => $currency['id'],
             'amount' => $this->currency_to_precision($code, $amount),
         );
-        $response = $this->spotPrivatePostPrivateMarginRepay (array_merge($request, $params));
+        $response = $this->v2PrivatePostPrivateMarginRepay (array_merge($request, $params));
         //
         //     {
         //         "id" => 1656620104211,
@@ -2127,7 +2225,7 @@ class cryptocom extends Exchange {
             'currency' => $currency['id'],
             'amount' => $this->currency_to_precision($code, $amount),
         );
-        $response = $this->spotPrivatePostPrivateMarginBorrow (array_merge($request, $params));
+        $response = $this->v2PrivatePostPrivateMarginBorrow (array_merge($request, $params));
         //
         //     {
         //         "id" => 1656619578559,
@@ -2191,7 +2289,7 @@ class cryptocom extends Exchange {
         if ($limit !== null) {
             $request['page_size'] = $limit;
         }
-        $response = $this->spotPrivatePostPrivateMarginGetInterestHistory (array_merge($request, $params));
+        $response = $this->v2PrivatePostPrivateMarginGetInterestHistory (array_merge($request, $params));
         //
         //     {
         //         "id" => 1656705829020,
@@ -2256,7 +2354,7 @@ class cryptocom extends Exchange {
          * @return {array} a list of {@link https://docs.ccxt.com/en/latest/manual.html#borrow-rate-structure borrow rate structures}
          */
         $this->load_markets();
-        $response = $this->spotPrivatePostPrivateMarginGetUserConfig ($params);
+        $response = $this->v2PrivatePostPrivateMarginGetUserConfig ($params);
         //
         //     {
         //         "id" => 1656707947456,

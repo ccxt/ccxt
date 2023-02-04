@@ -21,7 +21,7 @@ async function test () {
 
         console.log (exchanges[id])
 
-        // // instantiate the exchange
+        // instantiate the exchange
         let exchange = new ccxt[id] (exchanges[id])
         console.log (exchange.id, exchange.apiKey)
         exchanges[id] = exchange

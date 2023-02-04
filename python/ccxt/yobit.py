@@ -38,7 +38,7 @@ class yobit(Exchange):
                 'addMargin': False,
                 'cancelOrder': True,
                 'createDepositAddress': True,
-                'createMarketOrder': None,
+                'createMarketOrder': False,
                 'createOrder': True,
                 'createReduceOnlyOrder': False,
                 'createStopLimitOrder': False,
@@ -51,7 +51,7 @@ class yobit(Exchange):
                 'fetchBorrowRates': False,
                 'fetchBorrowRatesPerSymbol': False,
                 'fetchDepositAddress': True,
-                'fetchDeposits': None,
+                'fetchDeposits': False,
                 'fetchFundingHistory': False,
                 'fetchFundingRate': False,
                 'fetchFundingRateHistory': False,
@@ -78,10 +78,10 @@ class yobit(Exchange):
                 'fetchTrades': True,
                 'fetchTradingFee': False,
                 'fetchTradingFees': True,
-                'fetchTransactions': None,
+                'fetchTransactions': False,
                 'fetchTransfer': False,
                 'fetchTransfers': False,
-                'fetchWithdrawals': None,
+                'fetchWithdrawals': False,
                 'reduceMargin': False,
                 'setLeverage': False,
                 'setMarginMode': False,
@@ -227,6 +227,7 @@ class yobit(Exchange):
                 'SBTC': 'Super Bitcoin',
                 'SMC': 'SmartCoin',
                 'SOLO': 'SoloCoin',
+                'SOUL': 'SoulCoin',
                 'STAR': 'StarCoin',
                 'SUPER': 'SuperCoin',
                 'TNS': 'Transcodium',
@@ -242,6 +243,11 @@ class yobit(Exchange):
                 # 'fetchTickersMaxLength': 2048,
                 'fetchOrdersRequiresSymbol': True,
                 'fetchTickersMaxLength': 512,
+                'networks': {
+                    'ETH': 'ERC20',
+                    'TRX': 'TRC20',
+                    'BSC': 'BEP20',
+                },
             },
             'precisionMode': TICK_SIZE,
             'exceptions': {
@@ -728,7 +734,7 @@ class yobit(Exchange):
         """
         create a trade order
         :param str symbol: unified symbol of the market to create an order in
-        :param str type: 'market' or 'limit'
+        :param str type: must be 'limit'
         :param str side: 'buy' or 'sell'
         :param float amount: how much of currency you want to trade in units of base currency
         :param float|None price: the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
@@ -905,6 +911,7 @@ class yobit(Exchange):
             'side': side,
             'price': price,
             'stopPrice': None,
+            'triggerPrice': None,
             'cost': None,
             'amount': amount,
             'remaining': remaining,
@@ -1076,8 +1083,16 @@ class yobit(Exchange):
         """
         self.load_markets()
         currency = self.currency(code)
+        currencyId = currency['id']
+        networks = self.safe_value(self.options, 'networks', {})
+        network = self.safe_string_upper(params, 'network')  # self line allows the user to specify either ERC20 or ETH
+        network = self.safe_string(networks, network, network)  # handle ERC20>ETH alias
+        if network is not None:
+            if network != 'ERC20':
+                currencyId = currencyId + network.lower()
+            params = self.omit(params, 'network')
         request = {
-            'coinName': currency['id'],
+            'coinName': currencyId,
             'need_new': 0,
         }
         response = self.privatePostGetDepositAddress(self.extend(request, params))

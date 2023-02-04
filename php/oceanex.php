@@ -6,9 +6,6 @@ namespace ccxt;
 // https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 use Exception; // a common import
-use \ccxt\ExchangeError;
-use \ccxt\ArgumentsRequired;
-use \ccxt\OrderNotFound;
 
 class oceanex extends Exchange {
 
@@ -60,7 +57,6 @@ class oceanex extends Exchange {
                 'fetchTrades' => true,
                 'fetchTradingFee' => false,
                 'fetchTradingFees' => true,
-                'fetchTradingLimits' => null,
                 'fetchTransactionFees' => null,
             ),
             'timeframes' => array(
@@ -761,7 +757,7 @@ class oceanex extends Exchange {
         $market = $this->market($symbol);
         $request = array(
             'market' => $market['id'],
-            'period' => $this->timeframes[$timeframe],
+            'period' => $this->safe_string($this->timeframes, $timeframe, $timeframe),
         );
         if ($since !== null) {
             $request['timestamp'] = $since;
@@ -818,6 +814,7 @@ class oceanex extends Exchange {
             'side' => $this->safe_value($order, 'side'),
             'price' => $price,
             'stopPrice' => null,
+            'triggerPrice' => null,
             'average' => $average,
             'amount' => $amount,
             'remaining' => $remaining,

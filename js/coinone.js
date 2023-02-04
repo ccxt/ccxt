@@ -27,7 +27,7 @@ module.exports = class coinone extends Exchange {
                 'option': false,
                 'addMargin': false,
                 'cancelOrder': true,
-                'createMarketOrder': undefined,
+                'createMarketOrder': false,
                 'createOrder': true,
                 'createReduceOnlyOrder': false,
                 'createStopLimitOrder': false,
@@ -39,7 +39,7 @@ module.exports = class coinone extends Exchange {
                 'fetchBorrowRateHistory': false,
                 'fetchBorrowRates': false,
                 'fetchBorrowRatesPerSymbol': false,
-                'fetchClosedOrders': undefined, // the endpoint that should return closed orders actually returns trades, https://github.com/ccxt/ccxt/pull/7067
+                'fetchClosedOrders': false, // the endpoint that should return closed orders actually returns trades, https://github.com/ccxt/ccxt/pull/7067
                 'fetchDepositAddresses': true,
                 'fetchFundingHistory': false,
                 'fetchFundingRate': false,
@@ -119,11 +119,6 @@ module.exports = class coinone extends Exchange {
                     'taker': 0.002,
                     'maker': 0.002,
                 },
-            },
-            'precision': {
-                'price': this.parseNumber ('0.0001'),
-                'amount': this.parseNumber ('0.0001'),
-                'cost': this.parseNumber ('0.00000001'),
             },
             'precisionMode': TICK_SIZE,
             'exceptions': {
@@ -208,8 +203,9 @@ module.exports = class coinone extends Exchange {
                 'strike': undefined,
                 'optionType': undefined,
                 'precision': {
-                    'amount': undefined,
-                    'price': undefined,
+                    'amount': this.parseNumber ('1e-4'),
+                    'price': this.parseNumber ('1e-4'),
+                    'cost': this.parseNumber ('1e-8'),
                 },
                 'limits': {
                     'leverage': {
@@ -310,15 +306,11 @@ module.exports = class coinone extends Exchange {
         const timestamp = this.safeTimestamp (response, 'timestamp');
         for (let i = 0; i < ids.length; i++) {
             const id = ids[i];
-            let symbol = id;
-            let market = undefined;
-            if (id in this.markets_by_id) {
-                market = this.markets_by_id[id];
-                symbol = market['symbol'];
-                const ticker = response[id];
-                result[symbol] = this.parseTicker (ticker, market);
-                result[symbol]['timestamp'] = timestamp;
-            }
+            const market = this.safeMarket (id);
+            const symbol = market['symbol'];
+            const ticker = response[id];
+            result[symbol] = this.parseTicker (ticker, market);
+            result[symbol]['timestamp'] = timestamp;
         }
         return this.filterByArray (result, 'symbol', symbols);
     }
@@ -503,8 +495,10 @@ module.exports = class coinone extends Exchange {
          * @method
          * @name coinone#createOrder
          * @description create a trade order
+         * @see https://doc.coinone.co.kr/#tag/Order-V2/operation/v2_order_limit_buy
+         * @see https://doc.coinone.co.kr/#tag/Order-V2/operation/v2_order_limit_sell
          * @param {string} symbol unified symbol of the market to create an order in
-         * @param {string} type 'market' or 'limit'
+         * @param {string} type must be 'limit'
          * @param {string} side 'buy' or 'sell'
          * @param {float} amount how much of currency you want to trade in units of base currency
          * @param {float|undefined} price the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
@@ -530,7 +524,7 @@ module.exports = class coinone extends Exchange {
         //         "orderId": "8a82c561-40b4-4cb3-9bc0-9ac9ffc1d63b"
         //     }
         //
-        return this.parseOrder (response);
+        return this.parseOrder (response, market);
     }
 
     async fetchOrder (id, symbol = undefined, params = {}) {
@@ -643,24 +637,9 @@ module.exports = class coinone extends Exchange {
             }
         }
         status = this.parseOrderStatus (status);
-        let symbol = undefined;
-        let base = undefined;
-        let quote = undefined;
-        const marketId = this.safeStringLower (order, 'currency');
-        if (marketId !== undefined) {
-            if (marketId in this.markets_by_id) {
-                market = this.markets_by_id[marketId];
-            } else {
-                base = this.safeCurrencyCode (marketId);
-                quote = 'KRW';
-                symbol = base + '/' + quote;
-            }
-        }
-        if ((symbol === undefined) && (market !== undefined)) {
-            symbol = market['symbol'];
-            base = market['base'];
-            quote = market['quote'];
-        }
+        const symbol = market['symbol'];
+        const base = market['base'];
+        const quote = market['quote'];
         let fee = undefined;
         const feeCostString = this.safeString (order, 'fee');
         if (feeCostString !== undefined) {
@@ -685,6 +664,7 @@ module.exports = class coinone extends Exchange {
             'side': side,
             'price': priceString,
             'stopPrice': undefined,
+            'triggerPrice': undefined,
             'cost': undefined,
             'average': undefined,
             'amount': amountString,
