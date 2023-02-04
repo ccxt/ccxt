@@ -5839,7 +5839,7 @@ module.exports = class bybit extends Exchange {
         return this.parseTransaction (result, currency);
     }
 
-    async fetchPosition (symbol = undefined, params = {}) {
+    async fetchPosition (symbol, params = {}) {
         /**
          * @method
          * @name bybit#fetchPosition
@@ -5981,7 +5981,7 @@ module.exports = class bybit extends Exchange {
         const positions = this.safeValue2 (result, 'list', 'dataList', []);
         const timestamp = this.safeInteger (response, 'time');
         const first = this.safeValue (positions, 0);
-        const position = this.parsePosition (first);
+        const position = this.parsePosition (first, market);
         return this.extend (position, {
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
