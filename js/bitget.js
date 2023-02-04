@@ -40,6 +40,7 @@ module.exports = class bitget extends Exchange {
                 'fetchBorrowRateHistory': false,
                 'fetchBorrowRates': false,
                 'fetchBorrowRatesPerSymbol': false,
+                'fetchCanceledOrders': true,
                 'fetchClosedOrders': true,
                 'fetchCurrencies': true,
                 'fetchDepositAddress': true,
@@ -2169,8 +2170,14 @@ module.exports = class bitget extends Exchange {
         const statuses = {
             'new': 'open',
             'init': 'open',
+            'not_trigger': 'open',
+            'triggered': 'closed',
             'full_fill': 'closed',
             'filled': 'closed',
+            'fail_trigger': 'canceled',
+            'cancel': 'canceled',
+            'cancelled': 'canceled',
+            'canceled': 'canceled',
         };
         return this.safeString (statuses, status, status);
     }
@@ -2531,9 +2538,7 @@ module.exports = class bitget extends Exchange {
          * @param {object} params extra parameters specific to the bitget api endpoint
          * @returns {object} An [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
          */
-        if (symbol === undefined) {
-            throw new ArgumentsRequired (this.id + ' cancelOrder() requires a symbol argument for spot orders');
-        }
+        this.checkRequiredSymbol ('cancelOrder', symbol);
         await this.loadMarkets ();
         const market = this.market (symbol);
         const [ marketType, query ] = this.handleMarketTypeAndParams ('cancelOrder', market, params);
@@ -2576,9 +2581,7 @@ module.exports = class bitget extends Exchange {
          * @param {object} params extra parameters specific to the bitget api endpoint
          * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
          */
-        if (symbol === undefined) {
-            throw new ArgumentsRequired (this.id + ' cancelOrders() requires a symbol argument');
-        }
+        this.checkRequiredSymbol ('cancelOrders', symbol);
         await this.loadMarkets ();
         const market = this.market (symbol);
         const type = this.safeString (params, 'type', market['type']);
@@ -2717,9 +2720,7 @@ module.exports = class bitget extends Exchange {
          * @param {object} params extra parameters specific to the bitget api endpoint
          * @returns {object} An [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
          */
-        if (symbol === undefined) {
-            throw new ArgumentsRequired (this.id + ' fetchOrder() requires a symbol argument');
-        }
+        this.checkRequiredSymbol ('fetchOrder', symbol);
         await this.loadMarkets ();
         const market = this.market (symbol);
         const [ marketType, query ] = this.handleMarketTypeAndParams ('fetchOrder', market, params);
@@ -2795,13 +2796,11 @@ module.exports = class bitget extends Exchange {
          * @description fetch all unfilled currently open orders
          * @param {string} symbol unified market symbol
          * @param {int|undefined} since the earliest time in ms to fetch open orders for
-         * @param {int|undefined} limit the maximum number of  open orders structures to retrieve
+         * @param {int|undefined} limit the maximum number of open order structures to retrieve
          * @param {object} params extra parameters specific to the bitget api endpoint
          * @returns {[object]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
          */
-        if (symbol === undefined) {
-            throw new ArgumentsRequired (this.id + ' fetchOpenOrders() requires a symbol argument');
-        }
+        this.checkRequiredSymbol ('fetchOpenOrders', symbol);
         await this.loadMarkets ();
         const market = this.market (symbol);
         let marketType = undefined;
@@ -2944,13 +2943,11 @@ module.exports = class bitget extends Exchange {
          * @description fetches information on multiple closed orders made by the user
          * @param {string} symbol unified market symbol of the market orders were made in
          * @param {int|undefined} since the earliest time in ms to fetch orders for
-         * @param {int|undefined} limit the maximum number of  orde structures to retrieve
+         * @param {int|undefined} limit the maximum number of closed order structures to retrieve
          * @param {object} params extra parameters specific to the bitget api endpoint
          * @returns {[object]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
          */
-        if (symbol === undefined) {
-            throw new ArgumentsRequired (this.id + ' fetchClosedOrders() requires a symbol argument');
-        }
+        this.checkRequiredSymbol ('fetchClosedOrders', symbol);
         await this.loadMarkets ();
         const market = this.market (symbol);
         const [ marketType, query ] = this.handleMarketTypeAndParams ('fetchClosedOrders', market, params);
@@ -3095,7 +3092,190 @@ module.exports = class bitget extends Exchange {
         //
         const data = this.safeValue (response, 'data');
         const orderList = this.safeValue (data, 'orderList', data);
-        return this.parseOrders (orderList, market, since, limit);
+        const result = [];
+        for (let i = 0; i < orderList.length; i++) {
+            const entry = orderList[i];
+            const status = this.parseOrderStatus (this.safeString2 (entry, 'state', 'status'));
+            if (status === 'closed') {
+                result.push (entry);
+            }
+        }
+        return this.parseOrders (result, market, since, limit);
+    }
+
+    async fetchCanceledOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        /**
+         * @method
+         * @name bitget#fetchCanceledOrders
+         * @description fetches information on multiple canceled orders made by the user
+         * @see https://bitgetlimited.github.io/apidoc/en/spot/#get-order-history
+         * @see https://bitgetlimited.github.io/apidoc/en/mix/#get-history-orders
+         * @param {string} symbol unified market symbol of the canceled orders
+         * @param {int|undefined} since timestamp in ms of the earliest order
+         * @param {int|undefined} limit max number of orders to return
+         * @param {object} params extra parameters specific to the bitget api endpoint
+         * @returns {object} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
+         */
+        this.checkRequiredSymbol ('fetchCanceledOrders', symbol);
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        let marketType = undefined;
+        [ marketType, params ] = this.handleMarketTypeAndParams ('fetchCanceledOrders', market, params);
+        const request = {
+            'symbol': market['id'],
+        };
+        let method = this.getSupportedMapping (marketType, {
+            'spot': 'privateSpotPostTradeHistory',
+            'swap': 'privateMixGetOrderHistory',
+        });
+        const stop = this.safeValue (params, 'stop');
+        if (stop) {
+            if (marketType === 'spot') {
+                method = 'privateSpotPostPlanHistoryPlan';
+            } else {
+                method = 'privateMixGetPlanHistoryPlan';
+            }
+            params = this.omit (params, 'stop');
+        }
+        if (marketType === 'swap' || stop) {
+            if (limit === undefined) {
+                limit = 100;
+            }
+            request['pageSize'] = limit;
+            if (since === undefined) {
+                since = 0;
+            }
+            request['startTime'] = since;
+            request['endTime'] = this.milliseconds ();
+        }
+        const response = await this[method] (this.extend (request, params));
+        //
+        // spot
+        //
+        //     {
+        //         "code": "00000",
+        //         "msg": "success",
+        //         "requestTime": 1663623237813,
+        //         "data": [
+        //             {
+        //                 "accountId": "7264631750",
+        //                 "symbol": "BTCUSDT_SPBL",
+        //                 "orderId": "909129926745432064",
+        //                 "clientOrderId": "9e12ee3d-6a87-4e68-b1cc-094422d223a5",
+        //                 "price": "30001.580000000000",
+        //                 "quantity": "0.000600000000",
+        //                 "orderType": "limit",
+        //                 "side": "sell",
+        //                 "status": "full_fill",
+        //                 "fillPrice": "30001.580000000000",
+        //                 "fillQuantity": "0.000600000000",
+        //                 "fillTotalAmount": "18.000948000000",
+        //                 "cTime": "1652479386030"
+        //             },
+        //             ...
+        //         ]
+        //     }
+        //
+        // swap
+        //
+        //     {
+        //         "code": "00000",
+        //         "msg": "success",
+        //         "requestTime": 1663622728935,
+        //         "data": {
+        //             "nextFlag": false,
+        //             "endId": "908510348120305664",
+        //             "orderList": [
+        //                 {
+        //                     "symbol": "BTCUSDT_UMCBL",
+        //                     "size": 0.004,
+        //                     "orderId": "954568553644306433",
+        //                     "clientOid": "954568553677860864",
+        //                     "filledQty": 0.000,
+        //                     "fee": 0E-8,
+        //                     "price": 18000.00,
+        //                     "state": "canceled",
+        //                     "side": "open_long",
+        //                     "timeInForce": "normal",
+        //                     "totalProfits": 0E-8,
+        //                     "posSide": "long",
+        //                     "marginCoin": "USDT",
+        //                     "filledAmount": 0.0000,
+        //                     "orderType": "limit",
+        //                     "leverage": "3",
+        //                     "marginMode": "fixed",
+        //                     "cTime": "1663312798899",
+        //                     "uTime": "1663312809425"
+        //                 },
+        //                 ...
+        //             ]
+        //         }
+        //     }
+        //
+        // spot plan order
+        //
+        //     {
+        //         "code": "00000",
+        //         "msg": "success",
+        //         "requestTime": 1668134626684,
+        //         "data": {
+        //         "nextFlag": false,
+        //         "endId": 974792060738441216,
+        //         "orderList": [
+        //             {
+        //             "orderId": "974792060738441216",
+        //             "symbol": "TRXUSDT_SPBL",
+        //             "size": "156",
+        //             "executePrice": "0.041272",
+        //             "triggerPrice": "0.041222",
+        //             "status": "cancel",
+        //             "orderType": "limit",
+        //             "side": "buy",
+        //             "triggerType": "fill_price",
+        //             "cTime": "1668134458717"
+        //             }
+        //           ]
+        //         }
+        //     }
+        //
+        // swap plan order
+        //
+        //     {
+        //         "code":"00000",
+        //         "data":[
+        //             {
+        //                 "orderId":"803521986049314816",
+        //                 "executeOrderId":"84271931884910",
+        //                 "symbol":"BTCUSDT_UMCBL",
+        //                 "marginCoin":"USDT",
+        //                 "size":"1",
+        //                 "executePrice":"38923.1",
+        //                 "triggerPrice":"45000.3",
+        //                 "status":"cancel",
+        //                 "orderType":"limit",
+        //                 "planType":"normal_plan",
+        //                 "side":"open_long",
+        //                 "triggerType":"fill_price",
+        //                 "presetTakeProfitPrice":"0",
+        //                 "presetTakeLossPrice":"0",
+        //                 "ctime":"1627300490867"
+        //             }
+        //         ],
+        //         "msg":"success",
+        //         "requestTime":1627354109502
+        //     }
+        //
+        const data = this.safeValue (response, 'data');
+        const orderList = this.safeValue (data, 'orderList', data);
+        const result = [];
+        for (let i = 0; i < orderList.length; i++) {
+            const entry = orderList[i];
+            const status = this.parseOrderStatus (this.safeString2 (entry, 'state', 'status'));
+            if (status === 'canceled') {
+                result.push (entry);
+            }
+        }
+        return this.parseOrders (result, market, since, limit);
     }
 
     async fetchLedger (code = undefined, since = undefined, limit = undefined, params = {}) {
@@ -3199,9 +3379,7 @@ module.exports = class bitget extends Exchange {
          * @param {object} params extra parameters specific to the bitget api endpoint
          * @returns {[object]} a list of [trade structures]{@link https://docs.ccxt.com/en/latest/manual.html#trade-structure}
          */
-        if (symbol === undefined) {
-            throw new ArgumentsRequired (this.id + ' fetchMyTrades() requires a symbol argument');
-        }
+        this.checkRequiredSymbol ('fetchMyTrades', symbol);
         await this.loadMarkets ();
         const market = this.market (symbol);
         if (market['swap']) {
@@ -3253,9 +3431,7 @@ module.exports = class bitget extends Exchange {
          * @param {object} params extra parameters specific to the bitget api endpoint
          * @returns {[object]} a list of [trade structures]{@link https://docs.ccxt.com/en/latest/manual.html#trade-structure}
          */
-        if (symbol === undefined) {
-            throw new ArgumentsRequired (this.id + ' fetchOrderTrades() requires a symbol argument');
-        }
+        this.checkRequiredSymbol ('fetchOrderTrades', symbol);
         await this.loadMarkets ();
         const market = this.market (symbol);
         const [ marketType, query ] = this.handleMarketTypeAndParams ('fetchOrderTrades', market, params);
@@ -3516,9 +3692,7 @@ module.exports = class bitget extends Exchange {
          * @param {object} params extra parameters specific to the bitget api endpoint
          * @returns {[object]} a list of [funding rate structures]{@link https://docs.ccxt.com/en/latest/manual.html?#funding-rate-history-structure}
          */
-        if (symbol === undefined) {
-            throw new ArgumentsRequired (this.id + ' fetchFundingRateHistory() requires a symbol argument');
-        }
+        this.checkRequiredSymbol ('fetchFundingRateHistory', symbol);
         await this.loadMarkets ();
         const market = this.market (symbol);
         const request = {
@@ -3747,9 +3921,7 @@ module.exports = class bitget extends Exchange {
          * @param {object} params extra parameters specific to the bitget api endpoint
          * @returns {object} response from the exchange
          */
-        if (symbol === undefined) {
-            throw new ArgumentsRequired (this.id + ' setLeverage() requires a symbol argument');
-        }
+        this.checkRequiredSymbol ('setLeverage', symbol);
         await this.loadMarkets ();
         const market = this.market (symbol);
         const request = {
@@ -3771,9 +3943,7 @@ module.exports = class bitget extends Exchange {
          * @param {object} params extra parameters specific to the bitget api endpoint
          * @returns {object} response from the exchange
          */
-        if (symbol === undefined) {
-            throw new ArgumentsRequired (this.id + ' setMarginMode() requires a symbol argument');
-        }
+        this.checkRequiredSymbol ('setMarginMode', symbol);
         marginMode = marginMode.toLowerCase ();
         if ((marginMode !== 'fixed') && (marginMode !== 'crossed')) {
             throw new ArgumentsRequired (this.id + ' setMarginMode() marginMode must be "fixed" or "crossed"');
