@@ -5484,7 +5484,7 @@ class bybit(Exchange):
         result = self.safe_value(response, 'result', {})
         return self.parse_transaction(result, currency)
 
-    def fetch_position(self, symbol=None, params={}):
+    def fetch_position(self, symbol, params={}):
         """
         fetch data on a single open contract trade position
         :param str symbol: unified market symbol of the market the position is held in, default is None
@@ -5620,7 +5620,7 @@ class bybit(Exchange):
         positions = self.safe_value_2(result, 'list', 'dataList', [])
         timestamp = self.safe_integer(response, 'time')
         first = self.safe_value(positions, 0)
-        position = self.parse_position(first)
+        position = self.parse_position(first, market)
         return self.extend(position, {
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),

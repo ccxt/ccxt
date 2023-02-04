@@ -190,7 +190,7 @@ class delta(Exchange):
             'precisionMode': TICK_SIZE,
             'requiredCredentials': {
                 'apiKey': True,
-                'secret': False,
+                'secret': True,
             },
             'exceptions': {
                 'exact': {
@@ -1099,7 +1099,7 @@ class delta(Exchange):
         #     }
         #
         result = self.safe_value(response, 'result', {})
-        return result
+        return self.parse_position(result, market)
 
     def fetch_positions(self, symbols=None, params={}):
         """
@@ -1114,21 +1114,90 @@ class delta(Exchange):
         #     {
         #         "success": True,
         #         "result": [
-        #             {
-        #                 "user_id": 0,
-        #                 "size": 0,
-        #                 "entry_price": "string",
-        #                 "margin": "string",
-        #                 "liquidation_price": "string",
-        #                 "bankruptcy_price": "string",
-        #                 "adl_level": 0,
-        #                 "product_id": 0
-        #             }
+        #           {
+        #             "user_id": 0,
+        #             "size": 0,
+        #             "entry_price": "string",
+        #             "margin": "string",
+        #             "liquidation_price": "string",
+        #             "bankruptcy_price": "string",
+        #             "adl_level": 0,
+        #             "product_id": 0,
+        #             "product_symbol": "string",
+        #             "commission": "string",
+        #             "realized_pnl": "string",
+        #             "realized_funding": "string"
+        #           }
         #         ]
         #     }
         #
         result = self.safe_value(response, 'result', [])
-        return result
+        return self.parse_positions(result, symbols)
+
+    def parse_position(self, position, market=None):
+        #
+        # fetchPosition
+        #
+        #     {
+        #         "entry_price":null,
+        #         "size":0,
+        #         "timestamp":1605454074268079
+        #     }
+        #
+        #
+        # fetchPositions
+        #
+        #     {
+        #         "user_id": 0,
+        #         "size": 0,
+        #         "entry_price": "string",
+        #         "margin": "string",
+        #         "liquidation_price": "string",
+        #         "bankruptcy_price": "string",
+        #         "adl_level": 0,
+        #         "product_id": 0,
+        #         "product_symbol": "string",
+        #         "commission": "string",
+        #         "realized_pnl": "string",
+        #         "realized_funding": "string"
+        #     }
+        #
+        marketId = self.safe_string(position, 'product_symbol')
+        market = self.safe_market(marketId, market)
+        symbol = market['symbol']
+        timestamp = self.safe_integer_product(position, 'timestamp', 0.0001)
+        sizeString = self.safe_string(position, 'size')
+        side = None
+        if sizeString is not None:
+            if Precise.string_gt(sizeString, '0'):
+                side = 'buy'
+            elif Precise.string_lt(sizeString, '0'):
+                side = 'sell'
+        return {
+            'info': position,
+            'id': None,
+            'symbol': symbol,
+            'notional': None,
+            'marginMode': None,
+            'liquidationPrice': self.safe_number(position, 'liquidation_price'),
+            'entryPrice': self.safe_number(position, 'entry_price'),
+            'unrealizedPnl': None,  # todo - realized_pnl ?
+            'percentage': None,
+            'contracts': self.parse_number(sizeString),
+            'contractSize': self.safe_number(market, 'contractSize'),
+            'markPrice': None,
+            'side': side,
+            'hedged': None,
+            'timestamp': timestamp,
+            'datetime': self.iso8601(timestamp),
+            'maintenanceMargin': None,
+            'maintenanceMarginPercentage': None,
+            'collateral': None,
+            'initialMargin': None,
+            'initialMarginPercentage': None,
+            'leverage': None,
+            'marginRatio': None,
+        }
 
     def parse_order_status(self, status):
         statuses = {

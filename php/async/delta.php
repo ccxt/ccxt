@@ -184,7 +184,7 @@ class delta extends Exchange {
             'precisionMode' => TICK_SIZE,
             'requiredCredentials' => array(
                 'apiKey' => true,
-                'secret' => false,
+                'secret' => true,
             ),
             'exceptions' => array(
                 'exact' => array(
@@ -1149,7 +1149,7 @@ class delta extends Exchange {
             //     }
             //
             $result = $this->safe_value($response, 'result', array());
-            return $result;
+            return $this->parse_position($result, $market);
         }) ();
     }
 
@@ -1167,22 +1167,94 @@ class delta extends Exchange {
             //     {
             //         "success" => true,
             //         "result" => array(
-            //             {
-            //                 "user_id" => 0,
-            //                 "size" => 0,
-            //                 "entry_price" => "string",
-            //                 "margin" => "string",
-            //                 "liquidation_price" => "string",
-            //                 "bankruptcy_price" => "string",
-            //                 "adl_level" => 0,
-            //                 "product_id" => 0
-            //             }
+            //           {
+            //             "user_id" => 0,
+            //             "size" => 0,
+            //             "entry_price" => "string",
+            //             "margin" => "string",
+            //             "liquidation_price" => "string",
+            //             "bankruptcy_price" => "string",
+            //             "adl_level" => 0,
+            //             "product_id" => 0,
+            //             "product_symbol" => "string",
+            //             "commission" => "string",
+            //             "realized_pnl" => "string",
+            //             "realized_funding" => "string"
+            //           }
             //         )
             //     }
             //
             $result = $this->safe_value($response, 'result', array());
-            return $result;
+            return $this->parse_positions($result, $symbols);
         }) ();
+    }
+
+    public function parse_position($position, $market = null) {
+        //
+        // fetchPosition
+        //
+        //     {
+        //         "entry_price":null,
+        //         "size":0,
+        //         "timestamp":1605454074268079
+        //     }
+        //
+        //
+        // fetchPositions
+        //
+        //     {
+        //         "user_id" => 0,
+        //         "size" => 0,
+        //         "entry_price" => "string",
+        //         "margin" => "string",
+        //         "liquidation_price" => "string",
+        //         "bankruptcy_price" => "string",
+        //         "adl_level" => 0,
+        //         "product_id" => 0,
+        //         "product_symbol" => "string",
+        //         "commission" => "string",
+        //         "realized_pnl" => "string",
+        //         "realized_funding" => "string"
+        //     }
+        //
+        $marketId = $this->safe_string($position, 'product_symbol');
+        $market = $this->safe_market($marketId, $market);
+        $symbol = $market['symbol'];
+        $timestamp = $this->safe_integer_product($position, 'timestamp', 0.0001);
+        $sizeString = $this->safe_string($position, 'size');
+        $side = null;
+        if ($sizeString !== null) {
+            if (Precise::string_gt($sizeString, '0')) {
+                $side = 'buy';
+            } elseif (Precise::string_lt($sizeString, '0')) {
+                $side = 'sell';
+            }
+        }
+        return array(
+            'info' => $position,
+            'id' => null,
+            'symbol' => $symbol,
+            'notional' => null,
+            'marginMode' => null,
+            'liquidationPrice' => $this->safe_number($position, 'liquidation_price'),
+            'entryPrice' => $this->safe_number($position, 'entry_price'),
+            'unrealizedPnl' => null, // todo - realized_pnl ?
+            'percentage' => null,
+            'contracts' => $this->parse_number($sizeString),
+            'contractSize' => $this->safe_number($market, 'contractSize'),
+            'markPrice' => null,
+            'side' => $side,
+            'hedged' => null,
+            'timestamp' => $timestamp,
+            'datetime' => $this->iso8601($timestamp),
+            'maintenanceMargin' => null,
+            'maintenanceMarginPercentage' => null,
+            'collateral' => null,
+            'initialMargin' => null,
+            'initialMarginPercentage' => null,
+            'leverage' => null,
+            'marginRatio' => null,
+        );
     }
 
     public function parse_order_status($status) {

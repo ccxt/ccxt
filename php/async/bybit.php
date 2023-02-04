@@ -5938,7 +5938,7 @@ class bybit extends Exchange {
         }) ();
     }
 
-    public function fetch_position($symbol = null, $params = array ()) {
+    public function fetch_position($symbol, $params = array ()) {
         return Async\async(function () use ($symbol, $params) {
             /**
              * fetch data on a single open contract trade $position
@@ -6079,7 +6079,7 @@ class bybit extends Exchange {
             $positions = $this->safe_value_2($result, 'list', 'dataList', array());
             $timestamp = $this->safe_integer($response, 'time');
             $first = $this->safe_value($positions, 0);
-            $position = $this->parse_position($first);
+            $position = $this->parse_position($first, $market);
             return array_merge($position, array(
                 'timestamp' => $timestamp,
                 'datetime' => $this->iso8601($timestamp),
