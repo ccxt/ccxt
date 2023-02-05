@@ -3656,27 +3656,29 @@ module.exports = class bitget extends Exchange {
             request['pageSize'] = limit;
         }
         const response = await this.privateMixGetAccountAccountBill (this.extend (request, params));
-        // {
-        //     "code": "00000",
-        //     "msg": "success",
-        //     "data": {
-        //         "result": [
-        //         {
-        //             "id": "892962903462432768",
-        //             "symbol": "ETHUSDT_UMCBL",
-        //             "marginCoin": "USDT",
-        //             "amount": "0",
-        //             "fee": "-0.1765104",
-        //             "feeByCoupon": "",
-        //             "feeCoin": "USDT",
-        //             "business": "contract_settle_fee",
-        //             "cTime": "1648624867354"
-        //         }
-        //         ],
-        //         "endId": "885353495773458432",
-        //         "nextFlag": false,
-        //         "preFlag": false
-        // }
+        //
+        //    {
+        //        "code": "00000",
+        //        "msg": "success",
+        //        "data": {
+        //            "result": [
+        //                {
+        //                    "id": "892962903462432768",
+        //                    "symbol": "ETHUSDT_UMCBL",
+        //                    "marginCoin": "USDT",
+        //                    "amount": "0",
+        //                    "fee": "-0.1765104",
+        //                    "feeByCoupon": "",
+        //                    "feeCoin": "USDT",
+        //                    "business": "contract_settle_fee",
+        //                    "cTime": "1648624867354"
+        //                }
+        //            ],
+        //            "endId": "885353495773458432",
+        //            "nextFlag": false,
+        //            "preFlag": false
+        //    }
+        //
         const data = this.safeValue (response, 'data', {});
         const result = this.safeValue (data, 'result', []);
         return this.parseFundingHistory (result, market, since, limit);
