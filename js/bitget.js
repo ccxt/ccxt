@@ -3682,10 +3682,10 @@ module.exports = class bitget extends Exchange {
         //
         const data = this.safeValue (response, 'data', {});
         const result = this.safeValue (data, 'result', []);
-        return this.parseFundingHistory (result, market, since, limit);
+        return this.parseFundingHistories (result, market, since, limit);
     }
 
-    parseFundingHistory (contracts, market = undefined, since = undefined, limit = undefined) {
+    parseFundingHistory (contract, market = undefined) {
         //
         //     {
         //         "id": "892962903462432768",
@@ -3699,6 +3699,25 @@ module.exports = class bitget extends Exchange {
         //         "cTime": "1648624867354"
         //     }
         //
+        const marketId = this.safeString (contract, 'symbol');
+        const symbol = this.safeSymbol (marketId, market, undefined, 'swap');
+        const currencyId = this.safeString (contract, 'marginCoin');
+        const code = this.safeCurrencyCode (currencyId);
+        const amount = this.safeNumber (contract, 'amount');
+        const timestamp = this.safeInteger (contract, 'cTime');
+        const id = this.safeString (contract, 'id');
+        return {
+            'info': contract,
+            'symbol': symbol,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'code': code,
+            'amount': amount,
+            'id': id,
+        };
+    }
+
+    parseFundingHistories (contracts, market = undefined, since = undefined, limit = undefined) {
         const result = [];
         for (let i = 0; i < contracts.length; i++) {
             const contract = contracts[i];
@@ -3706,22 +3725,7 @@ module.exports = class bitget extends Exchange {
             if (business !== 'contract_settle_fee') {
                 continue;
             }
-            const marketId = this.safeString (contract, 'symbol');
-            const symbol = this.safeSymbol (marketId, market, undefined, 'swap');
-            const currencyId = this.safeString (contract, 'marginCoin');
-            const code = this.safeCurrencyCode (currencyId);
-            const amount = this.safeNumber (contract, 'amount');
-            const timestamp = this.safeInteger (contract, 'cTime');
-            const id = this.safeString (contract, 'id');
-            result.push ({
-                'info': contract,
-                'symbol': symbol,
-                'timestamp': timestamp,
-                'datetime': this.iso8601 (timestamp),
-                'code': code,
-                'amount': amount,
-                'id': id,
-            });
+            result.push (this.parseFundingHistory (contract, market));
         }
         const sorted = this.sortBy (result, 'timestamp');
         return this.filterBySinceLimit (sorted, since, limit);
