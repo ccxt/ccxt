@@ -47,7 +47,7 @@ const ccxt         = require ('../../ccxt.js')
     , { execSync } = require ('child_process')
     , log          = require ('ololog').configure ({ locate: false }).unlimited
     , fsPromises   = require ('fs/promises')
-    , { ExchangeError, NetworkError } = ccxt
+    , { ExchangeError, NetworkError, ResetConnection } = ccxt
 
 //-----------------------------------------------------------------------------
 
@@ -301,7 +301,9 @@ async function run () {
                         }
                         start = end
                     } catch (e) {
-                        if (e instanceof ExchangeError) {
+                        if (e instanceof ResetConnection) {
+                            log.yellow (e.constructor.name, e.message)
+                        } else if (e instanceof ExchangeError) {
                             log.red (e.constructor.name, e.message)
                         } else if (e instanceof NetworkError) {
                             log.yellow (e.constructor.name, e.message)
@@ -310,7 +312,9 @@ async function run () {
                         log.dim ('---------------------------------------------------')
 
                         // rethrow for call-stack // other errors
-                        throw e
+                        if (!(e instanceof ResetConnection)) {
+                            throw e
+                        }
 
                     }
 

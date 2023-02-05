@@ -140,6 +140,10 @@ $main = function() use ($argv) {
                         exit(0);
                     }
 
+                } catch (\ccxt\ResetConnection $e) {
+
+                    echo get_class($e) . ': ' . $e->getMessage() . "\n";
+                
                 } catch (\ccxt\NetworkError $e) {
 
                     echo get_class($e) . ': ' . $e->getMessage() . "\n";
@@ -159,7 +163,6 @@ $main = function() use ($argv) {
                         echo print_r($exchange->$member, true) . "\n";
 
                     } else {
-
                         echo $exchange->id . '->' . $member . ": no such property\n";
                     }
                     exit(1);
