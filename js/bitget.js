@@ -2954,11 +2954,9 @@ module.exports = class bitget extends Exchange {
         this.checkRequiredSymbol ('fetchClosedOrders', symbol);
         const market = this.market (symbol);
         const response = await this.fetchCanceledAndClosedOrders (symbol, since, limit, params);
-        const data = this.safeValue (response, 'data');
-        const orderList = this.safeValue (data, 'orderList', data);
         const result = [];
-        for (let i = 0; i < orderList.length; i++) {
-            const entry = orderList[i];
+        for (let i = 0; i < response.length; i++) {
+            const entry = response[i];
             const status = this.parseOrderStatus (this.safeString2 (entry, 'state', 'status'));
             if (status === 'closed') {
                 result.push (entry);
@@ -2984,11 +2982,9 @@ module.exports = class bitget extends Exchange {
         this.checkRequiredSymbol ('fetchCanceledOrders', symbol);
         const market = this.market (symbol);
         const response = await this.fetchCanceledAndClosedOrders (symbol, since, limit, params);
-        const data = this.safeValue (response, 'data');
-        const orderList = this.safeValue (data, 'orderList', data);
         const result = [];
-        for (let i = 0; i < orderList.length; i++) {
-            const entry = orderList[i];
+        for (let i = 0; i < response.length; i++) {
+            const entry = response[i];
             const status = this.parseOrderStatus (this.safeString2 (entry, 'state', 'status'));
             if (status === 'canceled') {
                 result.push (entry);
@@ -3146,7 +3142,8 @@ module.exports = class bitget extends Exchange {
         //         "requestTime":1627354109502
         //     }
         //
-        return response;
+        const data = this.safeValue (response, 'data');
+        return this.safeValue (data, 'orderList', data);
     }
 
     async fetchLedger (code = undefined, since = undefined, limit = undefined, params = {}) {
