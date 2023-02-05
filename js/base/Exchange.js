@@ -3159,4 +3159,25 @@ module.exports = class Exchange {
         }
         return fee;
     }
+
+    parseIncomes (incomes, market = undefined, since = undefined, limit = undefined) {
+        /**
+         * @ignore
+         * @method
+         * @description parses funding fee info from exchange response
+         * @param {[object]} incomes each item describes once instance of currency being received or paid
+         * @param {object|undefined} market ccxt market
+         * @param {int|undefined} since when defined, the response items are filtered to only include items after this timestamp
+         * @param {int|undefined} limit limits the number of items in the response
+         * @returns {[object]} an array of [funding history structures]{@link https://docs.ccxt.com/en/latest/manual.html#funding-history-structure}
+         */
+        const result = [];
+        for (let i = 0; i < incomes.length; i++) {
+            const entry = incomes[i];
+            const parsed = this.parseIncome (entry, market);
+            result.push (parsed);
+        }
+        const sorted = this.sortBy (result, 'timestamp');
+        return this.filterBySinceLimit (sorted, since, limit);
+    }
 };
