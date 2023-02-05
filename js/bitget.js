@@ -64,6 +64,7 @@ module.exports = class bitget extends Exchange {
                 'fetchOpenInterestHistory': false,
                 'fetchOpenOrders': true,
                 'fetchOrder': true,
+                'fetchOrders': false,
                 'fetchOrderBook': true,
                 'fetchOrderTrades': true,
                 'fetchPosition': true,
@@ -2941,155 +2942,18 @@ module.exports = class bitget extends Exchange {
          * @method
          * @name bitget#fetchClosedOrders
          * @description fetches information on multiple closed orders made by the user
-         * @param {string} symbol unified market symbol of the market orders were made in
-         * @param {int|undefined} since the earliest time in ms to fetch orders for
-         * @param {int|undefined} limit the maximum number of closed order structures to retrieve
+         * @see https://bitgetlimited.github.io/apidoc/en/spot/#get-order-history
+         * @see https://bitgetlimited.github.io/apidoc/en/mix/#get-history-orders
+         * @param {string} symbol unified market symbol of the closed orders
+         * @param {int|undefined} since timestamp in ms of the earliest order
+         * @param {int|undefined} limit the max number of closed orders to return
          * @param {object} params extra parameters specific to the bitget api endpoint
          * @returns {[object]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
          */
-        this.checkRequiredSymbol ('fetchClosedOrders', symbol);
         await this.loadMarkets ();
+        this.checkRequiredSymbol ('fetchClosedOrders', symbol);
         const market = this.market (symbol);
-        const [ marketType, query ] = this.handleMarketTypeAndParams ('fetchClosedOrders', market, params);
-        const request = {
-            'symbol': market['id'],
-        };
-        let method = this.getSupportedMapping (marketType, {
-            'spot': 'privateSpotPostTradeHistory',
-            'swap': 'privateMixGetOrderHistory',
-        });
-        const stop = this.safeValue (query, 'stop');
-        if (stop) {
-            if (marketType === 'spot') {
-                method = 'privateSpotPostPlanHistoryPlan';
-            } else {
-                method = 'privateMixGetPlanHistoryPlan';
-            }
-        }
-        if (marketType === 'swap' || stop) {
-            if (limit === undefined) {
-                limit = 100;
-            }
-            request['pageSize'] = limit;
-            if (since === undefined) {
-                since = 0;
-            }
-            request['startTime'] = since;
-            request['endTime'] = this.milliseconds ();
-        }
-        const omitted = this.omit (query, 'stop');
-        const response = await this[method] (this.extend (request, omitted));
-        //
-        //  spot
-        //     {
-        //       code: '00000',
-        //       msg: 'success',
-        //       requestTime: 1645925335553,
-        //       data: [
-        //         {
-        //           accountId: '6394957606',
-        //           symbol: 'BTCUSDT_SPBL',
-        //           orderId: '881623995442958336',
-        //           clientOrderId: '135335e9-b054-4e43-b00a-499f11d3a5cc',
-        //           price: '39000.000000000000',
-        //           quantity: '0.000700000000',
-        //           orderType: 'limit',
-        //           side: 'buy',
-        //           status: 'full_fill',
-        //           fillPrice: '39000.000000000000',
-        //           fillQuantity: '0.000700000000',
-        //           fillTotalAmount: '27.300000000000',
-        //           cTime: '1645921460972'
-        //         }
-        //       ]
-        //     }
-        //
-        // swap
-        //     {
-        //       code: '00000',
-        //       msg: 'success',
-        //       requestTime: 1645925688701,
-        //       data: {
-        //         nextFlag: false,
-        //         endId: '881640729145409536',
-        //         orderList: [
-        //           {
-        //             symbol: 'BTCUSDT_UMCBL',
-        //             size: 0.001,
-        //             orderId: '881640729145409536',
-        //             clientOid: '881640729204129792',
-        //             filledQty: 0.001,
-        //             fee: 0,
-        //             price: null,
-        //             priceAvg: 38429.5,
-        //             state: 'filled',
-        //             side: 'open_long',
-        //             timeInForce: 'normal',
-        //             totalProfits: 0,
-        //             posSide: 'long',
-        //             marginCoin: 'USDT',
-        //             filledAmount: 38.4295,
-        //             orderType: 'market',
-        //             cTime: '1645925450611',
-        //             uTime: '1645925450746'
-        //           }
-        //         ]
-        //       }
-        //     }
-        //
-        // spot plan order
-        //
-        //     {
-        //         "code": "00000",
-        //         "msg": "success",
-        //         "requestTime": 1668134626684,
-        //         "data": {
-        //         "nextFlag": false,
-        //         "endId": 974792060738441216,
-        //         "orderList": [
-        //             {
-        //             "orderId": "974792060738441216",
-        //             "symbol": "TRXUSDT_SPBL",
-        //             "size": "156",
-        //             "executePrice": "0.041272",
-        //             "triggerPrice": "0.041222",
-        //             "status": "cancel",
-        //             "orderType": "limit",
-        //             "side": "buy",
-        //             "triggerType": "fill_price",
-        //             "cTime": "1668134458717"
-        //             }
-        //           ]
-        //         }
-        //     }
-        //
-        // swap plan order
-        //
-        //     {
-        //         "code":"00000",
-        //         "data":[
-        //             {
-        //                 "orderId":"803521986049314816",
-        //                 "executeOrderId":"84271931884910",
-        //                 "symbol":"BTCUSDT_UMCBL",
-        //                 "marginCoin":"USDT",
-        //                 "size":"1",
-        //                 "executePrice":"38923.1",
-        //                 "triggerPrice":"45000.3",
-        //                 "status":"not_trigger",
-        //                 "orderType":"limit",
-        //                 "planType":"normal_plan",
-        //                 "side":"open_long",
-        //                 "triggerType":"fill_price",
-        //                 "presetTakeProfitPrice":"0",
-        //                 "presetTakeLossPrice":"0",
-        //                 "ctime":"1627300490867"
-        //             }
-        //         ],
-        //         "msg":"success",
-        //         "requestTime":1627354109502
-        //     }
-        //
+        const response = await this.fetchCanceledAndClosedOrders (symbol, since, limit, params);
         const data = this.safeValue (response, 'data');
         const orderList = this.safeValue (data, 'orderList', data);
         const result = [];
@@ -3112,15 +2976,32 @@ module.exports = class bitget extends Exchange {
          * @see https://bitgetlimited.github.io/apidoc/en/mix/#get-history-orders
          * @param {string} symbol unified market symbol of the canceled orders
          * @param {int|undefined} since timestamp in ms of the earliest order
-         * @param {int|undefined} limit max number of orders to return
+         * @param {int|undefined} limit the max number of canceled orders to return
          * @param {object} params extra parameters specific to the bitget api endpoint
          * @returns {object} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
          */
+        await this.loadMarkets ();
         this.checkRequiredSymbol ('fetchCanceledOrders', symbol);
+        const market = this.market (symbol);
+        const response = await this.fetchCanceledAndClosedOrders (symbol, since, limit, params);
+        const data = this.safeValue (response, 'data');
+        const orderList = this.safeValue (data, 'orderList', data);
+        const result = [];
+        for (let i = 0; i < orderList.length; i++) {
+            const entry = orderList[i];
+            const status = this.parseOrderStatus (this.safeString2 (entry, 'state', 'status'));
+            if (status === 'canceled') {
+                result.push (entry);
+            }
+        }
+        return this.parseOrders (result, market, since, limit);
+    }
+
+    async fetchCanceledAndClosedOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
         const market = this.market (symbol);
         let marketType = undefined;
-        [ marketType, params ] = this.handleMarketTypeAndParams ('fetchCanceledOrders', market, params);
+        [ marketType, params ] = this.handleMarketTypeAndParams ('fetchCanceledAndClosedOrders', market, params);
         const request = {
             'symbol': market['id'],
         };
@@ -3219,22 +3100,22 @@ module.exports = class bitget extends Exchange {
         //         "msg": "success",
         //         "requestTime": 1668134626684,
         //         "data": {
-        //         "nextFlag": false,
-        //         "endId": 974792060738441216,
-        //         "orderList": [
-        //             {
-        //             "orderId": "974792060738441216",
-        //             "symbol": "TRXUSDT_SPBL",
-        //             "size": "156",
-        //             "executePrice": "0.041272",
-        //             "triggerPrice": "0.041222",
-        //             "status": "cancel",
-        //             "orderType": "limit",
-        //             "side": "buy",
-        //             "triggerType": "fill_price",
-        //             "cTime": "1668134458717"
-        //             }
-        //           ]
+        //             "nextFlag": false,
+        //             "endId": 974792060738441216,
+        //             "orderList": [
+        //                 {
+        //                 "orderId": "974792060738441216",
+        //                 "symbol": "TRXUSDT_SPBL",
+        //                 "size": "156",
+        //                 "executePrice": "0.041272",
+        //                 "triggerPrice": "0.041222",
+        //                 "status": "cancel",
+        //                 "orderType": "limit",
+        //                 "side": "buy",
+        //                 "triggerType": "fill_price",
+        //                 "cTime": "1668134458717"
+        //                 }
+        //             ]
         //         }
         //     }
         //
@@ -3265,17 +3146,7 @@ module.exports = class bitget extends Exchange {
         //         "requestTime":1627354109502
         //     }
         //
-        const data = this.safeValue (response, 'data');
-        const orderList = this.safeValue (data, 'orderList', data);
-        const result = [];
-        for (let i = 0; i < orderList.length; i++) {
-            const entry = orderList[i];
-            const status = this.parseOrderStatus (this.safeString2 (entry, 'state', 'status'));
-            if (status === 'canceled') {
-                result.push (entry);
-            }
-        }
-        return this.parseOrders (result, market, since, limit);
+        return response;
     }
 
     async fetchLedger (code = undefined, since = undefined, limit = undefined, params = {}) {
