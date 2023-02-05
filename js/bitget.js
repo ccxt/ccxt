@@ -3632,6 +3632,7 @@ module.exports = class bitget extends Exchange {
          * @method
          * @name bitget#fetchFundingHistory
          * @description fetch the funding history
+         * @see https://bitgetlimited.github.io/apidoc/en/mix/#get-account-bill
          * @param {string} symbol unified market symbol
          * @param {int|undefined} since the starting timestamp in milliseconds
          * @param {int|undefined} limit the number of entries to return
