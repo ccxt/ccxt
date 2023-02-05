@@ -1281,7 +1281,6 @@ module.exports = class btcex extends Exchange {
         const market = this.market (symbol);
         const request = {
             'instrument_name': market['id'],
-            'amount': this.amountToPrecision (symbol, amount),
             'type': type,
         };
         if (type === 'limit') {
@@ -1297,6 +1296,7 @@ module.exports = class btcex extends Exchange {
                     request['market_amount_order'] = true;
                 } else {
                     request['market_amount_order'] = false;
+                    request['amount'] = this.amountToPrecision (symbol, amount);
                 }
             } else {
                 if (side === 'buy') {
@@ -1307,6 +1307,8 @@ module.exports = class btcex extends Exchange {
                         } else {
                             request['amount'] = this.priceToPrecision (symbol, cost);
                         }
+                    } else {
+                        request['amount'] = this.priceToPrecision (symbol, amount);
                     }
                 }
             }
