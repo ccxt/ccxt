@@ -4,7 +4,7 @@
 
 const binanceRest = require ('../binance.js');
 const Precise = require ('../base/Precise');
-const { ExchangeError, ArgumentsRequired } = require ('../base/errors');
+const { ExchangeError, ArgumentsRequired, ResetConnection } = require ('../base/errors');
 const { ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById } = require ('./base/Cache');
 
 // -----------------------------------------------------------------------------
@@ -42,6 +42,7 @@ module.exports = class binance extends binanceRest {
                 },
             },
             'options': {
+                'resetConnectionInterval': 86100000, // set at 24 hours minus 5 minutes, set to 0 to turn off. Binance will close the connection after 24 hours
                 'streamLimits': {
                     'spot': 50, // max 1024
                     'margin': 50, // max 1024
@@ -114,6 +115,15 @@ module.exports = class binance extends binanceRest {
         this.options['streamBySubscriptionsHash'] = {};
         this.options['streamIndex'] = -1;
         super.onClose (client, error);
+    }
+
+    onConnected (client, message = undefined) {
+        const interval = this.safeInteger (this.options, 'resetConnectionInterval', 86100000);
+        if (interval > 0) {
+            const method = this.resetConnection;
+            this.delay (interval, method, client);
+        }
+        super.onConnected (client, message);
     }
 
     async watchOrderBook (symbol, limit = undefined, params = {}) {
@@ -1035,6 +1045,15 @@ module.exports = class binance extends binanceRest {
             });
             this.delay (listenKeyRefreshRate, this.keepAliveListenKey, params);
         }
+    }
+
+    async resetConnection (client) {
+        const interval = this.safeInteger (this.options, 'resetConnectionInterval', 86100000);
+        const hours = Precise.stringDiv (this.numberToString (interval), '3600000');
+        const error = new ResetConnection ('Resetting connection after ' + hours + ' hours. Binance will close the connection after 24 hours. Catch this error and call call again watch function to reconnect. This can be disabled by setting the option resetConnectionInterval to 0');
+        client.reject (error);
+        client.close ();
+        delete this.clients[client.url];
     }
 
     async keepAliveListenKey (params = {}) {

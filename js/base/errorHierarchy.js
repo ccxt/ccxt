@@ -30,6 +30,7 @@ const errorHierarchy = {
                 'DuplicateOrderId': {},
             },
             'NotSupported': {},
+            'ResetConnection': {},
         },
         'NetworkError': {
             'DDoSProtection': {
