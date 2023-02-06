@@ -90,7 +90,7 @@ module.exports = class ace extends Exchange {
                 '1M': 31,
             },
             'urls': {
-                'logo': '',
+                'logo': 'https://user-images.githubusercontent.com/1294454/216908003-fb314cf6-e66e-471c-b91d-1d86e4baaa90.jpg',
                 'api': {
                     'public': 'https://ace.io/polarisex',
                     'private': 'https://ace.io/polarisex/open',
