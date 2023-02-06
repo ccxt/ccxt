@@ -111,7 +111,7 @@ module.exports = class binance extends binanceRest {
         super.onError (client, error);
     }
 
-    onClose (client, error) {
+    onClose (client) {
         this.options['streamBySubscriptionsHash'] = {};
         this.options['streamIndex'] = -1;
         if (client.error) {
