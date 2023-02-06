@@ -1220,7 +1220,7 @@ class delta extends Exchange {
         $marketId = $this->safe_string($position, 'product_symbol');
         $market = $this->safe_market($marketId, $market);
         $symbol = $market['symbol'];
-        $timestamp = $this->safe_integer_product($position, 'timestamp', 0.0001);
+        $timestamp = $this->safe_integer_product($position, 'timestamp', 0.001);
         $sizeString = $this->safe_string($position, 'size');
         $side = null;
         if ($sizeString !== null) {
