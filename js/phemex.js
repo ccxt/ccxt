@@ -925,12 +925,11 @@ module.exports = class phemex extends Exchange {
             'symbol': market['id'],
             // 'id': 123456789, // optional request id
         };
-        let response = undefined;
+        let method = 'v1GetMdOrderbook';
         if (market['linear']) {
-            response = await this.v2GetMdV2Orderbook (this.extend (request, params));
-        } else {
-            response = await this.v1GetMdOrderbook (this.extend (request, params));
+            method = 'v2GetMdV2Orderbook';
         }
+        const response = await this[method] (this.extend (request, params));
         //
         //     {
         //         "error": null,
@@ -1089,12 +1088,11 @@ module.exports = class phemex extends Exchange {
         await this.loadMarkets ();
         const market = this.market (symbol);
         request['symbol'] = market['id'];
-        let response = undefined;
+        let method = 'publicGetMdKline';
         if (market['linear']) {
-            response = await this.publicGetMdV2KlineLast (this.extend (request, params));
-        } else {
-            response = await this.publicGetMdKline (this.extend (request, params));
+            method = 'publicGetMdV2KlineLast';
         }
+        const response = await this[method] (this.extend (request, params));
         //
         //     {
         //         "code":0,
@@ -1292,7 +1290,11 @@ module.exports = class phemex extends Exchange {
             'symbol': market['id'],
             // 'id': 123456789, // optional request id
         };
-        const response = await this.v1GetMdTrade (this.extend (request, params));
+        let method = 'v1GetMdTrade';
+        if (market['linear']) {
+            method = 'v2GetMdV2Trade';
+        }
+        const response = await this[method] (this.extend (request, params));
         //
         //     {
         //         "error": null,
@@ -1310,13 +1312,17 @@ module.exports = class phemex extends Exchange {
         //     }
         //
         const result = this.safeValue (response, 'result', {});
-        const trades = this.safeValue (result, 'trades', []);
+        const trades = this.safeValue2 (result, 'trades', 'trades_p', []);
         return this.parseTrades (trades, market, since, limit);
+    }
+
+    isNumber (n) {
+        return !Number.isNaN (parseFloat (n)) && !Number.isNaN (n - 0);
     }
 
     parseTrade (trade, market = undefined) {
         //
-        // fetchTrades (public)
+        // fetchTrades (public) spot & contract
         //
         //     [
         //         1592541746712239749,
@@ -1324,6 +1330,15 @@ module.exports = class phemex extends Exchange {
         //         "Buy",
         //         93070000,
         //         40173
+        //     ]
+        //
+        // fetchTrades (public) perp
+        //
+        //     [
+        //         1675690986063435800,
+        //         "Sell",
+        //         "22857.4",
+        //         "0.269"
         //     ]
         //
         // fetchMyTrades (private)
@@ -1402,8 +1417,12 @@ module.exports = class phemex extends Exchange {
                 id = this.safeString (trade, tradeLength - 4);
             }
             side = this.safeStringLower (trade, tradeLength - 3);
-            priceString = this.fromEp (this.safeString (trade, tradeLength - 2), market);
-            amountString = this.fromEv (this.safeString (trade, tradeLength - 1), market);
+            priceString = this.safeString (trade, tradeLength - 2);
+            amountString = this.safeString (trade, tradeLength - 1);
+            if (typeof trade[tradeLength - 2] === 'number') {
+                priceString = this.fromEp (priceString, market);
+                amountString = this.fromEv (amountString, market);
+            }
         } else {
             timestamp = this.safeIntegerProduct (trade, 'transactTimeNs', 0.000001);
             id = this.safeString2 (trade, 'execId', 'execID');
