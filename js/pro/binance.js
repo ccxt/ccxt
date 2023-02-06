@@ -114,7 +114,14 @@ module.exports = class binance extends binanceRest {
     onClose (client, error) {
         this.options['streamBySubscriptionsHash'] = {};
         this.options['streamIndex'] = -1;
-        super.onClose (client, error);
+        if (client.error) {
+            // connection closed due to an error, do nothing
+        } else {
+            // server disconnected a working connection
+            if (this.clients[client.url]) {
+                delete this.clients[client.url];
+            }
+        }
     }
 
     onConnected (client, message = undefined) {
@@ -123,7 +130,6 @@ module.exports = class binance extends binanceRest {
             const method = this.resetConnection;
             this.delay (interval, method, client);
         }
-        super.onConnected (client, message);
     }
 
     async watchOrderBook (symbol, limit = undefined, params = {}) {
