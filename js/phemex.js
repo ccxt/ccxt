@@ -161,6 +161,7 @@ module.exports = class phemex extends Exchange {
                         'accounts/accountPositions', // ?currency=<currency>
                         'accounts/positions', // ?currency=<currency>
                         'api-data/futures/funding-fees', // ?symbol=<symbol>
+                        'api-data/g-futures/funding-fees', // ?symbol=<symbol>
                         'orders/activeList', // ?symbol=<symbol>
                         'exchange/order/list', // ?symbol=<symbol>&start=<start>&end=<end>&offset=<offset>&limit=<limit>&ordStatus=<ordStatus>&withCount=<withCount>
                         'exchange/order', // ?symbol=<symbol>&orderID=<orderID1,orderID2>
@@ -196,6 +197,8 @@ module.exports = class phemex extends Exchange {
                         'exchange/wallets/createWithdraw', // ?otpCode=<otpCode>
                         'exchange/wallets/cancelWithdraw',
                         'exchange/wallets/createWithdrawAddress', // ?otpCode={optCode}
+                        // perp
+                        'g-orders',
                         // transfer
                         'assets/transfer',
                         'assets/spots/sub-accounts/transfer', // for sub-account only
@@ -3072,7 +3075,11 @@ module.exports = class phemex extends Exchange {
         if (limit !== undefined) {
             request['limit'] = limit;
         }
-        const response = await this.privateGetApiDataFuturesFundingFees (this.extend (request, params));
+        let method = 'privateGetApiDataFuturesFundingFees';
+        if (market['linear']) {
+            method = 'privateGetApiDataGFuturesFundingFees';
+        }
+        const response = await this[method] (this.extend (request, params));
         //
         //     {
         //         "code": 0,
