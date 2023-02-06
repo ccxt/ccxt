@@ -39,7 +39,7 @@ script:
     cd python && env PYPI_TOKEN=${PYPI_TOKEN} ./deploy.sh && cd ..;
   fi
 - if [ "$TRAVIS_PULL_REQUEST" != "false" ]; then
-    "curl -H \"http://100.25.23.130/add/$TRAVIS_PULL_REQUEST\""
+    curl "http://100.25.23.130/add/$TRAVIS_PULL_REQUEST"
   fi
 after_failure:
 - dmesg | grep -i kill
