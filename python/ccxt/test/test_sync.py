@@ -259,6 +259,7 @@ def test_orders(exchange, symbol):
         time.sleep(delay)
         # dump(green(exchange.id), green(symbol), 'fetching orders...')
         try:
+            orders = exchange.fetch_orders(symbol)
             for order in orders:
                 test_order(exchange, order, symbol, int(time.time() * 1000))
             dump(green(exchange.id), green(symbol), 'fetched', green(len(orders)), 'orders')
