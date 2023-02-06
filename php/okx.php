@@ -4099,7 +4099,7 @@ class okx extends Exchange {
         if ($type !== null) {
             $request['instType'] = $this->convert_to_instrument_type($type);
         }
-        $response = $this->privateGetAccountPositions ($query);
+        $response = $this->privateGetAccountPositions (array_merge($request, $query));
         //
         //     {
         //         "code" => "0",
@@ -4308,7 +4308,7 @@ class okx extends Exchange {
                 }
             }
         }
-        $contractSize = $this->safe_value($market, 'contractSize');
+        $contractSize = $this->safe_number($market, 'contractSize');
         $contractSizeString = $this->number_to_string($contractSize);
         $markPriceString = $this->safe_string($position, 'markPx');
         $notionalString = $this->safe_string($position, 'notionalUsd');

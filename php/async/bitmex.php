@@ -1825,15 +1825,14 @@ class bitmex extends Exchange {
                     throw new InvalidOrder($this->id . ' createOrder() does not support $reduceOnly for ' . $market['type'] . ' orders, $reduceOnly orders are supported for swap and future markets only');
                 }
             }
+            $brokerId = $this->safe_string($this->options, 'brokerId', 'CCXT');
             $request = array(
                 'symbol' => $market['id'],
                 'side' => $this->capitalize($side),
                 'orderQty' => floatval($this->amount_to_precision($symbol, $amount)), // lot size multiplied by the number of contracts
                 'ordType' => $orderType,
+                'text' => $brokerId,
             );
-            if ($reduceOnly) {
-                $request['execInst'] = 'ReduceOnly';
-            }
             if (($orderType === 'Stop') || ($orderType === 'StopLimit') || ($orderType === 'MarketIfTouched') || ($orderType === 'LimitIfTouched')) {
                 $stopPrice = $this->safe_number_2($params, 'stopPx', 'stopPrice');
                 if ($stopPrice === null) {
@@ -1877,6 +1876,8 @@ class bitmex extends Exchange {
             if ($price !== null) {
                 $request['price'] = $price;
             }
+            $brokerId = $this->safe_string($this->options, 'brokerId', 'CCXT');
+            $request['text'] = $brokerId;
             $response = Async\await($this->privatePutOrder (array_merge($request, $params)));
             return $this->parse_order($response);
         }) ();

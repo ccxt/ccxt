@@ -4,7 +4,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '2.7.27'
+__version__ = '2.7.46'
 
 # -----------------------------------------------------------------------------
 
@@ -53,6 +53,7 @@ from ccxt.base.errors import RequestTimeout                           # noqa: F4
 from ccxt.base.errors import error_hierarchy                          # noqa: F401
 
 
+from ccxt.async_support.ace import ace                                          # noqa: F401
 from ccxt.async_support.alpaca import alpaca                                    # noqa: F401
 from ccxt.async_support.ascendex import ascendex                                # noqa: F401
 from ccxt.async_support.bequant import bequant                                  # noqa: F401
@@ -165,6 +166,7 @@ from ccxt.async_support.zb import zb                                            
 from ccxt.async_support.zonda import zonda                                      # noqa: F401
 
 exchanges = [
+    'ace',
     'alpaca',
     'ascendex',
     'bequant',

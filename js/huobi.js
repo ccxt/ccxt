@@ -595,6 +595,8 @@ module.exports = class huobi extends Exchange {
                             'swap-api/v1/swap_api_trading_status': 1,
                             // Swap Account Interface
                             'linear-swap-api/v1/swap_api_trading_status': 1,
+                            'linear-swap-api/v3/unified_account_info': 1,
+                            'linear-swap-api/v3/swap_unified_account_type': 1,
                         },
                         'post': {
                             // Future Account Interface
@@ -784,7 +786,6 @@ module.exports = class huobi extends Exchange {
                             'linear-swap-api/v3/swap_cross_hisorders': 1,
                             'linear-swap-api/v3/swap_hisorders_exact': 1,
                             'linear-swap-api/v3/swap_cross_hisorders_exact': 1,
-                            'linear-swap-api/v3/swap_unified_account_type': 1,
                             'linear-swap-api/v3/swap_switch_account_type': 1,
                             // Swap Strategy Order Interface
                             'linear-swap-api/v1/swap_trigger_order': 1,
@@ -2928,7 +2929,6 @@ module.exports = class huobi extends Exchange {
         const options = this.safeValue (this.options, 'fetchBalance', {});
         const request = {};
         let method = undefined;
-        const margin = (type === 'margin');
         const spot = (type === 'spot');
         const future = (type === 'future');
         const swap = (type === 'swap');
@@ -2942,22 +2942,19 @@ module.exports = class huobi extends Exchange {
         params = this.omit (params, [ 'defaultSubType', 'subType' ]);
         const isolated = (marginMode === 'isolated');
         const cross = (marginMode === 'cross');
-        if (spot) {
-            if (isolated) {
-                method = 'spotPrivateGetV1MarginAccountsBalance';
-            } else if (cross) {
-                method = 'spotPrivateGetV1CrossMarginAccountsBalance';
+        const margin = (type === 'margin') || (spot && (cross || isolated));
+        if (spot || margin) {
+            if (margin) {
+                if (isolated) {
+                    method = 'spotPrivateGetV1MarginAccountsBalance';
+                } else {
+                    method = 'spotPrivateGetV1CrossMarginAccountsBalance';
+                }
             } else {
                 await this.loadAccounts ();
                 const accountId = await this.fetchAccountIdByType (type, params);
                 request['account-id'] = accountId;
                 method = 'spotPrivateGetV1AccountAccountsAccountIdBalance';
-            }
-        } else if (margin) {
-            if (isolated) {
-                method = 'spotPrivateGetV1MarginAccountsBalance';
-            } else {
-                method = 'spotPrivateGetV1CrossMarginAccountsBalance';
             }
         } else if (linear) {
             if (isolated) {
@@ -3130,7 +3127,7 @@ module.exports = class huobi extends Exchange {
         //
         // TODO add balance parsing for linear swap
         //
-        const result = { 'info': response };
+        let result = { 'info': response };
         const data = this.safeValue (response, 'data');
         if (spot || margin) {
             if (isolated) {
@@ -3155,17 +3152,11 @@ module.exports = class huobi extends Exchange {
                     const code = this.safeCurrencyCode (currencyId);
                     result[code] = this.parseMarginBalanceHelper (balance, code, result);
                 }
+                result = this.safeBalance (result);
             }
         } else if (linear) {
             const first = this.safeValue (data, 0, {});
-            if (cross) {
-                const account = this.account ();
-                account['free'] = this.safeString (first, 'margin_balance', 'margin_available');
-                account['used'] = this.safeString (first, 'margin_frozen');
-                const currencyId = this.safeString2 (first, 'margin_asset', 'symbol');
-                const code = this.safeCurrencyCode (currencyId);
-                result[code] = account;
-            } else if (isolated) {
+            if (isolated) {
                 for (let i = 0; i < data.length; i++) {
                     const balance = data[i];
                     const marketId = this.safeString2 (balance, 'contract_code', 'margin_account');
@@ -3186,7 +3177,14 @@ module.exports = class huobi extends Exchange {
                         result[symbol] = this.safeBalance (accountsByCode);
                     }
                 }
-                return result;
+            } else {
+                const account = this.account ();
+                account['free'] = this.safeString (first, 'margin_balance', 'margin_available');
+                account['used'] = this.safeString (first, 'margin_frozen');
+                const currencyId = this.safeString2 (first, 'margin_asset', 'symbol');
+                const code = this.safeCurrencyCode (currencyId);
+                result[code] = account;
+                result = this.safeBalance (result);
             }
         } else if (inverse) {
             for (let i = 0; i < data.length; i++) {
@@ -3198,9 +3196,9 @@ module.exports = class huobi extends Exchange {
                 account['used'] = this.safeString (balance, 'margin_frozen');
                 result[code] = account;
             }
+            result = this.safeBalance (result);
         }
-        const isolatedMargin = isolated && (spot || margin);
-        return isolatedMargin ? result : this.safeBalance (result);
+        return result;
     }
 
     async fetchOrder (id, symbol = undefined, params = {}) {

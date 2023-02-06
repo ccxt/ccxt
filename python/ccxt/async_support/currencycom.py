@@ -358,7 +358,6 @@ class currencycom(Exchange):
             result[code] = {
                 'id': id,
                 'code': code,
-                'address': self.safe_string(currency, 'baseAddress'),
                 'type': self.safe_string_lower(currency, 'type'),
                 'name': self.safe_string(currency, 'name'),
                 'active': None,

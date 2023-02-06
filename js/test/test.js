@@ -5,6 +5,10 @@
 const [processPath, , exchangeId = null, exchangeSymbol = null] = process.argv.filter ((x) => !x.startsWith ('--'));
 const verbose = process.argv.includes ('--verbose') || false;
 const debug = process.argv.includes ('--debug') || false;
+const sandbox = process.argv.includes ('--sandbox') || false;
+const privateTest = process.argv.includes ('--private') || false;
+const privateOnly = process.argv.includes ('--privateOnly') || false;
+
 const HttpsProxyAgent = require ('https-proxy-agent')
 
 // ----------------------------------------------------------------------------
@@ -344,23 +348,27 @@ async function testExchange (exchange) {
     }
 
     console.log ('SYMBOL:', symbol);
-    await testSymbol (exchange, symbol);
-
-    // if API key is not set, then skip the private tests
-    if (!exchange.privateKey && (!exchange.apiKey || (exchange.apiKey.length < 1))) {
-        return true;
+    if (!privateOnly) {
+        await testSymbol (exchange, symbol);
     }
 
+    if (privateTest || privateOnly) {
+        if (!exchange.privateKey && (!exchange.apiKey || (exchange.apiKey.length < 1))) {
+            console.log ('[Skipped]', 'Keys not found, skipping private tests');
+            return true;
+        }
+        await runPrivateTests (exchange, symbol);
+    }
+}
+
+//-----------------------------------------------------------------------------
+
+async function runPrivateTests(exchange, symbol) {
     exchange.checkRequiredCredentials ();
 
     await test ('signIn', exchange);
 
-    // move to testnet/sandbox if possible before accessing the balance
-    // if (exchange.urls['test'])
-    //    exchange.urls['api'] = exchange.urls['test']
-
     await test ('fetchBalance', exchange);
-
     await test ('fetchAccounts', exchange);
     await test ('fetchTransactionFees', exchange);
     // fethcTradingFee(s) & fetchTransactionFee(s) might be public for some exchanges
@@ -480,6 +488,10 @@ async function main () {
     // we don't need to test aliases
     if (exchange.alias) {
         return;
+    }
+
+    if (sandbox || exchange.sandbox) {
+        exchange.setSandboxMode (true);
     }
 
     if (exchangeSymbol) {
