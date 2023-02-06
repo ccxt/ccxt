@@ -3697,7 +3697,7 @@ export default class bitget extends Exchange {
         if (limit !== undefined) {
             request['pageSize'] = limit;
         }
-        const response = await this.privateMixGetAccountAccountBill (this.extend (request, params));
+        const response = await (this as any).privateMixGetAccountAccountBill (this.extend (request, params));
         //
         //    {
         //        "code": "00000",
