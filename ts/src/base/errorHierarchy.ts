@@ -30,6 +30,9 @@ const errorHierarchy = {
                 'DuplicateOrderId': {},
                 'ContractUnavailable': {},
             },
+            'InvalidPosition': {
+                'PositionNotFound': {},
+            },
             'NotSupported': {},
         },
         'NetworkError': {
