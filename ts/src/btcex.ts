@@ -40,7 +40,16 @@ export default class btcex extends Exchange {
                 'option': true,
                 'cancelAllOrders': true,
                 'cancelOrder': true,
+                'createLimitBuyOrder': true,
+                'createLimitSellOrder': true,
+                'createMarketBuyOrder': true,
+                'createMarketSellOrder': true,
                 'createOrder': true,
+                'createPostOnlyOrder': true,
+                'createReduceOnlyOrder': true,
+                'createStopLimitOrder': true,
+                'createStopMarketOrder': true,
+                'createStopOrder': true,
                 'editOrder': false,
                 'fetchBalance': true,
                 'fetchBorrowRate': false,
@@ -306,6 +315,7 @@ export default class btcex extends Exchange {
                     'BTC': 'BTC',
                     'ETH': 'ETH',
                 },
+                'createMarketBuyOrderRequiresPrice': true,
             },
             'commonCurrencies': {
             },
@@ -1241,26 +1251,77 @@ export default class btcex extends Exchange {
     }
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
+        /**
+         * @method
+         * @name btcex#createOrder
+         * @description create a trade order
+         * @param {string} symbol unified symbol of the market to create an order in
+         * @param {string} type 'market' or 'limit'
+         * @param {string} side 'buy' or 'sell'
+         * @param {float} amount how much of currency you want to trade in units of the base currency
+         * @param {float|undefined} price the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+         * @param {object} params extra parameters specific to the btcex api endpoint
+         * ----------------- Exchange Specific Parameters -----------------
+         * @param {float|undefined} params.cost amount in USDT to spend for market orders
+         * @param {float|undefined} params.triggerPrice price to trigger stop orders
+         * @param {float|undefined} params.stopPrice price to trigger stop orders
+         * @param {float|undefined} params.stopLossPrice price to trigger stop-loss orders (only for perpetuals)
+         * @param {float|undefined} params.takeProfitPrice price to trigger take-profit orders (only for perpetuals)
+         * @param {object|undefined} params.stopLoss for setting a stop-loss attached to an order, set the value of the stopLoss key 'price' (only for perpetuals)
+         * @param {object|undefined} params.takeProfit for setting a take-profit attached to an order, set the value of the takeProfit key 'price' (only for perpetuals)
+         * @param {int|undefined} params.trigger_price_type 1: mark-price, 2: last-price. (only for perpetuals)
+         * @param {int|undefined} params.stop_loss_type 1: mark-price, 2: last-price (only for perpetuals)
+         * @param {int|undefined} params.take_profit_type 1: mark-price, 2: last-price (only for perpetuals)
+         * @param {bool|undefined} params.market_amount_order if set to true，then the amount field means USDT value (only for perpetuals)
+         * @param {string|undefined} params.condition_type 'NORMAL', 'STOP', 'TRAILING', 'IF_TOUCHED'
+         * @param {string|undefined} params.position_side 'BOTH', for one-way mode 'LONG' or 'SHORT', for hedge-mode
+         * @param {string|undefined} params.timeInForce 'GTC', 'IOC', 'FOK'
+         * @param {bool|undefined} params.postOnly
+         * @param {bool|undefined} params.reduceOnly
+         * @returns {object} an [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
+         */
         await this.signIn ();
         await this.loadMarkets ();
         const market = this.market (symbol);
         const request = {
             'instrument_name': market['id'],
-            'amount': this.amountToPrecision (symbol, amount),
-            'type': type, // limit, market, default is limit
-            // 'price': this.priceToPrecision (symbol, 123.45), // The order price for limit order. When adding options order with advanced=iv, the field price should be a value of implied volatility in percentages. For example, price=100, means implied volatility of 100%
-            // 'time_in_force' : 'good_til_cancelled', // good_til_cancelled, good_til_date, fill_or_kill, immediate_or_cancel Specifies how long the order remains in effect, default: good_til_cancelled
-            // 'post_only': false, // If true, the order is considered post-only, default: false
-            // 'reduce_only': false, // If true, the order is considered reduce-only which is intended to only reduce a current position. default: false
-            // 'condition_type': '', // NORMAL, STOP, TRAILING, IF_TOUCHED, Condition sheet policy, the default is NORMAL. Available when kind is future
-            // 'trigger_price': 'index_price', // trigger price. Available when condition_type is STOP or IF_TOUCHED
-            // 'trail_price': false, // trail price, Tracking price change Delta. Available when condition_type is TRAILING
-            // 'advanced': 'usd', // Advanced option order type, (Only for options), default: usdt. If set to iv，then the price field means iv value
+            'type': type,
         };
+        if (side === 'sell') {
+            request['amount'] = this.amountToPrecision (symbol, amount);
+        }
         if (type === 'limit') {
             request['price'] = this.priceToPrecision (symbol, price);
+        } else {
+            const costParam = this.safeNumber (params, 'cost');
+            const amountString = this.numberToString (amount);
+            const priceString = this.numberToString (price);
+            const cost = this.parseNumber (Precise.stringMul (amountString, priceString), costParam);
+            if (market['swap']) {
+                if (cost !== undefined) {
+                    request['amount'] = this.priceToPrecision (symbol, cost);
+                    request['market_amount_order'] = true;
+                } else {
+                    request['market_amount_order'] = false;
+                    request['amount'] = this.amountToPrecision (symbol, amount);
+                }
+            } else {
+                if (side === 'buy') {
+                    const createMarketBuyOrderRequiresPrice = this.safeValue (this.options, 'createMarketBuyOrderRequiresPrice', true);
+                    if (createMarketBuyOrderRequiresPrice) {
+                        if (cost === undefined) {
+                            throw new InvalidOrder (this.id + ' createOrder() requires a price argument for market buy orders on spot markets to calculate the total amount to spend (amount * price), alternatively set the createMarketBuyOrderRequiresPrice option to false and pass in the cost to spend into the amount parameter');
+                        } else {
+                            request['amount'] = this.priceToPrecision (symbol, cost);
+                        }
+                    } else {
+                        request['amount'] = this.priceToPrecision (symbol, amount);
+                    }
+                }
+            }
+            params = this.omit (params, 'cost');
         }
-        if (market['contract']) {
+        if (market['swap']) {
             const timeInForce = this.safeStringUpper (params, 'timeInForce');
             if (timeInForce === 'GTC') {
                 request['time_in_force'] = 'good_till_cancelled';
@@ -1279,7 +1340,43 @@ export default class btcex extends Exchange {
             if (reduceOnly) {
                 request['reduce_only'] = true;
             }
-            params = this.omit (params, [ 'timeInForce', 'postOnly', 'reduceOnly' ]);
+            if (side === 'buy') {
+                const requestType = (reduceOnly) ? 'SHORT' : 'LONG';
+                request['position_side'] = requestType;
+            } else {
+                const requestType = (reduceOnly) ? 'LONG' : 'SHORT';
+                request['position_side'] = requestType;
+            }
+            const stopPrice = this.safeNumber2 (params, 'triggerPrice', 'stopPrice');
+            let stopLossPrice = this.safeNumber (params, 'stopLossPrice');
+            let takeProfitPrice = this.safeNumber (params, 'takeProfitPrice');
+            const isStopLoss = this.safeValue (params, 'stopLoss');
+            const isTakeProfit = this.safeValue (params, 'takeProfit');
+            if (stopPrice) {
+                request['condition_type'] = 'STOP';
+                request['trigger_price'] = this.priceToPrecision (symbol, stopPrice);
+                request['trigger_price_type'] = 1;
+            } else if (stopLossPrice || takeProfitPrice) {
+                request['condition_type'] = 'STOP';
+                if (stopLossPrice) {
+                    request['trigger_price'] = this.priceToPrecision (symbol, stopLossPrice);
+                } else {
+                    request['trigger_price'] = this.priceToPrecision (symbol, takeProfitPrice);
+                }
+                request['reduce_only'] = true;
+                request['trigger_price_type'] = 1;
+            } else if (isStopLoss || isTakeProfit) {
+                if (isStopLoss) {
+                    stopLossPrice = this.safeNumber (isStopLoss, 'price');
+                    request['stop_loss_price'] = this.priceToPrecision (symbol, stopLossPrice);
+                    request['stop_loss_type'] = 1;
+                } else {
+                    takeProfitPrice = this.safeNumber (isTakeProfit, 'price');
+                    request['take_profit_price'] = this.priceToPrecision (symbol, takeProfitPrice);
+                    request['take_profit_type'] = 1;
+                }
+            }
+            params = this.omit (params, [ 'timeInForce', 'postOnly', 'reduceOnly', 'stopPrice', 'triggerPrice', 'stopLossPrice', 'takeProfitPrice', 'stopLoss', 'takeProfit' ]);
         }
         const method = 'privatePost' + this.capitalize (side);
         const response = await this[method] (this.extend (request, params));

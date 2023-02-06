@@ -46,6 +46,7 @@ class bybit(Exchange):
                 'cancelOrder': True,
                 'createOrder': True,
                 'createPostOnlyOrder': True,
+                'createReduceOnlyOrder': True,
                 'createStopLimitOrder': True,
                 'createStopMarketOrder': True,
                 'createStopOrder': True,
@@ -1904,22 +1905,20 @@ class bybit(Exchange):
     async def fetch_spot_ohlcv(self, symbol, timeframe='1m', since=None, limit=None, params={}):
         await self.load_markets()
         market = self.market(symbol)
+        duration = self.parse_timeframe(timeframe)
         request = {
             'symbol': market['id'],
+            'limit': limit,
         }
-        duration = self.parse_timeframe(timeframe)
-        now = self.seconds()
-        sinceTimestamp = None
-        if limit is None:
-            limit = 200  # default is 200 when requested with `since`
-        if since is None:
-            sinceTimestamp = now - limit * duration
-        else:
-            sinceTimestamp = int(since / 1000)
+        if since is not None:
+            request['startTime'] = since
+            if limit is None:
+                request['endTime'] = self.sum(since, 1000 * duration * 1000)
+            else:
+                request['endTime'] = self.sum(since, limit * duration * 1000)
         if limit is not None:
-            request['limit'] = limit  # max 200, default 200
+            request['limit'] = limit  # max 1000, default 1000
         request['interval'] = timeframe
-        request['from'] = sinceTimestamp
         response = await self.publicGetSpotV3PublicQuoteKline(self.extend(request, params))
         #
         #     {

@@ -31,6 +31,7 @@ export default class bybit extends Exchange {
                 'cancelOrder': true,
                 'createOrder': true,
                 'createPostOnlyOrder': true,
+                'createReduceOnlyOrder': true,
                 'createStopLimitOrder': true,
                 'createStopMarketOrder': true,
                 'createStopOrder': true,
@@ -1949,25 +1950,23 @@ export default class bybit extends Exchange {
     async fetchSpotOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
         const market = this.market (symbol);
+        const duration = this.parseTimeframe (timeframe);
         const request = {
             'symbol': market['id'],
+            'limit': limit,
         };
-        const duration = this.parseTimeframe (timeframe);
-        const now = this.seconds ();
-        let sinceTimestamp = undefined;
-        if (limit === undefined) {
-            limit = 200; // default is 200 when requested with `since`
-        }
-        if (since === undefined) {
-            sinceTimestamp = now - limit * duration;
-        } else {
-            sinceTimestamp = this.parseToInt (since / 1000);
+        if (since !== undefined) {
+            request['startTime'] = since;
+            if (limit === undefined) {
+                request['endTime'] = this.sum (since, 1000 * duration * 1000);
+            } else {
+                request['endTime'] = this.sum (since, limit * duration * 1000);
+            }
         }
         if (limit !== undefined) {
-            request['limit'] = limit; // max 200, default 200
+            request['limit'] = limit; // max 1000, default 1000
         }
         request['interval'] = timeframe;
-        request['from'] = sinceTimestamp;
         const response = await (this as any).publicGetSpotV3PublicQuoteKline (this.extend (request, params));
         //
         //     {

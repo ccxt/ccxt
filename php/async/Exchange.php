@@ -36,11 +36,11 @@ use \ccxt\pro\ClientTrait;
 
 include 'Throttle.php';
 
-$version = '2.7.44';
+$version = '2.7.49';
 
 class Exchange extends \ccxt\Exchange {
 
-    const VERSION = '2.7.44';
+    const VERSION = '2.7.49';
 
     public $browser;
     public $marketsLoading = null;
