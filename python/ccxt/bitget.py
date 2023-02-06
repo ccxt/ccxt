@@ -60,6 +60,7 @@ class bitget(Exchange):
                 'fetchBorrowRateHistory': False,
                 'fetchBorrowRates': False,
                 'fetchBorrowRatesPerSymbol': False,
+                'fetchCanceledOrders': True,
                 'fetchClosedOrders': True,
                 'fetchCurrencies': True,
                 'fetchDepositAddress': True,
@@ -84,6 +85,7 @@ class bitget(Exchange):
                 'fetchOpenOrders': True,
                 'fetchOrder': True,
                 'fetchOrderBook': True,
+                'fetchOrders': False,
                 'fetchOrderTrades': True,
                 'fetchPosition': True,
                 'fetchPositionMode': False,
@@ -2092,8 +2094,14 @@ class bitget(Exchange):
         statuses = {
             'new': 'open',
             'init': 'open',
+            'not_trigger': 'open',
+            'triggered': 'closed',
             'full_fill': 'closed',
             'filled': 'closed',
+            'fail_trigger': 'canceled',
+            'cancel': 'canceled',
+            'cancelled': 'canceled',
+            'canceled': 'canceled',
         }
         return self.safe_string(statuses, status, status)
 
@@ -2416,8 +2424,7 @@ class bitget(Exchange):
         :param dict params: extra parameters specific to the bitget api endpoint
         :returns dict: An `order structure <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
         """
-        if symbol is None:
-            raise ArgumentsRequired(self.id + ' cancelOrder() requires a symbol argument for spot orders')
+        self.check_required_symbol('cancelOrder', symbol)
         self.load_markets()
         market = self.market(symbol)
         marketType, query = self.handle_market_type_and_params('cancelOrder', market, params)
@@ -2453,8 +2460,7 @@ class bitget(Exchange):
         :param dict params: extra parameters specific to the bitget api endpoint
         :returns dict: an list of `order structures <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
         """
-        if symbol is None:
-            raise ArgumentsRequired(self.id + ' cancelOrders() requires a symbol argument')
+        self.check_required_symbol('cancelOrders', symbol)
         self.load_markets()
         market = self.market(symbol)
         type = self.safe_string(params, 'type', market['type'])
@@ -2580,8 +2586,7 @@ class bitget(Exchange):
         :param dict params: extra parameters specific to the bitget api endpoint
         :returns dict: An `order structure <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
         """
-        if symbol is None:
-            raise ArgumentsRequired(self.id + ' fetchOrder() requires a symbol argument')
+        self.check_required_symbol('fetchOrder', symbol)
         self.load_markets()
         market = self.market(symbol)
         marketType, query = self.handle_market_type_and_params('fetchOrder', market, params)
@@ -2654,12 +2659,11 @@ class bitget(Exchange):
         fetch all unfilled currently open orders
         :param str symbol: unified market symbol
         :param int|None since: the earliest time in ms to fetch open orders for
-        :param int|None limit: the maximum number of  open orders structures to retrieve
+        :param int|None limit: the maximum number of open order structures to retrieve
         :param dict params: extra parameters specific to the bitget api endpoint
         :returns [dict]: a list of `order structures <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
         """
-        if symbol is None:
-            raise ArgumentsRequired(self.id + ' fetchOpenOrders() requires a symbol argument')
+        self.check_required_symbol('fetchOpenOrders', symbol)
         self.load_markets()
         market = self.market(symbol)
         marketType = None
@@ -2793,17 +2797,54 @@ class bitget(Exchange):
     def fetch_closed_orders(self, symbol=None, since=None, limit=None, params={}):
         """
         fetches information on multiple closed orders made by the user
-        :param str symbol: unified market symbol of the market orders were made in
-        :param int|None since: the earliest time in ms to fetch orders for
-        :param int|None limit: the maximum number of  orde structures to retrieve
+        see https://bitgetlimited.github.io/apidoc/en/spot/#get-order-history
+        see https://bitgetlimited.github.io/apidoc/en/mix/#get-history-orders
+        :param str symbol: unified market symbol of the closed orders
+        :param int|None since: timestamp in ms of the earliest order
+        :param int|None limit: the max number of closed orders to return
         :param dict params: extra parameters specific to the bitget api endpoint
         :returns [dict]: a list of `order structures <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
         """
-        if symbol is None:
-            raise ArgumentsRequired(self.id + ' fetchClosedOrders() requires a symbol argument')
+        self.load_markets()
+        self.check_required_symbol('fetchClosedOrders', symbol)
+        market = self.market(symbol)
+        response = self.fetch_canceled_and_closed_orders(symbol, since, limit, params)
+        result = []
+        for i in range(0, len(response)):
+            entry = response[i]
+            status = self.parse_order_status(self.safe_string_2(entry, 'state', 'status'))
+            if status == 'closed':
+                result.append(entry)
+        return self.parse_orders(result, market, since, limit)
+
+    def fetch_canceled_orders(self, symbol=None, since=None, limit=None, params={}):
+        """
+        fetches information on multiple canceled orders made by the user
+        see https://bitgetlimited.github.io/apidoc/en/spot/#get-order-history
+        see https://bitgetlimited.github.io/apidoc/en/mix/#get-history-orders
+        :param str symbol: unified market symbol of the canceled orders
+        :param int|None since: timestamp in ms of the earliest order
+        :param int|None limit: the max number of canceled orders to return
+        :param dict params: extra parameters specific to the bitget api endpoint
+        :returns dict: a list of `order structures <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
+        """
+        self.load_markets()
+        self.check_required_symbol('fetchCanceledOrders', symbol)
+        market = self.market(symbol)
+        response = self.fetch_canceled_and_closed_orders(symbol, since, limit, params)
+        result = []
+        for i in range(0, len(response)):
+            entry = response[i]
+            status = self.parse_order_status(self.safe_string_2(entry, 'state', 'status'))
+            if status == 'canceled':
+                result.append(entry)
+        return self.parse_orders(result, market, since, limit)
+
+    def fetch_canceled_and_closed_orders(self, symbol=None, since=None, limit=None, params={}):
         self.load_markets()
         market = self.market(symbol)
-        marketType, query = self.handle_market_type_and_params('fetchClosedOrders', market, params)
+        marketType = None
+        marketType, params = self.handle_market_type_and_params('fetchCanceledAndClosedOrders', market, params)
         request = {
             'symbol': market['id'],
         }
@@ -2811,12 +2852,13 @@ class bitget(Exchange):
             'spot': 'privateSpotPostTradeHistory',
             'swap': 'privateMixGetOrderHistory',
         })
-        stop = self.safe_value(query, 'stop')
+        stop = self.safe_value(params, 'stop')
         if stop:
             if marketType == 'spot':
                 method = 'privateSpotPostPlanHistoryPlan'
             else:
                 method = 'privateMixGetPlanHistoryPlan'
+            params = self.omit(params, 'stop')
         if marketType == 'swap' or stop:
             if limit is None:
                 limit = 100
@@ -2825,64 +2867,68 @@ class bitget(Exchange):
                 since = 0
             request['startTime'] = since
             request['endTime'] = self.milliseconds()
-        omitted = self.omit(query, 'stop')
-        response = getattr(self, method)(self.extend(request, omitted))
+        response = getattr(self, method)(self.extend(request, params))
         #
-        #  spot
+        # spot
+        #
         #     {
-        #       code: '00000',
-        #       msg: 'success',
-        #       requestTime: 1645925335553,
-        #       data: [
-        #         {
-        #           accountId: '6394957606',
-        #           symbol: 'BTCUSDT_SPBL',
-        #           orderId: '881623995442958336',
-        #           clientOrderId: '135335e9-b054-4e43-b00a-499f11d3a5cc',
-        #           price: '39000.000000000000',
-        #           quantity: '0.000700000000',
-        #           orderType: 'limit',
-        #           side: 'buy',
-        #           status: 'full_fill',
-        #           fillPrice: '39000.000000000000',
-        #           fillQuantity: '0.000700000000',
-        #           fillTotalAmount: '27.300000000000',
-        #           cTime: '1645921460972'
-        #         }
-        #       ]
+        #         "code": "00000",
+        #         "msg": "success",
+        #         "requestTime": 1663623237813,
+        #         "data": [
+        #             {
+        #                 "accountId": "7264631750",
+        #                 "symbol": "BTCUSDT_SPBL",
+        #                 "orderId": "909129926745432064",
+        #                 "clientOrderId": "9e12ee3d-6a87-4e68-b1cc-094422d223a5",
+        #                 "price": "30001.580000000000",
+        #                 "quantity": "0.000600000000",
+        #                 "orderType": "limit",
+        #                 "side": "sell",
+        #                 "status": "full_fill",
+        #                 "fillPrice": "30001.580000000000",
+        #                 "fillQuantity": "0.000600000000",
+        #                 "fillTotalAmount": "18.000948000000",
+        #                 "cTime": "1652479386030"
+        #             },
+        #             ...
+        #         ]
         #     }
         #
         # swap
+        #
         #     {
-        #       code: '00000',
-        #       msg: 'success',
-        #       requestTime: 1645925688701,
-        #       data: {
-        #         nextFlag: False,
-        #         endId: '881640729145409536',
-        #         orderList: [
-        #           {
-        #             symbol: 'BTCUSDT_UMCBL',
-        #             size: 0.001,
-        #             orderId: '881640729145409536',
-        #             clientOid: '881640729204129792',
-        #             filledQty: 0.001,
-        #             fee: 0,
-        #             price: null,
-        #             priceAvg: 38429.5,
-        #             state: 'filled',
-        #             side: 'open_long',
-        #             timeInForce: 'normal',
-        #             totalProfits: 0,
-        #             posSide: 'long',
-        #             marginCoin: 'USDT',
-        #             filledAmount: 38.4295,
-        #             orderType: 'market',
-        #             cTime: '1645925450611',
-        #             uTime: '1645925450746'
-        #           }
-        #         ]
-        #       }
+        #         "code": "00000",
+        #         "msg": "success",
+        #         "requestTime": 1663622728935,
+        #         "data": {
+        #             "nextFlag": False,
+        #             "endId": "908510348120305664",
+        #             "orderList": [
+        #                 {
+        #                     "symbol": "BTCUSDT_UMCBL",
+        #                     "size": 0.004,
+        #                     "orderId": "954568553644306433",
+        #                     "clientOid": "954568553677860864",
+        #                     "filledQty": 0.000,
+        #                     "fee": 0E-8,
+        #                     "price": 18000.00,
+        #                     "state": "canceled",
+        #                     "side": "open_long",
+        #                     "timeInForce": "normal",
+        #                     "totalProfits": 0E-8,
+        #                     "posSide": "long",
+        #                     "marginCoin": "USDT",
+        #                     "filledAmount": 0.0000,
+        #                     "orderType": "limit",
+        #                     "leverage": "3",
+        #                     "marginMode": "fixed",
+        #                     "cTime": "1663312798899",
+        #                     "uTime": "1663312809425"
+        #                 },
+        #                 ...
+        #             ]
+        #         }
         #     }
         #
         # spot plan order
@@ -2892,22 +2938,22 @@ class bitget(Exchange):
         #         "msg": "success",
         #         "requestTime": 1668134626684,
         #         "data": {
-        #         "nextFlag": False,
-        #         "endId": 974792060738441216,
-        #         "orderList": [
-        #             {
-        #             "orderId": "974792060738441216",
-        #             "symbol": "TRXUSDT_SPBL",
-        #             "size": "156",
-        #             "executePrice": "0.041272",
-        #             "triggerPrice": "0.041222",
-        #             "status": "cancel",
-        #             "orderType": "limit",
-        #             "side": "buy",
-        #             "triggerType": "fill_price",
-        #             "cTime": "1668134458717"
-        #             }
-        #           ]
+        #             "nextFlag": False,
+        #             "endId": 974792060738441216,
+        #             "orderList": [
+        #                 {
+        #                 "orderId": "974792060738441216",
+        #                 "symbol": "TRXUSDT_SPBL",
+        #                 "size": "156",
+        #                 "executePrice": "0.041272",
+        #                 "triggerPrice": "0.041222",
+        #                 "status": "cancel",
+        #                 "orderType": "limit",
+        #                 "side": "buy",
+        #                 "triggerType": "fill_price",
+        #                 "cTime": "1668134458717"
+        #                 }
+        #             ]
         #         }
         #     }
         #
@@ -2924,7 +2970,7 @@ class bitget(Exchange):
         #                 "size":"1",
         #                 "executePrice":"38923.1",
         #                 "triggerPrice":"45000.3",
-        #                 "status":"not_trigger",
+        #                 "status":"cancel",
         #                 "orderType":"limit",
         #                 "planType":"normal_plan",
         #                 "side":"open_long",
@@ -2939,8 +2985,7 @@ class bitget(Exchange):
         #     }
         #
         data = self.safe_value(response, 'data')
-        orderList = self.safe_value(data, 'orderList', data)
-        return self.parse_orders(orderList, market, since, limit)
+        return self.safe_value(data, 'orderList', data)
 
     def fetch_ledger(self, code=None, since=None, limit=None, params={}):
         """
@@ -3035,8 +3080,7 @@ class bitget(Exchange):
         :param dict params: extra parameters specific to the bitget api endpoint
         :returns [dict]: a list of `trade structures <https://docs.ccxt.com/en/latest/manual.html#trade-structure>`
         """
-        if symbol is None:
-            raise ArgumentsRequired(self.id + ' fetchMyTrades() requires a symbol argument')
+        self.check_required_symbol('fetchMyTrades', symbol)
         self.load_markets()
         market = self.market(symbol)
         if market['swap']:
@@ -3083,8 +3127,7 @@ class bitget(Exchange):
         :param dict params: extra parameters specific to the bitget api endpoint
         :returns [dict]: a list of `trade structures <https://docs.ccxt.com/en/latest/manual.html#trade-structure>`
         """
-        if symbol is None:
-            raise ArgumentsRequired(self.id + ' fetchOrderTrades() requires a symbol argument')
+        self.check_required_symbol('fetchOrderTrades', symbol)
         self.load_markets()
         market = self.market(symbol)
         marketType, query = self.handle_market_type_and_params('fetchOrderTrades', market, params)
@@ -3328,8 +3371,7 @@ class bitget(Exchange):
         :param dict params: extra parameters specific to the bitget api endpoint
         :returns [dict]: a list of `funding rate structures <https://docs.ccxt.com/en/latest/manual.html?#funding-rate-history-structure>`
         """
-        if symbol is None:
-            raise ArgumentsRequired(self.id + ' fetchFundingRateHistory() requires a symbol argument')
+        self.check_required_symbol('fetchFundingRateHistory', symbol)
         self.load_markets()
         market = self.market(symbol)
         request = {
@@ -3628,8 +3670,7 @@ class bitget(Exchange):
         :param dict params: extra parameters specific to the bitget api endpoint
         :returns dict: response from the exchange
         """
-        if symbol is None:
-            raise ArgumentsRequired(self.id + ' setLeverage() requires a symbol argument')
+        self.check_required_symbol('setLeverage', symbol)
         self.load_markets()
         market = self.market(symbol)
         request = {
@@ -3648,8 +3689,7 @@ class bitget(Exchange):
         :param dict params: extra parameters specific to the bitget api endpoint
         :returns dict: response from the exchange
         """
-        if symbol is None:
-            raise ArgumentsRequired(self.id + ' setMarginMode() requires a symbol argument')
+        self.check_required_symbol('setMarginMode', symbol)
         marginMode = marginMode.lower()
         if (marginMode != 'fixed') and (marginMode != 'crossed'):
             raise ArgumentsRequired(self.id + ' setMarginMode() marginMode must be "fixed" or "crossed"')
