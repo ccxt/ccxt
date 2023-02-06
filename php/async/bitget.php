@@ -53,7 +53,7 @@ class bitget extends Exchange {
                 'fetchDepositAddress' => true,
                 'fetchDepositAddresses' => false,
                 'fetchDeposits' => true,
-                'fetchFundingHistory' => false,
+                'fetchFundingHistory' => true,
                 'fetchFundingRate' => true,
                 'fetchFundingRateHistory' => true,
                 'fetchFundingRates' => false,
@@ -3635,6 +3635,110 @@ class bitget extends Exchange {
             'previousFundingTimestamp' => null,
             'previousFundingDatetime' => null,
         );
+    }
+
+    public function fetch_funding_history($symbol, $since = null, $limit = null, $params = array ()) {
+        return Async\async(function () use ($symbol, $since, $limit, $params) {
+            /**
+             * fetch the funding history
+             * @see https://bitgetlimited.github.io/apidoc/en/mix/#get-account-bill
+             * @param {string} $symbol unified $market $symbol
+             * @param {int|null} $since the starting timestamp in milliseconds
+             * @param {int|null} $limit the number of entries to return
+             * @param {array} $params extra parameters specific to the bitget api endpoint
+             * @return {[array]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#funding-history-structure funding history structures}
+             */
+            Async\await($this->load_markets());
+            $market = $this->market($symbol);
+            if (!$market['swap']) {
+                throw new BadSymbol($this->id . ' fetchFundingHistory() supports swap contracts only');
+            }
+            if ($since === null) {
+                $since = $this->milliseconds() - 31556952000; // 1 year
+            }
+            $request = array(
+                'symbol' => $market['id'],
+                'marginCoin' => $market['quoteId'],
+                'startTime' => $since,
+                'endTime' => $this->milliseconds(),
+            );
+            if ($limit !== null) {
+                $request['pageSize'] = $limit;
+            }
+            $response = Async\await($this->privateMixGetAccountAccountBill (array_merge($request, $params)));
+            //
+            //    {
+            //        "code" => "00000",
+            //        "msg" => "success",
+            //        "data" => {
+            //            "result" => array(
+            //                {
+            //                    "id" => "892962903462432768",
+            //                    "symbol" => "ETHUSDT_UMCBL",
+            //                    "marginCoin" => "USDT",
+            //                    "amount" => "0",
+            //                    "fee" => "-0.1765104",
+            //                    "feeByCoupon" => "",
+            //                    "feeCoin" => "USDT",
+            //                    "business" => "contract_settle_fee",
+            //                    "cTime" => "1648624867354"
+            //                }
+            //            ),
+            //            "endId" => "885353495773458432",
+            //            "nextFlag" => false,
+            //            "preFlag" => false
+            //    }
+            //
+            $data = $this->safe_value($response, 'data', array());
+            $result = $this->safe_value($data, 'result', array());
+            return $this->parse_funding_histories($result, $market, $since, $limit);
+        }) ();
+    }
+
+    public function parse_funding_history($contract, $market = null) {
+        //
+        //     {
+        //         "id" => "892962903462432768",
+        //         "symbol" => "ETHUSDT_UMCBL",
+        //         "marginCoin" => "USDT",
+        //         "amount" => "0",
+        //         "fee" => "-0.1765104",
+        //         "feeByCoupon" => "",
+        //         "feeCoin" => "USDT",
+        //         "business" => "contract_settle_fee",
+        //         "cTime" => "1648624867354"
+        //     }
+        //
+        $marketId = $this->safe_string($contract, 'symbol');
+        $symbol = $this->safe_symbol($marketId, $market, null, 'swap');
+        $currencyId = $this->safe_string($contract, 'marginCoin');
+        $code = $this->safe_currency_code($currencyId);
+        $amount = $this->safe_number($contract, 'amount');
+        $timestamp = $this->safe_integer($contract, 'cTime');
+        $id = $this->safe_string($contract, 'id');
+        return array(
+            'info' => $contract,
+            'symbol' => $symbol,
+            'timestamp' => $timestamp,
+            'datetime' => $this->iso8601($timestamp),
+            'code' => $code,
+            'amount' => $amount,
+            'id' => $id,
+        );
+    }
+
+    public function parse_funding_histories($contracts, $market = null, $since = null, $limit = null) {
+        $result = array();
+        for ($i = 0; $i < count($contracts); $i++) {
+            $contract = $contracts[$i];
+            $business = $this->safe_string($contract, 'business');
+            if ($business !== 'contract_settle_fee') {
+                continue;
+            }
+            $result[] = $this->parse_funding_history($contract, $market);
+        }
+        $sorted = $this->sort_by($result, 'timestamp');
+        return $this->filter_by_since_limit($sorted, $since, $limit);
     }
 
     public function modify_margin_helper($symbol, $amount, $type, $params = array ()) {
