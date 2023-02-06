@@ -162,6 +162,14 @@ module.exports = class phemex extends Exchange {
                         'accounts/positions', // ?currency=<currency>
                         'api-data/futures/funding-fees', // ?symbol=<symbol>
                         'api-data/g-futures/funding-fees', // ?symbol=<symbol>
+                        'api-data/futures/orders', // ?symbol=<symbol>
+                        'api-data/g-futures/orders', // ?symbol=<symbol>
+                        'api-data/futures/orders/by-order-id', // ?symbol=<symbol>
+                        'api-data/g-futures/orders/by-order-id', // ?symbol=<symbol>
+                        'api-data/futures/trades', // ?symbol=<symbol>
+                        'api-data/g-futures/trades', // ?symbol=<symbol>
+                        'api-data/futures/trading-fees', // ?symbol=<symbol>
+                        'api-data/g-futures/trading-fees', // ?symbol=<symbol>
                         'orders/activeList', // ?symbol=<symbol>
                         'exchange/order/list', // ?symbol=<symbol>&start=<start>&end=<end>&offset=<offset>&limit=<limit>&ordStatus=<ordStatus>&withCount=<withCount>
                         'exchange/order', // ?symbol=<symbol>&orderID=<orderID1,orderID2>
@@ -223,6 +231,10 @@ module.exports = class phemex extends Exchange {
                         'orders/cancel', // ?symbol=<symbol>&orderID=<orderID>
                         'orders', // ?symbol=<symbol>&orderID=<orderID1>,<orderID2>,<orderID3>
                         'orders/all', // ?symbol=<symbol>&untriggered=<untriggered>&text=<text>
+                        // perp
+                        'g-orders/cancel', // ?symbol=<symbol>&orderID=<orderID>
+                        'g-orders', // ?symbol=<symbol>&orderID=<orderID1>,<orderID2>,<orderID3>
+                        'g-orders/all', // ?symbol=<symbol>&untriggered=<untriggered>&text=<text>
                     ],
                 },
             },
@@ -2262,7 +2274,12 @@ module.exports = class phemex extends Exchange {
         } else {
             request['orderID'] = id;
         }
-        const method = market['spot'] ? 'privateDeleteSpotOrders' : 'privateDeleteOrdersCancel';
+        let method = 'privateDeleteSpotOrders';
+        if (market['inverse']) {
+            method = 'privateDeleteOrdersCancel';
+        } else if (market['linear']) {
+            method = 'privateDeleteGOrdersCancel';
+        }
         const response = await this[method] (this.extend (request, params));
         const data = this.safeValue (response, 'data', {});
         return this.parseOrder (data, market);
@@ -2288,8 +2305,10 @@ module.exports = class phemex extends Exchange {
         };
         const market = this.market (symbol);
         let method = 'privateDeleteSpotOrdersAll';
-        if (market['swap']) {
+        if (market['inverse']) {
             method = 'privateDeleteOrdersAll';
+        } else if (market['linear']) {
+            method = 'privateDeleteGOrdersAll';
         }
         request['symbol'] = market['id'];
         return await this[method] (this.extend (request, params));
@@ -2385,7 +2404,12 @@ module.exports = class phemex extends Exchange {
         }
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const method = market['spot'] ? 'privateGetSpotOrders' : 'privateGetOrdersActiveList';
+        let method = 'privateGetSpotOrders';
+        if (market['inverse']) {
+            method = 'privateGetOrdersActiveList';
+        } else if (market['linear']) {
+            method = 'privateGetGOrdersActiveList';
+        }
         const request = {
             'symbol': market['id'],
         };
