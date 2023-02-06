@@ -1215,7 +1215,7 @@ module.exports = class delta extends Exchange {
         const marketId = this.safeString (position, 'product_symbol');
         market = this.safeMarket (marketId, market);
         const symbol = market['symbol'];
-        const timestamp = this.safeIntegerProduct (position, 'timestamp', 0.0001);
+        const timestamp = this.safeIntegerProduct (position, 'timestamp', 0.001);
         const sizeString = this.safeString (position, 'size');
         let side = undefined;
         if (sizeString !== undefined) {
