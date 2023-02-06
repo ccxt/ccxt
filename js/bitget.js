@@ -45,7 +45,7 @@ module.exports = class bitget extends Exchange {
                 'fetchDepositAddress': true,
                 'fetchDepositAddresses': false,
                 'fetchDeposits': true,
-                'fetchFundingHistory': false,
+                'fetchFundingHistory': true,
                 'fetchFundingRate': true,
                 'fetchFundingRateHistory': true,
                 'fetchFundingRates': false,
@@ -3625,6 +3625,110 @@ module.exports = class bitget extends Exchange {
             'previousFundingTimestamp': undefined,
             'previousFundingDatetime': undefined,
         };
+    }
+
+    async fetchFundingHistory (symbol, since = undefined, limit = undefined, params = {}) {
+        /**
+         * @method
+         * @name bitget#fetchFundingHistory
+         * @description fetch the funding history
+         * @see https://bitgetlimited.github.io/apidoc/en/mix/#get-account-bill
+         * @param {string} symbol unified market symbol
+         * @param {int|undefined} since the starting timestamp in milliseconds
+         * @param {int|undefined} limit the number of entries to return
+         * @param {object} params extra parameters specific to the bitget api endpoint
+         * @returns {[object]} a list of [funding history structures]{@link https://docs.ccxt.com/en/latest/manual.html#funding-history-structure}
+         */
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        if (!market['swap']) {
+            throw new BadSymbol (this.id + ' fetchFundingHistory() supports swap contracts only');
+        }
+        if (since === undefined) {
+            since = this.milliseconds () - 31556952000; // 1 year
+        }
+        const request = {
+            'symbol': market['id'],
+            'marginCoin': market['quoteId'],
+            'startTime': since,
+            'endTime': this.milliseconds (),
+        };
+        if (limit !== undefined) {
+            request['pageSize'] = limit;
+        }
+        const response = await this.privateMixGetAccountAccountBill (this.extend (request, params));
+        //
+        //    {
+        //        "code": "00000",
+        //        "msg": "success",
+        //        "data": {
+        //            "result": [
+        //                {
+        //                    "id": "892962903462432768",
+        //                    "symbol": "ETHUSDT_UMCBL",
+        //                    "marginCoin": "USDT",
+        //                    "amount": "0",
+        //                    "fee": "-0.1765104",
+        //                    "feeByCoupon": "",
+        //                    "feeCoin": "USDT",
+        //                    "business": "contract_settle_fee",
+        //                    "cTime": "1648624867354"
+        //                }
+        //            ],
+        //            "endId": "885353495773458432",
+        //            "nextFlag": false,
+        //            "preFlag": false
+        //    }
+        //
+        const data = this.safeValue (response, 'data', {});
+        const result = this.safeValue (data, 'result', []);
+        return this.parseFundingHistories (result, market, since, limit);
+    }
+
+    parseFundingHistory (contract, market = undefined) {
+        //
+        //     {
+        //         "id": "892962903462432768",
+        //         "symbol": "ETHUSDT_UMCBL",
+        //         "marginCoin": "USDT",
+        //         "amount": "0",
+        //         "fee": "-0.1765104",
+        //         "feeByCoupon": "",
+        //         "feeCoin": "USDT",
+        //         "business": "contract_settle_fee",
+        //         "cTime": "1648624867354"
+        //     }
+        //
+        const marketId = this.safeString (contract, 'symbol');
+        const symbol = this.safeSymbol (marketId, market, undefined, 'swap');
+        const currencyId = this.safeString (contract, 'marginCoin');
+        const code = this.safeCurrencyCode (currencyId);
+        const amount = this.safeNumber (contract, 'amount');
+        const timestamp = this.safeInteger (contract, 'cTime');
+        const id = this.safeString (contract, 'id');
+        return {
+            'info': contract,
+            'symbol': symbol,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'code': code,
+            'amount': amount,
+            'id': id,
+        };
+    }
+
+    parseFundingHistories (contracts, market = undefined, since = undefined, limit = undefined) {
+        const result = [];
+        for (let i = 0; i < contracts.length; i++) {
+            const contract = contracts[i];
+            const business = this.safeString (contract, 'business');
+            if (business !== 'contract_settle_fee') {
+                continue;
+            }
+            result.push (this.parseFundingHistory (contract, market));
+        }
+        const sorted = this.sortBy (result, 'timestamp');
+        return this.filterBySinceLimit (sorted, since, limit);
     }
 
     async modifyMarginHelper (symbol, amount, type, params = {}) {
