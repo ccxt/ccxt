@@ -662,8 +662,8 @@ module.exports = class tokocrypto extends Exchange {
             const market = list[i];
             const baseId = this.safeString (market, 'baseAsset');
             const quoteId = this.safeString (market, 'quoteAsset');
-            const id = this.safeString (market, 'symbol');
-            const lowercaseId = this.safeStringLower (market, 'symbol');
+            const id = baseId + quoteId;
+            const lowercaseId = id.toLowerCase ();
             const settleId = this.safeString (market, 'marginAsset');
             const base = this.safeCurrencyCode (baseId);
             const quote = this.safeCurrencyCode (quoteId);
@@ -1245,7 +1245,7 @@ module.exports = class tokocrypto extends Exchange {
             'limit': limit,
         };
         if (price === 'index') {
-            request['pair'] = market['id'];   // Index price takes this argument instead of symbol
+            request['pair'] = market['baseId'] + '_' + market['quoteId'];   // Index price takes this argument instead of symbol
         } else {
             request['symbol'] = market['baseId'] + market['quoteId'];
         }
@@ -1455,7 +1455,7 @@ module.exports = class tokocrypto extends Exchange {
         //
         const status = this.parseOrderStatus (this.safeString (order, 'status'));
         const marketId = this.safeString (order, 'symbol');
-        const symbol = this.safeSymbol (marketId, market);
+        const symbol = this.safeSymbol (marketId, market, '_');
         const filled = this.safeString (order, 'executedQty', '0');
         const timestamp = this.safeInteger (order, 'createTime');
         const average = this.safeString (order, 'avgPrice');
@@ -1725,6 +1725,10 @@ module.exports = class tokocrypto extends Exchange {
         //
         const data = this.safeValue (response, 'data', {});
         const list = this.safeValue (data, 'list', []);
+        const listLength = list.length;
+        if (listLength === 0) {
+            return {};
+        }
         const rawOrder = this.safeValue (list, 0, {});
         return this.parseOrder (rawOrder);
     }
@@ -1746,7 +1750,7 @@ module.exports = class tokocrypto extends Exchange {
         await this.loadMarkets ();
         const market = this.market (symbol);
         const request = {
-            'symbol': market['id'],
+            'symbol': market['baseId'] + '_' + market['quoteId'],
             // 'type': -1, // -1 = all, 1 = open, 2 = closed
             // 'side': 1, // or 2
             // 'startTime': since,
@@ -1892,7 +1896,7 @@ module.exports = class tokocrypto extends Exchange {
         await this.loadMarkets ();
         const market = this.market (symbol);
         const request = {
-            'symbol': market['id'],
+            'symbol': market['baseId'] + '_' + market['quoteId'],
         };
         const endTime = this.safeInteger2 (params, 'until', 'endTime');
         if (since !== undefined) {
