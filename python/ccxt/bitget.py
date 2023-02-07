@@ -2771,7 +2771,7 @@ class bitget(Exchange):
         #     {
         #         "code": "00000",
         #         "msg": "success",
-        #         "requestTime": 1668134581005,
+        #         "requestTime": 1668134581006,
         #         "data": {
         #             "nextFlag": False,
         #             "endId": 974792555020390400,
