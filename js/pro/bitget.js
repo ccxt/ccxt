@@ -67,7 +67,7 @@ module.exports = class bitget extends bitgetRest {
             return market['info']['symbolName'];
         } else {
             if (!sandboxMode) {
-                return market['id'].replace ('_UMCBL', '')
+                return market['id'].replace ('_UMCBL', '');
             } else {
                 return market['id'].replace('_SUMCBL', '');
             }
