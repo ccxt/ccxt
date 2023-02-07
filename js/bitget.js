@@ -2388,7 +2388,9 @@ module.exports = class bitget extends Exchange {
                 const triggerType = this.safeString (params, 'triggerType', 'market_price');
                 request['triggerType'] = triggerType;
                 request['triggerPrice'] = this.priceToPrecision (symbol, triggerPrice);
-                request['executePrice'] = this.priceToPrecision (symbol, price);
+                if (price !== undefined) {
+                    request['executePrice'] = this.priceToPrecision (symbol, price);
+                }
                 method = 'privateMixPostPlanPlacePlan';
             }
             if (isStopLossOrTakeProfit) {
