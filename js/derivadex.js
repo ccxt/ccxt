@@ -134,9 +134,9 @@ module.exports = class derivadex extends Exchange {
                         'tx_logs': 1,
                         'aggregations/collateral': 1,
                         'aggregations/volume': 1,
-                        'aggregations/markets': 1,
+                        'markets/markets': 1,
                         'markets/order_book/L2/{symbol}': 1,
-                        'markets/ticker/{symbol}': 1,
+                        'markets/tickers': 1,
                     },
                 },
                 'v2': {
@@ -387,14 +387,12 @@ module.exports = class derivadex extends Exchange {
     async constructTicker (symbol) {
         const params = {};
         params['symbol'] = symbol;
-        const marketsResponse = await this.publicGetAggregationsMarkets (params); // aggregations/markets endpoint response is cached for 30 minutes
         params['depth'] = 1;
         const request = {
             'symbol': symbol,
         };
         const orderBookResponse = await this.publicGetMarketsOrderBookL2Symbol (this.extend (request, params)); // markets/order_book endpoint response is cached for 10 seconds
         const orderBookValue = orderBookResponse['value'];
-        const timestamp = this.safeString (marketsResponse, 'timestamp');
         const bid = this.safeString (orderBookValue[0], 'price');
         const bidVolume = this.safeString (orderBookValue[0], 'amount');
         const ask = this.safeString (orderBookValue[1], 'price');
@@ -406,12 +404,13 @@ module.exports = class derivadex extends Exchange {
         const volumeAggregationResponse = await this.publicGetAggregationsVolume (volumeParams);
         const volumeValue = volumeAggregationResponse['value'][0];
         const volumeKey = 'volume_' + symbol;
-        const tickerResponse = await this.publicGetMarketsTickerSymbol ({ 'symbol': symbol });
+        const tickerResponse = await this.publicGetMarketsTickers ({ 'symbol': symbol });
         const ticker = tickerResponse['value'][0];
+        const timestamp = this.safeString (ticker, 'ticker_timestamp');
         return {
             'symbol': symbol,
             'timestamp': timestamp,
-            'datetime': undefined,
+            'datetime': this.iso8601 (timestamp),
             'high': this.safeString (ticker, 'high'),
             'low': this.safeString (ticker, 'low'),
             'bid': bid,
@@ -422,13 +421,13 @@ module.exports = class derivadex extends Exchange {
             'open': this.safeString (ticker, 'open'),
             'close': this.safeString (ticker, 'close'),
             'last': this.safeString (ticker, 'close'),
-            'previousClose': this.safeString (ticker, 'previousClose'),
+            'previousClose': undefined,
             'change': this.safeString (ticker, 'change'),
             'percentage': this.safeString (ticker, 'percentage'),
             'average': this.safeString (ticker, 'average'),
             'baseVolume': undefined,
             'quoteVolume': volumeValue[volumeKey],
-            'info': marketsResponse,
+            'info': { orderBookResponse, volumeAggregationResponse, tickerResponse },
         };
     }
 
