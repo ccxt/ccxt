@@ -116,6 +116,8 @@ module.exports = class phemex extends Exchange {
                 '1d': '86400',
                 '1w': '604800',
                 '1M': '2592000',
+                '3M': '7776000',
+                '1Y': '31104000',
             },
             'api': {
                 'public': {
@@ -914,6 +916,7 @@ module.exports = class phemex extends Exchange {
          * @method
          * @name phemex#fetchOrderBook
          * @description fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+         * @see https://github.com/phemex/phemex-api-docs/blob/master/Public-Hedged-Perpetual-API.md#queryorderbook
          * @param {string} symbol unified symbol of the market to fetch the order book for
          * @param {int|undefined} limit the maximum amount of order book entries to return
          * @param {object} params extra parameters specific to the phemex api endpoint
@@ -926,7 +929,7 @@ module.exports = class phemex extends Exchange {
             // 'id': 123456789, // optional request id
         };
         let method = 'v1GetMdOrderbook';
-        if (market['linear']) {
+        if (market['linear'] && market['settle'] === 'USDT') {
             method = 'v2GetMdV2Orderbook';
         }
         const response = await this[method] (this.extend (request, params));
@@ -1052,6 +1055,7 @@ module.exports = class phemex extends Exchange {
          * @method
          * @name phemex#fetchOHLCV
          * @description fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+         * @see https://github.com/phemex/phemex-api-docs/blob/master/Public-Hedged-Perpetual-API.md#querykline
          * @param {string} symbol unified symbol of the market to fetch OHLCV data for
          * @param {string} timeframe the length of time each candle represents
          * @param {int|undefined} since timestamp in ms of the earliest candle to fetch
@@ -1089,7 +1093,7 @@ module.exports = class phemex extends Exchange {
         const market = this.market (symbol);
         request['symbol'] = market['id'];
         let method = 'publicGetMdKline';
-        if (market['linear']) {
+        if (market['linear'] && market['settle'] === 'USDT') {
             method = 'publicGetMdV2KlineLast';
         }
         const response = await this[method] (this.extend (request, params));
@@ -1206,6 +1210,7 @@ module.exports = class phemex extends Exchange {
          * @method
          * @name phemex#fetchTicker
          * @description fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+         * @see https://github.com/phemex/phemex-api-docs/blob/master/Public-Hedged-Perpetual-API.md#query24hrsticker
          * @param {string} symbol unified symbol of the market to fetch the ticker for
          * @param {object} params extra parameters specific to the phemex api endpoint
          * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
@@ -1278,6 +1283,7 @@ module.exports = class phemex extends Exchange {
          * @method
          * @name phemex#fetchTrades
          * @description get the list of most recent trades for a particular symbol
+         * @see https://github.com/phemex/phemex-api-docs/blob/master/Public-Hedged-Perpetual-API.md#querytrades
          * @param {string} symbol unified symbol of the market to fetch trades for
          * @param {int|undefined} since timestamp in ms of the earliest trade to fetch
          * @param {int|undefined} limit the maximum amount of trades to fetch
@@ -1291,7 +1297,7 @@ module.exports = class phemex extends Exchange {
             // 'id': 123456789, // optional request id
         };
         let method = 'v1GetMdTrade';
-        if (market['linear']) {
+        if (market['linear'] && market['settle'] === 'USDT') {
             method = 'v2GetMdV2Trade';
         }
         const response = await this[method] (this.extend (request, params));
@@ -1314,10 +1320,6 @@ module.exports = class phemex extends Exchange {
         const result = this.safeValue (response, 'result', {});
         const trades = this.safeValue2 (result, 'trades', 'trades_p', []);
         return this.parseTrades (trades, market, since, limit);
-    }
-
-    isNumber (n) {
-        return !Number.isNaN (parseFloat (n)) && !Number.isNaN (n - 0);
     }
 
     parseTrade (trade, market = undefined) {
