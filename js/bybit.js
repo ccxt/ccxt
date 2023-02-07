@@ -6900,19 +6900,26 @@ module.exports = class bybit extends Exchange {
         // WARNING: THIS WILL INCREASE LIQUIDATION PRICE FOR OPEN ISOLATED LONG POSITIONS
         // AND DECREASE LIQUIDATION PRICE FOR OPEN ISOLATED SHORT POSITIONS
         const isUsdcSettled = market['settle'] === 'USDC';
-        const { enableUnifiedMargin } = await this.isUnifiedMarginEnabled ();
+        const { enableUnifiedMargin, enableUnifiedAccount } = await this.isUnifiedMarginEnabled ();
         // engage in leverage setting
         // we reuse the code here instead of having two methods
         leverage = this.numberToString (leverage);
         let method = undefined;
         let request = undefined;
-        if (enableUnifiedMargin || !isUsdcSettled) {
+        if (enableUnifiedMargin || enableUnifiedAccount || !isUsdcSettled) {
             request = {
                 'symbol': market['id'],
                 'buyLeverage': leverage,
                 'sellLeverage': leverage,
             };
-            if (enableUnifiedMargin && !market['inverse']) {
+            if (enableUnifiedAccount && !market['inverse']) {
+                if (market['linear']) {
+                    request['category'] = 'linear';
+                } else {
+                    throw new NotSupported (this.id + ' setUnifiedMarginLeverage() leverage doesn\'t support inverse market and options market in unified account');
+                }
+                method = 'privatePostV5PositionSetLeverage';
+            } else if (enableUnifiedMargin && !market['inverse']) {
                 if (market['option']) {
                     request['category'] = 'option';
                 } else if (market['linear']) {
