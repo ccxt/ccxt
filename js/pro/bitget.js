@@ -69,7 +69,7 @@ module.exports = class bitget extends bitgetRest {
             if (!sandboxMode) {
                 return market['id'].replace ('_UMCBL', '');
             } else {
-                return market['id'].replace('_SUMCBL', '');
+                return market['id'].replace ('_SUMCBL', '');
             }
         }
     }
@@ -89,7 +89,6 @@ module.exports = class bitget extends bitgetRest {
             } else {
                 marketId += '_SUMCBL';
             }
-
         }
         return marketId;
     }
