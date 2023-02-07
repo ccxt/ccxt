@@ -2963,11 +2963,12 @@ module.exports = class bybit extends Exchange {
             'PENDING_NEW': 'open',
             'REJECTED': 'rejected',
             'PARTIALLY_FILLED_CANCELLED': 'canceled',
-            // v3 contract / unified margin
+            // v3 contract / unified margin / unified account
             'Created': 'open',
             'New': 'open',
             'Rejected': 'rejected', // order is triggered but failed upon being placed
             'PartiallyFilled': 'open',
+            'PartiallyFilledCanceled': 'canceled', // spot has this order status only
             'Filled': 'closed',
             'PendingCancel': 'open',
             'Cancelled': 'canceled',
@@ -4204,7 +4205,6 @@ module.exports = class bybit extends Exchange {
                 throw new NotSupported (this.id + ' cancelAllOrders() does not allow inverse market orders for ' + symbol + ' markets');
             }
         }
-        [ settle, params ] = this.handleOptionAndParams (params, 'cancelAllOrders', 'settle', settle);
         if (settle !== undefined) {
             request['settleCoin'] = settle;
         }
@@ -4460,10 +4460,9 @@ module.exports = class bybit extends Exchange {
             // 'symbol': market['id'],
             // 'category': string, Type of derivatives product: linear or option.
             // 'baseCoin': string, Base coin. When category=option. If not passed, BTC by default; when category=linear, if BTC passed, BTCPERP & BTCUSDT returned.
-            // 'settleCoin': string, // Settle coin. For linear, either symbol or settleCoin is required
             // 'orderId': string, Order ID
             // 'orderLinkId': string, Unique user-set order ID
-            // 'openOnly': Boolean, // 0(default): query open orders only 1: return cancelled, rejected or totally filled orders by last 10 minutes, A maximum of 500 records are kept under each account. If the Bybit service is restarted due to an update, this part of the data will be cleared and accumulated again, but the order records will still be queried in order history
+            // 'orderStatus': string, // Return all status orders if not passed
             // 'orderFilter': string, Conditional order or active order
             // 'limit': number, Data quantity per page: Max data value per page is 50, and default value at 20.
             // 'cursor': string, API pass-through. accountType + category + cursor +. If inconsistent, the following should be returned: The account type does not match the service inquiry.
@@ -4471,7 +4470,7 @@ module.exports = class bybit extends Exchange {
         let market = undefined;
         if (symbol === undefined) {
             let subType = undefined;
-            [ subType, params ] = this.handleSubTypeAndParams ('fetchUnifiedMarginOrders', market, params, 'linear');
+            [ subType, params ] = this.handleSubTypeAndParams ('fetchOrders', market, params, 'linear');
             request['category'] = subType;
         } else {
             market = this.market (symbol);
@@ -4489,59 +4488,64 @@ module.exports = class bybit extends Exchange {
         const isStop = this.safeValue (params, 'stop', false);
         params = this.omit (params, [ 'stop' ]);
         if (isStop) {
-            request['orderFilter'] = 'tpslOrder';
+            if (market['spot']) {
+                request['orderFilter'] = 'tpslOrder';
+            } else {
+                request['orderFilter'] = 'StopOrder';
+            }
         }
         if (limit !== undefined) {
             request['limit'] = limit;
         }
-        const response = await this.privateGetV5OrderRealtime (this.extend (request, params));
+        const response = await this.privateGetV5OrderHistory (this.extend (request, params));
         //
         //     {
         //         "retCode": 0,
         //         "retMsg": "OK",
         //         "result": {
-        //             "nextPageCursor": "1321052653536515584%3A1672217748287%2C1321052653536515584%3A1672217748287",
-        //             "category": "spot",
+        //             "nextPageCursor": "03234de9-1332-41eb-b805-4a9f42c136a3%3A1672220109387%2C03234de9-1332-41eb-b805-4a9f42c136a3%3A1672220109387",
+        //             "category": "linear",
         //             "list": [
         //                 {
-        //                     "symbol": "ETHUSDT",
+        //                     "symbol": "BTCUSDT",
         //                     "orderType": "Limit",
-        //                     "orderLinkId": "1672217748277652",
-        //                     "orderId": "1321052653536515584",
-        //                     "cancelType": "UNKNOWN",
-        //                     "avgPrice": "",
-        //                     "stopOrderType": "tpslOrder",
-        //                     "lastPriceOnCreated": "",
+        //                     "orderLinkId": "test-001",
+        //                     "orderId": "03234de9-1332-41eb-b805-4a9f42c136a3",
+        //                     "cancelType": "CancelByUser",
+        //                     "avgPrice": "0",
+        //                     "stopOrderType": "UNKNOWN",
+        //                     "lastPriceOnCreated": "16656.5",
         //                     "orderStatus": "Cancelled",
         //                     "takeProfit": "",
         //                     "cumExecValue": "0",
         //                     "triggerDirection": 0,
-        //                     "isLeverage": "0",
-        //                     "rejectReason": "",
-        //                     "price": "1000",
+        //                     "blockTradeId": "",
+        //                     "rejectReason": "EC_PerCancelRequest",
+        //                     "isLeverage": "",
+        //                     "price": "18000",
         //                     "orderIv": "",
-        //                     "createdTime": "1672217748287",
-        //                     "tpTriggerBy": "",
+        //                     "createdTime": "1672220109387",
+        //                     "tpTriggerBy": "UNKNOWN",
         //                     "positionIdx": 0,
-        //                     "timeInForce": "GTC",
-        //                     "leavesValue": "500",
-        //                     "updatedTime": "1672217748287",
-        //                     "side": "Buy",
-        //                     "triggerPrice": "1500",
+        //                     "timeInForce": "GoodTillCancel",
+        //                     "leavesValue": "0",
+        //                     "updatedTime": "1672220114123",
+        //                     "side": "Sell",
+        //                     "triggerPrice": "",
         //                     "cumExecFee": "0",
+        //                     "slTriggerBy": "UNKNOWN",
         //                     "leavesQty": "0",
-        //                     "slTriggerBy": "",
         //                     "closeOnTrigger": false,
         //                     "cumExecQty": "0",
         //                     "reduceOnly": false,
-        //                     "qty": "0.5",
+        //                     "qty": "0.1",
         //                     "stopLoss": "",
-        //                     "triggerBy": "1192.5"
+        //                     "triggerBy": "UNKNOWN"
         //                 }
         //             ]
         //         },
         //         "retExtInfo": {},
-        //         "time": 1672219526294
+        //         "time": 1672221263862
         //     }
         //
         const result = this.safeValue (response, 'result', {});
@@ -4835,7 +4839,7 @@ module.exports = class bybit extends Exchange {
         const request = {};
         const { enableUnifiedMargin, enableUnifiedAccount } = await this.isUnifiedMarginEnabled ();
         if (enableUnifiedAccount) {
-            request['openOnly'] = 1;
+            request['orderStatus'] = 'Canceled';
         } else if (type === 'spot') {
             return await this.fetchSpotClosedOrders (symbol, since, limit, params);
         } else if (enableUnifiedMargin) {
@@ -4844,6 +4848,105 @@ module.exports = class bybit extends Exchange {
             request['orderStatus'] = 'Filled,Canceled';
         }
         return await this.fetchOrders (symbol, since, limit, this.extend (request, params));
+    }
+
+    async fetchUnifiedAccountOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        await this.loadMarkets ();
+        const request = {
+            // 'symbol': market['id'],
+            // 'category': string, Type of derivatives product: linear or option.
+            // 'baseCoin': string, Base coin. When category=option. If not passed, BTC by default; when category=linear, if BTC passed, BTCPERP & BTCUSDT returned.
+            // 'settleCoin': string, Settle coin. For linear, either symbol or settleCoin is required
+            // 'orderId': string, Order ID
+            // 'orderLinkId': string, Unique user-set order ID
+            // 'orderFilter': string, Conditional order or active order
+            // 'limit': number, Data quantity per page: Max data value per page is 50, and default value at 20.
+            // 'cursor': string, API pass-through. accountType + category + cursor +. If inconsistent, the following should be returned: The account type does not match the service inquiry.
+            // 'openOnly': 0,
+        };
+        let market = undefined;
+        if (symbol === undefined) {
+            let subType = undefined;
+            [ subType, params ] = this.handleSubTypeAndParams ('fetchOrders', market, params, 'linear');
+            request['category'] = subType;
+        } else {
+            market = this.market (symbol);
+            request['symbol'] = market['id'];
+            if (market['spot']) {
+                request['category'] = 'spot';
+            } else if (market['option']) {
+                request['category'] = 'option';
+            } else if (market['linear']) {
+                request['category'] = 'linear';
+            } else {
+                throw new NotSupported (this.id + ' fetchOrders() does not allow inverse market orders for ' + symbol + ' markets');
+            }
+        }
+        const isStop = this.safeValue (params, 'stop', false);
+        params = this.omit (params, [ 'stop' ]);
+        if (isStop) {
+            if (market['spot']) {
+                request['orderFilter'] = 'tpslOrder';
+            } else {
+                request['orderFilter'] = 'StopOrder';
+            }
+        }
+        if (limit !== undefined) {
+            request['limit'] = limit;
+        }
+        const response = await this.privateGetV5OrderRealtime (this.extend (request, params));
+        //
+        //     {
+        //         "retCode": 0,
+        //         "retMsg": "OK",
+        //         "result": {
+        //             "nextPageCursor": "1321052653536515584%3A1672217748287%2C1321052653536515584%3A1672217748287",
+        //             "category": "spot",
+        //             "list": [
+        //                 {
+        //                     "symbol": "ETHUSDT",
+        //                     "orderType": "Limit",
+        //                     "orderLinkId": "1672217748277652",
+        //                     "orderId": "1321052653536515584",
+        //                     "cancelType": "UNKNOWN",
+        //                     "avgPrice": "",
+        //                     "stopOrderType": "tpslOrder",
+        //                     "lastPriceOnCreated": "",
+        //                     "orderStatus": "Cancelled",
+        //                     "takeProfit": "",
+        //                     "cumExecValue": "0",
+        //                     "triggerDirection": 0,
+        //                     "isLeverage": "0",
+        //                     "rejectReason": "",
+        //                     "price": "1000",
+        //                     "orderIv": "",
+        //                     "createdTime": "1672217748287",
+        //                     "tpTriggerBy": "",
+        //                     "positionIdx": 0,
+        //                     "timeInForce": "GTC",
+        //                     "leavesValue": "500",
+        //                     "updatedTime": "1672217748287",
+        //                     "side": "Buy",
+        //                     "triggerPrice": "1500",
+        //                     "cumExecFee": "0",
+        //                     "leavesQty": "0",
+        //                     "slTriggerBy": "",
+        //                     "closeOnTrigger": false,
+        //                     "cumExecQty": "0",
+        //                     "reduceOnly": false,
+        //                     "qty": "0.5",
+        //                     "stopLoss": "",
+        //                     "triggerBy": "1192.5"
+        //                 }
+        //             ]
+        //         },
+        //         "retExtInfo": {},
+        //         "time": 1672219526294
+        //     }
+        //
+        const result = this.safeValue (response, 'result', {});
+        const data = this.safeValue (result, 'list', []);
+        return this.parseOrders (data, market, since, limit);
     }
 
     async fetchSpotOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
@@ -5117,7 +5220,7 @@ module.exports = class bybit extends Exchange {
         const [ type, query ] = this.handleMarketTypeAndParams ('fetchOpenOrders', market, params);
         const { enableUnifiedMargin, enableUnifiedAccount } = await this.isUnifiedMarginEnabled ();
         if (enableUnifiedAccount) {
-            return await this.fetchUnifiedAccountOrders (symbol, since, limit, query);
+            return await this.fetchUnifiedAccountOpenOrders (symbol, since, limit, query);
         } else if (type === 'spot') {
             return await this.fetchSpotOpenOrders (symbol, since, limit, query);
         } else if (enableUnifiedMargin && !isInverse) {
