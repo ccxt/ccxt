@@ -860,7 +860,7 @@ module.exports = class kraken extends Exchange {
         const market = this.market (symbol);
         const request = {
             'pair': market['id'],
-            'interval': this.safeNumber (this.timeframes, timeframe, timeframe),
+            'interval': this.safeInteger (this.timeframes, timeframe, timeframe),
         };
         if (since !== undefined) {
             request['since'] = parseInt ((since - 1) / 1000);
