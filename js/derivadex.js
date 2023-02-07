@@ -406,7 +406,7 @@ module.exports = class derivadex extends Exchange {
         const volumeKey = 'volume_' + symbol;
         const tickerResponse = await this.publicGetMarketsTickers ({ 'symbol': symbol });
         const ticker = tickerResponse['value'][0];
-        const timestamp = this.safeString (ticker, 'ticker_timestamp');
+        const timestamp = this.safeString (tickerResponse, 'timestamp');
         return {
             'symbol': symbol,
             'timestamp': timestamp,
@@ -417,14 +417,14 @@ module.exports = class derivadex extends Exchange {
             'bidVolume': bidVolume,
             'ask': ask,
             'askVolume': askVolume,
-            'vwap': this.safeString (ticker, 'vwap'),
+            'vwap': this.safeString (ticker, 'volume_weighted_average_price'),
             'open': this.safeString (ticker, 'open'),
             'close': this.safeString (ticker, 'close'),
             'last': this.safeString (ticker, 'close'),
             'previousClose': undefined,
             'change': this.safeString (ticker, 'change'),
             'percentage': this.safeString (ticker, 'percentage'),
-            'average': this.safeString (ticker, 'average'),
+            'average': undefined,
             'baseVolume': undefined,
             'quoteVolume': volumeValue[volumeKey],
             'info': { orderBookResponse, volumeAggregationResponse, tickerResponse },
