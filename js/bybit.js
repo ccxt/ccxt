@@ -5837,11 +5837,10 @@ module.exports = class bybit extends Exchange {
         await this.loadMarkets ();
         const request = {
             // 'coin': currency['id'],
-            // 'start_date': this.iso8601 (since),
-            // 'end_date': this.iso8601 (till),
             // 'status': 'Pending', // ToBeConfirmed, UnderReview, Pending, Success, CancelByUser, Reject, Expire
             // 'page': 1,
             // 'limit': 20, // max 50
+            // 'cusor': '',
         };
         let currency = undefined;
         if (code !== undefined) {
@@ -5854,7 +5853,9 @@ module.exports = class bybit extends Exchange {
         if (limit !== undefined) {
             request['limit'] = limit;
         }
-        const response = await this.privateGetAssetV3PrivateWithdrawRecordQuery (this.extend (request, params));
+        const { enableUnifiedAccount } = await this.isUnifiedMarginEnabled ();
+        const method = (enableUnifiedAccount) ? 'privateGetV5AssetWithdrawQueryRecord' : 'privateGetAssetV3PrivateWithdrawRecordQuery';
+        const response = await this[method] (this.extend (request, params));
         //
         //    {
         //         "retCode": "0",
