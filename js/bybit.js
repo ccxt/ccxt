@@ -1007,6 +1007,7 @@ module.exports = class bybit extends Exchange {
          * @method
          * @name bybit#fetchCurrencies
          * @description fetches all available currencies on an exchange
+         * @see https://bybit-exchange.github.io/docs/v5/asset/coin-info
          * @param {object} params extra parameters specific to the bybit api endpoint
          * @returns {object} an associative dictionary of currencies
          */
@@ -1111,6 +1112,7 @@ module.exports = class bybit extends Exchange {
          * @method
          * @name bybit#fetchMarkets
          * @description retrieves data on all markets for bybit
+         * @see https://bybit-exchange.github.io/docs/v5/market/instrument
          * @param {object} params extra parameters specific to the exchange api endpoint
          * @returns {[object]} an array of objects representing market data
          */
@@ -1541,6 +1543,7 @@ module.exports = class bybit extends Exchange {
          * @param {object} params extra parameters specific to the bybit api endpoint
          * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
          */
+        this.checkRequiredSymbol ('fetchTicker', symbol);
         await this.loadMarkets ();
         const market = this.market (symbol);
         const request = {
@@ -1620,22 +1623,20 @@ module.exports = class bybit extends Exchange {
             symbols = this.marketSymbols (symbols);
             market = this.market (symbols[0]);
         }
-        const [ type, query ] = this.handleMarketTypeAndParams ('fetchTickers', market, params);
         const request = {
             // 'symbol': market['id'],
             // 'baseCoin': '', Base coin. For option only
             // 'expDate': '', Expiry date. e.g., 25DEC22. For option only
         };
+        const [ type, query ] = this.handleMarketTypeAndParams ('fetchTickers', market, params);
         if (type === 'spot') {
             request['category'] = 'spot';
-        } else {
-            if (market['option']) {
-                request['category'] = 'option';
-            } else if (market['linear']) {
-                request['category'] = 'linear';
-            } else if (market['inverse']) {
-                request['category'] = 'inverse';
-            }
+        } else if (type === 'swap') {
+            let subType = undefined;
+            [ subType, params ] = this.handleSubTypeAndParams ('fetchTickers', market, params, 'linear');
+            request['category'] = subType;
+        } else if (type === 'option') {
+            request['category'] = 'option';
         }
         const response = await this.publicGetV5MarketTickers (this.extend (request, query));
         //
@@ -1721,6 +1722,7 @@ module.exports = class bybit extends Exchange {
          * @param {object} params extra parameters specific to the bybit api endpoint
          * @returns {[[int]]} A list of candles ordered as timestamp, open, high, low, close, volume
          */
+        this.checkRequiredSymbol ('fetchOHLCV', symbol);
         await this.loadMarkets ();
         const market = this.market (symbol);
         const request = {
@@ -1864,6 +1866,7 @@ module.exports = class bybit extends Exchange {
          * @method
          * @name bybit#fetchFundingRate
          * @description fetch the current funding rate
+         * @see https://bybit-exchange.github.io/docs-v2/v5/market/tickers
          * @param {string} symbol unified market symbol
          * @param {object} params extra parameters specific to the bybit api endpoint
          * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/en/latest/manual.html#funding-rate-structure}
@@ -1881,28 +1884,27 @@ module.exports = class bybit extends Exchange {
          * @method
          * @name bybit#fetchFundingRates
          * @description fetches funding rates for multiple markets
+         * @see https://bybit-exchange.github.io/docs-v2/v5/market/tickers
          * @param {[string]|undefined} symbols unified symbols of the markets to fetch the funding rates for, all market funding rates are returned if not assigned
          * @param {object} params extra parameters specific to the bybit api endpoint
          * @returns {object} an array of [funding rate structures]{@link https://docs.ccxt.com/en/latest/manual.html#funding-rate-structure}
          */
         await this.loadMarkets ();
-        symbols = this.marketSymbols (symbols);
-        const firstSymbol = this.safeString (symbols, 0);
-        let type = 'swap';
         let market = undefined;
-        if (firstSymbol !== undefined) {
-            market = this.market (firstSymbol);
-            type = market['type'];
+        if (symbols !== undefined) {
+            symbols = this.marketSymbols (symbols);
+            market = this.market (symbols[0]);
         }
+        const [ type, query ] = this.handleMarketTypeAndParams ('fetchFundingRates', market, params);
         const request = {};
-        let subType = undefined;
-        [ subType, params ] = this.handleSubTypeAndParams ('fetchFundingRates', market, params, 'linear');
         if (type !== 'swap') {
             throw new NotSupported (this.id + ' fetchFundingRates() does not support ' + type + ' markets');
         } else {
+            let subType = undefined;
+            [ subType, params ] = this.handleSubTypeAndParams ('fetchFundingRates', market, params, 'linear');
             request['category'] = subType;
         }
-        const response = await this.publicGetDerivativesV3PublicTickers (this.extend (request, params));
+        const response = await this.publicGetV5MarketTickers (this.extend (request, query));
         //
         //     {
         //         "retCode": 0,
@@ -1941,9 +1943,7 @@ module.exports = class bybit extends Exchange {
         //
         let tickerList = this.safeValue (response, 'result', []);
         const timestamp = this.safeInteger (response, 'time');
-        if (!Array.isArray (tickerList)) {
-            tickerList = this.safeValue (tickerList, 'list');
-        }
+        tickerList = this.safeValue (tickerList, 'list');
         const fundingRates = {};
         for (let i = 0; i < tickerList.length; i++) {
             const rawTicker = tickerList[i];
@@ -1960,6 +1960,7 @@ module.exports = class bybit extends Exchange {
          * @method
          * @name bybit#fetchFundingRateHistory
          * @description fetches historical funding rate prices
+         * @see https://bybit-exchange.github.io/docs/v5/market/history-fund-rate
          * @param {string|undefined} symbol unified symbol of the market to fetch the funding rate history for
          * @param {int|undefined} since timestamp in ms of the earliest funding rate to fetch
          * @param {int|undefined} limit the maximum amount of [funding rate structures]{@link https://docs.ccxt.com/en/latest/manual.html?#funding-rate-history-structure} to fetch
@@ -1967,9 +1968,7 @@ module.exports = class bybit extends Exchange {
          * @param {int|undefined} params.until timestamp in ms of the latest funding rate
          * @returns {[object]} a list of [funding rate structures]{@link https://docs.ccxt.com/en/latest/manual.html?#funding-rate-history-structure}
          */
-        if (symbol === undefined) {
-            throw new ArgumentsRequired (this.id + ' fetchFundingRateHistory() requires a symbol');
-        }
+        this.checkRequiredSymbol ('fetchFundingRateHistory', symbol);
         await this.loadMarkets ();
         const request = {};
         const market = this.market (symbol);
@@ -2325,6 +2324,7 @@ module.exports = class bybit extends Exchange {
          * @param {object} params extra parameters specific to the bybit api endpoint
          * @returns {[object]} a list of [trade structures]{@link https://docs.ccxt.com/en/latest/manual.html?#public-trades}
          */
+        this.checkRequiredSymbol ('fetchTrades', symbol);
         await this.loadMarkets ();
         const market = this.market (symbol);
         const request = {
@@ -2381,11 +2381,13 @@ module.exports = class bybit extends Exchange {
          * @method
          * @name bybit#fetchOrderBook
          * @description fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+         * @see https://bybit-exchange.github.io/docs/v5/market/orderbook
          * @param {string} symbol unified symbol of the market to fetch the order book for
          * @param {int|undefined} limit the maximum amount of order book entries to return
          * @param {object} params extra parameters specific to the bybit api endpoint
          * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-book-structure} indexed by market symbols
          */
+        this.checkRequiredSymbol ('fetchOrderBook', symbol);
         await this.loadMarkets ();
         const market = this.market (symbol);
         const request = {
