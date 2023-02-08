@@ -170,7 +170,7 @@ async function testSafe(methodName, exchange, ...args) {
         }
         await test(methodName, exchange, ...args);
         return true
-    } catch (e) {;
+    } catch (e) {
         return false;
     }
 }
