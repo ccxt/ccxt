@@ -1093,7 +1093,7 @@ module.exports = class phemex extends Exchange {
         const market = this.market (symbol);
         request['symbol'] = market['id'];
         let method = 'publicGetMdKline';
-        if (market['linear'] && market['settle'] === 'USDT') {
+        if (market['linear'] || market['settle'] === 'USDT') {
             method = 'publicGetMdV2KlineLast';
         }
         const response = await this[method] (this.extend (request, params));
