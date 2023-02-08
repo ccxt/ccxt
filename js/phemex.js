@@ -3,7 +3,7 @@
 // ----------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
-const { ExchangeError, BadSymbol, AuthenticationError, InsufficientFunds, InvalidOrder, ArgumentsRequired, OrderNotFound, BadRequest, PermissionDenied, AccountSuspended, CancelPending, DDoSProtection, DuplicateOrderId, RateLimitExceeded } = require ('./base/errors');
+const { ExchangeError, BadSymbol, AuthenticationError, InsufficientFunds, InvalidOrder, ArgumentsRequired, OrderNotFound, BadRequest, PermissionDenied, AccountSuspended, CancelPending, DDoSProtection, DuplicateOrderId, RateLimitExceeded, NotSupported } = require ('./base/errors');
 const { TICK_SIZE } = require ('./base/functions/number');
 const Precise = require ('./base/Precise');
 
@@ -116,6 +116,8 @@ module.exports = class phemex extends Exchange {
                 '1d': '86400',
                 '1w': '604800',
                 '1M': '2592000',
+                '3M': '7776000',
+                '1Y': '31104000',
             },
             'api': {
                 'public': {
@@ -157,8 +159,10 @@ module.exports = class phemex extends Exchange {
                         'spot/wallets', // ?currency=<currency>
                         'exchange/spot/order', // ?symbol=<symbol>&ordStatus=<ordStatus1,orderStatus2>ordType=<ordType1,orderType2>&start=<start>&end=<end>&limit=<limit>&offset=<offset>
                         'exchange/spot/order/trades', // ?symbol=<symbol>&start=<start>&end=<end>&limit=<limit>&offset=<offset>
+                        'exchange/order/v2/orderList', // ?symbol=<symbol>&currency=<currency>&ordStatus=<ordStatus>&ordType=<ordType>&start=<start>&end=<end>&offset=<offset>&limit=<limit>&withCount=<withCount></withCount>
                         // swap
                         'accounts/accountPositions', // ?currency=<currency>
+                        'g-accounts/accountPositions', // ?currency=<currency>
                         'accounts/positions', // ?currency=<currency>
                         'api-data/futures/funding-fees', // ?symbol=<symbol>
                         'api-data/g-futures/funding-fees', // ?symbol=<symbol>
@@ -170,6 +174,7 @@ module.exports = class phemex extends Exchange {
                         'api-data/g-futures/trades', // ?symbol=<symbol>
                         'api-data/futures/trading-fees', // ?symbol=<symbol>
                         'api-data/g-futures/trading-fees', // ?symbol=<symbol>
+                        'g-orders/activeList', // ?symbol=<symbol>
                         'orders/activeList', // ?symbol=<symbol>
                         'exchange/order/list', // ?symbol=<symbol>&start=<start>&end=<end>&offset=<offset>&limit=<limit>&ordStatus=<ordStatus>&withCount=<withCount>
                         'exchange/order', // ?symbol=<symbol>&orderID=<orderID1,orderID2>
@@ -198,6 +203,7 @@ module.exports = class phemex extends Exchange {
                         'spot/orders',
                         // swap
                         'orders',
+                        'g-orders',
                         'positions/assign', // ?symbol=<symbol>&posBalance=<posBalance>&posBalanceEv=<posBalanceEv>
                         'exchange/wallets/transferOut',
                         'exchange/wallets/transferIn',
@@ -205,8 +211,6 @@ module.exports = class phemex extends Exchange {
                         'exchange/wallets/createWithdraw', // ?otpCode=<otpCode>
                         'exchange/wallets/cancelWithdraw',
                         'exchange/wallets/createWithdrawAddress', // ?otpCode={optCode}
-                        // perp
-                        'g-orders',
                         // transfer
                         'assets/transfer',
                         'assets/spots/sub-accounts/transfer', // for sub-account only
@@ -219,7 +223,10 @@ module.exports = class phemex extends Exchange {
                         'spot/orders', // ?symbol=<symbol>&orderID=<orderID>&origClOrdID=<origClOrdID>&clOrdID=<clOrdID>&priceEp=<priceEp>&baseQtyEV=<baseQtyEV>&quoteQtyEv=<quoteQtyEv>&stopPxEp=<stopPxEp>
                         // swap
                         'orders/replace', // ?symbol=<symbol>&orderID=<orderID>&origClOrdID=<origClOrdID>&clOrdID=<clOrdID>&price=<price>&priceEp=<priceEp>&orderQty=<orderQty>&stopPx=<stopPx>&stopPxEp=<stopPxEp>&takeProfit=<takeProfit>&takeProfitEp=<takeProfitEp>&stopLoss=<stopLoss>&stopLossEp=<stopLossEp>&pegOffsetValueEp=<pegOffsetValueEp>&pegPriceType=<pegPriceType>
+                        'g-orders/replace', // ?symbol=<symbol>&orderID=<orderID>&origClOrdID=<origClOrdID>&clOrdID=<clOrdID>&price=<price>&priceEp=<priceEp>&orderQty=<orderQty>&stopPx=<stopPx>&stopPxEp=<stopPxEp>&takeProfit=<takeProfit>&takeProfitEp=<takeProfitEp>&stopLoss=<stopLoss>&stopLossEp=<stopLossEp>&pegOffsetValueEp=<pegOffsetValueEp>&pegPriceType=<pegPriceType>
                         'positions/leverage', // ?symbol=<symbol>&leverage=<leverage>&leverageEr=<leverageEr>
+                        'g-positions/leverage', // ?symbol=<symbol>&leverage=<leverage>&leverageEr=<leverageEr>
+                        'g-positions/switch-pos-mode-sync', // ?symbol=<symbol>&targetPosMode=<targetPosMode>
                         'positions/riskLimit', // ?symbol=<symbol>&riskLimit=<riskLimit>&riskLimitEv=<riskLimitEv>
                     ],
                     'delete': [
@@ -231,7 +238,6 @@ module.exports = class phemex extends Exchange {
                         'orders/cancel', // ?symbol=<symbol>&orderID=<orderID>
                         'orders', // ?symbol=<symbol>&orderID=<orderID1>,<orderID2>,<orderID3>
                         'orders/all', // ?symbol=<symbol>&untriggered=<untriggered>&text=<text>
-                        // perp
                         'g-orders/cancel', // ?symbol=<symbol>&orderID=<orderID>
                         'g-orders', // ?symbol=<symbol>&orderID=<orderID1>,<orderID2>,<orderID3>
                         'g-orders/all', // ?symbol=<symbol>&untriggered=<untriggered>&text=<text>
@@ -929,6 +935,7 @@ module.exports = class phemex extends Exchange {
          * @method
          * @name phemex#fetchOrderBook
          * @description fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+         * @see https://github.com/phemex/phemex-api-docs/blob/master/Public-Hedged-Perpetual-API.md#queryorderbook
          * @param {string} symbol unified symbol of the market to fetch the order book for
          * @param {int|undefined} limit the maximum amount of order book entries to return
          * @param {object} params extra parameters specific to the phemex api endpoint
@@ -941,7 +948,7 @@ module.exports = class phemex extends Exchange {
             // 'id': 123456789, // optional request id
         };
         let method = 'v1GetMdOrderbook';
-        if (market['linear']) {
+        if (market['settle'] === 'USDT') {
             method = 'v2GetMdV2Orderbook';
         }
         const response = await this[method] (this.extend (request, params));
@@ -1067,6 +1074,7 @@ module.exports = class phemex extends Exchange {
          * @method
          * @name phemex#fetchOHLCV
          * @description fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+         * @see https://github.com/phemex/phemex-api-docs/blob/master/Public-Hedged-Perpetual-API.md#querykline
          * @param {string} symbol unified symbol of the market to fetch OHLCV data for
          * @param {string} timeframe the length of time each candle represents
          * @param {int|undefined} since timestamp in ms of the earliest candle to fetch
@@ -1104,7 +1112,7 @@ module.exports = class phemex extends Exchange {
         const market = this.market (symbol);
         request['symbol'] = market['id'];
         let method = 'publicGetMdKline';
-        if (market['linear']) {
+        if (market['settle'] === 'USDT') {
             method = 'publicGetMdV2KlineLast';
         }
         const response = await this[method] (this.extend (request, params));
@@ -1221,6 +1229,7 @@ module.exports = class phemex extends Exchange {
          * @method
          * @name phemex#fetchTicker
          * @description fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+         * @see https://github.com/phemex/phemex-api-docs/blob/master/Public-Hedged-Perpetual-API.md#query24hrsticker
          * @param {string} symbol unified symbol of the market to fetch the ticker for
          * @param {object} params extra parameters specific to the phemex api endpoint
          * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
@@ -1293,6 +1302,7 @@ module.exports = class phemex extends Exchange {
          * @method
          * @name phemex#fetchTrades
          * @description get the list of most recent trades for a particular symbol
+         * @see https://github.com/phemex/phemex-api-docs/blob/master/Public-Hedged-Perpetual-API.md#querytrades
          * @param {string} symbol unified symbol of the market to fetch trades for
          * @param {int|undefined} since timestamp in ms of the earliest trade to fetch
          * @param {int|undefined} limit the maximum amount of trades to fetch
@@ -1306,7 +1316,7 @@ module.exports = class phemex extends Exchange {
             // 'id': 123456789, // optional request id
         };
         let method = 'v1GetMdTrade';
-        if (market['linear']) {
+        if (market['settle'] === 'USDT') {
             method = 'v2GetMdV2Trade';
         }
         const response = await this[method] (this.extend (request, params));
@@ -1329,10 +1339,6 @@ module.exports = class phemex extends Exchange {
         const result = this.safeValue (response, 'result', {});
         const trades = this.safeValue2 (result, 'trades', 'trades_p', []);
         return this.parseTrades (trades, market, since, limit);
-    }
-
-    isNumber (n) {
-        return !Number.isNaN (parseFloat (n)) && !Number.isNaN (n - 0);
     }
 
     parseTrade (trade, market = undefined) {
@@ -1658,7 +1664,7 @@ module.exports = class phemex extends Exchange {
                     throw new ArgumentsRequired (this.id + ' fetchBalance() requires a code parameter or a currency parameter for ' + type + ' type');
                 }
             }
-            method = 'privateGetAccountsAccountPositions';
+            method = 'privateGetAccountsAccountPositions'; // privateGetGAccountsAccountPositions
         }
         params = this.omit (params, 'type');
         const response = await this[method] (this.extend (request, params));
@@ -2015,6 +2021,7 @@ module.exports = class phemex extends Exchange {
          * @method
          * @name phemex#createOrder
          * @description create a trade order
+         * @see https://github.com/phemex/phemex-api-docs/blob/master/Public-Hedged-Perpetual-API.md#place-order
          * @param {string} symbol unified symbol of the market to create an order in
          * @param {string} type 'market' or 'limit'
          * @param {string} side 'buy' or 'sell'
@@ -2122,7 +2129,12 @@ module.exports = class phemex extends Exchange {
             request['stopLossEp'] = this.toEp (stopLossPrice, market);
             params = this.omit (params, 'stopLossPrice');
         }
-        const method = market['spot'] ? 'privatePostSpotOrders' : 'privatePostOrders';
+        let method = 'privatePostSpotOrders';
+        if (market['inverse']) {
+            method = 'privatePostOrders';
+        } else if (market['settle'] === 'USDT') {
+            method = 'privatePostGOrders';
+        }
         params = this.omit (params, 'reduceOnly');
         const response = await this[method] (this.extend (request, params));
         //
@@ -2206,6 +2218,20 @@ module.exports = class phemex extends Exchange {
     }
 
     async editOrder (id, symbol, type = undefined, side = undefined, amount = undefined, price = undefined, params = {}) {
+        /**
+         * @method
+         * @name phemex#editOrder
+         * @description edit a trade order
+         * @see https://github.com/phemex/phemex-api-docs/blob/master/Public-Hedged-Perpetual-API.md#amend-order-by-orderid
+         * @param {string} id cancel order id
+         * @param {string} symbol unified symbol of the market to create an order in
+         * @param {string} type 'market' or 'limit'
+         * @param {string} side 'buy' or 'sell'
+         * @param {float} amount how much of currency you want to trade in units of base currency
+         * @param {float|undefined} price the price at which the order is to be fullfilled, in units of the base currency, ignored in market orders
+         * @param {object} params extra parameters specific to the phemex api endpoint
+         * @returns {object} an [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
+         */
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' editOrder() requires a symbol argument');
         }
@@ -2243,7 +2269,12 @@ module.exports = class phemex extends Exchange {
             request['stopPxEp'] = this.toEp (stopPrice, market);
         }
         params = this.omit (params, [ 'stopPx', 'stopPrice' ]);
-        const method = market['spot'] ? 'privatePutSpotOrders' : 'privatePutOrdersReplace';
+        let method = 'privatePutSpotOrders';
+        if (market['inverse']) {
+            method = 'privatePutOrdersReplace';
+        } else if (market['settle'] === 'USDT') {
+            method = 'privatePutGOrdersReplace';
+        }
         const response = await this[method] (this.extend (request, params));
         const data = this.safeValue (response, 'data', {});
         return this.parseOrder (data, market);
@@ -2254,6 +2285,7 @@ module.exports = class phemex extends Exchange {
          * @method
          * @name phemex#cancelOrder
          * @description cancels an open order
+         * @see https://github.com/phemex/phemex-api-docs/blob/master/Public-Hedged-Perpetual-API.md#cancel-single-order-by-orderid
          * @param {string} id order id
          * @param {string} symbol unified symbol of the market the order was made in
          * @param {object} params extra parameters specific to the phemex api endpoint
@@ -2277,7 +2309,7 @@ module.exports = class phemex extends Exchange {
         let method = 'privateDeleteSpotOrders';
         if (market['inverse']) {
             method = 'privateDeleteOrdersCancel';
-        } else if (market['linear']) {
+        } else if (market['settle'] === 'USDT') {
             method = 'privateDeleteGOrdersCancel';
         }
         const response = await this[method] (this.extend (request, params));
@@ -2290,6 +2322,7 @@ module.exports = class phemex extends Exchange {
          * @method
          * @name phemex#cancelAllOrders
          * @description cancel all open orders in a market
+         * @see https://github.com/phemex/phemex-api-docs/blob/master/Public-Hedged-Perpetual-API.md#cancelall
          * @param {string} symbol unified market symbol of the market to cancel orders in
          * @param {object} params extra parameters specific to the phemex api endpoint
          * @returns {[object]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
@@ -2307,7 +2340,7 @@ module.exports = class phemex extends Exchange {
         let method = 'privateDeleteSpotOrdersAll';
         if (market['inverse']) {
             method = 'privateDeleteOrdersAll';
-        } else if (market['linear']) {
+        } else if (market['settle'] === 'USDT') {
             method = 'privateDeleteGOrdersAll';
         }
         request['symbol'] = market['id'];
@@ -2328,6 +2361,9 @@ module.exports = class phemex extends Exchange {
         }
         await this.loadMarkets ();
         const market = this.market (symbol);
+        if (market['settle'] === 'USDT') {
+            throw new NotSupported (this.id + 'fetchOrder() is not supported yet for USDT settled swap markets'); // https://github.com/phemex/phemex-api-docs/blob/master/Public-Hedged-Perpetual-API.md#query-user-order-by-orderid-or-query-user-order-by-client-order-id
+        }
         const method = market['spot'] ? 'privateGetSpotOrdersActive' : 'privateGetExchangeOrder';
         const request = {
             'symbol': market['id'],
@@ -2361,6 +2397,7 @@ module.exports = class phemex extends Exchange {
          * @method
          * @name phemex#fetchOrders
          * @description fetches information on multiple orders made by the user
+         * @see https://github.com/phemex/phemex-api-docs/blob/master/Public-Hedged-Perpetual-API.md#queryorder
          * @param {string} symbol unified market symbol of the market orders were made in
          * @param {int|undefined} since the earliest time in ms to fetch orders for
          * @param {int|undefined} limit the maximum number of  orde structures to retrieve
@@ -2372,7 +2409,12 @@ module.exports = class phemex extends Exchange {
         }
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const method = market['spot'] ? 'privateGetSpotOrders' : 'privateGetExchangeOrderList';
+        let method = 'privateGetSpotOrders';
+        if (market['inverse']) {
+            method = 'privateGetExchangeOrderList';
+        } else if (market['settle'] === 'USDT') {
+            method = 'privateGetExchangeOrderV2OrderList';
+        }
         const request = {
             'symbol': market['id'],
         };
@@ -2393,6 +2435,7 @@ module.exports = class phemex extends Exchange {
          * @method
          * @name phemex#fetchOpenOrders
          * @description fetch all unfilled currently open orders
+         * @see https://github.com/phemex/phemex-api-docs/blob/master/Public-Hedged-Perpetual-API.md#queryopenorder
          * @param {string} symbol unified market symbol
          * @param {int|undefined} since the earliest time in ms to fetch open orders for
          * @param {int|undefined} limit the maximum number of  open orders structures to retrieve
@@ -2407,7 +2450,7 @@ module.exports = class phemex extends Exchange {
         let method = 'privateGetSpotOrders';
         if (market['inverse']) {
             method = 'privateGetOrdersActiveList';
-        } else if (market['linear']) {
+        } else if (market['settle'] === 'USDT') {
             method = 'privateGetGOrdersActiveList';
         }
         const request = {
@@ -2435,6 +2478,7 @@ module.exports = class phemex extends Exchange {
          * @method
          * @name phemex#fetchClosedOrders
          * @description fetches information on multiple closed orders made by the user
+         * @see https://github.com/phemex/phemex-api-docs/blob/master/Public-Hedged-Perpetual-API.md#queryorder
          * @param {string} symbol unified market symbol of the market orders were made in
          * @param {int|undefined} since the earliest time in ms to fetch orders for
          * @param {int|undefined} limit the maximum number of  orde structures to retrieve
@@ -2446,7 +2490,12 @@ module.exports = class phemex extends Exchange {
         }
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const method = market['spot'] ? 'privateGetExchangeSpotOrder' : 'privateGetExchangeOrderList';
+        let method = 'privateGetExchangeSpotOrder';
+        if (market['inverse']) {
+            method = 'privateGetExchangeOrderList';
+        } else if (market['settle'] === 'USDT') {
+            method = 'privateGetExchangeOrderV2OrderList';
+        }
         const request = {
             'symbol': market['id'],
         };
@@ -3077,6 +3126,7 @@ module.exports = class phemex extends Exchange {
          * @method
          * @name phemex#fetchFundingHistory
          * @description fetch the history of funding payments paid and received on this account
+         * @see https://github.com/phemex/phemex-api-docs/blob/master/Public-Hedged-Perpetual-API.md#futureDataFundingFeesHist
          * @param {string} symbol unified market symbol
          * @param {int|undefined} since the earliest time in ms to fetch funding history for
          * @param {int|undefined} limit the maximum number of funding history structures to retrieve
@@ -3100,7 +3150,7 @@ module.exports = class phemex extends Exchange {
             request['limit'] = limit;
         }
         let method = 'privateGetApiDataFuturesFundingFees';
-        if (market['linear']) {
+        if (market['settle'] === 'USDT') {
             method = 'privateGetApiDataGFuturesFundingFees';
         }
         const response = await this[method] (this.extend (request, params));
@@ -3321,6 +3371,7 @@ module.exports = class phemex extends Exchange {
          * @method
          * @name phemex#setMarginMode
          * @description set margin mode to 'cross' or 'isolated'
+         * @see https://github.com/phemex/phemex-api-docs/blob/master/Public-Hedged-Perpetual-API.md#switch-position-mode-synchronously
          * @param {string} marginMode 'cross' or 'isolated'
          * @param {string} symbol unified market symbol
          * @param {object} params extra parameters specific to the phemex api endpoint
@@ -3338,18 +3389,28 @@ module.exports = class phemex extends Exchange {
         if (market['type'] !== 'swap') {
             throw new BadSymbol (this.id + ' setMarginMode() supports swap contracts only');
         }
-        let leverage = this.safeInteger (params, 'leverage');
-        if (marginMode === 'cross') {
-            leverage = 0;
-        }
-        if (leverage === undefined) {
-            throw new ArgumentsRequired (this.id + ' setMarginMode() requires a leverage parameter');
-        }
         const request = {
             'symbol': market['id'],
-            'leverage': leverage,
         };
-        return await this.privatePutPositionsLeverage (this.extend (request, params));
+        let method = 'privatePutPositionsLeverage';
+        if (market['settle'] === 'USDT') {
+            let mode = 'OneWay';
+            if (marginMode === 'cross') {
+                mode = 'Hedged';
+            }
+            request['targetPosMode'] = mode;
+            method = 'privatePutGPositionsSwitchPosModeSync';
+        } else {
+            let leverage = this.safeInteger (params, 'leverage');
+            if (marginMode === 'cross') {
+                leverage = 0;
+            }
+            if (leverage === undefined) {
+                throw new ArgumentsRequired (this.id + ' setMarginMode() requires a leverage parameter');
+            }
+            request['leverage'] = leverage;
+        }
+        return await this[method] (this.extend (request, params));
     }
 
     async fetchLeverageTiers (symbols = undefined, params = {}) {
@@ -3522,6 +3583,7 @@ module.exports = class phemex extends Exchange {
          * @method
          * @name phemex#setLeverage
          * @description set the level of leverage for a market
+         * @see https://github.com/phemex/phemex-api-docs/blob/master/Public-Hedged-Perpetual-API.md#set-leverage
          * @param {float} leverage the rate of leverage
          * @param {string} symbol unified market symbol
          * @param {object} params extra parameters specific to the phemex api endpoint
@@ -3539,9 +3601,15 @@ module.exports = class phemex extends Exchange {
         const market = this.market (symbol);
         const request = {
             'symbol': market['id'],
-            'leverage': leverage,
         };
-        return await this.privatePutPositionsLeverage (this.extend (request, params));
+        let method = 'privatePutPositionsLeverage';
+        if (market['settle'] === 'USDT') {
+            method = 'privatePutGPositionsLeverage';
+            request['leverageRr'] = leverage;
+        } else {
+            request['leverage'] = leverage;
+        }
+        return await this[method] (this.extend (request, params));
     }
 
     async transfer (code, amount, fromAccount, toAccount, params = {}) {
