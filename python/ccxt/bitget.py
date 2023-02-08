@@ -3220,9 +3220,22 @@ class bitget(Exchange):
         :returns [dict]: a list of `position structure <https://docs.ccxt.com/en/latest/manual.html#position-structure>`
         """
         self.load_markets()
-        defaultSubType = self.safe_string(self.options, 'defaultSubType')
+        market = None
+        if symbols is not None:
+            first = self.safe_string(symbols, 0)
+            market = self.market(first)
+        sandboxMode = self.safe_value(self.options, 'sandboxMode', False)
+        subType = None
+        subType, params = self.handle_sub_type_and_params('fetchPositions', market, params)
+        productType = None
+        if subType == 'linear':
+            productType = 'UMCBL'
+        else:
+            productType = 'DMCBL'
+        if sandboxMode:
+            productType = 'S' + productType
         request = {
-            'productType': 'UMCBL' if (defaultSubType == 'linear') else 'DMCBL',
+            'productType': productType,
         }
         response = self.privateMixGetPositionAllPosition(self.extend(request, params))
         #
