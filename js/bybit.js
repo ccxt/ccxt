@@ -6126,7 +6126,9 @@ module.exports = class bybit extends Exchange {
         if (networkId !== undefined) {
             request['chain'] = networkId.toUpperCase ();
         }
-        const response = await this.privatePostAssetV3PrivateWithdrawCreate (this.extend (request, query));
+        const { enableUnifiedAccount } = await this.isUnifiedMarginEnabled ();
+        const method = (enableUnifiedAccount) ? 'privatePostV5AssetWithdrawCreate' : 'privatePostAssetV3PrivateWithdrawCreate';
+        const response = await this[method] (this.extend (request, query));
         //
         //    {
         //         "retCode": "0",
