@@ -201,7 +201,11 @@ class probit(Exchange):
                     'BEP20': 'BSC',
                     'ERC20': 'ETH',
                     'TRC20': 'TRON',
-                    'TRX': 'TRON',
+                },
+                'networksById': {
+                    'BSC': 'BEP20',
+                    'ETH': 'ERC20',
+                    'TRON': 'TRC20',
                 },
             },
             'commonCurrencies': {
@@ -1344,6 +1348,135 @@ class probit(Exchange):
             'cancelling': 'canceled',
         }
         return self.safe_string(statuses, status, status)
+
+    def fetch_deposit_withdraw_fees(self, codes=None, params={}):
+        """
+        fetch deposit and withdraw fees
+        see https://docs.poloniex.com/#public-endpoints-reference-data-currency-information
+        :param [str]|None codes: list of unified currency codes
+        :param dict params: extra parameters specific to the poloniex api endpoint
+        :returns [dict]: a list of `fees structures <https://docs.ccxt.com/en/latest/manual.html#fee-structure>`
+        """
+        self.load_markets()
+        response = self.publicGetCurrencyWithPlatform(params)
+        #
+        #  {
+        #     "data": [
+        #       {
+        #       "id": "AFX",
+        #       "display_name": {
+        #       "ko-kr": "아프릭스",
+        #       "en-us": "Afrix"
+        #       },
+        #       "show_in_ui": True,
+        #       "platform": [
+        #       {
+        #       "id": "ZYN",
+        #       "priority": 1,
+        #       "deposit": True,
+        #       "withdrawal": True,
+        #       "currency_id": "AFX",
+        #       "precision": 18,
+        #       "min_confirmation_count": 60,
+        #       "require_destination_tag": False,
+        #       "allow_withdrawal_destination_tag": False,
+        #       "display_name": {
+        #       "name": {
+        #       "ko-kr": "지네코인",
+        #       "en-us": "Wethio"
+        #       }
+        #       },
+        #       "min_deposit_amount": "0",
+        #       "min_withdrawal_amount": "0",
+        #       "withdrawal_fee": [
+        #       {
+        #       "currency_id": "ZYN",
+        #       "amount": "0.5",
+        #       "priority": 1
+        #       }
+        #       ],
+        #       "deposit_fee": {},
+        #       "suspended_reason": "",
+        #       "deposit_suspended": False,
+        #       "withdrawal_suspended": False,
+        #       "platform_currency_display_name": {}
+        #       }
+        #       ],
+        #       "internal_transfer": {
+        #       "suspended_reason": null,
+        #       "suspended": False
+        #       },
+        #       "stakeable": False,
+        #       "unstakeable": False,
+        #       "auto_stake": False,
+        #       "auto_stake_amount": "0"
+        #       },
+        #     ]
+        #  }
+        #
+        data = self.safe_value(response, 'data')
+        return self.parse_deposit_withdraw_fees(data, codes, 'id')
+
+    def parse_deposit_withdraw_fee(self, fee, currency):
+        #
+        # {
+        #     id: 'USDT',
+        #     display_name: {'ko-kr': '테더', 'en-us': 'Tether'},
+        #     show_in_ui: True,
+        #     platform: [
+        #       {
+        #         id: 'ETH',
+        #         priority: '1',
+        #         deposit: True,
+        #         withdrawal: True,
+        #         currency_id: 'USDT',
+        #         precision: '6',
+        #         min_confirmation_count: '15',
+        #         require_destination_tag: False,
+        #         allow_withdrawal_destination_tag: False,
+        #         display_name: [Object],
+        #         min_deposit_amount: '0',
+        #         min_withdrawal_amount: '1',
+        #         withdrawal_fee: [Array],
+        #         deposit_fee: {},
+        #         suspended_reason: '',
+        #         deposit_suspended: False,
+        #         withdrawal_suspended: False,
+        #         platform_currency_display_name: [Object]
+        #       },
+        #     ],
+        #     internal_transfer: {suspended_reason: null, suspended: False},
+        #     stakeable: False,
+        #     unstakeable: False,
+        #     auto_stake: False,
+        #     auto_stake_amount: '0'
+        #   }
+        #
+        depositWithdrawFee = self.deposit_withdraw_fee({})
+        platforms = self.safe_value(fee, 'platform', [])
+        depositResult = {
+            'fee': None,
+            'percentage': None,
+        }
+        for i in range(0, len(platforms)):
+            network = platforms[i]
+            networkId = self.safe_string(network, 'id')
+            networkCode = self.network_id_to_code(networkId, currency['code'])
+            withdrawalFees = self.safe_value(network, 'withdrawal_fee', {})
+            withdrawFee = self.safe_number(withdrawalFees[0], 'amount')
+            if len(withdrawalFees) > 0:
+                withdrawResult = {
+                    'fee': withdrawFee,
+                    'percentage': False if (withdrawFee is not None) else None,
+                }
+                if i == 0:
+                    depositWithdrawFee['withdraw'] = withdrawResult
+                depositWithdrawFee['networks'][networkCode] = {
+                    'withdraw': withdrawResult,
+                    'deposit': depositResult,
+                }
+        depositWithdrawFee['info'] = fee
+        return depositWithdrawFee
 
     def nonce(self):
         return self.milliseconds()
