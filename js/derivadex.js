@@ -439,6 +439,7 @@ module.exports = class derivadex extends Exchange {
          * @param {int|undefined} since the earliest time in ms to fetch trades for
          * @param {int|undefined} limit the maximum number of trades structures to retrieve
          * @param {object} params extra parameters specific to the derivadex api endpoint
+         * @param {string|undefined} params.order the chronological order of items in the response - 'asc' or 'desc'
          * @returns {[object]} a list of [trade structures]{@link https://docs.ccxt.com/en/latest/manual.html#trade-structure}
          */
         await this.loadMarkets ();
@@ -452,6 +453,9 @@ module.exports = class derivadex extends Exchange {
         }
         if (since !== undefined) {
             request['since'] = since;
+        }
+        if (params['order'] !== undefined) {
+            request['order'] = params['order'];
         }
         const extendedRequest = this.extend (request, params);
         if (extendedRequest['wallet'] === undefined) {
@@ -471,6 +475,7 @@ module.exports = class derivadex extends Exchange {
          * @param {int|undefined} since timestamp in ms of the earliest trade to fetch
          * @param {int|undefined} limit the maximum amount of trades to fetch
          * @param {object} params extra parameters specific to the derivadex api endpoint
+         * @param {string|undefined} params.order the chronological order of items in the response - 'asc' or 'desc'
          * @returns {[object]} a list of [trade structures]{@link https://docs.ccxt.com/en/latest/manual.html?#public-trades}
          */
         await this.loadMarkets ();
@@ -483,6 +488,9 @@ module.exports = class derivadex extends Exchange {
         }
         if (since !== undefined) {
             request['since'] = since;
+        }
+        if (params['order'] !== undefined) {
+            request['order'] = params['order'];
         }
         const response = await this.publicGetFills (this.extend (request, params));
         // {
@@ -771,6 +779,7 @@ module.exports = class derivadex extends Exchange {
          * @param {string|undefined} symbol unified market symbol of the market orders were made in
          * @param {int|undefined} since the earliest time in ms to fetch orders for
          * @param {int|undefined} limit the maximum number of  orde structures to retrieve
+         * @param {string|undefined} params.order the chronological order of items in the response - 'asc' or 'desc'
          * @param {object} params extra parameters specific to the derivadex api endpoint
          * @returns {[object]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
          */
@@ -784,6 +793,9 @@ module.exports = class derivadex extends Exchange {
         }
         if (since !== undefined) {
             request['since'] = since;
+        }
+        if (params['order'] !== undefined) {
+            request['order'] = params['order'];
         }
         const response = await this.publicGetOrderIntents (request);
         return await this.parseOrders (response['value'], market, since, limit);
