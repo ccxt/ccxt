@@ -792,7 +792,7 @@ class exmo extends Exchange {
         $market = $this->market($symbol);
         $request = array(
             'symbol' => $market['id'],
-            'resolution' => $this->timeframes[$timeframe],
+            'resolution' => $this->safe_string($this->timeframes, $timeframe, $timeframe),
         );
         $options = $this->safe_value($this->options, 'fetchOHLCV');
         $maxLimit = $this->safe_integer($options, 'maxLimit', 3000);

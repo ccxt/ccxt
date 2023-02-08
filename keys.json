@@ -8,6 +8,7 @@
     "gemini":        { "skip": true,    "//":"Reason: Markets api is too unreliable" },
     "coinex":        { "skip": true,    "//": "Reason: 13/01 API is down" },
     "bitcoincom":    { "skipWs": true },
+    "bithumb":       { "skip": true },
     "bitmart":       { "skipWs": true },
     "bitmex":        { "skipWs": true },
     "bitfinex":      { "skipWs": true },

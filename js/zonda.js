@@ -1075,7 +1075,7 @@ module.exports = class zonda extends Exchange {
         const tradingSymbol = market['baseId'] + '-' + market['quoteId'];
         const request = {
             'symbol': tradingSymbol,
-            'resolution': this.timeframes[timeframe],
+            'resolution': this.safeString (this.timeframes, timeframe, timeframe),
             // 'from': 1574709092000, // unix timestamp in milliseconds, required
             // 'to': 1574709092000, // unix timestamp in milliseconds, required
         };

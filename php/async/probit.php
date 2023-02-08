@@ -896,7 +896,7 @@ class probit extends Exchange {
              */
             Async\await($this->load_markets());
             $market = $this->market($symbol);
-            $interval = $this->timeframes[$timeframe];
+            $interval = $this->safe_string($this->timeframes, $timeframe, $timeframe);
             $limit = ($limit === null) ? 100 : $limit;
             $requestLimit = $this->sum($limit, 1);
             $requestLimit = min (1000, $requestLimit); // max 1000

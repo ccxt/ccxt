@@ -654,7 +654,7 @@ class bitso extends Exchange {
             $market = $this->market($symbol);
             $request = array(
                 'book' => $market['id'],
-                'time_bucket' => $this->timeframes[$timeframe],
+                'time_bucket' => $this->safe_string($this->timeframes, $timeframe, $timeframe),
             );
             if ($since !== null) {
                 $request['start'] = $since;

@@ -455,7 +455,7 @@ class bitforex extends Exchange {
             $market = $this->market($symbol);
             $request = array(
                 'symbol' => $market['id'],
-                'ktype' => $this->timeframes[$timeframe],
+                'ktype' => $this->safe_string($this->timeframes, $timeframe, $timeframe),
             );
             if ($limit !== null) {
                 $request['size'] = $limit; // default 1, max 600

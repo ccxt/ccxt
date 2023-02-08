@@ -709,7 +709,7 @@ class bitopro(Exchange):
         """
         await self.load_markets()
         market = self.market(symbol)
-        resolution = self.timeframes[timeframe]
+        resolution = self.safe_string(self.timeframes, timeframe, timeframe)
         request = {
             'pair': market['id'],
             'resolution': resolution,

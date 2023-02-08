@@ -87,7 +87,7 @@ class bitfinex2(Exchange, ccxt.async_support.bitfinex2):
         await self.load_markets()
         market = self.market(symbol)
         symbol = market['symbol']
-        interval = self.timeframes[timeframe]
+        interval = self.safe_string(self.timeframes, timeframe, timeframe)
         channel = 'candles'
         key = 'trade:' + interval + ':' + market['id']
         messageHash = channel + ':' + interval + ':' + market['id']

@@ -740,7 +740,7 @@ class woo extends Exchange {
         }
         if ($isMarket) {
             // for $market buy it requires the $amount of quote currency to spend
-            if ($orderSide === 'BUY') {
+            if ($market['spot'] && $orderSide === 'BUY') {
                 $cost = $this->safe_number($params, 'cost');
                 if ($this->safe_value($this->options, 'createMarketBuyOrderRequiresPrice', true)) {
                     if ($cost === null) {
@@ -1138,7 +1138,7 @@ class woo extends Exchange {
         $market = $this->market($symbol);
         $request = array(
             'symbol' => $market['id'],
-            'type' => $this->timeframes[$timeframe],
+            'type' => $this->safe_string($this->timeframes, $timeframe, $timeframe),
         );
         if ($limit !== null) {
             $request['limit'] = min ($limit, 1000);

@@ -5,6 +5,10 @@
 const [processPath, , exchangeId = null, exchangeSymbol = null] = process.argv.filter ((x) => !x.startsWith ('--'));
 const verbose = process.argv.includes ('--verbose') || false;
 const debug = process.argv.includes ('--debug') || false;
+const sandbox = process.argv.includes ('--sandbox') || false;
+const privateTest = process.argv.includes ('--private') || false;
+const privateOnly = process.argv.includes ('--privateOnly') || false;
+
 const HttpsProxyAgent = require ('https-proxy-agent')
 
 // ----------------------------------------------------------------------------
@@ -123,8 +127,17 @@ if (settings && settings.httpProxy) {
 
 async function test (methodName, exchange, ... args) {
     console.log ('Testing', exchange.id, methodName, '(', ... args, ')');
-    if (exchange.has[methodName]) {
-        return await (tests[methodName] (exchange, ... args));
+    try {
+        if (exchange.has[methodName]) {
+            return await (tests[methodName] (exchange, ... args));
+        }
+    } catch (e) {
+        if (e instanceof ccxt.NotSupported) {
+            console.log ('Not supported', exchange.id, methodName, '(', ... args, ')');
+        } else {
+            console.log (e.constructor.name, e.message);
+            throw e;
+        }
     }
 }
 
@@ -216,6 +229,23 @@ function getTestSymbol (exchange, symbols) {
     return symbol;
 }
 
+//-----------------------------------------------------------------------------
+
+function getExchangeCode (exchange, codes = undefined) {
+    if (codes === undefined) {
+        codes = ['BTC', 'ETH', 'XRP', 'LTC', 'BCH', 'EOS', 'BNB', 'BSV', 'USDT']
+    }
+    const code = codes[0];
+    for (let i = 0; i < codes.length; i++) {
+        if (codes[i] in exchange.currencies) {
+            return codes[i];
+        }
+    }
+    return code;
+}
+
+//-----------------------------------------------------------------------------
+
 async function testExchange (exchange) {
 
     await loadExchange (exchange);
@@ -252,13 +282,6 @@ async function testExchange (exchange) {
         'ZEC',
         'ZRX',
     ];
-
-    let code = undefined;
-    for (let i = 0; i < codes.length; i++) {
-        if (codes[i] in exchange.currencies) {
-            code = codes[i];
-        }
-    }
 
     let symbol = getTestSymbol (exchange, [
         'BTC/USD',
@@ -303,21 +326,27 @@ async function testExchange (exchange) {
     }
 
     console.log ('SYMBOL:', symbol);
-    if ((symbol.indexOf ('.d') < 0)) {
+    if ((symbol.indexOf ('.d') < 0) && !privateOnly) {
         await testSymbol (exchange, symbol);
     }
 
-    if (!exchange.privateKey && (!exchange.apiKey || (exchange.apiKey.length < 1))) {
-        return true;
+    if (privateTest || privateOnly) {
+        if (!exchange.privateKey && (!exchange.apiKey || (exchange.apiKey.length < 1))) {
+            console.log ('[Skipped]', 'Keys not found, skipping private tests');
+            return true;
+        }
+        await runPrivateTests (exchange, symbol);
     }
+}
 
+//-----------------------------------------------------------------------------
+
+async function runPrivateTests(exchange, symbol) {
     exchange.checkRequiredCredentials ();
 
     await test ('signIn', exchange);
 
-    // move to testnet/sandbox if possible before accessing the balance
-    // if (exchange.urls['test'])
-    //    exchange.urls['api'] = exchange.urls['test']
+    const code = getExchangeCode (exchange);
 
     const balance = await test ('fetchBalance', exchange);
 
@@ -411,6 +440,10 @@ async function tryAllProxies (exchange, proxies) {
 //-----------------------------------------------------------------------------
 
 async function main () {
+
+    if (sandbox || exchange.sandbox) {
+        exchange.setSandboxMode (true);
+    }
 
     if (exchangeSymbol) {
 

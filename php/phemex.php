@@ -1048,7 +1048,7 @@ class phemex extends Exchange {
          */
         $request = array(
             // 'symbol' => $market['id'],
-            'resolution' => $this->timeframes[$timeframe],
+            'resolution' => $this->safe_string($this->timeframes, $timeframe, $timeframe),
             // 'from' => 1588830682, // seconds
             // 'to' => $this->seconds(),
         );

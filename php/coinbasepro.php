@@ -172,8 +172,8 @@ class coinbasepro extends Exchange {
                 'trading' => array(
                     'tierBased' => true, // complicated tier system per coin
                     'percentage' => true,
-                    'maker' => 0.4 / 100, // highest fee of all tiers
-                    'taker' => 0.6 / 100, // highest fee of all tiers
+                    'maker' => $this->parse_number('0.004'), // highest fee of all tiers
+                    'taker' => $this->parse_number('0.006'), // highest fee of all tiers
                 ),
                 'funding' => array(
                     'tierBased' => false,
@@ -871,7 +871,7 @@ class coinbasepro extends Exchange {
          */
         $this->load_markets();
         $market = $this->market($symbol);
-        $granularity = $this->timeframes[$timeframe];
+        $granularity = $this->safe_integer($this->timeframes, $timeframe, $timeframe);
         $request = array(
             'id' => $market['id'],
             'granularity' => $granularity,

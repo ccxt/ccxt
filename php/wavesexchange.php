@@ -910,7 +910,7 @@ class wavesexchange extends Exchange {
         $request = array(
             'baseId' => $market['baseId'],
             'quoteId' => $market['quoteId'],
-            'interval' => $this->timeframes[$timeframe],
+            'interval' => $this->safe_string($this->timeframes, $timeframe, $timeframe),
         );
         $allowedCandles = $this->safe_integer($this->options, 'allowedCandles', 1440);
         if ($limit === null) {

@@ -885,7 +885,7 @@ module.exports = class bitrue extends Exchange {
         const market = this.market (symbol);
         const request = {
             'symbol': market['id'],
-            'scale': this.timeframes[timeframe],
+            'scale': this.safeString (this.timeframes, timeframe, timeframe),
         };
         if (limit !== undefined) {
             request['limit'] = limit;

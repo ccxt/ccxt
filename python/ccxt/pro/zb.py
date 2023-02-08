@@ -179,7 +179,7 @@ class zb(Exchange, ccxt.async_support.zb):
             raise NotSupported(self.id + ' watchOHLCV() supports contract markets only')
         if (limit is None) or (limit > 1440):
             limit = 100
-        interval = self.timeframes[timeframe]
+        interval = self.safe_string(self.timeframes, timeframe, timeframe)
         messageHash = market['id'] + '.KLine' + '_' + interval
         url = self.implode_hostname(self.urls['api']['ws']['contract'])
         ohlcv = await self.watch_public(url, messageHash, symbol, self.handle_ohlcv, limit, params)
