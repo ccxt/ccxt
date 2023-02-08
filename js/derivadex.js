@@ -232,9 +232,8 @@ module.exports = class derivadex extends Exchange {
         //         "timestamp": 1674260369,
         //         "success": true
         // }
-        let markets = response['value'];
-        markets = markets.filter ((market) => market['name'] !== 'DDXPERP');
-        return markets.map ((market) => {
+        const markets = response['value'];
+        return markets.filter ((market) => market['name'] !== 'DDXPERP').map ((market) => {
             const name = market['name'];
             const base = name.slice (0, -4);
             return {
@@ -265,11 +264,11 @@ module.exports = class derivadex extends Exchange {
                 },
                 'limits': {
                     'leverage': {
-                        'min': 1,
+                        'min': undefined,
                         'max': 3,
                     },
                     'amount': {
-                        'min': market['value']['tickSize'],
+                        'min': market['value']['minOrderSize'],
                         'max': undefined,
                     },
                     'price': {
@@ -277,7 +276,7 @@ module.exports = class derivadex extends Exchange {
                         'max': undefined,
                     },
                     'cost': {
-                        'min': market['value']['minOrderSize'],
+                        'min': undefined,
                         'max': market['value']['maxOrderNotional'],
                     },
                 },
@@ -311,7 +310,7 @@ module.exports = class derivadex extends Exchange {
                 'name': 'USDC',
                 'active': true,
                 'fee': 0,
-                'precision': 2,
+                'precision': 2, // TODO: revisit this precision value
                 'deposit': true,
                 'withdraw': true,
                 'limits': {
@@ -329,12 +328,12 @@ module.exports = class derivadex extends Exchange {
                 'name': 'DDX',
                 'active': false,
                 'fee': 0,
-                'precision': 2,
+                'precision': 2, // TODO: revisit this precision value
                 'deposit': true,
                 'withdraw': true,
                 'limits': {
                     'deposit': {
-                        'min': 0.1,
+                        'min': 0.000001,
                         'max': undefined,
                     },
                 },
@@ -489,9 +488,7 @@ module.exports = class derivadex extends Exchange {
         if (since !== undefined) {
             request['since'] = since;
         }
-        if (params['order'] !== undefined) {
-            request['order'] = params['order'];
-        }
+        request['order'] = params['order'] !== undefined ? params['order'] : 'desc';
         const response = await this.publicGetFills (this.extend (request, params));
         // {
         //     value: [
@@ -556,12 +553,12 @@ module.exports = class derivadex extends Exchange {
         return result;
     }
 
-    async parseTradesCustom (trades, market = undefined, since = undefined, limit = undefined, params = {}) {
+    async parseTradesCustom (trades, market = undefined, since = undefined, limit = undefined) {
         trades = this.toArray (trades);
         let result = [];
         const orderIntents = await this.getOrderIntents (trades[0]);
         for (let i = 0; i < trades[0].length; i++) {
-            const trade = this.extend (this.parseTradeCustom (trades[0][i], orderIntents, market), params);
+            const trade = await this.parseTradeCustom (trades[0][i], orderIntents);
             result.push (trade);
         }
         result = this.sortBy2 (result, 'timestamp', 'id');
@@ -570,7 +567,7 @@ module.exports = class derivadex extends Exchange {
         return this.filterBySymbolSinceLimit (result, symbol, since, limit, tail);
     }
 
-    async parseTradeCustom (trade, orderIntents, market = undefined) {
+    async parseTradeCustom (trade, orderIntents) {
         const id = this.safeString (trade, 'takerOrderHash') + '_' + this.safeString (trade, 'epochId') + '_' + this.safeString (trade, 'txOrdinal');
         const timestamp = this.parse8601 (this.safeString (trade, 'createdAt'));
         const datetime = this.iso8601 (timestamp);
