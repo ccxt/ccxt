@@ -1137,11 +1137,6 @@ class btcex(Exchange):
         averageString = self.safe_string(order, 'average_price')
         amountString = self.safe_string(order, 'amount')
         filledString = self.safe_string(order, 'filled_amount')
-        lastTradeTimestamp = None
-        if filledString is not None:
-            isFilledPositive = Precise.string_gt(filledString, '0')
-            if isFilledPositive:
-                lastTradeTimestamp = lastUpdate
         status = self.parse_order_status(self.safe_string(order, 'order_state'))
         marketId = self.safe_string(order, 'instrument_name')
         market = self.safe_market(marketId, market)
@@ -1154,27 +1149,26 @@ class btcex(Exchange):
                 'cost': feeCostString,
                 'currency': market['base'],
             }
-        type = self.safe_string(order, 'order_type')
         # injected in createOrder
         trades = self.safe_value(order, 'trades')
-        timeInForce = self.parse_time_in_force(self.safe_string(order, 'time_in_force'))
-        stopPrice = self.safe_value(order, 'trigger_price')
-        postOnly = self.safe_value(order, 'post_only')
+        stopPrice = self.safe_number(order, 'trigger_price')
         return self.safe_order({
             'info': order,
             'id': id,
             'clientOrderId': None,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
-            'lastTradeTimestamp': lastTradeTimestamp,
+            'lastTradeTimestamp': lastUpdate,
             'symbol': market['symbol'],
-            'type': type,
-            'timeInForce': timeInForce,
-            'postOnly': postOnly,
+            'type': self.safe_string(order, 'order_type'),
+            'timeInForce': self.parse_time_in_force(self.safe_string(order, 'time_in_force')),
+            'postOnly': self.safe_value(order, 'post_only'),
             'side': side,
-            'price': priceString,
+            'price': self.parse_number(priceString),
             'stopPrice': stopPrice,
             'triggerPrice': stopPrice,
+            'stopLossPrice': self.safe_number(order, 'stop_loss_price'),
+            'takeProfitPrice': self.safe_number(order, 'take_profit_price'),
             'amount': amountString,
             'cost': None,
             'average': averageString,
@@ -1186,6 +1180,7 @@ class btcex(Exchange):
         }, market)
 
     async def fetch_order(self, id, symbol=None, params={}):
+        await self.sign_in()
         await self.load_markets()
         request = {
             'order_id': id,

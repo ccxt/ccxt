@@ -2387,7 +2387,9 @@ export default class bitget extends Exchange {
                 const triggerType = this.safeString (params, 'triggerType', 'market_price');
                 request['triggerType'] = triggerType;
                 request['triggerPrice'] = this.priceToPrecision (symbol, triggerPrice);
-                request['executePrice'] = this.priceToPrecision (symbol, price);
+                if (price !== undefined) {
+                    request['executePrice'] = this.priceToPrecision (symbol, price);
+                }
                 method = 'privateMixPostPlanPlacePlan';
             }
             if (isStopLossOrTakeProfit) {
@@ -2910,7 +2912,7 @@ export default class bitget extends Exchange {
         //     {
         //         "code": "00000",
         //         "msg": "success",
-        //         "requestTime": 1668134581005,
+        //         "requestTime": 1668134581006,
         //         "data": {
         //             "nextFlag": false,
         //             "endId": 974792555020390400,
@@ -3396,9 +3398,25 @@ export default class bitget extends Exchange {
          * @returns {[object]} a list of [position structure]{@link https://docs.ccxt.com/en/latest/manual.html#position-structure}
          */
         await this.loadMarkets ();
-        const defaultSubType = this.safeString (this.options, 'defaultSubType');
+        let market = undefined;
+        if (symbols !== undefined) {
+            const first = this.safeString (symbols, 0);
+            market = this.market (first);
+        }
+        const sandboxMode = this.safeValue (this.options, 'sandboxMode', false);
+        let subType = undefined;
+        [ subType, params ] = this.handleSubTypeAndParams ('fetchPositions', market, params);
+        let productType = undefined;
+        if (subType === 'linear') {
+            productType = 'UMCBL';
+        } else {
+            productType = 'DMCBL';
+        }
+        if (sandboxMode) {
+            productType = 'S' + productType;
+        }
         const request = {
-            'productType': (defaultSubType === 'linear') ? 'UMCBL' : 'DMCBL',
+            'productType': productType,
         };
         const response = await (this as any).privateMixGetPositionAllPosition (this.extend (request, params));
         //

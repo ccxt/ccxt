@@ -4904,8 +4904,8 @@ export default class okx extends Exchange {
             if (posSide === undefined) {
                 throw new ArgumentsRequired (this.id + ' setLeverage() requires a posSide argument for isolated margin');
             }
-            if (posSide !== 'long' && posSide !== 'short') {
-                throw new BadRequest (this.id + ' setLeverage() requires the posSide argument to be either "long" or "short"');
+            if (posSide !== 'long' && posSide !== 'short' && posSide !== 'net') {
+                throw new BadRequest (this.id + ' setLeverage() requires the posSide argument to be either "long", "short" or "net"');
             }
         }
         const response = await (this as any).privatePostAccountSetLeverage (this.extend (request, params));

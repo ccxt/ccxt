@@ -60,10 +60,15 @@ export default class bitget extends bitgetRest {
     getWsMarketId (market) {
         // WS don't use the same 'id'
         // as the rest version
+        const sandboxMode = this.safeValue (this.options, 'sandboxMode', false);
         if (market['spot']) {
             return market['info']['symbolName'];
         } else {
-            return market['id'].replace ('_UMCBL', '');
+            if (!sandboxMode) {
+                return market['id'].replace ('_UMCBL', '');
+            } else {
+                return market['id'].replace ('_SUMCBL', '');
+            }
         }
     }
 
@@ -72,11 +77,16 @@ export default class bitget extends bitgetRest {
         // { arg: { instType: 'sp', channel: 'ticker', instId: 'BTCUSDT' }
         //
         const instType = this.safeString (arg, 'instType');
+        const sandboxMode = this.safeValue (this.options, 'sandboxMode', false);
         let marketId = this.safeString (arg, 'instId');
         if (instType === 'sp') {
             marketId += '_SPBL';
         } else {
-            marketId += '_UMCBL';
+            if (!sandboxMode) {
+                marketId += '_UMCBL';
+            } else {
+                marketId += '_SUMCBL';
+            }
         }
         return marketId;
     }

@@ -2297,7 +2297,8 @@ class bitget(Exchange):
                 triggerType = self.safe_string(params, 'triggerType', 'market_price')
                 request['triggerType'] = triggerType
                 request['triggerPrice'] = self.price_to_precision(symbol, triggerPrice)
-                request['executePrice'] = self.price_to_precision(symbol, price)
+                if price is not None:
+                    request['executePrice'] = self.price_to_precision(symbol, price)
                 method = 'privateMixPostPlanPlacePlan'
             if isStopLossOrTakeProfit:
                 if not isMarketOrder:
@@ -2772,7 +2773,7 @@ class bitget(Exchange):
         #     {
         #         "code": "00000",
         #         "msg": "success",
-        #         "requestTime": 1668134581005,
+        #         "requestTime": 1668134581006,
         #         "data": {
         #             "nextFlag": False,
         #             "endId": 974792555020390400,
@@ -3221,9 +3222,22 @@ class bitget(Exchange):
         :returns [dict]: a list of `position structure <https://docs.ccxt.com/en/latest/manual.html#position-structure>`
         """
         await self.load_markets()
-        defaultSubType = self.safe_string(self.options, 'defaultSubType')
+        market = None
+        if symbols is not None:
+            first = self.safe_string(symbols, 0)
+            market = self.market(first)
+        sandboxMode = self.safe_value(self.options, 'sandboxMode', False)
+        subType = None
+        subType, params = self.handle_sub_type_and_params('fetchPositions', market, params)
+        productType = None
+        if subType == 'linear':
+            productType = 'UMCBL'
+        else:
+            productType = 'DMCBL'
+        if sandboxMode:
+            productType = 'S' + productType
         request = {
-            'productType': 'UMCBL' if (defaultSubType == 'linear') else 'DMCBL',
+            'productType': productType,
         }
         response = await self.privateMixGetPositionAllPosition(self.extend(request, params))
         #

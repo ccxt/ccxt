@@ -130,8 +130,17 @@ if (settings && settings.httpProxy) {
 
 async function test (methodName, exchange, ... args) {
     console.log ('Testing', exchange.id, methodName, '(', ... args, ')');
-    if (exchange.has[methodName]) {
-        return await (tests[methodName] (exchange, ...args));
+    try {
+        if (exchange.has[methodName]) {
+            return await (tests[methodName] (exchange, ... args));
+        }
+    } catch (e) {
+        if (e instanceof ccxt.NotSupported) {
+            console.log ('Not supported', exchange.id, methodName, '(', ... args, ')');
+        } else {
+            console.log (e.constructor.name, e.message);
+            throw e;
+        }
     }
 }
 
@@ -214,6 +223,23 @@ function getTestSymbol (exchange, symbols) {
     return symbol;
 }
 
+//-----------------------------------------------------------------------------
+
+function getExchangeCode (exchange, codes = undefined) {
+    if (codes === undefined) {
+        codes = ['BTC', 'ETH', 'XRP', 'LTC', 'BCH', 'EOS', 'BNB', 'BSV', 'USDT']
+    }
+    const code = codes[0];
+    for (let i = 0; i < codes.length; i++) {
+        if (codes[i] in exchange.currencies) {
+            return codes[i];
+        }
+    }
+    return code;
+}
+
+//-----------------------------------------------------------------------------
+
 async function testExchange (exchange) {
     await loadExchange (exchange);
     const codes = [
@@ -248,12 +274,6 @@ async function testExchange (exchange) {
         'ZEC',
         'ZRX',
     ];
-    let code = undefined;
-    for (let i = 0; i < codes.length; i++) {
-        if (codes[i] in exchange.currencies) {
-            code = codes[i];
-        }
-    }
     let symbol = getTestSymbol (exchange, [
         'BTC/USD',
         'BTC/USDT',
@@ -312,6 +332,8 @@ async function runPrivateTests(exchange, symbol) {
     if (exchange['has']['signIn']) {
         await exchange.signIn ();
     }
+
+    const code = getExchangeCode (exchange);
 
     const balance = await test ('fetchBalance', exchange);
 

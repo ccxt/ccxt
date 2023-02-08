@@ -2354,7 +2354,9 @@ class bitget extends Exchange {
                 $triggerType = $this->safe_string($params, 'triggerType', 'market_price');
                 $request['triggerType'] = $triggerType;
                 $request['triggerPrice'] = $this->price_to_precision($symbol, $triggerPrice);
-                $request['executePrice'] = $this->price_to_precision($symbol, $price);
+                if ($price !== null) {
+                    $request['executePrice'] = $this->price_to_precision($symbol, $price);
+                }
                 $method = 'privateMixPostPlanPlacePlan';
             }
             if ($isStopLossOrTakeProfit) {
@@ -2865,7 +2867,7 @@ class bitget extends Exchange {
         //     {
         //         "code" => "00000",
         //         "msg" => "success",
-        //         "requestTime" => 1668134581005,
+        //         "requestTime" => 1668134581006,
         //         "data" => {
         //             "nextFlag" => false,
         //             "endId" => 974792555020390400,
@@ -3332,14 +3334,30 @@ class bitget extends Exchange {
     public function fetch_positions($symbols = null, $params = array ()) {
         /**
          * fetch all open positions
-         * @param {[string]|null} $symbols list of unified market $symbols
+         * @param {[string]|null} $symbols list of unified $market $symbols
          * @param {array} $params extra parameters specific to the bitget api endpoint
          * @return {[array]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#$position-structure $position structure}
          */
         $this->load_markets();
-        $defaultSubType = $this->safe_string($this->options, 'defaultSubType');
+        $market = null;
+        if ($symbols !== null) {
+            $first = $this->safe_string($symbols, 0);
+            $market = $this->market($first);
+        }
+        $sandboxMode = $this->safe_value($this->options, 'sandboxMode', false);
+        $subType = null;
+        list($subType, $params) = $this->handle_sub_type_and_params('fetchPositions', $market, $params);
+        $productType = null;
+        if ($subType === 'linear') {
+            $productType = 'UMCBL';
+        } else {
+            $productType = 'DMCBL';
+        }
+        if ($sandboxMode) {
+            $productType = 'S' . $productType;
+        }
         $request = array(
-            'productType' => ($defaultSubType === 'linear') ? 'UMCBL' : 'DMCBL',
+            'productType' => $productType,
         );
         $response = $this->privateMixGetPositionAllPosition (array_merge($request, $params));
         //

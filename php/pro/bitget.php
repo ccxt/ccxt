@@ -69,10 +69,15 @@ class bitget extends \ccxt\async\bitget {
     public function get_ws_market_id($market) {
         // WS don't use the same 'id'
         // as the rest version
+        $sandboxMode = $this->safe_value($this->options, 'sandboxMode', false);
         if ($market['spot']) {
             return $market['info']['symbolName'];
         } else {
-            return str_replace('_UMCBL', '', $market['id']);
+            if (!$sandboxMode) {
+                return str_replace('_UMCBL', '', $market['id']);
+            } else {
+                return str_replace('_SUMCBL', '', $market['id']);
+            }
         }
     }
 
@@ -81,11 +86,16 @@ class bitget extends \ccxt\async\bitget {
         // array( $arg => { $instType => 'sp', channel => 'ticker', instId => 'BTCUSDT' )
         //
         $instType = $this->safe_string($arg, 'instType');
+        $sandboxMode = $this->safe_value($this->options, 'sandboxMode', false);
         $marketId = $this->safe_string($arg, 'instId');
         if ($instType === 'sp') {
             $marketId .= '_SPBL';
         } else {
-            $marketId .= '_UMCBL';
+            if (!$sandboxMode) {
+                $marketId .= '_UMCBL';
+            } else {
+                $marketId .= '_SUMCBL';
+            }
         }
         return $marketId;
     }

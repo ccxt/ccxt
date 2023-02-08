@@ -726,7 +726,7 @@ class woo(Exchange):
             request['order_price'] = self.price_to_precision(symbol, price)
         if isMarket:
             # for market buy it requires the amount of quote currency to spend
-            if orderSide == 'BUY':
+            if market['spot'] and orderSide == 'BUY':
                 cost = self.safe_number(params, 'cost')
                 if self.safe_value(self.options, 'createMarketBuyOrderRequiresPrice', True):
                     if cost is None:

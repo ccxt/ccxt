@@ -3,16 +3,19 @@ const zero = BigInt (0);
 const minusOne = BigInt (-1);
 const base = BigInt (10);
 class Precise {
-    decimals = undefined
-    integer = undefined
-    base = undefined
+    decimals = undefined;
+
+    integer = undefined;
+
+    base = undefined;
+
     constructor (number, decimals = undefined) {
         if (decimals === undefined) {
             let modifier = 0;
             number = number.toLowerCase ();
             if (number.indexOf ('e') > -1) {
-                [ number, modifier ] = number.split ('e')
-                modifier = parseInt (modifier.toString())
+                [ number, modifier ] = number.split ('e');
+                modifier = parseInt (modifier.toString ());
             }
             const decimalIndex = number.indexOf ('.');
             this.decimals = (decimalIndex > -1) ? number.length - decimalIndex - 1 : 0;
@@ -148,7 +151,7 @@ class Precise {
             sign = '';
             abs = this.integer;
         }
-        const integerArray = Array.from (abs.toString (this.base).padStart (this.decimals, '0'));
+        const integerArray = Array.from (abs.toString (Number (base)).padStart (this.decimals, '0'));
         const index = integerArray.length - this.decimals;
         let item;
         if (index === 0) {

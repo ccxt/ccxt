@@ -68,21 +68,29 @@ class bitget(Exchange, ccxt.async_support.bitget):
     def get_ws_market_id(self, market):
         # WS don't use the same 'id'
         # as the rest version
+        sandboxMode = self.safe_value(self.options, 'sandboxMode', False)
         if market['spot']:
             return market['info']['symbolName']
         else:
-            return market['id'].replace('_UMCBL', '')
+            if not sandboxMode:
+                return market['id'].replace('_UMCBL', '')
+            else:
+                return market['id'].replace('_SUMCBL', '')
 
     def get_market_id_from_arg(self, arg):
         #
         # {arg: {instType: 'sp', channel: 'ticker', instId: 'BTCUSDT'}
         #
         instType = self.safe_string(arg, 'instType')
+        sandboxMode = self.safe_value(self.options, 'sandboxMode', False)
         marketId = self.safe_string(arg, 'instId')
         if instType == 'sp':
             marketId += '_SPBL'
         else:
-            marketId += '_UMCBL'
+            if not sandboxMode:
+                marketId += '_UMCBL'
+            else:
+                marketId += '_SUMCBL'
         return marketId
 
     async def watch_ticker(self, symbol, params={}):
