@@ -169,7 +169,7 @@ async function testSafe(methodName, exchange, ...args) {
             return true; // skip if not implemented
         }
         await test(methodName, exchange, ...args);
-        return true
+        return true;
     } catch (e) {
         return false;
     }
