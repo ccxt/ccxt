@@ -5765,11 +5765,9 @@ module.exports = class bybit extends Exchange {
         const request = {
             // 'coin': currency['id'],
             // 'currency': currency['id'], // alias
-            // 'start_date': this.iso8601 (since),
-            // 'end_date': this.iso8601 (till),
-            'wallet_fund_type': 'Deposit', // Deposit, Withdraw, RealisedPNL, Commission, Refund, Prize, ExchangeOrderWithdraw, ExchangeOrderDeposit
             // 'page': 1,
             // 'limit': 20, // max 50
+            // 'cursor': '',
         };
         let currency = undefined;
         if (code !== undefined) {
@@ -5782,9 +5780,17 @@ module.exports = class bybit extends Exchange {
         if (limit !== undefined) {
             request['limit'] = limit;
         }
+        const { enableUnifiedAccount } = await this.isUnifiedMarginEnabled ();
+        let method = undefined;
+        if (enableUnifiedAccount) {
+            method = 'privateGetV5AssetDepositQueryRecord';
+        } else {
+            method = 'privateGetAssetV3PrivateDepositRecordQuery';
+            request['wallet_fund_type'] = 'Deposit'; // Deposit, Withdraw, RealisedPNL, Commission, Refund, Prize, ExchangeOrderWithdraw, ExchangeOrderDeposit
+        }
         // Currently only works for deposits prior to 2021-07-15
         // will be updated soon
-        const response = await this.privateGetAssetV3PrivateDepositRecordQuery (this.extend (request, params));
+        const response = await this[method] (this.extend (request, params));
         //
         //    {
         //         "retCode": "0",
