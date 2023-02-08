@@ -165,6 +165,9 @@ async function test (methodName, exchange, ... args) {
 
 async function testSafe(methodName, exchange, ...args) {
     try {
+        if (exchange[methodName] === undefined || tests[methodName] === undefined) {
+            return true; // skip if not implemented
+        }
         await test(methodName, exchange, ...args);
         return true
     } catch (e) {;
