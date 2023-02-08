@@ -7354,7 +7354,9 @@ module.exports = class bybit extends Exchange {
         if (limit !== undefined) {
             request['limit'] = limit;
         }
-        const response = await this.privateGetAssetV3PrivateTransferInterTransferListQuery (this.extend (request, params));
+        const { enableUnifiedAccount } = await this.isUnifiedMarginEnabled ();
+        const method = (enableUnifiedAccount) ? 'privateGetV5AssetTransferQueryInterTransferList' : 'privateGetAssetV3PrivateTransferInterTransferListQuery';
+        const response = await this[method] (this.extend (request, params));
         //
         //    {
         //         "retCode": "0",
