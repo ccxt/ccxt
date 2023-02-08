@@ -5636,6 +5636,7 @@ module.exports = class bybit extends Exchange {
          * @method
          * @name bybit#fetchDepositAddressesByNetwork
          * @description fetch a dictionary of addresses for a currency, indexed by network
+         * @see https://bybit-exchange.github.io/docs/v5/asset/master-deposit-addr
          * @param {string} code unified currency code of the currency for the deposit address
          * @param {object} params extra parameters specific to the bybit api endpoint
          * @returns {object} a dictionary of [address structures]{@link https://docs.ccxt.com/en/latest/manual.html#address-structure} indexed by the network
@@ -5645,30 +5646,24 @@ module.exports = class bybit extends Exchange {
         const request = {
             'coin': currency['id'],
         };
-        const response = await this.privateGetAssetV3PrivateDepositAddressQuery (this.extend (request, params));
+        const response = await this.privateGetV5AssetDepositQueryAddress (this.extend (request, params));
         //
-        //    {
-        //         "retCode": "0",
+        //     {
+        //         "retCode": 0,
         //         "retMsg": "success",
         //         "result": {
         //             "coin": "USDT",
         //             "chains": [
         //                 {
         //                     "chainType": "ERC20",
-        //                     "addressDeposit": "0xf56297c6717c1d1c42c30324468ed50a9b7402ee",
+        //                     "addressDeposit": "0xd9e1cd77afa0e50b452a62fbb68a3340602286c3",
         //                     "tagDeposit": "",
         //                     "chain": "ETH"
-        //                 },
-        //                 {
-        //                     "chainType": "TRC20",
-        //                     "addressDeposit": "TC6TAC5WSVCCiaD3nWZXyW62ZKKPwm55a",
-        //                     "tagDeposit": "",
-        //                     "chain": "TRX"
-        //                 },
+        //                 }
         //             ]
         //         },
         //         "retExtInfo": {},
-        //         "time": "1666882145079"
+        //         "time": 1672192792860
         //     }
         //
         const result = this.safeValue (response, 'result', []);
@@ -5686,6 +5681,7 @@ module.exports = class bybit extends Exchange {
          * @method
          * @name bybit#fetchDepositAddress
          * @description fetch the deposit address for a currency associated with this account
+         * @see https://bybit-exchange.github.io/docs/v5/asset/master-deposit-addr
          * @param {string} code unified currency code
          * @param {object} params extra parameters specific to the bybit api endpoint
          * @returns {object} an [address structure]{@link https://docs.ccxt.com/en/latest/manual.html#address-structure}
@@ -5700,24 +5696,24 @@ module.exports = class bybit extends Exchange {
         if (networkId !== undefined) {
             request['chainType'] = networkId;
         }
-        const response = await this.privateGetAssetV3PrivateDepositAddressQuery (this.extend (request, query));
+        const response = await this.privateGetV5AssetDepositQueryAddress (this.extend (request, query));
         //
-        //    {
-        //         "retCode": "0",
+        //     {
+        //         "retCode": 0,
         //         "retMsg": "success",
         //         "result": {
         //             "coin": "USDT",
         //             "chains": [
         //                 {
-        //                     "chainType": "TRC20",
-        //                     "addressDeposit": "TC6NCAC5WSVCCiaD3kWZXyW91ZKKhLm53b",
+        //                     "chainType": "ERC20",
+        //                     "addressDeposit": "0xd9e1cd77afa0e50b452a62fbb68a3340602286c3",
         //                     "tagDeposit": "",
-        //                     "chain": "TRX"
-        //                 },
+        //                     "chain": "ETH"
+        //                 }
         //             ]
         //         },
         //         "retExtInfo": {},
-        //         "time": "1666895654316"
+        //         "time": 1672192792860
         //     }
         //
         const result = this.safeValue (response, 'result', {});
@@ -5733,6 +5729,7 @@ module.exports = class bybit extends Exchange {
          * @method
          * @name bybit#fetchDeposits
          * @description fetch all deposits made to an account
+         * @see https://bybit-exchange.github.io/docs/v5/asset/deposit-record
          * @param {string|undefined} code unified currency code
          * @param {int|undefined} since the earliest time in ms to fetch deposits for
          * @param {int|undefined} limit the maximum number of deposits structures to retrieve
@@ -5742,8 +5739,6 @@ module.exports = class bybit extends Exchange {
         await this.loadMarkets ();
         const request = {
             // 'coin': currency['id'],
-            // 'currency': currency['id'], // alias
-            // 'page': 1,
             // 'limit': 20, // max 50
             // 'cursor': '',
         };
@@ -5758,42 +5753,34 @@ module.exports = class bybit extends Exchange {
         if (limit !== undefined) {
             request['limit'] = limit;
         }
-        const { enableUnifiedAccount } = await this.isUnifiedMarginEnabled ();
-        let method = undefined;
-        if (enableUnifiedAccount) {
-            method = 'privateGetV5AssetDepositQueryRecord';
-        } else {
-            method = 'privateGetAssetV3PrivateDepositRecordQuery';
-            request['wallet_fund_type'] = 'Deposit'; // Deposit, Withdraw, RealisedPNL, Commission, Refund, Prize, ExchangeOrderWithdraw, ExchangeOrderDeposit
-        }
         // Currently only works for deposits prior to 2021-07-15
         // will be updated soon
-        const response = await this[method] (this.extend (request, params));
+        const response = await this.privateGetV5AssetDepositQueryRecord (this.extend (request, params));
         //
-        //    {
-        //         "retCode": "0",
+        //     {
+        //         "retCode": 0,
         //         "retMsg": "success",
         //         "result": {
         //             "rows": [
         //                 {
         //                     "coin": "USDT",
-        //                     "chain": "TRX",
-        //                     "amount": "44",
-        //                     "txID": "0b038ea12fa1575e2d66693db3c346b700d4b28347afc39f80321cf089acc960",
-        //                     "status": "3",
-        //                     "toAddress": "TC6NCAC5WSVCCiaD3kWZXyW91ZKKhLm53b",
+        //                     "chain": "ETH",
+        //                     "amount": "10000",
+        //                     "txID": "skip-notification-scene-test-amount-202212270944-533285-USDT",
+        //                     "status": 3,
+        //                     "toAddress": "test-amount-address",
         //                     "tag": "",
         //                     "depositFee": "",
-        //                     "successAt": "1665142507000",
-        //                     "confirmations": "100",
-        //                     "txIndex": "0",
-        //                     "blockHash": "0000000002ac3b1064aee94bca1bd0b58c4c09c65813b084b87a2063d961129e"
-        //                 },
+        //                     "successAt": "1672134274000",
+        //                     "confirmations": "10000",
+        //                     "txIndex": "",
+        //                     "blockHash": ""
+        //                 }
         //             ],
-        //             "nextPageCursor": "eyJtaW5JRCI6MTE5OTUyNjgsIm1heElEIjoxMjI2OTA2OH0="
+        //             "nextPageCursor": "eyJtaW5JRCI6MTA0NjA0MywibWF4SUQiOjEwNDYwNDN9"
         //         },
         //         "retExtInfo": {},
-        //         "time": "1666883499086"
+        //         "time": 1672191992512
         //     }
         //
         const result = this.safeValue (response, 'result', {});
@@ -5806,6 +5793,7 @@ module.exports = class bybit extends Exchange {
          * @method
          * @name bybit#fetchWithdrawals
          * @description fetch all withdrawals made from an account
+         * @see https://bybit-exchange.github.io/docs/v5/asset/withdraw-record
          * @param {string} code unified currency code
          * @param {int|undefined} since the earliest time in ms to fetch withdrawals for
          * @param {int|undefined} limit the maximum number of withdrawals structures to retrieve
@@ -5815,8 +5803,6 @@ module.exports = class bybit extends Exchange {
         await this.loadMarkets ();
         const request = {
             // 'coin': currency['id'],
-            // 'status': 'Pending', // ToBeConfirmed, UnderReview, Pending, Success, CancelByUser, Reject, Expire
-            // 'page': 1,
             // 'limit': 20, // max 50
             // 'cusor': '',
         };
@@ -5831,33 +5817,46 @@ module.exports = class bybit extends Exchange {
         if (limit !== undefined) {
             request['limit'] = limit;
         }
-        const { enableUnifiedAccount } = await this.isUnifiedMarginEnabled ();
-        const method = (enableUnifiedAccount) ? 'privateGetV5AssetWithdrawQueryRecord' : 'privateGetAssetV3PrivateWithdrawRecordQuery';
-        const response = await this[method] (this.extend (request, params));
+        const response = await this.privateGetV5AssetWithdrawQueryRecord (this.extend (request, params));
         //
-        //    {
-        //         "retCode": "0",
+        //     {
+        //         "retCode": 0,
         //         "retMsg": "success",
         //         "result": {
         //             "rows": [
         //                 {
         //                     "coin": "USDT",
-        //                     "chain": "TRX",
-        //                     "amount": "12.34",
-        //                     "txID": "de5ea0a2f2e59dc9a714837dd3ddc6d5e151b56ec5d786d351c4f52336f80d3c",
-        //                     "status": "success",
-        //                     "toAddress": "TQdmFKUoe1Lk2iwZuwRJEHJreTUBoN3BAw",
+        //                     "chain": "ETH",
+        //                     "amount": "77",
+        //                     "txID": "",
+        //                     "status": "SecurityCheck",
+        //                     "toAddress": "0x99ced129603abc771c0dabe935c326ff6c86645d",
         //                     "tag": "",
-        //                     "withdrawFee": "0.5",
-        //                     "createTime": "1665144183000",
-        //                     "updateTime": "1665144256000",
-        //                     "withdrawId": "8839035"
+        //                     "withdrawFee": "10",
+        //                     "createTime": "1670922217000",
+        //                     "updateTime": "1670922217000",
+        //                     "withdrawId": "9976",
+        //                     "withdrawType": 0
         //                 },
+        //                 {
+        //                     "coin": "USDT",
+        //                     "chain": "ETH",
+        //                     "amount": "26",
+        //                     "txID": "",
+        //                     "status": "success",
+        //                     "toAddress": "15638072681@163.com",
+        //                     "tag": "",
+        //                     "withdrawFee": "0",
+        //                     "createTime": "1669711121000",
+        //                     "updateTime": "1669711380000",
+        //                     "withdrawId": "9801",
+        //                     "withdrawType": 1
+        //                 }
         //             ],
-        //             "nextPageCursor": "eyJtaW5JRCI6ODczMzUyMiwibWF4SUQiOjg4MzkwMzV9"
+        //             "nextPageCursor": "eyJtaW5JRCI6OTgwMSwibWF4SUQiOjk5NzZ9"
         //         },
         //         "retExtInfo": {},
-        //         "time": "1666887679223"
+        //         "time": 1672194949928
         //     }
         //
         const result = this.safeValue (response, 'result', {});
@@ -7319,7 +7318,7 @@ module.exports = class bybit extends Exchange {
          * @method
          * @name bybit#fetchTransfers
          * @description fetch a history of internal transfers made on an account
-         * @see https://bybit-exchange.github.io/docs/account_asset/v3/#t-querytransferlist
+         * @see https://bybit-exchange.github.io/docs/v5/asset/inter-transfer-list
          * @param {string|undefined} code unified currency code of the currency transferred
          * @param {int|undefined} since the earliest time in ms to fetch transfers for
          * @param {int|undefined} limit the maximum number of  transfers structures to retrieve
@@ -7339,29 +7338,27 @@ module.exports = class bybit extends Exchange {
         if (limit !== undefined) {
             request['limit'] = limit;
         }
-        const { enableUnifiedAccount } = await this.isUnifiedMarginEnabled ();
-        const method = (enableUnifiedAccount) ? 'privateGetV5AssetTransferQueryInterTransferList' : 'privateGetAssetV3PrivateTransferInterTransferListQuery';
-        const response = await this[method] (this.extend (request, params));
+        const response = await this.privateGetV5AssetTransferQueryInterTransferList (this.extend (request, params));
         //
-        //    {
-        //         "retCode": "0",
+        //     {
+        //         "retCode": 0,
         //         "retMsg": "success",
         //         "result": {
         //             "list": [
         //                 {
-        //                     "transferId": "e9c421c4-b010-4b16-abd6-106179f27732",
+        //                     "transferId": "selfTransfer_a1091cc7-9364-4b74-8de1-18f02c6f2d5c",
         //                     "coin": "USDT",
-        //                     "amount": "8",
-        //                     "fromAccountType": "FUND",
-        //                     "toAccountType": "SPOT",
-        //                     "timestamp": "1666879426000",
+        //                     "amount": "5000",
+        //                     "fromAccountType": "SPOT",
+        //                     "toAccountType": "UNIFIED",
+        //                     "timestamp": "1667283263000",
         //                     "status": "SUCCESS"
-        //                 },
+        //                 }
         //             ],
-        //             "nextPageCursor": "eyJtaW5JRCI6MTY3NTM4NDcsIm1heElEIjo0OTI0ODc5NX1="
+        //             "nextPageCursor": "eyJtaW5JRCI6MTM1ODQ2OCwibWF4SUQiOjEzNTg0Njh9"
         //         },
         //         "retExtInfo": {},
-        //         "time": "1666880800063"
+        //         "time": 1670988271677
         //     }
         //
         const data = this.safeValue (response, 'result', {});
