@@ -338,7 +338,7 @@ class Exchange(BaseExchange):
         return self.clients[url]
 
     def delay(self, timeout, method, *args):
-        asyncio.ensure_future(self.delay_async(timeout, method, *args))
+        return self.asyncio_loop.call_later(timeout / 1000, self.spawn, method, *args)
 
     def handle_message(self, client, message):
         always = True
