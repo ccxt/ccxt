@@ -4826,8 +4826,8 @@ class okx extends Exchange {
             if ($posSide === null) {
                 throw new ArgumentsRequired($this->id . ' setLeverage() requires a $posSide argument for isolated margin');
             }
-            if ($posSide !== 'long' && $posSide !== 'short') {
-                throw new BadRequest($this->id . ' setLeverage() requires the $posSide argument to be either "long" or "short"');
+            if ($posSide !== 'long' && $posSide !== 'short' && $posSide !== 'net') {
+                throw new BadRequest($this->id . ' setLeverage() requires the $posSide argument to be either "long", "short" or "net"');
             }
         }
         $response = $this->privatePostAccountSetLeverage (array_merge($request, $params));
