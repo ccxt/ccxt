@@ -399,7 +399,6 @@ module.exports = class derivadex extends Exchange {
         const askVolume = this.safeString (orderBookValue[1], 'amount');
         const volumeParams = {};
         volumeParams['symbol'] = symbol;
-        volumeParams['lookbackCount'] = 1;
         volumeParams['aggregationPeriod'] = 'day';
         const volumeAggregationResponse = await this.publicGetAggregationsVolume (volumeParams);
         const volumeValue = volumeAggregationResponse['value'][0];
@@ -459,7 +458,7 @@ module.exports = class derivadex extends Exchange {
             throw new BadRequest (this.id + ' fetchMyTrades() walletAddress is undefined, set this.walletAddress or "address" in params');
         }
         const response = await this.publicGetFills (extendedRequest);
-        response['traderAddress'] = ''; // TODO: supply the users trader address in parseTradesCustom
+        response['traderAddress'] = undefined; // TODO: supply the users trader address in parseTradesCustom
         return await this.parseTrades (response, market, since, limit);
     }
 
@@ -553,7 +552,7 @@ module.exports = class derivadex extends Exchange {
         trades = this.toArray (trades);
         let result = [];
         const orderIntents = await this.getOrderIntents (trades[0]);
-        for (let i = 0; i < trades.length; i++) {
+        for (let i = 0; i < trades[0].length; i++) {
             const trade = this.extend (this.parseTradeCustom (trades[0][i], orderIntents, market), params);
             result.push (trade);
         }
@@ -742,6 +741,28 @@ module.exports = class derivadex extends Exchange {
         }
     }
 
+    async fetchOrder (id, symbol = undefined, params = {}) {
+        /**
+         * @method
+         * @name derivadex#fetchOrder
+         * @description fetches information on an order made by the user
+         * @param {string|undefined} symbol unified symbol of the market the order was made in
+         * @param {object} params extra parameters specific to the derivadex api endpoint
+         * @returns {object} An [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
+         */
+        if (symbol === undefined) {
+            throw new ArgumentsRequired (this.id + ' fetchOrders() requires a symbol argument');
+        }
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const request = {
+            'symbol': market['id'],
+            'orderHash': [ id ],
+        };
+        const response = await this.publicGetOrderIntents (request);
+        return await this.parseOrders (response['value'], market);
+    }
+
     async fetchOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         /**
          * @method
@@ -753,9 +774,6 @@ module.exports = class derivadex extends Exchange {
          * @param {object} params extra parameters specific to the derivadex api endpoint
          * @returns {[object]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
          */
-        if (symbol === undefined) {
-            throw new ArgumentsRequired (this.id + ' fetchOrders() requires a symbol argument');
-        }
         await this.loadMarkets ();
         const market = this.market (symbol);
         const request = {
@@ -804,10 +822,7 @@ module.exports = class derivadex extends Exchange {
         //     'orderHash': [orderHash],
         // };
         // const fillsResponse = await this.publicGetFills (params);
-        // const average = undefined;
-        // const cost = undefined;
-        // const trades = undefined;
-        // const fee = undefined;
+        // const trades = fillsResponse['value'];
         let orderType = undefined;
         if (orderTypeNumber === 0) {
             orderType = 'limit';
@@ -843,16 +858,16 @@ module.exports = class derivadex extends Exchange {
         const implodedPath = this.implodeParams (path, params);
         let query = (api === 'v2' ? '' : '/api/') + (api === 'v2' ? '' : this.version) + '/' + implodedPath;
         if (method === 'GET') {
-            if (Object.keys (params).length) {
-                if (params['orderHash'] !== undefined) {
-                    let orderHashParam = '';
-                    for (let i = 0; i < params['orderHash'].length; i++) {
-                        orderHashParam += (i > 0 ? '&' : '') + 'orderHash=' + params['orderHash'][i];
-                    }
-                    query += '?' + orderHashParam;
-                } else {
-                    query += '?' + this.urlencode (params);
+            if (params['orderHash'] !== undefined) {
+                let orderHashParam = '';
+                for (let i = 0; i < params['orderHash'].length; i++) {
+                    orderHashParam += (i > 0 ? '&' : '') + 'orderHash=' + params['orderHash'][i];
                 }
+                query += '?' + orderHashParam;
+                delete params['orderHash'];
+            }
+            if (Object.keys (params).length) {
+                query += '?' + this.urlencode (params);
             }
         } else {
             const format = this.safeString (params, '_format');
