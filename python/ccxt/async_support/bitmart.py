@@ -1231,7 +1231,7 @@ class bitmart(Exchange):
         duration = self.parse_timeframe(timeframe)
         request = {
             'symbol': market['id'],
-            'step': self.timeframes[timeframe],
+            'step': self.safe_integer(self.timeframes, timeframe, timeframe),
         }
         maxLimit = 500
         if limit is None:

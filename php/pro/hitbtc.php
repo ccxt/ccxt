@@ -297,7 +297,7 @@ class hitbtc extends \ccxt\async\hitbtc {
             // if ($limit === null) {
             //     $limit = 100;
             // }
-            $period = $this->timeframes[$timeframe];
+            $period = $this->safe_string($this->timeframes, $timeframe, $timeframe);
             $request = array(
                 'params' => array(
                     'period' => $period,

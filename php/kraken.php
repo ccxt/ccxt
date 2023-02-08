@@ -845,7 +845,7 @@ class kraken extends Exchange {
         $market = $this->market($symbol);
         $request = array(
             'pair' => $market['id'],
-            'interval' => $this->timeframes[$timeframe],
+            'interval' => $this->safe_integer($this->timeframes, $timeframe, $timeframe),
         );
         if ($since !== null) {
             $request['since'] = intval(($since - 1) / 1000);

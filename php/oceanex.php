@@ -757,7 +757,7 @@ class oceanex extends Exchange {
         $market = $this->market($symbol);
         $request = array(
             'market' => $market['id'],
-            'period' => $this->timeframes[$timeframe],
+            'period' => $this->safe_string($this->timeframes, $timeframe, $timeframe),
         );
         if ($since !== null) {
             $request['timestamp'] = $since;

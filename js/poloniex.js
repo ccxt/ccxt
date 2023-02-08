@@ -321,7 +321,7 @@ module.exports = class poloniex extends Exchange {
         const market = this.market (symbol);
         const request = {
             'symbol': market['id'],
-            'interval': this.timeframes[timeframe],
+            'interval': this.safeString (this.timeframes, timeframe, timeframe),
         };
         if (since !== undefined) {
             request['startTime'] = since;

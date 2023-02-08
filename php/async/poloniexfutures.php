@@ -693,7 +693,7 @@ class poloniexfutures extends Exchange {
             $marketId = $market['id'];
             $request = array(
                 'symbol' => $marketId,
-                'granularity' => $this->timeframes[$timeframe],
+                'granularity' => $this->safe_integer($this->timeframes, $timeframe, $timeframe),
             );
             $duration = $this->parse_timeframe($timeframe) * 1000;
             $endAt = $this->milliseconds();

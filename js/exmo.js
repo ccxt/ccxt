@@ -809,7 +809,7 @@ module.exports = class exmo extends Exchange {
         const market = this.market (symbol);
         const request = {
             'symbol': market['id'],
-            'resolution': this.timeframes[timeframe],
+            'resolution': this.safeString (this.timeframes, timeframe, timeframe),
         };
         const options = this.safeValue (this.options, 'fetchOHLCV');
         const maxLimit = this.safeInteger (options, 'maxLimit', 3000);

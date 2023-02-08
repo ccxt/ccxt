@@ -557,15 +557,15 @@ class binance extends \ccxt\async\binance {
         }
         $id = $this->safe_string_2($trade, 't', 'a');
         $timestamp = $this->safe_integer($trade, 'T');
-        $price = $this->safe_float_2($trade, 'L', 'p');
-        $amount = $this->safe_float($trade, 'q');
+        $price = $this->safe_string_2($trade, 'L', 'p');
+        $amount = $this->safe_string($trade, 'q');
         if ($isTradeExecution) {
-            $amount = $this->safe_float($trade, 'l', $amount);
+            $amount = $this->safe_string($trade, 'l', $amount);
         }
-        $cost = $this->safe_float($trade, 'Y');
+        $cost = $this->safe_string($trade, 'Y');
         if ($cost === null) {
             if (($price !== null) && ($amount !== null)) {
-                $cost = $price * $amount;
+                $cost = Precise::string_mul($price, $amount);
             }
         }
         $marketId = $this->safe_string($trade, 's');
@@ -581,7 +581,7 @@ class binance extends \ccxt\async\binance {
             $takerOrMaker = $trade['m'] ? 'maker' : 'taker';
         }
         $fee = null;
-        $feeCost = $this->safe_float($trade, 'n');
+        $feeCost = $this->safe_string($trade, 'n');
         if ($feeCost !== null) {
             $feeCurrencyId = $this->safe_string($trade, 'N');
             $feeCurrencyCode = $this->safe_currency_code($feeCurrencyId);
@@ -591,7 +591,7 @@ class binance extends \ccxt\async\binance {
             );
         }
         $type = $this->safe_string_lower($trade, 'o');
-        return array(
+        return $this->safe_trade(array(
             'info' => $trade,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
@@ -605,7 +605,7 @@ class binance extends \ccxt\async\binance {
             'amount' => $amount,
             'cost' => $cost,
             'fee' => $fee,
-        );
+        ));
     }
 
     public function handle_trade($client, $message) {
@@ -644,7 +644,7 @@ class binance extends \ccxt\async\binance {
             Async\await($this->load_markets());
             $market = $this->market($symbol);
             $marketId = $market['lowercaseId'];
-            $interval = $this->timeframes[$timeframe];
+            $interval = $this->safe_string($this->timeframes, $timeframe, $timeframe);
             $name = 'kline';
             $messageHash = $marketId . '@' . $name . '_' . $interval;
             $type = $market['type'];

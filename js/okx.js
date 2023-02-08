@@ -1711,7 +1711,7 @@ module.exports = class okx extends Exchange {
             limit = 100; // default 100, max 100
         }
         const duration = this.parseTimeframe (timeframe);
-        let bar = this.timeframes[timeframe];
+        let bar = this.safeString (this.timeframes, timeframe, timeframe);
         if ((timezone === 'UTC') && (duration >= 21600)) { // if utc and timeframe >= 6h
             bar += timezone.toLowerCase ();
         }
@@ -4167,7 +4167,7 @@ module.exports = class okx extends Exchange {
         if (type !== undefined) {
             request['instType'] = this.convertToInstrumentType (type);
         }
-        const response = await this.privateGetAccountPositions (query);
+        const response = await this.privateGetAccountPositions (this.extend (request, query));
         //
         //     {
         //         "code": "0",
@@ -4378,7 +4378,7 @@ module.exports = class okx extends Exchange {
                 }
             }
         }
-        const contractSize = this.safeValue (market, 'contractSize');
+        const contractSize = this.safeNumber (market, 'contractSize');
         const contractSizeString = this.numberToString (contractSize);
         const markPriceString = this.safeString (position, 'markPx');
         let notionalString = this.safeString (position, 'notionalUsd');

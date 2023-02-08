@@ -1509,35 +1509,35 @@ class mexc3 extends Exchange {
         if ($isSwap || (is_array($ticker) && array_key_exists('timestamp', $ticker))) {
             //
             //     {
-            //         "symbol":"ETH_USDT",
-            //         "lastPrice":3581.3,
-            //         "bid1":3581.25,
-            //         "ask1":3581.5,
-            //         "volume24":4045530,
-            //         "amount24":141331823.5755,
-            //         "holdVol":5832946,
-            //         "lower24Price":3413.4,
-            //         "high24Price":3588.7,
-            //         "riseFallRate":0.0275,
-            //         "riseFallValue":95.95,
-            //         "indexPrice":3580.7852,
-            //         "fairPrice":3581.08,
-            //         "fundingRate":0.000063,
-            //         "maxBidPrice":3938.85,
-            //         "minAskPrice":3222.7,
-            //         "timestamp":1634162885016
+            //         "symbol" => "ETH_USDT",
+            //         "lastPrice" => 3581.3,
+            //         "bid1" => 3581.25,
+            //         "ask1" => 3581.5,
+            //         "volume24" => 4045530,
+            //         "amount24" => 141331823.5755,
+            //         "holdVol" => 5832946,
+            //         "lower24Price" => 3413.4,
+            //         "high24Price" => 3588.7,
+            //         "riseFallRate" => 0.0275,
+            //         "riseFallValue" => 95.95,
+            //         "indexPrice" => 3580.7852,
+            //         "fairPrice" => 3581.08,
+            //         "fundingRate" => 0.000063,
+            //         "maxBidPrice" => 3938.85,
+            //         "minAskPrice" => 3222.7,
+            //         "timestamp" => 1634162885016
             //     }
             //
             $timestamp = $this->safe_integer($ticker, 'timestamp');
-            $bid = $this->safe_number($ticker, 'bid1');
-            $ask = $this->safe_number($ticker, 'ask1');
+            $bid = $this->safe_string($ticker, 'bid1');
+            $ask = $this->safe_string($ticker, 'ask1');
             $baseVolume = $this->safe_string($ticker, 'volume24');
             $quoteVolume = $this->safe_string($ticker, 'amount24');
-            $high = $this->safe_number($ticker, 'high24Price');
-            $low = $this->safe_number($ticker, 'lower24Price');
+            $high = $this->safe_string($ticker, 'high24Price');
+            $low = $this->safe_string($ticker, 'lower24Price');
             $changeValue = $this->safe_string($ticker, 'riseFallValue');
             $changePcnt = $this->safe_string($ticker, 'riseFallRate');
-            $changePcnt = $this->parse_number(Precise::string_mul($changePcnt, '100'));
+            $changePcnt = Precise::string_mul($changePcnt, '100');
         } else {
             //
             //     {
@@ -1562,25 +1562,25 @@ class mexc3 extends Exchange {
             //     }
             //
             $timestamp = $this->safe_integer($ticker, 'closeTime');
-            $bid = $this->safe_number($ticker, 'bidPrice');
-            $ask = $this->safe_number($ticker, 'askPrice');
-            $bidVolume = $this->safe_number($ticker, 'bidQty');
-            $askVolume = $this->safe_number($ticker, 'askQty');
-            if ($bidVolume === 0) {
+            $bid = $this->safe_string($ticker, 'bidPrice');
+            $ask = $this->safe_string($ticker, 'askPrice');
+            $bidVolume = $this->safe_string($ticker, 'bidQty');
+            $askVolume = $this->safe_string($ticker, 'askQty');
+            if (Precise::string_eq($bidVolume, '0')) {
                 $bidVolume = null;
             }
-            if ($askVolume === 0) {
+            if (Precise::string_eq($askVolume, '0')) {
                 $askVolume = null;
             }
             $baseVolume = $this->safe_string($ticker, 'volume');
             $quoteVolume = $this->safe_string($ticker, 'quoteVolume');
             $open = $this->safe_string($ticker, 'openPrice');
-            $high = $this->safe_number($ticker, 'highPrice');
-            $low = $this->safe_number($ticker, 'lowPrice');
+            $high = $this->safe_string($ticker, 'highPrice');
+            $low = $this->safe_string($ticker, 'lowPrice');
             $prevClose = $this->safe_string($ticker, 'prevClosePrice');
             $changeValue = $this->safe_string($ticker, 'priceChange');
             $changePcnt = $this->safe_string($ticker, 'priceChangePercent');
-            $changePcnt = $this->parse_number(Precise::string_mul($changePcnt, '100'));
+            $changePcnt = Precise::string_mul($changePcnt, '100');
         }
         return $this->safe_ticker(array(
             'symbol' => $market['symbol'],

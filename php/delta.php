@@ -141,26 +141,26 @@ class delta extends Exchange {
                 'trading' => array(
                     'tierBased' => true,
                     'percentage' => true,
-                    'taker' => 0.15 / 100,
-                    'maker' => 0.10 / 100,
+                    'taker' => $this->parse_number('0.0015'),
+                    'maker' => $this->parse_number('0.0010'),
                     'tiers' => array(
                         'taker' => array(
-                            array( 0, 0.15 / 100 ),
-                            array( 100, 0.13 / 100 ),
-                            array( 250, 0.13 / 100 ),
-                            array( 1000, 0.1 / 100 ),
-                            array( 5000, 0.09 / 100 ),
-                            array( 10000, 0.075 / 100 ),
-                            array( 20000, 0.065 / 100 ),
+                            array( $this->parse_number('0'), $this->parse_number('0.0015') ),
+                            array( $this->parse_number('100'), $this->parse_number('0.0013') ),
+                            array( $this->parse_number('250'), $this->parse_number('0.0013') ),
+                            array( $this->parse_number('1000'), $this->parse_number('0.001') ),
+                            array( $this->parse_number('5000'), $this->parse_number('0.0009') ),
+                            array( $this->parse_number('10000'), $this->parse_number('0.00075') ),
+                            array( $this->parse_number('20000'), $this->parse_number('0.00065') ),
                         ),
                         'maker' => array(
-                            array( 0, 0.1 / 100 ),
-                            array( 100, 0.1 / 100 ),
-                            array( 250, 0.09 / 100 ),
-                            array( 1000, 0.075 / 100 ),
-                            array( 5000, 0.06 / 100 ),
-                            array( 10000, 0.05 / 100 ),
-                            array( 20000, 0.05 / 100 ),
+                            array( $this->parse_number('0'), $this->parse_number('0.001') ),
+                            array( $this->parse_number('100'), $this->parse_number('0.001') ),
+                            array( $this->parse_number('250'), $this->parse_number('0.0009') ),
+                            array( $this->parse_number('1000'), $this->parse_number('0.00075') ),
+                            array( $this->parse_number('5000'), $this->parse_number('0.0006') ),
+                            array( $this->parse_number('10000'), $this->parse_number('0.0005') ),
+                            array( $this->parse_number('20000'), $this->parse_number('0.0005') ),
                         ),
                     ),
                 ),
@@ -180,7 +180,7 @@ class delta extends Exchange {
             'precisionMode' => TICK_SIZE,
             'requiredCredentials' => array(
                 'apiKey' => true,
-                'secret' => false,
+                'secret' => true,
             ),
             'exceptions' => array(
                 'exact' => array(
@@ -1021,7 +1021,7 @@ class delta extends Exchange {
         $market = $this->market($symbol);
         $request = array(
             'symbol' => $market['id'],
-            'resolution' => $this->timeframes[$timeframe],
+            'resolution' => $this->safe_string($this->timeframes, $timeframe, $timeframe),
         );
         $duration = $this->parse_timeframe($timeframe);
         $limit = $limit ? $limit : 2000; // max 2000
@@ -1122,7 +1122,7 @@ class delta extends Exchange {
         //     }
         //
         $result = $this->safe_value($response, 'result', array());
-        return $result;
+        return $this->parse_position($result, $market);
     }
 
     public function fetch_positions($symbols = null, $params = array ()) {
@@ -1138,21 +1138,93 @@ class delta extends Exchange {
         //     {
         //         "success" => true,
         //         "result" => array(
-        //             {
-        //                 "user_id" => 0,
-        //                 "size" => 0,
-        //                 "entry_price" => "string",
-        //                 "margin" => "string",
-        //                 "liquidation_price" => "string",
-        //                 "bankruptcy_price" => "string",
-        //                 "adl_level" => 0,
-        //                 "product_id" => 0
-        //             }
+        //           {
+        //             "user_id" => 0,
+        //             "size" => 0,
+        //             "entry_price" => "string",
+        //             "margin" => "string",
+        //             "liquidation_price" => "string",
+        //             "bankruptcy_price" => "string",
+        //             "adl_level" => 0,
+        //             "product_id" => 0,
+        //             "product_symbol" => "string",
+        //             "commission" => "string",
+        //             "realized_pnl" => "string",
+        //             "realized_funding" => "string"
+        //           }
         //         )
         //     }
         //
         $result = $this->safe_value($response, 'result', array());
-        return $result;
+        return $this->parse_positions($result, $symbols);
+    }
+
+    public function parse_position($position, $market = null) {
+        //
+        // fetchPosition
+        //
+        //     {
+        //         "entry_price":null,
+        //         "size":0,
+        //         "timestamp":1605454074268079
+        //     }
+        //
+        //
+        // fetchPositions
+        //
+        //     {
+        //         "user_id" => 0,
+        //         "size" => 0,
+        //         "entry_price" => "string",
+        //         "margin" => "string",
+        //         "liquidation_price" => "string",
+        //         "bankruptcy_price" => "string",
+        //         "adl_level" => 0,
+        //         "product_id" => 0,
+        //         "product_symbol" => "string",
+        //         "commission" => "string",
+        //         "realized_pnl" => "string",
+        //         "realized_funding" => "string"
+        //     }
+        //
+        $marketId = $this->safe_string($position, 'product_symbol');
+        $market = $this->safe_market($marketId, $market);
+        $symbol = $market['symbol'];
+        $timestamp = $this->safe_integer_product($position, 'timestamp', 0.001);
+        $sizeString = $this->safe_string($position, 'size');
+        $side = null;
+        if ($sizeString !== null) {
+            if (Precise::string_gt($sizeString, '0')) {
+                $side = 'buy';
+            } elseif (Precise::string_lt($sizeString, '0')) {
+                $side = 'sell';
+            }
+        }
+        return array(
+            'info' => $position,
+            'id' => null,
+            'symbol' => $symbol,
+            'notional' => null,
+            'marginMode' => null,
+            'liquidationPrice' => $this->safe_number($position, 'liquidation_price'),
+            'entryPrice' => $this->safe_number($position, 'entry_price'),
+            'unrealizedPnl' => null, // todo - realized_pnl ?
+            'percentage' => null,
+            'contracts' => $this->parse_number($sizeString),
+            'contractSize' => $this->safe_number($market, 'contractSize'),
+            'markPrice' => null,
+            'side' => $side,
+            'hedged' => null,
+            'timestamp' => $timestamp,
+            'datetime' => $this->iso8601($timestamp),
+            'maintenanceMargin' => null,
+            'maintenanceMarginPercentage' => null,
+            'collateral' => null,
+            'initialMargin' => null,
+            'initialMarginPercentage' => null,
+            'leverage' => null,
+            'marginRatio' => null,
+        );
     }
 
     public function parse_order_status($status) {

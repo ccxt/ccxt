@@ -226,7 +226,7 @@ class okx extends \ccxt\async\okx {
              */
             Async\await($this->load_markets());
             $symbol = $this->symbol($symbol);
-            $interval = $this->timeframes[$timeframe];
+            $interval = $this->safe_string($this->timeframes, $timeframe, $timeframe);
             $name = 'candle' . $interval;
             $ohlcv = Async\await($this->subscribe('public', $name, $symbol, $params));
             if ($this->newUpdates) {

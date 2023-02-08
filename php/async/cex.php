@@ -562,7 +562,7 @@ class cex extends Exchange {
                 //         "data1m":"[[1591403940,0.024972,0.024972,0.024969,0.024969,0.49999900]]",
                 //     }
                 //
-                $key = 'data' . $this->timeframes[$timeframe];
+                $key = 'data' . $this->safe_string($this->timeframes, $timeframe, $timeframe);
                 $data = $this->safe_string($response, $key);
                 $ohlcvs = json_decode($data, $as_associative_array = true);
                 return $this->parse_ohlcvs($ohlcvs, $market, $timeframe, $since, $limit);

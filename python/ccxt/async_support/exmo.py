@@ -766,7 +766,7 @@ class exmo(Exchange):
         market = self.market(symbol)
         request = {
             'symbol': market['id'],
-            'resolution': self.timeframes[timeframe],
+            'resolution': self.safe_string(self.timeframes, timeframe, timeframe),
         }
         options = self.safe_value(self.options, 'fetchOHLCV')
         maxLimit = self.safe_integer(options, 'maxLimit', 3000)

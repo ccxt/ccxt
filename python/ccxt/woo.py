@@ -726,7 +726,7 @@ class woo(Exchange):
             request['order_price'] = self.price_to_precision(symbol, price)
         if isMarket:
             # for market buy it requires the amount of quote currency to spend
-            if orderSide == 'BUY':
+            if market['spot'] and orderSide == 'BUY':
                 cost = self.safe_number(params, 'cost')
                 if self.safe_value(self.options, 'createMarketBuyOrderRequiresPrice', True):
                     if cost is None:
@@ -1096,7 +1096,7 @@ class woo(Exchange):
         market = self.market(symbol)
         request = {
             'symbol': market['id'],
-            'type': self.timeframes[timeframe],
+            'type': self.safe_string(self.timeframes, timeframe, timeframe),
         }
         if limit is not None:
             request['limit'] = min(limit, 1000)

@@ -1241,7 +1241,7 @@ module.exports = class tokocrypto extends Exchange {
         params = this.omit (params, [ 'price', 'until' ]);
         limit = (limit === undefined) ? defaultLimit : Math.min (limit, maxLimit);
         const request = {
-            'interval': this.timeframes[timeframe],
+            'interval': this.safeString (this.timeframes, timeframe, timeframe),
             'limit': limit,
         };
         if (price === 'index') {

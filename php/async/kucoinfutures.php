@@ -97,6 +97,7 @@ class kucoinfutures extends kucoin {
                     'private' => 'https://openapi-v2.kucoin.com',
                     'futuresPrivate' => 'https://api-futures.kucoin.com',
                     'futuresPublic' => 'https://api-futures.kucoin.com',
+                    'webFront' => 'https://futures.kucoin.com/_api/web-front',
                 ),
                 'test' => array(
                     'public' => 'https://openapi-sandbox.kucoin.com',
@@ -171,6 +172,11 @@ class kucoinfutures extends kucoin {
                         'orders/{orderId}' => 1,
                         'orders' => 4.44,
                         'stopOrders' => 1,
+                    ),
+                ),
+                'webFront' => array(
+                    'get' => array(
+                        'contract/{symbol}/funding-rates' => 1,
                     ),
                 ),
             ),
@@ -548,7 +554,7 @@ class kucoinfutures extends kucoin {
             $marketId = $market['id'];
             $request = array(
                 'symbol' => $marketId,
-                'granularity' => $this->timeframes[$timeframe],
+                'granularity' => $this->safe_integer($this->timeframes, $timeframe, $timeframe),
             );
             $duration = $this->parse_timeframe($timeframe) * 1000;
             $endAt = $this->milliseconds();
@@ -2125,5 +2131,65 @@ class kucoinfutures extends kucoin {
             );
         }
         return $tiers;
+    }
+
+    public function fetch_funding_rate_history($symbol = null, $since = null, $limit = null, $params = array ()) {
+        return Async\async(function () use ($symbol, $since, $limit, $params) {
+            /**
+             * fetches historical funding rate prices
+             * @param {string|null} $symbol unified $symbol of the $market to fetch the funding rate history for
+             * @param {int|null} $since not used by kucuoinfutures
+             * @param {int|null} $limit the maximum amount of ~@link https://docs.ccxt.com/en/latest/manual.html?#funding-rate-history-structure funding rate structures~ to fetch
+             * @param {array} $params extra parameters specific to the okx api endpoint
+             * @return {[array]} a list of ~@link https://docs.ccxt.com/en/latest/manual.html?#funding-rate-history-structure funding rate structures~
+             */
+            if ($symbol === null) {
+                throw new ArgumentsRequired($this->id . ' fetchFundingRateHistory() requires a $symbol argument');
+            }
+            Async\await($this->load_markets());
+            $market = $this->market($symbol);
+            $request = array(
+                'symbol' => $market['id'],
+            );
+            if ($limit !== null) {
+                $request['maxCount'] = $limit;
+            }
+            $response = Async\await($this->webFrontGetContractSymbolFundingRates (array_merge($request, $params)));
+            //
+            //    {
+            //        success => true,
+            //        code => '200',
+            //        msg => 'success',
+            //        retry => false,
+            //        $data => {
+            //            $dataList => array(
+            //                array(
+            //                    $symbol => 'XBTUSDTM',
+            //                    granularity => 28800000,
+            //                    timePoint => 1675108800000,
+            //                    value => 0.0001
+            //                ),
+            //                ...
+            //            ),
+            //            hasMore => true
+            //        }
+            //    }
+            //
+            $data = $this->safe_value($response, 'data');
+            $dataList = $this->safe_value($data, 'dataList');
+            return $this->parse_funding_rate_histories($dataList, $market, $since, $limit);
+        }) ();
+    }
+
+    public function parse_funding_rate_history($info, $market = null) {
+        $timestamp = $this->safe_number($info, 'timePoint');
+        $marketId = $this->safe_string($info, 'symbol');
+        return array(
+            'info' => $info,
+            'symbol' => $this->safe_symbol($marketId, $market),
+            'fundingRate' => $this->safe_number($info, 'value'),
+            'timestamp' => $timestamp,
+            'datetime' => $this->iso8601($timestamp),
+        );
     }
 }

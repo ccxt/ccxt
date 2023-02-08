@@ -420,7 +420,7 @@ class alpaca extends Exchange {
         $market = $this->market($symbol);
         $request = array(
             'symbols' => $market['id'],
-            'timeframe' => $this->timeframes[$timeframe],
+            'timeframe' => $this->safe_string($this->timeframes, $timeframe, $timeframe),
         );
         if ($limit !== null) {
             $request['limit'] = $limit;

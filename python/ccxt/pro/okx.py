@@ -207,7 +207,7 @@ class okx(Exchange, ccxt.async_support.okx):
         """
         await self.load_markets()
         symbol = self.symbol(symbol)
-        interval = self.timeframes[timeframe]
+        interval = self.safe_string(self.timeframes, timeframe, timeframe)
         name = 'candle' + interval
         ohlcv = await self.subscribe('public', name, symbol, params)
         if self.newUpdates:
