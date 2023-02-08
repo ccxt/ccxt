@@ -3399,9 +3399,25 @@ module.exports = class bitget extends Exchange {
          * @returns {[object]} a list of [position structure]{@link https://docs.ccxt.com/en/latest/manual.html#position-structure}
          */
         await this.loadMarkets ();
-        const defaultSubType = this.safeString (this.options, 'defaultSubType');
+        let market = undefined;
+        if (symbols !== undefined) {
+            const first = this.safeString (symbols, 0);
+            market = this.market (first);
+        }
+        const sandboxMode = this.safeValue (this.options, 'sandboxMode', false);
+        let subType = undefined;
+        [ subType, params ] = this.handleSubTypeAndParams ('fetchPositions', market, params);
+        let productType = undefined;
+        if (subType === 'linear') {
+            productType = 'UMCBL';
+        } else {
+            productType = 'DMCBL';
+        }
+        if (sandboxMode) {
+            productType = 'S' + productType;
+        }
         const request = {
-            'productType': (defaultSubType === 'linear') ? 'UMCBL' : 'DMCBL',
+            'productType': productType,
         };
         const response = await this.privateMixGetPositionAllPosition (this.extend (request, params));
         //
