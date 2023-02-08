@@ -1165,7 +1165,7 @@ class delta(Exchange):
         marketId = self.safe_string(position, 'product_symbol')
         market = self.safe_market(marketId, market)
         symbol = market['symbol']
-        timestamp = self.safe_integer_product(position, 'timestamp', 0.0001)
+        timestamp = self.safe_integer_product(position, 'timestamp', 0.001)
         sizeString = self.safe_string(position, 'size')
         side = None
         if sizeString is not None:

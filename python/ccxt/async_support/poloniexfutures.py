@@ -666,7 +666,7 @@ class poloniexfutures(Exchange):
         marketId = market['id']
         request = {
             'symbol': marketId,
-            'granularity': self.safe_number(self.timeframes, timeframe, timeframe),
+            'granularity': self.safe_integer(self.timeframes, timeframe, timeframe),
         }
         duration = self.parse_timeframe(timeframe) * 1000
         endAt = self.milliseconds()

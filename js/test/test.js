@@ -148,11 +148,17 @@ function exceptionMessage (exc) {
 // ----------------------------------------------------------------------------
 
 async function test (methodName, exchange, ... args) {
-    // We don't need to print-out the skipped tests in terminal, as it doesn't add any value, because we already know the unsupported methods from exchange-capabilities
-    if (exchange.has[methodName]) {
-        if (testMethodAvailableForCurrentLang(methodName)) {
-            console.log ('Testing', exchange.id, methodName, '(', ... args, ')');
-            return await runTesterMethod(exchange, methodName, ... args);
+    console.log ('Testing', exchange.id, methodName, '(', ... args, ')');
+    try {
+        if (exchange.has[methodName]) {
+            return await (tests[methodName] (exchange, ... args));
+        }
+    } catch (e) {
+        if (e instanceof ccxt.NotSupported) {
+            console.log ('Not supported', exchange.id, methodName, '(', ... args, ')');
+        } else {
+            console.log (e.constructor.name, e.message);
+            throw e;
         }
     }
 }
@@ -257,6 +263,23 @@ function getTestSymbol (exchange, symbols) {
     return symbol;
 }
 
+//-----------------------------------------------------------------------------
+
+function getExchangeCode (exchange, codes = undefined) {
+    if (codes === undefined) {
+        codes = ['BTC', 'ETH', 'XRP', 'LTC', 'BCH', 'EOS', 'BNB', 'BSV', 'USDT']
+    }
+    const code = codes[0];
+    for (let i = 0; i < codes.length; i++) {
+        if (codes[i] in exchange.currencies) {
+            return codes[i];
+        }
+    }
+    return code;
+}
+
+//-----------------------------------------------------------------------------
+
 async function testExchange (exchange) {
 
     await loadExchange (exchange);
@@ -293,14 +316,6 @@ async function testExchange (exchange) {
         'ZEC',
         'ZRX',
     ];
-
-    let code = undefined;
-    for (let i = 0; i < codes.length; i++) {
-        if (codes[i] in exchange.currencies) {
-            code = codes[i];
-            break;
-        }
-    }
 
     let symbol = getTestSymbol (exchange, [
         'BTC/USD',
@@ -368,7 +383,10 @@ async function runPrivateTests(exchange, symbol) {
 
     await test ('signIn', exchange);
 
-    await test ('fetchBalance', exchange);
+    const code = getExchangeCode (exchange);
+
+    const balance = await test ('fetchBalance', exchange);
+
     await test ('fetchAccounts', exchange);
     await test ('fetchTransactionFees', exchange);
     // fethcTradingFee(s) & fetchTransactionFee(s) might be public for some exchanges

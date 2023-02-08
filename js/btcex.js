@@ -1162,13 +1162,6 @@ module.exports = class btcex extends Exchange {
         const averageString = this.safeString (order, 'average_price');
         const amountString = this.safeString (order, 'amount');
         const filledString = this.safeString (order, 'filled_amount');
-        let lastTradeTimestamp = undefined;
-        if (filledString !== undefined) {
-            const isFilledPositive = Precise.stringGt (filledString, '0');
-            if (isFilledPositive) {
-                lastTradeTimestamp = lastUpdate;
-            }
-        }
         const status = this.parseOrderStatus (this.safeString (order, 'order_state'));
         const marketId = this.safeString (order, 'instrument_name');
         market = this.safeMarket (marketId, market);
@@ -1182,27 +1175,26 @@ module.exports = class btcex extends Exchange {
                 'currency': market['base'],
             };
         }
-        const type = this.safeString (order, 'order_type');
         // injected in createOrder
         const trades = this.safeValue (order, 'trades');
-        const timeInForce = this.parseTimeInForce (this.safeString (order, 'time_in_force'));
-        const stopPrice = this.safeValue (order, 'trigger_price');
-        const postOnly = this.safeValue (order, 'post_only');
+        const stopPrice = this.safeNumber (order, 'trigger_price');
         return this.safeOrder ({
             'info': order,
             'id': id,
             'clientOrderId': undefined,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'lastTradeTimestamp': lastTradeTimestamp,
+            'lastTradeTimestamp': lastUpdate,
             'symbol': market['symbol'],
-            'type': type,
-            'timeInForce': timeInForce,
-            'postOnly': postOnly,
+            'type': this.safeString (order, 'order_type'),
+            'timeInForce': this.parseTimeInForce (this.safeString (order, 'time_in_force')),
+            'postOnly': this.safeValue (order, 'post_only'),
             'side': side,
-            'price': priceString,
+            'price': this.parseNumber (priceString),
             'stopPrice': stopPrice,
             'triggerPrice': stopPrice,
+            'stopLossPrice': this.safeNumber (order, 'stop_loss_price'),
+            'takeProfitPrice': this.safeNumber (order, 'take_profit_price'),
             'amount': amountString,
             'cost': undefined,
             'average': averageString,
@@ -1215,6 +1207,7 @@ module.exports = class btcex extends Exchange {
     }
 
     async fetchOrder (id, symbol = undefined, params = {}) {
+        await this.signIn ();
         await this.loadMarkets ();
         const request = {
             'order_id': id,

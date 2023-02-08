@@ -4,6 +4,7 @@
 # https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 from ccxt.base.exchange import Exchange
+import numbers
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import PermissionDenied
@@ -130,6 +131,8 @@ class phemex(Exchange):
                 '1d': '86400',
                 '1w': '604800',
                 '1M': '2592000',
+                '3M': '7776000',
+                '1Y': '31104000',
             },
             'api': {
                 'public': {
@@ -903,6 +906,7 @@ class phemex(Exchange):
     def fetch_order_book(self, symbol, limit=None, params={}):
         """
         fetches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
+        see https://github.com/phemex/phemex-api-docs/blob/master/Public-Hedged-Perpetual-API.md#queryorderbook
         :param str symbol: unified symbol of the market to fetch the order book for
         :param int|None limit: the maximum amount of order book entries to return
         :param dict params: extra parameters specific to the phemex api endpoint
@@ -914,7 +918,10 @@ class phemex(Exchange):
             'symbol': market['id'],
             # 'id': 123456789,  # optional request id
         }
-        response = self.v1GetMdOrderbook(self.extend(request, params))
+        method = 'v1GetMdOrderbook'
+        if market['linear'] and market['settle'] == 'USDT':
+            method = 'v2GetMdV2Orderbook'
+        response = getattr(self, method)(self.extend(request, params))
         #
         #     {
         #         "error": null,
@@ -941,7 +948,7 @@ class phemex(Exchange):
         #     }
         #
         result = self.safe_value(response, 'result', {})
-        book = self.safe_value(result, 'book', {})
+        book = self.safe_value_2(result, 'book', 'orderbook_p', {})
         timestamp = self.safe_integer_product(result, 'timestamp', 0.000001)
         orderbook = self.parse_order_book(book, symbol, timestamp, 'bids', 'asks', 0, 1, market)
         orderbook['nonce'] = self.safe_integer(result, 'sequence')
@@ -1019,6 +1026,7 @@ class phemex(Exchange):
     def fetch_ohlcv(self, symbol, timeframe='1m', since=None, limit=None, params={}):
         """
         fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+        see https://github.com/phemex/phemex-api-docs/blob/master/Public-Hedged-Perpetual-API.md#querykline
         :param str symbol: unified symbol of the market to fetch OHLCV data for
         :param str timeframe: the length of time each candle represents
         :param int|None since: timestamp in ms of the earliest candle to fetch
@@ -1034,28 +1042,28 @@ class phemex(Exchange):
         }
         duration = self.parse_timeframe(timeframe)
         now = self.seconds()
-        maxLimit = 2000  # maximum limit, we shouldn't sent request of more than it
+        possibleLimitValues = [5, 10, 50, 100, 500, 1000]
+        maxLimit = 1000  # maximum limit, we shouldn't sent request of more than it
         if limit is None:
             limit = 100  # set default, as exchange doesn't have any defaults and needs something to be set
-        else:
-            limit = min(limit, maxLimit)
-        if since is not None:
-            limit = min(limit, maxLimit)
+        limit = min(limit, maxLimit)
+        if since is not None:  # phemex also provides kline query with from/to, however, self interface is NOT recommended.
             since = int(since / 1000)
             request['from'] = since
             # time ranges ending in the future are not accepted
             # https://github.com/ccxt/ccxt/issues/8050
             request['to'] = min(now, self.sum(since, duration * limit))
         else:
-            if limit < maxLimit:
-                # whenever making a request with `now`, that expects current latest bar to be included, the exchange does not return the last 1m candle and thus excludes one bar. So, we have to add `1` to user's set `limit` amount to get that amount of bars back
-                limit = limit + 1
-            request['from'] = now - duration * limit
-            request['to'] = now
+            if not self.in_array(limit, possibleLimitValues):
+                limit = 100
+            request['limit'] = limit
         self.load_markets()
         market = self.market(symbol)
         request['symbol'] = market['id']
-        response = self.publicGetMdKline(self.extend(request, params))
+        method = 'publicGetMdKline'
+        if market['linear'] or market['settle'] == 'USDT':
+            method = 'publicGetMdV2KlineLast'
+        response = getattr(self, method)(self.extend(request, params))
         #
         #     {
         #         "code":0,
@@ -1164,6 +1172,7 @@ class phemex(Exchange):
     def fetch_ticker(self, symbol, params={}):
         """
         fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+        see https://github.com/phemex/phemex-api-docs/blob/master/Public-Hedged-Perpetual-API.md#query24hrsticker
         :param str symbol: unified symbol of the market to fetch the ticker for
         :param dict params: extra parameters specific to the phemex api endpoint
         :returns dict: a `ticker structure <https://docs.ccxt.com/en/latest/manual.html#ticker-structure>`
@@ -1231,6 +1240,7 @@ class phemex(Exchange):
     def fetch_trades(self, symbol, since=None, limit=None, params={}):
         """
         get the list of most recent trades for a particular symbol
+        see https://github.com/phemex/phemex-api-docs/blob/master/Public-Hedged-Perpetual-API.md#querytrades
         :param str symbol: unified symbol of the market to fetch trades for
         :param int|None since: timestamp in ms of the earliest trade to fetch
         :param int|None limit: the maximum amount of trades to fetch
@@ -1243,7 +1253,10 @@ class phemex(Exchange):
             'symbol': market['id'],
             # 'id': 123456789,  # optional request id
         }
-        response = self.v1GetMdTrade(self.extend(request, params))
+        method = 'v1GetMdTrade'
+        if market['linear'] and market['settle'] == 'USDT':
+            method = 'v2GetMdV2Trade'
+        response = getattr(self, method)(self.extend(request, params))
         #
         #     {
         #         "error": null,
@@ -1261,12 +1274,12 @@ class phemex(Exchange):
         #     }
         #
         result = self.safe_value(response, 'result', {})
-        trades = self.safe_value(result, 'trades', [])
+        trades = self.safe_value_2(result, 'trades', 'trades_p', [])
         return self.parse_trades(trades, market, since, limit)
 
     def parse_trade(self, trade, market=None):
         #
-        # fetchTrades(public)
+        # fetchTrades(public) spot & contract
         #
         #     [
         #         1592541746712239749,
@@ -1274,6 +1287,15 @@ class phemex(Exchange):
         #         "Buy",
         #         93070000,
         #         40173
+        #     ]
+        #
+        # fetchTrades(public) perp
+        #
+        #     [
+        #         1675690986063435800,
+        #         "Sell",
+        #         "22857.4",
+        #         "0.269"
         #     ]
         #
         # fetchMyTrades(private)
@@ -1351,8 +1373,11 @@ class phemex(Exchange):
             if tradeLength > 4:
                 id = self.safe_string(trade, tradeLength - 4)
             side = self.safe_string_lower(trade, tradeLength - 3)
-            priceString = self.from_ep(self.safe_string(trade, tradeLength - 2), market)
-            amountString = self.from_ev(self.safe_string(trade, tradeLength - 1), market)
+            priceString = self.safe_string(trade, tradeLength - 2)
+            amountString = self.safe_string(trade, tradeLength - 1)
+            if isinstance(trade[tradeLength - 2], numbers.Real):
+                priceString = self.from_ep(priceString, market)
+                amountString = self.from_ev(amountString, market)
         else:
             timestamp = self.safe_integer_product(trade, 'transactTimeNs', 0.000001)
             id = self.safe_string_2(trade, 'execId', 'execID')

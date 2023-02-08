@@ -116,6 +116,8 @@ module.exports = class phemex extends Exchange {
                 '1d': '86400',
                 '1w': '604800',
                 '1M': '2592000',
+                '3M': '7776000',
+                '1Y': '31104000',
             },
             'api': {
                 'public': {
@@ -914,6 +916,7 @@ module.exports = class phemex extends Exchange {
          * @method
          * @name phemex#fetchOrderBook
          * @description fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+         * @see https://github.com/phemex/phemex-api-docs/blob/master/Public-Hedged-Perpetual-API.md#queryorderbook
          * @param {string} symbol unified symbol of the market to fetch the order book for
          * @param {int|undefined} limit the maximum amount of order book entries to return
          * @param {object} params extra parameters specific to the phemex api endpoint
@@ -925,7 +928,11 @@ module.exports = class phemex extends Exchange {
             'symbol': market['id'],
             // 'id': 123456789, // optional request id
         };
-        const response = await this.v1GetMdOrderbook (this.extend (request, params));
+        let method = 'v1GetMdOrderbook';
+        if (market['linear'] && market['settle'] === 'USDT') {
+            method = 'v2GetMdV2Orderbook';
+        }
+        const response = await this[method] (this.extend (request, params));
         //
         //     {
         //         "error": null,
@@ -952,7 +959,7 @@ module.exports = class phemex extends Exchange {
         //     }
         //
         const result = this.safeValue (response, 'result', {});
-        const book = this.safeValue (result, 'book', {});
+        const book = this.safeValue2 (result, 'book', 'orderbook_p', {});
         const timestamp = this.safeIntegerProduct (result, 'timestamp', 0.000001);
         const orderbook = this.parseOrderBook (book, symbol, timestamp, 'bids', 'asks', 0, 1, market);
         orderbook['nonce'] = this.safeInteger (result, 'sequence');
@@ -1048,6 +1055,7 @@ module.exports = class phemex extends Exchange {
          * @method
          * @name phemex#fetchOHLCV
          * @description fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+         * @see https://github.com/phemex/phemex-api-docs/blob/master/Public-Hedged-Perpetual-API.md#querykline
          * @param {string} symbol unified symbol of the market to fetch OHLCV data for
          * @param {string} timeframe the length of time each candle represents
          * @param {int|undefined} since timestamp in ms of the earliest candle to fetch
@@ -1063,31 +1071,32 @@ module.exports = class phemex extends Exchange {
         };
         const duration = this.parseTimeframe (timeframe);
         const now = this.seconds ();
-        const maxLimit = 2000; // maximum limit, we shouldn't sent request of more than it
+        const possibleLimitValues = [ 5, 10, 50, 100, 500, 1000 ];
+        const maxLimit = 1000; // maximum limit, we shouldn't sent request of more than it
         if (limit === undefined) {
             limit = 100; // set default, as exchange doesn't have any defaults and needs something to be set
-        } else {
-            limit = Math.min (limit, maxLimit);
         }
-        if (since !== undefined) {
-            limit = Math.min (limit, maxLimit);
+        limit = Math.min (limit, maxLimit);
+        if (since !== undefined) { // phemex also provides kline query with from/to, however, this interface is NOT recommended.
             since = parseInt (since / 1000);
             request['from'] = since;
             // time ranges ending in the future are not accepted
             // https://github.com/ccxt/ccxt/issues/8050
             request['to'] = Math.min (now, this.sum (since, duration * limit));
         } else {
-            if (limit < maxLimit) {
-                // whenever making a request with `now`, that expects current latest bar to be included, the exchange does not return the last 1m candle and thus excludes one bar. So, we have to add `1` to user's set `limit` amount to get that amount of bars back
-                limit = limit + 1;
+            if (!this.inArray (limit, possibleLimitValues)) {
+                limit = 100;
             }
-            request['from'] = now - duration * limit;
-            request['to'] = now;
+            request['limit'] = limit;
         }
         await this.loadMarkets ();
         const market = this.market (symbol);
         request['symbol'] = market['id'];
-        const response = await this.publicGetMdKline (this.extend (request, params));
+        let method = 'publicGetMdKline';
+        if (market['linear'] || market['settle'] === 'USDT') {
+            method = 'publicGetMdV2KlineLast';
+        }
+        const response = await this[method] (this.extend (request, params));
         //
         //     {
         //         "code":0,
@@ -1201,6 +1210,7 @@ module.exports = class phemex extends Exchange {
          * @method
          * @name phemex#fetchTicker
          * @description fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+         * @see https://github.com/phemex/phemex-api-docs/blob/master/Public-Hedged-Perpetual-API.md#query24hrsticker
          * @param {string} symbol unified symbol of the market to fetch the ticker for
          * @param {object} params extra parameters specific to the phemex api endpoint
          * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
@@ -1273,6 +1283,7 @@ module.exports = class phemex extends Exchange {
          * @method
          * @name phemex#fetchTrades
          * @description get the list of most recent trades for a particular symbol
+         * @see https://github.com/phemex/phemex-api-docs/blob/master/Public-Hedged-Perpetual-API.md#querytrades
          * @param {string} symbol unified symbol of the market to fetch trades for
          * @param {int|undefined} since timestamp in ms of the earliest trade to fetch
          * @param {int|undefined} limit the maximum amount of trades to fetch
@@ -1285,7 +1296,11 @@ module.exports = class phemex extends Exchange {
             'symbol': market['id'],
             // 'id': 123456789, // optional request id
         };
-        const response = await this.v1GetMdTrade (this.extend (request, params));
+        let method = 'v1GetMdTrade';
+        if (market['linear'] && market['settle'] === 'USDT') {
+            method = 'v2GetMdV2Trade';
+        }
+        const response = await this[method] (this.extend (request, params));
         //
         //     {
         //         "error": null,
@@ -1303,13 +1318,13 @@ module.exports = class phemex extends Exchange {
         //     }
         //
         const result = this.safeValue (response, 'result', {});
-        const trades = this.safeValue (result, 'trades', []);
+        const trades = this.safeValue2 (result, 'trades', 'trades_p', []);
         return this.parseTrades (trades, market, since, limit);
     }
 
     parseTrade (trade, market = undefined) {
         //
-        // fetchTrades (public)
+        // fetchTrades (public) spot & contract
         //
         //     [
         //         1592541746712239749,
@@ -1317,6 +1332,15 @@ module.exports = class phemex extends Exchange {
         //         "Buy",
         //         93070000,
         //         40173
+        //     ]
+        //
+        // fetchTrades (public) perp
+        //
+        //     [
+        //         1675690986063435800,
+        //         "Sell",
+        //         "22857.4",
+        //         "0.269"
         //     ]
         //
         // fetchMyTrades (private)
@@ -1395,8 +1419,12 @@ module.exports = class phemex extends Exchange {
                 id = this.safeString (trade, tradeLength - 4);
             }
             side = this.safeStringLower (trade, tradeLength - 3);
-            priceString = this.fromEp (this.safeString (trade, tradeLength - 2), market);
-            amountString = this.fromEv (this.safeString (trade, tradeLength - 1), market);
+            priceString = this.safeString (trade, tradeLength - 2);
+            amountString = this.safeString (trade, tradeLength - 1);
+            if (typeof trade[tradeLength - 2] === 'number') {
+                priceString = this.fromEp (priceString, market);
+                amountString = this.fromEv (amountString, market);
+            }
         } else {
             timestamp = this.safeIntegerProduct (trade, 'transactTimeNs', 0.000001);
             id = this.safeString2 (trade, 'execId', 'execID');

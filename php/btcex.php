@@ -1161,13 +1161,6 @@ class btcex extends Exchange {
         $averageString = $this->safe_string($order, 'average_price');
         $amountString = $this->safe_string($order, 'amount');
         $filledString = $this->safe_string($order, 'filled_amount');
-        $lastTradeTimestamp = null;
-        if ($filledString !== null) {
-            $isFilledPositive = Precise::string_gt($filledString, '0');
-            if ($isFilledPositive) {
-                $lastTradeTimestamp = $lastUpdate;
-            }
-        }
         $status = $this->parse_order_status($this->safe_string($order, 'order_state'));
         $marketId = $this->safe_string($order, 'instrument_name');
         $market = $this->safe_market($marketId, $market);
@@ -1181,27 +1174,26 @@ class btcex extends Exchange {
                 'currency' => $market['base'],
             );
         }
-        $type = $this->safe_string($order, 'order_type');
         // injected in createOrder
         $trades = $this->safe_value($order, 'trades');
-        $timeInForce = $this->parse_time_in_force($this->safe_string($order, 'time_in_force'));
-        $stopPrice = $this->safe_value($order, 'trigger_price');
-        $postOnly = $this->safe_value($order, 'post_only');
+        $stopPrice = $this->safe_number($order, 'trigger_price');
         return $this->safe_order(array(
             'info' => $order,
             'id' => $id,
             'clientOrderId' => null,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
-            'lastTradeTimestamp' => $lastTradeTimestamp,
+            'lastTradeTimestamp' => $lastUpdate,
             'symbol' => $market['symbol'],
-            'type' => $type,
-            'timeInForce' => $timeInForce,
-            'postOnly' => $postOnly,
+            'type' => $this->safe_string($order, 'order_type'),
+            'timeInForce' => $this->parse_time_in_force($this->safe_string($order, 'time_in_force')),
+            'postOnly' => $this->safe_value($order, 'post_only'),
             'side' => $side,
-            'price' => $priceString,
+            'price' => $this->parse_number($priceString),
             'stopPrice' => $stopPrice,
             'triggerPrice' => $stopPrice,
+            'stopLossPrice' => $this->safe_number($order, 'stop_loss_price'),
+            'takeProfitPrice' => $this->safe_number($order, 'take_profit_price'),
             'amount' => $amountString,
             'cost' => null,
             'average' => $averageString,
@@ -1214,6 +1206,7 @@ class btcex extends Exchange {
     }
 
     public function fetch_order($id, $symbol = null, $params = array ()) {
+        $this->sign_in();
         $this->load_markets();
         $request = array(
             'order_id' => $id,
