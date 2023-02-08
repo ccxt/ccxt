@@ -1013,58 +1013,36 @@ module.exports = class bybit extends Exchange {
         if (!this.checkRequiredCredentials (false)) {
             return undefined;
         }
-        const response = await this.privateGetAssetV3PrivateCoinInfoQuery (params);
+        const response = await this.privateGetV5AssetCoinQueryInfo (params);
         //
-        //    {
-        //        "retCode": "0",
-        //        "retMsg": "OK",
-        //        "result": {
-        //            "rows": [
-        //                {
-        //                    "name": "MATIC",
-        //                    "coin": "MATIC",
-        //                    "remainAmount": "1652850",
-        //                    "chains": [
-        //                        {
-        //                            "chainType": "MATIC",
-        //                            "confirmation": "128",
-        //                            "withdrawFee": "0.1",
-        //                            "depositMin": "0",
-        //                            "withdrawMin": "0.1",
-        //                            "chain": "MATIC",
-        //                            "chainDeposit": "1",
-        //                            "chainWithdraw": "1",
-        //                            "minAccuracy": "8"
-        //                        },
-        //                        {
-        //                            "chainType": "ERC20",
-        //                            "confirmation": "12",
-        //                            "withdrawFee": "10",
-        //                            "depositMin": "0",
-        //                            "withdrawMin": "20",
-        //                            "chain": "ETH",
-        //                            "chainDeposit": "1",
-        //                            "chainWithdraw": "1",
-        //                            "minAccuracy": "8"
-        //                        },
-        //                        {
-        //                            "chainType": "BSC (BEP20)",
-        //                            "confirmation": "15",
-        //                            "withdrawFee": "1",
-        //                            "depositMin": "0",
-        //                            "withdrawMin": "1",
-        //                            "chain": "BSC",
-        //                            "chainDeposit": "1",
-        //                            "chainWithdraw": "1",
-        //                            "minAccuracy": "8"
-        //                        }
-        //                    ]
-        //                },
-        //            ]
-        //        },
-        //        "retExtInfo": null,
-        //        "time": "1666728888775"
-        //    }
+        //     {
+        //         "retCode": 0,
+        //         "retMsg": "",
+        //         "result": {
+        //             "rows": [
+        //                 {
+        //                     "name": "BTC",
+        //                     "coin": "BTC",
+        //                     "remainAmount": "150",
+        //                     "chains": [
+        //                         {
+        //                             "chainType": "BTC",
+        //                             "confirmation": "10000",
+        //                             "withdrawFee": "0.0005",
+        //                             "depositMin": "0.0005",
+        //                             "withdrawMin": "0.001",
+        //                             "chain": "BTC",
+        //                             "chainDeposit": "1",
+        //                             "chainWithdraw": "1",
+        //                             "minAccuracy": "8"
+        //                         }
+        //                     ]
+        //                 }
+        //             ]
+        //         },
+        //         "retExtInfo": {},
+        //         "time": 1672194582264
+        //     }
         //
         const data = this.safeValue (response, 'result', []);
         const rows = this.safeValue (data, 'rows', []);
