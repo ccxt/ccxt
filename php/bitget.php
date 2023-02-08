@@ -2867,7 +2867,7 @@ class bitget extends Exchange {
         //     {
         //         "code" => "00000",
         //         "msg" => "success",
-        //         "requestTime" => 1668134581005,
+        //         "requestTime" => 1668134581006,
         //         "data" => {
         //             "nextFlag" => false,
         //             "endId" => 974792555020390400,
