@@ -141,15 +141,6 @@ async function test (methodName, exchange, ... args) {
     }
 }
 
-async function testSafe(methodName, exchange, ...args) {
-    try {
-        await test(methodName, exchange, ...args);
-        return true
-    } catch (e) {;
-        return false;
-    }
-}
-
 async function testSymbol (exchange, symbol) {
 
     await test ('loadMarkets', exchange);
@@ -353,54 +344,45 @@ async function testExchange (exchange) {
 async function runPrivateTests(exchange, symbol) {
     exchange.checkRequiredCredentials ();
 
+    await test ('signIn', exchange);
+
     const code = getExchangeCode (exchange);
 
-    let tests = {
-        'signIn': [exchange],
-        'fetchBalance': [exchange],
-        'fetchAccounts': [exchange],
-        'fetchTransactionFees': [exchange],
-        'fetchTradingFees': [exchange],
-        'fetchStatus': [exchange],
-        'fetchOrders': [exchange, symbol],
-        'fetchOpenOrders': [exchange, symbol],
-        'fetchClosedOrders': [exchange, symbol],
-        'fetchMyTrades': [exchange, symbol],
-        'fetchLeverageTiers': [exchange, symbol],
-        'fetchOpenInterestHistory': [exchange, symbol],
-        'fetchPositions': [exchange, symbol],
-        'fetchLedger': [exchange, code],
-        'fetchTransactions': [exchange, code],
-        'fetchDeposits': [exchange, code],
-        'fetchWithdrawals': [exchange, code],
-        'fetchBorrowRates': [exchange, code],
-        'fetchBorrowRate': [exchange, code],
-        'fetchBorrowInterest': [exchange, code],
-        'fetchBorrowInterest': [exchange, code, symbol]
-    };
+    const balance = await test ('fetchBalance', exchange);
 
-    const testNames = Object.keys (tests);
-    const errors = [];
-    for (let i = 0; i < testNames.length; i++) {
-        const testName = testNames[i];
-        const testArgs = tests[testName];
-        const success = await testSafe (testName, ...testArgs);
-        if (!success) {
-            errors.push (testName);
-        }
+    await test ('fetchAccounts', exchange);
+    await test ('fetchTransactionFees', exchange);
+    await test ('fetchTradingFees', exchange);
+    await test ('fetchStatus', exchange);
+
+    await test ('fetchOrders', exchange, symbol);
+    await test ('fetchOpenOrders', exchange, symbol);
+    await test ('fetchClosedOrders', exchange, symbol);
+    await test ('fetchMyTrades', exchange, symbol);
+    await test ('fetchLeverageTiers', exchange, symbol);
+    await test ('fetchOpenInterestHistory', exchange, symbol);
+
+    await test ('fetchPositions', exchange, symbol);
+
+    if ('fetchLedger' in tests) {
+        await test ('fetchLedger', exchange, code);
     }
 
-    if (errors.length > 0) {
-        throw new Error ('Failed private tests: ' + errors.join (', '));
-    }
+    await test ('fetchTransactions', exchange, code);
+    await test ('fetchDeposits', exchange, code);
+    await test ('fetchWithdrawals', exchange, code);
+    await test ('fetchBorrowRate', exchange, code);
+    await test ('fetchBorrowRates', exchange);
+    await test ('fetchBorrowInterest', exchange, code);
+    await test ('fetchBorrowInterest', exchange, code, symbol);
 
-//     if (exchange.extendedTest) {
-//         const extendedTest
-//         // await test ('InvalidNonce', exchange, symbol);
-//         // await test ('OrderNotFound', exchange, symbol);
-//         // await test ('InvalidOrder', exchange, symbol);
-//         // await test ('InsufficientFunds', exchange, symbol, balance); // danger zone - won't execute with non-empty balance
-//     }
+    if (exchange.extendedTest) {
+
+        await test ('InvalidNonce', exchange, symbol);
+        await test ('OrderNotFound', exchange, symbol);
+        await test ('InvalidOrder', exchange, symbol);
+        await test ('InsufficientFunds', exchange, symbol, balance); // danger zone - won't execute with non-empty balance
+    }
 }
 
 //-----------------------------------------------------------------------------
