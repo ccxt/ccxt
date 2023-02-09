@@ -3,7 +3,7 @@
 
 const Exchange = require ('./base/Exchange');
 const { TICK_SIZE } = require ('./base/functions/number');
-const { AuthenticationError, ExchangeError, ArgumentsRequired, PermissionDenied, InvalidOrder, OrderNotFound, InsufficientFunds, BadRequest, RateLimitExceeded, InvalidNonce, NotSupported } = require ('./base/errors');
+const { AuthenticationError, ExchangeError, ArgumentsRequired, PermissionDenied, InvalidOrder, OrderNotFound, InsufficientFunds, BadRequest, RateLimitExceeded, InvalidNonce, NotSupported, RequestTimeout } = require ('./base/errors');
 const Precise = require ('./base/Precise');
 
 //  ---------------------------------------------------------------------------
@@ -31,6 +31,7 @@ module.exports = class bybit extends Exchange {
                 'cancelOrder': true,
                 'createOrder': true,
                 'createPostOnlyOrder': true,
+                'createReduceOnlyOrder': true,
                 'createStopLimitOrder': true,
                 'createStopMarketOrder': true,
                 'createStopOrder': true,
@@ -43,6 +44,7 @@ module.exports = class bybit extends Exchange {
                 'fetchBorrowRates': false,
                 'fetchClosedOrders': true,
                 'fetchCurrencies': true,
+                'fetchDeposit': false,
                 'fetchDepositAddress': true,
                 'fetchDepositAddresses': false,
                 'fetchDepositAddressesByNetwork': true,
@@ -826,6 +828,7 @@ module.exports = class bybit extends Exchange {
                     '3200300': InsufficientFunds, // {"retCode":3200300,"retMsg":"Insufficient margin balance.","result":null,"retExtMap":{}}
                 },
                 'broad': {
+                    'Request timeout': RequestTimeout, // {"retCode":10016,"retMsg":"Request timeout, please try again later","result":{},"retExtInfo":{},"time":1675307914985}
                     'unknown orderInfo': OrderNotFound, // {"ret_code":-1,"ret_msg":"unknown orderInfo","ext_code":"","ext_info":"","result":null,"time_now":"1584030414.005545","rate_limit_status":99,"rate_limit_reset_ms":1584030414003,"rate_limit":100}
                     'invalid api_key': AuthenticationError, // {"ret_code":10003,"ret_msg":"invalid api_key","ext_code":"","ext_info":"","result":null,"time_now":"1599547085.415797"}
                     // the below two issues are caused as described: issues/9149#issuecomment-1146559498, when response is such:  {"ret_code":130021,"ret_msg":"oc_diff[1707966351], new_oc[1707966351] with ob[....]+AB[....]","ext_code":"","ext_info":"","result":null,"time_now":"1658395300.872766","rate_limit_status":99,"rate_limit_reset_ms":1658395300855,"rate_limit":100}
@@ -1736,7 +1739,7 @@ module.exports = class bybit extends Exchange {
             request['start'] = since;
         }
         if (limit !== undefined) {
-            request['limit'] = limit; // max 200, default 200
+            request['limit'] = limit; // max 1000, default 1000
         }
         request['interval'] = duration;
         let method = undefined;
@@ -2949,7 +2952,7 @@ module.exports = class bybit extends Exchange {
             'New': 'open',
             'Rejected': 'rejected', // order is triggered but failed upon being placed
             'PartiallyFilled': 'open',
-            'PartiallyFilledCanceled': 'canceled', // spot has this order status only
+            'PartiallyFilledCancelled': 'canceled',
             'Filled': 'closed',
             'PendingCancel': 'open',
             'Cancelled': 'canceled',
@@ -5439,7 +5442,7 @@ module.exports = class bybit extends Exchange {
         //                 {
         //                     "orderType": "Limit",
         //                     "symbol": "BTC-14JUL22-17500-C",
-        //                     "orderLinkId": "188889689-yuanzhen-558998998898",
+        //                     "orderLinkId": "188889689-yuanzhen-558998998899",
         //                     "side": "Buy",
         //                     "orderId": "09c5836f-81ef-4208-a5b4-43135d3e02a2",
         //                     "leavesQty": "0.0000",
@@ -5763,11 +5766,15 @@ module.exports = class bybit extends Exchange {
          * @description fetch all deposits made to an account
          * @see https://bybit-exchange.github.io/docs/v5/asset/deposit-record
          * @param {string|undefined} code unified currency code
-         * @param {int|undefined} since the earliest time in ms to fetch deposits for
-         * @param {int|undefined} limit the maximum number of deposits structures to retrieve
+         * @param {int|undefined} since the earliest time in ms to fetch deposits for, default = 30 days before the current time
+         * @param {int|undefined} limit the maximum number of deposits structures to retrieve, default = 50, max = 50
          * @param {object} params extra parameters specific to the bybit api endpoint
+         * @param {int|undefined} params.until the latest time in ms to fetch deposits for, default = 30 days after since
+         *
+         * EXCHANGE SPECIFIC PARAMETERS
+         * @param {string|undefined} params.cursor used for pagination
          * @returns {[object]} a list of [transaction structures]{@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure}
-         */
+        */
         await this.loadMarkets ();
         const request = {
             // 'coin': currency['id'],
@@ -5775,6 +5782,7 @@ module.exports = class bybit extends Exchange {
             // 'cursor': '',
         };
         let currency = undefined;
+        const until = this.safeInteger (params, 'until');
         if (code !== undefined) {
             currency = this.currency (code);
             request['coin'] = currency['id'];
@@ -5785,8 +5793,6 @@ module.exports = class bybit extends Exchange {
         if (limit !== undefined) {
             request['limit'] = limit;
         }
-        // Currently only works for deposits prior to 2021-07-15
-        // will be updated soon
         const response = await this.privateGetV5AssetDepositQueryRecord (this.extend (request, params));
         //
         //     {
@@ -6308,7 +6314,7 @@ module.exports = class bybit extends Exchange {
         return this.parseTransaction (result, currency);
     }
 
-    async fetchPosition (symbol = undefined, params = {}) {
+    async fetchPosition (symbol, params = {}) {
         /**
          * @method
          * @name bybit#fetchPosition
@@ -6491,7 +6497,7 @@ module.exports = class bybit extends Exchange {
         const positions = this.safeValue2 (result, 'list', 'dataList', []);
         const timestamp = this.safeInteger (response, 'time');
         const first = this.safeValue (positions, 0);
-        const position = this.parsePosition (first);
+        const position = this.parsePosition (first, market);
         return this.extend (position, {
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),

@@ -355,7 +355,6 @@ module.exports = class currencycom extends Exchange {
             result[code] = {
                 'id': id,
                 'code': code,
-                'address': this.safeString (currency, 'baseAddress'),
                 'type': this.safeStringLower (currency, 'type'),
                 'name': this.safeString (currency, 'name'),
                 'active': undefined,
@@ -974,7 +973,7 @@ module.exports = class currencycom extends Exchange {
         const market = this.market (symbol);
         const request = {
             'symbol': market['id'],
-            'interval': this.timeframes[timeframe],
+            'interval': this.safeString (this.timeframes, timeframe, timeframe),
         };
         if (since !== undefined) {
             request['startTime'] = since;

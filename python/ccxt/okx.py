@@ -1663,7 +1663,7 @@ class okx(Exchange):
         if limit is None:
             limit = 100  # default 100, max 100
         duration = self.parse_timeframe(timeframe)
-        bar = self.timeframes[timeframe]
+        bar = self.safe_string(self.timeframes, timeframe, timeframe)
         if (timezone == 'UTC') and (duration >= 21600):  # if utc and timeframe >= 6h
             bar += timezone.lower()
         request = {
@@ -3930,7 +3930,7 @@ class okx(Exchange):
         }
         if type is not None:
             request['instType'] = self.convert_to_instrument_type(type)
-        response = self.privateGetAccountPositions(query)
+        response = self.privateGetAccountPositions(self.extend(request, query))
         #
         #     {
         #         "code": "0",
@@ -4126,7 +4126,7 @@ class okx(Exchange):
                         side = 'short'
                     else:
                         side = None
-        contractSize = self.safe_value(market, 'contractSize')
+        contractSize = self.safe_number(market, 'contractSize')
         contractSizeString = self.number_to_string(contractSize)
         markPriceString = self.safe_string(position, 'markPx')
         notionalString = self.safe_string(position, 'notionalUsd')
@@ -4615,8 +4615,8 @@ class okx(Exchange):
         if marginMode == 'isolated':
             if posSide is None:
                 raise ArgumentsRequired(self.id + ' setLeverage() requires a posSide argument for isolated margin')
-            if posSide != 'long' and posSide != 'short':
-                raise BadRequest(self.id + ' setLeverage() requires the posSide argument to be either "long" or "short"')
+            if posSide != 'long' and posSide != 'short' and posSide != 'net':
+                raise BadRequest(self.id + ' setLeverage() requires the posSide argument to be either "long", "short" or "net"')
         response = self.privatePostAccountSetLeverage(self.extend(request, params))
         #
         #     {

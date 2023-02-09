@@ -67,8 +67,6 @@ class bitbns(Exchange):
                 'transfer': False,
                 'withdraw': False,
             },
-            'timeframes': {
-            },
             'hostname': 'bitbns.com',
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/117201933-e7a6e780-adf5-11eb-9d80-98fc2a21c3d6.jpg',

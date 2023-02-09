@@ -2368,7 +2368,7 @@ class gate extends Exchange {
         $price = $this->safe_string($params, 'price');
         $request = array();
         list($request, $params) = $this->prepare_request($market, null, $params);
-        $request['interval'] = $this->timeframes[$timeframe];
+        $request['interval'] = $this->safe_string($this->timeframes, $timeframe, $timeframe);
         $method = 'publicSpotGetCandlesticks';
         $maxLimit = 1000;
         if ($market['contract']) {
@@ -4969,7 +4969,7 @@ class gate extends Exchange {
         $request = array(
             'contract' => $market['id'],
             'settle' => $market['settleId'],
-            'interval' => $this->timeframes[$timeframe],
+            'interval' => $this->safe_string($this->timeframes, $timeframe, $timeframe),
         );
         if ($limit !== null) {
             $request['limit'] = $limit;

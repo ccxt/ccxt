@@ -1272,7 +1272,7 @@ class bitfinex2(Exchange):
             since = self.milliseconds() - duration * limit * 1000
         request = {
             'symbol': market['id'],
-            'timeframe': self.timeframes[timeframe],
+            'timeframe': self.safe_string(self.timeframes, timeframe, timeframe),
             'sort': 1,
             'start': since,
             'limit': limit,

@@ -358,7 +358,6 @@ class currencycom(Exchange):
             result[code] = {
                 'id': id,
                 'code': code,
-                'address': self.safe_string(currency, 'baseAddress'),
                 'type': self.safe_string_lower(currency, 'type'),
                 'name': self.safe_string(currency, 'name'),
                 'active': None,
@@ -937,7 +936,7 @@ class currencycom(Exchange):
         market = self.market(symbol)
         request = {
             'symbol': market['id'],
-            'interval': self.timeframes[timeframe],
+            'interval': self.safe_string(self.timeframes, timeframe, timeframe),
         }
         if since is not None:
             request['startTime'] = since

@@ -741,7 +741,7 @@ module.exports = class ndax extends Exchange {
         const request = {
             'omsId': omsId,
             'InstrumentId': market['id'],
-            'Interval': this.timeframes[timeframe],
+            'Interval': this.safeString (this.timeframes, timeframe, timeframe),
         };
         const duration = this.parseTimeframe (timeframe);
         const now = this.milliseconds ();

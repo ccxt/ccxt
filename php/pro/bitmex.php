@@ -996,7 +996,7 @@ class bitmex extends \ccxt\async\bitmex {
             Async\await($this->load_markets());
             $market = $this->market($symbol);
             $symbol = $market['symbol'];
-            $table = 'tradeBin' . $this->timeframes[$timeframe];
+            $table = 'tradeBin' . $this->safe_string($this->timeframes, $timeframe, $timeframe);
             $messageHash = $table . ':' . $market['id'];
             $url = $this->urls['api']['ws'];
             $request = array(

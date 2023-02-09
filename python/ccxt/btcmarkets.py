@@ -493,7 +493,7 @@ class btcmarkets(Exchange):
         market = self.market(symbol)
         request = {
             'marketId': market['id'],
-            'timeWindow': self.timeframes[timeframe],
+            'timeWindow': self.safe_string(self.timeframes, timeframe, timeframe),
             # 'from': self.iso8601(since),
             # 'to': self.iso8601(self.milliseconds()),
             # 'before': 1234567890123,

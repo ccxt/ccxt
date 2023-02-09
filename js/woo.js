@@ -751,7 +751,7 @@ module.exports = class woo extends Exchange {
         }
         if (isMarket) {
             // for market buy it requires the amount of quote currency to spend
-            if (orderSide === 'BUY') {
+            if (market['spot'] && orderSide === 'BUY') {
                 const cost = this.safeNumber (params, 'cost');
                 if (this.safeValue (this.options, 'createMarketBuyOrderRequiresPrice', true)) {
                     if (cost === undefined) {
@@ -1163,7 +1163,7 @@ module.exports = class woo extends Exchange {
         const market = this.market (symbol);
         const request = {
             'symbol': market['id'],
-            'type': this.timeframes[timeframe],
+            'type': this.safeString (this.timeframes, timeframe, timeframe),
         };
         if (limit !== undefined) {
             request['limit'] = Math.min (limit, 1000);

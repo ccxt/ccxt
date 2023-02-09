@@ -1529,7 +1529,7 @@ class okcoin(Exchange):
         duration = self.parse_timeframe(timeframe)
         request = {
             'instrument_id': market['id'],
-            'granularity': self.timeframes[timeframe],
+            'granularity': self.safe_string(self.timeframes, timeframe, timeframe),
         }
         options = self.safe_value(self.options, 'fetchOHLCV', {})
         defaultType = self.safe_string(options, 'type', 'Candles')  # Candles or HistoryCandles

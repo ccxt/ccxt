@@ -1722,7 +1722,7 @@ class okx extends Exchange {
                 $limit = 100; // default 100, max 100
             }
             $duration = $this->parse_timeframe($timeframe);
-            $bar = $this->timeframes[$timeframe];
+            $bar = $this->safe_string($this->timeframes, $timeframe, $timeframe);
             if (($timezone === 'UTC') && ($duration >= 21600)) { // if utc and $timeframe >= 6h
                 $bar .= strtolower($timezone);
             }
@@ -4176,7 +4176,7 @@ class okx extends Exchange {
             if ($type !== null) {
                 $request['instType'] = $this->convert_to_instrument_type($type);
             }
-            $response = Async\await($this->privateGetAccountPositions ($query));
+            $response = Async\await($this->privateGetAccountPositions (array_merge($request, $query)));
             //
             //     {
             //         "code" => "0",
@@ -4388,7 +4388,7 @@ class okx extends Exchange {
                 }
             }
         }
-        $contractSize = $this->safe_value($market, 'contractSize');
+        $contractSize = $this->safe_number($market, 'contractSize');
         $contractSizeString = $this->number_to_string($contractSize);
         $markPriceString = $this->safe_string($position, 'markPx');
         $notionalString = $this->safe_string($position, 'notionalUsd');
@@ -4915,8 +4915,8 @@ class okx extends Exchange {
                 if ($posSide === null) {
                     throw new ArgumentsRequired($this->id . ' setLeverage() requires a $posSide argument for isolated margin');
                 }
-                if ($posSide !== 'long' && $posSide !== 'short') {
-                    throw new BadRequest($this->id . ' setLeverage() requires the $posSide argument to be either "long" or "short"');
+                if ($posSide !== 'long' && $posSide !== 'short' && $posSide !== 'net') {
+                    throw new BadRequest($this->id . ' setLeverage() requires the $posSide argument to be either "long", "short" or "net"');
                 }
             }
             $response = Async\await($this->privatePostAccountSetLeverage (array_merge($request, $params)));

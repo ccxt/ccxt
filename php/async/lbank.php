@@ -457,7 +457,7 @@ class lbank extends Exchange {
             }
             $request = array(
                 'symbol' => $market['id'],
-                'type' => $this->timeframes[$timeframe],
+                'type' => $this->safe_string($this->timeframes, $timeframe, $timeframe),
                 'size' => $limit,
                 'time' => intval($since / 1000),
             );

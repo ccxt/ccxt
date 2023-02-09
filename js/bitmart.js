@@ -1273,7 +1273,7 @@ module.exports = class bitmart extends Exchange {
         const duration = this.parseTimeframe (timeframe);
         const request = {
             'symbol': market['id'],
-            'step': this.timeframes[timeframe],
+            'step': this.safeInteger (this.timeframes, timeframe, timeframe),
         };
         const maxLimit = 500;
         if (limit === undefined) {

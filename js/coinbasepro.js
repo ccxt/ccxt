@@ -173,8 +173,8 @@ module.exports = class coinbasepro extends Exchange {
                 'trading': {
                     'tierBased': true, // complicated tier system per coin
                     'percentage': true,
-                    'maker': 0.4 / 100, // highest fee of all tiers
-                    'taker': 0.6 / 100, // highest fee of all tiers
+                    'maker': this.parseNumber ('0.004'), // highest fee of all tiers
+                    'taker': this.parseNumber ('0.006'), // highest fee of all tiers
                 },
                 'funding': {
                     'tierBased': false,
@@ -894,7 +894,7 @@ module.exports = class coinbasepro extends Exchange {
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const granularity = this.timeframes[timeframe];
+        const granularity = this.safeInteger (this.timeframes, timeframe, timeframe);
         const request = {
             'id': market['id'],
             'granularity': granularity,

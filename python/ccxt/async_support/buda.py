@@ -613,7 +613,7 @@ class buda(Exchange):
             since = self.milliseconds() - 86400000
         request = {
             'symbol': market['id'],
-            'resolution': self.timeframes[timeframe],
+            'resolution': self.safe_string(self.timeframes, timeframe, timeframe),
             'from': since / 1000,
             'to': self.seconds(),
         }

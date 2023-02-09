@@ -548,9 +548,9 @@ module.exports = class bit2c extends Exchange {
         } else {
             orderUnified = order;
         }
-        const id = this.safeString (order, 'id');
+        const id = this.safeString (orderUnified, 'id');
         const symbol = this.safeSymbol (undefined, market);
-        const timestamp = this.safeIntegerProduct (order, 'created', 1000);
+        const timestamp = this.safeIntegerProduct (orderUnified, 'created', 1000);
         // status field vary between responses
         // bit2c status type:
         // 0 = New
@@ -565,7 +565,7 @@ module.exports = class bit2c extends Exchange {
                 status = 'closed';
             }
         } else {
-            const tempStatus = this.safeString (order, 'status');
+            const tempStatus = this.safeString (orderUnified, 'status');
             if (tempStatus === 'New' || tempStatus === 'Open') {
                 status = 'open';
             } else if (tempStatus === 'Completed') {
@@ -588,15 +588,15 @@ module.exports = class bit2c extends Exchange {
         } else if (side === 1) {
             side = 'sell';
         }
-        const price = this.safeString (order, 'price');
+        const price = this.safeString (orderUnified, 'price');
         let amount = undefined;
         let remaining = undefined;
         if (isNewOrder) {
             amount = this.safeString (orderUnified, 'amount');  // NOTE:'initialAmount' is currently not set on new order
             remaining = this.safeString (orderUnified, 'amount');
         } else {
-            amount = this.safeString (order, 'initialAmount');
-            remaining = this.safeString (order, 'amount');
+            amount = this.safeString (orderUnified, 'initialAmount');
+            remaining = this.safeString (orderUnified, 'amount');
         }
         return this.safeOrder ({
             'id': id,
