@@ -1962,7 +1962,7 @@ module.exports = class binance extends Exchange {
         let fees = this.fees;
         let linear = undefined;
         let inverse = undefined;
-        const strike = this.safeNumber (market, 'strikePrice');
+        const strike = this.safeString (market, 'strikePrice');
         let symbol = base + '/' + quote;
         if (contract) {
             if (swap) {
@@ -2025,7 +2025,7 @@ module.exports = class binance extends Exchange {
             'contractSize': contractSize,
             'expiry': expiry,
             'expiryDatetime': this.iso8601 (expiry),
-            'strike': strike,
+            'strike': this.parseNumber (strike),
             'optionType': this.safeStringLower (market, 'side'),
             'precision': {
                 'amount': this.safeInteger2 (market, 'quantityPrecision', 'quantityScale'),
