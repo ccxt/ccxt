@@ -309,10 +309,23 @@ function getExchangeCode (exchange, codes = undefined) {
 
 //-----------------------------------------------------------------------------
 
-async function testExchange (exchange) {
+function getSymbolsFromExchange(exchange, spot=true) {
+    let res = [];
+    let markets = exchange.markets;
+    const keys = Object.keys(markets);
+    for (let i = 0; i < keys.length; i++) {
+        const key = keys[i];
+        const market = markets[key];
+        if (market['spot'] === spot) {
+            res.push(key);
+        }
+    }
+    return res;
+}
 
-    await loadExchange (exchange);
+//-----------------------------------------------------------------------------
 
+function getValidSymbol (exchange, spot = true) {
     const codes = [
         'BTC',
         'ETH',
@@ -346,7 +359,7 @@ async function testExchange (exchange) {
         'ZRX',
     ];
 
-    let symbol = getTestSymbol (exchange, [
+    const spotSymbols = [
         'BTC/USD',
         'BTC/USDT',
         'BTC/CNY',
@@ -359,13 +372,31 @@ async function testExchange (exchange) {
         'LTC/BTC',
         'ZRX/WETH',
         'EUR/USD',
-    ]);
+    ]
+
+    const swapSymbols = [
+        'BTC/USDT:USDT',
+        'BTC/USD:USD',
+        'ETH/USDT:USDT',
+        'ETH/USD:USD',
+        'LTC/USDT:USDT',
+        'DOGE/USDT:USDT',
+        'ADA/USDT:USDT',
+        'BTC/USD:BTC',
+        'ETH/USD:ETH',
+    ]
+
+    const targetSymbols = spot ? spotSymbols : swapSymbols;
+
+    let symbol = getTestSymbol (exchange, targetSymbols);
+
+    const exchangeMarkets = getSymbolsFromExchange(exchange, spot);
 
     // if symbols wasn't found from above hardcoded list, then try to locate any symbol which has our target hardcoded 'base' code
     if (symbol === undefined) {
         for (let i = 0; i < codes.length; i++) {
             const currentCode = codes[i];
-            const marketsForCurrentCode = exchange.filterBy (exchange.markets, 'base', currentCode);
+            const marketsForCurrentCode = exchange.filterBy (exchangeMarkets, 'base', currentCode);
             const symbolsForCurrentCode = Object.keys (marketsForCurrentCode);
             if (symbolsForCurrentCode.length) {
                 symbol = getTestSymbol (exchange, symbolsForCurrentCode);
@@ -376,24 +407,38 @@ async function testExchange (exchange) {
 
     // if there wasn't found any symbol with our hardcoded 'base' code, then just try to find symbols that are 'active'
     if (symbol === undefined) {
-        const activeMarkets = exchange.filterBy (exchange.markets, 'active', true);
+        const activeMarkets = exchange.filterBy (exchangeMarkets, 'active', true);
         const activeSymbols = Object.keys (activeMarkets);
         symbol = getTestSymbol (exchange, activeSymbols);
     }
 
-    // if neither above was found any symbol, then just get any random symbol
     if (symbol === undefined) {
-        symbol = getTestSymbol (exchange, exchange.symbols);
+        const first = exchangeMarkets[0];
+        return first['symbol'];
     }
 
-    // if still nothing was found, then just directly set the first symbol
-    if (symbol === undefined) {
-        symbol = exchange.symbols[0];
+    return symbol;
+}
+
+//-----------------------------------------------------------------------------
+
+async function testExchange (exchange) {
+
+    await loadExchange (exchange);
+
+    const spotSymbol = getValidSymbol (exchange);
+    const swapSymbol = getValidSymbol (exchange, false);
+
+    if (spotSymbol !== undefined) {
+        console.log ('SPOT SYMBOL:', spotSymbol);
     }
 
-    console.log ('SYMBOL:', symbol);
+    if (swapSymbol !== undefined) {
+        console.log ('SWAP SYMBOL:', swapSymbol);
+    }
+
     if (!privateOnly) {
-        await testSymbol (exchange, symbol);
+        await testSymbol (exchange, spotSymbol);
     }
 
     if (privateTest || privateOnly) {
@@ -401,13 +446,13 @@ async function testExchange (exchange) {
             console.log ('[Skipped]', 'Keys not found, skipping private tests');
             return true;
         }
-        await runPrivateTests (exchange, symbol);
+        await runPrivateTests (exchange, spotSymbol, swapSymbol);
     }
 }
 
 //-----------------------------------------------------------------------------
 
-async function runPrivateTests(exchange, symbol) {
+async function runPrivateTests(exchange, spotSymbol, swapSymbol = undefined) {
     exchange.checkRequiredCredentials ();
 
     const code = getExchangeCode (exchange);
@@ -427,13 +472,13 @@ async function runPrivateTests(exchange, symbol) {
         'fetchTransactionFees': [exchange],
         'fetchTradingFees': [exchange],
         'fetchStatus': [exchange],
-        'fetchOrders': [exchange, symbol],
-        'fetchOpenOrders': [exchange, symbol],
-        'fetchClosedOrders': [exchange, symbol],
-        'fetchMyTrades': [exchange, symbol],
-        'fetchLeverageTiers': [exchange, symbol],
-        'fetchOpenInterestHistory': [exchange, symbol],
-        'fetchPositions': [exchange, symbol],
+        'fetchOrders': [exchange, spotSymbol],
+        'fetchOpenOrders': [exchange, spotSymbol],
+        'fetchClosedOrders': [exchange, spotSymbol],
+        'fetchMyTrades': [exchange, spotSymbol],
+        'fetchLeverageTiers': [exchange, swapSymbol],
+        'fetchOpenInterestHistory': [exchange, swapSymbol],
+        'fetchPositions': [exchange, swapSymbol],
         'fetchLedger': [exchange, code],
         'fetchTransactions': [exchange, code],
         'fetchDeposits': [exchange, code],
@@ -441,33 +486,33 @@ async function runPrivateTests(exchange, symbol) {
         'fetchBorrowRates': [exchange, code],
         'fetchBorrowRate': [exchange, code],
         'fetchBorrowInterest': [exchange, code],
-        'fetchBorrowInterest': [exchange, code, symbol],
-        'addMargin': [exchange, symbol],
-        'reduceMargin': [exchange, symbol],
-        'setMargin': [exchange, symbol],
-        'setMarginMode': [exchange, symbol],
-        'setPositionMode': [exchange, symbol],
-        'setLeverage': [exchange, symbol],
-        'cancelAllOrders': [exchange, symbol],
-        'cancelOrder': [exchange, symbol],
-        'cancelOrders': [exchange, symbol],
-        'fetchCanceledOrders': [exchange, symbol],
-        'fetchClosedOrder': [exchange, symbol],
-        'fetchOpenOrder': [exchange, symbol],
-        'fetchOrder': [exchange, symbol],
-        'fetchOrderTrades': [exchange, symbol],
-        'fetchPosition': [exchange, symbol],
-        'fetchFundingHistory': [exchange, symbol],
+        'fetchBorrowInterest': [exchange, code, spotSymbol],
+        'addMargin': [exchange, spotSymbol],
+        'reduceMargin': [exchange, spotSymbol],
+        'setMargin': [exchange, spotSymbol],
+        'setMarginMode': [exchange, swapSymbol],
+        'setPositionMode': [exchange, swapSymbol],
+        'setLeverage': [exchange, swapSymbol],
+        'cancelAllOrders': [exchange, spotSymbol],
+        'cancelOrder': [exchange, spotSymbol],
+        'cancelOrders': [exchange, spotSymbol],
+        'fetchCanceledOrders': [exchange, spotSymbol],
+        'fetchClosedOrder': [exchange, spotSymbol],
+        'fetchOpenOrder': [exchange, spotSymbol],
+        'fetchOrder': [exchange, spotSymbol],
+        'fetchOrderTrades': [exchange, spotSymbol],
+        'fetchPosition': [exchange, swapSymbol],
+        'fetchFundingHistory': [exchange, swapSymbol],
         'fetchDeposit': [exchange, code],
         'createDepositAddress': [exchange, code],
         'fetchDepositAddress': [exchange, code],
         'fetchDepositAddresses': [exchange, code],
         'fetchDepositAddressesByNetwork': [exchange, code],
-        'editOrder': [exchange, symbol],
-        'fetchBorrowRateHistory': [exchange, symbol],
-        'fetchBorrowRatesPerSymbol': [exchange, symbol],
+        'editOrder': [exchange, spotSymbol],
+        'fetchBorrowRateHistory': [exchange, spotSymbol],
+        'fetchBorrowRatesPerSymbol': [exchange, spotSymbol],
         'fetchLedgerEntry': [exchange, code],
-        'fetchPositionsRisk': [exchange, symbol],
+        'fetchPositionsRisk': [exchange, swapSymbol],
         'fetchWithdrawal': [exchange, code],
         'transfer': [exchange, code],
         'withdraw': [exchange, code],
