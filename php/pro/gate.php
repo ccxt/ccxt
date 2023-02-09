@@ -66,6 +66,7 @@ class gate extends \ccxt\async\gate {
                 'watchOrderBook' => array(
                     'interval' => '100ms',
                     'snapshotDelay' => 10, // how many deltas to cache before fetching a snapshot
+                    'maxRetries' => 3,
                 ),
                 'watchBalance' => array(
                     'settle' => 'usdt', // or btc

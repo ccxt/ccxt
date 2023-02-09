@@ -62,10 +62,15 @@ module.exports = class bitget extends bitgetRest {
     getWsMarketId (market) {
         // WS don't use the same 'id'
         // as the rest version
+        const sandboxMode = this.safeValue (this.options, 'sandboxMode', false);
         if (market['spot']) {
             return market['info']['symbolName'];
         } else {
-            return market['id'].replace ('_UMCBL', '');
+            if (!sandboxMode) {
+                return market['id'].replace ('_UMCBL', '');
+            } else {
+                return market['id'].replace ('_SUMCBL', '');
+            }
         }
     }
 
@@ -74,11 +79,16 @@ module.exports = class bitget extends bitgetRest {
         // { arg: { instType: 'sp', channel: 'ticker', instId: 'BTCUSDT' }
         //
         const instType = this.safeString (arg, 'instType');
+        const sandboxMode = this.safeValue (this.options, 'sandboxMode', false);
         let marketId = this.safeString (arg, 'instId');
         if (instType === 'sp') {
             marketId += '_SPBL';
         } else {
-            marketId += '_UMCBL';
+            if (!sandboxMode) {
+                marketId += '_UMCBL';
+            } else {
+                marketId += '_SUMCBL';
+            }
         }
         return marketId;
     }
@@ -588,7 +598,17 @@ module.exports = class bitget extends bitgetRest {
         if ((type === 'spot') && (symbol === undefined)) {
             throw new ArgumentsRequired (this.id + ' watchOrders requires a symbol argument for ' + type + ' markets.');
         }
-        const instType = (type === 'spot') ? 'spbl' : 'umcbl';
+        const sandboxMode = this.safeValue (this.options, 'sandboxMode', false);
+        let instType = undefined;
+        if (type === 'spot') {
+            instType = 'spbl';
+        } else {
+            if (!sandboxMode) {
+                instType = 'UMCBL';
+            } else {
+                instType = 'SUMCBL';
+            }
+        }
         const instId = (type === 'spot') ? marketId : 'default'; // different from other streams here the 'rest' id is required for spot markets, contract markets require default here
         const args = {
             'instType': instType,
@@ -632,7 +652,8 @@ module.exports = class bitget extends bitgetRest {
         //
         const arg = this.safeValue (message, 'arg', {});
         const instType = this.safeString (arg, 'instType');
-        const isContractUpdate = instType === 'umcbl';
+        const sandboxMode = this.safeValue (this.options, 'sandboxMode', false);
+        const isContractUpdate = (!sandboxMode) ? (instType === 'umcbl') : (instType === 'sumcbl');
         const data = this.safeValue (message, 'data', []);
         if (this.orders === undefined) {
             const limit = this.safeInteger (this.options, 'ordersLimit', 1000);
@@ -825,9 +846,10 @@ module.exports = class bitget extends bitgetRest {
         if (type === 'spot') {
             throw new NotSupported (this.id + ' watchMyTrades is not supported for ' + type + ' markets.');
         }
+        const sandboxMode = this.safeValue (this.options, 'sandboxMode', false);
         const subscriptionHash = 'order:trades';
         const args = {
-            'instType': 'umcbl',
+            'instType': (!sandboxMode) ? 'umcbl' : 'sumcbl',
             'channel': 'orders',
             'instId': 'default',
         };

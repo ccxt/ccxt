@@ -726,7 +726,7 @@ class woo(Exchange):
             request['order_price'] = self.price_to_precision(symbol, price)
         if isMarket:
             # for market buy it requires the amount of quote currency to spend
-            if orderSide == 'BUY':
+            if market['spot'] and orderSide == 'BUY':
                 cost = self.safe_number(params, 'cost')
                 if self.safe_value(self.options, 'createMarketBuyOrderRequiresPrice', True):
                     if cost is None:
@@ -1846,15 +1846,6 @@ class woo(Exchange):
             'amount': amount,
             'rate': rate,
         }
-
-    def parse_incomes(self, incomes, market=None, since=None, limit=None):
-        result = []
-        for i in range(0, len(incomes)):
-            entry = incomes[i]
-            parsed = self.parse_income(entry, market)
-            result.append(parsed)
-        sorted = self.sort_by(result, 'timestamp')
-        return self.filter_by_since_limit(sorted, since, limit, 'timestamp')
 
     async def fetch_funding_history(self, symbol=None, since=None, limit=None, params={}):
         await self.load_markets()

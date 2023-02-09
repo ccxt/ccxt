@@ -740,7 +740,7 @@ class woo extends Exchange {
         }
         if ($isMarket) {
             // for $market buy it requires the $amount of quote currency to spend
-            if ($orderSide === 'BUY') {
+            if ($market['spot'] && $orderSide === 'BUY') {
                 $cost = $this->safe_number($params, 'cost');
                 if ($this->safe_value($this->options, 'createMarketBuyOrderRequiresPrice', true)) {
                     if ($cost === null) {
@@ -1942,17 +1942,6 @@ class woo extends Exchange {
             'amount' => $amount,
             'rate' => $rate,
         );
-    }
-
-    public function parse_incomes($incomes, $market = null, $since = null, $limit = null) {
-        $result = array();
-        for ($i = 0; $i < count($incomes); $i++) {
-            $entry = $incomes[$i];
-            $parsed = $this->parse_income($entry, $market);
-            $result[] = $parsed;
-        }
-        $sorted = $this->sort_by($result, 'timestamp');
-        return $this->filter_by_since_limit($sorted, $since, $limit, 'timestamp');
     }
 
     public function fetch_funding_history($symbol = null, $since = null, $limit = null, $params = array ()) {

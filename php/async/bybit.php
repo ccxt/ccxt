@@ -40,6 +40,7 @@ class bybit extends Exchange {
                 'cancelOrder' => true,
                 'createOrder' => true,
                 'createPostOnlyOrder' => true,
+                'createReduceOnlyOrder' => true,
                 'createStopLimitOrder' => true,
                 'createStopMarketOrder' => true,
                 'createStopOrder' => true,
@@ -1971,25 +1972,23 @@ class bybit extends Exchange {
         return Async\async(function () use ($symbol, $timeframe, $since, $limit, $params) {
             Async\await($this->load_markets());
             $market = $this->market($symbol);
+            $duration = $this->parse_timeframe($timeframe);
             $request = array(
                 'symbol' => $market['id'],
+                'limit' => $limit,
             );
-            $duration = $this->parse_timeframe($timeframe);
-            $now = $this->seconds();
-            $sinceTimestamp = null;
-            if ($limit === null) {
-                $limit = 200; // default is 200 when requested with `$since`
-            }
-            if ($since === null) {
-                $sinceTimestamp = $now - $limit * $duration;
-            } else {
-                $sinceTimestamp = intval($since / 1000);
+            if ($since !== null) {
+                $request['startTime'] = $since;
+                if ($limit === null) {
+                    $request['endTime'] = $this->sum($since, 1000 * $duration * 1000);
+                } else {
+                    $request['endTime'] = $this->sum($since, $limit * $duration * 1000);
+                }
             }
             if ($limit !== null) {
-                $request['limit'] = $limit; // max 200, default 200
+                $request['limit'] = $limit; // max 1000, default 1000
             }
             $request['interval'] = $timeframe;
-            $request['from'] = $sinceTimestamp;
             $response = Async\await($this->publicGetSpotV3PublicQuoteKline (array_merge($request, $params)));
             //
             //     {
@@ -3260,6 +3259,7 @@ class bybit extends Exchange {
             'New' => 'open',
             'Rejected' => 'rejected', // order is triggered but failed upon being placed
             'PartiallyFilled' => 'open',
+            'PartiallyFilledCancelled' => 'canceled',
             'Filled' => 'closed',
             'PendingCancel' => 'open',
             'Cancelled' => 'canceled',
@@ -5210,7 +5210,7 @@ class bybit extends Exchange {
             //                 array(
             //                     "orderType" => "Limit",
             //                     "symbol" => "BTC-14JUL22-17500-C",
-            //                     "orderLinkId" => "188889689-yuanzhen-558998998898",
+            //                     "orderLinkId" => "188889689-yuanzhen-558998998899",
             //                     "side" => "Buy",
             //                     "orderId" => "09c5836f-81ef-4208-a5b4-43135d3e02a2",
             //                     "leavesQty" => "0.0000",

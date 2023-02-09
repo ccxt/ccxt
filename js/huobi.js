@@ -2139,7 +2139,7 @@ module.exports = class huobi extends Exchange {
         //             "ts":1583474832008,
         //             "id":1637554816,
         //             "mrid":121654491624,
-        //             "version":104999698780
+        //             "version":104999698781
         //         }
         //     }
         //
@@ -5964,17 +5964,6 @@ module.exports = class huobi extends Exchange {
             'id': id,
             'amount': amount,
         };
-    }
-
-    parseIncomes (incomes, market = undefined, since = undefined, limit = undefined) {
-        const result = [];
-        for (let i = 0; i < incomes.length; i++) {
-            const entry = incomes[i];
-            const parsed = this.parseIncome (entry, market);
-            result.push (parsed);
-        }
-        const sorted = this.sortBy (result, 'timestamp');
-        return this.filterBySinceLimit (sorted, since, limit, 'timestamp');
     }
 
     parsePosition (position, market = undefined) {

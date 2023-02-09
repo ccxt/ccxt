@@ -4615,8 +4615,8 @@ class okx(Exchange):
         if marginMode == 'isolated':
             if posSide is None:
                 raise ArgumentsRequired(self.id + ' setLeverage() requires a posSide argument for isolated margin')
-            if posSide != 'long' and posSide != 'short':
-                raise BadRequest(self.id + ' setLeverage() requires the posSide argument to be either "long" or "short"')
+            if posSide != 'long' and posSide != 'short' and posSide != 'net':
+                raise BadRequest(self.id + ' setLeverage() requires the posSide argument to be either "long", "short" or "net"')
         response = self.privatePostAccountSetLeverage(self.extend(request, params))
         #
         #     {
