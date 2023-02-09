@@ -29,6 +29,7 @@ module.exports = class kucoin extends kucoinRest {
                 },
                 'watchOrderBook': {
                     'snapshotDelay': 5,
+                    'maxRetries': 3,
                 },
             },
             'streaming': {
