@@ -114,13 +114,9 @@ module.exports = class binance extends binanceRest {
     onClose (client) {
         this.options['streamBySubscriptionsHash'] = {};
         this.options['streamIndex'] = -1;
-        if (client.error) {
-            // connection closed due to an error, do nothing
-        } else {
+        if (!client.error && this.clients[client.url]) {
             // server disconnected a working connection
-            if (this.clients[client.url]) {
-                delete this.clients[client.url];
-            }
+            delete this.clients[client.url];
         }
     }
 
