@@ -5966,17 +5966,6 @@ module.exports = class huobi extends Exchange {
         };
     }
 
-    parseIncomes (incomes, market = undefined, since = undefined, limit = undefined) {
-        const result = [];
-        for (let i = 0; i < incomes.length; i++) {
-            const entry = incomes[i];
-            const parsed = this.parseIncome (entry, market);
-            result.push (parsed);
-        }
-        const sorted = this.sortBy (result, 'timestamp');
-        return this.filterBySinceLimit (sorted, since, limit, 'timestamp');
-    }
-
     parsePosition (position, market = undefined) {
         //
         //     {
