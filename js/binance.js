@@ -1962,7 +1962,7 @@ module.exports = class binance extends Exchange {
         let fees = this.fees;
         let linear = undefined;
         let inverse = undefined;
-        const strike = this.safeString (market, 'strikePrice');
+        const strike = this.safeInteger (market, 'strikePrice');
         let symbol = base + '/' + quote;
         if (contract) {
             if (swap) {
@@ -1970,7 +1970,7 @@ module.exports = class binance extends Exchange {
             } else if (future) {
                 symbol = symbol + ':' + settle + '-' + this.yymmdd (expiry);
             } else if (option) {
-                symbol = symbol + ':' + settle + '-' + this.yymmdd (expiry) + '-' + strike + '-' + this.safeString (optionParts, 3);
+                symbol = symbol + ':' + settle + '-' + this.yymmdd (expiry) + '-' + this.numberToString (strike) + '-' + this.safeString (optionParts, 3);
             }
             contractSize = this.safeNumber2 (market, 'contractSize', 'unit', this.parseNumber ('1'));
             linear = settle === quote;
