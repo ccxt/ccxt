@@ -2025,7 +2025,7 @@ module.exports = class binance extends Exchange {
             'contractSize': contractSize,
             'expiry': expiry,
             'expiryDatetime': this.iso8601 (expiry),
-            'strike': this.parseNumber (strike),
+            'strike': strike,
             'optionType': this.safeStringLower (market, 'side'),
             'precision': {
                 'amount': this.safeInteger2 (market, 'quantityPrecision', 'quantityScale'),
