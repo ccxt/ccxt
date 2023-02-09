@@ -414,7 +414,7 @@ function getValidSymbol (exchange, spot = true) {
 
     if (symbol === undefined) {
         const first = exchangeMarkets[0];
-        return first['symbol'];
+        symbol = first['symbol'];
     }
 
     return symbol;
