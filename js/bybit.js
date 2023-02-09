@@ -371,7 +371,6 @@ module.exports = class bybit extends Exchange {
                         'v5/asset/deposit/query-sub-member-address': 2.5,
                         'v5/asset/coin/query-info': 2.5,
                         'v5/asset/withdraw/query-record': 2.5,
-
                     },
                     'post': {
                         // inverse swap
@@ -811,7 +810,7 @@ module.exports = class bybit extends Exchange {
                     '170218': InvalidOrder, // The LIMIT-MAKER order is rejected due to invalid price.
                     '170010': InvalidOrder, // Purchase failed: Exceed the maximum position limit of leveraged tokens, the current available limit is %s USDT
                     '170011': InvalidOrder, // "Purchase failed: Exceed the maximum position limit of innovation tokens,
-                    '170019': InvalidOrder, // the current available limit is ''{{.replaceKey0}}'' USDT"
+                    '170019': InvalidOrder, // the current available limit is replaceKey0 USDT"
                     '170201': PermissionDenied, // Your account has been restricted for trades. If you have any questions, please email us at support@bybit.com
                     '170202': InvalidOrder, // Invalid orderFilter parameter.
                     '170203': InvalidOrder, // Please enter the TP/SL price.
@@ -1059,12 +1058,13 @@ module.exports = class bybit extends Exchange {
         return this.milliseconds () - this.options['timeDifference'];
     }
 
-    async isUnifiedMarginEnabled (params = {}) {
+    async isUnifiedEnabled (params = {}) {
         // The API key of user id must own one of permissions will be allowed to call following API endpoints.
         // SUB UID: "Account Transfer"
         // MASTER UID: "Account Transfer", "Subaccount Transfer", "Withdrawal"
         const enableUnifiedMargin = this.safeValue (this.options, 'enableUnifiedMargin');
-        if (enableUnifiedMargin === undefined) {
+        const enableUnifiedAccount = this.safeValue (this.options, 'enableUnifiedAccount');
+        if (enableUnifiedMargin === undefined || enableUnifiedAccount === undefined) {
             const response = await this.privateGetUserV3PrivateQueryApi (params);
             //
             //     {
@@ -1103,10 +1103,7 @@ module.exports = class bybit extends Exchange {
             this.options['enableUnifiedMargin'] = this.safeInteger (result, 'unified') === 1;
             this.options['enableUnifiedAccount'] = this.safeInteger (result, 'uta') === 1;
         }
-        return {
-            'enableUnifiedMargin': this.options['enableUnifiedMargin'],
-            'enableUnifiedAccount': this.options['enableUnifiedAccount'],
-        };
+        return [ this.options['enableUnifiedMargin'], this.options['enableUnifiedAccount'] ];
     }
 
     async upgradeUnifiedAccount (params = {}) {
@@ -3065,7 +3062,7 @@ module.exports = class bybit extends Exchange {
         if (type === 'spot') {
             return await this.fetchSpotBalance (params);
         }
-        const { enableUnifiedMargin, enableUnifiedAccount } = await this.isUnifiedMarginEnabled ();
+        const [ enableUnifiedMargin, enableUnifiedAccount ] = await this.isUnifiedEnabled ();
         if (enableUnifiedAccount) {
             return await this.fetchUnifiedAccountBalance (params);
         } else if (enableUnifiedMargin) {
@@ -3315,22 +3312,7 @@ module.exports = class bybit extends Exchange {
         }
         let type = undefined;
         [ type, params ] = this.handleMarketTypeAndParams ('fetchOrder', market, params);
-        const { enableUnifiedAccount } = await this.isUnifiedMarginEnabled ();
-        if (enableUnifiedAccount || type !== 'spot') {
-            this.checkRequiredSymbol ('fetchOrder', symbol);
-            const request = {
-                'orderId': id,
-            };
-            const result = await this.fetchOrders (symbol, undefined, undefined, this.extend (request, params));
-            const length = result.length;
-            if (length === 0) {
-                throw new OrderNotFound ('Order ' + id + ' does not exist.');
-            }
-            if (length > 1) {
-                throw new InvalidOrder (this.id + ' returned more than one order');
-            }
-            return this.safeValue (result, 0);
-        } else if (type === 'spot') {
+        if (type === 'spot') {
             // only spot markets have a dedicated endpoint for fetching a order
             const request = {
                 'orderId': id,
@@ -3369,6 +3351,20 @@ module.exports = class bybit extends Exchange {
             //
             const result = this.safeValue (response, 'result', {});
             return this.parseOrder (result, market);
+        } else {
+            this.checkRequiredSymbol ('fetchOrder', symbol);
+            const request = {
+                'orderId': id,
+            };
+            const result = await this.fetchOrders (symbol, undefined, undefined, this.extend (request, params));
+            const length = result.length;
+            if (length === 0) {
+                throw new OrderNotFound ('Order ' + id + ' does not exist.');
+            }
+            if (length > 1) {
+                throw new InvalidOrder (this.id + ' returned more than one order');
+            }
+            return this.safeValue (result, 0);
         }
     }
 
@@ -3389,7 +3385,7 @@ module.exports = class bybit extends Exchange {
         this.checkRequiredSymbol ('createOrder', symbol);
         const market = this.market (symbol);
         symbol = market['symbol'];
-        const { enableUnifiedMargin, enableUnifiedAccount } = await this.isUnifiedMarginEnabled ();
+        const [ enableUnifiedMargin, enableUnifiedAccount ] = await this.isUnifiedEnabled ();
         const isUSDCSettled = market['settle'] === 'USDC';
         if (enableUnifiedAccount) {
             return await this.createUnifiedAccountOrder (symbol, type, side, amount, price, params);
@@ -4082,7 +4078,7 @@ module.exports = class bybit extends Exchange {
         }
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const { enableUnifiedMargin, enableUnifiedAccount } = await this.isUnifiedMarginEnabled ();
+        const [ enableUnifiedMargin, enableUnifiedAccount ] = await this.isUnifiedEnabled ();
         if (enableUnifiedAccount) {
             return await this.editUnifiedAccountOrder (id, symbol, type, side, amount, price, params);
         } else if (market['spot']) {
@@ -4307,7 +4303,7 @@ module.exports = class bybit extends Exchange {
         }
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const { enableUnifiedMargin, enableUnifiedAccount } = await this.isUnifiedMarginEnabled ();
+        const [ enableUnifiedMargin, enableUnifiedAccount ] = await this.isUnifiedEnabled ();
         const isUsdcSettled = market['settle'] === 'USDC';
         if (enableUnifiedAccount) {
             return await this.cancelUnifiedAccountOrder (id, symbol, params);
@@ -4575,7 +4571,7 @@ module.exports = class bybit extends Exchange {
             throw new ArgumentsRequired (this.id + ' cancelAllOrders with inverse subType requires settle to not be USDT or USDC');
         }
         const [ type, query ] = this.handleMarketTypeAndParams ('cancelAllOrders', market, params);
-        const { enableUnifiedMargin, enableUnifiedAccount } = await this.isUnifiedMarginEnabled ();
+        const [ enableUnifiedMargin, enableUnifiedAccount ] = await this.isUnifiedEnabled ();
         if (enableUnifiedAccount) {
             return await this.cancelAllUnifiedAccountOrders (symbol, query);
         } else if (type === 'spot') {
@@ -4892,7 +4888,7 @@ module.exports = class bybit extends Exchange {
             throw new ArgumentsRequired (this.id + ' fetchOrders with inverse subType requires settle to not be USDT or USDC');
         }
         const [ type, query ] = this.handleMarketTypeAndParams ('fetchOrders', market, params);
-        const { enableUnifiedMargin, enableUnifiedAccount } = await this.isUnifiedMarginEnabled ();
+        const [ enableUnifiedMargin, enableUnifiedAccount ] = await this.isUnifiedEnabled ();
         if (enableUnifiedAccount && !isInverse) {
             return await this.fetchUnifiedAccountOrders (symbol, since, limit, query);
         } else if (type === 'spot') {
@@ -4978,7 +4974,7 @@ module.exports = class bybit extends Exchange {
         let type = undefined;
         [ type, params ] = this.handleMarketTypeAndParams ('fetchClosedOrders', market, params);
         const request = {};
-        const { enableUnifiedMargin, enableUnifiedAccount } = await this.isUnifiedMarginEnabled ();
+        const [ enableUnifiedMargin, enableUnifiedAccount ] = await this.isUnifiedEnabled ();
         if (enableUnifiedAccount) {
             request['orderStatus'] = 'Canceled';
         } else if (type === 'spot') {
@@ -5369,7 +5365,7 @@ module.exports = class bybit extends Exchange {
             throw new ArgumentsRequired (this.id + ' fetchOpenOrders with inverse subType requires settle to not be USDT or USDC');
         }
         const [ type, query ] = this.handleMarketTypeAndParams ('fetchOpenOrders', market, params);
-        const { enableUnifiedMargin, enableUnifiedAccount } = await this.isUnifiedMarginEnabled ();
+        const [ enableUnifiedMargin, enableUnifiedAccount ] = await this.isUnifiedEnabled ();
         if (enableUnifiedAccount && !isInverse) {
             return await this.fetchUnifiedAccountOpenOrders (symbol, since, limit, query);
         } else if (type === 'spot') {
@@ -5766,7 +5762,7 @@ module.exports = class bybit extends Exchange {
             throw new ArgumentsRequired (this.id + ' fetchMyTrades with inverse subType requires settle to not be USDT or USDC');
         }
         const [ type, query ] = this.handleMarketTypeAndParams ('fetchMyTrades', market, params);
-        const { enableUnifiedMargin, enableUnifiedAccount } = await this.isUnifiedMarginEnabled ();
+        const [ enableUnifiedMargin, enableUnifiedAccount ] = await this.isUnifiedEnabled ();
         if (enableUnifiedAccount && !isInverse) {
             if (params['orderId'] === undefined) {
                 this.checkRequiredSymbol ('fetchMyTrades', symbol);
@@ -6176,10 +6172,10 @@ module.exports = class bybit extends Exchange {
             // 'limit': 0, Limit for data size per page. [1, 50]. Default: 20
             // 'cursor': '', Cursor. Used for pagination
         };
-        const { enableUnifiedAccount } = await this.isUnifiedMarginEnabled ();
+        const enableUnified = await this.isUnifiedEnabled ();
         let currency = undefined;
         let currencyKey = 'coin';
-        if (enableUnifiedAccount) {
+        if (enableUnified[1]) {
             currencyKey = 'currency';
             if (since !== undefined) {
                 request['startTime'] = since;
@@ -6189,7 +6185,7 @@ module.exports = class bybit extends Exchange {
                 request['start_date'] = this.yyyymmdd (since);
             }
         }
-        const method = (enableUnifiedAccount) ? 'privateGetV5AccountTransactionLog' : 'privateGetV2PrivateWalletFundRecords';
+        const method = (enableUnified[1]) ? 'privateGetV5AccountTransactionLog' : 'privateGetV2PrivateWalletFundRecords';
         if (code !== undefined) {
             currency = this.currency (code);
             request[currencyKey] = currency['id'];
@@ -6435,8 +6431,8 @@ module.exports = class bybit extends Exchange {
         if (networkId !== undefined) {
             request['chain'] = networkId.toUpperCase ();
         }
-        const { enableUnifiedAccount } = await this.isUnifiedMarginEnabled ();
-        const method = (enableUnifiedAccount) ? 'privatePostV5AssetWithdrawCreate' : 'privatePostAssetV3PrivateWithdrawCreate';
+        const enableUnified = await this.isUnifiedEnabled ();
+        const method = (enableUnified[1]) ? 'privatePostV5AssetWithdrawCreate' : 'privatePostAssetV3PrivateWithdrawCreate';
         const response = await this[method] (this.extend (request, query));
         //
         //    {
@@ -6471,7 +6467,7 @@ module.exports = class bybit extends Exchange {
             'symbol': market['id'],
         };
         let method = undefined;
-        const { enableUnifiedMargin, enableUnifiedAccount } = await this.isUnifiedMarginEnabled ();
+        const [ enableUnifiedMargin, enableUnifiedAccount ] = await this.isUnifiedEnabled ();
         const isUsdcSettled = market['settle'] === 'USDC';
         if (enableUnifiedMargin || enableUnifiedAccount) {
             method = (enableUnifiedAccount) ? 'privateGetV5PositionList' : 'privateGetUnifiedV3PrivatePositionList';
@@ -6648,7 +6644,7 @@ module.exports = class bybit extends Exchange {
         const request = {};
         let type = undefined;
         let settle = undefined;
-        const { enableUnifiedAccount } = await this.isUnifiedMarginEnabled ();
+        const enableUnified = await this.isUnifiedEnabled ();
         if (Array.isArray (symbols)) {
             const symbolsLength = symbols.length;
             if (symbolsLength > 1) {
@@ -6659,7 +6655,7 @@ module.exports = class bybit extends Exchange {
         } else if (symbols !== undefined) {
             symbols = [ symbols ];
         }
-        if (settle === undefined && enableUnifiedAccount) {
+        if (settle === undefined && enableUnified[1]) {
             throw new ArgumentsRequired (this.id + ' fetchPositions() required either symbol or settle in unified account mode');
         } else if (settle !== undefined) {
             request['settleCoin'] = settle;
@@ -6673,7 +6669,7 @@ module.exports = class bybit extends Exchange {
         if (type === 'option') {
             request['category'] = 'option';
         }
-        const method = (enableUnifiedAccount) ? 'privateGetV5PositionList' : 'privateGetUnifiedV3PrivatePositionList';
+        const method = (enableUnified[1]) ? 'privateGetV5PositionList' : 'privateGetUnifiedV3PrivatePositionList';
         const response = await this[method] (this.extend (request, params));
         //
         //     {
@@ -6908,7 +6904,7 @@ module.exports = class bybit extends Exchange {
         }
         await this.loadMarkets ();
         symbols = this.marketSymbols (symbols);
-        const { enableUnifiedMargin, enableUnifiedAccount } = await this.isUnifiedMarginEnabled ();
+        const [ enableUnifiedMargin, enableUnifiedAccount ] = await this.isUnifiedEnabled ();
         let settle = this.safeString (params, 'settleCoin');
         if (settle === undefined) {
             [ settle, params ] = this.handleOptionAndParams (params, 'fetchPositions', 'settle', settle);
@@ -7195,7 +7191,7 @@ module.exports = class bybit extends Exchange {
         // WARNING: THIS WILL INCREASE LIQUIDATION PRICE FOR OPEN ISOLATED LONG POSITIONS
         // AND DECREASE LIQUIDATION PRICE FOR OPEN ISOLATED SHORT POSITIONS
         const isUsdcSettled = market['settle'] === 'USDC';
-        const { enableUnifiedMargin, enableUnifiedAccount } = await this.isUnifiedMarginEnabled ();
+        const [ enableUnifiedMargin, enableUnifiedAccount ] = await this.isUnifiedEnabled ();
         // engage in leverage setting
         // we reuse the code here instead of having two methods
         leverage = this.numberToString (leverage);
