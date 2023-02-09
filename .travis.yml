@@ -22,6 +22,7 @@ before_install:
 - pip install --ignore-installed six
 - pip install tox twine
 - pip install aiohttp cryptography
+- pip install auto-changelog===0.6.0
 - php -i | grep php.ini
 - php --version
 - composer install
@@ -38,6 +39,7 @@ script:
 - if [ "$TRAVIS_PULL_REQUEST" = "false" ] && [ "$TRAVIS_BRANCH" = "master" ]; then
     npm config set git-tag-version=false && NPM_VERSION=$(npm version patch);
     npm run vss && npm run copy-python-files;
+    auto-changelog -v ${NPM_VERSION:1} --starting-commit f8c911f9a72c2b0155de5b1e6982629209d8c03d # don't create changelog since the beginning
     env COMMIT_MESSAGE=${NPM_VERSION:1} GITHUB_TOKEN=${GITHUB_TOKEN} ./build/push.sh;
     cd python && env PYPI_TOKEN=${PYPI_TOKEN} ./deploy.sh && cd ..;
   fi
