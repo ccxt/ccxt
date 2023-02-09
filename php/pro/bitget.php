@@ -604,7 +604,17 @@ class bitget extends \ccxt\async\bitget {
             if (($type === 'spot') && ($symbol === null)) {
                 throw new ArgumentsRequired($this->id . ' watchOrders requires a $symbol argument for ' . $type . ' markets.');
             }
-            $instType = ($type === 'spot') ? 'spbl' : 'umcbl';
+            $sandboxMode = $this->safe_value($this->options, 'sandboxMode', false);
+            $instType = null;
+            if ($type === 'spot') {
+                $instType = 'spbl';
+            } else {
+                if (!$sandboxMode) {
+                    $instType = 'UMCBL';
+                } else {
+                    $instType = 'SUMCBL';
+                }
+            }
             $instId = ($type === 'spot') ? $marketId : 'default'; // different from other streams here the 'rest' id is required for spot markets, contract markets require default here
             $args = array(
                 'instType' => $instType,
@@ -649,7 +659,8 @@ class bitget extends \ccxt\async\bitget {
         //
         $arg = $this->safe_value($message, 'arg', array());
         $instType = $this->safe_string($arg, 'instType');
-        $isContractUpdate = $instType === 'umcbl';
+        $sandboxMode = $this->safe_value($this->options, 'sandboxMode', false);
+        $isContractUpdate = (!$sandboxMode) ? ($instType === 'umcbl') : ($instType === 'sumcbl');
         $data = $this->safe_value($message, 'data', array());
         if ($this->orders === null) {
             $limit = $this->safe_integer($this->options, 'ordersLimit', 1000);
@@ -841,9 +852,10 @@ class bitget extends \ccxt\async\bitget {
             if ($type === 'spot') {
                 throw new NotSupported($this->id . ' watchMyTrades is not supported for ' . $type . ' markets.');
             }
+            $sandboxMode = $this->safe_value($this->options, 'sandboxMode', false);
             $subscriptionHash = 'order:trades';
             $args = array(
-                'instType' => 'umcbl',
+                'instType' => (!$sandboxMode) ? 'umcbl' : 'sumcbl',
                 'channel' => 'orders',
                 'instId' => 'default',
             );

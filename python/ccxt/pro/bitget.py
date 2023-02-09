@@ -557,7 +557,15 @@ class bitget(Exchange, ccxt.async_support.bitget):
         type, params = self.handle_market_type_and_params('watchOrders', market, params)
         if (type == 'spot') and (symbol is None):
             raise ArgumentsRequired(self.id + ' watchOrders requires a symbol argument for ' + type + ' markets.')
-        instType = 'spbl' if (type == 'spot') else 'umcbl'
+        sandboxMode = self.safe_value(self.options, 'sandboxMode', False)
+        instType = None
+        if type == 'spot':
+            instType = 'spbl'
+        else:
+            if not sandboxMode:
+                instType = 'UMCBL'
+            else:
+                instType = 'SUMCBL'
         instId = marketId if (type == 'spot') else 'default'  # different from other streams here the 'rest' id is required for spot markets, contract markets require default here
         args = {
             'instType': instType,
@@ -599,7 +607,8 @@ class bitget(Exchange, ccxt.async_support.bitget):
         #
         arg = self.safe_value(message, 'arg', {})
         instType = self.safe_string(arg, 'instType')
-        isContractUpdate = instType == 'umcbl'
+        sandboxMode = self.safe_value(self.options, 'sandboxMode', False)
+        isContractUpdate = (instType == 'umcbl') if (not sandboxMode) else (instType == 'sumcbl')
         data = self.safe_value(message, 'data', [])
         if self.orders is None:
             limit = self.safe_integer(self.options, 'ordersLimit', 1000)
@@ -779,9 +788,10 @@ class bitget(Exchange, ccxt.async_support.bitget):
         type, params = self.handle_market_type_and_params('watchMyTrades', market, params)
         if type == 'spot':
             raise NotSupported(self.id + ' watchMyTrades is not supported for ' + type + ' markets.')
+        sandboxMode = self.safe_value(self.options, 'sandboxMode', False)
         subscriptionHash = 'order:trades'
         args = {
-            'instType': 'umcbl',
+            'instType': 'umcbl' if (not sandboxMode) else 'sumcbl',
             'channel': 'orders',
             'instId': 'default',
         }
