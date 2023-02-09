@@ -3174,9 +3174,7 @@ module.exports = class bybit extends Exchange {
         [ type, params ] = this.handleMarketTypeAndParams ('fetchOrder', market, params);
         const { enableUnifiedAccount } = await this.isUnifiedMarginEnabled ();
         if (enableUnifiedAccount || type !== 'spot') {
-            if (market === undefined) {
-                throw new ArgumentsRequired (this.id + ' fetchOrder() requires a symbol argument for ' + type + ' markets');
-            }
+            this.checkRequiredSymbol ('fetchOrder', symbol);
             const request = {
                 'orderId': id,
             };
@@ -3245,6 +3243,7 @@ module.exports = class bybit extends Exchange {
          * @returns {object} an [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
          */
         await this.loadMarkets ();
+        this.checkRequiredSymbol ('createOrder', symbol);
         const market = this.market (symbol);
         symbol = market['symbol'];
         const { enableUnifiedMargin, enableUnifiedAccount } = await this.isUnifiedMarginEnabled ();
@@ -3273,8 +3272,8 @@ module.exports = class bybit extends Exchange {
             'symbol': market['id'],
             'side': this.capitalize (side),
             'orderType': this.capitalize (lowerCaseType), // limit or market
-            'timeInForce': 'GTC', // IOC, FOK, PostOnly
             'qty': this.amountToPrecision (symbol, amount),
+            // 'timeInForce': 'GTC', // IOC, FOK, PostOnly
             // 'takeProfit': 123.45, // take profit price, only take effect upon opening the position
             // 'stopLoss': 123.45, // stop loss price, only take effect upon opening the position
             // 'reduceOnly': false, // reduce only, required for linear orders
@@ -3283,14 +3282,17 @@ module.exports = class bybit extends Exchange {
             // 'closeOnTrigger': false, required for linear orders
             // 'orderLinkId': 'string', // unique client order id, max 36 characters
             // 'triggerPrice': 123.45, // trigger price, required for conditional orders
-            // 'triggerBy': 'MarkPrice', // IndexPrice, MarkPrice
-            // 'tptriggerby': 'MarkPrice', // IndexPrice, MarkPrice
-            // 'slTriggerBy': 'MarkPrice', // IndexPrice, MarkPrice
+            // 'triggerBy': 'MarkPrice', // IndexPrice, MarkPrice, LastPrice
+            // 'tpTriggerby': 'MarkPrice', // IndexPrice, MarkPrice, LastPrice
+            // 'slTriggerBy': 'MarkPrice', // IndexPrice, MarkPrice, LastPrice
             // 'mmp': false // market maker protection
-            // 'positionIdx': 0, // Position mode. unified margin account is only available in One-Way mode, which is 0
-            // 'orderIv': '0', // Implied volatility, for options only; parameters are passed according to the real value; for example, for 10%, 0.1 is passed
-            // 'orderFilter': 'Order' // Valid for spot only. Order,tpslOrder. If not passed, Order by default
-            // 'triggerDirection': 0, // Conditional order param. Used to identify the expected direction of the conditional order. 1: triggered when market price rises to triggerPrice 2: triggered when market price falls to triggerPrice
+            // 'positionIdx': 0, // Position mode. Unified account has one-way mode only (0)
+            // 'triggerDirection': 1, // Conditional order param. Used to identify the expected direction of the conditional order. 1: triggered when market price rises to triggerPrice 2: triggered when market price falls to triggerPrice
+            // Valid for spot only.
+            // 'isLeverage': 0, // Whether to borrow. 0(default): false, 1: true
+            // 'orderFilter': 'Order' // Order,tpslOrder. If not passed, Order by default
+            // Valid for option only.
+            // 'orderIv': '0', // Implied volatility; parameters are passed according to the real value; for example, for 10%, 0.1 is passed
         };
         if (market['spot']) {
             request['category'] = 'spot';
@@ -3747,6 +3749,15 @@ module.exports = class bybit extends Exchange {
             'symbol': market['id'],
             'orderId': id,
             'qty': this.amountToPrecision (symbol, amount),
+            // 'orderLinkId': 'string', // unique client order id, max 36 characters
+            // 'takeProfit': 123.45, // take profit price, only take effect upon opening the position
+            // 'stopLoss': 123.45, // stop loss price, only take effect upon opening the position
+            // 'triggerPrice': 123.45, // trigger price, required for conditional orders
+            // 'triggerBy': 'MarkPrice', // IndexPrice, MarkPrice, LastPrice
+            // 'tpTriggerby': 'MarkPrice', // IndexPrice, MarkPrice, LastPrice
+            // 'slTriggerBy': 'MarkPrice', // IndexPrice, MarkPrice, LastPrice
+            // Valid for option only.
+            // 'orderIv': '0', // Implied volatility; parameters are passed according to the real value; for example, for 10%, 0.1 is passed
         };
         if (market['linear']) {
             request['category'] = 'linear';
@@ -4439,7 +4450,7 @@ module.exports = class bybit extends Exchange {
         await this.loadMarkets ();
         const request = {
             // 'symbol': market['id'],
-            // 'category': string, Type of derivatives product: linear or option.
+            // 'category': string, Type of derivatives product: spot, linear or option.
             // 'baseCoin': string, Base coin. When category=option. If not passed, BTC by default; when category=linear, if BTC passed, BTCPERP & BTCUSDT returned.
             // 'orderId': string, Order ID
             // 'orderLinkId': string, Unique user-set order ID
@@ -4450,9 +4461,15 @@ module.exports = class bybit extends Exchange {
         };
         let market = undefined;
         if (symbol === undefined) {
-            let subType = undefined;
-            [ subType, params ] = this.handleSubTypeAndParams ('fetchOrders', market, params, 'linear');
-            request['category'] = subType;
+            let type = undefined;
+            [ type, params ] = this.handleMarketTypeAndParams ('fetchOrders', market, params);
+            // option, spot
+            request['category'] = type;
+            if (type === 'swap') {
+                let subType = undefined;
+                [ subType, params ] = this.handleSubTypeAndParams ('fetchOrders', market, params, 'linear');
+                request['category'] = subType;
+            }
         } else {
             market = this.market (symbol);
             request['symbol'] = market['id'];
@@ -4724,16 +4741,16 @@ module.exports = class bybit extends Exchange {
             settle = market['settle'];
         }
         let subType = undefined;
-        [ subType, params ] = this.handleSubTypeAndParams ('fetchOpenOrders', market, params);
+        [ subType, params ] = this.handleSubTypeAndParams ('fetchOrders', market, params);
         const isInverse = subType === 'inverse';
         const isUsdcSettled = settle === 'USDC';
         const isLinearSettle = isUsdcSettled || (settle === 'USDT');
         if (isInverse && isLinearSettle) {
             throw new ArgumentsRequired (this.id + ' fetchOrders with inverse subType requires settle to not be USDT or USDC');
         }
-        const [ type, query ] = this.handleMarketTypeAndParams ('fetchOpenOrders', market, params);
+        const [ type, query ] = this.handleMarketTypeAndParams ('fetchOrders', market, params);
         const { enableUnifiedMargin, enableUnifiedAccount } = await this.isUnifiedMarginEnabled ();
-        if (enableUnifiedAccount) {
+        if (enableUnifiedAccount && !isInverse) {
             return await this.fetchUnifiedAccountOrders (symbol, since, limit, query);
         } else if (type === 'spot') {
             throw new NotSupported (this.id + ' fetchOrders() does not support ' + market['type'] + ' markets, use exchange.fetchOpenOrders () and exchange.fetchClosedOrders () instead');
@@ -4847,9 +4864,19 @@ module.exports = class bybit extends Exchange {
         };
         let market = undefined;
         if (symbol === undefined) {
+            let type = undefined;
+            [ type, params ] = this.handleMarketTypeAndParams ('fetchOpenOrders', market, params);
             let subType = undefined;
-            [ subType, params ] = this.handleSubTypeAndParams ('fetchOrders', market, params, 'linear');
-            request['category'] = subType;
+            [ subType, params ] = this.handleSubTypeAndParams ('fetchOpenOrders', market, params, 'linear');
+            request['category'] = type;
+            if (type === 'swap') {
+                if (subType === 'linear') {
+                    this.checkRequiredSymbol ('fetchOpenOrders', symbol);
+                } else if (subType === 'inverse') {
+                    throw new NotSupported (this.id + ' fetchOpenOrders() does not allow inverse market orders for ' + symbol + ' markets');
+                }
+                request['category'] = subType;
+            }
         } else {
             market = this.market (symbol);
             request['symbol'] = market['id'];
@@ -4860,7 +4887,7 @@ module.exports = class bybit extends Exchange {
             } else if (market['linear']) {
                 request['category'] = 'linear';
             } else {
-                throw new NotSupported (this.id + ' fetchOrders() does not allow inverse market orders for ' + symbol + ' markets');
+                throw new NotSupported (this.id + ' fetchOpenOrders() does not allow inverse market orders for ' + symbol + ' markets');
             }
         }
         const isStop = this.safeValue (params, 'stop', false);
@@ -5200,7 +5227,7 @@ module.exports = class bybit extends Exchange {
         }
         const [ type, query ] = this.handleMarketTypeAndParams ('fetchOpenOrders', market, params);
         const { enableUnifiedMargin, enableUnifiedAccount } = await this.isUnifiedMarginEnabled ();
-        if (enableUnifiedAccount) {
+        if (enableUnifiedAccount && !isInverse) {
             return await this.fetchUnifiedAccountOpenOrders (symbol, since, limit, query);
         } else if (type === 'spot') {
             return await this.fetchSpotOpenOrders (symbol, since, limit, query);
@@ -5597,7 +5624,10 @@ module.exports = class bybit extends Exchange {
         }
         const [ type, query ] = this.handleMarketTypeAndParams ('fetchMyTrades', market, params);
         const { enableUnifiedMargin, enableUnifiedAccount } = await this.isUnifiedMarginEnabled ();
-        if (enableUnifiedAccount) {
+        if (enableUnifiedAccount && !isInverse) {
+            if (params['orderId'] === undefined) {
+                this.checkRequiredSymbol ('fetchMyTrades', symbol);
+            }
             return await this.fetchMyUnifiedTrades (symbol, since, limit, query);
         } else if (type === 'spot') {
             return await this.fetchMySpotTrades (symbol, since, limit, query);
@@ -5974,6 +6004,7 @@ module.exports = class bybit extends Exchange {
          * @method
          * @name bybit#fetchLedger
          * @description fetch the history of changes, actions done by the user or operations that altered balance of the user
+         * @see https://bybit-exchange.github.io/docs/v5/account/transaction-log
          * @param {string|undefined} code unified currency code, default is undefined
          * @param {int|undefined} since timestamp in ms of the earliest ledger entry, default is undefined
          * @param {int|undefined} limit max number of ledger entrys to return, default is undefined
@@ -5989,19 +6020,39 @@ module.exports = class bybit extends Exchange {
             // 'wallet_fund_type': 'Deposit', // Withdraw, RealisedPNL, Commission, Refund, Prize, ExchangeOrderWithdraw, ExchangeOrderDeposit
             // 'page': 1,
             // 'limit': 20, // max 50
+            // v5 transaction log
+            // 'accountType': '', Account Type. UNIFIED
+            // 'category': '', Product type. spot,linear,option
+            // 'currency': '', Currency
+            // 'baseCoin': '', BaseCoin. e.g., BTC of BTCPERP
+            // 'type': '', Types of transaction logs
+            // 'startTime': 0, The start timestamp (ms)
+            // 'endTime': 0, The end timestamp (ms)
+            // 'limit': 0, Limit for data size per page. [1, 50]. Default: 20
+            // 'cursor': '', Cursor. Used for pagination
         };
+        const { enableUnifiedAccount } = await this.isUnifiedMarginEnabled ();
         let currency = undefined;
+        let currencyKey = 'coin';
+        if (enableUnifiedAccount) {
+            currencyKey = 'currency';
+            if (since !== undefined) {
+                request['startTime'] = since;
+            }
+        } else {
+            if (since !== undefined) {
+                request['start_date'] = this.yyyymmdd (since);
+            }
+        }
+        const method = (enableUnifiedAccount) ? 'privateGetV5AccountTransactionLog' : 'privateGetV2PrivateWalletFundRecords';
         if (code !== undefined) {
             currency = this.currency (code);
-            request['coin'] = currency['id'];
-        }
-        if (since !== undefined) {
-            request['start_date'] = this.yyyymmdd (since);
+            request[currencyKey] = currency['id'];
         }
         if (limit !== undefined) {
             request['limit'] = limit;
         }
-        const response = await this.privateGetV2PrivateWalletFundRecords (this.extend (request, params));
+        const response = await this[method] (this.extend (request, params));
         //
         //     {
         //         "ret_code": 0,
@@ -6031,8 +6082,82 @@ module.exports = class bybit extends Exchange {
         //         "rate_limit": 120
         //     }
         //
+        // v5 transaction log
+        //
+        //     {
+        //         "retCode": 0,
+        //         "retMsg": "OK",
+        //         "result": {
+        //             "nextPageCursor": "21963%3A1%2C14954%3A1",
+        //             "list": [
+        //                 {
+        //                     "symbol": "XRPUSDT",
+        //                     "side": "Buy",
+        //                     "funding": "-0.003676",
+        //                     "orderLinkId": "",
+        //                     "orderId": "1672128000-8-592324-1-2",
+        //                     "fee": "0.00000000",
+        //                     "change": "-0.003676",
+        //                     "cashFlow": "0",
+        //                     "transactionTime": "1672128000000",
+        //                     "type": "SETTLEMENT",
+        //                     "feeRate": "0.0001",
+        //                     "size": "100",
+        //                     "qty": "100",
+        //                     "cashBalance": "5086.55825002",
+        //                     "currency": "USDT",
+        //                     "category": "linear",
+        //                     "tradePrice": "0.3676",
+        //                     "tradeId": "534c0003-4bf7-486f-aa02-78cee36825e4"
+        //                 },
+        //                 {
+        //                     "symbol": "XRPUSDT",
+        //                     "side": "Buy",
+        //                     "funding": "",
+        //                     "orderLinkId": "linear-order",
+        //                     "orderId": "592b7e41-78fd-42e2-9aa3-91e1835ef3e1",
+        //                     "fee": "0.01908720",
+        //                     "change": "-0.0190872",
+        //                     "cashFlow": "0",
+        //                     "transactionTime": "1672121182224",
+        //                     "type": "TRADE",
+        //                     "feeRate": "0.0006",
+        //                     "size": "100",
+        //                     "qty": "88",
+        //                     "cashBalance": "5086.56192602",
+        //                     "currency": "USDT",
+        //                     "category": "linear",
+        //                     "tradePrice": "0.3615",
+        //                     "tradeId": "5184f079-88ec-54c7-8774-5173cafd2b4e"
+        //                 },
+        //                 {
+        //                     "symbol": "XRPUSDT",
+        //                     "side": "Buy",
+        //                     "funding": "",
+        //                     "orderLinkId": "linear-order",
+        //                     "orderId": "592b7e41-78fd-42e2-9aa3-91e1835ef3e1",
+        //                     "fee": "0.00260280",
+        //                     "change": "-0.0026028",
+        //                     "cashFlow": "0",
+        //                     "transactionTime": "1672121182224",
+        //                     "type": "TRADE",
+        //                     "feeRate": "0.0006",
+        //                     "size": "12",
+        //                     "qty": "12",
+        //                     "cashBalance": "5086.58101322",
+        //                     "currency": "USDT",
+        //                     "category": "linear",
+        //                     "tradePrice": "0.3615",
+        //                     "tradeId": "8569c10f-5061-5891-81c4-a54929847eb3"
+        //                 }
+        //             ]
+        //         },
+        //         "retExtInfo": {},
+        //         "time": 1672132481405
+        //     }
+        //
         const result = this.safeValue (response, 'result', {});
-        const data = this.safeValue (result, 'data', []);
+        const data = this.safeValue2 (result, 'data', 'list', []);
         return this.parseLedger (data, currency, since, limit);
     }
 
@@ -6052,17 +6177,41 @@ module.exports = class bybit extends Exchange {
         //         "cross_seq": 0
         //     }
         //
-        const currencyId = this.safeString (item, 'coin');
+        //     {
+        //         "symbol": "XRPUSDT",
+        //         "side": "Buy",
+        //         "funding": "",
+        //         "orderLinkId": "linear-order",
+        //         "orderId": "592b7e41-78fd-42e2-9aa3-91e1835ef3e1",
+        //         "fee": "0.00260280",
+        //         "change": "-0.0026028",
+        //         "cashFlow": "0",
+        //         "transactionTime": "1672121182224",
+        //         "type": "TRADE",
+        //         "feeRate": "0.0006",
+        //         "size": "12",
+        //         "qty": "12",
+        //         "cashBalance": "5086.58101322",
+        //         "currency": "USDT",
+        //         "category": "linear",
+        //         "tradePrice": "0.3615",
+        //         "tradeId": "8569c10f-5061-5891-81c4-a54929847eb3"
+        //     }
+        //
+        const currencyId = this.safeString2 (item, 'coin', 'currency');
         const code = this.safeCurrencyCode (currencyId, currency);
-        const amount = this.safeString (item, 'amount');
-        const after = this.safeString (item, 'wallet_balance');
+        const amount = this.safeString2 (item, 'amount', 'change');
+        const after = this.safeString2 (item, 'wallet_balance', 'cashBalance');
         const direction = Precise.stringLt (amount, '0') ? 'out' : 'in';
         let before = undefined;
         if (after !== undefined && amount !== undefined) {
             const difference = (direction === 'out') ? amount : Precise.stringNeg (amount);
             before = Precise.stringAdd (after, difference);
         }
-        const timestamp = this.parse8601 (this.safeString (item, 'exec_time'));
+        let timestamp = this.parse8601 (this.safeString (item, 'exec_time'));
+        if (timestamp === undefined) {
+            timestamp = this.safeInteger (item, 'transactionTime');
+        }
         const type = this.parseLedgerEntryType (this.safeString (item, 'type'));
         const id = this.safeString (item, 'id');
         const referenceId = this.safeString (item, 'tx_id');
@@ -6076,7 +6225,7 @@ module.exports = class bybit extends Exchange {
             'amount': this.parseNumber (amount),
             'before': this.parseNumber (before),
             'after': this.parseNumber (after),
-            'fee': undefined,
+            'fee': this.parseNumber (this.safeString (item, 'fee')),
             'direction': direction,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
@@ -6095,6 +6244,18 @@ module.exports = class bybit extends Exchange {
             'Prize': 'prize', // ?
             'ExchangeOrderWithdraw': 'transaction',
             'ExchangeOrderDeposit': 'transaction',
+            // v5
+            'TRANSFER_IN': 'transaction',
+            'TRANSFER_OUT': 'transaction',
+            'TRADE': 'trade',
+            'SETTLEMENT': 'trade',
+            'DELIVERY': 'trade',
+            'LIQUIDATION': 'trade',
+            'BONUS': 'Prize',
+            'FEE_REFUND': 'cashback',
+            'INTEREST': 'transaction',
+            'CURRENCY_BUY': 'trade',
+            'CURRENCY_SELL': 'trade',
         };
         return this.safeString (types, type, type);
     }
@@ -6104,6 +6265,7 @@ module.exports = class bybit extends Exchange {
          * @method
          * @name bybit#withdraw
          * @description make a withdrawal
+         * @see https://bybit-exchange.github.io/docs/v5/asset/withdraw
          * @param {string} code unified currency code
          * @param {float} amount the amount to withdraw
          * @param {string} address the address to withdraw to
@@ -6900,14 +7062,14 @@ module.exports = class bybit extends Exchange {
                 'buyLeverage': leverage,
                 'sellLeverage': leverage,
             };
-            if (enableUnifiedAccount && !market['inverse']) {
+            if (enableUnifiedAccount) {
                 if (market['linear']) {
                     request['category'] = 'linear';
                 } else {
-                    throw new NotSupported (this.id + ' setUnifiedMarginLeverage() leverage doesn\'t support inverse market and options market in unified account');
+                    throw new NotSupported (this.id + ' setUnifiedMarginLeverage() leverage doesn\'t support inverse and option market in unified account');
                 }
                 method = 'privatePostV5PositionSetLeverage';
-            } else if (enableUnifiedMargin && !market['inverse']) {
+            } else if (enableUnifiedMargin) {
                 if (market['option']) {
                     request['category'] = 'option';
                 } else if (market['linear']) {
@@ -7867,9 +8029,6 @@ module.exports = class bybit extends Exchange {
          * @param {object} params extra parameters specific to the bybit api endpoint
          * @returns {object} a [fee structure]{@link https://docs.ccxt.com/en/latest/manual.html#fee-structure}
          */
-        if (this.version !== 'v3') {
-            throw new NotSupported (this.id + ' fetchTradingFee() is only support for v3');
-        }
         await this.loadMarkets ();
         const market = this.market (symbol);
         if (market['spot']) {
@@ -7910,9 +8069,6 @@ module.exports = class bybit extends Exchange {
          * @param {object} params extra parameters specific to the bybit api endpoint
          * @returns {object} a dictionary of [fee structures]{@link https://docs.ccxt.com/en/latest/manual.html#fee-structure} indexed by market symbols
          */
-        if (this.version !== 'v3') {
-            throw new NotSupported (this.id + ' fetchTradingFees() is only support for v3');
-        }
         await this.loadMarkets ();
         let type = undefined;
         [ type, params ] = this.handleOptionAndParams (params, 'fetchTradingFees', 'type', 'future');
