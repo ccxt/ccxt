@@ -597,8 +597,12 @@ module.exports = class bybit extends Exchange {
                     '10017': BadRequest, // request path not found or request method is invalid
                     '10018': RateLimitExceeded, // exceed ip rate limit
                     '10020': PermissionDenied, // {"retCode":10020,"retMsg":"your account is not a unified margin account, please update your account","result":null,"retExtInfo":null,"time":1664783731123}
+                    '10024': PermissionDenied, // Compliance rules triggered
                     '10027': PermissionDenied, // Trading Banned
+                    '10028': PermissionDenied, // The API can only be accessed by unified account users.
+                    '10029': PermissionDenied, // The requested symbol is invalid, please check symbol whitelist
                     '12201': BadRequest, // {"retCode":12201,"retMsg":"Invalid orderCategory parameter.","result":{},"retExtInfo":null,"time":1666699391220}
+                    '100028': PermissionDenied, // The API cannot be accessed by unified account users.
                     '110001': InvalidOrder, // Order does not exist
                     '110003': InvalidOrder, // Order price is out of permissible range
                     '110004': InsufficientFunds, // Insufficient wallet balance
@@ -668,6 +672,8 @@ module.exports = class bybit extends Exchange {
                     '110068': PermissionDenied, // Leveraged user trading is not allowed
                     '110069': PermissionDenied, // Do not allow OTC lending users to trade
                     '110070': InvalidOrder, // ETP symbols are not allowed to be traded
+                    '110071': ExchangeError, // Sorry, we're revamping the Unified Margin Account! Currently, new upgrades are not supported. If you have any questions, please contact our 24/7 customer support.
+                    '110072': InvalidOrder, // OrderLinkedID is duplicate
                     '130006': InvalidOrder, // {"ret_code":130006,"ret_msg":"The number of contracts exceeds maximum limit allowed: too large","ext_code":"","ext_info":"","result":null,"time_now":"1658397095.099030","rate_limit_status":99,"rate_limit_reset_ms":1658397095097,"rate_limit":100}
                     '130021': InsufficientFunds, // {"ret_code":130021,"ret_msg":"orderfix price failed for CannotAffordOrderCost.","ext_code":"","ext_info":"","result":null,"time_now":"1644588250.204878","rate_limit_status":98,"rate_limit_reset_ms":1644588250200,"rate_limit":100} |  {"ret_code":130021,"ret_msg":"oc_diff[1707966351], new_oc[1707966351] with ob[....]+AB[....]","ext_code":"","ext_info":"","result":null,"time_now":"1658395300.872766","rate_limit_status":99,"rate_limit_reset_ms":1658395300855,"rate_limit":100} caused issues/9149#issuecomment-1146559498
                     '130074': InvalidOrder, // {"ret_code":130074,"ret_msg":"expect Rising, but trigger_price[190000000] \u003c= current[211280000]??LastPrice","ext_code":"","ext_info":"","result":null,"time_now":"1655386638.067076","rate_limit_status":97,"rate_limit_reset_ms":1655386638065,"rate_limit":100}
@@ -740,6 +746,138 @@ module.exports = class bybit extends Exchange {
                     '140068': PermissionDenied, // Leveraged user trading is not allowed
                     '140069': PermissionDenied, // Do not allow OTC lending users to trade
                     '140070': InvalidOrder, // ETP symbols are not allowed to be traded
+                    '170001': ExchangeError, // Internal error.
+                    '170007': RequestTimeout, // Timeout waiting for response from backend server.
+                    '170005': InvalidOrder, // Too many new orders; current limit is %s orders per %s.
+                    '170031': ExchangeError, // The feature has been suspended
+                    '170032': ExchangeError, // Network error. Please try again later
+                    '170033': InsufficientFunds, // margin Insufficient account balance
+                    '170034': InsufficientFunds, // Liability over flow in spot leverage trade!
+                    '170035': BadRequest, // Submitted to the system for processing!
+                    '170036': BadRequest, // You haven't enabled Cross Margin Trading yet. To do so, please head to the PC trading site or the Bybit app
+                    '170037': BadRequest, // Cross Margin Trading not yet supported by the selected coin
+                    '170105': BadRequest, // Parameter '%s' was empty.
+                    '170115': InvalidOrder, // Invalid timeInForce.
+                    '170116': InvalidOrder, // Invalid orderType.
+                    '170117': InvalidOrder, // Invalid side.
+                    '170121': InvalidOrder, // Invalid symbol.
+                    '170130': BadRequest, // Data sent for paramter '%s' is not valid.
+                    '170131': InsufficientFunds, // Balance insufficient
+                    '170132': InvalidOrder, // Order price too high.
+                    '170133': InvalidOrder, // Order price lower than the minimum.
+                    '170134': InvalidOrder, // Order price decimal too long.
+                    '170135': InvalidOrder, // Order quantity too large.
+                    '170136': InvalidOrder, // Order quantity lower than the minimum.
+                    '170137': InvalidOrder, // Order volume decimal too long
+                    '170139': InvalidOrder, // Order has been filled.
+                    '170140': InvalidOrder, // Transaction amount lower than the minimum.
+                    '170124': InvalidOrder, // Order amount too large.
+                    '170141': InvalidOrder, // Duplicate clientOrderId
+                    '170142': InvalidOrder, // Order has been canceled
+                    '170143': InvalidOrder, // Cannot be found on order book
+                    '170144': InvalidOrder, // Order has been locked
+                    '170145': InvalidOrder, // This order type does not support cancellation
+                    '170146': InvalidOrder, // Order creation timeout
+                    '170147': InvalidOrder, // Order cancellation timeout
+                    '170148': InvalidOrder, // Market order amount decimal too long
+                    '170149': ExchangeError, // Create order failed
+                    '170150': ExchangeError, // Cancel order failed
+                    '170151': InvalidOrder, // The trading pair is not open yet
+                    '170157': InvalidOrder, // The trading pair is not available for api trading
+                    '170159': InvalidOrder, // Market Order is not supported within the first %s minutes of newly launched pairs due to risk control.
+                    '170190': InvalidOrder, // Cancel order has been finished
+                    '170191': InvalidOrder, // Can not cancel order, please try again later
+                    '170192': InvalidOrder, // Order price cannot be higher than %s .
+                    '170193': InvalidOrder, // Buy order price cannot be higher than %s.
+                    '170194': InvalidOrder, // Sell order price cannot be lower than %s.
+                    '170195': InvalidOrder, // Please note that your order may not be filled
+                    '170196': InvalidOrder, // Please note that your order may not be filled
+                    '170197': InvalidOrder, // Your order quantity to buy is too large. The filled price may deviate significantly from the market price. Please try again
+                    '170198': InvalidOrder, // Your order quantity to sell is too large. The filled price may deviate significantly from the market price. Please try again
+                    '170199': InvalidOrder, // Your order quantity to buy is too large. The filled price may deviate significantly from the nav. Please try again.
+                    '170200': InvalidOrder, // Your order quantity to sell is too large. The filled price may deviate significantly from the nav. Please try again.
+                    '170221': BadRequest, // This coin does not exist.
+                    '170222': RateLimitExceeded, // Too many requests in this time frame.
+                    '170223': InsufficientFunds, // Your Spot Account with Institutional Lending triggers an alert or liquidation.
+                    '170224': PermissionDenied, // You're not a user of the Innovation Zone.
+                    '170226': InsufficientFunds, // Your Spot Account for Margin Trading is being liquidated.
+                    '170227': ExchangeError, // This feature is not supported.
+                    '170228': InvalidOrder, // The purchase amount of each order exceeds the estimated maximum purchase amount.
+                    '170229': InvalidOrder, // The sell quantity per order exceeds the estimated maximum sell quantity.
+                    '170234': ExchangeError, // System Error
+                    '170210': InvalidOrder, // New order rejected.
+                    '170213': OrderNotFound, // Order does not exist.
+                    '170217': InvalidOrder, // Only LIMIT-MAKER order is supported for the current pair.
+                    '170218': InvalidOrder, // The LIMIT-MAKER order is rejected due to invalid price.
+                    '170010': InvalidOrder, // Purchase failed: Exceed the maximum position limit of leveraged tokens, the current available limit is %s USDT
+                    '170011': InvalidOrder, // "Purchase failed: Exceed the maximum position limit of innovation tokens,
+                    '170019': InvalidOrder, // the current available limit is ''{{.replaceKey0}}'' USDT"
+                    '170201': PermissionDenied, // Your account has been restricted for trades. If you have any questions, please email us at support@bybit.com
+                    '170202': InvalidOrder, // Invalid orderFilter parameter.
+                    '170203': InvalidOrder, // Please enter the TP/SL price.
+                    '170204': InvalidOrder, // trigger price cannot be higher than 110% price.
+                    '170206': InvalidOrder, // trigger price cannot be lower than 90% of qty.
+                    '175000': InvalidOrder, // The serialNum is already in use.
+                    '175001': InvalidOrder, // Daily purchase limit has been exceeded. Please try again later.
+                    '175002': InvalidOrder, // There's a large number of purchase orders. Please try again later.
+                    '175003': InsufficientFunds, // Insufficient available balance. Please make a deposit and try again.
+                    '175004': InvalidOrder, // Daily redemption limit has been exceeded. Please try again later.
+                    '175005': InvalidOrder, // There's a large number of redemption orders. Please try again later.
+                    '175006': InsufficientFunds, // Insufficient available balance. Please make a deposit and try again.
+                    '175007': InvalidOrder, // Order not found.
+                    '175008': InvalidOrder, // Purchase period hasn't started yet.
+                    '175009': InvalidOrder, // Purchase amount has exceeded the upper limit.
+                    '175010': PermissionDenied, // You haven't passed the quiz yet! To purchase and/or redeem an LT, please complete the quiz first.
+                    '175012': InvalidOrder, // Redemption period hasn't started yet.
+                    '175013': InvalidOrder, // Redemption amount has exceeded the upper limit.
+                    '175014': InvalidOrder, // Purchase of the LT has been temporarily suspended.
+                    '175015': InvalidOrder, // Redemption of the LT has been temporarily suspended.
+                    '175016': InvalidOrder, // Invalid format. Please check the length and numeric precision.
+                    '175017': InvalidOrder, // Failed to place order：Exceed the maximum position limit of leveraged tokens, the current available limit is XXXX USDT
+                    '175027': ExchangeError, // Subscriptions and redemptions are temporarily unavailable while account upgrade is in progress
+                    '176002': BadRequest, // Query user account info error
+                    '176004': BadRequest, // Query order history start time exceeds end time
+                    '176003': BadRequest, // Query user loan history error
+                    '176006': BadRequest, // Repayment Failed
+                    '176005': BadRequest, // Failed to borrow
+                    '176008': BadRequest, // You haven't enabled Cross Margin Trading yet. To do so
+                    '176007': BadRequest, // User not found
+                    '176010': BadRequest, // Failed to locate the coins to borrow
+                    '176009': BadRequest, // You haven't enabled Cross Margin Trading yet. To do so
+                    '176012': BadRequest, // Pair not available
+                    '176011': BadRequest, // Cross Margin Trading not yet supported by the selected coin
+                    '176014': BadRequest, // Repeated repayment requests
+                    '176013': BadRequest, // Cross Margin Trading not yet supported by the selected pair
+                    '176015': InsufficientFunds, // Insufficient available balance
+                    '176016': BadRequest, // No repayment required
+                    '176017': BadRequest, // Repayment amount has exceeded the total liability
+                    '176018': BadRequest, // Settlement in progress
+                    '176019': BadRequest, // Liquidation in progress
+                    '176020': BadRequest, // Failed to locate repayment history
+                    '176021': BadRequest, // Repeated borrowing requests
+                    '176022': BadRequest, // Coins to borrow not generally available yet
+                    '176023': BadRequest, // Pair to borrow not generally available yet
+                    '176024': BadRequest, // Invalid user status
+                    '176025': BadRequest, // Amount to borrow cannot be lower than the min. amount to borrow (per transaction)
+                    '176026': BadRequest, // Amount to borrow cannot be larger than the max. amount to borrow (per transaction)
+                    '176027': BadRequest, // Amount to borrow cannot be higher than the max. amount to borrow per user
+                    '176028': BadRequest, // Amount to borrow has exceeded Bybit's max. amount to borrow
+                    '176029': BadRequest, // Amount to borrow has exceeded the user's estimated max. amount to borrow
+                    '176030': BadRequest, // Query user loan info error
+                    '176031': BadRequest, // Number of decimals has exceeded the maximum precision
+                    '176034': BadRequest, // The leverage ratio is out of range
+                    '176035': PermissionDenied, // Failed to close the leverage switch during liquidation
+                    '176036': PermissionDenied, // Failed to adjust leverage switch during forced liquidation
+                    '176037': PermissionDenied, // For non-unified transaction users, the operation failed
+                    '176038': BadRequest, // The spot leverage is closed and the current operation is not allowed
+                    '176039': BadRequest, // Borrowing, current operation is not allowed
+                    '176040': BadRequest, // There is a spot leverage order, and the adjustment of the leverage switch failed!
+                    '181000': BadRequest, // category is null
+                    '181001': BadRequest, // category only support linear or option or spot.
+                    '181002': InvalidOrder, // symbol is null.
+                    '181003': InvalidOrder, // side is null.
+                    '181004': InvalidOrder, // side only support Buy or Sell.
+                    '182000': InvalidOrder, // symbol related quote price is null
                     '20001': OrderNotFound, // Order not exists
                     '20003': InvalidOrder, // missing parameter side
                     '20004': InvalidOrder, // invalid parameter side
@@ -823,6 +961,8 @@ module.exports = class bybit extends Exchange {
                     '34026': ExchangeError, // the limit is no change
                     '34036': BadRequest, // {"ret_code":34036,"ret_msg":"leverage not modified","ext_code":"","ext_info":"","result":null,"time_now":"1652376449.258918","rate_limit_status":74,"rate_limit_reset_ms":1652376449255,"rate_limit":75}
                     '35015': BadRequest, // {"ret_code":35015,"ret_msg":"Qty not in range","ext_code":"","ext_info":"","result":null,"time_now":"1652277215.821362","rate_limit_status":99,"rate_limit_reset_ms":1652277215819,"rate_limit":100}
+                    '340099': ExchangeError, // Server error
+                    '3400045': ExchangeError, // Set margin mode failed
                     '3100116': BadRequest, // {"retCode":3100116,"retMsg":"Order quantity below the lower limit 0.01.","result":null,"retExtMap":{"key0":"0.01"}}
                     '3100198': BadRequest, // {"retCode":3100198,"retMsg":"orderLinkId can not be empty.","result":null,"retExtMap":{}}
                     '3200300': InsufficientFunds, // {"retCode":3200300,"retMsg":"Insufficient margin balance.","result":null,"retExtMap":{}}
@@ -5782,7 +5922,6 @@ module.exports = class bybit extends Exchange {
             // 'cursor': '',
         };
         let currency = undefined;
-        const until = this.safeInteger (params, 'until');
         if (code !== undefined) {
             currency = this.currency (code);
             request['coin'] = currency['id'];
