@@ -653,7 +653,7 @@ module.exports = class bitget extends bitgetRest {
         const arg = this.safeValue (message, 'arg', {});
         const instType = this.safeString (arg, 'instType');
         const sandboxMode = this.safeValue (this.options, 'sandboxMode', false);
-        const isContractUpdate = (!sandboxMode) ? instType === 'umcbl' : instType === 'sumcbl';
+        const isContractUpdate = (!sandboxMode) ? (instType === 'umcbl') : (instType === 'sumcbl');
         const data = this.safeValue (message, 'data', []);
         if (this.orders === undefined) {
             const limit = this.safeInteger (this.options, 'ordersLimit', 1000);
