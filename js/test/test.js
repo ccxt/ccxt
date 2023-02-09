@@ -498,53 +498,6 @@ async function runPrivateTests(exchange, symbol) {
 
 //-----------------------------------------------------------------------------
 
-async function tryAllProxies (exchange, proxies) {
-
-    const index = findValueIndexInArray (proxies, exchange.proxy);
-    let currentProxy = (index >= 0) ? index : 0;
-    const maxRetries = proxies.length;
-
-    if (settings && ('proxy' in settings)) {
-        currentProxy = findValueIndexInArray (proxies, settings.proxy);
-    }
-
-    const hasHttpProxy = settings && ('httpProxy' in settings);
-
-    for (let numRetries = 0; numRetries < maxRetries; numRetries++) {
-
-        try {
-            if (!hasHttpProxy) {
-                exchange.proxy = proxies[currentProxy];
-            }
-            // add random origin for proxies
-            const proxiesLength = exchange.proxy.length;
-            if (proxiesLength > 0) {
-                exchange.origin = exchange.uuid ();
-            }
-            await testExchange (exchange);
-            break;
-        } catch (e) {
-            currentProxy = (currentProxy + 1) % maxRetries;
-            console.log (exceptionMessage (e));
-            if (e instanceof ccxt.DDoSProtection) {
-                continue;
-            } else if (e instanceof ccxt.RequestTimeout) {
-                continue;
-            } else if (e instanceof ccxt.ExchangeNotAvailable) {
-                continue;
-            } else if (e instanceof ccxt.AuthenticationError) {
-                return;
-            } else if (e instanceof ccxt.InvalidNonce) {
-                return;
-            } else {
-                throw e;
-            }
-        }
-    }
-}
-
-//-----------------------------------------------------------------------------
-
 async function main () {
 
     // we don't need to test aliases
@@ -562,10 +515,8 @@ async function main () {
         await testSymbol (exchange, exchangeSymbol);
 
     } else {
-
-        await tryAllProxies (exchange, proxies);
+        await testExchange (exchange);
     }
-
 }
 
 // ----------------------------------------------------------------------------
