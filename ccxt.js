@@ -142,6 +142,7 @@ const exchanges = {
     'probit':                  require ('./js/probit.js'),
     'ripio':                   require ('./js/ripio.js'),
     'stex':                    require ('./js/stex.js'),
+    'scallop':                 require ('./js/scallop.js'),
     'therock':                 require ('./js/therock.js'),
     'tidex':                   require ('./js/tidex.js'),
     'timex':                   require ('./js/timex.js'),

@@ -160,6 +160,7 @@ class Exchange {
         'probit',
         'ripio',
         'stex',
+        'scallop',
         'therock',
         'tidex',
         'timex',
