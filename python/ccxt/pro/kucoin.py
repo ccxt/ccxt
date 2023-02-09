@@ -31,6 +31,7 @@ class kucoin(Exchange, ccxt.async_support.kucoin):
                 },
                 'watchOrderBook': {
                     'snapshotDelay': 5,
+                    'maxRetries': 3,
                 },
             },
             'streaming': {

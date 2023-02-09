@@ -36,6 +36,7 @@ class btcex extends \ccxt\async\btcex {
             'options' => array(
                 'watchOrderBook' => array(
                     'snapshotDelay' => 0,
+                    'maxRetries' => 3,
                 ),
             ),
             'streaming' => array(
