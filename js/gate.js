@@ -3693,14 +3693,16 @@ module.exports = class gate extends Exchange {
         let remaining = this.parseNumber (Precise.stringAbs (remainingString));
         // handle spot market buy
         const account = this.safeString (order, 'account'); // using this instead of market type because of the conflicting ids
-        if ((account === 'spot') && (type === 'market') && (side === 'buy')) {
+        if (account === 'spot') {
             const averageString = this.safeString (order, 'avg_deal_price');
             average = this.parseNumber (averageString);
-            filled = Precise.stringDiv (filledString, averageString);
-            remaining = Precise.stringDiv (remainingString, averageString);
-            price = undefined; // arrives as 0
-            cost = amount;
-            amount = Precise.stringDiv (amount, averageString);
+            if ((type === 'market') && (side === 'buy')) {
+                filled = Precise.stringDiv (filledString, averageString);
+                remaining = Precise.stringDiv (remainingString, averageString);
+                price = undefined; // arrives as 0
+                cost = amount;
+                amount = Precise.stringDiv (amount, averageString);
+            }
         }
         return this.safeOrder ({
             'id': this.safeString (order, 'id'),
