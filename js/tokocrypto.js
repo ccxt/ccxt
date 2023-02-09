@@ -1608,8 +1608,8 @@ module.exports = class tokocrypto extends Exchange {
                     request['quoteOrderQty'] = this.decimalToPrecision (quoteOrderQty, TRUNCATE, precision, this.precisionMode);
                     params = this.omit (params, [ 'quoteOrderQty', 'cost' ]);
                 } else if (price !== undefined) {
-                    const amountString = amount.toString ();
-                    const priceString = price.toString ();
+                    const amountString = this.numberToString (amount);
+                    const priceString = this.numberToString (price);
                     const quoteOrderQty = Precise.stringMul (amountString, priceString);
                     request['quoteOrderQty'] = this.decimalToPrecision (quoteOrderQty, TRUNCATE, precision, this.precisionMode);
                 } else {
