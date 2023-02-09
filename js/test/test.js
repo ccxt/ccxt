@@ -54,14 +54,14 @@ const exchange = new (ccxt)[exchangeId] ({
 
 //-----------------------------------------------------------------------------
 
-const tests = {};
+const testFiles = {};
 const properties = Object.keys (exchange.has);
 properties
     // eslint-disable-next-line no-path-concat
     .filter ((property) => fs.existsSync (__dirname + '/Exchange/test.' + property + '.js'))
     .forEach ((property) => {
         // eslint-disable-next-line global-require, import/no-dynamic-require, no-path-concat
-        tests[property] = require (__dirname + '/Exchange/test.' + property + '.js');
+        testFiles[property] = require (__dirname + '/Exchange/test.' + property + '.js');
     });
 
 const errors = require ('../base/errors.js');
@@ -71,7 +71,7 @@ Object.keys (errors)
     .filter ((error) => fs.existsSync (__dirname + '/errors/test.' + error + '.js'))
     .forEach ((error) => {
         // eslint-disable-next-line global-require, import/no-dynamic-require, no-path-concat
-        tests[error] = require (__dirname + '/errors/test.' + error + '.js');
+        testFiles[error] = require (__dirname + '/errors/test.' + error + '.js');
     });
 
 //-----------------------------------------------------------------------------
@@ -126,11 +126,11 @@ if (settings && settings.httpProxy) {
 
 // ### common language specific methods ###
 async function runTesterMethod(exchange, methodName, ... args) {
-    return await tests[methodName](exchange, ... args);
+    return await testFiles[methodName](exchange, ... args);
 }
 
 function testMethodAvailableForCurrentLang(methodName) {
-    return methodName in tests && tests[methodName] !== undefined;
+    return methodName in testFiles && testFiles[methodName] !== undefined;
 }
 
 function findValueIndexInArray (arr, value) {
@@ -147,11 +147,24 @@ function exceptionMessage (exc) {
 // ### AUTO-TRANSPILER-START ###
 // ----------------------------------------------------------------------------
 
-async function test (methodName, exchange, ... args) {
-    console.log ('Testing', exchange.id, methodName, '(', ... args, ')');
+async function testMethod (methodName, exchange, ... args) {
+    let extraMessage = '';
+    if (!(methodName in exchange.has)) {
+        extraMessage = '[skip] missing definition in exchange';
+    } else if (exchange.has[methodName] === undefined) {
+        extraMessage = '[skip] undefined definition in exchange';
+    } else if (exchange.has[methodName] === false) {
+        extraMessage = '[pass] exchange does not support the endpoint';
+    } else if (!(methodName in testFiles)) {
+        extraMessage = '[skip] test file does not exist';
+    }
+    if (extraMessage !== '') {
+        extraMessage = ' - ' + extraMessage;
+    }
+    console.log ('Testing', exchange.id, methodName, '(', ... args, ')', extraMessage);
     try {
-        if (exchange.has[methodName]) {
-            return await (tests[methodName] (exchange, ... args));
+        if (extraMessage === '') {
+            return await (testFiles[methodName] (exchange, ... args));
         }
     } catch (e) {
         if (e instanceof ccxt.NotSupported) {
@@ -163,37 +176,50 @@ async function test (methodName, exchange, ... args) {
     }
 }
 
-async function testSafe(methodName, exchange, ...args) {
+async function testSafePublic(methodName, exchange, ...args) {
+    return await testMethod(methodName, exchange, ...args);
+}
+
+async function testSafePrivate(methodName, exchange, ...args) {
     try {
-        if (exchange[methodName] === undefined || tests[methodName] === undefined) {
-            return true; // skip if not implemented
-        }
-        await test(methodName, exchange, ...args);
+        await testMethod(methodName, exchange, ...args);
         return true;
     } catch (e) {
         return false;
     }
 }
 
+
 async function testSymbol (exchange, symbol) {
-    await test ('loadMarkets', exchange);
-    await test ('fetchCurrencies', exchange);
-    await test ('fetchTicker', exchange, symbol);
-    await test ('fetchTickers', exchange, symbol);
-    await test ('fetchOHLCV', exchange, symbol);
-    await test ('fetchTrades', exchange, symbol);
-    await test ('fetchOrderBook', exchange, symbol);
-    await test ('fetchL2OrderBook', exchange, symbol);
-    await test ('fetchOrderBooks', exchange);
-    await test ('fetchBidsAsks', exchange);
-    await test ('fetchFundingRates', exchange);
-    await test ('fetchFundingRate', exchange, symbol);
-    await test ('fetchFundingRateHistory', exchange, symbol);
-    await test ('fetchIndexOHLCV', exchange, symbol);
-    await test ('fetchMarkOHLCV', exchange, symbol);
-    await test ('fetchPremiumIndexOHLCV', exchange, symbol);
-    await test ('fetchStatus', exchange);
-    await test ('fetchTime', exchange);
+    const tests = {
+        'loadMarkets': [exchange],
+        'fetchCurrencies': [exchange],
+        'fetchTicker': [exchange, symbol],
+        'fetchTickers': [exchange, symbol],
+        'fetchOHLCV': [exchange, symbol],
+        'fetchTrades': [exchange, symbol],
+        'fetchOrderBook': [exchange, symbol],
+        'fetchL2OrderBook': [exchange, symbol],
+        'fetchOrderBooks': [exchange],
+        'fetchBidsAsks': [exchange],
+        'fetchFundingRates': [exchange],
+        'fetchFundingRate': [exchange, symbol],
+        'fetchFundingRateHistory': [exchange, symbol],
+        'fetchIndexOHLCV': [exchange, symbol],
+        'fetchMarkOHLCV': [exchange, symbol],
+        'fetchPremiumIndexOHLCV': [exchange, symbol],
+        'fetchStatus': [exchange],
+        'fetchTime': [exchange],
+    };
+
+    const testNames = Object.keys (tests);
+    const promises = [];
+    for (let i = 0; i < testNames.length; i++) {
+        const testName = testNames[i];
+        const testArgs = tests[testName];
+        promises.push (testSafePublic (testName, ...testArgs));
+    }
+    await Promise.all (promises);
 }
 
 //-----------------------------------------------------------------------------
@@ -393,7 +419,7 @@ async function testExchange (exchange) {
 async function runPrivateTests(exchange, symbol) {
     exchange.checkRequiredCredentials ();
 
-    await test ('signIn', exchange);
+    await testMethod ('signIn', exchange);
 
     const code = getExchangeCode (exchange);
 
@@ -406,7 +432,7 @@ async function runPrivateTests(exchange, symbol) {
     //     await test ('InsufficientFunds', exchange, symbol, balance); // danger zone - won't execute with non-empty balance
     // }
 
-    let tests = {
+    const tests = {
         'signIn': [exchange],
         'fetchBalance': [exchange],
         'fetchAccounts': [exchange],
@@ -461,10 +487,17 @@ async function runPrivateTests(exchange, symbol) {
 
     const testNames = Object.keys (tests);
     const errors = [];
+    const promises = [];
     for (let i = 0; i < testNames.length; i++) {
         const testName = testNames[i];
         const testArgs = tests[testName];
-        const success = await testSafe (testName, ...testArgs);
+        promises.push (testSafePrivate (testName, ...testArgs));
+    }
+
+    const results = await Promise.all (promises);
+    for (let i = 0; i < testNames.length; i++) {
+        const testName = testNames[i];
+        const success = results[i];
         if (!success) {
             errors.push (testName);
         }
