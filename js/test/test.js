@@ -148,24 +148,19 @@ function exceptionMessage (exc) {
 // ----------------------------------------------------------------------------
 
 async function testMethod (methodName, exchange, ... args) {
-    let extraMessage = '';
-    if (!(methodName in exchange.has)) {
-        extraMessage = '[skip] missing definition in exchange';
-    } else if (exchange.has[methodName] === undefined) {
-        extraMessage = '[skip] undefined definition in exchange';
-    } else if (exchange.has[methodName] === false) {
-        extraMessage = '[pass] exchange does not support the endpoint';
+    let skipMessage = undefined;
+    if (!(methodName in exchange.has) || !exchange.has[methodName]) {
+        skipMessage = 'not supported';
     } else if (!(methodName in testFiles)) {
-        extraMessage = '[skip] test file does not exist';
+        skipMessage = 'test not available';
     }
-    if (extraMessage !== '') {
-        extraMessage = ' - ' + extraMessage;
+    if (skipMessage) {
+        console.log ('[Skipping]', exchange.id, methodName, skipMessage);
+        return;
     }
-    console.log ('Testing', exchange.id, methodName, '(', ... args, ')', extraMessage);
+    console.log ('Testing', exchange.id, methodName, '(', ... args, ')');
     try {
-        if (extraMessage === '') {
-            return await (testFiles[methodName] (exchange, ... args));
-        }
+        return await (testFiles[methodName] (exchange, ... args));
     } catch (e) {
         if (e instanceof ccxt.NotSupported) {
             console.log ('Not supported', exchange.id, methodName, '(', ... args, ')');
@@ -176,11 +171,7 @@ async function testMethod (methodName, exchange, ... args) {
     }
 }
 
-async function testSafePublic(methodName, exchange, ...args) {
-    return await testMethod(methodName, exchange, ...args);
-}
-
-async function testSafePrivate(methodName, exchange, ...args) {
+async function testSafe(methodName, exchange, ...args) {
     try {
         await testMethod(methodName, exchange, ...args);
         return true;
@@ -217,7 +208,7 @@ async function testSymbol (exchange, symbol) {
     for (let i = 0; i < testNames.length; i++) {
         const testName = testNames[i];
         const testArgs = tests[testName];
-        promises.push (testSafePublic (testName, ...testArgs));
+        promises.push (testSafe (testName, ...testArgs));
     }
     await Promise.all (promises);
 }
@@ -419,10 +410,7 @@ async function testExchange (exchange) {
 async function runPrivateTests(exchange, symbol) {
     exchange.checkRequiredCredentials ();
 
-    await testMethod ('signIn', exchange);
-
     const code = getExchangeCode (exchange);
-
 
     // if (exchange.extendedTest) {
 
@@ -491,7 +479,7 @@ async function runPrivateTests(exchange, symbol) {
     for (let i = 0; i < testNames.length; i++) {
         const testName = testNames[i];
         const testArgs = tests[testName];
-        promises.push (testSafePrivate (testName, ...testArgs));
+        promises.push (testSafe (testName, ...testArgs));
     }
 
     const results = await Promise.all (promises);
