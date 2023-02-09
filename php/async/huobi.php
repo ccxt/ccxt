@@ -6003,17 +6003,6 @@ class huobi extends Exchange {
         );
     }
 
-    public function parse_incomes($incomes, $market = null, $since = null, $limit = null) {
-        $result = array();
-        for ($i = 0; $i < count($incomes); $i++) {
-            $entry = $incomes[$i];
-            $parsed = $this->parse_income($entry, $market);
-            $result[] = $parsed;
-        }
-        $sorted = $this->sort_by($result, 'timestamp');
-        return $this->filter_by_since_limit($sorted, $since, $limit, 'timestamp');
-    }
-
     public function parse_position($position, $market = null) {
         //
         //     {

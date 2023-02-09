@@ -4401,15 +4401,6 @@ class binance(Exchange):
             'amount': amount,
         }
 
-    def parse_incomes(self, incomes, market=None, since=None, limit=None):
-        result = []
-        for i in range(0, len(incomes)):
-            entry = incomes[i]
-            parsed = self.parse_income(entry, market)
-            result.append(parsed)
-        sorted = self.sort_by(result, 'timestamp')
-        return self.filter_by_since_limit(sorted, since, limit)
-
     def transfer(self, code, amount, fromAccount, toAccount, params={}):
         """
         transfer currency internally between wallets on the same account

@@ -36,7 +36,7 @@ use Elliptic\EdDSA;
 use BN\BN;
 use Exception;
 
-$version = '2.7.68';
+$version = '2.7.69';
 
 // rounding mode
 const TRUNCATE = 0;
@@ -55,7 +55,7 @@ const PAD_WITH_ZERO = 1;
 
 class Exchange {
 
-    const VERSION = '2.7.68';
+    const VERSION = '2.7.69';
 
     private static $base58_alphabet = '123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz';
     private static $base58_encoder = null;
@@ -433,6 +433,7 @@ class Exchange {
         'parseDepositWithdrawFees' => 'parse_deposit_withdraw_fees',
         'depositWithdrawFee' => 'deposit_withdraw_fee',
         'assignDefaultDepositWithdrawFees' => 'assign_default_deposit_withdraw_fees',
+        'parseIncomes' => 'parse_incomes',
     );
 
     public static function split($string, $delimiters = array(' ')) {
@@ -4821,5 +4822,25 @@ class Exchange {
             }
         }
         return $fee;
+    }
+
+    public function parse_incomes($incomes, $market = null, $since = null, $limit = null) {
+        /**
+         * @ignore
+         * parses funding fee info from exchange response
+         * @param {[array]} $incomes each item describes once instance of currency being received or paid
+         * @param {array|null} $market ccxt $market
+         * @param {int|null} $since when defined, the response items are filtered to only include items after this timestamp
+         * @param {int|null} $limit limits the number of items in the response
+         * @return {[array]} an array of {@link https://docs.ccxt.com/en/latest/manual.html#funding-history-structure funding history structures}
+         */
+        $result = array();
+        for ($i = 0; $i < count($incomes); $i++) {
+            $entry = $incomes[$i];
+            $parsed = $this->parse_income($entry, $market);
+            $result[] = $parsed;
+        }
+        $sorted = $this->sort_by($result, 'timestamp');
+        return $this->filter_by_since_limit($sorted, $since, $limit);
     }
 }

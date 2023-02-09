@@ -2,7 +2,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '2.7.68'
+__version__ = '2.7.69'
 
 # -----------------------------------------------------------------------------
 
@@ -2205,3 +2205,21 @@ class Exchange(BaseExchange):
                 fee['withdraw'] = fee['networks'][networkKeys[i]]['withdraw']
                 fee['deposit'] = fee['networks'][networkKeys[i]]['deposit']
         return fee
+
+    def parse_incomes(self, incomes, market=None, since=None, limit=None):
+        """
+         * @ignore
+        parses funding fee info from exchange response
+        :param [dict] incomes: each item describes once instance of currency being received or paid
+        :param dict|None market: ccxt market
+        :param int|None since: when defined, the response items are filtered to only include items after self timestamp
+        :param int|None limit: limits the number of items in the response
+        :returns [dict]: an array of `funding history structures <https://docs.ccxt.com/en/latest/manual.html#funding-history-structure>`
+        """
+        result = []
+        for i in range(0, len(incomes)):
+            entry = incomes[i]
+            parsed = self.parse_income(entry, market)
+            result.append(parsed)
+        sorted = self.sort_by(result, 'timestamp')
+        return self.filter_by_since_limit(sorted, since, limit)
