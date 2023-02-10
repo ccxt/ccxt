@@ -695,10 +695,13 @@ class gate(Exchange):
         promises = [
             self.fetch_spot_markets(params),
             self.fetch_contract_markets(params),
+            self.fetch_option_markets(params),
         ]
         spotMarkets = promises[0]
         contractMarkets = promises[1]
-        return self.array_concat(spotMarkets, contractMarkets)
+        optionMarkets = promises[2]
+        markets = self.array_concat(spotMarkets, contractMarkets)
+        return self.array_concat(markets, optionMarkets)
 
     def fetch_spot_markets(self, params={}):
         marginResponse = self.publicMarginGetCurrencyPairs(params)
@@ -3478,14 +3481,15 @@ class gate(Exchange):
         remaining = self.parse_number(Precise.string_abs(remainingString))
         # handle spot market buy
         account = self.safe_string(order, 'account')  # using self instead of market type because of the conflicting ids
-        if (account == 'spot') and (type == 'market') and (side == 'buy'):
+        if account == 'spot':
             averageString = self.safe_string(order, 'avg_deal_price')
             average = self.parse_number(averageString)
-            filled = Precise.string_div(filledString, averageString)
-            remaining = Precise.string_div(remainingString, averageString)
-            price = None  # arrives as 0
-            cost = amount
-            amount = Precise.string_div(amount, averageString)
+            if (type == 'market') and (side == 'buy'):
+                filled = Precise.string_div(filledString, averageString)
+                remaining = Precise.string_div(remainingString, averageString)
+                price = None  # arrives as 0
+                cost = amount
+                amount = Precise.string_div(amount, averageString)
         return self.safe_order({
             'id': self.safe_string(order, 'id'),
             'clientOrderId': self.safe_string(order, 'text'),

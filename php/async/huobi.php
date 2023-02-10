@@ -863,6 +863,7 @@ class huobi extends Exchange {
                     '1067' => '\\ccxt\\InvalidOrder', // array("status":"error","err_code":1067,"err_msg":"The client_order_id field is invalid. Please re-enter.","ts":1643802119413)
                     '1094' => '\\ccxt\\InvalidOrder', // array("status":"error","err_code":1094,"err_msg":"The leverage cannot be empty, please switch the leverage or contact customer service","ts":1640496946243)
                     '1220' => '\\ccxt\\AccountNotEnabled', // array("status":"error","err_code":1220,"err_msg":"You don’t have access permission as you have not opened contracts trading.","ts":1645096660718)
+                    '1303' => '\\ccxt\\BadRequest', // array("code":1303,"data":null,"message":"Each transfer-out cannot be less than 5USDT.","success":false,"print-log":true)
                     '1461' => '\\ccxt\\InvalidOrder', // array("status":"error","err_code":1461,"err_msg":"Current positions have triggered position limits (5000USDT). Please modify.","ts":1652554651234)
                     'bad-request' => '\\ccxt\\BadRequest',
                     'validation-format-error' => '\\ccxt\\BadRequest', // array("status":"error","err-code":"validation-format-error","err-msg":"Format Error => order-id.","data":null)
@@ -975,6 +976,11 @@ class huobi extends Exchange {
                 'language' => 'en-US',
                 'broker' => array(
                     'id' => 'AA03022abc',
+                ),
+                'accountsByType' => array(
+                    'spot' => 'pro',
+                    'funding' => 'pro',
+                    'future' => 'futures',
                 ),
                 'accountsById' => array(
                     'spot' => 'spot',
@@ -5147,17 +5153,22 @@ class huobi extends Exchange {
     public function transfer($code, $amount, $fromAccount, $toAccount, $params = array ()) {
         return Async\async(function () use ($code, $amount, $fromAccount, $toAccount, $params) {
             /**
-             * $transfer $currency internally between wallets on the same account
-             * @see https://huobiapi.github.io/docs/dm/v1/en/#$transfer-margin-between-spot-account-and-future-account
-             * @see https://huobiapi.github.io/docs/spot/v1/en/#$transfer-fund-between-spot-account-and-future-contract-account
-             * @see https://huobiapi.github.io/docs/usdt_swap/v1/en/#general-$transfer-margin-between-spot-account-and-usdt-margined-contracts-account
+             * transfer $currency internally between wallets on the same account
+             * @see https://huobiapi.github.io/docs/dm/v1/en/#transfer-margin-between-spot-account-and-future-account
+             * @see https://huobiapi.github.io/docs/spot/v1/en/#transfer-fund-between-spot-account-and-future-contract-account
+             * @see https://huobiapi.github.io/docs/usdt_swap/v1/en/#general-transfer-margin-between-spot-account-and-usdt-margined-contracts-account
+             * @see https://huobiapi.github.io/docs/spot/v1/en/#transfer-asset-from-spot-trading-account-to-cross-margin-account-cross
+             * @see https://huobiapi.github.io/docs/spot/v1/en/#transfer-asset-from-spot-trading-account-to-isolated-margin-account-isolated
+             * @see https://huobiapi.github.io/docs/spot/v1/en/#transfer-asset-from-cross-margin-account-to-spot-trading-account-cross
+             * @see https://huobiapi.github.io/docs/spot/v1/en/#transfer-asset-from-isolated-margin-account-to-spot-trading-account-isolated
              * @param {string} $code unified $currency $code
-             * @param {float} $amount amount to $transfer
-             * @param {string} $fromAccount account to $transfer from 'spot', 'future', 'swap'
-             * @param {string} $toAccount account to $transfer to 'spot', 'future', 'swap'
+             * @param {float} $amount amount to transfer
+             * @param {string} $fromAccount account to transfer from 'spot', 'future', 'swap'
+             * @param {string} $toAccount account to transfer to 'spot', 'future', 'swap'
              * @param {array} $params extra parameters specific to the huobi api endpoint
-             * @param {string|null} $params->symbol used for isolated margin $transfer
-             * @return {array} a {@link https://docs.ccxt.com/en/latest/manual.html#$transfer-structure $transfer structure}
+             * @param {string|null} $params->symbol used for isolated margin transfer
+             * @param {string|null} $params->subType 'linear' or 'inverse', only used when transfering to/from swap accounts
+             * @return {array} a {@link https://docs.ccxt.com/en/latest/manual.html#transfer-structure transfer structure}
              */
             Async\await($this->load_markets());
             $currency = $this->currency($code);
@@ -5168,32 +5179,40 @@ class huobi extends Exchange {
             $subType = null;
             list($subType, $params) = $this->handle_sub_type_and_params('transfer', null, $params);
             $method = null;
-            $fromAccount = strtolower($fromAccount);
-            $toAccount = strtolower($toAccount);
-            $futuresAccounts = array(
-                'future' => 'futures',
-                'spot' => 'pro',
-            );
-            $fromIdFuture = $this->safe_string($futuresAccounts, $fromAccount, $fromAccount);
-            $toIdFuture = $this->safe_string($futuresAccounts, $toAccount, $toAccount);
-            $isFromSpot = ($fromAccount === 'spot') || ($fromAccount === 'pro');
-            $isToSpot = ($toAccount === 'spot') || ($toAccount === 'pro');
-            if (!$isFromSpot && !$isToSpot) {
-                throw new BadRequest($this->id . ' $transfer() can only $transfer between spot and futures accounts or vice versa');
+            $fromAccountId = $this->convert_type_to_account($fromAccount);
+            $toAccountId = $this->convert_type_to_account($toAccount);
+            $toCross = $toAccountId === 'cross';
+            $fromCross = $fromAccountId === 'cross';
+            $toIsolated = $this->in_array($toAccountId, $this->ids);
+            $fromIsolated = $this->in_array($fromAccountId, $this->ids);
+            $fromSpot = $fromAccountId === 'pro';
+            $toSpot = $toAccountId === 'pro';
+            if ($fromSpot && $toSpot) {
+                throw new BadRequest($this->id . ' transfer () cannot make a transfer between ' . $fromAccount . ' and ' . $toAccount);
             }
-            $fromOrToFuturesAccount = ($fromIdFuture === 'futures') || ($toIdFuture === 'futures');
+            $fromOrToFuturesAccount = ($fromAccountId === 'futures') || ($toAccountId === 'futures');
             if ($fromOrToFuturesAccount) {
-                $type = $fromIdFuture . '-to-' . $toIdFuture;
+                $type = $fromAccountId . '-to-' . $toAccountId;
                 $type = $this->safe_string($params, 'type', $type);
                 $request['type'] = $type;
                 $method = 'spotPrivatePostV1FuturesTransfer';
+            } elseif ($fromSpot && $toCross) {
+                $method = 'privatePostCrossMarginTransferIn';
+            } elseif ($fromCross && $toSpot) {
+                $method = 'privatePostCrossMarginTransferOut';
+            } elseif ($fromSpot && $toIsolated) {
+                $request['symbol'] = $toAccountId;
+                $method = 'privatePostDwTransferInMargin';
+            } elseif ($fromIsolated && $toSpot) {
+                $request['symbol'] = $fromAccountId;
+                $method = 'privatePostDwTransferOutMargin';
             } else {
                 $method = 'v2PrivatePostAccountTransfer';
                 if ($subType === 'linear') {
-                    if (($fromAccount === 'swap') || ($fromAccount === 'linear-swap')) {
-                        $fromAccount = 'linear-swap';
+                    if (($fromAccountId === 'swap') || ($fromAccount === 'linear-swap')) {
+                        $fromAccountId = 'linear-swap';
                     } else {
-                        $toAccount = 'linear-swap';
+                        $toAccountId = 'linear-swap';
                     }
                     // check if cross-margin or isolated
                     $symbol = $this->safe_string($params, 'symbol');
@@ -5205,23 +5224,20 @@ class huobi extends Exchange {
                         $request['margin-account'] = 'USDT'; // cross-margin
                     }
                 }
-                $request['from'] = $fromAccount;
-                $request['to'] = $toAccount;
+                $request['from'] = $fromSpot ? 'spot' : $fromAccountId;
+                $request['to'] = $toSpot ? 'spot' : $toAccountId;
             }
             $response = Async\await($this->$method (array_merge($request, $params)));
             //
-            //     {
-            //         "data" => 12345,
-            //         "status" => "ok"
-            //     }
+            //    {
+            //        $code => '200',
+            //        data => '660150061',
+            //        message => 'Succeed',
+            //        success => true,
+            //        'print-log' => true
+            //    }
             //
-            $transfer = $this->parse_transfer($response, $currency);
-            return array_merge($transfer, array(
-                'amount' => $amount,
-                'currency' => $code,
-                'fromAccount' => $fromAccount,
-                'toAccount' => $toAccount,
-            ));
+            return $this->parse_transfer($response, $currency);
         }) ();
     }
 

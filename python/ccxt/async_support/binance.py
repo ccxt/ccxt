@@ -903,7 +903,7 @@ class binance(Exchange):
             'precisionMode': DECIMAL_PLACES,
             # exchange-specific options
             'options': {
-                'fetchMarkets': ['spot', 'linear', 'inverse'],
+                'fetchMarkets': ['spot', 'linear', 'inverse', 'option'],
                 'fetchCurrencies': True,  # self is a private call and it requires API keys
                 # 'fetchTradesMethod': 'publicGetAggTrades',  # publicGetTrades, publicGetHistoricalTrades
                 'defaultTimeInForce': 'GTC',  # 'GTC' = Good To Cancel(default), 'IOC' = Immediate Or Cancel
@@ -1678,7 +1678,7 @@ class binance(Exchange):
         :returns [dict]: an array of objects representing market data
         """
         promises = []
-        fetchMarkets = self.safe_value(self.options, 'fetchMarkets', ['spot', 'linear', 'inverse'])
+        fetchMarkets = self.safe_value(self.options, 'fetchMarkets', ['spot', 'linear', 'inverse', 'option'])
         for i in range(0, len(fetchMarkets)):
             marketType = fetchMarkets[i]
             if marketType == 'spot':
@@ -1687,15 +1687,19 @@ class binance(Exchange):
                 promises.append(self.fapiPublicGetExchangeInfo(params))
             elif marketType == 'inverse':
                 promises.append(self.dapiPublicGetExchangeInfo(params))
+            elif marketType == 'option':
+                promises.append(self.eapiPublicGetExchangeInfo(params))
             else:
                 raise ExchangeError(self.id + ' fetchMarkets() self.options fetchMarkets "' + marketType + '" is not a supported market type')
         promises = await asyncio.gather(*promises)
         spotMarkets = self.safe_value(self.safe_value(promises, 0), 'symbols', [])
         futureMarkets = self.safe_value(self.safe_value(promises, 1), 'symbols', [])
         deliveryMarkets = self.safe_value(self.safe_value(promises, 2), 'symbols', [])
+        optionMarkets = self.safe_value(self.safe_value(promises, 3), 'optionSymbols', [])
         markets = spotMarkets
         markets = self.array_concat(markets, futureMarkets)
         markets = self.array_concat(markets, deliveryMarkets)
+        markets = self.array_concat(markets, optionMarkets)
         #
         # spot / margin
         #
@@ -1845,6 +1849,59 @@ class binance(Exchange):
         #         ]
         #     }
         #
+        # options(eapi)
+        #
+        #     {
+        #         "timezone": "UTC",
+        #         "serverTime": 1675912490405,
+        #         "optionContracts": [
+        #             {
+        #                 "id": 1,
+        #                 "baseAsset": "SOL",
+        #                 "quoteAsset": "USDT",
+        #                 "underlying": "SOLUSDT",
+        #                 "settleAsset": "USDT"
+        #             },
+        #             ...
+        #         ],
+        #         "optionAssets": [
+        #             {"id":1,"name":"USDT"}
+        #         ],
+        #         "optionSymbols": [
+        #             {
+        #                 "contractId": 3,
+        #                 "expiryDate": 1677225600000,
+        #                 "filters": [
+        #                     {"filterType":"PRICE_FILTER","minPrice":"724.6","maxPrice":"919.2","tickSize":"0.1"},
+        #                     {"filterType":"LOT_SIZE","minQty":"0.01","maxQty":"1000","stepSize":"0.01"}
+        #                 ],
+        #                 "id": 2474,
+        #                 "symbol": "ETH-230224-800-C",
+        #                 "side": "CALL",
+        #                 "strikePrice": "800.00000000",
+        #                 "underlying": "ETHUSDT",
+        #                 "unit": 1,
+        #                 "makerFeeRate": "0.00020000",
+        #                 "takerFeeRate": "0.00020000",
+        #                 "minQty": "0.01",
+        #                 "maxQty": "1000",
+        #                 "initialMargin": "0.15000000",
+        #                 "maintenanceMargin": "0.07500000",
+        #                 "minInitialMargin": "0.10000000",
+        #                 "minMaintenanceMargin": "0.05000000",
+        #                 "priceScale": 1,
+        #                 "quantityScale": 2,
+        #                 "quoteAsset": "USDT"
+        #             },
+        #             ...
+        #         ],
+        #         "rateLimits": [
+        #             {"rateLimitType":"REQUEST_WEIGHT","interval":"MINUTE","intervalNum":1,"limit":400},
+        #             {"rateLimitType":"ORDERS","interval":"MINUTE","intervalNum":1,"limit":100},
+        #             {"rateLimitType":"ORDERS","interval":"SECOND","intervalNum":10,"limit":30}
+        #         ]
+        #     }
+        #
         if self.options['adjustForTimeDifference']:
             await self.load_time_difference()
         result = []
@@ -1855,23 +1912,30 @@ class binance(Exchange):
     def parse_market(self, market):
         swap = False
         future = False
+        option = False
+        underlying = self.safe_string(market, 'underlying')
         id = self.safe_string(market, 'symbol')
+        optionParts = id.split('-')
+        optionBase = self.safe_string(optionParts, 0)
         lowercaseId = self.safe_string_lower(market, 'symbol')
-        baseId = self.safe_string(market, 'baseAsset')
+        baseId = self.safe_string(market, 'baseAsset', optionBase)
         quoteId = self.safe_string(market, 'quoteAsset')
-        settleId = self.safe_string(market, 'marginAsset')
+        settleId = self.safe_string(market, 'marginAsset', 'USDT')
         base = self.safe_currency_code(baseId)
         quote = self.safe_currency_code(quoteId)
         settle = self.safe_currency_code(settleId)
         contractType = self.safe_string(market, 'contractType')
         contract = ('contractType' in market)
-        spot = not contract
-        expiry = self.safe_integer(market, 'deliveryDate')
+        expiry = self.safe_integer_2(market, 'deliveryDate', 'expiryDate')
         if (contractType == 'PERPETUAL') or (expiry == 4133404800000):  # some swap markets do not have contract type, eg: BTCST
             expiry = None
             swap = True
+        elif underlying is not None:
+            contract = True
+            option = True
         else:
             future = True
+        spot = not contract
         filters = self.safe_value(market, 'filters', [])
         filtersByType = self.index_by(filters, 'filterType')
         status = self.safe_string_2(market, 'status', 'contractStatus')
@@ -1879,13 +1943,16 @@ class binance(Exchange):
         fees = self.fees
         linear = None
         inverse = None
+        strike = self.safe_integer(market, 'strikePrice')
         symbol = base + '/' + quote
         if contract:
             if swap:
                 symbol = symbol + ':' + settle
             elif future:
                 symbol = symbol + ':' + settle + '-' + self.yymmdd(expiry)
-            contractSize = self.safe_number(market, 'contractSize', self.parse_number('1'))
+            elif option:
+                symbol = symbol + ':' + settle + '-' + self.yymmdd(expiry) + '-' + self.number_to_string(strike) + '-' + self.safe_string(optionParts, 3)
+            contractSize = self.safe_number_2(market, 'contractSize', 'unit', self.parse_number('1'))
             linear = settle == quote
             inverse = settle == base
             feesType = 'linear' if linear else 'inverse'
@@ -1905,6 +1972,9 @@ class binance(Exchange):
             unifiedType = 'swap'
         elif future:
             unifiedType = 'future'
+        elif option:
+            unifiedType = 'option'
+            active = None
         entry = {
             'id': id,
             'lowercaseId': lowercaseId,
@@ -1920,7 +1990,7 @@ class binance(Exchange):
             'margin': spot and isMarginTradingAllowed,
             'swap': swap,
             'future': future,
-            'option': False,
+            'option': option,
             'active': active,
             'contract': contract,
             'linear': linear,
@@ -1930,11 +2000,11 @@ class binance(Exchange):
             'contractSize': contractSize,
             'expiry': expiry,
             'expiryDatetime': self.iso8601(expiry),
-            'strike': None,
-            'optionType': None,
+            'strike': strike,
+            'optionType': self.safe_string_lower(market, 'side'),
             'precision': {
-                'amount': self.safe_integer(market, 'quantityPrecision'),
-                'price': self.safe_integer(market, 'pricePrecision'),
+                'amount': self.safe_integer_2(market, 'quantityPrecision', 'quantityScale'),
+                'price': self.safe_integer_2(market, 'pricePrecision', 'priceScale'),
                 'base': self.safe_integer(market, 'baseAssetPrecision'),
                 'quote': self.safe_integer(market, 'quotePrecision'),
             },
@@ -1944,8 +2014,8 @@ class binance(Exchange):
                     'max': None,
                 },
                 'amount': {
-                    'min': None,
-                    'max': None,
+                    'min': self.safe_number(market, 'minQty'),
+                    'max': self.safe_number(market, 'maxQty'),
                 },
                 'price': {
                     'min': None,

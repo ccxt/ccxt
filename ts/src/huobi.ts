@@ -853,6 +853,7 @@ export default class huobi extends Exchange {
                     '1067': InvalidOrder, // {"status":"error","err_code":1067,"err_msg":"The client_order_id field is invalid. Please re-enter.","ts":1643802119413}
                     '1094': InvalidOrder, // {"status":"error","err_code":1094,"err_msg":"The leverage cannot be empty, please switch the leverage or contact customer service","ts":1640496946243}
                     '1220': AccountNotEnabled, // {"status":"error","err_code":1220,"err_msg":"You don’t have access permission as you have not opened contracts trading.","ts":1645096660718}
+                    '1303': BadRequest, // {"code":1303,"data":null,"message":"Each transfer-out cannot be less than 5USDT.","success":false,"print-log":true}
                     '1461': InvalidOrder, // {"status":"error","err_code":1461,"err_msg":"Current positions have triggered position limits (5000USDT). Please modify.","ts":1652554651234}
                     'bad-request': BadRequest,
                     'validation-format-error': BadRequest, // {"status":"error","err-code":"validation-format-error","err-msg":"Format Error: order-id.","data":null}
@@ -965,6 +966,11 @@ export default class huobi extends Exchange {
                 'language': 'en-US',
                 'broker': {
                     'id': 'AA03022abc',
+                },
+                'accountsByType': {
+                    'spot': 'pro',
+                    'funding': 'pro',
+                    'future': 'futures',
                 },
                 'accountsById': {
                     'spot': 'spot',
@@ -5115,12 +5121,17 @@ export default class huobi extends Exchange {
          * @see https://huobiapi.github.io/docs/dm/v1/en/#transfer-margin-between-spot-account-and-future-account
          * @see https://huobiapi.github.io/docs/spot/v1/en/#transfer-fund-between-spot-account-and-future-contract-account
          * @see https://huobiapi.github.io/docs/usdt_swap/v1/en/#general-transfer-margin-between-spot-account-and-usdt-margined-contracts-account
+         * @see https://huobiapi.github.io/docs/spot/v1/en/#transfer-asset-from-spot-trading-account-to-cross-margin-account-cross
+         * @see https://huobiapi.github.io/docs/spot/v1/en/#transfer-asset-from-spot-trading-account-to-isolated-margin-account-isolated
+         * @see https://huobiapi.github.io/docs/spot/v1/en/#transfer-asset-from-cross-margin-account-to-spot-trading-account-cross
+         * @see https://huobiapi.github.io/docs/spot/v1/en/#transfer-asset-from-isolated-margin-account-to-spot-trading-account-isolated
          * @param {string} code unified currency code
          * @param {float} amount amount to transfer
          * @param {string} fromAccount account to transfer from 'spot', 'future', 'swap'
          * @param {string} toAccount account to transfer to 'spot', 'future', 'swap'
          * @param {object} params extra parameters specific to the huobi api endpoint
          * @param {string|undefined} params.symbol used for isolated margin transfer
+         * @param {string|undefined} params.subType 'linear' or 'inverse', only used when transfering to/from swap accounts
          * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/en/latest/manual.html#transfer-structure}
          */
         await this.loadMarkets ();
@@ -5132,32 +5143,40 @@ export default class huobi extends Exchange {
         let subType = undefined;
         [ subType, params ] = this.handleSubTypeAndParams ('transfer', undefined, params);
         let method = undefined;
-        fromAccount = fromAccount.toLowerCase ();
-        toAccount = toAccount.toLowerCase ();
-        const futuresAccounts = {
-            'future': 'futures',
-            'spot': 'pro',
-        };
-        const fromIdFuture = this.safeString (futuresAccounts, fromAccount, fromAccount);
-        const toIdFuture = this.safeString (futuresAccounts, toAccount, toAccount);
-        const isFromSpot = (fromAccount === 'spot') || (fromAccount === 'pro');
-        const isToSpot = (toAccount === 'spot') || (toAccount === 'pro');
-        if (!isFromSpot && !isToSpot) {
-            throw new BadRequest (this.id + ' transfer() can only transfer between spot and futures accounts or vice versa');
+        let fromAccountId = this.convertTypeToAccount (fromAccount);
+        let toAccountId = this.convertTypeToAccount (toAccount);
+        const toCross = toAccountId === 'cross';
+        const fromCross = fromAccountId === 'cross';
+        const toIsolated = this.inArray (toAccountId, this.ids);
+        const fromIsolated = this.inArray (fromAccountId, this.ids);
+        const fromSpot = fromAccountId === 'pro';
+        const toSpot = toAccountId === 'pro';
+        if (fromSpot && toSpot) {
+            throw new BadRequest (this.id + ' transfer () cannot make a transfer between ' + fromAccount + ' and ' + toAccount);
         }
-        const fromOrToFuturesAccount = (fromIdFuture === 'futures') || (toIdFuture === 'futures');
+        const fromOrToFuturesAccount = (fromAccountId === 'futures') || (toAccountId === 'futures');
         if (fromOrToFuturesAccount) {
-            let type = fromIdFuture + '-to-' + toIdFuture;
+            let type = fromAccountId + '-to-' + toAccountId;
             type = this.safeString (params, 'type', type);
             request['type'] = type;
             method = 'spotPrivatePostV1FuturesTransfer';
+        } else if (fromSpot && toCross) {
+            method = 'privatePostCrossMarginTransferIn';
+        } else if (fromCross && toSpot) {
+            method = 'privatePostCrossMarginTransferOut';
+        } else if (fromSpot && toIsolated) {
+            request['symbol'] = toAccountId;
+            method = 'privatePostDwTransferInMargin';
+        } else if (fromIsolated && toSpot) {
+            request['symbol'] = fromAccountId;
+            method = 'privatePostDwTransferOutMargin';
         } else {
             method = 'v2PrivatePostAccountTransfer';
             if (subType === 'linear') {
-                if ((fromAccount === 'swap') || (fromAccount === 'linear-swap')) {
-                    fromAccount = 'linear-swap';
+                if ((fromAccountId === 'swap') || (fromAccount === 'linear-swap')) {
+                    fromAccountId = 'linear-swap';
                 } else {
-                    toAccount = 'linear-swap';
+                    toAccountId = 'linear-swap';
                 }
                 // check if cross-margin or isolated
                 let symbol = this.safeString (params, 'symbol');
@@ -5169,23 +5188,20 @@ export default class huobi extends Exchange {
                     request['margin-account'] = 'USDT'; // cross-margin
                 }
             }
-            request['from'] = fromAccount;
-            request['to'] = toAccount;
+            request['from'] = fromSpot ? 'spot' : fromAccountId;
+            request['to'] = toSpot ? 'spot' : toAccountId;
         }
         const response = await this[method] (this.extend (request, params));
         //
-        //     {
-        //         "data": 12345,
-        //         "status": "ok"
-        //     }
+        //    {
+        //        code: '200',
+        //        data: '660150061',
+        //        message: 'Succeed',
+        //        success: true,
+        //        'print-log': true
+        //    }
         //
-        const transfer = this.parseTransfer (response, currency);
-        return this.extend (transfer, {
-            'amount': amount,
-            'currency': code,
-            'fromAccount': fromAccount,
-            'toAccount': toAccount,
-        });
+        return this.parseTransfer (response, currency);
     }
 
     async fetchBorrowRatesPerSymbol (params = {}) {

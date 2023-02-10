@@ -769,6 +769,8 @@ class woo extends Exchange {
                         } else {
                             $request['order_amount'] = $this->cost_to_precision($symbol, $cost);
                         }
+                    } else {
+                        $request['order_amount'] = $this->cost_to_precision($symbol, $amount);
                     }
                 } else {
                     $request['order_quantity'] = $this->amount_to_precision($symbol, $amount);
