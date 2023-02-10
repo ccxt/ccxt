@@ -6,7 +6,6 @@ const Precise = require ('../base/Precise');
 const coinexRest = require ('../coinex.js');
 const { AuthenticationError, BadRequest, ExchangeNotAvailable, NotSupported, RequestTimeout, ExchangeError } = require ('../base/errors');
 const { ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById } = require ('./base/Cache');
-const { isRedirect } = require('../static_dependencies/node-fetch');
 
 //  ---------------------------------------------------------------------------
 
@@ -393,7 +392,7 @@ module.exports = class coinex extends coinexRest {
          * @description watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for all markets of a specific list
          * @param {[string]} symbols unified symbol of the market to fetch the ticker for
          * @param {object} params extra parameters specific to the coinex api endpoint
-         * @returns {[object]} an array of [ticker structure]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
+         * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
          */
         await this.loadMarkets ();
         symbols = this.marketSymbols (symbols);
@@ -408,13 +407,14 @@ module.exports = class coinex extends coinexRest {
         };
         const request = this.deepExtend (subscribe, params);
         const tickers = await this.watch (url, messageHash, request, messageHash);
-        const result = this.filterByArray (tickers, 'symbol', symbols, false);
-        const resultLength = result.length;
+        const result = this.filterByArray (tickers, 'symbol', symbols);
+        const keys = Object.keys (result);
+        const resultLength = keys.length;
         if (resultLength > 0) {
             if (this.newUpdates) {
                 return result;
             }
-            return this.filterByArray (this.tickers, 'symbol', symbols, false);
+            return this.filterByArray (this.tickers, 'symbol', symbols);
         }
         return await this.watchTickers (symbols, params);
     }
