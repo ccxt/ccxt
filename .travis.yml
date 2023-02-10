@@ -27,7 +27,6 @@ before_install:
 - php --version
 - composer install
 script:
-- auto-changelog # DEBUG ONLY don't create changelog since the beginning
 - npm run force-build
 - npm run test-base
 - npm run test-base-ws
@@ -40,6 +39,7 @@ script:
 - if [ "$TRAVIS_PULL_REQUEST" = "false" ] && [ "$TRAVIS_BRANCH" = "master" ]; then
     npm config set git-tag-version=false && NPM_VERSION=$(npm version patch);
     npm run vss && npm run copy-python-files;
+    auto-changelog # DEBUG ONLY don't create changelog since the beginning
     env COMMIT_MESSAGE=${NPM_VERSION:1} GITHUB_TOKEN=${GITHUB_TOKEN} ./build/push.sh;
     cd python && env PYPI_TOKEN=${PYPI_TOKEN} ./deploy.sh && cd ..;
   fi
