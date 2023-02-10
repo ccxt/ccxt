@@ -655,8 +655,8 @@ module.exports = class exmo extends Exchange {
                     const provider = providers[j];
                     const type = this.safeString (provider, 'type');
                     const minValue = this.safeNumber (provider, 'min');
-                    let maxValue = this.safeNumber (provider, 'max');
-                    if (maxValue === 0.0) {
+                    let maxValue = this.safeString (provider, 'max');
+                    if (Precise.stringEq (maxValue, '0.0')) {
                         maxValue = undefined;
                     }
                     const activeProvider = this.safeValue (provider, 'enabled');
@@ -677,7 +677,7 @@ module.exports = class exmo extends Exchange {
                         active = true;
                         if ((limits[type]['min'] === undefined) || (minValue < limits[type]['min'])) {
                             limits[type]['min'] = minValue;
-                            limits[type]['max'] = maxValue;
+                            limits[type]['max'] = this.parseNumber (maxValue);
                             if (type === 'withdraw') {
                                 const commissionDesc = this.safeString (provider, 'commission_desc');
                                 fee = this.parseFixedFloatValue (commissionDesc);
