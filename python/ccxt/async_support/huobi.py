@@ -1418,7 +1418,7 @@ class huobi(Exchange):
             value = self.safe_value(types, type)
             if value is True:
                 promises.append(self.fetch_markets_by_type_and_sub_type(type, None, params))
-            else:
+            elif value is not False:
                 subKeys = list(value.keys())
                 for j in range(0, len(subKeys)):
                     subType = subKeys[j]
