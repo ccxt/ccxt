@@ -382,19 +382,7 @@ module.exports = class coinex extends coinexRest {
          * @param {object} params extra parameters specific to the coinex api endpoint
          * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
          */
-        await this.loadMarkets ();
-        const market = this.market (symbol);
-        let type = undefined;
-        [ type, params ] = this.handleMarketTypeAndParams ('watchTicker', market, params);
-        const url = this.urls['api']['ws'][type];
-        const messageHash = 'ticker:' + symbol;
-        const subscribe = {
-            'method': 'state.subscribe',
-            'id': this.requestId (),
-            'params': [],
-        };
-        const request = this.deepExtend (subscribe, params);
-        return await this.watch (url, messageHash, request, 'tickers');
+        return await this.watchTickers ([ symbol ], params);
     }
 
     async watchTickers (symbols = undefined, params = {}) {
@@ -408,6 +396,7 @@ module.exports = class coinex extends coinexRest {
          * @returns {[object]} an array of [ticker structure]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
          */
         await this.loadMarkets ();
+        symbols = this.marketSymbols (symbols);
         let type = undefined;
         [ type, params ] = this.handleMarketTypeAndParams ('watchTickers', undefined, params);
         const url = this.urls['api']['ws'][type];
