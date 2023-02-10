@@ -739,8 +739,10 @@ class woo(Exchange):
                             request['order_amount'] = self.cost_to_precision(symbol, orderAmount)
                     else:
                         request['order_amount'] = self.cost_to_precision(symbol, cost)
+                else:
+                    request['order_quantity'] = self.amount_to_precision(symbol, amount)
             else:
-                request['order_quantity'] = self.amount_to_precision(symbol, amount)
+                request['order_quantity'] = self.amount_to_precision(symbol, amount)                    
         else:
             request['order_quantity'] = self.amount_to_precision(symbol, amount)
         clientOrderId = self.safe_string_2(params, 'clOrdID', 'clientOrderId')
