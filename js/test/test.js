@@ -307,7 +307,7 @@ function getExchangeCode (exchange, codes = undefined) {
 
 //-----------------------------------------------------------------------------
 
-function getSymbolsFromExchange(exchange, spot=true) {
+function getSymbolsFromExchange(exchange, spot = true) {
     let res = [];
     let markets = exchange.markets;
     const keys = Object.keys(markets);
@@ -412,7 +412,9 @@ function getValidSymbol (exchange, spot = true) {
 
     if (symbol === undefined) {
         const first = exchangeMarkets[0];
-        symbol = first['symbol'];
+        if (first !== undefined) {
+            symbol = first['symbol'];
+        }
     }
 
     return symbol;
