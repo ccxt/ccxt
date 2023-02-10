@@ -314,7 +314,9 @@ function getSymbolsFromExchange(exchange, spot = true) {
     for (let i = 0; i < keys.length; i++) {
         const key = keys[i];
         const market = markets[key];
-        if (market['spot'] === spot) {
+        if (spot && market['spot']) {
+            res.push(key);
+        } else if (!spot && !market['spot']) {
             res.push(key);
         }
     }
@@ -425,7 +427,7 @@ function getValidSymbol (exchange, spot = true) {
 async function testExchange (exchange, providedSymbol = undefined) {
     let spotSymbol = undefined;
     let swapSymbol = undefined;
-    if (providedSymbol) {
+    if (providedSymbol !== undefined) {
         const market = exchange.market(providedSymbol);
         if (market['spot']) {
             spotSymbol = providedSymbol;
@@ -433,7 +435,7 @@ async function testExchange (exchange, providedSymbol = undefined) {
             swapSymbol = providedSymbol;
         }
     } else {
-        spotSymbol = getValidSymbol (exchange);
+        spotSymbol = getValidSymbol (exchange, true);
         swapSymbol = getValidSymbol (exchange, false);
     }
     if (spotSymbol !== undefined) {
