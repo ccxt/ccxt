@@ -42,5 +42,6 @@
     "deribit":       { "skipWs": true },
     "tidex":         { "skip": true },
     "yobit":         { "skip": true },
-    "coinbase":      { "skip": true, "//": "all endpoints are private" }
+    "coinbase":      { "skip": true, "//": "all endpoints are private" },
+    "buda":          { "skip": true, "//": "exchange unavailable" }
 }
