@@ -646,6 +646,7 @@ module.exports = class wazirx extends wazirxRest {
             'side': this.safeString (order, 'o'),
             'price': this.safeString (order, 'p'),
             'stopPrice': undefined,
+            'triggerPrice': undefined,
             'amount': this.safeString (order, 'V'),
             'filled': undefined,
             'remaining': this.safeString (order, 'q'),
@@ -780,10 +781,10 @@ module.exports = class wazirx extends wazirxRest {
         const messageHash = 'authenticated';
         const now = this.milliseconds ();
         let subscription = this.safeValue (client.subscriptions, messageHash);
-        const expires = this.safeNumber (subscription, 'expires');
+        const expires = this.safeInteger (subscription, 'expires');
         if (subscription === undefined || now > expires) {
             subscription = await this.privatePostCreateAuthToken ();
-            subscription['expires'] = now + this.safeNumber (subscription, 'timeout_duration') * 1000;
+            subscription['expires'] = now + this.safeInteger (subscription, 'timeout_duration') * 1000;
             //
             //     {
             //         "auth_key": "Xx***dM",

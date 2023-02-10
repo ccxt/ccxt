@@ -59,7 +59,7 @@ class mercado extends Exchange {
                 'fetchPositionsRisk' => false,
                 'fetchPremiumIndexOHLCV' => false,
                 'fetchTicker' => true,
-                'fetchTickers' => null,
+                'fetchTickers' => false,
                 'fetchTrades' => true,
                 'fetchTradingFee' => false,
                 'fetchTradingFees' => false,
@@ -89,7 +89,6 @@ class mercado extends Exchange {
                 'doc' => array(
                     'https://www.mercadobitcoin.com.br/api-doc',
                     'https://www.mercadobitcoin.com.br/trade-api',
-                    'https://api.mercadobitcoin.net/api/v4/docs/',
                 ),
             ),
             'api' => array(
@@ -187,7 +186,6 @@ class mercado extends Exchange {
             $base = $this->safe_currency_code($baseId);
             $quote = $this->safe_currency_code($quoteId);
             $id = $quote . $base;
-            $priceLimit = '1e-5';
             $result[] = array(
                 'id' => $id,
                 'symbol' => $base . '/' . $quote,
@@ -213,8 +211,8 @@ class mercado extends Exchange {
                 'strike' => null,
                 'optionType' => null,
                 'precision' => array(
-                    'amount' => $this->parse_number('0.00000001'),
-                    'price' => $this->parse_number('0.00001'),
+                    'amount' => $this->parse_number('1e-8'),
+                    'price' => $this->parse_number('1e-5'),
                 ),
                 'limits' => array(
                     'leverage' => array(
@@ -226,7 +224,7 @@ class mercado extends Exchange {
                         'max' => null,
                     ),
                     'price' => array(
-                        'min' => $this->parse_number($priceLimit),
+                        'min' => $this->parse_number('1e-5'),
                         'max' => null,
                     ),
                     'cost' => array(
@@ -574,6 +572,7 @@ class mercado extends Exchange {
             'side' => $side,
             'price' => $price,
             'stopPrice' => null,
+            'triggerPrice' => null,
             'cost' => null,
             'average' => $average,
             'amount' => $amount,
@@ -733,7 +732,7 @@ class mercado extends Exchange {
         $this->load_markets();
         $market = $this->market($symbol);
         $request = array(
-            'resolution' => $this->timeframes[$timeframe],
+            'resolution' => $this->safe_string($this->timeframes, $timeframe, $timeframe),
             'symbol' => $market['base'] . '-' . $market['quote'], // exceptional endpoint, that needs custom $symbol syntax
         );
         if ($limit === null) {

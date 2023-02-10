@@ -220,7 +220,7 @@ module.exports = class okx extends okxRest {
          */
         await this.loadMarkets ();
         symbol = this.symbol (symbol);
-        const interval = this.timeframes[timeframe];
+        const interval = this.safeString (this.timeframes, timeframe, timeframe);
         const name = 'candle' + interval;
         const ohlcv = await this.subscribe ('public', name, symbol, params);
         if (this.newUpdates) {
@@ -488,6 +488,7 @@ module.exports = class okx extends okxRest {
                 const update = data[i];
                 const orderbook = this.orderBook ({}, limit);
                 this.orderbooks[symbol] = orderbook;
+                orderbook['symbol'] = symbol;
                 this.handleOrderBookMessage (client, update, orderbook, messageHash);
                 client.resolve (orderbook, messageHash);
             }
@@ -517,21 +518,21 @@ module.exports = class okx extends okxRest {
         return message;
     }
 
-    async authenticate (params = {}) {
+    authenticate (params = {}) {
         this.checkRequiredCredentials ();
         const url = this.urls['api']['ws']['private'];
-        const messageHash = 'login';
+        const messageHash = 'authenticated';
         const client = this.client (url);
         let future = this.safeValue (client.subscriptions, messageHash);
         if (future === undefined) {
-            future = client.future ('authenticated');
             const timestamp = this.seconds ().toString ();
             const method = 'GET';
             const path = '/users/self/verify';
             const auth = timestamp + method + path;
             const signature = this.hmac (this.encode (auth), this.encode (this.secret), 'sha256', 'base64');
+            const operation = 'login';
             const request = {
-                'op': messageHash,
+                'op': operation,
                 'args': [
                     {
                         'apiKey': this.apiKey,
@@ -541,9 +542,11 @@ module.exports = class okx extends okxRest {
                     },
                 ],
             };
-            this.spawn (this.watch, url, messageHash, request, messageHash, future);
+            const message = this.extend (request, params);
+            future = this.watch (url, messageHash, message);
+            client.subscriptions[messageHash] = future;
         }
-        return await future;
+        return future;
     }
 
     async watchBalance (params = {}) {
@@ -763,7 +766,6 @@ module.exports = class okx extends okxRest {
         //     { event: 'login', success: true }
         //
         client.resolve (message, 'authenticated');
-        return message;
     }
 
     ping (client) {
@@ -782,9 +784,9 @@ module.exports = class okx extends okxRest {
         //     { event: 'error', msg: 'Illegal request: {"op":"subscribe","args":["spot/ticker:BTC-USDT"]}', code: '60012' }
         //     { event: 'error', msg: "channel:ticker,instId:BTC-USDT doesn't exist", code: '60018' }
         //
-        const errorCode = this.safeString (message, 'errorCode');
+        const errorCode = this.safeInteger (message, 'code');
         try {
-            if (errorCode !== undefined) {
+            if (errorCode) {
                 const feedback = this.id + ' ' + this.json (message);
                 this.throwExactlyMatchedException (this.exceptions['exact'], errorCode, feedback);
                 const messageString = this.safeValue (message, 'message');
@@ -794,10 +796,10 @@ module.exports = class okx extends okxRest {
             }
         } catch (e) {
             if (e instanceof AuthenticationError) {
-                client.reject (e, 'authenticated');
-                const method = 'login';
-                if (method in client.subscriptions) {
-                    delete client.subscriptions[method];
+                const messageHash = 'authenticated';
+                client.reject (e, messageHash);
+                if (messageHash in client.subscriptions) {
+                    delete client.subscriptions[messageHash];
                 }
                 return false;
             }

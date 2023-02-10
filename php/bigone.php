@@ -687,7 +687,7 @@ class bigone extends Exchange {
         }
         $request = array(
             'asset_pair_name' => $market['id'],
-            'period' => $this->timeframes[$timeframe],
+            'period' => $this->safe_string($this->timeframes, $timeframe, $timeframe),
             'limit' => $limit,
         );
         if ($since !== null) {
@@ -812,6 +812,7 @@ class bigone extends Exchange {
             'side' => $side,
             'price' => $price,
             'stopPrice' => null,
+            'triggerPrice' => null,
             'amount' => $amount,
             'cost' => null,
             'average' => $average,

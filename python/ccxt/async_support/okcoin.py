@@ -1148,7 +1148,7 @@ class okcoin(Exchange):
                     'deposit': depositEnabled,
                     'withdraw': withdrawEnabled,
                     'fee': None,  # todo: redesign
-                    'precision': self.parse_number('0.00000001'),
+                    'precision': self.parse_number('1e-8'),  # todo: fix
                     'limits': {
                         'amount': {'min': None, 'max': None},
                         'withdraw': {
@@ -1529,7 +1529,7 @@ class okcoin(Exchange):
         duration = self.parse_timeframe(timeframe)
         request = {
             'instrument_id': market['id'],
-            'granularity': self.timeframes[timeframe],
+            'granularity': self.safe_string(self.timeframes, timeframe, timeframe),
         }
         options = self.safe_value(self.options, 'fetchOHLCV', {})
         defaultType = self.safe_string(options, 'type', 'Candles')  # Candles or HistoryCandles
@@ -2181,6 +2181,7 @@ class okcoin(Exchange):
             'side': side,
             'price': price,
             'stopPrice': stopPrice,
+            'triggerPrice': stopPrice,
             'average': average,
             'cost': cost,
             'amount': amount,

@@ -36,6 +36,7 @@ class bitrue(Exchange):
             'rateLimit': 1000,
             'certified': False,
             'version': 'v1',
+            'pro': True,
             # new metainfo interface
             'has': {
                 'CORS': None,
@@ -864,7 +865,7 @@ class bitrue(Exchange):
         market = self.market(symbol)
         request = {
             'symbol': market['id'],
-            'scale': self.timeframes[timeframe],
+            'scale': self.safe_string(self.timeframes, timeframe, timeframe),
         }
         if limit is not None:
             request['limit'] = limit
@@ -1213,6 +1214,7 @@ class bitrue(Exchange):
             'side': side,
             'price': price,
             'stopPrice': stopPrice,
+            'triggerPrice': stopPrice,
             'amount': amount,
             'cost': cost,
             'average': average,

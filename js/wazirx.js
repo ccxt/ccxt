@@ -283,7 +283,7 @@ module.exports = class wazirx extends Exchange {
         const market = this.market (symbol);
         const request = {
             'symbol': market['id'],
-            'interval': this.timeframes[timeframe],
+            'interval': this.safeString (this.timeframes, timeframe, timeframe),
         };
         if (limit !== undefined) {
             request['limit'] = limit;
@@ -900,7 +900,7 @@ module.exports = class wazirx extends Exchange {
             data = this.keysort (data);
             const signature = this.hmac (this.encode (this.urlencode (data)), this.encode (this.secret), 'sha256');
             url += '?' + this.urlencode (data);
-            url += '&signature=' + signature;
+            url += '&' + 'signature=' + signature;
             headers = {
                 'Content-Type': 'application/x-www-form-urlencoded',
                 'X-Api-Key': this.apiKey,

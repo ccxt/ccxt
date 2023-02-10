@@ -1156,7 +1156,7 @@ module.exports = class okcoin extends Exchange {
                     'deposit': depositEnabled,
                     'withdraw': withdrawEnabled,
                     'fee': undefined, // todo: redesign
-                    'precision': this.parseNumber ('0.00000001'),
+                    'precision': this.parseNumber ('1e-8'), // todo: fix
                     'limits': {
                         'amount': { 'min': undefined, 'max': undefined },
                         'withdraw': {
@@ -1566,7 +1566,7 @@ module.exports = class okcoin extends Exchange {
         const duration = this.parseTimeframe (timeframe);
         const request = {
             'instrument_id': market['id'],
-            'granularity': this.timeframes[timeframe],
+            'granularity': this.safeString (this.timeframes, timeframe, timeframe),
         };
         const options = this.safeValue (this.options, 'fetchOHLCV', {});
         const defaultType = this.safeString (options, 'type', 'Candles'); // Candles or HistoryCandles
@@ -2272,6 +2272,7 @@ module.exports = class okcoin extends Exchange {
             'side': side,
             'price': price,
             'stopPrice': stopPrice,
+            'triggerPrice': stopPrice,
             'average': average,
             'cost': cost,
             'amount': amount,

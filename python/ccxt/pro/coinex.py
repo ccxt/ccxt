@@ -39,6 +39,22 @@ class coinex(Exchange, ccxt.async_support.coinex):
                 },
             },
             'options': {
+                'watchOHLCVWarning': True,
+                'timeframes': {
+                    '1m': 60,
+                    '3m': 180,
+                    '5m': 300,
+                    '15m': 900,
+                    '30m': 1800,
+                    '1h': 3600,
+                    '2h': 7200,
+                    '4h': 14400,
+                    '6h': 21600,
+                    '12h': 43200,
+                    '1d': 86400,
+                    '3d': 259200,
+                    '1w': 604800,
+                },
                 'account': 'spot',
                 'watchOrderBook': {
                     'limits': [5, 10, 20, 50],
@@ -58,21 +74,6 @@ class coinex(Exchange, ccxt.async_support.coinex):
                     '5': RequestTimeout,  # Service timeout
                     '6': AuthenticationError,  # Permission denied
                 },
-            },
-            'timeframes': {
-                '1m': 60,
-                '3m': 180,
-                '5m': 300,
-                '15m': 900,
-                '30m': 1800,
-                '1h': 3600,
-                '2h': 7200,
-                '4h': 14400,
-                '6h': 21600,
-                '12h': 43200,
-                '1d': 86400,
-                '3d': 259200,
-                '1w': 604800,
             },
         })
 
@@ -131,13 +132,14 @@ class coinex(Exchange, ccxt.async_support.coinex):
         #         }]
         #     }
         #
+        defaultType = self.safe_string(self.options, 'defaultType')
         params = self.safe_value(message, 'params', [])
         first = self.safe_value(params, 0, {})
         keys = list(first.keys())
         marketId = self.safe_string(keys, 0)
-        symbol = self.safe_symbol(marketId)
+        symbol = self.safe_symbol(marketId, None, None, defaultType)
         ticker = self.safe_value(first, marketId, {})
-        market = self.safe_market(marketId)
+        market = self.safe_market(marketId, None, None, defaultType)
         parsedTicker = self.parse_ws_ticker(ticker, market)
         messageHash = 'ticker:' + symbol
         self.tickers[symbol] = parsedTicker
@@ -183,8 +185,9 @@ class coinex(Exchange, ccxt.async_support.coinex):
         #         buy_total: '25.7814'
         #     }
         #
+        defaultType = self.safe_string(self.options, 'defaultType')
         return self.safe_ticker({
-            'symbol': self.safe_symbol(None, market),
+            'symbol': self.safe_symbol(None, market, None, defaultType),
             'timestamp': None,
             'datetime': None,
             'high': self.safe_string(ticker, 'high'),
@@ -280,8 +283,9 @@ class coinex(Exchange, ccxt.async_support.coinex):
         params = self.safe_value(message, 'params', [])
         marketId = self.safe_string(params, 0)
         trades = self.safe_value(params, 1, [])
-        market = self.safe_market(marketId)
-        symbol = self.safe_symbol(marketId)
+        defaultType = self.safe_string(self.options, 'defaultType')
+        market = self.safe_market(marketId, None, None, defaultType)
+        symbol = market['symbol']
         messageHash = 'trades:' + symbol
         stored = self.safe_value(self.trades, symbol)
         if stored is None:
@@ -306,12 +310,13 @@ class coinex(Exchange, ccxt.async_support.coinex):
         #     }
         #
         timestamp = self.safe_timestamp(trade, 'time')
+        defaultType = self.safe_string(self.options, 'defaultType')
         return self.safe_trade({
             'id': self.safe_string(trade, 'id'),
             'info': trade,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
-            'symbol': self.safe_symbol(None, market),
+            'symbol': self.safe_symbol(None, market, None, defaultType),
             'order': None,
             'type': None,
             'side': self.safe_string(trade, 'type'),
@@ -343,7 +348,8 @@ class coinex(Exchange, ccxt.async_support.coinex):
         candles = self.safe_value(message, 'params', [])
         messageHash = 'ohlcv'
         ohlcvs = self.parse_ohlcvs(candles)
-        if self.ohlcvs == 0:
+        keysLength = self.ohlcvs
+        if keysLength == 0:
             limit = self.safe_integer(self.options, 'OHLCVLimit', 1000)
             self.ohlcvs = ArrayCacheByTimestamp(limit)
         for i in range(0, len(ohlcvs)):
@@ -456,22 +462,33 @@ class coinex(Exchange, ccxt.async_support.coinex):
         await self.load_markets()
         market = self.market(symbol)
         symbol = market['symbol']
-        messageHash = 'ohlcv'
         type = None
         type, params = self.handle_market_type_and_params('watchOHLCV', market, params)
         if type != 'swap':
             raise NotSupported(self.id + ' watchOHLCV() is only supported for swap markets')
         url = self.urls['api']['ws'][type]
+        messageHash = 'ohlcv'
+        watchOHLCVWarning = self.safe_value(self.options, 'watchOHLCVWarning', True)
+        client = self.safe_value(self.clients, url, {})
+        existingSubscription = self.safe_value(client.subscriptions, messageHash)
+        # due to nature of coinex response can only watch one symbol at a time
+        if watchOHLCVWarning and existingSubscription is not None and (existingSubscription['symbol'] != symbol or existingSubscription['timeframe'] != timeframe):
+            raise ExchangeError(self.id + ' watchOHLCV() can only watch one symbol and timeframe at a time. To supress self warning set watchOHLCVWarning to False in options')
+        timeframes = self.safe_value(self.options, 'timeframes', {})
         subscribe = {
             'method': 'kline.subscribe',
             'id': self.request_id(),
             'params': [
                 market['id'],
-                self.safe_integer(self.timeframes, timeframe, timeframe),
+                self.safe_integer(timeframes, timeframe, timeframe),
             ],
         }
+        subscription = {
+            'symbol': symbol,
+            'timeframe': timeframe,
+        }
         request = self.deep_extend(subscribe, params)
-        ohlcvs = await self.watch(url, messageHash, request, messageHash)
+        ohlcvs = await self.watch(url, messageHash, request, messageHash, subscription)
         if self.newUpdates:
             limit = ohlcvs.getLimit(symbol, limit)
         return self.filter_by_since_limit(ohlcvs, since, limit, 0, True)
@@ -512,7 +529,8 @@ class coinex(Exchange, ccxt.async_support.coinex):
         fullOrderBook = self.safe_value(params, 0)
         orderBook = self.safe_value(params, 1)
         marketId = self.safe_string(params, 2)
-        market = self.safe_market(marketId)
+        defaultType = self.safe_string(self.options, 'defaultType')
+        market = self.safe_market(marketId, None, None, defaultType)
         symbol = market['symbol']
         name = 'orderbook'
         messageHash = name + ':' + symbol
@@ -575,9 +593,7 @@ class coinex(Exchange, ccxt.async_support.coinex):
             message['params'] = [market['id']]
             messageHash += ':' + symbol
         else:
-            # deprecated usage of markets_by_id...
-            markets = list(self.markets_by_id.keys())
-            message['params'] = markets
+            message['params'] = self.ids
         url = self.urls['api']['ws'][type]
         request = self.deep_extend(message, query)
         orders = await self.watch(url, messageHash, request, messageHash, request)
@@ -797,7 +813,8 @@ class coinex(Exchange, ccxt.async_support.coinex):
         remaining = self.safe_string(order, 'left')
         amount = self.safe_string(order, 'amount')
         status = self.safe_string(order, 'status')
-        market = self.safe_market(marketId)
+        defaultType = self.safe_string(self.options, 'defaultType')
+        market = self.safe_market(marketId, None, None, defaultType)
         cost = self.safe_string(order, 'deal_money')
         filled = self.safe_string(order, 'deal_stock')
         average = None
@@ -828,6 +845,7 @@ class coinex(Exchange, ccxt.async_support.coinex):
             'side': side,
             'price': self.safe_string(order, 'price'),
             'stopPrice': self.safe_string(order, 'stop_price'),
+            'triggerPrice': self.safe_string(order, 'stop_price'),
             'amount': amount,
             'filled': filled,
             'remaining': remaining,

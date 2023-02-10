@@ -17,6 +17,7 @@ async def test_watch_trades(exchange, symbol):
         'luno',  # requires authentication for watch_trades
         'ripio',
         'coinflex',  # too illiquid
+        'woo'
     ]
 
     if exchange.id in skipped_exchanges:

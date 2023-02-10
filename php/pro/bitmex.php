@@ -29,10 +29,10 @@ class bitmex extends \ccxt\async\bitmex {
             ),
             'urls' => array(
                 'test' => array(
-                    'ws' => 'wss://testnet.bitmex.com/realtime',
+                    'ws' => 'wss://ws.testnet.bitmex.com/realtime',
                 ),
                 'api' => array(
-                    'ws' => 'wss://www.bitmex.com/realtime',
+                    'ws' => 'wss://ws.bitmex.com/realtime',
                 ),
             ),
             'versions' => array(
@@ -996,7 +996,7 @@ class bitmex extends \ccxt\async\bitmex {
             Async\await($this->load_markets());
             $market = $this->market($symbol);
             $symbol = $market['symbol'];
-            $table = 'tradeBin' . $this->timeframes[$timeframe];
+            $table = 'tradeBin' . $this->safe_string($this->timeframes, $timeframe, $timeframe);
             $messageHash = $table . ':' . $market['id'];
             $url = $this->urls['api']['ws'];
             $request = array(

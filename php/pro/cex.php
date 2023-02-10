@@ -291,7 +291,7 @@ class cex extends \ccxt\async\cex {
             $request = $this->deep_extend($message, $params);
             $ticker = Async\await($this->watch($url, $messageHash, $request, $messageHash));
             $tickerSymbol = $ticker['symbol'];
-            if ($symbols !== null && !$this->in_array($symbols, $tickerSymbol)) {
+            if ($symbols !== null && !$this->in_array($tickerSymbol, $symbols)) {
                 return Async\await($this->watch_tickers($symbols, $params));
             }
             if ($this->newUpdates) {
@@ -678,6 +678,10 @@ class cex extends \ccxt\async\cex {
         $symbol = $base . '/' . $quote;
         $market = $this->safe_market($symbol);
         $remains = $this->currency_from_precision($base, $remains);
+        if ($this->orders === null) {
+            $limit = $this->safe_integer($this->options, 'ordersLimit', 1000);
+            $this->orders = new ArrayCacheBySymbolById ($limit);
+        }
         $ordersBySymbol = $this->safe_value($this->orders['hashmap'], $symbol, array());
         $order = $this->safe_value($ordersBySymbol, $orderId);
         if ($order === null) {
@@ -794,6 +798,7 @@ class cex extends \ccxt\async\cex {
             'side' => $this->safe_string($order, 'type'),
             'price' => $this->safe_number($order, 'price'),
             'stopPrice' => null,
+            'triggerPrice' => null,
             'average' => null,
             'cost' => null,
             'amount' => $amount,
@@ -859,7 +864,10 @@ class cex extends \ccxt\async\cex {
         }
         $this->orders = $myOrders;
         $messageHash = 'orders:' . $symbol;
-        $client->resolve ($myOrders, $messageHash);
+        $ordersLength = count($myOrders);
+        if ($ordersLength > 0) {
+            $client->resolve ($myOrders, $messageHash);
+        }
     }
 
     public function watch_order_book($symbol, $limit = null, $params = array ()) {
@@ -1133,7 +1141,8 @@ class cex extends \ccxt\async\cex {
             ];
             $stored->append ($ohlcv);
         }
-        if (strlen($data) > 0) {
+        $dataLength = count($data);
+        if ($dataLength > 0) {
             $client->resolve ($stored, $messageHash);
         }
     }

@@ -449,6 +449,7 @@ module.exports = class zonda extends Exchange {
             'side': this.safeStringLower (order, 'offerType'),
             'price': this.safeString (order, 'rate'),
             'stopPrice': undefined,
+            'triggerPrice': undefined,
             'amount': amount,
             'cost': undefined,
             'filled': undefined,
@@ -1007,7 +1008,7 @@ module.exports = class zonda extends Exchange {
             'referenceAccount': undefined,
             'type': this.parseLedgerEntryType (this.safeString (item, 'type')),
             'currency': this.safeCurrencyCode (currencyId),
-            'amount': amount,
+            'amount': this.parseNumber (amount),
             'before': this.safeNumber (fundsBefore, 'total'),
             'after': this.safeNumber (fundsAfter, 'total'),
             'status': 'ok',
@@ -1079,7 +1080,7 @@ module.exports = class zonda extends Exchange {
         const tradingSymbol = market['baseId'] + '-' + market['quoteId'];
         const request = {
             'symbol': tradingSymbol,
-            'resolution': this.timeframes[timeframe],
+            'resolution': this.safeString (this.timeframes, timeframe, timeframe),
             // 'from': 1574709092000, // unix timestamp in milliseconds, required
             // 'to': 1574709092000, // unix timestamp in milliseconds, required
         };

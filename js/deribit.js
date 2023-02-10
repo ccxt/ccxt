@@ -63,7 +63,7 @@ module.exports = class deribit extends Exchange {
                 'fetchOpenOrders': true,
                 'fetchOrder': true,
                 'fetchOrderBook': true,
-                'fetchOrders': undefined,
+                'fetchOrders': false,
                 'fetchOrderTrades': true,
                 'fetchPosition': true,
                 'fetchPositionMode': false,
@@ -76,7 +76,7 @@ module.exports = class deribit extends Exchange {
                 'fetchTrades': true,
                 'fetchTradingFee': false,
                 'fetchTradingFees': true,
-                'fetchTransactions': undefined,
+                'fetchTransactions': false,
                 'fetchTransfer': false,
                 'fetchTransfers': true,
                 'fetchWithdrawal': false,
@@ -1087,7 +1087,7 @@ module.exports = class deribit extends Exchange {
         const market = this.market (symbol);
         const request = {
             'instrument_name': market['id'],
-            'resolution': this.timeframes[timeframe],
+            'resolution': this.safeString (this.timeframes, timeframe, timeframe),
         };
         const duration = this.parseTimeframe (timeframe);
         const now = this.milliseconds ();
@@ -1179,6 +1179,7 @@ module.exports = class deribit extends Exchange {
         const timestamp = this.safeInteger (trade, 'timestamp');
         const side = this.safeString (trade, 'direction');
         const priceString = this.safeString (trade, 'price');
+        market = this.safeMarket (marketId, market);
         // Amount for inverse perpetual and futures is in USD which in ccxt is the cost
         // For options amount and linear is in corresponding cryptocurrency contracts, e.g., BTC or ETH
         const amount = this.safeString (trade, 'amount');
@@ -1572,6 +1573,7 @@ module.exports = class deribit extends Exchange {
             'side': side,
             'price': priceString,
             'stopPrice': stopPrice,
+            'triggerPrice': stopPrice,
             'amount': amount,
             'cost': cost,
             'average': averageString,
@@ -1647,6 +1649,8 @@ module.exports = class deribit extends Exchange {
         const market = this.market (symbol);
         if (market['inverse']) {
             amount = this.amountToPrecision (symbol, amount);
+        } else if (market['settle'] === 'USDC') {
+            amount = this.amountToPrecision (symbol, amount);
         } else {
             amount = this.currencyToPrecision (symbol, amount);
         }
@@ -1694,7 +1698,7 @@ module.exports = class deribit extends Exchange {
             request['type'] = 'market';
         }
         if (isStopOrder) {
-            const triggerPrice = stopLossPrice !== undefined ? stopLossPrice : takeProfitPrice;
+            const triggerPrice = (stopLossPrice !== undefined) ? stopLossPrice : takeProfitPrice;
             request['trigger_price'] = this.priceToPrecision (symbol, triggerPrice);
             request['trigger'] = 'last_price'; // required
             if (isStopLossOrder) {

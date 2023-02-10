@@ -57,6 +57,8 @@ module.exports = class kucoin extends Exchange {
                 'fetchDepositAddress': true,
                 'fetchDepositAddressesByNetwork': true,
                 'fetchDeposits': true,
+                'fetchDepositWithdrawFee': true,
+                'fetchDepositWithdrawFees': false,
                 'fetchFundingHistory': false,
                 'fetchFundingRate': false,
                 'fetchFundingRateHistory': false,
@@ -329,6 +331,7 @@ module.exports = class kucoin extends Exchange {
                     '210014': InvalidOrder, // {"code":"210014","msg":"Exceeds the max. borrowing amount, the remaining amount you can borrow: 0USDT"}
                     '210021': InsufficientFunds, // {"code":"210021","msg":"Balance not enough"}
                     '230003': InsufficientFunds, // {"code":"230003","msg":"Balance insufficient!"}
+                    '260000': InvalidAddress, // {"code":"260000","msg":"Deposit address already exists."}
                     '260100': InsufficientFunds, // {"code":"260100","msg":"account.noBalance"}
                     '300000': InvalidOrder,
                     '400000': BadSymbol,
@@ -406,17 +409,17 @@ module.exports = class kucoin extends Exchange {
                 },
             },
             'commonCurrencies': {
-                'HOT': 'HOTNOW',
+                'BIFI': 'BIFIF',
                 'EDGE': 'DADI', // https://github.com/ccxt/ccxt/issues/5756
-                'WAX': 'WAXP',
+                'HOT': 'HOTNOW',
                 'TRY': 'Trias',
                 'VAI': 'VAIOT',
+                'WAX': 'WAXP',
             },
             'options': {
                 'version': 'v1',
                 'symbolSeparator': '-',
                 'fetchMyTradesMethod': 'private_get_fills',
-                'fetchBalance': 'trade',
                 'fetchMarkets': {
                     'fetchTickersFees': true,
                 },
@@ -481,6 +484,7 @@ module.exports = class kucoin extends Exchange {
                     'main': 'main',
                     'funding': 'main',
                     'future': 'contract',
+                    'swap': 'contract',
                     'mining': 'pool',
                 },
                 'networks': {
@@ -493,6 +497,14 @@ module.exports = class kucoin extends Exchange {
                     'BNB': 'bsc',
                     'HRC20': 'heco',
                     'HT': 'heco',
+                },
+                'networksById': {
+                    'BEP20': 'BSC',
+                },
+                'marginModes': {
+                    'cross': 'MARGIN_TRADE',
+                    'isolated': 'MARGIN_ISOLATED_TRADE',
+                    'spot': 'TRADE',
                 },
             },
         });
@@ -632,7 +644,7 @@ module.exports = class kucoin extends Exchange {
             // const quoteIncrement = this.safeNumber (market, 'quoteIncrement');
             const ticker = this.safeValue (tickersByMarketId, id, {});
             const makerFeeRate = this.safeString (ticker, 'makerFeeRate');
-            const takerFeeRate = this.safeString (ticker, 'makerFeeRate');
+            const takerFeeRate = this.safeString (ticker, 'takerFeeRate');
             const makerCoefficient = this.safeString (ticker, 'makerCoefficient');
             const takerCoefficient = this.safeString (ticker, 'takerCoefficient');
             result.push ({
@@ -794,7 +806,7 @@ module.exports = class kucoin extends Exchange {
         /**
          * @method
          * @name kucoin#fetchTransactionFee
-         * @description fetch the fee for a transaction
+         * @description *DEPRECATED* please use fetchDepositWithdrawFee instead
          * @see https://docs.kucoin.com/#get-withdrawal-quotas
          * @param {string} code unified currency code
          * @param {object} params extra parameters specific to the kucoin api endpoint
@@ -822,6 +834,86 @@ module.exports = class kucoin extends Exchange {
             'withdraw': withdrawFees,
             'deposit': {},
         };
+    }
+
+    async fetchDepositWithdrawFee (code, params = {}) {
+        /**
+         * @method
+         * @name kucoin#fetchDepositWithdrawFee
+         * @description fetch the fee for deposits and withdrawals
+         * @see https://docs.kucoin.com/#get-withdrawal-quotas
+         * @param {string} code unified currency code
+         * @param {object} params extra parameters specific to the kucoin api endpoint
+         * @param {string|undefined} params.network The chain of currency. This only apply for multi-chain currency, and there is no need for single chain currency; you can query the chain through the response of the GET /api/v2/currencies/{currency} interface
+         * @returns {object} a [fee structure]{@link https://docs.ccxt.com/en/latest/manual.html#fee-structure}
+         */
+        await this.loadMarkets ();
+        const currency = this.currency (code);
+        const request = {
+            'currency': currency['id'],
+        };
+        const networkCode = this.safeStringUpper (params, 'network');
+        const network = this.networkCodeToId (networkCode, code);
+        if (network !== undefined) {
+            request['chain'] = network;
+            params = this.omit (params, [ 'network' ]);
+        }
+        const response = await this.privateGetWithdrawalsQuotas (this.extend (request, params));
+        //
+        //    {
+        //        "code": "200000",
+        //        "data": {
+        //            "currency": "USDT",
+        //            "limitBTCAmount": "1.00000000",
+        //            "usedBTCAmount": "0.00000000",
+        //            "remainAmount": "16548.072149",
+        //            "availableAmount": "0",
+        //            "withdrawMinFee": "25",
+        //            "innerWithdrawMinFee": "0",
+        //            "withdrawMinSize": "50",
+        //            "isWithdrawEnabled": true,
+        //            "precision": 6,
+        //            "chain": "ERC20"
+        //        }
+        //    }
+        //
+        const data = this.safeValue (response, 'data');
+        return this.parseDepositWithdrawFee (data, currency);
+    }
+
+    parseDepositWithdrawFee (fee, currency = undefined) {
+        //
+        //    {
+        //        "currency": "USDT",
+        //        "limitBTCAmount": "1.00000000",
+        //        "usedBTCAmount": "0.00000000",
+        //        "remainAmount": "16548.072149",
+        //        "availableAmount": "0",
+        //        "withdrawMinFee": "25",
+        //        "innerWithdrawMinFee": "0",
+        //        "withdrawMinSize": "50",
+        //        "isWithdrawEnabled": true,
+        //        "precision": 6,
+        //        "chain": "ERC20"
+        //    }
+        //
+        const result = this.depositWithdrawFee (fee);
+        const isWithdrawEnabled = this.safeValue (fee, 'isWithdrawEnabled');
+        if (isWithdrawEnabled) {
+            const networkId = this.safeString (fee, 'chain');
+            const networkCode = this.networkIdToCode (networkId, this.safeString (currency, 'code'));
+            result['networks'][networkCode] = {
+                'withdraw': {
+                    'fee': this.safeNumber (fee, 'withdrawMinFee'),
+                    'percentage': undefined,
+                },
+                'deposit': {
+                    'fee': undefined,
+                    'percentage': undefined,
+                },
+            };
+        }
+        return this.assignDefaultDepositWithdrawFees (result);
     }
 
     isFuturesMethod (methodName, params) {
@@ -1070,7 +1162,7 @@ module.exports = class kucoin extends Exchange {
         const marketId = market['id'];
         const request = {
             'symbol': marketId,
-            'type': this.timeframes[timeframe],
+            'type': this.safeString (this.timeframes, timeframe, timeframe),
         };
         const duration = this.parseTimeframe (timeframe) * 1000;
         let endAt = this.milliseconds (); // required param
@@ -1129,6 +1221,7 @@ module.exports = class kucoin extends Exchange {
             params = this.omit (params, [ 'chain', 'network' ]);
         }
         const response = await this.privatePostDepositAddresses (this.extend (request, params));
+        // {"code":"260000","msg":"Deposit address already exists."}
         // BCH {"code":"200000","data":{"address":"bitcoincash:qza3m4nj9rx7l9r0cdadfqxts6f92shvhvr5ls4q7z","memo":""}}
         // BTC {"code":"200000","data":{"address":"36SjucKqQpQSvsak9A7h6qzFjrVXpRNZhE","memo":""}}
         const data = this.safeValue (response, 'data', {});
@@ -1373,19 +1466,21 @@ module.exports = class kucoin extends Exchange {
          * @returns {object} an [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
          */
         await this.loadMarkets ();
-        const marketId = this.marketId (symbol);
+        const market = this.market (symbol);
         // required param, cannot be used twice
         const clientOrderId = this.safeString2 (params, 'clientOid', 'clientOrderId', this.uuid ());
         params = this.omit (params, [ 'clientOid', 'clientOrderId' ]);
         const request = {
             'clientOid': clientOrderId,
             'side': side,
-            'symbol': marketId,
+            'symbol': market['id'],
             'type': type, // limit or market
         };
         const quoteAmount = this.safeNumber2 (params, 'cost', 'funds');
         let amountString = undefined;
         let costString = undefined;
+        let marginMode = undefined;
+        [ marginMode, params ] = this.handleMarginModeAndParams ('createOrder', params);
         if (type === 'market') {
             if (quoteAmount !== undefined) {
                 params = this.omit (params, [ 'cost', 'funds' ]);
@@ -1409,16 +1504,24 @@ module.exports = class kucoin extends Exchange {
         if (isStopLoss && isTakeProfit) {
             throw new ExchangeError (this.id + ' createOrder() stopLossPrice and takeProfitPrice cannot both be defined');
         }
-        const tradeType = this.safeString (params, 'tradeType');
         params = this.omit (params, [ 'stopLossPrice', 'takeProfitPrice', 'stopPrice' ]);
+        const tradeType = this.safeString (params, 'tradeType'); // keep it for backward compatibility
         let method = 'privatePostOrders';
         if (isStopLoss || isTakeProfit) {
             request['stop'] = isStopLoss ? 'entry' : 'loss';
             const triggerPrice = isStopLoss ? stopLossPrice : takeProfitPrice;
             request['stopPrice'] = this.priceToPrecision (symbol, triggerPrice);
             method = 'privatePostStopOrder';
-        } else if (tradeType === 'MARGIN_TRADE') {
+            if (marginMode === 'isolated') {
+                throw new BadRequest (this.id + ' createOrder does not support isolated margin for stop orders');
+            } else if (marginMode === 'cross') {
+                request['tradeType'] = this.options['marginModes'][marginMode];
+            }
+        } else if (tradeType === 'MARGIN_TRADE' || marginMode !== undefined) {
             method = 'privatePostMarginOrder';
+            if (marginMode === 'isolated') {
+                request['marginModel'] = 'isolated';
+            }
         }
         const response = await this[method] (this.extend (request, params));
         //
@@ -1430,29 +1533,7 @@ module.exports = class kucoin extends Exchange {
         //    }
         //
         const data = this.safeValue (response, 'data', {});
-        const timestamp = this.milliseconds ();
-        const id = this.safeString (data, 'orderId');
-        const order = {
-            'id': id,
-            'clientOrderId': clientOrderId,
-            'info': data,
-            'timestamp': timestamp,
-            'datetime': this.iso8601 (timestamp),
-            'lastTradeTimestamp': undefined,
-            'symbol': symbol,
-            'type': type,
-            'side': side,
-            'price': price,
-            'amount': this.parseNumber (amountString),
-            'cost': this.parseNumber (costString),
-            'average': undefined,
-            'filled': undefined,
-            'remaining': undefined,
-            'status': undefined,
-            'fee': undefined,
-            'trades': undefined,
-        };
-        return order;
+        return this.parseOrder (data, market);
     }
 
     async cancelOrder (id, symbol = undefined, params = {}) {
@@ -1495,24 +1576,26 @@ module.exports = class kucoin extends Exchange {
          * @description cancel all open orders
          * @param {string|undefined} symbol unified market symbol, only orders in the market of this symbol are cancelled when symbol is not undefined
          * @param {object} params extra parameters specific to the kucoin api endpoint
-         * @param {bool} params.stop true if cancelling all stop orders
-         * @param {string} params.tradeType The type of trading, "TRADE" for Spot Trading, "MARGIN_TRADE" for Margin Trading
+         * @param {bool} params.stop *invalid for isolated margin* true if cancelling all stop orders
+         * @param {string} params.marginMode 'cross' or 'isolated'
          * @param {string} params.orderIds *stop orders only* Comma seperated order IDs
          * @returns Response from the exchange
          */
         await this.loadMarkets ();
         const request = {};
-        let market = undefined;
-        if (symbol !== undefined) {
-            market = this.market (symbol);
-            request['symbol'] = market['id'];
-        }
-        let method = 'privateDeleteOrders';
         const stop = this.safeValue (params, 'stop');
-        if (stop) {
-            method = 'privateDeleteStopOrderCancel';
+        const [ marginMode, query ] = this.handleMarginModeAndParams ('cancelAllOrders', params);
+        if (symbol !== undefined) {
+            request['symbol'] = this.marketId (symbol);
         }
-        return await this[method] (this.extend (request, params));
+        if (marginMode !== undefined) {
+            request['tradeType'] = this.options['marginModes'][marginMode];
+            if (marginMode === 'isolated' && stop) {
+                throw new BadRequest (this.id + ' cancelAllOrders does not support isolated margin for stop orders');
+            }
+        }
+        const method = stop ? 'privateDeleteStopOrderCancel' : 'privateDeleteOrders';
+        return await this[method] (this.extend (request, query));
     }
 
     async fetchOrdersByStatus (status, symbol = undefined, since = undefined, limit = undefined, params = {}) {
@@ -1536,6 +1619,10 @@ module.exports = class kucoin extends Exchange {
          */
         await this.loadMarkets ();
         let lowercaseStatus = status.toLowerCase ();
+        const until = this.safeInteger2 (params, 'until', 'till');
+        const stop = this.safeValue (params, 'stop');
+        params = this.omit (params, [ 'stop', 'till', 'until' ]);
+        const [ marginMode, query ] = this.handleMarginModeAndParams ('fetchOrdersByStatus', params);
         if (lowercaseStatus === 'open') {
             lowercaseStatus = 'active';
         } else if (lowercaseStatus === 'closed') {
@@ -1555,17 +1642,15 @@ module.exports = class kucoin extends Exchange {
         if (limit !== undefined) {
             request['pageSize'] = limit;
         }
-        const until = this.safeInteger2 (params, 'until', 'till');
         if (until) {
             request['endAt'] = until;
         }
-        const stop = this.safeValue (params, 'stop');
-        params = this.omit (params, [ 'stop', 'till', 'until' ]);
         let method = 'privateGetOrders';
         if (stop) {
             method = 'privateGetStopOrder';
         }
-        const response = await this[method] (this.extend (request, params));
+        request['tradeType'] = this.safeString (this.options['marginModes'], marginMode, 'TRADE');
+        const response = await this[method] (this.extend (request, query));
         //
         //     {
         //         code: '200000',
@@ -1708,91 +1793,140 @@ module.exports = class kucoin extends Exchange {
 
     parseOrder (order, market = undefined) {
         //
+        // createOrder
+        //
+        //    {
+        //        "orderId": "63c97e47d686c5000159a656"
+        //    }
+        //
+        // cancelOrder
+        //
+        //    {
+        //        "cancelledOrderIds": [ "63c97e47d686c5000159a656" ]
+        //    }
+        //
         // fetchOpenOrders, fetchClosedOrders
         //
-        //     {
-        //         "id": "5c35c02703aa673ceec2a168",   //orderid
-        //         "symbol": "BTC-USDT",   //symbol
-        //         "opType": "DEAL",      // operation type,deal is pending order,cancel is cancel order
-        //         "type": "limit",       // order type,e.g. limit,markrt,stop_limit.
-        //         "side": "buy",         // transaction direction,include buy and sell
-        //         "price": "10",         // order price
-        //         "size": "2",           // order quantity
-        //         "funds": "0",          // order funds
-        //         "dealFunds": "0.166",  // deal funds
-        //         "dealSize": "2",       // deal quantity
-        //         "fee": "0",            // fee
-        //         "feeCurrency": "USDT", // charge fee currency
-        //         "stp": "",             // self trade prevention,include CN,CO,DC,CB
-        //         "stop": "",            // stop type
-        //         "stopTriggered": false,  // stop order is triggered
-        //         "stopPrice": "0",      // stop price
-        //         "timeInForce": "GTC",  // time InForce,include GTC,GTT,IOC,FOK
-        //         "postOnly": false,     // postOnly
-        //         "hidden": false,       // hidden order
-        //         "iceberg": false,      // iceberg order
-        //         "visibleSize": "0",    // display quantity for iceberg order
-        //         "cancelAfter": 0,      // cancel orders time，requires timeInForce to be GTT
-        //         "channel": "IOS",      // order source
-        //         "clientOid": "",       // user-entered order unique mark
-        //         "remark": "",          // remark
-        //         "tags": "",            // tag order source
-        //         "isActive": false,     // status before unfilled or uncancelled
-        //         "cancelExist": false,   // order cancellation transaction record
-        //         "createdAt": 1547026471000  // time
-        //     }
+        //    {
+        //        "id": "63c97ce8d686c500015793bb",
+        //        "symbol": "USDC-USDT",
+        //        "opType": "DEAL",
+        //        "type": "limit",
+        //        "side": "sell",
+        //        "price": "1.05",
+        //        "size": "1",
+        //        "funds": "0",
+        //        "dealFunds": "0",
+        //        "dealSize": "0",
+        //        "fee": "0",
+        //        "feeCurrency": "USDT",
+        //        "stp": "",
+        //        "stop": "",
+        //        "stopTriggered": false,
+        //        "stopPrice": "0",
+        //        "timeInForce": "GTC",
+        //        "postOnly": false,
+        //        "hidden": false,
+        //        "iceberg": false,
+        //        "visibleSize": "0",
+        //        "cancelAfter": 0,
+        //        "channel": "API",
+        //        "clientOid": "d602d73f-5424-4751-bef0-8debce8f0a82",
+        //        "remark": null,
+        //        "tags": "partner:ccxt",
+        //        "isActive": true,
+        //        "cancelExist": false,
+        //        "createdAt": 1674149096927,
+        //        "tradeType": "TRADE"
+        //    }
+        //
+        // stop orders (fetchOpenOrders, fetchClosedOrders)
+        //
+        //    {
+        //        "id": "vs9f6ou9e864rgq8000t4qnm",
+        //        "symbol": "USDC-USDT",
+        //        "userId": "613a896885d8660006151f01",
+        //        "status": "NEW",
+        //        "type": "market",
+        //        "side": "sell",
+        //        "price": null,
+        //        "size": "1.00000000000000000000",
+        //        "funds": null,
+        //        "stp": null,
+        //        "timeInForce": "GTC",
+        //        "cancelAfter": -1,
+        //        "postOnly": false,
+        //        "hidden": false,
+        //        "iceberg": false,
+        //        "visibleSize": null,
+        //        "channel": "API",
+        //        "clientOid": "5d3fd727-6456-438d-9550-40d9d85eee0b",
+        //        "remark": null,
+        //        "tags": "partner:ccxt",
+        //        "relatedNo": null,
+        //        "orderTime": 1674146316994000028,
+        //        "domainId": "kucoin",
+        //        "tradeSource": "USER",
+        //        "tradeType": "MARGIN_TRADE",
+        //        "feeCurrency": "USDT",
+        //        "takerFeeRate": "0.00100000000000000000",
+        //        "makerFeeRate": "0.00100000000000000000",
+        //        "createdAt": 1674146316994,
+        //        "stop": "loss",
+        //        "stopTriggerTime": null,
+        //        "stopPrice": "0.97000000000000000000"
+        //    }
         //
         const marketId = this.safeString (order, 'symbol');
-        const symbol = this.safeSymbol (marketId, market, '-');
-        const orderId = this.safeString (order, 'id');
-        const type = this.safeString (order, 'type');
         const timestamp = this.safeInteger (order, 'createdAt');
-        const datetime = this.iso8601 (timestamp);
-        const price = this.safeString (order, 'price');
-        // price is zero for market order
-        // omitZero is called in safeOrder2
-        const side = this.safeString (order, 'side');
         const feeCurrencyId = this.safeString (order, 'feeCurrency');
-        const feeCurrency = this.safeCurrencyCode (feeCurrencyId);
-        const feeCost = this.safeNumber (order, 'fee');
-        const amount = this.safeString (order, 'size');
-        const filled = this.safeString (order, 'dealSize');
-        const cost = this.safeString (order, 'dealFunds');
-        // bool
-        const isActive = this.safeValue (order, 'isActive', false);
         const cancelExist = this.safeValue (order, 'cancelExist', false);
-        const stop = this.safeString (order, 'stop');
+        const responseStop = this.safeString (order, 'stop');
+        const stop = responseStop !== undefined;
         const stopTriggered = this.safeValue (order, 'stopTriggered', false);
-        let status = isActive ? 'open' : 'closed';
-        const cancelExistWithStop = cancelExist || (!isActive && stop && !stopTriggered);
-        status = cancelExistWithStop ? 'canceled' : status;
-        const fee = {
-            'currency': feeCurrency,
-            'cost': feeCost,
-        };
-        const clientOrderId = this.safeString (order, 'clientOid');
-        const timeInForce = this.safeString (order, 'timeInForce');
+        const isActive = this.safeValue (order, 'isActive');
+        let status = undefined;
+        if (isActive === true) {
+            status = 'open';
+        }
+        if (stop) {
+            const responseStatus = this.safeString (order, 'status');
+            if (responseStatus === 'NEW') {
+                status = 'open';
+            } else if (!isActive && !stopTriggered) {
+                status = 'cancelled';
+            }
+        }
+        if (cancelExist) {
+            status = 'canceled';
+        }
+        if (status === undefined) {
+            status = 'closed';
+        }
         const stopPrice = this.safeNumber (order, 'stopPrice');
-        const postOnly = this.safeValue (order, 'postOnly');
         return this.safeOrder ({
-            'id': orderId,
-            'clientOrderId': clientOrderId,
-            'symbol': symbol,
-            'type': type,
-            'timeInForce': timeInForce,
-            'postOnly': postOnly,
-            'side': side,
-            'amount': amount,
-            'price': price,
+            'info': order,
+            'id': this.safeString2 (order, 'id', 'orderId'),
+            'clientOrderId': this.safeString (order, 'clientOid'),
+            'symbol': this.safeSymbol (marketId, market, '-'),
+            'type': this.safeString (order, 'type'),
+            'timeInForce': this.safeString (order, 'timeInForce'),
+            'postOnly': this.safeValue (order, 'postOnly'),
+            'side': this.safeString (order, 'side'),
+            'amount': this.safeString (order, 'size'),
+            'price': this.safeString (order, 'price'), // price is zero for market order, omitZero is called in safeOrder2
             'stopPrice': stopPrice,
-            'cost': cost,
-            'filled': filled,
+            'triggerPrice': stopPrice,
+            'cost': this.safeString (order, 'dealFunds'),
+            'filled': this.safeString (order, 'dealSize'),
             'remaining': undefined,
             'timestamp': timestamp,
-            'datetime': datetime,
-            'fee': fee,
+            'datetime': this.iso8601 (timestamp),
+            'fee': {
+                'currency': this.safeCurrencyCode (feeCurrencyId),
+                'cost': this.safeNumber (order, 'fee'),
+            },
             'status': status,
-            'info': order,
             'lastTradeTimestamp': undefined,
             'average': undefined,
             'trades': undefined,
@@ -2690,12 +2824,7 @@ module.exports = class kucoin extends Exchange {
             //     }
             //
             const data = this.safeValue (response, 'data');
-            const transfer = this.parseTransfer (data, currency);
-            return this.extend (transfer, {
-                'amount': requestedAmount,
-                'fromAccount': fromId,
-                'toAccount': toId,
-            });
+            return this.parseTransfer (data, currency);
         }
     }
 
@@ -2703,10 +2832,14 @@ module.exports = class kucoin extends Exchange {
         //
         // transfer (spot)
         //
-        //     {
-        //         'orderId': '605a6211e657f00006ad0ad6'
-        //     }
+        //    {
+        //        'orderId': '605a6211e657f00006ad0ad6'
+        //    }
         //
+        //    {
+        //        "code": "200000",
+        //        "msg": "Failed to transfer out. The amount exceeds the upper limit"
+        //    }
         //
         // transfer (futures)
         //
@@ -3389,6 +3522,9 @@ module.exports = class kucoin extends Exchange {
         const version = this.safeString (params, 'version', defaultVersion);
         params = this.omit (params, 'version');
         let endpoint = '/api/' + version + '/' + this.implodeParams (path, params);
+        if (api === 'webFront') {
+            endpoint = '/' + this.implodeParams (path, params);
+        }
         const query = this.omit (params, this.extractParams (path));
         let endpart = '';
         headers = (headers !== undefined) ? headers : {};

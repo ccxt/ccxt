@@ -326,9 +326,11 @@ class btcmarkets(Exchange):
             'currency': code,
             'status': status,
             'updated': lastUpdate,
+            'comment': None,
             'fee': {
                 'currency': code,
                 'cost': fee,
+                'rate': None,
             },
             'info': transaction,
         }
@@ -491,7 +493,7 @@ class btcmarkets(Exchange):
         market = self.market(symbol)
         request = {
             'marketId': market['id'],
-            'timeWindow': self.timeframes[timeframe],
+            'timeWindow': self.safe_string(self.timeframes, timeframe, timeframe),
             # 'from': self.iso8601(since),
             # 'to': self.iso8601(self.milliseconds()),
             # 'before': 1234567890123,
@@ -930,6 +932,7 @@ class btcmarkets(Exchange):
             'side': side,
             'price': price,
             'stopPrice': stopPrice,
+            'triggerPrice': stopPrice,
             'cost': None,
             'amount': amount,
             'filled': None,

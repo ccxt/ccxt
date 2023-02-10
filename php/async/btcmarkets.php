@@ -343,9 +343,11 @@ class btcmarkets extends Exchange {
             'currency' => $code,
             'status' => $status,
             'updated' => $lastUpdate,
+            'comment' => null,
             'fee' => array(
                 'currency' => $code,
                 'cost' => $fee,
+                'rate' => null,
             ),
             'info' => $transaction,
         );
@@ -524,7 +526,7 @@ class btcmarkets extends Exchange {
             $market = $this->market($symbol);
             $request = array(
                 'marketId' => $market['id'],
-                'timeWindow' => $this->timeframes[$timeframe],
+                'timeWindow' => $this->safe_string($this->timeframes, $timeframe, $timeframe),
                 // 'from' => $this->iso8601($since),
                 // 'to' => $this->iso8601($this->milliseconds()),
                 // 'before' => 1234567890123,
@@ -1003,6 +1005,7 @@ class btcmarkets extends Exchange {
             'side' => $side,
             'price' => $price,
             'stopPrice' => $stopPrice,
+            'triggerPrice' => $stopPrice,
             'cost' => null,
             'amount' => $amount,
             'filled' => null,

@@ -314,6 +314,10 @@ class bitstamp(Exchange):
                         'dot_address/': 1,
                         'near_withdrawal/': 1,
                         'near_address/': 1,
+                        'doge_withdrawal/': 1,
+                        'doge_address/': 1,
+                        'flr_withdrawal/': 1,
+                        'flr_address/': 1,
                     },
                 },
             },
@@ -751,10 +755,10 @@ class bitstamp(Exchange):
         if numCurrencyIds == 2:
             marketId = currencyIds[0] + currencyIds[1]
             if marketId in self.markets_by_id:
-                return self.markets_by_id[marketId]
+                return self.safe_market(marketId)
             marketId = currencyIds[1] + currencyIds[0]
             if marketId in self.markets_by_id:
-                return self.markets_by_id[marketId]
+                return self.safe_market(marketId)
         return None
 
     def parse_trade(self, trade, market=None):
@@ -805,35 +809,23 @@ class bitstamp(Exchange):
         orderId = self.safe_string(trade, 'order_id')
         type = None
         costString = self.safe_string(trade, 'cost')
-        rawBaseId = None
-        rawQuoteId = None
         rawMarketId = None
         if market is None:
             keys = list(trade.keys())
             for i in range(0, len(keys)):
                 currentKey = keys[i]
                 if currentKey != 'order_id' and currentKey.find('_') >= 0:
-                    marketId = currentKey.replace('_', '')
-                    if marketId in self.markets_by_id:
-                        market = self.markets_by_id[marketId]
-                    else:
-                        rawMarketId = currentKey
-                        parts = currentKey.split('_')
-                        rawBaseId = self.safe_string(parts, 0)
-                        rawQuoteId = self.safe_string(parts, 1)
-                        market = self.safe_market(marketId)
+                    rawMarketId = currentKey
+                    market = self.safe_market(rawMarketId, market, '_')
         # if the market is still not defined
         # try to deduce it from used keys
         if market is None:
             market = self.get_market_from_trade(trade)
         feeCostString = self.safe_string(trade, 'fee')
-        feeCurrency = market['quote'] if (market['quote'] is not None) else rawQuoteId
-        baseId = market['baseId'] if (market['baseId'] is not None) else rawBaseId
-        quoteId = market['quoteId'] if (market['quoteId'] is not None) else rawQuoteId
-        priceId = rawMarketId if (rawMarketId is not None) else market['marketId']
-        priceString = self.safe_string(trade, priceId, priceString)
-        amountString = self.safe_string(trade, baseId, amountString)
-        costString = self.safe_string(trade, quoteId, costString)
+        feeCurrency = market['quote']
+        priceString = self.safe_string(trade, rawMarketId, priceString)
+        amountString = self.safe_string(trade, market['baseId'], amountString)
+        costString = self.safe_string(trade, market['quoteId'], costString)
         symbol = market['symbol']
         datetimeString = self.safe_string_2(trade, 'date', 'datetime')
         timestamp = None
@@ -956,7 +948,7 @@ class bitstamp(Exchange):
         market = self.market(symbol)
         request = {
             'pair': market['id'],
-            'step': self.timeframes[timeframe],
+            'step': self.safe_string(self.timeframes, timeframe, timeframe),
         }
         duration = self.parse_timeframe(timeframe)
         if limit is None:
@@ -1481,7 +1473,6 @@ class bitstamp(Exchange):
         #     }
         #
         timestamp = self.parse8601(self.safe_string(transaction, 'datetime'))
-        id = self.safe_string(transaction, 'id')
         currencyId = self.get_currency_id_from_transaction(transaction)
         code = self.safe_currency_code(currencyId, currency)
         feeCost = self.safe_string(transaction, 'fee')
@@ -1512,7 +1503,6 @@ class bitstamp(Exchange):
         else:
             # from fetchWithdrawals
             type = 'withdrawal'
-        txid = self.safe_string(transaction, 'transaction_id')
         tag = None
         address = self.safe_string(transaction, 'address')
         if address is not None:
@@ -1522,11 +1512,11 @@ class bitstamp(Exchange):
             if numParts > 1:
                 address = addressParts[0]
                 tag = addressParts[1]
-        addressFrom = None
-        addressTo = address
-        tagFrom = None
-        tagTo = tag
-        fee = None
+        fee = {
+            'currency': None,
+            'cost': None,
+            'rate': None,
+        }
         if feeCost is not None:
             fee = {
                 'currency': feeCurrency,
@@ -1535,22 +1525,23 @@ class bitstamp(Exchange):
             }
         return {
             'info': transaction,
-            'id': id,
-            'txid': txid,
+            'id': self.safe_string(transaction, 'id'),
+            'txid': self.safe_string(transaction, 'transaction_id'),
+            'type': type,
+            'currency': code,
+            'network': None,
+            'amount': self.parse_number(amount),
+            'status': status,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
-            'network': None,
-            'addressFrom': addressFrom,
-            'addressTo': addressTo,
             'address': address,
-            'tagFrom': tagFrom,
-            'tagTo': tagTo,
+            'addressFrom': None,
+            'addressTo': address,
             'tag': tag,
-            'type': type,
-            'amount': self.parse_number(amount),
-            'currency': code,
-            'status': status,
+            'tagFrom': None,
+            'tagTo': tag,
             'updated': None,
+            'comment': None,
             'fee': fee,
         }
 
@@ -1635,6 +1626,7 @@ class bitstamp(Exchange):
             'side': side,
             'price': price,
             'stopPrice': None,
+            'triggerPrice': None,
             'cost': None,
             'amount': amount,
             'filled': None,
@@ -1689,8 +1681,7 @@ class bitstamp(Exchange):
             for i in range(0, len(keys)):
                 if keys[i].find('_') >= 0:
                     marketId = keys[i].replace('_', '')
-                    if marketId in self.markets_by_id:
-                        market = self.markets_by_id[marketId]
+                    market = self.safe_market(marketId, market)
             # if the market is still not defined
             # try to deduce it from used keys
             if market is None:

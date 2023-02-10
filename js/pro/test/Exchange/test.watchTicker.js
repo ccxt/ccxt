@@ -18,7 +18,9 @@ module.exports = async (exchange, symbol) => {
     const skippedExchanges = [
         'cex',
         'ripio',
-        'mexc'
+        'mexc',
+        'woo',
+        'alpaca', // requires auth
     ]
 
     if (skippedExchanges.includes (exchange.id)) {

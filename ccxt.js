@@ -37,18 +37,17 @@ const Exchange  = require ('./js/base/Exchange')
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
 
-const version = '2.2.40'
+const version = '2.7.69'
 
 Exchange.ccxtVersion = version
 
 //-----------------------------------------------------------------------------
 
 const exchanges = {
-    'aax':                     require ('./js/aax.js'),
+    'ace':                     require ('./js/ace.js'),
     'alpaca':                  require ('./js/alpaca.js'),
     'ascendex':                require ('./js/ascendex.js'),
     'bequant':                 require ('./js/bequant.js'),
-    'bibox':                   require ('./js/bibox.js'),
     'bigone':                  require ('./js/bigone.js'),
     'binance':                 require ('./js/binance.js'),
     'binancecoinm':            require ('./js/binancecoinm.js'),
@@ -86,7 +85,6 @@ const exchanges = {
     'btcturk':                 require ('./js/btcturk.js'),
     'buda':                    require ('./js/buda.js'),
     'bybit':                   require ('./js/bybit.js'),
-    'bytetrade':               require ('./js/bytetrade.js'),
     'cex':                     require ('./js/cex.js'),
     'coinbase':                require ('./js/coinbase.js'),
     'coinbaseprime':           require ('./js/coinbaseprime.js'),
@@ -97,7 +95,6 @@ const exchanges = {
     'coinmate':                require ('./js/coinmate.js'),
     'coinone':                 require ('./js/coinone.js'),
     'coinspot':                require ('./js/coinspot.js'),
-    'crex24':                  require ('./js/crex24.js'),
     'cryptocom':               require ('./js/cryptocom.js'),
     'currencycom':             require ('./js/currencycom.js'),
     'delta':                   require ('./js/delta.js'),
@@ -126,7 +123,6 @@ const exchanges = {
     'latoken':                 require ('./js/latoken.js'),
     'lbank':                   require ('./js/lbank.js'),
     'lbank2':                  require ('./js/lbank2.js'),
-    'liquid':                  require ('./js/liquid.js'),
     'luno':                    require ('./js/luno.js'),
     'lykke':                   require ('./js/lykke.js'),
     'mercado':                 require ('./js/mercado.js'),
@@ -142,8 +138,8 @@ const exchanges = {
     'paymium':                 require ('./js/paymium.js'),
     'phemex':                  require ('./js/phemex.js'),
     'poloniex':                require ('./js/poloniex.js'),
+    'poloniexfutures':         require ('./js/poloniexfutures.js'),
     'probit':                  require ('./js/probit.js'),
-    'qtrade':                  require ('./js/qtrade.js'),
     'ripio':                   require ('./js/ripio.js'),
     'stex':                    require ('./js/stex.js'),
     'therock':                 require ('./js/therock.js'),
@@ -158,12 +154,11 @@ const exchanges = {
     'yobit':                   require ('./js/yobit.js'),
     'zaif':                    require ('./js/zaif.js'),
     'zb':                      require ('./js/zb.js'),
-    'zipmex':                  require ('./js/zipmex.js'),
     'zonda':                   require ('./js/zonda.js'),
 }
 
 const pro = {
-    'aax':                     require ('./js/pro/aax.js'),
+    'alpaca':                  require ('./js/pro/alpaca.js'),
     'ascendex':                require ('./js/pro/ascendex.js'),
     'bequant':                 require ('./js/pro/bequant.js'),
     'binance':                 require ('./js/pro/binance.js'),
@@ -173,12 +168,15 @@ const pro = {
     'bitcoincom':              require ('./js/pro/bitcoincom.js'),
     'bitfinex':                require ('./js/pro/bitfinex.js'),
     'bitfinex2':               require ('./js/pro/bitfinex2.js'),
+    'bitget':                  require ('./js/pro/bitget.js'),
     'bitmart':                 require ('./js/pro/bitmart.js'),
     'bitmex':                  require ('./js/pro/bitmex.js'),
     'bitopro':                 require ('./js/pro/bitopro.js'),
+    'bitrue':                  require ('./js/pro/bitrue.js'),
     'bitstamp':                require ('./js/pro/bitstamp.js'),
     'bittrex':                 require ('./js/pro/bittrex.js'),
     'bitvavo':                 require ('./js/pro/bitvavo.js'),
+    'btcex':                   require ('./js/pro/btcex.js'),
     'bybit':                   require ('./js/pro/bybit.js'),
     'cex':                     require ('./js/pro/cex.js'),
     'coinbaseprime':           require ('./js/pro/coinbaseprime.js'),
@@ -190,6 +188,7 @@ const pro = {
     'exmo':                    require ('./js/pro/exmo.js'),
     'gate':                    require ('./js/pro/gate.js'),
     'gateio':                  require ('./js/pro/gateio.js'),
+    'gemini':                  require ('./js/pro/gemini.js'),
     'hitbtc':                  require ('./js/pro/hitbtc.js'),
     'hollaex':                 require ('./js/pro/hollaex.js'),
     'huobi':                   require ('./js/pro/huobi.js'),
@@ -198,6 +197,7 @@ const pro = {
     'idex':                    require ('./js/pro/idex.js'),
     'kraken':                  require ('./js/pro/kraken.js'),
     'kucoin':                  require ('./js/pro/kucoin.js'),
+    'kucoinfutures':           require ('./js/pro/kucoinfutures.js'),
     'luno':                    require ('./js/pro/luno.js'),
     'mexc':                    require ('./js/pro/mexc.js'),
     'ndax':                    require ('./js/pro/ndax.js'),
@@ -209,8 +209,8 @@ const pro = {
     'upbit':                   require ('./js/pro/upbit.js'),
     'wazirx':                  require ('./js/pro/wazirx.js'),
     'whitebit':                require ('./js/pro/whitebit.js'),
+    'woo':                     require ('./js/pro/woo.js'),
     'zb':                      require ('./js/pro/zb.js'),
-    'zipmex':                  require ('./js/pro/zipmex.js'),
 }
 
 for (const exchange in pro) {
@@ -222,7 +222,9 @@ for (const exchange in pro) {
     }
 }
 
+pro.version = version;
 pro.exchanges = Object.keys (pro)
+pro['Exchange'] = wsExchange
 
 //-----------------------------------------------------------------------------
 

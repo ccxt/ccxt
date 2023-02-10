@@ -73,7 +73,7 @@ class deribit(Exchange):
                 'fetchOpenOrders': True,
                 'fetchOrder': True,
                 'fetchOrderBook': True,
-                'fetchOrders': None,
+                'fetchOrders': False,
                 'fetchOrderTrades': True,
                 'fetchPosition': True,
                 'fetchPositionMode': False,
@@ -86,7 +86,7 @@ class deribit(Exchange):
                 'fetchTrades': True,
                 'fetchTradingFee': False,
                 'fetchTradingFees': True,
-                'fetchTransactions': None,
+                'fetchTransactions': False,
                 'fetchTransfer': False,
                 'fetchTransfers': True,
                 'fetchWithdrawal': False,
@@ -1056,7 +1056,7 @@ class deribit(Exchange):
         market = self.market(symbol)
         request = {
             'instrument_name': market['id'],
-            'resolution': self.timeframes[timeframe],
+            'resolution': self.safe_string(self.timeframes, timeframe, timeframe),
         }
         duration = self.parse_timeframe(timeframe)
         now = self.milliseconds()
@@ -1144,6 +1144,7 @@ class deribit(Exchange):
         timestamp = self.safe_integer(trade, 'timestamp')
         side = self.safe_string(trade, 'direction')
         priceString = self.safe_string(trade, 'price')
+        market = self.safe_market(marketId, market)
         # Amount for inverse perpetual and futures is in USD which in ccxt is the cost
         # For options amount and linear is in corresponding cryptocurrency contracts, e.g., BTC or ETH
         amount = self.safe_string(trade, 'amount')
@@ -1509,6 +1510,7 @@ class deribit(Exchange):
             'side': side,
             'price': priceString,
             'stopPrice': stopPrice,
+            'triggerPrice': stopPrice,
             'amount': amount,
             'cost': cost,
             'average': averageString,
@@ -1578,6 +1580,8 @@ class deribit(Exchange):
         market = self.market(symbol)
         if market['inverse']:
             amount = self.amount_to_precision(symbol, amount)
+        elif market['settle'] == 'USDC':
+            amount = self.amount_to_precision(symbol, amount)
         else:
             amount = self.currency_to_precision(symbol, amount)
         request = {
@@ -1622,7 +1626,7 @@ class deribit(Exchange):
         else:
             request['type'] = 'market'
         if isStopOrder:
-            triggerPrice = stopLossPrice is not stopLossPrice if None else takeProfitPrice
+            triggerPrice = stopLossPrice if (stopLossPrice is not None) else takeProfitPrice
             request['trigger_price'] = self.price_to_precision(symbol, triggerPrice)
             request['trigger'] = 'last_price'  # required
             if isStopLossOrder:

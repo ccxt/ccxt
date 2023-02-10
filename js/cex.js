@@ -561,7 +561,7 @@ module.exports = class cex extends Exchange {
             //         "data1m":"[[1591403940,0.024972,0.024972,0.024969,0.024969,0.49999900]]",
             //     }
             //
-            const key = 'data' + this.timeframes[timeframe];
+            const key = 'data' + this.safeString (this.timeframes, timeframe, timeframe);
             const data = this.safeString (response, key);
             const ohlcvs = JSON.parse (data);
             return this.parseOHLCVs (ohlcvs, market, timeframe, since, limit);
@@ -1090,6 +1090,7 @@ module.exports = class cex extends Exchange {
             'side': side,
             'price': price,
             'stopPrice': undefined,
+            'triggerPrice': undefined,
             'cost': cost,
             'amount': amount,
             'filled': filled,
@@ -1553,7 +1554,7 @@ module.exports = class cex extends Exchange {
         const data = this.safeValue (response, 'data', {});
         const addresses = this.safeValue (data, 'addresses', []);
         const chainsIndexedById = this.indexBy (addresses, 'blockchain');
-        const selectedNetworkId = this.selectNetworkIdFromAvailableNetworks (code, networkCode, chainsIndexedById);
+        const selectedNetworkId = this.selectNetworkIdFromRawNetworks (code, networkCode, chainsIndexedById);
         const addressObject = this.safeValue (chainsIndexedById, selectedNetworkId, {});
         const address = this.safeString2 (addressObject, 'address', 'destination');
         this.checkAddress (address);

@@ -35,7 +35,7 @@ class bitmart extends \ccxt\async\bitmart {
             'options' => array(
                 'defaultType' => 'spot',
                 'watchOrderBook' => array(
-                    'depth' => 'depth5', // depth5, depth400
+                    'depth' => 'depth5', // depth5, depth20, depth50
                 ),
                 'ws' => array(
                     'inflate' => true,
@@ -249,6 +249,7 @@ class bitmart extends \ccxt\async\bitmart {
             'side' => $side,
             'price' => $price,
             'stopPrice' => null,
+            'triggerPrice' => null,
             'amount' => $amount,
             'cost' => null,
             'average' => null,
@@ -407,7 +408,7 @@ class bitmart extends \ccxt\async\bitmart {
              * @return {array} A dictionary of {@link https://docs.ccxt.com/en/latest/manual.html#order-book-structure order book structures} indexed by market symbols
              */
             $options = $this->safe_value($this->options, 'watchOrderBook', array());
-            $depth = $this->safe_string($options, 'depth', 'depth400');
+            $depth = $this->safe_string($options, 'depth', 'depth50');
             $orderbook = Async\await($this->subscribe($depth, $symbol, $params));
             return $orderbook->limit ();
         }) ();
@@ -509,31 +510,31 @@ class bitmart extends \ccxt\async\bitmart {
     }
 
     public function authenticate($params = array ()) {
-        return Async\async(function () use ($params) {
-            $this->check_required_credentials();
-            $url = $this->implode_hostname($this->urls['api']['ws']['private']);
-            $messageHash = 'login';
-            $client = $this->client($url);
-            $future = $this->safe_value($client->subscriptions, $messageHash);
-            if ($future === null) {
-                $future = $client->future ('authenticated');
-                $timestamp = (string) $this->milliseconds();
-                $memo = $this->uid;
-                $path = 'bitmart.WebSocket';
-                $auth = $timestamp . '#' . $memo . '#' . $path;
-                $signature = $this->hmac($this->encode($auth), $this->encode($this->secret), 'sha256');
-                $request = array(
-                    'op' => $messageHash,
-                    'args' => array(
-                        $this->apiKey,
-                        $timestamp,
-                        $signature,
-                    ),
-                );
-                $this->spawn(array($this, 'watch'), $url, $messageHash, $request, $messageHash, $future);
-            }
-            return Async\await($future);
-        }) ();
+        $this->check_required_credentials();
+        $url = $this->implode_hostname($this->urls['api']['ws']['private']);
+        $messageHash = 'authenticated';
+        $client = $this->client($url);
+        $future = $this->safe_value($client->subscriptions, $messageHash);
+        if ($future === null) {
+            $timestamp = (string) $this->milliseconds();
+            $memo = $this->uid;
+            $path = 'bitmart.WebSocket';
+            $auth = $timestamp . '#' . $memo . '#' . $path;
+            $signature = $this->hmac($this->encode($auth), $this->encode($this->secret), 'sha256');
+            $operation = 'login';
+            $request = array(
+                'op' => $operation,
+                'args' => array(
+                    $this->apiKey,
+                    $timestamp,
+                    $signature,
+                ),
+            );
+            $message = array_merge($request, $params);
+            $future = $this->watch($url, $messageHash, $message);
+            $client->subscriptions[$messageHash] = $future;
+        }
+        return $future;
     }
 
     public function handle_subscription_status($client, $message) {
@@ -545,10 +546,10 @@ class bitmart extends \ccxt\async\bitmart {
 
     public function handle_authenticate($client, $message) {
         //
-        //     array( event => 'login', success => true )
+        //     array( event => 'login' )
         //
-        $client->resolve ($message, 'authenticated');
-        return $message;
+        $messageHash = 'authenticated';
+        $client->resolve ($message, $messageHash);
     }
 
     public function handle_error_message($client, $message) {
@@ -566,21 +567,21 @@ class bitmart extends \ccxt\async\bitmart {
                     $this->throw_broadly_matched_exception($this->exceptions['broad'], $messageString, $feedback);
                 }
             }
+            return false;
         } catch (Exception $e) {
             if ($e instanceof AuthenticationError) {
-                $client->reject ($e, 'authenticated');
-                $method = 'login';
-                if (is_array($client->subscriptions) && array_key_exists($method, $client->subscriptions)) {
-                    unset($client->subscriptions[$method]);
+                $messageHash = 'authenticated';
+                $client->reject ($e, $messageHash);
+                if (is_array($client->subscriptions) && array_key_exists($messageHash, $client->subscriptions)) {
+                    unset($client->subscriptions[$messageHash]);
                 }
-                return false;
             }
+            return true;
         }
-        return $message;
     }
 
     public function handle_message($client, $message) {
-        if (!$this->handle_error_message($client, $message)) {
+        if ($this->handle_error_message($client, $message)) {
             return;
         }
         //
@@ -631,7 +632,8 @@ class bitmart extends \ccxt\async\bitmart {
             $methods = array(
                 'depth' => array($this, 'handle_order_book'),
                 'depth5' => array($this, 'handle_order_book'),
-                'depth400' => array($this, 'handle_order_book'),
+                'depth20' => array($this, 'handle_order_book'),
+                'depth50' => array($this, 'handle_order_book'),
                 'ticker' => array($this, 'handle_ticker'),
                 'trade' => array($this, 'handle_trade'),
                 // ...

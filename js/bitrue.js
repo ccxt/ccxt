@@ -23,6 +23,7 @@ module.exports = class bitrue extends Exchange {
             'rateLimit': 1000,
             'certified': false,
             'version': 'v1',
+            'pro': true,
             // new metainfo interface
             'has': {
                 'CORS': undefined,
@@ -889,7 +890,7 @@ module.exports = class bitrue extends Exchange {
         const market = this.market (symbol);
         const request = {
             'symbol': market['id'],
-            'scale': this.timeframes[timeframe],
+            'scale': this.safeString (this.timeframes, timeframe, timeframe),
         };
         if (limit !== undefined) {
             request['limit'] = limit;
@@ -1264,6 +1265,7 @@ module.exports = class bitrue extends Exchange {
             'side': side,
             'price': price,
             'stopPrice': stopPrice,
+            'triggerPrice': stopPrice,
             'amount': amount,
             'cost': cost,
             'average': average,

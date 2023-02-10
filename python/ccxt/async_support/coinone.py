@@ -34,7 +34,7 @@ class coinone(Exchange):
                 'option': False,
                 'addMargin': False,
                 'cancelOrder': True,
-                'createMarketOrder': None,
+                'createMarketOrder': False,
                 'createOrder': True,
                 'createReduceOnlyOrder': False,
                 'createStopLimitOrder': False,
@@ -46,7 +46,7 @@ class coinone(Exchange):
                 'fetchBorrowRateHistory': False,
                 'fetchBorrowRates': False,
                 'fetchBorrowRatesPerSymbol': False,
-                'fetchClosedOrders': None,  # the endpoint that should return closed orders actually returns trades, https://github.com/ccxt/ccxt/pull/7067
+                'fetchClosedOrders': False,  # the endpoint that should return closed orders actually returns trades, https://github.com/ccxt/ccxt/pull/7067
                 'fetchDepositAddresses': True,
                 'fetchFundingHistory': False,
                 'fetchFundingRate': False,
@@ -127,11 +127,6 @@ class coinone(Exchange):
                     'maker': 0.002,
                 },
             },
-            'precision': {
-                'price': self.parse_number('0.0001'),
-                'amount': self.parse_number('0.0001'),
-                'cost': self.parse_number('0.00000001'),
-            },
             'precisionMode': TICK_SIZE,
             'exceptions': {
                 '405': OnMaintenance,  # {"errorCode":"405","status":"maintenance","result":"error"}
@@ -211,8 +206,9 @@ class coinone(Exchange):
                 'strike': None,
                 'optionType': None,
                 'precision': {
-                    'amount': None,
-                    'price': None,
+                    'amount': self.parse_number('1e-4'),
+                    'price': self.parse_number('1e-4'),
+                    'cost': self.parse_number('1e-8'),
                 },
                 'limits': {
                     'leverage': {
@@ -474,8 +470,10 @@ class coinone(Exchange):
     async def create_order(self, symbol, type, side, amount, price=None, params={}):
         """
         create a trade order
+        see https://doc.coinone.co.kr/#tag/Order-V2/operation/v2_order_limit_buy
+        see https://doc.coinone.co.kr/#tag/Order-V2/operation/v2_order_limit_sell
         :param str symbol: unified symbol of the market to create an order in
-        :param str type: 'market' or 'limit'
+        :param str type: must be 'limit'
         :param str side: 'buy' or 'sell'
         :param float amount: how much of currency you want to trade in units of base currency
         :param float|None price: the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
@@ -629,6 +627,7 @@ class coinone(Exchange):
             'side': side,
             'price': priceString,
             'stopPrice': None,
+            'triggerPrice': None,
             'cost': None,
             'average': None,
             'amount': amountString,

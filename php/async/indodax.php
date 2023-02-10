@@ -32,7 +32,6 @@ class indodax extends Exchange {
                 'cancelOrder' => true,
                 'cancelOrders' => false,
                 'createDepositAddress' => false,
-                'createMarketOrder' => null,
                 'createOrder' => true,
                 'createReduceOnlyOrder' => false,
                 'createStopLimitOrder' => false,
@@ -57,19 +56,17 @@ class indodax extends Exchange {
                 'fetchMarginMode' => false,
                 'fetchMarkets' => true,
                 'fetchMarkOHLCV' => false,
-                'fetchMyTrades' => null,
                 'fetchOpenInterestHistory' => false,
                 'fetchOpenOrders' => true,
                 'fetchOrder' => true,
                 'fetchOrderBook' => true,
-                'fetchOrders' => null,
+                'fetchOrders' => false,
                 'fetchPosition' => false,
                 'fetchPositionMode' => false,
                 'fetchPositions' => false,
                 'fetchPositionsRisk' => false,
                 'fetchPremiumIndexOHLCV' => false,
                 'fetchTicker' => true,
-                'fetchTickers' => null,
                 'fetchTime' => true,
                 'fetchTrades' => true,
                 'fetchTradingFee' => false,
@@ -261,7 +258,7 @@ class indodax extends Exchange {
                     'optionType' => null,
                     'percentage' => true,
                     'precision' => array(
-                        'amount' => $this->parse_number($this->parse_precision('8')),
+                        'amount' => $this->parse_number('1e-8'),
                         'price' => $this->parse_number($this->parse_precision($this->safe_string($market, 'price_round'))),
                         'cost' => $this->parse_number($this->parse_precision($this->safe_string($market, 'volume_precision'))),
                     ),
@@ -596,6 +593,7 @@ class indodax extends Exchange {
             'side' => $side,
             'price' => $price,
             'stopPrice' => null,
+            'triggerPrice' => null,
             'cost' => $cost,
             'average' => null,
             'amount' => $amount,
@@ -664,7 +662,7 @@ class indodax extends Exchange {
             for ($i = 0; $i < count($marketIds); $i++) {
                 $marketId = $marketIds[$i];
                 $marketOrders = $rawOrders[$marketId];
-                $market = $this->markets_by_id[$marketId];
+                $market = $this->safe_market($marketId);
                 $parsedOrders = $this->parse_orders($marketOrders, $market, $since, $limit);
                 $exchangeOrders = $this->array_concat($exchangeOrders, $parsedOrders);
             }
@@ -1003,6 +1001,7 @@ class indodax extends Exchange {
             $fee = array(
                 'currency' => $this->safe_currency_code(null, $currency),
                 'cost' => $feeCost,
+                'rate' => null,
             );
         }
         return array(

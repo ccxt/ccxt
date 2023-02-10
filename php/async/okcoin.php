@@ -1159,7 +1159,7 @@ class okcoin extends Exchange {
                         'deposit' => $depositEnabled,
                         'withdraw' => $withdrawEnabled,
                         'fee' => null, // todo => redesign
-                        'precision' => $this->parse_number('0.00000001'),
+                        'precision' => $this->parse_number('1e-8'), // todo => fix
                         'limits' => array(
                             'amount' => array( 'min' => null, 'max' => null ),
                             'withdraw' => array(
@@ -1571,7 +1571,7 @@ class okcoin extends Exchange {
             $duration = $this->parse_timeframe($timeframe);
             $request = array(
                 'instrument_id' => $market['id'],
-                'granularity' => $this->timeframes[$timeframe],
+                'granularity' => $this->safe_string($this->timeframes, $timeframe, $timeframe),
             );
             $options = $this->safe_value($this->options, 'fetchOHLCV', array());
             $defaultType = $this->safe_string($options, 'type', 'Candles'); // Candles or HistoryCandles
@@ -2278,6 +2278,7 @@ class okcoin extends Exchange {
             'side' => $side,
             'price' => $price,
             'stopPrice' => $stopPrice,
+            'triggerPrice' => $stopPrice,
             'average' => $average,
             'cost' => $cost,
             'amount' => $amount,

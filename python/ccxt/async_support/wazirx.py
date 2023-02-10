@@ -282,7 +282,7 @@ class wazirx(Exchange):
         market = self.market(symbol)
         request = {
             'symbol': market['id'],
-            'interval': self.timeframes[timeframe],
+            'interval': self.safe_string(self.timeframes, timeframe, timeframe),
         }
         if limit is not None:
             request['limit'] = limit
@@ -838,7 +838,7 @@ class wazirx(Exchange):
             data = self.keysort(data)
             signature = self.hmac(self.encode(self.urlencode(data)), self.encode(self.secret), hashlib.sha256)
             url += '?' + self.urlencode(data)
-            url += '&signature=' + signature
+            url += '&' + 'signature=' + signature
             headers = {
                 'Content-Type': 'application/x-www-form-urlencoded',
                 'X-Api-Key': self.apiKey,

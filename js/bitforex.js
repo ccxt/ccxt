@@ -42,15 +42,14 @@ module.exports = class bitforex extends Exchange {
                 'fetchClosedOrders': true,
                 'fetchMarginMode': false,
                 'fetchMarkets': true,
-                'fetchMyTrades': undefined,
+                'fetchMyTrades': false,
                 'fetchOHLCV': true,
                 'fetchOpenOrders': true,
                 'fetchOrder': true,
                 'fetchOrderBook': true,
-                'fetchOrders': undefined,
                 'fetchPositionMode': false,
                 'fetchTicker': true,
-                'fetchTickers': undefined,
+                'fetchTickers': false,
                 'fetchTrades': true,
                 'fetchTransactionFees': false,
                 'fetchTransfer': false,
@@ -459,7 +458,7 @@ module.exports = class bitforex extends Exchange {
         const market = this.market (symbol);
         const request = {
             'symbol': market['id'],
-            'ktype': this.timeframes[timeframe],
+            'ktype': this.safeString (this.timeframes, timeframe, timeframe),
         };
         if (limit !== undefined) {
             request['size'] = limit; // default 1, max 600
@@ -558,6 +557,7 @@ module.exports = class bitforex extends Exchange {
             'side': side,
             'price': price,
             'stopPrice': undefined,
+            'triggerPrice': undefined,
             'cost': undefined,
             'average': average,
             'amount': amount,

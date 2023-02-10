@@ -17,6 +17,7 @@ class bitrue extends Exchange {
             'rateLimit' => 1000,
             'certified' => false,
             'version' => 'v1',
+            'pro' => true,
             // new metainfo interface
             'has' => array(
                 'CORS' => null,
@@ -867,7 +868,7 @@ class bitrue extends Exchange {
         $market = $this->market($symbol);
         $request = array(
             'symbol' => $market['id'],
-            'scale' => $this->timeframes[$timeframe],
+            'scale' => $this->safe_string($this->timeframes, $timeframe, $timeframe),
         );
         if ($limit !== null) {
             $request['limit'] = $limit;
@@ -1236,6 +1237,7 @@ class bitrue extends Exchange {
             'side' => $side,
             'price' => $price,
             'stopPrice' => $stopPrice,
+            'triggerPrice' => $stopPrice,
             'amount' => $amount,
             'cost' => $cost,
             'average' => $average,

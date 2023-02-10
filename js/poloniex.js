@@ -3,8 +3,8 @@
 //  ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
-const { ArgumentsRequired, ExchangeError, ExchangeNotAvailable, RequestTimeout, AuthenticationError, PermissionDenied, RateLimitExceeded, InsufficientFunds, OrderNotFound, InvalidOrder, AccountSuspended, CancelPending, InvalidNonce, OnMaintenance, BadSymbol } = require ('./base/errors');
-const { DECIMAL_PLACES } = require ('./base/functions/number');
+const { ArgumentsRequired, ExchangeError, ExchangeNotAvailable, NotSupported, RequestTimeout, AuthenticationError, PermissionDenied, RateLimitExceeded, InsufficientFunds, OrderNotFound, InvalidOrder, AccountSuspended, CancelPending, InvalidNonce, OnMaintenance, BadSymbol } = require ('./base/errors');
+const { TICK_SIZE } = require ('./base/functions/number');
 const Precise = require ('./base/Precise');
 
 //  ---------------------------------------------------------------------------
@@ -34,14 +34,15 @@ module.exports = class poloniex extends Exchange {
                 'cancelAllOrders': true,
                 'cancelOrder': true,
                 'createDepositAddress': true,
-                'createMarketOrder': undefined,
                 'createOrder': true,
-                'editOrder': false,
+                'editOrder': true,
                 'fetchBalance': true,
                 'fetchClosedOrder': false,
                 'fetchCurrencies': true,
                 'fetchDepositAddress': true,
                 'fetchDeposits': true,
+                'fetchDepositWithdrawFee': 'emulated',
+                'fetchDepositWithdrawFees': true,
                 'fetchMarginMode': false,
                 'fetchMarkets': true,
                 'fetchMyTrades': true,
@@ -118,6 +119,11 @@ module.exports = class poloniex extends Exchange {
                         'accounts/{id}/balances': 4,
                         'accounts/transfer': 20,
                         'accounts/transfer/{id}': 4,
+                        'subaccounts': 4,
+                        'subaccounts/balances': 20,
+                        'subaccounts/{id}/balances': 4,
+                        'subaccounts/transfer': 20,
+                        'subaccounts/transfer/{id}': 4,
                         'feeinfo': 20,
                         'wallets/addresses': 20,
                         'wallets/activity': 20,
@@ -134,6 +140,7 @@ module.exports = class poloniex extends Exchange {
                     },
                     'post': {
                         'accounts/transfer': 4,
+                        'subaccounts/transfer': 20,
                         'wallets/address': 20,
                         'wallets/withdraw': 20,
                         'orders': 4,
@@ -148,6 +155,10 @@ module.exports = class poloniex extends Exchange {
                         'smartorders/{id}': 4,
                         'smartorders/cancelByIds': 20,
                         'smartorders': 20,
+                    },
+                    'put': {
+                        'orders/{id}': 4,
+                        'smartorders/{id}': 4,
                     },
                 },
             },
@@ -198,8 +209,12 @@ module.exports = class poloniex extends Exchange {
                 'networks': {
                     'BEP20': 'BSC',
                     'ERC20': 'ETH',
-                    'TRX': 'TRON',
                     'TRC20': 'TRON',
+                },
+                'networksById': {
+                    'BSC': 'BEP20',
+                    'ETH': 'ERC20',
+                    'TRON': 'TRC20',
                 },
                 'limits': {
                     'cost': {
@@ -227,7 +242,7 @@ module.exports = class poloniex extends Exchange {
                     'futures': 'future',
                 },
             },
-            'precisionMode': DECIMAL_PLACES,
+            'precisionMode': TICK_SIZE,
             'exceptions': {
                 'exact': {
                     'You may only place orders that reduce your position.': InvalidOrder,
@@ -311,7 +326,7 @@ module.exports = class poloniex extends Exchange {
         const market = this.market (symbol);
         const request = {
             'symbol': market['id'],
-            'interval': this.timeframes[timeframe],
+            'interval': this.safeString (this.timeframes, timeframe, timeframe),
         };
         if (since !== undefined) {
             request['startTime'] = since;
@@ -422,8 +437,8 @@ module.exports = class poloniex extends Exchange {
                 'strike': undefined,
                 'optionType': undefined,
                 'precision': {
-                    'amount': this.safeInteger (symbolTradeLimit, 'quantityScale'),
-                    'price': this.safeInteger (symbolTradeLimit, 'priceScale'),
+                    'amount': this.parseNumber (this.parsePrecision (this.safeString (symbolTradeLimit, 'quantityScale'))),
+                    'price': this.parseNumber (this.parsePrecision (this.safeString (symbolTradeLimit, 'priceScale'))),
                 },
                 'limits': {
                     'amount': {
@@ -884,7 +899,7 @@ module.exports = class poloniex extends Exchange {
         //         "updateTime": 1646925216548
         //     }
         //
-        // createOrder
+        // createOrder, editOrder
         //
         //     {
         //         "id": "29772698821328896",
@@ -945,6 +960,7 @@ module.exports = class poloniex extends Exchange {
             'side': side,
             'price': price,
             'stopPrice': undefined,
+            'triggerPrice': undefined,
             'cost': undefined,
             'average': this.safeString (order, 'avgPrice'),
             'amount': amount,
@@ -1032,6 +1048,7 @@ module.exports = class poloniex extends Exchange {
          * @method
          * @name poloniex#createOrder
          * @description create a trade order
+         * @see https://docs.poloniex.com/#authenticated-endpoints-orders-create-order
          * @param {string} symbol unified symbol of the market to create an order in
          * @param {string} type 'market' or 'limit'
          * @param {string} side 'buy' or 'sell'
@@ -1045,6 +1062,32 @@ module.exports = class poloniex extends Exchange {
         // }
         await this.loadMarkets ();
         const market = this.market (symbol);
+        if (!market['spot']) {
+            throw new NotSupported (this.id + ' createOrder() does not support ' + market['type'] + ' orders, only spot orders are accepted');
+        }
+        const request = {
+            'symbol': market['id'],
+            'side': side,
+            // 'timeInForce': timeInForce,
+            // 'accountType': 'SPOT',
+            // 'amount': amount,
+        };
+        const orderRequest = this.orderRequest (symbol, type, side, amount, request, price, params);
+        let response = await this.privatePostOrders (this.extend (orderRequest[0], orderRequest[1]));
+        //
+        //     {
+        //         "id" : "78923648051920896",
+        //         "clientOrderId" : ""
+        //     }
+        //
+        response = this.extend (response, {
+            'type': side,
+        });
+        return this.parseOrder (response, market);
+    }
+
+    orderRequest (symbol, type, side, amount, request, price = undefined, params = {}) {
+        const market = this.market (symbol);
         let upperCaseType = type.toUpperCase ();
         const isMarket = upperCaseType === 'MARKET';
         const isPostOnly = this.isPostOnly (isMarket, upperCaseType === 'LIMIT_MAKER', params);
@@ -1052,14 +1095,7 @@ module.exports = class poloniex extends Exchange {
             upperCaseType = 'LIMIT_MAKER';
             params = this.omit (params, 'postOnly');
         }
-        const request = {
-            'symbol': market['id'],
-            'side': side,
-            'type': upperCaseType,
-            // 'timeInForce': timeInForce,
-            // 'accountType': 'SPOT',
-            // 'amount': amount,
-        };
+        request['type'] = upperCaseType;
         if (isMarket) {
             if (side === 'buy') {
                 request['amount'] = this.currencyToPrecision (market['quote'], amount);
@@ -1076,7 +1112,35 @@ module.exports = class poloniex extends Exchange {
             params = this.omit (params, 'clientOrderId');
         }
         // remember the timestamp before issuing the request
-        let response = await this.privatePostOrders (this.extend (request, params));
+        return [ request, params ];
+    }
+
+    async editOrder (id, symbol, type, side, amount, price = undefined, params = {}) {
+        /**
+         * @method
+         * @name poloniex#editOrder
+         * @description edit a trade order
+         * @see https://docs.poloniex.com/#authenticated-endpoints-orders-cancel-replace-order
+         * @param {string} id order id
+         * @param {string} symbol unified symbol of the market to create an order in
+         * @param {string} type 'market' or 'limit'
+         * @param {string} side 'buy' or 'sell'
+         * @param {float} amount how much of the currency you want to trade in units of the base currency
+         * @param {float|undefined} price the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+         * @param {object} params extra parameters specific to the poloniex api endpoint
+         * @returns {object} an [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
+         */
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        if (!market['spot']) {
+            throw new NotSupported (this.id + ' editOrder() does not support ' + market['type'] + ' orders, only spot orders are accepted');
+        }
+        const request = {
+            'id': id,
+            // 'timeInForce': timeInForce,
+        };
+        const orderRequest = this.orderRequest (symbol, type, side, amount, request, price, params);
+        let response = await this.privatePutOrdersId (this.extend (orderRequest[0], orderRequest[1]));
         //
         //     {
         //         "id" : "78923648051920896",
@@ -1722,6 +1786,133 @@ module.exports = class poloniex extends Exchange {
         const withdrawals = this.safeValue (response, 'withdrawals', []);
         const transactions = this.parseTransactions (withdrawals, currency, since, limit);
         return this.filterByCurrencySinceLimit (transactions, code, since, limit);
+    }
+
+    async fetchDepositWithdrawFees (codes = undefined, params = {}) {
+        /**
+         * @method
+         * @name poloniex#fetchDepositWithdrawFees
+         * @description fetch deposit and withdraw fees
+         * @see https://docs.poloniex.com/#public-endpoints-reference-data-currency-information
+         * @param {[string]|undefined} codes list of unified currency codes
+         * @param {object} params extra parameters specific to the poloniex api endpoint
+         * @returns {[object]} a list of [fees structures]{@link https://docs.ccxt.com/en/latest/manual.html#fee-structure}
+         */
+        await this.loadMarkets ();
+        const response = await this.publicGetCurrencies (this.extend (params, { 'includeMultiChainCurrencies': true }));
+        //
+        //     [
+        //         {
+        //             "1CR": {
+        //                 "id": 1,
+        //                 "name": "1CRedit",
+        //                 "description": "BTC Clone",
+        //                 "type": "address",
+        //                 "withdrawalFee": "0.01000000",
+        //                 "minConf": 10000,
+        //                 "depositAddress": null,
+        //                 "blockchain": "1CR",
+        //                 "delisted": false,
+        //                 "tradingState": "NORMAL",
+        //                 "walletState": "DISABLED",
+        //                 "parentChain": null,
+        //                 "isMultiChain": false,
+        //                 "isChildChain": false,
+        //                 "childChains": []
+        //             }
+        //         }
+        //     ]
+        //
+        const data = {};
+        for (let i = 0; i < response.length; i++) {
+            const entry = response[i];
+            const currencies = Object.keys (entry);
+            const currencyId = this.safeString (currencies, 0);
+            data[currencyId] = entry[currencyId];
+        }
+        return this.parseDepositWithdrawFees (data, codes);
+    }
+
+    parseDepositWithdrawFees (response, codes = undefined, currencyIdKey = undefined) {
+        //
+        //         {
+        //             "1CR": {
+        //                 "id": 1,
+        //                 "name": "1CRedit",
+        //                 "description": "BTC Clone",
+        //                 "type": "address",
+        //                 "withdrawalFee": "0.01000000",
+        //                 "minConf": 10000,
+        //                 "depositAddress": null,
+        //                 "blockchain": "1CR",
+        //                 "delisted": false,
+        //                 "tradingState": "NORMAL",
+        //                 "walletState": "DISABLED",
+        //                 "parentChain": null,
+        //                 "isMultiChain": false,
+        //                 "isChildChain": false,
+        //                 "childChains": []
+        //             },
+        //         }
+        //
+        const depositWithdrawFees = {};
+        codes = this.marketCodes (codes);
+        const responseKeys = Object.keys (response);
+        for (let i = 0; i < responseKeys.length; i++) {
+            const currencyId = responseKeys[i];
+            const code = this.safeCurrencyCode (currencyId);
+            const feeInfo = response[currencyId];
+            if ((codes === undefined) || (this.inArray (code, codes))) {
+                depositWithdrawFees[code] = this.parseDepositWithdrawFee (feeInfo, code);
+                const childChains = this.safeValue (feeInfo, 'childChains');
+                const chainsLength = childChains.length;
+                if (chainsLength > 0) {
+                    for (let j = 0; j < childChains.length; j++) {
+                        let networkId = childChains[j];
+                        networkId = networkId.replace (code, '');
+                        const networkCode = this.networkIdToCode (networkId);
+                        const networkInfo = this.safeValue (response, networkId);
+                        const networkObject = {};
+                        const withdrawFee = this.safeNumber (networkInfo, 'withdrawalFee');
+                        networkObject[networkCode] = {
+                            'withdraw': {
+                                'fee': withdrawFee,
+                                'percentage': (withdrawFee !== undefined) ? false : undefined,
+                            },
+                            'deposit': {
+                                'fee': undefined,
+                                'percentage': undefined,
+                            },
+                        };
+                        depositWithdrawFees[code]['networks'] = this.extend (depositWithdrawFees[code]['networks'], networkObject);
+                    }
+                }
+            }
+        }
+        return depositWithdrawFees;
+    }
+
+    parseDepositWithdrawFee (fee, currency = undefined) {
+        const depositWithdrawFee = this.depositWithdrawFee ({});
+        depositWithdrawFee['info'][currency] = fee;
+        const networkId = this.safeString (fee, 'blockchain');
+        const withdrawFee = this.safeNumber (fee, 'withdrawalFee');
+        const withdrawResult = {
+            'fee': withdrawFee,
+            'percentage': (withdrawFee !== undefined) ? false : undefined,
+        };
+        const depositResult = {
+            'fee': undefined,
+            'percentage': undefined,
+        };
+        depositWithdrawFee['withdraw'] = withdrawResult;
+        depositWithdrawFee['deposit'] = depositResult;
+        const networkCode = this.networkIdToCode (networkId);
+        depositWithdrawFee['networks'][networkCode] = {
+            'withdraw': withdrawResult,
+            'deposit': depositResult,
+        };
+        return depositWithdrawFee;
     }
 
     async fetchDeposits (code = undefined, since = undefined, limit = undefined, params = {}) {

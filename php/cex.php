@@ -545,7 +545,7 @@ class cex extends Exchange {
             //         "data1m":"[[1591403940,0.024972,0.024972,0.024969,0.024969,0.49999900]]",
             //     }
             //
-            $key = 'data' . $this->timeframes[$timeframe];
+            $key = 'data' . $this->safe_string($this->timeframes, $timeframe, $timeframe);
             $data = $this->safe_string($response, $key);
             $ohlcvs = json_decode($data, $as_associative_array = true);
             return $this->parse_ohlcvs($ohlcvs, $market, $timeframe, $since, $limit);
@@ -1062,6 +1062,7 @@ class cex extends Exchange {
             'side' => $side,
             'price' => $price,
             'stopPrice' => null,
+            'triggerPrice' => null,
             'cost' => $cost,
             'amount' => $amount,
             'filled' => $filled,
@@ -1515,7 +1516,7 @@ class cex extends Exchange {
         $data = $this->safe_value($response, 'data', array());
         $addresses = $this->safe_value($data, 'addresses', array());
         $chainsIndexedById = $this->index_by($addresses, 'blockchain');
-        $selectedNetworkId = $this->select_network_id_from_available_networks($code, $networkCode, $chainsIndexedById);
+        $selectedNetworkId = $this->select_network_id_from_raw_networks($code, $networkCode, $chainsIndexedById);
         $addressObject = $this->safe_value($chainsIndexedById, $selectedNetworkId, array());
         $address = $this->safe_string_2($addressObject, 'address', 'destination');
         $this->check_address($address);

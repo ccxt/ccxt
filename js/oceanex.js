@@ -62,7 +62,6 @@ module.exports = class oceanex extends Exchange {
                 'fetchTrades': true,
                 'fetchTradingFee': false,
                 'fetchTradingFees': true,
-                'fetchTradingLimits': undefined,
                 'fetchTransactionFees': undefined,
             },
             'timeframes': {
@@ -793,7 +792,7 @@ module.exports = class oceanex extends Exchange {
         const market = this.market (symbol);
         const request = {
             'market': market['id'],
-            'period': this.timeframes[timeframe],
+            'period': this.safeString (this.timeframes, timeframe, timeframe),
         };
         if (since !== undefined) {
             request['timestamp'] = since;
@@ -850,6 +849,7 @@ module.exports = class oceanex extends Exchange {
             'side': this.safeValue (order, 'side'),
             'price': price,
             'stopPrice': undefined,
+            'triggerPrice': undefined,
             'average': average,
             'amount': amount,
             'remaining': remaining,

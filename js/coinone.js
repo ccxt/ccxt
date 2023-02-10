@@ -32,7 +32,7 @@ module.exports = class coinone extends Exchange {
                 'option': false,
                 'addMargin': false,
                 'cancelOrder': true,
-                'createMarketOrder': undefined,
+                'createMarketOrder': false,
                 'createOrder': true,
                 'createReduceOnlyOrder': false,
                 'createStopLimitOrder': false,
@@ -44,7 +44,7 @@ module.exports = class coinone extends Exchange {
                 'fetchBorrowRateHistory': false,
                 'fetchBorrowRates': false,
                 'fetchBorrowRatesPerSymbol': false,
-                'fetchClosedOrders': undefined, // the endpoint that should return closed orders actually returns trades, https://github.com/ccxt/ccxt/pull/7067
+                'fetchClosedOrders': false, // the endpoint that should return closed orders actually returns trades, https://github.com/ccxt/ccxt/pull/7067
                 'fetchDepositAddresses': true,
                 'fetchFundingHistory': false,
                 'fetchFundingRate': false,
@@ -124,11 +124,6 @@ module.exports = class coinone extends Exchange {
                     'taker': 0.002,
                     'maker': 0.002,
                 },
-            },
-            'precision': {
-                'price': this.parseNumber ('0.0001'),
-                'amount': this.parseNumber ('0.0001'),
-                'cost': this.parseNumber ('0.00000001'),
             },
             'precisionMode': TICK_SIZE,
             'exceptions': {
@@ -213,8 +208,9 @@ module.exports = class coinone extends Exchange {
                 'strike': undefined,
                 'optionType': undefined,
                 'precision': {
-                    'amount': undefined,
-                    'price': undefined,
+                    'amount': this.parseNumber ('1e-4'),
+                    'price': this.parseNumber ('1e-4'),
+                    'cost': this.parseNumber ('1e-8'),
                 },
                 'limits': {
                     'leverage': {
@@ -504,8 +500,10 @@ module.exports = class coinone extends Exchange {
          * @method
          * @name coinone#createOrder
          * @description create a trade order
+         * @see https://doc.coinone.co.kr/#tag/Order-V2/operation/v2_order_limit_buy
+         * @see https://doc.coinone.co.kr/#tag/Order-V2/operation/v2_order_limit_sell
          * @param {string} symbol unified symbol of the market to create an order in
-         * @param {string} type 'market' or 'limit'
+         * @param {string} type must be 'limit'
          * @param {string} side 'buy' or 'sell'
          * @param {float} amount how much of currency you want to trade in units of base currency
          * @param {float|undefined} price the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
@@ -671,6 +669,7 @@ module.exports = class coinone extends Exchange {
             'side': side,
             'price': priceString,
             'stopPrice': undefined,
+            'triggerPrice': undefined,
             'cost': undefined,
             'average': undefined,
             'amount': amountString,

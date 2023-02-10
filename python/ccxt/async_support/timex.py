@@ -617,7 +617,7 @@ class timex(Exchange):
         market = self.market(symbol)
         request = {
             'market': market['id'],
-            'period': self.timeframes[timeframe],
+            'period': self.safe_string(self.timeframes, timeframe, timeframe),
         }
         # if since and limit are not specified
         duration = self.parse_timeframe(timeframe)
@@ -1443,6 +1443,7 @@ class timex(Exchange):
             'side': side,
             'price': price,
             'stopPrice': None,
+            'triggerPrice': None,
             'amount': amount,
             'cost': None,
             'average': None,

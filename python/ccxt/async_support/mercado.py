@@ -63,7 +63,7 @@ class mercado(Exchange):
                 'fetchPositionsRisk': False,
                 'fetchPremiumIndexOHLCV': False,
                 'fetchTicker': True,
-                'fetchTickers': None,
+                'fetchTickers': False,
                 'fetchTrades': True,
                 'fetchTradingFee': False,
                 'fetchTradingFees': False,
@@ -93,7 +93,6 @@ class mercado(Exchange):
                 'doc': [
                     'https://www.mercadobitcoin.com.br/api-doc',
                     'https://www.mercadobitcoin.com.br/trade-api',
-                    'https://api.mercadobitcoin.net/api/v4/docs/',
                 ],
             },
             'api': {
@@ -190,7 +189,6 @@ class mercado(Exchange):
             base = self.safe_currency_code(baseId)
             quote = self.safe_currency_code(quoteId)
             id = quote + base
-            priceLimit = '1e-5'
             result.append({
                 'id': id,
                 'symbol': base + '/' + quote,
@@ -216,8 +214,8 @@ class mercado(Exchange):
                 'strike': None,
                 'optionType': None,
                 'precision': {
-                    'amount': self.parse_number('0.00000001'),
-                    'price': self.parse_number('0.00001'),
+                    'amount': self.parse_number('1e-8'),
+                    'price': self.parse_number('1e-5'),
                 },
                 'limits': {
                     'leverage': {
@@ -229,7 +227,7 @@ class mercado(Exchange):
                         'max': None,
                     },
                     'price': {
-                        'min': self.parse_number(priceLimit),
+                        'min': self.parse_number('1e-5'),
                         'max': None,
                     },
                     'cost': {
@@ -555,6 +553,7 @@ class mercado(Exchange):
             'side': side,
             'price': price,
             'stopPrice': None,
+            'triggerPrice': None,
             'cost': None,
             'average': average,
             'amount': amount,
@@ -702,7 +701,7 @@ class mercado(Exchange):
         await self.load_markets()
         market = self.market(symbol)
         request = {
-            'resolution': self.timeframes[timeframe],
+            'resolution': self.safe_string(self.timeframes, timeframe, timeframe),
             'symbol': market['base'] + '-' + market['quote'],  # exceptional endpoint, that needs custom symbol syntax
         }
         if limit is None:

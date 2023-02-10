@@ -35,7 +35,7 @@ class zb extends Exchange {
                 'borrowMargin' => true,
                 'cancelAllOrders' => true,
                 'cancelOrder' => true,
-                'createMarketOrder' => null,
+                'createMarketOrder' => false,
                 'createOrder' => true,
                 'createReduceOnlyOrder' => false,
                 'createStopLimitOrder' => true,
@@ -1325,14 +1325,16 @@ class zb extends Exchange {
         $response = $this->spotV1PublicGetAllTicker ($params);
         $result = array();
         $marketsByIdWithoutUnderscore = array();
-        $marketIds = is_array($this->markets_by_id) ? array_keys($this->markets_by_id) : array();
+        $marketIds = $this->ids;
         for ($i = 0; $i < count($marketIds); $i++) {
-            $tickerId = str_replace('_', '', $marketIds[$i]);
-            $marketsByIdWithoutUnderscore[$tickerId] = $this->markets_by_id[$marketIds[$i]];
+            $marketId = $marketIds[$i];
+            $tickerId = str_replace('_', '', $marketId);
+            $marketsByIdWithoutUnderscore[$tickerId] = $marketId;
         }
         $ids = is_array($response) ? array_keys($response) : array();
         for ($i = 0; $i < count($ids); $i++) {
-            $market = $this->safe_value($marketsByIdWithoutUnderscore, $ids[$i]);
+            $marketId = $this->safe_value($marketsByIdWithoutUnderscore, $ids[$i]);
+            $market = $this->safe_market($marketId, null, '_');
             if ($market !== null) {
                 $symbol = $market['symbol'];
                 $ticker = $this->safe_value($response, $ids[$i]);
@@ -1778,7 +1780,7 @@ class zb extends Exchange {
         /**
          * create a trade order
          * @param {string} $symbol unified $symbol of the $market to create an order in
-         * @param {string} $type 'market' or 'limit'
+         * @param {string} $type must be 'limit'
          * @param {string} $side 'buy' or 'sell'
          * @param {float} $amount how much of currency you want to trade in units of base currency
          * @param {float|null} $price the $price at which the order is to be fullfilled, in units of the quote currency, ignored in $market orders
@@ -2917,6 +2919,7 @@ class zb extends Exchange {
             'side' => $side,
             'price' => $price,
             'stopPrice' => $this->safe_number($order, 'triggerPrice'),
+            'triggerPrice' => $this->safe_number($order, 'triggerPrice'),
             'average' => $this->safe_string($order, 'avgPrice'),
             'cost' => $cost,
             'amount' => $amount,

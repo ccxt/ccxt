@@ -751,40 +751,55 @@ module.exports = class wavesexchange extends Exchange {
 
     parseTicker (ticker, market = undefined) {
         //
-        //     {
-        //         "__type":"pair",
-        //         "data":{
-        //             "firstPrice":0.00012512,
-        //             "lastPrice":0.00012441,
-        //             "low":0.00012167,
-        //             "high":0.00012768,
-        //             "weightedAveragePrice":0.000124710697407246,
-        //             "volume":209554.26356614,
-        //             "quoteVolume":26.1336583539951,
-        //             "volumeWaves":209554.26356614,
-        //             "txsCount":6655
-        //         },
-        //         "amountAsset":"WAVES",
-        //         "priceAsset":"8LQW8f7P5d5PZM7GtZEBgaqRPGSzS3DfPuiXrURJ4AJS"
-        //     }
+        //       {
+        //           "symbol": "WAVES/BTC",
+        //           "amountAssetID": "WAVES",
+        //           "amountAssetName": "Waves",
+        //           "amountAssetDecimals": 8,
+        //           "amountAssetTotalSupply": "106908766.00000000",
+        //           "amountAssetMaxSupply": "106908766.00000000",
+        //           "amountAssetCirculatingSupply": "106908766.00000000",
+        //           "priceAssetID": "8LQW8f7P5d5PZM7GtZEBgaqRPGSzS3DfPuiXrURJ4AJS",
+        //           "priceAssetName": "WBTC",
+        //           "priceAssetDecimals": 8,
+        //           "priceAssetTotalSupply": "20999999.96007507",
+        //           "priceAssetMaxSupply": "20999999.96007507",
+        //           "priceAssetCirculatingSupply": "20999999.66019601",
+        //           "24h_open": "0.00032688",
+        //           "24h_high": "0.00033508",
+        //           "24h_low": "0.00032443",
+        //           "24h_close": "0.00032806",
+        //           "24h_vwap": "0.00032988",
+        //           "24h_volume": "42349.69440104",
+        //           "24h_priceVolume": "13.97037207",
+        //           "timestamp":1640232379124
+        //       }
         //
-        const timestamp = undefined;
-        const baseId = this.safeString (ticker, 'amountAsset');
-        const quoteId = this.safeString (ticker, 'priceAsset');
-        let symbol = undefined;
-        if ((baseId !== undefined) && (quoteId !== undefined)) {
-            const marketId = baseId + '/' + quoteId;
-            market = this.safeMarket (marketId, market, '/');
-            symbol = market['symbol'];
-        }
-        const data = this.safeValue (ticker, 'data', {});
-        const last = this.safeString (data, 'lastPrice');
-        const low = this.safeString (data, 'low');
-        const high = this.safeString (data, 'high');
-        const vwap = this.safeString (data, 'weightedAveragePrice');
-        const baseVolume = this.safeString (data, 'volume');
-        const quoteVolume = this.safeString (data, 'quoteVolume');
-        const open = this.safeString (data, 'firstPrice');
+        //  fetch ticker
+        //
+        //       {
+        //           firstPrice: '21749',
+        //           lastPrice: '22000',
+        //           volume: '0.73747149',
+        //           quoteVolume: '16409.44564928645471',
+        //           high: '23589.999941',
+        //           low: '21010.000845',
+        //           weightedAveragePrice: '22250.955964',
+        //           txsCount: '148',
+        //           volumeWaves: '0.0000000000680511203072'
+        //       }
+        //
+        const timestamp = this.safeInteger (ticker, 'timestamp');
+        const marketId = this.safeString (ticker, 'symbol');
+        market = this.safeMarket (marketId, market, '/');
+        const symbol = market['symbol'];
+        const last = this.safeString2 (ticker, '24h_close', 'lastPrice');
+        const low = this.safeString2 (ticker, '24h_low', 'low');
+        const high = this.safeString2 (ticker, '24h_high', 'high');
+        const vwap = this.safeString2 (ticker, '24h_vwap', 'weightedAveragePrice');
+        const baseVolume = this.safeString2 (ticker, '24h_volume', 'volume');
+        const quoteVolume = this.safeString2 (ticker, '24h_priceVolume', 'quoteVolume');
+        const open = this.safeString2 (ticker, '24h_open', 'firstPrice');
         return this.safeTicker ({
             'symbol': symbol,
             'timestamp': timestamp,
@@ -849,7 +864,8 @@ module.exports = class wavesexchange extends Exchange {
         //
         const data = this.safeValue (response, 'data', []);
         const ticker = this.safeValue (data, 0, {});
-        return this.parseTicker (ticker, market);
+        const dataTicker = this.safeValue (ticker, 'data', {});
+        return this.parseTicker (dataTicker, market);
     }
 
     async fetchTickers (symbols = undefined, params = {}) {
@@ -862,32 +878,36 @@ module.exports = class wavesexchange extends Exchange {
          * @returns {object} an array of [ticker structures]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
          */
         await this.loadMarkets ();
-        const response = await this.publicGetPairs (params);
+        const response = await this.marketGetTickers (params);
         //
-        //     {
-        //         "__type":"list",
-        //         "data":[
-        //             {
-        //                 "__type":"pair",
-        //                 "data":{
-        //                     "firstPrice":0.00012512,
-        //                     "lastPrice":0.00012441,
-        //                     "low":0.00012167,
-        //                     "high":0.00012768,
-        //                     "weightedAveragePrice":0.000124710697407246,
-        //                     "volume":209554.26356614,
-        //                     "quoteVolume":26.1336583539951,
-        //                     "volumeWaves":209554.26356614,
-        //                     "txsCount":6655
-        //                 },
-        //                 "amountAsset":"WAVES",
-        //                 "priceAsset":"8LQW8f7P5d5PZM7GtZEBgaqRPGSzS3DfPuiXrURJ4AJS"
-        //             }
-        //         ]
-        //     }
+        //   [
+        //       {
+        //           "symbol": "WAVES/BTC",
+        //           "amountAssetID": "WAVES",
+        //           "amountAssetName": "Waves",
+        //           "amountAssetDecimals": 8,
+        //           "amountAssetTotalSupply": "106908766.00000000",
+        //           "amountAssetMaxSupply": "106908766.00000000",
+        //           "amountAssetCirculatingSupply": "106908766.00000000",
+        //           "priceAssetID": "8LQW8f7P5d5PZM7GtZEBgaqRPGSzS3DfPuiXrURJ4AJS",
+        //           "priceAssetName": "WBTC",
+        //           "priceAssetDecimals": 8,
+        //           "priceAssetTotalSupply": "20999999.96007507",
+        //           "priceAssetMaxSupply": "20999999.96007507",
+        //           "priceAssetCirculatingSupply": "20999999.66019601",
+        //           "24h_open": "0.00032688",
+        //           "24h_high": "0.00033508",
+        //           "24h_low": "0.00032443",
+        //           "24h_close": "0.00032806",
+        //           "24h_vwap": "0.00032988",
+        //           "24h_volume": "42349.69440104",
+        //           "24h_priceVolume": "13.97037207",
+        //           "timestamp":1640232379124
+        //       }
+        //       ...
+        //   ]
         //
-        const data = this.safeValue (response, 'data', []);
-        return this.parseTickers (data, symbols);
+        return this.parseTickers (response, symbols);
     }
 
     async fetchOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
@@ -907,7 +927,7 @@ module.exports = class wavesexchange extends Exchange {
         const request = {
             'baseId': market['baseId'],
             'quoteId': market['quoteId'],
-            'interval': this.timeframes[timeframe],
+            'interval': this.safeString (this.timeframes, timeframe, timeframe),
         };
         const allowedCandles = this.safeInteger (this.options, 'allowedCandles', 1440);
         if (limit === undefined) {
@@ -1732,6 +1752,7 @@ module.exports = class wavesexchange extends Exchange {
             'side': side,
             'price': price,
             'stopPrice': undefined,
+            'triggerPrice': undefined,
             'amount': amount,
             'cost': undefined,
             'average': average,

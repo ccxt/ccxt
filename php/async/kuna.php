@@ -59,7 +59,6 @@ class kuna extends Exchange {
                 'reduceMargin' => false,
                 'setLeverage' => false,
                 'setPositionMode' => false,
-                'withdraw' => null,
             ),
             'timeframes' => null,
             'urls' => array(
@@ -753,6 +752,7 @@ class kuna extends Exchange {
             'side' => $side,
             'price' => $this->safe_string($order, 'price'),
             'stopPrice' => null,
+            'triggerPrice' => null,
             'amount' => $this->safe_string($order, 'volume'),
             'filled' => $this->safe_string($order, 'executed_volume'),
             'remaining' => $this->safe_string($order, 'remaining_volume'),

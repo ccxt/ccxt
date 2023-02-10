@@ -251,7 +251,7 @@ module.exports = class idex extends idexRest {
         const market = this.market (symbol);
         symbol = market['symbol'];
         const name = 'candles';
-        const interval = this.timeframes[timeframe];
+        const interval = this.safeString (this.timeframes, timeframe, timeframe);
         const subscribeObject = {
             'name': name,
             'markets': [ market['id'] ],
@@ -632,6 +632,7 @@ module.exports = class idex extends idexRest {
             'side': side,
             'price': price,
             'stopPrice': undefined,
+            'triggerPrice': undefined,
             'amount': amount,
             'cost': cost,
             'average': average,

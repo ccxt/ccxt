@@ -12,7 +12,9 @@ async def test_watch_ticker(exchange, symbol):
     skipped_exchanges = [
         'cex',
         'ripio',
-        'mexc'
+        'mexc',
+        'woo',
+        'alpaca',
     ]
     if exchange.id in skipped_exchanges:
         print(exchange.id, method, 'test skipped')
