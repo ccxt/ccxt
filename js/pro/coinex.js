@@ -6,6 +6,7 @@ const Precise = require ('../base/Precise');
 const coinexRest = require ('../coinex.js');
 const { AuthenticationError, BadRequest, ExchangeNotAvailable, NotSupported, RequestTimeout, ExchangeError } = require ('../base/errors');
 const { ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById } = require ('./base/Cache');
+const { isRedirect } = require('../static_dependencies/node-fetch');
 
 //  ---------------------------------------------------------------------------
 
@@ -16,7 +17,7 @@ module.exports = class coinex extends coinexRest {
                 'ws': true,
                 'watchBalance': true,
                 'watchTicker': true,
-                'watchTickers': false,
+                'watchTickers': true,
                 'watchTrades': true,
                 'watchMyTrades': false, // can query but can't subscribe
                 'watchOrders': true,
@@ -129,16 +130,21 @@ module.exports = class coinex extends coinexRest {
         //
         const defaultType = this.safeString (this.options, 'defaultType');
         const params = this.safeValue (message, 'params', []);
-        const first = this.safeValue (params, 0, {});
-        const keys = Object.keys (first);
-        const marketId = this.safeString (keys, 0);
-        const symbol = this.safeSymbol (marketId, undefined, undefined, defaultType);
-        const ticker = this.safeValue (first, marketId, {});
-        const market = this.safeMarket (marketId, undefined, undefined, defaultType);
-        const parsedTicker = this.parseWSTicker (ticker, market);
-        const messageHash = 'ticker:' + symbol;
-        this.tickers[symbol] = parsedTicker;
-        client.resolve (parsedTicker, messageHash);
+        const rawTickers = this.safeValue (params, 0, {});
+        const keys = Object.keys (rawTickers);
+        const newTickers = [];
+        for (let i = 0; i < keys.length; i++) {
+            const marketId = keys[i];
+            const rawTicker = rawTickers[marketId];
+            const symbol = this.safeSymbol (marketId, undefined, undefined, defaultType);
+            const market = this.safeMarket (marketId, undefined, undefined, defaultType);
+            const parsedTicker = this.parseWSTicker (rawTicker, market);
+            const messageHash = 'ticker:' + symbol;
+            this.tickers[symbol] = parsedTicker;
+            newTickers.push (parsedTicker);
+            client.resolve (parsedTicker, messageHash);
+        }
+        client.resolve (newTickers, 'tickers');
     }
 
     parseWSTicker (ticker, market = undefined) {
@@ -370,6 +376,7 @@ module.exports = class coinex extends coinexRest {
         /**
          * @method
          * @name coinex#watchTicker
+         * @see https://viabtc.github.io/coinex_api_en_doc/spot/#docsspot004_websocket007_state_subscribe
          * @description watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
          * @param {string} symbol unified symbol of the market to fetch the ticker for
          * @param {object} params extra parameters specific to the coinex api endpoint
@@ -384,12 +391,43 @@ module.exports = class coinex extends coinexRest {
         const subscribe = {
             'method': 'state.subscribe',
             'id': this.requestId (),
-            'params': [
-                market['id'],
-            ],
+            'params': [],
         };
         const request = this.deepExtend (subscribe, params);
-        return await this.watch (url, messageHash, request, messageHash, request);
+        return await this.watch (url, messageHash, request, 'tickers');
+    }
+
+    async watchTickers (symbols = undefined, params = {}) {
+        /**
+         * @method
+         * @name coinex#watchTickers
+         * @see https://viabtc.github.io/coinex_api_en_doc/spot/#docsspot004_websocket007_state_subscribe
+         * @description watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for all markets of a specific list
+         * @param {[string]} symbols unified symbol of the market to fetch the ticker for
+         * @param {object} params extra parameters specific to the coinex api endpoint
+         * @returns {[object]} an array of [ticker structure]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
+         */
+        await this.loadMarkets ();
+        let type = undefined;
+        [ type, params ] = this.handleMarketTypeAndParams ('watchTickers', undefined, params);
+        const url = this.urls['api']['ws'][type];
+        const messageHash = 'tickers';
+        const subscribe = {
+            'method': 'state.subscribe',
+            'id': this.requestId (),
+            'params': [],
+        };
+        const request = this.deepExtend (subscribe, params);
+        const tickers = await this.watch (url, messageHash, request, messageHash);
+        const result = this.filterByArray (tickers, 'symbol', symbols, false);
+        const resultLength = result.length;
+        if (resultLength > 0) {
+            if (this.newUpdates) {
+                return result;
+            }
+            return this.filterByArray (this.tickers, 'symbol', symbols, false);
+        }
+        return await this.watchTickers (symbols, params);
     }
 
     async watchTrades (symbol, since = undefined, limit = undefined, params = {}) {
