@@ -663,8 +663,8 @@ module.exports = class gate extends Exchange {
                     'CROSS_ACCOUNT_NOT_FOUND': ExchangeError,
                     'RISK_LIMIT_TOO_LOW': BadRequest, // {"label":"RISK_LIMIT_TOO_LOW","detail":"limit 1000000"}
                 },
+                'broad': {},
             },
-            'broad': {},
         });
     }
 
