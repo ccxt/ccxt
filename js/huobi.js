@@ -5195,10 +5195,13 @@ module.exports = class huobi extends Exchange {
         }
         const response = await this[method] (this.extend (request, params));
         //
-        //     {
-        //         "data": 12345,
-        //         "status": "ok"
-        //     }
+        //    {
+        //        code: '200',
+        //        data: '660150061',
+        //        message: 'Succeed',
+        //        success: true,
+        //        'print-log': true
+        //    }
         //
         const success = this.safeValue2 (response, 'success', 'status');
         if (!success) {
