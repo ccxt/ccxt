@@ -5203,13 +5203,6 @@ module.exports = class huobi extends Exchange {
         //        'print-log': true
         //    }
         //
-        const success = this.safeValue2 (response, 'success', 'status');
-        if (!success) {
-            const message = this.safeString (response, 'message');
-            const errorCode = this.safeString (response, 'code');
-            this.throwExactlyMatchedException (this.exceptions['exact'], errorCode, message);
-            throw new Error (message);
-        }
         return this.parseTransfer (response, currency);
     }
 
