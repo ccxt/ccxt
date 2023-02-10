@@ -4892,7 +4892,7 @@ module.exports = class bybit extends Exchange {
         if (enableUnifiedAccount && !isInverse) {
             return await this.fetchUnifiedAccountOrders (symbol, since, limit, query);
         } else if (type === 'spot') {
-            throw new NotSupported (this.id + ' fetchOrders() does not support ' + market['type'] + ' markets, use exchange.fetchOpenOrders () and exchange.fetchClosedOrders () instead');
+            throw new NotSupported (this.id + ' fetchOrders() only support ' + market['type'] + ' markets for unified trade account, use exchange.fetchOpenOrders () and exchange.fetchClosedOrders () instead');
         } else if (enableUnifiedMargin && !isInverse) {
             return await this.fetchUnifiedMarginOrders (symbol, since, limit, query);
         } else {
