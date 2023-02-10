@@ -3708,14 +3708,16 @@ class gate extends Exchange {
         $remaining = $this->parse_number(Precise::string_abs($remainingString));
         // handle spot $market buy
         $account = $this->safe_string($order, 'account'); // using this instead of $market $type because of the conflicting ids
-        if (($account === 'spot') && ($type === 'market') && ($side === 'buy')) {
+        if ($account === 'spot') {
             $averageString = $this->safe_string($order, 'avg_deal_price');
             $average = $this->parse_number($averageString);
-            $filled = Precise::string_div($filledString, $averageString);
-            $remaining = Precise::string_div($remainingString, $averageString);
-            $price = null; // arrives as 0
-            $cost = $amount;
-            $amount = Precise::string_div($amount, $averageString);
+            if (($type === 'market') && ($side === 'buy')) {
+                $filled = Precise::string_div($filledString, $averageString);
+                $remaining = Precise::string_div($remainingString, $averageString);
+                $price = null; // arrives as 0
+                $cost = $amount;
+                $amount = Precise::string_div($amount, $averageString);
+            }
         }
         return $this->safe_order(array(
             'id' => $this->safe_string($order, 'id'),
