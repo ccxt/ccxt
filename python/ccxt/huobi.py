@@ -37,8 +37,6 @@ class huobi(Exchange):
             'userAgent': self.userAgents['chrome100'],
             'certified': True,
             'version': 'v1',
-            'accounts': None,
-            'accountsById': None,
             'hostname': 'api.huobi.pro',  # api.testnet.huobi.pro
             'pro': True,
             'has': {
@@ -1417,7 +1415,7 @@ class huobi(Exchange):
             value = self.safe_value(types, type)
             if value is True:
                 promises.append(self.fetch_markets_by_type_and_sub_type(type, None, params))
-            else:
+            elif value:
                 subKeys = list(value.keys())
                 for j in range(0, len(subKeys)):
                     subType = subKeys[j]

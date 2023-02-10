@@ -34,8 +34,6 @@ class huobijp(Exchange):
             'userAgent': self.userAgents['chrome39'],
             'certified': False,
             'version': 'v1',
-            'accounts': None,
-            'accountsById': None,
             'hostname': 'api-cloud.huobi.co.jp',
             'pro': True,
             'has': {
