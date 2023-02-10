@@ -766,6 +766,8 @@ module.exports = class woo extends Exchange {
                     } else {
                         request['order_amount'] = this.costToPrecision (symbol, cost);
                     }
+                } else {
+                    request['order_amount'] = this.costToPrecision (symbol, amount);
                 }
             } else {
                 request['order_quantity'] = this.amountToPrecision (symbol, amount);
