@@ -181,9 +181,6 @@ async function testSafe(methodName, exchange, ...args) {
 }
 
 async function runPublicTests (exchange, symbol) {
-    const market = exchange.market (symbol);
-    const isSpot = market['spot'];
-    const params = isSpot ? { 'type': 'spot', 'defaultType': 'spot' } : { 'type': 'swap', 'defaultType': 'swap' };
     const tests = {
         'loadMarkets': [exchange],
         'fetchCurrencies': [exchange],
@@ -193,16 +190,16 @@ async function runPublicTests (exchange, symbol) {
         'fetchTrades': [exchange, symbol],
         'fetchOrderBook': [exchange, symbol],
         'fetchL2OrderBook': [exchange, symbol],
-        'fetchOrderBooks': [exchange, params],
-        'fetchBidsAsks': [exchange, params],
+        'fetchOrderBooks': [exchange],
+        'fetchBidsAsks': [exchange],
         'fetchFundingRates': [exchange, symbol],
         'fetchFundingRate': [exchange, symbol],
         'fetchFundingRateHistory': [exchange, symbol],
         'fetchIndexOHLCV': [exchange, symbol],
         'fetchMarkOHLCV': [exchange, symbol],
         'fetchPremiumIndexOHLCV': [exchange, symbol],
-        'fetchStatus': [exchange, params],
-        'fetchTime': [exchange, params],
+        'fetchStatus': [exchange],
+        'fetchTime': [exchange],
     };
 
     const testNames = Object.keys (tests);
@@ -426,12 +423,9 @@ function getValidSymbol (exchange, spot = true) {
 async function testExchange (exchange, providedSymbol = undefined) {
     let spotSymbol = undefined;
     let swapSymbol = undefined;
-    // spotSymbol can be null, because how it's provided from args definition in the top of the file.
-    // if it was provided, then the initial concept of flow was to execute only that symbol
-    // this might not be ideal to handle all markettypes (inverse, futures, options, etc...) but we can't aim at this stage to cover everything, and let's just focus on spot and swap for this PR
-    const isSymbolProvided = providedSymbol;
     if (providedSymbol) {
-        if (providedSymbol.indexOf(':') < 0) {
+        const market = exchange.market(providedSymbol);
+        if (market['spot']) {
             spotSymbol = providedSymbol;
         } else {
             swapSymbol = providedSymbol;
@@ -448,23 +442,23 @@ async function testExchange (exchange, providedSymbol = undefined) {
     }
 
     if (!privateOnly) {
-        if (exchange.has['spot']) {
+        if (exchange.has['spot'] && spotSymbol !== undefined) {
             exchange.options['type'] = 'spot';
             await runPublicTests (exchange, spotSymbol);
         }
-        if (exchange.has['swap']) {
+        if (exchange.has['swap'] && swapSymbol !== undefined) {
             exchange.options['type'] = 'swap';
             await runPublicTests (exchange, swapSymbol);
         }
     }
 
     if (privateTest || privateOnly) {
-        if (exchange.has['spot']) {
-            exchange.options['type'] = 'spot';
+        if (exchange.has['spot'] && spotSymbol !== undefined) {
+            exchange.options['defaultType'] = 'spot';
             await runPrivateTests (exchange, spotSymbol);
         }
-        if (exchange.has['swap']) {
-            exchange.options['type'] = 'swap';
+        if (exchange.has['swap'] && swapSymbol !== undefined) {
+            exchange.options['defaultType'] = 'swap';
             await runPrivateTests (exchange, swapSymbol);
         }
     }
@@ -473,7 +467,7 @@ async function testExchange (exchange, providedSymbol = undefined) {
 //-----------------------------------------------------------------------------
 
 async function runPrivateTests(exchange, symbol) {
-    if (!exchange.privateKey && (!exchange.apiKey || (exchange.apiKey.length < 1)) || exchange.checkRequiredCredentials (false)) {
+    if (!exchange.checkRequiredCredentials (false)) {
         console.log ('[Skipped]', 'Keys not found, skipping private tests');
         return;
     }
@@ -484,23 +478,18 @@ async function runPrivateTests(exchange, symbol) {
     //     await test ('InvalidOrder', exchange, symbol);
     //     await test ('InsufficientFunds', exchange, symbol, balance); // danger zone - won't execute with non-empty balance
     // }
-    const market = exchange.market (symbol);
-    const isSpot = market['spot'];
-    const params = isSpot ? { 'type': 'spot', 'defaultType': 'spot' } : { 'type': 'swap', 'defaultType': 'swap' };
     const tests = {
-        'signIn': [exchange, params],
-        'fetchBalance': [exchange, params],
-        'fetchAccounts': [exchange, params],
+        'signIn': [exchange],
+        'fetchBalance': [exchange],
+        'fetchAccounts': [exchange],
         'fetchTransactionFees': [exchange],
-        'fetchTradingFees': [exchange, params],
-        'fetchStatus': [exchange, params],
+        'fetchTradingFees': [exchange],
+        'fetchStatus': [exchange],
         'fetchOrders': [exchange, symbol],
         'fetchOpenOrders': [exchange, symbol],
         'fetchClosedOrders': [exchange, symbol],
         'fetchMyTrades': [exchange, symbol],
         'fetchLeverageTiers': [exchange, symbol],
-        'fetchOpenInterestHistory': [exchange, symbol],
-        'fetchPositions': [exchange, symbol],
         'fetchLedger': [exchange, code],
         'fetchTransactions': [exchange, code],
         'fetchDeposits': [exchange, code],
@@ -513,7 +502,6 @@ async function runPrivateTests(exchange, symbol) {
         'reduceMargin': [exchange, symbol],
         'setMargin': [exchange, symbol],
         'setMarginMode': [exchange, symbol],
-        'setPositionMode': [exchange, symbol],
         'setLeverage': [exchange, symbol],
         'cancelAllOrders': [exchange, symbol],
         'cancelOrder': [exchange, symbol],
@@ -524,7 +512,6 @@ async function runPrivateTests(exchange, symbol) {
         'fetchOrder': [exchange, symbol],
         'fetchOrderTrades': [exchange, symbol],
         'fetchPosition': [exchange, symbol],
-        'fetchFundingHistory': [exchange, symbol],
         'fetchDeposit': [exchange, code],
         'createDepositAddress': [exchange, code],
         'fetchDepositAddress': [exchange, code],
@@ -534,13 +521,24 @@ async function runPrivateTests(exchange, symbol) {
         'fetchBorrowRateHistory': [exchange, symbol],
         'fetchBorrowRatesPerSymbol': [exchange, symbol],
         'fetchLedgerEntry': [exchange, code],
-        'fetchPositionsRisk': [exchange, symbol],
         'fetchWithdrawal': [exchange, code],
         'transfer': [exchange, code],
         'withdraw': [exchange, code],
     };
+    const market = exchange.market (symbol);
+    const isSpot = market['spot'];
     if (isSpot) {
         tests['fetchCurrencies'] = [exchange, symbol];
+    } else {
+        // derivatives only
+        tests['fetchPositions'] = [exchange, [symbol]];
+        tests['fetchPosition'] = [exchange, symbol];
+        tests['fetchPositionRisk'] = [exchange, symbol];
+        tests['setPositionMode'] = [exchange, symbol];
+        tests['setMarginMode'] = [exchange, symbol];
+        tests['fetchOpenInterestHistory'] = [exchange, symbol];
+        tests['fetchFundingRateHistory'] = [exchange, symbol];
+        tests['fetchFundingHistory'] = [exchange, symbol];
     }
     const testNames = Object.keys (tests);
     const promises = [];
@@ -559,7 +557,7 @@ async function runPrivateTests(exchange, symbol) {
         }
     }
     if (errors.length > 0) {
-        throw new Error ('Failed private tests [' + marketType + ']: ' + errors.join (', '));
+        throw new Error ('Failed private tests [' + market['type'] + ']: ' + errors.join (', '));
     }
 }
 
