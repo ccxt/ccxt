@@ -19,8 +19,6 @@ module.exports = class huobi extends Exchange {
             'userAgent': this.userAgents['chrome100'],
             'certified': true,
             'version': 'v1',
-            'accounts': undefined,
-            'accountsById': undefined,
             'hostname': 'api.huobi.pro', // api.testnet.huobi.pro
             'pro': true,
             'has': {
@@ -1422,7 +1420,7 @@ module.exports = class huobi extends Exchange {
             const value = this.safeValue (types, type);
             if (value === true) {
                 promises.push (this.fetchMarketsByTypeAndSubType (type, undefined, params));
-            } else {
+            } else if (value) {
                 const subKeys = Object.keys (value);
                 for (let j = 0; j < subKeys.length; j++) {
                     const subType = subKeys[j];
