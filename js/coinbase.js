@@ -226,7 +226,6 @@ module.exports = class coinbase extends Exchange {
                     },
                 },
             },
-            'stablePairs': [ 'BUSD-USD', 'CBETH-ETH', 'DAI-USD', 'GUSD-USD', 'GYEN-USD', 'PAX-USD', 'PAX-USDT', 'USDC-EUR', 'USDC-GBP', 'USDT-EUR', 'USDT-GBP', 'USDT-USD', 'USDT-USDC', 'WBTC-BTC' ],
             'precisionMode': TICK_SIZE,
             'exceptions': {
                 'exact': {
@@ -268,6 +267,7 @@ module.exports = class coinbase extends Exchange {
                 'CGLD': 'CELO',
             },
             'options': {
+                'stablePairs': [ 'BUSD-USD', 'CBETH-ETH', 'DAI-USD', 'GUSD-USD', 'GYEN-USD', 'PAX-USD', 'PAX-USDT', 'USDC-EUR', 'USDC-GBP', 'USDT-EUR', 'USDT-GBP', 'USDT-USD', 'USDT-USDC', 'WBTC-BTC' ],
                 'fetchCurrencies': {
                     'expires': 5000,
                 },
@@ -1030,6 +1030,7 @@ module.exports = class coinbase extends Exchange {
             const quote = this.safeCurrencyCode (quoteId);
             const marketType = this.safeStringLower (market, 'product_type');
             const tradingDisabled = this.safeValue (market, 'trading_disabled');
+            const stablePairs = this.safeValue (this.options, 'stablePairs', []);
             result.push ({
                 'id': id,
                 'symbol': base + '/' + quote,
@@ -1049,8 +1050,8 @@ module.exports = class coinbase extends Exchange {
                 'contract': false,
                 'linear': undefined,
                 'inverse': undefined,
-                'taker': this.inArray (id, this.stablePairs) ? 0.00001 : this.safeNumber (feeTier, 'taker_fee_rate'),
-                'maker': this.inArray (id, this.stablePairs) ? 0.0 : this.safeNumber (feeTier, 'maker_fee_rate'),
+                'taker': this.inArray (id, stablePairs) ? 0.00001 : this.safeNumber (feeTier, 'taker_fee_rate'),
+                'maker': this.inArray (id, stablePairs) ? 0.0 : this.safeNumber (feeTier, 'maker_fee_rate'),
                 'contractSize': undefined,
                 'expiry': undefined,
                 'expiryDatetime': undefined,
