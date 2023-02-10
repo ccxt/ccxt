@@ -696,11 +696,14 @@ class gate(Exchange):
         promises = [
             self.fetch_spot_markets(params),
             self.fetch_contract_markets(params),
+            self.fetch_option_markets(params),
         ]
         promises = await asyncio.gather(*promises)
         spotMarkets = promises[0]
         contractMarkets = promises[1]
-        return self.array_concat(spotMarkets, contractMarkets)
+        optionMarkets = promises[2]
+        markets = self.array_concat(spotMarkets, contractMarkets)
+        return self.array_concat(markets, optionMarkets)
 
     async def fetch_spot_markets(self, params={}):
         marginResponse = await self.publicMarginGetCurrencyPairs(params)

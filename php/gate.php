@@ -671,17 +671,20 @@ class gate extends Exchange {
 
     public function fetch_markets($params = array ()) {
         /**
-         * retrieves data on all markets for gate
+         * retrieves data on all $markets for gate
          * @param {array} $params extra parameters specific to the exchange api endpoint
          * @return {[array]} an array of objects representing market data
          */
         $promises = array(
             $this->fetch_spot_markets($params),
             $this->fetch_contract_markets($params),
+            $this->fetch_option_markets($params),
         );
         $spotMarkets = $promises[0];
         $contractMarkets = $promises[1];
-        return $this->array_concat($spotMarkets, $contractMarkets);
+        $optionMarkets = $promises[2];
+        $markets = $this->array_concat($spotMarkets, $contractMarkets);
+        return $this->array_concat($markets, $optionMarkets);
     }
 
     public function fetch_spot_markets($params = array ()) {
