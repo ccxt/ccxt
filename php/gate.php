@@ -664,8 +664,8 @@ class gate extends Exchange {
                     'CROSS_ACCOUNT_NOT_FOUND' => '\\ccxt\\ExchangeError',
                     'RISK_LIMIT_TOO_LOW' => '\\ccxt\\BadRequest', // array("label":"RISK_LIMIT_TOO_LOW","detail":"limit 1000000")
                 ),
+                'broad' => array(),
             ),
-            'broad' => array(),
         ));
     }
 

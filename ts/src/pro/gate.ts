@@ -65,6 +65,7 @@ export default class gate extends gateRest {
                 'watchOrderBook': {
                     'interval': '100ms',
                     'snapshotDelay': 10, // how many deltas to cache before fetching a snapshot
+                    'maxRetries': 3,
                 },
                 'watchBalance': {
                     'settle': 'usdt', // or btc

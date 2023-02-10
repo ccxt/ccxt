@@ -18,8 +18,6 @@ export default class huobijp extends Exchange {
             'userAgent': this.userAgents['chrome39'],
             'certified': false,
             'version': 'v1',
-            'accounts': undefined,
-            'accountsById': undefined,
             'hostname': 'api-cloud.huobi.co.jp',
             'pro': true,
             'has': {

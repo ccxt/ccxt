@@ -18,8 +18,6 @@ export default class huobi extends Exchange {
             'userAgent': this.userAgents['chrome100'],
             'certified': true,
             'version': 'v1',
-            'accounts': undefined,
-            'accountsById': undefined,
             'hostname': 'api.huobi.pro', // api.testnet.huobi.pro
             'pro': true,
             'has': {
@@ -1421,7 +1419,7 @@ export default class huobi extends Exchange {
             const value = this.safeValue (types, type);
             if (value === true) {
                 promises.push (this.fetchMarketsByTypeAndSubType (type, undefined, params));
-            } else {
+            } else if (value) {
                 const subKeys = Object.keys (value);
                 for (let j = 0; j < subKeys.length; j++) {
                     const subType = subKeys[j];
@@ -5964,17 +5962,6 @@ export default class huobi extends Exchange {
             'id': id,
             'amount': amount,
         };
-    }
-
-    parseIncomes (incomes, market = undefined, since = undefined, limit = undefined) {
-        const result = [];
-        for (let i = 0; i < incomes.length; i++) {
-            const entry = incomes[i];
-            const parsed = this.parseIncome (entry, market);
-            result.push (parsed);
-        }
-        const sorted = this.sortBy (result, 'timestamp');
-        return this.filterBySinceLimit (sorted, since, limit, 'timestamp');
     }
 
     parsePosition (position, market = undefined) {

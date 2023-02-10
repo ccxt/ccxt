@@ -596,7 +596,17 @@ export default class bitget extends bitgetRest {
         if ((type === 'spot') && (symbol === undefined)) {
             throw new ArgumentsRequired (this.id + ' watchOrders requires a symbol argument for ' + type + ' markets.');
         }
-        const instType = (type === 'spot') ? 'spbl' : 'umcbl';
+        const sandboxMode = this.safeValue (this.options, 'sandboxMode', false);
+        let instType = undefined;
+        if (type === 'spot') {
+            instType = 'spbl';
+        } else {
+            if (!sandboxMode) {
+                instType = 'UMCBL';
+            } else {
+                instType = 'SUMCBL';
+            }
+        }
         const instId = (type === 'spot') ? marketId : 'default'; // different from other streams here the 'rest' id is required for spot markets, contract markets require default here
         const args = {
             'instType': instType,
@@ -640,7 +650,8 @@ export default class bitget extends bitgetRest {
         //
         const arg = this.safeValue (message, 'arg', {});
         const instType = this.safeString (arg, 'instType');
-        const isContractUpdate = instType === 'umcbl';
+        const sandboxMode = this.safeValue (this.options, 'sandboxMode', false);
+        const isContractUpdate = (!sandboxMode) ? (instType === 'umcbl') : (instType === 'sumcbl');
         const data = this.safeValue (message, 'data', []);
         if (this.orders === undefined) {
             const limit = this.safeInteger (this.options, 'ordersLimit', 1000);
@@ -833,9 +844,10 @@ export default class bitget extends bitgetRest {
         if (type === 'spot') {
             throw new NotSupported (this.id + ' watchMyTrades is not supported for ' + type + ' markets.');
         }
+        const sandboxMode = this.safeValue (this.options, 'sandboxMode', false);
         const subscriptionHash = 'order:trades';
         const args = {
-            'instType': 'umcbl',
+            'instType': (!sandboxMode) ? 'umcbl' : 'sumcbl',
             'channel': 'orders',
             'instId': 'default',
         };

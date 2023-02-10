@@ -38,8 +38,6 @@ class huobi(Exchange):
             'userAgent': self.userAgents['chrome100'],
             'certified': True,
             'version': 'v1',
-            'accounts': None,
-            'accountsById': None,
             'hostname': 'api.huobi.pro',  # api.testnet.huobi.pro
             'pro': True,
             'has': {
@@ -1418,7 +1416,7 @@ class huobi(Exchange):
             value = self.safe_value(types, type)
             if value is True:
                 promises.append(self.fetch_markets_by_type_and_sub_type(type, None, params))
-            else:
+            elif value:
                 subKeys = list(value.keys())
                 for j in range(0, len(subKeys)):
                     subType = subKeys[j]
@@ -5576,15 +5574,6 @@ class huobi(Exchange):
             'id': id,
             'amount': amount,
         }
-
-    def parse_incomes(self, incomes, market=None, since=None, limit=None):
-        result = []
-        for i in range(0, len(incomes)):
-            entry = incomes[i]
-            parsed = self.parse_income(entry, market)
-            result.append(parsed)
-        sorted = self.sort_by(result, 'timestamp')
-        return self.filter_by_since_limit(sorted, since, limit, 'timestamp')
 
     def parse_position(self, position, market=None):
         #

@@ -172,7 +172,6 @@ export default class binance extends Exchange {
                 'api_management': 'https://www.binance.com/en/usercenter/settings/api-management',
                 'fees': 'https://www.binance.com/en/fee/schedule',
             },
-            'depth': 1,
             'api': {
                 // the API structure below will need 3-layer apidefs
                 'sapi': {
@@ -4665,17 +4664,6 @@ export default class binance extends Exchange {
             'id': id,
             'amount': amount,
         };
-    }
-
-    parseIncomes (incomes, market = undefined, since = undefined, limit = undefined) {
-        const result = [];
-        for (let i = 0; i < incomes.length; i++) {
-            const entry = incomes[i];
-            const parsed = this.parseIncome (entry, market);
-            result.push (parsed);
-        }
-        const sorted = this.sortBy (result, 'timestamp');
-        return this.filterBySinceLimit (sorted, since, limit);
     }
 
     async transfer (code, amount, fromAccount, toAccount, params = {}) {

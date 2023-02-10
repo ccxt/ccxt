@@ -75,7 +75,6 @@ class kraken extends Exchange {
                 'setMarginMode' => false, // Kraken only supports cross margin
                 'withdraw' => true,
             ),
-            'marketsByAltname' => array(),
             'timeframes' => array(
                 '1m' => 1,
                 '5m' => 5,
@@ -204,6 +203,7 @@ class kraken extends Exchange {
                 'XDG' => 'DOGE',
             ),
             'options' => array(
+                'marketsByAltname' => array(),
                 'delistedMarketsById' => array(),
                 // cannot withdraw/deposit these
                 'inactiveCurrencies' => array( 'CAD', 'USD', 'JPY', 'GBP' ),
@@ -478,7 +478,7 @@ class kraken extends Exchange {
             );
         }
         $result = $this->append_inactive_markets($result);
-        $this->marketsByAltname = $this->index_by($result, 'altname');
+        $this->options['marketsByAltname'] = $this->index_by($result, 'altname');
         return $result;
     }
 
@@ -1243,8 +1243,9 @@ class kraken extends Exchange {
     }
 
     public function find_market_by_altname_or_id($id) {
-        if (is_array($this->marketsByAltname) && array_key_exists($id, $this->marketsByAltname)) {
-            return $this->marketsByAltname[$id];
+        $marketsByAltname = $this->safe_value($this->options, 'marketsByAltname', array());
+        if (is_array($marketsByAltname) && array_key_exists($id, $marketsByAltname)) {
+            return $marketsByAltname[$id];
         } else {
             return $this->safe_market($id);
         }
