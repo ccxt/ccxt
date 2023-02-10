@@ -766,6 +766,8 @@ module.exports = class woo extends Exchange {
                     } else {
                         request['order_amount'] = this.costToPrecision (symbol, cost);
                     }
+                } else {
+                    request['order_amount'] = this.costToPrecision (symbol, amount);
                 }
             } else {
                 request['order_quantity'] = this.amountToPrecision (symbol, amount);
@@ -1993,17 +1995,6 @@ module.exports = class woo extends Exchange {
             'amount': amount,
             'rate': rate,
         };
-    }
-
-    parseIncomes (incomes, market = undefined, since = undefined, limit = undefined) {
-        const result = [];
-        for (let i = 0; i < incomes.length; i++) {
-            const entry = incomes[i];
-            const parsed = this.parseIncome (entry, market);
-            result.push (parsed);
-        }
-        const sorted = this.sortBy (result, 'timestamp');
-        return this.filterBySinceLimit (sorted, since, limit, 'timestamp');
     }
 
     async fetchFundingHistory (symbol = undefined, since = undefined, limit = undefined, params = {}) {

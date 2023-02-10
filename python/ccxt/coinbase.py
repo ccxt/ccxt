@@ -237,7 +237,6 @@ class coinbase(Exchange):
                     },
                 },
             },
-            'stablePairs': ['BUSD-USD', 'CBETH-ETH', 'DAI-USD', 'GUSD-USD', 'GYEN-USD', 'PAX-USD', 'PAX-USDT', 'USDC-EUR', 'USDC-GBP', 'USDT-EUR', 'USDT-GBP', 'USDT-USD', 'USDT-USDC', 'WBTC-BTC'],
             'precisionMode': TICK_SIZE,
             'exceptions': {
                 'exact': {
@@ -279,6 +278,7 @@ class coinbase(Exchange):
                 'CGLD': 'CELO',
             },
             'options': {
+                'stablePairs': ['BUSD-USD', 'CBETH-ETH', 'DAI-USD', 'GUSD-USD', 'GYEN-USD', 'PAX-USD', 'PAX-USDT', 'USDC-EUR', 'USDC-GBP', 'USDT-EUR', 'USDT-GBP', 'USDT-USD', 'USDT-USDC', 'WBTC-BTC'],
                 'fetchCurrencies': {
                     'expires': 5000,
                 },
@@ -995,6 +995,7 @@ class coinbase(Exchange):
             quote = self.safe_currency_code(quoteId)
             marketType = self.safe_string_lower(market, 'product_type')
             tradingDisabled = self.safe_value(market, 'trading_disabled')
+            stablePairs = self.safe_value(self.options, 'stablePairs', [])
             result.append({
                 'id': id,
                 'symbol': base + '/' + quote,
@@ -1014,8 +1015,8 @@ class coinbase(Exchange):
                 'contract': False,
                 'linear': None,
                 'inverse': None,
-                'taker': 0.00001 if self.in_array(id, self.stablePairs) else self.safe_number(feeTier, 'taker_fee_rate'),
-                'maker': 0.0 if self.in_array(id, self.stablePairs) else self.safe_number(feeTier, 'maker_fee_rate'),
+                'taker': 0.00001 if self.in_array(id, stablePairs) else self.safe_number(feeTier, 'taker_fee_rate'),
+                'maker': 0.0 if self.in_array(id, stablePairs) else self.safe_number(feeTier, 'maker_fee_rate'),
                 'contractSize': None,
                 'expiry': None,
                 'expiryDatetime': None,

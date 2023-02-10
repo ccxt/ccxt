@@ -232,7 +232,6 @@ class coinbase extends Exchange {
                     ),
                 ),
             ),
-            'stablePairs' => array( 'BUSD-USD', 'CBETH-ETH', 'DAI-USD', 'GUSD-USD', 'GYEN-USD', 'PAX-USD', 'PAX-USDT', 'USDC-EUR', 'USDC-GBP', 'USDT-EUR', 'USDT-GBP', 'USDT-USD', 'USDT-USDC', 'WBTC-BTC' ),
             'precisionMode' => TICK_SIZE,
             'exceptions' => array(
                 'exact' => array(
@@ -274,6 +273,7 @@ class coinbase extends Exchange {
                 'CGLD' => 'CELO',
             ),
             'options' => array(
+                'stablePairs' => array( 'BUSD-USD', 'CBETH-ETH', 'DAI-USD', 'GUSD-USD', 'GYEN-USD', 'PAX-USD', 'PAX-USDT', 'USDC-EUR', 'USDC-GBP', 'USDT-EUR', 'USDT-GBP', 'USDT-USD', 'USDT-USDC', 'WBTC-BTC' ),
                 'fetchCurrencies' => array(
                     'expires' => 5000,
                 ),
@@ -1045,6 +1045,7 @@ class coinbase extends Exchange {
                 $quote = $this->safe_currency_code($quoteId);
                 $marketType = $this->safe_string_lower($market, 'product_type');
                 $tradingDisabled = $this->safe_value($market, 'trading_disabled');
+                $stablePairs = $this->safe_value($this->options, 'stablePairs', array());
                 $result[] = array(
                     'id' => $id,
                     'symbol' => $base . '/' . $quote,
@@ -1064,8 +1065,8 @@ class coinbase extends Exchange {
                     'contract' => false,
                     'linear' => null,
                     'inverse' => null,
-                    'taker' => $this->in_array($id, $this->stablePairs) ? 0.00001 : $this->safe_number($feeTier, 'taker_fee_rate'),
-                    'maker' => $this->in_array($id, $this->stablePairs) ? 0.0 : $this->safe_number($feeTier, 'maker_fee_rate'),
+                    'taker' => $this->in_array($id, $stablePairs) ? 0.00001 : $this->safe_number($feeTier, 'taker_fee_rate'),
+                    'maker' => $this->in_array($id, $stablePairs) ? 0.0 : $this->safe_number($feeTier, 'maker_fee_rate'),
                     'contractSize' => null,
                     'expiry' => null,
                     'expiryDatetime' => null,
