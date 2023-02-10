@@ -173,7 +173,6 @@ module.exports = class binance extends Exchange {
                 'api_management': 'https://www.binance.com/en/usercenter/settings/api-management',
                 'fees': 'https://www.binance.com/en/fee/schedule',
             },
-            'depth': 1,
             'api': {
                 // the API structure below will need 3-layer apidefs
                 'sapi': {
