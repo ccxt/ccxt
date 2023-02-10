@@ -76,7 +76,6 @@ module.exports = class kraken extends Exchange {
                 'setMarginMode': false, // Kraken only supports cross margin
                 'withdraw': true,
             },
-            'marketsByAltname': {},
             'timeframes': {
                 '1m': 1,
                 '5m': 5,
@@ -205,6 +204,7 @@ module.exports = class kraken extends Exchange {
                 'XDG': 'DOGE',
             },
             'options': {
+                'marketsByAltname': {},
                 'delistedMarketsById': {},
                 // cannot withdraw/deposit these
                 'inactiveCurrencies': [ 'CAD', 'USD', 'JPY', 'GBP' ],
@@ -481,7 +481,7 @@ module.exports = class kraken extends Exchange {
             });
         }
         result = this.appendInactiveMarkets (result);
-        this.marketsByAltname = this.indexBy (result, 'altname');
+        this.options['marketsByAltname'] = this.indexBy (result, 'altname');
         return result;
     }
 
@@ -1266,8 +1266,9 @@ module.exports = class kraken extends Exchange {
     }
 
     findMarketByAltnameOrId (id) {
-        if (id in this.marketsByAltname) {
-            return this.marketsByAltname[id];
+        const marketsByAltname = this.safeValue (this.options, 'marketsByAltname', {});
+        if (id in marketsByAltname) {
+            return marketsByAltname[id];
         } else {
             return this.safeMarket (id);
         }
