@@ -96,7 +96,6 @@ class kraken(Exchange):
                 'setMarginMode': False,  # Kraken only supports cross margin
                 'withdraw': True,
             },
-            'marketsByAltname': {},
             'timeframes': {
                 '1m': 1,
                 '5m': 5,
@@ -225,6 +224,7 @@ class kraken(Exchange):
                 'XDG': 'DOGE',
             },
             'options': {
+                'marketsByAltname': {},
                 'delistedMarketsById': {},
                 # cannot withdraw/deposit these
                 'inactiveCurrencies': ['CAD', 'USD', 'JPY', 'GBP'],
@@ -494,7 +494,7 @@ class kraken(Exchange):
                 'info': market,
             })
         result = self.append_inactive_markets(result)
-        self.marketsByAltname = self.index_by(result, 'altname')
+        self.options['marketsByAltname'] = self.index_by(result, 'altname')
         return result
 
     def safe_currency(self, currencyId, currency=None):
@@ -1204,8 +1204,9 @@ class kraken(Exchange):
         return self.parse_order(result)
 
     def find_market_by_altname_or_id(self, id):
-        if id in self.marketsByAltname:
-            return self.marketsByAltname[id]
+        marketsByAltname = self.safe_value(self.options, 'marketsByAltname', {})
+        if id in marketsByAltname:
+            return marketsByAltname[id]
         else:
             return self.safe_market(id)
 
