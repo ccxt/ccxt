@@ -6081,14 +6081,15 @@ module.exports = class huobi extends Exchange {
         let marginMode = undefined;
         [ marginMode, params ] = this.handleMarginModeAndParams ('fetchPositions', params);
         marginMode = (marginMode === undefined) ? 'cross' : marginMode;
-        const defaultSubType = this.safeString (this.options, 'defaultSubType', 'inverse');
+        const defaultSubType = this.safeString2 (this.options, 'defaultSubType', 'inverse');
+        const subType = this.safeString2 (params, 'subType', 'defaultSubType', defaultSubType);
         let marketType = undefined;
         [ marketType, params ] = this.handleMarketTypeAndParams ('fetchPositions', undefined, params);
         if (marketType === 'spot') {
             marketType = 'future';
         }
         let method = undefined;
-        if (defaultSubType === 'linear') {
+        if (subType === 'linear') {
             method = this.getSupportedMapping (marginMode, {
                 'isolated': 'contractPrivatePostLinearSwapApiV1SwapPositionInfo',
                 'cross': 'contractPrivatePostLinearSwapApiV1SwapCrossPositionInfo',
@@ -6176,6 +6177,7 @@ module.exports = class huobi extends Exchange {
             //     }
             //
         }
+        params = this.omit (params, [ 'defaultSubType', 'subType' ]);
         const response = await this[method] (params);
         const data = this.safeValue (response, 'data', []);
         const timestamp = this.safeInteger (response, 'ts');
