@@ -4267,27 +4267,18 @@ class bybit(Exchange):
     async def fetch_derivatives_orders(self, symbol=None, since=None, limit=None, params={}):
         await self.load_markets()
         market = None
-        settle = None
         request = {
             # 'symbol': market['id'],
-            # 'order_id': 'string'
-            # 'order_link_id': 'string',  # unique client order id, max 36 characters
-            # 'symbol': market['id'],  # default BTCUSD
-            # 'order': 'desc',  # asc
-            # 'page': 1,
-            # 'limit': 20,  # max 50
-            # 'order_status': 'Created,New'
-            # conditional orders ---------------------------------------------
-            # 'stop_order_id': 'string',
-            # 'stop_order_status': 'Untriggered',
+            # 'orderId': 'string'
+            # 'orderLinkId': 'string',  # unique client order id, max 36 characters
+            # 'orderStatus': 'Created,New'
+            # 'orderFilter': 'StopOrder',  # 'Order' or 'StopOrder'
+            # 'limit': 20,  # Limit for data size per page. [1, 50]. Default: 20
+            # 'cursor': 'string',  # used for pagination
         }
         if symbol is not None:
             market = self.market(symbol)
-            settle = market['settle']
             request['symbol'] = market['id']
-        settle, params = self.handle_option_and_params(params, 'cancelAllOrders', 'settle', settle)
-        if settle is not None:
-            request['settleCoin'] = settle
         isStop = self.safe_value(params, 'stop', False)
         params = self.omit(params, ['stop'])
         if isStop:

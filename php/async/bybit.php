@@ -4595,28 +4595,18 @@ class bybit extends Exchange {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             Async\await($this->load_markets());
             $market = null;
-            $settle = null;
             $request = array(
                 // 'symbol' => $market['id'],
-                // 'order_id' => 'string'
-                // 'order_link_id' => 'string', // unique client order id, max 36 characters
-                // 'symbol' => $market['id'], // default BTCUSD
-                // 'order' => 'desc', // asc
-                // 'page' => 1,
-                // 'limit' => 20, // max 50
-                // 'order_status' => 'Created,New'
-                // conditional orders ---------------------------------------------
-                // 'stop_order_id' => 'string',
-                // 'stop_order_status' => 'Untriggered',
+                // 'orderId' => 'string'
+                // 'orderLinkId' => 'string', // unique client order id, max 36 characters
+                // 'orderStatus' => 'Created,New'
+                // 'orderFilter' => 'StopOrder', // 'Order' or 'StopOrder'
+                // 'limit' => 20, // Limit for $data size per page. [1, 50]. Default => 20
+                // 'cursor' => 'string', // used for pagination
             );
             if ($symbol !== null) {
                 $market = $this->market($symbol);
-                $settle = $market['settle'];
                 $request['symbol'] = $market['id'];
-            }
-            list($settle, $params) = $this->handle_option_and_params($params, 'cancelAllOrders', 'settle', $settle);
-            if ($settle !== null) {
-                $request['settleCoin'] = $settle;
             }
             $isStop = $this->safe_value($params, 'stop', false);
             $params = $this->omit($params, array( 'stop' ));
