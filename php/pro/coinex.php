@@ -457,6 +457,8 @@ class coinex extends \ccxt\async\coinex {
     public function watch_order_book($symbol, $limit = null, $params = array ()) {
         return Async\async(function () use ($symbol, $limit, $params) {
             /**
+             * @see https://viabtc.github.io/coinex_api_en_doc/spot/#docsspot004_websocket017_depth_subscribe_multi
+             * @see https://viabtc.github.io/coinex_api_en_doc/futures/#docsfutures002_websocket011_depth_subscribe_multi
              * watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
              * @param {string} $symbol unified $symbol of the $market to fetch the order book for
              * @param {int|null} $limit the maximum amount of order book entries to return
@@ -486,18 +488,17 @@ class coinex extends \ccxt\async\coinex {
                 throw new NotSupported($this->id . ' watchOrderBook() $aggregation must be one of ' . implode(', ', $aggregations));
             }
             $params = $this->omit($params, 'aggregation');
+            $watchOrderBookSubscriptions = $this->safe_value($this->options, 'watchOrderBookSubscriptions', array());
+            $watchOrderBookSubscriptions[$symbol] = [ $market['id'], $limit, $aggregation, true ];
             $subscribe = array(
-                'method' => 'depth.subscribe',
+                'method' => 'depth.subscribe_multi',
                 'id' => $this->request_id(),
-                'params' => [
-                    $market['id'],
-                    $limit,
-                    $aggregation,
-                    true,
-                ],
+                'params' => is_array($watchOrderBookSubscriptions) ? array_values($watchOrderBookSubscriptions) : array(),
             );
+            $this->options['watchOrderBookSubscriptions'] = $watchOrderBookSubscriptions;
+            $subscriptionHash = $this->hash($this->encode($this->json($watchOrderBookSubscriptions)));
             $request = $this->deep_extend($subscribe, $params);
-            $orderbook = Async\await($this->watch($url, $messageHash, $request, $messageHash));
+            $orderbook = Async\await($this->watch($url, $messageHash, $request, $subscriptionHash, $request));
             return $orderbook->limit ();
         }) ();
     }
