@@ -2693,7 +2693,7 @@ module.exports = class coinbase extends Exchange {
             request['limit'] = limit;
         }
         if (since !== undefined) {
-            request['start_sequence_timestamp'] = this.parse8601 (since);
+            request['start_sequence_timestamp'] = this.iso8601 (since);
         }
         const response = await this.v3PrivateGetBrokerageOrdersHistoricalFills (this.extend (request, params));
         //
