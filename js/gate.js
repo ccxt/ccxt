@@ -4205,12 +4205,7 @@ module.exports = class gate extends Exchange {
         //        "currency_pair": "BTC_USDT"
         //    }
         //
-        const transfer = this.parseTransfer (response, currency);
-        return this.extend (transfer, {
-            'fromAccount': fromAccount,
-            'toAccount': toAccount,
-            'amount': this.parseNumber (truncated),
-        });
+        return this.parseTransfer (response, currency);
     }
 
     parseTransfer (transfer, currency = undefined) {

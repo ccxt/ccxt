@@ -2739,13 +2739,7 @@ module.exports = class digifinex extends Exchange {
         //         "code": 0
         //     }
         //
-        const transfer = this.parseTransfer (response, currency);
-        return this.extend (transfer, {
-            'amount': amount,
-            'currency': code,
-            'fromAccount': fromAccount,
-            'toAccount': toAccount,
-        });
+        return this.parseTransfer (response, currency);
     }
 
     async withdraw (code, amount, address, tag = undefined, params = {}) {
