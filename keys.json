@@ -4,9 +4,9 @@
     "binance":       { "skipWs": true, "httpProxy": "http://51.83.140.52:11230" },
     "binanceusdm":   { "skipWs": true, "httpProxy": "http://51.83.140.52:11230" },
     "binancecoinm":  { "skipWs": true, "httpProxy": "http://51.83.140.52:11230" },
-    "mexc":          { "skip": true,    "//":"Reason: 403 Forbidden <HTML><HEAD><TITLE>Access Denied</TITLE></HEAD"},
-    "gemini":        { "skip": true,    "//":"Reason: Markets api is too unreliable" },
-    "coinex":        { "skip": true,    "//": "Reason: 13/01 API is down" },
+    "mexc":          { "skip": true, "//": "Reason: 403 Forbidden <HTML><HEAD><TITLE>Access Denied</TITLE></HEAD"},
+    "gemini":        { "skip": true, "//": "Reason: Markets api is too unreliable"},
+    "coinex":        { "skip": true, "//": "Reason: 13/01 API is down"},
     "bitcoincom":    { "skipWs": true },
     "bithumb":       { "skip": true },
     "bitmart":       { "skipWs": true },
@@ -39,5 +39,9 @@
     "crex24":        { "skip": true },
     "btcex":         { "skip": true },
     "wazirx":        { "skipWs": true },
-    "deribit":       { "skipWs": true }
+    "deribit":       { "skipWs": true },
+    "tidex":         { "skip": true },
+    "yobit":         { "skip": true },
+    "coinbase":      { "skip": true, "//": "all endpoints are private" },
+    "buda":          { "skip": true, "//": "exchange unavailable" }
 }
