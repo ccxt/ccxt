@@ -6078,13 +6078,18 @@ module.exports = class huobi extends Exchange {
          */
         await this.loadMarkets ();
         symbols = this.marketSymbols (symbols);
+        let market = undefined;
+        if (symbols !== undefined) {
+            const first = this.safeString (symbols, 0);
+            market = this.market (first);
+        }
         let marginMode = undefined;
         [ marginMode, params ] = this.handleMarginModeAndParams ('fetchPositions', params);
         marginMode = (marginMode === undefined) ? 'cross' : marginMode;
-        const defaultSubType = this.safeString2 (this.options, 'defaultSubType', 'inverse');
-        const subType = this.safeString2 (params, 'subType', 'defaultSubType', defaultSubType);
+        let subType = undefined;
+        [ subType, params ] = this.handleSubTypeAndParams ('fetchPositions', market, params, 'linear');
         let marketType = undefined;
-        [ marketType, params ] = this.handleMarketTypeAndParams ('fetchPositions', undefined, params);
+        [ marketType, params ] = this.handleMarketTypeAndParams ('fetchPositions', market, params);
         if (marketType === 'spot') {
             marketType = 'future';
         }
@@ -6177,7 +6182,6 @@ module.exports = class huobi extends Exchange {
             //     }
             //
         }
-        params = this.omit (params, [ 'defaultSubType', 'subType' ]);
         const response = await this[method] (params);
         const data = this.safeValue (response, 'data', []);
         const timestamp = this.safeInteger (response, 'ts');
