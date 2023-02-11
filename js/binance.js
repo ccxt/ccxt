@@ -3283,8 +3283,10 @@ module.exports = class binance extends Exchange {
         const statuses = {
             'NEW': 'open',
             'PARTIALLY_FILLED': 'open',
+            'ACCEPTED': 'open',
             'FILLED': 'closed',
             'CANCELED': 'canceled',
+            'CANCELLED': 'canceled',
             'PENDING_CANCEL': 'canceling', // currently unused
             'REJECTED': 'rejected',
             'EXPIRED': 'expired',
@@ -3407,6 +3409,34 @@ module.exports = class binance extends Exchange {
         //       "updateTime": "1636061952660"
         //     }
         //
+        // option: createOrder
+        //
+        //     {
+        //         "orderId": 4728833085436977152,
+        //         "symbol": "ETH-230211-1500-C",
+        //         "price": "10.0",
+        //         "quantity": "1.00",
+        //         "executedQty": "0.00",
+        //         "fee": "0",
+        //         "side": "BUY",
+        //         "type": "LIMIT",
+        //         "timeInForce": "GTC",
+        //         "reduceOnly": false,
+        //         "postOnly": false,
+        //         "createTime": 1676083034462,
+        //         "updateTime": 1676083034462,
+        //         "status": "ACCEPTED",
+        //         "avgPrice": "0",
+        //         "source": "API",
+        //         "clientOrderId": "",
+        //         "priceScale": 1,
+        //         "quantityScale": 2,
+        //         "optionSide": "CALL",
+        //         "quoteAsset": "USDT",
+        //         "lastTrade": {"id":"69","time":"1676084430567","price":"24.9","qty":"1.00"},
+        //         "mmp": false
+        //     }
+        //
         const status = this.parseOrderStatus (this.safeString (order, 'status'));
         const marketId = this.safeString (order, 'symbol');
         const marketType = ('closePosition' in order) ? 'contract' : 'spot';
@@ -3422,6 +3452,9 @@ module.exports = class binance extends Exchange {
         } else if ('transactTime' in order) {
             lastTradeTimestamp = this.safeInteger (order, 'transactTime');
             timestamp = this.safeInteger (order, 'transactTime');
+        } else if ('createTime' in order) {
+            lastTradeTimestamp = this.safeInteger (order, 'updateTime');
+            timestamp = this.safeInteger (order, 'createTime');
         } else if ('updateTime' in order) {
             if (status === 'open') {
                 if (Precise.stringGt (filled, '0')) {
@@ -3433,7 +3466,7 @@ module.exports = class binance extends Exchange {
         }
         const average = this.safeString (order, 'avgPrice');
         const price = this.safeString (order, 'price');
-        const amount = this.safeString (order, 'origQty');
+        const amount = this.safeString2 (order, 'origQty', 'quantity');
         // - Spot/Margin market: cummulativeQuoteQty
         // - Futures market: cumQuote.
         //   Note this is not the actual cost, since Binance futures uses leverage to calculate margins.
@@ -3442,7 +3475,7 @@ module.exports = class binance extends Exchange {
         const id = this.safeString (order, 'orderId');
         let type = this.safeStringLower (order, 'type');
         const side = this.safeStringLower (order, 'side');
-        const fills = this.safeValue (order, 'fills', []);
+        const fills = this.safeValue2 (order, 'fills', 'lastTrade', []);
         const clientOrderId = this.safeString (order, 'clientOrderId');
         let timeInForce = this.safeString (order, 'timeInForce');
         if (timeInForce === 'GTX') {
@@ -3476,7 +3509,11 @@ module.exports = class binance extends Exchange {
             'filled': filled,
             'remaining': undefined,
             'status': status,
-            'fee': undefined,
+            'fee': {
+                'currency': this.safeString (order, 'quoteAsset'),
+                'cost': this.safeNumber (order, 'fee'),
+                'rate': undefined,
+            },
             'trades': fills,
         }, market);
     }
@@ -3557,14 +3594,6 @@ module.exports = class binance extends Exchange {
                 uppercaseType = market['contract'] ? 'TAKE_PROFIT' : 'TAKE_PROFIT_LIMIT';
             }
         }
-        const validOrderTypes = this.safeValue (market['info'], 'orderTypes');
-        if (!this.inArray (uppercaseType, validOrderTypes)) {
-            if (initialUppercaseType !== uppercaseType) {
-                throw new InvalidOrder (this.id + ' stopPrice parameter is not allowed for ' + symbol + ' ' + type + ' orders');
-            } else {
-                throw new InvalidOrder (this.id + ' ' + type + ' is not a valid order type for the ' + symbol + ' market');
-            }
-        }
         if (marginMode === 'isolated') {
             request['isIsolated'] = true;
         }
@@ -3582,8 +3611,23 @@ module.exports = class binance extends Exchange {
         if ((marketType === 'spot') || (marketType === 'margin')) {
             request['newOrderRespType'] = this.safeValue (this.options['newOrderRespType'], type, 'RESULT'); // 'ACK' for order id, 'RESULT' for full order or 'FULL' for order with fills
         } else {
-            // delivery and future
+            // swap, futures and options
             request['newOrderRespType'] = 'RESULT';  // "ACK", "RESULT", default "ACK"
+        }
+        if (market['option']) {
+            if (type === 'market') {
+                throw new InvalidOrder (this.id + ' ' + type + ' is not a valid order type for the ' + symbol + ' market');
+            }
+            method = 'eapiPrivatePostOrder';
+        } else {
+            const validOrderTypes = this.safeValue (market['info'], 'orderTypes');
+            if (!this.inArray (uppercaseType, validOrderTypes)) {
+                if (initialUppercaseType !== uppercaseType) {
+                    throw new InvalidOrder (this.id + ' stopPrice parameter is not allowed for ' + symbol + ' ' + type + ' orders');
+                } else {
+                    throw new InvalidOrder (this.id + ' ' + type + ' is not a valid order type for the ' + symbol + ' market');
+                }
+            }
         }
         request['type'] = uppercaseType;
         // additional required fields depending on the order type
