@@ -500,7 +500,6 @@ async function runPrivateTests(exchange, symbol) {
         'fetchWithdrawals': [exchange, code],
         'fetchBorrowRates': [exchange, code],
         'fetchBorrowRate': [exchange, code],
-        'fetchBorrowInterest': [exchange, code],
         'fetchBorrowInterest': [exchange, code, symbol],
         'addMargin': [exchange, symbol],
         'reduceMargin': [exchange, symbol],
