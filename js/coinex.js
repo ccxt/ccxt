@@ -3543,9 +3543,9 @@ module.exports = class coinex extends Exchange {
          *  @method
          * @name coinex#fetchFundingRates
          * @description fetch the current funding rates
-         * @param {array} symbols unified market symbols
+         * @param {[string]} symbols unified market symbols
          * @param {object} params extra parameters specific to the coinex api endpoint
-         * @returns {array} an array of [funding rate structures]{@link https://docs.ccxt.com/en/latest/manual.html#funding-rate-structure}
+         * @returns {[object]} an array of [funding rate structures]{@link https://docs.ccxt.com/en/latest/manual.html#funding-rate-structure}
          */
         await this.loadMarkets ();
         symbols = this.marketSymbols (symbols);
