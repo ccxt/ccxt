@@ -265,6 +265,7 @@ class CCXTProTranspiler extends Transpiler {
             // , python2Folder = './python/ccxtpro/', // CCXT Pro does not support Python 2
             , python3Folder = './python/ccxt/pro/'
             , phpAsyncFolder = './php/pro/'
+            , jsFolder = './js/src/pro/'
             , tsFolder = './ts/src/pro/'
             , options = { /* python2Folder, */ python3Folder, phpAsyncFolder, exchanges }
 
@@ -289,7 +290,7 @@ class CCXTProTranspiler extends Transpiler {
 
         // HINT: if we're going to support specific class definitions
         // this process won't work anymore as it will override the definitions
-        await this.exportTypeScriptDeclarations (tsFilename, tsFolder)
+        await this.exportTypeScriptDeclarations (tsFilename, jsFolder)
 
         //*/
 
