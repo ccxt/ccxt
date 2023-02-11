@@ -465,7 +465,7 @@ module.exports = class coinex extends coinexRest {
             'params': Object.values (watchOrderBookSubscriptions),
         };
         this.options['watchOrderBookSubscriptions'] = watchOrderBookSubscriptions;
-        const subscriptionHash = this.hashMessage (this.json (watchOrderBookSubscriptions));
+        const subscriptionHash = this.hash (this.encode (this.json (watchOrderBookSubscriptions)));
         const request = this.deepExtend (subscribe, params);
         const orderbook = await this.watch (url, messageHash, request, subscriptionHash, request);
         return orderbook.limit ();
