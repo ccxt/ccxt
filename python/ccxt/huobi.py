@@ -5683,16 +5683,21 @@ class huobi(Exchange):
         """
         self.load_markets()
         symbols = self.market_symbols(symbols)
+        market = None
+        if symbols is not None:
+            first = self.safe_string(symbols, 0)
+            market = self.market(first)
         marginMode = None
         marginMode, params = self.handle_margin_mode_and_params('fetchPositions', params)
         marginMode = 'cross' if (marginMode is None) else marginMode
-        defaultSubType = self.safe_string(self.options, 'defaultSubType', 'inverse')
+        subType = None
+        subType, params = self.handle_sub_type_and_params('fetchPositions', market, params, 'linear')
         marketType = None
-        marketType, params = self.handle_market_type_and_params('fetchPositions', None, params)
+        marketType, params = self.handle_market_type_and_params('fetchPositions', market, params)
         if marketType == 'spot':
             marketType = 'future'
         method = None
-        if defaultSubType == 'linear':
+        if subType == 'linear':
             method = self.get_supported_mapping(marginMode, {
                 'isolated': 'contractPrivatePostLinearSwapApiV1SwapPositionInfo',
                 'cross': 'contractPrivatePostLinearSwapApiV1SwapCrossPositionInfo',

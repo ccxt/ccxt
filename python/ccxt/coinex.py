@@ -3335,9 +3335,9 @@ class coinex(Exchange):
         """
          *  @method
         fetch the current funding rates
-        :param array symbols: unified market symbols
+        :param [str] symbols: unified market symbols
         :param dict params: extra parameters specific to the coinex api endpoint
-        :returns array: an array of `funding rate structures <https://docs.ccxt.com/en/latest/manual.html#funding-rate-structure>`
+        :returns [dict]: an array of `funding rate structures <https://docs.ccxt.com/en/latest/manual.html#funding-rate-structure>`
         """
         self.load_markets()
         symbols = self.market_symbols(symbols)

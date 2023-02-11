@@ -1705,12 +1705,7 @@ export default class whitebit extends Exchange {
         //
         //    []
         //
-        const transfer = this.parseTransfer (response, currency);
-        return this.extend (transfer, {
-            'amount': amount,
-            'fromAccount': fromAccount,
-            'toAccount': toAccount,
-        });
+        return this.parseTransfer (response, currency);
     }
 
     parseTransfer (transfer, currency) {

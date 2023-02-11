@@ -23,7 +23,7 @@ class coinex(Exchange, ccxt.async_support.coinex):
                 'ws': True,
                 'watchBalance': True,
                 'watchTicker': True,
-                'watchTickers': False,
+                'watchTickers': True,
                 'watchTrades': True,
                 'watchMyTrades': False,  # can query but can't subscribe
                 'watchOrders': True,
@@ -134,16 +134,20 @@ class coinex(Exchange, ccxt.async_support.coinex):
         #
         defaultType = self.safe_string(self.options, 'defaultType')
         params = self.safe_value(message, 'params', [])
-        first = self.safe_value(params, 0, {})
-        keys = list(first.keys())
-        marketId = self.safe_string(keys, 0)
-        symbol = self.safe_symbol(marketId, None, None, defaultType)
-        ticker = self.safe_value(first, marketId, {})
-        market = self.safe_market(marketId, None, None, defaultType)
-        parsedTicker = self.parse_ws_ticker(ticker, market)
-        messageHash = 'ticker:' + symbol
-        self.tickers[symbol] = parsedTicker
-        client.resolve(parsedTicker, messageHash)
+        rawTickers = self.safe_value(params, 0, {})
+        keys = list(rawTickers.keys())
+        newTickers = []
+        for i in range(0, len(keys)):
+            marketId = keys[i]
+            rawTicker = rawTickers[marketId]
+            symbol = self.safe_symbol(marketId, None, None, defaultType)
+            market = self.safe_market(marketId, None, None, defaultType)
+            parsedTicker = self.parse_ws_ticker(rawTicker, market)
+            messageHash = 'ticker:' + symbol
+            self.tickers[symbol] = parsedTicker
+            newTickers.append(parsedTicker)
+            client.resolve(parsedTicker, messageHash)
+        client.resolve(newTickers, 'tickers')
 
     def parse_ws_ticker(self, ticker, market=None):
         #
@@ -359,26 +363,43 @@ class coinex(Exchange, ccxt.async_support.coinex):
 
     async def watch_ticker(self, symbol, params={}):
         """
+        see https://viabtc.github.io/coinex_api_en_doc/spot/#docsspot004_websocket007_state_subscribe
         watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
         :param str symbol: unified symbol of the market to fetch the ticker for
         :param dict params: extra parameters specific to the coinex api endpoint
         :returns dict: a `ticker structure <https://docs.ccxt.com/en/latest/manual.html#ticker-structure>`
         """
+        return await self.watch_tickers([symbol], params)
+
+    async def watch_tickers(self, symbols=None, params={}):
+        """
+        see https://viabtc.github.io/coinex_api_en_doc/spot/#docsspot004_websocket007_state_subscribe
+        watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for all markets of a specific list
+        :param [str] symbols: unified symbol of the market to fetch the ticker for
+        :param dict params: extra parameters specific to the coinex api endpoint
+        :returns dict: a dictionary of `ticker structures <https://docs.ccxt.com/en/latest/manual.html#ticker-structure>`
+        """
         await self.load_markets()
-        market = self.market(symbol)
+        symbols = self.market_symbols(symbols)
         type = None
-        type, params = self.handle_market_type_and_params('watchTicker', market, params)
+        type, params = self.handle_market_type_and_params('watchTickers', None, params)
         url = self.urls['api']['ws'][type]
-        messageHash = 'ticker:' + symbol
+        messageHash = 'tickers'
         subscribe = {
             'method': 'state.subscribe',
             'id': self.request_id(),
-            'params': [
-                market['id'],
-            ],
+            'params': [],
         }
         request = self.deep_extend(subscribe, params)
-        return await self.watch(url, messageHash, request, messageHash, request)
+        tickers = await self.watch(url, messageHash, request, messageHash)
+        result = self.filter_by_array(tickers, 'symbol', symbols)
+        keys = list(result.keys())
+        resultLength = len(keys)
+        if resultLength > 0:
+            if self.newUpdates:
+                return result
+            return self.filter_by_array(self.tickers, 'symbol', symbols)
+        return await self.watch_tickers(symbols, params)
 
     async def watch_trades(self, symbol, since=None, limit=None, params={}):
         """

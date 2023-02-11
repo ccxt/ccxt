@@ -4689,15 +4689,15 @@ class binance extends Exchange {
 
     public function transfer($code, $amount, $fromAccount, $toAccount, $params = array ()) {
         /**
-         * $transfer $currency internally between wallets on the same account
-         * @see https://binance-docs.github.io/apidocs/spot/en/#user-universal-$transfer-user_data
-         * @see https://binance-docs.github.io/apidocs/spot/en/#isolated-margin-account-$transfer-margin
+         * transfer $currency internally between wallets on the same account
+         * @see https://binance-docs.github.io/apidocs/spot/en/#user-universal-transfer-user_data
+         * @see https://binance-docs.github.io/apidocs/spot/en/#isolated-margin-account-transfer-margin
          * @param {string} $code unified $currency $code
-         * @param {float} $amount amount to $transfer
-         * @param {string} $fromAccount account to $transfer from
-         * @param {string} $toAccount account to $transfer to
+         * @param {float} $amount amount to transfer
+         * @param {string} $fromAccount account to transfer from
+         * @param {string} $toAccount account to transfer to
          * @param {array} $params extra parameters specific to the binance api endpoint
-         * @return {array} a {@link https://docs.ccxt.com/en/latest/manual.html#$transfer-structure $transfer structure}
+         * @return {array} a {@link https://docs.ccxt.com/en/latest/manual.html#transfer-structure transfer structure}
          */
         $this->load_markets();
         $currency = $this->currency($code);
@@ -4716,14 +4716,14 @@ class binance extends Exchange {
             $toId = strtoupper($this->convert_type_to_account($toAccount));
             if ($fromId === 'ISOLATED') {
                 if ($symbol === null) {
-                    throw new ArgumentsRequired($this->id . ' $transfer () requires $params["symbol"] when $fromAccount is ' . $fromAccount);
+                    throw new ArgumentsRequired($this->id . ' transfer () requires $params["symbol"] when $fromAccount is ' . $fromAccount);
                 } else {
                     $fromId = $this->market_id($symbol);
                 }
             }
             if ($toId === 'ISOLATED') {
                 if ($symbol === null) {
-                    throw new ArgumentsRequired($this->id . ' $transfer () requires $params["symbol"] when $toAccount is ' . $toAccount);
+                    throw new ArgumentsRequired($this->id . ' transfer () requires $params["symbol"] when $toAccount is ' . $toAccount);
                 } else {
                     $toId = $this->market_id($symbol);
                 }
@@ -4731,7 +4731,7 @@ class binance extends Exchange {
             $accountsById = $this->safe_value($this->options, 'accountsById', array());
             $fromIsolated = !(is_array($accountsById) && array_key_exists($fromId, $accountsById));
             $toIsolated = !(is_array($accountsById) && array_key_exists($toId, $accountsById));
-            if ($fromIsolated || $toIsolated) { // Isolated margin $transfer
+            if ($fromIsolated || $toIsolated) { // Isolated margin transfer
                 $fromFuture = $fromId === 'UMFUTURE' || $fromId === 'CMFUTURE';
                 $toFuture = $toId === 'UMFUTURE' || $toId === 'CMFUTURE';
                 $fromSpot = $fromId === 'MAIN';
@@ -4740,7 +4740,7 @@ class binance extends Exchange {
                 $mining = $fromId === 'MINING' || $toId === 'MINING';
                 $prohibitedWithIsolated = $fromFuture || $toFuture || $mining || $funding;
                 if (($fromIsolated || $toIsolated) && $prohibitedWithIsolated) {
-                    throw new BadRequest($this->id . ' $transfer () does not allow transfers between ' . $fromAccount . ' and ' . $toAccount);
+                    throw new BadRequest($this->id . ' transfer () does not allow transfers between ' . $fromAccount . ' and ' . $toAccount);
                 } elseif ($toSpot && $fromIsolated) {
                     $method = 'sapiPostMarginIsolatedTransfer';
                     $request['transFrom'] = 'ISOLATED_MARGIN';
@@ -4773,13 +4773,7 @@ class binance extends Exchange {
         //         "tranId":13526853623
         //     }
         //
-        $transfer = $this->parse_transfer($response, $currency);
-        return array_merge($transfer, array(
-            'amount' => $amount,
-            'currency' => $code,
-            'fromAccount' => $fromAccount,
-            'toAccount' => $toAccount,
-        ));
+        return $this->parse_transfer($response, $currency);
     }
 
     public function fetch_transfers($code = null, $since = null, $limit = null, $params = array ()) {

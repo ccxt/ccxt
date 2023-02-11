@@ -2304,9 +2304,9 @@ class btcex extends Exchange {
             /**
              * fetch the current funding rates
              * @see https://docs.btcex.com/#contracts
-             * @param {array} $symbols unified $market $symbols
+             * @param {[string]} $symbols unified $market $symbols
              * @param {array} $params extra parameters specific to the btcex api endpoint
-             * @return {array} an array of {@link https://docs.ccxt.com/en/latest/manual.html#funding-rate-structure funding rate structures}
+             * @return {[array]} an array of {@link https://docs.ccxt.com/en/latest/manual.html#funding-rate-structure funding rate structures}
              */
             Async\await($this->load_markets());
             $symbols = $this->market_symbols($symbols);

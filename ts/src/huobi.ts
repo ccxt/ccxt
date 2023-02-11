@@ -6078,17 +6078,23 @@ export default class huobi extends Exchange {
          */
         await this.loadMarkets ();
         symbols = this.marketSymbols (symbols);
+        let market = undefined;
+        if (symbols !== undefined) {
+            const first = this.safeString (symbols, 0);
+            market = this.market (first);
+        }
         let marginMode = undefined;
         [ marginMode, params ] = this.handleMarginModeAndParams ('fetchPositions', params);
         marginMode = (marginMode === undefined) ? 'cross' : marginMode;
-        const defaultSubType = this.safeString (this.options, 'defaultSubType', 'inverse');
+        let subType = undefined;
+        [ subType, params ] = this.handleSubTypeAndParams ('fetchPositions', market, params, 'linear');
         let marketType = undefined;
-        [ marketType, params ] = this.handleMarketTypeAndParams ('fetchPositions', undefined, params);
+        [ marketType, params ] = this.handleMarketTypeAndParams ('fetchPositions', market, params);
         if (marketType === 'spot') {
             marketType = 'future';
         }
         let method = undefined;
-        if (defaultSubType === 'linear') {
+        if (subType === 'linear') {
             method = this.getSupportedMapping (marginMode, {
                 'isolated': 'contractPrivatePostLinearSwapApiV1SwapPositionInfo',
                 'cross': 'contractPrivatePostLinearSwapApiV1SwapCrossPositionInfo',

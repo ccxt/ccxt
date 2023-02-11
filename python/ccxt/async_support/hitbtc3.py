@@ -1890,12 +1890,7 @@ class hitbtc3(Exchange):
         #         '2db6ebab-fb26-4537-9ef8-1a689472d236'
         #     ]
         #
-        transfer = self.parse_transfer(response, currency)
-        return self.extend(transfer, {
-            'fromAccount': fromAccount,
-            'toAccount': toAccount,
-            'amount': self.parse_number(requestAmount),
-        })
+        return self.parse_transfer(response, currency)
 
     def parse_transfer(self, transfer, currency=None):
         #
