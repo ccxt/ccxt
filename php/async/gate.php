@@ -4167,14 +4167,14 @@ class gate extends Exchange {
     public function transfer($code, $amount, $fromAccount, $toAccount, $params = array ()) {
         return Async\async(function () use ($code, $amount, $fromAccount, $toAccount, $params) {
             /**
-             * $transfer $currency internally between wallets on the same account
+             * transfer $currency internally between wallets on the same account
              * @param {string} $code unified $currency $code for $currency being transferred
-             * @param {float} $amount the $amount of $currency to $transfer
-             * @param {string} $fromAccount the account to $transfer $currency from
-             * @param {string} $toAccount the account to $transfer $currency to
+             * @param {float} $amount the $amount of $currency to transfer
+             * @param {string} $fromAccount the account to transfer $currency from
+             * @param {string} $toAccount the account to transfer $currency to
              * @param {array} $params extra parameters specific to the gate api endpoint
              * @param {string|null} $params->symbol Unified $market $symbol *required for type == margin*
-             * @return A {@link https://docs.ccxt.com/en/latest/manual.html#$transfer-structure $transfer structure}
+             * @return A {@link https://docs.ccxt.com/en/latest/manual.html#transfer-structure transfer structure}
              */
             Async\await($this->load_markets());
             $currency = $this->currency($code);
@@ -4200,7 +4200,7 @@ class gate extends Exchange {
             if ($fromId === 'margin' || $toId === 'margin') {
                 $symbol = $this->safe_string_2($params, 'symbol', 'currency_pair');
                 if ($symbol === null) {
-                    throw new ArgumentsRequired($this->id . ' $transfer requires $params["symbol"] for isolated margin transfers');
+                    throw new ArgumentsRequired($this->id . ' transfer requires $params["symbol"] for isolated margin transfers');
                 }
                 $market = $this->market($symbol);
                 $request['currency_pair'] = $market['id'];
@@ -4221,12 +4221,7 @@ class gate extends Exchange {
             //        "currency_pair" => "BTC_USDT"
             //    }
             //
-            $transfer = $this->parse_transfer($response, $currency);
-            return array_merge($transfer, array(
-                'fromAccount' => $fromAccount,
-                'toAccount' => $toAccount,
-                'amount' => $this->parse_number($truncated),
-            ));
+            return $this->parse_transfer($response, $currency);
         }) ();
     }
 

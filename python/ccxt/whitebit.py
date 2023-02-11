@@ -1594,12 +1594,7 @@ class whitebit(Exchange):
         #
         #    []
         #
-        transfer = self.parse_transfer(response, currency)
-        return self.extend(transfer, {
-            'amount': amount,
-            'fromAccount': fromAccount,
-            'toAccount': toAccount,
-        })
+        return self.parse_transfer(response, currency)
 
     def parse_transfer(self, transfer, currency):
         #

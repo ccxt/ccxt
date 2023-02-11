@@ -4548,13 +4548,7 @@ class binance(Exchange):
         #         "tranId":13526853623
         #     }
         #
-        transfer = self.parse_transfer(response, currency)
-        return self.extend(transfer, {
-            'amount': amount,
-            'currency': code,
-            'fromAccount': fromAccount,
-            'toAccount': toAccount,
-        })
+        return self.parse_transfer(response, currency)
 
     async def fetch_transfers(self, code=None, since=None, limit=None, params={}):
         """
