@@ -3124,6 +3124,7 @@ class gate extends Exchange {
              * @param {bool|null} $params->reduceOnly *$contract only* Indicates if this order is to reduce the size of a position
              * @param {bool|null} $params->close *$contract only* Set as true to close the position, with size set to 0
              * @param {bool|null} $params->auto_size *$contract only* Set $side to close dual-mode position, close_long closes the long $side, while close_short the short one, size also needs to be set to 0
+             * @param {int|null} $params->price_type *$contract only* 0 latest deal $price, 1 mark $price, 2 index $price
              * @return {array|null} {@link https://docs.ccxt.com/en/latest/manual.html#order-structure An order structure}
              */
             Async\await($this->load_markets());
@@ -3278,9 +3279,14 @@ class gate extends Exchange {
                             $rule = ($side === 'buy') ? 2 : 1;
                             $triggerOrderPrice = $this->price_to_precision($symbol, $takeProfitPrice);
                         }
+                        $priceType = $this->safe_integer($params, 'price_type', 0);
+                        if ($priceType < 0 || $priceType > 2) {
+                            throw new BadRequest($this->id . ' createOrder () price_type should be 0 latest deal $price, 1 mark $price, 2 index price');
+                        }
+                        $params = $this->omit($params, array( 'price_type' ));
                         $request['trigger'] = array(
                             // 'strategy_type' => 0, // 0 = by $price, 1 = by $price gap, only 0 is supported currently
-                            'price_type' => 0, // 0 latest deal $price, 1 mark $price, 2 index $price
+                            'price_type' => $priceType, // 0 latest deal $price, 1 mark $price, 2 index $price
                             'price' => $this->price_to_precision($symbol, $triggerOrderPrice), // $price or gap
                             'rule' => $rule, // 1 means price_type >= $price, 2 means price_type <= $price
                             // 'expiration' => $expiration, how many seconds to wait for the condition to be triggered before cancelling the order
