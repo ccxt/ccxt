@@ -225,7 +225,7 @@ class CCXTProTranspiler extends Transpiler {
     exportTypeScriptClassNames (file, classes) {
 
         log.bright.cyan ('Exporting WS TypeScript class names →', file.yellow)
-        
+
         const commonImports = [
             '        export const exchanges: string[]',
             '        class Exchange  extends ExchangePro {}'
@@ -244,11 +244,11 @@ class CCXTProTranspiler extends Transpiler {
         replacements.forEach (({ file, regex, replacement }) => {
             replaceInFile (file, regex, replacement)
         })
-        
+
     }
-    
+
     // -----------------------------------------------------------------------
-    
+
     async exportTypeScriptDeclarations (file, jsFolder) {
 
         const classes = await this.getTSClassDeclarationsAllFiles (wsExchangeIds, jsFolder);
@@ -256,7 +256,7 @@ class CCXTProTranspiler extends Transpiler {
     }
 
     // -----------------------------------------------------------------------
-    
+
     async transpileEverything (force = false, child = false) {
 
         // default pattern is '.js'
@@ -264,15 +264,15 @@ class CCXTProTranspiler extends Transpiler {
         const exchanges = process.argv.slice (2).filter (x => !x.startsWith ('--'))
             // , python2Folder = './python/ccxtpro/', // CCXT Pro does not support Python 2
             , python3Folder = './python/ccxt/pro/'
-            , phpAsyncFolder     = './php/pro/'
-            , jsFolder = './js/pro/'
+            , phpAsyncFolder = './php/pro/'
+            , tsFolder = './ts/src/pro/'
             , options = { /* python2Folder, */ python3Folder, phpAsyncFolder, exchanges }
 
         // createFolderRecursively (python2Folder)
         createFolderRecursively (python3Folder)
         createFolderRecursively (phpAsyncFolder)
 
-        const classes = this.transpileDerivedExchangeFiles ('./ts/src/pro/', options, '.ts', force, child || exchanges.length)
+        const classes = this.transpileDerivedExchangeFiles (tsFolder, options, '.ts', force, child || exchanges.length)
 
         if (child) {
             return
@@ -289,7 +289,7 @@ class CCXTProTranspiler extends Transpiler {
 
         // HINT: if we're going to support specific class definitions
         // this process won't work anymore as it will override the definitions
-        await this.exportTypeScriptDeclarations (tsFilename, jsFolder)
+        await this.exportTypeScriptDeclarations (tsFilename, tsFolder)
 
         //*/
 
