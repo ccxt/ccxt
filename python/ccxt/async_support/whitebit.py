@@ -1012,7 +1012,7 @@ class whitebit(Exchange):
         market = self.market(symbol)
         request = {
             'market': market['id'],
-            'interval': self.timeframes[timeframe],
+            'interval': self.safe_string(self.timeframes, timeframe, timeframe),
         }
         if since is not None:
             maxLimit = 1440
@@ -1594,12 +1594,7 @@ class whitebit(Exchange):
         #
         #    []
         #
-        transfer = self.parse_transfer(response, currency)
-        return self.extend(transfer, {
-            'amount': amount,
-            'fromAccount': fromAccount,
-            'toAccount': toAccount,
-        })
+        return self.parse_transfer(response, currency)
 
     def parse_transfer(self, transfer, currency):
         #

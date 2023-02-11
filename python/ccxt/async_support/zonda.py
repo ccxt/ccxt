@@ -1045,7 +1045,7 @@ class zonda(Exchange):
         tradingSymbol = market['baseId'] + '-' + market['quoteId']
         request = {
             'symbol': tradingSymbol,
-            'resolution': self.timeframes[timeframe],
+            'resolution': self.safe_string(self.timeframes, timeframe, timeframe),
             # 'from': 1574709092000,  # unix timestamp in milliseconds, required
             # 'to': 1574709092000,  # unix timestamp in milliseconds, required
         }

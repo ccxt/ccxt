@@ -253,7 +253,7 @@ class cryptocom(Exchange, ccxt.async_support.cryptocom):
         symbol = market['symbol']
         if not market['spot']:
             raise NotSupported(self.id + ' watchOHLCV() supports spot markets only')
-        interval = self.timeframes[timeframe]
+        interval = self.safe_string(self.timeframes, timeframe, timeframe)
         messageHash = 'candlestick' + '.' + interval + '.' + market['id']
         ohlcv = await self.watch_public(messageHash, params)
         if self.newUpdates:

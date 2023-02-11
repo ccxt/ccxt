@@ -742,7 +742,7 @@ class bitopro extends Exchange {
              */
             Async\await($this->load_markets());
             $market = $this->market($symbol);
-            $resolution = $this->timeframes[$timeframe];
+            $resolution = $this->safe_string($this->timeframes, $timeframe, $timeframe);
             $request = array(
                 'pair' => $market['id'],
                 'resolution' => $resolution,

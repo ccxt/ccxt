@@ -1341,7 +1341,7 @@ module.exports = class hitbtc3 extends Exchange {
         const market = this.market (symbol);
         const request = {
             'symbols': market['id'],
-            'period': this.timeframes[timeframe],
+            'period': this.safeString (this.timeframes, timeframe, timeframe),
         };
         if (since !== undefined) {
             request['from'] = this.iso8601 (since);
@@ -2030,12 +2030,7 @@ module.exports = class hitbtc3 extends Exchange {
         //         '2db6ebab-fb26-4537-9ef8-1a689472d236'
         //     ]
         //
-        const transfer = this.parseTransfer (response, currency);
-        return this.extend (transfer, {
-            'fromAccount': fromAccount,
-            'toAccount': toAccount,
-            'amount': this.parseNumber (requestAmount),
-        });
+        return this.parseTransfer (response, currency);
     }
 
     parseTransfer (transfer, currency = undefined) {

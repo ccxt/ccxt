@@ -1052,7 +1052,7 @@ module.exports = class whitebit extends Exchange {
         const market = this.market (symbol);
         const request = {
             'market': market['id'],
-            'interval': this.timeframes[timeframe],
+            'interval': this.safeString (this.timeframes, timeframe, timeframe),
         };
         if (since !== undefined) {
             const maxLimit = 1440;
@@ -1706,12 +1706,7 @@ module.exports = class whitebit extends Exchange {
         //
         //    []
         //
-        const transfer = this.parseTransfer (response, currency);
-        return this.extend (transfer, {
-            'amount': amount,
-            'fromAccount': fromAccount,
-            'toAccount': toAccount,
-        });
+        return this.parseTransfer (response, currency);
     }
 
     parseTransfer (transfer, currency) {

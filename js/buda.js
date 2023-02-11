@@ -645,7 +645,7 @@ module.exports = class buda extends Exchange {
         }
         const request = {
             'symbol': market['id'],
-            'resolution': this.timeframes[timeframe],
+            'resolution': this.safeString (this.timeframes, timeframe, timeframe),
             'from': since / 1000,
             'to': this.seconds (),
         };

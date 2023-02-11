@@ -1176,7 +1176,7 @@ class coinex(Exchange):
         market = self.market(symbol)
         request = {
             'market': market['id'],
-            'type': self.timeframes[timeframe],
+            'type': self.safe_string(self.timeframes, timeframe, timeframe),
         }
         if limit is not None:
             request['limit'] = limit
@@ -3337,9 +3337,9 @@ class coinex(Exchange):
         """
          *  @method
         fetch the current funding rates
-        :param array symbols: unified market symbols
+        :param [str] symbols: unified market symbols
         :param dict params: extra parameters specific to the coinex api endpoint
-        :returns array: an array of `funding rate structures <https://docs.ccxt.com/en/latest/manual.html#funding-rate-structure>`
+        :returns [dict]: an array of `funding rate structures <https://docs.ccxt.com/en/latest/manual.html#funding-rate-structure>`
         """
         await self.load_markets()
         symbols = self.market_symbols(symbols)

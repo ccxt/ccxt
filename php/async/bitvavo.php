@@ -841,7 +841,7 @@ class bitvavo extends Exchange {
             $market = $this->market($symbol);
             $request = array(
                 'market' => $market['id'],
-                'interval' => $this->timeframes[$timeframe],
+                'interval' => $this->safe_string($this->timeframes, $timeframe, $timeframe),
                 // 'limit' => 1440, // default 1440, max 1440
                 // 'start' => $since,
                 // 'end' => $this->milliseconds(),

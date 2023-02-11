@@ -752,7 +752,7 @@ module.exports = class mercado extends Exchange {
         await this.loadMarkets ();
         const market = this.market (symbol);
         const request = {
-            'resolution': this.timeframes[timeframe],
+            'resolution': this.safeString (this.timeframes, timeframe, timeframe),
             'symbol': market['base'] + '-' + market['quote'], // exceptional endpoint, that needs custom symbol syntax
         };
         if (limit === undefined) {

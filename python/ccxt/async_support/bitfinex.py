@@ -1239,7 +1239,7 @@ class bitfinex(Exchange):
         v2id = 't' + market['id']
         request = {
             'symbol': v2id,
-            'timeframe': self.timeframes[timeframe],
+            'timeframe': self.safe_string(self.timeframes, timeframe, timeframe),
             'sort': 1,
             'limit': limit,
         }

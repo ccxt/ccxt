@@ -1226,7 +1226,7 @@ class coinex extends Exchange {
             $market = $this->market($symbol);
             $request = array(
                 'market' => $market['id'],
-                'type' => $this->timeframes[$timeframe],
+                'type' => $this->safe_string($this->timeframes, $timeframe, $timeframe),
             );
             if ($limit !== null) {
                 $request['limit'] = $limit;
@@ -3566,9 +3566,9 @@ class coinex extends Exchange {
             /**
              *  @method
              * fetch the current funding rates
-             * @param {array} $symbols unified $market $symbols
+             * @param {[string]} $symbols unified $market $symbols
              * @param {array} $params extra parameters specific to the coinex api endpoint
-             * @return {array} an array of {@link https://docs.ccxt.com/en/latest/manual.html#funding-rate-structure funding rate structures}
+             * @return {[array]} an array of {@link https://docs.ccxt.com/en/latest/manual.html#funding-rate-structure funding rate structures}
              */
             Async\await($this->load_markets());
             $symbols = $this->market_symbols($symbols);

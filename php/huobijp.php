@@ -18,8 +18,6 @@ class huobijp extends Exchange {
             'userAgent' => $this->userAgents['chrome39'],
             'certified' => false,
             'version' => 'v1',
-            'accounts' => null,
-            'accountsById' => null,
             'hostname' => 'api-cloud.huobi.co.jp',
             'pro' => true,
             'has' => array(
@@ -942,7 +940,7 @@ class huobijp extends Exchange {
         $market = $this->market($symbol);
         $request = array(
             'symbol' => $market['id'],
-            'period' => $this->timeframes[$timeframe],
+            'period' => $this->safe_string($this->timeframes, $timeframe, $timeframe),
         );
         if ($limit !== null) {
             $request['size'] = $limit;

@@ -458,7 +458,7 @@ class bitbank extends Exchange {
         $market = $this->market($symbol);
         $request = array(
             'pair' => $market['id'],
-            'candletype' => $this->timeframes[$timeframe],
+            'candletype' => $this->safe_string($this->timeframes, $timeframe, $timeframe),
             'yyyymmdd' => $this->yyyymmdd($since, ''),
         );
         $response = $this->publicGetPairCandlestickCandletypeYyyymmdd (array_merge($request, $params));

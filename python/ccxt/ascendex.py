@@ -1049,7 +1049,7 @@ class ascendex(Exchange):
         market = self.market(symbol)
         request = {
             'symbol': market['id'],
-            'interval': self.timeframes[timeframe],
+            'interval': self.safe_string(self.timeframes, timeframe, timeframe),
         }
         # if since and limit are not specified
         # the exchange will return just 1 last candle by default

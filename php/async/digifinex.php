@@ -1508,7 +1508,7 @@ class digifinex extends Exchange {
                 }
             } else {
                 $request['symbol'] = $market['id'];
-                $request['period'] = $this->timeframes[$timeframe];
+                $request['period'] = $this->safe_string($this->timeframes, $timeframe, $timeframe);
                 if ($since !== null) {
                     $startTime = intval($since / 1000);
                     $request['start_time'] = $startTime;
@@ -2727,13 +2727,13 @@ class digifinex extends Exchange {
     public function transfer($code, $amount, $fromAccount, $toAccount, $params = array ()) {
         return Async\async(function () use ($code, $amount, $fromAccount, $toAccount, $params) {
             /**
-             * $transfer $currency internally between wallets on the same account
+             * transfer $currency internally between wallets on the same account
              * @param {string} $code unified $currency $code
-             * @param {float} $amount amount to $transfer
-             * @param {string} $fromAccount account to $transfer from
-             * @param {string} $toAccount account to $transfer to
+             * @param {float} $amount amount to transfer
+             * @param {string} $fromAccount account to transfer from
+             * @param {string} $toAccount account to transfer to
              * @param {array} $params extra parameters specific to the digifinex api endpoint
-             * @return {array} a {@link https://docs.ccxt.com/en/latest/manual.html#$transfer-structure $transfer structure}
+             * @return {array} a {@link https://docs.ccxt.com/en/latest/manual.html#transfer-structure transfer structure}
              */
             Async\await($this->load_markets());
             $currency = $this->currency($code);
@@ -2752,13 +2752,7 @@ class digifinex extends Exchange {
             //         "code" => 0
             //     }
             //
-            $transfer = $this->parse_transfer($response, $currency);
-            return array_merge($transfer, array(
-                'amount' => $amount,
-                'currency' => $code,
-                'fromAccount' => $fromAccount,
-                'toAccount' => $toAccount,
-            ));
+            return $this->parse_transfer($response, $currency);
         }) ();
     }
 

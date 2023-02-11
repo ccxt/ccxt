@@ -19,8 +19,6 @@ module.exports = class huobijp extends Exchange {
             'userAgent': this.userAgents['chrome39'],
             'certified': false,
             'version': 'v1',
-            'accounts': undefined,
-            'accountsById': undefined,
             'hostname': 'api-cloud.huobi.co.jp',
             'pro': true,
             'has': {
@@ -961,7 +959,7 @@ module.exports = class huobijp extends Exchange {
         const market = this.market (symbol);
         const request = {
             'symbol': market['id'],
-            'period': this.timeframes[timeframe],
+            'period': this.safeString (this.timeframes, timeframe, timeframe),
         };
         if (limit !== undefined) {
             request['size'] = limit;

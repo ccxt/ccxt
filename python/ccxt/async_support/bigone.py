@@ -666,7 +666,7 @@ class bigone(Exchange):
             limit = 100  # default 100, max 500
         request = {
             'asset_pair_name': market['id'],
-            'period': self.timeframes[timeframe],
+            'period': self.safe_string(self.timeframes, timeframe, timeframe),
             'limit': limit,
         }
         if since is not None:

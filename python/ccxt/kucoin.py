@@ -1128,7 +1128,7 @@ class kucoin(Exchange):
         marketId = market['id']
         request = {
             'symbol': marketId,
-            'type': self.timeframes[timeframe],
+            'type': self.safe_string(self.timeframes, timeframe, timeframe),
         }
         duration = self.parse_timeframe(timeframe) * 1000
         endAt = self.milliseconds()  # required param
@@ -1789,10 +1789,12 @@ class kucoin(Exchange):
                 status = 'cancelled'
         if cancelExist:
             status = 'canceled'
+        if status is None:
+            status = 'closed'
         stopPrice = self.safe_number(order, 'stopPrice')
         return self.safe_order({
             'info': order,
-            'id': self.safe_string(order, 'id'),
+            'id': self.safe_string_2(order, 'id', 'orderId'),
             'clientOrderId': self.safe_string(order, 'clientOid'),
             'symbol': self.safe_symbol(marketId, market, '-'),
             'type': self.safe_string(order, 'type'),
@@ -3291,6 +3293,8 @@ class kucoin(Exchange):
         version = self.safe_string(params, 'version', defaultVersion)
         params = self.omit(params, 'version')
         endpoint = '/api/' + version + '/' + self.implode_params(path, params)
+        if api == 'webFront':
+            endpoint = '/' + self.implode_params(path, params)
         query = self.omit(params, self.extract_params(path))
         endpart = ''
         headers = headers if (headers is not None) else {}

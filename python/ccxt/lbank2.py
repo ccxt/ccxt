@@ -664,7 +664,7 @@ class lbank2(Exchange):
             since = self.milliseconds() - duration * 1000 * limit
         request = {
             'symbol': market['id'],
-            'type': self.timeframes[timeframe],
+            'type': self.safe_string(self.timeframes, timeframe, timeframe),
             'time': int(since / 1000),
             'size': limit,  # max 2000
         }

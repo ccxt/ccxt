@@ -1067,7 +1067,7 @@ class ascendex extends Exchange {
         $market = $this->market($symbol);
         $request = array(
             'symbol' => $market['id'],
-            'interval' => $this->timeframes[$timeframe],
+            'interval' => $this->safe_string($this->timeframes, $timeframe, $timeframe),
         );
         // if $since and $limit are not specified
         // the exchange will return just 1 last candle by default

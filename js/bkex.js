@@ -527,14 +527,14 @@ module.exports = class bkex extends Exchange {
         if (swap) {
             const swapTimeframes = this.safeValue (timeframes, 'swap');
             method = 'publicSwapGetMarketCandle';
-            request['period'] = swapTimeframes[timeframe];
+            request['period'] = this.safeString (swapTimeframes, timeframe, timeframe);
             if (limit !== undefined) {
                 request['count'] = limit;
             }
         } else {
             const spotTimeframes = this.safeValue (timeframes, 'spot');
             request['symbol'] = market['id'];
-            request['period'] = spotTimeframes[timeframe];
+            request['period'] = this.safeString (spotTimeframes, timeframe, timeframe);
         }
         if (limit !== undefined) {
             const limitRequest = swap ? 'count' : 'size';

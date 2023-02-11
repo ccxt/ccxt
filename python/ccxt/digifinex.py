@@ -1443,7 +1443,7 @@ class digifinex(Exchange):
                 request['limit'] = limit
         else:
             request['symbol'] = market['id']
-            request['period'] = self.timeframes[timeframe]
+            request['period'] = self.safe_string(self.timeframes, timeframe, timeframe)
             if since is not None:
                 startTime = int(since / 1000)
                 request['start_time'] = startTime
@@ -2577,13 +2577,7 @@ class digifinex(Exchange):
         #         "code": 0
         #     }
         #
-        transfer = self.parse_transfer(response, currency)
-        return self.extend(transfer, {
-            'amount': amount,
-            'currency': code,
-            'fromAccount': fromAccount,
-            'toAccount': toAccount,
-        })
+        return self.parse_transfer(response, currency)
 
     def withdraw(self, code, amount, address, tag=None, params={}):
         """

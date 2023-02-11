@@ -34,8 +34,6 @@ class huobijp(Exchange):
             'userAgent': self.userAgents['chrome39'],
             'certified': False,
             'version': 'v1',
-            'accounts': None,
-            'accountsById': None,
             'hostname': 'api-cloud.huobi.co.jp',
             'pro': True,
             'has': {
@@ -921,7 +919,7 @@ class huobijp(Exchange):
         market = self.market(symbol)
         request = {
             'symbol': market['id'],
-            'period': self.timeframes[timeframe],
+            'period': self.safe_string(self.timeframes, timeframe, timeframe),
         }
         if limit is not None:
             request['size'] = limit

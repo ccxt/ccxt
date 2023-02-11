@@ -1355,7 +1355,7 @@ class hitbtc3 extends Exchange {
             $market = $this->market($symbol);
             $request = array(
                 'symbols' => $market['id'],
-                'period' => $this->timeframes[$timeframe],
+                'period' => $this->safe_string($this->timeframes, $timeframe, $timeframe),
             );
             if ($since !== null) {
                 $request['from'] = $this->iso8601($since);
@@ -2014,13 +2014,13 @@ class hitbtc3 extends Exchange {
     public function transfer($code, $amount, $fromAccount, $toAccount, $params = array ()) {
         return Async\async(function () use ($code, $amount, $fromAccount, $toAccount, $params) {
             /**
-             * $transfer $currency internally between wallets on the same account
+             * transfer $currency internally between wallets on the same account
              * @param {string} $code unified $currency $code
-             * @param {float} $amount amount to $transfer
-             * @param {string} $fromAccount account to $transfer from
-             * @param {string} $toAccount account to $transfer to
+             * @param {float} $amount amount to transfer
+             * @param {string} $fromAccount account to transfer from
+             * @param {string} $toAccount account to transfer to
              * @param {array} $params extra parameters specific to the hitbtc3 api endpoint
-             * @return {array} a {@link https://docs.ccxt.com/en/latest/manual.html#$transfer-structure $transfer structure}
+             * @return {array} a {@link https://docs.ccxt.com/en/latest/manual.html#transfer-structure transfer structure}
              */
             // account can be "spot", "wallet", or "derivatives"
             Async\await($this->load_markets());
@@ -2032,7 +2032,7 @@ class hitbtc3 extends Exchange {
             $fromId = $this->safe_string($accountsByType, $fromAccount, $fromAccount);
             $toId = $this->safe_string($accountsByType, $toAccount, $toAccount);
             if ($fromId === $toId) {
-                throw new BadRequest($this->id . ' $transfer() $fromAccount and $toAccount arguments cannot be the same account');
+                throw new BadRequest($this->id . ' transfer() $fromAccount and $toAccount arguments cannot be the same account');
             }
             $request = array(
                 'currency' => $currency['id'],
@@ -2046,12 +2046,7 @@ class hitbtc3 extends Exchange {
             //         '2db6ebab-fb26-4537-9ef8-1a689472d236'
             //     )
             //
-            $transfer = $this->parse_transfer($response, $currency);
-            return array_merge($transfer, array(
-                'fromAccount' => $fromAccount,
-                'toAccount' => $toAccount,
-                'amount' => $this->parse_number($requestAmount),
-            ));
+            return $this->parse_transfer($response, $currency);
         }) ();
     }
 

@@ -40,6 +40,7 @@ class kucoinfutures extends \ccxt\async\kucoinfutures {
                 'tradesLimit' => 1000,
                 'watchOrderBook' => array(
                     'snapshotDelay' => 20,
+                    'maxRetries' => 3,
                 ),
                 'watchTicker' => array(
                     'name' => 'contractMarket/tickerV2', // market/ticker

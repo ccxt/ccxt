@@ -402,12 +402,7 @@ class hitbtc(Exchange):
         #         'id': '2db6ebab-fb26-4537-9ef8-1a689472d236'
         #     }
         #
-        transfer = self.parse_transfer(response, currency)
-        return self.extend(transfer, {
-            'fromAccount': fromAccount,
-            'toAccount': toAccount,
-            'amount': self.parse_number(requestAmount),
-        })
+        return self.parse_transfer(response, currency)
 
     def parse_transfer(self, transfer, currency=None):
         #
@@ -614,7 +609,7 @@ class hitbtc(Exchange):
         market = self.market(symbol)
         request = {
             'symbol': market['id'],
-            'period': self.timeframes[timeframe],
+            'period': self.safe_string(self.timeframes, timeframe, timeframe),
         }
         if since is not None:
             request['from'] = self.iso8601(since)

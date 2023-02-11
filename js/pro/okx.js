@@ -220,7 +220,7 @@ module.exports = class okx extends okxRest {
          */
         await this.loadMarkets ();
         symbol = this.symbol (symbol);
-        const interval = this.timeframes[timeframe];
+        const interval = this.safeString (this.timeframes, timeframe, timeframe);
         const name = 'candle' + interval;
         const ohlcv = await this.subscribe ('public', name, symbol, params);
         if (this.newUpdates) {

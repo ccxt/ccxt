@@ -889,7 +889,7 @@ class bitrue extends Exchange {
             $market = $this->market($symbol);
             $request = array(
                 'symbol' => $market['id'],
-                'scale' => $this->timeframes[$timeframe],
+                'scale' => $this->safe_string($this->timeframes, $timeframe, $timeframe),
             );
             if ($limit !== null) {
                 $request['limit'] = $limit;

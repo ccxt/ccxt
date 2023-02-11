@@ -567,7 +567,7 @@ class btcalpha(Exchange):
         market = self.market(symbol)
         request = {
             'pair': market['id'],
-            'type': self.timeframes[timeframe],
+            'type': self.safe_string(self.timeframes, timeframe, timeframe),
         }
         if limit is not None:
             request['limit'] = limit

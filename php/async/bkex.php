@@ -531,14 +531,14 @@ class bkex extends Exchange {
             if ($swap) {
                 $swapTimeframes = $this->safe_value($timeframes, 'swap');
                 $method = 'publicSwapGetMarketCandle';
-                $request['period'] = $swapTimeframes[$timeframe];
+                $request['period'] = $this->safe_string($swapTimeframes, $timeframe, $timeframe);
                 if ($limit !== null) {
                     $request['count'] = $limit;
                 }
             } else {
                 $spotTimeframes = $this->safe_value($timeframes, 'spot');
                 $request['symbol'] = $market['id'];
-                $request['period'] = $spotTimeframes[$timeframe];
+                $request['period'] = $this->safe_string($spotTimeframes, $timeframe, $timeframe);
             }
             if ($limit !== null) {
                 $limitRequest = $swap ? 'count' : 'size';
