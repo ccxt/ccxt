@@ -2724,7 +2724,7 @@ class coinbase extends Exchange {
                 $request['limit'] = $limit;
             }
             if ($since !== null) {
-                $request['start_sequence_timestamp'] = $this->parse8601($since);
+                $request['start_sequence_timestamp'] = $this->iso8601($since);
             }
             $response = Async\await($this->v3PrivateGetBrokerageOrdersHistoricalFills (array_merge($request, $params)));
             //

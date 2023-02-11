@@ -2532,7 +2532,7 @@ class coinbase(Exchange):
         if limit is not None:
             request['limit'] = limit
         if since is not None:
-            request['start_sequence_timestamp'] = self.parse8601(since)
+            request['start_sequence_timestamp'] = self.iso8601(since)
         response = self.v3PrivateGetBrokerageOrdersHistoricalFills(self.extend(request, params))
         #
         #     {
