@@ -430,6 +430,8 @@ class coinex(Exchange, ccxt.async_support.coinex):
 
     async def watch_order_book(self, symbol, limit=None, params={}):
         """
+        see https://viabtc.github.io/coinex_api_en_doc/spot/#docsspot004_websocket017_depth_subscribe_multi
+        see https://viabtc.github.io/coinex_api_en_doc/futures/#docsfutures002_websocket011_depth_subscribe_multi
         watches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
         :param str symbol: unified symbol of the market to fetch the order book for
         :param int|None limit: the maximum amount of order book entries to return
@@ -456,18 +458,17 @@ class coinex(Exchange, ccxt.async_support.coinex):
         if not self.in_array(aggregation, aggregations):
             raise NotSupported(self.id + ' watchOrderBook() aggregation must be one of ' + ', '.join(aggregations))
         params = self.omit(params, 'aggregation')
+        watchOrderBookSubscriptions = self.safe_value(self.options, 'watchOrderBookSubscriptions', {})
+        watchOrderBookSubscriptions[symbol] = [market['id'], limit, aggregation, True]
         subscribe = {
-            'method': 'depth.subscribe',
+            'method': 'depth.subscribe_multi',
             'id': self.request_id(),
-            'params': [
-                market['id'],
-                limit,
-                aggregation,
-                True,
-            ],
+            'params': list(watchOrderBookSubscriptions.values()),
         }
+        self.options['watchOrderBookSubscriptions'] = watchOrderBookSubscriptions
+        subscriptionHash = self.hash(self.encode(self.json(watchOrderBookSubscriptions)))
         request = self.deep_extend(subscribe, params)
-        orderbook = await self.watch(url, messageHash, request, messageHash)
+        orderbook = await self.watch(url, messageHash, request, subscriptionHash, request)
         return orderbook.limit()
 
     async def watch_ohlcv(self, symbol, timeframe='1m', since=None, limit=None, params={}):

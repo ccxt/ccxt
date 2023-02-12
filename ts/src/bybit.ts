@@ -1875,7 +1875,7 @@ export default class bybit extends Exchange {
          * @see https://bybit-exchange.github.io/docs/spot/v3/#t-spot_latestsymbolinfo
          * @param {[string]|undefined} symbols unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
          * @param {object} params extra parameters specific to the bybit api endpoint
-         * @returns {object} an array of [ticker structures]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
+         * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
          */
         await this.loadMarkets ();
         let market = undefined;
@@ -4515,28 +4515,18 @@ export default class bybit extends Exchange {
     async fetchDerivativesOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
         let market = undefined;
-        let settle = undefined;
         const request = {
             // 'symbol': market['id'],
-            // 'order_id': 'string'
-            // 'order_link_id': 'string', // unique client order id, max 36 characters
-            // 'symbol': market['id'], // default BTCUSD
-            // 'order': 'desc', // asc
-            // 'page': 1,
-            // 'limit': 20, // max 50
-            // 'order_status': 'Created,New'
-            // conditional orders ---------------------------------------------
-            // 'stop_order_id': 'string',
-            // 'stop_order_status': 'Untriggered',
+            // 'orderId': 'string'
+            // 'orderLinkId': 'string', // unique client order id, max 36 characters
+            // 'orderStatus': 'Created,New'
+            // 'orderFilter': 'StopOrder', // 'Order' or 'StopOrder'
+            // 'limit': 20, // Limit for data size per page. [1, 50]. Default: 20
+            // 'cursor': 'string', // used for pagination
         };
         if (symbol !== undefined) {
             market = this.market (symbol);
-            settle = market['settle'];
             request['symbol'] = market['id'];
-        }
-        [ settle, params ] = this.handleOptionAndParams (params, 'cancelAllOrders', 'settle', settle);
-        if (settle !== undefined) {
-            request['settleCoin'] = settle;
         }
         const isStop = this.safeValue (params, 'stop', false);
         params = this.omit (params, [ 'stop' ]);

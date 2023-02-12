@@ -459,6 +459,8 @@ export default class coinex extends coinexRest {
         /**
          * @method
          * @name coinex#watchOrderBook
+         * @see https://viabtc.github.io/coinex_api_en_doc/spot/#docsspot004_websocket017_depth_subscribe_multi
+         * @see https://viabtc.github.io/coinex_api_en_doc/futures/#docsfutures002_websocket011_depth_subscribe_multi
          * @description watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
          * @param {string} symbol unified symbol of the market to fetch the order book for
          * @param {int|undefined} limit the maximum amount of order book entries to return
@@ -488,18 +490,17 @@ export default class coinex extends coinexRest {
             throw new NotSupported (this.id + ' watchOrderBook() aggregation must be one of ' + aggregations.join (', '));
         }
         params = this.omit (params, 'aggregation');
+        const watchOrderBookSubscriptions = this.safeValue (this.options, 'watchOrderBookSubscriptions', {});
+        watchOrderBookSubscriptions[symbol] = [ market['id'], limit, aggregation, true ];
         const subscribe = {
-            'method': 'depth.subscribe',
+            'method': 'depth.subscribe_multi',
             'id': this.requestId (),
-            'params': [
-                market['id'],
-                limit,
-                aggregation,
-                true,
-            ],
+            'params': Object.values (watchOrderBookSubscriptions),
         };
+        this.options['watchOrderBookSubscriptions'] = watchOrderBookSubscriptions;
+        const subscriptionHash = this.hash (this.encode (this.json (watchOrderBookSubscriptions)));
         const request = this.deepExtend (subscribe, params);
-        const orderbook = await this.watch (url, messageHash, request, messageHash);
+        const orderbook = await this.watch (url, messageHash, request, subscriptionHash, request);
         return orderbook.limit ();
     }
 

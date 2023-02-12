@@ -1202,7 +1202,7 @@ class coinbase extends Exchange {
              * fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
              * @param {[string]|null} $symbols unified $symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
              * @param {array} $params extra parameters specific to the coinbase api endpoint
-             * @return {array} an array of {@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure ticker structures}
+             * @return {array} a dictionary of {@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure ticker structures}
              */
             $method = $this->safe_string($this->options, 'fetchTickers', 'fetchTickersV3');
             if ($method === 'fetchTickersV3') {
@@ -2724,7 +2724,7 @@ class coinbase extends Exchange {
                 $request['limit'] = $limit;
             }
             if ($since !== null) {
-                $request['start_sequence_timestamp'] = $this->parse8601($since);
+                $request['start_sequence_timestamp'] = $this->iso8601($since);
             }
             $response = Async\await($this->v3PrivateGetBrokerageOrdersHistoricalFills (array_merge($request, $params)));
             //

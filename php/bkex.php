@@ -672,7 +672,7 @@ class bkex extends Exchange {
          * @see https://bkexapi.github.io/docs/api_en.htm?shell#contract-ticker-data
          * @param {[string]|null} $symbols unified $symbols of the markets to fetch the ticker for, all $market $tickers are returned if not assigned
          * @param {array} $params extra parameters specific to the bkex api endpoint
-         * @return {array} an array of {@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure ticker structures}
+         * @return {array} a dictionary of {@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure ticker structures}
          */
         $this->load_markets();
         $request = array();
