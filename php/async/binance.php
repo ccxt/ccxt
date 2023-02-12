@@ -145,8 +145,6 @@ class binance extends Exchange {
                     'dapiPublic' => 'https://testnet.binancefuture.com/dapi/v1',
                     'dapiPrivate' => 'https://testnet.binancefuture.com/dapi/v1',
                     'dapiPrivateV2' => 'https://testnet.binancefuture.com/dapi/v2',
-                    'eapiPublic' => 'https://testnet.binanceops.com/eapi/v1',
-                    'eapiPrivate' => 'https://testnet.binanceops.com/eapi/v1',
                     'fapiPublic' => 'https://testnet.binancefuture.com/fapi/v1',
                     'fapiPrivate' => 'https://testnet.binancefuture.com/fapi/v1',
                     'fapiPrivateV2' => 'https://testnet.binancefuture.com/fapi/v2',
@@ -890,7 +888,8 @@ class binance extends Exchange {
             'precisionMode' => DECIMAL_PLACES,
             // exchange-specific options
             'options' => array(
-                'fetchMarkets' => array( 'spot', 'linear', 'inverse', 'option' ),
+                'sandboxMode' => false,
+                'fetchMarkets' => array( 'spot', 'linear', 'inverse' ),
                 'fetchCurrencies' => true, // this is a private call and it requires API keys
                 // 'fetchTradesMethod' => 'publicGetAggTrades', // publicGetTrades, publicGetHistoricalTrades
                 'defaultTimeInForce' => 'GTC', // 'GTC' = Good To Cancel (default), 'IOC' = Immediate Or Cancel
@@ -1420,6 +1419,11 @@ class binance extends Exchange {
         }
     }
 
+    public function set_sandbox_mode($enable) {
+        parent::set_sandbox_mode($enable);
+        $this->options['sandboxMode'] = $enable;
+    }
+
     public function market($symbol) {
         if ($this->markets === null) {
             throw new ExchangeError($this->id . ' $markets not loaded');
@@ -1700,7 +1704,12 @@ class binance extends Exchange {
              * @return {[array]} an array of objects representing market data
              */
             $promises = array();
-            $fetchMarkets = $this->safe_value($this->options, 'fetchMarkets', array( 'spot', 'linear', 'inverse', 'option' ));
+            $fetchMarkets = $this->safe_value($this->options, 'fetchMarkets', array( 'spot', 'linear', 'inverse' ));
+            $sandboxMode = $this->safe_value($this->options, 'sandboxMode', false);
+            if (!$sandboxMode) {
+                // options not available in sandbox mode
+                $fetchMarkets[] = 'option';
+            }
             for ($i = 0; $i < count($fetchMarkets); $i++) {
                 $marketType = $fetchMarkets[$i];
                 if ($marketType === 'spot') {
