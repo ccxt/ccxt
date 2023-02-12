@@ -877,7 +877,8 @@ module.exports = class binance extends Exchange {
             'precisionMode': DECIMAL_PLACES,
             // exchange-specific options
             'options': {
-                'fetchMarkets': [ 'spot', 'linear', 'inverse', 'option' ],
+                'sandboxMode': false,
+                'fetchMarkets': [ 'spot', 'linear', 'inverse' ],
                 'fetchCurrencies': true, // this is a private call and it requires API keys
                 // 'fetchTradesMethod': 'publicGetAggTrades', // publicGetTrades, publicGetHistoricalTrades
                 'defaultTimeInForce': 'GTC', // 'GTC' = Good To Cancel (default), 'IOC' = Immediate Or Cancel
@@ -1407,6 +1408,11 @@ module.exports = class binance extends Exchange {
         }
     }
 
+    setSandboxMode (enable) {
+        super.setSandboxMode (enable);
+        this.options['sandboxMode'] = enable;
+    }
+
     market (symbol) {
         if (this.markets === undefined) {
             throw new ExchangeError (this.id + ' markets not loaded');
@@ -1688,7 +1694,12 @@ module.exports = class binance extends Exchange {
          * @returns {[object]} an array of objects representing market data
          */
         let promises = [];
-        const fetchMarkets = this.safeValue (this.options, 'fetchMarkets', [ 'spot', 'linear', 'inverse', 'option' ]);
+        const fetchMarkets = this.safeValue (this.options, 'fetchMarkets', [ 'spot', 'linear', 'inverse' ]);
+        const sandboxMode = this.safeValue (this.options, 'sandboxMode', false);
+        if (!sandboxMode) {
+            // options not available in sandbox mode
+            fetchMarkets.push ('option');
+        }
         for (let i = 0; i < fetchMarkets.length; i++) {
             const marketType = fetchMarkets[i];
             if (marketType === 'spot') {
